@@ -2,7 +2,7 @@
 /*! \file cvc3_compat.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Francois Bobot
+ **   Morgan Deters, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -232,6 +232,9 @@ class CVC4_PUBLIC Context;
 class CVC4_PUBLIC Proof {};
 class CVC4_PUBLIC Theorem {};
 
+namespace api {
+class CVC4_PUBLIC Solver;
+}
 using CVC4::InputLanguage;
 using CVC4::Integer;
 using CVC4::Rational;
@@ -513,6 +516,7 @@ class CVC4_PUBLIC ValidityChecker {
 
   CLFlags* d_clflags;
   CVC4::Options d_options;
+  std::unique_ptr<CVC4::api::Solver> d_solver;
   CVC3::ExprManager* d_em;
   std::map<CVC4::ExprManager*, CVC4::ExprManagerMapCollection> d_emmc;
   std::set<ValidityChecker*> d_reverseEmmc;

@@ -14,9 +14,10 @@
 
 #include "parser/smt1/smt1.h"
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
-#include "smt/command.h"
 #include "parser/parser.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace parser {
@@ -70,9 +71,9 @@ Smt1::Logic Smt1::toLogic(const std::string& name) {
   return logicMap[name];
 }
 
-Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode,
-           bool parseOnly)
-    : Parser(exprManager, input, strictMode, parseOnly), d_logic(UNSET) {
+Smt1::Smt1(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_logic(UNSET)
+{
   // Boolean symbols are always defined
   addOperator(kind::AND);
   addOperator(kind::EQUAL);
@@ -81,7 +82,6 @@ Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode,
   addOperator(kind::NOT);
   addOperator(kind::OR);
   addOperator(kind::XOR);
-
 }
 
 void Smt1::addArithmeticOperators() {

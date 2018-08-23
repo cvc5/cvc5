@@ -22,6 +22,7 @@
 #include <iterator>
 #include <sstream>
 
+#include "api/cvc4cpp.h"
 #include "base/exception.h"
 #include "base/output.h"
 #include "expr/expr_iomanip.h"
@@ -944,42 +945,52 @@ void ValidityChecker::setUpOptions(CVC4::Options& options, const CLFlags& clflag
   }
 }
 
-ValidityChecker::ValidityChecker() :
-  d_clflags(new CLFlags()),
-  d_options(),
-  d_em(NULL),
-  d_emmc(),
-  d_reverseEmmc(),
-  d_smt(NULL),
-  d_parserContext(NULL),
-  d_exprTypeMapRemove(),
-  d_stackLevel(0),
-  d_constructors(),
-  d_selectors() {
-  d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
+ValidityChecker::ValidityChecker()
+    : d_clflags(new CLFlags()),
+      d_options(),
+      d_em(NULL),
+      d_emmc(),
+      d_reverseEmmc(),
+      d_smt(NULL),
+      d_parserContext(NULL),
+      d_exprTypeMapRemove(),
+      d_stackLevel(0),
+      d_constructors(),
+      d_selectors()
+{
+  d_solver.reset(new CVC4::api::Solver(&d_options));
+  d_smt = d_solver->getSmtEngine();
+  d_em = reinterpret_cast<ExprManager*>(d_solver->getExprManager());
   s_validityCheckers[d_em] = this;
-  d_smt = new CVC4::SmtEngine(d_em);
   setUpOptions(d_options, *d_clflags);
-  d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
+  d_parserContext = CVC4::parser::ParserBuilder(d_solver.get(), "<internal>")
+                        .withInputLanguage(CVC4::language::input::LANG_CVC4)
+                        .withStringInput("")
+                        .build();
 }
 
-ValidityChecker::ValidityChecker(const CLFlags& clflags) :
-  d_clflags(new CLFlags(clflags)),
-  d_options(),
-  d_em(NULL),
-  d_emmc(),
-  d_reverseEmmc(),
-  d_smt(NULL),
-  d_parserContext(NULL),
-  d_exprTypeMapRemove(),
-  d_stackLevel(0),
-  d_constructors(),
-  d_selectors() {
-  d_em = reinterpret_cast<ExprManager*>(new CVC4::ExprManager(d_options));
+ValidityChecker::ValidityChecker(const CLFlags& clflags)
+    : d_clflags(new CLFlags(clflags)),
+      d_options(),
+      d_em(NULL),
+      d_emmc(),
+      d_reverseEmmc(),
+      d_smt(NULL),
+      d_parserContext(NULL),
+      d_exprTypeMapRemove(),
+      d_stackLevel(0),
+      d_constructors(),
+      d_selectors()
+{
+  d_solver.reset(new CVC4::api::Solver(&d_options));
+  d_smt = d_solver->getSmtEngine();
+  d_em = reinterpret_cast<ExprManager*>(d_solver->getExprManager());
   s_validityCheckers[d_em] = this;
-  d_smt = new CVC4::SmtEngine(d_em);
   setUpOptions(d_options, *d_clflags);
-  d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
+  d_parserContext = CVC4::parser::ParserBuilder(d_solver.get(), "<internal>")
+                        .withInputLanguage(CVC4::language::input::LANG_CVC4)
+                        .withStringInput("")
+                        .build();
 }
 
 ValidityChecker::~ValidityChecker() {
@@ -989,14 +1000,12 @@ ValidityChecker::~ValidityChecker() {
   }
   d_exprTypeMapRemove.clear();
   delete d_parserContext;
-  delete d_smt;
   d_emmc.clear();
   for(set<ValidityChecker*>::iterator i = d_reverseEmmc.begin(); i != d_reverseEmmc.end(); ++i) {
     (*i)->d_emmc.erase(d_em);
   }
   d_reverseEmmc.clear();
   s_validityCheckers.erase(d_em);
-  delete d_em;
   delete d_clflags;
 }
 
@@ -1609,7 +1618,11 @@ Expr ValidityChecker::exprFromString(const std::string& s, InputLanguage lang) {
     throw Exception("Unsupported language in exprFromString: " + ss.str());
   }
 
-  CVC4::parser::Parser* p = CVC4::parser::ParserBuilder(d_em, "<internal>").withStringInput(s).withInputLanguage(lang).build();
+  CVC4::parser::Parser* p =
+      CVC4::parser::ParserBuilder(d_solver.get(), "<internal>")
+          .withStringInput(s)
+          .withInputLanguage(lang)
+          .build();
   p->useDeclarationsFrom(d_parserContext);
   Expr e = p->nextExpression();
   if( e.isNull() ) {
@@ -2570,7 +2583,10 @@ void ValidityChecker::reset() {
   // reset everything, forget everything
   d_smt->reset();
   delete d_parserContext;
-  d_parserContext = CVC4::parser::ParserBuilder(d_em, "<internal>").withInputLanguage(CVC4::language::input::LANG_CVC4).withStringInput("").build();
+  d_parserContext = CVC4::parser::ParserBuilder(d_solver.get(), "<internal>")
+                        .withInputLanguage(CVC4::language::input::LANG_CVC4)
+                        .withStringInput("")
+                        .build();
   s_typeToExpr.clear();
   s_exprToType.clear();
 }
@@ -2600,7 +2616,7 @@ void ValidityChecker::loadFile(const std::string& fileName,
   langss << lang;
   d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
   d_smt->setOption("interactive-mode", CVC4::SExpr(interactive ? true : false));
-  CVC4::parser::ParserBuilder parserBuilder(d_em, fileName, opts);
+  CVC4::parser::ParserBuilder parserBuilder(d_solver.get(), fileName, opts);
   CVC4::parser::Parser* p = parserBuilder.build();
   p->useDeclarationsFrom(d_parserContext);
   doCommands(p, d_smt, opts);
@@ -2617,7 +2633,7 @@ void ValidityChecker::loadFile(std::istream& is,
   langss << lang;
   d_smt->setOption("input-language", CVC4::SExpr(langss.str()));
   d_smt->setOption("interactive-mode", CVC4::SExpr(interactive ? true : false));
-  CVC4::parser::ParserBuilder parserBuilder(d_em, "[stream]", opts);
+  CVC4::parser::ParserBuilder parserBuilder(d_solver.get(), "[stream]", opts);
   CVC4::parser::Parser* p = parserBuilder.withStreamInput(is).build();
   d_parserContext = p;
   p->useDeclarationsFrom(d_parserContext);

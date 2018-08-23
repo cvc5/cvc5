@@ -35,14 +35,16 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::datatypes;
 
 SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
-                                   quantifiers::TermDbSygus* tds,
+                                   QuantifiersEngine* qe,
                                    context::Context* c)
     : d_td(td),
-      d_tds(tds),
+      d_tds(qe->getTermDatabaseSygus()),
+      d_ssb(qe),
       d_testers(c),
       d_testers_exp(c),
       d_active_terms(c),
-      d_currTermSize(c) {
+      d_currTermSize(c)
+{
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_true = NodeManager::currentNM()->mkConst(true);
 }
@@ -481,7 +483,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
     std::map<unsigned, unsigned> children_solved;
     for (unsigned j = 0; j < dt_index_nargs; j++)
     {
-      int i = d_tds->solveForArgument(tn, tindex, j);
+      int i = d_ssb.solveForArgument(tn, tindex, j);
       if (i >= 0)
       {
         children_solved[j] = i;
@@ -622,7 +624,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
             {
               Trace("sygus-sb-simple-debug") << "  argument " << j << " " << k
                                              << " is : " << nck << std::endl;
-              red = !d_tds->considerArgKind(tnc, tn, nck, nk, j);
+              red = !d_ssb.considerArgKind(tnc, tn, nck, nk, j);
             }
             else
             {
@@ -632,7 +634,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(TypeNode tn,
                 Trace("sygus-sb-simple-debug")
                     << "  argument " << j << " " << k << " is constant : " << cc
                     << std::endl;
-                red = !d_tds->considerConst(tnc, tn, cc, nk, j);
+                red = !d_ssb.considerConst(tnc, tn, cc, nk, j);
                 if (usingAnyConstCons)
                 {
                   // we only consider concrete constant constructors
@@ -885,33 +887,30 @@ Node SygusSymBreakNew::registerSearchValue(
           std::ostream* out = nodeManagerOptions.getOut();
           (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
           // debugging information
-          if (Trace.isOn("sygus-rr-debug"))
+          int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
+          if (pt_index >= 0)
           {
-            int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
-            if (pt_index >= 0)
+            (*out) << "; unsound: are not equivalent for : " << std::endl;
+            std::vector<Node> vars;
+            its->second.getVariables(vars);
+            std::vector<Node> pt;
+            its->second.getSamplePoint(pt_index, pt);
+            Assert(vars.size() == pt.size());
+            for (unsigned i = 0, size = pt.size(); i < size; i++)
             {
-              Trace("sygus-rr-debug")
-                  << "; unsound: are not equivalent for : " << std::endl;
-              std::vector<Node> vars;
-              std::vector<Node> pt;
-              its->second.getSamplePoint(pt_index, vars, pt);
-              Assert(vars.size() == pt.size());
-              for (unsigned i = 0, size = pt.size(); i < size; i++)
-              {
-                Trace("sygus-rr-debug") << "; unsound:    " << vars[i] << " -> "
-                                        << pt[i] << std::endl;
-              }
-              Node bv_e = its->second.evaluate(bv, pt_index);
-              Node pbv_e = its->second.evaluate(bvr, pt_index);
-              Assert(bv_e != pbv_e);
-              Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
-                                      << bv_e << " and " << pbv_e << std::endl;
+              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
+                     << std::endl;
             }
-            else
-            {
-              // no witness point found?
-              Assert(false);
-            }
+            Node bv_e = its->second.evaluate(bv, pt_index);
+            Node pbv_e = its->second.evaluate(bvr, pt_index);
+            Assert(bv_e != pbv_e);
+            (*out) << "; unsound: where they evaluate to " << bv_e << " and "
+                   << pbv_e << std::endl;
+          }
+          else
+          {
+            // no witness point found?
+            Assert(false);
           }
           if (options::sygusRewVerifyAbort())
           {

@@ -34,6 +34,10 @@ namespace CVC4 {
 
 class SExpr;
 
+namespace api {
+class Solver;
+}
+
 namespace parser {
 
 class Smt2 : public Parser {
@@ -69,7 +73,10 @@ private:
   std::map< Expr, bool > d_sygusVarPrimed;
 
 protected:
-  Smt2(ExprManager* exprManager, Input* input, bool strictMode = false, bool parseOnly = false);
+ Smt2(api::Solver* solver,
+      Input* input,
+      bool strictMode = false,
+      bool parseOnly = false);
 
 public:
   /**

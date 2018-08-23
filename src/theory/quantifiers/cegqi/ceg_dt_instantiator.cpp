@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 
+#include "expr/node_algorithm.h"
+
 using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -170,7 +172,7 @@ Node DtInstantiator::solve_dt(Node v, Node a, Node b, Node sa, Node sb)
   if (!ret.isNull())
   {
     // ensure does not contain v
-    if (ret.hasSubterm(v))
+    if (expr::hasSubterm(ret, v))
     {
       ret = Node::null();
     }

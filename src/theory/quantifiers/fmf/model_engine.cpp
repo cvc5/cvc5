@@ -166,11 +166,6 @@ bool ModelEngine::optOneQuantPerRound(){
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
 
-  //flatten the representatives
-  //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
-  // fm->getRepSet()->d_type_reps );
-
   //for debugging, setup
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
            fm->getRepSetPtr()->d_type_reps.begin();

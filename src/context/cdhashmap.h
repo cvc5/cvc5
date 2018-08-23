@@ -101,13 +101,26 @@ class CDOhash_map : public ContextObj {
   friend class CDHashMap<Key, Data, HashFcn>;
 
  public:
-  // The type of the <Key, Data> value mapped to by this class.
-  using value_type = std::pair<Key, Data>;
+  // The type of the <Key, Data> pair mapped by this class.
+  //
+  // Implementation:
+  // The data and key visible to users of CDHashMap are only visible through
+  // const references. Thus the type of dereferencing a
+  // CDHashMap<Key, Data>::iterator.second is intended to always be a
+  // `const Data&`. (Otherwise, to get a Data& safely, access operations
+  // would need to makeCurrent() to get the Data&, which is an unacceptable
+  // performance hit.) To allow for the desired updating in other scenarios, we
+  // store a std::pair<const Key, const Data> and break the const encapsulation
+  // when necessary.
+  using value_type = std::pair<const Key, const Data>;
 
  private:
   value_type d_value;
-  Key& mutable_key() { return d_value.first; }
-  Data& mutable_data() { return d_value.second; }
+
+  // See documentation of value_type for why this is needed.
+  Key& mutable_key() { return const_cast<Key&>(d_value.first); }
+  // See documentation of value_type for why this is needed.
+  Data& mutable_data() { return const_cast<Data&>(d_value.second); }
 
   CDHashMap<Key, Data, HashFcn>* d_map;
 
@@ -177,7 +190,7 @@ class CDOhash_map : public ContextObj {
         d_next(NULL)
   {
   }
-  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
+  CDOhash_map& operator=(const CDOhash_map&) = delete;
 
  public:
   CDOhash_map(Context* context,
@@ -290,8 +303,8 @@ class CDHashMap : public ContextObj {
   void restore(ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
-  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
-  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap(const CDHashMap&) = delete;
+  CDHashMap& operator=(const CDHashMap&) = delete;
 
 public:
   CDHashMap(Context* context)

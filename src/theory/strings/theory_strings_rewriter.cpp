@@ -82,7 +82,9 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
           else if (rc.getKind() == kind::REGEXP_RANGE
                    || rc.getKind() == kind::REGEXP_SIGMA)
           {
-            CVC4::String ss( t==0 ? s.getLastChar() : s.getFirstChar() );
+            std::vector<unsigned> ssVec;
+            ssVec.push_back(t == 0 ? s.back() : s.front());
+            CVC4::String ss(ssVec);
             if( testConstStringInRegExp( ss, 0, rc ) ){
               //strip off one character
               mchildren.pop_back();
@@ -208,6 +210,17 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
     }
   }
   return Node::null();
+}
+
+unsigned TheoryStringsRewriter::getAlphabetCardinality()
+{
+  if (options::stdPrintASCII())
+  {
+    Assert(128 <= String::num_codes());
+    return 128;
+  }
+  Assert(256 <= String::num_codes());
+  return 256;
 }
 
 Node TheoryStringsRewriter::rewriteEquality(Node node)
@@ -813,9 +826,12 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
     }
     case kind::REGEXP_RANGE: {
       if(s.size() == index_start + 1) {
-        unsigned char a = r[0].getConst<String>().getFirstChar();
-        unsigned char b = r[1].getConst<String>().getFirstChar();
-        unsigned char c = s.getLastChar();
+        unsigned a = r[0].getConst<String>().front();
+        a = String::convertUnsignedIntToCode(a);
+        unsigned b = r[1].getConst<String>().front();
+        b = String::convertUnsignedIntToCode(b);
+        unsigned c = s.back();
+        c = String::convertUnsignedIntToCode(c);
         return (a <= c && c <= b);
       } else {
         return false;
@@ -983,12 +999,23 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         return scn;
       }else{
         if( (children.size() + mchildren.size())!=prevSize ){
+          // Given a membership (str.++ x1 ... xn) in (re.++ r1 ... rm),
+          // above, we strip components to construct an equivalent membership:
+          // (str.++ xi .. xj) in (re.++ rk ... rl).
+          Node xn = mkConcat(kind::STRING_CONCAT, mchildren);
+          Node emptyStr = nm->mkConst(String(""));
           if( children.empty() ){
-            retNode = NodeManager::currentNM()->mkConst( mchildren.empty() );
+            // If we stripped all components on the right, then the left is
+            // equal to the empty string.
+            // e.g. (str.++ "a" x) in (re.++ (str.to.re "a")) ---> (= x "")
+            retNode = xn.eqNode(emptyStr);
           }else{
-            retNode = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, mkConcat( kind::STRING_CONCAT, mchildren ), mkConcat( kind::REGEXP_CONCAT, children ) );
+            // otherwise, construct the updated regular expression
+            retNode = nm->mkNode(
+                STRING_IN_REGEXP, xn, mkConcat(REGEXP_CONCAT, children));
           }
           Trace("regexp-ext-rewrite") << "Regexp : rewrite : " << node << " -> " << retNode << std::endl;
+          return returnRewrite(node, retNode, "re-simple-consume");
         }
       }
     }

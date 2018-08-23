@@ -225,7 +225,7 @@ header = "options/arith_options.h"
   category   = "regular"
   long       = "new-prop"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "use the new row propagation system"
 
 [[option]]

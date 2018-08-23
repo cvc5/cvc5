@@ -27,6 +27,7 @@
 #include <boost/thread/condition.hpp>
 #include <string>
 
+#include "api/cvc4cpp.h"
 #include "cvc4autoconfig.h"
 #include "expr/pickler.h"
 #include "main/main.h"
@@ -35,15 +36,15 @@
 #include "options/set_language.h"
 #include "smt/command.h"
 
-
 using namespace std;
 
 namespace CVC4 {
 namespace main {
 
-CommandExecutorPortfolio::CommandExecutorPortfolio(
-    ExprManager &exprMgr, Options &options, OptionsList& tOpts)
-    : CommandExecutor(exprMgr, options),
+CommandExecutorPortfolio::CommandExecutorPortfolio(api::Solver* solver,
+                                                   Options& options,
+                                                   OptionsList& tOpts)
+    : CommandExecutor(solver, options),
       d_numThreads(options.getThreads()),
       d_smts(),
       d_seq(new CommandSequence()),
@@ -64,19 +65,17 @@ CommandExecutorPortfolio::CommandExecutorPortfolio(
   d_stats.registerStat(&d_statWaitTime);
 
   /* Duplication, individualization */
-  d_exprMgrs.push_back(&d_exprMgr);
-  for(unsigned i = 1; i < d_numThreads; ++i) {
-    d_exprMgrs.push_back(new ExprManager(d_threadOptions[i]));
-  }
-
-  // Create the SmtEngine(s)
-  d_smts.push_back(d_smtEngine);
-  for(unsigned i = 1; i < d_numThreads; ++i) {
-    d_smts.push_back(new SmtEngine(d_exprMgrs[i]));
-  }
-
+  d_solvers.push_back(d_solver);
+  d_exprMgrs.push_back(d_solver->getExprManager());
+  d_smts.push_back(d_solver->getSmtEngine());
   assert(d_vmaps.size() == 0);
-  for(unsigned i = 0; i < d_numThreads; ++i) {
+  d_vmaps.push_back(new ExprManagerMapCollection());
+  for (unsigned i = 1; i < d_numThreads; ++i)
+  {
+    api::Solver* solver = new api::Solver(&d_threadOptions[i]);
+    d_solvers.push_back(solver);
+    d_exprMgrs.push_back(solver->getExprManager());
+    d_smts.push_back(solver->getSmtEngine());
     d_vmaps.push_back(new ExprManagerMapCollection());
   }
 }
@@ -87,12 +86,12 @@ CommandExecutorPortfolio::~CommandExecutorPortfolio()
   delete d_seq;
 
   assert(d_smts.size() == d_numThreads);
-  for(unsigned i = 1; i < d_numThreads; ++i) {
+  for (unsigned i = 1; i < d_numThreads; ++i)
+  {
     // the 0-th one is responsibility of parent class
-
-    delete d_smts[i];
-    delete d_exprMgrs[i];
+    delete d_solvers[i];
   }
+  d_solvers.clear();
   d_exprMgrs.clear();
   d_smts.clear();
 

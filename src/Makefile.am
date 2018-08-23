@@ -63,30 +63,46 @@ libcvc4_la_SOURCES = \
 	decision/justification_heuristic.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
+	preprocessing/passes/apply_to_const.cpp \
+	preprocessing/passes/apply_to_const.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
 	preprocessing/passes/bv_ackermann.h \
+	preprocessing/passes/bv_eager_atoms.cpp \
+	preprocessing/passes/bv_eager_atoms.h \
 	preprocessing/passes/bv_gauss.cpp \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
 	preprocessing/passes/bv_intro_pow2.h \
+	preprocessing/passes/extended_rewriter_pass.cpp \
+	preprocessing/passes/extended_rewriter_pass.h \
+	preprocessing/passes/global_negate.cpp \
+	preprocessing/passes/global_negate.h \
 	preprocessing/passes/int_to_bv.cpp \
 	preprocessing/passes/int_to_bv.h \
+	preprocessing/passes/ite_removal.cpp \
+	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/bool_to_bv.cpp \
 	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_to_bool.cpp \
 	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
 	preprocessing/passes/rewrite.h \
 	preprocessing/passes/sep_skolem_emp.cpp \
 	preprocessing/passes/sep_skolem_emp.h \
+	preprocessing/passes/sort_infer.cpp \
+	preprocessing/passes/sort_infer.h \
 	preprocessing/passes/static_learning.cpp \
 	preprocessing/passes/static_learning.h \
+	preprocessing/passes/sygus_inference.cpp \
+	preprocessing/passes/sygus_inference.h \
 	preprocessing/passes/symmetry_breaker.cpp \
 	preprocessing/passes/symmetry_breaker.h \
 	preprocessing/passes/symmetry_detect.cpp \
@@ -370,6 +386,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/theory_datatypes_type_rules.h \
 	theory/datatypes/type_enumerator.cpp \
 	theory/datatypes/type_enumerator.h \
+	theory/datatypes/sygus_simple_sym.cpp \
+	theory/datatypes/sygus_simple_sym.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
@@ -446,8 +464,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/fmf/model_engine.h \
 	theory/quantifiers/fun_def_process.cpp \
 	theory/quantifiers/fun_def_process.h \
-	theory/quantifiers/global_negate.cpp \
-	theory/quantifiers/global_negate.h \
 	theory/quantifiers/instantiate.cpp \
 	theory/quantifiers/instantiate.h \
 	theory/quantifiers/inst_match.cpp \
@@ -528,8 +544,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
-	theory/quantifiers/sygus_inference.cpp \
-	theory/quantifiers/sygus_inference.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
 	theory/quantifiers/term_database.cpp \
