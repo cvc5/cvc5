@@ -838,6 +838,7 @@ Node Trigger::getInversion( Node n, Node x ) {
     return x;
   }else if( n.getKind()==PLUS || n.getKind()==MULT ){
     int cindex = -1;
+    bool cindexSet = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !quantifiers::TermUtil::hasInstConstAttr(n[i]) ){
         if( n.getKind()==PLUS ){
@@ -859,12 +860,15 @@ Node Trigger::getInversion( Node n, Node x ) {
         }
         x = Rewriter::rewrite( x );
       }else{
-        Assert( cindex==-1 );
+        Assert(!cindexSet);
         cindex = i;
+        cindexSet = true;
       }
     }
-    Assert( cindex!=-1 );
-    return getInversion( n[cindex], x );
+    if (cindexSet)
+    {
+      return getInversion(n[cindex], x);
+    }
   }
   return Node::null();
 }
