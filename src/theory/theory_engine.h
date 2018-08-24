@@ -721,6 +721,11 @@ public:
    * Get the current model
    */
   theory::TheoryModel* getModel();
+  /** Set the model core 
+   *
+   * TODO
+   */
+  void setModelCore(const std::vector< Node >& asserts, theory::TheoryModel* m);
 
   /** get synth solutions
    *

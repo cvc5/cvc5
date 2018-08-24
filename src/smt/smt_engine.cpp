@@ -5064,6 +5064,17 @@ Model* SmtEngine::getModel() {
     throw ModalException(msg);
   }
   TheoryModel* m = d_theoryEngine->getModel();
+  
+  if( options::modelCores() )
+  {
+    std::vector< Expr > easserts = getAssertions();
+    std::vector< Node > asserts;
+    for( unsigned i=0, size = easserts.size(); i<size; i++ )
+    {
+      asserts.push_back( Node::fromExpr(easserts[i]));
+    }
+    d_theoryEngine->setModelCore(asserts,m);
+  }
   m->d_inputName = d_filename;
   return m;
 }

@@ -69,11 +69,11 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   bool buildModel(Model* m) override;
 
-  /** postprocess model
-   *
-   */
-  virtual void postProcessModel(bool incomplete, Model* m);
+  /** postprocess model */
+  void postProcessModel(bool incomplete, Model* m);
 
+  /** find model core */
+  void setModelCore(const std::vector< Node >& assertions, Model * m );
  protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;

@@ -828,10 +828,19 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     debugCheckModel(tm);
   }
-  // compute the model core if modelCores() is enabled.
-  if (options::modelCores())
+}
+
+void TheoryEngineModelBuilder::setModelCore(const std::vector< Node >& assertions, Model * m )
+{
+  Trace("model-core") << "Compute model core, assertions:" << std::endl;
+  for( const Node& a : assertions )
   {
+    Trace("model-core") << "  " << a << std::endl;
   }
+  Node formula = nm->mkNode( kind::AND, assertions );
+  std::vector< Node > vars;
+  std::vector< Node > subs;
+  Trace("model-core") << "Assignments: " << std::endl;
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
