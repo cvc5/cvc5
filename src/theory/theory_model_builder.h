@@ -91,9 +91,6 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * such that each formula in assertions under the substitution
    * { s1 -> m(s1), ..., sn -> m(sn) } rewrites to true.
    *
-   * For example, if assertions is { a>5 OR b>5, f( c ) = 0 }, then a possible
-   * model core is { a -> 6, f -> lambda x. 0 }.
-   *
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */

@@ -207,6 +207,14 @@ public:
   void setSemiEvaluatedKind(Kind k);
   /** set using model core
    *
+   * This sets that this model is minimized to be a "model core" for some
+   * formula (typically the input formula).
+   *
+   * For example, given formula ( a>5 OR b>5 ) AND f( c ) = 0,
+   * a model for this formula is: a -> 6, b -> 0, c -> 0, f -> lambda x. 0.
+   * A "model core" is a subset of this model that suffices to show the
+   * above formula is true, for example { a -> 6, f -> lambda x. 0 } is a
+   * model core for this formula.
    */
   void setUsingModelCore();
   /** record model core symbol
