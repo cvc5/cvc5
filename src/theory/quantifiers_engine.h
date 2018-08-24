@@ -285,14 +285,42 @@ public:
   void getSynthSolutions(std::map<Node, Node>& sol_map);
 
   //----------end user interface for instantiations
+
+  /** statistics class */
+  class Statistics {
+  public:
+    TimerStat d_time;
+    TimerStat d_qcf_time;
+    TimerStat d_ematching_time;
+    IntStat d_num_quant;
+    IntStat d_instantiation_rounds;
+    IntStat d_instantiation_rounds_lc;
+    IntStat d_triggers;
+    IntStat d_simple_triggers;
+    IntStat d_multi_triggers;
+    IntStat d_multi_trigger_instantiations;
+    IntStat d_red_alpha_equiv;
+    IntStat d_instantiations_user_patterns;
+    IntStat d_instantiations_auto_gen;
+    IntStat d_instantiations_guess;
+    IntStat d_instantiations_qcf;
+    IntStat d_instantiations_qcf_prop;
+    IntStat d_instantiations_fmf_exh;
+    IntStat d_instantiations_fmf_mbqi;
+    IntStat d_instantiations_cbqi;
+    IntStat d_instantiations_rr;
+    Statistics();
+    ~Statistics();
+  };/* class QuantifiersEngine::Statistics */
+  Statistics d_statistics;
   
  private:
   /** reference to theory engine object */
   TheoryEngine* d_te;
   /** vector of utilities for quantifiers */
-  std::vector< QuantifiersUtil* > d_util;
+  std::vector<QuantifiersUtil*> d_util;
   /** vector of modules for quantifiers */
-  std::vector< QuantifiersModule* > d_modules;
+  std::vector<QuantifiersModule*> d_modules;
   //------------- quantifiers utilities
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
@@ -358,7 +386,7 @@ public:
   std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
   //------------- end quantifiers modules
   //------------- temporary information during check
-    /** current effort level */
+  /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
   /** are we in conflict */
   bool d_conflict;
@@ -370,60 +398,32 @@ public:
   //------------- end temporary information during check
  private:
   /** list of all quantifiers seen */
-  std::map< Node, bool > d_quants;
+  std::map<Node, bool> d_quants;
   /** quantifiers pre-registered */
   NodeSet d_quants_prereg;
   /** quantifiers reduced */
   BoolMap d_quants_red;
-  std::map< Node, Node > d_quants_red_lem;
+  std::map<Node, Node> d_quants_red_lem;
   /** list of all lemmas produced */
-  //std::map< Node, bool > d_lemmas_produced;
+  // std::map< Node, bool > d_lemmas_produced;
   BoolMap d_lemmas_produced_c;
   /** lemmas waiting */
-  std::vector< Node > d_lemmas_waiting;
+  std::vector<Node> d_lemmas_waiting;
   /** phase requirements waiting */
-  std::map< Node, bool > d_phase_req_waiting;
+  std::map<Node, bool> d_phase_req_waiting;
   /** inst round counters TODO: make context-dependent? */
-  context::CDO< int > d_ierCounter_c;
+  context::CDO<int> d_ierCounter_c;
   int d_ierCounter;
   int d_ierCounter_lc;
   int d_ierCounterLastLc;
   int d_inst_when_phase;
   /** has presolve been called */
-  context::CDO< bool > d_presolve;
+  context::CDO<bool> d_presolve;
   /** presolve cache */
   NodeSet d_presolve_in;
   NodeList d_presolve_cache;
   BoolList d_presolve_cache_wq;
   BoolList d_presolve_cache_wic;
-  
-  /** statistics class */
-  class Statistics {
-  public:
-    TimerStat d_time;
-    TimerStat d_qcf_time;
-    TimerStat d_ematching_time;
-    IntStat d_num_quant;
-    IntStat d_instantiation_rounds;
-    IntStat d_instantiation_rounds_lc;
-    IntStat d_triggers;
-    IntStat d_simple_triggers;
-    IntStat d_multi_triggers;
-    IntStat d_multi_trigger_instantiations;
-    IntStat d_red_alpha_equiv;
-    IntStat d_instantiations_user_patterns;
-    IntStat d_instantiations_auto_gen;
-    IntStat d_instantiations_guess;
-    IntStat d_instantiations_qcf;
-    IntStat d_instantiations_qcf_prop;
-    IntStat d_instantiations_fmf_exh;
-    IntStat d_instantiations_fmf_mbqi;
-    IntStat d_instantiations_cbqi;
-    IntStat d_instantiations_rr;
-    Statistics();
-    ~Statistics();
-  };/* class QuantifiersEngine::Statistics */
-  Statistics d_statistics;
 };/* class QuantifiersEngine */
 
 }/* CVC4::theory namespace */
