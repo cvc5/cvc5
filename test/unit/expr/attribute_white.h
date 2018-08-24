@@ -16,8 +16,6 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <algorithm>
-#include <set>
 #include <string>
 
 #include "base/cvc4_assert.h"
@@ -121,18 +119,6 @@ public:
     TS_ASSERT_DIFFERS(TestFlag3::s_id, TestFlag4::s_id);
     TS_ASSERT_DIFFERS(TestFlag3::s_id, TestFlag5::s_id);
     TS_ASSERT_DIFFERS(TestFlag4::s_id, TestFlag5::s_id);
-
-    // Ensure that some (1 << TestFlagX::s_id) cannot be represented in 32 bits.
-    //
-    // This tests an implicit global property of libcvc4. It is *brittle*. If
-    // this breaks after you deleted an Attribute<Test*, bool> from somewhere in
-    // CVC4, just keep testing more TestFlagXs until this is true for max_id.
-    const uint64_t max_id = std::max({TestFlag1::s_id,
-                                      TestFlag2::s_id,
-                                      TestFlag3::s_id,
-                                      TestFlag4::s_id,
-                                      TestFlag5::s_id});
-    TS_ASSERT_LESS_THAN(32, max_id);
 
     lastId = attr::LastAttributeId<bool, true>::getId();
 
