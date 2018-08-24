@@ -723,7 +723,8 @@ public:
   theory::TheoryModel* getModel();
   /** Set the model core
    *
-   * TODO
+   * This updates m so that it is a "model core" that satisfies all formulas
+   * in asserts. For details, see TheoryModelBuilder::setModelCore.
    */
   void setModelCore(const std::vector<Node>& asserts, theory::TheoryModel* m);
 

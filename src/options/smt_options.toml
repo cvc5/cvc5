@@ -108,15 +108,6 @@ header = "options/smt_options.h"
   help       = "when printing models, compute a minimal core of relevant definitions"
 
 [[option]]
-  name       = "omitDontCares"
-  category   = "regular"
-  long       = "omit-dont-cares"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "When producing a model, omit variables whose value does not matter"
-
-[[option]]
   name       = "proof"
   smt_name   = "produce-proofs"
   category   = "regular"
