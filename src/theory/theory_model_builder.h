@@ -68,13 +68,11 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * are building fails to satisfy a quantified formula.
    */
   bool buildModel(Model* m) override;
-  /** Debug check model.
-   *
-   * This throws an assertion failure if the model
-   * contains an equivalence class with two terms t1 and t2
-   * such that t1^M != t2^M.
+
+  /** postprocess model
+   * 
    */
-  void debugCheckModel(Model* m);
+  virtual void postProcessModel(bool incomplete, Model* m);
 
  protected:
   /** pointer to theory engine */
@@ -101,6 +99,13 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   virtual void debugModel(TheoryModel* m) {}
   //-----------------------------------end virtual functions
+  
+  /** Debug check model.
+   *
+   * This throws an assertion failure if the model contains an equivalence
+   * class with two terms t1 and t2 such that t1^M != t2^M.
+   */
+  void debugCheckModel(TheoryModel* m);
 
   /** is n assignable?
    *

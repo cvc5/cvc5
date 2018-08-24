@@ -205,6 +205,12 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
+  /** record dont care 
+   *
+   * This marks that sym is a "don't care". In other words, its value is
+   * not critical to the satisfiability of the formula this model is for.
+   */
+  void recordDontCare(Node sym);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -223,10 +229,8 @@ public:
   /** Get value function.
    * This should be called only after a ModelBuilder
    * has called buildModel(...) on this model.
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getValue(TNode n, bool useDontCares = false) const;
+  Node getValue(TNode n) const;
   /** get comments */
   void getComments(std::ostream& out) const override;
 
@@ -301,16 +305,15 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
+  /** symbols that are not in the model core */
+  std::unordered_set<Node, NodeHashFunction > d_model_ncore;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
    *   hasBoundVars is whether n may contain bound variables
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
   Node getModelValue(TNode n,
-                     bool hasBoundVars = false,
-                     bool useDontCares = false) const;
+                     bool hasBoundVars = false) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,

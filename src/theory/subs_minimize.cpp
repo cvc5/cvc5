@@ -31,6 +31,10 @@ bool SubstitutionMinimize::find(Node n,
                                 std::vector<Node>& reqVars)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Trace("subs-min") << "Substitution minimize : " << std::endl;
+  Trace("subs-min") << "  substitution : " << vars << " -> " << subs << std::endl;
+  Trace("subs-min") << "  node : " << n << std::endl;
+  Trace("subs-min") << "  target : " << target << std::endl;
 
   std::map< Node, std::unordered_set< Node, NodeHashFunction > > fvDepend;
   
@@ -188,21 +192,19 @@ bool SubstitutionMinimize::find(Node n,
           if( !justifyArgs.empty() )
           {
             unsigned sindex = justifyArgs[0];
-            bool 
             if( justifyArgs.size()>1 )
             {
-              // choose best index TODO
+              // choose best index TODO?
               //for( unsigned sai : justifyArgs )
               //{
-
               //}
             }
             visit.push_back(cur[sindex]);
           }
           else
           {
-            // must recurse on all arguments
-            if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+            // must recurse on all arguments, including operator
+            if (cur.getKind()==APPLY_UF)
             {
               visit.push_back(cur.getOperator());
             }
@@ -222,6 +224,8 @@ bool SubstitutionMinimize::find(Node n,
     Assert( std::find(vars.begin(),vars.end(),v)!=vars.end());
     reqVars.push_back(v);
   }
+  
+  Trace("subs-min") << "... requires " << reqVars.size() << "/" << vars.size() << " : " << reqVars << std::endl;
   
   return true;
 }
