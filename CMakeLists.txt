@@ -158,6 +158,12 @@ option(USE_LFSC                  "Use LFSC proof checker")
 option(USE_READLINE              "Use readline for better interactive support" OFF)
 option(USE_SYMFPU                "Use SymFPU for floating point support")
 
+# Supported language bindings
+option(BUILD_BINDINGS_JAVA       "Build Java bindings" OFF)
+option(BUILD_BINDINGS_PYTHON     "Build Python bindings" OFF)
+
+# All bindings: c,java,csharp,perl,php,python,ruby,tcl,ocaml
+
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -238,6 +244,10 @@ cvc4_set_option(ENABLE_VALGRIND OFF)
 enable_testing()
 
 #-----------------------------------------------------------------------------#
+
+if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
+  set(BUILD_BINDINGS TRUE)
+endif()
 
 if(ENABLE_ASAN)
   set(CMAKE_REQUIRED_LIBRARIES -fsanitize=address)
@@ -506,6 +516,9 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(doc)
 add_subdirectory(src)
+if(BUILD_BINDINGS)
+  add_subdirectory(src/bindings)
+endif()
 add_subdirectory(test/java)
 add_subdirectory(test/regress)
 add_subdirectory(test/system)

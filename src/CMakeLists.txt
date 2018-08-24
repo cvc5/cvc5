@@ -577,7 +577,6 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(base)
-#add_subdirectory(bindings)
 add_subdirectory(compat)
 add_subdirectory(expr)
 add_subdirectory(lib)
