@@ -88,115 +88,6 @@ class QuantifiersEngine {
   typedef context::CDList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-private:
-  /** reference to theory engine object */
-  TheoryEngine* d_te;
-  /** vector of utilities for quantifiers */
-  std::vector< QuantifiersUtil* > d_util;
-  /** vector of modules for quantifiers */
-  std::vector< QuantifiersModule* > d_modules;
-  //------------- quantifiers utilities
-  /** equality query class */
-  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
-  /** equality inference class */
-  std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
-  /** quantifiers instantiation propagtor */
-  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
-  /** extended model object */
-  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
-  /** for computing relevance of quantifiers */
-  std::unique_ptr<quantifiers::QuantRelevance> d_quant_rel;
-  /** relevant domain */
-  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
-  /** inversion utility for BV instantiation */
-  std::unique_ptr<quantifiers::BvInverter> d_bv_invert;
-  /** model builder */
-  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
-  /** utility for effectively propositional logic */
-  std::unique_ptr<quantifiers::QuantEPR> d_qepr;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
-  /** term database */
-  std::unique_ptr<quantifiers::TermDb> d_term_db;
-  /** sygus term database */
-  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
-  /** quantifiers attributes */
-  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
-  /** instantiate utility */
-  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
-  /** skolemize utility */
-  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
-  /** term enumeration utility */
-  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
-  //------------- end quantifiers utilities
-  //------------- quantifiers modules
-  /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
-  /** instantiation engine */
-  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
-  /** model engine */
-  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
-  /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
-  /** Conflict find mechanism for quantifiers */
-  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
-  /** rewrite rules utility */
-  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
-  /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
-  /** ceg instantiation */
-  std::unique_ptr<quantifiers::CegInstantiation> d_ceg_inst;
-  /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
-  /** full saturation */
-  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
-  /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCbqi> d_i_cbqi;
-  /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
-  /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
-  //------------- end quantifiers modules
- private:  //this information is reset during check
-    /** current effort level */
-  QuantifiersModule::QEffort d_curr_effort_level;
-  /** are we in conflict */
-  bool d_conflict;
-  context::CDO<bool> d_conflict_c;
-  /** has added lemma this round */
-  bool d_hasAddedLemma;
-  /** whether to use model equality engine */
-  bool d_useModelEe;
- private:
-  /** list of all quantifiers seen */
-  std::map< Node, bool > d_quants;
-  /** quantifiers pre-registered */
-  NodeSet d_quants_prereg;
-  /** quantifiers reduced */
-  BoolMap d_quants_red;
-  std::map< Node, Node > d_quants_red_lem;
-  /** list of all lemmas produced */
-  //std::map< Node, bool > d_lemmas_produced;
-  BoolMap d_lemmas_produced_c;
-  /** lemmas waiting */
-  std::vector< Node > d_lemmas_waiting;
-  /** phase requirements waiting */
-  std::map< Node, bool > d_phase_req_waiting;
-  /** inst round counters TODO: make context-dependent? */
-  context::CDO< int > d_ierCounter_c;
-  int d_ierCounter;
-  int d_ierCounter_lc;
-  int d_ierCounterLastLc;
-  int d_inst_when_phase;
-  /** has presolve been called */
-  context::CDO< bool > d_presolve;
-  /** presolve cache */
-  NodeSet d_presolve_in;
-  NodeList d_presolve_cache;
-  BoolList d_presolve_cache_wq;
-  BoolList d_presolve_cache_wic;
 
 public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
@@ -394,7 +285,118 @@ public:
   void getSynthSolutions(std::map<Node, Node>& sol_map);
 
   //----------end user interface for instantiations
-
+  
+ private:
+  /** reference to theory engine object */
+  TheoryEngine* d_te;
+  /** vector of utilities for quantifiers */
+  std::vector< QuantifiersUtil* > d_util;
+  /** vector of modules for quantifiers */
+  std::vector< QuantifiersModule* > d_modules;
+  //------------- quantifiers utilities
+  /** equality query class */
+  std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
+  /** equality inference class */
+  std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
+  /** quantifiers instantiation propagtor */
+  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
+  /** all triggers will be stored in this trie */
+  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
+  /** extended model object */
+  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
+  /** for computing relevance of quantifiers */
+  std::unique_ptr<quantifiers::QuantRelevance> d_quant_rel;
+  /** relevant domain */
+  std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
+  /** inversion utility for BV instantiation */
+  std::unique_ptr<quantifiers::BvInverter> d_bv_invert;
+  /** model builder */
+  std::unique_ptr<quantifiers::QModelBuilder> d_builder;
+  /** utility for effectively propositional logic */
+  std::unique_ptr<quantifiers::QuantEPR> d_qepr;
+  /** term utilities */
+  std::unique_ptr<quantifiers::TermUtil> d_term_util;
+  /** term database */
+  std::unique_ptr<quantifiers::TermDb> d_term_db;
+  /** sygus term database */
+  std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
+  /** quantifiers attributes */
+  std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
+  /** instantiate utility */
+  std::unique_ptr<quantifiers::Instantiate> d_instantiate;
+  /** skolemize utility */
+  std::unique_ptr<quantifiers::Skolemize> d_skolemize;
+  /** term enumeration utility */
+  std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
+  //------------- end quantifiers utilities
+  //------------- quantifiers modules
+  /** alpha equivalence */
+  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
+  /** instantiation engine */
+  std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
+  /** model engine */
+  std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
+  /** bounded integers utility */
+  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
+  /** Conflict find mechanism for quantifiers */
+  std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
+  /** rewrite rules utility */
+  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
+  /** subgoal generator */
+  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
+  /** ceg instantiation */
+  std::unique_ptr<quantifiers::CegInstantiation> d_ceg_inst;
+  /** lte partial instantiation */
+  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
+  /** full saturation */
+  std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
+  /** counterexample-based quantifier instantiation */
+  std::unique_ptr<quantifiers::InstStrategyCbqi> d_i_cbqi;
+  /** quantifiers splitting */
+  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
+  /** quantifiers anti-skolemization */
+  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
+  //------------- end quantifiers modules
+  //------------- temporary information during check
+    /** current effort level */
+  QuantifiersModule::QEffort d_curr_effort_level;
+  /** are we in conflict */
+  bool d_conflict;
+  context::CDO<bool> d_conflict_c;
+  /** has added lemma this round */
+  bool d_hasAddedLemma;
+  /** whether to use model equality engine */
+  bool d_useModelEe;
+  //------------- end temporary information during check
+ private:
+  /** list of all quantifiers seen */
+  std::map< Node, bool > d_quants;
+  /** quantifiers pre-registered */
+  NodeSet d_quants_prereg;
+  /** quantifiers reduced */
+  BoolMap d_quants_red;
+  std::map< Node, Node > d_quants_red_lem;
+  /** list of all lemmas produced */
+  //std::map< Node, bool > d_lemmas_produced;
+  BoolMap d_lemmas_produced_c;
+  /** lemmas waiting */
+  std::vector< Node > d_lemmas_waiting;
+  /** phase requirements waiting */
+  std::map< Node, bool > d_phase_req_waiting;
+  /** inst round counters TODO: make context-dependent? */
+  context::CDO< int > d_ierCounter_c;
+  int d_ierCounter;
+  int d_ierCounter_lc;
+  int d_ierCounterLastLc;
+  int d_inst_when_phase;
+  /** has presolve been called */
+  context::CDO< bool > d_presolve;
+  /** presolve cache */
+  NodeSet d_presolve_in;
+  NodeList d_presolve_cache;
+  BoolList d_presolve_cache_wq;
+  BoolList d_presolve_cache_wic;
+  
   /** statistics class */
   class Statistics {
   public:
