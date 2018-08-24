@@ -849,46 +849,50 @@ void TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(formula);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
-    if (visited.find(cur) == visited.end()) {
+    if (visited.find(cur) == visited.end())
+    {
       visited.insert(cur);
-      if( cur.isVar() )
+      if (cur.isVar())
       {
         Node vcur = tm->getValue(cur);
         Trace("model-core") << "  " << cur << " -> " << vcur << std::endl;
         vars.push_back(cur);
         subs.push_back(vcur);
       }
-      if( cur.getMetaKind()== kind::metakind::PARAMETERIZED)
+      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
         visit.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur ){
+      for (const Node& cn : cur)
+      {
         visit.push_back(cn);
       }
     }
   } while (!visit.empty());
 
   Node truen = NodeManager::currentNM()->mkConst(true);
-  
+
   Trace("model-core") << "Minimizing substitution..." << std::endl;
-  std::vector< Node > coreVars;
+  std::vector<Node> coreVars;
   SubstitutionMinimize smin;
-  if( smin.find(formula,truen,vars,subs,coreVars) )
+  if (smin.find(formula, truen, vars, subs, coreVars))
   {
     tm->setUsingModelCore();
     Trace("model-core") << "...got core vars : " << coreVars << std::endl;
-    
-    for( const Node& cv : coreVars )
+
+    for (const Node& cv : coreVars)
     {
       tm->recordModelCoreSymbol(cv);
     }
   }
   else
   {
-    Trace("model-core") << "...failed, model does not satisfy input!" << std::endl;
+    Trace("model-core") << "...failed, model does not satisfy input!"
+                        << std::endl;
   }
 }
 

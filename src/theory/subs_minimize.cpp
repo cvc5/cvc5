@@ -85,7 +85,7 @@ bool SubstitutionMinimize::find(Node n,
     else if (it->second.isNull())
     {
       Node ret = cur;
-      if( cur.getNumChildren()>0 )
+      if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
         std::vector<Node> vchildren;
@@ -145,7 +145,7 @@ bool SubstitutionMinimize::find(Node n,
     {
       visited.insert(cur);
       it = value.find(cur);
-      if( it->second==cur )
+      if (it->second == cur)
       {
         // if its value is the same as current, there is nothing to do
       }
@@ -167,7 +167,7 @@ bool SubstitutionMinimize::find(Node n,
       {
         Kind ck = cur.getKind();
         bool alreadyJustified = false;
-        
+
         // if the operator is an apply uf, check its value
         if (cur.getKind() == APPLY_UF)
         {
@@ -175,16 +175,16 @@ bool SubstitutionMinimize::find(Node n,
           it = value.find(op);
           Assert(it != value.end());
           Node vop = it->second;
-          if( vop.getKind()==LAMBDA )
+          if (vop.getKind() == LAMBDA)
           {
             visit.push_back(op);
             Node curr = vop[0];
-            for( unsigned i=0, size = cur.getNumChildren(); i<size; i++ )
+            for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
             {
               it = value.find(cur[i]);
               Assert(it != value.end());
-              Node scurr = curr.substitute( cur[i], it->second );
-              if( scurr != curr )
+              Node scurr = curr.substitute(cur[i], it->second);
+              if (scurr != curr)
               {
                 curr = Rewriter::rewrite(scurr);
                 visit.push_back(cur[i]);
@@ -193,7 +193,7 @@ bool SubstitutionMinimize::find(Node n,
             alreadyJustified = true;
           }
         }
-        if( !alreadyJustified )
+        if (!alreadyJustified)
         {
           // a subset of the arguments of cur that fully justify the evaluation
           std::vector<unsigned> justifyArgs;
@@ -222,11 +222,11 @@ bool SubstitutionMinimize::find(Node n,
           {
             unsigned sindex = justifyArgs[0];
             // choose best index TODO?
-            //if (justifyArgs.size() > 1)
+            // if (justifyArgs.size() > 1)
             //{
-              // for( unsigned sai : justifyArgs )
-              //{
-              //}
+            // for( unsigned sai : justifyArgs )
+            //{
+            //}
             //}
             visit.push_back(cur[sindex]);
             alreadyJustified = true;
@@ -262,7 +262,7 @@ bool SubstitutionMinimize::find(Node n,
 
 bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 {
-  if(!n.isConst())
+  if (!n.isConst())
   {
     return false;
   }
