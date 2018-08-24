@@ -80,7 +80,7 @@ class TermGenerator
         d_status_num(0),
         d_match_status(0),
         d_match_status_child_num(0),
-        d_match_node(0)
+        d_match_mode(0)
   {
   }
   TypeNode d_typ;
