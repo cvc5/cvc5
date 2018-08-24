@@ -31,6 +31,7 @@ TheoryModel::TheoryModel(context::Context* c,
     : d_substitutions(c, false),
       d_modelBuilt(false),
       d_modelBuiltSuccess(false),
+      d_using_model_core(false),
       d_enableFuncModels(enableFuncModels)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
