@@ -112,8 +112,24 @@ private:
   
   void debugPrintSet( Node s, const char * c );
   
+  /** sent lemma
+   *
+   * This flag is set to true during a full effort check if this theory
+   * called d_out->lemma(...).
+   */
   bool d_sentLemma;
+  /** added fact
+   *
+   * This flag is set to true during a full effort check if this theory
+   * added an internal fact to its equality engine.
+   */
   bool d_addedFact;
+  /** full check incomplete
+   *
+   * This flag is set to true during a full effort check if this theory
+   * is incomplete for some reason (for instance, if we combine cardinality
+   * with a relation or extended function kind).
+   */
   bool d_full_check_incomplete;
   NodeMap d_proxy;  
   NodeMap d_proxy_to_term;  
