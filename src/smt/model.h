@@ -59,8 +59,8 @@ public:
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
 public:
-  /** Check whether this expr is a don't-care in the model */
-  virtual bool isDontCare(Expr expr) const { return false; }
+  /** Check whether this expr is in the model core */
+  virtual bool isModelCoreSymbol(Expr expr) const { return false; }
   /** get value for expression */
   virtual Expr getValue(Expr expr) const = 0;
   /** get cardinality for sort */

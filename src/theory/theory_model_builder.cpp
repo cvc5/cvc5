@@ -837,10 +837,13 @@ void TheoryEngineModelBuilder::setModelCore(const std::vector< Node >& assertion
   {
     Trace("model-core") << "  " << a << std::endl;
   }
-  Node formula = nm->mkNode( kind::AND, assertions );
+  Node formula = NodeManager::currentNM()->mkNode( kind::AND, assertions );
+  TheoryModel* tm = static_cast<TheoryModel*>(m);
   std::vector< Node > vars;
   std::vector< Node > subs;
   Trace("model-core") << "Assignments: " << std::endl;
+  
+  Trace("model-core") << "Function assignments: " << std::endl;
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)

@@ -79,7 +79,8 @@ void TheoryModel::reset(){
   d_uf_models.clear();
   d_eeContext->pop();
   d_eeContext->push();
-  d_model_ncore.clear();
+  d_using_model_core = false;
+  d_model_core.clear();
 }
 
 void TheoryModel::getComments(std::ostream& out) const {
@@ -132,9 +133,13 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
-bool TheoryModel::isDontCare(Expr expr) const {
+bool TheoryModel::isModelCoreSymbol(Expr expr) const {
+  if( !d_using_model_core )
+  {
+    return true;
+  }
   Node s = Node::fromExpr(expr);
-  return d_model_ncore.find(s) != d_model_ncore.end();
+  return d_model_core.find(s) != d_model_core.end();
 }
 
 Expr TheoryModel::getValue( Expr expr ) const{
@@ -490,7 +495,12 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
-void TheoryModel::recordDontCare(Node sym) { d_model_ncore.insert(sym); }
+void TheoryModel::setUsingModelCore()
+{
+  d_using_model_core = true;
+}
+  
+void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {

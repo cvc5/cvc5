@@ -205,12 +205,16 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
-  /** record dont care
-   *
-   * This marks that sym is a "don't care". In other words, its value is
-   * not critical to the satisfiability of the formula this model is for.
+  /** set using model core 
+   * 
    */
-  void recordDontCare(Node sym);
+  void setUsingModelCore();
+  /** record model core symbol
+   *
+   * This marks that sym is a "model core symbol". In other words, its value is
+   * critical to the satisfiability of the formula this model is for.
+   */
+  void recordModelCoreSymbol(Node sym);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -249,8 +253,8 @@ public:
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  /** return whether this node is a don't-care */
-  bool isDontCare(Expr expr) const override;
+  /** return whether this node is in the model core */
+  bool isModelCoreSymbol(Expr expr) const override;
   /** get value function for Exprs. */
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
@@ -305,8 +309,10 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
-  /** symbols that are not in the model core */
-  std::unordered_set<Node, NodeHashFunction> d_model_ncore;
+  /** are we using model cores? */
+  bool d_using_model_core;
+  /** symbols that are in the model core */
+  std::unordered_set<Node, NodeHashFunction> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
