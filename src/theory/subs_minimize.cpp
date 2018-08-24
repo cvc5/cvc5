@@ -39,6 +39,7 @@ bool SubstitutionMinimize::find(Node n,
 
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > fvDepend;
 
+  Trace("subs-min") << "--- Compute values for subterms..." << std::endl;
   // the value of each subterm in n under the substitution
   std::unordered_map<TNode, Node, TNodeHashFunction> value;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -84,51 +85,57 @@ bool SubstitutionMinimize::find(Node n,
     else if (it->second.isNull())
     {
       Node ret = cur;
-      std::vector<Node> children;
-      std::vector<Node> vchildren;
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      if( cur.getNumChildren()>0 )
       {
-        if (cur.getKind() == APPLY_UF)
+        std::vector<Node> children;
+        std::vector<Node> vchildren;
+        if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
-          children.push_back(cur.getOperator());
+          if (cur.getKind() == APPLY_UF)
+          {
+            children.push_back(cur.getOperator());
+          }
+          else
+          {
+            vchildren.push_back(cur.getOperator());
+          }
         }
-        else
+        for (const Node& cn : cur)
         {
-          vchildren.push_back(cur.getOperator());
+          children.push_back(cn);
         }
+        for (const Node& cn : children)
+        {
+          it = value.find(cn);
+          Assert(it != value.end());
+          Assert(!it->second.isNull());
+          vchildren.push_back(it->second);
+        }
+        ret = nm->mkNode(cur.getKind(), vchildren);
+        ret = Rewriter::rewrite(ret);
       }
-      for (const Node& cn : cur)
-      {
-        children.push_back(cn);
-      }
-      for (const Node& cn : children)
-      {
-        it = value.find(cn);
-        Assert(it != value.end());
-        Assert(!it->second.isNull());
-        vchildren.push_back(it->second);
-      }
-      ret = nm->mkNode(cur.getKind(), vchildren);
-      ret = Rewriter::rewrite(ret);
       value[cur] = ret;
     }
   } while (!visit.empty());
   Assert(value.find(n) != value.end());
   Assert(!value.find(n)->second.isNull());
 
-  if (n != target)
+  Trace("subs-min") << "... got " << value[n] << std::endl;
+  if (value[n] != target)
   {
+    Trace("subs-min") << "... not equal to target " << target << std::endl;
     return false;
   }
 
+  Trace("subs-min") << "--- Compute relevant variables..." << std::endl;
   std::unordered_set<Node, NodeHashFunction> rlvFv;
   // only variables that occur in assertions are relevant
   std::map<Node, unsigned> iteBranch;
   std::map<Node, std::vector<unsigned> > justifyArgs;
 
   visit.push_back(n);
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator itv;
   do
   {
     cur = visit.back();
@@ -136,18 +143,19 @@ bool SubstitutionMinimize::find(Node n,
     itv = visited.find(cur);
     if (itv == visited.end())
     {
-      if (cur.isVar())
+      visited.insert(cur);
+      it = value.find(cur);
+      if( it->second==cur )
       {
-        visited[cur] = true;
-        if (value[cur] != cur)
-        {
-          // must include
-          rlvFv.insert(cur);
-        }
+        // if its value is the same as current, there is nothing to do
+      }
+      else if (cur.isVar())
+      {
+        // must include
+        rlvFv.insert(cur);
       }
       else if (cur.getKind() == ITE)
       {
-        visited[cur] = false;
         // only recurse on relevant branch
         Node bval = value[cur[0]];
         Assert(!bval.isNull() && bval.isConst());
@@ -157,63 +165,83 @@ bool SubstitutionMinimize::find(Node n,
       }
       else if (cur.getNumChildren() > 0)
       {
-        visited[cur] = false;
-        // if the operator is a variable, expand first
+        Kind ck = cur.getKind();
+        bool alreadyJustified = false;
+        
+        // if the operator is an apply uf, check its value
         if (cur.getKind() == APPLY_UF)
         {
-          // TODO
-        }
-
-        // see if there are any arguments that fully justify the evaluation
-        Kind ck = cur.getKind();
-        std::vector<unsigned> justifyArgs;
-        bool alreadyJustified = false;
-        if (cur.getNumChildren() > 1)
-        {
-          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
+          Node op = cur.getOperator();
+          it = value.find(op);
+          Assert(it != value.end());
+          Node vop = it->second;
+          if( vop.getKind()==LAMBDA )
           {
-            Node cn = cur[i];
-            it = value.find(cn);
-            Assert(it != value.end());
-            Assert(!it->second.isNull());
-            if (isSingularArg(cn, ck, i))
+            visit.push_back(op);
+            Node curr = vop[0];
+            for( unsigned i=0, size = cur.getNumChildren(); i<size; i++ )
             {
-              // have we seen this argument already? if so, we are done
-              if (visited.find(cn) != visited.end())
+              it = value.find(cur[i]);
+              Assert(it != value.end());
+              Node scurr = curr.substitute( cur[i], it->second );
+              if( scurr != curr )
               {
-                alreadyJustified = true;
-                break;
+                curr = Rewriter::rewrite(scurr);
+                visit.push_back(cur[i]);
               }
-              justifyArgs.push_back(i);
             }
+            alreadyJustified = true;
+          }
+        }
+        if( !alreadyJustified )
+        {
+          // a subset of the arguments of cur that fully justify the evaluation
+          std::vector<unsigned> justifyArgs;
+          if (cur.getNumChildren() > 1)
+          {
+            for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
+            {
+              Node cn = cur[i];
+              it = value.find(cn);
+              Assert(it != value.end());
+              Assert(!it->second.isNull());
+              if (isSingularArg(it->second, ck, i))
+              {
+                // have we seen this argument already? if so, we are done
+                if (visited.find(cn) != visited.end())
+                {
+                  alreadyJustified = true;
+                  break;
+                }
+                justifyArgs.push_back(i);
+              }
+            }
+          }
+          // we need to recurse on at most one child
+          if (!alreadyJustified && !justifyArgs.empty())
+          {
+            unsigned sindex = justifyArgs[0];
+            // choose best index TODO?
+            //if (justifyArgs.size() > 1)
+            //{
+              // for( unsigned sai : justifyArgs )
+              //{
+              //}
+            //}
+            visit.push_back(cur[sindex]);
+            alreadyJustified = true;
           }
         }
         if (!alreadyJustified)
         {
-          // we need to recurse on at most one child
-          if (!justifyArgs.empty())
+          // must recurse on all arguments, including operator
+          if (cur.getKind() == APPLY_UF)
           {
-            unsigned sindex = justifyArgs[0];
-            if (justifyArgs.size() > 1)
-            {
-              // choose best index TODO?
-              // for( unsigned sai : justifyArgs )
-              //{
-              //}
-            }
-            visit.push_back(cur[sindex]);
+            visit.push_back(cur.getOperator());
           }
-          else
+          for (const Node& cn : cur)
           {
-            // must recurse on all arguments, including operator
-            if (cur.getKind() == APPLY_UF)
-            {
-              visit.push_back(cur.getOperator());
-            }
-            for (const Node& cn : cur)
-            {
-              visit.push_back(cn);
-            }
+            visit.push_back(cn);
           }
         }
       }
@@ -234,7 +262,10 @@ bool SubstitutionMinimize::find(Node n,
 
 bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 {
-  Assert(n.isConst());
+  if(!n.isConst())
+  {
+    return false;
+  }
   if (k == AND)
   {
     return !n.getConst<bool>();
