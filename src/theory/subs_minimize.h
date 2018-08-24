@@ -26,13 +26,24 @@ namespace theory {
 
 /** SubstitutionMinimize
  *
+ * This class is used for finding a minimal substitution under which an
+ * evaluation holds.
  */
 class SubstitutionMinimize
 {
  public:
   SubstitutionMinimize();
   ~SubstitutionMinimize() {}
-
+  /** find 
+   * 
+   * If n { vars -> subs } rewrites to target, this method returns true, and
+   * vars[i1]...vars[in] are added to rewVars, such that
+   * n { vars[i_1] -> subs[i_1] ... vars[i_n]->subs[i_n] } also rewrites to
+   * target.
+   * 
+   * If n { vars -> subs } does not rewrite to target, this method returns
+   * false.
+   */
   bool find(Node n,
             Node target,
             const std::vector<Node>& vars,
