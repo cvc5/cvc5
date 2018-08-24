@@ -1328,12 +1328,13 @@ void SmtEngine::setDefaults() {
     is_sygus = true;
   }
 
-  if ((options::checkModels() || options::checkSynthSol() || options::modelCores())
+  if ((options::checkModels() || options::checkSynthSol()
+       || options::modelCores())
       && !options::produceAssertions())
   {
-      Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models, check-synth-sol or model-cores." << endl;
-      setOption("produce-assertions", SExpr("true"));
+    Notice() << "SmtEngine: turning on produce-assertions to support "
+             << "check-models, check-synth-sol or model-cores." << endl;
+    setOption("produce-assertions", SExpr("true"));
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
@@ -5064,16 +5065,16 @@ Model* SmtEngine::getModel() {
     throw ModalException(msg);
   }
   TheoryModel* m = d_theoryEngine->getModel();
-  
-  if( options::modelCores() )
+
+  if (options::modelCores())
   {
-    std::vector< Expr > easserts = getAssertions();
-    std::vector< Node > asserts;
-    for( unsigned i=0, size = easserts.size(); i<size; i++ )
+    std::vector<Expr> easserts = getAssertions();
+    std::vector<Node> asserts;
+    for (unsigned i = 0, size = easserts.size(); i < size; i++)
     {
-      asserts.push_back( Node::fromExpr(easserts[i]));
+      asserts.push_back(Node::fromExpr(easserts[i]));
     }
-    d_theoryEngine->setModelCore(asserts,m);
+    d_theoryEngine->setModelCore(asserts, m);
   }
   m->d_inputName = d_filename;
   return m;

@@ -73,7 +73,8 @@ class TheoryEngineModelBuilder : public ModelBuilder
   void postProcessModel(bool incomplete, Model* m);
 
   /** find model core */
-  void setModelCore(const std::vector< Node >& assertions, Model * m );
+  void setModelCore(const std::vector<Node>& assertions, Model* m);
+
  protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;

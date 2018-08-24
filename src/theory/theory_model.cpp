@@ -133,8 +133,9 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
-bool TheoryModel::isModelCoreSymbol(Expr expr) const {
-  if( !d_using_model_core )
+bool TheoryModel::isModelCoreSymbol(Expr expr) const
+{
+  if (!d_using_model_core)
   {
     return true;
   }
@@ -495,11 +496,8 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
-void TheoryModel::setUsingModelCore()
-{
-  d_using_model_core = true;
-}
-  
+void TheoryModel::setUsingModelCore() { d_using_model_core = true; }
+
 void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
 
 void TheoryModel::setUnevaluatedKind(Kind k)

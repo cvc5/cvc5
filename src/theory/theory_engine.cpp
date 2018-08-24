@@ -910,9 +910,10 @@ TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
 }
 
-void TheoryEngine::setModelCore(const std::vector< Node >& asserts, theory::TheoryModel* m)
+void TheoryEngine::setModelCore(const std::vector<Node>& asserts,
+                                theory::TheoryModel* m)
 {
-  d_curr_model_builder->setModelCore(asserts,m);
+  d_curr_model_builder->setModelCore(asserts, m);
 }
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)

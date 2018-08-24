@@ -830,19 +830,20 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   }
 }
 
-void TheoryEngineModelBuilder::setModelCore(const std::vector< Node >& assertions, Model * m )
+void TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
+                                            Model* m)
 {
   Trace("model-core") << "Compute model core, assertions:" << std::endl;
-  for( const Node& a : assertions )
+  for (const Node& a : assertions)
   {
     Trace("model-core") << "  " << a << std::endl;
   }
-  Node formula = NodeManager::currentNM()->mkNode( kind::AND, assertions );
+  Node formula = NodeManager::currentNM()->mkNode(kind::AND, assertions);
   TheoryModel* tm = static_cast<TheoryModel*>(m);
-  std::vector< Node > vars;
-  std::vector< Node > subs;
+  std::vector<Node> vars;
+  std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
-  
+
   Trace("model-core") << "Function assignments: " << std::endl;
 }
 

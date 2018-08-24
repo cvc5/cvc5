@@ -58,6 +58,7 @@ class Model {
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
+
  public:
   /** Check whether this expr is in the model core */
   virtual bool isModelCoreSymbol(Expr expr) const { return false; }

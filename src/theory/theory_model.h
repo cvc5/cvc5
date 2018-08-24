@@ -205,8 +205,8 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
-  /** set using model core 
-   * 
+  /** set using model core
+   *
    */
   void setUsingModelCore();
   /** record model core symbol
