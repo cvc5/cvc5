@@ -120,7 +120,7 @@ bool SubstitutionMinimize::find(Node n,
   std::unordered_set< Node, NodeHashFunction > rlvFv;
   // only variables that occur in assertions are relevant
   std::map< Node, unsigned > iteBranch;
-  std::map< Node, std::vector< unsigned > > singularArgs;
+  std::map< Node, std::vector< unsigned > > justifyArgs;
   
   visit.push_back(n);
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
@@ -158,9 +158,10 @@ bool SubstitutionMinimize::find(Node n,
           // TODO
         }
       
-        // see if there are any singular arguments
+        // see if there are any arguments that fully justify the evaluation
         Kind ck = cur.getKind();
-        std::vector< unsigned > singularArgs;
+        std::vector< unsigned > justifyArgs;
+        bool alreadyJustified = false;
         if( cur.getNumChildren()>1 )
         {
           for (unsigned i=0, size=cur.getNumChildren(); i<size; i++ )
@@ -171,29 +172,44 @@ bool SubstitutionMinimize::find(Node n,
             Assert(!it->second.isNull());
             if (isSingularArg(cn,ck,i) )
             {
-              singularArgs.push_back(i);
+              // have we seen this argument already? if so, we are done
+              if( visited.find(cn)!=visited.end() )
+              {
+                alreadyJustified = true;
+                break;
+              }
+              justifyArgs.push_back(i);
             }
           }
         }
-        // we need to recurse on at most one child
-        if( !singularArgs.empty() )
+        if( !alreadyJustified )
         {
-          unsigned sindex = 0;
-          
-          // TODO : choose best index
-          
-          visit.push_back(cur[singularArgs[sindex]]);
-        }
-        else
-        {
-          // recurse on all arguments
-          if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+          // we need to recurse on at most one child
+          if( !justifyArgs.empty() )
           {
-            visit.push_back(cur.getOperator());
+            unsigned sindex = justifyArgs[0];
+            bool 
+            if( justifyArgs.size()>1 )
+            {
+              // choose best index TODO
+              //for( unsigned sai : justifyArgs )
+              //{
+
+              //}
+            }
+            visit.push_back(cur[sindex]);
           }
-          for (const Node& cn : cur)
+          else
           {
-            visit.push_back(cn);
+            // must recurse on all arguments
+            if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+            {
+              visit.push_back(cur.getOperator());
+            }
+            for (const Node& cn : cur)
+            {
+              visit.push_back(cn);
+            }
           }
         }
       }
@@ -204,7 +220,7 @@ bool SubstitutionMinimize::find(Node n,
   for( const Node& v : rlvFv )
   {
     Assert( std::find(vars.begin(),vars.end(),v)!=vars.end());
-    reqVars.push_back(v)
+    reqVars.push_back(v);
   }
   
   return true;
