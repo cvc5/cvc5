@@ -287,9 +287,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   }
 }
 
-QuantifiersEngine::~QuantifiersEngine()
-{
-}
+QuantifiersEngine::~QuantifiersEngine() {}
 
 context::Context* QuantifiersEngine::getSatContext()
 {
