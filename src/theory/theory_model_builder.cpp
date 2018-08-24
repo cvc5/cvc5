@@ -813,26 +813,24 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   return true;
 }
 
-
 void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
 {
   // if we are incomplete, there is no guarantee on the model.
   // thus, we do not check the model here. (related to #1693).
-  if( incomplete )
+  if (incomplete)
   {
     return;
   }
   TheoryModel* tm = static_cast<TheoryModel*>(m);
-  Assert( tm!=nullptr );
+  Assert(tm != nullptr);
   // debug-check the model if the checkModels() is enabled.
   if (options::checkModels())
   {
     debugCheckModel(tm);
   }
   // compute the model core if modelCores() is enabled.
-  if( options::modelCores() )
+  if (options::modelCores())
   {
-    
   }
 }
 

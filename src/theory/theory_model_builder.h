@@ -70,7 +70,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
   bool buildModel(Model* m) override;
 
   /** postprocess model
-   * 
+   *
    */
   virtual void postProcessModel(bool incomplete, Model* m);
 
@@ -99,7 +99,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   virtual void debugModel(TheoryModel* m) {}
   //-----------------------------------end virtual functions
-  
+
   /** Debug check model.
    *
    * This throws an assertion failure if the model contains an equivalence

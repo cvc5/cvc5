@@ -205,7 +205,7 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
-  /** record dont care 
+  /** record dont care
    *
    * This marks that sym is a "don't care". In other words, its value is
    * not critical to the satisfiability of the formula this model is for.
@@ -306,14 +306,13 @@ public:
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
   /** symbols that are not in the model core */
-  std::unordered_set<Node, NodeHashFunction > d_model_ncore;
+  std::unordered_set<Node, NodeHashFunction> d_model_ncore;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
    *   hasBoundVars is whether n may contain bound variables
    */
-  Node getModelValue(TNode n,
-                     bool hasBoundVars = false) const;
+  Node getModelValue(TNode n, bool hasBoundVars = false) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,

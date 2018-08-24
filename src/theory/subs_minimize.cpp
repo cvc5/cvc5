@@ -32,12 +32,13 @@ bool SubstitutionMinimize::find(Node n,
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("subs-min") << "Substitution minimize : " << std::endl;
-  Trace("subs-min") << "  substitution : " << vars << " -> " << subs << std::endl;
+  Trace("subs-min") << "  substitution : " << vars << " -> " << subs
+                    << std::endl;
   Trace("subs-min") << "  node : " << n << std::endl;
   Trace("subs-min") << "  target : " << target << std::endl;
 
-  std::map< Node, std::unordered_set< Node, NodeHashFunction > > fvDepend;
-  
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> > fvDepend;
+
   // the value of each subterm in n under the substitution
   std::unordered_map<TNode, Node, TNodeHashFunction> value;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -70,7 +71,7 @@ bool SubstitutionMinimize::find(Node n,
       {
         value[cur] = Node::null();
         visit.push_back(cur);
-        if (cur.getKind()==APPLY_UF)
+        if (cur.getKind() == APPLY_UF)
         {
           visit.push_back(cur.getOperator());
         }
@@ -87,7 +88,7 @@ bool SubstitutionMinimize::find(Node n,
       std::vector<Node> vchildren;
       if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
       {
-        if( cur.getKind()==APPLY_UF )
+        if (cur.getKind() == APPLY_UF)
         {
           children.push_back(cur.getOperator());
         }
@@ -114,70 +115,71 @@ bool SubstitutionMinimize::find(Node n,
   } while (!visit.empty());
   Assert(value.find(n) != value.end());
   Assert(!value.find(n)->second.isNull());
-  
-  if(n!=target)
+
+  if (n != target)
   {
     return false;
   }
-  
-  
-  std::unordered_set< Node, NodeHashFunction > rlvFv;
+
+  std::unordered_set<Node, NodeHashFunction> rlvFv;
   // only variables that occur in assertions are relevant
-  std::map< Node, unsigned > iteBranch;
-  std::map< Node, std::vector< unsigned > > justifyArgs;
-  
+  std::map<Node, unsigned> iteBranch;
+  std::map<Node, std::vector<unsigned> > justifyArgs;
+
   visit.push_back(n);
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv;
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     itv = visited.find(cur);
-    if (itv == visited.end()) {
-      if( cur.isVar() )
+    if (itv == visited.end())
+    {
+      if (cur.isVar())
       {
         visited[cur] = true;
-        if( value[cur]!=cur )
+        if (value[cur] != cur)
         {
           // must include
           rlvFv.insert(cur);
         }
       }
-      else if( cur.getKind()==ITE )
+      else if (cur.getKind() == ITE)
       {
         visited[cur] = false;
         // only recurse on relevant branch
         Node bval = value[cur[0]];
-        Assert( !bval.isNull() && bval.isConst() );
+        Assert(!bval.isNull() && bval.isConst());
         unsigned cindex = bval.getConst<bool>() ? 1 : 2;
         visit.push_back(cur[0]);
         visit.push_back(cur[cindex]);
       }
-      else if( cur.getNumChildren()>0 )
+      else if (cur.getNumChildren() > 0)
       {
         visited[cur] = false;
         // if the operator is a variable, expand first
-        if( cur.getKind()==APPLY_UF )
+        if (cur.getKind() == APPLY_UF)
         {
           // TODO
         }
-      
+
         // see if there are any arguments that fully justify the evaluation
         Kind ck = cur.getKind();
-        std::vector< unsigned > justifyArgs;
+        std::vector<unsigned> justifyArgs;
         bool alreadyJustified = false;
-        if( cur.getNumChildren()>1 )
+        if (cur.getNumChildren() > 1)
         {
-          for (unsigned i=0, size=cur.getNumChildren(); i<size; i++ )
+          for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
           {
             Node cn = cur[i];
             it = value.find(cn);
             Assert(it != value.end());
             Assert(!it->second.isNull());
-            if (isSingularArg(cn,ck,i) )
+            if (isSingularArg(cn, ck, i))
             {
               // have we seen this argument already? if so, we are done
-              if( visited.find(cn)!=visited.end() )
+              if (visited.find(cn) != visited.end())
               {
                 alreadyJustified = true;
                 break;
@@ -186,16 +188,16 @@ bool SubstitutionMinimize::find(Node n,
             }
           }
         }
-        if( !alreadyJustified )
+        if (!alreadyJustified)
         {
           // we need to recurse on at most one child
-          if( !justifyArgs.empty() )
+          if (!justifyArgs.empty())
           {
             unsigned sindex = justifyArgs[0];
-            if( justifyArgs.size()>1 )
+            if (justifyArgs.size() > 1)
             {
               // choose best index TODO?
-              //for( unsigned sai : justifyArgs )
+              // for( unsigned sai : justifyArgs )
               //{
               //}
             }
@@ -204,7 +206,7 @@ bool SubstitutionMinimize::find(Node n,
           else
           {
             // must recurse on all arguments, including operator
-            if (cur.getKind()==APPLY_UF)
+            if (cur.getKind() == APPLY_UF)
             {
               visit.push_back(cur.getOperator());
             }
@@ -217,66 +219,67 @@ bool SubstitutionMinimize::find(Node n,
       }
     }
   } while (!visit.empty());
-  
-  
-  for( const Node& v : rlvFv )
+
+  for (const Node& v : rlvFv)
   {
-    Assert( std::find(vars.begin(),vars.end(),v)!=vars.end());
+    Assert(std::find(vars.begin(), vars.end(), v) != vars.end());
     reqVars.push_back(v);
   }
-  
-  Trace("subs-min") << "... requires " << reqVars.size() << "/" << vars.size() << " : " << reqVars << std::endl;
-  
+
+  Trace("subs-min") << "... requires " << reqVars.size() << "/" << vars.size()
+                    << " : " << reqVars << std::endl;
+
   return true;
 }
 
-
 bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 {
-  Assert( n.isConst() );
-  if( k==AND )
+  Assert(n.isConst());
+  if (k == AND)
   {
     return !n.getConst<bool>();
   }
-  else if( k==OR )
+  else if (k == OR)
   {
     return n.getConst<bool>();
   }
-  else if( k==IMPLIES )
+  else if (k == IMPLIES)
   {
-    return arg==(n.getConst<bool>() ? 1 : 0);
+    return arg == (n.getConst<bool>() ? 1 : 0);
   }
-  if( k==MULT || ( arg==0 && ( k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL || k==INTS_MODULUS_TOTAL ) ) )
+  if (k == MULT
+      || (arg == 0
+          && (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
+              || k == INTS_MODULUS_TOTAL)))
   {
     // zero
-    if( n.getConst<Rational>().sgn()==0 )
+    if (n.getConst<Rational>().sgn() == 0)
     {
       return true;
     }
   }
-  if (k == BITVECTOR_AND || k == BITVECTOR_MULT 
-             || k == BITVECTOR_UDIV_TOTAL
-             || k == BITVECTOR_UREM_TOTAL ||
-     ( arg==0 && (
-      k == BITVECTOR_SHL || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR)))
+  if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV_TOTAL
+      || k == BITVECTOR_UREM_TOTAL
+      || (arg == 0
+          && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
+              || k == BITVECTOR_ASHR)))
   {
     // bit-vector zero
-    //Node cmpz = bv::utils::mkZero(
+    // Node cmpz = bv::utils::mkZero(
   }
-  if( k==BITVECTOR_OR )
+  if (k == BITVECTOR_OR)
   {
     // bit-vector ones
   }
-  
-  if( ( arg==1 && k==STRING_STRCTN ) || ( arg==0 && k==STRING_SUBSTR ) )
+
+  if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
-    // empty string 
-    
+    // empty string
   }
-  if( ( arg!=0 && k==STRING_SUBSTR ) || ( arg==2 && k==STRING_STRIDOF ) )
+  if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_STRIDOF))
   {
     // negative integer
-    if( n.getConst<Rational>().sgn() < 0 )
+    if (n.getConst<Rational>().sgn() < 0)
     {
       return true;
     }

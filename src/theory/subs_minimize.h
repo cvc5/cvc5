@@ -38,13 +38,14 @@ class SubstitutionMinimize
             const std::vector<Node>& vars,
             const std::vector<Node>& subs,
             std::vector<Node>& reqVars);
-private:
+
+ private:
   /** is singular arg
-    * 
-    * Returns true if
-    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = c
-    * always holds for some constant c.
-    */
+   *
+   * Returns true if
+   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = c
+   * always holds for some constant c.
+   */
   bool isSingularArg(Node n, Kind k, unsigned arg);
 };
 

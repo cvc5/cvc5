@@ -650,7 +650,8 @@ void TheoryEngine::check(Theory::Effort effort) {
           // to construct heap model)
           postProcessModel(d_curr_model);
           // also call the model builder's post-process model
-          d_curr_model_builder->postProcessModel( d_incomplete.get(),d_curr_model );
+          d_curr_model_builder->postProcessModel(d_incomplete.get(),
+                                                 d_curr_model);
         }
       }
     }

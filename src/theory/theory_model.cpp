@@ -115,7 +115,8 @@ std::vector<std::pair<Expr, Expr> > TheoryModel::getApproximations() const
   return approx;
 }
 
-Node TheoryModel::getValue(TNode n) const {
+Node TheoryModel::getValue(TNode n) const
+{
   //apply substitutions
   Node nn = d_substitutions.apply(n);
   Debug("model-getvalue-debug") << "[model-getvalue] getValue : substitute " << n << " to " << nn << std::endl;
@@ -133,7 +134,7 @@ Node TheoryModel::getValue(TNode n) const {
 
 bool TheoryModel::isDontCare(Expr expr) const {
   Node s = Node::fromExpr(expr);
-  return d_model_ncore.find(s)!=d_model_ncore.end();
+  return d_model_ncore.find(s) != d_model_ncore.end();
 }
 
 Expr TheoryModel::getValue( Expr expr ) const{
@@ -489,10 +490,7 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
-void TheoryModel::recordDontCare(Node sym)
-{
-  d_model_ncore.insert(sym);
-}
+void TheoryModel::recordDontCare(Node sym) { d_model_ncore.insert(sym); }
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {
