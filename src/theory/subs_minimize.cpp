@@ -282,7 +282,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       || (arg == 0
           && (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
               || k == INTS_MODULUS_TOTAL))
-     || (arg==2 && k==STRING_SUBSTR))
+      || (arg == 2 && k == STRING_SUBSTR))
   {
     // zero
     if (n.getConst<Rational>().sgn() == 0)
