@@ -44,8 +44,6 @@ namespace datatypes {
 TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
                                  Valuation valuation, const LogicInfo& logicInfo)
     : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
-      //d_cycle_check(c),
-      d_hasSeenCycle(c, false),
       d_infer(c),
       d_infer_exp(c),
       d_term_sk( u ),
@@ -53,8 +51,9 @@ TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
       d_equalityEngine(d_notify, c, "theory::datatypes", true),
       d_labels( c ),
       d_selector_apps( c ),
-      //d_consEqc( c ),
       d_conflict( c, false ),
+      d_addedLemma(false),
+      d_addedFact(false),
       d_collectTermsCache( c ),
       d_functionTerms( c ),
       d_singleton_eq( u ),
@@ -765,25 +764,6 @@ void TheoryDatatypes::conflict(TNode a, TNode b){
 void TheoryDatatypes::eqNotifyNewClass(TNode t){
   if( t.getKind()==APPLY_CONSTRUCTOR ){
     getOrMakeEqcInfo( t, true );
-    //look at all equivalence classes with constructor terms
-/*
-    for( BoolMap::const_iterator it = d_consEqc.begin(); it != d_consEqc.end(); ++it ){
-      if( (*it).second ){
-        TNode r = (*it).first;
-        if( r.getType()==t.getType() ){
-          EqcInfo * ei = getOrMakeEqcInfo( r, false );
-          if( ei && !ei->d_constructor.get().isNull() && ei->d_constructor.get().getOperator()!=t.getOperator() ){
-            Node deq = ei->d_constructor.get().eqNode( t ).negate();
-            d_pending.push_back( deq );
-            d_pending_exp[ deq ] = d_true;
-            Trace("datatypes-infer") << "DtInfer : diff constructor : " << deq << std::endl;
-            d_infer.push_back( deq );
-          }
-        }
-      }
-    }
-*/
-    //d_consEqc[t] = true;
   }
 }
 
@@ -865,14 +845,7 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
             if( d_conflict ){
               return;
             }
-            //d_consEqc[t1] = true;
           }
-          //AJR: do this?
-          //else if( cons2.isConst() ){
-          //  //prefer the constant
-          //  eqc1->d_constructor = cons2;
-          //}
-          //d_consEqc[t2] = false;
         }
       }else{
         Trace("datatypes-debug") << "  no eqc info for " << t1 << ", must create" << std::endl;
@@ -1998,9 +1971,6 @@ Node TheoryDatatypes::searchForCycle( TNode n, TNode on,
       for( unsigned i=0; i<ncons.getNumChildren(); i++ ) {
         TNode cn = searchForCycle( ncons[i], on, visited, proc, explanation, false );
         if( cn==on ) {
-          //if( Debug.isOn("datatypes-cycles") && !d_cycle_check.isConnectedNode( n, ncons[i] ) ){
-          //  Debug("datatypes-cycles") << "Cycle subterm: " << n << " is not -> " << ncons[i] << "!!!!" << std::endl;
-          //}
           //add explanation for why the constructor is connected
           if( n != ncons ) {
             explainEquality( n, ncons, true, explanation );

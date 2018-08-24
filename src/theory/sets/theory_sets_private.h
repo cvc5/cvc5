@@ -46,8 +46,6 @@ class TheorySetsPrivate {
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-private:
-  TheorySetsRels * d_rels;
 public:
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
@@ -139,11 +137,15 @@ private:
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
   std::map< Kind, std::vector< Node > > d_op_list;
   //cardinality
-private:
+private:  
+   /** is cardinality enabled? 
+   *
+   * This flag is set to true during a full effort check if any constraint
+   * involving cardinality constraints is asserted to this theory.
+   */
   bool d_card_enabled;
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;
-  bool d_rels_enabled;
   std::map< Node, Node > d_eqc_to_card_term;
   NodeSet d_card_processed;
   std::map< Node, std::vector< Node > > d_card_parent;
@@ -300,7 +302,15 @@ private:
   bool isCareArg( Node n, unsigned a );
 public:
   bool isEntailed( Node n, bool pol );
-  
+ private:
+  /** subtheory solver for the theory of relations */
+  std::unique_ptr< TheorySetsRels > d_rels;
+  /** are relations enabled? 
+   *
+   * This flag is set to true during a full effort check if any constraint
+   * involving relational constraints is asserted to this theory.
+   */
+  bool d_rels_enabled;
 };/* class TheorySetsPrivate */
 
 
