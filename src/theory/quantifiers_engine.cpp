@@ -318,7 +318,7 @@ const LogicInfo& QuantifiersEngine::getLogicInfo() const
 
 EqualityQuery* QuantifiersEngine::getEqualityQuery() const
 {
-return d_eq_query.get();
+  return d_eq_query.get();
 }
 quantifiers::EqualityInference* QuantifiersEngine::getEqualityInference() const
 {
@@ -328,7 +328,10 @@ quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
 {
   return d_rel_dom.get();
 }
-quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const { return d_bv_invert.get(); }
+quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const
+{
+  return d_bv_invert.get();
+}
 quantifiers::QuantRelevance* QuantifiersEngine::getQuantifierRelevance() const
 {
   return d_quant_rel.get();
@@ -337,22 +340,46 @@ quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
 {
   return d_builder.get();
 }
-quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const { return d_qepr.get(); }
-quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const { return d_model.get(); }
-quantifiers::TermDb* QuantifiersEngine::getTermDatabase()const { return d_term_db.get(); }
-quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const{ return d_sygus_tdb.get(); }
-quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const { return d_term_util.get(); }
+quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const
+{
+  return d_qepr.get();
+}
+quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const
+{
+  return d_model.get();
+}
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase() const
+{
+  return d_term_db.get();
+}
+quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const
+{
+  return d_sygus_tdb.get();
+}
+quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
+{
+  return d_term_util.get();
+}
 quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
 {
   return d_quant_attr.get();
 }
-quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const{ return d_instantiate.get(); }
-quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const{ return d_skolemize.get(); }
-quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration()const
+quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const
+{
+  return d_instantiate.get();
+}
+quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const
+{
+  return d_skolemize.get();
+}
+quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration() const
 {
   return d_term_enum.get();
 }
-inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const{ return d_tr_trie.get(); }
+inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const
+{
+  return d_tr_trie.get();
+}
 
 quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
 {

@@ -209,7 +209,7 @@ private:
 public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
   ~QuantifiersEngine();
-  //---------------------- external interface 
+  //---------------------- external interface
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const { return d_te; }
   /** get default sat context for quantifiers engine */
@@ -241,7 +241,7 @@ public:
   /** get model */
   quantifiers::FirstOrderModel* getModel() const;
   /** get term database */
-  quantifiers::TermDb* getTermDatabase()const;
+  quantifiers::TermDb* getTermDatabase() const;
   /** get term database sygus */
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   /** get term utilities */
@@ -253,7 +253,7 @@ public:
   /** get skolemize utility */
   quantifiers::Skolemize* getSkolemize() const;
   /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration()const;
+  quantifiers::TermEnumeration* getTermEnumeration() const;
   /** get trigger database */
   inst::TriggerTrie* getTriggerDatabase() const;
   //---------------------- end utilities
