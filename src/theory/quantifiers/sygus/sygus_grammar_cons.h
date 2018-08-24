@@ -117,8 +117,6 @@ public:
   CegConjecture* d_parent;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
-  /** does the syntax allow ITE expressions? */
-  bool d_has_ite;
   /** collect terms */
   void collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts );
   /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
@@ -127,7 +125,7 @@ public:
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
   // make the builtin constants for type type that should be included in a sygus grammar
-  static void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
+  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   /** helper function for function mkSygusDefaultType

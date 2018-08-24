@@ -52,14 +52,16 @@ public:
 
   TheoryBVWhite() {}
 
-  void setUp() {
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smt;
     delete d_em;
@@ -67,8 +69,11 @@ public:
  
   void testBitblasterCore() {
     d_smt->setOption("bitblast", SExpr("eager"));
-    EagerBitblaster* bb = new EagerBitblaster(dynamic_cast<TheoryBV*>(
-        d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]));
+    d_smt->setOption("incremental", SExpr("false"));
+    EagerBitblaster* bb = new EagerBitblaster(
+        dynamic_cast<TheoryBV*>(
+            d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]),
+        d_smt->d_context);
     Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(16));
     Node y = d_nm->mkVar("y", d_nm->mkBitVectorType(16));
     Node x_plus_y = d_nm->mkNode(kind::BITVECTOR_PLUS, x, y);

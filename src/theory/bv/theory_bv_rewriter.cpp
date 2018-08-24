@@ -30,8 +30,8 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
 
-// CVC4_THREAD_LOCAL AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
-// CVC4_THREAD_LOCAL TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
+// thread_local AllRewriteRules* TheoryBVRewriter::s_allRules = NULL;
+// thread_local TimerStat* TheoryBVRewriter::d_rewriteTimer = NULL;
 RewriteFunction TheoryBVRewriter::d_rewriteTable[kind::LAST_KIND]; 
 void TheoryBVRewriter::init() {
    // s_allRules = new AllRewriteRules;
@@ -166,12 +166,19 @@ RewriteResponse TheoryBVRewriter::RewriteSge(TNode node, bool prerewrite){
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite){
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule < EvalITEBv >
-       >::apply(node);
-
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalITEBv>,
+                            RewriteRule<BvIteConstCond>,
+                            RewriteRule<BvIteEqualChildren>,
+                            RewriteRule<BvIteConstChildren>,
+                            RewriteRule<BvIteEqualCond>,
+                            RewriteRule<BvIteMergeThenIf>,
+                            RewriteRule<BvIteMergeElseIf>,
+                            RewriteRule<BvIteMergeThenElse>,
+                            RewriteRule<BvIteMergeElseElse>>::apply(node);
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){
@@ -329,12 +336,13 @@ RewriteResponse TheoryBVRewriter::RewriteNor(TNode node, bool prerewrite) {
   return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
 }
 
-RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite) {
-  Node resultNode = LinearRewriteStrategy
-    < RewriteRule < EvalComp >
-       >::apply(node);
+RewriteResponse TheoryBVRewriter::RewriteComp(TNode node, bool prerewrite)
+{
+  Node resultNode =
+      LinearRewriteStrategy<RewriteRule<EvalComp>, RewriteRule<BvComp> >::apply(
+          node);
 
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteMult(TNode node, bool prerewrite) {

@@ -101,18 +101,28 @@ class CDOhash_map : public ContextObj {
   friend class CDHashMap<Key, Data, HashFcn>;
 
  public:
-  // The type of the <Key, Data> value mapped to by this class.
-  using value_type = std::pair<Key, Data>;
+  // The type of the <Key, Data> pair mapped by this class.
+  //
+  // Implementation:
+  // The data and key visible to users of CDHashMap are only visible through
+  // const references. Thus the type of dereferencing a
+  // CDHashMap<Key, Data>::iterator.second is intended to always be a
+  // `const Data&`. (Otherwise, to get a Data& safely, access operations
+  // would need to makeCurrent() to get the Data&, which is an unacceptable
+  // performance hit.) To allow for the desired updating in other scenarios, we
+  // store a std::pair<const Key, const Data> and break the const encapsulation
+  // when necessary.
+  using value_type = std::pair<const Key, const Data>;
 
  private:
   value_type d_value;
-  Key& mutable_key() { return d_value.first; }
-  Data& mutable_data() { return d_value.second; }
+
+  // See documentation of value_type for why this is needed.
+  Key& mutable_key() { return const_cast<Key&>(d_value.first); }
+  // See documentation of value_type for why this is needed.
+  Data& mutable_data() { return const_cast<Data&>(d_value.second); }
 
   CDHashMap<Key, Data, HashFcn>* d_map;
-
-  /** never put this cdhashmapelement on the trash */
-  bool d_noTrash;
 
   // Doubly-linked list for keeping track of elements in order of insertion
   CDOhash_map* d_prev;
@@ -149,13 +159,10 @@ class CDOhash_map : public ContextObj {
         }
         d_next->d_prev = d_prev;
         d_prev->d_next = d_next;
-        if(d_noTrash) {
-          Debug("gc") << "CDHashMap<> no-trash " << this << std::endl;
-        } else {
-          Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
-          //this->deleteSelf();
-          enqueueToGarbageCollect();
-        }
+
+        Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
+        // this->deleteSelf();
+        enqueueToGarbageCollect();
       } else {
         mutable_data() = p->get();
       }
@@ -177,23 +184,16 @@ class CDOhash_map : public ContextObj {
         d_next(NULL)
   {
   }
-  CDOhash_map& operator=(const CDOhash_map&) CVC4_UNDEFINED;
+  CDOhash_map& operator=(const CDOhash_map&) = delete;
 
  public:
   CDOhash_map(Context* context,
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
               const Data& data,
-              bool atLevelZero = false,
-              bool allocatedInCMM = false)
-      : ContextObj(allocatedInCMM, context),
-        d_value(key, data),
-        d_map(NULL),
-        d_noTrash(allocatedInCMM)
+              bool atLevelZero = false)
+      : ContextObj(false, context), d_value(key, data), d_map(NULL)
   {
-    // untested, probably unsafe.
-    Assert(!(atLevelZero && allocatedInCMM));
-
     if(atLevelZero) {
       // "Initializing" map insertion: this entry will never be
       // removed from the map, it's inserted at level 0 as an
@@ -206,13 +206,6 @@ class CDOhash_map : public ContextObj {
       // initialize d_map in the constructor init list above, because
       // we want the restore of d_map to NULL to signal us to remove
       // the element from the map.
-
-      if(allocatedInCMM) {
-        // Force a save/restore point, even though the object is
-        // allocated here.  This is so that we can detect when the
-        // object falls out of the map (otherwise we wouldn't get it).
-        makeSaveRestorePoint();
-      }
 
       set(data);
     }
@@ -290,8 +283,8 @@ class CDHashMap : public ContextObj {
   void restore(ContextObj* data) override { Unreachable(); }
 
   // no copy or assignment
-  CDHashMap(const CDHashMap&) CVC4_UNDEFINED;
-  CDHashMap& operator=(const CDHashMap&) CVC4_UNDEFINED;
+  CDHashMap(const CDHashMap&) = delete;
+  CDHashMap& operator=(const CDHashMap&) = delete;
 
 public:
   CDHashMap(Context* context)
@@ -315,9 +308,7 @@ public:
       // mark it as being a destruction (short-circuit restore())
       Element* element = key_element_pair.second;
       element->d_map = nullptr;
-      if (!element->d_noTrash) {
-        element->deleteSelf();
-      }
+      element->deleteSelf();
     }
     d_map.clear();
     d_first = nullptr;

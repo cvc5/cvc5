@@ -3,5 +3,5 @@
 (set-logic QF_ALL_SUPPORTED)
 (declare-fun x () Int)
 (assert (wand (pto x 1) (pto x 3)))
-(assert (emp x x))
+(assert (_ emp Int Int))
 (check-sat)

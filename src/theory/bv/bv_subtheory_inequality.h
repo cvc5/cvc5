@@ -38,9 +38,12 @@ typedef expr::Attribute<IneqOnlyAttributeId, bool> IneqOnlyAttribute;
 struct IneqOnlyComputedAttributeId {};
 typedef expr::Attribute<IneqOnlyComputedAttributeId, bool> IneqOnlyComputedAttribute;
 
-class InequalitySolver: public SubtheorySolver {
-  struct Statistics {
+class InequalitySolver : public SubtheorySolver
+{
+  struct Statistics
+  {
     IntStat d_numCallstoCheck;
+    TimerStat d_solveTime;
     Statistics();
     ~Statistics();
   };

@@ -43,7 +43,7 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
  public:
   TheoryEvaluatorWhite() {}
 
-  void setUp()
+  void setUp() override
   {
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
@@ -53,7 +53,7 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     d_scope = new SmtScope(d_smt);
   }
 
-  void tearDown()
+  void tearDown() override
   {
     delete d_scope;
     delete d_smt;

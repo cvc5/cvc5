@@ -42,49 +42,20 @@ private:
   SmtEngine* d_smtEngine;
   SmtScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
     d_smtEngine = new SmtEngine(d_exprManager);
     d_scope = new SmtScope(d_smtEngine);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smtEngine;
     delete d_exprManager;
-  }
-
-  class MyData {
-  public:
-    static int count;
-    MyData()  { count ++; }
-    ~MyData() { count --; }
-  };
-
-  struct MyDataAttributeId {};
-
-  struct MyDataCleanupFunction {
-    static void cleanup(MyData* myData){
-      delete myData;
-    }
-  };
-
-  typedef expr::Attribute<MyDataAttributeId, MyData*, MyDataCleanupFunction> MyDataAttribute;
-
-  void testDeallocation() {
-    TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
-    MyData* data;
-    MyData* data1;
-    MyDataAttribute attr;
-    TS_ASSERT(!node->getAttribute(attr, data));
-    node->setAttribute(attr, new MyData());
-    TS_ASSERT(node->getAttribute(attr, data1));
-    TS_ASSERT(MyData::count == 1);
-    delete node;
   }
 
   struct PrimitiveIntAttributeId {};
@@ -123,56 +94,6 @@ public:
     TS_ASSERT_EQUALS(data1, val);
 
     delete node;
-  }
-
-  class Foo {
-    int d_bar;
-  public:
-    Foo(int b) : d_bar(b) {}
-    int getBar() const { return d_bar; }
-  };
-
-  struct PtrAttributeId {};
-
-  typedef expr::Attribute<PtrAttributeId, Foo*> PtrAttribute;
-  void testPtrs(){
-    TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
-
-    Foo* val = new Foo(63489);
-    Foo* data0 = NULL;
-    Foo* data1 = NULL;
-
-    PtrAttribute attr;
-    TS_ASSERT(!node->getAttribute(attr, data0));
-    node->setAttribute(attr, val);
-    TS_ASSERT(node->getAttribute(attr, data1));
-    TS_ASSERT_EQUALS(data1, val);
-
-    delete node;
-    delete val;
-  }
-
-
-  struct ConstPtrAttributeId {};
-
-  typedef expr::Attribute<ConstPtrAttributeId, const Foo*> ConstPtrAttribute;
-  void testConstPtrs(){
-    TypeNode booleanType = d_nodeManager->booleanType();
-    Node* node = new Node(d_nodeManager->mkSkolem("b", booleanType));
-
-    const Foo* val = new Foo(63489);
-    const Foo* data0 = NULL;
-    const Foo* data1 = NULL;
-
-    ConstPtrAttribute attr;
-    TS_ASSERT(!node->getAttribute(attr, data0));
-    node->setAttribute(attr, val);
-    TS_ASSERT(node->getAttribute(attr, data1));
-    TS_ASSERT_EQUALS(data1, val);
-
-    delete node;
-    delete val;
   }
 
   struct StringAttributeId {};
@@ -215,5 +136,3 @@ public:
   }
 
 };
-
-int AttributeBlack::MyData::count = 0;

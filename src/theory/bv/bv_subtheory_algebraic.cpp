@@ -2,7 +2,7 @@
 /*! \file bv_subtheory_algebraic.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -15,6 +15,9 @@
  **/
 #include "theory/bv/bv_subtheory_algebraic.h"
 
+#include <unordered_set>
+
+#include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
@@ -22,8 +25,6 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-
-#include <unordered_set>
 
 using namespace CVC4::context;
 using namespace CVC4::prop;
@@ -252,21 +253,16 @@ AlgebraicSolver::~AlgebraicSolver() {
 
 
 
-bool AlgebraicSolver::check(Theory::Effort e) {
+bool AlgebraicSolver::check(Theory::Effort e)
+{
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY);
 
-  if (!Theory::fullEffort(e)) {
-    return true;
-  }
-
-  if (!useHeuristic()) {
-    return true;
-  }
-
-  ++(d_numCalls);
+  if (!Theory::fullEffort(e)) { return true; }
+  if (!useHeuristic()) { return true; }
 
   TimerStat::CodeTimer algebraicTimer(d_statistics.d_solveTime);
   Debug("bv-subtheory-algebraic") << "AlgebraicSolver::check (" << e << ")\n";
+  ++(d_numCalls);
   ++(d_statistics.d_numCallstoCheck);
 
   d_explanations.clear();
@@ -495,11 +491,13 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   TNode left = fact[0];
   TNode right = fact[1];
 
-  if (left.isVar() && !right.hasSubterm(left)) {
-    bool changed  = subst.addSubstitution(left, right, reason);
+  if (left.isVar() && !expr::hasSubterm(right, left))
+  {
+    bool changed = subst.addSubstitution(left, right, reason);
     return changed;
   }
-  if (right.isVar() && !left.hasSubterm(right)) {
+  if (right.isVar() && !expr::hasSubterm(left, right))
+  {
     bool changed = subst.addSubstitution(right, left, reason);
     return changed;
   }
@@ -512,7 +510,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       return false;
 
     // simplify xor with same variable on both sides
-    if (right.hasSubterm(var)) {
+    if (expr::hasSubterm(right, var))
+    {
       std::vector<Node> right_children;
       for (unsigned i = 0; i < right.getNumChildren(); ++i) {
         if (right[i] != var)
@@ -553,9 +552,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   }
 
   // (a xor t = a) <=> (t = 0)
-  if (left.getKind() == kind::BITVECTOR_XOR &&
-      right.getMetaKind() == kind::metakind::VARIABLE &&
-      left.hasSubterm(right)) {
+  if (left.getKind() == kind::BITVECTOR_XOR
+      && right.getMetaKind() == kind::metakind::VARIABLE
+      && expr::hasSubterm(left, right))
+  {
     TNode var = right;
     Node new_left = nm->mkNode(kind::BITVECTOR_XOR, var, left);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
@@ -564,9 +564,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     return changed;
   }
 
-  if (right.getKind() == kind::BITVECTOR_XOR &&
-      left.getMetaKind() == kind::metakind::VARIABLE &&
-      right.hasSubterm(left)) {
+  if (right.getKind() == kind::BITVECTOR_XOR
+      && left.getMetaKind() == kind::metakind::VARIABLE
+      && expr::hasSubterm(right, left))
+  {
     TNode var = left;
     Node new_right = nm->mkNode(kind::BITVECTOR_XOR, var, right);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
@@ -589,9 +590,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   return false;
 }
 
-bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
-  if (node.getMetaKind() == kind::metakind::VARIABLE &&
-      !in.hasSubterm(node))
+bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in)
+{
+  if (node.getMetaKind() == kind::metakind::VARIABLE
+      && !expr::hasSubterm(in, node))
     return true;
   return false;
 }

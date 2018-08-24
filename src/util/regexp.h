@@ -51,6 +51,8 @@ class CVC4_PUBLIC String {
    * This is the cardinality of the alphabet that is representable by this
    * class. Notice that this must be greater than or equal to the cardinality
    * of the alphabet that the string theory reasons about.
+   *
+   * This must be strictly less than std::numeric_limits<unsigned>::max().
    */
   static inline unsigned num_codes() { return 256; }
   /**
@@ -89,9 +91,7 @@ class CVC4_PUBLIC String {
       : d_str(toInternal(s, useEscSequences)) {}
   explicit String(const char* s, bool useEscSequences = false)
       : d_str(toInternal(std::string(s), useEscSequences)) {}
-  explicit String(const unsigned char c)
-      : d_str({convertCharToUnsignedInt(c)}) {}
-  explicit String(const std::vector<unsigned>& s) : d_str(s) {}
+  explicit String(const std::vector<unsigned>& s);
 
   String& operator=(const String& y) {
     if (this != &y) {
@@ -136,9 +136,6 @@ class CVC4_PUBLIC String {
   bool isLeq(const String& y) const;
   /** Return the length of the string */
   std::size_t size() const { return d_str.size(); }
-
-  unsigned char getFirstChar() const { return getUnsignedCharAt(0); }
-  unsigned char getLastChar() const { return getUnsignedCharAt(size() - 1); }
 
   bool isRepeated() const;
   bool tailcmp(const String& y, int& c) const;
@@ -187,8 +184,12 @@ class CVC4_PUBLIC String {
   bool isNumber() const;
   /** Returns the corresponding rational for the text of this string. */
   Rational toNumber() const;
-
+  /** get the internal unsigned representation of this string */
   const std::vector<unsigned>& getVec() const { return d_str; }
+  /** get the internal unsigned value of the first character in this string */
+  unsigned front() const;
+  /** get the internal unsigned value of the last character in this string */
+  unsigned back() const;
   /** is the unsigned a digit?
   * The input should be the same type as the element type of d_str
   */
@@ -205,7 +206,6 @@ class CVC4_PUBLIC String {
 
   static std::vector<unsigned> toInternal(const std::string& s,
                                           bool useEscSequences = true);
-  unsigned char getUnsignedCharAt(size_t pos) const;
 
   /**
    * Returns a negative number if *this < y, 0 if *this and y are equal and a

@@ -50,7 +50,7 @@ protected:
   /**
    * operator= for CDO is private to ensure CDO object is not copied.
    */
-  CDO<T>& operator=(const CDO<T>& cdo) CVC4_UNDEFINED;
+  CDO<T>& operator=(const CDO<T>& cdo) = delete;
 
   /**
    * Implementation of mandatory ContextObj method save: simply copies the

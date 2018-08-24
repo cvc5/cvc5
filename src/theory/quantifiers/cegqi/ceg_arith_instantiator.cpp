@@ -14,12 +14,14 @@
 
 #include "theory/quantifiers/cegqi/ceg_arith_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/arith/partial_model.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/theory_arith_private.h"
 #include "theory/quantifiers/term_util.h"
+#include "util/random.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -118,7 +120,7 @@ bool ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             Node pv,
                                             CegInstEffort effort)
 {
-  return true;
+  return effort != CEG_INST_EFFORT_FULL;
 }
 
 Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
@@ -128,10 +130,9 @@ Node ArithInstantiator::hasProcessAssertion(CegInstantiator* ci,
                                             CegInstEffort effort)
 {
   Node atom = lit.getKind() == NOT ? lit[0] : lit;
-  bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   if (atom.getKind() == GEQ
-      || (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal()))
+      || (atom.getKind() == EQUAL && atom[0].getType().isReal()))
   {
     return lit;
   }
@@ -150,7 +151,7 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   bool pol = lit.getKind() != NOT;
   // arithmetic inequalities and disequalities
   Assert(atom.getKind() == GEQ
-         || (atom.getKind() == EQUAL && !pol && atom[0].getType().isReal()));
+         || (atom.getKind() == EQUAL && atom[0].getType().isReal()));
   // get model value for pv
   Node pv_value = ci->getModelValue(pv);
   // cannot contain infinity?
@@ -165,8 +166,12 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
   {
     return false;
   }
-  // disequalities are either strict upper or lower bounds
-  unsigned rmax = (atom.getKind() == GEQ || options::cbqiModel()) ? 1 : 2;
+  // compute how many bounds we will consider
+  unsigned rmax = 1;
+  if (atom.getKind() == EQUAL && (pol || !options::cbqiModel()))
+  {
+    rmax = 2;
+  }
   for (unsigned r = 0; r < rmax; r++)
   {
     int uires = ires;
@@ -190,8 +195,14 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
         }
       }
     }
+    else if (pol)
+    {
+      // equalities are both non-strict upper and lower bounds
+      uires = r == 0 ? 1 : -1;
+    }
     else
     {
+      // disequalities are either strict upper or lower bounds
       bool is_upper;
       if (options::cbqiModel())
       {
@@ -226,11 +237,12 @@ bool ArithInstantiator::processAssertion(CegInstantiator* ci,
           Node cmp = nm->mkNode(GEQ, lhs_value, rhs_value);
           cmp = Rewriter::rewrite(cmp);
           Assert(cmp.isConst());
-          is_upper = (cmp != ci->getQuantifiersEngine()->getTermUtil()->d_true);
+          is_upper = !cmp.isConst() || !cmp.getConst<bool>();
         }
       }
       else
       {
+        // since we are not using the model, we try both.
         is_upper = (r == 0);
       }
       Assert(atom.getKind() == EQUAL && !pol);
@@ -319,7 +331,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
   bool use_inf = ci->useVtsInfinity()
                  && (d_type.isInteger() ? options::cbqiUseInfInt()
                                         : options::cbqiUseInfReal());
-  bool upper_first = false;
+  bool upper_first = Random::getRandom().pickWithProb(0.5);
   if (options::cbqiMinBounds())
   {
     upper_first = d_mbp_bounds[1].size() < d_mbp_bounds[0].size();
@@ -352,6 +364,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         if (ci->constructInstantiationInc(pv, val, pv_prop_no_bound, sf))
         {
           return true;
+        }
+        else if (!options::cbqiMultiInst())
+        {
+          return false;
         }
       }
     }
@@ -389,6 +405,7 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
         t_values[rr].push_back(Node::null());
         // check if it is better than the current best bound : lexicographic
         // order infinite/finite/infinitesimal parts
+        bool new_best_set = false;
         bool new_best = true;
         for (unsigned t = 0; t < 3; t++)
         {
@@ -435,8 +452,8 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
                 value[t]);
             value[t] = Rewriter::rewrite(value[t]);
           }
-          // check if new best
-          if (best != -1)
+          // check if new best, if we have not already set it.
+          if (best != -1 && !new_best_set)
           {
             Assert(!value[t].isNull() && !best_bound_value[t].isNull());
             if (value[t] != best_bound_value[t])
@@ -444,12 +461,17 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
               Kind k = rr == 0 ? GEQ : LEQ;
               Node cmp_bound = nm->mkNode(k, value[t], best_bound_value[t]);
               cmp_bound = Rewriter::rewrite(cmp_bound);
-              if (cmp_bound
-                  != ci->getQuantifiersEngine()->getTermUtil()->d_true)
+              // Should be comparing two constant values which should rewrite
+              // to a constant. If a step failed, we assume that this is not
+              // the new best bound.
+              Assert(cmp_bound.isConst());
+              if (!cmp_bound.isConst() || !cmp_bound.getConst<bool>())
               {
                 new_best = false;
                 break;
               }
+              // indicate that the value of new_best is now established.
+              new_best_set = true;
             }
           }
         }
@@ -504,6 +526,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
             {
               return true;
             }
+            else if (!options::cbqiMultiInst())
+            {
+              return false;
+            }
           }
         }
       }
@@ -530,6 +556,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       if (ci->constructInstantiationInc(pv, val, pv_prop_zero, sf))
       {
         return true;
+      }
+      else if (!options::cbqiMultiInst())
+      {
+        return false;
       }
     }
   }
@@ -598,6 +628,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
       {
         return true;
       }
+      else if (!options::cbqiMultiInst())
+      {
+        return false;
+      }
     }
   }
   // generally should not make it to this point, unless we are using a
@@ -636,6 +670,10 @@ bool ArithInstantiator::processAssertions(CegInstantiator* ci,
           if (ci->constructInstantiationInc(pv, val, pv_prop_nopt_bound, sf))
           {
             return true;
+          }
+          else if (!options::cbqiMultiInst())
+          {
+            return false;
           }
         }
       }
@@ -814,7 +852,7 @@ int ArithInstantiator::solve_arith(CegInstantiator* ci,
         << pv << " " << atom.getKind() << " " << val << std::endl;
   }
   // when not pure LIA/LRA, we must check whether the lhs contains pv
-  if (val.hasSubterm(pv))
+  if (expr::hasSubterm(val, pv))
   {
     Trace("cegqi-arith-debug") << "fail : contains bad term" << std::endl;
     return 0;

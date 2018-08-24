@@ -21,12 +21,11 @@
 #  error This file should only be included when generating swig interfaces.
 #endif /* SWIG */
 
-#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x020000
-#  error CVC4 bindings require swig version 2.0.0 or later, sorry.
+#if !defined(SWIG_VERSION) || SWIG_VERSION < 0x030000
+#  error CVC4 bindings require swig version 3.0.0 or later, sorry.
 #endif /* SWIG_VERSION */
 
 %import "cvc4_public.h"
-%import "base/tls.h"
 
 // swig doesn't like GCC attributes
 #define __attribute__(x)

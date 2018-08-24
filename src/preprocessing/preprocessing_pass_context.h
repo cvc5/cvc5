@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz, Mathias Preiner
+ **   Justin Xu, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,7 +23,9 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
+#include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
@@ -33,12 +35,16 @@ namespace preprocessing {
 class PreprocessingPassContext
 {
  public:
-  PreprocessingPassContext(SmtEngine* smt, ResourceManager* resourceManager);
+  PreprocessingPassContext(SmtEngine* smt,
+                           ResourceManager* resourceManager,
+                           RemoveTermFormulas* iteRemover);
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
+  RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
+
   void spendResource(unsigned amount)
   {
     d_resourceManager->spendResource(amount);
@@ -51,6 +57,9 @@ class PreprocessingPassContext
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
   ResourceManager* d_resourceManager;
+
+  /** Instance of the ITE remover */
+  RemoveTermFormulas* d_iteRemover;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

@@ -260,7 +260,7 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
-   * The name of the input (if any).
+   * The input file name (if any) or the name set through setInfo (if any)
    */
   std::string d_filename;
 
@@ -282,6 +282,14 @@ class CVC4_PUBLIC SmtEngine {
    * Check that a generated proof (via getProof()) checks.
    */
   void checkProof();
+
+  /**
+   * Internal method to get an unsatisfiable core (only if immediately preceded
+   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * unsat-core support and produce-unsat-cores is on. Does not dump the
+   * command.
+   */
+  UnsatCore getUnsatCoreInternal();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
@@ -402,8 +410,8 @@ class CVC4_PUBLIC SmtEngine {
   void addToModelCommandAndDump(const Command& c, uint32_t flags = 0, bool userVisible = true, const char* dumpTag = "declarations");
 
   // disallow copy/assignment
-  SmtEngine(const SmtEngine&) CVC4_UNDEFINED;
-  SmtEngine& operator=(const SmtEngine&) CVC4_UNDEFINED;
+  SmtEngine(const SmtEngine&) = delete;
+  SmtEngine& operator=(const SmtEngine&) = delete;
 
   //check satisfiability (for query and check-sat)
   Result checkSatisfiability(const Expr& assumption,
@@ -428,6 +436,13 @@ class CVC4_PUBLIC SmtEngine {
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+
+  /**
+   * Helper method to obtain both the heap and nil from the solver. Returns a
+   * std::pair where the first element is the heap expression and the second
+   * element is the nil expression.
+   */
+  std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
  public:
 
@@ -479,6 +494,10 @@ class CVC4_PUBLIC SmtEngine {
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
 
+  /** sets the input name */
+  void setFilename(std::string filename);
+  /** return the input name (if any) */
+  std::string getFilename() const;
   /**
    * Get the model (only if immediately preceded by a SAT
    * or INVALID query).  Only permitted if CVC4 was built with model
@@ -489,12 +508,12 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * When using separation logic, obtain the expression for the heap.
    */
-  Expr getHeapExpr();
+  Expr getSepHeapExpr();
 
   /**
    * When using separation logic, obtain the expression for nil.
    */
-  Expr getNilExpr();
+  Expr getSepNilExpr();
 
   /**
    * Get an aspect of the current SMT execution environment.

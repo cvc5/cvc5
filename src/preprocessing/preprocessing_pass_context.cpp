@@ -20,8 +20,10 @@ namespace CVC4 {
 namespace preprocessing {
 
 PreprocessingPassContext::PreprocessingPassContext(
-    SmtEngine* smt, ResourceManager* resourceManager)
-    : d_smt(smt), d_resourceManager(resourceManager)
+    SmtEngine* smt,
+    ResourceManager* resourceManager,
+    RemoveTermFormulas* iteRemover)
+    : d_smt(smt), d_resourceManager(resourceManager), d_iteRemover(iteRemover)
 {
 }
 

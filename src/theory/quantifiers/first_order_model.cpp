@@ -24,8 +24,6 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
-#define USE_INDEX_ORDERING
-
 using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -398,7 +396,7 @@ void FirstOrderModel::computeModelBasisArgAttribute(Node n)
     }
     uint64_t val = 0;
     // determine if it has model basis attribute
-    for (unsigned j = 0; j < n.getNumChildren(); j++)
+    for (unsigned j = 0, nchild = n.getNumChildren(); j < nchild; j++)
     {
       if (n[j].getAttribute(ModelBasisAttribute()))
       {
@@ -414,6 +412,119 @@ unsigned FirstOrderModel::getModelBasisArg(Node n)
 {
   computeModelBasisArgAttribute(n);
   return n.getAttribute(ModelBasisArgAttribute());
+}
+
+Node FirstOrderModelIG::UfModelTreeGenerator::getIntersection(TheoryModel* m,
+                                                              Node n1,
+                                                              Node n2,
+                                                              bool& isGround)
+{
+  isGround = true;
+  std::vector<Node> children;
+  children.push_back(n1.getOperator());
+  for (unsigned i = 0, size = n1.getNumChildren(); i < size; i++)
+  {
+    if (n1[i] == n2[i])
+    {
+      if (n1[i].getAttribute(ModelBasisAttribute()))
+      {
+        isGround = false;
+      }
+      children.push_back(n1[i]);
+    }
+    else if (n1[i].getAttribute(ModelBasisAttribute()))
+    {
+      children.push_back(n2[i]);
+    }
+    else if (n2[i].getAttribute(ModelBasisAttribute()))
+    {
+      children.push_back(n1[i]);
+    }
+    else if (m->areEqual(n1[i], n2[i]))
+    {
+      children.push_back(n1[i]);
+    }
+    else
+    {
+      return Node::null();
+    }
+  }
+  return NodeManager::currentNM()->mkNode(APPLY_UF, children);
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::setValue(
+    TheoryModel* m, Node n, Node v, bool ground, bool isReq)
+{
+  Assert(!n.isNull());
+  Assert(!v.isNull());
+  d_set_values[isReq ? 1 : 0][ground ? 1 : 0][n] = v;
+  if (!ground)
+  {
+    for (unsigned i = 0, defSize = d_defaults.size(); i < defSize; i++)
+    {
+      // for correctness, to allow variable order-independent function
+      // interpretations, we must ensure that the intersection of all default
+      // terms is also defined.
+      // for example, if we have that f( e, a ) = ..., and f( b, e ) = ...,
+      // then we must define f( b, a ).
+      bool isGround;
+      Node ni = getIntersection(m, n, d_defaults[i], isGround);
+      if (!ni.isNull())
+      {
+        // if the intersection exists, and is not already defined
+        if (d_set_values[0][isGround ? 1 : 0].find(ni)
+                == d_set_values[0][isGround ? 1 : 0].end()
+            && d_set_values[1][isGround ? 1 : 0].find(ni)
+                   == d_set_values[1][isGround ? 1 : 0].end())
+        {
+          // use the current value
+          setValue(m, ni, v, isGround, false);
+        }
+      }
+    }
+    d_defaults.push_back(n);
+  }
+  if (isReq
+      && d_set_values[0][ground ? 1 : 0].find(n)
+             != d_set_values[0][ground ? 1 : 0].end())
+  {
+    d_set_values[0][ground ? 1 : 0].erase(n);
+  }
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::makeModel(TheoryModel* m,
+                                                        uf::UfModelTree& tree)
+{
+  for (int j = 0; j < 2; j++)
+  {
+    for (int k = 0; k < 2; k++)
+    {
+      for (std::map<Node, Node>::iterator it = d_set_values[j][k].begin();
+           it != d_set_values[j][k].end();
+           ++it)
+      {
+        tree.setValue(m, it->first, it->second, k == 1);
+      }
+    }
+  }
+  if (!d_default_value.isNull())
+  {
+    tree.setDefaultValue(m, d_default_value);
+  }
+  tree.simplify();
+}
+
+void FirstOrderModelIG::UfModelTreeGenerator::clear()
+{
+  d_default_value = Node::null();
+  for (int j = 0; j < 2; j++)
+  {
+    for (int k = 0; k < 2; k++)
+    {
+      d_set_values[j][k].clear();
+    }
+  }
+  d_defaults.clear();
 }
 
 FirstOrderModelIG::FirstOrderModelIG(QuantifiersEngine * qe, context::Context* c, std::string name) :
@@ -657,7 +768,7 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
         }
       }
       Trace("fmf-eval-debug") << "Evaluate term " << n << " = ";
-      printRepresentativeDebug( "fmf-eval-debug", val );
+      Trace("fmf-eval-debug") << getRepresentative(val);
       Trace("fmf-eval-debug") << " (term " << val << "), depIndex = " << depIndex << std::endl;
     }
   }
@@ -746,7 +857,6 @@ struct sortGetMaxVariableNum {
 
 void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
   if( d_eval_term_index_order.find( n )==d_eval_term_index_order.end() ){
-#ifdef USE_INDEX_ORDERING
     //sort arguments in order of least significant vs. most significant variable in default ordering
     std::map< Node, std::vector< int > > argIndex;
     std::vector< Node > args;
@@ -776,30 +886,8 @@ void FirstOrderModelIG::makeEvalUfIndexOrder( Node n ){
       Debug("fmf-index-order") << d_eval_term_index_order[n][i] << " ";
     }
     Debug("fmf-index-order") << std::endl;
-#else
-    d_eval_uf_use_default[n] = true;
-#endif
   }
 }
-
-/*
-Node FirstOrderModelIG::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  std::vector< Node > children;
-  children.push_back(n.getOperator());
-  children.insert(children.end(), args.begin(), args.end());
-  Node nv = NodeManager::currentNM()->mkNode(APPLY_UF, children);
-  //make the term model specifically for nv
-  makeEvalUfModel( nv );
-  int argDepIndex;
-  if( d_eval_uf_use_default[nv] ){
-    return d_uf_model_tree[ n.getOperator() ].getValue( this, nv, argDepIndex );
-  }else{
-    return d_eval_uf_model[ nv ].getValue( this, nv, argDepIndex );
-  }
-}
-*/
-
-
 
 FirstOrderModelFmc::FirstOrderModelFmc(QuantifiersEngine * qe, context::Context* c, std::string name) :
 FirstOrderModel(qe, c, name){
@@ -812,17 +900,6 @@ FirstOrderModelFmc::~FirstOrderModelFmc()
     delete (*i).second;
   }
 }
-
-/*
-Node FirstOrderModelFmc::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  Trace("fmc-uf-model") << "Get model value for " << n << " " << n.getKind() << std::endl;
-  for(unsigned i=0; i<args.size(); i++) {
-    args[i] = getUsedRepresentative(args[i]);
-  }
-  Assert( n.getKind()==APPLY_UF );
-  return d_models[n.getOperator()]->evaluate(this, args);
-}
-*/
 
 void FirstOrderModelFmc::processInitialize( bool ispre ) {
   if( ispre ){
@@ -997,21 +1074,6 @@ Node FirstOrderModelAbs::getFunctionValue(Node op, const char* argPrefix ) {
   }
   return Node::null();
 }
-
-/*
-Node FirstOrderModelAbs::getCurrentUfModelValue( Node n, std::vector< Node > & args, bool partial ) {
-  Debug("qint-debug") << "get curr uf value " << n << std::endl;
-  if( d_models_valid[n] ){
-    TypeNode tn = n.getType();
-    if( tn.getNumChildren()>0 ){
-      tn = tn[tn.getNumChildren()-1];
-    }
-    return d_models[n]->evaluate( this, tn, args );
-  }else{
-    return Node::null();
-  }
-}
-*/
 
 void FirstOrderModelAbs::processInitializeModelForTerm( Node n ) {
   if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){

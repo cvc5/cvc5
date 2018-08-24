@@ -63,6 +63,12 @@ bool isZero(TNode node)
   return node == mkZero(getSize(node));
 }
 
+bool isOne(TNode node)
+{
+  if (!node.isConst()) return false;
+  return node == mkOne(getSize(node));
+}
+
 unsigned isPow2Const(TNode node, bool& isNeg)
 {
   if (node.getKind() != kind::CONST_BITVECTOR)
@@ -89,7 +95,9 @@ unsigned isPow2Const(TNode node, bool& isNeg)
 
 bool isBvConstTerm(TNode node)
 {
-  if (node.getNumChildren() == 0) { return node.isConst();
+  if (node.getNumChildren() == 0)
+  {
+    return node.isConst();
   }
 
   for (const TNode& n : node)

@@ -31,14 +31,15 @@ class CDMapBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() {
+  void setUp() override
+  {
     d_context = new Context;
     // Debug.on("context");
     // Debug.on("gc");
     // Debug.on("pushpop");
   }
 
-  void tearDown() { delete d_context; }
+  void tearDown() override { delete d_context; }
 
   // Returns the elements in a CDHashMap.
   static std::map<int, int> GetElements(const CDHashMap<int, int>& map) {
