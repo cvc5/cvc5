@@ -52,7 +52,7 @@ class UnconstrainedSimplifier : public PreprocessingPass
 
   using TNodeCountMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
   using TNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
-  using TNodeSet std::unordered_set<TNode, TNodeHashFunction>;
+  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 
   TNodeCountMap d_visited;
   TNodeMap d_visitedOnce;
