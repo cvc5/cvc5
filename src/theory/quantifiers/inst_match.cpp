@@ -2,9 +2,9 @@
 /*! \file inst_match.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -101,10 +101,6 @@ void InstMatch::clear() {
 }
 
 Node InstMatch::get(int i) const { return d_vals[i]; }
-void InstMatch::getInst(std::vector<Node>& inst) const
-{
-  inst.insert(inst.end(), d_vals.begin(), d_vals.end());
-}
 
 void InstMatch::setValue( int i, TNode n ) {
   d_vals[i] = n;

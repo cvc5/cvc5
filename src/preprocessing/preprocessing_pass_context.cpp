@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass_context.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **  Justin Xu
+ **   Justin Xu, Mathias Preiner, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,8 +19,13 @@
 namespace CVC4 {
 namespace preprocessing {
 
-PreprocessingPassContext::PreprocessingPassContext(SmtEngine* smt)
-    : d_smt(smt) {}
+PreprocessingPassContext::PreprocessingPassContext(
+    SmtEngine* smt,
+    ResourceManager* resourceManager,
+    RemoveTermFormulas* iteRemover)
+    : d_smt(smt), d_resourceManager(resourceManager), d_iteRemover(iteRemover)
+{
+}
 
 void PreprocessingPassContext::widenLogic(theory::TheoryId id)
 {

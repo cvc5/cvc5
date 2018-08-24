@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,8 +62,6 @@ public:
               const std::vector<Node>& ebvl);
  /** is the syntax restricted? */
  bool isSyntaxRestricted() { return d_is_syntax_restricted; }
- /** does the syntax allow ITE expressions? */
- bool hasSyntaxITE() { return d_has_ite; }
  /** make the default sygus datatype type corresponding to builtin type range
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
@@ -119,8 +117,6 @@ public:
   CegConjecture* d_parent;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
-  /** does the syntax allow ITE expressions? */
-  bool d_has_ite;
   /** collect terms */
   void collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts );
   /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
@@ -129,7 +125,7 @@ public:
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
   // make the builtin constants for type type that should be included in a sygus grammar
-  static void mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops );
+  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   /** helper function for function mkSygusDefaultType

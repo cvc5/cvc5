@@ -2,9 +2,9 @@
 /*! \file term_formula_removal.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,6 +17,7 @@
 
 #include <vector>
 
+#include "expr/node_algorithm.h"
 #include "options/proof_options.h"
 #include "proof/proof_manager.h"
 
@@ -85,7 +86,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   Node newAssertion;
   if(node.getKind() == kind::ITE) {
     // If an ITE, replace it
-    if (!nodeType.isBoolean() && (!inQuant || !node.hasBoundVar()))
+    if (!nodeType.isBoolean() && (!inQuant || !expr::hasBoundVar(node)))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())

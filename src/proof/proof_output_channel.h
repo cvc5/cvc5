@@ -2,9 +2,9 @@
 /*! \file proof_output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Guy Katz, Tim King
+ **   Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -41,7 +41,6 @@ class ProofOutputChannel : public theory::OutputChannel {
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
   theory::LemmaStatus splitLemma(TNode, bool) override;
   void requirePhase(TNode n, bool b) override;
-  bool flipDecision() override;
   void setIncomplete() override;
 
   /** Has conflict() has been called? */

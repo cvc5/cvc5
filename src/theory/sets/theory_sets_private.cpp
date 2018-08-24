@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,13 +18,14 @@
 #include "theory/sets/theory_sets_private.h"
 
 #include "expr/emptyset.h"
+#include "expr/node_algorithm.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/sets/theory_sets.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
 #include "util/result.h"
-#include "theory/quantifiers/term_database.h"
 
 #define AJR_IMPLEMENTATION
 
@@ -533,6 +534,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_bop_index.clear();
     d_op_list.clear();
     d_card_enabled = false;
+    d_t_card_enabled.clear();
     d_rels_enabled = false;
     d_eqc_to_card_term.clear();
 
@@ -609,11 +611,14 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
-            if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
-              d_bop_index[n.getKind()][r1][r2] = n;
+            std::map<Node, Node>& binr1 = d_bop_index[n.getKind()][r1];
+            std::map<Node, Node>::iterator itb = binr1.find(r2);
+            if (itb == binr1.end())
+            {
+              binr1[r2] = n;
               d_op_list[n.getKind()].push_back( n );
             }else{
-              d_congruent[n] = d_bop_index[n.getKind()][r1][r2];
+              d_congruent[n] = itb->second;
             }
           }
           d_nvar_sets[eqc].push_back( n );
@@ -622,11 +627,22 @@ void TheorySetsPrivate::fullEffortCheck(){
         }else if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
           TypeNode tnc = n[0].getType().getSetElementType();
+          d_t_card_enabled[tnc] = true;
           if( tnc.isInterpretedFinite() ){
             std::stringstream ss;
-            ss << "ERROR: cannot use cardinality on sets with finite element type." << std::endl;
+            ss << "ERROR: cannot use cardinality on sets with finite element "
+                  "type (term is "
+               << n << ")." << std::endl;
             throw LogicException(ss.str());
             //TODO: extend approach for this case
+          }
+          // if we do not handle the kind, set incomplete
+          Kind nk = n[0].getKind();
+          if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
+          {
+            d_full_check_incomplete = true;
+            Trace("sets-incomplete")
+                << "Sets : incomplete because of " << n << "." << std::endl;
           }
           Node r = d_equalityEngine.getRepresentative( n[0] );
           if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
@@ -1037,6 +1053,12 @@ void TheorySetsPrivate::checkCardBuildGraph( std::vector< Node >& lemmas ) {
 }
 
 void TheorySetsPrivate::registerCardinalityTerm( Node n, std::vector< Node >& lemmas ){
+  TypeNode tnc = n.getType().getSetElementType();
+  if (d_t_card_enabled.find(tnc) == d_t_card_enabled.end())
+  {
+    // if no cardinality constraints for sets of this type, we can ignore
+    return;
+  }
   if( d_card_processed.find( n )==d_card_processed.end() ){
     d_card_processed.insert( n );
     Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
@@ -1724,16 +1746,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
         fullEffortCheck();
         if( !d_conflict && !d_sentLemma ){
           //invoke relations solver
-          d_rels->check(level);  
-          if( d_card_enabled && ( d_rels_enabled || options::setsExt() ) ){
-            //if cardinality constraints are enabled,
-            //  then model construction may fail in there are relational operators, or universe set.
-            // TODO: should internally check model, return unknown if fail
-            d_full_check_incomplete = true;
-            Trace("sets-incomplete") << "Sets : incomplete because of extended operators." << std::endl;
-          }
+          d_rels->check(level);
         }
-        if( d_full_check_incomplete ){
+        if (!d_conflict && !d_sentLemma && d_full_check_incomplete)
+        {
           d_external.d_out->setIncomplete();
         }
       }
@@ -2188,28 +2204,37 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
   
   //this is based off of Theory::ppAssert
   Node var;
-  if (in.getKind() == kind::EQUAL) {
-    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
-        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
-      if( !in[0].getType().isSet() || !options::setsExt() ){
+  if (in.getKind() == kind::EQUAL)
+  {
+    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+        && (in[1].getType()).isSubtypeOf(in[0].getType()))
+    {
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[0], in[1]);
         var = in[0];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
-    }else if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
-        (in[0].getType()).isSubtypeOf(in[1].getType())){
-      if( !in[1].getType().isSet() || !options::setsExt() ){
+    }
+    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+             && (in[0].getType()).isSubtypeOf(in[1].getType()))
+    {
+      if (!in[1].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[1], in[0]);
         var = in[1];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
-    }else if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
     }
   }
-  
+
   if( status==Theory::PP_ASSERT_STATUS_SOLVED ){
     Trace("sets-var-elim") << "Sets : ppAssert variable eliminated : " << in << ", var = " << var << std::endl;
     /*

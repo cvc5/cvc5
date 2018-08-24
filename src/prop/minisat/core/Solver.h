@@ -169,6 +169,11 @@ public:
     void          push                     ();
     void          pop                      ();
 
+    /*
+     * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+     * level.
+     */
+    void resetTrail();
     // addClause returns the ClauseId corresponding to the clause added in the
     // reference parameter id.
     bool    addClause (const vec<Lit>& ps, bool removable, ClauseId& id);  // Add a clause to the solver.
@@ -206,7 +211,6 @@ public:
     void    setPolarity    (Var v, bool b); // Declare which polarity the decision heuristic should use for a variable. Requires mode 'polarity_user'.
     void    freezePolarity (Var v, bool b); // Declare which polarity the decision heuristic MUST ALWAYS use for a variable. Requires mode 'polarity_user'.
     void    setDecisionVar (Var v, bool b); // Declare if a variable should be eligible for selection in the decision heuristic.
-    bool    flipDecision   ();              // Backtrack and flip most recent decision
 
     // Read state:
     //
@@ -393,7 +397,6 @@ protected:
     void     theoryCheck      (CVC4::theory::Theory::Effort effort);                   // Perform a theory satisfiability check. Adds lemmas.
     CRef     updateLemmas     ();                                                      // Add the lemmas, backtraking if necessary and return a conflict if there is one
     void     cancelUntil      (int level);                                             // Backtrack until a certain level.
-    void     popTrail         ();                                                      // Backtrack the trail to the previous push position
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
     bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - true if p is redundant

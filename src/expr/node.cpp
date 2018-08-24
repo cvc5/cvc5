@@ -2,9 +2,9 @@
 /*! \file node.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -73,13 +73,8 @@ UnknownTypeException::UnknownTypeException(TNode n)
 /** Is this node constant? (and has that been computed yet?) */
 struct IsConstTag { };
 struct IsConstComputedTag { };
-struct HasBoundVarTag { };
-struct HasBoundVarComputedTag { };
 typedef expr::Attribute<IsConstTag, bool> IsConstAttr;
 typedef expr::Attribute<IsConstComputedTag, bool> IsConstComputedAttr;
-/** Attribute true for expressions with bound variables in them */
-typedef expr::Attribute<HasBoundVarTag, bool> HasBoundVarAttr;
-typedef expr::Attribute<HasBoundVarComputedTag, bool> HasBoundVarComputedAttr;
 
 template <bool ref_count>
 bool NodeTemplate<ref_count>::isConst() const {
@@ -114,96 +109,7 @@ bool NodeTemplate<ref_count>::isConst() const {
   }
 }
 
-template <bool ref_count>
-bool NodeTemplate<ref_count>::hasBoundVar() {
-  assertTNodeNotExpired();
-  if(! getAttribute(HasBoundVarComputedAttr())) {
-    bool hasBv = false;
-    if(getKind() == kind::BOUND_VARIABLE) {
-      hasBv = true;
-    } else {
-      for(iterator i = begin(); i != end() && !hasBv; ++i) {
-        hasBv = (*i).hasBoundVar();
-      }
-    }
-    if (!hasBv && hasOperator()) {
-      hasBv = getOperator().hasBoundVar();
-    }
-    setAttribute(HasBoundVarAttr(), hasBv);
-    setAttribute(HasBoundVarComputedAttr(), true);
-    Debug("bva") << *this << " has bva : " << getAttribute(HasBoundVarAttr()) << std::endl;
-    return hasBv;
-  }
-  return getAttribute(HasBoundVarAttr());
-}
-
-template <bool ref_count>
-bool NodeTemplate<ref_count>::hasFreeVar()
-{
-  assertTNodeNotExpired();
-  std::unordered_set<TNode, TNodeHashFunction> bound_var;
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(*this);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    // can skip if it doesn't have a bound variable
-    if (!cur.hasBoundVar())
-    {
-      continue;
-    }
-    Kind k = cur.getKind();
-    bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
-                   || k == kind::CHOICE;
-    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
-        visited.find(cur);
-    if (itv == visited.end())
-    {
-      if (k == kind::BOUND_VARIABLE)
-      {
-        if (bound_var.find(cur) == bound_var.end())
-        {
-          return true;
-        }
-      }
-      else if (isQuant)
-      {
-        for (const TNode& cn : cur[0])
-        {
-          // should not shadow
-          Assert(bound_var.find(cn) == bound_var.end());
-          bound_var.insert(cn);
-        }
-        visit.push_back(cur);
-      }
-      // must visit quantifiers again to clean up below
-      visited[cur] = !isQuant;
-      for (const TNode& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-    else if (!itv->second)
-    {
-      Assert(isQuant);
-      for (const TNode& cn : cur[0])
-      {
-        bound_var.erase(cn);
-      }
-      visited[cur] = true;
-    }
-  } while (!visit.empty());
-  return false;
-}
-
 template bool NodeTemplate<true>::isConst() const;
 template bool NodeTemplate<false>::isConst() const;
-template bool NodeTemplate<true>::hasBoundVar();
-template bool NodeTemplate<false>::hasBoundVar();
-template bool NodeTemplate<true>::hasFreeVar();
-template bool NodeTemplate<false>::hasFreeVar();
 
 }/* CVC4 namespace */

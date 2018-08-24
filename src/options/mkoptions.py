@@ -1,4 +1,4 @@
-#!/usr/bin/env python3
+#!/usr/bin/env python
 """
     Generate option handling code and documentation in one pass. The generated
     files are only written to the destination file if the contents of the file
@@ -484,6 +484,17 @@ def codegen_module(module, dst_dir, tpl_module_h, tpl_module_cpp):
             specs.append(TPL_DECL_ASSIGN_BOOL.format(name=option.name))
         else:
             specs.append(TPL_DECL_ASSIGN.format(name=option.name))
+
+        if option.long and option.type not in ['bool', 'void'] and \
+           '=' not in option.long:
+            die("module '{}': option '{}' with type '{}' needs an argument " \
+                "description ('{}=...')".format(
+                    module.id, option.long, option.type, option.long))
+        elif option.long and option.type in ['bool', 'void'] and \
+             '=' in option.long:
+            die("module '{}': option '{}' with type '{}' must not have an " \
+                "argument description".format(
+                    module.id, option.long, option.type))
 
         # Generate module inlines
         inls.append(TPL_IMPL_OP_PAR.format(name=option.name))

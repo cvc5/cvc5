@@ -2,9 +2,9 @@
 /*! \file theory_sep_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Mathias Preiner
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -43,10 +43,6 @@ public:
 
   static inline void init() {}
   static inline void shutdown() {}
-private:
-  static Node preSkolemEmp( Node n, bool pol, std::map< bool, std::map< Node, Node > >& visited );
-public:
-  static Node preprocess( Node n );
 };/* class TheorySepRewriter */
 
 }/* CVC4::theory::sep namespace */

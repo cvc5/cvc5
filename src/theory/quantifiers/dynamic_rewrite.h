@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file dynamic_rewriter.h
+/*! \file dynamic_rewrite.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,7 +20,6 @@
 #include <map>
 
 #include "context/cdlist.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -55,7 +54,7 @@ class DynamicRewriter
   typedef context::CDList<Node> NodeList;
 
  public:
-  DynamicRewriter(const std::string& name, QuantifiersEngine* qe);
+  DynamicRewriter(const std::string& name, context::UserContext* u);
   ~DynamicRewriter() {}
   /** inform this class that the equality a = b holds. */
   void addRewrite(Node a, Node b);
@@ -63,10 +62,19 @@ class DynamicRewriter
    * Check whether this class knows that the equality a = b holds.
    */
   bool areEqual(Node a, Node b);
+  /**
+   * Convert node a to its internal representation, which replaces all
+   * interpreted operators in a by a unique uninterpreted symbol.
+   */
+  Node toInternal(Node a);
+  /**
+   * Convert internal node ai to its original representation. It is the case
+   * that toExternal(toInternal(a))=a. If ai is not a term returned by
+   * toInternal, this method returns null.
+   */
+  Node toExternal(Node ai);
 
  private:
-  /** pointer to the quantifiers engine */
-  QuantifiersEngine* d_qe;
   /** index over argument types to function skolems
    *
    * The purpose of this trie is to associate a class of interpreted operator
@@ -99,13 +107,10 @@ class DynamicRewriter
   };
   /** the internal operator symbol trie for this class */
   std::map<Node, OpInternalSymTrie> d_ois_trie;
-  /**
-   * Convert node a to its internal representation, which replaces all
-   * interpreted operators in a by a unique uninterpreted symbol.
-   */
-  Node toInternal(Node a);
   /** cache of the above function */
   std::map<Node, Node> d_term_to_internal;
+  /** inverse of the above map */
+  std::map<Node, Node> d_internal_to_term;
   /** stores congruence closure over terms given to this class. */
   eq::EqualityEngine d_equalityEngine;
   /** list of all equalities asserted to equality engine */

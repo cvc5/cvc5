@@ -2,9 +2,9 @@
 /*! \file ce_guided_conjecture.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,7 +60,7 @@ public:
   /** whether the conjecture is waiting for a call to doCheck below */
   bool needsCheck( std::vector< Node >& lem );
   /** whether the conjecture is waiting for a call to doRefine below */
-  bool needsRefinement();
+  bool needsRefinement() const;
   /** do single invocation check 
   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
   */
@@ -101,8 +101,6 @@ public:
   Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
-  /** does this conjecture correspond to a syntax-guided synthesis input */
-  bool isSyntaxGuided() const { return d_syntax_guided; }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
   /** preregister conjecture 
@@ -173,11 +171,22 @@ private:
   /** list of variables on inner quantification */
   std::vector< Node > d_inner_vars;
   /**
-   * The set of current existentially quantified formulas whose couterexamples
-   * we must refine. This may be added to during calls to doCheck(). The model
-   * values for skolems of these formulas are analyzed during doRefine().
+   * The set of skolems for the current "verification" lemma, if one exists.
+   * This may be added to during calls to doCheck(). The model values for these
+   * skolems are analyzed during doRefine().
    */
-  std::vector<Node> d_ce_sk;
+  std::vector<Node> d_ce_sk_vars;
+  /**
+   * If we have already tested the satisfiability of the current verification
+   * lemma, this stores the model values of d_ce_sk_vars in the current
+   * (satisfiable, failed) verification lemma.
+   */
+  std::vector<Node> d_ce_sk_var_mvs;
+  /**
+   * Whether the above vector has been set. We have this flag since the above
+   * vector may be set to empty (e.g. for ground synthesis conjectures).
+   */
+  bool d_set_ce_sk_vars;
 
   /** the asserted (negated) conjecture */
   Node d_quant;
@@ -227,7 +236,7 @@ private:
    * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is
    * the sygus datatype constructor corresponding to variable x.
    */
-  void getSynthSolutionsInternal(std::vector<Node>& sols,
+  bool getSynthSolutionsInternal(std::vector<Node>& sols,
                                  std::vector<int>& status,
                                  bool singleInvocation);
   //-------------------------------- sygus stream
@@ -248,14 +257,6 @@ private:
    */
   void printAndContinueStream();
   //-------------------------------- end sygus stream
-  //-------------------------------- non-syntax guided (deprecated)
-  /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
-   * This includes SyGuS inputs where no syntactic restrictions are provided.
-   */
-  bool d_syntax_guided;
-  /** the guard for non-syntax-guided synthesis */
-  Node d_nsg_guard;
-  //-------------------------------- end non-syntax guided (deprecated)
   /** candidate rewrite objects for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate

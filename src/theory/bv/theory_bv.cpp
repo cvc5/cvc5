@@ -2,7 +2,7 @@
 /*! \file theory_bv.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
+ **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -15,8 +15,11 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
+#include "proof/proof_manager.h"
+#include "proof/theory_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bv_eager_solver.h"
@@ -29,9 +32,8 @@
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ext_theory.h"
 #include "theory/theory_model.h"
-#include "proof/theory_proof.h"
-#include "proof/proof_manager.h"
 #include "theory/valuation.h"
 
 using namespace CVC4::context;
@@ -73,7 +75,7 @@ TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
   getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
   getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver = new EagerBitblastSolver(this);
+    d_eagerSolver = new EagerBitblastSolver(c, this);
     return;
   }
 
@@ -187,6 +189,16 @@ Node TheoryBV::getBVDivByZero(Kind k, unsigned width) {
   Unreachable();
 }
 
+void TheoryBV::finishInit()
+{
+  // these kinds are semi-evaluated in getModelValue (applications of this
+  // kind are treated as variables)
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UDIV);
+  tm->setSemiEvaluatedKind(kind::BITVECTOR_ACKERMANNIZE_UREM);
+}
+
 Node TheoryBV::expandDefinition(LogicRequest &logicRequest, Node node) {
   Debug("bitvector-expandDefinition") << "TheoryBV::expandDefinition(" << node << ")" << std::endl;
 
@@ -232,18 +244,20 @@ void TheoryBV::preRegisterTerm(TNode node) {
   d_calledPreregister = true;
   Debug("bitvector-preregister") << "TheoryBV::preRegister(" << node << ")" << std::endl;
 
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  if (options::bitblastMode() == BITBLAST_MODE_EAGER)
+  {
     // the aig bit-blaster option is set heuristically
-    // if bv abstraction is not used
-    if (!d_eagerSolver->isInitialized()) {
+    // if bv abstraction is used
+    if (!d_eagerSolver->isInitialized())
+    {
       d_eagerSolver->initialize();
     }
 
-    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM) {
+    if (node.getKind() == kind::BITVECTOR_EAGER_ATOM)
+    {
       Node formula = node[0];
       d_eagerSolver->assertFormula(formula);
     }
-    // nothing to do for the other terms
     return;
   }
 
@@ -331,8 +345,8 @@ void TheoryBV::check(Effort e)
       TNode fact = get().assertion;
       Assert (fact.getKind() == kind::BITVECTOR_EAGER_ATOM);
       assertions.push_back(fact);
+      d_eagerSolver->assertFormula(fact[0]);
     }
-    Assert (d_eagerSolver->hasAssertions(assertions));
 
     bool ok = d_eagerSolver->checkSat();
     if (!ok) {
@@ -464,28 +478,36 @@ bool TheoryBV::doExtfInferences(std::vector<Node>& terms)
         d_extf_collapse_infer.insert(cterm);
 
         Node t = n[0];
-        if (n.getKind() == kind::INT_TO_BITVECTOR)
+        if (t.getType() == parent.getType())
         {
-          Assert(t.getType().isInteger());
-          // congruent modulo 2^( bv width )
-          unsigned bvs = n.getType().getBitVectorSize();
-          Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
-          Node k = nm->mkSkolem(
-              "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
-          t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
-        }
-        Node lem = parent.eqNode(t);
+          if (n.getKind() == kind::INT_TO_BITVECTOR)
+          {
+            Assert(t.getType().isInteger());
+            // congruent modulo 2^( bv width )
+            unsigned bvs = n.getType().getBitVectorSize();
+            Node coeff = nm->mkConst(Rational(Integer(1).multiplyByPow2(bvs)));
+            Node k = nm->mkSkolem(
+                "int_bv_cong", t.getType(), "for int2bv/bv2nat congruence");
+            t = nm->mkNode(kind::PLUS, t, nm->mkNode(kind::MULT, coeff, k));
+          }
+          Node lem = parent.eqNode(t);
 
-        if (parent[0] != n)
-        {
-          Assert(ee->areEqual(parent[0], n));
-          lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
+          if (parent[0] != n)
+          {
+            Assert(ee->areEqual(parent[0], n));
+            lem = nm->mkNode(kind::IMPLIES, parent[0].eqNode(n), lem);
+          }
+          // this handles inferences of the form, e.g.:
+          //   ((_ int2bv w) (bv2nat x)) == x (if x is bit-width w)
+          //   (bv2nat ((_ int2bv w) x)) == x + k*2^w for some k
+          Trace("bv-extf-lemma")
+              << "BV extf lemma (collapse) : " << lem << std::endl;
+          d_out->lemma(lem);
+          sentLemma = true;
         }
-        Trace("bv-extf-lemma")
-            << "BV extf lemma (collapse) : " << lem << std::endl;
-        d_out->lemma(lem);
-        sentLemma = true;
       }
+      Trace("bv-extf-lemma-debug")
+          << "BV extf f collapse based on : " << cterm << std::endl;
     }
   }
   return sentLemma;
@@ -649,13 +671,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   {
     case kind::EQUAL:
     {
-      if (in[0].isVar() && !in[1].hasSubterm(in[0]))
+      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1]))
+      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[1], in[0]);
@@ -757,6 +779,10 @@ Node TheoryBV::ppRewrite(TNode t)
   } else if (RewriteRule<ZeroExtendEqConst>::applies(t)) {
     res = RewriteRule<ZeroExtendEqConst>::run<false>(t);
   }
+  else if (RewriteRule<NormalizeEqPlusNeg>::applies(t))
+  {
+    res = RewriteRule<NormalizeEqPlusNeg>::run<false>(t);
+  }
 
   // if(t.getKind() == kind::EQUAL &&
   //    ((t[0].getKind() == kind::BITVECTOR_MULT && t[1].getKind() ==
@@ -835,9 +861,11 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   }
 
   // Propagate differs depending on the subtheory
-  // * bitblaster needs to be left alone until it's done, otherwise it doesn't know how to explain
+  // * bitblaster needs to be left alone until it's done, otherwise it doesn't
+  //   know how to explain
   // * equality engine can propagate eagerly
-  bool ok = true;
+  // TODO(2348): Determine if ok should be set by propagate. If not, remove ok.
+  constexpr bool ok = true;
   if (subtheory == SUB_CORE) {
     d_out->propagate(literal);
     if (!ok) {

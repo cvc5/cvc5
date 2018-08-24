@@ -2,7 +2,7 @@
 /*! \file expr_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Kshitij Bansal, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -21,10 +21,11 @@
 #include <vector>
 
 #include "base/cvc4_assert.h"
-#include "expr/node.h"
 #include "expr/expr_manager_scope.h"
-#include "expr/variable_type_map.h"
+#include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/variable_type_map.h"
 
 ${includes}
 
@@ -248,8 +249,11 @@ public:
         children.push_back(exportInternal(*i));
       }
       if(Debug.isOn("export")) {
-        ExprManagerScope ems(*to);
         Debug("export") << "children for export from " << n << std::endl;
+
+        // `n` belongs to the `from` ExprManager, so begin ExprManagerScope
+        // after printing `n`
+        ExprManagerScope ems(*to);
         for(std::vector<Node>::iterator i = children.begin(), i_end = children.end(); i != i_end; ++i) {
           Debug("export") << "  child: " << *i << std::endl;
         }
@@ -534,7 +538,7 @@ bool Expr::hasFreeVariable() const
 {
   ExprManagerScope ems(*this);
   Assert(d_node != NULL, "Unexpected NULL expression pointer!");
-  return d_node->hasFreeVar();
+  return expr::hasFreeVar(*d_node);
 }
 
 void Expr::toStream(std::ostream& out, int depth, bool types, size_t dag,

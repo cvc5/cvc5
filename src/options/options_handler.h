@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Andrew Reynolds, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -108,6 +108,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::CegqiSingleInvMode stringToCegqiSingleInvMode(
       std::string option, std::string optarg);
+  theory::quantifiers::CegqiSingleInvRconsMode stringToCegqiSingleInvRconsMode(
+      std::string option, std::string optarg);
   theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
@@ -118,8 +120,6 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::QuantRepMode stringToQuantRepMode(std::string option,
                                                          std::string optarg);
-  theory::quantifiers::FmfBoundMinMode stringToFmfBoundMinMode(
-      std::string option, std::string optarg);
   theory::SygusFairMode stringToSygusFairMode(std::string option,
                                               std::string optarg);
 
@@ -182,10 +182,7 @@ public:
 
   void statsEnabledBuild(std::string option, bool value);
 
-  unsigned long tlimitHandler(std::string option, std::string optarg);
-  unsigned long tlimitPerHandler(std::string option, std::string optarg);
-  unsigned long rlimitHandler(std::string option, std::string optarg);
-  unsigned long rlimitPerHandler(std::string option, std::string optarg);
+  unsigned long limitHandler(std::string option, std::string optarg);
 
   void notifyTlimit(const std::string& option);
   void notifyTlimitPer(const std::string& option);
@@ -245,6 +242,7 @@ public:
   static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
+  static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_termDbModeHelp;

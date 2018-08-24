@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@
 #  endif /* HAVE_EXT_STDIO_FILEBUF_H */
 #endif /* HAVE_LIBREADLINE */
 
-#include "base/tls.h"
+#include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "options/language.h"
 #include "options/options.h"
@@ -88,14 +88,13 @@ static set<string> s_declarations;
 
 #endif /* HAVE_LIBREADLINE */
 
-InteractiveShell::InteractiveShell(ExprManager& exprManager,
-                                   const Options& options)
-    : d_in(*options.getIn()),
-      d_out(*options.getOutConst()),
-      d_options(options),
+InteractiveShell::InteractiveShell(api::Solver* solver)
+    : d_options(solver->getExprManager()->getOptions()),
+      d_in(*d_options.getIn()),
+      d_out(*d_options.getOutConst()),
       d_quit(false)
 {
-  ParserBuilder parserBuilder(&exprManager, INPUT_FILENAME, options);
+  ParserBuilder parserBuilder(solver, INPUT_FILENAME, d_options);
   /* Create parser with bogus input. */
   d_parser = parserBuilder.withStringInput("").build();
   if(d_options.wasSetByUserForceLogicString()) {
@@ -385,8 +384,8 @@ struct StringPrefix2Less {
 };/* struct StringPrefix2Less */
 
 char* commandGenerator(const char* text, int state) {
-  static CVC4_THREAD_LOCAL const std::string* rlCommand;
-  static CVC4_THREAD_LOCAL set<string>::const_iterator* rlDeclaration;
+  static thread_local const std::string* rlCommand;
+  static thread_local set<string>::const_iterator* rlDeclaration;
 
   const std::string* i = lower_bound(commandsBegin, commandsEnd, text, StringPrefix2Less());
   const std::string* j = upper_bound(commandsBegin, commandsEnd, text, StringPrefix1Less());

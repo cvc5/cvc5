@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,9 +14,11 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -49,7 +51,6 @@ CegConjectureSingleInv::CegConjectureSingleInv(QuantifiersEngine* qe,
       d_cosi(new CegqiOutputSingleInv(this)),
       d_cinst(NULL),
       d_c_inst_match_trie(NULL),
-      d_has_ites(true),
       d_single_invocation(false) {
   //  third and fourth arguments set to (false,false) until we have solution
   //  reconstruction for delta and infinity
@@ -290,8 +291,9 @@ void CegConjectureSingleInv::initialize( Node q ) {
   }
 }
 
-void CegConjectureSingleInv::finishInit( bool syntaxRestricted, bool hasItes ) {
-  d_has_ites = hasItes;
+void CegConjectureSingleInv::finishInit(bool syntaxRestricted)
+{
+  Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and CEGQI_SI_MODE_ALL is not enabled
   if( options::cegqiSingleInvMode()==CEGQI_SI_MODE_USE && d_single_invocation && syntaxRestricted ){
     d_single_invocation = false;
@@ -458,13 +460,6 @@ struct sortSiInstanceIndices {
 
 
 Node CegConjectureSingleInv::postProcessSolution( Node n ){
-  ////remove boolean ITE (not allowed for sygus comp 2015)
-  //if( n.getKind()==ITE && n.getType().isBoolean() ){
-  //  Node n1 = postProcessSolution( n[1] );
-  //  Node n2 = postProcessSolution( n[2] );
-  //  return NodeManager::currentNM()->mkNode( OR, NodeManager::currentNM()->mkNode( AND, n[0], n1 ),
-  //                                               NodeManager::currentNM()->mkNode( AND, n[0].negate(), n2 ) );
-  //}else{
   bool childChanged = false;
   Kind k = n.getKind();
   if( n.getKind()==INTS_DIVISION_TOTAL ){
@@ -488,7 +483,6 @@ Node CegConjectureSingleInv::postProcessSolution( Node n ){
   }else{
     return n;
   }
-  //}
 }
 
 
@@ -573,15 +567,34 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 
   //reconstruct the solution into sygus if necessary
   reconstructed = 0;
-  if( options::cegqiSingleInvReconstruct() && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus ){
+  if (options::cegqiSingleInvReconstruct() != CEGQI_SI_RCONS_MODE_NONE
+      && !dt.getSygusAllowAll() && !stn.isNull() && rconsSygus)
+  {
     d_sol->preregisterConjecture( d_orig_conjecture );
-    d_sygus_solution = d_sol->reconstructSolution( s, stn, reconstructed );
+    int enumLimit = -1;
+    if (options::cegqiSingleInvReconstruct() == CEGQI_SI_RCONS_MODE_TRY)
+    {
+      enumLimit = 0;
+    }
+    else if (options::cegqiSingleInvReconstruct()
+             == CEGQI_SI_RCONS_MODE_ALL_LIMIT)
+    {
+      enumLimit = options::cegqiSingleInvReconstructLimit();
+    }
+    d_sygus_solution =
+        d_sol->reconstructSolution(s, stn, reconstructed, enumLimit);
     if( reconstructed==1 ){
       Trace("csi-sol") << "Solution (post-reconstruction into Sygus): " << d_sygus_solution << std::endl;
     }
   }else{
     Trace("csi-sol") << "Post-process solution..." << std::endl;
     Node prev = d_solution;
+    if (options::minSynthSol())
+    {
+      d_solution =
+          d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(
+              d_solution);
+    }
     d_solution = postProcessSolution( d_solution );
     if( prev!=d_solution ){
       Trace("csi-sol") << "Solution (after post process) : " << d_solution << std::endl;
@@ -631,11 +644,6 @@ Node CegConjectureSingleInv::reconstructToSyntax( Node s, TypeNode stn, int& rec
 }
 
 bool CegConjectureSingleInv::needsCheck() {
-  if( options::cegqiSingleInvMode()==CEGQI_SI_MODE_ALL_ABORT ){
-    if( !d_has_ites ){
-      return d_inst.empty();
-    }
-  }
   return true;
 }
 
@@ -719,12 +727,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       // check if it is a variable equality
       TNode v;
       Node s;
-      for( unsigned r=0; r<2; r++ ){
-        if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if (!slit[1 - r].hasSubterm(slit[r]))
+      for (unsigned r = 0; r < 2; r++)
+      {
+        if (std::find(vars.begin(), vars.end(), slit[r]) != vars.end())
+        {
+          if (!expr::hasSubterm(slit[1 - r], slit[r]))
           {
             v = slit[r];
-            s = slit[1-r];
+            s = slit[1 - r];
             break;
           }
         }
@@ -734,13 +744,18 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
         std::map< Node, Node > msum;
         if (ArithMSum::getMonomialSumLit(slit, msum))
         {
-          for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-            if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
+          for (std::map<Node, Node>::iterator itm = msum.begin();
+               itm != msum.end();
+               ++itm)
+          {
+            if (std::find(vars.begin(), vars.end(), itm->first) != vars.end())
+            {
               Node veq_c;
               Node val;
               int ires =
                   ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if (ires != 0 && veq_c.isNull() && !val.hasSubterm(itm->first))
+              if (ires != 0 && veq_c.isNull()
+                  && !expr::hasSubterm(val, itm->first))
               {
                 v = itm->first;
                 s = val;
@@ -763,6 +778,7 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
 }
 
 void TransitionInference::process( Node n ) {
+  NodeManager* nm = NodeManager::currentNM();
   d_complete = true;
   std::vector< Node > n_check;
   if( n.getKind()==AND ){
@@ -780,28 +796,29 @@ void TransitionInference::process( Node n ) {
     Trace("cegqi-inv") << "TransitionInference : Process disjunct : " << nn << std::endl;
     if( processDisjunct( nn, terms, disjuncts, visited, true ) ){
       if( !terms.empty() ){
-        Node norm_args;
+        Node curr;
         int comp_num;
         std::map< bool, Node >::iterator itt = terms.find( false );
         if( itt!=terms.end() ){
-          norm_args = itt->second;
+          curr = itt->second;
           if( terms.find( true )!=terms.end() ){
             comp_num = 0;
           }else{
             comp_num = -1;
           }
         }else{
-          norm_args = terms[true];
+          curr = terms[true];
           comp_num = 1;
         }
-        std::vector< Node > subs;
-        for( unsigned j=0; j<norm_args.getNumChildren(); j++ ){
-          subs.push_back( norm_args[j] );
-        }        
-        Trace("cegqi-inv-debug2") << "  normalize based on " << norm_args << std::endl;
-        Assert( d_vars.size()==subs.size() );
+        Trace("cegqi-inv-debug2")
+            << "  normalize based on " << curr << std::endl;
+        std::vector<Node> vars;
+        std::vector<Node> svars;
+        getNormalizedSubstitution(curr, d_vars, vars, svars, disjuncts);
         for( unsigned j=0; j<disjuncts.size(); j++ ){
-          disjuncts[j] = Rewriter::rewrite( disjuncts[j].substitute( subs.begin(), subs.end(), d_vars.begin(), d_vars.end() ) );
+          Trace("cegqi-inv-debug2") << "  apply " << disjuncts[j] << std::endl;
+          disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+              vars.begin(), vars.end(), svars.begin(), svars.end()));
           Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
         }
         std::vector< Node > const_var;
@@ -810,23 +827,32 @@ void TransitionInference::process( Node n ) {
           //transition
           Assert( terms.find( true )!=terms.end() );
           Node next = terms[true];
-          next = Rewriter::rewrite( next.substitute( subs.begin(), subs.end(), d_vars.begin(), d_vars.end() ) );
+          next = Rewriter::rewrite(next.substitute(
+              vars.begin(), vars.end(), svars.begin(), svars.end()));
           Trace("cegqi-inv-debug") << "transition next predicate : " << next << std::endl;
-          // normalize the other direction
-          std::vector< Node > rvars;
-          for( unsigned i=0; i<next.getNumChildren(); i++ ){
-            rvars.push_back( next[i] );
-          }
-          if( d_prime_vars.size()<next.getNumChildren() ){
-            for( unsigned i=0; i<next.getNumChildren(); i++ ){
-              Node v = NodeManager::currentNM()->mkSkolem( "ir", next[i].getType(), "template inference rev argument" );
+          // make the primed variables if we have not already
+          if (d_prime_vars.empty())
+          {
+            for (unsigned j = 0, nchild = next.getNumChildren(); j < nchild;
+                 j++)
+            {
+              Node v = nm->mkSkolem(
+                  "ir", next[j].getType(), "template inference rev argument");
               d_prime_vars.push_back( v );
             }
           }
+          // normalize the other direction
           Trace("cegqi-inv-debug2") << "  normalize based on " << next << std::endl;
-          Assert( d_vars.size()==subs.size() );
+          std::vector<Node> rvars;
+          std::vector<Node> rsvars;
+          getNormalizedSubstitution(
+              next, d_prime_vars, rvars, rsvars, disjuncts);
+          Assert(rvars.size() == rsvars.size());
           for( unsigned j=0; j<disjuncts.size(); j++ ){
-            disjuncts[j] = Rewriter::rewrite( disjuncts[j].substitute( rvars.begin(), rvars.end(), d_prime_vars.begin(), d_prime_vars.end() ) );
+            Trace("cegqi-inv-debug2")
+                << "  apply " << disjuncts[j] << std::endl;
+            disjuncts[j] = Rewriter::rewrite(disjuncts[j].substitute(
+                rvars.begin(), rvars.end(), rsvars.begin(), rsvars.end()));
             Trace("cegqi-inv-debug2") << "  ..." << disjuncts[j] << std::endl;
           }
           getConstantSubstitution( d_prime_vars, disjuncts, const_var, const_subs, false );
@@ -841,7 +867,8 @@ void TransitionInference::process( Node n ) {
         }else{
           res = NodeManager::currentNM()->mkNode( kind::OR, disjuncts );
         }
-        if( !res.hasBoundVar() ){
+        if (!expr::hasBoundVar(res))
+        {
           Trace("cegqi-inv") << "*** inferred " << ( comp_num==1 ? "pre" : ( comp_num==-1 ? "post" : "trans" ) ) << "-condition : " << res << std::endl;
           d_com[comp_num].d_conjuncts.push_back( res );
           if( !const_var.empty() ){
@@ -880,6 +907,31 @@ void TransitionInference::process( Node n ) {
       ret = TermUtil::simpleNegate( ret );
     }
     d_com[i].d_this = ret;
+  }
+}
+void TransitionInference::getNormalizedSubstitution(
+    Node curr,
+    const std::vector<Node>& pvars,
+    std::vector<Node>& vars,
+    std::vector<Node>& subs,
+    std::vector<Node>& disjuncts)
+{
+  for (unsigned j = 0, nchild = curr.getNumChildren(); j < nchild; j++)
+  {
+    if (curr[j].getKind() == BOUND_VARIABLE)
+    {
+      // if the argument is a bound variable, add to the renaming
+      vars.push_back(curr[j]);
+      subs.push_back(pvars[j]);
+    }
+    else
+    {
+      // otherwise, treat as a constraint on the variable
+      // For example, this transforms e.g. a precondition clause
+      // I( 0, 1 ) to x1 != 0 OR x2 != 1 OR I( x1, x2 ).
+      Node eq = curr[j].eqNode(pvars[j]);
+      disjuncts.push_back(eq.negate());
+    }
   }
 }
 
@@ -984,8 +1036,11 @@ int TransitionInference::incrementTrace( DetTrace& dt, Node loc, bool fwd ) {
     }
   }
   if( fwd ){
-    std::map< Node, std::map< Node, Node > >::iterator it = d_com[0].d_const_eq.find( loc );
-    if( it!=d_com[0].d_const_eq.end() ){
+    Component& cm = d_com[0];
+    std::map<Node, std::map<Node, Node> >::iterator it =
+        cm.d_const_eq.find(loc);
+    if (it != cm.d_const_eq.end())
+    {
       std::vector< Node > next;
       for( unsigned i=0; i<d_prime_vars.size(); i++ ){
         Node pv = d_prime_vars[i];
@@ -1033,4 +1088,3 @@ Node TransitionInference::constructFormulaTrace( DetTrace& dt ) {
 }
   
 } //namespace CVC4
-

@@ -41,15 +41,6 @@ header = "options/datatypes_options.h"
   help       = "introduce reference skolems for shorter explanations"
 
 [[option]]
-  name       = "dtUseTesters"
-  category   = "regular"
-  long       = "dt-use-testers"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "do not preprocess away tester predicates"
-
-[[option]]
   name       = "cdtBisimilar"
   category   = "regular"
   long       = "cdt-bisimilar"
@@ -101,7 +92,16 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "simple sygus sym break lemmas"
+  help       = "simple sygus symmetry breaking lemmas"
+
+[[option]]
+  name       = "sygusSymBreakAgg"
+  category   = "regular"
+  long       = "sygus-sym-break-agg"
+  type       = "bool"
+  default    = "true"
+  read_only  = true
+  help       = "use aggressive checks for simple sygus symmetry breaking lemmas"
 
 [[option]]
   name       = "sygusSymBreakDynamic"
@@ -110,7 +110,7 @@ header = "options/datatypes_options.h"
   type       = "bool"
   default    = "true"
   read_only  = true
-  help       = "dynamic sygus sym break lemmas"
+  help       = "dynamic sygus symmetry breaking lemmas"
 
 [[option]]
   name       = "sygusSymBreakPbe"
@@ -118,7 +118,7 @@ header = "options/datatypes_options.h"
   long       = "sygus-sym-break-pbe"
   type       = "bool"
   default    = "true"
-  help       = "sygus sym break lemmas based on pbe conjectures"
+  help       = "sygus symmetry breaking lemmas based on pbe conjectures"
   
 [[option]]
   name       = "sygusOpt1"

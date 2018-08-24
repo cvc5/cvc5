@@ -2,9 +2,9 @@
 /*! \file ce_guided_instantiation.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,7 +33,20 @@ private:
   CegConjecture * d_conj;
   /** last instantiation by single invocation module? */
   bool d_last_inst_si;
-private:
+  /** the conjecture we are waiting to assign */
+  Node d_waiting_conj;
+
+ private:
+  /** assign quantified formula q as the conjecture
+   *
+   * This method returns true if q was successfully assigned as the synthesis
+   * conjecture considered by this class. This method may return false, for
+   * instance, if this class determines that it would rather rewrite q to
+   * an equivalent form r (in which case this method returns the lemma
+   * q <=> r). An example of this is the quantifier elimination step
+   * option::sygusQePreproc().
+   */
+  bool assignConjecture(Node q);
   /** check conjecture */
   void checkCegConjecture( CegConjecture * conj );
 public:

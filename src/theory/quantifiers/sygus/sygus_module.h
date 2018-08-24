@@ -2,9 +2,9 @@
 /*! \file sygus_module.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,7 +49,7 @@ class SygusModule
 {
  public:
   SygusModule(QuantifiersEngine* qe, CegConjecture* p);
-  ~SygusModule() {}
+  virtual ~SygusModule() {}
   /** initialize
    *
    * n is the "base instantiation" of the deep-embedding version of the
@@ -122,6 +122,12 @@ class SygusModule
   {
     return Node::null();
   }
+  /**
+   * Are we trying to repair constants in candidate solutions?
+   * If we return true for usingRepairConst is true, then this module has
+   * attmepted to repair any solutions returned by constructCandidates.
+   */
+  virtual bool usingRepairConst() { return false; }
 
  protected:
   /** reference to quantifier engine */

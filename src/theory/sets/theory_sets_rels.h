@@ -2,9 +2,9 @@
 /*! \file theory_sets_rels.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng, Mathias Preiner
+ **   Andrew Reynolds, Paul Meng, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -185,9 +185,10 @@ private:
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
   bool exists( std::vector<Node>&, Node );
-  Node mkAnd( std::vector< TNode >& assumptions );
   inline void addToMembershipDB( Node, Node, Node  );
-  void printNodeMap(char* fst, char* snd, NodeMap map);
+  static void printNodeMap(const char* fst,
+                           const char* snd,
+                           const NodeMap& map);
   inline Node constructPair(Node tc_rep, Node a, Node b);
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );

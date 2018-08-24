@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -184,16 +184,6 @@ void ResChain<Solver>::addRedundantLit(typename Solver::TLit lit) {
   }
 }
 
-/// ProxyProof
-template <class Solver>
-ProofProxy<Solver>::ProofProxy(TSatProof<Solver>* proof) : d_proof(proof) {}
-
-template <class Solver>
-void ProofProxy<Solver>::updateCRef(typename Solver::TCRef oldref,
-                                    typename Solver::TCRef newref) {
-  d_proof->updateCRef(oldref, newref);
-}
-
 /// SatProof
 template <class Solver>
 TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
@@ -226,13 +216,10 @@ TSatProof<Solver>::TSatProof(Solver* solver, context::Context* context,
       d_seenLemmas(),
       d_satProofConstructed(false),
       d_statistics(name) {
-  d_proxy = new ProofProxy<Solver>(this);
 }
 
 template <class Solver>
 TSatProof<Solver>::~TSatProof() {
-  delete d_proxy;
-
   // FIXME: double free if deleted clause also appears in d_seenLemmas?
   IdToSatClause::const_iterator it = d_deletedTheoryLemmas.begin();
   IdToSatClause::const_iterator end = d_deletedTheoryLemmas.end();
@@ -563,6 +550,9 @@ ClauseId TSatProof<Solver>::registerUnitClause(typename Solver::TLit lit,
 
     if (kind == INPUT) {
       Assert(d_inputClauses.find(newId) == d_inputClauses.end());
+      Debug("pf::sat") << "TSatProof::registerUnitClause: registering a new "
+                          "input (UNIT CLAUSE): "
+                       << lit << std::endl;
       d_inputClauses.insert(newId);
     }
     if (kind == THEORY_LEMMA) {

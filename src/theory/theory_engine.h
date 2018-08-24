@@ -2,9 +2,9 @@
 /*! \file theory_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Dejan Jovanovic, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -84,7 +84,6 @@ struct NodeTheoryPairHashFunction {
 namespace theory {
   class TheoryModel;
   class TheoryEngineModelBuilder;
-  class ITEUtilities;
 
   namespace eq {
     class EqualityEngine;
@@ -247,9 +246,8 @@ class TheoryEngine {
       return ss.str();
     }
 
-  public:
-
-    IntStat conflicts, propagations, lemmas, requirePhase, flipDecision, restartDemands;
+   public:
+    IntStat conflicts, propagations, lemmas, requirePhase, restartDemands;
 
     Statistics(theory::TheoryId theory);
     ~Statistics();
@@ -314,12 +312,6 @@ class TheoryEngine {
                       << phase << ")" << std::endl;
       ++d_statistics.requirePhase;
       d_engine->d_propEngine->requirePhase(n, phase);
-    }
-
-    bool flipDecision() override {
-      Debug("theory") << "EngineOutputChannel::flipDecision()" << std::endl;
-      ++d_statistics.flipDecision;
-      return d_engine->d_propEngine->flipDecision();
     }
 
     void setIncomplete() override {
@@ -412,12 +404,6 @@ class TheoryEngine {
    * propagated literals.
    */
   void propagate(theory::Theory::Effort effort);
-
-  /**
-   * Called by the output channel to request decisions "as soon as
-   * possible."
-   */
-  void propagateAsDecision(TNode literal, theory::TheoryId theory);
 
   /**
    * A variable to mark if we added any lemmas.
@@ -773,7 +759,8 @@ public:
   inline bool isTheoryEnabled(theory::TheoryId theoryId) const {
     return d_logicInfo.isTheoryEnabled(theoryId);
   }
-
+  /** get the logic info used by this theory engine */
+  const LogicInfo& getLogicInfo() const;
   /**
    * Returns the equality status of the two terms, from the theory
    * that owns the domain type.  The types of a and b must be the same.
@@ -839,12 +826,6 @@ private:
 
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
-
-  /**
-   * A collection of ite preprocessing passes.
-   */
-  theory::ITEUtilities* d_iteUtilities;
-
 
   /** For preprocessing pass simplifying unconstrained expressions */
   UnconstrainedSimplifier* d_unconstrainedSimp;

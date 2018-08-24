@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,18 +28,68 @@ namespace theory {
 namespace strings {
 
 class TheoryStringsRewriter {
-private:
+ private:
+  /** simple regular expression consume
+   *
+   * This method is called when we are rewriting a membership of the form
+   *   s1 ++ ... ++ sn in r1 ++ ... ++ rm
+   * We have that mchildren consists of the strings s1...sn, and children
+   * consists of the regular expressions r1...rm.
+   *
+   * This method tries to strip off parts of the concatenation terms. It updates
+   * the vectors such that the resulting vectors are such that the membership
+   * mchildren[n'...n''] in children[m'...m''] is equivalent to the input
+   * membership. The argument dir indicates the direction to consider, where
+   * 0 means strip off the front, 1 off the back, and < 0 off of both.
+   *
+   * If this method returns the false node, then we have inferred that the input
+   * membership is equivalent to false. Otherwise, it returns the null node.
+   *
+   * For example, given input
+   *   mchildren = { "ab", x }, children = { [["a"]], ([["cd"]])* } and dir = 0,
+   * this method updates:
+   *   mchildren = { "b", x }, children = { ("cd")* }
+   * and returns null.
+   *
+   * For example, given input
+   *   { x, "abb", x }, { [[x]], ["a"..."b"], allchar, [[y]], [[x]]} and dir=-1,
+   * this method updates:
+   *   { "b" }, { [[y]] }
+   * where [[.]] denotes str.to.re, and returns null.
+   */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
   static bool testConstStringInRegExp( CVC4::String &s, unsigned int index_start, TNode r );
 
-  static void mergeInto(std::vector<Node> &t, const std::vector<Node> &s);
-  static void shrinkConVec(std::vector<Node> &vec);
-  static Node applyAX( TNode node );
-
-  static Node prerewriteConcatRegExp(TNode node);
-  static Node prerewriteOrRegExp(TNode node);
-  static Node prerewriteAndRegExp(TNode node);
+  /** rewrite regular expression concatenation
+   *
+   * This is the entry point for post-rewriting applications of re.++.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteConcatRegExp(TNode node);
+  /** rewrite regular expression star
+   *
+   * This is the entry point for post-rewriting applications of re.*.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStarRegExp(TNode node);
+  /** rewrite regular expression intersection/union
+   *
+   * This is the entry point for post-rewriting applications of re.inter and
+   * re.union. Returns the rewritten form of node.
+   */
+  static Node rewriteAndOrRegExp(TNode node);
+  /** rewrite regular expression loop
+   *
+   * This is the entry point for post-rewriting applications of re.loop.
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteLoopRegExp(TNode node);
+  /** rewrite regular expression membership
+   *
+   * This is the entry point for post-rewriting applications of str.in.re
+   * Returns the rewritten form of node.
+   */
   static Node rewriteMembership(TNode node);
 
   static bool hasEpsilonNode(TNode node);
@@ -63,6 +113,8 @@ private:
 
   static inline void init() {}
   static inline void shutdown() {}
+  /** get the cardinality of the alphabet used, based on the options */
+  static unsigned getAlphabetCardinality();
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
@@ -349,6 +401,22 @@ private:
                                      std::vector<Node>& nb,
                                      std::vector<Node>& ne,
                                      int dir = 0);
+
+  /**
+   * Given a symbolic length n, returns the canonical string for that length.
+   * For example if n is constant, this function returns a string consisting of
+   * "A" repeated n times. Returns the null node if no such string exists.
+   */
+  static Node canonicalStrForSymbolicLength(Node n);
+
+  /** length preserving rewrite
+   *
+   * Given input n, this returns a string n' whose length is equivalent to n.
+   * We apply certain normalizations to n', such as replacing all constants
+   * that are not relevant to length by "A".
+   */
+  static Node lengthPreserveRewrite(Node n);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to

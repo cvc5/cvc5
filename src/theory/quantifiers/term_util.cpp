@@ -2,9 +2,9 @@
 /*! \file term_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Paul Meng, Yoni Zohar
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,7 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/datatype.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -582,7 +583,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     //rewriting infinity always takes precedence over rewriting delta
     for( unsigned r=0; r<2; r++ ){
       Node inf = getVtsInfinityIndex( r, false, false );
-      if (!inf.isNull() && n.hasSubterm(inf))
+      if (!inf.isNull() && expr::hasSubterm(n, inf))
       {
         if( rew_vts_inf.isNull() ){
           rew_vts_inf = inf;
@@ -595,16 +596,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           subs_lhs.push_back( rew_vts_inf );
           n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
           n = Rewriter::rewrite( n );
-          //may have cancelled
-          if (!n.hasSubterm(rew_vts_inf))
+          // may have cancelled
+          if (!expr::hasSubterm(n, rew_vts_inf))
           {
             rew_vts_inf = Node::null();
           }
         }
       }
     }
-    if( rew_vts_inf.isNull() ){
-      if (!d_vts_delta.isNull() && n.hasSubterm(d_vts_delta))
+    if (rew_vts_inf.isNull())
+    {
+      if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
       {
         rew_delta = true;
       }
@@ -817,18 +819,18 @@ bool TermUtil::isNegate(Kind k)
 }
 
 bool TermUtil::isAssoc( Kind k ) {
-  return k == PLUS || k == MULT || k == AND || k == OR || k == BITVECTOR_PLUS
-         || k == BITVECTOR_MULT || k == BITVECTOR_AND || k == BITVECTOR_OR
-         || k == BITVECTOR_XOR || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT
-         || k == STRING_CONCAT || k == UNION || k == INTERSECTION || k == JOIN
-         || k == PRODUCT;
+  return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
+         || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
+         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT;
 }
 
 bool TermUtil::isComm( Kind k ) {
-  return k == EQUAL || k == PLUS || k == MULT || k == AND || k == OR || k == XOR
-         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT || k == BITVECTOR_AND
-         || k == BITVECTOR_OR || k == BITVECTOR_XOR || k == BITVECTOR_XNOR
-         || k == UNION || k == INTERSECTION;
+  return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
+         || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION;
 }
 
 bool TermUtil::isNonAdditive( Kind k ) {

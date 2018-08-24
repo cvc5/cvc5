@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,6 +75,12 @@ public:
 
   /** Check the satisfiability of the added clauses */
   virtual SatValue solve(long unsigned int&) = 0;
+
+  /** Check satisfiability under assumptions */
+  virtual SatValue solve(const std::vector<SatLiteral>& assumptions)
+  {
+    Unimplemented("Solving under assumptions not implemented");
+  };
 
   /** Interrupt the solver */
   virtual void interrupt() = 0;
@@ -148,11 +154,15 @@ public:
 
   virtual void pop() = 0;
 
+  /*
+   * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+   * level.
+   */
+  virtual void resetTrail() = 0;
+
   virtual bool properExplanation(SatLiteral lit, SatLiteral expl) const = 0;
 
   virtual void requirePhase(SatLiteral lit) = 0;
-
-  virtual bool flipDecision() = 0;
 
   virtual bool isDecision(SatVariable decn) const = 0;
 };/* class DPLLSatSolverInterface */

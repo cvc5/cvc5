@@ -17,6 +17,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
@@ -80,7 +81,7 @@ Node SygusUnifRl::purifyLemma(Node n,
   // We retrive model value now because purified node may not have a value
   Node nv = n;
   // Whether application of a function-to-synthesize
-  bool fapp = k == APPLY_UF && size > 0;
+  bool fapp = (n.getKind() == DT_SYGUS_EVAL);
   bool u_fapp = false;
   bool nu_fapp = false;
   if (fapp)
@@ -135,10 +136,10 @@ Node SygusUnifRl::purifyLemma(Node n,
   Node nb;
   if (childChanged)
   {
-    if (fapp && n.hasOperator())
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       Trace("sygus-unif-rl-purify-debug") << "Node " << n
-                                          << " has operator and fapp is true\n";
+                                          << " is parameterized\n";
       children.insert(children.begin(), n.getOperator());
     }
     if (Trace.isOn("sygus-unif-rl-purify-debug"))
@@ -165,11 +166,6 @@ Node SygusUnifRl::purifyLemma(Node n,
     std::map<Node, Node>::const_iterator it = d_app_to_purified.find(nb);
     if (it == d_app_to_purified.end())
     {
-      if (!childChanged)
-      {
-        Assert(nb.hasOperator());
-        children.insert(children.begin(), n.getOperator());
-      }
       // Build purified head with fresh skolem and recreate node
       std::stringstream ss;
       ss << nb[0] << "_" << d_cand_to_hd_count[nb[0]]++;
@@ -183,10 +179,10 @@ Node SygusUnifRl::purifyLemma(Node n,
       d_cand_to_eval_hds[nb[0]].push_back(new_f);
       // Maps new enumerator to its respective tuple of arguments
       d_hd_to_pt[new_f] =
-          std::vector<Node>(children.begin() + 2, children.end());
+          std::vector<Node>(children.begin() + 1, children.end());
       if (Trace.isOn("sygus-unif-rl-purify-debug"))
       {
-        Trace("sygus-unif-rl-purify-debug") << "...[" << new_f << "] --> (";
+        Trace("sygus-unif-rl-purify-debug") << "...[" << new_f << "] --> ( ";
         for (const Node& pt_i : d_hd_to_pt[new_f])
         {
           Trace("sygus-unif-rl-purify-debug") << pt_i << " ";
@@ -194,9 +190,11 @@ Node SygusUnifRl::purifyLemma(Node n,
         Trace("sygus-unif-rl-purify-debug") << ")\n";
       }
       // replace first child and rebulid node
-      children[1] = new_f;
-      Assert(children.size() > 1);
-      np = NodeManager::currentNM()->mkNode(k, children);
+      Assert(children.size() > 0);
+      children[0] = new_f;
+      Trace("sygus-unif-rl-purify-debug") << "Make sygus eval app " << children
+                                          << std::endl;
+      np = nm->mkNode(DT_SYGUS_EVAL, children);
       d_app_to_purified[nb] = np;
     }
     else
@@ -846,17 +844,18 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluate(Node n,
   Assert(d_dt->d_unif->d_hd_to_pt.find(n) != d_dt->d_unif->d_hd_to_pt.end());
   std::vector<Node> pt = d_dt->d_unif->d_hd_to_pt[n];
   // compute the result
-  Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
   if (Trace.isOn("sygus-unif-rl-sep"))
   {
-    Trace("sygus-unif-rl-sep") << "...got res = " << res << " from cond "
-                               << builtin_cond << " on pt " << n << " ( ";
+    Trace("sygus-unif-rl-sep") << "Evaluate cond " << builtin_cond << " on pt "
+                               << n << " ( ";
     for (const Node& pti : pt)
     {
       Trace("sygus-unif-rl-sep") << pti << " ";
     }
     Trace("sygus-unif-rl-sep") << ")\n";
   }
+  Node res = d_dt->d_unif->d_tds->evaluateBuiltin(tn, builtin_cond, pt);
+  Trace("sygus-unif-rl-sep") << "...got res = " << res << "\n";
   // If condition is templated, recompute result accordingly
   Node templ = d_dt->d_template.first;
   TNode templ_var = d_dt->d_template.second;

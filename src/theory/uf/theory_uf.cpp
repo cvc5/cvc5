@@ -2,9 +2,9 @@
 /*! \file theory_uf.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
+ **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -75,6 +75,10 @@ void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 }
 
 void TheoryUF::finishInit() {
+  // combined cardinality constraints are not evaluated in getModelValue
+  TheoryModel* tm = d_valuation.getModel();
+  Assert(tm != nullptr);
+  tm->setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
   // initialize the strong solver
   if (options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);

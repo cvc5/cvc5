@@ -19,9 +19,11 @@
 #include <list>
 #include <vector>
 
+#include "base/map_util.h"
 #include "decision/decision_engine.h"
 #include "expr/attribute.h"
 #include "expr/node.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_builder.h"
 #include "options/bv_options.h"
 #include "options/options.h"
@@ -31,14 +33,13 @@
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
-#include "smt/term_formula_removal.h"
 #include "smt/logic_exception.h"
+#include "smt/term_formula_removal.h"
 #include "smt_util/lemma_output_channel.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
-#include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -232,7 +233,8 @@ void TheoryEngine::finishInit() {
     d_curr_model_builder = d_quantEngine->getModelBuilder();
     d_curr_model = d_quantEngine->getModel();
   } else {
-    d_curr_model = new theory::TheoryModel(d_userContext, "DefaultModel", true);
+    d_curr_model = new theory::TheoryModel(
+        d_userContext, "DefaultModel", options::assignFunctionValues());
     d_aloc_curr_model = true;
   }
   //make the default builder, e.g. in the case that the quantifiers engine does not have a model builder
@@ -333,8 +335,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
 
-  d_iteUtilities = new ITEUtilities();
-
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
 
@@ -362,8 +362,6 @@ TheoryEngine::~TheoryEngine() {
   smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
 
   delete d_unconstrainedSimp;
-
-  delete d_iteUtilities;
 
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
@@ -395,7 +393,7 @@ void TheoryEngine::preRegister(TNode preprocessed) {
       // the atom should not have free variables
       Debug("theory") << "TheoryEngine::preRegister: " << preprocessed
                       << std::endl;
-      Assert(!preprocessed.hasFreeVar());
+      Assert(!expr::hasFreeVar(preprocessed));
       // Pre-register the terms in the atom
       Theory::Set theories = NodeVisitor<PreRegisterVisitor>::run(d_preRegistrationVisitor, preprocessed);
       theories = Theory::setRemove(THEORY_BOOL, theories);
@@ -1466,6 +1464,7 @@ bool TheoryEngine::propagate(TNode literal, theory::TheoryId theory) {
   return !d_inConflict;
 }
 
+const LogicInfo& TheoryEngine::getLogicInfo() const { return d_logicInfo; }
 
 theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
   Assert(a.getType().isComparableTo(b.getType()));
@@ -1481,7 +1480,11 @@ theory::EqualityStatus TheoryEngine::getEqualityStatus(TNode a, TNode b) {
 }
 
 Node TheoryEngine::getModelValue(TNode var) {
-  if (var.isConst()) return var;  // FIXME: HACK!!!
+  if (var.isConst())
+  {
+    // the model value of a constant must be itself
+    return var;
+  }
   Assert(d_sharedTerms.isShared(var));
   return theoryOf(Theory::theoryOf(var.getType()))->getModelValue(var);
 }
@@ -1992,119 +1995,20 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-Node TheoryEngine::ppSimpITE(TNode assertion)
-{
-  if (!d_iteUtilities->containsTermITE(assertion))
-  {
-    return assertion;
-  } else {
-    Node result = d_iteUtilities->simpITE(assertion);
-    Node res_rewritten = Rewriter::rewrite(result);
-
-    if(options::simplifyWithCareEnabled()){
-      Chat() << "starting simplifyWithCare()" << endl;
-      Node postSimpWithCare = d_iteUtilities->simplifyWithCare(res_rewritten);
-      Chat() << "ending simplifyWithCare()"
-             << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
-      result = Rewriter::rewrite(postSimpWithCare);
-    } else {
-      result = res_rewritten;
-    }
-    return result;
-  }
-}
-
-bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
-  // This pass does not support dependency tracking yet
-  // (learns substitutions from all assertions so just
-  // adding addDependence is not enough)
-  if (options::unsatCores() || options::fewerPreprocessingHoles()) {
-    return true;
-  }
-  bool result = true;
-  bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
-  if(simpDidALotOfWork){
-    if(options::compressItes()){
-      result = d_iteUtilities->compress(assertions);
-    }
-
-    if(result){
-      // if false, don't bother to reclaim memory here.
-      NodeManager* nm = NodeManager::currentNM();
-      if(nm->poolSize() >= options::zombieHuntThreshold()){
-        Chat() << "..ite simplifier did quite a bit of work.. " << nm->poolSize() << endl;
-        Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
-        d_iteUtilities->clear();
-        Rewriter::clearCaches();
-        nm->reclaimZombiesUntil(options::zombieHuntThreshold());
-        Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
-      }
-    }
-  }
-
-  // Do theory specific preprocessing passes
-  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
-     && !options::incrementalSolving() ){
-    if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains =
-          *(d_iteUtilities->getContainsVisitor());
-      arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
-      bool anyItes = false;
-      for(size_t i = 0;  i < assertions.size(); ++i){
-        Node curr = assertions[i];
-        if(contains.containsTermITE(curr)){
-          anyItes = true;
-          Node res = aiteu.reduceVariablesInItes(curr);
-          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl << "   ->" << res << endl;
-          if(curr != res){
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = Rewriter::rewrite(more);
-          }
-        }
-      }
-      if(!anyItes){
-        unsigned prevSubCount = aiteu.getSubCount();
-        aiteu.learnSubstitutions(assertions);
-        if(prevSubCount < aiteu.getSubCount()){
-          d_arithSubstitutionsAdded += aiteu.getSubCount() - prevSubCount;
-          bool anySuccess = false;
-          for(size_t i = 0, N =  assertions.size();  i < N; ++i){
-            Node curr = assertions[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
-            Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            if(more != next){
-              anySuccess = true;
-              break;
-            }
-          }
-          for(size_t i = 0, N =  assertions.size();  anySuccess && i < N; ++i){
-            Node curr = assertions[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
-            Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = Rewriter::rewrite(more);
-          }
-        }
-      }
-    }
-  }
-  return result;
-}
-
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
   Assert(explanationVector.size() > 0);
 
   unsigned i = 0; // Index of the current literal we are processing
   unsigned j = 0; // Index of the last literal we are keeping
 
-  std::set<Node> inputAssertions;
-  PROOF(inputAssertions = proofRecipe->getStep(0)->getAssertions(););
+  std::unique_ptr<std::set<Node>> inputAssertions = nullptr;
+  PROOF({
+    if (proofRecipe)
+    {
+      inputAssertions.reset(
+          new std::set<Node>(proofRecipe->getStep(0)->getAssertions()));
+    }
+  });
 
   while (i < explanationVector.size()) {
     // Get the current literal to explain
@@ -2189,30 +2093,44 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
     ++ i;
 
     PROOF({
-        if (proofRecipe) {
-          // If we're expanding the target node of the explanation (this is the first expansion...),
-          // we don't want to add it as a separate proof step. It is already part of the assertions.
-          if (inputAssertions.find(toExplain.node) == inputAssertions.end()) {
-            LemmaProofRecipe::ProofStep proofStep(toExplain.theory, toExplain.node);
-            if (explanation.getKind() == kind::AND) {
-              Node flat = flattenAnd(explanation);
-              for (unsigned k = 0; k < flat.getNumChildren(); ++ k) {
-                // If a true constant or a negation of a false constant we can ignore it
-                if (! ((flat[k].isConst() && flat[k].getConst<bool>()) ||
-                       (flat[k].getKind() == kind::NOT && flat[k][0].isConst() && !flat[k][0].getConst<bool>()))) {
-                  proofStep.addAssertion(flat[k].negate());
-                }
+      if (proofRecipe && inputAssertions)
+      {
+        // If we're expanding the target node of the explanation (this is the
+        // first expansion...), we don't want to add it as a separate proof
+        // step. It is already part of the assertions.
+        if (!ContainsKey(*inputAssertions, toExplain.node))
+        {
+          LemmaProofRecipe::ProofStep proofStep(toExplain.theory,
+                                                toExplain.node);
+          if (explanation.getKind() == kind::AND)
+          {
+            Node flat = flattenAnd(explanation);
+            for (unsigned k = 0; k < flat.getNumChildren(); ++k)
+            {
+              // If a true constant or a negation of a false constant we can
+              // ignore it
+              if (!((flat[k].isConst() && flat[k].getConst<bool>())
+                    || (flat[k].getKind() == kind::NOT && flat[k][0].isConst()
+                        && !flat[k][0].getConst<bool>())))
+              {
+                proofStep.addAssertion(flat[k].negate());
               }
-            } else {
-             if (! ((explanation.isConst() && explanation.getConst<bool>()) ||
-                    (explanation.getKind() == kind::NOT && explanation[0].isConst() && !explanation[0].getConst<bool>()))) {
-               proofStep.addAssertion(explanation.negate());
-             }
             }
-            proofRecipe->addStep(proofStep);
           }
+          else
+          {
+            if (!((explanation.isConst() && explanation.getConst<bool>())
+                  || (explanation.getKind() == kind::NOT
+                      && explanation[0].isConst()
+                      && !explanation[0].getConst<bool>())))
+            {
+              proofStep.addAssertion(explanation.negate());
+            }
+          }
+          proofRecipe->addStep(proofStep);
         }
-      });
+      }
+    });
   }
 
   // Keep only the relevant literals
@@ -2365,14 +2283,12 @@ TheoryEngine::Statistics::Statistics(theory::TheoryId theory):
     propagations(getStatsPrefix(theory) + "::propagations", 0),
     lemmas(getStatsPrefix(theory) + "::lemmas", 0),
     requirePhase(getStatsPrefix(theory) + "::requirePhase", 0),
-    flipDecision(getStatsPrefix(theory) + "::flipDecision", 0),
     restartDemands(getStatsPrefix(theory) + "::restartDemands", 0)
 {
   smtStatisticsRegistry()->registerStat(&conflicts);
   smtStatisticsRegistry()->registerStat(&propagations);
   smtStatisticsRegistry()->registerStat(&lemmas);
   smtStatisticsRegistry()->registerStat(&requirePhase);
-  smtStatisticsRegistry()->registerStat(&flipDecision);
   smtStatisticsRegistry()->registerStat(&restartDemands);
 }
 
@@ -2381,7 +2297,6 @@ TheoryEngine::Statistics::~Statistics() {
   smtStatisticsRegistry()->unregisterStat(&propagations);
   smtStatisticsRegistry()->unregisterStat(&lemmas);
   smtStatisticsRegistry()->unregisterStat(&requirePhase);
-  smtStatisticsRegistry()->unregisterStat(&flipDecision);
   smtStatisticsRegistry()->unregisterStat(&restartDemands);
 }
 

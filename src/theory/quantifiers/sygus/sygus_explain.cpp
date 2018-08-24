@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -123,16 +123,23 @@ void SygusExplain::getExplanationForEquality(Node n,
                                              std::vector<Node>& exp,
                                              std::map<unsigned, bool>& cexc)
 {
-  Assert(n.getType() == vn.getType());
+  // since builtin types occur in grammar, types are comparable but not
+  // necessarily equal
+  Assert(n.getType().isComparableTo(n.getType()));
   if (n == vn)
   {
     return;
   }
-  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   TypeNode tn = n.getType();
-  Assert(tn.isDatatype());
+  if (!tn.isDatatype())
+  {
+    // sygus datatype fields that are not sygus datatypes are treated as
+    // abstractions only, hence we disregard this field
+    return;
+  }
+  Assert(vn.getKind() == kind::APPLY_CONSTRUCTOR);
   const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
-  int i = Datatype::indexOf(vn.getOperator().toExpr());
+  int i = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = datatypes::DatatypesRewriter::mkTester(n, i, dt);
   exp.push_back(tst);
   for (unsigned j = 0; j < vn.getNumChildren(); j++)
@@ -178,10 +185,16 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
                                      int& sz)
 {
   Assert(vnr.isNull() || vn != vnr);
+  Assert(n.getType().isComparableTo(vn.getType()));
+  TypeNode ntn = n.getType();
+  if (!ntn.isDatatype())
+  {
+    // sygus datatype fields that are not sygus datatypes are treated as
+    // abstractions only, hence we disregard this field
+    return;
+  }
   Assert(vn.getKind() == APPLY_CONSTRUCTOR);
   Assert(vnr.isNull() || vnr.getKind() == APPLY_CONSTRUCTOR);
-  Assert(n.getType() == vn.getType());
-  TypeNode ntn = n.getType();
   std::map<unsigned, bool> cexc;
   // for each child, 
   // check whether replacing that child by a fresh variable
@@ -210,7 +223,7 @@ void SygusExplain::getExplanationFor(TermRecBuild& trb,
     }
   }
   const Datatype& dt = ((DatatypeType)ntn.toType()).getDatatype();
-  int cindex = Datatype::indexOf(vn.getOperator().toExpr());
+  int cindex = datatypes::DatatypesRewriter::indexOf(vn.getOperator());
   Assert(cindex >= 0 && cindex < (int)dt.getNumConstructors());
   Node tst = datatypes::DatatypesRewriter::mkTester(n, cindex, dt);
   exp.push_back(tst);
@@ -271,11 +284,22 @@ void SygusExplain::getExplanationFor(Node n,
                                      Node vnr,
                                      unsigned& sz)
 {
+  std::map<TypeNode, int> var_count;
+  return getExplanationFor(n, vn, exp, et, vnr, var_count, sz);
+}
+
+void SygusExplain::getExplanationFor(Node n,
+                                     Node vn,
+                                     std::vector<Node>& exp,
+                                     SygusInvarianceTest& et,
+                                     Node vnr,
+                                     std::map<TypeNode, int>& var_count,
+                                     unsigned& sz)
+{
   // naive :
   // return getExplanationForEquality( n, vn, exp );
 
   // set up the recursion object;
-  std::map<TypeNode, int> var_count;
   TermRecBuild trb;
   trb.init(vn);
   Node vnr_exp;

@@ -2,7 +2,7 @@
 /*! \file bv_subtheory_core.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -22,6 +22,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ext_theory.h"
 #include "theory/theory_model.h"
 
 using namespace std;
@@ -459,11 +460,6 @@ bool CoreSolver::collectModelInfo(TheoryModel* m, bool fullModel)
 }
 
 Node CoreSolver::getModelValue(TNode var) {
-  // we don't need to evaluate bv expressions and only look at variable values
-  // because this only gets called when the core theory is complete (i.e. no other bv
-  // function symbols are currently asserted)
-  Assert (d_slicer->isCoreTerm(var));
-
   Debug("bitvector-model") << "CoreSolver::getModelValue (" << var <<")";
   Assert (isComplete());
   TNode repr = d_equalityEngine.getRepresentative(var);

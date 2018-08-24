@@ -2,9 +2,9 @@
 /*! \file sat_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Liana Hadarean, Morgan Deters
+ **   Liana Hadarean, Tim King, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -38,8 +38,6 @@
 // Forward declarations.
 namespace CVC4 {
 class CnfProof;
-template <class Solver>
-class ProofProxy;
 } /* namespace CVC4 */
 
 namespace CVC4 {
@@ -191,7 +189,6 @@ class TSatProof {
    */
   void storeUnitResolution(typename Solver::TLit lit);
 
-  ProofProxy<Solver>* getProxy() { return d_proxy; }
   /**
    * Constructs the SAT proof for the given clause,
    * by collecting the needed clauses in the d_seen
@@ -343,8 +340,6 @@ class TSatProof {
   bool d_checkRes;
 
   const ClauseId d_nullId;
-  // proxy class to break circular dependencies
-  ProofProxy<Solver>* d_proxy;
 
   // temporary map for updating CRefs
   ClauseIdMap d_temp_clauseId;
@@ -362,16 +357,6 @@ class TSatProof {
   bool d_satProofConstructed;
   Statistics d_statistics;
 }; /* class TSatProof */
-
-template <class S>
-class ProofProxy {
- private:
-  TSatProof<S>* d_proof;
-
- public:
-  ProofProxy(TSatProof<S>* pf);
-  void updateCRef(typename S::TCRef oldref, typename S::TCRef newref);
-}; /* class ProofProxy */
 
 template <class Solver>
 prop::SatLiteral toSatLiteral(typename Solver::TLit lit);

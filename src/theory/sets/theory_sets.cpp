@@ -2,9 +2,9 @@
 /*! \file theory_sets.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Andrew Reynolds, Paul Meng
+ **   Kshitij Bansal, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,10 +28,16 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
       d_internal(new TheorySetsPrivate(*this, c, u))
-{}
+{
+  // Do not move me to the header.
+  // The constructor + destructor are not in the header as d_internal is a
+  // unique_ptr<TheorySetsPrivate> and TheorySetsPrivate is an opaque type in
+  // the header (Pimpl). See https://herbsutter.com/gotw/_100/ .
+}
 
-TheorySets::~TheorySets() {
-  delete d_internal;
+TheorySets::~TheorySets()
+{
+  // Do not move me to the header. See explanation in the constructor.
 }
 
 void TheorySets::addSharedTerm(TNode n) {

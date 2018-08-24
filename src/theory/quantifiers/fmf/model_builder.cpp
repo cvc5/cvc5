@@ -2,9 +2,9 @@
 /*! \file model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -166,9 +166,81 @@ bool TermArgBasisTrie::addTerm(FirstOrderModel* fm, Node n, unsigned argIndex)
   }
 }
 
+void QModelBuilderIG::UfModelPreferenceData::setValuePreference(Node q,
+                                                                Node r,
+                                                                bool isPro)
+{
+  if (std::find(d_values.begin(), d_values.end(), r) == d_values.end())
+  {
+    d_values.push_back(r);
+  }
+  int index = isPro ? 0 : 1;
+  if (std::find(
+          d_value_pro_con[index][r].begin(), d_value_pro_con[index][r].end(), q)
+      == d_value_pro_con[index][r].end())
+  {
+    d_value_pro_con[index][r].push_back(q);
+  }
+}
+
+Node QModelBuilderIG::UfModelPreferenceData::getBestDefaultValue(
+    Node defaultTerm, TheoryModel* m)
+{
+  Node defaultVal;
+  double maxScore = -1;
+  for (size_t i = 0, size = d_values.size(); i < size; i++)
+  {
+    Node v = d_values[i];
+    double score = (1.0 + static_cast<double>(d_value_pro_con[0][v].size()))
+                   / (1.0 + static_cast<double>(d_value_pro_con[1][v].size()));
+    Debug("fmf-model-cons-debug") << "  - score( ";
+    Debug("fmf-model-cons-debug") << m->getRepresentative(v);
+    Debug("fmf-model-cons-debug") << " ) = " << score << std::endl;
+    if (score > maxScore)
+    {
+      defaultVal = v;
+      maxScore = score;
+    }
+  }
+  if (maxScore < 1.0)
+  {
+    // consider finding another value, if possible
+    Debug("fmf-model-cons-debug")
+        << "Poor choice for default value, score = " << maxScore << std::endl;
+    TypeNode tn = defaultTerm.getType();
+    Node newDefaultVal = m->getRepSet()->getDomainValue(tn, d_values);
+    if (!newDefaultVal.isNull())
+    {
+      defaultVal = newDefaultVal;
+      Debug("fmf-model-cons-debug") << "-> Change default value to ";
+      Debug("fmf-model-cons-debug") << m->getRepresentative(defaultVal);
+      Debug("fmf-model-cons-debug") << std::endl;
+    }
+    else
+    {
+      Debug("fmf-model-cons-debug")
+          << "-> Could not find arbitrary element of type "
+          << tn[tn.getNumChildren() - 1] << std::endl;
+      Debug("fmf-model-cons-debug") << "      Excluding: " << d_values;
+      Debug("fmf-model-cons-debug") << std::endl;
+    }
+  }
+  // get the default term (this term must be defined non-ground in model)
+  Debug("fmf-model-cons-debug") << "  Choose ";
+  Debug("fmf-model-cons-debug") << m->getRepresentative(defaultVal);
+  Debug("fmf-model-cons-debug")
+      << " as default value (" << defaultTerm << ")" << std::endl;
+  Debug("fmf-model-cons-debug")
+      << "     # quantifiers pro = " << d_value_pro_con[0][defaultVal].size()
+      << std::endl;
+  Debug("fmf-model-cons-debug")
+      << "     # quantifiers con = " << d_value_pro_con[1][defaultVal].size()
+      << std::endl;
+  return defaultVal;
+}
+
 QModelBuilderIG::QModelBuilderIG(context::Context* c, QuantifiersEngine* qe)
     : QModelBuilder(c, qe),
-      d_basisNoMatch(c),
       d_didInstGen(false),
       d_numQuantSat(0),
       d_numQuantInstGen(0),
@@ -183,6 +255,11 @@ Node QModelBuilderIG::getCurrentUfModelValue( FirstOrderModel* fm, Node n, std::
 */
 
 bool QModelBuilderIG::processBuildModel( TheoryModel* m ) {
+  if (!m->areFunctionValuesEnabled())
+  {
+    // nothing to do if no functions
+    return true;
+  }
   FirstOrderModel* f = (FirstOrderModel*)m;
   FirstOrderModelIG* fm = f->asFirstOrderModelIG();
   Trace("model-engine-debug") << "Process build model " << optUseModel() << std::endl;
@@ -342,7 +419,6 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
   //determine if any functions are constant
   for( std::map< Node, uf::UfModelTree >::iterator it = fmig->d_uf_model_tree.begin(); it != fmig->d_uf_model_tree.end(); ++it ){
     Node op = it->first;
-    TermArgBasisTrie tabt;
     std::map< Node, std::vector< Node > >::iterator itut = fmig->d_uf_terms.find( op );
     if( itut!=fmig->d_uf_terms.end() ){
       for( size_t i=0; i<itut->second.size(); i++ ){
@@ -355,21 +431,13 @@ void QModelBuilderIG::analyzeModel( FirstOrderModel* fm ){
           d_uf_prefs[op].d_const_val = Node::null();
           break;
         }
-        //for calculating terms that we don't need to consider
-        //if( d_qe->getTermDatabase()->isTermActive( n ) || n.getAttribute(ModelBasisArgAttribute())!=0 ){
-        if( d_basisNoMatch.find( n )==d_basisNoMatch.end() ){
-          //need to consider if it is not congruent modulo model basis
-          if( !tabt.addTerm( fmig, n ) ){
-            d_basisNoMatch[n] = true;
-          }
-        }
       }
     }
     if( !d_uf_prefs[op].d_const_val.isNull() ){
       fmig->d_uf_model_gen[op].setDefaultValue( d_uf_prefs[op].d_const_val );
       fmig->d_uf_model_gen[op].makeModel( fmig, it->second );
       Debug("fmf-model-cons") << "Function " << op << " is the constant function ";
-      fmig->printRepresentativeDebug( "fmf-model-cons", d_uf_prefs[op].d_const_val );
+      Debug("fmf-model-cons") << d_uf_prefs[op].d_const_val;
       Debug("fmf-model-cons") << std::endl;
       d_uf_model_constructed[op] = true;
     }else{
@@ -599,15 +667,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
             d_qe->getModel()->setQuantifierActive( f, false );
             //check if choosing this literal would add any additional constraints to default definitions
             selectLitConstraints = false;
-            for( int j=0; j<(int)uf_terms.size(); j++ ){
-              Node op = uf_terms[j].getOperator();
-              if( d_uf_prefs[op].d_reconsiderModel ){
-                selectLitConstraints = true;
-              }
-            }
-            if( !selectLitConstraints ){
-              selectLit = true;
-            }
+            selectLit = true;
           }
           //also check if it is naturally a better literal
           if( !selectLit ){
@@ -657,7 +717,6 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
       Debug("fmf-model-prefs") << "  * Constant SAT due to definition of ops: ";
       for( int i=0; i<(int)selectionLitTerms.size(); i++ ){
         Debug("fmf-model-prefs") << selectionLitTerms[i] << " ";
-        d_uf_prefs[ selectionLitTerms[i].getOperator() ].d_reconsiderModel = false;
       }
       Debug("fmf-model-prefs") << std::endl;
     }else{
@@ -666,7 +725,7 @@ void QModelBuilderDefault::analyzeQuantifier( FirstOrderModel* fm, Node f ){
         for( int j=0; j<(int)pro_con[k].size(); j++ ){
           Node op = pro_con[k][j].getOperator();
           Node r = fmig->getRepresentative( pro_con[k][j] );
-          d_uf_prefs[op].setValuePreference( f, pro_con[k][j], r, k==0 );
+          d_uf_prefs[op].setValuePreference(f, r, k == 0);
         }
       }
     }
@@ -726,21 +785,6 @@ int QModelBuilderDefault::doInstGen( FirstOrderModel* fm, Node f ){
 
 void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
   FirstOrderModelIG* fmig = fm->asFirstOrderModelIG();
-  if( optReconsiderFuncConstants() ){
-    //reconsider constant functions that weren't necessary
-    if( d_uf_model_constructed[op] ){
-      if( d_uf_prefs[op].d_reconsiderModel ){
-        //if we are allowed to reconsider default value, then see if the default value can be improved
-        Node v = d_uf_prefs[op].d_const_val;
-        if( d_uf_prefs[op].d_value_pro_con[0][v].empty() ){
-          Debug("fmf-model-cons-debug") << "Consider changing the default value for " << op << std::endl;
-          fmig->d_uf_model_tree[op].clear();
-          fmig->d_uf_model_gen[op].clear();
-          d_uf_model_constructed[op] = false;
-        }
-      }
-    }
-  }
   if( !d_uf_model_constructed[op] ){
     //construct the model for the uninterpretted function/predicate
     bool setDefaultVal = true;
@@ -760,19 +804,13 @@ void QModelBuilderDefault::constructModelUf( FirstOrderModel* fm, Node op ){
         //set n = v in the model tree
         //set it as ground value
         fmig->d_uf_model_gen[op].setValue( fm, n, v );
-        if( fmig->d_uf_model_gen[op].optUsePartialDefaults() ){
-          //also set as default value if necessary
-          if( n.hasAttribute(ModelBasisArgAttribute()) && n.getAttribute(ModelBasisArgAttribute())!=0 ){
-            Trace("fmf-model-cons") << "  Set as default." << std::endl;
-            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
-            if( n==defaultTerm ){
-              //incidentally already set, we will not need to find a default value
-              setDefaultVal = false;
-            }
-          }
-        }else{
+        // also set as default value if necessary
+        if (n.hasAttribute(ModelBasisArgAttribute())
+            && n.getAttribute(ModelBasisArgAttribute()) != 0)
+        {
+          Trace("fmf-model-cons") << "  Set as default." << std::endl;
+          fmig->d_uf_model_gen[op].setValue(fm, n, v, false);
           if( n==defaultTerm ){
-            fmig->d_uf_model_gen[op].setValue( fm, n, v, false );
             //incidentally already set, we will not need to find a default value
             setDefaultVal = false;
           }

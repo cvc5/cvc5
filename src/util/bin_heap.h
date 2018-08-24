@@ -2,9 +2,9 @@
 /*! \file bin_heap.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Morgan Deters, Paul Meng
+ **   Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,8 +60,8 @@ private:
   CmpFcn d_cmp;
 
   // disallow copy and assignment
-  BinaryHeap(const BinaryHeap&) CVC4_UNDEFINED;
-  BinaryHeap& operator=(const BinaryHeap&) CVC4_UNDEFINED;
+  BinaryHeap(const BinaryHeap&) = delete;
+  BinaryHeap& operator=(const BinaryHeap&) = delete;
 
 public:
   BinaryHeap(const CmpFcn& c = CmpFcn())

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,14 +14,15 @@
 
 #include "theory/quantifiers/quantifiers_rewriter.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -30,25 +31,6 @@ using namespace CVC4::context;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-bool QuantifiersRewriter::isClause( Node n ){
-  if( isLiteral( n ) ){
-    return true;
-  }else if( n.getKind()==NOT ){
-    return isCube( n[0] );
-  }else if( n.getKind()==OR ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( !isClause( n[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }else if( n.getKind()==IMPLIES ){
-    return isCube( n[0] ) && isClause( n[1] );
-  }else{
-    return false;
-  }
-}
 
 bool QuantifiersRewriter::isLiteral( Node n ){
   switch( n.getKind() ){
@@ -70,23 +52,6 @@ bool QuantifiersRewriter::isLiteral( Node n ){
     break;
   }
   return true;
-}
-
-bool QuantifiersRewriter::isCube( Node n ){
-  if( isLiteral( n ) ){
-    return true;
-  }else if( n.getKind()==NOT ){
-    return isClause( n[0] );
-  }else if( n.getKind()==AND ){
-    for( int i=0; i<(int)n.getNumChildren(); i++ ){
-      if( !isCube( n[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }else{
-    return false;
-  }
 }
 
 void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
@@ -774,9 +739,11 @@ bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
       }
     }
   }else if( n.getKind()==EQUAL ){
-    for( unsigned i=0; i<2; i++ ){
-      if( n[i].getKind()==BOUND_VARIABLE ){
-        if (!n[1 - i].hasSubterm(n[i]))
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (n[i].getKind() == BOUND_VARIABLE)
+      {
+        if (!expr::hasSubterm(n[1 - i], n[i]))
         {
           return true;
         }
@@ -874,8 +841,9 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim( Node v, Node s ) {
-  return !s.hasSubterm(v) && s.getType().isSubtypeOf(v.getType());
+bool QuantifiersRewriter::isVariableElim(Node v, Node s)
+{
+  return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
 void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
@@ -926,56 +894,35 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
   Assert(lit.getKind() == EQUAL);
   // TODO (#1494) : linearize the literal using utility
 
-  // figure out if this literal is linear and invertible on path with args
-  std::map<TNode, bool> linear;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(lit);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (std::find(args.begin(), args.end(), cur) != args.end())
-    {
-      bool lval = linear.find(cur) == linear.end();
-      linear[cur] = lval;
-    }
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-  } while (!visit.empty());
+  // compute a subset active_args of the bound variables args that occur in lit
+  std::vector<Node> active_args;
+  computeArgVec(args, active_args, lit);
 
   BvInverter binv;
-  for (std::pair<const TNode, bool>& lp : linear)
+  for (const Node& cvar : active_args)
   {
-    if (lp.second)
+    // solve for the variable on this path using the inverter
+    std::vector<unsigned> path;
+    Node slit = binv.getPathToPv(lit, cvar, path);
+    if (!slit.isNull())
     {
-      TNode cvar = lp.first;
-      Trace("quant-velim-bv") << "...linear wrt " << cvar << std::endl;
-      std::vector<unsigned> path;
-      Node slit = binv.getPathToPv(lit, cvar, path);
-      if (!slit.isNull())
+      Node slv = binv.solveBvLit(cvar, lit, path, nullptr);
+      Trace("quant-velim-bv") << "...solution : " << slv << std::endl;
+      if (!slv.isNull())
       {
-        Node slv = binv.solveBvLit(cvar, lit, path, nullptr);
-        Trace("quant-velim-bv") << "...solution : " << slv << std::endl;
-        if (!slv.isNull())
+        var = cvar;
+        // if this is a proper variable elimination, that is, var = slv where
+        // var is not in the free variables of slv, then we can return this
+        // as the variable elimination for lit.
+        if (isVariableElim(var, slv))
         {
-          var = cvar;
           return slv;
         }
       }
-      else
-      {
-        Trace("quant-velim-bv") << "...non-invertible path." << std::endl;
-      }
+    }
+    else
+    {
+      Trace("quant-velim-bv") << "...non-invertible path." << std::endl;
     }
   }
 
@@ -1130,10 +1077,11 @@ bool QuantifiersRewriter::computeVariableElimLit(
       std::vector<Node>::iterator ita =
           std::find(args.begin(), args.end(), var);
       Assert(ita != args.end());
-      Assert(isVariableElim(var, slv));
       Trace("var-elim-quant")
           << "Variable eliminate based on bit-vector inversion : " << var
           << " -> " << slv << std::endl;
+      Assert(!expr::hasSubterm(slv, var));
+      Assert(slv.getType().isSubtypeOf(var.getType()));
       vars.push_back(var);
       subs.push_back(slv);
       args.erase(ita);

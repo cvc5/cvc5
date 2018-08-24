@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Clark Barrett, Morgan Deters, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <memory>
 
 #include "expr/kind.h"
+#include "expr/node_algorithm.h"
 #include "options/arrays_options.h"
 #include "options/smt_options.h"
 #include "proof/array_proof.h"
@@ -342,11 +343,15 @@ Theory::PPAssertStatus TheoryArrays::ppAssert(TNode in, SubstitutionMap& outSubs
     {
       d_ppFacts.push_back(in);
       d_ppEqualityEngine.assertEquality(in, true, in);
-      if (in[0].isVar() && !in[1].hasSubterm(in[0]) && (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+          && (in[1].getType()).isSubtypeOf(in[0].getType()))
+      {
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1]) && (in[0].getType()).isSubtypeOf(in[1].getType())){
+      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+          && (in[0].getType()).isSubtypeOf(in[1].getType()))
+      {
         outSubstitutions.addSubstitution(in[1], in[0]);
         return PP_ASSERT_STATUS_SOLVED;
       }
@@ -659,6 +664,17 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
     // The may equal needs the store
     d_mayEqualEqualityEngine.addTerm(store);
 
+    if (node.getType().isArray())
+    {
+      d_mayEqualEqualityEngine.addTerm(node);
+      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
+    }
+    else
+    {
+      d_equalityEngine.addTerm(node);
+    }
+    Assert((d_isPreRegistered.insert(node), true));
+
     if (options::arraysLazyRIntro1() && !options::arraysWeakEquivalence()) {
       // Apply RIntro1 rule to any stores equal to store if not done already
       const CTNodeList* stores = d_infoMap.getStores(store);
@@ -677,14 +693,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
           Assert(++it == stores->end());
         }
       }
-    }
-
-    if (node.getType().isArray()) {
-      d_mayEqualEqualityEngine.addTerm(node);
-      d_equalityEngine.addTriggerTerm(node, THEORY_ARRAYS);
-    }
-    else {
-      d_equalityEngine.addTerm(node);
     }
 
     Assert(d_equalityEngine.getRepresentative(store) == store);
@@ -715,7 +723,6 @@ void TheoryArrays::preRegisterTermInternal(TNode node)
       d_reads.push_back(node);
     }
 
-    Assert((d_isPreRegistered.insert(node), true));
     checkRowForIndex(node[1], store);
     break;
   }
@@ -1607,7 +1614,7 @@ void TheoryArrays::setNonLinear(TNode a)
       Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
-      lem = make_quad(store, c, j, i);
+      lem = std::make_tuple(store, c, j, i);
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::setNonLinear ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
       queueRowLemma(lem);
     }
@@ -1834,7 +1841,7 @@ void TheoryArrays::checkStore(TNode a) {
     for(; it < js->size(); ++it) {
       TNode j = (*js)[it];
       if (i == j) continue;
-      lem = make_quad(a,b,i,j);
+      lem = std::make_tuple(a, b, i, j);
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkStore ("<<a<<", "<<b<<", "<<i<<", "<<j<<")\n";
       queueRowLemma(lem);
     }
@@ -1875,7 +1882,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
     Assert(store.getKind()==kind::STORE);
     TNode j = store[1];
     if (i == j) continue;
-    lem = make_quad(store, store[0], j, i);
+    lem = std::make_tuple(store, store[0], j, i);
     Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowForIndex ("<<store<<", "<<store[0]<<", "<<j<<", "<<i<<")\n";
     queueRowLemma(lem);
   }
@@ -1887,7 +1894,7 @@ void TheoryArrays::checkRowForIndex(TNode i, TNode a)
       Assert(instore.getKind()==kind::STORE);
       TNode j = instore[1];
       if (i == j) continue;
-      lem = make_quad(instore, instore[0], j, i);
+      lem = std::make_tuple(instore, instore[0], j, i);
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowForIndex ("<<instore<<", "<<instore[0]<<", "<<j<<", "<<i<<")\n";
       queueRowLemma(lem);
     }
@@ -1934,7 +1941,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
       Assert(store.getKind() == kind::STORE);
       TNode j = store[1];
       TNode c = store[0];
-      lem = make_quad(store, c, j, i);
+      lem = std::make_tuple(store, c, j, i);
       Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowLemmas ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
       queueRowLemma(lem);
     }
@@ -1949,7 +1956,7 @@ void TheoryArrays::checkRowLemmas(TNode a, TNode b)
         Assert(store.getKind() == kind::STORE);
         TNode j = store[1];
         TNode c = store[0];
-        lem = make_quad(store, c, j, i);
+        lem = std::make_tuple(store, c, j, i);
         Trace("arrays-lem") << spaces(getSatContext()->getLevel()) <<"Arrays::checkRowLemmas ("<<store<<", "<<c<<", "<<j<<", "<<i<<")\n";
         queueRowLemma(lem);
       }
@@ -1963,10 +1970,8 @@ void TheoryArrays::propagate(RowLemmaType lem)
   Debug("pf::array") << "TheoryArrays: RowLemma Propagate called. options::arraysPropagate() = "
                      << options::arraysPropagate() << std::endl;
 
-  TNode a = lem.first;
-  TNode b = lem.second;
-  TNode i = lem.third;
-  TNode j = lem.fourth;
+  TNode a, b, i, j;
+  std::tie(a, b, i, j) = lem;
 
   Assert(a.getType().isArray() && b.getType().isArray());
   if (d_equalityEngine.areEqual(a,b) ||
@@ -2022,10 +2027,8 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   if (d_conflict || d_RowAlreadyAdded.contains(lem)) {
     return;
   }
-  TNode a = lem.first;
-  TNode b = lem.second;
-  TNode i = lem.third;
-  TNode j = lem.fourth;
+  TNode a, b, i, j;
+  std::tie(a, b, i, j) = lem;
 
   Assert(a.getType().isArray() && b.getType().isArray());
   if (d_equalityEngine.areEqual(a,b) ||
@@ -2154,10 +2157,8 @@ bool TheoryArrays::dischargeLemmas()
       continue;
     }
 
-    TNode a = l.first;
-    TNode b = l.second;
-    TNode i = l.third;
-    TNode j = l.fourth;
+    TNode a, b, i, j;
+    std::tie(a, b, i, j) = l;
     Assert(a.getType().isArray() && b.getType().isArray());
 
     NodeManager* nm = NodeManager::currentNM();

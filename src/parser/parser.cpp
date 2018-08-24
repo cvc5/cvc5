@@ -2,9 +2,9 @@
 /*! \file parser.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Christopher L. Conway
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,6 +25,7 @@
 #include <sstream>
 #include <unordered_set>
 
+#include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/expr_iomanip.h"
@@ -42,10 +43,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace parser {
 
-Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode,
+Parser::Parser(api::Solver* solver,
+               Input* input,
+               bool strictMode,
                bool parseOnly)
-    : d_exprManager(exprManager),
-      d_resourceManager(d_exprManager->getResourceManager()),
+    : d_solver(solver),
+      d_resourceManager(d_solver->getExprManager()->getResourceManager()),
       d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
@@ -58,7 +61,8 @@ Parser::Parser(ExprManager* exprManager, Input* input, bool strictMode,
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_logicIsForced(false),
-      d_forcedLogic() {
+      d_forcedLogic()
+{
   d_input->setParser(*this);
 }
 
@@ -70,6 +74,11 @@ Parser::~Parser() {
   }
   d_commandQueue.clear();
   delete d_input;
+}
+
+ExprManager* Parser::getExprManager() const
+{
+  return d_solver->getExprManager();
 }
 
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
@@ -120,12 +129,12 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   if(isDefinedFunction(expr)) {
     // defined functions/constants are wrapped in an APPLY so that they are
     // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
-    expr = d_exprManager->mkExpr(CVC4::kind::APPLY, expr);
+    expr = getExprManager()->mkExpr(CVC4::kind::APPLY, expr);
   }else{
     Type te = expr.getType();
     if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
       // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-      expr = d_exprManager->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
+      expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
     }
   }
   return expr;
@@ -210,14 +219,14 @@ Expr Parser::mkVar(const std::string& name, const Type& type, uint32_t flags, bo
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, flags);
+  Expr expr = getExprManager()->mkVar(name, type, flags);
   defineVar(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
 
 Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkBoundVar(name, type);
+  Expr expr = getExprManager()->mkBoundVar(name, type);
   defineVar(name, expr, false);
   return expr;
 }
@@ -228,7 +237,7 @@ Expr Parser::mkFunction(const std::string& name, const Type& type,
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "mkVar(" << name << ", " << type << ")" << std::endl;
-  Expr expr = d_exprManager->mkVar(name, type, flags);
+  Expr expr = getExprManager()->mkVar(name, type, flags);
   defineFunction(name, expr, flags & ExprManager::VAR_FLAG_GLOBAL, doOverload);
   return expr;
 }
@@ -240,7 +249,7 @@ Expr Parser::mkAnonymousFunction(const std::string& prefix, const Type& type,
   }
   stringstream name;
   name << prefix << "_anon_" << ++d_anonymousFunctionCount;
-  return d_exprManager->mkVar(name.str(), type, flags);
+  return getExprManager()->mkVar(name.str(), type, flags);
 }
 
 std::vector<Expr> Parser::mkVars(const std::vector<std::string> names,
@@ -269,7 +278,8 @@ void Parser::defineVar(const std::string& name, const Expr& val,
   Debug("parser") << "defineVar( " << name << " := " << val << ")" << std::endl;
   if (!d_symtab->bind(name, val, levelZero, doOverload)) {
     std::stringstream ss;
-    ss << "Failed to bind " << name << " to symbol of type " << val.getType();
+    ss << "Cannot bind " << name << " to symbol of type " << val.getType();
+    ss << ", maybe the symbol has already been defined?";
     parseError(ss.str()); 
   }
   assert(isDeclared(name));
@@ -317,16 +327,19 @@ SortType Parser::mkSort(const std::string& name, uint32_t flags) {
     flags |= ExprManager::VAR_FLAG_GLOBAL;
   }
   Debug("parser") << "newSort(" << name << ")" << std::endl;
-  Type type = d_exprManager->mkSort(name, flags);
+  Type type = getExprManager()->mkSort(name, flags);
   defineType(name, type);
   return type;
 }
 
 SortConstructorType Parser::mkSortConstructor(const std::string& name,
-                                              size_t arity) {
+                                              size_t arity,
+                                              uint32_t flags)
+{
   Debug("parser") << "newSortConstructor(" << name << ", " << arity << ")"
                   << std::endl;
-  SortConstructorType type = d_exprManager->mkSortConstructor(name, arity);
+  SortConstructorType type =
+      getExprManager()->mkSortConstructor(name, arity, flags);
   defineType(name, vector<Type>(arity), type);
   return type;
 }
@@ -339,7 +352,8 @@ SortType Parser::mkUnresolvedType(const std::string& name) {
 
 SortConstructorType Parser::mkUnresolvedTypeConstructor(const std::string& name,
                                                         size_t arity) {
-  SortConstructorType unresolved = mkSortConstructor(name, arity);
+  SortConstructorType unresolved =
+      mkSortConstructor(name, arity, ExprManager::SORT_FLAG_PLACEHOLDER);
   d_unresolved.insert(unresolved);
   return unresolved;
 }
@@ -348,8 +362,8 @@ SortConstructorType Parser::mkUnresolvedTypeConstructor(
     const std::string& name, const std::vector<Type>& params) {
   Debug("parser") << "newSortConstructor(P)(" << name << ", " << params.size()
                   << ")" << std::endl;
-  SortConstructorType unresolved =
-      d_exprManager->mkSortConstructor(name, params.size());
+  SortConstructorType unresolved = getExprManager()->mkSortConstructor(
+      name, params.size(), ExprManager::SORT_FLAG_PLACEHOLDER);
   defineType(name, params, unresolved);
   Type t = getSort(name, params);
   d_unresolved.insert(unresolved);
@@ -367,7 +381,7 @@ std::vector<DatatypeType> Parser::mkMutualDatatypeTypes(
     std::vector<Datatype>& datatypes, bool doOverload) {
   try {
     std::vector<DatatypeType> types =
-        d_exprManager->mkMutualDatatypeTypes(datatypes, d_unresolved);
+        getExprManager()->mkMutualDatatypeTypes(datatypes, d_unresolved);
 
     assert(datatypes.size() == types.size());
 
@@ -462,7 +476,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
       // the introduced variable is internal (not parsable)
       std::stringstream ss;
       ss << "__flatten_var_" << i;
-      Expr v = d_exprManager->mkBoundVar(ss.str(), domainTypes[i]);
+      Expr v = getExprManager()->mkBoundVar(ss.str(), domainTypes[i]);
       flattenVars.push_back(v);
     }
     range = static_cast<FunctionType>(range).getRangeType();
@@ -471,7 +485,7 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts,
   {
     return range;
   }
-  return d_exprManager->mkFunctionType(sorts, range);
+  return getExprManager()->mkFunctionType(sorts, range);
 }
 
 Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
@@ -488,14 +502,14 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
     sorts.insert(sorts.end(), domainTypes.begin(), domainTypes.end());
     range = static_cast<FunctionType>(range).getRangeType();
   }
-  return d_exprManager->mkFunctionType(sorts, range);
+  return getExprManager()->mkFunctionType(sorts, range);
 }
 
 Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
 {
   for (unsigned i = startIndex; i < args.size(); i++)
   {
-    expr = d_exprManager->mkExpr(HO_APPLY, expr, args[i]);
+    expr = getExprManager()->mkExpr(HO_APPLY, expr, args[i]);
   }
   return expr;
 }
@@ -568,8 +582,8 @@ void Parser::checkArity(Kind kind, unsigned numArgs)
     return;
   }
 
-  unsigned min = d_exprManager->minArity(kind);
-  unsigned max = d_exprManager->maxArity(kind);
+  unsigned min = getExprManager()->minArity(kind);
+  unsigned max = getExprManager()->maxArity(kind);
 
   if (numArgs < min || numArgs > max) {
     stringstream ss;
@@ -625,7 +639,7 @@ Command* Parser::nextCommand()
       dynamic_cast<QuitCommand*>(cmd) == NULL) {
     // don't count set-option commands as to not get stuck in an infinite
     // loop of resourcing out
-    const Options& options = d_exprManager->getOptions();
+    const Options& options = getExprManager()->getOptions();
     d_resourceManager->spendResource(options.getParseStep());
   }
   return cmd;
@@ -634,7 +648,7 @@ Command* Parser::nextCommand()
 Expr Parser::nextExpression()
 {
   Debug("parser") << "nextExpression()" << std::endl;
-  const Options& options = d_exprManager->getOptions();
+  const Options& options = getExprManager()->getOptions();
   d_resourceManager->spendResource(options.getParseStep());
   Expr result;
   if (!done()) {

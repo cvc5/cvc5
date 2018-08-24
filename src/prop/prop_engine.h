@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -148,19 +148,6 @@ public:
   void requirePhase(TNode n, bool phase);
 
   /**
-   * Backtracks to and flips the most recent unflipped decision, and
-   * returns TRUE.  If the decision stack is nonempty but all
-   * decisions have been flipped already, the state is backtracked to
-   * the root decision, which is re-flipped to the original phase (and
-   * FALSE is returned).  If the decision stack is empty, the state is
-   * unchanged and FALSE is returned.
-   *
-   * @return true if a decision was flipped as requested; false if the
-   * root decision was reflipped, or if no decisions are on the stack.
-   */
-  bool flipDecision();
-
-  /**
    * Return whether the given literal is a SAT decision.  Either phase
    * is permitted; that is, if "lit" is a SAT decision, this function
    * returns true for both lit and the negation of lit.
@@ -212,6 +199,12 @@ public:
    * Pop the context level.
    */
   void pop();
+
+  /*
+   * Reset the decisions in the DPLL(T) SAT solver at the current assertion
+   * level.
+   */
+  void resetTrail();
 
   /**
    * Get the assertion level of the SAT solver.

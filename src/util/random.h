@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,8 +21,6 @@
 #ifndef __CVC4__UTIL__RANDOM_H
 #define __CVC4__UTIL__RANDOM_H
 
-#include "base/tls.h"
-
 namespace CVC4 {
 
 class Random
@@ -33,7 +31,7 @@ class Random
   /* Get current RNG (singleton).  */
   static Random& getRandom()
   {
-    static CVC4_THREAD_LOCAL Random s_current(0);
+    static thread_local Random s_current(0);
     return s_current;
   }
 

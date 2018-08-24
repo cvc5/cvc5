@@ -296,6 +296,22 @@ header = "options/smt_options.h"
   help       = "use aggressive extended rewriter as a preprocessing pass"
 
 [[option]]
+  name       = "synthRrPrep"
+  category   = "regular"
+  long       = "synth-rr-prep"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize and output rewrite rules during preprocessing"
+
+[[option]]
+  name       = "synthRrPrepExtRew"
+  category   = "regular"
+  long       = "synth-rr-prep-ext-rew"
+  type       = "bool"
+  default    = "false"
+  help       = "use the extended rewriter for synthRrPrep"
+
+[[option]]
   name       = "simplifyWithCareEnabled"
   category   = "regular"
   long       = "simp-with-care"
@@ -329,7 +345,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "zombieHuntThreshold"
   category   = "regular"
-  long       = "simp-ite-hunt-zombies"
+  long       = "simp-ite-hunt-zombies=N"
   type       = "uint32_t"
   default    = "524288"
   read_only  = true
@@ -403,7 +419,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "tlimit=MS"
   type       = "unsigned long"
-  handler    = "tlimitHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyTlimit"]
   read_only  = true
   help       = "enable time limiting (give milliseconds)"
@@ -414,7 +430,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "tlimit-per=MS"
   type       = "unsigned long"
-  handler    = "tlimitPerHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyTlimitPer"]
   read_only  = true
   help       = "enable time limiting per query (give milliseconds)"
@@ -425,7 +441,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "rlimit=N"
   type       = "unsigned long"
-  handler    = "rlimitHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyRlimit"]
   read_only  = true
   help       = "enable resource limiting (currently, roughly the number of SAT conflicts)"
@@ -436,7 +452,7 @@ header = "options/smt_options.h"
   category   = "common"
   long       = "rlimit-per=N"
   type       = "unsigned long"
-  handler    = "rlimitPerHandler"
+  handler    = "limitHandler"
   notifies   = ["notifyRlimitPer"]
   read_only  = true
   help       = "enable resource limiting per query"
@@ -462,7 +478,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "rewriteStep"
   category   = "expert"
-  long       = "rewrite-step"
+  long       = "rewrite-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -471,7 +487,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "theoryCheckStep"
   category   = "expert"
-  long       = "theory-check-step"
+  long       = "theory-check-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -480,7 +496,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "decisionStep"
   category   = "expert"
-  long       = "decision-step"
+  long       = "decision-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -489,7 +505,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "bitblastStep"
   category   = "expert"
-  long       = "bitblast-step"
+  long       = "bitblast-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -498,7 +514,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "parseStep"
   category   = "expert"
-  long       = "parse-step"
+  long       = "parse-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -507,7 +523,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "lemmaStep"
   category   = "expert"
-  long       = "lemma-step"
+  long       = "lemma-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -516,7 +532,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "restartStep"
   category   = "expert"
-  long       = "restart-step"
+  long       = "restart-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -525,7 +541,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "cnfStep"
   category   = "expert"
-  long       = "cnf-step"
+  long       = "cnf-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -534,7 +550,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "preprocessStep"
   category   = "expert"
-  long       = "preprocess-step"
+  long       = "preprocess-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -543,7 +559,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "quantifierStep"
   category   = "expert"
-  long       = "quantifier-step"
+  long       = "quantifier-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -552,7 +568,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "satConflictStep"
   category   = "expert"
-  long       = "sat-conflict-step"
+  long       = "sat-conflict-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -561,7 +577,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "bvSatConflictStep"
   category   = "expert"
-  long       = "bv-sat-conflict-step"
+  long       = "bv-sat-conflict-step=N"
   type       = "unsigned"
   default    = "1"
   read_only  = true
@@ -609,7 +625,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "solveIntAsBV"
   category   = "undocumented"
-  long       = "solve-int-as-bv"
+  long       = "solve-int-as-bv=N"
   type       = "uint32_t"
   default    = "0"
   read_only  = true

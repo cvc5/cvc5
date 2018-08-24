@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -148,11 +148,6 @@ void PropEngine::requirePhase(TNode n, bool phase) {
   d_satSolver->requirePhase(phase ? lit : ~lit);
 }
 
-bool PropEngine::flipDecision() {
-  Debug("prop") << "flipDecision()" << endl;
-  return d_satSolver->flipDecision();
-}
-
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());
@@ -279,6 +274,12 @@ void PropEngine::pop() {
   Assert(!d_inCheckSat, "Sat solver in solve()!");
   d_satSolver->pop();
   Debug("prop") << "pop()" << endl;
+}
+
+void PropEngine::resetTrail()
+{
+  d_satSolver->resetTrail();
+  Debug("prop") << "resetTrail()" << endl;
 }
 
 unsigned PropEngine::getAssertionLevel() const {

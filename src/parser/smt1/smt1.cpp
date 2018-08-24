@@ -2,9 +2,9 @@
 /*! \file smt1.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Clark Barrett
+ **   Christopher L. Conway, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,9 +14,10 @@
 
 #include "parser/smt1/smt1.h"
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
-#include "smt/command.h"
 #include "parser/parser.h"
+#include "smt/command.h"
 
 namespace CVC4 {
 namespace parser {
@@ -70,9 +71,9 @@ Smt1::Logic Smt1::toLogic(const std::string& name) {
   return logicMap[name];
 }
 
-Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode,
-           bool parseOnly)
-    : Parser(exprManager, input, strictMode, parseOnly), d_logic(UNSET) {
+Smt1::Smt1(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_logic(UNSET)
+{
   // Boolean symbols are always defined
   addOperator(kind::AND);
   addOperator(kind::EQUAL);
@@ -81,7 +82,6 @@ Smt1::Smt1(ExprManager* exprManager, Input* input, bool strictMode,
   addOperator(kind::NOT);
   addOperator(kind::OR);
   addOperator(kind::XOR);
-
 }
 
 void Smt1::addArithmeticOperators() {

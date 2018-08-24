@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,7 @@
  **/
 #include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/partial_model.h"
@@ -344,39 +345,46 @@ Node InstStrategyCbqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& vis
   }
 }
 
-void InstStrategyCbqi::preRegisterQuantifier( Node q ) {
+void InstStrategyCbqi::checkOwnership(Node q)
+{
   if( d_quantEngine->getOwner( q )==NULL && doCbqi( q ) ){
     if (d_do_cbqi[q] == CEG_HANDLED)
     {
       //take full ownership of the quantified formula
       d_quantEngine->setOwner( q, this );
-      
-      //mark all nested quantifiers with id
-      if( options::cbqiNestedQE() ){
-        std::map< Node, Node > visited;
-        Node mq = getIdMarkedQuantNode( q[1], visited );
-        if( mq!=q[1] ){
-          // do not do cbqi, we are reducing this quantified formula to a marked
-          // one
-          d_do_cbqi[q] = CEG_UNHANDLED;
-          //instead do reduction
-          std::vector< Node > qqc;
-          qqc.push_back( q[0] );
-          qqc.push_back( mq );
-          if( q.getNumChildren()==3 ){
-            qqc.push_back( q[2] );
-          }
-          Node qq = NodeManager::currentNM()->mkNode( FORALL, qqc );
-          Node mlem = NodeManager::currentNM()->mkNode( IMPLIES, q, qq );
-          Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
-          d_quantEngine->getOutputChannel().lemma( mlem );
-        }
-      }
     }
   }
 }
 
-void InstStrategyCbqi::registerQuantifier( Node q ) {
+void InstStrategyCbqi::preRegisterQuantifier(Node q)
+{
+  // mark all nested quantifiers with id
+  if (options::cbqiNestedQE())
+  {
+    if( d_quantEngine->getOwner(q)==this )
+    {
+      std::map<Node, Node> visited;
+      Node mq = getIdMarkedQuantNode(q[1], visited);
+      if (mq != q[1])
+      {
+        // do not do cbqi, we are reducing this quantified formula to a marked
+        // one
+        d_do_cbqi[q] = CEG_UNHANDLED;
+        // instead do reduction
+        std::vector<Node> qqc;
+        qqc.push_back(q[0]);
+        qqc.push_back(mq);
+        if (q.getNumChildren() == 3)
+        {
+          qqc.push_back(q[2]);
+        }
+        Node qq = NodeManager::currentNM()->mkNode(FORALL, qqc);
+        Node mlem = NodeManager::currentNM()->mkNode(IMPLIES, q, qq);
+        Trace("cbqi-lemma") << "Mark quant id lemma : " << mlem << std::endl;
+        d_quantEngine->addLemma(mlem);
+      }
+    }
+  }
   if( doCbqi( q ) ){
     if( registerCbqiLemma( q ) ){
       Trace("cbqi") << "Registered cbqi lemma for quantifier : " << q << std::endl;
@@ -655,7 +663,7 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
         }
       }
       //only legal if current quantified formula contains n
-      return d_curr_quant.hasSubterm(n);
+      return expr::hasSubterm(d_curr_quant, n);
     }
   }else{
     return true;
@@ -673,7 +681,8 @@ CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   }
 }
 
-void InstStrategyCegqi::registerQuantifier( Node q ) {
+void InstStrategyCegqi::preRegisterQuantifier(Node q)
+{
   if( doCbqi( q ) ){
     // get the instantiator  
     if( options::cbqiPreRegInst() ){

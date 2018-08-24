@@ -2,9 +2,9 @@
 /*! \file first_order_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Paul Meng
+ **   Andrew Reynolds, Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -137,8 +137,6 @@ class FirstOrderModel : public TheoryModel
   Node getModelBasisOpTerm(Node op);
   /** get model basis */
   Node getModelBasis(Node q, Node n);
-  /** get model basis body */
-  Node getModelBasisBody(Node q);
   /** get model basis arg */
   unsigned getModelBasisArg(Node n);
   /** get some domain element */
@@ -175,7 +173,7 @@ class FirstOrderModel : public TheoryModel
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
   virtual void processInitializeModelForTerm(Node n) = 0;
-  /** process intialize quantifier */
+  /** process initialize quantifier */
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
   virtual void processInitialize(bool ispre) = 0;
@@ -195,15 +193,58 @@ class FirstOrderModel : public TheoryModel
   void computeModelBasisArgAttribute(Node n);
 };/* class FirstOrderModel */
 
-
 class FirstOrderModelIG : public FirstOrderModel
 {
-public: //for Theory UF:
-  //models for each UF operator
-  std::map< Node, uf::UfModelTree > d_uf_model_tree;
-  //model generators
-  std::map< Node, uf::UfModelTreeGenerator > d_uf_model_gen;
-private:
+ public:  // for Theory UF:
+  /** class for generating models for uninterpreted functions
+   *
+   * This implements the model construction from page 6 of Reynolds et al,
+   * "Quantifier Instantiation Techniques for Finite Model Finding in SMT",
+   * CADE 2013.
+   */
+  class UfModelTreeGenerator
+  {
+   public:
+    UfModelTreeGenerator() {}
+    ~UfModelTreeGenerator() {}
+    /** set default value */
+    void setDefaultValue(Node v) { d_default_value = v; }
+    /** set value */
+    void setValue(
+        TheoryModel* m, Node n, Node v, bool ground = true, bool isReq = true);
+    /** make model */
+    void makeModel(TheoryModel* m, uf::UfModelTree& tree);
+    /** reset */
+    void clear();
+
+   public:
+    /** the overall default value */
+    Node d_default_value;
+    /**
+     * Stores (required, ground) values in key, value pairs of the form
+     * ( P( a, b ), c ), which indicates P( a, b ) has value c in the model.
+     * The "non-ground" values indicate that the key has a "model-basis"
+     * variable, for example, ( P( _, b ), c ) indicates that P( x, b ) has the
+     * value b for any value of x.
+     */
+    std::map<Node, Node> d_set_values[2][2];
+    /** stores the set of non-ground keys in the above maps */
+    std::vector<Node> d_defaults;
+    /**
+     * Returns the term corresponding to the intersection of n1 and n2, if it
+     * exists, for example, for P( _, a ) and P( b, _ ), this method returns
+     * P( b, a ), where _ is the "model basis" variable. We take into account
+     * equality between arguments, so if a=b, then the intersection of P( a, a )
+     * and P( b, _ ) is P( a, a ).
+     */
+    Node getIntersection(TheoryModel* m, Node n1, Node n2, bool& isGround);
+  };
+  /** models for each UF operator */
+  std::map<Node, uf::UfModelTree> d_uf_model_tree;
+  /** model generators for each UF operator */
+  std::map<Node, UfModelTreeGenerator> d_uf_model_gen;
+
+ private:
   //map from terms to the models used to calculate their value
   std::map< Node, bool > d_eval_uf_use_default;
   std::map< Node, uf::UfModelTree > d_eval_uf_model;
@@ -234,10 +275,6 @@ public:
 private:
   //default evaluate term function
   Node evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri  );
-  //temporary storing which literals have failed
-  void clearEvalFailed( int index );
-  std::map< Node, bool > d_eval_failed;
-  std::map< int, std::vector< Node > > d_eval_failed_lits;
 };/* class FirstOrderModelIG */
 
 
@@ -253,7 +290,6 @@ class FirstOrderModelFmc : public FirstOrderModel
   /** models for UF */
   std::map<Node, Def * > d_models;
   std::map<TypeNode, Node > d_type_star;
-  Node intervalOp;
   /** get current model value */
   void processInitializeModelForTerm(Node n) override;
 
@@ -267,10 +303,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 
   bool isStar(Node n);
   Node getStar(TypeNode tn);
-  Node getStarElement(TypeNode tn);
-  bool isInterval(Node n);
-  Node getInterval( Node lb, Node ub );
-  bool isInRange( Node v, Node i );
 };/* class FirstOrderModelFmc */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */

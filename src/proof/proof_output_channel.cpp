@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,12 +69,6 @@ theory::LemmaStatus ProofOutputChannel::splitLemma(TNode, bool) {
 void ProofOutputChannel::requirePhase(TNode n, bool b) {
   Debug("pf::tp") << "ProofOutputChannel::requirePhase called" << std::endl;
   Trace("pf::tp") << "requirePhase " << n << " " << b << std::endl;
-}
-
-bool ProofOutputChannel::flipDecision() {
-  Debug("pf::tp") << "ProofOutputChannel::flipDecision called" << std::endl;
-  AlwaysAssert(false);
-  return false;
 }
 
 void ProofOutputChannel::setIncomplete() {

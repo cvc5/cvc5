@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,6 @@
 #include <string>
 #include <unordered_set>
 
-#include "base/tls.h"
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node_value.h"
@@ -60,7 +59,7 @@ class NodeManagerListener {
  public:
   virtual ~NodeManagerListener() {}
   virtual void nmNotifyNewSort(TypeNode tn, uint32_t flags) {}
-  virtual void nmNotifyNewSortConstructor(TypeNode tn) {}
+  virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
   virtual void nmNotifyNewDatatypes(
@@ -101,7 +100,7 @@ class NodeManager {
                              expr::NodeValueIDHashFunction,
                              expr::NodeValueIDEquality> NodeValueIDSet;
 
-  static CVC4_THREAD_LOCAL NodeManager* s_current;
+  static thread_local NodeManager* s_current;
 
   Options* d_options;
   StatisticsRegistry* d_statisticsRegistry;
@@ -129,10 +128,7 @@ class NodeManager {
    * contexts, like as a key in attribute tables), even though
    * normally it's an error to have a TNode to a node value with a
    * reference count of 0.  Being "under deletion" also enables
-   * assertions that inc() is not called on it.  (A poorly-behaving
-   * attribute cleanup function could otherwise create a "Node" that
-   * points to the node value that is in the process of being deleted,
-   * springing it back to life.)
+   * assertions that inc() is not called on it.
    */
   expr::NodeValue* d_nodeUnderDeletion;
 
@@ -349,9 +345,9 @@ class NodeManager {
   // bool properlyContainsDecision(TNode); // all children are atomic
 
   // undefined private copy constructor (disallow copy)
-  NodeManager(const NodeManager&) CVC4_UNDEFINED;
+  NodeManager(const NodeManager&) = delete;
 
-  NodeManager& operator=(const NodeManager&) CVC4_UNDEFINED;
+  NodeManager& operator=(const NodeManager&) = delete;
 
   void init();
 
@@ -875,7 +871,9 @@ public:
                   uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /** Make a new sort with the given name and arity. */
-  TypeNode mkSortConstructor(const std::string& name, size_t arity);
+  TypeNode mkSortConstructor(const std::string& name,
+                             size_t arity,
+                             uint32_t flags = ExprManager::SORT_FLAG_NONE);
 
   /**
    * Get the type for the given node and optionally do type checking.

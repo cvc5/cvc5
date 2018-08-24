@@ -12,15 +12,6 @@ header = "options/uf_options.h"
   help       = "use UF symmetry breaker (Deharbe et al., CADE 2011)"
 
 [[option]]
-  name       = "condenseFunctionValues"
-  category   = "regular"
-  long       = "condense-function-values"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "condense models for functions rather than explicitly representing them"
-
-[[option]]
   name       = "ufssRegions"
   category   = "regular"
   long       = "uf-ss-regions"
@@ -84,15 +75,6 @@ header = "options/uf_options.h"
   includes   = ["options/ufss_mode.h"]
   read_only  = true
   help       = "mode of operation for uf strong solver."
-
-[[option]]
-  name       = "ufssCliqueSplits"
-  category   = "regular"
-  long       = "uf-ss-clique-splits"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use cliques instead of splitting on demand to shrink model"
 
 [[option]]
   name       = "ufssFairness"

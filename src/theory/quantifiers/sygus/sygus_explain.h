@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -65,7 +65,7 @@ class TermRecBuild
   /** get the i^th child of the active term */
   Node getChild(unsigned i);
   /** build the (modified) version of the term
-   * we intialized via the call to init().
+   * we initialized via the call to init().
    */
   Node build(unsigned p = 0);
 
@@ -197,6 +197,13 @@ class SygusExplain
                          std::vector<Node>& exp,
                          SygusInvarianceTest& et,
                          Node vnr,
+                         unsigned& sz);
+  void getExplanationFor(Node n,
+                         Node vn,
+                         std::vector<Node>& exp,
+                         SygusInvarianceTest& et,
+                         Node vnr,
+                         std::map<TypeNode, int>& var_count,
                          unsigned& sz);
   void getExplanationFor(Node n,
                          Node vn,

@@ -2,9 +2,9 @@
 /*! \file cegis.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -42,7 +42,7 @@ class Cegis : public SygusModule
 {
  public:
   Cegis(QuantifiersEngine* qe, CegConjecture* p);
-  ~Cegis() {}
+  ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node n,
                           const std::vector<Node>& candidates,
@@ -63,6 +63,8 @@ class Cegis : public SygusModule
   virtual void registerRefinementLemma(const std::vector<Node>& vars,
                                        Node lem,
                                        std::vector<Node>& lems) override;
+  /** using repair const */
+  virtual bool usingRepairConst() override;
 
  protected:
   /** the evaluation unfold utility of d_tds */
@@ -75,11 +77,11 @@ class Cegis : public SygusModule
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
-  /** do cegis-implementation-specific intialization for this class */
+  /** do cegis-implementation-specific initialization for this class */
   virtual bool processInitialize(Node n,
                                  const std::vector<Node>& candidates,
                                  std::vector<Node>& lemmas);
-  /** do cegis-implementation-specific construct candidate
+  /** do cegis-implementation-specific post-processing for construct candidate
    *
    * satisfiedRl is whether all refinement lemmas are satisfied under the
    * substitution { enums -> enum_values }.
@@ -164,6 +166,16 @@ class Cegis : public SygusModule
    * added as refinement lemmas.
    */
   std::unordered_set<unsigned> d_cegis_sample_refine;
+
+  //---------------------------------for sygus repair
+  /** are we using grammar-based repair?
+   *
+   * This flag is set ot true if at least one of the enumerators allocated
+   * by this class has been configured to allow model values with symbolic
+   * constructors, such as the "any constant" constructor.
+   */
+  bool d_using_gr_repair;
+  //---------------------------------end for sygus repair
 };
 
 } /* CVC4::theory::quantifiers namespace */

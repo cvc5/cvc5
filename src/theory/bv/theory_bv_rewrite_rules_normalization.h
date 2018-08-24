@@ -22,9 +22,10 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "theory/rewriter.h"
+#include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 
 namespace CVC4 {
 namespace theory {
@@ -601,11 +602,13 @@ inline Node RewriteRule<ConcatToMult>::apply(TNode node)
   return NodeManager::currentNM()->mkNode(kind::BITVECTOR_MULT, factor, coef);
 }
 
-template<> inline
-bool RewriteRule<SolveEq>::applies(TNode node) {
-  if (node.getKind() != kind::EQUAL ||
-      (node[0].isVar() && !node[1].hasSubterm(node[0])) ||
-      (node[1].isVar() && !node[0].hasSubterm(node[1]))) {
+template <>
+inline bool RewriteRule<SolveEq>::applies(TNode node)
+{
+  if (node.getKind() != kind::EQUAL
+      || (node[0].isVar() && !expr::hasSubterm(node[1], node[0]))
+      || (node[1].isVar() && !expr::hasSubterm(node[0], node[1])))
+  {
     return false;
   }
   return true;
@@ -1449,6 +1452,84 @@ inline Node RewriteRule<BitwiseSlicing>::apply(TNode node)
   Node result = utils::mkConcat(concat_children);
   Debug("bv-rewrite") << "    =>" << result << std::endl;
   return result;
+}
+
+template <>
+inline bool RewriteRule<NormalizeEqPlusNeg>::applies(TNode node)
+{
+  return node.getKind() == kind::EQUAL
+         && (node[0].getKind() == kind::BITVECTOR_PLUS
+             || node[1].getKind() == kind::BITVECTOR_PLUS);
+}
+
+template <>
+inline Node RewriteRule<NormalizeEqPlusNeg>::apply(TNode node)
+{
+  Debug("bv-rewrite") << "RewriteRule<NormalizeEqPlusNeg>(" << node << ")"
+                      << std::endl;
+
+  NodeBuilder<> nb_lhs(kind::BITVECTOR_PLUS);
+  NodeBuilder<> nb_rhs(kind::BITVECTOR_PLUS);
+  NodeManager *nm = NodeManager::currentNM();
+
+  if (node[0].getKind() == kind::BITVECTOR_PLUS)
+  {
+    for (const TNode &n : node[0])
+    {
+      if (n.getKind() == kind::BITVECTOR_NEG)
+        nb_rhs << n[0];
+      else
+        nb_lhs << n;
+    }
+  }
+  else
+  {
+    nb_lhs << node[0];
+  }
+
+  if (node[1].getKind() == kind::BITVECTOR_PLUS)
+  {
+    for (const TNode &n : node[1])
+    {
+      if (n.getKind() == kind::BITVECTOR_NEG)
+        nb_lhs << n[0];
+      else
+        nb_rhs << n;
+    }
+  }
+  else
+  {
+    nb_rhs << node[1];
+  }
+
+  Node zero = utils::mkZero(utils::getSize(node[0]));
+
+  Node lhs, rhs;
+  if (nb_lhs.getNumChildren() == 0)
+  {
+    lhs = zero;
+  }
+  else if (nb_lhs.getNumChildren() == 1)
+  {
+    lhs = nb_lhs[0];
+  }
+  else
+  {
+    lhs = nb_lhs.constructNode();
+  }
+  if (nb_rhs.getNumChildren() == 0)
+  {
+    rhs = zero;
+  }
+  else if (nb_rhs.getNumChildren() == 1)
+  {
+    rhs = nb_rhs[0];
+  }
+  else
+  {
+    rhs = nb_rhs.constructNode();
+  }
+  return nm->mkNode(node.getKind(), lhs, rhs);
 }
 
 // template<> inline

@@ -2,9 +2,9 @@
 /*! \file model_builder.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,10 +56,6 @@ public:
   unsigned getNumTriedLemmas() { return d_triedLemmas; }
 };
 
-
-
-
-
 class TermArgBasisTrie {
 public:
   /** the data */
@@ -80,9 +76,34 @@ class QModelBuilderIG : public QModelBuilder
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
 
  protected:
-  BoolMap d_basisNoMatch;
-  //map from operators to model preference data
-  std::map< Node, uf::UfModelPreferenceData > d_uf_prefs;
+  /**
+   * This class stores temporary information useful to model engine for
+   * constructing models for uninterpreted functions.
+   */
+  class UfModelPreferenceData
+  {
+   public:
+    UfModelPreferenceData() {}
+    virtual ~UfModelPreferenceData() {}
+    /** any constant value of the type */
+    Node d_const_val;
+    /** list of possible default values */
+    std::vector<Node> d_values;
+    /**
+     * Map from values to the set of quantified formulas that are (pro, con)
+     * that value. A quantified formula may be "pro" a particular default
+     * value of an uninterpreted function if that value is likely to satisfy
+     * many points in its domain. For example, forall x. P( f( x ) ) may be
+     * "pro" the default value true for P.
+     */
+    std::map<Node, std::vector<Node> > d_value_pro_con[2];
+    /** set that quantified formula q is pro/con the default value of r */
+    void setValuePreference(Node q, Node r, bool isPro);
+    /** get best default value */
+    Node getBestDefaultValue(Node defaultTerm, TheoryModel* m);
+  };
+  /** map from operators to model preference data */
+  std::map<Node, UfModelPreferenceData> d_uf_prefs;
   //built model uf
   std::map< Node, bool > d_uf_model_constructed;
   //whether inst gen was done
@@ -189,8 +210,6 @@ class QModelBuilderDefault : public QModelBuilderIG
  public:
   QModelBuilderDefault( context::Context* c, QuantifiersEngine* qe ) : QModelBuilderIG( c, qe ){}
 
-  //options
-  bool optReconsiderFuncConstants() { return true; }
   //has inst gen
   bool hasInstGen(Node f) override
   {
