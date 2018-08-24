@@ -70,9 +70,9 @@ class TermGenEnv;
 
 class TermGenerator
 {
-private:
+ private:
   unsigned calculateGeneralizationDepth( TermGenEnv * s, std::map< TypeNode, std::vector< int > >& fvs );
-public:
+ public:
   TermGenerator() : d_id(0), d_status(0), d_status_num(0), d_match_status(0), d_match_status_child_num(0), d_match_node(0){}
   TypeNode d_typ;
   unsigned d_id;
