@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of subs_minimize
+ ** \brief Implementation of substitution minimization.
  **/
 
 #include "theory/subs_minimize.h"

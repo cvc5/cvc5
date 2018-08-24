@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief subs_minimize
+ ** \brief Substitution minimization.
  **/
 
 #include "cvc4_private.h"
@@ -34,13 +34,13 @@ class SubstitutionMinimize
  public:
   SubstitutionMinimize();
   ~SubstitutionMinimize() {}
-  /** find 
-   * 
+  /** find
+   *
    * If n { vars -> subs } rewrites to target, this method returns true, and
    * vars[i1]...vars[in] are added to rewVars, such that
    * n { vars[i_1] -> subs[i_1] ... vars[i_n]->subs[i_n] } also rewrites to
    * target.
-   * 
+   *
    * If n { vars -> subs } does not rewrite to target, this method returns
    * false.
    */
