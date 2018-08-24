@@ -153,10 +153,19 @@ void ExtTheory::getSubstitutedTerms(int effort,
           ns = n.substitute(vars.begin(), vars.end(), sub.begin(), sub.end());
           if (ns != n)
           {
-            // build explanation: explanation vars = sub for each vars in FV(n)
-            std::map<Node, ExtfInfo>::iterator iti = d_extf_info.find(n);
-            Assert(iti != d_extf_info.end());
-            for (const Node& v : iti->second.d_vars)
+            // build explanation
+            Node vns = Rewriter::rewrite( ns );
+            std::vector< Node > reqVars;
+            CVC4_UNUSED bool sminimized = d_smin.find(n,vns,vars,sub,reqVars);
+            Assert( sminimized );
+            // build explanation: explanation vars = subs, minimized above
+            if(Trace.isOn("extt-debug"))
+            {
+              std::map<Node, ExtfInfo>::const_iterator iti = d_extf_info.find(n);
+              Assert(iti != d_extf_info.end());
+              Trace("extt-debug") << "Explain, vars : " << vars.size() << "/" << iti->second.d_vars.size() << "/" << reqVars.size() << std::endl;
+            }
+            for (const Node& v : reqVars)
             {
               std::map<Node, std::vector<Node> >::iterator itx = expc.find(v);
               if (itx != expc.end())

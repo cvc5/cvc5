@@ -306,6 +306,10 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
     // empty string
+    if( n.getConst<String>().size()==0 )
+    {
+      return true;
+    }
   }
   if ((arg != 0 && k == STRING_SUBSTR) || (arg == 2 && k == STRING_STRIDOF))
   {
