@@ -135,7 +135,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel = new quantifiers::QuantRelevance(false);
+    d_quant_rel = new quantifiers::QuantRelevance;
     d_util.push_back(d_quant_rel);
   }else{
     d_quant_rel = NULL;
@@ -563,9 +563,6 @@ void QuantifiersEngine::check( Theory::Effort e ){
     }
 
     if( e==Theory::EFFORT_LAST_CALL ){
-      //if effort is last call, try to minimize model first
-      //uf::StrongSolverTheoryUF * ufss = ((uf::TheoryUF*)getTheoryEngine()->theoryOf( THEORY_UF ))->getStrongSolver();
-      //if( ufss && !ufss->minimize() ){ return; }
       ++(d_statistics.d_instantiation_rounds_lc);
     }else if( e==Theory::EFFORT_FULL ){
       ++(d_statistics.d_instantiation_rounds);
@@ -907,18 +904,6 @@ void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool within
       if (d_sygus_tdb)
       {
         d_sygus_tdb->getEvalUnfold()->registerEvalTerm(n);
-      }
-
-      // added contains also the Node that just have been asserted in this
-      // branch
-      if (d_quant_rel)
-      {
-        for (std::set<Node>::iterator i = added.begin(), end = added.end();
-             i != end;
-             i++)
-        {
-          d_quant_rel->setRelevance( i->getOperator(), 0 );
-        }
       }
     }
   }

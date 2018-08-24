@@ -177,7 +177,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
  public:
   TheoryBVGaussWhite() {}
 
-  void setUp()
+  void setUp() override
   {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
@@ -251,7 +251,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     d_z_mul_nine = d_nm->mkNode(kind::BITVECTOR_MULT, d_z, d_nine);
   }
 
-  void tearDown()
+  void tearDown() override
   {
     (void)d_scope;
     d_p = Node::null();
