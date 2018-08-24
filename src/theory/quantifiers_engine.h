@@ -84,14 +84,6 @@ namespace inst {
 
 
 class QuantifiersEngine {
-  // TODO: remove these github issue #1163
-  friend class quantifiers::InstantiationEngine;
-  friend class quantifiers::InstStrategyCbqi;
-  friend class quantifiers::InstStrategyCegqi;
-  friend class quantifiers::ModelEngine;
-  friend class quantifiers::RewriteEngine;
-  friend class quantifiers::QuantConflictFind;
-  friend class inst::InstMatch;
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDList<Node> NodeList;
   typedef context::CDList<bool> BoolList;
