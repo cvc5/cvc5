@@ -70,10 +70,36 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine( c, this )),
+      d_eq_inference(nullptr),
+      d_inst_prop(nullptr),
+      d_tr_trie(new inst::TriggerTrie),
+      d_model(nullptr),
+      d_quant_rel(nullptr),
+      d_rel_dom(nullptr),
+      d_bv_invert(nullptr),
+      d_builder(nullptr),
+      d_qepr(nullptr),
+      d_term_util(new quantifiers::TermUtil(this)),
+      d_term_db(new quantifiers::TermDb( c, u, this )),
+      d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_instantiate(new quantifiers::Instantiate(this, u)),
       d_skolemize(new quantifiers::Skolemize(this, u)),
       d_term_enum(new quantifiers::TermEnumeration),
+      d_alpha_equiv(nullptr),
+      d_inst_engine(nullptr),
+      d_model_engine(nullptr),
+      d_bint(nullptr),
+      d_qcf(nullptr),
+      d_rr_engine(nullptr),
+      d_sg_gen(nullptr),
+      d_ceg_inst(nullptr),
+      d_lte_part_inst(nullptr),
+      d_fs(nullptr),
+      d_i_cbqi(nullptr),
+      d_qsplit(nullptr),
+      d_anti_skolem(nullptr),
       d_conflict_c(c, false),
       // d_quants(u),
       d_quants_prereg(u),
@@ -89,21 +115,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_presolve_cache_wq(u),
       d_presolve_cache_wic(u)
 {
-  //utilities
-  d_eq_query= std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine>( new quantifiers::EqualityQueryQuantifiersEngine( c, this ));
+  //---- utilities
   d_util.push_back( d_eq_query.get() );
-
-  // term util must come first
-  d_term_util= std::unique_ptr< quantifiers::TermUtil>( new quantifiers::TermUtil(this));
+  // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
-
-  d_term_db= std::unique_ptr<quantifiers::TermDb>( new quantifiers::TermDb( c, u, this ));
   d_util.push_back( d_term_db.get() );
   
   if (options::ceGuidedInst()) {
     d_sygus_tdb= std::unique_ptr<quantifiers::TermDbSygus>( new quantifiers::TermDbSygus(c, this) );
-  }else{
-    d_sygus_tdb = NULL;
   }
 
   if( options::instPropagate() ){
@@ -111,19 +130,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     d_inst_prop = std::unique_ptr<quantifiers::InstPropagator>(new quantifiers::InstPropagator( this ));
     d_util.push_back( d_inst_prop.get() );
     d_instantiate->addNotify(d_inst_prop->getInstantiationNotify());
-  }else{
-    d_inst_prop = NULL;
   }
   
   if( options::inferArithTriggerEq() ){
     d_eq_inference = std::unique_ptr<quantifiers::EqualityInference>( new quantifiers::EqualityInference(c, false) );
-  }else{
-    d_eq_inference = NULL;
   }
 
   d_util.push_back(d_instantiate.get());
 
-  d_tr_trie = std::unique_ptr< inst::TriggerTrie>( new inst::TriggerTrie );
   d_curr_effort_level = QuantifiersModule::QEFFORT_NONE;
   d_conflict = false;
   d_hasAddedLemma = false;
@@ -137,35 +151,13 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   if( options::relevantTriggers() ){
     d_quant_rel= std::unique_ptr<quantifiers::QuantRelevance>( new quantifiers::QuantRelevance );
     d_util.push_back(d_quant_rel.get());
-  }else{
-    d_quant_rel = NULL;
   }
 
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
     d_qepr= std::unique_ptr<quantifiers::QuantEPR>( new quantifiers::QuantEPR );
-  }else{
-    d_qepr = NULL;
   }
-
-
-  d_qcf = NULL;
-  d_sg_gen = NULL;
-  d_inst_engine = NULL;
-  d_i_cbqi = NULL;
-  d_qsplit = NULL;
-  d_anti_skolem = NULL;
-  d_model = NULL;
-  d_model_engine = NULL;
-  d_bint = NULL;
-  d_rr_engine = NULL;
-  d_ceg_inst = NULL;
-  d_lte_part_inst = NULL;
-  d_alpha_equiv = NULL;
-  d_fs = NULL;
-  d_rel_dom = NULL;
-  d_bv_invert = NULL;
-  d_builder = NULL;
+  //---- end utilities
 
   //allow theory combination to go first, once initially
   d_ierCounter = options::instWhenTcFirst() ? 0 : 1;

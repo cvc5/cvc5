@@ -103,28 +103,33 @@ private:
   std::vector< QuantifiersUtil* > d_util;
   /** vector of modules for quantifiers */
   std::vector< QuantifiersModule* > d_modules;
+  //------------- quantifiers utilities
   /** equality query class */
   std::unique_ptr<quantifiers::EqualityQueryQuantifiersEngine> d_eq_query;
   /** equality inference class */
   std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
+  /** quantifiers instantiation propagtor */
+  std::unique_ptr<quantifiers::InstPropagator > d_inst_prop;
+  /** all triggers will be stored in this trie */
+  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
+  /** extended model object */
+  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** for computing relevance of quantifiers */
   std::unique_ptr<quantifiers::QuantRelevance> d_quant_rel;
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** inversion utility for BV instantiation */
   std::unique_ptr<quantifiers::BvInverter > d_bv_invert;
-  /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence > d_alpha_equiv;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */
   std::unique_ptr<quantifiers::QuantEPR> d_qepr;
+  /** term utilities */
+  std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** sygus term database */
   std::unique_ptr<quantifiers::TermDbSygus> d_sygus_tdb;
-  /** term utilities */
-  std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** quantifiers attributes */
   std::unique_ptr<quantifiers::QuantAttributes> d_quant_attr;
   /** instantiate utility */
@@ -133,6 +138,10 @@ private:
   std::unique_ptr<quantifiers::Skolemize> d_skolemize;
   /** term enumeration utility */
   std::unique_ptr<quantifiers::TermEnumeration> d_term_enum;
+  //------------- end quantifiers utilities
+  //------------- quantifiers modules
+  /** alpha equivalence */
+  std::unique_ptr<quantifiers::AlphaEquivalence > d_alpha_equiv;
   /** instantiation engine */
   std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
   /** model engine */
@@ -157,8 +166,7 @@ private:
   std::unique_ptr<quantifiers::QuantDSplit > d_qsplit;
   /** quantifiers anti-skolemization */
   std::unique_ptr<quantifiers::QuantAntiSkolem > d_anti_skolem;
-  /** quantifiers instantiation propagtor */
-  std::unique_ptr<quantifiers::InstPropagator > d_inst_prop;
+  //------------- end quantifiers modules
  private:  //this information is reset during check
     /** current effort level */
   QuantifiersModule::QEffort d_curr_effort_level;
@@ -184,10 +192,6 @@ private:
   std::vector< Node > d_lemmas_waiting;
   /** phase requirements waiting */
   std::map< Node, bool > d_phase_req_waiting;
-  /** all triggers will be stored in this trie */
-  std::unique_ptr<inst::TriggerTrie> d_tr_trie;
-  /** extended model object */
-  std::unique_ptr<quantifiers::FirstOrderModel> d_model;
   /** inst round counters TODO: make context-dependent? */
   context::CDO< int > d_ierCounter_c;
   int d_ierCounter;
