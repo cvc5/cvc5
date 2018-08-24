@@ -38,14 +38,14 @@ class Model {
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
 
-protected:
+ protected:
   /** The SmtEngine we're associated with */
   SmtEngine& d_smt;
 
   /** construct the base class; users cannot do this, only CVC4 internals */
   Model();
 
-public:
+ public:
   /** virtual destructor */
   virtual ~Model() { }
   /** get number of commands to report */
@@ -58,7 +58,7 @@ public:
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
-public:
+ public:
   /** Check whether this expr is in the model core */
   virtual bool isModelCoreSymbol(Expr expr) const { return false; }
   /** get value for expression */
