@@ -44,8 +44,8 @@ class InstStrategyCbqi : public QuantifiersModule {
    * unsatisfiable in the current context.
    */
   bool d_cbqi_set_quant_inactive;
-  /** incomplete check 
-   * 
+  /** incomplete check
+   *
    * This is set to true during a full effort check if this strategy could
    * not find an instantiation for at least one asserted quantified formula.
    */

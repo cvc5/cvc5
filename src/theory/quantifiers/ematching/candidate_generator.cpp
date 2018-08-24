@@ -33,8 +33,9 @@ bool CandidateGenerator::isLegalCandidate( Node n ){
   return d_qe->getTermDatabase()->isTermActive( n ) && ( !options::cbqi() || !quantifiers::TermUtil::hasInstConstAttr(n) );
 }
 
-CandidateGeneratorQE::CandidateGeneratorQE( QuantifiersEngine* qe, Node pat ) :
-CandidateGenerator( qe ), d_term_iter( -1 ), d_term_iter_limit(0){
+CandidateGeneratorQE::CandidateGeneratorQE(QuantifiersEngine* qe, Node pat)
+    : CandidateGenerator(qe), d_term_iter(-1), d_term_iter_limit(0)
+{
   d_op = qe->getTermDatabase()->getMatchOperator( pat );
   Assert( !d_op.isNull() );
 }

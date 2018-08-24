@@ -41,23 +41,26 @@ namespace CVC4 {
 namespace theory {
 namespace datatypes {
 
-TheoryDatatypes::TheoryDatatypes(Context* c, UserContext* u, OutputChannel& out,
-                                 Valuation valuation, const LogicInfo& logicInfo)
+TheoryDatatypes::TheoryDatatypes(Context* c,
+                                 UserContext* u,
+                                 OutputChannel& out,
+                                 Valuation valuation,
+                                 const LogicInfo& logicInfo)
     : Theory(THEORY_DATATYPES, c, u, out, valuation, logicInfo),
       d_infer(c),
       d_infer_exp(c),
-      d_term_sk( u ),
-      d_notify( *this ),
+      d_term_sk(u),
+      d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::datatypes", true),
-      d_labels( c ),
-      d_selector_apps( c ),
-      d_conflict( c, false ),
+      d_labels(c),
+      d_selector_apps(c),
+      d_conflict(c, false),
       d_addedLemma(false),
       d_addedFact(false),
-      d_collectTermsCache( c ),
-      d_functionTerms( c ),
-      d_singleton_eq( u ),
-      d_lemmas_produced_c( u )
+      d_collectTermsCache(c),
+      d_functionTerms(c),
+      d_singleton_eq(u),
+      d_lemmas_produced_c(u)
 {
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_CONSTRUCTOR);

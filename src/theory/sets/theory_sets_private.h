@@ -137,8 +137,8 @@ private:
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
   std::map< Kind, std::vector< Node > > d_op_list;
   //cardinality
-private:  
-   /** is cardinality enabled? 
+ private:
+  /** is cardinality enabled?
    *
    * This flag is set to true during a full effort check if any constraint
    * involving cardinality constraints is asserted to this theory.
@@ -302,10 +302,11 @@ private:
   bool isCareArg( Node n, unsigned a );
 public:
   bool isEntailed( Node n, bool pol );
+
  private:
   /** subtheory solver for the theory of relations */
-  std::unique_ptr< TheorySetsRels > d_rels;
-  /** are relations enabled? 
+  std::unique_ptr<TheorySetsRels> d_rels;
+  /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint
    * involving relational constraints is asserted to this theory.

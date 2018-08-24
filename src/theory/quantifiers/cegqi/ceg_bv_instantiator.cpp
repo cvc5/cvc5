@@ -57,8 +57,7 @@ class CegInstantiatorBvInverterQuery : public BvInverterQuery
 };
 
 BvInstantiator::BvInstantiator(QuantifiersEngine* qe, TypeNode tn)
-    : Instantiator(qe, tn),
-    d_inst_id_counter(0)
+    : Instantiator(qe, tn), d_inst_id_counter(0)
 {
   // get the global inverter utility
   // this must be global since we need to:

@@ -457,11 +457,12 @@ bool QModelBuilderIG::hasConstantDefinition( Node n ){
   return false;
 }
 
-QModelBuilderIG::Statistics::Statistics():
-  d_num_quants_init("QModelBuilderIG::Number_Quantifiers", 0),
-  d_num_partial_quants_init("QModelBuilderIG::Number_Partial_Quantifiers", 0),
-  d_init_inst_gen_lemmas("QModelBuilderIG::Initialize_Inst_Gen_Lemmas", 0 ),
-  d_inst_gen_lemmas("QModelBuilderIG::Inst_Gen_Lemmas", 0 )
+QModelBuilderIG::Statistics::Statistics()
+    : d_num_quants_init("QModelBuilderIG::Number_Quantifiers", 0),
+      d_num_partial_quants_init("QModelBuilderIG::Number_Partial_Quantifiers",
+                                0),
+      d_init_inst_gen_lemmas("QModelBuilderIG::Initialize_Inst_Gen_Lemmas", 0),
+      d_inst_gen_lemmas("QModelBuilderIG::Inst_Gen_Lemmas", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_num_quants_init);
   smtStatisticsRegistry()->registerStat(&d_num_partial_quants_init);

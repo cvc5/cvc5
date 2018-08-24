@@ -37,24 +37,25 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::Context* c,
-                                     context::UserContext* u):
-  d_members(c),
-  d_deq(c),
-  d_deq_processed(u),
-  d_keep(c),
-  d_full_check_incomplete(false),
-  d_proxy(u),
-  d_proxy_to_term(u),
-  d_lemmas_produced(u),
-  d_card_enabled(false),
-  d_card_processed(u),
-  d_var_elim(u),
-  d_external(external),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::ee", true),
-  d_conflict(c),
-  d_rels(new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
-  d_rels_enabled(false)
+                                     context::UserContext* u)
+    : d_members(c),
+      d_deq(c),
+      d_deq_processed(u),
+      d_keep(c),
+      d_full_check_incomplete(false),
+      d_proxy(u),
+      d_proxy_to_term(u),
+      d_lemmas_produced(u),
+      d_card_enabled(false),
+      d_card_processed(u),
+      d_var_elim(u),
+      d_external(external),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::sets::ee", true),
+      d_conflict(c),
+      d_rels(
+          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
+      d_rels_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );

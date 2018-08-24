@@ -177,14 +177,14 @@ private:
   std::map< Node, std::vector< Node > > d_selector_apps_data;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
-  /** added lemma 
-   * 
+  /** added lemma
+   *
    * This flag is set to true during a full effort check if this theory
    * called d_out->lemma(...).
    */
   bool d_addedLemma;
-  /** added fact 
-   * 
+  /** added fact
+   *
    * This flag is set to true during a full effort check if this theory
    * added an internal fact to its equality engine.
    */
