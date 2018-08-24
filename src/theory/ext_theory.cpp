@@ -23,6 +23,8 @@
 #include "theory/quantifiers_engine.h"
 #include "theory/substitutions.h"
 
+#include "options/theory_options.h"
+
 using namespace std;
 
 namespace CVC4 {
@@ -156,14 +158,23 @@ void ExtTheory::getSubstitutedTerms(int effort,
             // build explanation
             Node vns = Rewriter::rewrite( ns );
             std::vector< Node > reqVars;
-            CVC4_UNUSED bool sminimized = d_smin.find(n,vns,vars,sub,reqVars);
-            Assert( sminimized );
-            // build explanation: explanation vars = subs, minimized above
-            if(Trace.isOn("extt-debug"))
+            if( options::extTheoryMinExp() )
+            {
+              CVC4_UNUSED bool sminimized = d_smin.find(n,vns,vars,sub,reqVars);
+              Assert( sminimized );
+              // build explanation: explanation vars = subs, minimized above
+              if(Trace.isOn("extt-debug"))
+              {
+                std::map<Node, ExtfInfo>::const_iterator iti = d_extf_info.find(n);
+                Assert(iti != d_extf_info.end());
+                Trace("extt-debug") << "Explain, vars : " << vars.size() << "/" << iti->second.d_vars.size() << "/" << reqVars.size() << std::endl;
+              }
+            }
+            else
             {
               std::map<Node, ExtfInfo>::const_iterator iti = d_extf_info.find(n);
               Assert(iti != d_extf_info.end());
-              Trace("extt-debug") << "Explain, vars : " << vars.size() << "/" << iti->second.d_vars.size() << "/" << reqVars.size() << std::endl;
+              reqVars =  iti->second.d_vars;
             }
             for (const Node& v : reqVars)
             {
