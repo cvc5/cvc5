@@ -35,26 +35,63 @@ namespace proof {
 class LFSCProofPrinter
 {
  public:
+  /**
+   * Prints the resolution proof for an assumption conflict.
+   *
+   * @param satProof The record of the reasoning done by the SAT solver
+   * @param id The clause to print a proof for
+   * @param out The stream to print to
+   * @param paren A stream for the closing parentheses
+   */
   template <class Solver>
   static void printAssumptionsResolution(TSatProof<Solver>* satProof,
                                          ClauseId id,
                                          std::ostream& out,
                                          std::ostream& paren);
 
+  /**
+   * Prints the resolution proofs for learned clauses that have been used to
+   * deduce unsat.
+   *
+   * @param satProof The record of the reasoning done by the SAT solver
+   * @param out The stream to print to
+   * @param paren A stream for the closing parentheses
+   */
   template <class Solver>
   static void printResolutions(TSatProof<Solver>* satProof,
                                std::ostream& out,
                                std::ostream& paren);
 
+  /**
+   * Prints the resolution proof for the empty clause.
+   *
+   * @param satProof The record of the reasoning done by the SAT solver
+   * @param out The stream to print to
+   * @param paren A stream for the closing parentheses
+   */
   template <class Solver>
   static void printResolutionEmptyClause(TSatProof<Solver>* satProof,
                                          std::ostream& out,
                                          std::ostream& paren);
 
  private:
+  /**
+   * Maps a clause id to a string identifier used in the LFSC proof.
+   *
+   * @param satProof The record of the reasoning done by the SAT solver
+   * @param id The clause to map to a string
+   */
   template <class Solver>
   static std::string clauseName(TSatProof<Solver>* satProof, ClauseId id);
 
+  /**
+   * Prints the resolution proof for a given clause.
+   *
+   * @param satProof The record of the reasoning done by the SAT solver
+   * @param id The clause to print a proof for
+   * @param out The stream to print to
+   * @param paren A stream for the closing parentheses
+   */
   template <class Solver>
   static void printResolution(TSatProof<Solver>* satProof,
                               ClauseId id,
