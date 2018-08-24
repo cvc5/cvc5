@@ -111,7 +111,7 @@ private:
   void addEqualityToExp( Node a, Node b, std::vector< Node >& exp );
   
   void debugPrintSet( Node s, const char * c );
-  
+
   /** sent lemma
    *
    * This flag is set to true during a full effort check if this theory
