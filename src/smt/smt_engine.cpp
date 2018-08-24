@@ -566,12 +566,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   bool nonClausalSimplify();
 
-  /**
-   * Performs static learning on the assertions.
-   */
-  void staticLearning();
-
-  Node realToInt(TNode n, NodeToNodeHashMap& cache, std::vector< Node >& var_eq);
   Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
 
   /**
