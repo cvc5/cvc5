@@ -156,25 +156,30 @@ void ExtTheory::getSubstitutedTerms(int effort,
           if (ns != n)
           {
             // build explanation
-            Node vns = Rewriter::rewrite( ns );
-            std::vector< Node > reqVars;
-            if( options::extTheoryMinExp() )
+            Node vns = Rewriter::rewrite(ns);
+            std::vector<Node> reqVars;
+            if (options::extTheoryMinExp())
             {
-              CVC4_UNUSED bool sminimized = d_smin.find(n,vns,vars,sub,reqVars);
-              Assert( sminimized );
+              CVC4_UNUSED bool sminimized =
+                  d_smin.find(n, vns, vars, sub, reqVars);
+              Assert(sminimized);
               // build explanation: explanation vars = subs, minimized above
-              if(Trace.isOn("extt-debug"))
+              if (Trace.isOn("extt-debug"))
               {
-                std::map<Node, ExtfInfo>::const_iterator iti = d_extf_info.find(n);
+                std::map<Node, ExtfInfo>::const_iterator iti =
+                    d_extf_info.find(n);
                 Assert(iti != d_extf_info.end());
-                Trace("extt-debug") << "Explain, vars : " << vars.size() << "/" << iti->second.d_vars.size() << "/" << reqVars.size() << std::endl;
+                Trace("extt-debug") << "Explain, vars : " << vars.size() << "/"
+                                    << iti->second.d_vars.size() << "/"
+                                    << reqVars.size() << std::endl;
               }
             }
             else
             {
-              std::map<Node, ExtfInfo>::const_iterator iti = d_extf_info.find(n);
+              std::map<Node, ExtfInfo>::const_iterator iti =
+                  d_extf_info.find(n);
               Assert(iti != d_extf_info.end());
-              reqVars =  iti->second.d_vars;
+              reqVars = iti->second.d_vars;
             }
             for (const Node& v : reqVars)
             {
