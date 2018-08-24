@@ -832,7 +832,7 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   }
 }
 
-void TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
+bool TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
                                             Model* m)
 {
   Trace("model-core") << "Compute model core, assertions:" << std::endl;
@@ -879,7 +879,9 @@ void TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
   Trace("model-core") << "Minimizing substitution..." << std::endl;
   std::vector<Node> coreVars;
   SubstitutionMinimize smin;
-  if (smin.find(formula, truen, vars, subs, coreVars))
+  bool minimized = smin.find(formula, truen, vars, subs, coreVars);
+  Assert(minimized,"cannot compute model core, since model does not satisfy input!");
+  if (minimized)
   {
     tm->setUsingModelCore();
     Trace("model-core") << "...got core vars : " << coreVars << std::endl;
@@ -888,12 +890,11 @@ void TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
     {
       tm->recordModelCoreSymbol(cv);
     }
+    return true;
   }
-  else
-  {
-    Trace("model-core") << "...failed, model does not satisfy input!"
-                        << std::endl;
-  }
+  Trace("model-core") << "...failed, model does not satisfy input!"
+                      << std::endl;
+  return false;
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)

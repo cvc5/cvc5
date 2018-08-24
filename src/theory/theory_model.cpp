@@ -496,7 +496,10 @@ void TheoryModel::recordApproximation(TNode n, TNode pred)
   d_approximations[n] = pred;
   d_approx_list.push_back(std::pair<Node, Node>(n, pred));
 }
-void TheoryModel::setUsingModelCore() { d_using_model_core = true; }
+void TheoryModel::setUsingModelCore() { 
+  d_using_model_core = true; 
+  d_model_core.clear(); 
+}
 
 void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
 
