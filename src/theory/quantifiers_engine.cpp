@@ -70,7 +70,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
                                      context::UserContext* u,
                                      TheoryEngine* te)
     : d_te(te),
-      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine( c, this )),
+      d_eq_query(new quantifiers::EqualityQueryQuantifiersEngine(c, this)),
       d_eq_inference(nullptr),
       d_inst_prop(nullptr),
       d_tr_trie(new inst::TriggerTrie),
@@ -81,7 +81,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
-      d_term_db(new quantifiers::TermDb( c, u, this )),
+      d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
       d_instantiate(new quantifiers::Instantiate(this, u)),
@@ -116,24 +116,27 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_presolve_cache_wic(u)
 {
   //---- utilities
-  d_util.push_back( d_eq_query.get() );
+  d_util.push_back(d_eq_query.get());
   // term util must come before the other utilities
   d_util.push_back(d_term_util.get());
-  d_util.push_back( d_term_db.get() );
-  
+  d_util.push_back(d_term_db.get());
+
   if (options::ceGuidedInst()) {
-    d_sygus_tdb= std::unique_ptr<quantifiers::TermDbSygus>( new quantifiers::TermDbSygus(c, this) );
+    d_sygus_tdb = std::unique_ptr<quantifiers::TermDbSygus>(
+        new quantifiers::TermDbSygus(c, this));
   }
 
   if( options::instPropagate() ){
     // notice that this option is incompatible with options::qcfAllConflict()
-    d_inst_prop = std::unique_ptr<quantifiers::InstPropagator>(new quantifiers::InstPropagator( this ));
-    d_util.push_back( d_inst_prop.get() );
+    d_inst_prop = std::unique_ptr<quantifiers::InstPropagator>(
+        new quantifiers::InstPropagator(this));
+    d_util.push_back(d_inst_prop.get());
     d_instantiate->addNotify(d_inst_prop->getInstantiationNotify());
   }
   
   if( options::inferArithTriggerEq() ){
-    d_eq_inference = std::unique_ptr<quantifiers::EqualityInference>( new quantifiers::EqualityInference(c, false) );
+    d_eq_inference = std::unique_ptr<quantifiers::EqualityInference>(
+        new quantifiers::EqualityInference(c, false));
   }
 
   d_util.push_back(d_instantiate.get());
@@ -149,13 +152,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   Trace("quant-engine-debug") << "Initialize model, mbqi : " << options::mbqiMode() << std::endl;
 
   if( options::relevantTriggers() ){
-    d_quant_rel= std::unique_ptr<quantifiers::QuantRelevance>( new quantifiers::QuantRelevance );
+    d_quant_rel = std::unique_ptr<quantifiers::QuantRelevance>(
+        new quantifiers::QuantRelevance);
     d_util.push_back(d_quant_rel.get());
   }
 
   if( options::quantEpr() ){
     Assert( !options::incrementalSolving() );
-    d_qepr= std::unique_ptr<quantifiers::QuantEPR>( new quantifiers::QuantEPR );
+    d_qepr = std::unique_ptr<quantifiers::QuantEPR>(new quantifiers::QuantEPR);
   }
   //---- end utilities
 
@@ -170,70 +174,85 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   bool needsRelDom = false;
   //add quantifiers modules
   if( options::quantConflictFind() || options::quantRewriteRules() ){
-    d_qcf= std::unique_ptr<quantifiers::QuantConflictFind>( new quantifiers::QuantConflictFind( this, c) );
-    d_modules.push_back( d_qcf.get() );
+    d_qcf = std::unique_ptr<quantifiers::QuantConflictFind>(
+        new quantifiers::QuantConflictFind(this, c));
+    d_modules.push_back(d_qcf.get());
   }
   if( options::conjectureGen() ){
-    d_sg_gen= std::unique_ptr<quantifiers::ConjectureGenerator>( new quantifiers::ConjectureGenerator( this, c ) );
-    d_modules.push_back( d_sg_gen.get() );
+    d_sg_gen = std::unique_ptr<quantifiers::ConjectureGenerator>(
+        new quantifiers::ConjectureGenerator(this, c));
+    d_modules.push_back(d_sg_gen.get());
   }
   if( !options::finiteModelFind() || options::fmfInstEngine() ){
-    d_inst_engine= std::unique_ptr<quantifiers::InstantiationEngine>( new quantifiers::InstantiationEngine( this ) );
-    d_modules.push_back(  d_inst_engine.get() );
+    d_inst_engine = std::unique_ptr<quantifiers::InstantiationEngine>(
+        new quantifiers::InstantiationEngine(this));
+    d_modules.push_back(d_inst_engine.get());
   }
   if( options::cbqi() ){
-    d_i_cbqi= std::unique_ptr<quantifiers::InstStrategyCegqi>( new quantifiers::InstStrategyCegqi( this ) );
-    d_modules.push_back( d_i_cbqi.get() );
+    d_i_cbqi = std::unique_ptr<quantifiers::InstStrategyCegqi>(
+        new quantifiers::InstStrategyCegqi(this));
+    d_modules.push_back(d_i_cbqi.get());
     if( options::cbqiBv() ){
       // if doing instantiation for BV, need the inverter class
-      d_bv_invert= std::unique_ptr<quantifiers::BvInverter>( new quantifiers::BvInverter );
+      d_bv_invert =
+          std::unique_ptr<quantifiers::BvInverter>(new quantifiers::BvInverter);
     }
   }
   if( options::ceGuidedInst() ){
-    d_ceg_inst = std::unique_ptr< quantifiers::CegInstantiation >(new quantifiers::CegInstantiation( this, c ));
-    d_modules.push_back( d_ceg_inst.get() );
+    d_ceg_inst = std::unique_ptr<quantifiers::CegInstantiation>(
+        new quantifiers::CegInstantiation(this, c));
+    d_modules.push_back(d_ceg_inst.get());
     //needsBuilder = true;
   }  
   //finite model finding
   if( options::finiteModelFind() ){
     if( options::fmfBound() ){
-      d_bint= std::unique_ptr<quantifiers::BoundedIntegers>( new quantifiers::BoundedIntegers( c, this ) );
-      d_modules.push_back( d_bint.get() );
+      d_bint = std::unique_ptr<quantifiers::BoundedIntegers>(
+          new quantifiers::BoundedIntegers(c, this));
+      d_modules.push_back(d_bint.get());
     }
-    d_model_engine= std::unique_ptr<quantifiers::ModelEngine>( new quantifiers::ModelEngine( c, this ) );
-    d_modules.push_back( d_model_engine.get() );
+    d_model_engine = std::unique_ptr<quantifiers::ModelEngine>(
+        new quantifiers::ModelEngine(c, this));
+    d_modules.push_back(d_model_engine.get());
     //finite model finder has special ways of building the model
     needsBuilder = true;
   }
   if( options::quantRewriteRules() ){
-    d_rr_engine= std::unique_ptr<quantifiers::RewriteEngine>( new quantifiers::RewriteEngine( c, this ));
+    d_rr_engine = std::unique_ptr<quantifiers::RewriteEngine>(
+        new quantifiers::RewriteEngine(c, this));
     d_modules.push_back(d_rr_engine.get());
   }
   if( options::ltePartialInst() ){
-    d_lte_part_inst= std::unique_ptr<quantifiers::LtePartialInst>( new quantifiers::LtePartialInst( this, c ) );
-    d_modules.push_back( d_lte_part_inst.get() );
+    d_lte_part_inst = std::unique_ptr<quantifiers::LtePartialInst>(
+        new quantifiers::LtePartialInst(this, c));
+    d_modules.push_back(d_lte_part_inst.get());
   }
   if( options::quantDynamicSplit()!=quantifiers::QUANT_DSPLIT_MODE_NONE ){
-    d_qsplit= std::unique_ptr<quantifiers::QuantDSplit>( new quantifiers::QuantDSplit( this, c ) );
-    d_modules.push_back( d_qsplit.get() );
+    d_qsplit = std::unique_ptr<quantifiers::QuantDSplit>(
+        new quantifiers::QuantDSplit(this, c));
+    d_modules.push_back(d_qsplit.get());
   }
   if( options::quantAntiSkolem() ){
-    d_anti_skolem= std::unique_ptr<quantifiers::QuantAntiSkolem>( new quantifiers::QuantAntiSkolem( this ) );
-    d_modules.push_back( d_anti_skolem.get() );
+    d_anti_skolem = std::unique_ptr<quantifiers::QuantAntiSkolem>(
+        new quantifiers::QuantAntiSkolem(this));
+    d_modules.push_back(d_anti_skolem.get());
   }
   if( options::quantAlphaEquiv() ){
-    d_alpha_equiv= std::unique_ptr<quantifiers::AlphaEquivalence>( new quantifiers::AlphaEquivalence( this ) );
+    d_alpha_equiv = std::unique_ptr<quantifiers::AlphaEquivalence>(
+        new quantifiers::AlphaEquivalence(this));
   }
   //full saturation : instantiate from relevant domain, then arbitrary terms
   if( options::fullSaturateQuant() || options::fullSaturateInterleave() ){
-    d_fs= std::unique_ptr<quantifiers::InstStrategyEnum>( new quantifiers::InstStrategyEnum(this) );
-    d_modules.push_back( d_fs.get() );
+    d_fs = std::unique_ptr<quantifiers::InstStrategyEnum>(
+        new quantifiers::InstStrategyEnum(this));
+    d_modules.push_back(d_fs.get());
     needsRelDom = true;
   }
   
   if( needsRelDom ){
-    d_rel_dom = std::unique_ptr<quantifiers::RelevantDomain>( new quantifiers::RelevantDomain( this ) );
-    d_util.push_back( d_rel_dom.get() );
+    d_rel_dom = std::unique_ptr<quantifiers::RelevantDomain>(
+        new quantifiers::RelevantDomain(this));
+    d_util.push_back(d_rel_dom.get());
   }
   
   // if we require specialized ways of building the model
@@ -244,19 +263,27 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
         || options::fmfBound())
     {
       Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_model= std::unique_ptr<quantifiers::fmcheck::FirstOrderModelFmc>( new quantifiers::fmcheck::FirstOrderModelFmc( this, c, "FirstOrderModelFmc" ) );
-      d_builder= std::unique_ptr<quantifiers::fmcheck::FullModelChecker>( new quantifiers::fmcheck::FullModelChecker( c, this ) );
+      d_model = std::unique_ptr<quantifiers::fmcheck::FirstOrderModelFmc>(
+          new quantifiers::fmcheck::FirstOrderModelFmc(
+              this, c, "FirstOrderModelFmc"));
+      d_builder = std::unique_ptr<quantifiers::fmcheck::FullModelChecker>(
+          new quantifiers::fmcheck::FullModelChecker(c, this));
     }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
       Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
-      d_model= std::unique_ptr<quantifiers::FirstOrderModelAbs>( new quantifiers::FirstOrderModelAbs( this, c, "FirstOrderModelAbs" ) );
-      d_builder= std::unique_ptr<quantifiers::AbsMbqiBuilder>( new quantifiers::AbsMbqiBuilder( c, this ) );
+      d_model = std::unique_ptr<quantifiers::FirstOrderModelAbs>(
+          new quantifiers::FirstOrderModelAbs(this, c, "FirstOrderModelAbs"));
+      d_builder = std::unique_ptr<quantifiers::AbsMbqiBuilder>(
+          new quantifiers::AbsMbqiBuilder(c, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
-      d_model= std::unique_ptr<quantifiers::FirstOrderModelIG>( new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" ));
-      d_builder= std::unique_ptr<quantifiers::QModelBuilderDefault>( new quantifiers::QModelBuilderDefault( c, this ) );
+      d_model = std::unique_ptr<quantifiers::FirstOrderModelIG>(
+          new quantifiers::FirstOrderModelIG(this, c, "FirstOrderModelIG"));
+      d_builder = std::unique_ptr<quantifiers::QModelBuilderDefault>(
+          new quantifiers::QModelBuilderDefault(c, this));
     }
   }else{
-    d_model= std::unique_ptr< quantifiers::FirstOrderModelIG>( new quantifiers::FirstOrderModelIG( this, c, "FirstOrderModelIG" ) );
+    d_model = std::unique_ptr<quantifiers::FirstOrderModelIG>(
+        new quantifiers::FirstOrderModelIG(this, c, "FirstOrderModelIG"));
   }
 }
 
@@ -264,7 +291,10 @@ QuantifiersEngine::~QuantifiersEngine()
 {
 }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery()const { return d_eq_query.get(); }
+EqualityQuery* QuantifiersEngine::getEqualityQuery() const
+{
+  return d_eq_query.get();
+}
 
 context::Context* QuantifiersEngine::getSatContext()
 {
@@ -385,7 +415,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
   // if we want to use the model's equality engine, build the model now
   if( d_useModelEe && !d_model->isBuilt() ){
     Trace("quant-engine-debug") << "Build the model." << std::endl;
-    if( !d_te->getModelBuilder()->buildModel( d_model.get() ) ){
+    if (!d_te->getModelBuilder()->buildModel(d_model.get()))
+    {
       //we are done if model building was unsuccessful
       flushLemmas();
       if( d_hasAddedLemma ){
@@ -548,7 +579,8 @@ void QuantifiersEngine::check( Theory::Effort e ){
         {
           // theory engine's model builder is quantifier engine's builder if it
           // has one
-          Assert(!getModelBuilder() || getModelBuilder() == d_te->getModelBuilder());
+          Assert(!getModelBuilder()
+                 || getModelBuilder() == d_te->getModelBuilder());
           Trace("quant-engine-debug") << "Build model..." << std::endl;
           if (!d_te->getModelBuilder()->buildModel(d_model.get()))
           {

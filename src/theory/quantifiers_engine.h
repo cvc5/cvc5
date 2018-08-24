@@ -109,7 +109,7 @@ private:
   /** equality inference class */
   std::unique_ptr<quantifiers::EqualityInference> d_eq_inference;
   /** quantifiers instantiation propagtor */
-  std::unique_ptr<quantifiers::InstPropagator > d_inst_prop;
+  std::unique_ptr<quantifiers::InstPropagator> d_inst_prop;
   /** all triggers will be stored in this trie */
   std::unique_ptr<inst::TriggerTrie> d_tr_trie;
   /** extended model object */
@@ -119,7 +119,7 @@ private:
   /** relevant domain */
   std::unique_ptr<quantifiers::RelevantDomain> d_rel_dom;
   /** inversion utility for BV instantiation */
-  std::unique_ptr<quantifiers::BvInverter > d_bv_invert;
+  std::unique_ptr<quantifiers::BvInverter> d_bv_invert;
   /** model builder */
   std::unique_ptr<quantifiers::QModelBuilder> d_builder;
   /** utility for effectively propositional logic */
@@ -141,31 +141,31 @@ private:
   //------------- end quantifiers utilities
   //------------- quantifiers modules
   /** alpha equivalence */
-  std::unique_ptr<quantifiers::AlphaEquivalence > d_alpha_equiv;
+  std::unique_ptr<quantifiers::AlphaEquivalence> d_alpha_equiv;
   /** instantiation engine */
   std::unique_ptr<quantifiers::InstantiationEngine> d_inst_engine;
   /** model engine */
   std::unique_ptr<quantifiers::ModelEngine> d_model_engine;
   /** bounded integers utility */
-  std::unique_ptr<quantifiers::BoundedIntegers > d_bint;
+  std::unique_ptr<quantifiers::BoundedIntegers> d_bint;
   /** Conflict find mechanism for quantifiers */
   std::unique_ptr<quantifiers::QuantConflictFind> d_qcf;
   /** rewrite rules utility */
-  std::unique_ptr<quantifiers::RewriteEngine > d_rr_engine;
+  std::unique_ptr<quantifiers::RewriteEngine> d_rr_engine;
   /** subgoal generator */
-  std::unique_ptr<quantifiers::ConjectureGenerator > d_sg_gen;
+  std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
-  std::unique_ptr<quantifiers::CegInstantiation > d_ceg_inst;
+  std::unique_ptr<quantifiers::CegInstantiation> d_ceg_inst;
   /** lte partial instantiation */
-  std::unique_ptr<quantifiers::LtePartialInst > d_lte_part_inst;
+  std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
   /** full saturation */
   std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
   /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCbqi > d_i_cbqi;
+  std::unique_ptr<quantifiers::InstStrategyCbqi> d_i_cbqi;
   /** quantifiers splitting */
-  std::unique_ptr<quantifiers::QuantDSplit > d_qsplit;
+  std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
   /** quantifiers anti-skolemization */
-  std::unique_ptr<quantifiers::QuantAntiSkolem > d_anti_skolem;
+  std::unique_ptr<quantifiers::QuantAntiSkolem> d_anti_skolem;
   //------------- end quantifiers modules
  private:  //this information is reset during check
     /** current effort level */
@@ -210,11 +210,14 @@ public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
   ~QuantifiersEngine();
   /** get theory engine */
-  TheoryEngine* getTheoryEngine()const { return d_te; }
+  TheoryEngine* getTheoryEngine() const { return d_te; }
   /** get equality query */
-  EqualityQuery* getEqualityQuery()const;
+  EqualityQuery* getEqualityQuery() const;
   /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const{ return d_eq_inference.get(); }
+  quantifiers::EqualityInference* getEqualityInference() const
+  {
+    return d_eq_inference.get();
+  }
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -226,41 +229,85 @@ public:
   /** get the logic info for the quantifiers engine */
   const LogicInfo& getLogicInfo() const;
   /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const{ return d_rel_dom.get(); }
+  quantifiers::RelevantDomain* getRelevantDomain() const
+  {
+    return d_rel_dom.get();
+  }
   /** get the BV inverter utility */
-  quantifiers::BvInverter * getBvInverter()const { return d_bv_invert.get(); }
+  quantifiers::BvInverter* getBvInverter() const { return d_bv_invert.get(); }
   /** get quantifier relevance */
-  quantifiers::QuantRelevance* getQuantifierRelevance()const { return d_quant_rel.get(); }
+  quantifiers::QuantRelevance* getQuantifierRelevance() const
+  {
+    return d_quant_rel.get();
+  }
   /** get the model builder */
-  quantifiers::QModelBuilder* getModelBuilder()const { return d_builder.get(); }
+  quantifiers::QModelBuilder* getModelBuilder() const
+  {
+    return d_builder.get();
+  }
   /** get utility for EPR */
-  quantifiers::QuantEPR* getQuantEPR() const{ return d_qepr.get(); }
+  quantifiers::QuantEPR* getQuantEPR() const { return d_qepr.get(); }
+
  public:  // modules
   /** get instantiation engine */
-  quantifiers::InstantiationEngine* getInstantiationEngine() const{ return d_inst_engine.get(); }
+  quantifiers::InstantiationEngine* getInstantiationEngine() const
+  {
+    return d_inst_engine.get();
+  }
   /** get model engine */
-  quantifiers::ModelEngine* getModelEngine() const{ return d_model_engine.get(); }
+  quantifiers::ModelEngine* getModelEngine() const
+  {
+    return d_model_engine.get();
+  }
   /** get bounded integers utility */
-  quantifiers::BoundedIntegers * getBoundedIntegers() const{ return d_bint.get(); }
+  quantifiers::BoundedIntegers* getBoundedIntegers() const
+  {
+    return d_bint.get();
+  }
   /** Conflict find mechanism for quantifiers */
-  quantifiers::QuantConflictFind* getConflictFind() const{ return d_qcf.get(); }
+  quantifiers::QuantConflictFind* getConflictFind() const
+  {
+    return d_qcf.get();
+  }
   /** rewrite rules utility */
-  quantifiers::RewriteEngine * getRewriteEngine() const{ return d_rr_engine.get(); }
+  quantifiers::RewriteEngine* getRewriteEngine() const
+  {
+    return d_rr_engine.get();
+  }
   /** subgoal generator */
-  quantifiers::ConjectureGenerator * getConjectureGenerator() const{ return d_sg_gen.get(); }
+  quantifiers::ConjectureGenerator* getConjectureGenerator() const
+  {
+    return d_sg_gen.get();
+  }
   /** ceg instantiation */
-  quantifiers::CegInstantiation * getCegInstantiation() const{ return d_ceg_inst.get(); }
+  quantifiers::CegInstantiation* getCegInstantiation() const
+  {
+    return d_ceg_inst.get();
+  }
   /** local theory ext partial inst */
-  quantifiers::LtePartialInst * getLtePartialInst() const{ return d_lte_part_inst.get(); }
+  quantifiers::LtePartialInst* getLtePartialInst() const
+  {
+    return d_lte_part_inst.get();
+  }
   /** get full saturation */
-  quantifiers::InstStrategyEnum* getInstStrategyEnum() const{ return d_fs.get(); }
+  quantifiers::InstStrategyEnum* getInstStrategyEnum() const
+  {
+    return d_fs.get();
+  }
   /** get inst strategy cbqi */
-  quantifiers::InstStrategyCbqi * getInstStrategyCbqi() const{ return d_i_cbqi.get(); }
+  quantifiers::InstStrategyCbqi* getInstStrategyCbqi() const
+  {
+    return d_i_cbqi.get();
+  }
   /** get quantifiers splitting */
-  quantifiers::QuantDSplit * getQuantDSplit() const{ return d_qsplit.get(); }
+  quantifiers::QuantDSplit* getQuantDSplit() const { return d_qsplit.get(); }
   /** get quantifiers anti-skolemization */
-  quantifiers::QuantAntiSkolem * getQuantAntiSkolem() const{ return d_anti_skolem.get(); }
-private:
+  quantifiers::QuantAntiSkolem* getQuantAntiSkolem() const
+  {
+    return d_anti_skolem.get();
+  }
+
+ private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
   std::map< Node, int > d_owner_priority;
@@ -335,16 +382,17 @@ public:
   quantifiers::UserPatMode getInstUserPatMode();
 public:
   /** get model */
-  quantifiers::FirstOrderModel* getModel() { return d_model.get(); }
-  /** get term database */
-  quantifiers::TermDb* getTermDatabase() { return d_term_db.get(); }
-  /** get term database sygus */
-  quantifiers::TermDbSygus * getTermDatabaseSygus() { return d_sygus_tdb.get(); }
-  /** get term utilities */
-  quantifiers::TermUtil* getTermUtil() { return d_term_util.get(); }
-  /** get quantifiers attributes */
-  quantifiers::QuantAttributes* getQuantAttributes() {
-    return d_quant_attr.get();
+ quantifiers::FirstOrderModel* getModel() { return d_model.get(); }
+ /** get term database */
+ quantifiers::TermDb* getTermDatabase() { return d_term_db.get(); }
+ /** get term database sygus */
+ quantifiers::TermDbSygus* getTermDatabaseSygus() { return d_sygus_tdb.get(); }
+ /** get term utilities */
+ quantifiers::TermUtil* getTermUtil() { return d_term_util.get(); }
+ /** get quantifiers attributes */
+ quantifiers::QuantAttributes* getQuantAttributes()
+ {
+   return d_quant_attr.get();
   }
   /** get instantiate utility */
   quantifiers::Instantiate* getInstantiate() { return d_instantiate.get(); }
