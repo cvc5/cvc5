@@ -281,7 +281,8 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if (k == MULT
       || (arg == 0
           && (k == DIVISION_TOTAL || k == INTS_DIVISION_TOTAL
-              || k == INTS_MODULUS_TOTAL)))
+              || k == INTS_MODULUS_TOTAL))
+     || (arg==2 && k==STRING_SUBSTR))
   {
     // zero
     if (n.getConst<Rational>().sgn() == 0)
@@ -289,6 +290,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
+  /*
   if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV_TOTAL
       || k == BITVECTOR_UREM_TOTAL
       || (arg == 0
@@ -302,6 +304,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   {
     // bit-vector ones
   }
+  */
 
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
