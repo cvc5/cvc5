@@ -93,11 +93,8 @@ void UnconstrainedSimplifier::visitAll(TNode assertion)
     }
     else
     {
-      for (TNode::iterator child_it = current.begin();
-           child_it != current.end();
-           ++child_it)
+      for (TNode childNode : current)
       {
-        TNode childNode = *child_it;
         toVisit.push_back(unc_preprocess_stack_element(childNode, current));
       }
     }
@@ -116,12 +113,9 @@ Node UnconstrainedSimplifier::newUnconstrainedVar(TypeNode t, TNode var)
 
 void UnconstrainedSimplifier::processUnconstrained()
 {
-  TNodeSet::iterator it = d_unconstrained.begin(), iend = d_unconstrained.end();
-  vector<TNode> workList;
-  for (; it != iend; ++it)
-  {
-    workList.push_back(*it);
-  }
+  NodeManager* nm = NodeManager::currentNM();
+
+  vector<TNode> workList(d_unconstrained.begin(), d_unconstrained.end());
   Node currentSub;
   TNode parent;
   bool swap;
@@ -129,6 +123,8 @@ void UnconstrainedSimplifier::processUnconstrained()
   bool strict;
   vector<TNode> delayQueueLeft;
   vector<Node> delayQueueRight;
+
+  Node falseNode = nm->mkConst<bool>(false);
 
   TNode current = workList.back();
   workList.pop_back();
@@ -215,7 +211,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // different, and total cardinality of the type is 2, then the
               // result is unconstrained
               Node test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
-              if (test == NodeManager::currentNM()->mkConst<bool>(false))
+              if (test == falseNode)
               {
                 ++d_numUnconstrainedElim;
                 if (currentSub.isNull())
@@ -321,11 +317,9 @@ void UnconstrainedSimplifier::processUnconstrained()
         case kind::BITVECTOR_NOR:
         {
           bool allUnconstrained = true;
-          for (TNode::iterator child_it = parent.begin();
-               child_it != parent.end();
-               ++child_it)
+          for (TNode child : parent)
           {
-            if (d_unconstrained.find(*child_it) == d_unconstrained.end())
+            if (d_unconstrained.find(child) == d_unconstrained.end())
             {
               allUnconstrained = false;
               break;
@@ -440,77 +434,30 @@ void UnconstrainedSimplifier::processUnconstrained()
 
         // Multiplication/division: must be non-integer and other operand must
         // be non-zero
-        case kind::MULT: {
-          case kind::DIVISION:
-            Assert(parent.getNumChildren() == 2);
-            TNode other;
-            if (parent[0] == current)
+        case kind::MULT:
+        case kind::DIVISION:
+        {
+          Assert(parent.getNumChildren() == 2);
+          TNode other;
+          if (parent[0] == current)
+          {
+            other = parent[1];
+          }
+          else
+          {
+            Assert(parent[1] == current);
+            other = parent[0];
+          }
+          if (d_unconstrained.find(other) != d_unconstrained.end())
+          {
+            if (d_unconstrained.find(parent) == d_unconstrained.end()
+                && !d_substitutions.hasSubstitution(parent))
             {
-              other = parent[1];
-            }
-            else
-            {
-              Assert(parent[1] == current);
-              other = parent[0];
-            }
-            if (d_unconstrained.find(other) != d_unconstrained.end())
-            {
-              if (d_unconstrained.find(parent) == d_unconstrained.end()
-                  && !d_substitutions.hasSubstitution(parent))
+              if (current.getType().isInteger() && other.getType().isInteger())
               {
-                if (current.getType().isInteger()
-                    && other.getType().isInteger())
-                {
-                  Assert(parent.getKind() == kind::DIVISION
-                         || parent.getType().isInteger());
-                  if (parent.getKind() == kind::DIVISION)
-                  {
-                    break;
-                  }
-                }
-                ++d_numUnconstrainedElim;
-                if (currentSub.isNull())
-                {
-                  currentSub = current;
-                }
-                current = parent;
-              }
-              else
-              {
-                currentSub = Node();
-              }
-            }
-            else
-            {
-              // if only the denominator of a division is unconstrained, can't
-              // set it to 0 so the result is not unconstrained
-              if (parent.getKind() == kind::DIVISION && current == parent[1])
-              {
-                break;
-              }
-              NodeManager* nm = NodeManager::currentNM();
-              // if we are an integer, the only way we are unconstrained is if
-              // we are a MULT by -1
-              if (current.getType().isInteger())
-              {
-                // div/mult by 1 should have been simplified
-                Assert(other != nm->mkConst<Rational>(1));
-                if (other == nm->mkConst<Rational>(-1))
-                {
-                  // div by -1 should have been simplified
-                  Assert(parent.getKind() == kind::MULT);
-                  Assert(parent.getType().isInteger());
-                }
-                else
-                {
-                  break;
-                }
-              }
-              else
-              {
-                // TODO: could build ITE here
-                Node test = other.eqNode(nm->mkConst<Rational>(0));
-                if (Rewriter::rewrite(test) != nm->mkConst<bool>(false))
+                Assert(parent.getKind() == kind::DIVISION
+                       || parent.getType().isInteger());
+                if (parent.getKind() == kind::DIVISION)
                 {
                   break;
                 }
@@ -522,7 +469,53 @@ void UnconstrainedSimplifier::processUnconstrained()
               }
               current = parent;
             }
-            break;
+            else
+            {
+              currentSub = Node();
+            }
+          }
+          else
+          {
+            // if only the denominator of a division is unconstrained, can't
+            // set it to 0 so the result is not unconstrained
+            if (parent.getKind() == kind::DIVISION && current == parent[1])
+            {
+              break;
+            }
+            // if we are an integer, the only way we are unconstrained is if
+            // we are a MULT by -1
+            if (current.getType().isInteger())
+            {
+              // div/mult by 1 should have been simplified
+              Assert(other != nm->mkConst<Rational>(1));
+              // div by -1 should have been simplified
+              if (other != nm->mkConst<Rational>(-1))
+              {
+                break;
+              }
+              else
+              {
+                Assert(parent.getKind() == kind::MULT);
+                Assert(parent.getType().isInteger());
+              }
+            }
+            else
+            {
+              // TODO(#2377): could build ITE here
+              Node test = other.eqNode(nm->mkConst<Rational>(0));
+              if (Rewriter::rewrite(test) != falseNode)
+              {
+                break;
+              }
+            }
+            ++d_numUnconstrainedElim;
+            if (currentSub.isNull())
+            {
+              currentSub = current;
+            }
+            current = parent;
+          }
+          break;
         }
 
         // Bitvector MULT - current must only appear once in the children:
@@ -531,11 +524,10 @@ void UnconstrainedSimplifier::processUnconstrained()
         {
           bool found = false;
           bool done = false;
-          for (TNode::iterator child_it = parent.begin();
-               child_it != parent.end();
-               ++child_it)
+
+          for (TNode child : parent)
           {
-            if ((*child_it) == current)
+            if (child == current)
             {
               if (found)
               {
@@ -545,17 +537,12 @@ void UnconstrainedSimplifier::processUnconstrained()
               found = true;
               continue;
             }
-            else if (d_unconstrained.find(*child_it) != d_unconstrained.end())
+            else if (d_unconstrained.find(child) == d_unconstrained.end())
             {
-              continue;
-            }
-            else
-            {
-              NodeManager* nm = NodeManager::currentNM();
               Node extractOp =
                   nm->mkConst<BitVectorExtract>(BitVectorExtract(0, 0));
               vector<Node> children;
-              children.push_back(*child_it);
+              children.push_back(child);
               Node test = nm->mkNode(extractOp, children);
               BitVector one(1, unsigned(1));
               test = test.eqNode(nm->mkConst<BitVector>(one));
@@ -740,21 +727,14 @@ void UnconstrainedSimplifier::processUnconstrained()
             }
             currentSub = newUnconstrainedVar(parent.getType(), currentSub);
             current = parent;
-            NodeManager* nm = NodeManager::currentNM();
             Node test =
                 Rewriter::rewrite(other.eqNode(nm->mkConst<BitVector>(bv)));
             if (test == nm->mkConst<bool>(false))
             {
               break;
             }
-            if (strict)
-            {
-              currentSub = currentSub.andNode(test.notNode());
-            }
-            else
-            {
-              currentSub = currentSub.orNode(test);
-            }
+            currentSub = strict ? currentSub.andNode(test.notNode())
+                                : currentSub.orNode(test);
             // Delay adding this substitution - see comment at end of function
             delayQueueLeft.push_back(current);
             delayQueueRight.push_back(currentSub);
@@ -839,19 +819,18 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   d_context->push();
 
-  vector<Node>::iterator it = assertions.begin(), iend = assertions.end();
-  for (; it != iend; ++it)
+  for (const Node& assertion : assertions)
   {
-    visitAll(*it);
+    visitAll(assertion);
   }
 
   if (!d_unconstrained.empty())
   {
     processUnconstrained();
     //    d_substitutions.print(Message.getStream());
-    for (it = assertions.begin(); it != iend; ++it)
+    for (Node& assertion : assertions)
     {
-      (*it) = Rewriter::rewrite(d_substitutions.apply(*it));
+      assertion = Rewriter::rewrite(d_substitutions.apply(assertion));
     }
   }
 

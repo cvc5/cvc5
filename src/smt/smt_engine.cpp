@@ -4140,6 +4140,7 @@ void SmtEnginePrivate::processAssertions() {
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
+    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
     d_preprocessingPassRegistry.getPass("unconstrained-simplifier")
         ->apply(&d_assertions);
   }
