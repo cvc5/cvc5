@@ -209,15 +209,9 @@ private:
 public:
   QuantifiersEngine(context::Context* c, context::UserContext* u, TheoryEngine* te);
   ~QuantifiersEngine();
+  //---------------------- external interface 
   /** get theory engine */
   TheoryEngine* getTheoryEngine() const { return d_te; }
-  /** get equality query */
-  EqualityQuery* getEqualityQuery() const;
-  /** get the equality inference */
-  quantifiers::EqualityInference* getEqualityInference() const
-  {
-    return d_eq_inference.get();
-  }
   /** get default sat context for quantifiers engine */
   context::Context* getSatContext();
   /** get default sat context for quantifiers engine */
@@ -228,85 +222,55 @@ public:
   Valuation& getValuation();
   /** get the logic info for the quantifiers engine */
   const LogicInfo& getLogicInfo() const;
+  //---------------------- end external interface
+  //---------------------- utilities
+  /** get equality query */
+  EqualityQuery* getEqualityQuery() const;
+  /** get the equality inference */
+  quantifiers::EqualityInference* getEqualityInference() const;
   /** get relevant domain */
-  quantifiers::RelevantDomain* getRelevantDomain() const
-  {
-    return d_rel_dom.get();
-  }
+  quantifiers::RelevantDomain* getRelevantDomain() const;
   /** get the BV inverter utility */
-  quantifiers::BvInverter* getBvInverter() const { return d_bv_invert.get(); }
+  quantifiers::BvInverter* getBvInverter() const;
   /** get quantifier relevance */
-  quantifiers::QuantRelevance* getQuantifierRelevance() const
-  {
-    return d_quant_rel.get();
-  }
+  quantifiers::QuantRelevance* getQuantifierRelevance() const;
   /** get the model builder */
-  quantifiers::QModelBuilder* getModelBuilder() const
-  {
-    return d_builder.get();
-  }
+  quantifiers::QModelBuilder* getModelBuilder() const;
   /** get utility for EPR */
-  quantifiers::QuantEPR* getQuantEPR() const { return d_qepr.get(); }
-
- public:  // modules
-  /** get instantiation engine */
-  quantifiers::InstantiationEngine* getInstantiationEngine() const
-  {
-    return d_inst_engine.get();
-  }
-  /** get model engine */
-  quantifiers::ModelEngine* getModelEngine() const
-  {
-    return d_model_engine.get();
-  }
+  quantifiers::QuantEPR* getQuantEPR() const;
+  /** get model */
+  quantifiers::FirstOrderModel* getModel() const;
+  /** get term database */
+  quantifiers::TermDb* getTermDatabase()const;
+  /** get term database sygus */
+  quantifiers::TermDbSygus* getTermDatabaseSygus() const;
+  /** get term utilities */
+  quantifiers::TermUtil* getTermUtil() const;
+  /** get quantifiers attributes */
+  quantifiers::QuantAttributes* getQuantAttributes() const;
+  /** get instantiate utility */
+  quantifiers::Instantiate* getInstantiate() const;
+  /** get skolemize utility */
+  quantifiers::Skolemize* getSkolemize() const;
+  /** get term enumeration utility */
+  quantifiers::TermEnumeration* getTermEnumeration()const;
+  /** get trigger database */
+  inst::TriggerTrie* getTriggerDatabase() const;
+  //---------------------- end utilities
+  //---------------------- modules
   /** get bounded integers utility */
-  quantifiers::BoundedIntegers* getBoundedIntegers() const
-  {
-    return d_bint.get();
-  }
+  quantifiers::BoundedIntegers* getBoundedIntegers() const;
   /** Conflict find mechanism for quantifiers */
-  quantifiers::QuantConflictFind* getConflictFind() const
-  {
-    return d_qcf.get();
-  }
+  quantifiers::QuantConflictFind* getConflictFind() const;
   /** rewrite rules utility */
-  quantifiers::RewriteEngine* getRewriteEngine() const
-  {
-    return d_rr_engine.get();
-  }
-  /** subgoal generator */
-  quantifiers::ConjectureGenerator* getConjectureGenerator() const
-  {
-    return d_sg_gen.get();
-  }
+  quantifiers::RewriteEngine* getRewriteEngine() const;
   /** ceg instantiation */
-  quantifiers::CegInstantiation* getCegInstantiation() const
-  {
-    return d_ceg_inst.get();
-  }
-  /** local theory ext partial inst */
-  quantifiers::LtePartialInst* getLtePartialInst() const
-  {
-    return d_lte_part_inst.get();
-  }
+  quantifiers::CegInstantiation* getCegInstantiation() const;
   /** get full saturation */
-  quantifiers::InstStrategyEnum* getInstStrategyEnum() const
-  {
-    return d_fs.get();
-  }
+  quantifiers::InstStrategyEnum* getInstStrategyEnum() const;
   /** get inst strategy cbqi */
-  quantifiers::InstStrategyCbqi* getInstStrategyCbqi() const
-  {
-    return d_i_cbqi.get();
-  }
-  /** get quantifiers splitting */
-  quantifiers::QuantDSplit* getQuantDSplit() const { return d_qsplit.get(); }
-  /** get quantifiers anti-skolemization */
-  quantifiers::QuantAntiSkolem* getQuantAntiSkolem() const
-  {
-    return d_anti_skolem.get();
-  }
-
+  quantifiers::InstStrategyCbqi* getInstStrategyCbqi() const;
+  //---------------------- end modules
  private:
   /** owner of quantified formulas */
   std::map< Node, QuantifiersModule * > d_owner;
@@ -381,30 +345,6 @@ public:
   /** get user pat mode */
   quantifiers::UserPatMode getInstUserPatMode();
 public:
-  /** get model */
- quantifiers::FirstOrderModel* getModel() { return d_model.get(); }
- /** get term database */
- quantifiers::TermDb* getTermDatabase() { return d_term_db.get(); }
- /** get term database sygus */
- quantifiers::TermDbSygus* getTermDatabaseSygus() { return d_sygus_tdb.get(); }
- /** get term utilities */
- quantifiers::TermUtil* getTermUtil() { return d_term_util.get(); }
- /** get quantifiers attributes */
- quantifiers::QuantAttributes* getQuantAttributes()
- {
-   return d_quant_attr.get();
-  }
-  /** get instantiate utility */
-  quantifiers::Instantiate* getInstantiate() { return d_instantiate.get(); }
-  /** get skolemize utility */
-  quantifiers::Skolemize* getSkolemize() { return d_skolemize.get(); }
-  /** get term enumeration utility */
-  quantifiers::TermEnumeration* getTermEnumeration()
-  {
-    return d_term_enum.get();
-  }
-  /** get trigger database */
-  inst::TriggerTrie* getTriggerDatabase() { return d_tr_trie.get(); }
   /** add term to database */
   void addTermToDatabase( Node n, bool withinQuant = false, bool withinInstClosure = false );
   /** notification when master equality engine is updated */

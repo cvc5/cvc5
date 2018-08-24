@@ -291,11 +291,6 @@ QuantifiersEngine::~QuantifiersEngine()
 {
 }
 
-EqualityQuery* QuantifiersEngine::getEqualityQuery() const
-{
-  return d_eq_query.get();
-}
-
 context::Context* QuantifiersEngine::getSatContext()
 {
   return d_te->theoryOf(THEORY_QUANTIFIERS)->getSatContext();
@@ -319,6 +314,69 @@ Valuation& QuantifiersEngine::getValuation()
 const LogicInfo& QuantifiersEngine::getLogicInfo() const
 {
   return d_te->getLogicInfo();
+}
+
+EqualityQuery* QuantifiersEngine::getEqualityQuery() const
+{
+return d_eq_query.get();
+}
+quantifiers::EqualityInference* QuantifiersEngine::getEqualityInference() const
+{
+  return d_eq_inference.get();
+}
+quantifiers::RelevantDomain* QuantifiersEngine::getRelevantDomain() const
+{
+  return d_rel_dom.get();
+}
+quantifiers::BvInverter* QuantifiersEngine::getBvInverter() const { return d_bv_invert.get(); }
+quantifiers::QuantRelevance* QuantifiersEngine::getQuantifierRelevance() const
+{
+  return d_quant_rel.get();
+}
+quantifiers::QModelBuilder* QuantifiersEngine::getModelBuilder() const
+{
+  return d_builder.get();
+}
+quantifiers::QuantEPR* QuantifiersEngine::getQuantEPR() const { return d_qepr.get(); }
+quantifiers::FirstOrderModel* QuantifiersEngine::getModel() const { return d_model.get(); }
+quantifiers::TermDb* QuantifiersEngine::getTermDatabase()const { return d_term_db.get(); }
+quantifiers::TermDbSygus* QuantifiersEngine::getTermDatabaseSygus() const{ return d_sygus_tdb.get(); }
+quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const { return d_term_util.get(); }
+quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
+{
+  return d_quant_attr.get();
+}
+quantifiers::Instantiate* QuantifiersEngine::getInstantiate() const{ return d_instantiate.get(); }
+quantifiers::Skolemize* QuantifiersEngine::getSkolemize() const{ return d_skolemize.get(); }
+quantifiers::TermEnumeration* QuantifiersEngine::getTermEnumeration()const
+{
+  return d_term_enum.get();
+}
+inst::TriggerTrie* QuantifiersEngine::getTriggerDatabase() const{ return d_tr_trie.get(); }
+
+quantifiers::BoundedIntegers* QuantifiersEngine::getBoundedIntegers() const
+{
+  return d_bint.get();
+}
+quantifiers::QuantConflictFind* QuantifiersEngine::getConflictFind() const
+{
+  return d_qcf.get();
+}
+quantifiers::RewriteEngine* QuantifiersEngine::getRewriteEngine() const
+{
+  return d_rr_engine.get();
+}
+quantifiers::CegInstantiation* QuantifiersEngine::getCegInstantiation() const
+{
+  return d_ceg_inst.get();
+}
+quantifiers::InstStrategyEnum* QuantifiersEngine::getInstStrategyEnum() const
+{
+  return d_fs.get();
+}
+quantifiers::InstStrategyCbqi* QuantifiersEngine::getInstStrategyCbqi() const
+{
+  return d_i_cbqi.get();
 }
 
 QuantifiersModule * QuantifiersEngine::getOwner( Node q ) {
