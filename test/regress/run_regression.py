@@ -269,6 +269,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         extra_command_line_args = []
         if benchmark_ext == '.sy' and \
             '--no-check-synth-sol' not in all_args and \
+            '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
             extra_command_line_args = ['--check-synth-sol']
         if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
@@ -326,6 +327,12 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
+            print()
+            print('Output:')
+            print(output)
+            print()
+            print('Error output:')
+            print(error)
         else:
             print('ok - Flags: {}'.format(command_line_args))
 
