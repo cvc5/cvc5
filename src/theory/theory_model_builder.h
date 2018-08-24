@@ -69,7 +69,7 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   bool buildModel(Model* m) override;
 
-  /** postprocess model 
+  /** postprocess model
    *
    * This is called when m is a model that will be returned to the user. This
    * method checks the internal consistency of the model if we are in a debug
@@ -83,17 +83,17 @@ class TheoryEngineModelBuilder : public ModelBuilder
    * substitutions that satisfy the formulas in assertions, interpreted
    * conjunctively. This is specified via calls to
    * TheoryModel::setUsingModelCore, TheoryModel::recordModelCoreSymbol,
-   * for details see theory/theory_model.h. 
-   * 
+   * for details see theory/theory_model.h.
+   *
    * It returns true if m is a model for assertions. In this case, we set:
    *   m->usingModelCore();
    *   m->recordModelCoreSymbol(s1); ... m->recordModelCoreSymbol(sn);
    * such that each formula in assertions under the substitution
    * { s1 -> m(s1), ..., sn -> m(sn) } rewrites to true.
-   * 
+   *
    * For example, if assertions is { a>5 OR b>5, f( c ) = 0 }, then a possible
    * model core is { a -> 6, f -> lambda x. 0 }.
-   * 
+   *
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */

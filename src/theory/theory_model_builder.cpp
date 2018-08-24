@@ -880,7 +880,8 @@ bool TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
   std::vector<Node> coreVars;
   SubstitutionMinimize smin;
   bool minimized = smin.find(formula, truen, vars, subs, coreVars);
-  Assert(minimized,"cannot compute model core, since model does not satisfy input!");
+  Assert(minimized,
+         "cannot compute model core, since model does not satisfy input!");
   if (minimized)
   {
     tm->setUsingModelCore();
