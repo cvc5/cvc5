@@ -83,6 +83,7 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
+#include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
@@ -566,8 +567,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   bool nonClausalSimplify();
 
-  Node purifyNlTerms(TNode n, NodeToNodeHashMap& cache, NodeToNodeHashMap& bcache, std::vector< Node >& var_eq, bool beneathMult = false);
-
   /**
    * Helper function to fix up assertion list to restore invariants needed after
    * ite removal.
@@ -784,7 +783,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** Process a user push.
   */
   void notifyPush() {
-  
+
   }
 
   /**
@@ -866,13 +865,13 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::ostream* getReplayLog() const {
     return d_managedReplayLog.getReplayLog();
   }
-  
+
   //------------------------------- expression names
   // implements setExpressionName, as described in smt_engine.h
   void setExpressionName(Expr e, std::string name) {
     d_exprNames[Node::fromExpr(e)] = name;
   }
-  
+
   // implements getExpressionName, as described in smt_engine.h
   bool getExpressionName(Expr e, std::string& name) const {
     context::CDHashMap< Node, std::string, NodeHashFunction >::const_iterator it = d_exprNames.find(e);
@@ -2020,7 +2019,6 @@ void SmtEngine::setDefaults() {
     }
     if (d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV))
     {
-      options::cbqiAll.set( false );
       if( !options::quantConflictFind.wasSetByUser() ){
         options::quantConflictFind.set( false );
       }
@@ -2652,6 +2650,8 @@ void SmtEnginePrivate::finishInit()
       new IntToBV(d_preprocessingPassContext.get()));
   std::unique_ptr<ITESimp> iteSimp(
       new ITESimp(d_preprocessingPassContext.get()));
+  std::unique_ptr<NlExtPurify> nlExtPurify(
+      new NlExtPurify(d_preprocessingPassContext.get()));
   std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
       new QuantifiersPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<PseudoBooleanProcessor> pbProc(
@@ -2695,6 +2695,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(globalNegate));
   d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
   d_preprocessingPassRegistry.registerPass("ite-simp", std::move(iteSimp));
+  d_preprocessingPassRegistry.registerPass("nl-ext-purify",
+                                           std::move(nlExtPurify));
   d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
                                            std::move(quantifiersPreprocess));
   d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
@@ -2707,7 +2709,7 @@ void SmtEnginePrivate::finishInit()
                                            std::move(sepSkolemEmp));
   d_preprocessingPassRegistry.registerPass("sort-inference",
                                            std::move(sortInfer));
-  d_preprocessingPassRegistry.registerPass("static-learning", 
+  d_preprocessingPassRegistry.registerPass("static-learning",
                                            std::move(staticLearning));
   d_preprocessingPassRegistry.registerPass("sygus-infer",
                                            std::move(sygusInfer));
@@ -2896,68 +2898,6 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
   AlwaysAssert(result.size() == 1);
 
   return result.top();
-}
-
-typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
-
-Node SmtEnginePrivate::purifyNlTerms(TNode n, NodeMap& cache, NodeMap& bcache, std::vector< Node >& var_eq, bool beneathMult) {
-  if( beneathMult ){
-    NodeMap::iterator find = bcache.find(n);
-    if (find != bcache.end()) {
-      return (*find).second;
-    }
-  }else{
-    NodeMap::iterator find = cache.find(n);
-    if (find != cache.end()) {
-      return (*find).second;
-    }
-  }
-  Node ret = n;
-  if( n.getNumChildren()>0 ){
-    if (beneathMult
-        && (n.getKind() == kind::PLUS || n.getKind() == kind::MINUS))
-    {
-      // don't do it if it rewrites to a constant
-      Node nr = Rewriter::rewrite(n);
-      if (nr.isConst())
-      {
-        // return the rewritten constant
-        ret = nr;
-      }
-      else
-      {
-        // new variable
-        ret = NodeManager::currentNM()->mkSkolem(
-            "__purifyNl_var",
-            n.getType(),
-            "Variable introduced in purifyNl pass");
-        Node np = purifyNlTerms(n, cache, bcache, var_eq, false);
-        var_eq.push_back(np.eqNode(ret));
-        Trace("nl-ext-purify")
-            << "Purify : " << ret << " -> " << np << std::endl;
-      }
-    }
-    else
-    {
-      bool beneathMultNew = beneathMult || n.getKind()==kind::MULT;
-      bool childChanged = false;
-      std::vector< Node > children;
-      for( unsigned i=0; i<n.getNumChildren(); i++ ){
-        Node nc = purifyNlTerms( n[i], cache, bcache, var_eq, beneathMultNew );
-        childChanged = childChanged || nc!=n[i];
-        children.push_back( nc );
-      }
-      if( childChanged ){
-        ret = NodeManager::currentNM()->mkNode( n.getKind(), children );
-      }
-    }
-  }
-  if( beneathMult ){
-    bcache[n] = ret;
-  }else{
-    cache[n] = ret;
-  }
-  return ret;
 }
 
 // do dumping (before/after any preprocessing pass)
@@ -4032,20 +3972,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( options::nlExtPurify() ){
-    unordered_map<Node, Node, NodeHashFunction> cache;
-    unordered_map<Node, Node, NodeHashFunction> bcache;
-    std::vector< Node > var_eq;
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      Node a = d_assertions[i];
-      d_assertions.replace(i, purifyNlTerms(a, cache, bcache, var_eq));
-      Trace("nl-ext-purify")
-          << "Purify : " << a << " -> " << d_assertions[i] << std::endl;
-    }
-    if( !var_eq.empty() ){
-      unsigned lastIndex = d_assertions.size()-1;
-      var_eq.insert( var_eq.begin(), d_assertions[lastIndex] );
-      d_assertions.replace(lastIndex, NodeManager::currentNM()->mkNode( kind::AND, var_eq ) );
-    }
+    d_preprocessingPassRegistry.getPass("nl-ext-purify")->apply(&d_assertions);
   }
 
   if( options::ceGuidedInst() ){
@@ -5522,7 +5449,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
     Assert( inst_qs.size()<=1 );
     Node ret_n;
     if( inst_qs.size()==1 ){
-      Node top_q = inst_qs[0]; 
+      Node top_q = inst_qs[0];
       //Node top_q = Rewriter::rewrite( nn_e ).negate();
       Assert( top_q.getKind()==kind::FORALL );
       Trace("smt-qe") << "Get qe for " << top_q << std::endl;
@@ -5945,7 +5872,7 @@ void SmtEngine::setReplayStream(ExprStream* replayStream) {
   AlwaysAssert(!d_fullyInited,
                "Cannot set replay stream once fully initialized");
   d_replayStream = replayStream;
-}  
+}
 
 bool SmtEngine::getExpressionName(Expr e, std::string& name) const {
   return d_private->getExpressionName(e, name);

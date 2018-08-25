@@ -37,7 +37,18 @@ class InstStrategyCbqi : public QuantifiersModule {
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  protected:
+  /** set quantified formula inactive
+   *
+   * This flag is set to true during a full effort check if at least one
+   * quantified formula is set "inactive", that is, its negation is
+   * unsatisfiable in the current context.
+   */
   bool d_cbqi_set_quant_inactive;
+  /** incomplete check
+   *
+   * This is set to true during a full effort check if this strategy could
+   * not find an instantiation for at least one asserted quantified formula.
+   */
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;

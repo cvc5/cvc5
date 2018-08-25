@@ -266,12 +266,6 @@ public:
   /** evaluate functions */
   int evaluate( Node n, int& depIndex, RepSetIterator* ri  );
   Node evaluateTerm( Node n, int& depIndex, RepSetIterator* ri  );
-public:
-  //statistics
-  int d_eval_formulas;
-  int d_eval_uf_terms;
-  int d_eval_lits;
-  int d_eval_lits_unknown;
 private:
   //default evaluate term function
   Node evaluateTermDefault( Node n, int& depIndex, std::vector< int >& childDepIndex, RepSetIterator* ri  );
