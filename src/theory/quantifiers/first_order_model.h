@@ -46,7 +46,6 @@ namespace fmcheck {
   class FirstOrderModelFmc;
 }/* CVC4::theory::quantifiers::fmcheck namespace */
 
-class FirstOrderModelQInt;
 class FirstOrderModelAbs;
 
 struct IsStarAttributeId {};
@@ -93,7 +92,6 @@ class FirstOrderModel : public TheoryModel
   FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
-  virtual FirstOrderModelQInt* asFirstOrderModelQInt() { return nullptr; }
   virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return nullptr; }
   /** assert quantifier */
   void assertQuantifier( Node n );
@@ -169,11 +167,11 @@ class FirstOrderModel : public TheoryModel
   /** get variable id */
   std::map<Node, std::map<Node, int> > d_quant_var_id;
   /** process initialize model for term */
-  virtual void processInitializeModelForTerm(Node n) = 0;
+  virtual void processInitializeModelForTerm(Node n) {}
   /** process initialize quantifier */
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
-  virtual void processInitialize(bool ispre) = 0;
+  virtual void processInitialize(bool ispre) {}
 
  private:
   // list of inactive quantified formulas

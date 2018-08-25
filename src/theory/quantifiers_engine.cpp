@@ -239,20 +239,28 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
   // if we require specialized ways of building the model
   if( needsBuilder ){
     Trace("quant-engine-debug") << "Initialize model engine, mbqi : " << options::mbqiMode() << " " << options::fmfBound() << std::endl;
-    if( options::mbqiMode()==quantifiers::MBQI_ABS && !options::fmfBound() ){
+    if (options::mbqiMode() == quantifiers::MBQI_FMC
+        || options::mbqiMode() == quantifiers::MBQI_TRUST
+        || options::fmfBound())
+    {
+      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
+      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
+          this, c, "FirstOrderModelFmc"));
+      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(c, this));
+    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
       Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
       d_model.reset(
           new quantifiers::FirstOrderModelAbs(this, c, "FirstOrderModelAbs"));
       d_builder.reset(new quantifiers::AbsMbqiBuilder(c, this));
     }else{
-      Trace("quant-engine-debug") << "...make fmc builder." << std::endl;
-      d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
-          this, c, "FirstOrderModelFmc"));
-      d_builder.reset(new quantifiers::fmcheck::FullModelChecker(c, this));
+      Trace("quant-engine-debug") << "...make default model builder." << std::endl;
+      d_model.reset(
+          new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(c, this));
     }
   }else{
     d_model.reset(
-        new quantifiers::fmcheck::FirstOrderModelFmc(this, c, "FirstOrderModelFmc"));
+        new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
   }
 }
 
