@@ -628,7 +628,8 @@ void OptionsHandler::checkLiteralMatchMode(
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "none") {
+  if (optarg == "none")
+  {
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;

@@ -259,8 +259,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_builder.reset(new quantifiers::QModelBuilder(c, this));
     }
   }else{
-    d_model.reset(
-        new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
+    d_model.reset(new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
   }
 }
 
