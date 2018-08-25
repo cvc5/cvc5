@@ -503,6 +503,7 @@ REG0_TESTS = \
 	regress0/nl/magnitude-wrong-1020-m.smt2 \
 	regress0/nl/mult-po.smt2 \
 	regress0/nl/nia-wrong-tl.smt2 \
+	regress0/nl/nlExtPurify-test.smt2 \
 	regress0/nl/nta/cos-sig-value.smt2 \
 	regress0/nl/nta/exp-n0.5-lb.smt2 \
 	regress0/nl/nta/exp-n0.5-ub.smt2 \
