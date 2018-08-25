@@ -17,7 +17,6 @@
 #ifndef __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 #define __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 
-#include <iostream>
 #include <map>
 #include <string>
 #include <vector>
@@ -40,7 +39,6 @@ class QuantifierMacros : public PreprocessingPass
       AssertionPipeline* assertionsToPreprocess) override;
 
  private:
-  bool d_ground_macros;
   bool processAssertion(Node n);
   bool isBoundVarApplyUf(Node n);
   bool process(Node n, bool pol, std::vector<Node>& args, Node f);
@@ -69,6 +67,7 @@ class QuantifierMacros : public PreprocessingPass
   bool simplify(std::vector<Node>& assertions, bool doRewrite = false);
   Node simplify(Node n);
   void finalizeDefinitions();
+  void clearMaps();
 
   // map from operators to macro basis terms
   std::map<Node, std::vector<Node> > d_macro_basis;
@@ -80,6 +79,7 @@ class QuantifierMacros : public PreprocessingPass
   // simplify caches
   std::map<Node, Node> d_simplify_cache;
   std::map<Node, bool> d_quant_macros;
+  bool d_ground_macros;
 };
 
 }  // passes

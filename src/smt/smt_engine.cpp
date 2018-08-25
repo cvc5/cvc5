@@ -4086,7 +4086,6 @@ void SmtEnginePrivate::processAssertions() {
       //quantifiers macro expansion
       d_preprocessingPassRegistry.getPass("quantifier-macros")
           ->apply(&d_assertions);
-      Trace("smt") << "POST macrosQuant" << endl;
     }
 
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF

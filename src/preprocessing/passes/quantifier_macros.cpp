@@ -40,9 +40,9 @@ namespace preprocessing {
 namespace passes {
 
 QuantifierMacros::QuantifierMacros(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "quantifier-macros")
+    : PreprocessingPass(preprocContext, "quantifier-macros"),
+      d_ground_macros(false)
 {
-  d_ground_macros = false;
 }
 
 PreprocessingPassResult QuantifierMacros::applyInternal(
@@ -54,7 +54,19 @@ PreprocessingPassResult QuantifierMacros::applyInternal(
     success = simplify(assertionsToPreprocess->ref(), true);
   } while (success);
   finalizeDefinitions();
+  clearMaps();
   return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void QuantifierMacros::clearMaps()
+{
+  d_macro_basis.clear();
+  d_macro_defs.clear();
+  d_macro_defs_new.clear();
+  d_macro_def_contains.clear();
+  d_simplify_cache.clear();
+  d_quant_macros.clear();
+  d_ground_macros = false;
 }
 
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
