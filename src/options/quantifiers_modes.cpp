@@ -64,9 +64,6 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::LiteralMatchMod
 
 std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) {
   switch(mode) {
-  case theory::quantifiers::MBQI_GEN_EVAL:
-    out << "MBQI_GEN_EVAL";
-    break;
   case theory::quantifiers::MBQI_NONE:
     out << "MBQI_NONE";
     break;
