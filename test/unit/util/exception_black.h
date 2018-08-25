@@ -25,16 +25,14 @@ using namespace CVC4;
 using namespace std;
 
 class ExceptionBlack : public CxxTest::TestSuite {
-public:
+ public:
+  void setUp() override {}
 
-  void setUp() {
-  }
-
-  void tearDown() {
-  }
+  void tearDown() override {}
 
   // CVC4::Exception is a simple class, just test it all at once.
-  void testExceptions() {
+  void testExceptions()
+  {
     Exception e1;
     Exception e2(string("foo!"));
     Exception e3("bar!");

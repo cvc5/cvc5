@@ -29,18 +29,14 @@ private:
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testContextSimple() {
-    Scope *s = d_context->getTopScope();
+  void testContextSimple()
+  {
+    Scope* s = d_context->getTopScope();
 
     TS_ASSERT(s == d_context->getBottomScope());
     TS_ASSERT(d_context->getLevel() == 0);

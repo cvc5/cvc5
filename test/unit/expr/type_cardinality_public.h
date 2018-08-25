@@ -32,20 +32,20 @@ using namespace std;
 class TypeCardinalityPublic : public CxxTest::TestSuite {
   ExprManager* d_em;
 
-public:
+ public:
+  void setUp() override { d_em = new ExprManager(); }
 
-  void setUp() {
-    d_em = new ExprManager();
-  }
+  void tearDown() override { delete d_em; }
 
-  void tearDown() {
-    delete d_em;
-  }
-
-  void testTheBasics() {
-    TS_ASSERT( d_em->booleanType().getCardinality().compare(2) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->integerType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->realType().getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+  void testTheBasics()
+  {
+    TS_ASSERT(d_em->booleanType().getCardinality().compare(2)
+              == Cardinality::EQUAL);
+    TS_ASSERT(
+        d_em->integerType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
+    TS_ASSERT(d_em->realType().getCardinality().compare(Cardinality::REALS)
+              == Cardinality::EQUAL);
   }
 
   void testArrays() {

@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz, Mathias Preiner
+ **   Justin Xu, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,6 +23,7 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
