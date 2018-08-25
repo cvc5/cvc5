@@ -18,13 +18,14 @@
 #include "theory/sets/theory_sets_private.h"
 
 #include "expr/emptyset.h"
+#include "expr/node_algorithm.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/sets/theory_sets.h"
+#include "theory/quantifiers/term_database.h"
 #include "theory/sets/normal_form.h"
+#include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
 #include "util/result.h"
-#include "theory/quantifiers/term_database.h"
 
 #define AJR_IMPLEMENTATION
 
@@ -36,25 +37,28 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::Context* c,
-                                     context::UserContext* u):
-  d_rels(NULL),
-  d_members(c),
-  d_deq(c),
-  d_deq_processed(u),
-  d_keep(c),
-  d_proxy(u),
-  d_proxy_to_term(u),
-  d_lemmas_produced(u),
-  d_card_processed(u),
-  d_var_elim(u),
-  d_external(external),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::ee", true),
-  d_conflict(c)
+                                     context::UserContext* u)
+    : d_members(c),
+      d_deq(c),
+      d_deq_processed(u),
+      d_keep(c),
+      d_sentLemma(false),
+      d_addedFact(false),
+      d_full_check_incomplete(false),
+      d_proxy(u),
+      d_proxy_to_term(u),
+      d_lemmas_produced(u),
+      d_card_enabled(false),
+      d_card_processed(u),
+      d_var_elim(u),
+      d_external(external),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::sets::ee", true),
+      d_conflict(c),
+      d_rels(
+          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
+      d_rels_enabled(false)
 {
-
-  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external);
-
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
@@ -67,21 +71,14 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::MEMBER);
   d_equalityEngine.addFunctionKind(kind::SUBSET);
 
-  // If cardinality is on.
   d_equalityEngine.addFunctionKind(kind::CARD);
-
-  d_card_enabled = false;
-  d_rels_enabled = false;
-
-}/* TheorySetsPrivate::TheorySetsPrivate() */
+}
 
 TheorySetsPrivate::~TheorySetsPrivate(){
-  delete d_rels;
   for (std::pair<const Node, EqcInfo*>& current_pair : d_eqc_info) {
     delete current_pair.second;
   }
-}/* TheorySetsPrivate::~TheorySetsPrivate() */
-
+}
 
 void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
   if( t.getKind()==kind::SINGLETON || t.getKind()==kind::EMPTYSET ){
@@ -610,11 +607,14 @@ void TheorySetsPrivate::fullEffortCheck(){
           }else{
             Node r1 = d_equalityEngine.getRepresentative( n[0] );
             Node r2 = d_equalityEngine.getRepresentative( n[1] );
-            if( d_bop_index[n.getKind()][r1].find( r2 )==d_bop_index[n.getKind()][r1].end() ){
-              d_bop_index[n.getKind()][r1][r2] = n;
+            std::map<Node, Node>& binr1 = d_bop_index[n.getKind()][r1];
+            std::map<Node, Node>::iterator itb = binr1.find(r2);
+            if (itb == binr1.end())
+            {
+              binr1[r2] = n;
               d_op_list[n.getKind()].push_back( n );
             }else{
-              d_congruent[n] = d_bop_index[n.getKind()][r1][r2];
+              d_congruent[n] = itb->second;
             }
           }
           d_nvar_sets[eqc].push_back( n );
@@ -2200,28 +2200,37 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
   
   //this is based off of Theory::ppAssert
   Node var;
-  if (in.getKind() == kind::EQUAL) {
-    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
-        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
-      if( !in[0].getType().isSet() || !options::setsExt() ){
+  if (in.getKind() == kind::EQUAL)
+  {
+    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+        && (in[1].getType()).isSubtypeOf(in[0].getType()))
+    {
+      if (!in[0].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[0], in[1]);
         var = in[0];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
-    }else if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
-        (in[0].getType()).isSubtypeOf(in[1].getType())){
-      if( !in[1].getType().isSet() || !options::setsExt() ){
+    }
+    else if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+             && (in[0].getType()).isSubtypeOf(in[1].getType()))
+    {
+      if (!in[1].getType().isSet() || !options::setsExt())
+      {
         outSubstitutions.addSubstitution(in[1], in[0]);
         var = in[1];
         status = Theory::PP_ASSERT_STATUS_SOLVED;
       }
-    }else if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    }
+    else if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
     }
   }
-  
+
   if( status==Theory::PP_ASSERT_STATUS_SOLVED ){
     Trace("sets-var-elim") << "Sets : ppAssert variable eliminated : " << in << ", var = " << var << std::endl;
     /*

@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -726,12 +727,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       // check if it is a variable equality
       TNode v;
       Node s;
-      for( unsigned r=0; r<2; r++ ){
-        if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if (!slit[1 - r].hasSubterm(slit[r]))
+      for (unsigned r = 0; r < 2; r++)
+      {
+        if (std::find(vars.begin(), vars.end(), slit[r]) != vars.end())
+        {
+          if (!expr::hasSubterm(slit[1 - r], slit[r]))
           {
             v = slit[r];
-            s = slit[1-r];
+            s = slit[1 - r];
             break;
           }
         }
@@ -741,13 +744,18 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
         std::map< Node, Node > msum;
         if (ArithMSum::getMonomialSumLit(slit, msum))
         {
-          for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-            if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
+          for (std::map<Node, Node>::iterator itm = msum.begin();
+               itm != msum.end();
+               ++itm)
+          {
+            if (std::find(vars.begin(), vars.end(), itm->first) != vars.end())
+            {
               Node veq_c;
               Node val;
               int ires =
                   ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if (ires != 0 && veq_c.isNull() && !val.hasSubterm(itm->first))
+              if (ires != 0 && veq_c.isNull()
+                  && !expr::hasSubterm(val, itm->first))
               {
                 v = itm->first;
                 s = val;
@@ -859,7 +867,8 @@ void TransitionInference::process( Node n ) {
         }else{
           res = NodeManager::currentNM()->mkNode( kind::OR, disjuncts );
         }
-        if( !res.hasBoundVar() ){
+        if (!expr::hasBoundVar(res))
+        {
           Trace("cegqi-inv") << "*** inferred " << ( comp_num==1 ? "pre" : ( comp_num==-1 ? "post" : "trans" ) ) << "-condition : " << res << std::endl;
           d_com[comp_num].d_conjuncts.push_back( res );
           if( !const_var.empty() ){
@@ -1027,8 +1036,11 @@ int TransitionInference::incrementTrace( DetTrace& dt, Node loc, bool fwd ) {
     }
   }
   if( fwd ){
-    std::map< Node, std::map< Node, Node > >::iterator it = d_com[0].d_const_eq.find( loc );
-    if( it!=d_com[0].d_const_eq.end() ){
+    Component& cm = d_com[0];
+    std::map<Node, std::map<Node, Node> >::iterator it =
+        cm.d_const_eq.find(loc);
+    if (it != cm.d_const_eq.end())
+    {
       std::vector< Node > next;
       for( unsigned i=0; i<d_prime_vars.size(); i++ ){
         Node pv = d_prime_vars[i];
@@ -1076,4 +1088,3 @@ Node TransitionInference::constructFormulaTrace( DetTrace& dt ) {
 }
   
 } //namespace CVC4
-

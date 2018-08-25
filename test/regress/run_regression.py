@@ -25,6 +25,8 @@ EXIT = 'EXIT: '
 COMMAND_LINE = 'COMMAND-LINE: '
 REQUIRES = 'REQUIRES: '
 
+EXIT_OK = 0
+EXIT_FAILURE = 1
 
 def run_process(args, cwd, timeout, s_input=None):
     """Runs a process with a timeout `timeout` in seconds. `args` are the
@@ -167,24 +169,10 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         sys.exit('"{}" must be *.cvc or *.smt or *.smt2 or *.p or *.sy'.format(
             benchmark_basename))
 
-    # If there is an ".expect" file for the benchmark, read the metadata
-    # from there, otherwise from the benchmark file.
-    metadata_filename = benchmark_path + '.expect'
-    if os.path.isfile(metadata_filename):
-        comment_char = '%'
-    else:
-        metadata_filename = benchmark_path
-
-    metadata_lines = None
-    with open(metadata_filename, 'r') as metadata_file:
-        metadata_lines = metadata_file.readlines()
-
-    benchmark_content = None
-    if metadata_filename == benchmark_path:
-        benchmark_content = ''.join(metadata_lines)
-    else:
-        with open(benchmark_path, 'r') as benchmark_file:
-            benchmark_content = benchmark_file.read()
+    benchmark_lines = None
+    with open(benchmark_path, 'r') as benchmark_file:
+        benchmark_lines = benchmark_file.readlines()
+    benchmark_content = ''.join(benchmark_lines)
 
     # Extract the metadata for the benchmark.
     scrubber = None
@@ -194,7 +182,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
     expected_exit_status = None
     command_lines = []
     requires = []
-    for line in metadata_lines:
+    for line in benchmark_lines:
         # Skip lines that do not start with a comment character.
         if line[0] != comment_char:
             continue
@@ -281,6 +269,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
         extra_command_line_args = []
         if benchmark_ext == '.sy' and \
             '--no-check-synth-sol' not in all_args and \
+            '--sygus-rr' not in all_args and \
             '--check-synth-sol' not in all_args:
             extra_command_line_args = ['--check-synth-sol']
         if re.search(r'^(sat|invalid|unknown)$', expected_output) and \
@@ -309,11 +298,13 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
     # whether the exit status, stdout output, stderr output are as expected.
     print('1..{}'.format(len(command_line_args_configs)))
     print('# Starting')
+    exit_code = EXIT_OK
     for command_line_args in command_line_args_configs:
         output, error, exit_status = run_benchmark(
             dump, wrapper, scrubber, error_scrubber, cvc4_binary,
             command_line_args, benchmark_dir, benchmark_basename, timeout)
         if output != expected_output:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stdout - Flags: {}'.
                 format(command_line_args))
@@ -324,6 +315,7 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
             print('Error output:')
             print(error)
         elif error != expected_error:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Differences between expected and actual output on stderr - Flags: {}'.
                 format(command_line_args))
@@ -331,11 +323,20 @@ def run_regression(unsat_cores, proofs, dump, wrapper, cvc4_binary,
                                              expected_error.splitlines()):
                 print(line)
         elif expected_exit_status != exit_status:
+            exit_code = EXIT_FAILURE
             print(
                 'not ok - Expected exit status "{}" but got "{}" - Flags: {}'.
                 format(expected_exit_status, exit_status, command_line_args))
+            print()
+            print('Output:')
+            print(output)
+            print()
+            print('Error output:')
+            print(error)
         else:
             print('ok - Flags: {}'.format(command_line_args))
+
+    return exit_code
 
 
 def main():
@@ -360,9 +361,10 @@ def main():
 
     timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
-    run_regression(args.enable_proof, args.with_lfsc, args.dump, wrapper,
-                   cvc4_binary, args.benchmark, timeout)
+    return run_regression(args.enable_proof, args.with_lfsc, args.dump, wrapper,
+                          cvc4_binary, args.benchmark, timeout)
 
 
 if __name__ == "__main__":
-    main()
+    exit_code = main()
+    sys.exit(exit_code)

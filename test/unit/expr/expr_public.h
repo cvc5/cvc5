@@ -50,12 +50,12 @@ private:
   Expr* r1;
   Expr* r2;
 
-public:
-
-  void setUp() {
-    try {
-
-      char *argv[2];
+ public:
+  void setUp() override
+  {
+    try
+    {
+      char* argv[2];
       argv[0] = strdup("");
       argv[1] = strdup("--output-language=ast");
       Options::parseOptions(&opts, 2, argv);
@@ -64,12 +64,13 @@ public:
 
       d_em = new ExprManager(opts);
 
-      a_bool = new Expr(d_em->mkVar("a",d_em->booleanType()));
+      a_bool = new Expr(d_em->mkVar("a", d_em->booleanType()));
       b_bool = new Expr(d_em->mkVar("b", d_em->booleanType()));
       c_bool_and = new Expr(d_em->mkExpr(AND, *a_bool, *b_bool));
       and_op = new Expr(d_em->mkConst(AND));
       plus_op = new Expr(d_em->mkConst(PLUS));
-      fun_type = new Type(d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
+      fun_type = new Type(
+          d_em->mkFunctionType(d_em->booleanType(), d_em->booleanType()));
       fun_op = new Expr(d_em->mkVar("f", *fun_type));
       d_apply_fun_bool = new Expr(d_em->mkExpr(APPLY_UF, *fun_op, *a_bool));
       null = new Expr();
@@ -78,13 +79,16 @@ public:
       i2 = new Expr(d_em->mkConst(Rational(23)));
       r1 = new Expr(d_em->mkConst(Rational(1, 5)));
       r2 = new Expr(d_em->mkConst(Rational("0")));
-    } catch(Exception e) {
+    }
+    catch (Exception e)
+    {
       cerr << "Exception during setUp():" << endl << e;
       throw;
     }
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     try {
       delete r2;
       delete r1;

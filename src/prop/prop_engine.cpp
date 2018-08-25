@@ -148,11 +148,6 @@ void PropEngine::requirePhase(TNode n, bool phase) {
   d_satSolver->requirePhase(phase ? lit : ~lit);
 }
 
-bool PropEngine::flipDecision() {
-  Debug("prop") << "flipDecision()" << endl;
-  return d_satSolver->flipDecision();
-}
-
 bool PropEngine::isDecision(Node lit) const {
   Assert(isSatLiteral(lit));
   return d_satSolver->isDecision(d_cnfStream->getLiteral(lit).getSatVariable());

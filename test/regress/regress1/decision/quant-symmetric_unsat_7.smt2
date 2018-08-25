@@ -1,3 +1,6 @@
+; COMMAND-LINE: --no-check-proofs --no-check-unsat-cores --decision=justification
+; EXPECT: unsat
+
 (set-logic AUFLIRA)
 (set-info :source | Example extracted from Peter Baumgartner's talk at CADE-21: Logical Engineering with Instance-Based Methods.
 

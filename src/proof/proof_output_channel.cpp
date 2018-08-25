@@ -71,12 +71,6 @@ void ProofOutputChannel::requirePhase(TNode n, bool b) {
   Trace("pf::tp") << "requirePhase " << n << " " << b << std::endl;
 }
 
-bool ProofOutputChannel::flipDecision() {
-  Debug("pf::tp") << "ProofOutputChannel::flipDecision called" << std::endl;
-  AlwaysAssert(false);
-  return false;
-}
-
 void ProofOutputChannel::setIncomplete() {
   Debug("pf::tp") << "ProofOutputChannel::setIncomplete called" << std::endl;
   AlwaysAssert(false);

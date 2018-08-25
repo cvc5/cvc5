@@ -35,7 +35,7 @@ using namespace std;
 class InteractiveShellBlack : public CxxTest::TestSuite
 {
  public:
-  void setUp()
+  void setUp() override
   {
     d_sin = new stringstream;
     d_sout = new stringstream;
@@ -45,7 +45,8 @@ class InteractiveShellBlack : public CxxTest::TestSuite
     d_solver.reset(new api::Solver(&d_options));
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_sin;
     delete d_sout;
   }
