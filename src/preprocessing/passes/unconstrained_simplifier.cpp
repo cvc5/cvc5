@@ -124,8 +124,6 @@ void UnconstrainedSimplifier::processUnconstrained()
   vector<TNode> delayQueueLeft;
   vector<Node> delayQueueRight;
 
-  Node falseNode = nm->mkConst<bool>(false);
-
   TNode current = workList.back();
   workList.pop_back();
   for (;;)
@@ -211,7 +209,7 @@ void UnconstrainedSimplifier::processUnconstrained()
               // different, and total cardinality of the type is 2, then the
               // result is unconstrained
               Node test = Rewriter::rewrite(parent[1].eqNode(parent[2]));
-              if (test == falseNode)
+              if (test == nm->mkConst<bool>(false))
               {
                 ++d_numUnconstrainedElim;
                 if (currentSub.isNull())
@@ -503,7 +501,7 @@ void UnconstrainedSimplifier::processUnconstrained()
             {
               // TODO(#2377): could build ITE here
               Node test = other.eqNode(nm->mkConst<Rational>(0));
-              if (Rewriter::rewrite(test) != falseNode)
+              if (Rewriter::rewrite(test) != nm->mkConst<bool>(false))
               {
                 break;
               }
