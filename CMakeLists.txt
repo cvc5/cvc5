@@ -146,16 +146,18 @@ cvc4_option(ENABLE_TRACING       "Enable tracing")
 cvc4_option(ENABLE_UNIT_TESTING  "Enable unit testing")
 cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
 cvc4_option(ENABLE_SHARED        "Build as shared library")
+
 # >> 2-valued: ON OFF, for options where we don't need to detect if set by user
-option(ENABLE_COVERAGE           "Enable support for gcov coverage testing" OFF)
-option(ENABLE_PROFILING          "Enable support for gprof profiling" OFF)
+option(ENABLE_COVERAGE           "Enable support for gcov coverage testing")
+option(ENABLE_PROFILING          "Enable support for gprof profiling")
 
 # Optional dependencies
+option(USE_ABC                   "Use ABC for AIG bit-blasting")
 option(USE_CADICAL               "Use CaDiCaL SAT solver")
 option(USE_CLN                   "Use CLN instead of GMP")
 option(USE_CRYPTOMINISAT         "Use CryptoMiniSat SAT solver")
 option(USE_LFSC                  "Use LFSC proof checker")
-option(USE_READLINE              "Use readline for better interactive support" OFF)
+option(USE_READLINE              "Use readline for better interactive support")
 option(USE_SYMFPU                "Use SymFPU for floating point support")
 
 # Supported language bindings
@@ -336,6 +338,13 @@ endif()
 if(ENABLE_VALGRIND)
   #TODO check if valgrind available
   add_definitions(-DCVC4_VALGRIND)
+endif()
+
+if(USE_ABC)
+  find_package(ABC REQUIRED)
+  cvc4_link_library(${ABC_LIBRARIES})
+  include_directories(${ABC_INCLUDE_DIR})
+  add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
@@ -576,7 +585,7 @@ endif()
 #message("Multithreaded: ${support_multithreaded}")
 message("Portfolio         : ${ENABLE_PORTFOLIO}")
 message("")
-#message("ABC          : ${{with_abc}")
+message("ABC               : ${USE_ABC}")
 message("CaDiCaL           : ${USE_CADICAL}")
 message("Cryptominisat     : ${USE_CRYPTOMINISAT}")
 #message("GLPK              : ${USE_GLPK}")
