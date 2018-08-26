@@ -653,7 +653,7 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
   }
   TNode n1 = node[1];
   NodeManager* nm = NodeManager::currentNM();
-  CVC4::Rational rMaxInt(UINT32_MAX);
+  CVC4::Rational rMaxInt(String::maxSize());
   AlwaysAssert(n1.isConst(), "re.loop contains non-constant integer (1).");
   AlwaysAssert(n1.getConst<Rational>().sgn() >= 0,
                "Negative integer in string REGEXP_LOOP (1)");
@@ -1216,7 +1216,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       CVC4::String s = node[0].getConst<String>();
-      CVC4::Rational rMaxInt(UINT32_MAX);
+      CVC4::Rational rMaxInt(String::maxSize());
       uint32_t start;
       if (node[1].getConst<Rational>() > rMaxInt)
       {
@@ -2641,7 +2641,7 @@ bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
               // we can remove part of the constant
               // lower bound minus the length of a concrete string is negative,
               // hence lowerBound cannot be larger than long max
-              Assert(lbr < Rational(UINT32_MAX));
+              Assert(lbr < Rational(String::maxSize()));
               curr = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
                   kind::MINUS, curr, lowerBound));
               uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
