@@ -49,7 +49,6 @@
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/unconstrained_simplifier.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -315,7 +314,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_factsAsserted(context, false),
   d_preRegistrationVisitor(this, context),
   d_sharedTermsVisitor(d_sharedTerms),
-  d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
   d_theoryAlternatives(),
   d_attr_handle(),
   d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
@@ -360,9 +358,6 @@ TheoryEngine::~TheoryEngine() {
   delete d_masterEqualityEngine;
 
   smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
-
-  delete d_unconstrainedSimp;
-
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
@@ -2144,11 +2139,6 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         }
       }
     });
-}
-
-void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
-{
-  d_unconstrainedSimp->processAssertions(assertions);
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,

@@ -97,6 +97,7 @@
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
+#include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -204,8 +205,6 @@ struct SmtEngineStatistics {
   IntStat d_numMiplibAssertionsRemoved;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent in simplifying ITEs */
-  TimerStat d_unconstrainedSimpTime;
   /** time spent in theory preprocessing */
   TimerStat d_theoryPreprocessTime;
   /** time spent converting to CNF */
@@ -238,7 +237,6 @@ struct SmtEngineStatistics {
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
     d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_unconstrainedSimpTime("smt::SmtEngine::unconstrainedSimpTime"),
     d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
@@ -257,7 +255,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
     smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-    smtStatisticsRegistry()->registerStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
@@ -278,7 +275,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
     smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-    smtStatisticsRegistry()->unregisterStat(&d_unconstrainedSimpTime);
     smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
@@ -579,9 +575,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * ite removal.
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  // Simplify based on unconstrained values
-  void unconstrainedSimp();
 
   /**
    * Trace nodes back to their assertions using CircuitPropagator's
@@ -2676,6 +2669,8 @@ void SmtEnginePrivate::finishInit()
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
+  std::unique_ptr<UnconstrainedSimplifier> unconstrainedSimplifier(
+      new UnconstrainedSimplifier(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("apply-substs",
                                            std::move(applySubsts));
   d_preprocessingPassRegistry.registerPass("apply-to-const",
@@ -2720,6 +2715,8 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
   d_preprocessingPassRegistry.registerPass("quantifier-macros",
                                            std::move(quantifierMacros));
+  d_preprocessingPassRegistry.registerPass("unconstrained-simplifier",
+                                           std::move(unconstrainedSimplifier));
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -3255,13 +3252,6 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   return true;
 }
 
-void SmtEnginePrivate::unconstrainedSimp() {
-  TimerStat::CodeTimer unconstrainedSimpTimer(d_smt.d_stats->d_unconstrainedSimpTime);
-  spendResource(options::preprocessStep());
-  Trace("simplify") << "SmtEnginePrivate::unconstrainedSimp()" << endl;
-  d_smt.d_theoryEngine->ppUnconstrainedSimp(d_assertions.ref());
-}
-
 void SmtEnginePrivate::traceBackToAssertions(const std::vector<Node>& nodes, std::vector<TNode>& assertions) {
   const booleans::CircuitPropagator::BackEdgesMap& backEdges = d_propagator.getBackEdges();
   for(vector<Node>::const_iterator i = nodes.begin(); i != nodes.end(); ++i) {
@@ -3745,13 +3735,9 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     // Unconstrained simplification
     if(options::unconstrainedSimp()) {
-      Chat() << "...doing unconstrained simplification..." << endl;
-      unconstrainedSimp();
+      d_preprocessingPassRegistry.getPass("unconstrained-simplifier")
+          ->apply(&d_assertions);
     }
-
-    dumpAssertions("post-unconstrained", d_assertions);
-    Trace("smt") << "POST unconstrainedSimp" << endl;
-    Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
       Chat() << "...doing another round of nonclausal simplification..." << endl;
@@ -4027,12 +4013,9 @@ void SmtEnginePrivate::processAssertions() {
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-unconstrained-simp" << endl;
-    dumpAssertions("pre-unconstrained-simp", d_assertions);
     d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
-    unconstrainedSimp();
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-unconstrained-simp" << endl;
-    dumpAssertions("post-unconstrained-simp", d_assertions);
+    d_preprocessingPassRegistry.getPass("unconstrained-simplifier")
+        ->apply(&d_assertions);
   }
 
   if(options::bvIntroducePow2())
