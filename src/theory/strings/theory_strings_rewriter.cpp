@@ -653,13 +653,13 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
   }
   TNode n1 = node[1];
   NodeManager* nm = NodeManager::currentNM();
-  CVC4::Rational RMAXINT(LONG_MAX);
+  CVC4::Rational rMaxInt(UINT32_MAX);
   AlwaysAssert(n1.isConst(), "re.loop contains non-constant integer (1).");
   AlwaysAssert(n1.getConst<Rational>().sgn() >= 0,
                "Negative integer in string REGEXP_LOOP (1)");
-  Assert(n1.getConst<Rational>() <= RMAXINT,
-         "Exceeded LONG_MAX in string REGEXP_LOOP (1)");
-  unsigned l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
+  Assert(n1.getConst<Rational>() <= rMaxInt,
+         "Exceeded UINT32_MAX in string REGEXP_LOOP (1)");
+  uint32_t l = n1.getConst<Rational>().getNumerator().toUnsignedInt();
   std::vector<Node> vec_nodes;
   for (unsigned i = 0; i < l; i++)
   {
@@ -675,9 +675,9 @@ Node TheoryStringsRewriter::rewriteLoopRegExp(TNode node)
     AlwaysAssert(n2.isConst(), "re.loop contains non-constant integer (2).");
     AlwaysAssert(n2.getConst<Rational>().sgn() >= 0,
                  "Negative integer in string REGEXP_LOOP (2)");
-    Assert(n2.getConst<Rational>() <= RMAXINT,
-           "Exceeded LONG_MAX in string REGEXP_LOOP (2)");
-    unsigned u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
+    Assert(n2.getConst<Rational>() <= rMaxInt,
+           "Exceeded UINT32_MAX in string REGEXP_LOOP (2)");
+    uint32_t u = n2.getConst<Rational>().getNumerator().toUnsignedInt();
     if (u <= l)
     {
       retNode = n;
@@ -838,7 +838,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
       }
     }
     case kind::REGEXP_LOOP: {
-      unsigned l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
+      uint32_t l = r[1].getConst<Rational>().getNumerator().toUnsignedInt();
       if(s.size() == index_start) {
         return l==0? true : testConstStringInRegExp(s, index_start, r[0]);
       } else if(l==0 && r[1]==r[2]) {
@@ -847,7 +847,7 @@ bool TheoryStringsRewriter::testConstStringInRegExp( CVC4::String &s, unsigned i
         Assert(r.getNumChildren() == 3, "String rewriter error: LOOP has 2 children");
         if(l==0) {
           //R{0,u}
-          unsigned u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
+          uint32_t u = r[2].getConst<Rational>().getNumerator().toUnsignedInt();
           for(unsigned len=s.size() - index_start; len>=1; len--) {
             CVC4::String t = s.substr(index_start, len);
             if(testConstStringInRegExp(t, 0, r[0])) {
@@ -1216,9 +1216,9 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     if (node[1].isConst() && node[2].isConst())
     {
       CVC4::String s = node[0].getConst<String>();
-      CVC4::Rational RMAXINT(LONG_MAX);
-      unsigned start;
-      if (node[1].getConst<Rational>() > RMAXINT)
+      CVC4::Rational rMaxInt(UINT32_MAX);
+      uint32_t start;
+      if (node[1].getConst<Rational>() > rMaxInt)
       {
         // start beyond the maximum size of strings
         // thus, it must be beyond the end point of this string
@@ -1241,7 +1241,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           return returnRewrite(node, ret, "ss-const-start-oob");
         }
       }
-      if (node[2].getConst<Rational>() > RMAXINT)
+      if (node[2].getConst<Rational>() > rMaxInt)
       {
         // take up to the end of the string
         Node ret = nm->mkConst(::CVC4::String(s.suffix(s.size() - start)));
@@ -1254,7 +1254,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
       else
       {
-        unsigned len =
+        uint32_t len =
             node[2].getConst<Rational>().getNumerator().toUnsignedInt();
         if (start + len > s.size())
         {
@@ -1743,17 +1743,17 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
   getConcat(node[0], children0);
   if (children0[0].isConst() && node[1].isConst() && node[2].isConst())
   {
-    CVC4::Rational RMAXINT(CVC4::String::maxSize());
-    if (node[2].getConst<Rational>() > RMAXINT)
+    CVC4::Rational rMaxInt(CVC4::String::maxSize());
+    if (node[2].getConst<Rational>() > rMaxInt)
     {
       // We know that, due to limitations on the size of string constants
       // in our implementation, that accessing a position greater than
-      // RMAXINT is guaranteed to be out of bounds.
+      // rMaxInt is guaranteed to be out of bounds.
       Node negone = nm->mkConst(Rational(-1));
       return returnRewrite(node, negone, "idof-max");
     }
     Assert(node[2].getConst<Rational>().sgn() >= 0);
-    unsigned start =
+    uint32_t start =
         node[2].getConst<Rational>().getNumerator().toUnsignedInt();
     CVC4::String s = children0[0].getConst<String>();
     CVC4::String t = node[1].getConst<String>();
@@ -2641,10 +2641,10 @@ bool TheoryStringsRewriter::stripSymbolicLength(std::vector<Node>& n1,
               // we can remove part of the constant
               // lower bound minus the length of a concrete string is negative,
               // hence lowerBound cannot be larger than long max
-              Assert(lbr < Rational(LONG_MAX));
+              Assert(lbr < Rational(UINT32_MAX));
               curr = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
                   kind::MINUS, curr, lowerBound));
-              unsigned lbsize = lbr.getNumerator().toUnsignedInt();
+              uint32_t lbsize = lbr.getNumerator().toUnsignedInt();
               Assert(lbsize < s.size());
               if (dir == 1)
               {

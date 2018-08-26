@@ -103,7 +103,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              Valuation valuation,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
-      RMAXINT(LONG_MAX),
+      d_rMaxInt(UINT32_MAX),
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_conflict(c, false),
@@ -536,7 +536,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     if( lts[i].isConst() ) {
       lts_values.push_back( lts[i] );
-      Assert(lts[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts[i].getConst<Rational>() <= d_rMaxInt,
+             "Exceeded UINT32_MAX in string model");
       unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
       values_used[ lvalue ] = true;
     }else{
@@ -545,7 +546,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Node v = d_valuation.getModelValue(lts[i]);
         Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
         lts_values.push_back( v );
-        Assert(v.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+        Assert(v.getConst<Rational>() <= d_rMaxInt,
+               "Exceeded UINT32_MAX in string model");
         unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
         values_used[ lvalue ] = true;
       }else{
@@ -621,7 +623,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       Trace("strings-model") << std::endl;
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts_values[i].getConst<Rational>() <= d_rMaxInt,
+             "Exceeded UINT32_MAX in string model");
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
