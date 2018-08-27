@@ -823,14 +823,14 @@ bool TermUtil::isAssoc( Kind k ) {
          || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
          || k == BITVECTOR_XNOR || k == BITVECTOR_CONCAT || k == STRING_CONCAT
-         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT;
+         || k == UNION || k == INTERSECTION || k == JOIN || k == PRODUCT || k==SEP_STAR;
 }
 
 bool TermUtil::isComm( Kind k ) {
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
-         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION;
+         || k == BITVECTOR_XNOR || k == UNION || k == INTERSECTION || k==SEP_STAR;
 }
 
 bool TermUtil::isNonAdditive( Kind k ) {
