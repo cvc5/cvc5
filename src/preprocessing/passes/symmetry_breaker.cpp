@@ -130,22 +130,29 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
 {
   Trace("sym-break-pass") << "Apply symmetry breaker pass..." << std::endl;
   // detect symmetries
-  std::vector<std::vector<Node>> part;
+  std::vector<std::vector<Node>> sterms;
   symbreak::SymmetryDetect symd;
-  symd.getPartition(part, assertionsToPreprocess->ref());
+  symd.computeTerms(sterms, assertionsToPreprocess->ref());
   if (Trace.isOn("sym-break-pass"))
   {
-    Trace("sym-break-pass") << "Detected symmetry partition:" << std::endl;
-    for (const std::vector<Node>& p : part)
+    if( sterms.empty() )
     {
-      Trace("sym-break-pass") << "  " << p << std::endl;
+      Trace("sym-break-pass") << "Detected no symmetric terms." << std::endl;
+    }
+    else
+    {
+      Trace("sym-break-pass") << "Detected symmetric terms:" << std::endl;
+      for (const std::vector<Node>& p : sterms)
+      {
+        Trace("sym-break-pass") << "  " << p << std::endl;
+      }
     }
   }
   // construct the symmetry breaking constraint
   Trace("sym-break-pass") << "Construct symmetry breaking constraint..."
                           << std::endl;
   SymmetryBreaker symb;
-  Node sbConstraint = symb.generateSymBkConstraints(part);
+  Node sbConstraint = symb.generateSymBkConstraints(sterms);
   // add symmetry breaking constraint to the set of assertions
   Trace("sym-break-pass") << "...got: " << sbConstraint << std::endl;
   // if not true

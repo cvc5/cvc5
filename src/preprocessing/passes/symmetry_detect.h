@@ -73,6 +73,8 @@ class Partition
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
+  /** get variables */
+  void getVariables(std::vector<Node>& vars);
   /** get substitution */
   void getSubstitution(std::vector<Node>& vars, std::vector<Node>& subs);
 };
@@ -134,7 +136,8 @@ class PartitionMerger
    */
   bool merge(std::vector<Partition>& partitions,
              unsigned base_index,
-             std::unordered_set<unsigned>& active_indices);
+             std::unordered_set<unsigned>& active_indices,
+                            std::vector< unsigned >& merged_indices);
 
  private:
   /** the kind of the node we are consdiering */
@@ -190,14 +193,8 @@ class PartitionMerger
 class SymmetryDetect
 {
  public:
-  /**
-   * Constructor
-   * */
-  SymmetryDetect()
-  {
-    d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
-    d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
-  }
+  /** constructor */
+  SymmetryDetect();
 
   /**
    * Destructor
@@ -205,11 +202,20 @@ class SymmetryDetect
   ~SymmetryDetect() {}
 
   /** Get the final partition after symmetry detection.
-   *  If a vector in parts contains two variables x and y,
-   *  then assertions and assertions { x -> y, y -> x } are
+   * 
+   *  If a vector in sterms contains two variables x and y,
+   *  then assertions and assertions { x -> y, x -> y } are
    *  equisatisfiable.
    * */
-  void getPartition(std::vector<std::vector<Node> >& parts, const std::vector<Node>& assertions);
+  void compute(std::vector<std::vector<Node> >& part, const std::vector<Node>& assertions);
+
+  /** Get the final partition after symmetry detection.
+   * 
+   *  If a vector in sterms contains two terms t and s,
+   *  then assertions and assertions { t -> s, s -> t } are
+   *  equisatisfiable.
+   * */
+  void computeTerms(std::vector<std::vector<Node> >& sterms, const std::vector<Node>& assertions);
 
  private:
   /** (canonical) symmetry breaking variables for each type */
@@ -288,7 +294,21 @@ class SymmetryDetect
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
+  //-------------------for symmetry breaking terms
+  /** symmetry breaking id counter */
+  unsigned d_tsym_id_counter;
+  /** list of term symmetries */
+  std::map< unsigned, std::vector< Node > > d_tsyms;
+  /** list of term symmetries */
+  std::map< unsigned, std::vector< Node > > d_tsym_to_vars;
+  /** variables to ids */
+  std::map< Node, std::vector< unsigned > > d_var_to_tsym_ids;
+  /** store term symmetry */
+  void storeTermSymmetry( const std::vector< Node >& symTerms, const std::vector< Node >& vars );
+  
+  //-------------------end for symmetry breaking terms
 };
+
 }  // namespace symbreak
 }  // namespace passes
 }  // namespace preprocessing

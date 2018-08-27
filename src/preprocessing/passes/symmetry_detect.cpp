@@ -117,6 +117,13 @@ void Partition::normalize()
     std::sort(p.second.begin(), p.second.end());
   }
 }
+void Partition::getVariables(std::vector<Node>& vars)
+{
+  for (const std::pair<const Node, Node>& p : d_var_to_subvar)
+  {
+    vars.push_back(p.first);
+  }
+}
 
 void Partition::getSubstitution(std::vector<Node>& vars,
                                 std::vector<Node>& subs)
@@ -165,7 +172,9 @@ void PartitionMerger::initialize(Kind k,
 
 bool PartitionMerger::merge(std::vector<Partition>& partitions,
                             unsigned base_index,
-                            std::unordered_set<unsigned>& active_indices)
+                            std::unordered_set<unsigned>& active_indices,
+                            std::vector< unsigned >& merged_indices
+                           )
 {
   Assert(base_index < partitions.size());
   d_master_base_index = base_index;
@@ -214,7 +223,16 @@ bool PartitionMerger::merge(std::vector<Partition>& partitions,
     d_merge_var_tried.clear();
     if (mergeNewVar(0, new_indices, merge_var, 0, partitions, active_indices))
     {
-      Trace("sym-dt-debug") << "   ...merged: " << merge_var << std::endl;
+      if( Trace.isOn("sym-dt-debug") )
+      {
+        Trace("sym-dt-debug") << "   ...merged: " << merge_var << " from indices [ ";
+        for( unsigned ni : new_indices )
+        {
+          Trace("sym-dt-debug") << ni << " ";
+        }
+        Trace("sym-dt-debug") << "]" << std::endl;
+      }
+      merged_indices.insert(merged_indices.end(),new_indices.begin(),new_indices.end());
       Assert(!merge_var.isNull());
       merged = true;
       success = true;
@@ -397,6 +415,12 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
                      active_indices);
 }
 
+SymmetryDetect::SymmetryDetect() : d_tsym_id_counter(0)
+{
+  d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
+  d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
+}
+
 Partition SymmetryDetect::detect(const vector<Node>& assertions)
 {
   Node an;
@@ -461,17 +485,32 @@ Node SymmetryDetect::getSymBreakVariableInc(TypeNode tn,
   return getSymBreakVariable(tn, new_index);
 }
 
-void SymmetryDetect::getPartition(vector<vector<Node> >& parts,
-                                  const vector<Node>& assertions)
+void SymmetryDetect::compute(std::vector<std::vector<Node> >& part,
+                                  const std::vector<Node>& assertions)
 {
   Partition p = detect(assertions);
 
+  std::vector< std::vector< Node > > parts;
   for (map<Node, vector<Node> >::const_iterator subvar_to_vars_it =
            p.d_subvar_to_vars.begin();
        subvar_to_vars_it != p.d_subvar_to_vars.end();
        ++subvar_to_vars_it)
   {
     parts.push_back(subvar_to_vars_it->second);
+  }
+}
+  void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
+                                  const std::vector<Node>& assertions)
+{
+  Partition p = detect(assertions);
+  
+  for( const std::pair< const Node, std::vector< Node > > sp : p.d_subvar_to_vars )
+  {
+    if( sp.second.size()>1 )
+    {
+      sterms.push_back(sp.second);
+      //TODO
+    }
   }
 }
 
@@ -1056,7 +1095,6 @@ void SymmetryDetect::processPartitions(
     }
     std::vector<unsigned> check_indices;
     check_indices.insert(check_indices.end(), nvis.begin(), nvis.end());
-    Trace("sym-dt-debug") << "Merge..." << std::endl;
     // now, try to merge these partitions
     mergePartitions(k, partitions, check_indices, active_indices);
   }
@@ -1091,7 +1129,8 @@ void SymmetryDetect::mergePartitions(
   }
   if (Trace.isOn("sym-dt-debug"))
   {
-    Trace("sym-dt-debug") << "  merge indices ";
+    Trace("sym-dt-debug") << "--- mergePartitions..." << std::endl;
+    Trace("sym-dt-debug") << "  indices ";
     for (unsigned i : indices)
     {
       Trace("sym-dt-debug") << i << " ";
@@ -1104,12 +1143,27 @@ void SymmetryDetect::mergePartitions(
   PartitionMerger pm;
   pm.initialize(k, partitions, indices);
 
-  // TODO (#2198): process indices for distinct types separately
   for (unsigned index : indices)
   {
-    if (pm.merge(partitions, index, active_indices))
+    Node mterm = partitions[index].d_term;
+    std::vector< unsigned > merged_indices;
+    if (pm.merge(partitions, index, active_indices, merged_indices))
     {
-      Trace("sym-dt-debug") << "    ......we merged, recurse" << std::endl;
+      // get the symmetric terms, these will be used when doing symmetry
+      // breaking
+      std::vector< Node > symTerms;
+      // include the term from the base index
+      symTerms.push_back(mterm);
+      for( unsigned mi : merged_indices )
+      {
+        Node st = partitions[mi].d_term;
+        symTerms.push_back(st);
+      }
+      Trace("sym-dt-debug") << "    ......merged " << symTerms << std::endl;
+      std::vector< Node > vars;
+      partitions[index].getVariables(vars);
+      storeTermSymmetry(symTerms,vars);
+      Trace("sym-dt-debug") << "    ......recurse" << std::endl;
       std::vector<unsigned> rem_indices;
       for (unsigned ii : indices)
       {
@@ -1124,6 +1178,22 @@ void SymmetryDetect::mergePartitions(
   }
 }
 
+void SymmetryDetect::storeTermSymmetry( const std::vector< Node >& symTerms, const std::vector< Node >& vars )
+{
+  Trace("sym-dt-tsym") << "*** Term symmetry : " << symTerms << std::endl;
+  Trace("sym-dt-tsym") << "*** Over variables : " << vars << std::endl;
+  unsigned tid = d_tsym_id_counter;
+  Trace("sym-dt-tsym") << "...allocate id " << tid << std::endl;
+  d_tsym_id_counter = d_tsym_id_counter + 1;
+  // allocate the term symmetry 
+  d_tsyms[tid] = symTerms;
+  d_tsym_to_vars[tid] = vars;
+  for( const Node& v : vars )
+  {
+    d_var_to_tsym_ids[v].push_back(tid);
+  }
+}
+  
 }  // namespace symbreak
 }  // namespace passes
 }  // namespace preprocessing
