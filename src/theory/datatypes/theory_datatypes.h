@@ -46,10 +46,6 @@ class TheoryDatatypes : public Theory {
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
-  /** transitive closure to record equivalence/subterm relation.  */
-  // TransitiveClosureNode d_cycle_check;
-  /** has seen cycle */
-  context::CDO<bool> d_hasSeenCycle;
   /** inferences */
   NodeList d_infer;
   NodeList d_infer_exp;
@@ -179,12 +175,19 @@ private:
   /** selector apps for eqch equivalence class */
   NodeIntMap d_selector_apps;
   std::map< Node, std::vector< Node > > d_selector_apps_data;
-  /** constructor terms */
-  //BoolMap d_consEqc;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
-  /** Added lemma ? */
+  /** added lemma
+   *
+   * This flag is set to true during a full effort check if this theory
+   * called d_out->lemma(...).
+   */
   bool d_addedLemma;
+  /** added fact
+   *
+   * This flag is set to true during a full effort check if this theory
+   * added an internal fact to its equality engine.
+   */
   bool d_addedFact;
   /** The conflict node */
   Node d_conflictNode;

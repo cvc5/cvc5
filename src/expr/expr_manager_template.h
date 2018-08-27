@@ -385,14 +385,27 @@ public:
   /** Make the type of set with the given parameterization. */
   SetType mkSetType(Type elementType) const;
 
+  /** Bits for use in mkDatatypeType() flags.
+   *
+   * DATATYPE_FLAG_PLACEHOLDER indicates that the type should not be printed
+   * out as a definition, for example, in models or during dumping.
+   */
+  enum
+  {
+    DATATYPE_FLAG_NONE = 0,
+    DATATYPE_FLAG_PLACEHOLDER = 1
+  }; /* enum */
+
   /** Make a type representing the given datatype. */
-  DatatypeType mkDatatypeType(Datatype& datatype);
+  DatatypeType mkDatatypeType(Datatype& datatype,
+                              uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may be
    * mutually recursive.
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(
+      std::vector<Datatype>& datatypes, uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a set of types representing the given datatypes, which may
@@ -423,7 +436,10 @@ public:
    * then no complicated Type needs to be created, and the above,
    * simpler form of mkMutualDatatypeTypes() is enough.
    */
-  std::vector<DatatypeType> mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes);
+  std::vector<DatatypeType> mkMutualDatatypeTypes(
+      std::vector<Datatype>& datatypes,
+      std::set<Type>& unresolvedTypes,
+      uint32_t flags = DATATYPE_FLAG_NONE);
 
   /**
    * Make a type representing a constructor with the given parameterization.
