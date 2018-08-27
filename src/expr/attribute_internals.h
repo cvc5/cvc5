@@ -23,6 +23,7 @@
 #ifndef __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 #define __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 
+#include <cstdint>
 #include <unordered_map>
 
 namespace CVC4 {
@@ -149,14 +150,10 @@ class AttrHash<bool> :
 
     uint64_t& d_word;
 
-    unsigned d_bit;
+    uint32_t d_bit;
 
-  public:
-
-    BitAccessor(uint64_t& word, unsigned bit) :
-      d_word(word),
-      d_bit(bit) {
-    }
+   public:
+    BitAccessor(uint64_t& word, uint32_t bit) : d_word(word), d_bit(bit) {}
 
     BitAccessor& operator=(bool b) {
       if(b) {
@@ -183,18 +180,18 @@ class AttrHash<bool> :
 
     std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    unsigned d_bit;
+    uint32_t d_bit;
 
-  public:
+   public:
 
     BitIterator() :
       d_entry(NULL),
       d_bit(0) {
     }
 
-    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, unsigned bit) :
-      d_entry(&entry),
-      d_bit(bit) {
+    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint32_t bit)
+        : d_entry(&entry), d_bit(bit)
+    {
     }
 
     std::pair<NodeValue* const, BitAccessor> operator*() {
@@ -217,9 +214,9 @@ class AttrHash<bool> :
 
     const std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    unsigned d_bit;
+    uint32_t d_bit;
 
-  public:
+   public:
 
     ConstBitIterator() :
       d_entry(NULL),
@@ -227,9 +224,9 @@ class AttrHash<bool> :
     }
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
-                     unsigned bit) :
-      d_entry(&entry),
-      d_bit(bit) {
+                     uint32_t bit)
+        : d_entry(&entry), d_bit(bit)
+    {
     }
 
     std::pair<NodeValue* const, bool> operator*()
@@ -267,8 +264,8 @@ public:
     Debug.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+                 (uint64_t)((*i).second),
+                 uint32_t(k.first));
     */
     return BitIterator(*i, k.first);
   }
@@ -291,8 +288,8 @@ public:
     Debug.printf("boolattr",
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
-                 (unsigned long long)((*i).second),
-                 unsigned(k.first));
+                 (uint64_t)((*i).second),
+                 uint32_t(k.first));
     */
     return ConstBitIterator(*i, k.first);
   }
