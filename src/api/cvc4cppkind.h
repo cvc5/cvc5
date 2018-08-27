@@ -30,6 +30,11 @@ namespace api {
 
 /**
  * The kind of a CVC4 term.
+ *
+ * Note that the underlying type of Kind must be signed (to enable range
+ * checks for validity). The size of this type depends on the size of
+ * CVC4::Kind (__CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
+ * see expr/metakind_template.h).
  */
 enum CVC4_PUBLIC Kind : int32_t
 {
