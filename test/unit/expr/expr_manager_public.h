@@ -61,19 +61,19 @@ private:
     return vars;
   }
 
+ public:
+  void setUp() override { d_exprManager = new ExprManager; }
 
-public:
-  void setUp() {
-    d_exprManager = new ExprManager;
-  }
-
-
-  void tearDown() {
-    try {
+  void tearDown() override
+  {
+    try
+    {
       delete d_exprManager;
-    } catch(Exception e) {
+    }
+    catch (Exception e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
-      throw ;
+      throw;
     }
   }
 

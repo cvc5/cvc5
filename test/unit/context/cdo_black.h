@@ -33,17 +33,13 @@ private:
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testIntCDO() {
+  void testIntCDO()
+  {
     // Test that push/pop maintains the original value
     CDO<int> a1(d_context);
     a1 = 5;

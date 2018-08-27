@@ -33,16 +33,17 @@ private:
   TypeNode* d_booleanType;
   TypeNode* d_realType;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_nodeManager = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;

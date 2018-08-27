@@ -2314,6 +2314,13 @@ enum CVC4_PUBLIC Kind
 };
 
 /**
+ * Get the string representation of a given kind.
+ * @param k the kind
+ * @return the string representation of kind k
+ */
+std::string kindToString(Kind k) CVC4_PUBLIC;
+
+/**
  * Serialize a kind to given stream.
  * @param out the output stream
  * @param k the kind to be serialized to the given output stream

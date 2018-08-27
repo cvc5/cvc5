@@ -627,7 +627,8 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
     // score is lexographic ( bound vars, shared vars )
     int score_max_1 = -1;
     int score_max_2 = -1;
-    int score_index = -1;
+    unsigned score_index = 0;
+    bool set_score_index = false;
     for( unsigned i=0; i<pats.size(); i++ ){
       Node p = pats[i];
       if( std::find( pats_ordered.begin(), pats_ordered.end(), p )==pats_ordered.end() ){
@@ -641,13 +642,17 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
             score_2++;
           }
         }
-        if( score_index==-1 || score_1>score_max_1 || ( score_1==score_max_1 && score_2>score_max_2 ) ){
+        if (!set_score_index || score_1 > score_max_1
+            || (score_1 == score_max_1 && score_2 > score_max_2))
+        {
           score_index = i;
+          set_score_index = true;
           score_max_1 = score_1;
           score_max_2 = score_2;
         }
       }
     }
+    Assert(set_score_index);
     //update the variable bounds
     Node mp = pats[score_index];
     for( unsigned i=0; i<var_contains[mp].size(); i++ ){

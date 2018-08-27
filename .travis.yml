@@ -19,9 +19,6 @@ dist: trusty
 
 env:
  global:
-  # The next declaration is the encrypted COVERITY_SCAN_TOKEN, created
-  #   via the "travis encrypt" command using the project repo's public key
-  - secure: "fRfdzYwV10VeW5tVSvy5qpR8ZlkXepR7XWzCulzlHs9SRI2YY20BpzWRjyMBiGu2t7IeJKT7qdjq/CJOQEM8WS76ON7QJ1iymKaRDewDs3OhyPJ71fsFKEGgLky9blk7I9qZh23hnRVECj1oJAVry9IK04bc2zyIEjUYpjRkUAQ="
   - TEST_GROUPS=2
   - CCACHE_COMPRESS=1
 addons:
@@ -103,8 +100,7 @@ script:
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
-   [ -n "$TRAVIS_COVERITY" ] && echo "Running coverity. Skipping the normal build."
-   [ -z "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_COVERITY" ] && error "Unknown Travis-CI configuration"
+   [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
  - ccache -s
@@ -126,29 +122,6 @@ matrix:
     - compiler: clang
       env:
         - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
-    # Rule for running Coverity Scan.
-    - os: linux
-      compiler: gcc
-      env:
-        - TRAVIS_COVERITY=yes CVC4_REGRESSION_ARGS='--no-early-exit'
-      addons:
-        # Need to duplicate as addons will be over written.
-        apt:
-          sources:
-            - ubuntu-toolchain-r-test
-          packages:
-            - *common_deps
-        coverity_scan:
-          project:
-            name: "CVC4/CVC4"
-            description: "Build submitted via Travis CI"
-          notification_email: timothy.alan.king@gmail.com
-          build_command_prepend: "./autogen.sh; ./configure --enable-unit-testing --enable-proof"
-          build_command: "make V=1 -j4"
-          branch_pattern: coverity_scan
-      after_failure:
-        - cat /home/travis/build/CVC4/CVC4/cov-int/build-log.txt
-
 notifications:
   email:
     on_success: change

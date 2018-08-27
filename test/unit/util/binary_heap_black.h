@@ -25,20 +25,18 @@ using namespace CVC4;
 using namespace std;
 
 class BinaryHeapBlack : public CxxTest::TestSuite {
-public:
+ public:
+  void setUp() override {}
 
-  void setUp() {
-  }
-
-  void tearDown() {
-  }
+  void tearDown() override {}
 
   /**
    * Test a a series of simple heaps (push a few then pop all then do others).
    * Done as a series to test if the heap structure falls into a bad state
    * after prolonged use.
    */
-  void testHeapSeries() {
+  void testHeapSeries()
+  {
     BinaryHeap<int> heap;
 
     // First test a heap of 1 element

@@ -99,7 +99,6 @@ namespace theory {
 
 class DecisionEngine;
 class RemoveTermFormulas;
-class UnconstrainedSimplifier;
 
 /**
  * This is essentially an abstraction for a collection of theories.  A
@@ -827,9 +826,6 @@ private:
   /** Dump the assertions to the dump */
   void dumpAssertions(const char* tag);
 
-  /** For preprocessing pass simplifying unconstrained expressions */
-  UnconstrainedSimplifier* d_unconstrainedSimp;
-
   /** For preprocessing pass lifting bit-vectors of size 1 to booleans */
 public:
   void staticInitializeBVOptions(const std::vector<Node>& assertions);
@@ -837,8 +833,6 @@ public:
   Node ppSimpITE(TNode assertion);
   /** Returns false if an assertion simplified to false. */
   bool donePPSimpITE(std::vector<Node>& assertions);
-
-  void ppUnconstrainedSimp(std::vector<Node>& assertions);
 
   SharedTermsDatabase* getSharedTermsDatabase() { return &d_sharedTerms; }
 

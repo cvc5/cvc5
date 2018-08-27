@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file macros.cpp
+/*! \file quantifier_macros.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Kshitij Bansal
@@ -14,7 +14,7 @@
  ** This class implements quantifiers macro definitions.
  **/
 
-#include "theory/quantifiers/macros.h"
+#include "preprocessing/passes/quantifier_macros.h"
 
 #include <vector>
 
@@ -27,19 +27,48 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/rewriter.h"
 
-using namespace CVC4;
 using namespace std;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
+namespace CVC4 {
+namespace preprocessing {
+namespace passes {
 
-QuantifierMacros::QuantifierMacros( QuantifiersEngine * qe ) : d_qe( qe ){
+QuantifierMacros::QuantifierMacros(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "quantifier-macros"),
+      d_ground_macros(false)
+{
+}
+
+PreprocessingPassResult QuantifierMacros::applyInternal(
+    AssertionPipeline* assertionsToPreprocess)
+{
+  bool success;
+  do
+  {
+    success = simplify(assertionsToPreprocess->ref(), true);
+  } while (success);
+  finalizeDefinitions();
+  clearMaps();
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+
+void QuantifierMacros::clearMaps()
+{
+  d_macro_basis.clear();
+  d_macro_defs.clear();
+  d_macro_defs_new.clear();
+  d_macro_def_contains.clear();
+  d_simplify_cache.clear();
+  d_quant_macros.clear();
   d_ground_macros = false;
 }
-  
+
 bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite ){
   unsigned rmax = options::macrosQuantMode()==MACROS_QUANT_MODE_ALL ? 2 : 1;
   for( unsigned r=0; r<rmax; r++ ){
@@ -72,14 +101,14 @@ bool QuantifierMacros::simplify( std::vector< Node >& assertions, bool doRewrite
           //for now, it is dependent upon all assertions involving macros, this is an over-approximation.
           //a more fine-grained unsat core computation would require caching dependencies for each subterm of the formula, 
           // which is expensive.
-          PROOF( 
-            ProofManager::currentPM()->addDependence(curr, assertions[i]); 
-            for( unsigned j=0; j<macro_assertions.size(); j++ ){
-              if( macro_assertions[j]!=assertions[i] ){
-                ProofManager::currentPM()->addDependence(curr,macro_assertions[j]);
-              }
-            }
-          );
+          PROOF(ProofManager::currentPM()->addDependence(curr, assertions[i]);
+                for (unsigned j = 0; j < macro_assertions.size(); j++) {
+                  if (macro_assertions[j] != assertions[i])
+                  {
+                    ProofManager::currentPM()->addDependence(
+                        curr, macro_assertions[j]);
+                  }
+                });
           assertions[i] = curr;
           retVal = true;
         }
@@ -154,7 +183,10 @@ bool QuantifierMacros::isMacroLiteral( Node n, bool pol ){
 }
 
 bool QuantifierMacros::isGroundUfTerm( Node f, Node n ) {
-  Node icn = d_qe->getTermUtil()->substituteBoundVariablesToInstConstants(n, f);
+  Node icn = d_preprocContext->getTheoryEngine()
+                 ->getQuantifiersEngine()
+                 ->getTermUtil()
+                 ->substituteBoundVariablesToInstConstants(n, f);
   Trace("macros-debug2") << "Get free variables in " << icn << std::endl;
   std::vector< Node > var;
   quantifiers::TermUtil::computeInstConstContainsForQuant(f, icn, var);
@@ -512,3 +544,7 @@ void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
     }
   }
 }
+
+}  // passes
+}  // preprocessing
+}  // CVC4
