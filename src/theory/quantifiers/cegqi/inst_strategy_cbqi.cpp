@@ -38,11 +38,14 @@ using namespace CVC4::theory::arith;
 
 #define ARITH_INSTANTIATOR_USE_MINUS_DELTA
 
-InstStrategyCbqi::InstStrategyCbqi( QuantifiersEngine * qe )
-  : QuantifiersModule( qe ), d_added_cbqi_lemma( qe->getUserContext() ), 
-d_elim_quants( qe->getSatContext() ),
-d_nested_qe_waitlist_size( qe->getUserContext() ),
-d_nested_qe_waitlist_proc( qe->getUserContext() )
+InstStrategyCbqi::InstStrategyCbqi(QuantifiersEngine* qe)
+    : QuantifiersModule(qe),
+      d_cbqi_set_quant_inactive(false),
+      d_incomplete_check(false),
+      d_added_cbqi_lemma(qe->getUserContext()),
+      d_elim_quants(qe->getSatContext()),
+      d_nested_qe_waitlist_size(qe->getUserContext()),
+      d_nested_qe_waitlist_proc(qe->getUserContext())
 //, d_added_inst( qe->getUserContext() )
 {
   d_qid_count = 0;

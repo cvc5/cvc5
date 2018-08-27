@@ -34,14 +34,15 @@ class NodeManagerBlack : public CxxTest::TestSuite {
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_nodeManager = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_nodeManager;
   }

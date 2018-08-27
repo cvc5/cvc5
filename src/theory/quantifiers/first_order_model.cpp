@@ -572,10 +572,6 @@ void FirstOrderModelIG::resetEvaluate(){
   d_eval_uf_use_default.clear();
   d_eval_uf_model.clear();
   d_eval_term_index_order.clear();
-  d_eval_formulas = 0;
-  d_eval_uf_terms = 0;
-  d_eval_lits = 0;
-  d_eval_lits_unknown = 0;
 }
 
 //if evaluate( n ) = eVal,
@@ -585,7 +581,6 @@ void FirstOrderModelIG::resetEvaluate(){
 // if eVal is not 0, then
 //   each n{ri->d_index[0]/x_0...ri->d_index[depIndex]/x_depIndex, */x_(depIndex+1) ... */x_n } is equivalent in the current model
 int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
-  ++d_eval_formulas;
   Debug("fmf-eval-debug2") << "Evaluate " << n << std::endl;
   //Notice() << "Eval " << n << std::endl;
   if( n.getKind()==NOT ){
@@ -661,7 +656,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
   }else if( n.getKind()==FORALL ){
     return 0;
   }else{
-    ++d_eval_lits;
     //Debug("fmf-eval-debug") << "Evaluate literal " << n << std::endl;
     int retVal = 0;
     depIndex = ri->getNumTerms()-1;
@@ -684,7 +678,6 @@ int FirstOrderModelIG::evaluate( Node n, int& depIndex, RepSetIterator* ri ){
     if( retVal!=0 ){
       Debug("fmf-eval-debug") << "Evaluate literal: return " << retVal << ", depIndex = " << depIndex << std::endl;
     }else{
-      ++d_eval_lits_unknown;
       Trace("fmf-eval-amb") << "Neither true nor false : " << n << std::endl;
       Trace("fmf-eval-amb") << "   value : " << val << std::endl;
     }
@@ -731,7 +724,6 @@ Node FirstOrderModelIG::evaluateTerm( Node n, int& depIndex, RepSetIterator* ri 
         //Debug("fmf-eval-debug") << "Evaluate term " << n << " (" << gn << ")" << std::endl;
         //if it is a defined UF, then consult the interpretation
         if( d_uf_model_tree.find( op )!=d_uf_model_tree.end() ){
-          ++d_eval_uf_terms;
           int argDepIndex = 0;
           //make the term model specifically for n
           makeEvalUfModel( n );

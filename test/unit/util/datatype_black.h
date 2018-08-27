@@ -31,16 +31,17 @@ class DatatypeBlack : public CxxTest::TestSuite {
   ExprManager* d_em;
   ExprManagerScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_scope = new ExprManagerScope(*d_em);
     Debug.on("datatypes");
     Debug.on("groundterms");
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_em;
   }

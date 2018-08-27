@@ -34,13 +34,15 @@ class KindBlack : public CxxTest::TestSuite {
   //easier to define in setup
   int beyond;
   Kind unknown;
-public:
-  void setUp() {
+
+ public:
+  void setUp() override
+  {
     undefined = UNDEFINED_KIND;
     null = NULL_EXPR;
     last = LAST_KIND;
-    beyond = ((int) LAST_KIND) + 1;
-    unknown = (Kind) beyond;
+    beyond = ((int)LAST_KIND) + 1;
+    unknown = (Kind)beyond;
   }
 
   

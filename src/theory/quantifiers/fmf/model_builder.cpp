@@ -457,24 +457,17 @@ bool QModelBuilderIG::hasConstantDefinition( Node n ){
   return false;
 }
 
-QModelBuilderIG::Statistics::Statistics():
-  d_num_quants_init("QModelBuilderIG::Number_Quantifiers", 0),
-  d_num_partial_quants_init("QModelBuilderIG::Number_Partial_Quantifiers", 0),
-  d_init_inst_gen_lemmas("QModelBuilderIG::Initialize_Inst_Gen_Lemmas", 0 ),
-  d_inst_gen_lemmas("QModelBuilderIG::Inst_Gen_Lemmas", 0 ),
-  d_eval_formulas("QModelBuilderIG::Eval_Formulas", 0 ),
-  d_eval_uf_terms("QModelBuilderIG::Eval_Uf_Terms", 0 ),
-  d_eval_lits("QModelBuilderIG::Eval_Lits", 0 ),
-  d_eval_lits_unknown("QModelBuilderIG::Eval_Lits_Unknown", 0 )
+QModelBuilderIG::Statistics::Statistics()
+    : d_num_quants_init("QModelBuilderIG::Number_Quantifiers", 0),
+      d_num_partial_quants_init("QModelBuilderIG::Number_Partial_Quantifiers",
+                                0),
+      d_init_inst_gen_lemmas("QModelBuilderIG::Initialize_Inst_Gen_Lemmas", 0),
+      d_inst_gen_lemmas("QModelBuilderIG::Inst_Gen_Lemmas", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_num_quants_init);
   smtStatisticsRegistry()->registerStat(&d_num_partial_quants_init);
   smtStatisticsRegistry()->registerStat(&d_init_inst_gen_lemmas);
   smtStatisticsRegistry()->registerStat(&d_inst_gen_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_eval_formulas);
-  smtStatisticsRegistry()->registerStat(&d_eval_uf_terms);
-  smtStatisticsRegistry()->registerStat(&d_eval_lits);
-  smtStatisticsRegistry()->registerStat(&d_eval_lits_unknown);
 }
 
 QModelBuilderIG::Statistics::~Statistics(){
@@ -482,10 +475,6 @@ QModelBuilderIG::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_num_partial_quants_init);
   smtStatisticsRegistry()->unregisterStat(&d_init_inst_gen_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_inst_gen_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_eval_formulas);
-  smtStatisticsRegistry()->unregisterStat(&d_eval_uf_terms);
-  smtStatisticsRegistry()->unregisterStat(&d_eval_lits);
-  smtStatisticsRegistry()->unregisterStat(&d_eval_lits_unknown);
 }
 
 //do exhaustive instantiation
@@ -558,12 +547,6 @@ int QModelBuilderIG::doExhaustiveInstantiation( FirstOrderModel * fm, Node f, in
         }
       }
       //print debugging information
-      if( fmig ){
-        d_statistics.d_eval_formulas += fmig->d_eval_formulas;
-        d_statistics.d_eval_uf_terms += fmig->d_eval_uf_terms;
-        d_statistics.d_eval_lits += fmig->d_eval_lits;
-        d_statistics.d_eval_lits_unknown += fmig->d_eval_lits_unknown;
-      }
       Trace("inst-fmf-ei") << "For " << f << ", finished: " << std::endl;
       Trace("inst-fmf-ei") << "   Inst Tried: " << d_triedLemmas << std::endl;
       Trace("inst-fmf-ei") << "   Inst Added: " << d_addedLemmas << std::endl;
