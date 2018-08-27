@@ -498,81 +498,6 @@ Node ExtendedRewriter::extendedRewriteIte(Kind itek, Node n, bool full)
         }
       }
     }
-    if (new_ret.isNull())
-    {
-      // look for two level ITE similifications
-      for (unsigned i = 1; i <= 2; i++)
-      {
-        if (n[i].getKind() == itek)
-        {
-          Node no = n[i == 1 ? 2 : 1];
-          TNode tv = n[i][0];
-          for (unsigned j = 1; j <= 2; j++)
-          {
-            // B => ~A implies
-            //   ite( A, x, ite( B, y, z ) ) --> ite( B, y, ite( A, x, z ) )
-            // ~B => ~A implies
-            //   ite( A, x, ite( B, y, z ) ) --> ite( B, ite( A, x, y ), z )
-            // B => A implies
-            //   ite( A, ite( B, y, z ), x ) --> ite( B, y, ite( A, z, x ) )
-            // ~B => A implies
-            //   ite( A, ite( B, y, z ), x ) --> ite( B, ite( A, y, x ), z )
-            TNode ts = j == 1 ? d_false : d_true;
-            Node cr = n[0].substitute(tv, ts);
-            Node crr = Rewriter::rewrite(cr);
-            bool does_imply = false;
-            // top condition always follows into this branch
-            if (crr.isConst() && crr.getConst<bool>() == (i == 1))
-            {
-              does_imply = true;
-            }
-            else
-            {
-              // use simple implies test?
-              // Node bc = j==1 ? n[i][0].negate() : n[i][0];
-              // does_imply = simpleImpliesTest( bc, n[0] )==( i==1 ? 1 : -1 );
-            }
-            if (does_imply)
-            {
-              Node cc = nm->mkNode(
-                  itek, n[0], i == 1 ? n[i][j] : n[1], i == 1 ? n[2] : n[i][j]);
-              new_ret = nm->mkNode(
-                  itek, n[i][0], j == 1 ? cc : n[i][1], j == 1 ? n[i][2] : cc);
-              ss_reason << "ITE level collapse";
-              Trace("q-ext-rewrite-debug") << "ite-level-collapse: " << n
-                                           << " -> " << new_ret << std::endl;
-              break;
-            }
-            else if (crr != n[0] && n[i][j] == no)
-            {
-              // can keep the condition
-              new_ret = nm->mkNode(itek, crr, n[1], n[2]);
-              ss_reason << "ITE level simplify";
-              Trace("q-ext-rewrite-debug")
-                  << "ite-level-simp: " << n << " -> " << new_ret << std::endl;
-              break;
-            }
-          }
-          if (!new_ret.isNull())
-          {
-            break;
-          }
-          // simple implication test
-          Node cond = i == 1 ? n[0] : n[0].negate();
-          int si_res = simpleImpliesTest(cond, n[i][0]);
-          if (si_res != 0)
-          {
-            Node imp_ret = n[i][si_res == 1 ? 1 : 2];
-            new_ret = nm->mkNode(
-                itek, n[0], i == 1 ? imp_ret : n[1], i == 2 ? imp_ret : n[2]);
-            ss_reason << "ITE simple implies";
-            Trace("q-ext-rewrite-debug")
-                << "ite-simple-imp: " << n << " -> " << new_ret << std::endl;
-            break;
-          }
-        }
-      }
-    }
   }
 
   // only print debug trace if full=true
@@ -1698,32 +1623,6 @@ bool ExtendedRewriter::inferSubstitution(Node n,
     return true;
   }
   return false;
-}
-
-int ExtendedRewriter::simpleImpliesTest(Node a, Node b)
-{
-  // if( b.getKind()==NOT && a.getKind()==NOT )
-  //{
-  //  // contrapositive
-  //  return simpleImpliesTest( b.negate(), a.negate() );
-  //}
-  Node aa = a.getKind() == NOT ? a[0] : a;
-  bool apol = a.getKind() != NOT;
-  if (aa.getKind() == GEQ && b.getKind() == GEQ)
-  {
-    if (aa[0] == b[0] && aa[1].isConst() && b[1].isConst())
-    {
-      if (apol && aa[1].getConst<Rational>() >= b[1].getConst<Rational>())
-      {
-        return 1;
-      }
-      else if (!apol && aa[1].getConst<Rational>() <= b[1].getConst<Rational>())
-      {
-        return -1;
-      }
-    }
-  }
-  return 0;
 }
 
 Node ExtendedRewriter::extendedRewriteArith(Node ret)

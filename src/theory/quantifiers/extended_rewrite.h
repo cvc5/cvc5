@@ -216,13 +216,13 @@ class ExtendedRewriter
    * (2) a variable y such that x < y based on an ordering,
    * then this method adds x to vars and y to subs and return true, otherwise
    * it returns false.
+   * If usePred is true, we may additionally add n -> true, or n[0] -> false
+   * is n is a negation.
    */
   bool inferSubstitution(Node n,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs,
                          bool usePred = false);
-  /** simple implies test */
-  int simpleImpliesTest(Node a, Node b);
   /** extended rewrite
    *
    * Prints debug information, indicating the rewrite n ---> ret was found.
