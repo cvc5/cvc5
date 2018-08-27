@@ -140,6 +140,7 @@ void PartitionMerger::initialize(Kind k,
                                  const std::vector<unsigned>& indices)
 {
   d_kind = k;
+  Trace("sym-dt-debug") << "Initialize partition merger..." << std::endl;
   Trace("sym-dt-debug") << "Count variable occurrences..." << std::endl;
   for (unsigned index : indices)
   {
@@ -267,7 +268,8 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
     return false;
   }
   Trace("sym-dt-debug2") << "merge " << curr_index << " / " << d_indices.size()
-                         << std::endl;
+                         << ", merge var : " << merge_var
+                         << ", upper bound for #occ of merge_var : " << num_merge_var_max << std::endl;
   // try to include this index
   unsigned index = d_indices[curr_index];
 
@@ -277,6 +279,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
     Assert(active_indices.find(index) != active_indices.end());
     // check whether it can merge
     Partition& p = partitions[index];
+    Trace("sym-dt-debug2") << "current term is " << p.d_term << std::endl;
     Assert(p.d_subvar_to_vars.size() == 1);
     std::vector<Node>& svs = p.d_subvar_to_vars.begin()->second;
     bool include_success = true;
@@ -334,7 +337,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         include_success = false;
       }
     }
-    else if (!include_success && !merge_var.isNull())
+    else if (!merge_var.isNull() && p.d_var_to_subvar.find(merge_var)!=p.d_var_to_subvar.end())
     {
       // decrement
       num_merge_var_max--;
