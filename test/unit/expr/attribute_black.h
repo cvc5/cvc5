@@ -42,16 +42,17 @@ private:
   SmtEngine* d_smtEngine;
   SmtScope* d_scope;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
     d_smtEngine = new SmtEngine(d_exprManager);
     d_scope = new SmtScope(d_smtEngine);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smtEngine;
     delete d_exprManager;

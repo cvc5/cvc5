@@ -80,16 +80,18 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-
-
-ConjectureGenerator::ConjectureGenerator( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ),
-d_notify( *this ),
-d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-d_ee_conjectures( c ){
-  d_fullEffortCount = 0;
-  d_conj_count = 0;
-  d_subs_confirmCount = 0;
-  d_subs_unkCount = 0;
+ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
+                                         context::Context* c)
+    : QuantifiersModule(qe),
+      d_notify(*this),
+      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
+      d_ee_conjectures(c),
+      d_conj_count(0),
+      d_subs_confirmCount(0),
+      d_subs_unkCount(0),
+      d_fullEffortCount(0),
+      d_hasAddedLemma(false)
+{
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 
@@ -882,9 +884,12 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-                for( unsigned i=0; i<=it->second; i++ ){
-                  bvs.push_back( getFreeVar( it->first, i ) );
+              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+                   d_pattern_var_id[lhs])
+              {
+                for (unsigned i = 0; i <= lhs_pattern.second; i++)
+                {
+                  bvs.push_back(getFreeVar(lhs_pattern.first, i));
                 }
               }
               Node rsg;

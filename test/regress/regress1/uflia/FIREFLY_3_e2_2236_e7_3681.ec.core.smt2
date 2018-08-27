@@ -1,3 +1,6 @@
+; COMMAND-LINE: --incremental
+; EXPECT: sat
+
 (set-logic QF_UFLIA)
 (set-info :smt-lib-version 2.0)
 (declare-fun _base () Int)

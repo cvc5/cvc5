@@ -27,17 +27,13 @@ class CDMapWhite : public CxxTest::TestSuite {
 
   Context* d_context;
 
-public:
+ public:
+  void setUp() override { d_context = new Context; }
 
-  void setUp() {
-    d_context = new Context;
-  }
+  void tearDown() override { delete d_context; }
 
-  void tearDown() {
-    delete d_context;
-  }
-
-  void testUnreachableSaveAndRestore() {
+  void testUnreachableSaveAndRestore()
+  {
     CDHashMap<int, int> map(d_context);
 
     TS_ASSERT_THROWS_NOTHING(map.makeCurrent());

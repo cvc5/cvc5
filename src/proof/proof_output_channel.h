@@ -41,7 +41,6 @@ class ProofOutputChannel : public theory::OutputChannel {
   theory::LemmaStatus lemma(TNode n, ProofRule rule, bool, bool, bool) override;
   theory::LemmaStatus splitLemma(TNode, bool) override;
   void requirePhase(TNode n, bool b) override;
-  bool flipDecision() override;
   void setIncomplete() override;
 
   /** Has conflict() has been called? */

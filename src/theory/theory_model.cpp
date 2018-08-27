@@ -542,36 +542,6 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
   }
 }
 
-//for debugging
-void TheoryModel::printRepresentativeDebug( const char* c, Node r ){
-  if( r.isNull() ){
-    Trace( c ) << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      Trace( c ) << "true";
-    }else{
-      Trace( c ) << "false";
-    }
-  }else{
-    Trace( c ) << getRepresentative( r );
-  }
-}
-
-void TheoryModel::printRepresentative( std::ostream& out, Node r ){
-  Assert( !r.isNull() );
-  if( r.isNull() ){
-    out << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      out  << "true";
-    }else{
-      out  << "false";
-    }
-  }else{
-    out << getRepresentative( r );
-  }
-}
-
 bool TheoryModel::areFunctionValuesEnabled() const
 {
   return d_enableFuncModels;

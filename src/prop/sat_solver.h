@@ -164,8 +164,6 @@ public:
 
   virtual void requirePhase(SatLiteral lit) = 0;
 
-  virtual bool flipDecision() = 0;
-
   virtual bool isDecision(SatVariable decn) const = 0;
 };/* class DPLLSatSolverInterface */
 
