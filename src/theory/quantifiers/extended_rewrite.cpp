@@ -559,7 +559,8 @@ Node ExtendedRewriter::extendedRewritePullIte(Kind itek, Node n)
   for (unsigned i = 0; i < nchildren; i++)
   {
     // only pull ITEs apart if we are aggressive
-    if (n[i].getKind() == itek && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
+    if (n[i].getKind() == itek
+        && (d_aggr || (n[i][1].getKind() != ITE && n[i][2].getKind() != ITE)))
     {
       unsigned ii = hasOp ? i + 1 : i;
       for (unsigned j = 0; j < 2; j++)
