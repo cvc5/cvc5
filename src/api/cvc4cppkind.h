@@ -31,7 +31,7 @@ namespace api {
 /**
  * The kind of a CVC4 term.
  */
-enum CVC4_PUBLIC Kind
+enum CVC4_PUBLIC Kind : int32_t
 {
   /**
    * Internal kind.
