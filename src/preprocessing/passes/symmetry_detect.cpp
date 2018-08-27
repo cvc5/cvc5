@@ -416,7 +416,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
                      active_indices);
 }
 
-SymmetryDetect::SymmetryDetect() : d_tsym_id_counter(0)
+SymmetryDetect::SymmetryDetect() : d_tsym_id_counter(1)
 {
   d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
   d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
@@ -509,8 +509,51 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
   {
     if (sp.second.size() > 1)
     {
-      sterms.push_back(sp.second);
-      // TODO
+      // A naive method would do sterms.push_back(sp.second), that is, say that
+      // the variables themselves are symmetric terms. However, the following
+      // code finds some subterms of assertions that are symmetric under this
+      // set in the variable partition. For example, for the input:
+      //   f(x)+f(y) >= 0
+      // naively {x, y} are reported as symmetric terms, but below ensures we
+      // say {f(x), f(y)} are reported as symmetric terms instead.
+      Node sv = sp.first;
+      Trace("sym-dt-tsym-cons") << "Construct term symmetry from " << sp.second << "..." << std::endl;
+      // choose an arbitrary term symmetry
+      std::vector< unsigned >& tsids = d_var_to_tsym_ids[sp.second[0]];
+      Assert( !tsids.empty() );
+      unsigned tsymId = tsids[tsids.size()-1];
+      Trace("sym-dt-tsym-cons") << "...use tsym id " << tsymId << std::endl;
+      // get the substitution
+      std::vector< Node > vars;
+      std::vector< Node > subs;
+      for( const Node v : sp.second )
+      {
+        vars.push_back(v);
+        subs.push_back(sv);
+      }
+      std::vector< Node >& tsym = d_tsyms[tsymId];
+      // map terms in this symmetry to their final form
+      std::map< Node, std::vector< Node > > t_to_st;
+      for( const Node& tst : tsym )
+      {
+        Node tstr = tst.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+        t_to_st[tstr].push_back(tst);
+      }
+      Node tshUse;
+      for( const std::pair< const Node, std::vector< Node > >& tsh : t_to_st )
+      {
+        Trace("sym-dt-tsym-cons-debug") << "  " << tsh.first << " -> " << tsh.second << std::endl;
+        if( tsh.second.size()>1 )
+        {
+          tshUse = tsh.first;
+          break;
+        }
+      }
+      if( !tshUse.isNull() )
+      {
+        Trace("sym-dt-tsym-cons") << "...got " << t_to_st[tshUse] << std::endl;
+        sterms.push_back( t_to_st[tshUse] );
+      }
     }
   }
 }
