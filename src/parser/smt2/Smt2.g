@@ -1807,19 +1807,16 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = EXPR_MANAGER->mkAssociative(kind, args);
       } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
         expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
-      } else if( ( kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS ) &&
-                 args.size() > 2 ) {
+      }
+      else if ((kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS
+                || kind == CVC4::kind::DIVISION)
+               && args.size() > 2)
+      {
         /* left-associative, but CVC4 internally only supports 2 args */
-        expr = args[0];
-        for(size_t i = 1; i < args.size(); ++i) {
-          expr = MK_EXPR(kind, expr, args[i]);
-        }
+        expr = EXPR_MANAGER->mkLeftAssociative(kind,args);
       } else if( kind == CVC4::kind::IMPLIES && args.size() > 2 ) {
         /* right-associative, but CVC4 internally only supports 2 args */
-        expr = args[args.size() - 1];
-        for(size_t i = args.size() - 1; i > 0;) {
-          expr = MK_EXPR(kind, args[--i], expr);
-        }
+        expr = EXPR_MANAGER->mkRightAssociative(kind,args);
       } else if( ( kind == CVC4::kind::EQUAL ||
                    kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
                    kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
@@ -1959,19 +1956,43 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
-      if(isBuiltinOperator) {
-        PARSER_STATE->checkOperator(kind, args.size());
+      Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
+      if (args.size() >= 2)
+      {
+        if (kind == CVC4::kind::INTS_DIVISION)
+        {
+          // Builtin operators that are not tokenized, are left associative,
+          // but not internally variadic must set this.
+          lassocKind = kind;
+        }
+        else
+        {
+          // may be partially applied function, in this case we use HO_APPLY
+          Type argt = args[0].getType();
+          if (argt.isFunction())
+          {
+            unsigned arity = static_cast<FunctionType>(argt).getArity();
+            if (args.size() - 1 < arity)
+            {
+              Debug("parser") << "Partial application of " << args[0];
+              Debug("parser") << " : #argTypes = " << arity;
+              Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
+              // must curry the partial application
+              lassocKind = CVC4::kind::HO_APPLY;
+            }
+          }
+        }
       }
-      // may be partially applied function, in this case we should use HO_APPLY
-      if( args.size()>=2 && args[0].getType().isFunction() &&
-          (args.size()-1)<((FunctionType)args[0].getType()).getArity() ){
-        Debug("parser") << "Partial application of " << args[0];
-        Debug("parser") << " : #argTypes = " << ((FunctionType)args[0].getType()).getArity();
-        Debug("parser") << ", #args = " << args.size()-1 << std::endl;
-        // must curry the application
-        expr = args[0];
-        expr = PARSER_STATE->mkHoApply( expr, args, 1 );
-      }else{
+      if (lassocKind != CVC4::kind::UNDEFINED_KIND)
+      {
+        expr = EXPR_MANAGER->mkLeftAssociative(lassocKind, args);
+      }
+      else
+      {
+        if (isBuiltinOperator)
+        {
+          PARSER_STATE->checkOperator(kind, args.size());
+        }
         expr = MK_EXPR(kind, args);
       }
     }
