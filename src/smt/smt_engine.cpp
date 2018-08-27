@@ -86,7 +86,6 @@
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifier_macros.h"
-#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
 #include "preprocessing/passes/rewrite.h"
@@ -97,6 +96,7 @@
 #include "preprocessing/passes/symmetry_breaker.h"
 #include "preprocessing/passes/symmetry_detect.h"
 #include "preprocessing/passes/synth_rew_rules.h"
+#include "preprocessing/passes/theory_preprocess.h"
 #include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -205,8 +205,6 @@ struct SmtEngineStatistics {
   IntStat d_numMiplibAssertionsRemoved;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
-  /** time spent in theory preprocessing */
-  TimerStat d_theoryPreprocessTime;
   /** time spent converting to CNF */
   TimerStat d_cnfConversionTime;
   /** Num of assertions before ite removal */
@@ -237,7 +235,6 @@ struct SmtEngineStatistics {
     d_miplibPassTime("smt::SmtEngine::miplibPassTime"),
     d_numMiplibAssertionsRemoved("smt::SmtEngine::numMiplibAssertionsRemoved", 0),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_theoryPreprocessTime("smt::SmtEngine::theoryPreprocessTime"),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
     d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
@@ -255,7 +252,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_miplibPassTime);
     smtStatisticsRegistry()->registerStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-    smtStatisticsRegistry()->registerStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
@@ -275,7 +271,6 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_miplibPassTime);
     smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-    smtStatisticsRegistry()->unregisterStat(&d_theoryPreprocessTime);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
@@ -2669,6 +2664,8 @@ void SmtEnginePrivate::finishInit()
       new SynthRewRulesPass(d_preprocessingPassContext.get()));
   std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
       new SepSkolemEmp(d_preprocessingPassContext.get()));
+  std::unique_ptr<TheoryPreprocess> theoryPreprocess(
+      new TheoryPreprocess(d_preprocessingPassContext.get()));
   std::unique_ptr<UnconstrainedSimplifier> unconstrainedSimplifier(
       new UnconstrainedSimplifier(d_preprocessingPassContext.get()));
   d_preprocessingPassRegistry.registerPass("apply-substs",
@@ -2713,6 +2710,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(sygusInfer));
   d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
   d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
+  d_preprocessingPassRegistry.registerPass("theory-preprocess",
+                                           std::move(theoryPreprocess));
   d_preprocessingPassRegistry.registerPass("quantifier-macros",
                                            std::move(quantifierMacros));
   d_preprocessingPassRegistry.registerPass("unconstrained-simplifier",
@@ -3699,16 +3698,11 @@ bool SmtEnginePrivate::simplifyAssertions()
     dumpAssertions("pre-theorypp", d_assertions);
 
     // Theory preprocessing
-    if (d_smt.d_earlyTheoryPP) {
+    if (d_smt.d_earlyTheoryPP)
+    {
       Chat() << "...doing early theory preprocessing..." << endl;
-      TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
-      // Call the theory preprocessors
-      d_smt.d_theoryEngine->preprocessStart();
-      for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-        Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-        d_assertions.replace(i, d_smt.d_theoryEngine->preprocess(d_assertions[i]));
-        Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
-      }
+      d_preprocessingPassRegistry.getPass("theory-preprocess")
+          ->apply(&d_assertions);
     }
 
     dumpAssertions("post-theorypp", d_assertions);
@@ -4245,15 +4239,9 @@ void SmtEnginePrivate::processAssertions() {
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-theory-preprocessing" << endl;
   dumpAssertions("pre-theory-preprocessing", d_assertions);
-  {
-    Chat() << "theory preprocessing..." << endl;
-    TimerStat::CodeTimer codeTimer(d_smt.d_stats->d_theoryPreprocessTime);
-    // Call the theory preprocessors
-    d_smt.d_theoryEngine->preprocessStart();
-    for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_assertions.replace(i, d_smt.d_theoryEngine->preprocess(d_assertions[i]));
-    }
-  }
+  Chat() << "theory preprocessing..." << endl;
+  d_preprocessingPassRegistry.getPass("theory-preprocess")
+      ->apply(&d_assertions);
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
   dumpAssertions("post-theory-preprocessing", d_assertions);
 
