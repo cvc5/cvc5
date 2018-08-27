@@ -37,16 +37,17 @@ class TypeNodeWhite : public CxxTest::TestSuite {
   NodeManagerScope* d_scope;
   SmtEngine* d_smt;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = d_em->getNodeManager();
     d_smt = new SmtEngine(d_em);
     d_scope = new NodeManagerScope(d_nm);
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_scope;
     delete d_smt;
     delete d_em;

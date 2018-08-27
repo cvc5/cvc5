@@ -74,10 +74,6 @@ void QuantAttributes::setUserAttribute( const std::string& attr, Node n, std::ve
     Trace("quant-attr-debug") << "Set sygus synth fun var list to " << n << " to "  << node_values[0] << std::endl;
     SygusSynthFunVarListAttribute ssfvla;
     n.setAttribute( ssfvla, node_values[0] );
-  }else if( attr=="synthesis" ){
-    Trace("quant-attr-debug") << "Set synthesis " << n << std::endl;
-    SynthesisAttribute ca;
-    n.setAttribute( ca, true );
   }else if( attr=="quant-inst-max-level" ){
     Assert( node_values.size()==1 );
     uint64_t lvl = node_values[0].getConst<Rational>().getNumerator().getLong();
@@ -238,12 +234,6 @@ void QuantAttributes::computeAttributes( Node q ) {
     }
     d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
   }
-  if( d_qattr[q].d_synthesis ){
-    if( d_quantEngine->getCegInstantiation()==NULL ){
-      Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
-    }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
-  }
 }
 
 void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
@@ -281,10 +271,6 @@ void QuantAttributes::computeQuantAttributes( Node q, QAttributes& qa ){
           Trace("quant-attr") << "Attribute : quantifier name : " << avar
                               << " for " << q << std::endl;
           qa.d_name = avar;
-        }
-        if( avar.getAttribute(SynthesisAttribute()) ){
-          Trace("quant-attr") << "Attribute : synthesis : " << q << std::endl;
-          qa.d_synthesis = true;
         }
         if( avar.hasAttribute(QuantInstLevelAttribute()) ){
           qa.d_qinstLevel = avar.getAttribute(QuantInstLevelAttribute());
@@ -352,15 +338,6 @@ bool QuantAttributes::isSygus( Node q ) {
     return false;
   }else{
     return it->second.d_sygus;
-  }
-}
-
-bool QuantAttributes::isSynthesis( Node q ) {
-  std::map< Node, QAttributes >::iterator it = d_qattr.find( q );
-  if( it==d_qattr.end() ){
-    return false;
-  }else{
-    return it->second.d_synthesis;
   }
 }
 

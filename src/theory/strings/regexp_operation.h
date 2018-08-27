@@ -48,7 +48,6 @@ class RegExpOpr {
   Node d_emptyRegexp;
   Node d_zero;
   Node d_one;
-  CVC4::Rational RMAXINT;
 
   Node d_sigma;
   Node d_sigma_star;

@@ -1,0 +1,17 @@
+; EXPECT: (define-fun triv ((x Int) (y Int)) Int x)
+; EXPECT: (define-fun triv ((x Int) (y Int)) Int y)
+; EXPECT: (error "Maximum term size (0) for enumerative SyGuS exceeded.")
+; EXIT: 1
+
+; COMMAND-LINE: --sygus-stream --sygus-abort-size=0
+
+(set-logic LIA)
+
+(synth-fun triv ((x Int) (y Int)) Int
+    ((Start Int (x
+                 y
+                 (+ Start Start)
+                 ))
+          ))
+
+(check-synth)

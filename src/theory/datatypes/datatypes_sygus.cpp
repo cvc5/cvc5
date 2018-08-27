@@ -887,33 +887,30 @@ Node SygusSymBreakNew::registerSearchValue(
           std::ostream* out = nodeManagerOptions.getOut();
           (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
           // debugging information
-          if (Trace.isOn("sygus-rr-debug"))
+          int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
+          if (pt_index >= 0)
           {
-            int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
-            if (pt_index >= 0)
+            (*out) << "; unsound: are not equivalent for : " << std::endl;
+            std::vector<Node> vars;
+            its->second.getVariables(vars);
+            std::vector<Node> pt;
+            its->second.getSamplePoint(pt_index, pt);
+            Assert(vars.size() == pt.size());
+            for (unsigned i = 0, size = pt.size(); i < size; i++)
             {
-              Trace("sygus-rr-debug")
-                  << "; unsound: are not equivalent for : " << std::endl;
-              std::vector<Node> vars;
-              std::vector<Node> pt;
-              its->second.getSamplePoint(pt_index, vars, pt);
-              Assert(vars.size() == pt.size());
-              for (unsigned i = 0, size = pt.size(); i < size; i++)
-              {
-                Trace("sygus-rr-debug") << "; unsound:    " << vars[i] << " -> "
-                                        << pt[i] << std::endl;
-              }
-              Node bv_e = its->second.evaluate(bv, pt_index);
-              Node pbv_e = its->second.evaluate(bvr, pt_index);
-              Assert(bv_e != pbv_e);
-              Trace("sygus-rr-debug") << "; unsound: where they evaluate to "
-                                      << bv_e << " and " << pbv_e << std::endl;
+              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
+                     << std::endl;
             }
-            else
-            {
-              // no witness point found?
-              Assert(false);
-            }
+            Node bv_e = its->second.evaluate(bv, pt_index);
+            Node pbv_e = its->second.evaluate(bvr, pt_index);
+            Assert(bv_e != pbv_e);
+            (*out) << "; unsound: where they evaluate to " << bv_e << " and "
+                   << pbv_e << std::endl;
+          }
+          else
+          {
+            // no witness point found?
+            Assert(false);
           }
           if (options::sygusRewVerifyAbort())
           {
@@ -1448,7 +1445,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
       {
         std::stringstream ss;
         ss << "Maximum term size (" << options::sygusAbortSize()
-           << ") for enumerative SyGuS exceeded." << std::endl;
+           << ") for enumerative SyGuS exceeded.";
         throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );

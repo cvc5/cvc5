@@ -260,7 +260,7 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
-   * The name of the input (if any).
+   * The input file name (if any) or the name set through setInfo (if any)
    */
   std::string d_filename;
 
@@ -282,6 +282,14 @@ class CVC4_PUBLIC SmtEngine {
    * Check that a generated proof (via getProof()) checks.
    */
   void checkProof();
+
+  /**
+   * Internal method to get an unsatisfiable core (only if immediately preceded
+   * by an UNSAT or VALID query). Only permitted if CVC4 was built with
+   * unsat-core support and produce-unsat-cores is on. Does not dump the
+   * command.
+   */
+  UnsatCore getUnsatCoreInternal();
 
   /**
    * Check that an unsatisfiable core is indeed unsatisfiable.
@@ -486,6 +494,10 @@ class CVC4_PUBLIC SmtEngine {
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
 
+  /** sets the input name */
+  void setFilename(std::string filename);
+  /** return the input name (if any) */
+  std::string getFilename() const;
   /**
    * Get the model (only if immediately preceded by a SAT
    * or INVALID query).  Only permitted if CVC4 was built with model

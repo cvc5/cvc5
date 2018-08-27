@@ -235,7 +235,6 @@ private:
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  CVC4::Rational RMAXINT;
   unsigned d_card_size;
   // Helper functions
   Node getRepresentative( Node t );

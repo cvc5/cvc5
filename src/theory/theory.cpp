@@ -22,6 +22,7 @@
 #include <string>
 
 #include "base/cvc4_assert.h"
+#include "expr/node_algorithm.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/ext_theory.h"
 #include "theory/quantifiers_engine.h"
@@ -283,27 +284,31 @@ void Theory::computeRelevantTerms(set<Node>& termSet,
   }
 }
 
-
 Theory::PPAssertStatus Theory::ppAssert(TNode in,
                                         SubstitutionMap& outSubstitutions)
 {
-  if (in.getKind() == kind::EQUAL) {
+  if (in.getKind() == kind::EQUAL)
+  {
     // (and (= x t) phi) can be replaced by phi[x/t] if
     // 1) x is a variable
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
-    if (in[0].isVar() && !in[1].hasSubterm(in[0]) &&
-        (in[1].getType()).isSubtypeOf(in[0].getType()) ){
+    if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
+        && (in[1].getType()).isSubtypeOf(in[0].getType()))
+    {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[1].isVar() && !in[0].hasSubterm(in[1]) &&
-        (in[0].getType()).isSubtypeOf(in[1].getType())){
+    if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
+        && (in[0].getType()).isSubtypeOf(in[1].getType()))
+    {
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
     }
-    if (in[0].isConst() && in[1].isConst()) {
-      if (in[0] != in[1]) {
+    if (in[0].isConst() && in[1].isConst())
+    {
+      if (in[0] != in[1])
+      {
         return PP_ASSERT_STATUS_CONFLICT;
       }
     }

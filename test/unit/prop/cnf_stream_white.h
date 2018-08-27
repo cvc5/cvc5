@@ -49,31 +49,34 @@ class FakeSatSolver : public SatSolver {
  public:
   FakeSatSolver() : d_nextVar(0), d_addClauseCalled(false) {}
 
-  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) {
+  SatVariable newVar(bool theoryAtom, bool preRegister, bool canErase) override
+  {
     return d_nextVar++;
   }
 
-  SatVariable trueVar() { return d_nextVar++; }
+  SatVariable trueVar() override { return d_nextVar++; }
 
-  SatVariable falseVar() { return d_nextVar++; }
+  SatVariable falseVar() override { return d_nextVar++; }
 
-  ClauseId addClause(SatClause& c, bool lemma) {
+  ClauseId addClause(SatClause& c, bool lemma) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) {
+  ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) override
+  {
     d_addClauseCalled = true;
     return ClauseIdUndef;
   }
 
-  bool nativeXor() { return false; }
+  bool nativeXor() override { return false; }
 
   void reset() { d_addClauseCalled = false; }
 
   unsigned int addClauseCalled() { return d_addClauseCalled; }
 
-  unsigned getAssertionLevel() const { return 0; }
+  unsigned getAssertionLevel() const override { return 0; }
 
   bool isDecision(Node) const { return false; }
 
@@ -83,19 +86,22 @@ class FakeSatSolver : public SatSolver {
 
   bool spendResource() { return false; }
 
-  void interrupt() {}
+  void interrupt() override {}
 
-  SatValue solve() { return SAT_VALUE_UNKNOWN; }
+  SatValue solve() override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue solve(long unsigned int& resource) { return SAT_VALUE_UNKNOWN; }
+  SatValue solve(long unsigned int& resource) override
+  {
+    return SAT_VALUE_UNKNOWN;
+  }
 
-  SatValue value(SatLiteral l) { return SAT_VALUE_UNKNOWN; }
+  SatValue value(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
-  SatValue modelValue(SatLiteral l) { return SAT_VALUE_UNKNOWN; }
+  SatValue modelValue(SatLiteral l) override { return SAT_VALUE_UNKNOWN; }
 
   bool properExplanation(SatLiteral lit, SatLiteral expl) const { return true; }
 
-  bool ok() const { return true; }
+  bool ok() const override { return true; }
 
 }; /* class FakeSatSolver */
 
@@ -122,7 +128,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
   SmtScope* d_scope;
   SmtEngine* d_smt;
 
-  void setUp() {
+  void setUp() override
+  {
     d_exprManager = new ExprManager();
     d_smt = new SmtEngine(d_exprManager);
     d_smt->d_logic.lock();
@@ -138,7 +145,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
         d_satSolver, d_cnfRegistrar, d_cnfContext, d_smt->channels());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_cnfStream;
     delete d_cnfContext;
     delete d_cnfRegistrar;

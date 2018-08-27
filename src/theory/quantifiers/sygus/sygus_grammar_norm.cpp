@@ -74,8 +74,44 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize") << "...for " << cons.getName() << "\n";
   /* Recover the sygus operator to not lose reference to the original
    * operator (NOT, ITE, etc) */
+  Node sygus_op = Node::fromExpr(cons.getSygusOp());
   Node exp_sop_n = Node::fromExpr(
-      smt::currentSmtEngine()->expandDefinitions(cons.getSygusOp()));
+      smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
+  if (exp_sop_n.getKind() == kind::BUILTIN)
+  {
+    Kind ok = NodeManager::operatorToKind(sygus_op);
+    Kind nk = ok;
+    Trace("sygus-grammar-normalize-debug")
+        << "...builtin operator is " << ok << std::endl;
+    // We also must ensure that builtin operators which are eliminated
+    // during expand definitions are replaced by the proper operator.
+    if (ok == kind::BITVECTOR_UDIV)
+    {
+      nk = kind::BITVECTOR_UDIV_TOTAL;
+    }
+    else if (ok == kind::BITVECTOR_UREM)
+    {
+      nk = kind::BITVECTOR_UREM_TOTAL;
+    }
+    else if (ok == kind::DIVISION)
+    {
+      nk = kind::DIVISION_TOTAL;
+    }
+    else if (ok == kind::INTS_DIVISION)
+    {
+      nk = kind::INTS_DIVISION_TOTAL;
+    }
+    else if (ok == kind::INTS_MODULUS)
+    {
+      nk = kind::INTS_MODULUS_TOTAL;
+    }
+    if (nk != ok)
+    {
+      Trace("sygus-grammar-normalize-debug")
+          << "...replace by builtin operator " << nk << std::endl;
+      exp_sop_n = NodeManager::currentNM()->operatorOf(nk);
+    }
+  }
   d_ops.push_back(Rewriter::rewrite(exp_sop_n));
   Trace("sygus-grammar-normalize-defs")
       << "\tOriginal op: " << cons.getSygusOp()
@@ -515,7 +551,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   Assert(d_dt_all.size() == d_unres_t_all.size());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          d_dt_all, d_unres_t_all);
+          d_dt_all, d_unres_t_all, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

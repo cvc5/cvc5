@@ -64,7 +64,6 @@ class FakeOutputChannel : public OutputChannel {
     Unimplemented();
   }
   void requirePhase(TNode, bool) override { Unimplemented(); }
-  bool flipDecision() override { Unimplemented(); }
   void setIncomplete() override { Unimplemented(); }
   void handleUserAttribute(const char* attr, Theory* t) override {
     Unimplemented();

@@ -69,16 +69,20 @@ inline InputIterator find_if_unique(InputIterator first, InputIterator last, Pre
 }
 
 template <typename T>
-void container_to_stream(std::ostream& out, const T& container)
+void container_to_stream(std::ostream& out,
+                         const T& container,
+                         const char* prefix = "[",
+                         const char* postfix = "]",
+                         const char* sep = ", ")
 {
-  out << "[";
+  out << prefix;
   bool is_first = true;
   for (const auto& item : container)
   {
-    out << (!is_first ? ", " : "") << item;
+    out << (!is_first ? sep : "") << item;
     is_first = false;
   }
-  out << "]";
+  out << postfix;
 }
 
 }/* CVC4 namespace */

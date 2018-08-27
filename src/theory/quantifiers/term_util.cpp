@@ -15,6 +15,7 @@
 #include "theory/quantifiers/term_util.h"
 
 #include "expr/datatype.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
@@ -582,7 +583,7 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
     //rewriting infinity always takes precedence over rewriting delta
     for( unsigned r=0; r<2; r++ ){
       Node inf = getVtsInfinityIndex( r, false, false );
-      if (!inf.isNull() && n.hasSubterm(inf))
+      if (!inf.isNull() && expr::hasSubterm(n, inf))
       {
         if( rew_vts_inf.isNull() ){
           rew_vts_inf = inf;
@@ -595,16 +596,17 @@ Node TermUtil::rewriteVtsSymbols( Node n ) {
           subs_lhs.push_back( rew_vts_inf );
           n = n.substitute( subs_lhs.begin(), subs_lhs.end(), subs_rhs.begin(), subs_rhs.end() );
           n = Rewriter::rewrite( n );
-          //may have cancelled
-          if (!n.hasSubterm(rew_vts_inf))
+          // may have cancelled
+          if (!expr::hasSubterm(n, rew_vts_inf))
           {
             rew_vts_inf = Node::null();
           }
         }
       }
     }
-    if( rew_vts_inf.isNull() ){
-      if (!d_vts_delta.isNull() && n.hasSubterm(d_vts_delta))
+    if (rew_vts_inf.isNull())
+    {
+      if (!d_vts_delta.isNull() && expr::hasSubterm(n, d_vts_delta))
       {
         rew_delta = true;
       }

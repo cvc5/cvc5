@@ -200,8 +200,6 @@ public:
       void getNumExternalDisequalities(std::map< Node, int >& num_ext_disequalities );
       /** check for cliques */
       bool check( Theory::Effort level, int cardinality, std::vector< Node >& clique );
-      /** get candidate clique */
-      bool getCandidateClique( int cardinality, std::vector< Node >& clique );
       //print debug
       void debugPrint( const char* c, bool incClique = false );
 
@@ -260,26 +258,6 @@ public:
     void addCliqueLemma( std::vector< Node >& clique, OutputChannel* out );
     /** add totality axiom */
     void addTotalityAxiom( Node n, int cardinality, OutputChannel* out );
-
-    class NodeTrie {
-    public:
-      bool add( std::vector< Node >& n, unsigned i = 0 ){
-        Assert( i<n.size() );
-        if( i==(n.size()-1) ){
-          bool ret = d_children.find( n[i] )==d_children.end();
-          d_children[n[i]].d_children.clear();
-          return ret;
-        }else{
-          return d_children[n[i]].add( n, i+1 );
-        }
-      }
-    private:
-      std::map< Node, NodeTrie > d_children;
-    }; /* class NodeTrie */
-
-    std::map< int, NodeTrie > d_clique_trie;
-    void addClique( int c, std::vector< Node >& clique );
-
     /** Are we in conflict */
     context::CDO<bool> d_conflict;
     /** cardinality */
@@ -338,8 +316,6 @@ public:
     void propagate( Theory::Effort level, OutputChannel* out );
     /** get next decision request */
     Node getNextDecisionRequest();
-    /** minimize */
-    bool minimize( OutputChannel* out, TheoryModel* m );
     /** assert cardinality */
     void assertCardinality( OutputChannel* out, int c, bool val );
     /** is in conflict */
@@ -393,8 +369,6 @@ public:
   Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */
   void preRegisterTerm( TNode n );
-  /** notify restart */
-  void notifyRestart();
   /** identify */
   std::string identify() const { return std::string("StrongSolverTheoryUF"); }
   //print debug
@@ -407,8 +381,6 @@ public:
   int getCardinality( Node n );
   /** get cardinality for type */
   int getCardinality( TypeNode tn );
-  /** minimize */
-  bool minimize( TheoryModel* m = NULL );
   /** has eqc */
   bool hasEqc(Node a);
 

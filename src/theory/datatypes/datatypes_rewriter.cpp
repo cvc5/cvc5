@@ -186,7 +186,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
-Kind getOperatorKindForSygusBuiltin(Node op)
+Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
 {
   Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
@@ -212,7 +212,7 @@ Kind getOperatorKindForSygusBuiltin(Node op)
   {
     return APPLY_UF;
   }
-  return NodeManager::operatorToKind(op);
+  return UNDEFINED_KIND;
 }
 
 Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
@@ -432,18 +432,6 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
                            NodeManager::currentNM()->mkConst(true));
   }
   // could try dt.getNumConstructors()==2 && indexOf(in.getOperator())==1 ?
-  else if (!options::dtUseTesters())
-  {
-    unsigned tindex = indexOf(in.getOperator());
-    Trace("datatypes-rewrite-debug") << "Convert " << in << " to equality "
-                                     << in[0] << " " << tindex << std::endl;
-    Node neq = mkTester(in[0], tindex, dt);
-    Assert(neq != in);
-    Trace("datatypes-rewrite")
-        << "DatatypesRewriter::postRewrite: Rewrite tester " << in << " to "
-        << neq << std::endl;
-    return RewriteResponse(REWRITE_AGAIN_FULL, neq);
-  }
   return RewriteResponse(REWRITE_DONE, in);
 }
 
@@ -552,64 +540,19 @@ int DatatypesRewriter::isInstCons(Node t, Node n, const Datatype& dt)
 
 int DatatypesRewriter::isTester(Node n, Node& a)
 {
-  if (options::dtUseTesters())
+  if (n.getKind() == kind::APPLY_TESTER)
   {
-    if (n.getKind() == kind::APPLY_TESTER)
-    {
-      a = n[0];
-      return indexOf(n.getOperator());
-    }
-  }
-  else
-  {
-    if (n.getKind() == kind::EQUAL)
-    {
-      for (int i = 1; i >= 0; i--)
-      {
-        if (n[i].getKind() == kind::APPLY_CONSTRUCTOR)
-        {
-          const Datatype& dt =
-              Datatype::datatypeOf(n[i].getOperator().toExpr());
-          int ic = isInstCons(n[1 - i], n[i], dt);
-          if (ic != -1)
-          {
-            a = n[1 - i];
-            return ic;
-          }
-        }
-      }
-    }
+    a = n[0];
+    return indexOf(n.getOperator());
   }
   return -1;
 }
 
 int DatatypesRewriter::isTester(Node n)
 {
-  if (options::dtUseTesters())
+  if (n.getKind() == kind::APPLY_TESTER)
   {
-    if (n.getKind() == kind::APPLY_TESTER)
-    {
-      return indexOf(n.getOperator().toExpr());
-    }
-  }
-  else
-  {
-    if (n.getKind() == kind::EQUAL)
-    {
-      for (int i = 1; i >= 0; i--)
-      {
-        if (n[i].getKind() == kind::APPLY_CONSTRUCTOR)
-        {
-          const Datatype& dt =
-              Datatype::datatypeOf(n[i].getOperator().toExpr());
-          int ic = isInstCons(n[1 - i], n[i], dt);
-          if (ic != -1)
-          {
-            return ic;
-          }
-        }
-      }
-    }
+    return indexOf(n.getOperator().toExpr());
   }
   return -1;
 }
@@ -634,21 +577,8 @@ unsigned DatatypesRewriter::indexOf(Node n)
 
 Node DatatypesRewriter::mkTester(Node n, int i, const Datatype& dt)
 {
-  if (options::dtUseTesters())
-  {
-    return NodeManager::currentNM()->mkNode(
-        kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
-  }
-#ifdef CVC4_ASSERTIONS
-  Node ret = n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
-  Node a;
-  int ii = isTester(ret, a);
-  Assert(ii == i);
-  Assert(a == n);
-  return ret;
-#else
-  return n.eqNode(DatatypesRewriter::getInstCons(n, dt, i));
-#endif
+  return NodeManager::currentNM()->mkNode(
+      kind::APPLY_TESTER, Node::fromExpr(dt[i].getTester()), n);
 }
 
 Node DatatypesRewriter::mkSplit(Node n, const Datatype& dt)

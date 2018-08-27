@@ -986,7 +986,6 @@ ValidityChecker::ValidityChecker(const CLFlags& clflags)
   d_smt = d_solver->getSmtEngine();
   d_em = reinterpret_cast<ExprManager*>(d_solver->getExprManager());
   s_validityCheckers[d_em] = this;
-  d_smt = new CVC4::SmtEngine(d_em);
   setUpOptions(d_options, *d_clflags);
   d_parserContext = CVC4::parser::ParserBuilder(d_solver.get(), "<internal>")
                         .withInputLanguage(CVC4::language::input::LANG_CVC4)
