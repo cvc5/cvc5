@@ -106,18 +106,20 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
 
 Kind SymmetryBreaker::getOrderKind(Node node)
 {
-  if (node.getType().isInteger() || node.getType().isReal())
+  TypeNode tn = node.getType();
+  if( tn.isBoolean() )
+  {
+    return kind::IMPLIES;
+  }
+  else if (tn.isReal())
   {
     return kind::LEQ;
   }
-  else if (node.getType().isBitVector())
+  else if (tn.isBitVector())
   {
     return kind::BITVECTOR_ULE;
   }
-  else
-  {
-    return kind::EQUAL;
-  }
+  return kind::EQUAL;
 }
 
 SymBreakerPass::SymBreakerPass(PreprocessingPassContext* preprocContext)
