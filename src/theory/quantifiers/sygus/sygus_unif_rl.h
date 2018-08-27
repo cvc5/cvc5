@@ -267,6 +267,7 @@ class SygusUnifRl : public SygusUnif
     class PointSeparator : public LazyTrieEvaluator
     {
      public:
+       PointSeparator() : d_dt(nullptr) {}
       /** initializes this class */
       void initialize(DecisionTreeInfo* dt);
       /**
