@@ -148,10 +148,6 @@ class QModelBuilderIG : public QModelBuilder
     IntStat d_num_partial_quants_init;
     IntStat d_init_inst_gen_lemmas;
     IntStat d_inst_gen_lemmas;
-    IntStat d_eval_formulas;
-    IntStat d_eval_uf_terms;
-    IntStat d_eval_lits;
-    IntStat d_eval_lits_unknown;
     Statistics();
     ~Statistics();
   };

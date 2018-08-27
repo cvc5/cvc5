@@ -34,7 +34,6 @@ RegExpOpr::RegExpOpr()
                                                      std::vector<Node>{})),
       d_zero(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
       d_one(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
-      RMAXINT(LONG_MAX),
       d_sigma(NodeManager::currentNM()->mkNode(kind::REGEXP_SIGMA,
                                                std::vector<Node>{})),
       d_sigma_star(NodeManager::currentNM()->mkNode(kind::REGEXP_STAR, d_sigma))
@@ -1137,7 +1136,8 @@ bool RegExpOpr::isPairNodesInSet(std::set< PairNodes > &s, Node n1, Node n2) {
 
 bool RegExpOpr::containC2(unsigned cnt, Node n) {
   if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in RegExpOpr::containC2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
+           "Exceeded UINT32_MAX in RegExpOpr::containC2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     return cnt == y;
   } else if(n.getKind() == kind::REGEXP_CONCAT) {
@@ -1178,7 +1178,8 @@ void RegExpOpr::convert2(unsigned cnt, Node n, Node &r1, Node &r2) {
     r1 = d_emptySingleton;
     r2 = d_emptySingleton;
   } else if(n.getKind() == kind::REGEXP_RV) {
-    Assert(n[0].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in RegExpOpr::convert2");
+    Assert(n[0].getConst<Rational>() <= Rational(String::maxSize()),
+           "Exceeded UINT32_MAX in RegExpOpr::convert2");
     unsigned y = n[0].getConst<Rational>().getNumerator().toUnsignedInt();
     r1 = d_emptySingleton;
     if(cnt == y) {
