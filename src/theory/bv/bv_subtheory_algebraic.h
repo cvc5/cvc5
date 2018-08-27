@@ -181,7 +181,7 @@ class AlgebraicSolver : public SubtheorySolver {
   uint64_t d_numSolved;
   uint64_t d_numCalls;
 
-  /**< separate quickXplain module as it can reuse the current SAT solver */
+  /** separate quickXplain module as it can reuse the current SAT solver */
   std::unique_ptr<QuickXPlain> d_quickXplain;
 
   Statistics d_statistics;

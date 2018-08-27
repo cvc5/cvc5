@@ -145,7 +145,6 @@ bool BVQuickCheck::collectModelInfo(theory::TheoryModel* model, bool fullModel)
 
 BVQuickCheck::~BVQuickCheck() {
   clearSolver();
-  d_bitblaster.reset();
 }
 
 QuickXPlain::QuickXPlain(const std::string& name, BVQuickCheck* solver, unsigned long budget)
