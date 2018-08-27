@@ -107,7 +107,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
 Kind SymmetryBreaker::getOrderKind(Node node)
 {
   TypeNode tn = node.getType();
-  if( tn.isBoolean() )
+  if (tn.isBoolean())
   {
     return kind::IMPLIES;
   }
@@ -135,7 +135,7 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   symd.computeTerms(sterms, assertionsToPreprocess->ref());
   if (Trace.isOn("sym-break-pass"))
   {
-    if( sterms.empty() )
+    if (sterms.empty())
     {
       Trace("sym-break-pass") << "Detected no symmetric terms." << std::endl;
     }
