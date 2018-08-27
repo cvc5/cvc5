@@ -225,15 +225,6 @@ header = "options/quantifiers_options.h"
   help       = "infer equalities for trigger terms based on solving arithmetic equalities"
 
 [[option]]
-  name       = "inferArithTriggerEqExp"
-  category   = "regular"
-  long       = "infer-arith-trigger-eq-exp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "record explanations for inferArithTriggerEq"
-
-[[option]]
   name       = "strictTriggers"
   category   = "regular"
   long       = "strict-triggers"

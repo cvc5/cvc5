@@ -1036,8 +1036,11 @@ int TransitionInference::incrementTrace( DetTrace& dt, Node loc, bool fwd ) {
     }
   }
   if( fwd ){
-    std::map< Node, std::map< Node, Node > >::iterator it = d_com[0].d_const_eq.find( loc );
-    if( it!=d_com[0].d_const_eq.end() ){
+    Component& cm = d_com[0];
+    std::map<Node, std::map<Node, Node> >::iterator it =
+        cm.d_const_eq.find(loc);
+    if (it != cm.d_const_eq.end())
+    {
       std::vector< Node > next;
       for( unsigned i=0; i<d_prime_vars.size(); i++ ){
         Node pv = d_prime_vars[i];

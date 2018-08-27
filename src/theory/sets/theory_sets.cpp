@@ -28,10 +28,16 @@ TheorySets::TheorySets(context::Context* c,
                        const LogicInfo& logicInfo)
     : Theory(THEORY_SETS, c, u, out, valuation, logicInfo),
       d_internal(new TheorySetsPrivate(*this, c, u))
-{}
+{
+  // Do not move me to the header.
+  // The constructor + destructor are not in the header as d_internal is a
+  // unique_ptr<TheorySetsPrivate> and TheorySetsPrivate is an opaque type in
+  // the header (Pimpl). See https://herbsutter.com/gotw/_100/ .
+}
 
-TheorySets::~TheorySets() {
-  delete d_internal;
+TheorySets::~TheorySets()
+{
+  // Do not move me to the header. See explanation in the constructor.
 }
 
 void TheorySets::addSharedTerm(TNode n) {

@@ -100,8 +100,6 @@ public:
   Node getGuard();
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
-  /** does this conjecture correspond to a syntax-guided synthesis input */
-  bool isSyntaxGuided() const { return d_syntax_guided; }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
   /** preregister conjecture 
@@ -258,14 +256,6 @@ private:
    */
   void printAndContinueStream();
   //-------------------------------- end sygus stream
-  //-------------------------------- non-syntax guided (deprecated)
-  /** Whether we are syntax-guided (e.g. was the input in SyGuS format).
-   * This includes SyGuS inputs where no syntactic restrictions are provided.
-   */
-  bool d_syntax_guided;
-  /** the guard for non-syntax-guided synthesis */
-  Node d_nsg_guard;
-  //-------------------------------- end non-syntax guided (deprecated)
   /** expression miner managers for each program variable
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
