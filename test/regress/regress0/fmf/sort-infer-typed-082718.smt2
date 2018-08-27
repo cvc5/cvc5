@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sort-inference --finite-model-find
+; COMMAND-LINE: --sort-inference --finite-model-find --no-check-unsat-cores
 ; EXPECT: unsat
 (set-option :incremental false)
 (set-logic ALL)

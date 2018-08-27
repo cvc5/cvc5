@@ -369,8 +369,16 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
       }else{
         for( size_t i=0; i<n[0].getNumChildren(); i++ ){
           //apply sort inference to quantified variables
-          d_var_types[n][n[0][i]] = d_sortCount;
-          d_sortCount++;
+          TypeNode nitn = n[0][i].getType();
+          if( !nitn.isSort() )
+          {
+            d_var_types[n][n[0][i]] = getIdForType( nitn );
+          }
+          else
+          {
+            d_var_types[n][n[0][i]] = d_sortCount;
+            d_sortCount++;
+          }
 
           //type of the quantified variable must be the same
           var_bound[ n[0][i] ] = n;
