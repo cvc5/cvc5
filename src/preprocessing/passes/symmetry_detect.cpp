@@ -13,9 +13,9 @@
  **/
 
 #include "preprocessing/passes/symmetry_detect.h"
+#include "expr/node_algorithm.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -270,7 +270,8 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
   }
   Trace("sym-dt-debug2") << "merge " << curr_index << " / " << d_indices.size()
                          << ", merge var : " << merge_var
-                         << ", upper bound for #occ of merge_var : " << num_merge_var_max << std::endl;
+                         << ", upper bound for #occ of merge_var : "
+                         << num_merge_var_max << std::endl;
   // try to include this index
   unsigned index = d_indices[curr_index];
 
@@ -338,7 +339,8 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         include_success = false;
       }
     }
-    else if (!merge_var.isNull() && p.d_var_to_subvar.find(merge_var)!=p.d_var_to_subvar.end())
+    else if (!merge_var.isNull()
+             && p.d_var_to_subvar.find(merge_var) != p.d_var_to_subvar.end())
     {
       // decrement
       num_merge_var_max--;
@@ -466,9 +468,7 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
   {
     std::stringstream ss;
     ss << "_sym_bk_" << tn << "_" << (it->second.size() + 1);
-    Node fresh_var =
-        NodeManager::currentNM()->mkBoundVar(ss.str(),
-                                           tn);
+    Node fresh_var = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
     it->second.push_back(fresh_var);
   }
   return it->second[index];
@@ -519,48 +519,52 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
       // naively {x, y} are reported as symmetric terms, but below ensures we
       // say {f(x), f(y)} are reported as symmetric terms instead.
       Node sv = sp.first;
-      Trace("sym-dt-tsym-cons") << "Construct term symmetry from " << sp.second << "..." << std::endl;
+      Trace("sym-dt-tsym-cons")
+          << "Construct term symmetry from " << sp.second << "..." << std::endl;
       // choose an arbitrary term symmetry
-      std::vector< unsigned >& tsids = d_var_to_tsym_ids[sp.second[0]];
-      if( tsids.empty() )
+      std::vector<unsigned>& tsids = d_var_to_tsym_ids[sp.second[0]];
+      if (tsids.empty())
       {
         // no (ground) term symmetries, just use naive
-        sterms.push_back( sp.second );
+        sterms.push_back(sp.second);
       }
       else
       {
-        unsigned tsymId = tsids[tsids.size()-1];
+        unsigned tsymId = tsids[tsids.size() - 1];
         Trace("sym-dt-tsym-cons") << "...use tsym id " << tsymId << std::endl;
         // get the substitution
-        std::vector< Node > vars;
-        std::vector< Node > subs;
-        for( const Node v : sp.second )
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        for (const Node v : sp.second)
         {
           vars.push_back(v);
           subs.push_back(sv);
         }
-        std::vector< Node >& tsym = d_tsyms[tsymId];
+        std::vector<Node>& tsym = d_tsyms[tsymId];
         // map terms in this symmetry to their final form
-        std::map< Node, std::vector< Node > > t_to_st;
-        for( const Node& tst : tsym )
+        std::map<Node, std::vector<Node> > t_to_st;
+        for (const Node& tst : tsym)
         {
-          Node tstr = tst.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+          Node tstr = tst.substitute(
+              vars.begin(), vars.end(), subs.begin(), subs.end());
           t_to_st[tstr].push_back(tst);
         }
         Node tshUse;
-        for( const std::pair< const Node, std::vector< Node > >& tsh : t_to_st )
+        for (const std::pair<const Node, std::vector<Node> >& tsh : t_to_st)
         {
-          Trace("sym-dt-tsym-cons-debug") << "  " << tsh.first << " -> " << tsh.second << std::endl;
-          if( tsh.second.size()>1 )
+          Trace("sym-dt-tsym-cons-debug")
+              << "  " << tsh.first << " -> " << tsh.second << std::endl;
+          if (tsh.second.size() > 1)
           {
             tshUse = tsh.first;
             break;
           }
         }
-        if( !tshUse.isNull() )
+        if (!tshUse.isNull())
         {
-          Trace("sym-dt-tsym-cons") << "...got " << t_to_st[tshUse] << std::endl;
-          sterms.push_back( t_to_st[tshUse] );
+          Trace("sym-dt-tsym-cons")
+              << "...got " << t_to_st[tshUse] << std::endl;
+          sterms.push_back(t_to_st[tshUse]);
         }
       }
     }
@@ -638,7 +642,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   // Children of node
   std::vector<Node> children;
   bool operatorChild = false;
-  if (node.getKind()==kind::APPLY_UF)
+  if (node.getKind() == kind::APPLY_UF)
   {
     // compute for the operator
     children.push_back(node.getOperator());
@@ -658,7 +662,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   std::vector<Partition> partitions;
   // Create partitions for children
   std::unordered_set<unsigned> active_indices;
-  for( const Node& c : children )
+  for (const Node& c : children)
   {
     active_indices.insert(partitions.size());
     partitions.push_back(findPartitions(c));
@@ -874,7 +878,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   {
     if (node.getMetaKind() == kind::metakind::PARAMETERIZED && !operatorChild)
     {
-      schildren.insert(schildren.begin(),node.getOperator());
+      schildren.insert(schildren.begin(), node.getOperator());
     }
     p.d_sterm = nm->mkNode(k, schildren);
   }
@@ -1240,13 +1244,13 @@ void SymmetryDetect::storeTermSymmetry(const std::vector<Node>& symTerms,
 {
   Trace("sym-dt-tsym") << "*** Term symmetry : " << symTerms << std::endl;
   Trace("sym-dt-tsym") << "*** Over variables : " << vars << std::endl;
-  // cannot have free variable 
-  if( expr::hasFreeVar( symTerms[0] ) )
+  // cannot have free variable
+  if (expr::hasFreeVar(symTerms[0]))
   {
     Trace("sym-dt-tsym") << "...free variable, do not allocate." << std::endl;
     return;
   }
-  
+
   unsigned tid = d_tsym_id_counter;
   Trace("sym-dt-tsym") << "...allocate id " << tid << std::endl;
   d_tsym_id_counter = d_tsym_id_counter + 1;

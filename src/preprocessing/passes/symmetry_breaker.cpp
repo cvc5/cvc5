@@ -32,7 +32,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
     if (part.size() >= 2)
     {
       Kind kd = getOrderKind(part[0]);
-      if (kd == UNDEFINED_KIND )
+      if (kd == UNDEFINED_KIND)
       {
         // no symmetry breaking possible
         continue;
@@ -57,10 +57,9 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
           {
             // Generate consecutive constraints v_i = v_j => v_i = v_{j-1} for all 0
             // <= i < j-1 < j < part.size()
-            Node constraint = nm->mkNode(
-                IMPLIES,
-                nm->mkNode(kd, part[i], part[j]),
-                nm->mkNode(kd, part[i], part[j - 1]));
+            Node constraint = nm->mkNode(IMPLIES,
+                                         nm->mkNode(kd, part[i], part[j]),
+                                         nm->mkNode(kd, part[i], part[j - 1]));
             constraints.push_back(constraint);
             Trace("sym-bk")
                 << "[sym-bk] Generate a symmetry breaking constraint: "
@@ -81,13 +80,12 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
                 rhs = nm->mkNode(
                     OR,
                     rhs,
-                    nm->mkNode(kd, part[i-1], part[prev_seg_start_index]));
+                    nm->mkNode(kd, part[i - 1], part[prev_seg_start_index]));
               }
               // Generate length order constraints
               // v_i = v_j => (v_{i} = v_{i-1} OR v_{i-1} = x_{(i-1)-(j-i)})
               // for all 1 <= i < j < part.size() and (i-1)-(j-i) >= 0
-              Node constraint =
-                  nm->mkNode(IMPLIES, lhs, rhs);
+              Node constraint = nm->mkNode(IMPLIES, lhs, rhs);
               constraints.push_back(constraint);
               Trace("sym-bk")
                   << "[sym-bk] Generate a symmetry breaking constraint: "
@@ -124,7 +122,7 @@ Kind SymmetryBreaker::getOrderKind(Node node)
   {
     return BITVECTOR_ULE;
   }
-  if( tn.isFirstClass() )
+  if (tn.isFirstClass())
   {
     return EQUAL;
   }
@@ -167,7 +165,8 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   // if not true
   if (!sbConstraint.isConst())
   {
-    Trace("sb-constraint") << "(symmetry-break " << sbConstraint << ")" << std::endl;
+    Trace("sb-constraint") << "(symmetry-break " << sbConstraint << ")"
+                           << std::endl;
     // add to assertions
     assertionsToPreprocess->push_back(sbConstraint);
   }

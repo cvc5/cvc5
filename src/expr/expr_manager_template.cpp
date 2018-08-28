@@ -962,12 +962,17 @@ Expr ExprManager::mkAssociative(Kind kind,
   if(numChildren > 0) {
     /* If the leftovers are too few, just copy them into newChildren;
      * otherwise make a new sub-node  */
-    if(numChildren < min) {
-      for(; it != end; ++it) {
+    if (numChildren < min)
+    {
+      for (; it != end; ++it)
+      {
         newChildren.push_back(it->getNode());
       }
-    } else {
-      for(; it != end; ++it) {
+    }
+    else
+    {
+      for (; it != end; ++it)
+      {
         subChildren.push_back(it->getNode());
       }
       Node subNode = d_nodeManager->mkNode(kind, subChildren);
@@ -977,15 +982,15 @@ Expr ExprManager::mkAssociative(Kind kind,
 
   /* It's inconceivable we could have enough children for this to fail
    * (more than 2^32, in most cases?). */
-  AlwaysAssert( newChildren.size() <= max,
-                "Too many new children in mkAssociative" );
+  AlwaysAssert(newChildren.size() <= max,
+               "Too many new children in mkAssociative");
 
   /* It would be really weird if this happened (it would require
    * min > 2, for one thing), but let's make sure. */
   AlwaysAssert( newChildren.size() >= min,
                 "Too few new children in mkAssociative" );
 
-  return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
+  return Expr(this, d_nodeManager->mkNodePtr(kind, newChildren));
 }
 
 unsigned ExprManager::minArity(Kind kind) {
