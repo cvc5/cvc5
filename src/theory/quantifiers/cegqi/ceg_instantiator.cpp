@@ -517,11 +517,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     activateInstantiationVariable(pv, i);
 
     //get the instantiator object
-    Instantiator * vinst = NULL;
-    std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
-    if( itin!=d_instantiator.end() ){
-      vinst = itin->second;
-    }
+    Assert(d_instantiator.find(pv) != d_instantiator.end());
+    Instantiator* vinst = d_instantiator[pv];
     Assert( vinst!=NULL );
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);

@@ -228,30 +228,28 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
 }
 
 AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
-  : SubtheorySolver(c, bv)
-  , d_modelMap(NULL)
-  , d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv))
-  , d_isComplete(c, false)
-  , d_isDifficult(c, false)
-  , d_budget(options::bitvectorAlgebraicBudget())
-  , d_explanations()
-  , d_inputAssertions()
-  , d_ids()
-  , d_numSolved(0)
-  , d_numCalls(0)
-  , d_ctx(new context::Context())
-  , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("theory::bv::algebraic", d_quickSolver) : NULL)
-  , d_statistics()
-{}
-
-AlgebraicSolver::~AlgebraicSolver() {
-  if(d_modelMap != NULL) { delete d_modelMap; }
-  delete d_quickXplain;
-  delete d_quickSolver;
-  delete d_ctx;
+    : SubtheorySolver(c, bv),
+      d_modelMap(),
+      d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv)),
+      d_isComplete(c, false),
+      d_isDifficult(c, false),
+      d_budget(options::bitvectorAlgebraicBudget()),
+      d_explanations(),
+      d_inputAssertions(),
+      d_ids(),
+      d_numSolved(0),
+      d_numCalls(0),
+      d_quickXplain(),
+      d_statistics()
+{
+  if (options::bitvectorQuickXplain())
+  {
+    d_quickXplain.reset(
+        new QuickXPlain("theory::bv::algebraic", d_quickSolver.get()));
+  }
 }
 
-
+AlgebraicSolver::~AlgebraicSolver() {}
 
 bool AlgebraicSolver::check(Theory::Effort e)
 {
@@ -298,16 +296,15 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
   Assert (d_explanations.size() == worklist.size());
 
-  delete d_modelMap;
-  d_modelMap = new SubstitutionMap(d_context);
-  SubstitutionEx subst(d_modelMap);
+  d_modelMap.reset(new SubstitutionMap(d_context));
+  SubstitutionEx subst(d_modelMap.get());
 
   // first round of substitutions
   processAssertions(worklist, subst);
 
   if (!d_isDifficult.get()) {
     // skolemize all possible extracts
-    ExtractSkolemizer skolemizer(d_modelMap);
+    ExtractSkolemizer skolemizer(d_modelMap.get());
     skolemizer.skolemize(worklist);
     // second round of substitutions
     processAssertions(worklist, subst);
