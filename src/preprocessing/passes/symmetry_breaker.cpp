@@ -55,8 +55,8 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
         {
           for (unsigned int j = i + 2; j < part.size(); ++j)
           {
-            // Generate consecutive constraints v_i = v_j => v_i = v_{j-1} for all 0
-            // <= i < j-1 < j < part.size()
+            // Generate consecutive constraints v_i = v_j => v_i = v_{j-1},
+            // for all 0 <= i < j-1 < j < part.size()
             Node constraint = nm->mkNode(IMPLIES,
                                          nm->mkNode(kd, part[i], part[j]),
                                          nm->mkNode(kd, part[i], part[j - 1]));
