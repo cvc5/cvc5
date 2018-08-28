@@ -79,9 +79,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   d_equalityEngine.addFunctionKind(kind::INT_TO_BITVECTOR);
 }
 
-CoreSolver::~CoreSolver() {
-  delete d_slicer;
-}
+CoreSolver::~CoreSolver() {}
+
 void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
