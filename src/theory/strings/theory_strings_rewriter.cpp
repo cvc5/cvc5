@@ -945,14 +945,14 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         cc.push_back(rc);
       }
     }
-    if( allSigma )
+    if (allSigma)
     {
       Node num = nm->mkConst(Rational(allSigmaMinSize));
       Node lenx = nm->mkNode(STRING_LENGTH, x);
       retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
       return returnRewrite(node, retNode, "re-concat-pure-allchar");
     }
-    else if( allString )
+    else if (allString)
     {
       retNode = x.eqNode(mkConcat(STRING_CONCAT, cc));
       return returnRewrite(node, retNode, "re-concat-pure-str");
