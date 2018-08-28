@@ -16,9 +16,7 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -61,7 +59,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     }
     return true;
   }
-  else if (b.getKind() != BOUND_VARIABLE)
+  if (b.getKind() != BOUND_VARIABLE)
   {
     Node aop = a.hasOperator() ? a.getOperator() : a;
     Node bop = b.hasOperator() ? b.getOperator() : b;
@@ -169,7 +167,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
       cchildren[i] =
           getCanonicalTerm(cchildren[i], apply_torder, var_count, visited);
     }
-    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       Node op = n.getOperator();
       op = getCanonicalTerm(op, apply_torder, var_count, visited);

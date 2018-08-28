@@ -56,7 +56,9 @@ class TermCanonize
    * This returns a canonical (alpha-equivalent) version of n, where
    * bound variables in n may be replaced by other ones, and arguments of
    * commutative operators of n may be sorted (if apply_torder is true).
-   * In detail, we replace bound variables in n, right to left, so that
+   * In detail, we replace bound variables in n so the the leftmost occurrence
+   * of a bound variable for type T is the first canonical free variable for T,
+   * the second leftmost is the second, and so on, for each type T.
    */
   Node getCanonicalTerm(TNode n, bool apply_torder = false);
 
