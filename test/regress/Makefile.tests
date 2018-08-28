@@ -438,6 +438,7 @@ REG0_TESTS = \
 	regress0/fmf/quant_real_univ.cvc \
 	regress0/fmf/sat-logic.smt2 \
 	regress0/fmf/sc_bad_model_1221.smt2 \
+	regress0/fmf/sort-infer-typed-082718.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
@@ -1282,7 +1283,7 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
-	regress1/quantifiers/dump-inst.smt2 \  
+	regress1/quantifiers/dump-inst.smt2 \
 	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/dump-inst-proof.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
