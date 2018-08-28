@@ -1817,8 +1817,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
-  context::Context context;
-  AssertionPipeline additionalLemmas(&context);
+  AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);

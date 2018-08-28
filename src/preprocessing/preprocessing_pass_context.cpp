@@ -23,7 +23,11 @@ PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
     ResourceManager* resourceManager,
     RemoveTermFormulas* iteRemover)
-    : d_smt(smt), d_resourceManager(resourceManager), d_iteRemover(iteRemover)
+    : d_smt(smt),
+      d_resourceManager(resourceManager),
+      d_iteRemover(iteRemover),
+      d_substitutionsIndex(smt->d_userContext, 0),
+      d_topLevelSubstitutions(smt->d_userContext)
 {
 }
 

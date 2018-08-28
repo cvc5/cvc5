@@ -21,6 +21,7 @@
 #ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
+#include "context/cdo.h"
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "preprocessing/util/ite_utilities.h"
@@ -56,6 +57,16 @@ class PreprocessingPassContext
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
+  context::CDO<unsigned>& getSubstitutionsIndex()
+  {
+    return d_substitutionsIndex;
+  }
+
+  theory::SubstitutionMap& getTopLevelSubstitutions()
+  {
+    return d_topLevelSubstitutions;
+  }
+
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
@@ -63,6 +74,12 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
+
+  /* Index for where to store substitutions */
+  context::CDO<unsigned> d_substitutionsIndex;
+
+  /* The top level substitutions */
+  theory::SubstitutionMap d_topLevelSubstitutions;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

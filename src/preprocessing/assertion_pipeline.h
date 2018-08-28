@@ -20,11 +20,8 @@
 
 #include <vector>
 
-#include "context/cdo.h"
-#include "context/context.h"
 #include "expr/node.h"
 #include "smt/term_formula_removal.h"
-#include "theory/substitutions.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -36,7 +33,7 @@ namespace preprocessing {
 class AssertionPipeline
 {
  public:
-  AssertionPipeline(context::Context* context);
+  AssertionPipeline();
 
   size_t size() const { return d_nodes.size(); }
 
@@ -80,16 +77,6 @@ class AssertionPipeline
   IteSkolemMap& getIteSkolemMap() { return d_iteSkolemMap; }
   const IteSkolemMap& getIteSkolemMap() const { return d_iteSkolemMap; }
 
-  context::CDO<unsigned>& getSubstitutionsIndex()
-  {
-    return d_substitutionsIndex;
-  }
-
-  theory::SubstitutionMap& getTopLevelSubstitutions()
-  {
-    return d_topLevelSubstitutions;
-  }
-
   size_t getRealAssertionsEnd() const { return d_realAssertionsEnd; }
 
   void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
@@ -102,12 +89,6 @@ class AssertionPipeline
    * corresponding introduced Boolean ite
    */
   IteSkolemMap d_iteSkolemMap;
-
-  /* Index for where to store substitutions */
-  context::CDO<unsigned> d_substitutionsIndex;
-
-  /* The top level substitutions */
-  theory::SubstitutionMap d_topLevelSubstitutions;
 
   /** Size of d_nodes when preprocessing starts */
   size_t d_realAssertionsEnd;

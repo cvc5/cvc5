@@ -613,7 +613,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_nonClausalLearnedLiterals(),
         d_propagator(d_nonClausalLearnedLiterals, true, true),
         d_propagatorNeedsFinish(false),
-        d_assertions(d_smt.d_userContext),
+        d_assertions(),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
@@ -766,7 +766,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   Node applySubstitutions(TNode node)
   {
     return Rewriter::rewrite(
-        d_assertions.getTopLevelSubstitutions().apply(node));
+        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
   }
 
   /**
@@ -2940,7 +2940,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   // Assert all the assertions to the propagator
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "asserting to propagator" << endl;
-  CDO<unsigned>& substs_index = d_assertions.getSubstitutionsIndex();
+  CDO<unsigned>& substs_index =
+      d_preprocessingPassContext->getSubstitutionsIndex();
   for (unsigned i = 0; i < d_assertions.size(); ++ i) {
     Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
     // Don't reprocess substitutions
@@ -2970,7 +2971,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   Trace("simplify") << "Iterate through " << d_nonClausalLearnedLiterals.size() << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_smt.d_context);
   SubstitutionMap newSubstitutions(d_smt.d_context);
   SubstitutionMap::iterator pos;
@@ -3326,7 +3328,8 @@ void SmtEnginePrivate::doMiplibTrick() {
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
 
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
   unordered_map<TNode, Node, TNodeHashFunction> intVars;
   for(vector<Node>::const_iterator i = d_boolVars.begin(); i != d_boolVars.end(); ++i) {
     if(d_propagator.isAssigned(*i)) {
@@ -3893,7 +3896,8 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(options::preprocessStep());
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
@@ -3918,7 +3922,7 @@ void SmtEnginePrivate::processAssertions() {
     // proper data structure.
 
     // Placeholder for storing substitutions
-    d_assertions.getSubstitutionsIndex() = d_assertions.size();
+    d_preprocessingPassContext->getSubstitutionsIndex() = d_assertions.size();
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   }
 

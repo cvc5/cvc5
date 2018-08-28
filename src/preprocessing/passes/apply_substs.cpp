@@ -45,7 +45,7 @@ PreprocessingPassResult ApplySubsts::applyInternal(
     // assertion at d_substitutionsIndex: we don't want to apply substitutions
     // to this assertion or information will be lost.
     context::CDO<unsigned>& substs_index =
-        assertionsToPreprocess->getSubstitutionsIndex();
+        d_preprocContext->getSubstitutionsIndex();
     unsigned size = assertionsToPreprocess->size();
     unsigned substitutionAssertion = substs_index > 0 ? substs_index : size;
     for (unsigned i = 0; i < size; ++i)
@@ -60,7 +60,7 @@ PreprocessingPassResult ApplySubsts::applyInternal(
       assertionsToPreprocess->replace(
           i,
           theory::Rewriter::rewrite(
-              assertionsToPreprocess->getTopLevelSubstitutions().apply(
+              d_preprocContext->getTopLevelSubstitutions().apply(
                   (*assertionsToPreprocess)[i])));
       Trace("apply-substs") << "  got " << (*assertionsToPreprocess)[i]
                         << std::endl;
