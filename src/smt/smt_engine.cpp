@@ -498,7 +498,6 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
-  bool d_propagatorNeedsFinish;
   std::vector<Node> d_boolVars;
 
   /** Assertions in the preprocessing pipeline */
@@ -612,7 +611,6 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_nonClausalLearnedLiterals(),
         d_propagator(d_nonClausalLearnedLiterals, true, true),
-        d_propagatorNeedsFinish(false),
         d_assertions(d_smt.d_userContext),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
@@ -682,9 +680,9 @@ class SmtEnginePrivate : public NodeManagerListener {
   {
     delete d_listenerRegistrations;
 
-    if(d_propagatorNeedsFinish) {
+    if(d_propagator.getNeedsFinish()) {
       d_propagator.finish();
-      d_propagatorNeedsFinish = false;
+      d_propagator.setNeedsFinish(false);
     }
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
@@ -2931,9 +2929,10 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Trace("simplify") << "Assertion #" << i << " : " << d_assertions[i] << std::endl;
   }
 
-  if(d_propagatorNeedsFinish) {
+  if (d_propagator.getNeedsFinish())
+  {
     d_propagator.finish();
-    d_propagatorNeedsFinish = false;
+    d_propagator.setNeedsFinish(false);
   }
   d_propagator.initialize();
 
@@ -2963,7 +2962,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
     d_assertions.clear();
     addFormula(falseNode, false, false);
-    d_propagatorNeedsFinish = true;
+    d_propagator.setNeedsFinish(true);
     return false;
   }
 
@@ -3008,7 +3007,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         Assert(!options::unsatCores());
         d_assertions.clear();
         addFormula(NodeManager::currentNM()->mkConst<bool>(false), false, false);
-        d_propagatorNeedsFinish = true;
+        d_propagator.setNeedsFinish(true);
         return false;
       }
     }
@@ -3046,7 +3045,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         Assert(!options::unsatCores());
         d_assertions.clear();
         addFormula(NodeManager::currentNM()->mkConst<bool>(false), false, false);
-        d_propagatorNeedsFinish = true;
+        d_propagator.setNeedsFinish(true);
         return false;
       default:
         if (d_doConstantProp && learnedLiteral.getKind() == kind::EQUAL && (learnedLiteral[0].isConst() || learnedLiteral[1].isConst())) {
@@ -3248,7 +3247,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                          Rewriter::rewrite(Node(learnedBuilder)));
   }
 
-  d_propagatorNeedsFinish = true;
+  d_propagator.setNeedsFinish(true);
   return true;
 }
 

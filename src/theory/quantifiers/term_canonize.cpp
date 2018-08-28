@@ -16,9 +16,7 @@
 
 #include "theory/quantifiers/term_util.h"
 
-using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -61,7 +59,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     }
     return true;
   }
-  else if (b.getKind() != BOUND_VARIABLE)
+  if (b.getKind() != BOUND_VARIABLE)
   {
     Node aop = a.hasOperator() ? a.getOperator() : a;
     Node bop = b.hasOperator() ? b.getOperator() : b;
@@ -96,6 +94,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
 Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
 {
   Assert(!tn.isNull());
+  NodeManager* nm = NodeManager::currentNM();
   while (d_cn_free_var[tn].size() <= i)
   {
     std::stringstream oss;
@@ -107,7 +106,7 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
     }
     std::stringstream os;
     os << typ_name[0] << i;
-    Node x = NodeManager::currentNM()->mkBoundVar(os.str().c_str(), tn);
+    Node x = nm->mkBoundVar(os.str().c_str(), tn);
     InstVarNumAttribute ivna;
     x.setAttribute(ivna, d_cn_free_var[tn].size());
     d_cn_free_var[tn].push_back(x);
@@ -169,7 +168,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
       cchildren[i] =
           getCanonicalTerm(cchildren[i], apply_torder, var_count, visited);
     }
-    if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       Node op = n.getOperator();
       op = getCanonicalTerm(op, apply_torder, var_count, visited);
