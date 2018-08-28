@@ -122,35 +122,30 @@ struct sortTermOrder
 };
 
 Node TermCanonize::getCanonicalTerm(TNode n,
-                                    std::map<TypeNode, unsigned>& var_count,
-                                    std::map<TNode, TNode>& subs,
                                     bool apply_torder,
+                                    std::map<TypeNode, unsigned>& var_count,
                                     std::map<TNode, Node>& visited)
 {
+  std::map<TNode, Node>::iterator it = visited.find(n);
+  if (it != visited.end())
+  {
+    return it->second;
+  }
+    
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if (n.getKind() == BOUND_VARIABLE)
   {
-    std::map<TNode, TNode>::iterator it = subs.find(n);
-    if (it == subs.end())
-    {
-      TypeNode tn = n.getType();
-      // allocate variable
-      unsigned vn = var_count[tn];
-      var_count[tn]++;
-      subs[n] = getCanonicalFreeVar(tn, vn);
-      Trace("canon-term-debug") << "...allocate variable." << std::endl;
-      return subs[n];
-    }
-    Trace("canon-term-debug") << "...return variable in subs." << std::endl;
-    return it->second;
+    TypeNode tn = n.getType();
+    // allocate variable
+    unsigned vn = var_count[tn];
+    var_count[tn]++;
+    Node fv = getCanonicalFreeVar(tn, vn);
+    visited[n] = fv;
+    Trace("canon-term-debug") << "...allocate variable." << std::endl;
+    return fv;
   }
   else if (n.getNumChildren() > 0)
   {
-    std::map<TNode, Node>::iterator it = visited.find(n);
-    if (it != visited.end())
-    {
-      return it->second;
-    }
     // collect children
     Trace("canon-term-debug") << "Collect children" << std::endl;
     std::vector<Node> cchildren;
@@ -172,12 +167,12 @@ Node TermCanonize::getCanonicalTerm(TNode n,
     for (unsigned i = 0; i < cchildren.size(); i++)
     {
       cchildren[i] = getCanonicalTerm(
-          cchildren[i], var_count, subs, apply_torder, visited);
+          cchildren[i], apply_torder, var_count, visited);
     }
     if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {
       Node op = n.getOperator();
-      op = getCanonicalTerm(op, var_count, subs, apply_torder, visited);
+      op = getCanonicalTerm(op, apply_torder, var_count, visited);
       Trace("canon-term-debug") << "Insert operator " << op << std::endl;
       cchildren.insert(cchildren.begin(), op);
     }
@@ -196,9 +191,8 @@ Node TermCanonize::getCanonicalTerm(TNode n,
 Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder)
 {
   std::map<TypeNode, unsigned> var_count;
-  std::map<TNode, TNode> subs;
   std::map<TNode, Node> visited;
-  return getCanonicalTerm(n, var_count, subs, apply_torder, visited);
+  return getCanonicalTerm(n, apply_torder, var_count, visited);
 }
 
 }  // namespace quantifiers

@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Term canonize
+ ** \brief Utilities for constructing canonical terms.
  **/
 
 #include "cvc4_private.h"
@@ -27,7 +27,9 @@ namespace quantifiers {
 /** TermCanonize
  *
  * This class contains utilities for canonizing terms with respect to
- * free variables (which are of kind BOUND_VARIABLE).
+ * free variables (which are of kind BOUND_VARIABLE). For example, this
+ * class infers that terms like f(BOUND_VARIABLE_1) and f(BOUND_VARIABLE_2)
+ * are effectively the same term.
  */
 class TermCanonize
 {
@@ -70,12 +72,14 @@ class TermCanonize
   /** free variables for each type */
   std::map<TypeNode, std::vector<Node> > d_cn_free_var;
   /** get canonical term
-   *
+   * 
+   * This is a helper function for getCanonicalTerm above. We maintain a
+   * counter of how many variables we have allocated for each type (var_count),
+   * and a cache of visited nodes (visited).
    */
   Node getCanonicalTerm(TNode n,
-                        std::map<TypeNode, unsigned>& var_count,
-                        std::map<TNode, TNode>& subs,
                         bool apply_torder,
+                        std::map<TypeNode, unsigned>& var_count,
                         std::map<TNode, Node>& visited);
 };
 
