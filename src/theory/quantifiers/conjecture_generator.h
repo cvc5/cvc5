@@ -78,6 +78,7 @@ class TermGenerator
       : d_id(0),
         d_status(0),
         d_status_num(0),
+        d_status_child_num(0),
         d_match_status(0),
         d_match_status_child_num(0),
         d_match_mode(0)
