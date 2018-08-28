@@ -94,6 +94,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
 Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
 {
   Assert(!tn.isNull());
+  NodeManager * nm = NodeManager::currentNM();
   while (d_cn_free_var[tn].size() <= i)
   {
     std::stringstream oss;
@@ -105,7 +106,7 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
     }
     std::stringstream os;
     os << typ_name[0] << i;
-    Node x = NodeManager::currentNM()->mkBoundVar(os.str().c_str(), tn);
+    Node x = nm->mkBoundVar(os.str().c_str(), tn);
     InstVarNumAttribute ivna;
     x.setAttribute(ivna, d_cn_free_var[tn].size());
     d_cn_free_var[tn].push_back(x);
