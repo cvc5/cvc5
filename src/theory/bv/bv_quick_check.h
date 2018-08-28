@@ -40,7 +40,7 @@ class TheoryBV;
 
 class BVQuickCheck {
   context::Context d_ctx;
-  TLazyBitblaster* d_bitblaster;
+  std::unique_ptr<TLazyBitblaster> d_bitblaster;
   Node d_conflict;
   context::CDO<bool> d_inConflict;
   void setConflict();
