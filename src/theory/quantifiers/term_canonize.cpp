@@ -131,7 +131,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
   {
     return it->second;
   }
-    
+
   Trace("canon-term-debug") << "Get canonical term for " << n << std::endl;
   if (n.getKind() == BOUND_VARIABLE)
   {
@@ -166,8 +166,8 @@ Node TermCanonize::getCanonicalTerm(TNode n,
     Trace("canon-term-debug") << "Make canonical children" << std::endl;
     for (unsigned i = 0; i < cchildren.size(); i++)
     {
-      cchildren[i] = getCanonicalTerm(
-          cchildren[i], apply_torder, var_count, visited);
+      cchildren[i] =
+          getCanonicalTerm(cchildren[i], apply_torder, var_count, visited);
     }
     if (n.getMetaKind() == kind::metakind::PARAMETERIZED)
     {

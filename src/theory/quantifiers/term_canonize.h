@@ -72,7 +72,7 @@ class TermCanonize
   /** free variables for each type */
   std::map<TypeNode, std::vector<Node> > d_cn_free_var;
   /** get canonical term
-   * 
+   *
    * This is a helper function for getCanonicalTerm above. We maintain a
    * counter of how many variables we have allocated for each type (var_count),
    * and a cache of visited nodes (visited).
