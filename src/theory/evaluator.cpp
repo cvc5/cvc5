@@ -111,8 +111,6 @@ Node EvalResult::toNode() const
       return Node();
     }
   }
-
-  return Node();
 }
 
 Node Evaluator::eval(TNode n,
