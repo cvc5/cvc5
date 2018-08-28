@@ -287,6 +287,9 @@ private:
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** (universal) equaltity engine */
   eq::EqualityEngine d_uequalityEngine;
   /** pending adds */

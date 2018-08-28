@@ -47,6 +47,7 @@ namespace quantifiers {
   class TermDb;
   class TermDbSygus;
   class TermUtil;
+  class TermCanonize;
   class Instantiate;
   class Skolemize;
   class TermEnumeration;
@@ -129,6 +130,8 @@ public:
   quantifiers::TermDbSygus* getTermDatabaseSygus() const;
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() const;
+  /** get term canonizer */
+  quantifiers::TermCanonize* getTermCanonize() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -344,6 +347,8 @@ public:
   std::unique_ptr<quantifiers::QuantEPR> d_qepr;
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
+  /** term utilities */
+  std::unique_ptr<quantifiers::TermCanonize> d_term_canon;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** sygus term database */
