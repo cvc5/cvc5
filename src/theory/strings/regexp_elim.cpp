@@ -51,13 +51,13 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
   // memberships of the form x in re.++ * s1 * ... * sn *, where * are
-  // any number of repetitions (exact or indefinite) of REGEXP_SIGMA.
+  // any number of repetitions (exact or indefinite) of re.allchar.
   Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
   std::vector<Node> children;
   TheoryStringsRewriter::getConcat(re, children);
   bool success = true;
   std::vector<Node> sep_children;
-  std::vector<int> gap_minsize;
+  std::vector<unsigned> gap_minsize;
   std::vector<bool> gap_exact;
   // the first gap is initially strict zero
   gap_minsize.push_back(0);
@@ -94,7 +94,10 @@ Node RegExpElimination::eliminateConcat(Node atom)
       break;
     }
   }
-  if (success)
+  // we should always rewrite concatenations that are purely re.allchar
+  // and re.*( re.allchar ).
+  Assert( !success || !sep_children.empty() );
+  if (success && !sep_children.empty())
   {
     std::vector<Node> conj;
     // The following constructs a set of constraints that encodes that a
@@ -170,8 +173,10 @@ Node RegExpElimination::eliminateConcat(Node atom)
         }
       }
     }
-    if (success && !conj.empty())
+    if (success)
     {
+      // since sep_children is non-empty, conj is non-empty
+      Assert( !conj.empty() );
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       // process the non-greedy find variables
       if (!non_greedy_find_vars.empty())
@@ -310,6 +315,8 @@ Node RegExpElimination::eliminateStar(Node atom)
   {
     return Node::null();
   }
+  // only aggressive rewrites below here
+  
   NodeManager* nm = NodeManager::currentNM();
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
