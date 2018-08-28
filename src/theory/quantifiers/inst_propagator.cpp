@@ -799,7 +799,8 @@ void InstPropagator::propagate( Node a, Node b, bool pol, std::vector< Node >& e
   }
   if( pol ){
     if( status==EqualityQueryInstProp::STATUS_MERGED_KNOWN ){
-      Trace("qip-rlv-propagate") << "Relevant propagation : " << a << ( pol ? " == " : " != " ) << b << std::endl;
+      Trace("qip-rlv-propagate")
+          << "Relevant propagation : " << a << " == " << b << std::endl;
       Assert( d_qy.getEngine()->hasTerm( a ) );
       Assert( d_qy.getEngine()->hasTerm( b ) );
       Trace("qip-prop-debug") << "...equality between known terms." << std::endl;

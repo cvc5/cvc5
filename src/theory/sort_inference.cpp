@@ -367,14 +367,14 @@ int SortInference::process( Node n, std::map< Node, Node >& var_bound, std::map<
       if( d_var_types.find( n )!=d_var_types.end() ){
         return getIdForType( n.getType() );
       }else{
-        // apply sort inference to quantified variables
+        //apply sort inference to quantified variables
         for( size_t i=0; i<n[0].getNumChildren(); i++ ){
           TypeNode nitn = n[0][i].getType();
-          if (!nitn.isSort())
+          if( !nitn.isSort() )
           {
             // If the variable is of an interpreted sort, we assume the
             // the sort of the variable will stay the same sort.
-            d_var_types[n][n[0][i]] = getIdForType(nitn);
+            d_var_types[n][n[0][i]] = getIdForType( nitn );
           }
           else
           {
