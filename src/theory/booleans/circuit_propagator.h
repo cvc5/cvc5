@@ -237,29 +237,39 @@ private:
   /** Whether to perform backward propagation */
   const bool d_backwardPropagation;
 
+  /* Does the current state require a call to finish()? */
+  bool d_needsFinish;
+
 public:
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(std::vector<Node>& outLearnedLiterals,
-                    bool enableForward = true, bool enableBackward = true) :
-    d_context(),
-    d_propagationQueue(),
-    d_propagationQueueClearer(&d_context, d_propagationQueue),
-    d_conflict(&d_context, false),
-    d_learnedLiterals(outLearnedLiterals),
-    d_learnedLiteralClearer(&d_context, outLearnedLiterals),
-    d_backEdges(),
-    d_backEdgesClearer(&d_context, d_backEdges),
-    d_seen(&d_context),
-    d_state(&d_context),
-    d_forwardPropagation(enableForward),
-    d_backwardPropagation(enableBackward) {
-  }
+ CircuitPropagator(std::vector<Node>& outLearnedLiterals,
+                   bool enableForward = true,
+                   bool enableBackward = true)
+     : d_context(),
+       d_propagationQueue(),
+       d_propagationQueueClearer(&d_context, d_propagationQueue),
+       d_conflict(&d_context, false),
+       d_learnedLiterals(outLearnedLiterals),
+       d_learnedLiteralClearer(&d_context, outLearnedLiterals),
+       d_backEdges(),
+       d_backEdgesClearer(&d_context, d_backEdges),
+       d_seen(&d_context),
+       d_state(&d_context),
+       d_forwardPropagation(enableForward),
+       d_backwardPropagation(enableBackward),
+       d_needsFinish(false)
+ {
+ }
 
   // Use custom context to ensure propagator is reset after use
   void initialize()
   { d_context.push(); }
+
+  void setNeedsFinish(bool value) { d_needsFinish = value; }
+
+  bool getNeedsFinish() { return d_needsFinish; }
 
   void finish()
   { d_context.pop(); }
