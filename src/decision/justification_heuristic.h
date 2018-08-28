@@ -32,6 +32,7 @@
 #include "decision/decision_engine.h"
 #include "decision/decision_strategy.h"
 #include "expr/node.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "prop/sat_solver_types.h"
 
 namespace CVC4 {
@@ -119,9 +120,8 @@ public:
 
   prop::SatLiteral getNext(bool &stopSearch) override;
 
-  void addAssertions(const std::vector<Node> &assertions,
-                     unsigned assertionsEnd,
-                     IteSkolemMap iteSkolemMap) override;
+  void addAssertions(
+      const preprocessing::AssertionPipeline &assertions) override;
 
  private:
   /* getNext with an option to specify threshold */

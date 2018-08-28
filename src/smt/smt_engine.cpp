@@ -4269,9 +4269,7 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(d_assertions.ref(),
-                                          d_assertions.getRealAssertionsEnd(),
-                                          getIteSkolemMap());
+    d_smt.d_decisionEngine->addAssertions(d_assertions);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or
