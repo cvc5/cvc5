@@ -28,6 +28,7 @@
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
+#include "theory/booleans/circuit_propagator.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
