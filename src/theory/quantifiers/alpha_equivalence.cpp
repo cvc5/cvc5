@@ -100,7 +100,7 @@ Node AlphaEquivalence::reduceQuantifier( Node q ) {
   Assert( q.getKind()==FORALL );
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
   //construct canonical quantified formula
-  Node t = d_qe->getTermCanonize()->getCanonicalTerm( q[1], true );
+  Node t = d_qe->getTermCanonize()->getCanonicalTerm(q[1], true);
   Trace("aeq") << "  canonical form: " << t << std::endl;
   //compute variable type counts
   std::map< TypeNode, int > typ_count;

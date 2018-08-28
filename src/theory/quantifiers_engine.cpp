@@ -50,10 +50,10 @@
 #include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/term_canonize.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
@@ -337,7 +337,7 @@ quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
 {
   return d_term_util.get();
 }
-quantifiers::TermCanonize* QuantifiersEngine::getTermCanonize() const 
+quantifiers::TermCanonize* QuantifiersEngine::getTermCanonize() const
 {
   return d_term_canon.get();
 }

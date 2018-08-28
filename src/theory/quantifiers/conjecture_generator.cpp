@@ -15,13 +15,13 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/term_canonize.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -305,7 +305,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar( tn, i );
+  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -381,10 +381,13 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
         eqcs.push_back( r );
         if( r.getType().isBoolean() ){
-          if( areEqual( r, d_true ) ){
+          if (areEqual(r, d_true))
+          {
             d_ground_eqc_map[r] = d_true;
             d_bool_eqc[0] = r;
-          }else if( areEqual( r, d_false ) ){
+          }
+          else if (areEqual(r, d_false))
+          {
             d_ground_eqc_map[r] = d_false;
             d_bool_eqc[1] = r;
           }
@@ -450,7 +453,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           TNode r = eqcs[i];
           //print out members
           bool firstTime = true;
-          bool isFalse = areEqual( r, d_false );
+          bool isFalse = areEqual(r, d_false);
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
@@ -534,7 +537,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm( eq );
+                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -681,7 +684,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 typ_to_subs_index[it->first] = sum;
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
-                  gsubs_vars.push_back( d_quantEngine->getTermCanonize()->getCanonicalFreeVar( it->first, i ) );
+                  gsubs_vars.push_back(
+                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
+                          it->first, i));
                 }
               }
             }

@@ -25,58 +25,62 @@ namespace theory {
 namespace quantifiers {
 
 /** TermCanonize
- * 
+ *
  * This class contains utilities for canonizing terms with respect to
  * free variables (which are of kind BOUND_VARIABLE).
  */
-class TermCanonize 
+class TermCanonize
 {
-public:
+ public:
   TermCanonize();
-  ~TermCanonize(){}
-  
+  ~TermCanonize() {}
+
   /** Maps operators to an identifier, useful for ordering. */
-  int getIdForOperator( Node op );
+  int getIdForOperator(Node op);
   /** Maps types to an identifier, useful for ordering. */
-  int getIdForType( TypeNode t );
-  /** get term order 
+  int getIdForType(TypeNode t);
+  /** get term order
    *
    * Returns true if a <= b in the term ordering used by this class. The
    * term order is determined by the leftmost position in a and b whose
    * operators o_a and o_b are distinct at that position. Then a <= b iff
    * getIdForOperator( o_a ) <= getIdForOperator( o_b ).
    */
-  bool getTermOrder( Node a, Node b );
+  bool getTermOrder(Node a, Node b);
   /** get canonical free variable #i of type tn */
-  Node getCanonicalFreeVar( TypeNode tn, unsigned i );
-  /** get canonical term 
-   * 
+  Node getCanonicalFreeVar(TypeNode tn, unsigned i);
+  /** get canonical term
+   *
    * This returns a canonical (alpha-equivalent) version of n, where
    * bound variables in n may be replaced by other ones, and arguments of
    * commutative operators of n may be sorted (if apply_torder is true).
    * In detail, we replace bound variables in n, right to left, so that
    */
-  Node getCanonicalTerm( TNode n, bool apply_torder = false );
+  Node getCanonicalTerm(TNode n, bool apply_torder = false);
+
  private:
   /** the number of ids we have allocated for operators */
   int d_op_id_count;
   /** map from operators to id */
-  std::map< Node, int > d_op_id;
+  std::map<Node, int> d_op_id;
   /** the number of ids we have allocated for types */
   int d_typ_id_count;
   /** map from type to id */
-  std::map< TypeNode, int > d_typ_id;
+  std::map<TypeNode, int> d_typ_id;
   /** free variables for each type */
-  std::map< TypeNode, std::vector< Node > > d_cn_free_var;
-  /** get canonical term 
-   * 
+  std::map<TypeNode, std::vector<Node> > d_cn_free_var;
+  /** get canonical term
+   *
    */
-  Node getCanonicalTerm( TNode n, std::map< TypeNode, unsigned >& var_count, std::map< TNode, TNode >& subs, bool apply_torder, 
-                         std::map< TNode, Node >& visited );
+  Node getCanonicalTerm(TNode n,
+                        std::map<TypeNode, unsigned>& var_count,
+                        std::map<TNode, TNode>& subs,
+                        bool apply_torder,
+                        std::map<TNode, Node>& visited);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H */
