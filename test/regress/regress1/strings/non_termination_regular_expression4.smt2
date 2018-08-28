@@ -2,6 +2,7 @@
 (set-logic ALL)
 (set-info :status unsat)
 (set-option :strings-exp true)
+(set-option :re-elim true)
 (declare-const actionName String)
 (declare-const actionNamespace String)
 
