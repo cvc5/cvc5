@@ -921,12 +921,14 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     unsigned allSigmaMinSize = 0;
     bool allString = true;
     std::vector< Node > cc;
-    for( const Node& rc : r ){
-      Assert( rc.getKind() != kind::REGEXP_EMPTY );
-      if( rc.getKind() == kind::REGEXP_SIGMA ){
+    for (const Node& rc : r)
+    {
+      Assert(rc.getKind() != kind::REGEXP_EMPTY);
+      if (rc.getKind() == kind::REGEXP_SIGMA)
+      {
         allSigmaMinSize++;
       }
-      else if( rc.getKind()==REGEXP_STAR && rc[0].getKind()==REGEXP_SIGMA )
+      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_SIGMA)
       {
         allSigmaStrict = false;
       }
@@ -934,19 +936,20 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       {
         allSigma = false;
       }
-      if( rc.getKind() != kind::STRING_TO_REGEXP ){
+      if (rc.getKind() != kind::STRING_TO_REGEXP)
+      {
         allString = false;
       }else{
-        cc.push_back( rc );
+        cc.push_back(rc);
       }
     }
     if( allSigma ){
-      Node num = nm->mkConst( Rational( allSigmaMinSize ) );
+      Node num = nm->mkConst(Rational(allSigmaMinSize));
       Node lenx = nm->mkNode(STRING_LENGTH, x);
-      retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num );
+      retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
       return returnRewrite(node, retNode, "re-concat-pure-allchar");
     }else if( allString ){
-      retNode = x.eqNode( mkConcat( STRING_CONCAT, cc ) );
+      retNode = x.eqNode(mkConcat(STRING_CONCAT, cc));
       return returnRewrite(node, retNode, "re-concat-pure-str");
     }
   }else if( r.getKind()==kind::REGEXP_INTER || r.getKind()==kind::REGEXP_UNION ){
