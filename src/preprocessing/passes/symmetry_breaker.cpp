@@ -16,6 +16,7 @@
 #include "preprocessing/passes/symmetry_detect.h"
 
 using namespace std;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace preprocessing {
@@ -31,8 +32,12 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
     if (part.size() >= 2)
     {
       Kind kd = getOrderKind(part[0]);
-
-      if (kd != kind::EQUAL)
+      if (kd == UNDEFINED_KIND )
+      {
+        // no symmetry breaking possible
+        continue;
+      }
+      if (kd != EQUAL)
       {
         for (unsigned int i = 0; i < part.size() - 1; ++i)
         {
@@ -53,7 +58,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
             // Generate consecutive constraints v_i = v_j => v_i = v_{j-1} for all 0
             // <= i < j-1 < j < part.size()
             Node constraint = nm->mkNode(
-                kind::IMPLIES,
+                IMPLIES,
                 nm->mkNode(kd, part[i], part[j]),
                 nm->mkNode(kd, part[i], part[j - 1]));
             constraints.push_back(constraint);
@@ -74,7 +79,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
               if(prev_seg_start_index >= 0)
               {
                 rhs = nm->mkNode(
-                    kind::OR,
+                    OR,
                     rhs,
                     nm->mkNode(kd, part[i-1], part[prev_seg_start_index]));
               }
@@ -82,7 +87,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
               // v_i = v_j => (v_{i} = v_{i-1} OR v_{i-1} = x_{(i-1)-(j-i)})
               // for all 1 <= i < j < part.size() and (i-1)-(j-i) >= 0
               Node constraint =
-                  nm->mkNode(kind::IMPLIES, lhs, rhs);
+                  nm->mkNode(IMPLIES, lhs, rhs);
               constraints.push_back(constraint);
               Trace("sym-bk")
                   << "[sym-bk] Generate a symmetry breaking constraint: "
@@ -101,7 +106,7 @@ Node SymmetryBreaker::generateSymBkConstraints(const vector<vector<Node>>& parts
   {
     return constraints[0];
   }
-  return nm->mkNode(kind::AND, constraints);
+  return nm->mkNode(AND, constraints);
 }
 
 Kind SymmetryBreaker::getOrderKind(Node node)
@@ -109,17 +114,21 @@ Kind SymmetryBreaker::getOrderKind(Node node)
   TypeNode tn = node.getType();
   if (tn.isBoolean())
   {
-    return kind::IMPLIES;
+    return IMPLIES;
   }
   else if (tn.isReal())
   {
-    return kind::LEQ;
+    return LEQ;
   }
   else if (tn.isBitVector())
   {
-    return kind::BITVECTOR_ULE;
+    return BITVECTOR_ULE;
   }
-  return kind::EQUAL;
+  if( tn.isFirstClass() )
+  {
+    return EQUAL;
+  }
+  return UNDEFINED_KIND;
 }
 
 SymBreakerPass::SymBreakerPass(PreprocessingPassContext* preprocContext)

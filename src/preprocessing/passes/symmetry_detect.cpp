@@ -15,6 +15,7 @@
 #include "preprocessing/passes/symmetry_detect.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -466,10 +467,8 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
     std::stringstream ss;
     ss << "_sym_bk_" << tn << "_" << (it->second.size() + 1);
     Node fresh_var =
-        NodeManager::currentNM()->mkSkolem(ss.str(),
-                                           tn,
-                                           "symmetry breaking variable",
-                                           NodeManager::SKOLEM_EXACT_NAME);
+        NodeManager::currentNM()->mkBoundVar(ss.str(),
+                                           tn);
     it->second.push_back(fresh_var);
   }
   return it->second[index];
@@ -523,39 +522,46 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
       Trace("sym-dt-tsym-cons") << "Construct term symmetry from " << sp.second << "..." << std::endl;
       // choose an arbitrary term symmetry
       std::vector< unsigned >& tsids = d_var_to_tsym_ids[sp.second[0]];
-      Assert( !tsids.empty() );
-      unsigned tsymId = tsids[tsids.size()-1];
-      Trace("sym-dt-tsym-cons") << "...use tsym id " << tsymId << std::endl;
-      // get the substitution
-      std::vector< Node > vars;
-      std::vector< Node > subs;
-      for( const Node v : sp.second )
+      if( tsids.empty() )
       {
-        vars.push_back(v);
-        subs.push_back(sv);
+        // no (ground) term symmetries, just use naive
+        sterms.push_back( sp.second );
       }
-      std::vector< Node >& tsym = d_tsyms[tsymId];
-      // map terms in this symmetry to their final form
-      std::map< Node, std::vector< Node > > t_to_st;
-      for( const Node& tst : tsym )
+      else
       {
-        Node tstr = tst.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
-        t_to_st[tstr].push_back(tst);
-      }
-      Node tshUse;
-      for( const std::pair< const Node, std::vector< Node > >& tsh : t_to_st )
-      {
-        Trace("sym-dt-tsym-cons-debug") << "  " << tsh.first << " -> " << tsh.second << std::endl;
-        if( tsh.second.size()>1 )
+        unsigned tsymId = tsids[tsids.size()-1];
+        Trace("sym-dt-tsym-cons") << "...use tsym id " << tsymId << std::endl;
+        // get the substitution
+        std::vector< Node > vars;
+        std::vector< Node > subs;
+        for( const Node v : sp.second )
         {
-          tshUse = tsh.first;
-          break;
+          vars.push_back(v);
+          subs.push_back(sv);
         }
-      }
-      if( !tshUse.isNull() )
-      {
-        Trace("sym-dt-tsym-cons") << "...got " << t_to_st[tshUse] << std::endl;
-        sterms.push_back( t_to_st[tshUse] );
+        std::vector< Node >& tsym = d_tsyms[tsymId];
+        // map terms in this symmetry to their final form
+        std::map< Node, std::vector< Node > > t_to_st;
+        for( const Node& tst : tsym )
+        {
+          Node tstr = tst.substitute(vars.begin(),vars.end(),subs.begin(),subs.end());
+          t_to_st[tstr].push_back(tst);
+        }
+        Node tshUse;
+        for( const std::pair< const Node, std::vector< Node > >& tsh : t_to_st )
+        {
+          Trace("sym-dt-tsym-cons-debug") << "  " << tsh.first << " -> " << tsh.second << std::endl;
+          if( tsh.second.size()>1 )
+          {
+            tshUse = tsh.first;
+            break;
+          }
+        }
+        if( !tshUse.isNull() )
+        {
+          Trace("sym-dt-tsym-cons") << "...got " << t_to_st[tshUse] << std::endl;
+          sterms.push_back( t_to_st[tshUse] );
+        }
       }
     }
   }
@@ -626,14 +632,18 @@ Partition SymmetryDetect::findPartitions(Node node)
     isAssocComm = theory::quantifiers::TermUtil::isComm(k);
   }
 
-  // Children of node
-  vector<Node> children;
-  // Partitions of children
-  vector<Partition> partitions;
-
   // Get all children of node
   Trace("sym-dt-debug") << "[sym-dt] collectChildren for: " << node
-                        << " with operator " << node.getKind() << endl;
+                        << " with kind " << node.getKind() << endl;
+  // Children of node
+  std::vector<Node> children;
+  bool operatorChild = false;
+  if (node.getKind()==kind::APPLY_UF)
+  {
+    // compute for the operator
+    children.push_back(node.getOperator());
+    operatorChild = true;
+  }
   if (!isAssocComm)
   {
     children.insert(children.end(), node.begin(), node.end());
@@ -644,14 +654,14 @@ Partition SymmetryDetect::findPartitions(Node node)
   }
   Trace("sym-dt-debug") << "[sym-dt] children: " << children << endl;
 
+  // Partitions of children
+  std::vector<Partition> partitions;
   // Create partitions for children
   std::unordered_set<unsigned> active_indices;
-  for (vector<Node>::iterator children_it = children.begin();
-       children_it != children.end();
-       ++children_it)
+  for( const Node& c : children )
   {
     active_indices.insert(partitions.size());
-    partitions.push_back(findPartitions(*children_it));
+    partitions.push_back(findPartitions(c));
   }
   if (Trace.isOn("sym-dt-debug"))
   {
@@ -862,9 +872,9 @@ Partition SymmetryDetect::findPartitions(Node node)
   }
   else
   {
-    if (node.getMetaKind() == kind::metakind::PARAMETERIZED)
+    if (node.getMetaKind() == kind::metakind::PARAMETERIZED && !operatorChild)
     {
-      schildren.insert(schildren.begin(), node.getOperator());
+      schildren.insert(schildren.begin(),node.getOperator());
     }
     p.d_sterm = nm->mkNode(k, schildren);
   }
@@ -1230,6 +1240,13 @@ void SymmetryDetect::storeTermSymmetry(const std::vector<Node>& symTerms,
 {
   Trace("sym-dt-tsym") << "*** Term symmetry : " << symTerms << std::endl;
   Trace("sym-dt-tsym") << "*** Over variables : " << vars << std::endl;
+  // cannot have free variable 
+  if( expr::hasFreeVar( symTerms[0] ) )
+  {
+    Trace("sym-dt-tsym") << "...free variable, do not allocate." << std::endl;
+    return;
+  }
+  
   unsigned tid = d_tsym_id_counter;
   Trace("sym-dt-tsym") << "...allocate id " << tid << std::endl;
   d_tsym_id_counter = d_tsym_id_counter + 1;
