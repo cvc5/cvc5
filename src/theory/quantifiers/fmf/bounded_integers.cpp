@@ -408,7 +408,10 @@ void BoundedIntegers::checkOwnership(Node f)
         bool setBoundVar = false;
         if( it->second==BOUND_INT_RANGE ){
           //must have both
-          if( bound_lit_map[0].find( v )!=bound_lit_map[0].end() && bound_lit_map[1].find( v )!=bound_lit_map[1].end() ){
+          std::map<Node, Node>& blm0 = bound_lit_map[0];
+          std::map<Node, Node>& blm1 = bound_lit_map[1];
+          if (blm0.find(v) != blm0.end() && blm1.find(v) != blm1.end())
+          {
             setBoundedVar( f, v, BOUND_INT_RANGE );
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
