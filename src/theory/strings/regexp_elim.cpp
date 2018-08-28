@@ -193,6 +193,13 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, non_greedy_find_vars);
         res = nm->mkNode(EXISTS, bvl, body);
       }
+      // e.g., writing "A" for (str.to.re "A") and _ for re.allchar:
+      //   x in (re.++ "A" (re.* _) "B" (re.* _)) --->
+      //     substr(x,0,1)="A" ^ indexof(x,"B",1)!=-1
+      //   x in (re.++ (re.* _) "A" _ _ _ (re.* _) "B" _ _ (re.* _)) --->
+      //     indexof(x,"A",0)!=-1 ^ 
+      //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 ) != -1 ^
+      //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 )+1+2 <= len(x)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
@@ -246,6 +253,8 @@ Node RegExpElimination::eliminateConcat(Node atom)
         TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rexpElimChildren);
     sConstraints.push_back(nm->mkNode(STRING_IN_REGEXP, ss, regElim));
     Node ret = nm->mkNode(AND, sConstraints);
+    // e.g. 
+    // x in re.++( "A", R ) ---> substr(x,0,1)="A" ^ substr(x,1,len(x)-1) in R
     return returnElim(atom, ret, "concat-splice");
   }
   Assert(nchildren > 1);
@@ -304,6 +313,12 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
         body = nm->mkNode(EXISTS, bvl, body);
       }
+      // e.g. x in re.++( R1, "AB", R2 ) --->
+      //  exists k. 
+      //    0 <= k <= (len(x)-2) ^ 
+      //    substr( x, k, 2 ) = "AB" ^ 
+      //    substr( x, 0, k ) in R1 ^
+      //    substr( x, k+2, len(x)-(k+2) ) in R2
       return returnElim(atom, body, "concat-find");
     }
   }
@@ -382,6 +397,9 @@ Node RegExpElimination::eliminateStar(Node atom)
     Node body = nm->mkNode(OR, bound.negate(), conc);
     Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
     Node res = nm->mkNode(FORALL, bvl, body);
+    // e.g. 
+    //   x in (re.* (re.union "A" "B" )) --->
+    //     forall k. 0<=k<len(x) => (substr(x,k,1) = "A" OR substr(x,k,1)="B")
     return returnElim(atom, res, "star-char");
   }
   // otherwise, for stars of constant length these are periodic
