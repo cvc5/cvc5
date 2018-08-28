@@ -71,7 +71,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
     {
       if (a.getNumChildren() == b.getNumChildren())
       {
-        for (unsigned i = 0; i < a.getNumChildren(); i++)
+        for (unsigned i = 0, size = a.getNumChildren(); i < size; i++)
         {
           if (a[i] != b[i])
           {
@@ -164,7 +164,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
     }
     // now make canonical
     Trace("canon-term-debug") << "Make canonical children" << std::endl;
-    for (unsigned i = 0; i < cchildren.size(); i++)
+    for (unsigned i = 0, size = cchildren.size(); i < size; i++)
     {
       cchildren[i] =
           getCanonicalTerm(cchildren[i], apply_torder, var_count, visited);
