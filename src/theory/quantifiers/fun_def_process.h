@@ -66,12 +66,14 @@ public:
   */
   void simplify( std::vector< Node >& assertions );
   /** get constraints
-   * 
-  * This computes constraints for the final else branch of A_0 in Figure 1 
-  * of Reynolds et al "Model Finding for Recursive Functions". The range of
-  * the cache visited stores the constraint (if any) for each node.
-  */
-  void getConstraints( Node n, std::vector< Node >& constraints, std::map< Node, Node >& visited );
+   *
+   * This computes constraints for the final else branch of A_0 in Figure 1
+   * of Reynolds et al "Model Finding for Recursive Functions". The range of
+   * the cache visited stores the constraint (if any) for each node.
+   */
+  void getConstraints(Node n,
+                      std::vector<Node>& constraints,
+                      std::map<Node, Node>& visited);
 };
 
 

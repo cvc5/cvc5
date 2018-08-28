@@ -211,8 +211,8 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
         }
       }else{
         //simplify term
-        std::map< Node, Node > visited;
-        getConstraints( n, constraints, visited );
+        std::map<Node, Node> visited;
+        getConstraints(n, constraints, visited);
       }
       if( !constraints.empty() && isBool && hasPol ){
         //conjoin with current
@@ -247,14 +247,19 @@ Node FunDefFmf::simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Nod
   }
 }
 
-void FunDefFmf::getConstraints( Node n, std::vector< Node >& constraints, std::map< Node, Node >& visited ) {
-  std::map< Node, Node >::iterator itv = visited.find(n);
-  if( itv!=visited.end() ){
+void FunDefFmf::getConstraints(Node n,
+                               std::vector<Node>& constraints,
+                               std::map<Node, Node>& visited)
+{
+  std::map<Node, Node>::iterator itv = visited.find(n);
+  if (itv != visited.end())
+  {
     // already visited
-    if( !itv->second.isNull() )
+    if (!itv->second.isNull())
     {
       // add the cached constraint if it does not already occur
-      if( std::find( constraints.begin(), constraints.end(), itv->second )==constraints.end() )
+      if (std::find(constraints.begin(), constraints.end(), itv->second)
+          == constraints.end())
       {
         constraints.push_back(itv->second);
       }
@@ -262,58 +267,72 @@ void FunDefFmf::getConstraints( Node n, std::vector< Node >& constraints, std::m
     return;
   }
   visited[n] = Node::null();
-  std::vector< Node > currConstraints;
-  NodeManager * nm = NodeManager::currentNM();
-  if( n.getKind()==ITE ){
+  std::vector<Node> currConstraints;
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == ITE)
+  {
     // collect constraints for the condition
-    getConstraints( n[0], currConstraints, visited );
+    getConstraints(n[0], currConstraints, visited);
     // collect constraints for each branch
     Node cs[2];
-    for( unsigned i=0; i<2; i++ )
+    for (unsigned i = 0; i < 2; i++)
     {
-      std::vector< Node > ccons;
-      getConstraints( n[i+1], ccons, visited );
-      cs[i] = ccons.empty() ? nm->mkConst( true ) : ( ccons.size()==1 ? ccons[0] : nm->mkNode( AND, ccons ) );
+      std::vector<Node> ccons;
+      getConstraints(n[i + 1], ccons, visited);
+      cs[i] = ccons.empty()
+                  ? nm->mkConst(true)
+                  : (ccons.size() == 1 ? ccons[0] : nm->mkNode(AND, ccons));
     }
-    if( !cs[0].isConst() || !cs[1].isConst() ){
-      Node itec = nm->mkNode( ITE, n[0], cs[0], cs[1] );
-      currConstraints.push_back( itec );
-      Trace("fmf-fun-def-debug") << "---> add constraint " << itec << " for " << n << std::endl;
+    if (!cs[0].isConst() || !cs[1].isConst())
+    {
+      Node itec = nm->mkNode(ITE, n[0], cs[0], cs[1]);
+      currConstraints.push_back(itec);
+      Trace("fmf-fun-def-debug")
+          << "---> add constraint " << itec << " for " << n << std::endl;
     }
   }
   else
   {
-    if( n.getKind()==APPLY_UF ){
-      //check if f is defined, if so, we must enforce domain constraints for this f-application
+    if (n.getKind() == APPLY_UF)
+    {
+      // check if f is defined, if so, we must enforce domain constraints for
+      // this f-application
       Node f = n.getOperator();
-      std::map< Node, TypeNode >::iterator it = d_sorts.find( f );
-      if( it!=d_sorts.end() ){
-        //create existential
-        Node z = nm->mkBoundVar("?z", it->second );
-        Node bvl = nm->mkNode( BOUND_VAR_LIST, z );
-        std::vector< Node > children;
-        for( unsigned j=0, size = n.getNumChildren(); j<size; j++ ){
-          Node uz = nm->mkNode( APPLY_UF, d_input_arg_inj[f][j], z );
-          children.push_back( uz.eqNode( n[j] ) );
+      std::map<Node, TypeNode>::iterator it = d_sorts.find(f);
+      if (it != d_sorts.end())
+      {
+        // create existential
+        Node z = nm->mkBoundVar("?z", it->second);
+        Node bvl = nm->mkNode(BOUND_VAR_LIST, z);
+        std::vector<Node> children;
+        for (unsigned j = 0, size = n.getNumChildren(); j < size; j++)
+        {
+          Node uz = nm->mkNode(APPLY_UF, d_input_arg_inj[f][j], z);
+          children.push_back(uz.eqNode(n[j]));
         }
-        Node bd = children.size()==1 ? children[0] : nm->mkNode( AND, children );
+        Node bd =
+            children.size() == 1 ? children[0] : nm->mkNode(AND, children);
         bd = bd.negate();
-        Node ex = nm->mkNode( FORALL, bvl, bd );
+        Node ex = nm->mkNode(FORALL, bvl, bd);
         ex = ex.negate();
-        currConstraints.push_back( ex );
-        Trace("fmf-fun-def-debug") << "---> add constraint " << ex << " for " << n << std::endl;
+        currConstraints.push_back(ex);
+        Trace("fmf-fun-def-debug")
+            << "---> add constraint " << ex << " for " << n << std::endl;
       }
     }
-    for( const Node& cn : n ){
-      getConstraints( cn, currConstraints, visited );
+    for (const Node& cn : n)
+    {
+      getConstraints(cn, currConstraints, visited);
     }
   }
   // set the visited cache
-  if( !currConstraints.empty() )
+  if (!currConstraints.empty())
   {
-    Node finalc = currConstraints.size()==1 ? currConstraints[0] : nm->mkNode( AND, currConstraints );
+    Node finalc = currConstraints.size() == 1
+                      ? currConstraints[0]
+                      : nm->mkNode(AND, currConstraints);
     visited[n] = finalc;
     // add to constraints
-    getConstraints(n,constraints,visited);
+    getConstraints(n, constraints, visited);
   }
 }
