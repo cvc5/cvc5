@@ -3259,10 +3259,6 @@ bool SmtEnginePrivate::simplifyAssertions()
           // re-simplification, which we don't expect to be useful anyway)
           d_assertions.getRealAssertionsEnd() == d_assertions.size())
       {
-        Chat() << "...fixing miplib encodings..." << endl;
-        Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                          << "looking for miplib pseudobooleans..." << endl;
-
         d_preprocessingPassRegistry.getPass("miplib-trick")
             ->apply(&d_assertions);
       } else {

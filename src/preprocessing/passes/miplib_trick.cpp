@@ -141,17 +141,23 @@ void traceBackToAssertions(booleans::CircuitPropagator* propagator,
 MipLibTrick::MipLibTrick(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "miplib-trick")
 {
-  NodeManager::currentNM()->subscribeEvents(this);
+  if (!options::incrementalSolving())
+  {
+    NodeManager::currentNM()->subscribeEvents(this);
+  }
 }
 
 MipLibTrick::~MipLibTrick()
 {
-  NodeManager::currentNM()->unsubscribeEvents(this);
+  if (!options::incrementalSolving())
+  {
+    NodeManager::currentNM()->unsubscribeEvents(this);
+  }
 }
 
 void MipLibTrick::nmNotifyNewVar(TNode n, uint32_t flags)
 {
-  if (n.getType().isBoolean() && !options::incrementalSolving())
+  if (n.getType().isBoolean())
   {
     d_boolVars.push_back(n);
   }
@@ -161,7 +167,7 @@ void MipLibTrick::nmNotifyNewSkolem(TNode n,
                                     const std::string& comment,
                                     uint32_t flags)
 {
-  if (n.getType().isBoolean() && !options::incrementalSolving())
+  if (n.getType().isBoolean())
   {
     d_boolVars.push_back(n);
   }
@@ -518,7 +524,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
 
               Node n = Rewriter::rewrite(geq.andNode(leq));
               assertionsToPreprocess->push_back(n);
-              ProofManager::currentPM()->addDependence(n, Node::null());
+              PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
 
               SubstitutionMap nullMap(&fakeContext);
               Theory::PPAssertStatus status CVC4_UNUSED;  // just for assertions
@@ -587,7 +593,8 @@ PreprocessingPassResult MipLibTrick::applyInternal(
           Debug("miplib") << "  " << newAssertion << endl;
 
           assertionsToPreprocess->push_back(newAssertion);
-          ProofManager::currentPM()->addDependence(newAssertion, Node::null());
+          PROOF(ProofManager::currentPM()->addDependence(newAssertion,
+                                                         Node::null()));
 
           Debug("miplib") << "  assertions to remove: " << endl;
           for (vector<TNode>::const_iterator k = asserts[pos_var].begin(),

@@ -33,15 +33,14 @@
 namespace CVC4 {
 namespace preprocessing {
 
-using namespace theory;
-
 class PreprocessingPassContext
 {
  public:
-  PreprocessingPassContext(SmtEngine* smt,
-                           ResourceManager* resourceManager,
-                           RemoveTermFormulas* iteRemover,
-                           booleans::CircuitPropagator* circuitPropagator);
+  PreprocessingPassContext(
+      SmtEngine* smt,
+      ResourceManager* resourceManager,
+      RemoveTermFormulas* iteRemover,
+      theory::booleans::CircuitPropagator* circuitPropagator);
 
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
@@ -51,7 +50,7 @@ class PreprocessingPassContext
   context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
 
-  booleans::CircuitPropagator* getCircuitPropagator()
+  theory::booleans::CircuitPropagator* getCircuitPropagator()
   {
     return d_circuitPropagator;
   }
@@ -78,7 +77,7 @@ class PreprocessingPassContext
   RemoveTermFormulas* d_iteRemover;
 
   /** Instance of the circuit propagator */
-  booleans::CircuitPropagator* d_circuitPropagator;
+  theory::booleans::CircuitPropagator* d_circuitPropagator;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
