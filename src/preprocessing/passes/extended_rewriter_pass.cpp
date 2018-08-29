@@ -28,14 +28,12 @@ ExtRewPre::ExtRewPre(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult ExtRewPre::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Trace("ext-rew-pass") << "Apply ext-rew-pre..." << std::endl;
   theory::quantifiers::ExtendedRewriter extr(options::extRewPrepAgg());
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(
         i, extr.extendedRewrite((*assertionsToPreprocess)[i]));
   }
-  Trace("ext-rew-pass") << "...finished ext-rew-pre" << std::endl;
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
