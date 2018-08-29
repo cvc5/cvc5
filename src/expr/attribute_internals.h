@@ -150,10 +150,10 @@ class AttrHash<bool> :
 
     uint64_t& d_word;
 
-    uint32_t d_bit;
+    uint64_t d_bit;
 
    public:
-    BitAccessor(uint64_t& word, uint32_t bit) : d_word(word), d_bit(bit) {}
+    BitAccessor(uint64_t& word, uint64_t bit) : d_word(word), d_bit(bit) {}
 
     BitAccessor& operator=(bool b) {
       if(b) {
@@ -180,7 +180,7 @@ class AttrHash<bool> :
 
     std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    uint32_t d_bit;
+    uint64_t d_bit;
 
    public:
 
@@ -189,7 +189,7 @@ class AttrHash<bool> :
       d_bit(0) {
     }
 
-    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint32_t bit)
+    BitIterator(std::pair<NodeValue* const, uint64_t>& entry, uint64_t bit)
         : d_entry(&entry), d_bit(bit)
     {
     }
@@ -214,7 +214,7 @@ class AttrHash<bool> :
 
     const std::pair<NodeValue* const, uint64_t>* d_entry;
 
-    uint32_t d_bit;
+    uint64_t d_bit;
 
    public:
 
@@ -224,7 +224,7 @@ class AttrHash<bool> :
     }
 
     ConstBitIterator(const std::pair<NodeValue* const, uint64_t>& entry,
-                     uint32_t bit)
+                     uint64_t bit)
         : d_entry(&entry), d_bit(bit)
     {
     }
@@ -265,7 +265,7 @@ public:
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
-                 uint32_t(k.first));
+                 uint64_t(k.first));
     */
     return BitIterator(*i, k.first);
   }
@@ -289,7 +289,7 @@ public:
                  "underlying word at 0x%p looks like 0x%016llx, bit is %u\n",
                  &(*i).second,
                  (uint64_t)((*i).second),
-                 uint32_t(k.first));
+                 uint64_t(k.first));
     */
     return ConstBitIterator(*i, k.first);
   }
