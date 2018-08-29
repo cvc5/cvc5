@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include "expr/node.h"
+#include "theory/quantifiers/term_canonize.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -188,8 +189,9 @@ class PartitionMerger
 
 
 /**
- * This is the class to detect symmetries from input based on terms equality.
- * */
+ * This is the class to detect symmetries between variables or terms relative
+ * to a set of input assertions.
+ */
 class SymmetryDetect
 {
  public:
@@ -240,6 +242,9 @@ class SymmetryDetect
   Node d_trueNode;
   Node d_falseNode;
 
+  /** term canonizer (for quantified formulas) */
+  theory::quantifiers::TermCanonize d_tcanon;
+  
   /** Cache for partitions */
   std::map<Node, Partition> d_term_partition;
 
@@ -262,6 +267,18 @@ class SymmetryDetect
    * */
   void collectChildren(Node node, std::vector<Node>& children);
 
+  /** Compute alpha equivalent terms 
+   *
+   * This constructs sterm_to_indices such that if sterm_to_indices[t]
+   * contains an index i, then there exists a k such that indices[k] = i and
+   * sterms[k] is alpha-equivalent to t, and sterm_to_indices contains
+   * indices[k] for each k=1,...,indicies.size()-1. For example,
+   * computeAlphaEqTerms( { 0, 3, 7 }, { Q(a), forall x. P(x), forall y. P(y) }
+   * may construct sterm_to_indices such that 
+   *   sterm_to_indices[Q(a)] -> { 0 }
+   *   sterm_to_indices[forall x. P(x)] -> { 3, 7 }
+   */
+  void computeAlphaEqTerms( const std::vector< unsigned >& indices, const std::vector< Node >& sterms, std::map< Node, std::vector< unsigned > >& sterm_to_indices );
   /** process partitions
    *
    * This method is called when we have detected symmetries for the children
@@ -308,7 +325,6 @@ class SymmetryDetect
   /** store term symmetry */
   void storeTermSymmetry(const std::vector<Node>& symTerms,
                          const std::vector<Node>& vars);
-
   //-------------------end for symmetry breaking terms
 };
 
