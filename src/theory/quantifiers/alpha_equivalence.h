@@ -28,15 +28,14 @@ class AlphaEquivalenceNode {
 public:
   std::map< Node, std::map< int, AlphaEquivalenceNode > > d_children;
   Node d_quant;
-  static Node registerNode( AlphaEquivalenceNode* aen, QuantifiersEngine* qe, Node q, std::vector< Node >& tt, std::vector< int >& arg_index );
+  Node registerNode( Node q, std::vector< Node >& tt, std::vector< int >& arg_index );
 };
 
 class AlphaEquivalenceTypeNode {
 public:
   std::map< TypeNode, std::map< int, AlphaEquivalenceTypeNode > > d_children;
   AlphaEquivalenceNode d_data;
-  static Node registerNode( AlphaEquivalenceTypeNode* aetn,
-                            QuantifiersEngine* qe, Node q, Node t, std::vector< TypeNode >& typs, std::map< TypeNode, int >& typ_count, int index = 0 );
+  Node registerNode( Node q, Node t, std::vector< TypeNode >& typs, std::map< TypeNode, int >& typ_count, int index = 0 );
 };
 
 class AlphaEquivalence {
