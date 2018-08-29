@@ -3,19 +3,30 @@
 # GLPK_INCLUDE_DIR - the GLPK include directory
 # GLPK_LIBRARIES - Libraries needed to use GLPK
 
-set(GLPK_DEFAULT_HOME ${PROJECT_SOURCE_DIR}/glpk-cut-log)
+
+# Check default location of GLPK built with contrib/get-glpk-cut-log.
+# If the user provides a directory we will not search the default paths and
+# fail if GLPK was not found in the specified directory.
+if(NOT GLPK_HOME)
+  set(GLPK_HOME ${PROJECT_SOURCE_DIR}/glpk-cut-log)
+  set(CHECK_SYSTEM_VERSION TRUE)
+endif()
 
 find_path(GLPK_INCLUDE_DIR
           NAMES glpk.h
-          PATHS ${GLPK_DEFAULT_HOME}/include
+          PATHS ${GLPK_HOME}/include
           NO_DEFAULT_PATH)
 find_library(GLPK_LIBRARIES
              NAMES glpk
-             PATHS ${GLPK_DEFAULT_HOME}/lib
+             PATHS ${GLPK_HOME}/lib
              NO_DEFAULT_PATH)
 
+if(CHECK_SYSTEM_VERSION)
+  find_path(GLPK_INCLUDE_DIR NAMES glpk.h)
+  find_library(GLPK_LIBRARIES NAMES glpk)
+endif()
 
-# Check if we really have GLPK-cut-log
+# Check if we really have GLPK-cut-log.
 if(GLPK_INCLUDE_DIR)
   include(CheckSymbolExists)
   set(CMAKE_REQUIRED_INCLUDES ${GLPK_INCLUDE_DIR})
