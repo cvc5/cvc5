@@ -70,10 +70,20 @@ class TermGenEnv;
 
 class TermGenerator
 {
-private:
+ private:
   unsigned calculateGeneralizationDepth( TermGenEnv * s, std::map< TypeNode, std::vector< int > >& fvs );
-public:
-  TermGenerator(){}
+
+ public:
+  TermGenerator()
+      : d_id(0),
+        d_status(0),
+        d_status_num(0),
+        d_status_child_num(0),
+        d_match_status(0),
+        d_match_status_child_num(0),
+        d_match_mode(0)
+  {
+  }
   TypeNode d_typ;
   unsigned d_id;
   //1 : consider as unique variable
@@ -277,6 +287,9 @@ private:
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** (universal) equaltity engine */
   eq::EqualityEngine d_uequalityEngine;
   /** pending adds */

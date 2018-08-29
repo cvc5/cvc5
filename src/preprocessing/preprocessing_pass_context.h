@@ -2,7 +2,7 @@
 /*! \file preprocessing_pass_context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz, Mathias Preiner
+ **   Justin Xu, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -23,6 +23,7 @@
 
 #include "context/context.h"
 #include "decision/decision_engine.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
 #include "theory/theory_engine.h"
@@ -42,12 +43,15 @@ class PreprocessingPassContext
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
   prop::PropEngine* getPropEngine() { return d_smt->d_propEngine; }
   context::Context* getUserContext() { return d_smt->d_userContext; }
+  context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
 
   void spendResource(unsigned amount)
   {
     d_resourceManager->spendResource(amount);
   }
+
+  const LogicInfo& getLogicInfo() { return d_smt->d_logic; }
 
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);

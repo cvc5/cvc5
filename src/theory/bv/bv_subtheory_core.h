@@ -82,7 +82,7 @@ class CoreSolver : public SubtheorySolver {
   /** new equivalence class */
   void eqNotifyNewClass(TNode t);
 
-  Slicer* d_slicer;
+  std::unique_ptr<Slicer> d_slicer;
   context::CDO<bool> d_isComplete;
   unsigned d_lemmaThreshold;
   

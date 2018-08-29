@@ -11,37 +11,48 @@
  **
  ** \brief Simplifications based on unconstrained variables
  **
- ** This module implements a preprocessing phase which replaces certain "unconstrained" expressions
- ** by variables.  Based on Roberto Bruttomesso's PhD thesis.
+ ** This module implements a preprocessing phase which replaces certain
+ ** "unconstrained" expressions by variables.  Based on Roberto
+ ** Bruttomesso's PhD thesis.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UNCONSTRAINED_SIMPLIFIER_H
-#define __CVC4__UNCONSTRAINED_SIMPLIFIER_H
+#ifndef __CVC4__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
+#define __CVC4__PREPROCESSING_PASSES_UNCONSTRAINED_SIMPLIFIER_H
 
 #include <unordered_map>
 #include <unordered_set>
-#include <utility>
 #include <vector>
 
+#include "context/context.h"
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass.h"
+#include "preprocessing/preprocessing_pass_context.h"
+#include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+namespace preprocessing {
+namespace passes {
 
-/* Forward Declarations */
-class LogicInfo;
+class UnconstrainedSimplifier : public PreprocessingPass
+{
+ public:
+  UnconstrainedSimplifier(PreprocessingPassContext* preprocContext);
+  ~UnconstrainedSimplifier() override;
 
-class UnconstrainedSimplifier {
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 
+ private:
   /** number of expressions eliminated due to unconstrained simplification */
   IntStat d_numUnconstrainedElim;
 
-  typedef std::unordered_map<TNode, unsigned, TNodeHashFunction> TNodeCountMap;
-  typedef std::unordered_map<TNode, TNode, TNodeHashFunction> TNodeMap;
-  typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
+  using TNodeCountMap = std::unordered_map<TNode, unsigned, TNodeHashFunction>;
+  using TNodeMap = std::unordered_map<TNode, TNode, TNodeHashFunction>;
+  using TNodeSet = std::unordered_set<TNode, TNodeHashFunction>;
 
   TNodeCountMap d_visited;
   TNodeMap d_visitedOnce;
@@ -55,13 +66,10 @@ class UnconstrainedSimplifier {
   void visitAll(TNode assertion);
   Node newUnconstrainedVar(TypeNode t, TNode var);
   void processUnconstrained();
-
-public:
-  UnconstrainedSimplifier(context::Context* context, const LogicInfo& logicInfo);
-  ~UnconstrainedSimplifier();
-  void processAssertions(std::vector<Node>& assertions);
 };
 
-}
+}  // namespace passes
+}  // namespace preprocessing
+}  // namespace CVC4
 
 #endif

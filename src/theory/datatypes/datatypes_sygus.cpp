@@ -1445,7 +1445,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
       {
         std::stringstream ss;
         ss << "Maximum term size (" << options::sygusAbortSize()
-           << ") for enumerative SyGuS exceeded." << std::endl;
+           << ") for enumerative SyGuS exceeded.";
         throw LogicException(ss.str());
       }
       Assert( !d_this.isNull() );

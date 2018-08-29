@@ -38,8 +38,8 @@ using namespace CVC4::smt;
 class BvInstantiatorWhite : public CxxTest::TestSuite
 {
  public:
-  void setUp();
-  void tearDown();
+  void setUp() override;
+  void tearDown() override;
 
   void testGetPvCoeff();
   void testNormalizePvMult();
