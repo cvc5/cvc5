@@ -14,9 +14,9 @@
 
 #include "preprocessing/passes/symmetry_detect.h"
 #include "expr/node_algorithm.h"
+#include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
-#include "theory/quantifiers/alpha_equivalence.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -544,9 +544,9 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
         }
         std::vector<Node>& tsym = d_tsyms[tsymId];
         // map terms in this symmetry to their final form
-        std::vector< unsigned > tsym_indices;
-        std::vector< Node > tsym_terms;
-        for (unsigned j=0, size = tsym.size(); j<size; j++ )
+        std::vector<unsigned> tsym_indices;
+        std::vector<Node> tsym_terms;
+        for (unsigned j = 0, size = tsym.size(); j < size; j++)
         {
           Node tst = tsym[j];
           Node tsts = tst.substitute(
@@ -555,8 +555,8 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
           tsym_terms.push_back(tsts);
         }
         // take into account alpha-equivalence
-        std::map< Node, std::vector< unsigned > > t_to_st;
-        computeAlphaEqTerms(tsym_indices,tsym_terms,t_to_st);
+        std::map<Node, std::vector<unsigned> > t_to_st;
+        computeAlphaEqTerms(tsym_indices, tsym_terms, t_to_st);
         Node tshUse;
         for (const std::pair<const Node, std::vector<unsigned> >& tsh : t_to_st)
         {
@@ -570,8 +570,8 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
         }
         if (!tshUse.isNull())
         {
-          std::vector< Node > tsymCons;
-          for( unsigned j : t_to_st[tshUse] )
+          std::vector<Node> tsymCons;
+          for (unsigned j : t_to_st[tshUse])
           {
             tsymCons.push_back(tsym[j]);
           }
@@ -695,8 +695,8 @@ Partition SymmetryDetect::findPartitions(Node node)
   if (isAssocComm)
   {
     // get the list of indices and terms
-    std::vector< unsigned > indices;
-    std::vector< Node > sterms;
+    std::vector<unsigned> indices;
+    std::vector<Node> sterms;
     for (unsigned j = 0, size = partitions.size(); j < size; j++)
     {
       Node st = partitions[j].d_sterm;
@@ -708,7 +708,7 @@ Partition SymmetryDetect::findPartitions(Node node)
     }
     // now, compute terms to indices
     std::map<Node, std::vector<unsigned> > sterm_to_indices;
-    computeAlphaEqTerms( indices, sterms, sterm_to_indices );
+    computeAlphaEqTerms(indices, sterms, sterm_to_indices);
 
     for (const std::pair<Node, std::vector<unsigned> >& sti : sterm_to_indices)
     {
@@ -962,16 +962,19 @@ void SymmetryDetect::collectChildren(Node node, vector<Node>& children)
   } while (!visit.empty());
 }
 
-void SymmetryDetect::computeAlphaEqTerms( const std::vector< unsigned >& indices, const std::vector< Node >& sterms, std::map< Node, std::vector< unsigned > >& sterm_to_indices )
+void SymmetryDetect::computeAlphaEqTerms(
+    const std::vector<unsigned>& indices,
+    const std::vector<Node>& sterms,
+    std::map<Node, std::vector<unsigned> >& sterm_to_indices)
 {
-  Assert( indices.size()==sterms.size() );
+  Assert(indices.size() == sterms.size());
   // also store quantified formulas, since these may be alpha-equivalent
-  std::vector< unsigned > quant_sterms;
+  std::vector<unsigned> quant_sterms;
   for (unsigned j = 0, size = indices.size(); j < size; j++)
   {
     Node st = sterms[j];
-    Assert( !st.isNull() );
-    if( st.getKind()==FORALL )
+    Assert(!st.isNull());
+    if (st.getKind() == FORALL)
     {
       quant_sterms.push_back(j);
     }
@@ -981,16 +984,16 @@ void SymmetryDetect::computeAlphaEqTerms( const std::vector< unsigned >& indices
     }
   }
   // process the quantified formulas
-  if( quant_sterms.size()==1 )
+  if (quant_sterms.size() == 1)
   {
     // only one quantified formula, won't be alpha equivalent
     unsigned j = quant_sterms[0];
     sterm_to_indices[sterms[j]].push_back(indices[j]);
   }
-  else if( !quant_sterms.empty() )
+  else if (!quant_sterms.empty())
   {
     theory::quantifiers::AlphaEquivalenceDb aedb(&d_tcanon);
-    for( unsigned j : quant_sterms )
+    for (unsigned j : quant_sterms)
     {
       // project via alpha equivalence
       Node st = sterms[j];
