@@ -29,11 +29,12 @@ struct sortTypeOrder {
   }
 };
 
-Node AlphaEquivalenceNode::registerNode( Node q, Node t ) {
+Node AlphaEquivalenceNode::registerNode(Node q, Node t)
+{
   AlphaEquivalenceNode* aen = this;
-  std::vector< Node > tt;
-  std::vector< int > arg_index;
-  tt.push_back( t );
+  std::vector<Node> tt;
+  std::vector<int> arg_index;
+  tt.push_back(t);
   std::map< Node, bool > visited;
   while( !tt.empty() ){
     if( tt.size()==arg_index.size()+1 ){
@@ -73,10 +74,15 @@ Node AlphaEquivalenceNode::registerNode( Node q, Node t ) {
   return aen->d_quant;
 }
 
-Node AlphaEquivalenceTypeNode::registerNode( Node q, Node t, std::vector< TypeNode >& typs, std::map< TypeNode, int >& typ_count ){
+Node AlphaEquivalenceTypeNode::registerNode(Node q,
+                                            Node t,
+                                            std::vector<TypeNode>& typs,
+                                            std::map<TypeNode, int>& typ_count)
+{
   AlphaEquivalenceTypeNode* aetn = this;
   unsigned index = 0;
-  while( index<typs.size() ){
+  while (index < typs.size())
+  {
     TypeNode curr = typs[index];
     Assert( typ_count.find( curr )!=typ_count.end() );
     Trace("aeq-debug") << "[" << curr << " " << typ_count[curr] << "] ";
@@ -84,10 +90,10 @@ Node AlphaEquivalenceTypeNode::registerNode( Node q, Node t, std::vector< TypeNo
     index = index + 1;
   }
   Trace("aeq-debug") << " : ";
-  return aetn->d_data.registerNode( q, t );
+  return aetn->d_data.registerNode(q, t);
 }
 
-Node AlphaEquivalenceDb::addTerm( Node q )
+Node AlphaEquivalenceDb::addTerm(Node q)
 {
   Assert( q.getKind()==FORALL );
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
@@ -108,30 +114,32 @@ Node AlphaEquivalenceDb::addTerm( Node q )
   sto.d_tu = d_tc;
   std::sort( typs.begin(), typs.end(), sto );
   Trace("aeq-debug") << "  ";
-  Node ret =  d_ae_typ_trie.registerNode( q, t, typs, typ_count );
+  Node ret = d_ae_typ_trie.registerNode(q, t, typs, typ_count);
   Trace("aeq") << "  ...result : " << ret << std::endl;
   return ret;
 }
 
-AlphaEquivalence::AlphaEquivalence( QuantifiersEngine* qe ) : d_aedb( qe->getTermCanonize() ){
-  
-  
+AlphaEquivalence::AlphaEquivalence(QuantifiersEngine* qe)
+    : d_aedb(qe->getTermCanonize())
+{
 }
-  
-Node AlphaEquivalence::reduceQuantifier( Node q ) {
-  Assert( q.getKind()==FORALL );
+
+Node AlphaEquivalence::reduceQuantifier(Node q)
+{
+  Assert(q.getKind() == FORALL);
   Trace("aeq") << "Alpha equivalence : register " << q << std::endl;
-  Node ret = d_aedb.addTerm( q );
+  Node ret = d_aedb.addTerm(q);
   Node lem;
-  if( ret!=q )
+  if (ret != q)
   {
-    //do not reduce annotated quantified formulas based on alpha equivalence 
-    if( q.getNumChildren()==2 ){
-      //lemma ( q <=> d_quant )
+    // do not reduce annotated quantified formulas based on alpha equivalence
+    if (q.getNumChildren() == 2)
+    {
+      // lemma ( q <=> d_quant )
       Trace("alpha-eq") << "Alpha equivalent : " << std::endl;
       Trace("alpha-eq") << "  " << q << std::endl;
       Trace("alpha-eq") << "  " << ret << std::endl;
-      lem = q.eqNode( ret );
+      lem = q.eqNode(ret);
     }
   }
   return lem;
