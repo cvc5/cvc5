@@ -150,6 +150,8 @@ libcvc4_la_SOURCES = \
 	proof/cnf_proof.h \
 	proof/lemma_proof.cpp \
 	proof/lemma_proof.h \
+	proof/lfsc_proof_printer.cpp \
+	proof/lfsc_proof_printer.h \
 	proof/proof.h \
 	proof/proof_manager.cpp \
 	proof/proof_manager.h \
@@ -550,6 +552,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
+	theory/quantifiers/term_canonize.cpp \
+	theory/quantifiers/term_canonize.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_enumeration.cpp \
