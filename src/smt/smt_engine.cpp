@@ -3872,7 +3872,7 @@ void SmtEnginePrivate::computeVariablesInAssertions(
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
-  for (const Node& cn : assertions)
+  for (TNode cn : assertions)
   {
     visit.push_back(cn);
     do
@@ -3886,7 +3886,7 @@ void SmtEnginePrivate::computeVariablesInAssertions(
         {
           d_varsInAssertions.insert(cur);
         }
-        for (const Node& cn : cur)
+        for (TNode cn : cur)
         {
           visit.push_back(cn);
         }
