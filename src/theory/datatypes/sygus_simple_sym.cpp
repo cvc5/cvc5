@@ -116,7 +116,6 @@ class ReqTrie
       std::vector<TypeNode> argts;
       if (tdb->canConstructKind(tn, d_req_kind, argts))
       {
-        bool ret = true;
         for (std::map<unsigned, ReqTrie>::iterator it = d_children.begin();
              it != d_children.end();
              ++it)
@@ -133,10 +132,6 @@ class ReqTrie
           {
             return false;
           }
-        }
-        if (!ret)
-        {
-          return false;
         }
       }
       else

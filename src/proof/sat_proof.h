@@ -114,8 +114,7 @@ class TSatProof {
  public:
   TSatProof(Solver* solver, context::Context* context,
             const std::string& name, bool checkRes = false);
-  virtual ~TSatProof();
-  void setCnfProof(CnfProof* cnf_proof);
+  ~TSatProof();
 
   void startResChain(typename Solver::TLit start);
   void startResChain(typename Solver::TCRef start);
@@ -204,34 +203,13 @@ class TSatProof {
   bool derivedEmptyClause() const;
   prop::SatClause* buildClause(ClauseId id);
 
-  virtual void printResolution(ClauseId id, std::ostream& out,
-                               std::ostream& paren) = 0;
-  virtual void printResolutions(std::ostream& out, std::ostream& paren) = 0;
-  virtual void printResolutionEmptyClause(std::ostream& out,
-                                          std::ostream& paren) = 0;
-  virtual void printAssumptionsResolution(ClauseId id, std::ostream& out,
-                                          std::ostream& paren) = 0;
-
   void collectClausesUsed(IdToSatClause& inputs, IdToSatClause& lemmas);
 
   void storeClauseGlue(ClauseId clause, int glue);
 
- protected:
-  void print(ClauseId id) const;
-  void printRes(ClauseId id) const;
-  void printRes(const ResolutionChain& res) const;
-
   bool isInputClause(ClauseId id) const;
   bool isLemmaClause(ClauseId id) const;
   bool isAssumptionConflict(ClauseId id) const;
-
-  bool isUnit(ClauseId id) const;
-  typename Solver::TLit getUnit(ClauseId id) const;
-
-  bool isUnit(typename Solver::TLit lit) const;
-  ClauseId getUnitId(typename Solver::TLit lit) const;
-
-
 
   bool hasResolutionChain(ClauseId id) const;
 
@@ -239,9 +217,20 @@ class TSatProof {
    * hasResolution(id) does not hold. */
   const ResolutionChain& getResolutionChain(ClauseId id) const;
 
-  /** Returns a mutable pointer to the resolution chain associated with id.
-   * Assert fails if hasResolution(id) does not hold. */
-  ResolutionChain* getMutableResolutionChain(ClauseId id);
+  const std::string& getName() const { return d_name; }
+  const ClauseId& getEmptyClauseId() const { return d_emptyClauseId; }
+  const IdSet& getSeenLearnt() const { return d_seenLearnt; }
+  const IdToConflicts& getAssumptionConflicts() const
+  {
+    return d_assumptionConflictsDebug;
+  }
+
+ private:
+  bool isUnit(ClauseId id) const;
+  typename Solver::TLit getUnit(ClauseId id) const;
+
+  bool isUnit(typename Solver::TLit lit) const;
+  ClauseId getUnitId(typename Solver::TLit lit) const;
 
   void createLitSet(ClauseId id, LitSet& set);
 
@@ -263,10 +252,8 @@ class TSatProof {
 
 
   const typename Solver::TClause& getClause(typename Solver::TCRef ref) const;
-  typename Solver::TClause* getMutableClause(typename Solver::TCRef ref);
 
   void getLitVec(ClauseId id, LitVector& vec);
-  virtual void toStream(std::ostream& out);
 
   bool checkResolution(ClauseId id);
 
@@ -291,16 +278,33 @@ class TSatProof {
                   LitVector& removeStack, LitSet& inClause, LitSet& seen);
   void removeRedundantFromRes(ResChain<Solver>* res, ClauseId id);
 
-  std::string varName(typename Solver::TLit lit);
-  std::string clauseName(ClauseId id);
+  void print(ClauseId id) const;
+  void printRes(ClauseId id) const;
+  void printRes(const ResolutionChain& res) const;
 
-  void addToProofManager(ClauseId id, ClauseKind kind);
-  void addToCnfProof(ClauseId id);
+  std::unordered_map<ClauseId, int> d_glueMap;
+  struct Statistics {
+    IntStat d_numLearnedClauses;
+    IntStat d_numLearnedInProof;
+    IntStat d_numLemmasInProof;
+    AverageStat d_avgChainLength;
+    HistogramStat<uint64_t> d_resChainLengths;
+    HistogramStat<uint64_t> d_usedResChainLengths;
+    HistogramStat<uint64_t> d_clauseGlue;
+    HistogramStat<uint64_t> d_usedClauseGlue;
+    Statistics(const std::string& name);
+    ~Statistics();
+  };
+
+  std::string d_name;
+
+  const ClauseId d_emptyClauseId;
+  IdSet d_seenLearnt;
+  IdToConflicts d_assumptionConflictsDebug;
 
   // Internal data.
   Solver* d_solver;
   context::Context* d_context;
-  CnfProof* d_cnfProof;
 
   // clauses
   IdCRefMap d_idClause;
@@ -315,7 +319,6 @@ class TSatProof {
   VarSet d_assumptions;             // assumption literals for bv solver
   IdHashSet d_assumptionConflicts;  // assumption conflicts not actually added
                                     // to SAT solver
-  IdToConflicts d_assumptionConflictsDebug;
 
   // Resolutions.
 
@@ -336,7 +339,6 @@ class TSatProof {
   ResStack d_resStack;
   bool d_checkRes;
 
-  const ClauseId d_emptyClauseId;
   const ClauseId d_nullId;
 
   // temporary map for updating CRefs
@@ -349,48 +351,12 @@ class TSatProof {
   ClauseId d_trueLit;
   ClauseId d_falseLit;
 
-  std::string d_name;
-
-  IdSet d_seenLearnt;
   IdToSatClause d_seenInputs;
   IdToSatClause d_seenLemmas;
-
-   private:
-  std::unordered_map<ClauseId, int> d_glueMap;
-  struct Statistics {
-    IntStat d_numLearnedClauses;
-    IntStat d_numLearnedInProof;
-    IntStat d_numLemmasInProof;
-    AverageStat d_avgChainLength;
-    HistogramStat<uint64_t> d_resChainLengths;
-    HistogramStat<uint64_t> d_usedResChainLengths;
-    HistogramStat<uint64_t> d_clauseGlue;
-    HistogramStat<uint64_t> d_usedClauseGlue;
-    Statistics(const std::string& name);
-    ~Statistics();
-  };
 
   bool d_satProofConstructed;
   Statistics d_statistics;
 }; /* class TSatProof */
-
-template <class SatSolver>
-class LFSCSatProof : public TSatProof<SatSolver> {
- private:
- public:
-  LFSCSatProof(SatSolver* solver, context::Context* context,
-               const std::string& name, bool checkRes = false)
-    : TSatProof<SatSolver>(solver, context, name, checkRes) {}
-  void printResolution(ClauseId id,
-                       std::ostream& out,
-                       std::ostream& paren) override;
-  void printResolutions(std::ostream& out, std::ostream& paren) override;
-  void printResolutionEmptyClause(std::ostream& out,
-                                  std::ostream& paren) override;
-  void printAssumptionsResolution(ClauseId id,
-                                  std::ostream& out,
-                                  std::ostream& paren) override;
-}; /* class LFSCSatProof */
 
 template <class Solver>
 prop::SatLiteral toSatLiteral(typename Solver::TLit lit);
