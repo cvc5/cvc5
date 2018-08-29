@@ -221,13 +221,7 @@ bool SubstitutionMinimize::find(Node n,
           if (!alreadyJustified && !justifyArgs.empty())
           {
             unsigned sindex = justifyArgs[0];
-            // choose best index TODO?
-            // if (justifyArgs.size() > 1)
-            //{
-            // for( unsigned sai : justifyArgs )
-            //{
-            //}
-            //}
+            // could choose a best index, for now, we just take the first
             visit.push_back(cur[sindex]);
             alreadyJustified = true;
           }
