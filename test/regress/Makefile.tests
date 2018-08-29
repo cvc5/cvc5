@@ -1506,6 +1506,7 @@ REG1_TESTS = \
 	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
 	regress1/strings/policy_variable.smt2 \
+	regress1/strings/re-elim-exact.smt2 \
 	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \

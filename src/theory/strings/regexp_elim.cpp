@@ -55,22 +55,20 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
   std::vector<Node> children;
   TheoryStringsRewriter::getConcat(re, children);
-  bool success = true;
+  bool onlySigmasAndConsts = true;
   std::vector<Node> sep_children;
   std::vector<unsigned> gap_minsize;
   std::vector<bool> gap_exact;
   // the first gap is initially strict zero
   gap_minsize.push_back(0);
   gap_exact.push_back(true);
-  unsigned nchildren = children.size();
-  for (unsigned i = 0; i < nchildren; i++)
+  for (const Node& c : children)
   {
-    Node c = children[i];
     Trace("re-elim-debug") << "  " << c << std::endl;
-    success = false;
+    onlySigmasAndConsts = false;
     if (c.getKind() == STRING_TO_REGEXP)
     {
-      success = true;
+      onlySigmasAndConsts = true;
       sep_children.push_back(c[0]);
       // the next gap is initially strict zero
       gap_minsize.push_back(0);
@@ -79,16 +77,16 @@ Node RegExpElimination::eliminateConcat(Node atom)
     else if (c.getKind() == REGEXP_STAR && c[0].getKind() == REGEXP_SIGMA)
     {
       // found a gap of any size
-      success = true;
+      onlySigmasAndConsts = true;
       gap_exact[gap_exact.size() - 1] = false;
     }
     else if (c.getKind() == REGEXP_SIGMA)
     {
       // add one to the minimum size of the gap
-      success = true;
+      onlySigmasAndConsts = true;
       gap_minsize[gap_minsize.size() - 1]++;
     }
-    if (!success)
+    if (!onlySigmasAndConsts)
     {
       Trace("re-elim-debug") << "...cannot handle " << c << std::endl;
       break;
@@ -96,9 +94,10 @@ Node RegExpElimination::eliminateConcat(Node atom)
   }
   // we should always rewrite concatenations that are purely re.allchar
   // and re.*( re.allchar ).
-  Assert(!success || !sep_children.empty());
-  if (success && !sep_children.empty())
+  Assert(!onlySigmasAndConsts || !sep_children.empty());
+  if (onlySigmasAndConsts && !sep_children.empty())
   {
+    bool canProcess = true;
     std::vector<Node> conj;
     // The following constructs a set of constraints that encodes that a
     // set of string terms are found, in order, in string x.
@@ -133,7 +132,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         {
           if (!options::regExpElimAgg())
           {
-            success = false;
+            canProcess = false;
             break;
           }
           // if the gap after this one is strict, we need a non-greedy find
@@ -147,36 +146,22 @@ Node RegExpElimination::eliminateConcat(Node atom)
         conj.push_back(idofFind);
         prev_end = nm->mkNode(PLUS, curr, lensc);
       }
-      // if applicable, process the last gap
-      if (i == (size - 1))
-      {
-        if (gap_exact_end)
-        {
-          // substring relative to the end
-          Node curr = nm->mkNode(MINUS, lenx, lensc);
-          if (gap_minsize_end > 0)
-          {
-            curr =
-                nm->mkNode(MINUS, curr, nm->mkConst(Rational(gap_minsize_end)));
-          }
-          Node ss = nm->mkNode(STRING_SUBSTR, x, curr, lensc);
-          conj.push_back(ss.eqNode(sc));
-        }
-        else if (gap_minsize_end > 0)
-        {
-          Node fit = nm->mkNode(
-              LEQ,
-              nm->mkNode(
-                  PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
-              lenx);
-          conj.push_back(fit);
-        }
-      }
     }
-    if (success)
+
+    if (canProcess)
     {
       // since sep_children is non-empty, conj is non-empty
       Assert(!conj.empty());
+      // process the last gap, if necessary
+      if( gap_minsize_end>0 || gap_exact_end )
+      {
+        Node fit = nm->mkNode(
+            gap_exact_end ? EQUAL : LEQ,
+            nm->mkNode(
+                PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
+            lenx);
+        conj.push_back(fit);
+      }
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
       // process the non-greedy find variables
       if (!non_greedy_find_vars.empty())
@@ -200,6 +185,12 @@ Node RegExpElimination::eliminateConcat(Node atom)
       //     indexof(x,"A",0)!=-1 ^
       //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 ) != -1 ^
       //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 )+1+2 <= len(x)
+      
+      // An example of a non-greedy find:
+      //   x in re.++( re.*( _ ), "A", _, "B", re.*( _ ) ) --->
+      //     exists k. 0 <= k < len( x ) ^
+      //               indexof( x, "A", k ) != -1 ^ 
+      //               substr( x, indexof( x, "A", k )+2, 1 ) = "B"
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
@@ -210,11 +201,13 @@ Node RegExpElimination::eliminateConcat(Node atom)
   }
   // only aggressive rewrites below here
 
-  // if the first or last child is constant string, split
+  // if the first or last child is constant string, we can split the membership
+  // into a conjunction of two memberships.
   Node sStartIndex = d_zero;
   Node sLength = lenx;
   std::vector<Node> sConstraints;
   std::vector<Node> rexpElimChildren;
+  unsigned nchildren = children.size();
   for (unsigned r = 0; r < 2; r++)
   {
     unsigned index = r == 0 ? 0 : nchildren - 1;
@@ -308,7 +301,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         echildren.push_back(substrSuffix);
       }
       Node body = nm->mkNode(AND, echildren);
-      if (!k.isNull())
+      if (k.getKind()==BOUND_VARIABLE)
       {
         Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
         body = nm->mkNode(EXISTS, bvl, body);
@@ -352,7 +345,7 @@ Node RegExpElimination::eliminateStar(Node atom)
   {
     disj.push_back(re[0]);
   }
-  bool success = true;
+  bool lenOnePeriod = true;
   std::vector<Node> char_constraints;
   Node index = nm->mkBoundVar(nm->integerType());
   Node substr_ch = nm->mkNode(STRING_SUBSTR, x, index, d_one);
@@ -360,22 +353,24 @@ Node RegExpElimination::eliminateStar(Node atom)
   // handle the case where it is purely characters
   for (const Node& r : disj)
   {
+    Assert(r.getKind() != REGEXP_UNION);
     Assert(r.getKind() != REGEXP_SIGMA);
-    success = false;
-    // success is true if the constraint
+    lenOnePeriod = false;
+    // lenOnePeriod is true if this regular expression is a single character
+    // regular expression
     if (r.getKind() == STRING_TO_REGEXP)
     {
       Node s = r[0];
       if (s.isConst() && s.getConst<String>().size() == 1)
       {
-        success = true;
+        lenOnePeriod = true;
       }
     }
     else if (r.getKind() == REGEXP_RANGE)
     {
-      success = true;
+      lenOnePeriod = true;
     }
-    if (!success)
+    if (!lenOnePeriod)
     {
       break;
     }
@@ -387,7 +382,7 @@ Node RegExpElimination::eliminateStar(Node atom)
       char_constraints.push_back(regexp_ch);
     }
   }
-  if (success)
+  if (lenOnePeriod)
   {
     Assert(!char_constraints.empty());
     Node bound = nm->mkNode(
@@ -399,7 +394,7 @@ Node RegExpElimination::eliminateStar(Node atom)
     Node res = nm->mkNode(FORALL, bvl, body);
     // e.g.
     //   x in (re.* (re.union "A" "B" )) --->
-    //     forall k. 0<=k<len(x) => (substr(x,k,1) = "A" OR substr(x,k,1)="B")
+    //   forall k. 0<=k<len(x) => (substr(x,k,1) in "A" OR substr(x,k,1) in "B")
     return returnElim(atom, res, "star-char");
   }
   // otherwise, for stars of constant length these are periodic
@@ -412,6 +407,7 @@ Node RegExpElimination::eliminateStar(Node atom)
       if (s.isConst())
       {
         Node lens = nm->mkNode(STRING_LENGTH, s);
+        lens = Rewriter::rewrite(lens);
         Assert(lens.isConst());
         std::vector<Node> conj;
         Node bound = nm->mkNode(
@@ -426,6 +422,10 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
             AND, nm->mkNode(INTS_MODULUS, lenx, lens).eqNode(d_zero), res);
+        // e.g. 
+        //    x in ("abc")* --->
+        //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^
+        //    len(x) mod 3 = 0
         return returnElim(atom, res, "star-constant");
       }
     }
