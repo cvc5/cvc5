@@ -152,7 +152,10 @@ Node RegExpElimination::eliminateConcat(Node atom)
     {
       // since sep_children is non-empty, conj is non-empty
       Assert(!conj.empty());
-      // process the last gap, if necessary
+      // Process the last gap, if necessary.
+      // Notice that if the last gap is not exact and its minsize is zero,
+      // then the last indexof/substr constraint entails the following
+      // constraint, so it is not necessary to add.
       if( gap_minsize_end>0 || gap_exact_end )
       {
         Node fit = nm->mkNode(
