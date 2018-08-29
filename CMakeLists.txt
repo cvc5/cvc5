@@ -202,18 +202,6 @@ set(CVC4_BUILD_PROFILE_COMPETITION 0)
 set(CVC4_GPL_DEPS 0)
 
 #-----------------------------------------------------------------------------#
-
-find_package(PythonInterp REQUIRED)
-
-set(ANTLR_HOME ${ANTLR_DIR})
-find_package(ANTLR REQUIRED)
-
-set(GMP_HOME ${GMP_DIR})
-find_package(GMP REQUIRED)
-cvc4_link_library(${GMP_LIBRARIES})
-include_directories(${GMP_INCLUDE_DIR})
-
-#-----------------------------------------------------------------------------#
 # Compiler flags
 
 add_check_c_cxx_flag("-O${OPT_LEVEL}")
@@ -257,6 +245,27 @@ endif()
 cvc4_set_option(ENABLE_PORTFOLIO OFF)
 cvc4_set_option(ENABLE_SHARED ON)
 cvc4_set_option(ENABLE_VALGRIND OFF)
+
+#-----------------------------------------------------------------------------#
+
+# This needs to be set before any find_package(...) command since we want to
+# search for static libraries with suffix .a.
+if(NOT ENABLE_SHARED)
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
+  set(CMAKE_EXE_LINKER_FLAGS "-static")
+  set(BUILD_SHARED_LIBS OFF)
+endif()
+
+find_package(PythonInterp REQUIRED)
+
+set(ANTLR_HOME ${ANTLR_DIR})
+find_package(ANTLR REQUIRED)
+
+set(GMP_HOME ${GMP_DIR})
+find_package(GMP REQUIRED)
+cvc4_link_library(${GMP_LIBRARIES})
+include_directories(${GMP_INCLUDE_DIR})
+
 
 #-----------------------------------------------------------------------------#
 # Enable the ctest testing framework
