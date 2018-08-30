@@ -926,37 +926,45 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
 {
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
-  if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ){
-    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit << std::endl;
-    std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[0] );
-    if( ita!=args.end() ){
-      vars.push_back( lit[0] );
+  if (lit.getKind() == APPLY_TESTER && pol && lit[0].getKind() == BOUND_VARIABLE
+      && options::dtVarExpandQuant())
+  {
+    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
+                         << std::endl;
+    std::vector<Node>::iterator ita =
+        std::find(args.begin(), args.end(), lit[0]);
+    if (ita != args.end())
+    {
+      vars.push_back(lit[0]);
       Expr testerExpr = lit.getOperator().toExpr();
-      int index = Datatype::indexOf( testerExpr );
+      int index = Datatype::indexOf(testerExpr);
       const Datatype& dt = Datatype::datatypeOf(testerExpr);
       const DatatypeConstructor& c = dt[index];
-      std::vector< Node > newChildren;
-      newChildren.push_back( Node::fromExpr( c.getConstructor() ) );
-      std::vector< Node > newVars;
-      for( unsigned j=0; j<c.getNumArgs(); j++ ){
-        TypeNode tn = TypeNode::fromType( c[j].getRangeType() );
-        Node v = NodeManager::currentNM()->mkBoundVar( tn );
-        newChildren.push_back( v );
-        newVars.push_back( v );
+      std::vector<Node> newChildren;
+      newChildren.push_back(Node::fromExpr(c.getConstructor()));
+      std::vector<Node> newVars;
+      for (unsigned j = 0; j < c.getNumArgs(); j++)
+      {
+        TypeNode tn = TypeNode::fromType(c[j].getRangeType());
+        Node v = NodeManager::currentNM()->mkBoundVar(tn);
+        newChildren.push_back(v);
+        newVars.push_back(v);
       }
-      subs.push_back( NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, newChildren ) );
-      Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/" << vars[0] << std::endl;
-      args.erase( ita );
-      args.insert( args.end(), newVars.begin(), newVars.end() );
+      subs.push_back(
+          NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren));
+      Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/"
+                           << vars[0] << std::endl;
+      args.erase(ita);
+      args.insert(args.end(), newVars.begin(), newVars.end());
       return true;
     }
   }
   // all eliminations below guarded by varElimQuant()
-  if( !options::varElimQuant() )
+  if (!options::varElimQuant())
   {
     return false;
   }
-      
+
   if (lit.getKind() == EQUAL)
   {
     if (pol || lit[0].getType().isBoolean())
@@ -994,7 +1002,8 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
-  if( lit.getKind()==BOUND_VARIABLE ){
+  if (lit.getKind() == BOUND_VARIABLE)
+  {
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
     if( ita!=args.end() ){
       Trace("var-elim-bool") << "Variable eliminate : " << lit << std::endl;
