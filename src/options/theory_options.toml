@@ -40,12 +40,3 @@ header = "options/theory_options.h"
   default    = "true"
   read_only  = true
   help       = "condense values for functions in models rather than explicitly representing them"
-
-[[option]]
-  name       = "extTheoryMinExp"
-  category   = "regular"
-  long       = "extt-min-exp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "minimize explanations in extended theory"

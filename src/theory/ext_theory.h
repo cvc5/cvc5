@@ -41,8 +41,6 @@
 #include "expr/node.h"
 #include "theory/theory.h"
 
-#include "theory/subs_minimize.h"
-
 namespace CVC4 {
 namespace theory {
 
@@ -244,8 +242,6 @@ class ExtTheory
    * cache for getSubstitutedTerm when d_cacheEnabled is true.
    */
   std::map<int, std::map<Node, SubsTermInfo> > d_gst_cache;
-  /** substitution minimize utility */
-  SubstitutionMinimize d_smin;
 };
 
 } /* CVC4::theory namespace */
