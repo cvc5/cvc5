@@ -1102,6 +1102,7 @@ REG1_TESTS = \
 	regress1/fmf/fib-core.smt2 \
 	regress1/fmf/fmf-bound-2dim.smt2 \
 	regress1/fmf/fmf-bound-int.smt2 \
+	regress1/fmf/fmf-fun-divisor-pp.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith2.smt2 \
 	regress1/fmf/fmf-strange-bounds.smt2 \

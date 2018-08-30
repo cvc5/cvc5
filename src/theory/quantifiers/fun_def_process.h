@@ -49,11 +49,6 @@ private:
   Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                         std::map< int, std::map< Node, Node > >& visited,
                         std::map< int, std::map< Node, Node > >& visited_cons );
-  /** simplify term
-  * This computes constraints for the final else branch of A_0 in Figure 1 
-  * of Reynolds et al "Model Finding for Recursive Functions".
-  */
-  void simplifyTerm( Node n, std::vector< Node >& constraints, std::map< Node, bool >& visited );
 public:
   FunDefFmf(){}
   ~FunDefFmf(){}
@@ -70,6 +65,15 @@ public:
   * which are Sigma^{dfn} in that paper.
   */
   void simplify( std::vector< Node >& assertions );
+  /** get constraints
+   *
+   * This computes constraints for the final else branch of A_0 in Figure 1
+   * of Reynolds et al "Model Finding for Recursive Functions". The range of
+   * the cache visited stores the constraint (if any) for each node.
+   */
+  void getConstraints(Node n,
+                      std::vector<Node>& constraints,
+                      std::map<Node, Node>& visited);
 };
 
 
