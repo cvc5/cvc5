@@ -93,7 +93,7 @@ private:
    * of the form x>=t with a fixed polarity P, then we may replace all such
    * literals with P. For example, note that:
    *   forall xy. x>y OR P(y) is equivalent to forall y. P(y).
-   * 
+   *
    * In the case that a variable x from args can be eliminated in this way,
    * we remove x from args, add x >= t1, ..., x >= tn to bounds, add false, ...,
    * false to subs, and return true.
@@ -103,8 +103,12 @@ private:
                              std::vector<Node>& bounds,
                              std::vector<Node>& subs,
                              QAttributes& qa);
-  static void isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
-                                   std::map< Node, bool >& elig_vars );
+  static void isVariableBoundElig(Node n,
+                                  std::map<Node, int>& exclude,
+                                  std::map<Node, std::map<int, bool> >& visited,
+                                  bool hasPol,
+                                  bool pol,
+                                  std::map<Node, bool>& elig_vars);
   /** compute variable elimination
    *
    * This computes variable elimination in for a body of a quantified formula

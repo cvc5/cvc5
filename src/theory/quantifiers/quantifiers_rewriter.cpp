@@ -764,7 +764,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         << "Conditional var elim split " << body << "?" << std::endl;
     bool do_split = false;
     unsigned index_max = body.getKind() == ITE ? 0 : 1;
-    std::vector< Node > tmpArgs = args;
+    std::vector<Node> tmpArgs = args;
     for (unsigned index = 0; index <= index_max; index++)
     {
       if (hasVariableElim(body[index], true, tmpArgs)
@@ -815,7 +815,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       {
         std::vector<Node> vars;
         std::vector<Node> subs;
-        std::vector< Node > tmpArgs = args;
+        std::vector<Node> tmpArgs = args;
         for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
         {
           if (getVarElimLit(b[j], true, tmpArgs, vars, subs))
@@ -1244,18 +1244,20 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
-  if( !options::varElimQuant() && !options::dtVarExpandQuant() && !options::varIneqElimQuant()){
+  if (!options::varElimQuant() && !options::dtVarExpandQuant()
+      && !options::varIneqElimQuant())
+  {
     return body;
   }
   Node prev;
-  while( prev!=body && !args.empty() )
+  while (prev != body && !args.empty())
   {
     prev = body;
 
     std::vector<Node> vars;
     std::vector<Node> subs;
     // standard variable elimination
-    if( options::varElimQuant() )
+    if (options::varElimQuant())
     {
       getVarElim(body, false, args, vars, subs);
     }
@@ -1269,7 +1271,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     {
       Trace("var-elim-quant-debug")
           << "VE " << vars.size() << "/" << args.size() << std::endl;
-      Assert( vars.size()==subs.size() );
+      Assert(vars.size() == subs.size());
       // remake with eliminated nodes
       body =
           body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
