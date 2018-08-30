@@ -205,24 +205,6 @@ public:
    */
   void setUnevaluatedKind(Kind k);
   void setSemiEvaluatedKind(Kind k);
-  /** set using model core
-   *
-   * This sets that this model is minimized to be a "model core" for some
-   * formula (typically the input formula).
-   *
-   * For example, given formula ( a>5 OR b>5 ) AND f( c ) = 0,
-   * a model for this formula is: a -> 6, b -> 0, c -> 0, f -> lambda x. 0.
-   * A "model core" is a subset of this model that suffices to show the
-   * above formula is true, for example { a -> 6, f -> lambda x. 0 } is a
-   * model core for this formula.
-   */
-  void setUsingModelCore();
-  /** record model core symbol
-   *
-   * This marks that sym is a "model core symbol". In other words, its value is
-   * critical to the satisfiability of the formula this model is for.
-   */
-  void recordModelCoreSymbol(Node sym);
   //---------------------------- end building the model
 
   // ------------------- general equality queries
@@ -261,11 +243,16 @@ public:
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  /**
-   * Return whether expr is in the model core. We expect that expr is a
-   * variable.
-   */
-  bool isModelCoreSymbol(Expr expr) const override;
+  
+  //---------------------------- model cores
+  /** set using model core */
+  void setUsingModelCore() override;
+  /** record model core symbol */
+  void recordModelCoreSymbol(Expr sym) override;
+  /** Return whether symbol expr is in the model core. */
+  bool isModelCoreSymbol(Expr sym) const override;
+  //---------------------------- end model cores
+  
   /** get value function for Exprs. */
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */

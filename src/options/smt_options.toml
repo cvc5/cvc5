@@ -99,7 +99,7 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
-  name       = "modelCores"
+  name       = "produceModelCores"
   category   = "regular"
   long       = "produce-model-cores"
   type       = "bool"

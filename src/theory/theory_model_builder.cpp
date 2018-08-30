@@ -19,8 +19,6 @@
 #include "theory/theory_engine.h"
 #include "theory/uf/theory_uf_model.h"
 
-#include "theory/subs_minimize.h"
-
 using namespace std;
 using namespace CVC4::kind;
 using namespace CVC4::context;
@@ -830,72 +828,6 @@ void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
   {
     debugCheckModel(tm);
   }
-}
-
-bool TheoryEngineModelBuilder::setModelCore(const std::vector<Node>& assertions,
-                                            Model* m)
-{
-  Trace("model-core") << "Compute model core, assertions:" << std::endl;
-  for (const Node& a : assertions)
-  {
-    Trace("model-core") << "  " << a << std::endl;
-  }
-  Node formula = NodeManager::currentNM()->mkNode(kind::AND, assertions);
-  TheoryModel* tm = static_cast<TheoryModel*>(m);
-  std::vector<Node> vars;
-  std::vector<Node> subs;
-  Trace("model-core") << "Assignments: " << std::endl;
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::vector<TNode> visit;
-  TNode cur;
-  visit.push_back(formula);
-  do
-  {
-    cur = visit.back();
-    visit.pop_back();
-    if (visited.find(cur) == visited.end())
-    {
-      visited.insert(cur);
-      if (cur.isVar())
-      {
-        Node vcur = tm->getValue(cur);
-        Trace("model-core") << "  " << cur << " -> " << vcur << std::endl;
-        vars.push_back(cur);
-        subs.push_back(vcur);
-      }
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
-      {
-        visit.push_back(cur.getOperator());
-      }
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
-    }
-  } while (!visit.empty());
-
-  Node truen = NodeManager::currentNM()->mkConst(true);
-
-  Trace("model-core") << "Minimizing substitution..." << std::endl;
-  std::vector<Node> coreVars;
-  SubstitutionMinimize smin;
-  bool minimized = smin.find(formula, truen, vars, subs, coreVars);
-  Assert(minimized,
-         "cannot compute model core, since model does not satisfy input!");
-  if (minimized)
-  {
-    tm->setUsingModelCore();
-    Trace("model-core") << "...got core vars : " << coreVars << std::endl;
-
-    for (const Node& cv : coreVars)
-    {
-      tm->recordModelCoreSymbol(cv);
-    }
-    return true;
-  }
-  Trace("model-core") << "...failed, model does not satisfy input!"
-                      << std::endl;
-  return false;
 }
 
 void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)

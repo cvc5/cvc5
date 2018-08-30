@@ -112,6 +112,7 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -1276,7 +1277,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::modelCores())
+       || options::produceModelCores())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -4492,17 +4493,13 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getModel();
 
-  if (options::modelCores())
+  if (options::produceModelCores())
   {
-    // If we enabled model cores, we ask the theory engine's model builder
-    // to compute a model core for m based on our assertions.
+    // If we enabled model cores, we compute a model core for m based on our
+    // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    std::vector<Node> asserts;
-    for (unsigned i = 0, size = easserts.size(); i < size; i++)
-    {
-      asserts.push_back(Node::fromExpr(easserts[i]));
-    }
-    d_theoryEngine->setModelCore(asserts, m);
+    ModelCoreBuilder mcb;
+    mcb.setModelCore(easserts, m);
   }
   m->d_inputName = d_filename;
   return m;

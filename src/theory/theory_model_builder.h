@@ -77,25 +77,6 @@ class TheoryEngineModelBuilder : public ModelBuilder
    */
   void postProcessModel(bool incomplete, Model* m);
 
-  /** set model core
-   *
-   * This function updates the model m so that it is a minimal "core" of
-   * substitutions that satisfy the formulas in assertions, interpreted
-   * conjunctively. This is specified via calls to
-   * TheoryModel::setUsingModelCore, TheoryModel::recordModelCoreSymbol,
-   * for details see theory/theory_model.h.
-   *
-   * It returns true if m is a model for assertions. In this case, we set:
-   *   m->usingModelCore();
-   *   m->recordModelCoreSymbol(s1); ... m->recordModelCoreSymbol(sn);
-   * such that each formula in assertions under the substitution
-   * { s1 -> m(s1), ..., sn -> m(sn) } rewrites to true.
-   *
-   * If m is not a model for assertions, this method returns false and m is
-   * left unchanged.
-   */
-  bool setModelCore(const std::vector<Node>& assertions, Model* m);
-
  protected:
   /** pointer to theory engine */
   TheoryEngine* d_te;

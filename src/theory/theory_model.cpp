@@ -134,14 +134,14 @@ Node TheoryModel::getValue(TNode n) const
   return nn;
 }
 
-bool TheoryModel::isModelCoreSymbol(Expr expr) const
+bool TheoryModel::isModelCoreSymbol(Expr sym) const
 {
-  Assert(expr.isVar() && expr.getKind() != BOUND_VARIABLE);
   if (!d_using_model_core)
   {
     return true;
   }
-  Node s = Node::fromExpr(expr);
+  Node s = Node::fromExpr(sym);
+  Assert(s.isVar() && s.getKind() != BOUND_VARIABLE);
   return d_model_core.find(s) != d_model_core.end();
 }
 
@@ -504,7 +504,7 @@ void TheoryModel::setUsingModelCore()
   d_model_core.clear();
 }
 
-void TheoryModel::recordModelCoreSymbol(Node sym) { d_model_core.insert(sym); }
+void TheoryModel::recordModelCoreSymbol(Expr sym) { d_model_core.insert(Node::fromExpr(sym)); }
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {

@@ -15,6 +15,7 @@
 #include "theory/subs_minimize.h"
 
 #include "theory/rewriter.h"
+#include "theory/bv/theory_bv_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -256,6 +257,9 @@ bool SubstitutionMinimize::find(Node n,
 
 bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
 {
+  // Notice that this function is hardcoded. We could compute this function
+  // in a theory-independent way using partial evaluation. However, we
+  // prefer performance to generality here.
   if (!n.isConst())
   {
     return false;
@@ -284,21 +288,25 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
       return true;
     }
   }
-  /*
   if (k == BITVECTOR_AND || k == BITVECTOR_MULT || k == BITVECTOR_UDIV_TOTAL
       || k == BITVECTOR_UREM_TOTAL
       || (arg == 0
           && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
               || k == BITVECTOR_ASHR)))
   {
-    // bit-vector zero
-    // Node cmpz = bv::utils::mkZero(
+    if( bv::utils::isZero(n) )
+    {
+      return true;
+    }
   }
   if (k == BITVECTOR_OR)
   {
     // bit-vector ones
+    if( bv::utils::isOnes(n) )
+    {
+      return true;
+    }
   }
-  */
 
   if ((arg == 1 && k == STRING_STRCTN) || (arg == 0 && k == STRING_SUBSTR))
   {
