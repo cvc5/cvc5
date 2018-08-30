@@ -98,7 +98,7 @@ private:
    * we remove x from args, add x >= t1, ..., x >= tn to bounds, add false, ...,
    * false to subs, and return true.
    */
-  static void getVarElimIneq(Node body,
+  static bool getVarElimIneq(Node body,
                              std::vector<Node>& args,
                              std::vector<Node>& bounds,
                              std::vector<Node>& subs,
