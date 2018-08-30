@@ -1525,7 +1525,7 @@ void SmtEngine::setDefaults() {
 
   // cases where we need produce models
   if (!options::produceModels()
-      && (options::produceAssignments() || options::sygusRewSynthCheck()
+      && (options::produceAssignments() || options::sygusRewSynthCheck() || options::produceModelCores()
           || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
@@ -5068,6 +5068,8 @@ Model* SmtEngine::getModel() {
 
   if (options::modelCores())
   {
+    // If we enabled model cores, we ask the theory engine's model builder
+    // to compute a model core for m based on our assertions.
     std::vector<Expr> easserts = getAssertions();
     std::vector<Node> asserts;
     for (unsigned i = 0, size = easserts.size(); i < size; i++)

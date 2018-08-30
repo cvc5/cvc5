@@ -101,7 +101,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "modelCores"
   category   = "regular"
-  long       = "model-cores"
+  long       = "produce-model-cores"
   type       = "bool"
   default    = "false"
   read_only  = true
