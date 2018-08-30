@@ -438,6 +438,7 @@ REG0_TESTS = \
 	regress0/fmf/quant_real_univ.cvc \
 	regress0/fmf/sat-logic.smt2 \
 	regress0/fmf/sc_bad_model_1221.smt2 \
+	regress0/fmf/sort-infer-typed-082718.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
@@ -813,6 +814,7 @@ REG0_TESTS = \
 	regress0/strings/norn-31.smt2 \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
+	regress0/strings/rewrites-re-concat.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
 	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
@@ -1100,6 +1102,7 @@ REG1_TESTS = \
 	regress1/fmf/fib-core.smt2 \
 	regress1/fmf/fmf-bound-2dim.smt2 \
 	regress1/fmf/fmf-bound-int.smt2 \
+	regress1/fmf/fmf-fun-divisor-pp.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith2.smt2 \
 	regress1/fmf/fmf-strange-bounds.smt2 \
@@ -1282,7 +1285,7 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
-	regress1/quantifiers/dump-inst.smt2 \  
+	regress1/quantifiers/dump-inst.smt2 \
 	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/dump-inst-proof.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
@@ -1483,6 +1486,7 @@ REG1_TESTS = \
 	regress1/strings/idof-triv.smt2 \
 	regress1/strings/ilc-l-nt.smt2 \
 	regress1/strings/issue1105.smt2 \
+	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
@@ -1494,12 +1498,16 @@ REG1_TESTS = \
 	regress1/strings/loop008.smt2 \
 	regress1/strings/loop009.smt2 \
 	regress1/strings/nf-ff-contains-abs.smt2 \
+	regress1/strings/non_termination_regular_expression4.smt2 \
+	regress1/strings/norn-13.smt2 \
 	regress1/strings/norn-360.smt2 \
 	regress1/strings/norn-ab.smt2 \
 	regress1/strings/norn-nel-bug-052116.smt2 \
 	regress1/strings/norn-simp-rew-sat.smt2 \
 	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/policy_variable.smt2 \
+	regress1/strings/re-elim-exact.smt2 \
 	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
