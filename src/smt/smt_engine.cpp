@@ -522,7 +522,11 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   SubstitutionMap d_abstractValueMap;
 
-  /** the set of variables that occur in at least one assertion so far */
+  /** 
+   * The (user-context-dependent) set of symbols that occur in at least one
+   * assertion in the current user context. This is used by the
+   * nonClausalSimplify pass.
+   */
   NodeSet d_symsInAssertions;
 
   /**
@@ -566,6 +570,13 @@ class SmtEnginePrivate : public NodeManagerListener {
    * Returns false if the formula simplifies to "false"
    */
   bool nonClausalSimplify();
+  
+  /** record symbols in assertions 
+   *
+   * This method is called when a set of assertions is finalized. It adds
+   * the symbols to d_symsInAssertions that occur in assertions.
+   */
+  void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
   /**
    * Helper function to fix up assertion list to restore invariants needed after
@@ -578,9 +589,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * ite removal.
    */
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
-
-  /** compute variables in assertions */
-  void recordSymbolsInAssertions(std::vector<Node>& assertions);
 
   /**
    * Trace nodes back to their assertions using CircuitPropagator's
@@ -3866,7 +3874,7 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
   cache[n] = true;
 }
 
-void SmtEnginePrivate::recordSymbolsInAssertions(std::vector<Node>& assertions)
+void SmtEnginePrivate::recordSymbolsInAssertions(const std::vector<Node>& assertions)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   std::unordered_set<Node, NodeHashFunction> syms;
