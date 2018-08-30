@@ -754,16 +754,16 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
   {
     return body;
   }
+  Trace("cond-var-split-debug")
+      << "Conditional var elim split " << body << "?" << std::endl;
 
   if (bk == ITE
       || (bk == EQUAL && body[0].getType().isBoolean()
           && options::condVarSplitQuantAgg()))
   {
     Assert(!qa.isFunDef());
-    Trace("quantifiers-rewrite-debug")
-        << "Conditional var elim split " << body << "?" << std::endl;
     bool do_split = false;
-    unsigned index_max = body.getKind() == ITE ? 0 : 1;
+    unsigned index_max = bk == ITE ? 0 : 1;
     std::vector<Node> tmpArgs = args;
     for (unsigned index = 0; index <= index_max; index++)
     {
@@ -778,7 +778,7 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     {
       Node pos;
       Node neg;
-      if (body.getKind() == ITE)
+      if (bk == ITE)
       {
         pos = nm->mkNode(OR, body[0].negate(), body[1]);
         neg = nm->mkNode(OR, body[0], body[2]);
@@ -788,25 +788,18 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         pos = nm->mkNode(OR, body[0].negate(), body[1]);
         neg = nm->mkNode(OR, body[0], body[1].negate());
       }
-      Trace("quantifiers-rewrite-debug")
+      Trace("cond-var-split-debug")
           << "*** Split (conditional variable eq) " << body
           << " into : " << std::endl;
-      Trace("quantifiers-rewrite-debug") << "   " << pos << std::endl;
-      Trace("quantifiers-rewrite-debug") << "   " << neg << std::endl;
+      Trace("cond-var-split-debug") << "   " << pos << std::endl;
+      Trace("cond-var-split-debug") << "   " << neg << std::endl;
       return nm->mkNode(AND, pos, neg);
     }
   }
 
   if (bk == OR)
   {
-    Node truen = nm->mkConst(false);
-    Node falsen = nm->mkConst(false);
-    std::vector<Node> bchildren;
     unsigned size = body.getNumChildren();
-    for (unsigned i = 0; i < size; i++)
-    {
-      bchildren.push_back(body[i]);
-    }
     bool do_split = false;
     unsigned split_index = 0;
     for (unsigned i = 0; i < size; i++)
@@ -822,13 +815,27 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         {
           if (getVarElimLit(b[j], false, tmpArgs, vars, subs))
           {
-            // TODO: figure out to set do_split?
-            
+            Trace("cond-var-split-debug") << "Variable elimination in child #" << j << " under " << i << std::endl;
+            // figure out if we should split
+            if( options::condVarSplitQuantAgg() || size==2 )
+            {
+              do_split = true;
+            }
+            else
+            {
+              // can be cases other cases 
+            }
             
             if( do_split )
             {
               split_index = i;
               break;
+            }
+            else
+            {
+              vars.clear();
+              subs.clear();
+              tmpArgs = args;
             }
           }
         }
@@ -953,6 +960,10 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
                                         std::vector<Node>& vars,
                                         std::vector<Node>& subs)
 {
+  if( lit.getKind()==NOT )
+  {
+    return getVarElimLit(lit[0],!pol, args, vars, subs );
+  }
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
   if (lit.getKind() == APPLY_TESTER && pol && lit[0].getKind() == BOUND_VARIABLE
