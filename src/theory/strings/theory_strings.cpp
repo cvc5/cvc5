@@ -793,7 +793,6 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   return node;
 }
 
-
 void TheoryStrings::check(Effort e) {
   if (done() && e<EFFORT_FULL) {
     return;
@@ -4301,6 +4300,19 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  Node atomElim;
+  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
+  {
+    // aggressive elimination of regular expression membership
+    atomElim = d_regexp_elim.eliminate(atom);
+    if (!atomElim.isNull())
+    {
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+                           << " via regular expression elimination."
+                           << std::endl;
+      atom = atomElim;
+    }
+  }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
