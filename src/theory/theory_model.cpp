@@ -136,7 +136,7 @@ Node TheoryModel::getValue(TNode n) const
 
 bool TheoryModel::isModelCoreSymbol(Expr expr) const
 {
-  Assert( expr.isVar() && expr.getKind()!=BOUND_VARIABLE );
+  Assert(expr.isVar() && expr.getKind() != BOUND_VARIABLE);
   if (!d_using_model_core)
   {
     return true;
