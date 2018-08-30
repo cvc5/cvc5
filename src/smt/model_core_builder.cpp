@@ -21,21 +21,21 @@ using namespace CVC4::kind;
 namespace CVC4 {
 
 bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
-                                            Model* m)
+                                    Model* m)
 {
   Trace("model-core") << "Compute model core, assertions:" << std::endl;
   for (const Node& a : assertions)
   {
     Trace("model-core") << "  " << a << std::endl;
   }
-  
+
   // convert to nodes
   std::vector<Node> asserts;
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
   {
     asserts.push_back(Node::fromExpr(assertions[i]));
   }
-  
+
   Node formula = NodeManager::currentNM()->mkNode(kind::AND, asserts);
   std::vector<Node> vars;
   std::vector<Node> subs;

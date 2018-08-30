@@ -243,7 +243,7 @@ public:
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  
+
   //---------------------------- model cores
   /** set using model core */
   void setUsingModelCore() override;
@@ -252,7 +252,7 @@ public:
   /** Return whether symbol expr is in the model core. */
   bool isModelCoreSymbol(Expr sym) const override;
   //---------------------------- end model cores
-  
+
   /** get value function for Exprs. */
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */

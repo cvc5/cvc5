@@ -14,8 +14,8 @@
 
 #include "theory/subs_minimize.h"
 
-#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -294,7 +294,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
           && (k == BITVECTOR_SHL || k == BITVECTOR_LSHR
               || k == BITVECTOR_ASHR)))
   {
-    if( bv::utils::isZero(n) )
+    if (bv::utils::isZero(n))
     {
       return true;
     }
@@ -302,7 +302,7 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   if (k == BITVECTOR_OR)
   {
     // bit-vector ones
-    if( bv::utils::isOnes(n) )
+    if (bv::utils::isOnes(n))
     {
       return true;
     }

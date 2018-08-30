@@ -49,6 +49,6 @@ class ModelCoreBuilder
   bool setModelCore(const std::vector<Expr>& assertions, Model* m);
 }; /* class TheoryModelCoreBuilder */
 
-} /* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__MODEL_CORE_BUILDER_H */

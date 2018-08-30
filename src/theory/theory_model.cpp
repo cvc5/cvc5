@@ -504,7 +504,10 @@ void TheoryModel::setUsingModelCore()
   d_model_core.clear();
 }
 
-void TheoryModel::recordModelCoreSymbol(Expr sym) { d_model_core.insert(Node::fromExpr(sym)); }
+void TheoryModel::recordModelCoreSymbol(Expr sym)
+{
+  d_model_core.insert(Node::fromExpr(sym));
+}
 
 void TheoryModel::setUnevaluatedKind(Kind k)
 {
