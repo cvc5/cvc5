@@ -44,29 +44,37 @@ private:
                                     std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
   static void computeDtTesterIteSplit( Node n, std::map< Node, Node >& pcons, std::map< Node, std::map< int, Node > >& ncons, std::vector< Node >& conj );
   //-------------------------------------variable elimination
-  /** is variable elimination 
-   * 
+  /** is variable elimination
+   *
    * Returns true if v is not a subterm of s, and the type of s is a subtype of
    * the type of v.
    */
   static bool isVariableElim( Node v, Node s );
   /** get variable elimination literal
-   * 
+   *
    * TODO
-   * 
+   *
    */
-  static bool getVarElimLit( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs );
+  static bool getVarElimLit(Node n,
+                            bool pol,
+                            std::vector<Node>& args,
+                            std::vector<Node>& vars,
+                            std::vector<Node>& subs);
   /** get variable elimination
-   * 
+   *
    * TODO
    */
-  static bool getVarElim( Node n, bool pol, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs );
+  static bool getVarElim(Node n,
+                         bool pol,
+                         std::vector<Node>& args,
+                         std::vector<Node>& vars,
+                         std::vector<Node>& subs);
   /** has variable elim
-   * 
+   *
    * TODO
    */
-  static bool hasVariableElim( Node n, bool pol, std::vector< Node >& args );
-  
+  static bool hasVariableElim(Node n, bool pol, std::vector<Node>& args);
+
   static void isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
                                    std::map< Node, bool >& elig_vars );
   /** variable eliminate for bit-vector literals
@@ -74,19 +82,23 @@ private:
    * If this returns a non-null value ret, then var is updated to a member of
    * args, and lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit,
-                                   std::vector<Node>& args,
-                                   Node& var);
+  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
   /** compute variable elimination inequality
-   * 
+   *
    * TODO
    */
-  static Node getVarElimIneq( Node body, std::vector< Node >& args, std::vector< Node >& vars, std::vector< Node >& subs, QAttributes& qa );
-  /** compute variable elimination 
-   * 
+  static Node getVarElimIneq(Node body,
+                             std::vector<Node>& args,
+                             std::vector<Node>& vars,
+                             std::vector<Node>& subs,
+                             QAttributes& qa);
+  /** compute variable elimination
+   *
    * TODO
    */
-  static Node computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa );
+  static Node computeVarElimination(Node body,
+                                    std::vector<Node>& args,
+                                    QAttributes& qa);
   //-------------------------------------end variable elimination
  public:
   static Node computeElimSymbols( Node body );
@@ -94,10 +106,12 @@ private:
   static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
   //cache is dependent upon currCond, icache is not, new_conds are negated conditions
   static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
-  /** compute conditional splitting 
+  /** compute conditional splitting
    *
    */
-  static Node computeCondSplit( Node body, std::vector< Node >& args, QAttributes& qa );
+  static Node computeCondSplit(Node body,
+                               std::vector<Node>& args,
+                               QAttributes& qa);
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );
