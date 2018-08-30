@@ -52,8 +52,10 @@ private:
   static bool isVariableElim( Node v, Node s );
   /** get variable elimination literal
    *
-   * TODO
-   *
+   * If n asserted with polarity pol is equivalent to an equality of the form
+   * v = s for some v in args, where isVariableElim( v, s ) holds, then this
+   * method removes v from args, adds v to vars, adds s to subs, and returns
+   * true. Otherwise, it returns false.
    */
   static bool getVarElimLit(Node n,
                             bool pol,
@@ -62,39 +64,52 @@ private:
                             std::vector<Node>& subs);
   /** get variable elimination
    *
-   * TODO
+   * If n asserted with polarity pol entails a literal lit that corresponds
+   * to a variable elimination for some v via the above method, we return true.
+   * In this case, we update args/vars/subs based on eliminating v.
    */
   static bool getVarElim(Node n,
                          bool pol,
                          std::vector<Node>& args,
                          std::vector<Node>& vars,
                          std::vector<Node>& subs);
-  /** has variable elim
+  /** has variable elimination
    *
-   * TODO
+   * Returns true if n asserted with polarity pol entails a literal for
+   * which variable elimination is possible.
    */
   static bool hasVariableElim(Node n, bool pol, std::vector<Node>& args);
-
-  static void isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
-                                   std::map< Node, bool >& elig_vars );
   /** variable eliminate for bit-vector literals
    *
    * If this returns a non-null value ret, then var is updated to a member of
-   * args, and lit is equivalent to ( var = ret ).
+   * args, lit is equivalent to ( var = ret ), and var is removed from args.
    */
   static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
   /** compute variable elimination inequality
    *
-   * TODO
+   * This method eliminates variables from the body of quantified formula
+   * "body" using (global) reasoning about inequalities. In particular, if there
+   * exists a variable x that only occurs in body or annotation qa in literals
+   * of the form x>=t with a fixed polarity P, then we may replace all such
+   * literals with P. For example, note that:
+   *   forall xy. x>y OR P(y) is equivalent to forall y. P(y).
+   * 
+   * In the case that a variable x from args can be eliminated in this way,
+   * we remove x from args, add x >= t1, ..., x >= tn to bounds, add false, ...,
+   * false to subs, and return true.
    */
-  static Node getVarElimIneq(Node body,
+  static void getVarElimIneq(Node body,
                              std::vector<Node>& args,
-                             std::vector<Node>& vars,
+                             std::vector<Node>& bounds,
                              std::vector<Node>& subs,
                              QAttributes& qa);
+  static void isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
+                                   std::map< Node, bool >& elig_vars );
   /** compute variable elimination
    *
-   * TODO
+   * This computes variable elimination in for a body of a quantified formula
+   * body. This method updates args to args' and returns a node n' such
+   * that (forall args. n) is equivalent to (forall args'. n').
    */
   static Node computeVarElimination(Node body,
                                     std::vector<Node>& args,
@@ -124,8 +139,6 @@ private:
     COMPUTE_PRENEX,
     COMPUTE_VAR_ELIMINATION,
     COMPUTE_COND_SPLIT,
-    //COMPUTE_FLATTEN_ARGS_UF,
-    //COMPUTE_CNF,
     COMPUTE_LAST
   };
   static Node computeOperation( Node f, int computeOption, QAttributes& qa );

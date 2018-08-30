@@ -1087,7 +1087,7 @@ bool QuantifiersRewriter::hasVariableElim(Node n,
 
 Node QuantifiersRewriter::getVarElimIneq(Node body,
                                          std::vector<Node>& args,
-                                         std::vector<Node>& vars,
+                                         std::vector<Node>& bounds,
                                          std::vector<Node>& subs,
                                          QAttributes& qa)
 {
@@ -1187,7 +1187,7 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
   }
   if (elig_vars.empty())
   {
-    return body;
+    return;
   }
   std::vector<Node> inactive_vars;
   std::map<Node, std::map<int, bool> > visited;
@@ -1210,7 +1210,7 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
 
   if (elig_vars.empty())
   {
-    return body;
+    return;
   }
   if (!qa.d_ipl.isNull())
   {
@@ -1233,7 +1233,7 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
     {
       Trace("var-elim-ineq-debug")
           << "  subs : " << itb->first << " -> " << itb->second << std::endl;
-      vars.push_back(itb->first);
+      bounds.push_back(itb->first);
       subs.push_back(NodeManager::currentNM()->mkConst(itb->second));
     }
     // eliminate from args
@@ -1241,7 +1241,6 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
     Assert(ita != args.end());
     args.erase(ita);
   }
-  return body;
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
@@ -1263,7 +1262,7 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     // variable elimination based on one-direction inequalities
     if (vars.empty() && options::varIneqElimQuant())
     {
-      body = getVarElimIneq(body, args, vars, subs, qa);
+      getVarElimIneq(body, args, vars, subs, qa);
     }
     // if we eliminated a variable, update body and reprocess
     if (!vars.empty())
