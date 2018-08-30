@@ -97,8 +97,6 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/miplib_trick.cpp \
 	preprocessing/passes/miplib_trick.h \
-	preprocessing/passes/quantifiers_preprocess.cpp \
-	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/quantifier_macros.cpp \
 	preprocessing/passes/quantifier_macros.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
