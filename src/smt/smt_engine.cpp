@@ -1280,7 +1280,7 @@ void SmtEngine::setDefaults() {
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
-             << "check-models, check-synth-sol or model-cores." << endl;
+             << "check-models, check-synth-sol or produce-model-cores." << endl;
     setOption("produce-assertions", SExpr("true"));
   }
 
