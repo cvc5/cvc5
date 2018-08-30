@@ -767,8 +767,8 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     std::vector<Node> tmpArgs = args;
     for (unsigned index = 0; index <= index_max; index++)
     {
-      if (hasVariableElim(body[index], true, tmpArgs)
-          || hasVariableElim(body[index], false, tmpArgs))
+      if (hasVarElim(body[index], true, tmpArgs)
+          || hasVarElim(body[index], false, tmpArgs))
       {
         do_split = true;
         break;
@@ -807,6 +807,8 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
     {
       bchildren.push_back(body[i]);
     }
+    bool do_split = false;
+    unsigned split_index = 0;
     for (unsigned i = 0; i < size; i++)
     {
       // check if this child is a (conditional) variable elimination
@@ -818,20 +820,47 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         std::vector<Node> tmpArgs = args;
         for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
         {
-          if (getVarElimLit(b[j], true, tmpArgs, vars, subs))
+          if (getVarElimLit(b[j], false, tmpArgs, vars, subs))
           {
-            // TODO
+            // TODO: figure out to set do_split?
+            
+            
+            if( do_split )
+            {
+              split_index = i;
+              break;
+            }
           }
         }
       }
+      if( do_split )
+      {
+        break;
+      }
+    }
+    if( do_split )
+    {
+      std::vector< Node > children;
+      for( TNode bc : body )
+      {
+        children.push_back(bc);
+      }
+      std::vector< Node > split_children;
+      for( TNode bci : body[split_index] )
+      {
+        children[split_index] = bci;
+        split_children.push_back( nm->mkNode( OR, children ) );
+      }
+      return nm->mkNode( AND, split_children );
     }
   }
 
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim(Node v, Node s)
+bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
+  Assert( v.getKind()==BOUND_VARIABLE );
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
@@ -903,7 +932,7 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
         // if this is a proper variable elimination, that is, var = slv where
         // var is not in the free variables of slv, then we can return this
         // as the variable elimination for lit.
-        if (isVariableElim(var, slv))
+        if (isVarElim(var, slv))
         {
           return slv;
         }
@@ -982,7 +1011,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
             std::find(args.begin(), args.end(), v_slv);
         if (ita != args.end())
         {
-          if (isVariableElim(v_slv, lit[1 - i]))
+          if (isVarElim(v_slv, lit[1 - i]))
           {
             Node slv = lit[1 - i];
             if (!tpol)
@@ -1027,7 +1056,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
             Node veq_c;
             Node val;
             int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-            if (ires != 0 && veq_c.isNull() && isVariableElim(itm->first, val))
+            if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
             {
               Trace("var-elim-quant")
                   << "Variable eliminate based on solved equality : "
@@ -1091,7 +1120,7 @@ bool QuantifiersRewriter::getVarElim(Node n,
   return getVarElimLit(n, pol, args, vars, subs);
 }
 
-bool QuantifiersRewriter::hasVariableElim(Node n,
+bool QuantifiersRewriter::hasVarElim(Node n,
                                           bool pol,
                                           std::vector<Node>& args)
 {

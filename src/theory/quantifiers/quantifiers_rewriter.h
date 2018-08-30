@@ -49,7 +49,7 @@ private:
    * Returns true if v is not a subterm of s, and the type of s is a subtype of
    * the type of v.
    */
-  static bool isVariableElim( Node v, Node s );
+  static bool isVarElim( Node v, Node s );
   /** get variable elimination literal
    *
    * If n asserted with polarity pol is equivalent to an equality of the form
@@ -62,6 +62,12 @@ private:
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
+  /** variable eliminate for bit-vector literals
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ), and var is removed from args.
+   */
+  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
   /** get variable elimination
    *
    * If n asserted with polarity pol entails a literal lit that corresponds
@@ -78,13 +84,7 @@ private:
    * Returns true if n asserted with polarity pol entails a literal for
    * which variable elimination is possible.
    */
-  static bool hasVariableElim(Node n, bool pol, std::vector<Node>& args);
-  /** variable eliminate for bit-vector literals
-   *
-   * If this returns a non-null value ret, then var is updated to a member of
-   * args, lit is equivalent to ( var = ret ), and var is removed from args.
-   */
-  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
+  static bool hasVarElim(Node n, bool pol, std::vector<Node>& args);
   /** compute variable elimination inequality
    *
    * This method eliminates variables from the body of quantified formula
