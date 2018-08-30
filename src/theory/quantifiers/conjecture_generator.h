@@ -78,6 +78,7 @@ class TermGenerator
       : d_id(0),
         d_status(0),
         d_status_num(0),
+        d_status_child_num(0),
         d_match_status(0),
         d_match_status_child_num(0),
         d_match_mode(0)
@@ -286,6 +287,9 @@ private:
   };
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
+  /** boolean terms */
+  Node d_true;
+  Node d_false;
   /** (universal) equaltity engine */
   eq::EqualityEngine d_uequalityEngine;
   /** pending adds */

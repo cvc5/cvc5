@@ -95,6 +95,10 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/miplib_trick.cpp \
+	preprocessing/passes/miplib_trick.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/quantifier_macros.cpp \
 	preprocessing/passes/quantifier_macros.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
@@ -554,6 +558,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
+	theory/quantifiers/term_canonize.cpp \
+	theory/quantifiers/term_canonize.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_enumeration.cpp \

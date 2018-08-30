@@ -27,6 +27,7 @@
 #include "preprocessing/util/ite_utilities.h"
 #include "smt/smt_engine.h"
 #include "smt/term_formula_removal.h"
+#include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
 #include "util/resource_manager.h"
 
@@ -36,9 +37,12 @@ namespace preprocessing {
 class PreprocessingPassContext
 {
  public:
-  PreprocessingPassContext(SmtEngine* smt,
-                           ResourceManager* resourceManager,
-                           RemoveTermFormulas* iteRemover);
+  PreprocessingPassContext(
+      SmtEngine* smt,
+      ResourceManager* resourceManager,
+      RemoveTermFormulas* iteRemover,
+      theory::booleans::CircuitPropagator* circuitPropagator);
+
   SmtEngine* getSmt() { return d_smt; }
   TheoryEngine* getTheoryEngine() { return d_smt->d_theoryEngine; }
   DecisionEngine* getDecisionEngine() { return d_smt->d_decisionEngine; }
@@ -46,6 +50,11 @@ class PreprocessingPassContext
   context::Context* getUserContext() { return d_smt->d_userContext; }
   context::Context* getDecisionContext() { return d_smt->d_context; }
   RemoveTermFormulas* getIteRemover() { return d_iteRemover; }
+
+  theory::booleans::CircuitPropagator* getCircuitPropagator()
+  {
+    return d_circuitPropagator;
+  }
 
   void spendResource(unsigned amount)
   {
@@ -61,10 +70,14 @@ class PreprocessingPassContext
 
   void setSubstitutionsIndex(unsigned i) { d_substitutionsIndex = i; }
 
+  /** Gets a reference to the top-level substitution map */
   theory::SubstitutionMap& getTopLevelSubstitutions()
   {
     return d_topLevelSubstitutions;
   }
+
+  /* Enable Integers. */
+  void enableIntegers();
 
  private:
   /* Pointer to the SmtEngine that this context was created in. */
@@ -79,6 +92,9 @@ class PreprocessingPassContext
 
   /* The top level substitutions */
   theory::SubstitutionMap d_topLevelSubstitutions;
+
+  /** Instance of the circuit propagator */
+  theory::booleans::CircuitPropagator* d_circuitPropagator;
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

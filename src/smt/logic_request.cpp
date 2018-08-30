@@ -31,4 +31,15 @@ void LogicRequest::widenLogic(theory::TheoryId id) {
   d_smt.d_logic.lock();
 }
 
+/** Enable Integers if not yet enabled. */
+void LogicRequest::enableIntegers()
+{
+  if (!d_smt.d_logic.areIntegersUsed())
+  {
+    d_smt.d_logic = d_smt.d_logic.getUnlockedCopy();
+    d_smt.d_logic.enableIntegers();
+    d_smt.d_logic.lock();
+  }
+}
+
 }/* CVC4 namespace */
