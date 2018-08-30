@@ -57,10 +57,9 @@ class PreprocessingPassContext
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
-  context::CDO<unsigned>& getSubstitutionsIndex()
-  {
-    return d_substitutionsIndex;
-  }
+  unsigned getSubstitutionsIndex() const { return d_substitutionsIndex.get(); }
+
+  void setSubstitutionsIndex(unsigned i) { d_substitutionsIndex = i; }
 
   theory::SubstitutionMap& getTopLevelSubstitutions()
   {

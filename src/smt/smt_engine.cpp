@@ -2940,8 +2940,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   // Assert all the assertions to the propagator
   Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
                     << "asserting to propagator" << endl;
-  CDO<unsigned>& substs_index =
-      d_preprocessingPassContext->getSubstitutionsIndex();
+  unsigned substs_index = d_preprocessingPassContext->getSubstitutionsIndex();
   for (unsigned i = 0; i < d_assertions.size(); ++ i) {
     Assert(Rewriter::rewrite(d_assertions[i]) == d_assertions[i]);
     // Don't reprocess substitutions
@@ -3922,7 +3921,7 @@ void SmtEnginePrivate::processAssertions() {
     // proper data structure.
 
     // Placeholder for storing substitutions
-    d_preprocessingPassContext->getSubstitutionsIndex() = d_assertions.size();
+    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   }
 
