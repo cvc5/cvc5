@@ -582,6 +582,8 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
+	theory/strings/regexp_elim.cpp \
+	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
 	theory/strings/theory_strings.cpp \
