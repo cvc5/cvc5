@@ -46,6 +46,7 @@
 #include "expr/metakind.h"
 #include "expr/node.h"
 #include "expr/node_builder.h"
+#include "expr/node_algorithm.h"
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
@@ -523,7 +524,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   SubstitutionMap d_abstractValueMap;
 
   /** the set of variables that occur in at least one assertion so far */
-  NodeSet d_varsInAssertions;
+  NodeSet d_symsInAssertions;
 
   /**
    * A mapping of all abstract values (actual value |-> abstract) that
@@ -580,7 +581,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   bool checkForBadSkolems(TNode n, TNode skolem, NodeToBoolHashMap& cache);
 
   /** compute variables in assertions */
-  void computeVariablesInAssertions(std::vector<Node>& assertions);
+  void recordSymbolsInAssertions(std::vector<Node>& assertions);
 
   /**
    * Trace nodes back to their assertions using CircuitPropagator's
@@ -622,7 +623,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
-        d_varsInAssertions(smt.d_userContext),
+        d_symsInAssertions(smt.d_userContext),
         d_abstractValues(),
         d_simplifyAssertionsDepth(0),
         // d_needsExpandDefs(true),  //TODO?
@@ -3177,7 +3178,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     // If using incremental, we must check whether this variable has occurred
     // before now. If it hasn't we can add this as a substitution.
     if (substs_index == 0
-        || d_varsInAssertions.find(lhs) == d_varsInAssertions.end())
+        || d_symsInAssertions.find(lhs) == d_symsInAssertions.end())
     {
       Trace("simplify")
           << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs
@@ -3866,32 +3867,18 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
   cache[n] = true;
 }
 
-void SmtEnginePrivate::computeVariablesInAssertions(
+void SmtEnginePrivate::recordSymbolsInAssertions(
     std::vector<Node>& assertions)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::vector<TNode> visit;
-  TNode cur;
+  std::unordered_set< Node, NodeHashFunction > syms;
   for (TNode cn : assertions)
   {
-    visit.push_back(cn);
-    do
-    {
-      cur = visit.back();
-      visit.pop_back();
-      if (visited.find(cur) == visited.end())
-      {
-        visited.insert(cur);
-        if (cur.isVar())
-        {
-          d_varsInAssertions.insert(cur);
-        }
-        for (TNode cn : cur)
-        {
-          visit.push_back(cn);
-        }
-      }
-    } while (!visit.empty());
+    expr::getSymbols(cn,syms,visited);
+  }
+  for( const Node& s : syms )
+  {
+    d_symsInAssertions.insert(s);
   }
 }
 
@@ -4324,7 +4311,7 @@ void SmtEnginePrivate::processAssertions() {
   // if incremental, compute which variables are assigned
   if (options::incrementalSolving())
   {
-    computeVariablesInAssertions(d_assertions.ref());
+    recordSymbolsInAssertions(d_assertions.ref());
   }
 
   // Push the formula to SAT
