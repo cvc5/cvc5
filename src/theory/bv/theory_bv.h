@@ -53,7 +53,7 @@ class TheoryBV : public Theory {
   context::CDHashSet<Node, NodeHashFunction> d_alreadyPropagatedSet;
   context::CDHashSet<Node, NodeHashFunction> d_sharedTermsSet;
 
-  std::vector<SubtheorySolver*> d_subtheories;
+  std::vector<std::unique_ptr<SubtheorySolver>> d_subtheories;
   std::unordered_map<SubTheory, SubtheorySolver*, std::hash<int> > d_subtheoryMap;
 
 public:
@@ -172,8 +172,8 @@ private:
   typedef context::CDHashMap<Node, SubTheory, NodeHashFunction> PropagatedMap;
   PropagatedMap d_propagatedBy;
 
-  EagerBitblastSolver* d_eagerSolver;
-  AbstractionModule* d_abstractionModule;
+  std::unique_ptr<EagerBitblastSolver> d_eagerSolver;
+  std::unique_ptr<AbstractionModule> d_abstractionModule;
   bool d_isCoreTheory;
   bool d_calledPreregister;
   

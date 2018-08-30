@@ -65,6 +65,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/apply_to_const.cpp \
 	preprocessing/passes/apply_to_const.h \
+	preprocessing/passes/bool_to_bv.cpp \
+	preprocessing/passes/bool_to_bv.h \
 	preprocessing/passes/bv_abstraction.cpp \
 	preprocessing/passes/bv_abstraction.h \
 	preprocessing/passes/bv_ackermann.cpp \
@@ -75,6 +77,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/bv_gauss.h \
 	preprocessing/passes/bv_intro_pow2.cpp \
 	preprocessing/passes/bv_intro_pow2.h \
+	preprocessing/passes/bv_to_bool.cpp \
+	preprocessing/passes/bv_to_bool.h \
 	preprocessing/passes/extended_rewriter_pass.cpp \
 	preprocessing/passes/extended_rewriter_pass.h \
 	preprocessing/passes/global_negate.cpp \
@@ -83,14 +87,18 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/int_to_bv.h \
 	preprocessing/passes/ite_removal.cpp \
 	preprocessing/passes/ite_removal.h \
+	preprocessing/passes/ite_simp.cpp \
+	preprocessing/passes/ite_simp.h \
+	preprocessing/passes/nl_ext_purify.cpp \
+	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
-	preprocessing/passes/bool_to_bv.cpp \
-	preprocessing/passes/bool_to_bv.h \
-	preprocessing/passes/bv_to_bool.cpp \
-	preprocessing/passes/bv_to_bool.h \
+	preprocessing/passes/miplib_trick.cpp \
+	preprocessing/passes/miplib_trick.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
 	preprocessing/passes/quantifiers_preprocess.h \
+	preprocessing/passes/quantifier_macros.cpp \
+	preprocessing/passes/quantifier_macros.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
@@ -109,12 +117,16 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
 	preprocessing/passes/synth_rew_rules.h \
+	preprocessing/passes/unconstrained_simplifier.cpp \
+	preprocessing/passes/unconstrained_simplifier.h \
 	preprocessing/preprocessing_pass.cpp \
 	preprocessing/preprocessing_pass.h \
 	preprocessing/preprocessing_pass_context.cpp \
 	preprocessing/preprocessing_pass_context.h \
 	preprocessing/preprocessing_pass_registry.cpp \
 	preprocessing/preprocessing_pass_registry.h \
+	preprocessing/util/ite_utilities.cpp \
+	preprocessing/util/ite_utilities.h \
 	printer/dagification_visitor.cpp \
 	printer/dagification_visitor.h \
 	printer/printer.cpp \
@@ -140,6 +152,8 @@ libcvc4_la_SOURCES = \
 	proof/cnf_proof.h \
 	proof/lemma_proof.cpp \
 	proof/lemma_proof.h \
+	proof/lfsc_proof_printer.cpp \
+	proof/lfsc_proof_printer.h \
 	proof/proof.h \
 	proof/proof_manager.cpp \
 	proof/proof_manager.h \
@@ -205,8 +219,6 @@ libcvc4_la_SOURCES = \
 	theory/evaluator.cpp \
 	theory/evaluator.h \
 	theory/interrupted.h \
-	theory/ite_utilities.cpp \
-	theory/ite_utilities.h \
 	theory/logic_info.cpp \
 	theory/logic_info.h \
 	theory/output_channel.h \
@@ -240,8 +252,6 @@ libcvc4_la_SOURCES = \
 	theory/type_enumerator.h \
 	theory/type_set.cpp \
 	theory/type_set.h \
-	theory/unconstrained_simplifier.cpp \
-	theory/unconstrained_simplifier.h \
 	theory/valuation.cpp \
 	theory/valuation.h \
 	theory/arith/approx_simplex.cpp \
@@ -480,8 +490,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/lazy_trie.h \
 	theory/quantifiers/local_theory_ext.cpp \
 	theory/quantifiers/local_theory_ext.h \
-	theory/quantifiers/macros.cpp \
-	theory/quantifiers/macros.h \
 	theory/quantifiers/quant_conflict_find.cpp \
 	theory/quantifiers/quant_conflict_find.h \
 	theory/quantifiers/quant_epr.cpp \
@@ -548,6 +556,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
+	theory/quantifiers/term_canonize.cpp \
+	theory/quantifiers/term_canonize.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_enumeration.cpp \

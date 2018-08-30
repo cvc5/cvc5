@@ -62,8 +62,10 @@ class NodeManagerListener {
   virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(
-      const std::vector<DatatypeType>& datatypes) {}
+  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes,
+                                    uint32_t flags)
+  {
+  }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
                                  uint32_t flags) {}
@@ -86,7 +88,8 @@ class NodeManager {
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>&, std::set<Type>&);
+  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+      std::vector<Datatype>&, std::set<Type>&, uint32_t);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {

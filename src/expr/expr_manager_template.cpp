@@ -640,22 +640,29 @@ SetType ExprManager::mkSetType(Type elementType) const {
   return SetType(Type(d_nodeManager, new TypeNode(d_nodeManager->mkSetType(*elementType.d_typeNode))));
 }
 
-DatatypeType ExprManager::mkDatatypeType(Datatype& datatype) {
+DatatypeType ExprManager::mkDatatypeType(Datatype& datatype, uint32_t flags)
+{
   // Not worth a special implementation; this doesn't need to be fast
   // code anyway.
   vector<Datatype> datatypes;
   datatypes.push_back(datatype);
-  std::vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes);
+  std::vector<DatatypeType> result = mkMutualDatatypeTypes(datatypes, flags);
   Assert(result.size() == 1);
   return result.front();
 }
 
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+    std::vector<Datatype>& datatypes, uint32_t flags)
+{
   std::set<Type> unresolvedTypes;
-  return mkMutualDatatypeTypes(datatypes, unresolvedTypes);
+  return mkMutualDatatypeTypes(datatypes, unresolvedTypes, flags);
 }
 
-std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>& datatypes, std::set<Type>& unresolvedTypes) {
+std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+    std::vector<Datatype>& datatypes,
+    std::set<Type>& unresolvedTypes,
+    uint32_t flags)
+{
   NodeManagerScope nms(d_nodeManager);
   std::map<std::string, DatatypeType> nameResolutions;
   std::vector<DatatypeType> dtts;
@@ -764,7 +771,7 @@ std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatyp
   }
 
   for(std::vector<NodeManagerListener*>::iterator i = d_nodeManager->d_listeners.begin(); i != d_nodeManager->d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewDatatypes(dtts);
+    (*i)->nmNotifyNewDatatypes(dtts, flags);
   }
   
   return dtts;
@@ -921,21 +928,21 @@ Expr ExprManager::mkAssociative(Kind kind,
       "Illegal kind in mkAssociative: %s",
       kind::kindToString(kind).c_str());
 
-  NodeManagerScope nms(d_nodeManager);
   const unsigned int max = maxArity(kind);
-  const unsigned int min = minArity(kind);
   unsigned int numChildren = children.size();
 
   /* If the number of children is within bounds, then there's nothing to do. */
   if( numChildren <= max ) {
     return mkExpr(kind,children);
   }
+  NodeManagerScope nms(d_nodeManager);
+  const unsigned int min = minArity(kind);
 
   std::vector<Expr>::const_iterator it = children.begin() ;
   std::vector<Expr>::const_iterator end = children.end() ;
 
   /* The new top-level children and the children of each sub node */
-  std::vector<Node> newChildren;
+  std::vector<Expr> newChildren;
   std::vector<Node> subChildren;
 
   while( it != end && numChildren > max ) {
@@ -946,39 +953,50 @@ Expr ExprManager::mkAssociative(Kind kind,
       subChildren.push_back(it->getNode());
     }
     Node subNode = d_nodeManager->mkNode(kind,subChildren);
-    newChildren.push_back(subNode);
+    newChildren.push_back(subNode.toExpr());
 
     subChildren.clear();
   }
 
-  /* If there's children left, "top off" the Expr. */
+  // add the leftover children
   if(numChildren > 0) {
-    /* If the leftovers are too few, just copy them into newChildren;
-     * otherwise make a new sub-node  */
-    if(numChildren < min) {
-      for(; it != end; ++it) {
-        newChildren.push_back(it->getNode());
-      }
-    } else {
-      for(; it != end; ++it) {
-        subChildren.push_back(it->getNode());
-      }
-      Node subNode = d_nodeManager->mkNode(kind, subChildren);
-      newChildren.push_back(subNode);
+    for (; it != end; ++it)
+    {
+      newChildren.push_back(*it);
     }
   }
-
-  /* It's inconceivable we could have enough children for this to fail
-   * (more than 2^32, in most cases?). */
-  AlwaysAssert( newChildren.size() <= max,
-                "Too many new children in mkAssociative" );
 
   /* It would be really weird if this happened (it would require
    * min > 2, for one thing), but let's make sure. */
   AlwaysAssert( newChildren.size() >= min,
                 "Too few new children in mkAssociative" );
 
-  return Expr(this, d_nodeManager->mkNodePtr(kind,newChildren) );
+  // recurse
+  return mkAssociative(kind, newChildren);
+}
+
+Expr ExprManager::mkLeftAssociative(Kind kind,
+                                    const std::vector<Expr>& children)
+{
+  NodeManagerScope nms(d_nodeManager);
+  Node n = children[0];
+  for (unsigned i = 1, size = children.size(); i < size; i++)
+  {
+    n = d_nodeManager->mkNode(kind, n, children[i].getNode());
+  }
+  return n.toExpr();
+}
+
+Expr ExprManager::mkRightAssociative(Kind kind,
+                                     const std::vector<Expr>& children)
+{
+  NodeManagerScope nms(d_nodeManager);
+  Node n = children[children.size() - 1];
+  for (unsigned i = children.size() - 1; i > 0;)
+  {
+    n = d_nodeManager->mkNode(kind, children[--i].getNode(), n);
+  }
+  return n.toExpr();
 }
 
 unsigned ExprManager::minArity(Kind kind) {
