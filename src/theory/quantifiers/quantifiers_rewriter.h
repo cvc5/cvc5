@@ -49,7 +49,7 @@ private:
    * Returns true if v is not a subterm of s, and the type of s is a subtype of
    * the type of v.
    */
-  static bool isVarElim( Node v, Node s );
+  static bool isVarElim(Node v, Node s);
   /** get variable elimination literal
    *
    * If n asserted with polarity pol is equivalent to an equality of the form
