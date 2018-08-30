@@ -156,12 +156,11 @@ Node RegExpElimination::eliminateConcat(Node atom)
       // Notice that if the last gap is not exact and its minsize is zero,
       // then the last indexof/substr constraint entails the following
       // constraint, so it is not necessary to add.
-      if( gap_minsize_end>0 || gap_exact_end )
+      if (gap_minsize_end > 0 || gap_exact_end)
       {
         Node fit = nm->mkNode(
             gap_exact_end ? EQUAL : LEQ,
-            nm->mkNode(
-                PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
+            nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
             lenx);
         conj.push_back(fit);
       }
@@ -188,11 +187,11 @@ Node RegExpElimination::eliminateConcat(Node atom)
       //     indexof(x,"A",0)!=-1 ^
       //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 ) != -1 ^
       //     indexof( x, "B", indexof( x, "A", 0 ) + 1 + 3 )+1+2 <= len(x)
-      
+
       // An example of a non-greedy find:
       //   x in re.++( re.*( _ ), "A", _, "B", re.*( _ ) ) --->
       //     exists k. 0 <= k < len( x ) ^
-      //               indexof( x, "A", k ) != -1 ^ 
+      //               indexof( x, "A", k ) != -1 ^
       //               substr( x, indexof( x, "A", k )+2, 1 ) = "B"
       return returnElim(atom, res, "concat-with-gaps");
     }
@@ -211,11 +210,11 @@ Node RegExpElimination::eliminateConcat(Node atom)
   std::vector<Node> sConstraints;
   std::vector<Node> rexpElimChildren;
   unsigned nchildren = children.size();
-  Assert( nchildren>1 );
+  Assert(nchildren > 1);
   for (unsigned r = 0; r < 2; r++)
   {
     unsigned index = r == 0 ? 0 : nchildren - 1;
-    Assert( children[index + (r==0 ? 1 : -1 )].getKind()!=STRING_TO_REGEXP );
+    Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
     Node c = children[index];
     if (c.getKind() == STRING_TO_REGEXP)
     {
@@ -243,7 +242,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       rexpElimChildren.push_back(c);
     }
   }
-  Assert( rexpElimChildren.size() + sConstraints.size() == nchildren );
+  Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
   if (!sConstraints.empty())
   {
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
@@ -307,7 +306,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         echildren.push_back(substrSuffix);
       }
       Node body = nm->mkNode(AND, echildren);
-      if (k.getKind()==BOUND_VARIABLE)
+      if (k.getKind() == BOUND_VARIABLE)
       {
         Node bvl = nm->mkNode(BOUND_VAR_LIST, k);
         body = nm->mkNode(EXISTS, bvl, body);
@@ -428,7 +427,7 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
             AND, nm->mkNode(INTS_MODULUS, lenx, lens).eqNode(d_zero), res);
-        // e.g. 
+        // e.g.
         //    x in ("abc")* --->
         //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^
         //    len(x) mod 3 = 0
