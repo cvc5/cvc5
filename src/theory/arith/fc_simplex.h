@@ -196,7 +196,6 @@ private:
     LinearEqualityModule::VarPreferenceFunction bpf = useBlands ?
       &LinearEqualityModule::minVarOrder :
       &LinearEqualityModule::minRowLength;
-    bpf = &LinearEqualityModule::minVarOrder;
 
     return selectPrimalUpdate(basic, upf, bpf);
   }
