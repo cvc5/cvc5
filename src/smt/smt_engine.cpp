@@ -3695,19 +3695,12 @@ bool SmtEnginePrivate::simplifyAssertions()
     // before ppRewrite check if only core theory for BV theory
     d_smt.d_theoryEngine->staticInitializeBVOptions(d_assertions.ref());
 
-    dumpAssertions("pre-theorypp", d_assertions);
-
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP)
     {
-      Chat() << "...doing early theory preprocessing..." << endl;
       d_preprocessingPassRegistry.getPass("theory-preprocess")
           ->apply(&d_assertions);
     }
-
-    dumpAssertions("post-theorypp", d_assertions);
-    Trace("smt") << "POST theoryPP" << endl;
-    Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // ITE simplification
     if (options::doITESimp()
@@ -4237,13 +4230,8 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-theory-preprocessing" << endl;
-  dumpAssertions("pre-theory-preprocessing", d_assertions);
-  Chat() << "theory preprocessing..." << endl;
   d_preprocessingPassRegistry.getPass("theory-preprocess")
       ->apply(&d_assertions);
-  Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-theory-preprocessing" << endl;
-  dumpAssertions("post-theory-preprocessing", d_assertions);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
