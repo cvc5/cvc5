@@ -211,9 +211,11 @@ Node RegExpElimination::eliminateConcat(Node atom)
   std::vector<Node> sConstraints;
   std::vector<Node> rexpElimChildren;
   unsigned nchildren = children.size();
+  Assert( nchildren>1 );
   for (unsigned r = 0; r < 2; r++)
   {
     unsigned index = r == 0 ? 0 : nchildren - 1;
+    Assert( children[index + (r==0 ? 1 : -1 )].getKind()!=STRING_TO_REGEXP );
     Node c = children[index];
     if (c.getKind() == STRING_TO_REGEXP)
     {
@@ -241,6 +243,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       rexpElimChildren.push_back(c);
     }
   }
+  Assert( rexpElimChildren.size() + sConstraints.size() == nchildren );
   if (!sConstraints.empty())
   {
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
