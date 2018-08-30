@@ -45,8 +45,8 @@
 #include "expr/kind.h"
 #include "expr/metakind.h"
 #include "expr/node.h"
-#include "expr/node_builder.h"
 #include "expr/node_algorithm.h"
+#include "expr/node_builder.h"
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
 #include "options/arrays_options.h"
@@ -86,7 +86,6 @@
 #include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/quantifier_macros.h"
 #include "preprocessing/passes/quantifiers_preprocess.h"
 #include "preprocessing/passes/real_to_int.h"
@@ -3867,16 +3866,15 @@ void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_
   cache[n] = true;
 }
 
-void SmtEnginePrivate::recordSymbolsInAssertions(
-    std::vector<Node>& assertions)
+void SmtEnginePrivate::recordSymbolsInAssertions(std::vector<Node>& assertions)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  std::unordered_set< Node, NodeHashFunction > syms;
+  std::unordered_set<Node, NodeHashFunction> syms;
   for (TNode cn : assertions)
   {
-    expr::getSymbols(cn,syms,visited);
+    expr::getSymbols(cn, syms, visited);
   }
-  for( const Node& s : syms )
+  for (const Node& s : syms)
   {
     d_symsInAssertions.insert(s);
   }

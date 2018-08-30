@@ -39,7 +39,7 @@ namespace expr {
 bool hasSubterm(TNode n, TNode t, bool strict = false);
 
 /**
- * Returns true iff the node n contains a bound variable, that is a node of 
+ * Returns true iff the node n contains a bound variable, that is a node of
  * kind BOUND_VARIABLE. This bound variable may or may not be free.
  * @param n The node under investigation
  * @return true iff this node contains a bound variable
@@ -54,15 +54,17 @@ bool hasBoundVar(TNode n);
  */
 bool hasFreeVar(TNode n);
 
-/** 
+/**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
  * @param n The node under investigation
  * @param syms The set which the symbols of n are added to
  */
-void getSymbols(TNode n, std::unordered_set< Node, NodeHashFunction >& syms);
+void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 /** Same as above, with a visited cached */
-void getSymbols(TNode n, std::unordered_set< Node, NodeHashFunction >& syms,std::unordered_set<TNode, TNodeHashFunction>& visited);
+void getSymbols(TNode n,
+                std::unordered_set<Node, NodeHashFunction>& syms,
+                std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 }  // namespace expr
 }  // namespace CVC4

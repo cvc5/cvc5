@@ -166,14 +166,15 @@ bool hasFreeVar(TNode n)
   return false;
 }
 
-void getSymbols(TNode n, std::unordered_set< Node, NodeHashFunction >& syms)
+void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  getSymbols(n,syms);
+  getSymbols(n, syms);
 }
 
-void getSymbols(TNode n, std::unordered_set< Node, NodeHashFunction >& syms, 
-  std::unordered_set<TNode, TNodeHashFunction>& visited )
+void getSymbols(TNode n,
+                std::unordered_set<Node, NodeHashFunction>& syms,
+                std::unordered_set<TNode, TNodeHashFunction>& visited)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -185,7 +186,7 @@ void getSymbols(TNode n, std::unordered_set< Node, NodeHashFunction >& syms,
     if (visited.find(cur) == visited.end())
     {
       visited.insert(cur);
-      if (cur.isVar() && cur.getKind()!=kind::BOUND_VARIABLE)
+      if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
       {
         syms.insert(cur);
       }
