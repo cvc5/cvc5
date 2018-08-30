@@ -1224,8 +1224,6 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
         << v << " is eligible for elimination." << std::endl;
     // do substitution corresponding to infinite projection, all literals
     // involving unbounded variable go to true/false
-    std::vector<Node> terms;
-    std::vector<Node> subs;
     for (std::map<Node, bool>::iterator itb =
              num_bounds[v][elig_vars[v]].begin();
          itb != num_bounds[v][elig_vars[v]].end();
@@ -1245,39 +1243,45 @@ Node QuantifiersRewriter::getVarElimIneq(Node body,
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
-  if( options::varElimQuant() || options::dtVarExpandQuant() ){
-    Node prev;
-    do{
-      prev = body;
+  if( !options::varElimQuant() && !options::dtVarExpandQuant() && !options::varIneqElimQuant()){
+    return body;
+  }
+  Node prev;
+  while( prev!=body && !args.empty() )
+  {
+    prev = body;
 
-      // standard variable elimination
-      std::vector<Node> vars;
-      std::vector<Node> subs;
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    // standard variable elimination
+    if( options::varElimQuant() )
+    {
       getVarElim(body, false, args, vars, subs);
-
-      // variable elimination based on inequalities
-      if (vars.empty() && options::varIneqElimQuant())
+      Assert( vars.size()==subs.size() );
+    }
+    // variable elimination based on one-direction inequalities
+    if (vars.empty() && options::varIneqElimQuant())
+    {
+      body = getVarElimIneq(body, args, vars, subs, qa);
+      Assert( vars.size()==subs.size() );
+    }
+    // if we eliminated a variable, update body and reprocess
+    if (!vars.empty())
+    {
+      Trace("var-elim-quant-debug")
+          << "VE " << vars.size() << "/" << args.size() << std::endl;
+      Assert( vars.size()==subs.size() );
+      // remake with eliminated nodes
+      body =
+          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      body = Rewriter::rewrite(body);
+      if (!qa.d_ipl.isNull())
       {
-        body = getVarElimIneq(body, args, vars, subs, qa);
+        qa.d_ipl = qa.d_ipl.substitute(
+            vars.begin(), vars.end(), subs.begin(), subs.end());
       }
-
-      // if we eliminated a variable, update body and reprocess
-      if (!vars.empty())
-      {
-        Trace("var-elim-quant-debug")
-            << "VE " << vars.size() << "/" << args.size() << std::endl;
-        // remake with eliminated nodes
-        body =
-            body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
-        body = Rewriter::rewrite(body);
-        if (!qa.d_ipl.isNull())
-        {
-          qa.d_ipl = qa.d_ipl.substitute(
-              vars.begin(), vars.end(), subs.begin(), subs.end());
-        }
-        Trace("var-elim-quant") << "Return " << body << std::endl;
-      }
-    }while( prev!=body && !args.empty() );
+      Trace("var-elim-quant") << "Return " << body << std::endl;
+    }
   }
   return body;
 }
