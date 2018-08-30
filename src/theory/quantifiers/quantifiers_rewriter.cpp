@@ -764,10 +764,11 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         << "Conditional var elim split " << body << "?" << std::endl;
     bool do_split = false;
     unsigned index_max = body.getKind() == ITE ? 0 : 1;
+    std::vector< Node > tmpArgs = args;
     for (unsigned index = 0; index <= index_max; index++)
     {
-      if (hasVariableElim(body[index], true, args)
-          || hasVariableElim(body[index], false, args))
+      if (hasVariableElim(body[index], true, tmpArgs)
+          || hasVariableElim(body[index], false, tmpArgs))
       {
         do_split = true;
         break;
@@ -814,9 +815,10 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
       {
         std::vector<Node> vars;
         std::vector<Node> subs;
+        std::vector< Node > tmpArgs = args;
         for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
         {
-          if (getVarElimLit(b[j], true, args, vars, subs))
+          if (getVarElimLit(b[j], true, tmpArgs, vars, subs))
           {
             // TODO
           }
@@ -1257,13 +1259,11 @@ Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >&
     if( options::varElimQuant() )
     {
       getVarElim(body, false, args, vars, subs);
-      Assert( vars.size()==subs.size() );
     }
     // variable elimination based on one-direction inequalities
     if (vars.empty() && options::varIneqElimQuant())
     {
       body = getVarElimIneq(body, args, vars, subs, qa);
-      Assert( vars.size()==subs.size() );
     }
     // if we eliminated a variable, update body and reprocess
     if (!vars.empty())
