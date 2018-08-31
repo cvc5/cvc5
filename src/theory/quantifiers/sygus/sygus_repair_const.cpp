@@ -98,6 +98,49 @@ bool SygusRepairConst::isActive() const
   return !d_base_inst.isNull() && d_allow_constant_grammar;
 }
 
+void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
+                                         ExprManager& em,
+                                         ExprManagerMapCollection& varMap,
+                                         Node query,
+                                         bool& needExport)
+{
+  if (options::sygusRepairConstTimeout.wasSetByUser())
+  {
+    // To support a separate timeout for the subsolver, we need to create
+    // a separate ExprManager with its own options. This requires that
+    // the expressions sent to the subsolver can be exported from on
+    // ExprManager to another. If the export fails, we throw an
+    // OptionException.
+    try
+    {
+      checker.reset(new SmtEngine(&em));
+      checker->setTimeLimit(options::sygusRepairConstTimeout(), true);
+      checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+      // renable options disabled by sygus
+      checker->setOption("miniscope-quant", true);
+      checker->setOption("miniscope-quant-fv", true);
+      checker->setOption("quant-split", true);
+      // export
+      Expr e_query = query.toExpr().exportTo(&em, varMap);
+      checker->assertFormula(e_query);
+    }
+    catch (const CVC4::ExportUnsupportedException& e)
+    {
+      std::stringstream msg;
+      msg << "Unable to export " << query
+          << " but exporting expressions is required for "
+             "--sygus-repair-const-timeout.";
+      throw OptionException(msg.str());
+    }
+  }
+  else
+  {
+    needExport = false;
+    checker.reset(new SmtEngine(nm->toExprManager()));
+    checker->assertFormula(query.toExpr());
+  }
+}
+
 bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                       const std::vector<Node>& candidate_values,
                                       std::vector<Node>& repair_cv,
@@ -211,48 +254,12 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
 
   Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  bool needExport = true;
+  bool needExport = false;
   ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> repcChecker;
-  Result r;
-  if (options::sygusRepairConstTimeout.wasSetByUser())
-  {
-    // To support a separate timeout for the subsolver, we need to create
-    // a separate ExprManager with its own options. This requires that
-    // the expressions sent to the subsolver can be exported from on
-    // ExprManager to another. If the export fails, we throw an
-    // OptionException.
-    try
-    {
-      repcChecker.reset(new SmtEngine(&em));
-      repcChecker->setTimeLimit(options::sygusRepairConstTimeout(), true);
-      repcChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-      // renable options disabled by sygus
-      repcChecker->setOption("miniscope-quant", true);
-      repcChecker->setOption("miniscope-quant-fv", true);
-      repcChecker->setOption("quant-split", true);
-      // export
-      Expr e_fo_body = fo_body.toExpr().exportTo(&em, varMap);
-      repcChecker->assertFormula(e_fo_body);
-      r = repcChecker->checkSat();
-    }
-    catch (const CVC4::ExportUnsupportedException& e)
-    {
-      std::stringstream msg;
-      msg << "Unable to export " << fo_body
-          << " but exporting expressions is required for "
-             "--sygus-repair-const-timeout.";
-      throw OptionException(msg.str());
-    }
-  }
-  else
-  {
-    needExport = false;
-    repcChecker.reset(new SmtEngine(nm->toExprManager()));
-    repcChecker->assertFormula(fo_body.toExpr());
-    r = repcChecker->checkSat();
-  }
+  initializeChecker(repcChecker, em, varMap, fo_body, needExport);
+  Result r = repcChecker->checkSat();;
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
       || r.asSatisfiabilityResult().isUnknown())
