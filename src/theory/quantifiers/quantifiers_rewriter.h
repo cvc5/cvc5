@@ -105,9 +105,9 @@ private:
                              QAttributes& qa);
   /** compute variable elimination
    *
-   * This computes variable elimination rewrites for a body of a quantified 
+   * This computes variable elimination rewrites for a body of a quantified
    * formula with bound variables args. This method updates args to args' and
-   * returns a node body' such that (forall args. body) is equivalent to 
+   * returns a node body' such that (forall args. body) is equivalent to
    * (forall args'. body'). An example of a variable elimination rewrite is:
    *   forall xy. x != a V P( x,y ) ---> forall y. P( a, y )
    */

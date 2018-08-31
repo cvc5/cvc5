@@ -1227,7 +1227,8 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   }
   // traverse the body, invalidate variables if they occur in places other than
   // the bounds they occur in
-  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction> evisited;
+  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction>
+      evisited;
   std::vector<TNode> evisit;
   std::vector<int> evisit_pol;
   TNode ecur;
@@ -1240,44 +1241,53 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
     evisit.push_back(qa.d_ipl);
     evisit_pol.push_back(0);
   }
-  do {
+  do
+  {
     ecur = evisit.back();
     evisit.pop_back();
     ecur_pol = evisit_pol.back();
     evisit_pol.pop_back();
     std::unordered_set<int>& epp = evisited[ecur];
-    if (epp.find(ecur_pol)==epp.end()) {
+    if (epp.find(ecur_pol) == epp.end())
+    {
       epp.insert(ecur_pol);
-      if( elig_vars.find( ecur )!=elig_vars.end() ){
-        //variable contained in a place apart from bounds, no longer eligible for elimination
-        elig_vars.erase( ecur );
-        Trace("var-elim-ineq-debug") << "...found occurrence of " << ecur << ", mark ineligible" << std::endl;
-      }else{
+      if (elig_vars.find(ecur) != elig_vars.end())
+      {
+        // variable contained in a place apart from bounds, no longer eligible
+        // for elimination
+        elig_vars.erase(ecur);
+        Trace("var-elim-ineq-debug") << "...found occurrence of " << ecur
+                                     << ", mark ineligible" << std::endl;
+      }
+      else
+      {
         bool rec = true;
-        bool pol = ecur_pol>=0;
+        bool pol = ecur_pol >= 0;
         bool hasPol = ecur_pol != 0;
-        if( hasPol ){
-          std::map< Node, int >::iterator itx = exclude.find( ecur );
-          if( itx!=exclude.end() && itx->second==ecur_pol ){
-            //already processed this literal as a bound
+        if (hasPol)
+        {
+          std::map<Node, int>::iterator itx = exclude.find(ecur);
+          if (itx != exclude.end() && itx->second == ecur_pol)
+          {
+            // already processed this literal as a bound
             rec = false;
           }
         }
-        if( rec )
+        if (rec)
         {
-          for (unsigned j=0, size = ecur.getNumChildren(); j<size; j++ )
+          for (unsigned j = 0, size = ecur.getNumChildren(); j < size; j++)
           {
             bool newHasPol;
             bool newPol;
-            QuantPhaseReq::getPolarity( ecur, j, hasPol, pol, newHasPol, newPol );
+            QuantPhaseReq::getPolarity(ecur, j, hasPol, pol, newHasPol, newPol);
             evisit.push_back(ecur[j]);
-            evisit_pol.push_back(newHasPol ? ( newPol ? 1 : -1 ) : 0);
+            evisit_pol.push_back(newHasPol ? (newPol ? 1 : -1) : 0);
           }
         }
       }
     }
   } while (!evisit.empty() && !elig_vars.empty());
-  
+
   bool ret = false;
   for (std::map<Node, bool>::iterator itev = elig_vars.begin();
        itev != elig_vars.end();
