@@ -1008,14 +1008,6 @@ header = "options/quantifiers_options.h"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
-  name       = "sygusRepairConstExtRew"
-  category   = "regular"
-  long       = "sygus-repair-const-extrew"
-  type       = "bool"
-  default    = "false"
-  help       = "apply extended rewriter on repair constansts satisfiability checks"
-
-[[option]]
   name       = "sygusMinGrammar"
   category   = "regular"
   long       = "sygus-min-grammar"

@@ -228,15 +228,10 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
       repcChecker.reset(new SmtEngine(&em));
       repcChecker->setTimeLimit(options::sygusRepairConstTimeout(), true);
       repcChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
-      // renable disable options by sygus
+      // renable options disabled by sygus
       repcChecker->setOption("miniscope-quant", true);
       repcChecker->setOption("miniscope-quant-fv", true);
       repcChecker->setOption("quant-split", true);
-      if (options::sygusRepairConstExtRew())
-      {
-        repcChecker->setOption("ext-rew-prep", true);
-        repcChecker->setOption("ext-rew-prep-agg", true);
-      }
       // export
       Expr e_fo_body = fo_body.toExpr().exportTo(&em, varMap);
       repcChecker->assertFormula(e_fo_body);
