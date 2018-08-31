@@ -191,7 +191,8 @@ class SygusRepairConst
   bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
   /** initialize checker
    *
-   * This function initializes the smt engine checker to check the satisfiability
+   * This function initializes the smt engine checker to check the
+   * satisfiability
    * of the argument "query"
    *
    * The arguments em and varMap are used for supporting cases where we
