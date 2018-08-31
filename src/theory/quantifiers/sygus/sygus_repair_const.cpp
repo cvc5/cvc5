@@ -260,7 +260,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> repcChecker;
   initializeChecker(repcChecker, em, varMap, fo_body, needExport);
-  Result r = repcChecker->checkSat();;
+  Result r = repcChecker->checkSat();
   Trace("sygus-repair-const") << "...got : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
       || r.asSatisfiabilityResult().isUnknown())
