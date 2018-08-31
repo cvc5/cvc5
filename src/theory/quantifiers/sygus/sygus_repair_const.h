@@ -192,8 +192,7 @@ class SygusRepairConst
   /** initialize checker
    *
    * This function initializes the smt engine checker to check the
-   * satisfiability
-   * of the argument "query"
+   * satisfiability of the argument "query"
    *
    * The arguments em and varMap are used for supporting cases where we
    * want checker to use a different expression manager instead of the current
