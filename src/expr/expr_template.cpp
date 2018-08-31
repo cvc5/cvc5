@@ -180,7 +180,6 @@ public:
     } else if(n.getMetaKind() == metakind::NULLARY_OPERATOR ){
       Expr from_e(from, new Node(n));
       Type type = from->exportType(from_e.getType(), to, vmap);
-      NodeManagerScope nullScope(NULL);
       return to->mkNullaryOperator(type, n.getKind()); // FIXME thread safety
     } else if(n.getMetaKind() == metakind::VARIABLE) {
       Expr from_e(from, new Node(n));
@@ -194,16 +193,11 @@ public:
         std::string name;
         Type type = from->exportType(from_e.getType(), to, vmap);
         if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
-          // temporarily set the node manager to NULL; this gets around
-          // a check that mkVar isn't called internally
-
           if(n.getKind() == kind::BOUND_VARIABLE) {
-            NodeManagerScope nullScope(NULL);
             to_e = to->mkBoundVar(name, type);// FIXME thread safety
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
             Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
-            NodeManagerScope nullScope(NULL);
             to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
           } else if(n.getKind() == kind::SKOLEM) {
             // skolems are only available at the Node level (not the Expr level)
@@ -219,14 +213,13 @@ public:
         } else {
           if (n.getKind() == kind::BOUND_VARIABLE)
           {
-            NodeManagerScope nullScope(NULL);
-            to_e = to->mkBoundVar(type);  // FIXME thread safety
+            TypeNode typeNode = TypeNode::fromType(type);
+            NodeManager* to_nm = NodeManager::fromExprManager(to);
+            Node n = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
+            to_e = n.toExpr();
           }
           else
           {
-            // temporarily set the node manager to NULL; this gets around
-            // a check that mkVar isn't called internally
-            NodeManagerScope nullScope(NULL);
             to_e = to->mkVar(type);  // FIXME thread safety
           }
           Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;
