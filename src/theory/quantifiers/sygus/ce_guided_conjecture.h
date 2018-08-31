@@ -96,9 +96,12 @@ public:
    * singleInvocation : set to true if we should consult the single invocation
    * module to get synthesis solutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);
-  /** get guard, this is "G" in Figure 3 of Reynolds et al CAV 2015 */
-  Node getGuard();
+  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);  
+  /** 
+   * The feasible guard whose semantics are "this conjecture is feasiable". 
+   * This is "G" in Figure 3 of Reynolds et al CAV 2015.
+   */
+  Node getGuard() const;
   /** is ground */
   bool isGround() { return d_inner_vars.empty(); }
   /** are we using single invocation techniques */
@@ -132,6 +135,8 @@ public:
 private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
+  /** The feasible guard. */
+  Node d_feasible_guard;
   /** single invocation utility */
   std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
   /** utility for static preprocessing and analysis of conjectures */
