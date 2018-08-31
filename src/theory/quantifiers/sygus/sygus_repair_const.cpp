@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 
 #include "options/base_options.h"
+#include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -130,8 +131,8 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   for (unsigned i = 0, size = candidates.size(); i < size; i++)
   {
     Node cv = candidate_values[i];
-    Node skeleton =
-        getSkeleton(cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
+    Node skeleton = getSkeleton(
+        cv, free_var_count, sk_vars, sk_vars_to_subs, useConstantsAsHoles);
     if (Trace.isOn("sygus-repair-const"))
     {
       Printer* p = Printer::getPrinter(options::outputLanguage());
@@ -206,68 +207,109 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                   << std::endl;
       return false;
     }
-
-    // do miniscoping explicitly
-    if (fo_body[1].getKind() == AND)
     {
-      Node bvl = fo_body[0];
-      std::vector<Node> children;
-      for (const Node& conj : fo_body[1])
-      {
-        children.push_back(nm->mkNode(FORALL, bvl, conj));
-      }
-      fo_body = nm->mkNode(AND, children);
     }
   }
 
   Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  SmtEngine repcChecker(nm->toExprManager());
-  repcChecker.setLogic(smt::currentSmtEngine()->getLogicInfo());
-  repcChecker.assertFormula(fo_body.toExpr());
-  Result r = repcChecker.checkSat();
-  Trace("sygus-repair-const") << "...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT
-      && !r.asSatisfiabilityResult().isUnknown())
+  bool needExport = true;
+  ExprManagerMapCollection varMap;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> repcChecker;
+  Result r;
+  if (options::sygusRepairConstTimeout.wasSetByUser())
   {
-    std::vector<Node> sk_sygus_m;
-    for (const Node& v : sk_vars)
+    // To support a separate timeout for the subsolver, we need to create
+    // a separate ExprManager with its own options. This requires that
+    // the expressions sent to the subsolver can be exported from on
+    // ExprManager to another. If the export fails, we throw an
+    // OptionException.
+    try
     {
-      Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
-      Node fov = d_sk_to_fo[v];
-      Node fov_m = Node::fromExpr(repcChecker.getValue(fov.toExpr()));
-      Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
-      // convert to sygus
-      Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);
-      sk_sygus_m.push_back(fov_m_to_sygus);
-    }
-    std::stringstream ss;
-    // convert back to sygus
-    for (unsigned i = 0, size = candidates.size(); i < size; i++)
-    {
-      Node csk = candidate_skeletons[i];
-      Node scsk = csk.substitute(
-          sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
-      repair_cv.push_back(scsk);
-      if (Trace.isOn("sygus-repair-const") || Trace.isOn("cegqi-engine"))
+      repcChecker.reset(new SmtEngine(&em));
+      repcChecker->setTimeLimit(options::sygusRepairConstTimeout(), true);
+      repcChecker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+      // renable disable options by sygus
+      repcChecker->setOption("miniscope-quant", true);
+      repcChecker->setOption("miniscope-quant-fv", true);
+      repcChecker->setOption("quant-split", true);
+      if (options::sygusRepairConstExtRew())
       {
-        std::stringstream sss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(sss, repair_cv[i]);
-        ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
+        repcChecker->setOption("ext-rew-prep", true);
+        repcChecker->setOption("ext-rew-prep-agg", true);
       }
+      // export
+      Expr e_fo_body = fo_body.toExpr().exportTo(&em, varMap);
+      repcChecker->assertFormula(e_fo_body);
+      r = repcChecker->checkSat();
     }
-    Trace("cegqi-engine") << "...success:" << std::endl;
-    Trace("cegqi-engine") << ss.str();
-    Trace("sygus-repair-const")
-        << "Repaired constants in solution : " << std::endl;
-    Trace("sygus-repair-const") << ss.str();
-    return true;
+    catch (const CVC4::ExportUnsupportedException& e)
+    {
+      std::stringstream msg;
+      msg << "Unable to export " << fo_body
+          << " but exporting expressions is required for "
+             "--sygus-repair-const-timeout.";
+      throw OptionException(msg.str());
+    }
   }
-
-  Trace("cegqi-engine") << "...failed" << std::endl;
-
-  return false;
+  else
+  {
+    needExport = false;
+    repcChecker.reset(new SmtEngine(nm->toExprManager()));
+    repcChecker->assertFormula(fo_body.toExpr());
+    r = repcChecker->checkSat();
+  }
+  Trace("sygus-repair-const") << "...got : " << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT
+      || r.asSatisfiabilityResult().isUnknown())
+  {
+    Trace("cegqi-engine") << "...failed" << std::endl;
+    return false;
+  }
+  std::vector<Node> sk_sygus_m;
+  for (const Node& v : sk_vars)
+  {
+    Assert(d_sk_to_fo.find(v) != d_sk_to_fo.end());
+    Node fov = d_sk_to_fo[v];
+    Node fov_m;
+    if (needExport)
+    {
+      Expr e_fov = fov.toExpr().exportTo(&em, varMap);
+      fov_m = Node::fromExpr(
+          repcChecker->getValue(e_fov).exportTo(nm->toExprManager(), varMap));
+    }
+    else
+    {
+      fov_m = Node::fromExpr(repcChecker->getValue(fov.toExpr()));
+    }
+    Trace("sygus-repair-const") << "  " << fov << " = " << fov_m << std::endl;
+    // convert to sygus
+    Node fov_m_to_sygus = d_tds->getProxyVariable(v.getType(), fov_m);
+    sk_sygus_m.push_back(fov_m_to_sygus);
+  }
+  std::stringstream ss;
+  // convert back to sygus
+  for (unsigned i = 0, size = candidates.size(); i < size; i++)
+  {
+    Node csk = candidate_skeletons[i];
+    Node scsk = csk.substitute(
+        sk_vars.begin(), sk_vars.end(), sk_sygus_m.begin(), sk_sygus_m.end());
+    repair_cv.push_back(scsk);
+    if (Trace.isOn("sygus-repair-const") || Trace.isOn("cegqi-engine"))
+    {
+      std::stringstream sss;
+      Printer::getPrinter(options::outputLanguage())
+          ->toStreamSygus(sss, repair_cv[i]);
+      ss << "  * " << candidates[i] << " -> " << sss.str() << std::endl;
+    }
+  }
+  Trace("cegqi-engine") << "...success:" << std::endl;
+  Trace("cegqi-engine") << ss.str();
+  Trace("sygus-repair-const")
+      << "Repaired constants in solution : " << std::endl;
+  Trace("sygus-repair-const") << ss.str();
+  return true;
 }
 
 bool SygusRepairConst::mustRepair(Node n)
