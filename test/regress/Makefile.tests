@@ -814,6 +814,7 @@ REG0_TESTS = \
 	regress0/strings/norn-31.smt2 \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
+	regress0/strings/rewrites-re-concat.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
 	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
@@ -1485,6 +1486,7 @@ REG1_TESTS = \
 	regress1/strings/idof-triv.smt2 \
 	regress1/strings/ilc-l-nt.smt2 \
 	regress1/strings/issue1105.smt2 \
+	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
@@ -1496,12 +1498,16 @@ REG1_TESTS = \
 	regress1/strings/loop008.smt2 \
 	regress1/strings/loop009.smt2 \
 	regress1/strings/nf-ff-contains-abs.smt2 \
+	regress1/strings/non_termination_regular_expression4.smt2 \
+	regress1/strings/norn-13.smt2 \
 	regress1/strings/norn-360.smt2 \
 	regress1/strings/norn-ab.smt2 \
 	regress1/strings/norn-nel-bug-052116.smt2 \
 	regress1/strings/norn-simp-rew-sat.smt2 \
 	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/policy_variable.smt2 \
+	regress1/strings/re-elim-exact.smt2 \
 	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
