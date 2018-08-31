@@ -104,6 +104,7 @@ void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
                                          Node query,
                                          bool& needExport)
 {
+  NodeManager* nm = NodeManager::currentNM();
   if (options::sygusRepairConstTimeout.wasSetByUser())
   {
     // To support a separate timeout for the subsolver, we need to create
