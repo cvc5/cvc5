@@ -871,38 +871,6 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
-void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
-                                               std::map< Node, bool >& elig_vars  ) {
-  int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
-  if( visited[n].find( vindex )==visited[n].end() ){
-    visited[n][vindex] = true;
-    if( elig_vars.find( n )!=elig_vars.end() ){
-      //variable contained in a place apart from bounds, no longer eligible for elimination
-      elig_vars.erase( n );
-      Trace("var-elim-ineq-debug") << "...found occurrence of " << n << ", mark ineligible" << std::endl;
-    }else{
-      if( hasPol ){
-        std::map< Node, int >::iterator itx = exclude.find( n );
-        if( itx!=exclude.end() && itx->second==vindex ){
-          //already processed this literal
-          return;
-        }
-      }
-      for( unsigned j=0; j<n.getNumChildren(); j++ ){
-        bool newHasPol;
-        bool newPol;
-        QuantPhaseReq::getPolarity( n, j, hasPol, pol, newHasPol, newPol );
-        isVariableBoundElig( n[j], exclude, visited, newHasPol, newPol, elig_vars );
-        if( elig_vars.empty() ){
-          break;
-        }
-      }
-    }
-  }else{
-    //already visited
-  }
-}
-
 Node QuantifiersRewriter::getVarElimLitBv(Node lit,
                                           std::vector<Node>& args,
                                           Node& var)
@@ -1259,17 +1227,57 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   }
   // traverse the body, invalidate variables if they occur in places other than
   // the bounds they occur in
-  isVariableBoundElig(body, exclude, visited, true, true, elig_vars);
-
-  if (elig_vars.empty())
-  {
-    return false;
-  }
+  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction> evisited;
+  std::vector<TNode> evisit;
+  std::vector<int> evisit_pol;
+  TNode ecur;
+  int ecur_pol;
+  evisit.push_back(body);
+  evisit_pol.push_back(1);
   if (!qa.d_ipl.isNull())
   {
     // do not eliminate variables that occur in the annotation
-    isVariableBoundElig(qa.d_ipl, exclude, visited, false, true, elig_vars);
+    evisit.push_back(qa.d_ipl);
+    evisit_pol.push_back(0);
   }
+  do {
+    ecur = evisit.back();
+    evisit.pop_back();
+    ecur_pol = evisit_pol.back();
+    evisit_pol.pop_back();
+    std::unordered_set<int>& epp = evisited[ecur];
+    if (epp.find(ecur_pol)==epp.end()) {
+      epp.insert(ecur_pol);
+      if( elig_vars.find( ecur )!=elig_vars.end() ){
+        //variable contained in a place apart from bounds, no longer eligible for elimination
+        elig_vars.erase( ecur );
+        Trace("var-elim-ineq-debug") << "...found occurrence of " << ecur << ", mark ineligible" << std::endl;
+      }else{
+        bool rec = true;
+        bool pol = ecur_pol>=0;
+        bool hasPol = ecur_pol != 0;
+        if( hasPol ){
+          std::map< Node, int >::iterator itx = exclude.find( ecur );
+          if( itx!=exclude.end() && itx->second==ecur_pol ){
+            //already processed this literal as a bound
+            rec = false;
+          }
+        }
+        if( rec )
+        {
+          for (unsigned j=0, size = ecur.getNumChildren(); j<size; j++ )
+          {
+            bool newHasPol;
+            bool newPol;
+            QuantPhaseReq::getPolarity( ecur, j, hasPol, pol, newHasPol, newPol );
+            evisit.push_back(ecur[j]);
+            evisit_pol.push_back(newHasPol ? ( newPol ? 1 : -1 ) : 0);
+          }
+        }
+      }
+    }
+  } while (!evisit.empty() && !elig_vars.empty());
+  
   bool ret = false;
   for (std::map<Node, bool>::iterator itev = elig_vars.begin();
        itev != elig_vars.end();

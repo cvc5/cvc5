@@ -103,12 +103,6 @@ private:
                              std::vector<Node>& bounds,
                              std::vector<Node>& subs,
                              QAttributes& qa);
-  static void isVariableBoundElig(Node n,
-                                  std::map<Node, int>& exclude,
-                                  std::map<Node, std::map<int, bool> >& visited,
-                                  bool hasPol,
-                                  bool pol,
-                                  std::map<Node, bool>& elig_vars);
   /** compute variable elimination
    *
    * This computes variable elimination rewrites for a body of a quantified 
@@ -121,12 +115,7 @@ private:
                                     std::vector<Node>& args,
                                     QAttributes& qa);
   //-------------------------------------end variable elimination
- public:
-  static Node computeElimSymbols( Node body );
-  static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
-  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
-  //cache is dependent upon currCond, icache is not, new_conds are negated conditions
-  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
+  //-------------------------------------conditional splitting
   /** compute conditional splitting
    *
    * This computes conditional splitting rewrites for a body of a quantified
@@ -141,6 +130,13 @@ private:
   static Node computeCondSplit(Node body,
                                const std::vector<Node>& args,
                                QAttributes& qa);
+  //-------------------------------------end conditional splitting
+ public:
+  static Node computeElimSymbols( Node body );
+  static Node computeMiniscoping( std::vector< Node >& args, Node body, QAttributes& qa );
+  static Node computeAggressiveMiniscoping( std::vector< Node >& args, Node body );
+  //cache is dependent upon currCond, icache is not, new_conds are negated conditions
+  static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
   static Node computeSplit( std::vector< Node >& args, Node body, QAttributes& qa );

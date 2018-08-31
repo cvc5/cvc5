@@ -1,5 +1,5 @@
 (set-logic BV)
-(set-status :unsat)
+(set-info :status unsat)
 (declare-fun k_42 () (_ BitVec 32))
 (declare-fun k_332 () (_ BitVec 32))
 (declare-fun k_28 () (_ BitVec 32))
