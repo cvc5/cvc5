@@ -207,8 +207,6 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
                                   << std::endl;
       return false;
     }
-    {
-    }
   }
 
   Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
