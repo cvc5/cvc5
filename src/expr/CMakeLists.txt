@@ -61,6 +61,7 @@ set(expr_gen_src_files
 )
 
 add_library(expr ${expr_src_files} ${expr_gen_src_files})
+target_link_libraries(expr PRIVATE options)
 target_compile_definitions(expr PRIVATE -D__BUILDING_CVC4LIB)
 
 #
