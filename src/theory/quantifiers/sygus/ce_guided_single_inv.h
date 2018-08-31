@@ -204,15 +204,15 @@ class CegConjectureSingleInv {
   Node getSimplifiedConjecture() { return d_simp_quant; }
  public:
   /** get the single invocation lemma(s)
-   * 
+   *
    * This adds lemmas to lem that initializes this class for doing
    * counterexample-guided instantiation for the synthesis conjecture. These
    * lemmas correspond to the negation of the body of the (anti-skolemized)
    * form of the conjecture for fresh skolems.
-   * 
+   *
    * Argument g is guard, for which all the above lemmas are guarded.
    */
-  void getInitialSingleInvLemma( Node g, std::vector< Node >& lems );
+  void getInitialSingleInvLemma(Node g, std::vector<Node>& lems);
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
   /** finish initialize

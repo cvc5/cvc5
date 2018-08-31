@@ -164,19 +164,19 @@ void CegConjecture::assign( Node q ) {
   }
   
   // initialize the guard
-  d_feasible_guard = nm->mkSkolem( "G", nm->booleanType() );
+  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral( d_feasible_guard );
-  AlwaysAssert( !d_feasible_guard.isNull() );
+  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  AlwaysAssert(!d_feasible_guard.isNull());
   // this must be called, both to ensure that the feasible guard is not
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
-  d_qe->getOutputChannel().requirePhase( d_feasible_guard, true );
-  
-  if( isSingleInvocation() )
+  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+
+  if (isSingleInvocation())
   {
     std::vector< Node > lems;
-    d_ceg_si->getInitialSingleInvLemma( d_feasible_guard, lems );
+    d_ceg_si->getInitialSingleInvLemma(d_feasible_guard, lems);
     for( unsigned i=0; i<lems.size(); i++ ){
       Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation " << i << " : " << lems[i] << std::endl;
       d_qe->getOutputChannel().lemma( lems[i] );
@@ -188,7 +188,7 @@ void CegConjecture::assign( Node q ) {
   }
   Node gneg = d_feasible_guard.negate();
   for( unsigned i=0; i<guarded_lemmas.size(); i++ ){
-    Node lem = nm->mkNode( OR, gneg, guarded_lemmas[i] );
+    Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
     Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem << std::endl;
     d_qe->getOutputChannel().lemma( lem );
   }
@@ -207,16 +207,21 @@ bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
     return false;
   }
   bool value;
-  Assert( !d_feasible_guard.isNull() );
+  Assert(!d_feasible_guard.isNull());
   // non or fully single invocation : look at guard only
-  if( d_qe->getValuation().hasSatValue( d_feasible_guard, value ) ) {
-    if( !value ){
+  if (d_qe->getValuation().hasSatValue(d_feasible_guard, value))
+  {
+    if (!value)
+    {
       Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
       return false;
     }
-  }else{
-    Trace("cegqi-warn") << "WARNING: Guard " << d_feasible_guard << " is not assigned!" << std::endl;
-    Assert( false );
+  }
+  else
+  {
+    Trace("cegqi-warn") << "WARNING: Guard " << d_feasible_guard
+                        << " is not assigned!" << std::endl;
+    Assert(false);
   }
   return true;
 }

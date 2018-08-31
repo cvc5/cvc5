@@ -96,9 +96,9 @@ public:
    * singleInvocation : set to true if we should consult the single invocation
    * module to get synthesis solutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);  
-  /** 
-   * The feasible guard whose semantics are "this conjecture is feasiable". 
+  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);
+  /**
+   * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.
    */
   Node getGuard() const;
