@@ -193,11 +193,13 @@ public:
         std::string name;
         Type type = from->exportType(from_e.getType(), to, vmap);
         if(Node::fromExpr(from_e).getAttribute(VarNameAttr(), name)) {
-          if(n.getKind() == kind::BOUND_VARIABLE) {
-            // bound vars are only available at the Node level (not the Expr level)
+          if (n.getKind() == kind::BOUND_VARIABLE)
+          {
+            // bound vars are only available at the Node level (not the Expr
+            // level)
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
-            Node n = to_nm->mkBoundVar(name, typeNode);// FIXME thread safety
+            Node n = to_nm->mkBoundVar(name, typeNode);  // FIXME thread safety
             to_e = n.toExpr();
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
@@ -217,7 +219,8 @@ public:
         } else {
           if (n.getKind() == kind::BOUND_VARIABLE)
           {
-            // bound vars are only available at the Node level (not the Expr level)
+            // bound vars are only available at the Node level (not the Expr
+            // level)
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
             Node n = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
