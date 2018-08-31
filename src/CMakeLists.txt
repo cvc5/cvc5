@@ -570,8 +570,9 @@ target_compile_definitions(cvc4
 add_dependencies(cvc4 gen-theory-files)
 target_link_libraries(cvc4
   base bvminisat expr minisat options smtutil util replacements
-  ${CVC4_LIBRARIES}
+  ${LIBCVC4_LIBRARIES}
 )
+target_include_directories(cvc4 PRIVATE ${LIBCVC4_INCLUDES})
 
 include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
