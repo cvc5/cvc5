@@ -728,7 +728,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
 }
 
 Node QuantifiersRewriter::computeCondSplit(Node body,
-                                           std::vector<Node>& args,
+                                           const std::vector<Node>& args,
                                            QAttributes& qa)
 {
   NodeManager* nm = NodeManager::currentNM();
@@ -816,14 +816,12 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
           {
             Trace("cond-var-split-debug") << "Variable elimination in child #"
                                           << j << " under " << i << std::endl;
-            // figure out if we should split
+            // Figure out if we should split
+            // Currently we split if the aggressive option is set, or
+            // if the top-level OR is binary.
             if (options::condVarSplitQuantAgg() || size == 2)
             {
               do_split = true;
-            }
-            else
-            {
-              // can be cases other cases
             }
 
             if (do_split)
@@ -858,6 +856,8 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
         children[split_index] = bci;
         split_children.push_back(nm->mkNode(OR, children));
       }
+      // split the AND child, for example:
+      //  ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
       return nm->mkNode(AND, split_children);
     }
   }

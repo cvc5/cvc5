@@ -111,9 +111,11 @@ private:
                                   std::map<Node, bool>& elig_vars);
   /** compute variable elimination
    *
-   * This computes variable elimination in for a body of a quantified formula
-   * body. This method updates args to args' and returns a node n' such
-   * that (forall args. n) is equivalent to (forall args'. n').
+   * This computes variable elimination rewrites for a body of a quantified 
+   * formula with bound variables args. This method updates args to args' and
+   * returns a node body' such that (forall args. body) is equivalent to 
+   * (forall args'. body'). An example of a variable elimination rewrite is:
+   *   forall xy. x != a V P( x,y ) ---> forall y. P( a, y )
    */
   static Node computeVarElimination(Node body,
                                     std::vector<Node>& args,
@@ -127,9 +129,17 @@ private:
   static Node computeProcessTerms( Node body, std::vector< Node >& new_vars, std::vector< Node >& new_conds, Node q, QAttributes& qa );
   /** compute conditional splitting
    *
+   * This computes conditional splitting rewrites for a body of a quantified
+   * formula with bound variables args. It returns a body' that is equivalent
+   * to body. We split body into a conjunction if variable elimination can
+   * occur in one of the conjuncts, examples of this are:
+   *   ite( x=a, P(x), Q(x) ) ----> ( x!=a V P(x) ) ^ ( x=a V Q(x) )
+   *   (x=a) = P(x) ----> ( x!=a V P(x) ) ^ ( x=a V ~P(x) )
+   *   ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
+   * where in each case, x can be eliminated in the first conjunct.
    */
   static Node computeCondSplit(Node body,
-                               std::vector<Node>& args,
+                               const std::vector<Node>& args,
                                QAttributes& qa);
   static Node computePrenex( Node body, std::vector< Node >& args, std::vector< Node >& nargs, bool pol, bool prenexAgg );
   static Node computePrenexAgg( Node n, bool topLevel, std::map< unsigned, std::map< Node, Node > >& visited );
