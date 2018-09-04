@@ -117,6 +117,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
 	preprocessing/passes/synth_rew_rules.h \
+	preprocessing/passes/theory_preprocess.cpp \
+	preprocessing/passes/theory_preprocess.h \
 	preprocessing/passes/unconstrained_simplifier.cpp \
 	preprocessing/passes/unconstrained_simplifier.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -582,6 +584,8 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
+	theory/strings/regexp_elim.cpp \
+	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
 	theory/strings/theory_strings.cpp \
