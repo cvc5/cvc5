@@ -43,7 +43,7 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     // get the current literal
     Node lit = getLiteral(curr_lit);
     // if out of literals, we are done
-    if( !lit.isNull() )
+    if (!lit.isNull())
     {
       bool value;
       if (!d_valuation.hasSatValue(lit, value))
@@ -116,9 +116,9 @@ void DecisionManager::initialize()
         d_reg_strategy.find(s);
     if (itrs != d_reg_strategy.end())
     {
-      for( unsigned j=0, size = itrs->second.size(); j<size; j++ )
+      for (unsigned j = 0, size = itrs->second.size(); j < size; j++)
       {
-        d_strategy.push_back( itrs->second[j] );
+        d_strategy.push_back(itrs->second[j]);
       }
     }
   }

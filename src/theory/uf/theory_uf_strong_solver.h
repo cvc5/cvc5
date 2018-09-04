@@ -422,7 +422,7 @@ public:
   context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
-  
+
   /** allocated combined cardinality */
   context::CDO<int> d_aloc_com_card;
   /** combined cardinality constraints */
@@ -431,19 +431,18 @@ public:
   NodeBoolMap d_com_card_assertions;
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
-  
+
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
     Node mkLiteral(unsigned i) override
     {
-      NodeManager * nm = NodeManager::currentNM();
-      return nm->mkNode( kind::COMBINED_CARDINALITY_CONSTRAINT,
-                                               nm->mkConst( Rational( i ) ) );
+      NodeManager* nm = NodeManager::currentNM();
+      return nm->mkNode(kind::COMBINED_CARDINALITY_CONSTRAINT,
+                        nm->mkConst(Rational(i)));
     }
   };
-  
-  
+
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
   /** the master monotone type (if ufssFairnessMonotone enabled) */

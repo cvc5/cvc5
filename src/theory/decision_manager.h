@@ -108,7 +108,7 @@ class DecisionManager
   {
     // The order of the global decision strategy used by the TheoryEngine
     // for getNextDecision.
-    
+
     //----- assume-feasibile strategies
     //  These are required to go first for the sake of model-soundness. In
     //  other words, if these strategies did not go first, we might answer
@@ -116,7 +116,7 @@ class DecisionManager
     strat_quant_cegqi_feasible,
     strat_quant_sygus_feasible,
     strat_last_m_sound,
-    
+
     //----- finite model finding strategies
     //  We require these go here for the sake of finite-model completeness. In
     //  other words, if these strategies did not go before other decisions, we
@@ -131,10 +131,10 @@ class DecisionManager
     strat_strings_sum_lengths,
     strat_sep_neg_guard,
     strat_last_fm_complete,
-    
+
     //----- decision strategies that are optimizations
     strat_arrays,
-    
+
     strat_last
   };
   DecisionManager(context::Context* satContext);
@@ -148,7 +148,7 @@ class DecisionManager
    */
   void initialize();
   /** Get the next decision request */
-  Node getNextDecisionRequest( unsigned& priorty );
+  Node getNextDecisionRequest(unsigned& priorty);
 
  private:
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;

@@ -35,16 +35,19 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 
-bool CegqiOutputInstStrategy::doAddInstantiation( std::vector< Node >& subs ) {
-  return d_out->doAddInstantiation( subs );
+bool CegqiOutputInstStrategy::doAddInstantiation(std::vector<Node>& subs)
+{
+  return d_out->doAddInstantiation(subs);
 }
 
-bool CegqiOutputInstStrategy::isEligibleForInstantiation( Node n ) {
-  return d_out->isEligibleForInstantiation( n );
+bool CegqiOutputInstStrategy::isEligibleForInstantiation(Node n)
+{
+  return d_out->isEligibleForInstantiation(n);
 }
 
-bool CegqiOutputInstStrategy::addLemma( Node lem ) {
-  return d_out->addLemma( lem );
+bool CegqiOutputInstStrategy::addLemma(Node lem)
+{
+  return d_out->addLemma(lem);
 }
 
 InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
@@ -58,8 +61,9 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
 //, d_added_inst( qe->getUserContext() )
 {
   d_qid_count = 0;
-  d_out = new CegqiOutputInstStrategy( this );
-  d_small_const = NodeManager::currentNM()->mkConst( Rational(1)/Rational(1000000) );
+  d_out = new CegqiOutputInstStrategy(this);
+  d_small_const =
+      NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
 }
 
@@ -67,15 +71,19 @@ InstStrategyCegqi::~InstStrategyCegqi()
 {
   delete d_out;
 
-  for(std::map< Node, CegInstantiator * >::iterator i = d_cinst.begin(),
-          iend = d_cinst.end(); i != iend; ++i) {
-    CegInstantiator * instantiator = (*i).second;
+  for (std::map<Node, CegInstantiator*>::iterator i = d_cinst.begin(),
+                                                  iend = d_cinst.end();
+       i != iend;
+       ++i)
+  {
+    CegInstantiator* instantiator = (*i).second;
     delete instantiator;
   }
   d_cinst.clear();
 }
 
-bool InstStrategyCegqi::needsCheck( Theory::Effort e ) {
+bool InstStrategyCegqi::needsCheck(Theory::Effort e)
+{
   return e>=Theory::EFFORT_LAST_CALL;
 }
 
@@ -90,7 +98,8 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
   return QEFFORT_NONE;
 }
 
-bool InstStrategyCegqi::registerCbqiLemma( Node q ) {
+bool InstStrategyCegqi::registerCbqiLemma(Node q)
+{
   if( !hasAddedCbqiLemma( q ) ){
     d_added_cbqi_lemma.insert( q );
     Trace("cbqi-debug") << "Do cbqi for " << q << std::endl;
@@ -188,7 +197,8 @@ bool InstStrategyCegqi::registerCbqiLemma( Node q ) {
   }
 }
 
-void InstStrategyCegqi::reset_round( Theory::Effort effort ) {
+void InstStrategyCegqi::reset_round(Theory::Effort effort)
+{
   d_cbqi_set_quant_inactive = false;
   d_incomplete_check = false;
   d_active_quant.clear();
@@ -307,7 +317,8 @@ void InstStrategyCegqi::check(Theory::Effort e, QEffort quant_e)
   }
 }
 
-bool InstStrategyCegqi::checkComplete() {
+bool InstStrategyCegqi::checkComplete()
+{
   if( ( !options::cbqiSat() && d_cbqi_set_quant_inactive ) || d_incomplete_check ){
     return false;
   }else{
@@ -315,7 +326,8 @@ bool InstStrategyCegqi::checkComplete() {
   }
 }
 
-bool InstStrategyCegqi::checkCompleteFor( Node q ) {
+bool InstStrategyCegqi::checkCompleteFor(Node q)
+{
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it!=d_do_cbqi.end() ){
     return it->second != CEG_UNHANDLED;
@@ -324,7 +336,9 @@ bool InstStrategyCegqi::checkCompleteFor( Node q ) {
   }
 }
 
-Node InstStrategyCegqi::getIdMarkedQuantNode( Node n, std::map< Node, Node >& visited ){
+Node InstStrategyCegqi::getIdMarkedQuantNode(Node n,
+                                             std::map<Node, Node>& visited)
+{
   std::map< Node, Node >::iterator it = visited.find( n );
   if( it==visited.end() ){
     Node ret = n;
@@ -412,9 +426,10 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
     }
   }
   if( doCbqi( q ) ){
-    // get the instantiator  
-    if( options::cbqiPreRegInst() ){
-      getInstantiator( q );
+    // get the instantiator
+    if (options::cbqiPreRegInst())
+    {
+      getInstantiator(q);
     }
     // register the cbqi lemma
     if( registerCbqiLemma( q ) ){
@@ -423,7 +438,9 @@ void InstStrategyCegqi::preRegisterQuantifier(Node q)
   }
 }
 
-Node InstStrategyCegqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< Node >& inst_terms, bool doVts ) {
+Node InstStrategyCegqi::doNestedQENode(
+    Node q, Node ceq, Node n, std::vector<Node>& inst_terms, bool doVts)
+{
   // there is a nested quantified formula (forall y. nq[y,x]) such that 
   //    q is (forall y. nq[y,t]) for ground terms t,
   //    ceq is (forall y. nq[y,e]) for CE variables e.
@@ -453,7 +470,12 @@ Node InstStrategyCegqi::doNestedQENode( Node q, Node ceq, Node n, std::vector< N
   return ret;
 }
 
-Node InstStrategyCegqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& visited, std::vector< Node >& inst_terms, bool doVts ) {
+Node InstStrategyCegqi::doNestedQERec(Node q,
+                                      Node n,
+                                      std::map<Node, Node>& visited,
+                                      std::vector<Node>& inst_terms,
+                                      bool doVts)
+{
   if( visited.find( n )==visited.end() ){
     Node ret = n;
     if( n.getKind()==FORALL ){
@@ -510,29 +532,41 @@ Node InstStrategyCegqi::doNestedQERec( Node q, Node n, std::map< Node, Node >& v
   }  
 }
 
-Node InstStrategyCegqi::doNestedQE( Node q, std::vector< Node >& inst_terms, Node lem, bool doVts ) {
+Node InstStrategyCegqi::doNestedQE(Node q,
+                                   std::vector<Node>& inst_terms,
+                                   Node lem,
+                                   bool doVts)
+{
   std::map< Node, Node > visited;
   return doNestedQERec( q, lem, visited, inst_terms, doVts );
 }
 
-void InstStrategyCegqi::registerCounterexampleLemma( Node q, Node lem ){
-  //must register with the instantiator
-  //must explicitly remove ITEs so that we record dependencies
-  std::vector< Node > ce_vars;
-  for( unsigned i=0; i<d_quantEngine->getTermUtil()->getNumInstantiationConstants( q ); i++ ){
-    ce_vars.push_back( d_quantEngine->getTermUtil()->getInstantiationConstant( q, i ) );
+void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
+{
+  // must register with the instantiator
+  // must explicitly remove ITEs so that we record dependencies
+  std::vector<Node> ce_vars;
+  for (unsigned i = 0;
+       i < d_quantEngine->getTermUtil()->getNumInstantiationConstants(q);
+       i++)
+  {
+    ce_vars.push_back(
+        d_quantEngine->getTermUtil()->getInstantiationConstant(q, i));
   }
-  std::vector< Node > lems;
-  lems.push_back( lem );
-  CegInstantiator * cinst = getInstantiator( q );
-  cinst->registerCounterexampleLemma( lems, ce_vars );
-  for( unsigned i=0; i<lems.size(); i++ ){
-    Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i] << std::endl;
-    d_quantEngine->addLemma( lems[i], false );
+  std::vector<Node> lems;
+  lems.push_back(lem);
+  CegInstantiator* cinst = getInstantiator(q);
+  cinst->registerCounterexampleLemma(lems, ce_vars);
+  for (unsigned i = 0; i < lems.size(); i++)
+  {
+    Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i]
+                        << std::endl;
+    d_quantEngine->addLemma(lems[i], false);
   }
 }
 
-bool InstStrategyCegqi::doCbqi( Node q ){
+bool InstStrategyCegqi::doCbqi(Node q)
+{
   std::map<Node, CegHandledStatus>::iterator it = d_do_cbqi.find(q);
   if( it==d_do_cbqi.end() ){
     CegHandledStatus ret = CegInstantiator::isCbqiQuant(q, d_quantEngine);
@@ -543,7 +577,9 @@ bool InstStrategyCegqi::doCbqi( Node q ){
   return it->second != CEG_UNHANDLED;
 }
 
-Node InstStrategyCegqi::getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc ) {
+Node InstStrategyCegqi::getNextDecisionRequestProc(Node q,
+                                                   std::map<Node, bool>& proc)
+{
   if( proc.find( q )==proc.end() ){
     proc[q] = true;
     //first check children
@@ -569,7 +605,8 @@ Node InstStrategyCegqi::getNextDecisionRequestProc( Node q, std::map< Node, bool
   return Node::null(); 
 }
 
-Node InstStrategyCegqi::getNextDecisionRequest( unsigned& priority ){
+Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
+{
   std::map< Node, bool > proc;
   //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
   //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );

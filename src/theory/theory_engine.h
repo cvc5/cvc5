@@ -535,7 +535,6 @@ public:
   theory::DecisionManager* getDecisionManager() const { return d_decManager; }
 
  private:
-
   /**
    * Helper for preprocess
    */
