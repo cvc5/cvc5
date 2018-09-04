@@ -49,12 +49,12 @@ CegConjectureSingleInv::CegConjectureSingleInv(QuantifiersEngine* qe,
       d_sip(new SingleInvocationPartition),
       d_sol(new CegConjectureSingleInvSol(qe)),
       d_cosi(new CegqiOutputSingleInv(this)),
-      d_cinst(NULL),
+      d_cinst(new CegInstantiator(d_qe, d_cosi, false, false)),
       d_c_inst_match_trie(NULL),
-      d_single_invocation(false) {
-  //  third and fourth arguments set to (false,false) until we have solution
-  //  reconstruction for delta and infinity
-  d_cinst = new CegInstantiator(d_qe, d_cosi, false, false);
+      d_single_invocation(false)
+{
+  // The third and fourth arguments of d_cosi set to (false,false) until we have
+  // solution reconstruction for delta and infinity.
 
   if (options::incrementalSolving()) {
     d_c_inst_match_trie = new inst::CDInstMatchTrie(qe->getUserContext());
@@ -65,51 +65,53 @@ CegConjectureSingleInv::~CegConjectureSingleInv() {
   if (d_c_inst_match_trie) {
     delete d_c_inst_match_trie;
   }
-  delete d_cinst;
   delete d_cosi;
   delete d_sol;  // (new CegConjectureSingleInvSol(qe)),
   delete d_sip;  // d_sip(new SingleInvocationPartition),
 }
 
-void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems ) {
-  Assert( d_si_guard.isNull() );
-  //single invocation guard
-  d_si_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-  d_si_guard = d_qe->getValuation().ensureLiteral( d_si_guard );
-  AlwaysAssert( !d_si_guard.isNull() );
-  d_qe->getOutputChannel().requirePhase( d_si_guard, true );
-
-  if( !d_single_inv.isNull() ) {
-    //make for new var/sk
-    d_single_inv_var.clear();
-    d_single_inv_sk.clear();
-    Node inst;
-    if( d_single_inv.getKind()==FORALL ){
-      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
-        std::stringstream ss;
-        ss << "k_" << d_single_inv[0][i];
-        Node k = NodeManager::currentNM()->mkSkolem( ss.str(), d_single_inv[0][i].getType(), "single invocation function skolem" );
-        d_single_inv_var.push_back( d_single_inv[0][i] );
-        d_single_inv_sk.push_back( k );
-        d_single_inv_sk_index[k] = i;
-      }
-      inst = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-    }else{
-      inst = d_single_inv;
+void CegConjectureSingleInv::getInitialSingleInvLemma(Node g,
+                                                      std::vector<Node>& lems)
+{
+  Assert(!g.isNull());
+  Assert(!d_single_inv.isNull());
+  // make for new var/sk
+  d_single_inv_var.clear();
+  d_single_inv_sk.clear();
+  Node inst;
+  NodeManager* nm = NodeManager::currentNM();
+  if (d_single_inv.getKind() == FORALL)
+  {
+    for (unsigned i = 0, size = d_single_inv[0].getNumChildren(); i < size; i++)
+    {
+      std::stringstream ss;
+      ss << "k_" << d_single_inv[0][i];
+      Node k = nm->mkSkolem(ss.str(),
+                            d_single_inv[0][i].getType(),
+                            "single invocation function skolem");
+      d_single_inv_var.push_back(d_single_inv[0][i]);
+      d_single_inv_sk.push_back(k);
+      d_single_inv_sk_index[k] = i;
     }
-    inst = TermUtil::simpleNegate( inst );
-    Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
-
-    //register with the instantiator
-    Node ginst = NodeManager::currentNM()->mkNode( OR, d_si_guard.negate(), inst );
-    lems.push_back( ginst );
-    //make and register the instantiator
-    if( d_cinst ){
-      delete d_cinst;
-    }
-    d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );
-    d_cinst->registerCounterexampleLemma( lems, d_single_inv_sk );
+    inst = d_single_inv[1].substitute(d_single_inv_var.begin(),
+                                      d_single_inv_var.end(),
+                                      d_single_inv_sk.begin(),
+                                      d_single_inv_sk.end());
   }
+  else
+  {
+    inst = d_single_inv;
+  }
+  inst = TermUtil::simpleNegate(inst);
+  Trace("cegqi-si") << "Single invocation initial lemma : " << inst
+                    << std::endl;
+
+  // register with the instantiator
+  Node ginst = nm->mkNode(OR, g.negate(), inst);
+  lems.push_back(ginst);
+  // make and register the instantiator
+  d_cinst.reset(new CegInstantiator(d_qe, d_cosi, false, false));
+  d_cinst->registerCounterexampleLemma(lems, d_single_inv_sk);
 }
 
 void CegConjectureSingleInv::initialize( Node q ) {
