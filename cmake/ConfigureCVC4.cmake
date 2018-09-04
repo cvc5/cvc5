@@ -1,4 +1,7 @@
 include(CheckCXXSourceCompiles)
+include(CheckIncludeFile)
+include(CheckIncludeFileCXX)
+include(CheckSymbolExists)
 
 # Check whether "long" and "int64_t" are distinct types w.r.t. overloading.
 # Even if they have the same size, they can be distinct, and some platforms
@@ -34,3 +37,27 @@ check_cxx_source_compiles(
 if(CVC4_NEED_HASH_UINT64_T_OVERLOAD)
   add_definitions(-DCVC4_NEED_HASH_UINT64_T)
 endif()
+
+check_include_file(unistd.h HAVE_UNISTD_H)
+check_include_file_cxx(ext/stdio_filebuf.h HAVE_EXT_STDIO_FILEBUF_H)
+
+check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+check_symbol_exists(ffs "strings.h" HAVE_FFS)
+check_symbol_exists(optreset "getopt.h" HAVE_DECL_OPTRESET)
+check_symbol_exists(sigaltstack "signal.h" HAVE_SIGALTSTACK)
+check_symbol_exists(strerror_r "string.h" HAVE_STRERROR_R)
+check_symbol_exists(strtok_r "string.h" HAVE_STRTOK_R)
+
+# Determine if we have the POSIX (int) or GNU (char *) variant of strerror_r.
+check_c_source_compiles(
+  "
+  #include <string.h>
+  int main(void)
+  {
+    char buf[1];
+    char c = *strerror_r(0, buf, 0);
+    return 0;
+  }
+  "
+  STRERROR_R_CHAR_P
+)
