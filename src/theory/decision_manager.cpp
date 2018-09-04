@@ -18,21 +18,20 @@ using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
-  
-DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,Valuation valuation) :
-      d_valuation(valuation), d_has_curr_literal(false,satContext), d_curr_literal(0,satContext)
+
+DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,
+                                         Valuation valuation)
+    : d_valuation(valuation),
+      d_has_curr_literal(false, satContext),
+      d_curr_literal(0, satContext)
 {
-  
 }
 
-void DecisionStrategyFmf::initialize()
-{
-  d_literals.clear();
-}
-  
+void DecisionStrategyFmf::initialize() { d_literals.clear(); }
+
 Node DecisionStrategyFmf::getNextDecisionRequest()
 {
-  if( d_has_curr_literal.get() )
+  if (d_has_curr_literal.get())
   {
     return Node::null();
   }
@@ -46,7 +45,7 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     bool value;
     if (!d_valuation.hasSatValue(lit, value))
     {
-      // if it has not been decided, return it 
+      // if it has not been decided, return it
       return lit;
     }
     else if (!value)
@@ -54,19 +53,19 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
       // asserted false, the current literal is incremented
       curr_lit = d_curr_literal.get() + 1;
       d_curr_literal.set(curr_lit);
-      Assert( curr_lit<d_literals.size() );
+      Assert(curr_lit < d_literals.size());
       // repeat
       success = false;
     }
-  }while( !success );
+  } while (!success);
   // the current literal has been decided with the right polarity, we are done
   d_has_curr_literal = true;
   return Node::null();
 }
 
-bool DecisionStrategyFmf::getAssertedLiteralIndex( unsigned& i )
+bool DecisionStrategyFmf::getAssertedLiteralIndex(unsigned& i)
 {
-  if( d_has_curr_literal.get() )
+  if (d_has_curr_literal.get())
   {
     i = d_curr_literal.get();
     return true;
@@ -76,42 +75,43 @@ bool DecisionStrategyFmf::getAssertedLiteralIndex( unsigned& i )
 
 Node DecisionStrategyFmf::getAssertedLiteral()
 {
-  if( d_has_curr_literal.get() )
+  if (d_has_curr_literal.get())
   {
-    Assert( d_curr_literal.get()<d_literals.size() );
-    return getLiteral( d_curr_literal.get() );
+    Assert(d_curr_literal.get() < d_literals.size());
+    return getLiteral(d_curr_literal.get());
   }
   return Node::null();
 }
 
-Node DecisionStrategyFmf::getLiteral( unsigned n )
+Node DecisionStrategyFmf::getLiteral(unsigned n)
 {
   // allocate until the index is valid
-  while( n>=d_literals.size() )
+  while (n >= d_literals.size())
   {
     d_literals.push_back(mkLiteral(d_literals.size()));
   }
   return d_literals[n];
 }
 
-DecisionManager::DecisionManager(context::Context* satContext) : d_curr_strategy(0,satContext){
-
+DecisionManager::DecisionManager(context::Context* satContext)
+    : d_curr_strategy(0, satContext)
+{
 }
 
-void DecisionManager::registerStrategy( StrategyId id, DecisionStrategy * ds )
+void DecisionManager::registerStrategy(StrategyId id, DecisionStrategy* ds)
 {
   d_reg_strategy[id].push_back(ds);
 }
 
 void DecisionManager::initialize()
 {
-  for( unsigned i=0; i<strat_last; i++ )
+  for (unsigned i = 0; i < strat_last; i++)
   {
     StrategyId s = static_cast<StrategyId>(i);
-    std::map< StrategyId, std::vector< DecisionStrategy * > >::iterator itrs = d_reg_strategy.find(s);
-    if( itrs!=d_reg_strategy.end() )
+    std::map<StrategyId, std::vector<DecisionStrategy*> >::iterator itrs =
+        d_reg_strategy.find(s);
+    if (itrs != d_reg_strategy.end())
     {
-      
     }
   }
 }
@@ -119,10 +119,10 @@ void DecisionManager::initialize()
 Node DecisionManager::getNextDecisionRequest()
 {
   unsigned sstart = d_curr_strategy.get();
-  for( unsigned i=sstart, nstrat=d_strategy.size(); i<nstrat; i++ )
+  for (unsigned i = sstart, nstrat = d_strategy.size(); i < nstrat; i++)
   {
     Node lit = d_strategy[i]->getNextDecisionRequest();
-    if( !lit.isNull() )
+    if (!lit.isNull())
     {
       return lit;
     }
@@ -131,5 +131,5 @@ Node DecisionManager::getNextDecisionRequest()
   return Node::null();
 }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4

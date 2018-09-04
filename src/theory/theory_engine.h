@@ -199,7 +199,7 @@ class TheoryEngine {
    * The quantifiers engine
    */
   theory::QuantifiersEngine* d_quantEngine;
-  /** 
+  /**
    * The decision manager
    */
   theory::DecisionManager* d_decManager;
@@ -532,10 +532,9 @@ public:
   /**
    * Get a pointer to the underlying decision manager.
    */
-  theory::DecisionManager* getDecisionManager() const {
-    return d_decManager;
-  }
-private:
+  theory::DecisionManager* getDecisionManager() const { return d_decManager; }
+
+ private:
 
   /**
    * Helper for preprocess
