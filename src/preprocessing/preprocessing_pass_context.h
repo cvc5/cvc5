@@ -28,7 +28,6 @@
 #include "smt/term_formula_removal.h"
 #include "theory/booleans/circuit_propagator.h"
 #include "theory/theory_engine.h"
-#include "theory/booleans/circuit_propagator.h"
 #include "util/resource_manager.h"
 
 namespace CVC4 {
@@ -56,6 +55,11 @@ class PreprocessingPassContext
     return d_circuitPropagator;
   }
 
+  context::CDHashSet<Node, NodeHashFunction>& getSymsInAssertions()
+  {
+    return d_symsInAssertions;
+  }
+
   void spendResource(unsigned amount)
   {
     d_resourceManager->spendResource(amount);
@@ -69,16 +73,30 @@ class PreprocessingPassContext
   /* Enable Integers. */
   void enableIntegers();
 
+  /** Record symbols in assertions
+   *
+   * This method is called when a set of assertions is finalized. It adds
+   * the symbols to d_symsInAssertions that occur in assertions.
+   */
+  void recordSymbolsInAssertions(const std::vector<Node>& assertions);
+
  private:
   /* Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
   ResourceManager* d_resourceManager;
 
-  /** Instance of the ITE remover */
+  /* Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
 
-  /** Instance of the circuit propagator */
+  /* Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
+
+  /**
+   * The (user-context-dependent) set of symbols that occur in at least one
+   * assertion in the current user context.
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_symsInAssertions;
+
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing
