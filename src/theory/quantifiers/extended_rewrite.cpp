@@ -1669,7 +1669,8 @@ Node ExtendedRewriter::extendedRewriteArith(Node ret)
 Node ExtendedRewriter::extendedRewriteStrings(Node ret)
 {
   Node new_ret;
-  Trace("q-ext-rewrite-debug") << "Extended rewrite strings : " << ret << std::endl;
+  Trace("q-ext-rewrite-debug")
+      << "Extended rewrite strings : " << ret << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   if (ret.getKind() == EQUAL)
   {
@@ -1693,8 +1694,8 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
           {
             new_ret = tcontains[i];
             // if str.contains( x, y ) ---> false  then   x = y ---> false
-            // Notice we may not catch this in the rewriter for strings 
-            // equality, since it only calls the specific rewriter for 
+            // Notice we may not catch this in the rewriter for strings
+            // equality, since it only calls the specific rewriter for
             // contains and not the full rewriter.
             debugExtendedRewrite(ret, new_ret, "eq-contains-one-false");
             return new_ret;
