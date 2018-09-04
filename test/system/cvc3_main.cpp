@@ -2,9 +2,9 @@
 /*! \file cvc3_main.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
+ **   Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,7 +40,6 @@
 //#include "typecheck_exception.h"
 //#include "command_line_flags.h"
 //#include "debug.h"
-#include "cvc3_george.h"
 
 
 using namespace std;
@@ -2201,20 +2200,6 @@ int main(int argc, char** argv)
     cout << "\n}\ntest25(): {" << endl;
     test25();
 
-    /*
-    if (regressLevel > 1) {
-      cout << "\n}\ntestgeorge1(): {" << endl;
-      testgeorge1();
-      cout << "\n}\ntestgeorge2(): {" << endl;
-      testgeorge2();
-      cout << "\n}\ntestgeorge3(): {" << endl;
-      testgeorge3();
-      cout << "\n}\ntestgeorge4(): {" << endl;
-      testgeorge4();
-      cout << "\n}\ntestgeorge5(): {" << endl;
-      testgeorge5();
-    }
-    */
     cout << "\n}" << endl;
 
   } catch(const Exception& e) {

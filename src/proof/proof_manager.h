@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -72,7 +72,7 @@ class ArrayProof;
 class BitVectorProof;
 
 template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
+typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
 
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
@@ -299,7 +299,7 @@ class LFSCProof : public Proof
 {
  public:
   LFSCProof(SmtEngine* smtEngine,
-            LFSCCoreSatProof* sat,
+            CoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
   ~LFSCProof() override {}
@@ -315,7 +315,7 @@ class LFSCProof : public Proof
 
   void checkUnrewrittenAssertion(const NodeSet& assertions) const;
 
-  LFSCCoreSatProof* d_satProof;
+  CoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;

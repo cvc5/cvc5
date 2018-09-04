@@ -2,9 +2,9 @@
 /*! \file type_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Paul Meng, Andres Noetzli
+ **   Tianyi Liang, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,10 +21,11 @@
 
 #include <sstream>
 
-#include "util/regexp.h"
-#include "theory/type_enumerator.h"
-#include "expr/type_node.h"
 #include "expr/kind.h"
+#include "expr/type_node.h"
+#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/type_enumerator.h"
+#include "util/regexp.h"
 
 namespace CVC4 {
 namespace theory {
@@ -45,7 +46,7 @@ class StringEnumerator : public TypeEnumeratorBase<StringEnumerator> {
   {
     Assert(type.getKind() == kind::TYPE_CONSTANT &&
            type.getConst<TypeConstant>() == STRING_TYPE);
-    d_cardinality = 256;
+    d_cardinality = TheoryStringsRewriter::getAlphabetCardinality();
     mkCurr();
   }
   Node operator*() override { return d_curr; }

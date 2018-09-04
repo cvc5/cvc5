@@ -2,9 +2,9 @@
 /*! \file ambqi_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,6 +13,8 @@
  **/
 
 #include "theory/quantifiers/fmf/ambqi_builder.h"
+
+#include "base/cvc4_check.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
@@ -367,8 +369,8 @@ void AbsDef::construct_var( FirstOrderModelAbs * m, TNode q, unsigned v, int cur
   }else{
     TypeNode tn = m->getVariable( q, depth ).getType();
     if( v==depth ){
-      unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
-      Assert( numReps>0 && numReps < 32 );
+      const unsigned numReps = m->getRepSet()->getNumRepresentatives(tn);
+      CVC4_CHECK(numReps > 0 && numReps < 32);
       for( unsigned i=0; i<numReps; i++ ){
         d_def[ 1 << i ].construct_var( m, q, v, i, depth+1 );
       }

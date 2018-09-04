@@ -2,9 +2,9 @@
 /*! \file inst_propagator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -799,7 +799,8 @@ void InstPropagator::propagate( Node a, Node b, bool pol, std::vector< Node >& e
   }
   if( pol ){
     if( status==EqualityQueryInstProp::STATUS_MERGED_KNOWN ){
-      Trace("qip-rlv-propagate") << "Relevant propagation : " << a << ( pol ? " == " : " != " ) << b << std::endl;
+      Trace("qip-rlv-propagate")
+          << "Relevant propagation : " << a << " == " << b << std::endl;
       Assert( d_qy.getEngine()->hasTerm( a ) );
       Assert( d_qy.getEngine()->hasTerm( b ) );
       Trace("qip-prop-debug") << "...equality between known terms." << std::endl;

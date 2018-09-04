@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,9 +40,9 @@ private:
   TypeNode* d_integerType;
   TypeNode* d_realType;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_nm = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nm);
 
@@ -52,7 +52,8 @@ public:
     d_realType = new TypeNode(d_nm->realType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_integerType;
     delete d_booleanType;
     delete d_realType;

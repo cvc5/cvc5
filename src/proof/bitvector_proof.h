@@ -2,9 +2,9 @@
 /*! \file bitvector_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Liana Hadarean, Mathias Preiner, Guy Katz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -51,9 +51,6 @@ namespace CVC4 {
 
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
-
-template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< CVC4::BVMinisat::Solver> LFSCBVSatProof;
 
 typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
 typedef std::unordered_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;

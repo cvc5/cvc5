@@ -2,9 +2,9 @@
 /*! \file ceg_instantiator.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -548,6 +548,11 @@ class CegInstantiator {
    * for the quantified formula we are processing.
    */
   void deactivateInstantiationVariable(Node v);
+  /**
+   * Have we tried an instantiation for v after the last call to
+   * activateInstantiationVariable.
+   */
+  bool hasTriedInstantiation(Node v);
   //-------------------------------end current state
 
   //---------------------------------for applying substitutions
@@ -582,12 +587,24 @@ class CegInstantiator {
   std::map<Node, Instantiator*> d_instantiator;
 
   /** construct instantiation
-   * This method constructs the current instantiation, where we
-   * are currently processing the i^th variable in d_vars.
+   *
+   * This method attempts to find a term for the i^th variable in d_vars to
+   * include in the current instantiation, given by sf.
+   *
    * It returns true if a successful call to the output channel's
    * doAddInstantiation was made.
    */
   bool constructInstantiation(SolvedForm& sf, unsigned i);
+  /** construct instantiation
+   *
+   * Helper method for the above method. This method attempts to find a term for
+   * variable pv to include in the current instantiation, given by sf based
+   * on equality and theory-specific instantiation techniques. The latter is
+   * managed by the instantiator object vinst. Prior to calling this method,
+   * the variable pv has been activated by a call to
+   * activateInstantiationVariable.
+   */
+  bool constructInstantiation(SolvedForm& sf, Instantiator* vinst, Node pv);
   /** do add instantiation
    * This method is called by the above function after we finalize the
    * variables/substitution and auxiliary lemmas.
@@ -638,6 +655,18 @@ public:
   {
   }
 
+  /** has process equal term
+   *
+   * Whether this instantiator implements processEqualTerm and
+   * processEqualTerms.
+   */
+  virtual bool hasProcessEqualTerm(CegInstantiator* ci,
+                                   SolvedForm& sf,
+                                   Node pv,
+                                   CegInstEffort effort)
+  {
+    return false;
+  }
   /** process equal term
    *
    * This method is called when the entailment:

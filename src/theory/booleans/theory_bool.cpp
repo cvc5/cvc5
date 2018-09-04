@@ -2,9 +2,9 @@
 /*! \file theory_bool.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,20 +40,20 @@ Theory::PPAssertStatus TheoryBool::ppAssert(TNode in, SubstitutionMap& outSubsti
 
   // Add the substitution from the variable to its value
   if (in.getKind() == kind::NOT) {
-    if (in[0].getKind() == kind::VARIABLE) {
+    if (in[0].isVar())
+    {
       outSubstitutions.addSubstitution(in[0], NodeManager::currentNM()->mkConst<bool>(false));
-    } else {
-      return PP_ASSERT_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_SOLVED;
     }
   } else {
-    if (in.getKind() == kind::VARIABLE) {
+    if (in.isVar())
+    {
       outSubstitutions.addSubstitution(in, NodeManager::currentNM()->mkConst<bool>(true));
-    } else {
-      return PP_ASSERT_STATUS_UNSOLVED;
+      return PP_ASSERT_STATUS_SOLVED;
     }
   }
 
-  return PP_ASSERT_STATUS_SOLVED;
+  return Theory::ppAssert(in, outSubstitutions);
 }
 
 /*

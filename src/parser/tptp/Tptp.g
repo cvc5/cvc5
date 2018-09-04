@@ -2,9 +2,9 @@
 /*! \file Tptp.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Francois Bobot, Tim King
+ **   Francois Bobot, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -249,7 +249,7 @@ parseCommand returns [CVC4::Command* cmd = NULL]
       if(filename.substr(filename.length() - 2) == ".p") {
         filename = filename.substr(0, filename.length() - 2);
       }
-      seq->addCommand(new SetInfoCommand("name", SExpr(filename)));
+      seq->addCommand(new SetInfoCommand("filename", SExpr(filename)));
       if(PARSER_STATE->hasConjecture()) {
         seq->addCommand(new QueryCommand(MK_CONST(bool(false))));
       } else {

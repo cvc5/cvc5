@@ -2,9 +2,9 @@
 /*! \file node_self_iterator_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,16 +33,17 @@ private:
   TypeNode* d_booleanType;
   TypeNode* d_realType;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_nodeManager = new NodeManager(NULL);
     d_scope = new NodeManagerScope(d_nodeManager);
     d_booleanType = new TypeNode(d_nodeManager->booleanType());
     d_realType = new TypeNode(d_nodeManager->realType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_booleanType;
     delete d_scope;
     delete d_nodeManager;

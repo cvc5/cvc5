@@ -2,9 +2,9 @@
 /*! \file tptp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Francois Bobot, Morgan Deters, Andrew Reynolds
+ **   Francois Bobot, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -20,6 +20,7 @@
 #include <algorithm>
 #include <set>
 
+#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "parser/parser.h"
 
@@ -30,11 +31,9 @@
 namespace CVC4 {
 namespace parser {
 
-Tptp::Tptp(ExprManager* exprManager, Input* input, bool strictMode,
-           bool parseOnly)
-    : Parser(exprManager, input, strictMode, parseOnly),
-      d_cnf(false),
-      d_fof(false) {
+Tptp::Tptp(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
+    : Parser(solver, input, strictMode, parseOnly), d_cnf(false), d_fof(false)
+{
   addTheory(Tptp::THEORY_CORE);
 
   /* Try to find TPTP dir */

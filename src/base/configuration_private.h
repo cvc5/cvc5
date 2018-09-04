@@ -2,9 +2,9 @@
 /*! \file configuration_private.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, ACSYS
+ **   Christopher L. Conway, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -149,12 +149,6 @@ namespace CVC4 {
 #else /* CVC4_GPL_DEPS */
 #  define IS_GPL_BUILD false
 #endif /* CVC4_GPL_DEPS */
-
-#ifdef TLS
-#  define USING_TLS true
-#else /* TLS */
-#  define USING_TLS false
-#endif /* TLS */
 
 }/* CVC4 namespace */
 

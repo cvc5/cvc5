@@ -2,7 +2,7 @@
 /*! \file eager_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Aina Niemetz
+ **   Mathias Preiner, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -36,7 +36,7 @@ class TheoryBV;
 class EagerBitblaster : public TBitblaster<Node>
 {
  public:
-  EagerBitblaster(TheoryBV* theory_bv);
+  EagerBitblaster(TheoryBV* theory_bv, context::Context* context);
   ~EagerBitblaster();
 
   void addAtom(TNode atom);
@@ -51,10 +51,12 @@ class EagerBitblaster : public TBitblaster<Node>
 
   bool assertToSat(TNode node, bool propagate = true);
   bool solve();
+  bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
   void setProofLog(BitVectorProof* bvp);
 
  private:
+  context::Context* d_context;
   std::unique_ptr<context::Context> d_nullContext;
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;

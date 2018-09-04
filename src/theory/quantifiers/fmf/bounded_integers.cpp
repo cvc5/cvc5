@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,6 +15,8 @@
  **/
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
+
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -388,6 +390,7 @@ void BoundedIntegers::checkOwnership(Node f)
 {
   //this needs to be done at preregister since it affects e.g. QuantDSplit's preregister
   Trace("bound-int") << "check ownership quantifier " << f << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
 
   bool success;
   do{
@@ -405,7 +408,10 @@ void BoundedIntegers::checkOwnership(Node f)
         bool setBoundVar = false;
         if( it->second==BOUND_INT_RANGE ){
           //must have both
-          if( bound_lit_map[0].find( v )!=bound_lit_map[0].end() && bound_lit_map[1].find( v )!=bound_lit_map[1].end() ){
+          std::map<Node, Node>& blm0 = bound_lit_map[0];
+          std::map<Node, Node>& blm1 = bound_lit_map[1];
+          if (blm0.find(v) != blm0.end() && blm1.find(v) != blm1.end())
+          {
             setBoundedVar( f, v, BOUND_INT_RANGE );
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
@@ -413,43 +419,64 @@ void BoundedIntegers::checkOwnership(Node f)
               Assert( bound_int_range_term[b].find( v )!=bound_int_range_term[b].end() );
               d_bounds[b][f][v] = bound_int_range_term[b][v];
             }
-            if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_INT_RANGE ){
-              Node r = NodeManager::currentNM()->mkNode( MINUS, d_bounds[1][f][v], d_bounds[0][f][v] );
-              d_range[f][v] = Rewriter::rewrite( r );
-            }
+            Node r = nm->mkNode(MINUS, d_bounds[1][f][v], d_bounds[0][f][v]);
+            d_range[f][v] = Rewriter::rewrite(r);
             Trace("bound-int") << "Variable " << v << " is bound because of int range literals " << bound_lit_map[0][v] << " and " << bound_lit_map[1][v] << std::endl;
           }
         }else if( it->second==BOUND_SET_MEMBER ){
-          setBoundedVar( f, v, BOUND_SET_MEMBER );
-          setBoundVar = true;
-          d_setm_range[f][v] = bound_lit_map[2][v][1];
-          d_setm_range_lit[f][v] = bound_lit_map[2][v];
-          if( options::fmfBoundMinMode()==FMF_BOUND_MIN_ALL || options::fmfBoundMinMode()==FMF_BOUND_MIN_SET_CARD ){
-            d_range[f][v] = NodeManager::currentNM()->mkNode( CARD, d_setm_range[f][v] );
+          // only handles infinite element types currently (cardinality is not
+          // supported for finite element types #1123). Regardless, this is
+          // typically not a limitation since this variable can be bound in a
+          // standard way below since its type is finite.
+          if (!v.getType().isInterpretedFinite())
+          {
+            setBoundedVar(f, v, BOUND_SET_MEMBER);
+            setBoundVar = true;
+            d_setm_range[f][v] = bound_lit_map[2][v][1];
+            d_setm_range_lit[f][v] = bound_lit_map[2][v];
+            d_range[f][v] = nm->mkNode(CARD, d_setm_range[f][v]);
+            Trace("bound-int") << "Variable " << v
+                               << " is bound because of set membership literal "
+                               << bound_lit_map[2][v] << std::endl;
           }
-          Trace("bound-int") << "Variable " << v << " is bound because of set membership literal " << bound_lit_map[2][v] << std::endl;
         }else if( it->second==BOUND_FIXED_SET ){
-          setBoundedVar( f, v, BOUND_FIXED_SET );
+          setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
-          for( unsigned i=0; i<bound_fixed_set[v].size(); i++ ){
+          for (unsigned i = 0; i < bound_fixed_set[v].size(); i++)
+          {
             Node t = bound_fixed_set[v][i];
-            if( t.hasBoundVar() ){
-              d_fixed_set_ngr_range[f][v].push_back( t ); 
-            }else{
-              d_fixed_set_gr_range[f][v].push_back( t ); 
+            if (expr::hasBoundVar(t))
+            {
+              d_fixed_set_ngr_range[f][v].push_back(t);
             }
-          } 
-          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[3][v] << std::endl;
+            else
+            {
+              d_fixed_set_gr_range[f][v].push_back(t);
+            }
+          }
+          Trace("bound-int") << "Variable " << v
+                             << " is bound because of disequality conjunction "
+                             << bound_lit_map[3][v] << std::endl;
         }
         if( setBoundVar ){
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if( bound_lit_map[b].find( v )!=bound_lit_map[b].end() ){
-              Assert( bound_lit_pol_map[b].find( v )!=bound_lit_pol_map[b].end() );
+            std::map<Node, Node>& blm = bound_lit_map[b];
+            if (blm.find(v) != blm.end())
+            {
+              std::map<Node, bool>& blmp = bound_lit_pol_map[b];
+              // WARNING_CANDIDATE:
+              // This assertion may fail. We intentionally do not enable this in
+              // production as it is considered safe for this to fail. We fail
+              // the assertion in debug mode to have this instance raised to
+              // our attention.
+              Assert(blmp.find(v) != blmp.end());
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute( bila, bound_lit_pol_map[b][v] ? 1 : 0 );
-            }else{
+              bound_lit_map[b][v].setAttribute(bila, blmp[v] ? 1 : 0);
+            }
+            else
+            {
               Assert( it->second!=BOUND_INT_RANGE );
             }
           }
@@ -526,9 +553,11 @@ void BoundedIntegers::checkOwnership(Node f)
         Node r = itr->second;
         Assert( !r.isNull() );
         bool isProxy = false;
-        if( r.hasBoundVar() ){
-          //introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
+        if (expr::hasBoundVar(r))
+        {
+          // introduce a new bound
+          Node new_range = NodeManager::currentNM()->mkSkolem(
+              "bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -628,13 +657,21 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   return;
 }
 
-bool BoundedIntegers::isGroundRange( Node q, Node v ) {
-  if( isBoundVar(q,v) ){
-    if( d_bound_type[q][v]==BOUND_INT_RANGE ){
-      return !getLowerBound(q,v).hasBoundVar() && !getUpperBound(q,v).hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_SET_MEMBER ){
-      return !d_setm_range[q][v].hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_FIXED_SET ){
+bool BoundedIntegers::isGroundRange(Node q, Node v)
+{
+  if (isBoundVar(q, v))
+  {
+    if (d_bound_type[q][v] == BOUND_INT_RANGE)
+    {
+      return !expr::hasBoundVar(getLowerBound(q, v))
+             && !expr::hasBoundVar(getUpperBound(q, v));
+    }
+    else if (d_bound_type[q][v] == BOUND_SET_MEMBER)
+    {
+      return !expr::hasBoundVar(d_setm_range[q][v]);
+    }
+    else if (d_bound_type[q][v] == BOUND_FIXED_SET)
+    {
       return !d_fixed_set_ngr_range[q][v].empty();
     }
   }
@@ -644,10 +681,14 @@ bool BoundedIntegers::isGroundRange( Node q, Node v ) {
 Node BoundedIntegers::getSetRange( Node q, Node v, RepSetIterator * rsi ) {
   Node sr = d_setm_range[q][v];
   if( d_nground_range[q].find(v)!=d_nground_range[q].end() ){
+    Trace("bound-int-rsi-debug")
+        << sr << " is non-ground, apply substitution..." << std::endl;
     //get the substitution
     std::vector< Node > vars;
     std::vector< Node > subs;
     if( getRsiSubsitution( q, v, vars, subs, rsi ) ){
+      Trace("bound-int-rsi-debug")
+          << "  apply " << vars << " -> " << subs << std::endl;
       sr = sr.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
     }else{
       sr = Node::null();
@@ -658,73 +699,80 @@ Node BoundedIntegers::getSetRange( Node q, Node v, RepSetIterator * rsi ) {
 
 Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
   Node sr = getSetRange( q, v, rsi );
-  if( !sr.isNull() ){
-    Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
-    sr = d_quantEngine->getModel()->getValue( sr );
-    //if non-constant, then sr does not occur in the model, we fail
-    if( !sr.isConst() ){
-      return Node::null();
-    }
-    Trace("bound-int-rsi") << "Value is " << sr << std::endl;
-    //as heuristic, map to term model
-    if( sr.getKind()!=EMPTYSET ){
-      std::map< Node, Node > val_to_term;
-      while( sr.getKind()==UNION ){
-        Assert( sr[1].getKind()==kind::SINGLETON );
-        val_to_term[ sr[1][0] ] = sr[1][0];
-        sr = sr[0];
-      }
-      Assert( sr.getKind()==kind::SINGLETON );
-      val_to_term[ sr[0] ] = sr[0];
-      //must look back at assertions, not term database (theory of sets introduces extraneous terms internally)
-      Theory* theory = d_quantEngine->getTheoryEngine()->theoryOf( THEORY_SETS );
-      if( theory ){
-        context::CDList<Assertion>::const_iterator it = theory->facts_begin(), it_end = theory->facts_end();
-        for( unsigned i = 0; it != it_end; ++ it, ++i ){
-          Node lit = (*it).assertion;
-          if( lit.getKind()==kind::MEMBER ){
-            Node vr = d_quantEngine->getModel()->getValue( lit[0] );
-            Trace("bound-int-rsi-debug") << "....membership for " << lit << " ==> " << vr << std::endl;
-            Trace("bound-int-rsi-debug") << "  " << (val_to_term.find( vr )!=val_to_term.end()) << " " << d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) << std::endl;
-            if( val_to_term.find( vr )!=val_to_term.end() ){
-              if( d_quantEngine->getEqualityQuery()->areEqual( d_setm_range_lit[q][v][1], lit[1] ) ){
-                Trace("bound-int-rsi") << "  Map value to term : " << vr << " -> " << lit[0] << std::endl;
-                val_to_term[ vr ] = lit[0];
-              }
-            }
-          }
-        }
-      }
-      //rebuild value
-      Node nsr;
-      for( std::map< Node, Node >::iterator it = val_to_term.begin(); it != val_to_term.end(); ++it ){
-        Node nv = NodeManager::currentNM()->mkNode( kind::SINGLETON, it->second );
-        if( nsr.isNull() ){
-          nsr = nv;
-        }else{
-          nsr = NodeManager::currentNM()->mkNode( kind::UNION, nsr, nv );
-        }
-      }
-      Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
-      return nsr;
-      
-      /*
-      Node lit = d_setm_range_lit[q][v];
-      Trace("bound-int-rsi-debug") << "Bounded from lit " << lit << std::endl;
-      Node f = d_quantEngine->getTermDatabase()->getMatchOperator( lit );
-      TermArgTrie * ta = d_quantEngine->getTermDatabase()->getTermArgTrie( f );
-      if( ta ){
-        Trace("bound-int-rsi-debug") << "Got term index for " << f << std::endl;
-        for( std::map< TNode, TermArgTrie >::iterator it = ta->d_data.begin(); it != ta->d_data.end(); ++it ){
-
-        }
-
-      }
-      */
-    }
-    
+  if (sr.isNull())
+  {
+    return sr;
   }
-  return sr;
+  Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
+  Assert(!expr::hasFreeVar(sr));
+  Node sro = sr;
+  sr = d_quantEngine->getModel()->getValue(sr);
+  // if non-constant, then sr does not occur in the model, we fail
+  if (!sr.isConst())
+  {
+    return Node::null();
+  }
+  Trace("bound-int-rsi") << "Value is " << sr << std::endl;
+  if (sr.getKind() == EMPTYSET)
+  {
+    return sr;
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node nsr;
+  TypeNode tne = sr.getType().getSetElementType();
+
+  // we can use choice functions for canonical symbolic instantiations
+  unsigned srCard = 0;
+  while (sr.getKind() == UNION)
+  {
+    srCard++;
+    sr = sr[0];
+  }
+  Assert(sr.getKind() == SINGLETON);
+  srCard++;
+  // choices[i] stores the canonical symbolic representation of the (i+1)^th
+  // element of sro
+  std::vector<Node> choices;
+  Node srCardN = nm->mkNode(CARD, sro);
+  Node choice_i;
+  for (unsigned i = 0; i < srCard; i++)
+  {
+    if (i == d_setm_choice[sro].size())
+    {
+      choice_i = nm->mkBoundVar(tne);
+      choices.push_back(choice_i);
+      Node cBody = nm->mkNode(MEMBER, choice_i, sro);
+      if (choices.size() > 1)
+      {
+        cBody = nm->mkNode(AND, cBody, nm->mkNode(DISTINCT, choices));
+      }
+      choices.pop_back();
+      Node bvl = nm->mkNode(BOUND_VAR_LIST, choice_i);
+      Node cMinCard = nm->mkNode(LEQ, srCardN, nm->mkConst(Rational(i)));
+      choice_i = nm->mkNode(CHOICE, bvl, nm->mkNode(OR, cMinCard, cBody));
+      d_setm_choice[sro].push_back(choice_i);
+    }
+    Assert(i < d_setm_choice[sro].size());
+    choice_i = d_setm_choice[sro][i];
+    choices.push_back(choice_i);
+    Node sChoiceI = nm->mkNode(SINGLETON, choice_i);
+    if (nsr.isNull())
+    {
+      nsr = sChoiceI;
+    }
+    else
+    {
+      nsr = nm->mkNode(UNION, nsr, sChoiceI);
+    }
+  }
+  // turns the concrete model value of sro into a canonical representation
+  //   e.g.
+  // singleton(0) union singleton(1)
+  //   becomes
+  // C1 union ( choice y. card(S)<=1 OR ( y in S AND distinct( y, C1 ) ) )
+  // where C1 = ( choice x. card(S)<=0 OR x in S ).
+  Trace("bound-int-rsi") << "...reconstructed " << nsr << std::endl;
+  return nsr;
 }
 
 bool BoundedIntegers::getRsiSubsitution( Node q, Node v, std::vector< Node >& vars, std::vector< Node >& subs, RepSetIterator * rsi ) {
@@ -887,4 +935,3 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     return true;
   }
 }
-

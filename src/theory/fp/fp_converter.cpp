@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -274,21 +274,20 @@ symbolicRoundingMode::symbolicRoundingMode(const symbolicRoundingMode &old)
 symbolicProposition symbolicRoundingMode::valid(void) const
 {
   NodeManager *nm = NodeManager::currentNM();
-  Node zero(nm->mkConst(
-      BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, (long unsigned int)0)));
+  Node zero(nm->mkConst(BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, 0u)));
 
   // Is there a better encoding of this?
   return symbolicProposition(nm->mkNode(
       kind::BITVECTOR_AND,
-      nm->mkNode(kind::BITVECTOR_COMP,
-                 nm->mkNode(kind::BITVECTOR_AND,
-                            *this,
-                            nm->mkNode(kind::BITVECTOR_SUB,
-                                       *this,
-                                       nm->mkConst(BitVector(
-                                           SYMFPU_NUMBER_OF_ROUNDING_MODES,
-                                           (long unsigned int)1)))),
-                 zero),
+      nm->mkNode(
+          kind::BITVECTOR_COMP,
+          nm->mkNode(kind::BITVECTOR_AND,
+                     *this,
+                     nm->mkNode(kind::BITVECTOR_SUB,
+                                *this,
+                                nm->mkConst(BitVector(
+                                    SYMFPU_NUMBER_OF_ROUNDING_MODES, 1u)))),
+          zero),
       nm->mkNode(kind::BITVECTOR_NOT,
                  nm->mkNode(kind::BITVECTOR_COMP, *this, zero))));
 }
@@ -1129,12 +1128,6 @@ Node FpConverter::convert(TNode node)
                   Unreachable(
                       "Floating-point subtraction should be removed by the "
                       "rewriter.");
-                  f.insert(current,
-                           symfpu::add<traits>(fpt(current.getType()),
-                                               (*mode).second,
-                                               (*arg1).second,
-                                               (*arg2).second,
-                                               prop(false)));
                   break;
 
                 case kind::FLOATINGPOINT_MULT:
@@ -1729,8 +1722,6 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #else
   Unimplemented("Conversion is dependent on SymFPU");
 #endif
-
-  return Node::null();
 }
 
 }  // namespace fp

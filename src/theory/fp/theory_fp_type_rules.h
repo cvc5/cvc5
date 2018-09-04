@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Martin Brain, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -618,10 +618,9 @@ class FloatingPointToRealTotalTypeRule {
 class FloatingPointComponentBit
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentBit");
 
@@ -653,10 +652,9 @@ class FloatingPointComponentBit
 class FloatingPointComponentExponent
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentExponent");
 
@@ -701,10 +699,9 @@ class FloatingPointComponentExponent
 class FloatingPointComponentSignificand
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentSignificand");
 
@@ -745,10 +742,9 @@ class FloatingPointComponentSignificand
 class RoundingModeBitBlast
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("RoundingModeBitBlast");
 

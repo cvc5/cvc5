@@ -2,7 +2,7 @@
 /*! \file bv_subtheory_core.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -22,6 +22,7 @@
 #include "theory/bv/slicer.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/ext_theory.h"
 #include "theory/theory_model.h"
 
 using namespace std;
@@ -78,9 +79,8 @@ CoreSolver::CoreSolver(context::Context* c, TheoryBV* bv)
   d_equalityEngine.addFunctionKind(kind::INT_TO_BITVECTOR);
 }
 
-CoreSolver::~CoreSolver() {
-  delete d_slicer;
-}
+CoreSolver::~CoreSolver() {}
+
 void CoreSolver::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }

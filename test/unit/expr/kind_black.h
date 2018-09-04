@@ -2,9 +2,9 @@
 /*! \file kind_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Morgan Deters
+ **   Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,13 +34,15 @@ class KindBlack : public CxxTest::TestSuite {
   //easier to define in setup
   int beyond;
   Kind unknown;
-public:
-  void setUp() {
+
+ public:
+  void setUp() override
+  {
     undefined = UNDEFINED_KIND;
     null = NULL_EXPR;
     last = LAST_KIND;
-    beyond = ((int) LAST_KIND) + 1;
-    unknown = (Kind) beyond;
+    beyond = ((int)LAST_KIND) + 1;
+    unknown = (Kind)beyond;
   }
 
   

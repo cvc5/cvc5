@@ -2,9 +2,9 @@
 /*! \file bounded_integers.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -62,10 +62,17 @@ private:
   //set membership range
   std::map< Node, std::map< Node, Node > > d_setm_range;
   std::map< Node, std::map< Node, Node > > d_setm_range_lit;
+  /** set membership element choice functions
+   *
+   * For each set S and integer n, d_setm_choice[S][n] is the canonical
+   * representation for the (n+1)^th member of set S. It is of the form:
+   * choice x. (|S| <= n OR ( x in S AND
+   *   distinct( x, d_setm_choice[S][0], ..., d_setm_choice[S][n-1] ) ) )
+   */
+  std::map<Node, std::vector<Node> > d_setm_choice;
   //fixed finite set range
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_gr_range;
   std::map< Node, std::map< Node, std::vector< Node > > > d_fixed_set_ngr_range;
-  void hasFreeVar( Node f, Node n );
   void process( Node q, Node n, bool pol,
                 std::map< Node, unsigned >& bound_lit_type_map,
                 std::map< int, std::map< Node, Node > >& bound_lit_map,

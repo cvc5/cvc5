@@ -77,6 +77,12 @@ class SygusRepairConst
                       const std::vector<Node>& candidate_values,
                       std::vector<Node>& repair_cv,
                       bool useConstantsAsHoles = false);
+  /**
+   * Return whether this module has the possibility to repair solutions. This is
+   * true if this module has been initialized, and at least one candidate has
+   * an "any constant" constructor.
+   */
+  bool isActive() const;
   /** must repair?
    *
    * This returns true if n must be repaired for it to be a valid solution.
@@ -183,6 +189,26 @@ class SygusRepairConst
    * If n is in the given logic, this method returns true.
    */
   bool getFitToLogicExcludeVar(LogicInfo& logic, Node n, Node& exvar);
+  /** initialize checker
+   *
+   * This function initializes the smt engine checker to check the
+   * satisfiability of the argument "query"
+   *
+   * The arguments em and varMap are used for supporting cases where we
+   * want checker to use a different expression manager instead of the current
+   * expression manager. The motivation for this so that different options can
+   * be set for the subcall.
+   *
+   * We update the flag needExport to true if checker is using the expression
+   * manager em. In this case, subsequent expressions extracted from smte
+   * (for instance, model values) must be exported to the current expression
+   * manager.
+   */
+  void initializeChecker(std::unique_ptr<SmtEngine>& checker,
+                         ExprManager& em,
+                         ExprManagerMapCollection& varMap,
+                         Node query,
+                         bool& needExport);
 };
 
 } /* CVC4::theory::quantifiers namespace */

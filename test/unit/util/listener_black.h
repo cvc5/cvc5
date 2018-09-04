@@ -2,9 +2,9 @@
 /*! \file listener_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng, Andres Noetzli
+ **   Tim King, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,9 +30,9 @@ class ListenerBlack : public CxxTest::TestSuite {
    public:
     EventListener(std::multiset<std::string>& events, std::string name)
         : d_events(events), d_name(name) {}
-    ~EventListener(){}
+    ~EventListener() override {}
 
-    virtual void notify() { d_events.insert(d_name); }
+    void notify() override { d_events.insert(d_name); }
 
    private:
     std::multiset<std::string>& d_events;
@@ -45,13 +45,9 @@ public:
     return std::multiset<std::string>(arr, arr + len);
   }
 
-  void setUp() {
-    d_events.clear();
-  }
+  void setUp() override { d_events.clear(); }
 
-  void tearDown() {
-    d_events.clear();
-  }
+  void tearDown() override { d_events.clear(); }
 
   void testEmptyCollection() {
     // Makes an new collection and tests that it is empty.

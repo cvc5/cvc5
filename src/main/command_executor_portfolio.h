@@ -2,9 +2,9 @@
 /*! \file command_executor_portfolio.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Paul Meng
+ **   Kshitij Bansal, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,11 +30,16 @@ namespace CVC4 {
 
 class CommandSequence;
 
+namespace api {
+class Solver;
+}
+
 namespace main {
 
 class CommandExecutorPortfolio : public CommandExecutor {
+  // Solvers are created/deleted during initialization
+  std::vector<api::Solver*> d_solvers;
 
-  // These shall be created/deleted during initialization
   std::vector<ExprManager*> d_exprMgrs;
   const unsigned d_numThreads;   // Currently const, but designed so it is
                                  // not too hard to support this changing
@@ -55,18 +60,19 @@ class CommandExecutorPortfolio : public CommandExecutor {
   TimerStat d_statWaitTime;
 
 public:
-  CommandExecutorPortfolio(ExprManager &exprMgr,
-                           Options &options,
-                           OptionsList& tOpts);
+ CommandExecutorPortfolio(api::Solver* solver,
+                          Options& options,
+                          OptionsList& tOpts);
 
-  ~CommandExecutorPortfolio();
+ ~CommandExecutorPortfolio();
 
-  std::string getSmtEngineStatus();
+ std::string getSmtEngineStatus();
 
-  void flushStatistics(std::ostream& out) const;
+ void flushStatistics(std::ostream& out) const override;
 
 protected:
-  bool doCommandSingleton(Command* cmd);
+ bool doCommandSingleton(Command* cmd) override;
+
 private:
   CommandExecutorPortfolio();
   void lemmaSharingInit();

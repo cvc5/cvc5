@@ -2,9 +2,9 @@
 /*! \file fun_def_process.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Paul Meng
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -49,11 +49,6 @@ private:
   Node simplifyFormula( Node n, bool pol, bool hasPol, std::vector< Node >& constraints, Node hd, bool is_fun_def,
                         std::map< int, std::map< Node, Node > >& visited,
                         std::map< int, std::map< Node, Node > >& visited_cons );
-  /** simplify term
-  * This computes constraints for the final else branch of A_0 in Figure 1 
-  * of Reynolds et al "Model Finding for Recursive Functions".
-  */
-  void simplifyTerm( Node n, std::vector< Node >& constraints, std::map< Node, bool >& visited );
 public:
   FunDefFmf(){}
   ~FunDefFmf(){}
@@ -70,6 +65,15 @@ public:
   * which are Sigma^{dfn} in that paper.
   */
   void simplify( std::vector< Node >& assertions );
+  /** get constraints
+   *
+   * This computes constraints for the final else branch of A_0 in Figure 1
+   * of Reynolds et al "Model Finding for Recursive Functions". The range of
+   * the cache visited stores the constraint (if any) for each node.
+   */
+  void getConstraints(Node n,
+                      std::vector<Node>& constraints,
+                      std::map<Node, Node>& visited);
 };
 
 

@@ -2,9 +2,9 @@
 /*! \file cdmap_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Paul Meng
+ **   Morgan Deters, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -31,14 +31,15 @@ class CDMapBlack : public CxxTest::TestSuite {
   Context* d_context;
 
  public:
-  void setUp() {
+  void setUp() override
+  {
     d_context = new Context;
     // Debug.on("context");
     // Debug.on("gc");
     // Debug.on("pushpop");
   }
 
-  void tearDown() { delete d_context; }
+  void tearDown() override { delete d_context; }
 
   // Returns the elements in a CDHashMap.
   static std::map<int, int> GetElements(const CDHashMap<int, int>& map) {

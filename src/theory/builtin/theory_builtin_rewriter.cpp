@@ -2,9 +2,9 @@
 /*! \file theory_builtin_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Paul Meng
+ **   Andrew Reynolds, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,6 +19,7 @@
 #include "theory/builtin/theory_builtin_rewriter.h"
 
 #include "expr/chain.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 
@@ -88,6 +89,7 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
         Trace("builtin-rewrite") << "  array rep : " << anode << ", constant = " << anode.isConst() << std::endl;
         Assert( anode.isConst()==retNode.isConst() );
         Assert( retNode.getType()==node.getType() );
+        Assert(expr::hasFreeVar(node) == expr::hasFreeVar(retNode));
         return RewriteResponse(REWRITE_DONE, retNode);
       } 
     }else{
@@ -192,7 +194,9 @@ Node TheoryBuiltinRewriter::getLambdaForArrayRepresentation( TNode a, TNode bvl 
   }
 }
 
-Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool reqConst, TypeNode retType ){
+Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
+                                                               TypeNode retType)
+{
   Assert( n.getKind()==kind::LAMBDA );
   Trace("builtin-rewrite-debug") << "Get array representation for : " << n << std::endl;
 
@@ -230,7 +234,9 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool re
       // non-equality condition
       Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
       return Node::null();
-    }else if( reqConst && Rewriter::rewrite( index_eq )!=index_eq ){
+    }
+    else if (Rewriter::rewrite(index_eq) != index_eq)
+    {
       // equality must be oriented correctly based on rewriter
       Trace("builtin-rewrite-debug2") << "  ...equality not oriented properly." << std::endl;
       return Node::null();
@@ -241,7 +247,8 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool re
       Node arg = index_eq[r];
       Node val = index_eq[1-r];
       if( arg==first_arg ){
-        if( reqConst && !val.isConst() ){
+        if (!val.isConst())
+        {
           // non-constant value
           Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
           return Node::null();
@@ -255,7 +262,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool re
     if( !curr_index.isNull() ){
       if( !rec_bvl.isNull() ){
         curr_val = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr_val );
-        curr_val = getArrayRepresentationForLambdaRec( curr_val, reqConst, retType );
+        curr_val = getArrayRepresentationForLambdaRec(curr_val, retType);
         if( curr_val.isNull() ){
           Trace("builtin-rewrite-debug2") << "  ...non-constant value." << std::endl;
           return Node::null();
@@ -274,7 +281,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool re
   }
   if( !rec_bvl.isNull() ){
     curr = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr );
-    curr = getArrayRepresentationForLambdaRec( curr, reqConst, retType );
+    curr = getArrayRepresentationForLambdaRec(curr, retType);
   }
   if( !curr.isNull() && curr.isConst() ){
     // compute the return type
@@ -302,11 +309,12 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec( TNode n, bool re
   }
 }
 
-Node TheoryBuiltinRewriter::getArrayRepresentationForLambda( TNode n, bool reqConst ){
+Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
+{
   Assert( n.getKind()==kind::LAMBDA );
   // must carry the overall return type to deal with cases like (lambda ((x Int)(y Int)) (ite (= x _) 0.5 0.0)),
   //  where the inner construction for the else case about should be (arraystoreall (Array Int Real) 0.0)
-  return getArrayRepresentationForLambdaRec( n, reqConst, n[1].getType() );
+  return getArrayRepresentationForLambdaRec(n, n[1].getType());
 }
 
 }/* CVC4::theory::builtin namespace */

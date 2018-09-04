@@ -2,9 +2,9 @@
 /*! \file exception.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,8 +26,6 @@
 #include <sstream>
 #include <stdexcept>
 #include <string>
-
-#include "base/tls.h"
 
 namespace CVC4 {
 
@@ -158,12 +156,12 @@ public:
 
 private:
   /* Disallow copies */
-  LastExceptionBuffer(const LastExceptionBuffer&) CVC4_UNDEFINED;
-  LastExceptionBuffer& operator=(const LastExceptionBuffer&) CVC4_UNDEFINED;
+  LastExceptionBuffer(const LastExceptionBuffer&) = delete;
+  LastExceptionBuffer& operator=(const LastExceptionBuffer&) = delete;
 
   char* d_contents;
 
-  static CVC4_THREAD_LOCAL LastExceptionBuffer* s_currentBuffer;
+  static thread_local LastExceptionBuffer* s_currentBuffer;
 }; /* class LastExceptionBuffer */
 
 }/* CVC4 namespace */

@@ -2,9 +2,9 @@
 /*! \file model_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Morgan Deters, Kshitij Bansal
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -136,7 +136,8 @@ void ModelEngine::registerQuantifier( Node f ){
     for( unsigned i=0; i<f[0].getNumChildren(); i++ ){
       TypeNode tn = f[0][i].getType();
       if( !tn.isSort() ){
-        if( !tn.getCardinality().isFinite() ){
+        if (!tn.isInterpretedFinite())
+        {
           if( tn.isInteger() ){
             if( !options::fmfBound() ){
               canHandle = false;
@@ -164,11 +165,6 @@ bool ModelEngine::optOneQuantPerRound(){
 
 int ModelEngine::checkModel(){
   FirstOrderModel* fm = d_quantEngine->getModel();
-
-  //flatten the representatives
-  //Trace("model-engine-debug") << "Flattening representatives...." << std::endl;
-  // d_quantEngine->getEqualityQuery()->flattenRepresentatives(
-  // fm->getRepSet()->d_type_reps );
 
   //for debugging, setup
   for (std::map<TypeNode, std::vector<Node> >::iterator it =
@@ -218,7 +214,9 @@ int ModelEngine::checkModel(){
 
   Trace("model-engine-debug") << "Do exhaustive instantiation..." << std::endl;
   // FMC uses two sub-effort levels
-  int e_max = options::mbqiMode()==MBQI_FMC || options::mbqiMode()==MBQI_FMC_INTERVAL ? 2 : ( options::mbqiMode()==MBQI_TRUST ? 0 : 1 );
+  int e_max = options::mbqiMode() == MBQI_FMC
+                  ? 2
+                  : (options::mbqiMode() == MBQI_TRUST ? 0 : 1);
   for( int e=0; e<e_max; e++) {
     d_incomplete_quants.clear();
     for( unsigned i=0; i<fm->getNumAssertedQuantifiers(); i++ ){

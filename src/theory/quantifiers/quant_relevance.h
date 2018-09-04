@@ -2,9 +2,9 @@
 /*! \file quant_relevance.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -39,7 +39,7 @@ class QuantRelevance : public QuantifiersUtil
    * if this is false, then all calls to getRelevance
    * return -1.
    */
-  QuantRelevance(bool cr) : d_computeRel(cr) {}
+  QuantRelevance() {}
   ~QuantRelevance() {}
   /** reset */
   bool reset(Theory::Effort e) override { return true; }
@@ -47,13 +47,6 @@ class QuantRelevance : public QuantifiersUtil
   void registerQuantifier(Node q) override;
   /** identify */
   std::string identify() const override { return "QuantRelevance"; }
-  /** set relevance of symbol s to r */
-  void setRelevance(Node s, int r);
-  /** get relevance of symbol s */
-  int getRelevance(Node s)
-  {
-    return d_relevance.find(s) == d_relevance.end() ? -1 : d_relevance[s];
-  }
   /** get number of quantifiers for symbol s */
   unsigned getNumQuantifiersForSymbol(Node s)
   {
@@ -61,8 +54,6 @@ class QuantRelevance : public QuantifiersUtil
   }
 
  private:
-  /** for computing relevance */
-  bool d_computeRel;
   /** map from quantifiers to symbols they contain */
   std::map<Node, std::vector<Node> > d_syms;
   /** map from symbols to quantifiers */

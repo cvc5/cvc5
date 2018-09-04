@@ -2,9 +2,9 @@
 /*! \file output_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Paul Meng
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,9 +33,9 @@ class OutputBlack : public CxxTest::TestSuite {
   stringstream d_messageStream;
   stringstream d_warningStream;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     DebugChannel.setStream(&d_debugStream);
     TraceChannel.setStream(&d_traceStream);
     NoticeChannel.setStream(&d_noticeStream);
@@ -51,8 +51,7 @@ public:
     d_warningStream.str("");
   }
 
-  void tearDown() {
-  }
+  void tearDown() override {}
 
   void testOutput() {
     Debug.on("foo");

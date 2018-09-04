@@ -2,7 +2,7 @@
 /*! \file node.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -428,18 +428,6 @@ public:
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
 
-  /**
-   * Returns true iff this node contains a bound variable.  This bound
-   * variable may or may not be free.
-   * @return true iff this node contains a bound variable.
-   */
-  bool hasBoundVar();
-
-  /**
-   * Returns true iff this node contains a free variable.
-   * @return true iff this node contains a free variable.
-   */
-  bool hasFreeVar();
 
   /**
    * Convert this Node into an Expr using the currently-in-scope
@@ -888,11 +876,6 @@ public:
    * @param indent number of spaces to indent the formula by.
    */
   inline void printAst(std::ostream& out, int indent = 0) const;
-
-  /**
-   * Check if the node has a subterm t.
-   */
-  inline bool hasSubterm(NodeTemplate<false> t, bool strict = false) const;
 
   template <bool ref_count2>
   NodeTemplate<true> eqNode(const NodeTemplate<ref_count2>& right) const;
@@ -1522,42 +1505,6 @@ inline Expr NodeTemplate<ref_count>::toExpr() const {
 template <>
 inline Node NodeTemplate<true>::fromExpr(const Expr& e) {
   return NodeManager::fromExpr(e);
-}
-
-template<bool ref_count>
-bool NodeTemplate<ref_count>::hasSubterm(NodeTemplate<false> t, bool strict) const {
-  typedef std::unordered_set<TNode, TNodeHashFunction> node_set;
-
-  if (!strict && *this == t) {
-    return true;
-  }
-
-  node_set visited;
-  std::vector<TNode> toProcess;
-
-  toProcess.push_back(*this);
-
-  for (unsigned i = 0; i < toProcess.size(); ++ i) {
-    TNode current = toProcess[i];
-    if (current.hasOperator() && current.getOperator() == t)
-    {
-      return true;
-    }
-    for(unsigned j = 0, j_end = current.getNumChildren(); j < j_end; ++ j) {
-      TNode child = current[j];
-      if (child == t) {
-        return true;
-      }
-      if (visited.find(child) != visited.end()) {
-        continue;
-      } else {
-        visited.insert(child);
-        toProcess.push_back(child);
-      }
-    }
-  }
-
-  return false;
 }
 
 #ifdef CVC4_DEBUG

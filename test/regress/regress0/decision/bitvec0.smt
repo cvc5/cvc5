@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: unsat
+
 (benchmark bitvec0.smt
   :source {
 Hand-crafted bit-vector benchmarks.  Some are from the SVC benchmark suite.

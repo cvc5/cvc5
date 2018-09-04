@@ -2,9 +2,9 @@
 /*! \file exception_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
+ **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -25,16 +25,14 @@ using namespace CVC4;
 using namespace std;
 
 class ExceptionBlack : public CxxTest::TestSuite {
-public:
+ public:
+  void setUp() override {}
 
-  void setUp() {
-  }
-
-  void tearDown() {
-  }
+  void tearDown() override {}
 
   // CVC4::Exception is a simple class, just test it all at once.
-  void testExceptions() {
+  void testExceptions()
+  {
     Exception e1;
     Exception e2(string("foo!"));
     Exception e3("bar!");

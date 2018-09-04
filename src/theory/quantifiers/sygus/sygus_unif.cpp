@@ -2,9 +2,9 @@
 /*! \file sygus_unif.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -40,27 +40,6 @@ void SygusUnif::initializeCandidate(
   d_candidates.push_back(f);
   // initialize the strategy
   d_strategy[f].initialize(qe, f, enums);
-}
-
-bool SygusUnif::constructSolution(std::vector<Node>& sols,
-                                  std::vector<Node>& lemmas)
-{
-  // initialize a call to construct solution
-  initializeConstructSol();
-  for (const Node& f : d_candidates)
-  {
-    // initialize a call to construct solution for function f
-    initializeConstructSolFor(f);
-    // call the virtual construct solution method
-    Node e = d_strategy[f].getRootEnumerator();
-    Node sol = constructSol(f, e, role_equal, 1, lemmas);
-    if (sol.isNull())
-    {
-      return false;
-    }
-    sols.push_back(sol);
-  }
-  return true;
 }
 
 Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)

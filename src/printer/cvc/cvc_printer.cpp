@@ -2,7 +2,7 @@
 /*! \file cvc_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -905,6 +905,17 @@ void CvcPrinter::toStream(
       break;
     case kind::INST_PATTERN_LIST:
       out << "INST_PATTERN_LIST";
+      break;
+
+    // string operators
+    case kind::STRING_CONCAT:
+      out << "CONCAT";
+      break;
+    case kind::STRING_CHARAT:
+      out << "CHARAT";
+      break;
+    case kind::STRING_LENGTH:
+      out << "LENGTH";
       break;
 
     default:

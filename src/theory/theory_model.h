@@ -2,9 +2,9 @@
 /*! \file theory_model.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Morgan Deters, Andrew Reynolds
+ **   Andrew Reynolds, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -251,10 +251,6 @@ public:
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
   Cardinality getCardinality(Type t) const override;
-  /** print representative debug function */
-  void printRepresentativeDebug( const char* c, Node r );
-  /** print representative function */
-  void printRepresentative( std::ostream& out, Node r );
 
   //---------------------------- function values
   /** a map from functions f to a list of all APPLY_UF terms with operator f */

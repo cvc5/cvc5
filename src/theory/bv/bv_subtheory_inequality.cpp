@@ -2,7 +2,7 @@
 /*! \file bv_subtheory_inequality.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
+ **   Liana Hadarean, Aina Niemetz, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -31,6 +31,7 @@ using namespace CVC4::theory::bv::utils;
 
 bool InequalitySolver::check(Theory::Effort e) {
   Debug("bv-subtheory-inequality") << "InequalitySolveR::check("<< e <<")\n";
+  TimerStat::CodeTimer inequalityTimer(d_statistics.d_solveTime);
   ++(d_statistics.d_numCallstoCheck);
   d_bv->spendResource(options::theoryCheckStep());
 
@@ -246,10 +247,15 @@ bool InequalitySolver::addInequality(TNode a, TNode b, bool strict, TNode fact)
 }
 
 InequalitySolver::Statistics::Statistics()
-  : d_numCallstoCheck("theory::bv::InequalitySolver::NumCallsToCheck", 0)
+    : d_numCallstoCheck("theory::bv::inequality::NumCallsToCheck", 0),
+      d_solveTime("theory::bv::inequality::SolveTime")
 {
   smtStatisticsRegistry()->registerStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->registerStat(&d_solveTime);
 }
-InequalitySolver::Statistics::~Statistics() {
+
+InequalitySolver::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_numCallstoCheck);
+  smtStatisticsRegistry()->unregisterStat(&d_solveTime);
 }

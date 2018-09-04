@@ -2,9 +2,9 @@
 /*! \file expr_manager_public.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters, Paul Meng
+ **   Christopher L. Conway, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,19 +61,19 @@ private:
     return vars;
   }
 
+ public:
+  void setUp() override { d_exprManager = new ExprManager; }
 
-public:
-  void setUp() {
-    d_exprManager = new ExprManager;
-  }
-
-
-  void tearDown() {
-    try {
+  void tearDown() override
+  {
+    try
+    {
       delete d_exprManager;
-    } catch(Exception e) {
+    }
+    catch (Exception e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
-      throw ;
+      throw;
     }
   }
 

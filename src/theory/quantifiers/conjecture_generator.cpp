@@ -2,9 +2,9 @@
 /*! \file conjecture_generator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,12 +15,13 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;
@@ -80,16 +81,20 @@ void OpArgIndex::getGroundTerms( ConjectureGenerator * s, std::vector< TNode >& 
   }
 }
 
-
-
-ConjectureGenerator::ConjectureGenerator( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ),
-d_notify( *this ),
-d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
-d_ee_conjectures( c ){
-  d_fullEffortCount = 0;
-  d_conj_count = 0;
-  d_subs_confirmCount = 0;
-  d_subs_unkCount = 0;
+ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
+                                         context::Context* c)
+    : QuantifiersModule(qe),
+      d_notify(*this),
+      d_uequalityEngine(d_notify, c, "ConjectureGenerator::ee", false),
+      d_ee_conjectures(c),
+      d_conj_count(0),
+      d_subs_confirmCount(0),
+      d_subs_unkCount(0),
+      d_fullEffortCount(0),
+      d_hasAddedLemma(false)
+{
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 
@@ -300,7 +305,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermUtil()->getCanonicalFreeVar( tn, i );
+  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -376,11 +381,14 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
         eqcs.push_back( r );
         if( r.getType().isBoolean() ){
-          if( areEqual( r, getTermUtil()->d_true ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_true;
+          if (areEqual(r, d_true))
+          {
+            d_ground_eqc_map[r] = d_true;
             d_bool_eqc[0] = r;
-          }else if( areEqual( r, getTermUtil()->d_false ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_false;
+          }
+          else if (areEqual(r, d_false))
+          {
+            d_ground_eqc_map[r] = d_false;
             d_bool_eqc[1] = r;
           }
         }
@@ -445,7 +453,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           TNode r = eqcs[i];
           //print out members
           bool firstTime = true;
-          bool isFalse = areEqual( r, getTermUtil()->d_false );
+          bool isFalse = areEqual(r, d_false);
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
@@ -529,7 +537,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermUtil()->getCanonicalTerm( eq );
+                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -676,7 +684,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 typ_to_subs_index[it->first] = sum;
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
-                  gsubs_vars.push_back( d_quantEngine->getTermUtil()->getCanonicalFreeVar( it->first, i ) );
+                  gsubs_vars.push_back(
+                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
+                          it->first, i));
                 }
               }
             }
@@ -882,9 +892,12 @@ unsigned ConjectureGenerator::flushWaitingConjectures( unsigned& addedLemmas, in
               d_conj_count++;
             }else{
               std::vector< Node > bvs;
-              for( std::map< TypeNode, unsigned >::iterator it = d_pattern_var_id[lhs].begin(); it != d_pattern_var_id[lhs].end(); ++it ){
-                for( unsigned i=0; i<=it->second; i++ ){
-                  bvs.push_back( getFreeVar( it->first, i ) );
+              for (const std::pair<TypeNode, unsigned>& lhs_pattern :
+                   d_pattern_var_id[lhs])
+              {
+                for (unsigned i = 0; i <= lhs_pattern.second; i++)
+                {
+                  bvs.push_back(getFreeVar(lhs_pattern.first, i));
                 }
               }
               Node rsg;
@@ -1065,7 +1078,11 @@ Node ConjectureGenerator::getPredicateForType( TypeNode tn ) {
 
 void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector< Node >& terms ) {
   if( n.getNumChildren()>0 ){
+    Trace("sg-gt-enum-debug") << "Get enumerate uf terms " << n << " (" << num
+                              << ")" << std::endl;
     TermEnumeration* te = d_quantEngine->getTermEnumeration();
+    // below, we do a fair enumeration of vectors vec of indices whose sum is
+    // 1,2,3, ...
     std::vector< int > vec;
     std::vector< TypeNode > types;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -1078,34 +1095,44 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
         return;
       }
     }
+    // the index of the last child is determined by the limit of the sum
+    // of indices of children (size_limit) and the sum of the indices of the
+    // other children (vec_sum). Hence, we pop here and add this value at each
+    // iteration of the loop.
     vec.pop_back();
     int size_limit = 0;
     int vec_sum = -1;
     unsigned index = 0;
     unsigned last_size = terms.size();
     while( terms.size()<num ){
-      bool success = true;
       if( vec_sum==-1 ){
         vec_sum = 0;
+        // we will construct a new child below
+        // since sum is 0, the index of last child is limit
         vec.push_back( size_limit );
-      }else{
+      }
+      else if (index < vec.size())
+      {
+        Assert(index < types.size());
         //see if we can iterate current
         if (vec_sum < size_limit
             && !te->getEnumerateTerm(types[index], vec[index] + 1).isNull())
         {
           vec[index]++;
           vec_sum++;
+          // we will construct a new child below
+          // add the index of the last child, its index is (limit-sum)
           vec.push_back( size_limit - vec_sum );
         }else{
+          // reset the index
           vec_sum -= vec[index];
           vec[index] = 0;
           index++;
-          if( index==n.getNumChildren() ){
-            success = false;
-          }
         }
       }
-      if( success ){
+      if (index < vec.size())
+      {
+        // if we are ready to construct the term
         if( vec.size()==n.getNumChildren() ){
           Node lc =
               te->getEnumerateTerm(types[vec.size() - 1], vec[vec.size() - 1]);
@@ -1131,10 +1158,12 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
             Trace("sg-gt-enum") << "Ground term enumerate : " << n << std::endl;
             terms.push_back( n );
           }
+          // pop the index for the last child
           vec.pop_back();
           index = 0;
         }
       }else{
+        // no more indices to increment, we reset and increment size_limit
         if( terms.size()>last_size ){
           last_size = terms.size();
           size_limit++;
@@ -1143,6 +1172,8 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
           }
           vec_sum = -1;
         }else{
+          // No terms were generated at the previous size.
+          // Thus, we've saturated, no more terms can be enumerated.
           return;
         }
       }

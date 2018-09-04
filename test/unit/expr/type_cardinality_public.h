@@ -2,9 +2,9 @@
 /*! \file type_cardinality_public.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng
+ **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,20 +32,20 @@ using namespace std;
 class TypeCardinalityPublic : public CxxTest::TestSuite {
   ExprManager* d_em;
 
-public:
+ public:
+  void setUp() override { d_em = new ExprManager(); }
 
-  void setUp() {
-    d_em = new ExprManager();
-  }
+  void tearDown() override { delete d_em; }
 
-  void tearDown() {
-    delete d_em;
-  }
-
-  void testTheBasics() {
-    TS_ASSERT( d_em->booleanType().getCardinality().compare(2) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->integerType().getCardinality().compare(Cardinality::INTEGERS) == Cardinality::EQUAL );
-    TS_ASSERT( d_em->realType().getCardinality().compare(Cardinality::REALS) == Cardinality::EQUAL );
+  void testTheBasics()
+  {
+    TS_ASSERT(d_em->booleanType().getCardinality().compare(2)
+              == Cardinality::EQUAL);
+    TS_ASSERT(
+        d_em->integerType().getCardinality().compare(Cardinality::INTEGERS)
+        == Cardinality::EQUAL);
+    TS_ASSERT(d_em->realType().getCardinality().compare(Cardinality::REALS)
+              == Cardinality::EQUAL);
   }
 
   void testArrays() {

@@ -1,3 +1,0 @@
-% COMMAND-LINE: --incremental --simplification=none
-% EXPECT: sat
-% EXPECT: unsat

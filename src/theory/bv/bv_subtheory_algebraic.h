@@ -2,9 +2,9 @@
 /*! \file bv_subtheory_algebraic.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Paul Meng, Morgan Deters
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -169,8 +169,8 @@ class AlgebraicSolver : public SubtheorySolver {
     ~Statistics();
   };
 
-  SubstitutionMap* d_modelMap;
-  BVQuickCheck* d_quickSolver;
+  std::unique_ptr<SubstitutionMap> d_modelMap;
+  std::unique_ptr<BVQuickCheck> d_quickSolver;
   context::CDO<bool> d_isComplete; 
   context::CDO<bool> d_isDifficult; /**< flag to indicate whether the current assertions contain expensive BV operators */
   
@@ -181,9 +181,9 @@ class AlgebraicSolver : public SubtheorySolver {
   uint64_t d_numSolved;
   uint64_t d_numCalls;
 
-  context::Context* d_ctx;
-  QuickXPlain* d_quickXplain;   /**< separate quickXplain module as it can reuse the current SAT solver */
-  
+  /** separate quickXplain module as it can reuse the current SAT solver */
+  std::unique_ptr<QuickXPlain> d_quickXplain;
+
   Statistics d_statistics;
   bool useHeuristic();
   void setConflict(TNode conflict);

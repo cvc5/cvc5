@@ -2,9 +2,9 @@
 /*! \file node_black.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Tim King, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -56,7 +56,8 @@ class NodeBlack : public CxxTest::TestSuite {
   TypeNode* d_realType;
 
  public:
-  void setUp() {
+  void setUp() override
+  {
     char* argv[2];
     argv[0] = strdup("");
     argv[1] = strdup("--output-language=ast");
@@ -70,7 +71,8 @@ class NodeBlack : public CxxTest::TestSuite {
     d_realType = new TypeNode(d_nodeManager->realType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_realType;
     delete d_booleanType;
     delete d_scope;

@@ -2,9 +2,9 @@
 /*! \file output_channel.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Liana Hadarean, Tim King
+ **   Morgan Deters, Tim King, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -154,48 +154,6 @@ class OutputChannel {
    * @param phase - the phase to decide on n
    */
   virtual void requirePhase(TNode n, bool phase) = 0;
-
-  /**
-   * Flips the most recent unflipped decision to the other phase and
-   * returns true.  If all decisions have been flipped, the root
-   * decision is re-flipped and flipDecision() returns false.  If no
-   * decisions (flipped nor unflipped) are on the decision stack, the
-   * state is not affected and flipDecision() returns false.
-   *
-   * For example, if l1, l2, and l3 are all decision literals, and
-   * have been decided in positive phase, a series of flipDecision()
-   * calls has the following effects:
-   *
-   * l1 l2 l3 <br/>
-   * l1 l2 ~l3 <br/>
-   * l1 ~l2 <br/>
-   * ~l1 <br/>
-   * l1 (and flipDecision() returns false)
-   *
-   * Naturally, flipDecision() might be interleaved with search.  For example:
-   *
-   * l1 l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 <br/>
-   * SAT decides l3 <br/>
-   * l1 ~l2 l3 <br/>
-   * flipDecision() <br/>
-   * l1 ~l2 ~l3 <br/>
-   * flipDecision() <br/>
-   * ~l1 <br/>
-   * SAT decides l2 <br/>
-   * ~l1 l2 <br/>
-   * flipDecision() <br/>
-   * ~l1 ~l2 <br/>
-   * flipDecision() returns FALSE<br/>
-   * l1
-   *
-   * @return true if a decision was flipped; false if no decision
-   * could be flipped, or if the root decision was re-flipped
-   */
-  virtual bool flipDecision() = 0;
 
   /**
    * Notification from a theory that it realizes it is incomplete at

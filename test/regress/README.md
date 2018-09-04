@@ -22,10 +22,10 @@ By default, each invocation of CVC4 is done with a 10 minute timeout. To use a
 different timeout, set the `TEST_TIMEOUT` environment variable:
 
 ```
-TEST_TIMEOUT=0.5s make regress0
+TEST_TIMEOUT=0.5 make regress0
 ```
 
-This runs regression tests from level 0 with a 0,5 second timeout.
+This runs regression tests from level 0 with a 0.5 second timeout.
 
 ## Adding New Regressions
 
@@ -121,9 +121,3 @@ This benchmark is only run when symfpu has been configured.  Multiple
 as a requirement, refer to CVC4's `--show-config` output. Features can also be
 excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
 not valid for builds that include symfpu support.
-
-Sometimes it is useful to keep the directives separate. You can separate the
-benchmark from the output expectations by putting the benchmark in `<benchmark
-file>.smt` and the directives in `<benchmark file>.smt.expect`, which is looked
-for by the regression script. Note that `*.expect` files should be added to the
-`EXTRA_DIST` variable in [Makefile.am](Makefile.am).

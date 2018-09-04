@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -61,9 +61,9 @@ class AttributeWhite : public CxxTest::TestSuite {
   TypeNode* d_booleanType;
   SmtEngine* d_smtEngine;
 
-public:
-
-  void setUp() {
+ public:
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smtEngine = new SmtEngine(d_em);
@@ -71,7 +71,8 @@ public:
     d_booleanType = new TypeNode(d_nm->booleanType());
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_booleanType;
     delete d_scope;
     delete d_smtEngine;

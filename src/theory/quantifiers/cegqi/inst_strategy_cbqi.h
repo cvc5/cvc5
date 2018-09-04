@@ -2,9 +2,9 @@
 /*! \file inst_strategy_cbqi.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters, Tim King
+ **   Andrew Reynolds, Tim King, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,18 @@ class InstStrategyCbqi : public QuantifiersModule {
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 
  protected:
+  /** set quantified formula inactive
+   *
+   * This flag is set to true during a full effort check if at least one
+   * quantified formula is set "inactive", that is, its negation is
+   * unsatisfiable in the current context.
+   */
   bool d_cbqi_set_quant_inactive;
+  /** incomplete check
+   *
+   * This is set to true during a full effort check if this strategy could
+   * not find an instantiation for at least one asserted quantified formula.
+   */
   bool d_incomplete_check;
   /** whether we have added cbqi lemma */
   NodeSet d_added_cbqi_lemma;

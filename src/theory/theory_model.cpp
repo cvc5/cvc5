@@ -2,9 +2,9 @@
 /*! \file theory_model.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Clark Barrett, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -539,36 +539,6 @@ bool TheoryModel::areDisequal(TNode a, TNode b)
     return d_equalityEngine->areDisequal( a, b, false );
   }else{
     return false;
-  }
-}
-
-//for debugging
-void TheoryModel::printRepresentativeDebug( const char* c, Node r ){
-  if( r.isNull() ){
-    Trace( c ) << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      Trace( c ) << "true";
-    }else{
-      Trace( c ) << "false";
-    }
-  }else{
-    Trace( c ) << getRepresentative( r );
-  }
-}
-
-void TheoryModel::printRepresentative( std::ostream& out, Node r ){
-  Assert( !r.isNull() );
-  if( r.isNull() ){
-    out << "null";
-  }else if( r.getType().isBoolean() ){
-    if( areEqual( r, d_true ) ){
-      out  << "true";
-    }else{
-      out  << "false";
-    }
-  }else{
-    out << getRepresentative( r );
   }
 }
 

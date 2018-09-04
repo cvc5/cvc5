@@ -2,9 +2,9 @@
 /*! \file context.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Clark Barrett, Tim King
+ **   Clark Barrett, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -94,8 +94,8 @@ class Context {
   friend std::ostream& operator<<(std::ostream&, const Context&);
 
   // disable copy, assignment
-  Context(const Context&) CVC4_UNDEFINED;
-  Context& operator=(const Context&) CVC4_UNDEFINED;
+  Context(const Context&) = delete;
+  Context& operator=(const Context&) = delete;
 
 public:
 
@@ -208,8 +208,8 @@ public:
 class UserContext : public Context {
 private:
   // disable copy, assignment
-  UserContext(const UserContext&) CVC4_UNDEFINED;
-  UserContext& operator=(const UserContext&) CVC4_UNDEFINED;
+  UserContext(const UserContext&) = delete;
+  UserContext& operator=(const UserContext&) = delete;
 public:
   UserContext() {}
 };/* class UserContext */

@@ -2,9 +2,9 @@
 /*! \file datatypes.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Paul Meng, Tim King
+ **   Morgan Deters, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -106,9 +106,11 @@ int main() {
   Type sort = em.mkSort("T", ExprManager::SORT_FLAG_PLACEHOLDER);
   Datatype paramConsListSpec("list", std::vector<Type>{sort});
   DatatypeConstructor paramCons("cons");
+  DatatypeConstructor paramNil("nil");
   paramCons.addArg("head", sort);
   paramCons.addArg("tail", DatatypeSelfType());
   paramConsListSpec.addConstructor(paramCons);
+  paramConsListSpec.addConstructor(paramNil);
 
   DatatypeType paramConsListType = em.mkDatatypeType(paramConsListSpec);
   Type paramConsIntListType = paramConsListType.instantiate(std::vector<Type>{em.integerType()});

@@ -2,9 +2,9 @@
 /*! \file listener.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Paul Meng
+ **   Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -125,14 +125,14 @@ private:
    * The user of the class must be know to remove listeners on the collection.
    * Allowing copies will only cause confusion.
    */
-  ListenerCollection(const ListenerCollection& copy) CVC4_UNDEFINED;
+  ListenerCollection(const ListenerCollection& copy) = delete;
 
   /**
    * Disabling the assignment operator.
    * The user of the class must be know to remove listeners on the collection.
    * Allowing copies will only cause confusion.
    */
-  ListenerCollection& operator=(const ListenerCollection& copy) CVC4_UNDEFINED;
+  ListenerCollection& operator=(const ListenerCollection& copy) = delete;
 
   /** A list of the listeners in the collection.*/
   ListenerList d_listeners;
@@ -153,10 +153,9 @@ class ListenerRegistrationList {
 
  private:
   /** Disallow copying.*/
-  ListenerRegistrationList(const ListenerRegistrationList&) CVC4_UNDEFINED;
+  ListenerRegistrationList(const ListenerRegistrationList&) = delete;
   /** Disallow assignment.*/
-  ListenerRegistrationList operator=(const ListenerRegistrationList&)
-      CVC4_UNDEFINED;
+  ListenerRegistrationList operator=(const ListenerRegistrationList&) = delete;
   std::list<ListenerCollection::Registration*> d_registrations;
 };/* class CVC4::ListenerRegistrationList */
 

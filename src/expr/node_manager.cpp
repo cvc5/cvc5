@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -37,7 +37,7 @@ using namespace CVC4::expr;
 
 namespace CVC4 {
 
-CVC4_THREAD_LOCAL NodeManager* NodeManager::s_current = NULL;
+thread_local NodeManager* NodeManager::s_current = NULL;
 
 namespace {
 
@@ -645,7 +645,9 @@ TypeNode NodeManager::mkSort(TypeNode constructor,
 }
 
 TypeNode NodeManager::mkSortConstructor(const std::string& name,
-                                        size_t arity) {
+                                        size_t arity,
+                                        uint32_t flags)
+{
   Assert(arity > 0);
   NodeBuilder<> nb(this, kind::SORT_TYPE);
   Node sortTag = NodeBuilder<0>(this, kind::SORT_TAG);
@@ -654,7 +656,7 @@ TypeNode NodeManager::mkSortConstructor(const std::string& name,
   setAttribute(type, expr::VarNameAttr(), name);
   setAttribute(type, expr::SortArityAttr(), arity);
   for(std::vector<NodeManagerListener*>::iterator i = d_listeners.begin(); i != d_listeners.end(); ++i) {
-    (*i)->nmNotifyNewSortConstructor(type);
+    (*i)->nmNotifyNewSortConstructor(type, flags);
   }
   return type;
 }

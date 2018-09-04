@@ -77,15 +77,6 @@ header = "options/uf_options.h"
   help       = "mode of operation for uf strong solver."
 
 [[option]]
-  name       = "ufssCliqueSplits"
-  category   = "regular"
-  long       = "uf-ss-clique-splits"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use cliques instead of splitting on demand to shrink model"
-
-[[option]]
   name       = "ufssFairness"
   category   = "regular"
   long       = "uf-ss-fair"

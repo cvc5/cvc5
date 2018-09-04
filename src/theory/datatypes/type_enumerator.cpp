@@ -2,9 +2,9 @@
 /*! \file type_enumerator.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -171,7 +171,6 @@ Node DatatypesEnumerator::getTermEnum( TypeNode tn, unsigned i ){
    Debug("dt-enum") << "datatype is kind " << d_type.getKind() << std::endl;
    Debug("dt-enum") << "datatype is " << d_type << std::endl;
    Debug("dt-enum") << "properties : " << d_datatype.isCodatatype() << " " << d_datatype.isRecursiveSingleton( d_type.toType() );
-   Debug("dt-enum") << " " << d_datatype.isFinite( d_type.toType() ) << std::endl;
    Debug("dt-enum") << " " << d_datatype.isInterpretedFinite( d_type.toType() ) << std::endl;
 
    if( d_datatype.isCodatatype() && hasCyclesDt( d_datatype ) ){

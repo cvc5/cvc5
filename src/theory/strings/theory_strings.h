@@ -2,9 +2,9 @@
 /*! \file theory_strings.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Tianyi Liang, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
@@ -234,7 +235,6 @@ private:
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  CVC4::Rational RMAXINT;
   unsigned d_card_size;
   // Helper functions
   Node getRepresentative( Node t );
@@ -457,9 +457,6 @@ private:
   //--------------------------------for checkMemberships
   // check membership constraints
   Node mkRegExpAntec(Node atom, Node ant);
-  bool applyRConsume( CVC4::String &s, Node &r );
-  Node applyRSplit( Node s1, Node s2, Node r );
-  bool applyRLen( std::map< Node, std::vector< Node > > &XinR_with_exps );
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   //check contains
   void checkPosContains( std::vector< Node >& posContains );
@@ -535,6 +532,15 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  /** send length lemma
+   *
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that len( n ) >= 0. In particular, the
+   * this lemma is typically of the form:
+   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
+   * This method also ensures that, when applicable, the left branch is taken
+   * first via calls to requirePhase.
+   */
   void sendLengthLemma(Node n);
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
@@ -613,10 +619,10 @@ private:
   NodeSet d_processed_memberships;
   // antecedant for why regexp membership must be true
   NodeNodeMap d_regexp_ant;
-  // membership length
-  //std::map< Node, bool > d_membership_length;
-  // regular expression operations
+  /** regular expression operation module */
   RegExpOpr d_regexp_opr;
+  /** regular expression elimination module */
+  RegExpElimination d_regexp_elim;
 
   CVC4::String getHeadConst( Node x );
   bool deriveRegExp( Node x, Node r, Node ant );

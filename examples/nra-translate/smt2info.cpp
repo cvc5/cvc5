@@ -2,9 +2,9 @@
 /*! \file smt2info.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Tim King
+ **   Dejan Jovanovic, Aina Niemetz, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/expr.h"
 #include "options/options.h"
 #include "parser/parser.h"
@@ -78,10 +79,11 @@ int main(int argc, char* argv[])
     // Create the expression manager
     Options options;
     options.setInputLanguage(language::input::LANG_SMTLIB_V2);
-    ExprManager exprManager(options);
+    std::unique_ptr<api::Solver> solver =
+        std::unique_ptr<api::Solver>(new api::Solver(&options));
 
     // Create the parser
-    ParserBuilder parserBuilder(&exprManager, input, options);
+    ParserBuilder parserBuilder(solver.get(), input, options);
     Parser* parser = parserBuilder.build();
 
     // Variables and assertions
@@ -122,7 +124,9 @@ int main(int argc, char* argv[])
   
     unsigned total_degree = 0;
     for (unsigned i = 0; i < assertions.size(); ++ i) {
-      total_degree = std::max(total_degree, compute_degree(exprManager, assertions[i]));
+      total_degree =
+          std::max(total_degree,
+                   compute_degree(*solver->getExprManager(), assertions[i]));
     }
   
     cout << "degree: " << total_degree << endl;
