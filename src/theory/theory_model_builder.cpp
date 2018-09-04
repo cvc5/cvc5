@@ -808,16 +808,30 @@ bool TheoryEngineModelBuilder::buildModel(Model* m)
   {
     return false;
   }
-  else
+
+  tm->d_modelBuiltSuccess = true;
+  return true;
+}
+
+void TheoryEngineModelBuilder::postProcessModel(bool incomplete, Model* m)
+{
+  // if we are incomplete, there is no guarantee on the model.
+  // thus, we do not check the model here. (related to #1693).
+  if (incomplete)
   {
-    tm->d_modelBuiltSuccess = true;
-    return true;
+    return;
+  }
+  TheoryModel* tm = static_cast<TheoryModel*>(m);
+  Assert(tm != nullptr);
+  // debug-check the model if the checkModels() is enabled.
+  if (options::checkModels())
+  {
+    debugCheckModel(tm);
   }
 }
 
-void TheoryEngineModelBuilder::debugCheckModel(Model* m)
+void TheoryEngineModelBuilder::debugCheckModel(TheoryModel* tm)
 {
-  TheoryModel* tm = (TheoryModel*)m;
 #ifdef CVC4_ASSERTIONS
   Assert(tm->isBuilt());
   eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(tm->d_equalityEngine);
