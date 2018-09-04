@@ -9,11 +9,6 @@ CPLUSPLUS_TESTS = \
 	statistics \
 	sep_log_api
 
-if CVC4_BUILD_LIBCOMPAT
-#CPLUSPLUS_TESTS += \
-#	cvc3_main
-endif
-
 TESTS = $(CPLUSPLUS_TESTS)
 
 if CVC4_LANGUAGE_BINDING_JAVA
@@ -40,11 +35,6 @@ TEST_DEPS_DIST = \
 TEST_DEPS_NODIST = \
 	$(abs_top_builddir)/src/libcvc4.la \
 	$(abs_top_builddir)/src/parser/libcvc4parser.la
-
-if CVC4_BUILD_LIBCOMPAT
-TEST_DEPS_NODIST += \
-	$(abs_top_builddir)/src/compat/libcvc4compat.la
-endif
 
 TEST_DEPS = \
 	$(TEST_DEPS_DIST) \
@@ -74,12 +64,7 @@ AM_CPPFLAGS = \
 	-D __BUILDING_CVC4_SYSTEM_TEST \
 	$(TEST_CPPFLAGS)
 
-LIBADD =
-if CVC4_BUILD_LIBCOMPAT
-LIBADD += \
-	@abs_top_builddir@/src/compat/libcvc4compat.la
-endif
-LIBADD += \
+LIBADD = \
 	@abs_top_builddir@/src/parser/libcvc4parser.la \
 	@abs_top_builddir@/src/libcvc4.la
 

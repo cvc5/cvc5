@@ -31,9 +31,6 @@ EXEEXT = @EXEEXT@
 SHELL = @SHELL@
 LIBTOOL = $(CURRENT_BUILD)/libtool
 
-# Are we building the libcvc4compat library ?
-CVC4_BUILD_LIBCOMPAT = @CVC4_BUILD_LIBCOMPAT@
-
 # @
 AM_V_at = $(am__v_at_$(V))
 am__v_at_ = $(am__v_at_$(AM_DEFAULT_VERBOSITY))
@@ -76,16 +73,6 @@ all:
 	test -d ../src/parser/.libs && \
 	ln -sf ../src/parser/.libs/libcvc4parser.* \
 		.
-ifeq ($(CVC4_BUILD_LIBCOMPAT),yes)
-#	symlink libcvc4compat
-	$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
-	ln -sf ../src/compat/libcvc4compat.* \
-		.
-	-$(AM_V_at)cd $(CURRENT_BUILD)/lib && \
-	test -d ../src/compat/.libs && \
-	ln -sf ../src/compat/.libs/libcvc4compat.* \
-		.
-endif
 #	symlink the binaries
 	$(AM_V_at)cd $(CURRENT_BUILD)/bin && \
 	for binary in $(CVC4_BINARIES); do \
