@@ -59,10 +59,10 @@ void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
     d_waiting_conj = Node::null();
     if (!d_conj->isAssigned())
     {
-      if (!assignConjecture(q))
-      {
-        return;
-      }
+      assignConjecture(q);
+      // assign conjecture always uses the output channel, we return and
+      // re-check here.
+      return;
     }
   }
   unsigned echeck =
