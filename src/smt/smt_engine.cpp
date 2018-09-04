@@ -485,8 +485,6 @@ class SmtEnginePrivate : public NodeManagerListener {
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
 
-  bool d_propagatorNeedsFinish;
-
   /** Assertions in the preprocessing pipeline */
   AssertionPipeline d_assertions;
 
