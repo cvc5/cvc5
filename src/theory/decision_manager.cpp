@@ -29,11 +29,6 @@ void DecisionStrategyFmf::initialize()
 {
   d_literals.clear();
 }
-
-void DecisionStrategyFmf::allocateLiteral()
-{
-  d_literals.push_back(mkLiteral(d_literals.size()));
-}
   
 Node DecisionStrategyFmf::getNextDecisionRequest()
 {
@@ -126,11 +121,12 @@ Node DecisionManager::getNextDecisionRequest()
   unsigned sstart = d_curr_strategy.get();
   for( unsigned i=sstart, nstrat=d_strategy.size(); i<nstrat; i++ )
   {
-    Node lit = d_strategy->getNextDecisionRequest();
+    Node lit = d_strategy[i]->getNextDecisionRequest();
     if( !lit.isNull() )
     {
       return lit;
     }
+    // update d_curr_strategy?
   }
   return Node::null();
 }
