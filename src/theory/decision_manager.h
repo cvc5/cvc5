@@ -95,8 +95,6 @@ private:
   context::CDO< unsigned > d_curr_literal;
   /** the list of literals of this strategy */
   std::vector< Node > d_literals;
-  /** Adds the next literal to the above vector */
-  void allocateLiteral();
 };
   
 /** DecisionManager

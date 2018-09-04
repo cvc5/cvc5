@@ -28,8 +28,6 @@ DecisionStrategyFmf::DecisionStrategyFmf(context::Context* satContext,Valuation 
 void DecisionStrategyFmf::initialize()
 {
   d_literals.clear();
-  // we start by allocating the first literal for this class 
-  allocateLiteral();
 }
 
 void DecisionStrategyFmf::allocateLiteral()
@@ -58,14 +56,9 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     }
     else if (!value)
     {
-      // propagated false, the current literal is incremented
+      // asserted false, the current literal is incremented
       curr_lit = d_curr_literal.get() + 1;
       d_curr_literal.set(curr_lit);
-      // allocate the new current literal if necessary
-      if( curr_lit==d_literals.size() )
-      {
-        allocateLiteral();
-      }
       Assert( curr_lit<d_literals.size() );
       // repeat
       success = false;
@@ -90,14 +83,20 @@ Node DecisionStrategyFmf::getAssertedLiteral()
 {
   if( d_has_curr_literal.get() )
   {
+    Assert( d_curr_literal.get()<d_literals.size() );
     return getLiteral( d_curr_literal.get() );
   }
   return Node::null();
 }
-Node DecisionStrategyFmf::getLiteral( unsigned lit )
+
+Node DecisionStrategyFmf::getLiteral( unsigned n )
 {
-  Assert( lit<d_literals.size() );
-  return d_literals[lit];
+  // allocate until the index is valid
+  while( n>=d_literals.size() )
+  {
+    d_literals.push_back(mkLiteral(d_literals.size()));
+  }
+  return d_literals[n];
 }
 
 DecisionManager::DecisionManager(context::Context* satContext) : d_curr_strategy(0,satContext){
@@ -124,6 +123,15 @@ void DecisionManager::initialize()
 
 Node DecisionManager::getNextDecisionRequest()
 {
+  unsigned sstart = d_curr_strategy.get();
+  for( unsigned i=sstart, nstrat=d_strategy.size(); i<nstrat; i++ )
+  {
+    Node lit = d_strategy->getNextDecisionRequest();
+    if( !lit.isNull() )
+    {
+      return lit;
+    }
+  }
   return Node::null();
 }
 

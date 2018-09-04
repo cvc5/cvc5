@@ -288,6 +288,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
   d_masterEqualityEngine(NULL),
   d_masterEENotify(*this),
   d_quantEngine(NULL),
+  d_decManager(nullptr),
   d_curr_model(NULL),
   d_aloc_curr_model(false),
   d_curr_model_builder(NULL),
@@ -324,6 +325,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
+  d_decManager = new DecisionManager(context);
   
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
@@ -354,6 +356,7 @@ TheoryEngine::~TheoryEngine() {
   }
 
   delete d_quantEngine;
+  delete d_decManager;
 
   delete d_masterEqualityEngine;
 
