@@ -115,6 +115,7 @@ class DecisionManager
     //  "sat" for problems that are unsat.
     strat_quant_cegqi_feasible,
     strat_quant_sygus_feasible,
+    strat_last_m_sound,
     
     //----- finite model finding strategies
     //  We require these go here for the sake of finite-model completeness. In
@@ -129,6 +130,7 @@ class DecisionManager
     strat_quant_cegis_unif_num_enums,
     strat_strings_sum_lengths,
     strat_sep_neg_guard,
+    strat_last_fm_complete,
     
     //----- decision strategies that are optimizations
     strat_arrays,
@@ -146,7 +148,7 @@ class DecisionManager
    */
   void initialize();
   /** Get the next decision request */
-  Node getNextDecisionRequest();
+  Node getNextDecisionRequest( unsigned& priorty );
 
  private:
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;

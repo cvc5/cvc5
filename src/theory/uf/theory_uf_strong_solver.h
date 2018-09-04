@@ -435,7 +435,7 @@ public:
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    Node mkLiteral(unsigned i)
+    Node mkLiteral(unsigned i) override
     {
       NodeManager * nm = NodeManager::currentNM();
       return nm->mkNode( kind::COMBINED_CARDINALITY_CONSTRAINT,

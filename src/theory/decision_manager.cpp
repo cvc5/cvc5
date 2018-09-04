@@ -42,20 +42,24 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     success = true;
     // get the current literal
     Node lit = getLiteral(curr_lit);
-    bool value;
-    if (!d_valuation.hasSatValue(lit, value))
+    // if out of literals, we are done
+    if( !lit.isNull() )
     {
-      // if it has not been decided, return it
-      return lit;
-    }
-    else if (!value)
-    {
-      // asserted false, the current literal is incremented
-      curr_lit = d_curr_literal.get() + 1;
-      d_curr_literal.set(curr_lit);
-      Assert(curr_lit < d_literals.size());
-      // repeat
-      success = false;
+      bool value;
+      if (!d_valuation.hasSatValue(lit, value))
+      {
+        // if it has not been decided, return it
+        return lit;
+      }
+      else if (!value)
+      {
+        // asserted false, the current literal is incremented
+        curr_lit = d_curr_literal.get() + 1;
+        d_curr_literal.set(curr_lit);
+        Assert(curr_lit < d_literals.size());
+        // repeat
+        success = false;
+      }
     }
   } while (!success);
   // the current literal has been decided with the right polarity, we are done
@@ -112,11 +116,15 @@ void DecisionManager::initialize()
         d_reg_strategy.find(s);
     if (itrs != d_reg_strategy.end())
     {
+      for( unsigned j=0, size = itrs->second.size(); j<size; j++ )
+      {
+        d_strategy.push_back( itrs->second[j] );
+      }
     }
   }
 }
 
-Node DecisionManager::getNextDecisionRequest()
+Node DecisionManager::getNextDecisionRequest(unsigned& priorty)
 {
   unsigned sstart = d_curr_strategy.get();
   for (unsigned i = sstart, nstrat = d_strategy.size(); i < nstrat; i++)
