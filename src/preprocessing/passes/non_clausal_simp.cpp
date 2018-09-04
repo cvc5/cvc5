@@ -107,7 +107,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     assertionsToPreprocess->clear();
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
-    ProofManager::currentPM()->addDependence(n, Node::null());
+    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
     propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
   }
@@ -169,7 +169,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        ProofManager::currentPM()->addDependence(n, Node::null());
+        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -212,7 +212,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
-        ProofManager::currentPM()->addDependence(n, Node::null());
+        PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
         propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
@@ -246,7 +246,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
           //   equations[0].second); assertionsToPreprocess->clear();
           //   Node n = NodeManager::currentNM()->mkConst<bool>(false);
           //   assertionsToPreprocess->push_back(n);
-          //   ProofManager::currentPM()->addDependence(n, Node::null());
+          //   PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
           //   false); return;
           // }
           // top_level_substs.simplifyRHS(constantPropagations);
