@@ -79,13 +79,14 @@ void CegConjectureSingleInv::getInitialSingleInvLemma(Node g,
   d_single_inv_var.clear();
   d_single_inv_sk.clear();
   Node inst;
+  NodeManager * nm = NodeManager::currentNM();
   if (d_single_inv.getKind() == FORALL)
   {
-    for (unsigned i = 0; i < d_single_inv[0].getNumChildren(); i++)
+    for (unsigned i = 0, size = d_single_inv[0].getNumChildren(); i < size; i++)
     {
       std::stringstream ss;
       ss << "k_" << d_single_inv[0][i];
-      Node k = NodeManager::currentNM()->mkSkolem(
+      Node k = nm->mkSkolem(
           ss.str(),
           d_single_inv[0][i].getType(),
           "single invocation function skolem");
@@ -107,7 +108,7 @@ void CegConjectureSingleInv::getInitialSingleInvLemma(Node g,
                     << std::endl;
 
   // register with the instantiator
-  Node ginst = NodeManager::currentNM()->mkNode(OR, g.negate(), inst);
+  Node ginst = nm->mkNode(OR, g.negate(), inst);
   lems.push_back(ginst);
   // make and register the instantiator
   d_cinst.reset(new CegInstantiator(d_qe, d_cosi, false, false));
