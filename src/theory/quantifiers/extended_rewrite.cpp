@@ -1684,11 +1684,12 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
         tcontains[i] = Rewriter::rewrite(tc);
         if (tcontains[i].isConst())
         {
-          if(tcontains[i].getConst<bool>())
+          if (tcontains[i].getConst<bool>())
           {
             tcontainsOneTrue = true;
             tcontainsTrueIndex = i;
-            Trace("ajr-temp") << "tmp : " << tc << " rewrites to " << tcontains[i] << std::endl;
+            Trace("ajr-temp") << "tmp : " << tc << " rewrites to "
+                              << tcontains[i] << std::endl;
           }
           else
           {

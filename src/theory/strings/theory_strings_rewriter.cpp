@@ -920,9 +920,9 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
         return returnRewrite(node, retNode, "re-empty-in-str-star");
       }
-      else if( s.size()==1 )
+      else if (s.size() == 1)
       {
-        if( r[0].getKind()==STRING_TO_REGEXP )
+        if (r[0].getKind() == STRING_TO_REGEXP)
         {
           retNode = r[0][0].eqNode(x);
           // e.g. (str.in.re "A" (re.* (str.to.re x))) ----> "A" = x
