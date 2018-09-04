@@ -22,7 +22,6 @@ CLASS_LOG_COMPILER = env DYLD_LIBRARY_PATH=$(abs_top_builddir)/src/bindings/java
 # Things that aren't tests but that tests rely on and need to
 # go into the distribution
 TEST_DEPS_DIST = \
-	cvc3_main.cpp \
 	CVC4JavaTest.java \
 	run_java_test
 
