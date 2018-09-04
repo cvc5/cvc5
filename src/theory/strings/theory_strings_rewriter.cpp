@@ -911,6 +911,15 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     Node one = nm->mkConst(Rational(1));
     retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
+    if( x.isConst() )
+    {
+      if( x.getConst<String>().size()==0 )
+      {
+        retNode = nm->mkConst( true );
+        // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
+        return returnRewrite(node, retNode, "re-empty-in-star");
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );

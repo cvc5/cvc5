@@ -233,6 +233,8 @@ class ExtendedRewriter
   //--------------------------------------theory-specific top-level calls
   /** extended rewrite arith */
   Node extendedRewriteArith(Node ret);
+  /** extended rewrite strings */
+  Node extendedRewriteStrings(Node ret);
   //--------------------------------------end theory-specific top-level calls
 };
 
