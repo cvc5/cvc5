@@ -168,7 +168,7 @@ void CegConjecture::assign( Node q ) {
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
   d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
-  // this must be called, both to ensure that the feasible guard is not
+  // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
   d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
