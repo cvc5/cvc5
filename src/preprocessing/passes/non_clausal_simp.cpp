@@ -21,9 +21,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
 
-//#include "smt_util/nary_builder.h"
-//#include "theory/arith/arith_ite_utils.h"
-
 #include <vector>
 
 using namespace CVC4;

@@ -20,7 +20,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 
-#include<vector>
+#include <vector>
 
 namespace CVC4 {
 namespace preprocessing {
@@ -29,11 +29,12 @@ namespace passes {
 class NonClausalSimp : public PreprocessingPass
 {
  public:
-   NonClausalSimp(PreprocessingPassContext* preprocContext);
+  NonClausalSimp(PreprocessingPassContext* preprocContext);
 
  protected:
-   PreprocessingPassResult applyInternal(
-       AssertionPipeline* assertionsToPreprocess) override;
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
+
  private:
   struct Statistics
   {
@@ -45,7 +46,7 @@ class NonClausalSimp : public PreprocessingPass
   Statistics d_statistics;
 
   /** Learned literals */
-   std::vector<Node> d_nonClausalLearnedLiterals;
+  std::vector<Node> d_nonClausalLearnedLiterals;
 };
 
 }  // namespace passes
