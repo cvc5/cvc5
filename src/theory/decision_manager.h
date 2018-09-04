@@ -108,9 +108,31 @@ class DecisionManager
   {
     // The order of the global decision strategy used by the TheoryEngine
     // for getNextDecision.
+    
+    //----- assume-feasibile strategies
+    //  These are required to go first for the sake of model-soundness. In
+    //  other words, if these strategies did not go first, we might answer
+    //  "sat" for problems that are unsat.
+    strat_quant_cegqi_feasible,
+    strat_quant_sygus_feasible,
+    
+    //----- finite model finding strategies
+    //  We require these go here for the sake of finite-model completeness. In
+    //  other words, if these strategies did not go before other decisions, we
+    //  might be non-terminating instead of answering "sat" with a solution
+    //  within a given a bound.
+    strat_uf_combined_card,
     strat_uf_card,
-    strat_cegqi_quant,
-    strat_fmf,
+    strat_datatypes_sygus_enum_not_exhaust,
+    strat_datatypes_sygus_enum_size,
+    strat_quant_bound_int_size,
+    strat_quant_cegis_unif_num_enums,
+    strat_strings_sum_lengths,
+    strat_sep_neg_guard,
+    
+    //----- decision strategies that are optimizations
+    strat_arrays,
+    
     strat_last
   };
   DecisionManager(context::Context* satContext);
@@ -121,7 +143,6 @@ class DecisionManager
   void registerStrategy(StrategyId id, DecisionStrategy* ds);
   /**
    * Initializes the strategy.
-   *
    */
   void initialize();
   /** Get the next decision request */
