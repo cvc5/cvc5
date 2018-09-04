@@ -169,7 +169,6 @@ class InstStrategyCegqi : public QuantifiersModule
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
 
- protected:
   //for identification
   uint64_t d_qid_count;
   //nested qe map
