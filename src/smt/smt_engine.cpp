@@ -479,9 +479,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   ListenerRegistrationList* d_listenerRegistrations;
 
-  /** Learned literals */
-  vector<Node> d_nonClausalLearnedLiterals;
-
   /** A circuit propagator for non-clausal propositional deduction */
   booleans::CircuitPropagator d_propagator;
 
@@ -577,8 +574,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedDumpChannel(),
         d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
-        d_nonClausalLearnedLiterals(),
-        d_propagator(d_nonClausalLearnedLiterals, true, true),
+        d_propagator(true, true),
         d_assertions(d_smt.d_userContext),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
@@ -748,7 +744,7 @@ class SmtEnginePrivate : public NodeManagerListener {
    */
   void notifyPop() {
     d_assertions.clear();
-    d_nonClausalLearnedLiterals.clear();
+    d_propagator.getLearnedLiterals().clear();
     getIteSkolemMap().clear();
   }
 
@@ -2936,17 +2932,20 @@ bool SmtEnginePrivate::nonClausalSimplify() {
     return false;
   }
 
-
-  Trace("simplify") << "Iterate through " << d_nonClausalLearnedLiterals.size() << " learned literals." << std::endl;
+  Trace("simplify") << "Iterate through "
+                    << d_propagator.getLearnedLiterals().size()
+                    << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_smt.d_context);
   SubstitutionMap newSubstitutions(d_smt.d_context);
   SubstitutionMap::iterator pos;
-  unsigned j = 0;
-  for(unsigned i = 0, i_end = d_nonClausalLearnedLiterals.size(); i < i_end; ++ i) {
+  size_t j = 0;
+  std::vector<Node>& learned_literals = d_propagator.getLearnedLiterals();
+  for (size_t i = 0, i_end = learned_literals.size(); i < i_end; ++i)
+  {
     // Simplify the literal we learned wrt previous substitutions
-    Node learnedLiteral = d_nonClausalLearnedLiterals[i];
+    Node learnedLiteral = learned_literals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("simplify") << "Process learnedLiteral : " << learnedLiteral << std::endl;
@@ -2972,8 +2971,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
       } else {
         // If the learned literal simplifies to false, we're in conflict
         Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                          << "conflict with "
-                          << d_nonClausalLearnedLiterals[i] << endl;
+                          << "conflict with " << learned_literals[i] << endl;
         Assert(!options::unsatCores());
         d_assertions.clear();
         addFormula(NodeManager::currentNM()->mkConst<bool>(false), false, false);
@@ -3048,7 +3046,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
         }
         else {
           // Keep the literal
-          d_nonClausalLearnedLiterals[j++] = d_nonClausalLearnedLiterals[i];
+          learned_literals[j++] = learned_literals[i];
         }
         break;
     }
@@ -3056,8 +3054,8 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
 #ifdef CVC4_ASSERTIONS
   // NOTE: When debugging this code, consider moving this check inside of the
-  // loop over d_nonClausalLearnedLiterals. This check has been moved outside
-  // because it is costly for certain inputs (see bug 508).
+  // loop over d_propagator.getLearnedLiterals(). This check has been moved
+  // outside because it is costly for certain inputs (see bug 508).
   //
   // Check data structure invariants:
   // 1. for each lhs of top_level_substs, does not appear anywhere in rhs of
@@ -3096,7 +3094,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
 
   // Resize the learnt
   Trace("simplify") << "Resize non-clausal learned literals to " << j << std::endl;
-  d_nonClausalLearnedLiterals.resize(j);
+  learned_literals.resize(j);
 
   unordered_set<TNode, TNodeHashFunction> s;
   Trace("debugging") << "NonClausal simplify pre-preprocess\n";
@@ -3162,8 +3160,9 @@ bool SmtEnginePrivate::nonClausalSimplify() {
   Assert(d_assertions.getRealAssertionsEnd() <= d_assertions.size());
   learnedBuilder << d_assertions[d_assertions.getRealAssertionsEnd() - 1];
 
-  for (unsigned i = 0; i < d_nonClausalLearnedLiterals.size(); ++ i) {
-    Node learned = d_nonClausalLearnedLiterals[i];
+  for (size_t i = 0; i < learned_literals.size(); ++i)
+  {
+    Node learned = learned_literals[i];
     Assert(top_level_substs.apply(learned) == learned);
     Node learnedNew = newSubstitutions.apply(learned);
     if (learned != learnedNew) {
@@ -3187,7 +3186,7 @@ bool SmtEnginePrivate::nonClausalSimplify() {
                       << "non-clausal learned : "
                       << learned << endl;
   }
-  d_nonClausalLearnedLiterals.clear();
+  learned_literals.clear();
 
   for (pos = constantPropagations.begin(); pos != constantPropagations.end(); ++pos) {
     Node cProp = (*pos).first.eqNode((*pos).second);
