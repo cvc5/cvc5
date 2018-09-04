@@ -159,8 +159,6 @@ make, make check, and make install without incident:
     make
     make check    [optional but a good idea!]
 
-After running ./configure, 
-
 To build from a repository checkout (rather than a distributed CVC4
 tarball), there are additional dependencies; see below.
 
