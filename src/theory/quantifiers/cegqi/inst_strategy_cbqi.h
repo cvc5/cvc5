@@ -27,15 +27,29 @@ namespace quantifiers {
   
 class InstStrategyCegqi;
 
+/** 
+ * An output channel class, used by instantiator objects below. The methods
+ * of this class call the corresponding functions of InstStrategyCegqi below.
+ */
 class CegqiOutputInstStrategy : public CegqiOutput {
 public:
   CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
+  /** The module whose functions we call. */
   InstStrategyCegqi * d_out;
+  /** add instantiation */
   bool doAddInstantiation(std::vector<Node>& subs) override;
+  /** is eligible for instantiation */
   bool isEligibleForInstantiation(Node n) override;
+  /** add lemma */
   bool addLemma(Node lem) override;
 };
 
+/** 
+ * Counterexample-guided quantifier instantiation module.
+ * 
+ * This class manages counterexample-guided instantiation strategies for all
+ * asserted quantified formulas.
+ */
 class InstStrategyCegqi : public QuantifiersModule {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
@@ -73,9 +87,18 @@ class InstStrategyCegqi : public QuantifiersModule {
   /** Do nested quantifier elimination. */
   Node doNestedQE( Node q, std::vector< Node >& inst_terms, Node lem, bool doVts );
   
+  //------------------- interface for CegqiOutputInstStrategy
+  /** Instantiate the current quantified formula forall x. Q with x -> subs. */
   bool doAddInstantiation( std::vector< Node >& subs );
+  /** 
+   * Are we allowed to instantiate the current quantified formula with n? This
+   * includes restrictions such as if n is a variable, it must occur free in
+   * the current quantified formula.
+   */
   bool isEligibleForInstantiation( Node n );
+  /** Add lemma lem via the output channel of this class. */
   bool addLemma( Node lem );
+  //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
   /** set quantified formula inactive
@@ -101,16 +124,42 @@ class InstStrategyCegqi : public QuantifiersModule {
   std::map< Node, bool > d_active_quant;
   /** Whether cegqi handles each quantified formula. */
   std::map<Node, CegHandledStatus> d_do_cbqi;
-  //------------ from cegqi
+  /** 
+   * An output channel used by instantiators for communicating with this
+   * class.
+   */
   CegqiOutputInstStrategy * d_out;
+  /** 
+   * The instantiator for each quantified formula q registered to this class.
+   * This object is responsible for finding instantiatons for q.
+   */
   std::map< Node, CegInstantiator * > d_cinst;
-  Node d_small_const;
+  /** the current quantified formula we are processing */
   Node d_curr_quant;
+  //---------------------- for vts delta minimization
+  /** 
+   * Whether we will use vts delta minimization. If this flag is true, we
+   * add lemmas on demand of the form delta < c^1, delta < c^2, ... where c
+   * is a small (< 1) constant. This heuristic is used in strategies where
+   * vts delta cannot be fully eliminated from assertions (for example, when
+   * using nested quantifiers and a non-innermost instantiation strategy).
+   * The same strategy applies for vts infinity, which we add lemmas of the
+   * form inf > (1/c)^1, inf > (1/c)^2, ....
+   */
   bool d_check_vts_lemma_lc;
-  //------------ end from cegqi
+  /** a small constant, used as a coefficient above */
+  Node d_small_const;
+  //---------------------- end for vts delta minimization
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
-  virtual void registerCounterexampleLemma( Node q, Node lem );
+  /** register counterexample lemma 
+   * 
+   * This is called when we have constructed lem, the negation of the body of
+   * quantified formula q, skolemized with the instantiation constants of q.
+   * This function is used for setting up the proper information in the
+   * instantiator for q.
+   */
+  void registerCounterexampleLemma( Node q, Node lem );
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
   /** get next decision request with dependency checking */
