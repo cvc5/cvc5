@@ -913,11 +913,21 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
   } else if( r.getKind() == kind::REGEXP_STAR ) {
     if (x.isConst())
     {
-      if (x.getConst<String>().size() == 0)
+      String s = x.getConst<String>();
+      if (s.size() == 0)
       {
         retNode = nm->mkConst(true);
         // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
-        return returnRewrite(node, retNode, "re-empty-in-star");
+        return returnRewrite(node, retNode, "re-empty-in-str-star");
+      }
+      else if( s.size()==1 )
+      {
+        if( r[0].getKind()==STRING_TO_REGEXP )
+        {
+          retNode = r[0][0].eqNode(x);
+          // e.g. (str.in.re "A" (re.* (str.to.re x))) ----> "A" = x
+          return returnRewrite(node, retNode, "re-char-in-str-star");
+        }
       }
     }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
