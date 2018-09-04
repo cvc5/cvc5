@@ -79,17 +79,16 @@ void CegConjectureSingleInv::getInitialSingleInvLemma(Node g,
   d_single_inv_var.clear();
   d_single_inv_sk.clear();
   Node inst;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   if (d_single_inv.getKind() == FORALL)
   {
     for (unsigned i = 0, size = d_single_inv[0].getNumChildren(); i < size; i++)
     {
       std::stringstream ss;
       ss << "k_" << d_single_inv[0][i];
-      Node k = nm->mkSkolem(
-          ss.str(),
-          d_single_inv[0][i].getType(),
-          "single invocation function skolem");
+      Node k = nm->mkSkolem(ss.str(),
+                            d_single_inv[0][i].getType(),
+                            "single invocation function skolem");
       d_single_inv_var.push_back(d_single_inv[0][i]);
       d_single_inv_sk.push_back(k);
       d_single_inv_sk_index[k] = i;
