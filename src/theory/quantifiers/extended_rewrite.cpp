@@ -1684,9 +1684,19 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
         tcontains[i] = Rewriter::rewrite(tc);
         if (tcontains[i].isConst())
         {
-          Assert(tcontains[i].getConst<bool>());
-          tcontainsOneTrue = true;
-          tcontainsTrueIndex = i;
+          if(tcontains[i].getConst<bool>())
+          {
+            tcontainsOneTrue = true;
+            tcontainsTrueIndex = i;
+            Trace("ajr-temp") << "tmp : " << tc << " rewrites to " << tcontains[i] << std::endl;
+          }
+          else
+          {
+            new_ret = tcontains[i];
+            // if str.contains( x, y ) ---> false  then   x = y ---> false
+            debugExtendedRewrite(ret, new_ret, "eq-contains-one-false");
+            return new_ret;
+          }
         }
       }
       if (tcontainsOneTrue)
