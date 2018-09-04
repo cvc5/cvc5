@@ -278,19 +278,19 @@ TheoryEngine::TheoryEngine(context::Context* context,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo,
                            LemmaChannels* channels)
-    : d_propEngine(NULL),
-      d_decisionEngine(NULL),
+    : d_propEngine(nullptr),
+      d_decisionEngine(nullptr),
       d_context(context),
       d_userContext(userContext),
       d_logicInfo(logicInfo),
       d_sharedTerms(this, context),
-      d_masterEqualityEngine(NULL),
+      d_masterEqualityEngine(nullptr),
       d_masterEENotify(*this),
-      d_quantEngine(NULL),
+      d_quantEngine(nullptr),
       d_decManager(nullptr),
-      d_curr_model(NULL),
+      d_curr_model(nullptr),
       d_aloc_curr_model(false),
-      d_curr_model_builder(NULL),
+      d_curr_model_builder(nullptr),
       d_aloc_curr_model_builder(false),
       d_ppCache(),
       d_possiblePropagations(context),
@@ -324,6 +324,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
+  // initialize the decision manager
   d_decManager = new DecisionManager(context);
 
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
