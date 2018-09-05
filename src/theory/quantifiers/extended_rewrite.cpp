@@ -1793,18 +1793,15 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
                 }
               }
             }
-            if (isHomogeneous)
+            if (isHomogeneous && !std::is_sorted(c[1-i]))
             {
-              std::sort(c[1 - i].begin(), c[1 - i].end());
               Node ss = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,
                                                                  c[1 - i]);
-              if (ss != ret[1 - i])
-              {
-                // e.g. "AA" = x ++ y ---> "AA" = y ++ x if y < x
-                new_ret = ret[i].eqNode(ss);
-                debugExtendedRewrite(ret, new_ret, "string-eq-homog-const");
-                return new_ret;
-              }
+              Assert(ss != ret[1 - i]);
+              // e.g. "AA" = x ++ y ---> "AA" = y ++ x if y < x
+              new_ret = ret[i].eqNode(ss);
+              debugExtendedRewrite(ret, new_ret, "string-eq-homog-const");
+              return new_ret;
             }
           }
         }
