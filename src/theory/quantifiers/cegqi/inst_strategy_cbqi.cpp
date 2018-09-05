@@ -98,6 +98,19 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
   return QEFFORT_NONE;
 }
 
+class CexLiteralDecisionStrategy : public DecisionStrategySingleton
+{
+  public:
+    CexLiteralDecisionStrategy(context::Context* satContext, Valuation valuation,QuantifiersEngine * qe, Node q ) :DecisionStrategySingleton(satContext,valuation), d_qe(qe),d_quant(q){}
+    /** make the counterexample literal for q */
+   Node mkSingleLiteral() override { return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant); }
+  private:
+    /** pointer to the quantifers engine */
+    QuantifiersEngine * d_qe;
+    /** the quantified formula */
+    Node d_quant;
+};
+
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
 {
   if( !hasAddedCbqiLemma( q ) ){

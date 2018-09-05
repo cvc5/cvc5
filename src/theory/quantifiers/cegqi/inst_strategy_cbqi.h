@@ -168,7 +168,7 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
-
+  
  protected:
   //for identification
   uint64_t d_qid_count;
