@@ -1815,10 +1815,12 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
                     bool conflict = false;
                     if (vec.empty())
                     {
+                      // e.g. "" = x ++ "A" ---> false
                       conflict = true;
                     }
                     else if (vecj[k] != hchar)
                     {
+                      // e.g. "AA" = x ++ "B" ---> false
                       conflict = true;
                     }
                     else
@@ -1826,16 +1828,15 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
                       rmChar++;
                       if (rmChar > lhss.size())
                       {
-                        // generally should not happen due to the strings
-                        // rewriter, but we do this rewrite just in case
+                        // e.g. "AA" = x ++ "AAA" ---> false
                         conflict = true;
                       }
                     }
                     if (conflict)
                     {
-                      // this mostly should be taken care of by multiset
-                      // reasoning in the strings rewriter, but we do this
-                      // rewrite just in case.
+                      // The three conflict cases should mostly should be taken
+                      // care of by multiset reasoning in the strings rewriter,
+                      // but we recognize this conflict just in case.
                       new_ret = nm->mkConst(false);
                       debugExtendedRewrite(
                           ret, new_ret, "string-eq-const-conflict");
