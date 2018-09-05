@@ -15,10 +15,6 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/libcvc4.3)
 
 configure_file(
-  ${CMAKE_CURRENT_SOURCE_DIR}/libcvc4compat.3.in
-  ${CMAKE_CURRENT_BINARY_DIR}/libcvc4compat.3)
-
-configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/libcvc4parser.3.in
   ${CMAKE_CURRENT_BINARY_DIR}/libcvc4parser.3)
 
