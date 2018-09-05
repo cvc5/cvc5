@@ -26,44 +26,78 @@ set(cvc4_src_files
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  preprocessing/assertion_pipeline.cpp
+  preprocessing/assertion_pipeline.h
   preprocessing/passes/apply_substs.cpp
   preprocessing/passes/apply_substs.h
+  preprocessing/passes/apply_to_const.cpp
+  preprocessing/passes/apply_to_const.h
   preprocessing/passes/bool_to_bv.cpp
   preprocessing/passes/bool_to_bv.h
   preprocessing/passes/bv_abstraction.cpp
   preprocessing/passes/bv_abstraction.h
   preprocessing/passes/bv_ackermann.cpp
   preprocessing/passes/bv_ackermann.h
+  preprocessing/passes/bv_eager_atoms.cpp
+  preprocessing/passes/bv_eager_atoms.h
   preprocessing/passes/bv_gauss.cpp
   preprocessing/passes/bv_gauss.h
   preprocessing/passes/bv_intro_pow2.cpp
   preprocessing/passes/bv_intro_pow2.h
   preprocessing/passes/bv_to_bool.cpp
   preprocessing/passes/bv_to_bool.h
+  preprocessing/passes/extended_rewriter_pass.cpp
+  preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/global_negate.cpp
+  preprocessing/passes/global_negate.h
   preprocessing/passes/int_to_bv.cpp
   preprocessing/passes/int_to_bv.h
+  preprocessing/passes/ite_removal.cpp
+  preprocessing/passes/ite_removal.h
+  preprocessing/passes/ite_simp.cpp
+  preprocessing/passes/ite_simp.h
+  preprocessing/passes/miplib_trick.cpp
+  preprocessing/passes/miplib_trick.h
+  preprocessing/passes/nl_ext_purify.cpp
+  preprocessing/passes/nl_ext_purify.h
+  preprocessing/passes/non_clausal_simp.cpp
+  preprocessing/passes/non_clausal_simp.h
   preprocessing/passes/pseudo_boolean_processor.cpp
   preprocessing/passes/pseudo_boolean_processor.h
+  preprocessing/passes/quantifier_macros.cpp
+  preprocessing/passes/quantifier_macros.h
+  preprocessing/passes/quantifiers_preprocess.cpp
+  preprocessing/passes/quantifiers_preprocess.h
   preprocessing/passes/real_to_int.cpp
   preprocessing/passes/real_to_int.h
   preprocessing/passes/rewrite.cpp
   preprocessing/passes/rewrite.h
   preprocessing/passes/sep_skolem_emp.cpp
   preprocessing/passes/sep_skolem_emp.h
+  preprocessing/passes/sort_infer.cpp
+  preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/sygus_inference.cpp
+  preprocessing/passes/sygus_inference.h
   preprocessing/passes/symmetry_breaker.cpp
   preprocessing/passes/symmetry_breaker.h
   preprocessing/passes/symmetry_detect.cpp
   preprocessing/passes/symmetry_detect.h
   preprocessing/passes/synth_rew_rules.cpp
   preprocessing/passes/synth_rew_rules.h
+  preprocessing/passes/theory_preprocess.cpp
+  preprocessing/passes/theory_preprocess.h
+  preprocessing/passes/unconstrained_simplifier.cpp
+  preprocessing/passes/unconstrained_simplifier.h
   preprocessing/preprocessing_pass.cpp
   preprocessing/preprocessing_pass.h
   preprocessing/preprocessing_pass_context.cpp
   preprocessing/preprocessing_pass_context.h
   preprocessing/preprocessing_pass_registry.cpp
   preprocessing/preprocessing_pass_registry.h
+  preprocessing/util/ite_utilities.cpp
+  preprocessing/util/ite_utilities.h
   printer/ast/ast_printer.cpp
   printer/ast/ast_printer.h
   printer/cvc/cvc_printer.cpp
@@ -89,6 +123,8 @@ set(cvc4_src_files
   proof/cnf_proof.h
   proof/lemma_proof.cpp
   proof/lemma_proof.h
+  proof/lfsc_proof_printer.cpp
+  proof/lfsc_proof_printer.h
   proof/proof.h
   proof/proof_manager.cpp
   proof/proof_manager.h
@@ -136,6 +172,8 @@ set(cvc4_src_files
   smt/managed_ostreams.h
   smt/model.cpp
   smt/model.h
+  smt/model_core_builder.cpp
+  smt/model_core_builder.h
   smt/smt_engine.cpp
   smt/smt_engine.h
   smt/smt_engine_check_proof.cpp
@@ -297,6 +335,10 @@ set(cvc4_src_files
   theory/datatypes/theory_datatypes_type_rules.h
   theory/datatypes/type_enumerator.cpp
   theory/datatypes/type_enumerator.h
+  theory/decision_manager.cpp
+  theory/decision_manager.h
+  theory/decision_strategy.cpp
+  theory/decision_strategy.h
   theory/evaluator.cpp
   theory/evaluator.h
   theory/ext_theory.cpp
@@ -318,8 +360,6 @@ set(cvc4_src_files
   theory/idl/theory_idl.cpp
   theory/idl/theory_idl.h
   theory/interrupted.h
-  theory/ite_utilities.cpp
-  theory/ite_utilities.h
   theory/logic_info.cpp
   theory/logic_info.h
   theory/output_channel.h
@@ -343,8 +383,8 @@ set(cvc4_src_files
   theory/quantifiers/cegqi/ceg_epr_instantiator.h
   theory/quantifiers/cegqi/ceg_instantiator.cpp
   theory/quantifiers/cegqi/ceg_instantiator.h
-  theory/quantifiers/cegqi/inst_strategy_cbqi.cpp
-  theory/quantifiers/cegqi/inst_strategy_cbqi.h
+  theory/quantifiers/cegqi/inst_strategy_cegqi.cpp
+  theory/quantifiers/cegqi/inst_strategy_cegqi.h
   theory/quantifiers/conjecture_generator.cpp
   theory/quantifiers/conjecture_generator.h
   theory/quantifiers/dynamic_rewrite.cpp
@@ -365,6 +405,10 @@ set(cvc4_src_files
   theory/quantifiers/equality_infer.h
   theory/quantifiers/equality_query.cpp
   theory/quantifiers/equality_query.h
+  theory/quantifiers/expr_miner.cpp
+  theory/quantifiers/expr_miner.h
+  theory/quantifiers/expr_miner_manager.cpp
+  theory/quantifiers/expr_miner_manager.h
   theory/quantifiers/extended_rewrite.cpp
   theory/quantifiers/extended_rewrite.h
   theory/quantifiers/first_order_model.cpp
@@ -381,8 +425,6 @@ set(cvc4_src_files
   theory/quantifiers/fmf/model_engine.h
   theory/quantifiers/fun_def_process.cpp
   theory/quantifiers/fun_def_process.h
-  theory/quantifiers/global_negate.cpp
-  theory/quantifiers/global_negate.h
   theory/quantifiers/inst_match.cpp
   theory/quantifiers/inst_match.h
   theory/quantifiers/inst_match_trie.cpp
@@ -397,8 +439,6 @@ set(cvc4_src_files
   theory/quantifiers/lazy_trie.h
   theory/quantifiers/local_theory_ext.cpp
   theory/quantifiers/local_theory_ext.h
-  theory/quantifiers/macros.cpp
-  theory/quantifiers/macros.h
   theory/quantifiers/quant_conflict_find.cpp
   theory/quantifiers/quant_conflict_find.h
   theory/quantifiers/quant_epr.cpp
@@ -421,10 +461,6 @@ set(cvc4_src_files
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
   theory/quantifiers/skolemize.h
-  theory/quantifiers/sygus/ce_guided_conjecture.cpp
-  theory/quantifiers/sygus/ce_guided_conjecture.h
-  theory/quantifiers/sygus/ce_guided_instantiation.cpp
-  theory/quantifiers/sygus/ce_guided_instantiation.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
   theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
@@ -461,12 +497,16 @@ set(cvc4_src_files
   theory/quantifiers/sygus/sygus_unif_rl.h
   theory/quantifiers/sygus/sygus_unif_strat.cpp
   theory/quantifiers/sygus/sygus_unif_strat.h
+  theory/quantifiers/sygus/synth_conjecture.cpp
+  theory/quantifiers/sygus/synth_conjecture.h
+  theory/quantifiers/sygus/synth_engine.cpp
+  theory/quantifiers/sygus/synth_engine.h
   theory/quantifiers/sygus/term_database_sygus.cpp
   theory/quantifiers/sygus/term_database_sygus.h
-  theory/quantifiers/sygus_inference.cpp
-  theory/quantifiers/sygus_inference.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
+  theory/quantifiers/term_canonize.cpp
+  theory/quantifiers/term_canonize.h
   theory/quantifiers/term_database.cpp
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp
@@ -504,8 +544,12 @@ set(cvc4_src_files
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/regexp_elim.cpp
+  theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
+  theory/strings/skolem_cache.cpp
+  theory/strings/skolem_cache.h
   theory/strings/theory_strings.cpp
   theory/strings/theory_strings.h
   theory/strings/theory_strings_preprocess.cpp
@@ -514,6 +558,8 @@ set(cvc4_src_files
   theory/strings/theory_strings_rewriter.h
   theory/strings/theory_strings_type_rules.h
   theory/strings/type_enumerator.h
+  theory/subs_minimize.cpp
+  theory/subs_minimize.h
   theory/substitutions.cpp
   theory/substitutions.h
   theory/term_registration_visitor.cpp
@@ -544,8 +590,6 @@ set(cvc4_src_files
   theory/uf/theory_uf_strong_solver.cpp
   theory/uf/theory_uf_strong_solver.h
   theory/uf/theory_uf_type_rules.h
-  theory/unconstrained_simplifier.cpp
-  theory/unconstrained_simplifier.h
   theory/valuation.cpp
   theory/valuation.h
 )
@@ -578,7 +622,6 @@ include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(base)
-add_subdirectory(compat)
 add_subdirectory(expr)
 add_subdirectory(lib)
 add_subdirectory(main)

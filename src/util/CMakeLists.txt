@@ -16,14 +16,12 @@ set(util_src_files
   dense_map.h
   divisible.cpp
   divisible.h
-  dynamic_array.h
   floatingpoint.cpp
   gmp_util.h
   hash.h
   index.cpp
   index.h
   maybe.h
-  ntuple.h
   ostream_util.cpp
   ostream_util.h
   proof.h

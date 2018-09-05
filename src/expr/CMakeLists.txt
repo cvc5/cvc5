@@ -18,6 +18,8 @@ set(expr_src_files
   matcher.h
   node.cpp
   node.h
+  node_algorithm.cpp
+  node_algorithm.h
   node_builder.h
   node_manager.cpp
   node_manager.h
