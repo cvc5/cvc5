@@ -1793,7 +1793,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
                 }
               }
             }
-            if (isHomogeneous && !std::is_sorted(c[1-i]))
+            if (isHomogeneous && !std::is_sorted(c[1-i].begin(),c[1-i].end()))
             {
               Node ss = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,
                                                                  c[1 - i]);
