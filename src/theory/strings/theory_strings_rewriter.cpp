@@ -911,6 +911,25 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     Node one = nm->mkConst(Rational(1));
     retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
+    if (x.isConst())
+    {
+      String s = x.getConst<String>();
+      if (s.size() == 0)
+      {
+        retNode = nm->mkConst(true);
+        // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
+        return returnRewrite(node, retNode, "re-empty-in-str-star");
+      }
+      else if (s.size() == 1)
+      {
+        if (r[0].getKind() == STRING_TO_REGEXP)
+        {
+          retNode = r[0][0].eqNode(x);
+          // e.g. (str.in.re "A" (re.* (str.to.re x))) ----> "A" = x
+          return returnRewrite(node, retNode, "re-char-in-str-star");
+        }
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
@@ -919,8 +938,6 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     bool allSigma = true;
     bool allSigmaStrict = true;
     unsigned allSigmaMinSize = 0;
-    bool allString = true;
-    std::vector< Node > cc;
     for (const Node& rc : r)
     {
       Assert(rc.getKind() != kind::REGEXP_EMPTY);
@@ -935,14 +952,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       else
       {
         allSigma = false;
-      }
-      if (rc.getKind() != kind::STRING_TO_REGEXP)
-      {
-        allString = false;
-      }
-      else
-      {
-        cc.push_back(rc);
+        break;
       }
     }
     if (allSigma)
@@ -951,11 +961,6 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       Node lenx = nm->mkNode(STRING_LENGTH, x);
       retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
       return returnRewrite(node, retNode, "re-concat-pure-allchar");
-    }
-    else if (allString)
-    {
-      retNode = x.eqNode(mkConcat(STRING_CONCAT, cc));
-      return returnRewrite(node, retNode, "re-concat-pure-str");
     }
   }else if( r.getKind()==kind::REGEXP_INTER || r.getKind()==kind::REGEXP_UNION ){
     std::vector< Node > mvec;

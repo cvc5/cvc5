@@ -268,7 +268,10 @@ bool QuantInfo::reset_round( QuantConflictFind * p ) {
   
   d_mg->reset_round( p );
   for( std::map< int, MatchGen * >::iterator it = d_var_mg.begin(); it != d_var_mg.end(); ++it ){
-    it->second->reset_round( p );
+    if (!it->second->reset_round(p))
+    {
+      return false;
+    }
   }
   //now, reset for matching
   d_mg->reset( p, false, this );
@@ -1178,11 +1181,14 @@ void MatchGen::determineVariableOrder( QuantInfo * qi, std::vector< int >& bvars
   }
 }
 
-
-void MatchGen::reset_round( QuantConflictFind * p ) {
+bool MatchGen::reset_round(QuantConflictFind* p)
+{
   d_wasSet = false;
   for( unsigned i=0; i<d_children.size(); i++ ){
-    d_children[i].reset_round( p );
+    if (!d_children[i].reset_round(p))
+    {
+      return false;
+    }
   }
   for( std::map< int, TNode >::iterator it = d_qni_gterm.begin(); it != d_qni_gterm.end(); ++it ){
     d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
@@ -1194,18 +1200,31 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
     //}else if( e==-1 ){
     //  d_ground_eval[0] = p->d_false;
     //}
-    //modified 
-    for( unsigned i=0; i<2; i++ ){ 
-      if( p->getTermDatabase()->isEntailed( d_n, i==0 ) ){
+    //modified
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersEngine* qe = p->getQuantifiersEngine();
+    for( unsigned i=0; i<2; i++ ){
+      if (tdb->isEntailed(d_n, i == 0))
+      {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
+      }
+      if (qe->inConflict())
+      {
+        return false;
       }
     }
   }else if( d_type==typ_eq ){
-    for (unsigned i = 0; i < d_n.getNumChildren(); i++)
+    TermDb* tdb = p->getTermDatabase();
+    QuantifiersEngine* qe = p->getQuantifiersEngine();
+    for (unsigned i = 0, size = d_n.getNumChildren(); i < size; i++)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
-        TNode t = p->getTermDatabase()->getEntailedTerm(d_n[i]);
+        TNode t = tdb->getEntailedTerm(d_n[i]);        
+        if (qe->inConflict())
+        {
+          return false;
+        }
         if (t.isNull())
         {
           d_ground_eval[i] = d_n[i];
@@ -1220,6 +1239,7 @@ void MatchGen::reset_round( QuantConflictFind * p ) {
   d_qni_bound_cons.clear();
   d_qni_bound_cons_var.clear();
   d_qni_bound.clear();
+  return true;
 }
 
 void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
@@ -2038,9 +2058,10 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
                   }
                 }
                 Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
-                if( d_conflict || d_quantEngine->inConflict() ){
-                  break;
-                }
+              }
+              if (d_conflict || d_quantEngine->inConflict())
+              {
+                break;
               }
             }
           }

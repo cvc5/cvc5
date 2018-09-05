@@ -20,6 +20,8 @@
 
 #include "lib/clock_gettime.h"
 
+#ifndef HAVE_CLOCK_GETTIME
+
 #ifdef __cplusplus
 extern "C" {
 #endif /* __cplusplus */
@@ -83,3 +85,5 @@ long clock_gettime(clockid_t which_clock, struct timespec* tp) {
 #ifdef __cplusplus
 }/* extern "C" */
 #endif /* __cplusplus */
+
+#endif /* HAVE_CLOCK_GETTIME */
