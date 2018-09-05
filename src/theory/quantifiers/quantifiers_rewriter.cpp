@@ -517,6 +517,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                                 std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                                 std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << " " << hasPol << " " << pol << std::endl;
   Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
@@ -666,18 +667,6 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
           }
         }
       }
-    /* ITE lifting
-    if( ret.getKind()==ITE ){
-      TypeNode ite_t = ret[1].getType();
-      if( !ite_t.isBoolean() ){
-        ite_t = TypeNode::leastCommonTypeNode( ite_t, ret[2].getType() );
-        Node ite_v = NodeManager::currentNM()->mkBoundVar(ite_t);
-        new_vars.push_back( ite_v );
-        Node cond = NodeManager::currentNM()->mkNode(kind::ITE, ret[0], ite_v.eqNode( ret[1] ), ite_v.eqNode( ret[2] ) );
-        new_conds.push_back( cond.negate() );
-        ret = ite_v;
-      }
-      */
     }else if( elimExtArith ){
       if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
         Node num = ret[0];
@@ -720,6 +709,25 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         }else{
           ret = ret[0].eqNode( intVar );
         }
+      }
+    }
+    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
+    {
+      Node st = ret[0];
+      Node index = ret[1];
+      std::vector<Node> iconds;
+      std::vector<Node> elements;
+      while (st.getKind() == STORE)
+      {
+        iconds.push_back(index.eqNode(st[1]));
+        elements.push_back(st[2]);
+        st = st[0];
+      }
+      ret = nm->mkNode(SELECT, st, index);
+      // conditions
+      for (int i = (iconds.size() - 1); i >= 0; i--)
+      {
+        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
       }
     }
     icache[prev] = ret;
