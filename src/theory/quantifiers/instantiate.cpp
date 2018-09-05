@@ -491,7 +491,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 
 Node Instantiate::getTermForType(TypeNode tn)
 {
-  if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+  if (tn.isClosedEnumerable())
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }
