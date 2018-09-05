@@ -517,6 +517,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                                 std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                                 std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
+  NodeManager * nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << " " << hasPol << " " << pol << std::endl;
   Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
@@ -672,7 +673,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
       if( !ite_t.isBoolean() ){
         ite_t = TypeNode::leastCommonTypeNode( ite_t, ret[2].getType() );
         Node ite_v = NodeManager::currentNM()->mkBoundVar(ite_t);
-        new_vars.push_back( ite_v );
+        new_vars1.push_back( ite_v );
         Node cond = NodeManager::currentNM()->mkNode(kind::ITE, ret[0], ite_v.eqNode( ret[1] ), ite_v.eqNode( ret[2] ) );
         new_conds.push_back( cond.negate() );
         ret = ite_v;
@@ -738,7 +739,7 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
       // conditions
       for( int i=(iconds.size()-1); i>=0; i-- )
       {
-        ret = nm->mkNode( ITE, iconds[i], ret );
+        ret = nm->mkNode( ITE, iconds[i], elements[i], ret );
       }
     }
     icache[prev] = ret;
