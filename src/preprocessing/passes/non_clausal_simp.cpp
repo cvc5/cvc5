@@ -359,18 +359,17 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         || d_preprocContext->getSymsInAssertions().find(lhs)
                == d_preprocContext->getSymsInAssertions().end())
     {
-      Trace("simplify")
-          << "SmtEnginePrivate::nonClausalSimplify(): substitute: " << lhs
-          << " " << rhs << endl;
+      Trace("non-clausal-simplify")
+          << "substitute: " << lhs << " " << rhs << std::endl;
       m->addSubstitution(lhs, rhs);
     }
     else
     {
       // if it has, the substitution becomes an assertion
       Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
-      Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                           "substitute: will notify SAT layer of substitution: "
-                        << eq << endl;
+      Trace("non-clausal-simplify")
+          << "substitute: will notify SAT layer of substitution: " << eq
+          << std::endl;
       substitutionsBuilder << eq;
     }
   }
@@ -414,8 +413,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     s.insert(learned);
     learnedBuilder << learned;
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal learned : " << learned << std::endl;
+    Trace("non-clausal-simplify")
+        << "non-clausal learned : " << learned << std::endl;
   }
   learned_literals.clear();
 
@@ -436,9 +435,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     s.insert(cProp);
     learnedBuilder << cProp;
-    Trace("simplify") << "SmtEnginePrivate::nonClausalSimplify(): "
-                      << "non-clausal constant propagation : " << cProp
-                      << std::endl;
+    Trace("non-clausal-simplify")
+        << "non-clausal constant propagation : " << cProp << std::endl;
   }
 
   // Add new substitutions to topLevelSubstitutions
