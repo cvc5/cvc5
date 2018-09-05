@@ -61,7 +61,7 @@ bool hasFreeVar(TNode n);
  * @param syms The set which the symbols of n are added to
  */
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
-/** Same as above, with a visited cached */
+/** Same as above, with a visited cache */
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
