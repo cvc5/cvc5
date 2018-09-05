@@ -1676,55 +1676,13 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   {
     if (ret[0].getType().isString())
     {
-      Node tcontains[2];
-      bool tcontainsOneTrue = false;
-      unsigned tcontainsTrueIndex = 0;
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node tc = nm->mkNode(STRING_STRCTN, ret[i], ret[1 - i]);
-        tcontains[i] = Rewriter::rewrite(tc);
-        if (tcontains[i].isConst())
-        {
-          if (tcontains[i].getConst<bool>())
-          {
-            tcontainsOneTrue = true;
-            tcontainsTrueIndex = i;
-          }
-          else
-          {
-            new_ret = tcontains[i];
-            // if str.contains( x, y ) ---> false  then   x = y ---> false
-            // Notice we may not catch this in the rewriter for strings
-            // equality, since it only calls the specific rewriter for
-            // contains and not the full rewriter.
-            debugExtendedRewrite(ret, new_ret, "eq-contains-one-false");
-            return new_ret;
-          }
-        }
-      }
-      if (tcontainsOneTrue)
-      {
-        // if str.contains( x, y ) ---> true
-        // then x = y ---> contains( y, x )
-        new_ret = tcontains[1 - tcontainsTrueIndex];
-        debugExtendedRewrite(ret, new_ret, "eq-contains-one-true");
-        return new_ret;
-      }
-      else if (tcontains[0] == tcontains[1] && tcontains[0] != ret)
-      {
-        // if str.contains( x, y ) ---> t and str.contains( y, x ) ---> t,
-        // then x = y ---> t
-        new_ret = tcontains[0];
-        debugExtendedRewrite(ret, new_ret, "eq-dual-contains-eq");
-        return new_ret;
-      }
-
       std::vector<Node> c[2];
       for (unsigned i = 0; i < 2; i++)
       {
         strings::TheoryStringsRewriter::getConcat(ret[i], c[i]);
       }
 
+      // ------- equality unification
       bool changed = false;
       for (unsigned i = 0; i < 2; i++)
       {
@@ -1771,8 +1729,52 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
         debugExtendedRewrite(ret, new_ret, "string-eq-unify");
         return new_ret;
       }
-
-      // homogeneous constants
+      
+      // ------- using the contains rewriter to reduce equalities
+      Node tcontains[2];
+      bool tcontainsOneTrue = false;
+      unsigned tcontainsTrueIndex = 0;
+      for (unsigned i = 0; i < 2; i++)
+      {
+        Node tc = nm->mkNode(STRING_STRCTN, ret[i], ret[1 - i]);
+        tcontains[i] = Rewriter::rewrite(tc);
+        if (tcontains[i].isConst())
+        {
+          if (tcontains[i].getConst<bool>())
+          {
+            tcontainsOneTrue = true;
+            tcontainsTrueIndex = i;
+          }
+          else
+          {
+            new_ret = tcontains[i];
+            // if str.contains( x, y ) ---> false  then   x = y ---> false
+            // Notice we may not catch this in the rewriter for strings
+            // equality, since it only calls the specific rewriter for
+            // contains and not the full rewriter.
+            debugExtendedRewrite(ret, new_ret, "eq-contains-one-false");
+            return new_ret;
+          }
+        }
+      }
+      if (tcontainsOneTrue)
+      {
+        // if str.contains( x, y ) ---> true
+        // then x = y ---> contains( y, x )
+        new_ret = tcontains[1 - tcontainsTrueIndex];
+        debugExtendedRewrite(ret, new_ret, "eq-contains-one-true");
+        return new_ret;
+      }
+      else if (tcontains[0] == tcontains[1] && tcontains[0] != ret)
+      {
+        // if str.contains( x, y ) ---> t and str.contains( y, x ) ---> t,
+        // then x = y ---> t
+        new_ret = tcontains[0];
+        debugExtendedRewrite(ret, new_ret, "eq-dual-contains-eq");
+        return new_ret;
+      }
+      
+      // ------- homogeneous constants
       if (d_aggr)
       {
         for (unsigned i = 0; i < 2; i++)
@@ -1780,10 +1782,12 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
           if (ret[i].isConst())
           {
             bool isHomogeneous = true;
-            std::vector<unsigned> vec = ret[i].getConst<String>().getVec();
+            unsigned hchar = 0;
+            String lhss = ret[i].getConst<String>();
+            std::vector<unsigned> vec = lhss.getVec();
             if (vec.size() > 1)
             {
-              unsigned hchar = vec[0];
+              hchar = vec[0];
               for (unsigned j = 1, size = vec.size(); j < size; j++)
               {
                 if (vec[j] != hchar)
@@ -1793,15 +1797,69 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
                 }
               }
             }
-            if (isHomogeneous && !std::is_sorted(c[1-i].begin(),c[1-i].end()))
+            if (isHomogeneous)
             {
+              std::sort(c[1-i].begin(),c[1-i].end());
+              std::vector< Node > trimmed;
+              unsigned rmChar = 0;
+              for( unsigned j=0, size = c[1-i].size(); j<size; j++ )
+              {
+                if( c[1-i][j].isConst() )
+                {
+                  // process the constant : either we have a conflict, or we drop an equal number of constants on the LHS
+                  std::vector<unsigned> vecj = c[1-i][j].getConst<String>().getVec();
+                  for( unsigned k=0, sizev = vecj.size(); k<sizev; k++ )
+                  {
+                    bool conflict = false;
+                    if( vec.empty() )
+                    {
+                      conflict = true;
+                    }
+                    else if( vecj[k]!=hchar )
+                    {
+                      conflict = true;
+                    }
+                    else
+                    {
+                      rmChar++;
+                      if( rmChar>lhss.size() )
+                      {
+                        // generally should not happen due to the strings rewriter, but we do this rewrite just in case
+                        conflict = true;
+                      }
+                    }
+                    if( conflict )
+                    {
+                      // this mostly should be taken care of by multiset reasoning in the strings rewriter, but we do this rewrite just in case.
+                      new_ret = nm->mkConst(false);
+                      debugExtendedRewrite(ret, new_ret, "string-eq-const-conflict");
+                      return new_ret;
+                    }
+                  }
+                }
+                else
+                {
+                  trimmed.push_back( c[1-i][j] );
+                }
+              }
+              Node lhs = ret[i];
+              if( rmChar>0 )
+              {
+                Assert( lhss.size()>=rmChar );
+                // we trimmed
+                lhs = nm->mkConst( lhss.substr(0,lhss.size()-rmChar) );
+              }
               Node ss = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,
-                                                                 c[1 - i]);
-              Assert(ss != ret[1 - i]);
-              // e.g. "AA" = x ++ y ---> "AA" = y ++ x if y < x
-              new_ret = ret[i].eqNode(ss);
-              debugExtendedRewrite(ret, new_ret, "string-eq-homog-const");
-              return new_ret;
+                                                                 trimmed);
+              if(lhs!=ret[i] || ss != ret[1 - i])
+              {
+                // e.g.
+                //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
+                //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
+                new_ret = lhs.eqNode(ss);
+                debugExtendedRewrite(ret, new_ret, "string-eq-homog-const");
+                return new_ret;
+              }
             }
           }
         }
