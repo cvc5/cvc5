@@ -767,16 +767,8 @@ void Smt2Printer::toStream(std::ostream& out,
   if( n.getMetaKind() == kind::metakind::PARAMETERIZED &&
       stillNeedToPrintParams ) {
     if(toDepth != 0) {
-      if( d_variant==sygus_variant && n.getKind()==kind::APPLY_CONSTRUCTOR ){
-        std::stringstream ss;
-        toStream(ss, n.getOperator(), toDepth < 0 ? toDepth : toDepth - 1, types, TypeNode::null());
-        std::string tmp = ss.str();
-        size_t pos = 0;
-        if((pos = tmp.find("__Enum__", pos)) != std::string::npos){
-           tmp.replace(pos, 8, "::");
-        }
-        out << tmp;
-      }else if( n.getKind()==kind::APPLY_TESTER ){
+      if (n.getKind() == kind::APPLY_TESTER)
+      {
         unsigned cindex = Datatype::indexOf(n.getOperator().toExpr());
         const Datatype& dt = Datatype::datatypeOf(n.getOperator().toExpr());
         if (isVariant_2_6(d_variant))
