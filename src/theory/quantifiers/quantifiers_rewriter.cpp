@@ -722,6 +722,25 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         }
       }
     }
+    else if( ret.getKind()==SELECT && ret[0].getKind()==STORE )
+    {
+      Node st = ret[0];
+      Node index = ret[1];
+      std::vector< Node > iconds;
+      std::vector< Node > elements;
+      while( st.getKind()==STORE )
+      {
+        iconds.push_back( index.eqNode(st[1]) );
+        elements.push_back( st[2] );
+        st = st[0];
+      }
+      ret = nm->mkNode( SELECT, st, index );
+      // conditions
+      for( int i=(iconds.size()-1); i>=0; i-- )
+      {
+        ret = nm->mkNode( ITE, iconds[i], ret );
+      }
+    }
     icache[prev] = ret;
     return ret;
   }
