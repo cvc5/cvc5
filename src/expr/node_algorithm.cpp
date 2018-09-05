@@ -166,5 +166,41 @@ bool hasFreeVar(TNode n)
   return false;
 }
 
+void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  getSymbols(n, syms);
+}
+
+void getSymbols(TNode n,
+                std::unordered_set<Node, NodeHashFunction>& syms,
+                std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
+      {
+        syms.insert(cur);
+      }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      for (TNode cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
+}
+
 }  // namespace expr
 }  // namespace CVC4
