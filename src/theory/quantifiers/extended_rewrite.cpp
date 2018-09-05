@@ -1729,7 +1729,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
         debugExtendedRewrite(ret, new_ret, "string-eq-unify");
         return new_ret;
       }
-      
+
       // ------- using the contains rewriter to reduce equalities
       Node tcontains[2];
       bool tcontainsOneTrue = false;
@@ -1773,7 +1773,7 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
         debugExtendedRewrite(ret, new_ret, "eq-dual-contains-eq");
         return new_ret;
       }
-      
+
       // ------- homogeneous constants
       if (d_aggr)
       {
@@ -1799,59 +1799,65 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
             }
             if (isHomogeneous)
             {
-              std::sort(c[1-i].begin(),c[1-i].end());
-              std::vector< Node > trimmed;
+              std::sort(c[1 - i].begin(), c[1 - i].end());
+              std::vector<Node> trimmed;
               unsigned rmChar = 0;
-              for( unsigned j=0, size = c[1-i].size(); j<size; j++ )
+              for (unsigned j = 0, size = c[1 - i].size(); j < size; j++)
               {
-                if( c[1-i][j].isConst() )
+                if (c[1 - i][j].isConst())
                 {
-                  // process the constant : either we have a conflict, or we drop an equal number of constants on the LHS
-                  std::vector<unsigned> vecj = c[1-i][j].getConst<String>().getVec();
-                  for( unsigned k=0, sizev = vecj.size(); k<sizev; k++ )
+                  // process the constant : either we have a conflict, or we
+                  // drop an equal number of constants on the LHS
+                  std::vector<unsigned> vecj =
+                      c[1 - i][j].getConst<String>().getVec();
+                  for (unsigned k = 0, sizev = vecj.size(); k < sizev; k++)
                   {
                     bool conflict = false;
-                    if( vec.empty() )
+                    if (vec.empty())
                     {
                       conflict = true;
                     }
-                    else if( vecj[k]!=hchar )
+                    else if (vecj[k] != hchar)
                     {
                       conflict = true;
                     }
                     else
                     {
                       rmChar++;
-                      if( rmChar>lhss.size() )
+                      if (rmChar > lhss.size())
                       {
-                        // generally should not happen due to the strings rewriter, but we do this rewrite just in case
+                        // generally should not happen due to the strings
+                        // rewriter, but we do this rewrite just in case
                         conflict = true;
                       }
                     }
-                    if( conflict )
+                    if (conflict)
                     {
-                      // this mostly should be taken care of by multiset reasoning in the strings rewriter, but we do this rewrite just in case.
+                      // this mostly should be taken care of by multiset
+                      // reasoning in the strings rewriter, but we do this
+                      // rewrite just in case.
                       new_ret = nm->mkConst(false);
-                      debugExtendedRewrite(ret, new_ret, "string-eq-const-conflict");
+                      debugExtendedRewrite(
+                          ret, new_ret, "string-eq-const-conflict");
                       return new_ret;
                     }
                   }
                 }
                 else
                 {
-                  trimmed.push_back( c[1-i][j] );
+                  trimmed.push_back(c[1 - i][j]);
                 }
               }
               Node lhs = ret[i];
-              if( rmChar>0 )
+              if (rmChar > 0)
               {
-                Assert( lhss.size()>=rmChar );
+                Assert(lhss.size() >= rmChar);
                 // we trimmed
-                lhs = nm->mkConst( lhss.substr(0,lhss.size()-rmChar) );
+                lhs = nm->mkConst(lhss.substr(0, lhss.size() - rmChar));
               }
               Node ss = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,
                                                                  trimmed);
-              if(lhs!=ret[i] || ss != ret[1 - i])
+              if (lhs != ret[i] || ss != ret[1 - i])
               {
                 // e.g.
                 //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
