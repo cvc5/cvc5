@@ -911,30 +911,56 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     Node one = nm->mkConst(Rational(1));
     retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
+    if (x.isConst())
+    {
+      String s = x.getConst<String>();
+      if (s.size() == 0)
+      {
+        retNode = nm->mkConst(true);
+        // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
+        return returnRewrite(node, retNode, "re-empty-in-str-star");
+      }
+      else if (s.size() == 1)
+      {
+        if (r[0].getKind() == STRING_TO_REGEXP)
+        {
+          retNode = r[0][0].eqNode(x);
+          // e.g. (str.in.re "A" (re.* (str.to.re x))) ----> "A" = x
+          return returnRewrite(node, retNode, "re-char-in-str-star");
+        }
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
     }
   }else if( r.getKind() == kind::REGEXP_CONCAT ){
     bool allSigma = true;
-    bool allString = true;
-    std::vector< Node > cc;
-    for(unsigned i=0; i<r.getNumChildren(); i++) {
-      Assert( r[i].getKind() != kind::REGEXP_EMPTY );
-      if( r[i].getKind() != kind::REGEXP_SIGMA ){
-        allSigma = false;
+    bool allSigmaStrict = true;
+    unsigned allSigmaMinSize = 0;
+    for (const Node& rc : r)
+    {
+      Assert(rc.getKind() != kind::REGEXP_EMPTY);
+      if (rc.getKind() == kind::REGEXP_SIGMA)
+      {
+        allSigmaMinSize++;
       }
-      if( r[i].getKind() != kind::STRING_TO_REGEXP ){
-        allString = false;
-      }else{
-        cc.push_back( r[i] );
+      else if (rc.getKind() == REGEXP_STAR && rc[0].getKind() == REGEXP_SIGMA)
+      {
+        allSigmaStrict = false;
+      }
+      else
+      {
+        allSigma = false;
+        break;
       }
     }
-    if( allSigma ){
-      Node num = NodeManager::currentNM()->mkConst( ::CVC4::Rational( r.getNumChildren() ) );
-      retNode = num.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, x));
-    }else if( allString ){
-      retNode = x.eqNode( mkConcat( kind::STRING_CONCAT, cc ) );
+    if (allSigma)
+    {
+      Node num = nm->mkConst(Rational(allSigmaMinSize));
+      Node lenx = nm->mkNode(STRING_LENGTH, x);
+      retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
+      return returnRewrite(node, retNode, "re-concat-pure-allchar");
     }
   }else if( r.getKind()==kind::REGEXP_INTER || r.getKind()==kind::REGEXP_UNION ){
     std::vector< Node > mvec;

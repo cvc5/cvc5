@@ -22,8 +22,12 @@ namespace preprocessing {
 PreprocessingPassContext::PreprocessingPassContext(
     SmtEngine* smt,
     ResourceManager* resourceManager,
-    RemoveTermFormulas* iteRemover)
-    : d_smt(smt), d_resourceManager(resourceManager), d_iteRemover(iteRemover)
+    RemoveTermFormulas* iteRemover,
+    theory::booleans::CircuitPropagator* circuitPropagator)
+    : d_smt(smt),
+      d_resourceManager(resourceManager),
+      d_iteRemover(iteRemover),
+      d_circuitPropagator(circuitPropagator)
 {
 }
 
@@ -31,6 +35,12 @@ void PreprocessingPassContext::widenLogic(theory::TheoryId id)
 {
   LogicRequest req(*d_smt);
   req.widenLogic(id);
+}
+
+void PreprocessingPassContext::enableIntegers()
+{
+  LogicRequest req(*d_smt);
+  req.enableIntegers();
 }
 
 }  // namespace preprocessing

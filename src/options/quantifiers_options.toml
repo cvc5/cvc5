@@ -1001,6 +1001,13 @@ header = "options/quantifiers_options.h"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
+  name       = "sygusRepairConstTimeout"
+  category   = "regular"
+  long       = "sygus-repair-const-timeout=N"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
+
+[[option]]
   name       = "sygusMinGrammar"
   category   = "regular"
   long       = "sygus-min-grammar"
