@@ -48,7 +48,7 @@ private:
    */
   bool assignConjecture(Node q);
   /** check conjecture */
-  void checkCegConjecture( CegConjecture * conj );
+  void checkConjecture( CegConjecture * conj );
 public:
   CegInstantiation( QuantifiersEngine * qe, context::Context* c );
   ~CegInstantiation();

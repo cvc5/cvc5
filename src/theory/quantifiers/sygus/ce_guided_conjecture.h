@@ -59,7 +59,7 @@ public:
    * refinement */
   void incrementRefineCount() { d_refine_count++; }
   /** whether the conjecture is waiting for a call to doCheck below */
-  bool needsCheck( std::vector< Node >& lem );
+  bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement() const;
   /** do single invocation check 
