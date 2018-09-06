@@ -610,6 +610,7 @@ REG0_TESTS = \
 	regress0/quantifiers/cegqi-nl-sq.smt2 \
 	regress0/quantifiers/clock-10.smt2 \
 	regress0/quantifiers/clock-3.smt2 \
+	regress0/quantifiers/cond-var-elim-binary.smt2 \
 	regress0/quantifiers/delta-simp.smt2 \
 	regress0/quantifiers/double-pattern.smt2 \
 	regress0/quantifiers/ex3.smt2 \
@@ -621,6 +622,7 @@ REG0_TESTS = \
 	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/issue2031-bv-var-elim.smt2 \
 	regress0/quantifiers/issue2033-macro-arith.smt2 \
+	regress0/quantifiers/issue2035.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
@@ -823,6 +825,7 @@ REG0_TESTS = \
 	regress0/strings/strings-charat.cvc \
 	regress0/strings/strings-native-simple.cvc \
 	regress0/strings/strip-endpoint-itos.smt2 \
+	regress0/strings/str_unsound_ext_rew_eq.smt2 \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
@@ -1399,6 +1402,7 @@ REG1_TESTS = \
 	regress1/rr-verify/bool-crci.sy \
 	regress1/rr-verify/bv-term-32.sy \
 	regress1/rr-verify/bv-term.sy \
+	regress1/rr-verify/regex.sy \
 	regress1/rr-verify/string-term.sy \
 	regress1/sep/chain-int.smt2 \
 	regress1/sep/crash1220.smt2 \

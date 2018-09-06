@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
 	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
+SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser bindings main
 # The THEORIES list has been moved to Makefile.theories
 include @top_srcdir@/src/Makefile.theories
 
@@ -792,7 +792,6 @@ uninstall-local:
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
 		rm -f "$(DESTDIR)$(includedir)/cvc4/$$d"; \
 	done
-	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings/compat"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"
