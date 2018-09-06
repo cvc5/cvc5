@@ -25,8 +25,8 @@
 #include <string>
 #include <unordered_set>
 
-#include "context/cdlist.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
@@ -39,11 +39,11 @@
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
-#include "theory/decision_manager.h"
 
 namespace CVC4 {
 
@@ -130,7 +130,7 @@ private:
    * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
-  
+
   /** Pointer to the decision manager. */
   DecisionManager* d_decManager;
 
@@ -407,11 +407,9 @@ public:
   const QuantifiersEngine* getQuantifiersEngine() const {
     return d_quantEngine;
   }
-  
+
   /** Get the decision manager associated to this theory. */
-  DecisionManager* getDecisionManager() {
-    return d_decManager;
-  }
+  DecisionManager* getDecisionManager() { return d_decManager; }
 
   /**
    * Finish theory initialization.  At this point, options and the logic

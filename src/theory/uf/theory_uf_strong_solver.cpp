@@ -1384,13 +1384,14 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_min_pos_tn_master_card(c, -1),
       d_rel_eqc(c)
 {
-  if( options::ufssMode()==UF_SS_FULL && options::ufssFairness() )
+  if (options::ufssMode() == UF_SS_FULL && options::ufssFairness())
   {
     // Register the strategy with the decision manager of the theory.
     // We are guaranteed that the decision manager is ready since we
     // construct this module during TheoryUF::finishInit.
-    d_cc_dec_strat.reset(new CombinedCardinalityDecisionStrategy(c,th->getValuation()));
-    //th->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_combined_card,d_cc_dec_strat.get());
+    d_cc_dec_strat.reset(
+        new CombinedCardinalityDecisionStrategy(c, th->getValuation()));
+    // th->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_combined_card,d_cc_dec_strat.get());
   }
 }
 
@@ -1698,19 +1699,26 @@ void StrongSolverTheoryUF::presolve() {
   }
 }
 
- StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::CombinedCardinalityDecisionStrategy(context::Context* satContext, Valuation valuation) :DecisionStrategyFmf(satContext,valuation)
- {
-   
+StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::
+    CombinedCardinalityDecisionStrategy(context::Context* satContext,
+                                        Valuation valuation)
+    : DecisionStrategyFmf(satContext, valuation)
+{
 }
-    Node StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::mkLiteral(unsigned i)
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      return nm->mkNode(kind::COMBINED_CARDINALITY_CONSTRAINT,
-                        nm->mkConst(Rational(i)));
-    }
-    
-    std::string StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::identify() const { return std::string("uf_combined_card"); }
-    
+Node StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::mkLiteral(
+    unsigned i)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(kind::COMBINED_CARDINALITY_CONSTRAINT,
+                    nm->mkConst(Rational(i)));
+}
+
+std::string
+StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::identify() const
+{
+  return std::string("uf_combined_card");
+}
+
 /** get next decision request */
 Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
   //request the combined cardinality as a decision literal, if not already asserted

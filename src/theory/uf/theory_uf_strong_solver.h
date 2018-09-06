@@ -431,17 +431,18 @@ public:
   NodeBoolMap d_com_card_assertions;
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
-  /** 
+  /**
    * Decision strategy for combined cardinality constraints. This asserts
    * the minimal combined cardinality constraint positively in the SAT
-   * context. It is enabled by options::ufssFairness(). For details, see 
+   * context. It is enabled by options::ufssFairness(). For details, see
    * the extension to multiple sorts in Section 6.3 of Reynolds et al,
    * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
    */
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    CombinedCardinalityDecisionStrategy(context::Context* satContext, Valuation valuation);
+    CombinedCardinalityDecisionStrategy(context::Context* satContext,
+                                        Valuation valuation);
     /** make literal (the i^th combined cardinality literal) */
     Node mkLiteral(unsigned i) override;
     /** identify */

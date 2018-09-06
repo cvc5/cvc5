@@ -353,12 +353,12 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
 }
 
 void Theory::setDecisionManager(DecisionManager* dm)
-{  
+{
   Assert(d_decManager == nullptr);
   Assert(dm != nullptr);
   d_decManager = dm;
 }
-  
+
 void Theory::setupExtTheory() {
   Assert(d_extTheory == NULL);
   d_extTheory = new ExtTheory(this);
