@@ -250,11 +250,15 @@ private:
   class SygusStreamDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusStreamDecisionStrategy(context::Context* satContext, Valuation valuation);
+    SygusStreamDecisionStrategy(context::Context* satContext,
+                                Valuation valuation);
     /** make literal */
     Node mkLiteral(unsigned i) override;
     /** identify */
-    std::string identify() const override { return std::string("sygus_stream"); }
+    std::string identify() const override
+    {
+      return std::string("sygus_stream");
+    }
   };
   std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
   /** the streaming guards for sygus streaming mode */

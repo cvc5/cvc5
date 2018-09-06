@@ -203,7 +203,8 @@ void CegConjecture::assign( Node q ) {
 
   if (options::sygusStream())
   {
-    d_stream_strategy.reset(new SygusStreamDecisionStrategy(d_qe->getSatContext(),d_qe->getValuation()));
+    d_stream_strategy.reset(new SygusStreamDecisionStrategy(
+        d_qe->getSatContext(), d_qe->getValuation()));
   }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
@@ -588,19 +589,19 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
   return n;
 }
 
-CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(context::Context* satContext, Valuation valuation)
-: DecisionStrategyFmf(satContext,valuation)
+CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(
+    context::Context* satContext, Valuation valuation)
+    : DecisionStrategyFmf(satContext, valuation)
 {
-  
 }
-    
+
 Node CegConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node curr_stream_guard = nm->mkSkolem("G_Stream", nm->booleanType());
   return curr_stream_guard;
 }
-    
+
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   bool value;
   // the conjecture is feasible
