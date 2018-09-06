@@ -56,7 +56,6 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
         // asserted false, the current literal is incremented
         curr_lit = d_curr_literal.get() + 1;
         d_curr_literal.set(curr_lit);
-        Assert(curr_lit < d_literals.size());
         // repeat
         success = false;
       }

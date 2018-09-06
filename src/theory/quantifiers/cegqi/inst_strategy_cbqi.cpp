@@ -607,51 +607,6 @@ bool InstStrategyCegqi::doCbqi(Node q)
   return it->second != CEG_UNHANDLED;
 }
 
-Node InstStrategyCegqi::getNextDecisionRequestProc(Node q,
-                                                   std::map<Node, bool>& proc)
-{
-  if( proc.find( q )==proc.end() ){
-    proc[q] = true;
-    //first check children
-    std::map< Node, std::vector< Node > >::iterator itc = d_children_quant.find( q );
-    if( itc!=d_children_quant.end() ){
-      for( unsigned j=0; j<itc->second.size(); j++ ){
-        Node d = getNextDecisionRequestProc( itc->second[j], proc );
-        if( !d.isNull() ){
-          return d;
-        }
-      }
-    }
-    //then check self
-    if( hasAddedCbqiLemma( q ) ){
-      Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
-      bool value;
-      if( !d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-        Trace("cbqi-dec") << "CBQI: get next decision " << cel << std::endl;
-        return cel;
-      }
-    }    
-  }
-  return Node::null(); 
-}
-
-Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
-{
-  /*
-  std::map< Node, bool > proc;
-  //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers();
-  i++ ){
-  //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-  for( NodeSet::const_iterator it = d_added_cbqi_lemma.begin(); it !=
-  d_added_cbqi_lemma.end(); ++it ){ Node q = *it; Node d =
-  getNextDecisionRequestProc( q, proc ); if( !d.isNull() ){ priority = 0; return
-  d;
-    }
-  }
-  */
-  return Node::null();
-}
-
 void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   if( e==0 ){
     CegInstantiator * cinst = getInstantiator( q );

@@ -85,8 +85,6 @@ class InstStrategyCegqi : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
   // presolve
   void presolve() override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
   /** Do nested quantifier elimination. */
   Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
 
@@ -170,8 +168,6 @@ class InstStrategyCegqi : public QuantifiersModule
   void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** get next decision request with dependency checking */
-  Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
 
