@@ -33,7 +33,8 @@ void DecisionStrategyFmf::initialize() { d_literals.clear(); }
 
 Node DecisionStrategyFmf::getNextDecisionRequest()
 {
-  Trace("dec-strategy-debug") << "Get next decision request " << identify() << "..." << std::endl;
+  Trace("dec-strategy-debug")
+      << "Get next decision request " << identify() << "..." << std::endl;
   if (d_has_curr_literal.get())
   {
     Trace("dec-strategy-debug") << "...already has decision" << std::endl;
@@ -46,7 +47,8 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     success = true;
     // get the current literal
     Node lit = getLiteral(curr_lit);
-    Trace("dec-strategy-debug") << "...check literal #" << curr_lit << " : " << lit << std::endl;
+    Trace("dec-strategy-debug")
+        << "...check literal #" << curr_lit << " : " << lit << std::endl;
     // if out of literals, we are done in the current SAT context
     if (!lit.isNull())
     {
@@ -59,7 +61,8 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
       }
       else if (!value)
       {
-        Trace("dec-strategy-debug") << "...assigned false, increment." << std::endl;
+        Trace("dec-strategy-debug")
+            << "...assigned false, increment." << std::endl;
         // asserted false, the current literal is incremented
         curr_lit = d_curr_literal.get() + 1;
         d_curr_literal.set(curr_lit);
@@ -109,7 +112,7 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   while (n >= d_literals.size())
   {
     Node lit = mkLiteral(d_literals.size());
-    if( !lit.isNull() )
+    if (!lit.isNull())
     {
       lit = Rewriter::rewrite(lit);
       lit = d_valuation.ensureLiteral(lit);
@@ -119,8 +122,11 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   return d_literals[n];
 }
 
-DecisionStrategySingleton::DecisionStrategySingleton(const char* name,Node lit,
-    context::Context* satContext, Valuation valuation)
+DecisionStrategySingleton::DecisionStrategySingleton(
+    const char* name,
+    Node lit,
+    context::Context* satContext,
+    Valuation valuation)
     : DecisionStrategyFmf(satContext, valuation), d_name(name), d_literal(lit)
 {
 }
@@ -197,7 +203,8 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
       }
       else
       {
-        Trace("dec-manager-debug") << "  " << ds->identify() << " has no decisions." << std::endl;
+        Trace("dec-manager-debug")
+            << "  " << ds->identify() << " has no decisions." << std::endl;
       }
     }
   }

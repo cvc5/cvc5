@@ -53,16 +53,19 @@ QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
 void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
-  unsigned echeck = d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
-  if( quant_e!=echeck ){
+  unsigned echeck =
+      d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
+  if (quant_e != echeck)
+  {
     return;
   }
-    
+
   // if we are waiting to assign the conjecture, do it now
   if (!d_waiting_conj.isNull())
   {
     Node q = d_waiting_conj;
-    Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q << std::endl;
+    Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q
+                          << std::endl;
     d_waiting_conj = Node::null();
     if (!d_conj->isAssigned())
     {
@@ -72,21 +75,29 @@ void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
       return;
     }
   }
-  
-  Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---" << std::endl;
+
+  Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---"
+                        << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
   bool active = false;
   bool value;
-  if( d_quantEngine->getValuation().hasSatValue( d_conj->getConjecture(), value ) ) {
+  if (d_quantEngine->getValuation().hasSatValue(d_conj->getConjecture(), value))
+  {
     active = value;
-  }else{
-    Trace("cegqi-engine-debug") << "...no value for quantified formula." << std::endl;
   }
-  Trace("cegqi-engine-debug") << "Current conjecture status : active : " << active << std::endl;
-  if( active && d_conj->needsCheck() ){
-    checkConjecture( d_conj );
+  else
+  {
+    Trace("cegqi-engine-debug")
+        << "...no value for quantified formula." << std::endl;
   }
-  Trace("cegqi-engine") << "Finished Counterexample Guided Instantiation engine." << std::endl;
+  Trace("cegqi-engine-debug")
+      << "Current conjecture status : active : " << active << std::endl;
+  if (active && d_conj->needsCheck())
+  {
+    checkConjecture(d_conj);
+  }
+  Trace("cegqi-engine")
+      << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
 bool CegInstantiation::assignConjecture(Node q)
@@ -255,7 +266,8 @@ Node CegInstantiation::getNextDecisionRequest( unsigned& priority ) {
   return Node::null();
 }
 
-void CegInstantiation::checkConjecture( CegConjecture * conj ) {
+void CegInstantiation::checkConjecture(CegConjecture* conj)
+{
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
   if( Trace.isOn("cegqi-engine-debug") ){

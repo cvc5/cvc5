@@ -169,9 +169,13 @@ void CegConjecture::assign( Node q ) {
   d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
   // register the strategy
-  d_feasible_strategy.reset(new DecisionStrategySingleton("sygus_feasible",d_feasible_guard,d_qe->getSatContext(),d_qe->getValuation()));
+  d_feasible_strategy.reset(
+      new DecisionStrategySingleton("sygus_feasible",
+                                    d_feasible_guard,
+                                    d_qe->getSatContext(),
+                                    d_qe->getValuation()));
   d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-          DecisionManager::strat_quant_sygus_feasible, d_feasible_strategy.get());
+      DecisionManager::strat_quant_sygus_feasible, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
@@ -206,7 +210,8 @@ bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool CegConjecture::needsCheck() {
+bool CegConjecture::needsCheck()
+{
   if( isSingleInvocation() && !d_ceg_si->needsCheck() ){
     return false;
   }

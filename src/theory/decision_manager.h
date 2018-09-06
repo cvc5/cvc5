@@ -106,7 +106,10 @@ class DecisionStrategyFmf : public DecisionStrategy
 class DecisionStrategySingleton : public DecisionStrategyFmf
 {
  public:
-  DecisionStrategySingleton(const char* name, Node lit, context::Context* satContext, Valuation valuation);
+  DecisionStrategySingleton(const char* name,
+                            Node lit,
+                            context::Context* satContext,
+                            Valuation valuation);
   /**
    * Make the n^th literal of this strategy. This method returns mkLiteral if
    * n=0, null otherwise.
@@ -116,7 +119,8 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
   Node getSingleLiteral();
   /** identify */
   std::string identify() const override { return d_name; }
-private:
+
+ private:
   /** the name of this strategy */
   std::string d_name;
   /** the literal to decide on */

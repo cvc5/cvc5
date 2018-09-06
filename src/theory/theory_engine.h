@@ -202,7 +202,7 @@ class TheoryEngine {
   /**
    * The decision manager
    */
-  std::unique_ptr< theory::DecisionManager > d_decManager;
+  std::unique_ptr<theory::DecisionManager> d_decManager;
 
   /**
    * Default model object
@@ -532,7 +532,10 @@ public:
   /**
    * Get a pointer to the underlying decision manager.
    */
-  theory::DecisionManager* getDecisionManager() const { return d_decManager.get(); }
+  theory::DecisionManager* getDecisionManager() const
+  {
+    return d_decManager.get();
+  }
 
  private:
   /**

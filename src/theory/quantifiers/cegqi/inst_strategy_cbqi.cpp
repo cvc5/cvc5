@@ -192,9 +192,13 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
           }
         }
       }
-      // the decision strategy for this quantified formula ensures that its counterexample literal is decided on first.
+      // the decision strategy for this quantified formula ensures that its
+      // counterexample literal is decided on first.
       DecisionStrategySingleton* dlds =
-          new DecisionStrategySingleton("CexLiteral",ceLit,d_quantEngine->getSatContext(), d_quantEngine->getValuation());
+          new DecisionStrategySingleton("CexLiteral",
+                                        ceLit,
+                                        d_quantEngine->getSatContext(),
+                                        d_quantEngine->getValuation());
       // it is prepended to the list of strategies
       d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
           DecisionManager::strat_quant_cegqi_feasible, dlds, false);
