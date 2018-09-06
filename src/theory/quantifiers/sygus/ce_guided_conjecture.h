@@ -70,10 +70,6 @@ public:
   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
   */
   void doCheck(std::vector<Node>& lems);
-  /** do basic check 
-  * This is called for non-SyGuS synthesis conjectures
-  */
-  void doBasicCheck(std::vector< Node >& lems);
   /** do refinement 
   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
   */
@@ -254,14 +250,11 @@ private:
   class SygusStreamDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusStreamDecisionStrategy(CegConjecture * parent, context::Context* satContext, Valuation valuation);
+    SygusStreamDecisionStrategy(context::Context* satContext, Valuation valuation);
     /** make literal */
     Node mkLiteral(unsigned i) override;
-  /** identify */
-  std::string identify() const override { return std::string("sygus_stream"); }
-  private:
-    /** the parent of this strategy */
-    CegConjecture * d_parent;
+    /** identify */
+    std::string identify() const override { return std::string("sygus_stream"); }
   };
   std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
   /** the streaming guards for sygus streaming mode */

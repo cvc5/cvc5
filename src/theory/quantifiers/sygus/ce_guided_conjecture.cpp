@@ -201,6 +201,10 @@ void CegConjecture::assign( Node q ) {
     d_qe->getOutputChannel().lemma( lem );
   }
 
+  if (options::sygusStream())
+  {
+    d_stream_strategy.reset(new SygusStreamDecisionStrategy(d_qe->getSatContext(),d_qe->getValuation()));
+  }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
@@ -239,19 +243,6 @@ bool CegConjecture::needsCheck()
 void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
   if( d_ceg_si!=NULL ){
     d_ceg_si->check(lems);
-  }
-}
-
-void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
-  std::vector< Node > model_terms;
-  Assert(d_candidates.size() == d_quant[0].getNumChildren());
-  getModelValues(d_candidates, model_terms);
-  if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
-  {
-    //record the instantiation
-    recordInstantiation( model_terms );
-  }else{
-    Assert( false );
   }
 }
 
@@ -569,6 +560,20 @@ Node CegConjecture::getCurrentStreamGuard() const {
   }else{
     return d_stream_guards.back();
   }
+  /*
+  if( d_stream_strategy!=nullptr )
+  {
+    // the stream guard is the current asserted literal of the stream strategy
+    Node lit = d_stream_strategy->getAssertedLiteral();
+    if( lit.isNull() )
+    {
+      // if none exist, get the first   TODO: is this right?
+      lit = d_stream_strategy->getLiteral(0);
+    }
+    return lit;
+  }
+  return Node::null();
+    */
 }
 
 Node CegConjecture::getStreamGuardedLemma(Node n) const
@@ -583,8 +588,8 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
   return n;
 }
 
-CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(CegConjecture * parent,context::Context* satContext, Valuation valuation)
-: DecisionStrategyFmf(satContext,valuation),d_parent(parent)
+CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(context::Context* satContext, Valuation valuation)
+: DecisionStrategyFmf(satContext,valuation)
 {
   
 }
@@ -593,8 +598,6 @@ Node CegConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager * nm = NodeManager::currentNM();
   Node curr_stream_guard = nm->mkSkolem("G_Stream", nm->booleanType());
-  // when we allocate, we have a new stream
-  //d_parent->printAndContinueStream();
   return curr_stream_guard;
 }
     
