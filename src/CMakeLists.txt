@@ -605,6 +605,13 @@ set(cvc4_gen_src_files
 set_source_files_properties(${cvc4_gen_src_files} PROPERTIES GENERATED TRUE)
 
 add_library(cvc4 ${cvc4_src_files} ${cvc4_gen_src_files})
+
+set_target_properties(cvc4
+  PROPERTIES
+    VERSION ${CVC4_VERSION}
+    SOVERSION ${CVC4_SOVERSION}
+)
+
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB

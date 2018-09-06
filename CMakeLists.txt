@@ -7,7 +7,7 @@ project(cvc4)
 # Major component of the version of CVC4.
 set(CVC4_MAJOR 1)
 # Minor component of the version of CVC4.
-set(CVC4_MINOR 6)
+set(CVC4_MINOR 7)
 # Release component of the version of CVC4.
 set(CVC4_RELEASE 0)
 # Extraversion component of the version of CVC4.
@@ -22,6 +22,10 @@ endif()
 
 # Define to the full name of this package.
 set(PACKAGE_NAME "${PROJECT_NAME}")
+
+# Shared library versioning. Increment SOVERSION for every new CVC4 release.
+set(CVC4_VERSION "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}")
+set(CVC4_SOVERSION 5)
 
 #### These defines are only use in autotools make files, will likely be 
 #### replaced with corresponding CPack stuff
