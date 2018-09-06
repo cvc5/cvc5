@@ -202,7 +202,7 @@ bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
+bool CegConjecture::needsCheck() {
   if( isSingleInvocation() && !d_ceg_si->needsCheck() ){
     return false;
   }
