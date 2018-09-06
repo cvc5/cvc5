@@ -98,9 +98,9 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   return d_literals[n];
 }
 
-DecisionStrategySingleton::DecisionStrategySingleton(
+DecisionStrategySingleton::DecisionStrategySingleton(const char* name,Node lit,
     context::Context* satContext, Valuation valuation)
-    : DecisionStrategyFmf(satContext, valuation)
+    : DecisionStrategyFmf(satContext, valuation), d_name(name), d_literal(lit)
 {
 }
 
@@ -108,12 +108,12 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 {
   if (n == 0)
   {
-    return mkSingleLiteral();
+    return d_literal;
   }
   return Node::null();
 }
 
-Node DecisionStrategySingleton::getSingleLiteral() { return getLiteral(0); }
+Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
 
 DecisionManager::DecisionManager(context::Context* satContext)
 //    : d_curr_strategy(0, satContext)

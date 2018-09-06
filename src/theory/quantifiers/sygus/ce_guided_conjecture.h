@@ -30,6 +30,7 @@
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -137,6 +138,8 @@ private:
   QuantifiersEngine * d_qe;
   /** The feasible guard. */
   Node d_feasible_guard;
+  /** the decision strategy for the feasible guard */
+  std::unique_ptr< DecisionStrategy > d_feasible_strategy;
   /** single invocation utility */
   std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
   /** utility for static preprocessing and analysis of conjectures */

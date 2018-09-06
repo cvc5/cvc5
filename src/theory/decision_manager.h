@@ -106,16 +106,21 @@ class DecisionStrategyFmf : public DecisionStrategy
 class DecisionStrategySingleton : public DecisionStrategyFmf
 {
  public:
-  DecisionStrategySingleton(context::Context* satContext, Valuation valuation);
+  DecisionStrategySingleton(const char* name, Node lit, context::Context* satContext, Valuation valuation);
   /**
    * Make the n^th literal of this strategy. This method returns mkLiteral if
    * n=0, null otherwise.
    */
   Node mkLiteral(unsigned n) override;
-  /** Make the literal of this strategy */
-  virtual Node mkSingleLiteral() = 0;
   /** Get single literal */
   Node getSingleLiteral();
+  /** identify */
+  std::string identify() const override { return d_name; }
+private:
+  /** the name of this strategy */
+  std::string d_name;
+  /** the literal to decide on */
+  Node d_literal;
 };
 
 /** DecisionManager

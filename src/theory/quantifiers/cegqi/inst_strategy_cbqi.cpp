@@ -100,30 +100,6 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
   return QEFFORT_NONE;
 }
 
-class CexLiteralDecisionStrategy : public DecisionStrategySingleton
-{
- public:
-  CexLiteralDecisionStrategy(QuantifiersEngine* qe, Node q)
-      : DecisionStrategySingleton(qe->getSatContext(), qe->getValuation()),
-        d_qe(qe),
-        d_quant(q)
-  {
-  }
-  /** make the counterexample literal for q */
-  Node mkSingleLiteral() override
-  {
-    return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant);
-  }
-  /** identify */
-  virtual std::string identify() const override { return std::string("CexLiteral"); }
-
- private:
-  /** pointer to the quantifers engine */
-  QuantifiersEngine* d_qe;
-  /** the quantified formula */
-  Node d_quant;
-};
-
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
 {
   if( !hasAddedCbqiLemma( q ) ){
@@ -216,8 +192,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
           }
         }
       }
-      CexLiteralDecisionStrategy* dlds =
-          new CexLiteralDecisionStrategy(d_quantEngine, q);
+      // the decision strategy for this quantified formula ensures that its counterexample literal is decided on first.
+      DecisionStrategySingleton* dlds =
+          new DecisionStrategySingleton("CexLiteral",ceLit,d_quantEngine->getSatContext(), d_quantEngine->getValuation());
+      // it is prepended to the list of strategies
       d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
           DecisionManager::strat_quant_cegqi_feasible, dlds, false);
     }
