@@ -170,6 +170,8 @@ void CegConjecture::assign( Node q ) {
   AlwaysAssert(!d_feasible_guard.isNull());
   // register the strategy
   d_feasible_strategy.reset(new DecisionStrategySingleton("sygus_feasible",d_feasible_guard,d_qe->getSatContext(),d_qe->getValuation()));
+  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+          DecisionManager::strat_quant_sygus_feasible, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
@@ -577,20 +579,7 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
 }
 
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
-  // first, must try the guard
-  // which denotes "this conjecture is feasible"
-  Node feasible_guard = d_feasible_guard;
   bool value;
-  if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
-    priority = 0;
-    return feasible_guard;
-  }
-  if (!value)
-  {
-    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
-                         << std::endl;
-    return Node::null();
-  }
   // the conjecture is feasible
   if (options::sygusStream())
   {
