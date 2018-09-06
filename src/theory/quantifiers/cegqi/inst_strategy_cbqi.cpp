@@ -71,15 +71,17 @@ InstStrategyCegqi::~InstStrategyCegqi()
 {
   delete d_out;
 
-  for (std::map<Node, CegInstantiator*>::iterator i = d_cinst.begin(),
-                                                  iend = d_cinst.end();
-       i != iend;
-       ++i)
+  for( std::pair<const Node, CegInstantiator*>& ci : d_cinst )
   {
-    CegInstantiator* instantiator = (*i).second;
-    delete instantiator;
+    delete ci.second;
   }
   d_cinst.clear();
+  // delete the decision strategies
+  for( std::pair<const Node,DecisionStrategy * >& ds : d_dstrat )
+  {
+    delete ds.second;
+  }
+  d_dstrat.clear();
 }
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
@@ -101,9 +103,11 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 class CexLiteralDecisionStrategy : public DecisionStrategySingleton
 {
   public:
-    CexLiteralDecisionStrategy(context::Context* satContext, Valuation valuation,QuantifiersEngine * qe, Node q ) :DecisionStrategySingleton(satContext,valuation), d_qe(qe),d_quant(q){}
+    CexLiteralDecisionStrategy(QuantifiersEngine * qe, Node q ) :DecisionStrategySingleton(qe->getSatContext(),qe->getValuation()), d_qe(qe),d_quant(q){}
     /** make the counterexample literal for q */
    Node mkSingleLiteral() override { return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant); }
+   /** identify */
+    virtual std::string identify() const { return std::string("CexLiteral"); }
   private:
     /** pointer to the quantifers engine */
     QuantifiersEngine * d_qe;
@@ -203,6 +207,8 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
           }
         }
       }
+      CexLiteralDecisionStrategy * dlds = new CexLiteralDecisionStrategy(d_quantEngine,q);
+      d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy( DecisionManager::strat_quant_cegqi_feasible, dlds, false );
     }
     return true;
   }else{
@@ -620,6 +626,7 @@ Node InstStrategyCegqi::getNextDecisionRequestProc(Node q,
 
 Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
 {
+  /*
   std::map< Node, bool > proc;
   //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
   //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
@@ -631,6 +638,7 @@ Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
       return d;
     }
   }
+  */
   return Node::null();
 }
 

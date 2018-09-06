@@ -20,6 +20,7 @@
 
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "util/statistics_registry.h"
+#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -136,6 +137,10 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, CegInstantiator*> d_cinst;
+  /** 
+   * The decision strategy for each quantified formula q registered to this class.
+   */
+  std::map<Node,DecisionStrategy * > d_dstrat;
   /** the current quantified formula we are processing */
   Node d_curr_quant;
   //---------------------- for vts delta minimization
