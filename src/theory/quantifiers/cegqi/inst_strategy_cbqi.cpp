@@ -71,13 +71,13 @@ InstStrategyCegqi::~InstStrategyCegqi()
 {
   delete d_out;
 
-  for( std::pair<const Node, CegInstantiator*>& ci : d_cinst )
+  for (std::pair<const Node, CegInstantiator*>& ci : d_cinst)
   {
     delete ci.second;
   }
   d_cinst.clear();
   // delete the decision strategies
-  for( std::pair<const Node,DecisionStrategy * >& ds : d_dstrat )
+  for (std::pair<const Node, DecisionStrategy*>& ds : d_dstrat)
   {
     delete ds.second;
   }
@@ -102,17 +102,26 @@ QuantifiersModule::QEffort InstStrategyCegqi::needsModel(Theory::Effort e)
 
 class CexLiteralDecisionStrategy : public DecisionStrategySingleton
 {
-  public:
-    CexLiteralDecisionStrategy(QuantifiersEngine * qe, Node q ) :DecisionStrategySingleton(qe->getSatContext(),qe->getValuation()), d_qe(qe),d_quant(q){}
-    /** make the counterexample literal for q */
-   Node mkSingleLiteral() override { return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant); }
-   /** identify */
-    virtual std::string identify() const { return std::string("CexLiteral"); }
-  private:
-    /** pointer to the quantifers engine */
-    QuantifiersEngine * d_qe;
-    /** the quantified formula */
-    Node d_quant;
+ public:
+  CexLiteralDecisionStrategy(QuantifiersEngine* qe, Node q)
+      : DecisionStrategySingleton(qe->getSatContext(), qe->getValuation()),
+        d_qe(qe),
+        d_quant(q)
+  {
+  }
+  /** make the counterexample literal for q */
+  Node mkSingleLiteral() override
+  {
+    return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant);
+  }
+  /** identify */
+  virtual std::string identify() const { return std::string("CexLiteral"); }
+
+ private:
+  /** pointer to the quantifers engine */
+  QuantifiersEngine* d_qe;
+  /** the quantified formula */
+  Node d_quant;
 };
 
 bool InstStrategyCegqi::registerCbqiLemma(Node q)
@@ -207,8 +216,10 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
           }
         }
       }
-      CexLiteralDecisionStrategy * dlds = new CexLiteralDecisionStrategy(d_quantEngine,q);
-      d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy( DecisionManager::strat_quant_cegqi_feasible, dlds, false );
+      CexLiteralDecisionStrategy* dlds =
+          new CexLiteralDecisionStrategy(d_quantEngine, q);
+      d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+          DecisionManager::strat_quant_cegqi_feasible, dlds, false);
     }
     return true;
   }else{
@@ -628,14 +639,13 @@ Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
 {
   /*
   std::map< Node, bool > proc;
-  //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
+  //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers();
+  i++ ){
   //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-  for( NodeSet::const_iterator it = d_added_cbqi_lemma.begin(); it != d_added_cbqi_lemma.end(); ++it ){
-    Node q = *it;
-    Node d = getNextDecisionRequestProc( q, proc );
-    if( !d.isNull() ){
-      priority = 0;
-      return d;
+  for( NodeSet::const_iterator it = d_added_cbqi_lemma.begin(); it !=
+  d_added_cbqi_lemma.end(); ++it ){ Node q = *it; Node d =
+  getNextDecisionRequestProc( q, proc ); if( !d.isNull() ){ priority = 0; return
+  d;
     }
   }
   */

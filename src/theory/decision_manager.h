@@ -100,15 +100,16 @@ class DecisionStrategyFmf : public DecisionStrategy
   std::vector<Node> d_literals;
 };
 
-/** 
+/**
  * Special case of above where we only wish to allocate a single literal L_1.
  */
 class DecisionStrategySingleton : public DecisionStrategyFmf
 {
-public:
+ public:
   DecisionStrategySingleton(context::Context* satContext, Valuation valuation);
-  /** 
-   * Make the n^th literal of this strategy. This method returns mkLiteral if n=0, null otherwise.
+  /**
+   * Make the n^th literal of this strategy. This method returns mkLiteral if
+   * n=0, null otherwise.
    */
   Node mkLiteral(unsigned n) override;
   /** Make the literal of this strategy */
@@ -161,18 +162,20 @@ class DecisionManager
   /**
    * Registers the strategy ds with this manager.
    */
-  void registerStrategy(StrategyId id, DecisionStrategy* ds, bool append=true);
+  void registerStrategy(StrategyId id,
+                        DecisionStrategy* ds,
+                        bool append = true);
   /**
    * Initializes the strategy.
    */
-  //void initialize();
+  // void initialize();
   /** Get the next decision request */
   Node getNextDecisionRequest(unsigned& priorty);
 
  private:
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;
-  //std::vector<DecisionStrategy*> d_strategy;
-  //context::CDO<unsigned> d_curr_strategy;
+  // std::vector<DecisionStrategy*> d_strategy;
+  // context::CDO<unsigned> d_curr_strategy;
 };
 
 }  // namespace theory

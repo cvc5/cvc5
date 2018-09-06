@@ -18,9 +18,9 @@
 #ifndef __CVC4__INST_STRATEGY_CBQI_H
 #define __CVC4__INST_STRATEGY_CBQI_H
 
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "util/statistics_registry.h"
-#include "theory/decision_manager.h"
 
 namespace CVC4 {
 namespace theory {
@@ -137,10 +137,11 @@ class InstStrategyCegqi : public QuantifiersModule
    * This object is responsible for finding instantiatons for q.
    */
   std::map<Node, CegInstantiator*> d_cinst;
-  /** 
-   * The decision strategy for each quantified formula q registered to this class.
+  /**
+   * The decision strategy for each quantified formula q registered to this
+   * class.
    */
-  std::map<Node,DecisionStrategy * > d_dstrat;
+  std::map<Node, DecisionStrategy*> d_dstrat;
   /** the current quantified formula we are processing */
   Node d_curr_quant;
   //---------------------- for vts delta minimization
@@ -173,7 +174,7 @@ class InstStrategyCegqi : public QuantifiersModule
   Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
-  
+
  protected:
   //for identification
   uint64_t d_qid_count;

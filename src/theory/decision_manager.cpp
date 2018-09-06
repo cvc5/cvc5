@@ -67,10 +67,7 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
   return Node::null();
 }
 
-bool DecisionStrategyFmf::isReadyForDecision()
-{
-  return true;
-}
+bool DecisionStrategyFmf::isReadyForDecision() { return true; }
 
 bool DecisionStrategyFmf::getAssertedLiteralIndex(unsigned& i)
 {
@@ -102,41 +99,40 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   return d_literals[n];
 }
 
-
-DecisionStrategySingleton::DecisionStrategySingleton(context::Context* satContext, Valuation valuation) : DecisionStrategyFmf(satContext, valuation)
+DecisionStrategySingleton::DecisionStrategySingleton(
+    context::Context* satContext, Valuation valuation)
+    : DecisionStrategyFmf(satContext, valuation)
 {
-
 }
 
 Node DecisionStrategySingleton::mkLiteral(unsigned n)
 {
-  if( n==0 )
+  if (n == 0)
   {
     return mkSingleLiteral();
   }
   return Node::null();
 }
 
-Node DecisionStrategySingleton::getSingleLiteral()
-{
-  return getLiteral(0);
-}
+Node DecisionStrategySingleton::getSingleLiteral() { return getLiteral(0); }
 
 DecisionManager::DecisionManager(context::Context* satContext)
 //    : d_curr_strategy(0, satContext)
 {
 }
 
-void DecisionManager::registerStrategy(StrategyId id, DecisionStrategy* ds, bool append)
+void DecisionManager::registerStrategy(StrategyId id,
+                                       DecisionStrategy* ds,
+                                       bool append)
 {
-  if( append )
+  if (append)
   {
     d_reg_strategy[id].push_back(ds);
   }
   else
   {
     std::vector<DecisionStrategy*>& stid = d_reg_strategy[id];
-    stid.insert(stid.begin(),ds);
+    stid.insert(stid.begin(), ds);
   }
 }
 
@@ -161,17 +157,21 @@ void DecisionManager::initialize()
 
 Node DecisionManager::getNextDecisionRequest(unsigned& priority)
 {
-  for( const std::pair<StrategyId, std::vector<DecisionStrategy*> >& rs : d_reg_strategy )
+  for (const std::pair<StrategyId, std::vector<DecisionStrategy*> >& rs :
+       d_reg_strategy)
   {
-    for( unsigned i=0, size = rs.second.size(); i<size; i++ )
+    for (unsigned i = 0, size = rs.second.size(); i < size; i++)
     {
-      DecisionStrategy * ds = rs.second[i];
-      Node lit =  ds->getNextDecisionRequest();
+      DecisionStrategy* ds = rs.second[i];
+      Node lit = ds->getNextDecisionRequest();
       if (!lit.isNull())
       {
         StrategyId sid = rs.first;
-        priority = sid<strat_last_m_sound ? 0 : ( sid<strat_last_fm_complete ? 1 : 2 );
-        Trace("dec-manager") << "Literal " << lit << " decided by strategy " << ds->identify() << std::endl;
+        priority = sid < strat_last_m_sound
+                       ? 0
+                       : (sid < strat_last_fm_complete ? 1 : 2);
+        Trace("dec-manager") << "Literal " << lit << " decided by strategy "
+                             << ds->identify() << std::endl;
         return lit;
       }
     }
