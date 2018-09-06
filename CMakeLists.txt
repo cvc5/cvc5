@@ -286,6 +286,9 @@ find_package(PythonInterp REQUIRED)
 set(ANTLR_HOME ${ANTLR_DIR})
 find_package(ANTLR REQUIRED)
 
+# Java runtime is required for ANTLR
+find_package(Java COMPONENTS Runtime REQUIRED)
+
 set(GMP_HOME ${GMP_DIR})
 find_package(GMP REQUIRED)
 libcvc4_link_libraries(${GMP_LIBRARIES})
