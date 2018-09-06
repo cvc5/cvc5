@@ -172,10 +172,10 @@ void CegConjecture::assign( Node q ) {
   d_feasible_strategy.reset(new DecisionStrategySingleton("sygus_feasible",d_feasible_guard,d_qe->getSatContext(),d_qe->getValuation()));
   d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
           DecisionManager::strat_quant_sygus_feasible, d_feasible_strategy.get());
-  // this must be called, both to ensure that the feasible guard is
-  // decided on with true polariy, but also to ensure that output channel
+  // this must be called, to ensure that the output channel
   // has been used on this call to check.
-  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+  Node flem = nm->mkNode( OR, d_feasible_guard, d_feasible_guard.negate() );
+  d_qe->getOutputChannel().lemma(flem);
 
   if (isSingleInvocation())
   {

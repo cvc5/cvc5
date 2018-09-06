@@ -14,6 +14,8 @@
 
 #include "theory/decision_manager.h"
 
+#include "theory/rewriter.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -31,8 +33,10 @@ void DecisionStrategyFmf::initialize() { d_literals.clear(); }
 
 Node DecisionStrategyFmf::getNextDecisionRequest()
 {
+  Trace("dec-strategy-debug") << "Get next decision request " << identify() << "..." << std::endl;
   if (d_has_curr_literal.get())
   {
+    Trace("dec-strategy-debug") << "...already has decision" << std::endl;
     return Node::null();
   }
   bool success;
@@ -42,23 +46,34 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
     success = true;
     // get the current literal
     Node lit = getLiteral(curr_lit);
+    Trace("dec-strategy-debug") << "...check literal #" << curr_lit << " : " << lit << std::endl;
     // if out of literals, we are done in the current SAT context
     if (!lit.isNull())
     {
       bool value;
       if (!d_valuation.hasSatValue(lit, value))
       {
+        Trace("dec-strategy-debug") << "...not assigned, return." << std::endl;
         // if it has not been decided, return it
         return lit;
       }
       else if (!value)
       {
+        Trace("dec-strategy-debug") << "...assigned false, increment." << std::endl;
         // asserted false, the current literal is incremented
         curr_lit = d_curr_literal.get() + 1;
         d_curr_literal.set(curr_lit);
         // repeat
         success = false;
       }
+      else
+      {
+        Trace("dec-strategy-debug") << "...already assigned true." << std::endl;
+      }
+    }
+    else
+    {
+      Trace("dec-strategy-debug") << "...exhausted literals." << std::endl;
     }
   } while (!success);
   // the current literal has been decided with the right polarity, we are done
@@ -93,7 +108,13 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
   // allocate until the index is valid
   while (n >= d_literals.size())
   {
-    d_literals.push_back(mkLiteral(d_literals.size()));
+    Node lit = mkLiteral(d_literals.size());
+    if( !lit.isNull() )
+    {
+      lit = Rewriter::rewrite(lit);
+      lit = d_valuation.ensureLiteral(lit);
+    }
+    d_literals.push_back(lit);
   }
   return d_literals[n];
 }
@@ -156,6 +177,7 @@ void DecisionManager::initialize()
 
 Node DecisionManager::getNextDecisionRequest(unsigned& priority)
 {
+  Trace("dec-manager-debug") << "Get next decision..." << std::endl;
   for (const std::pair<StrategyId, std::vector<DecisionStrategy*> >& rs :
        d_reg_strategy)
   {
@@ -169,12 +191,17 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
         priority = sid < strat_last_m_sound
                        ? 0
                        : (sid < strat_last_fm_complete ? 1 : 2);
-        Trace("dec-manager") << "Literal " << lit << " decided by strategy "
+        Trace("dec-manager") << "-> literal " << lit << " decided by strategy "
                              << ds->identify() << std::endl;
         return lit;
       }
+      else
+      {
+        Trace("dec-manager-debug") << "  " << ds->identify() << " has no decisions." << std::endl;
+      }
     }
   }
+  Trace("dec-manager-debug") << "-> no decisions." << std::endl;
   /*
   unsigned sstart = d_curr_strategy.get();
   for (unsigned i = sstart, nstrat = d_strategy.size(); i < nstrat; i++)

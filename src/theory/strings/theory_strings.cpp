@@ -883,7 +883,7 @@ void TheoryStrings::check(Effort e) {
 
 bool TheoryStrings::needsCheckLastEffort() {
   if( options::stringGuessModel() ){
-    return d_has_extf.get();  
+//     return d_has_extf.get();  
   }else{
     return false;
   }
@@ -4237,9 +4237,38 @@ void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {
 }
 
 
-
 //// Finite Model Finding
 
+TheoryStrings::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(context::Context* c, context::UserContext* u, Valuation valuation) :
+DecisionStrategyFmf(c,valuation),d_input_var_lsum(u)
+{
+  
+}
+bool TheoryStrings::StringSumLengthDecisionStrategy::isInitialized()
+{
+  return !d_input_var_lsum.get().isNull();
+}
+void TheoryStrings::StringSumLengthDecisionStrategy::initialize(const std::vector< Node >& vars)
+{
+  if( d_input_var_lsum.get().isNull() && !vars.empty() )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    std::vector< Node > sum;
+    for( const Node& v : vars )
+    {
+      sum.push_back( nm->mkNode( STRING_LENGTH, v ) );
+    }
+    Node sumn = sum.size()==1 ? sum[0] : nm->mkNode( PLUS, sum );
+    d_input_var_lsum.set(sumn);
+  }
+}
+    
+Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  return nm->mkNode( LEQ, d_input_var_lsum.get(), nm->mkConst( Rational( i ) ) );
+}
+    
 Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
   if( options::stringFMF() && !d_conflict ){
     Node in_var_lsum = d_input_var_lsum.get();

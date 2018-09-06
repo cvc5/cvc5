@@ -27,6 +27,7 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/decision_manager.h"
 
 #include <climits>
 #include <deque>
@@ -637,6 +638,25 @@ private:
   context::CDO< Node > d_input_var_lsum;
   context::CDHashMap< int, Node > d_cardinality_lits;
   context::CDO< int > d_curr_cardinality;
+  
+  class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
+  {
+  public:
+    StringSumLengthDecisionStrategy(context::Context* c, context::UserContext* u, Valuation valuation);
+    /** is initialized */
+    bool isInitialized();
+    /** initialize */
+    void initialize(const std::vector< Node >& vars);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+  private:
+    /** 
+     * User-context-dependent node corresponding to the sum of the lengths of 
+     * input variables of type string
+     */
+    context::CDO< Node > d_input_var_lsum;
+  };
+  std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
 
  public:
   //for finite model finding
