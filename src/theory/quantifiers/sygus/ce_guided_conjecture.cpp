@@ -254,12 +254,12 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
   Assert(d_master != nullptr);
 
   // process the sygus streaming guard
-  if( options::sygusStream() )
+  if (options::sygusStream())
   {
     Assert(!isSingleInvocation());
     // it may be the case that we have a new solution now
     Node currGuard = getCurrentStreamGuard();
-    if( currGuard!=d_current_stream_guard )
+    if (currGuard != d_current_stream_guard)
     {
       // we have a new guard, print and continue the stream
       printAndContinueStream();
@@ -267,7 +267,7 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       return;
     }
   }
-  
+
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
