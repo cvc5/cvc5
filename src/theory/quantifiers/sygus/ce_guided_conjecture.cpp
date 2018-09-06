@@ -202,7 +202,8 @@ bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool CegConjecture::needsCheck() {
+bool CegConjecture::needsCheck()
+{
   if( isSingleInvocation() && !d_ceg_si->needsCheck() ){
     return false;
   }
