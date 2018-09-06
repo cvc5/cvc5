@@ -154,16 +154,18 @@ endmacro()
 # User options
 
 # License
-option(ENABLE_GPL                "Enable GPL dependencies" OFF)
+option(ENABLE_GPL "Enable GPL dependencies")
 
 # General build options
-# >> 3-valued: INGORE ON OFF, allows to detect if set by user
-#              this is only necessary for options set for build types!
+#
+# >> 3-valued: INGORE ON OFF
+#    > allows to detect if set by user (default: IGNORE)
+#    > only necessary for options set for build types
 cvc4_option(ENABLE_ASAN          "Enable ASAN build")
 cvc4_option(ENABLE_ASSERTIONS    "Enable assertions")
 cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
-cvc4_option(ENABLE_DUMPING       "Enable dumpin")
-cvc4_option(ENABLE_MUZZLE        "Enable silencing CVC4; supress ALL non-result output")
+cvc4_option(ENABLE_DUMPING       "Enable dumping")
+cvc4_option(ENABLE_MUZZLE        "Supress ALL non-result output")
 cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
 cvc4_option(ENABLE_PORTFOLIO     "Enable portfolio support")
 cvc4_option(ENABLE_PROOFS        "Enable proof support")
@@ -173,20 +175,27 @@ cvc4_option(ENABLE_TRACING       "Enable tracing")
 cvc4_option(ENABLE_UNIT_TESTING  "Enable unit testing")
 cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
 cvc4_option(ENABLE_SHARED        "Build as shared library")
-
-# >> 2-valued: ON OFF, for options where we don't need to detect if set by user
-option(ENABLE_COVERAGE           "Enable support for gcov coverage testing")
-option(ENABLE_PROFILING          "Enable support for gprof profiling")
+# >> 2-valued: ON OFF
+#    > for options where we don't need to detect if set by user (default: OFF)
+option(ENABLE_BEST      "Enable dependencies known to give best performance")
+option(ENABLE_COVERAGE  "Enable support for gcov coverage testing")
+option(ENABLE_PROFILING "Enable support for gprof profiling")
 
 # Optional dependencies
-option(USE_ABC                   "Use ABC for AIG bit-blasting")
-option(USE_CADICAL               "Use CaDiCaL SAT solver")
-option(USE_CLN                   "Use CLN instead of GMP")
-option(USE_CRYPTOMINISAT         "Use CryptoMiniSat SAT solver")
-option(USE_GLPK                  "Use GLPK simplex solver")
-option(USE_LFSC                  "Use LFSC proof checker")
-option(USE_READLINE              "Use readline for better interactive support")
-option(USE_SYMFPU                "Use SymFPU for floating point support")
+#
+# >> 3-valued: INGORE ON OFF
+#    > allows to detect if set by user (default: IGNORE)
+#    > only necessary for options set for ENABLE_BEST
+cvc4_option(USE_ABC      "Use ABC for AIG bit-blasting")
+cvc4_option(USE_CLN      "Use CLN instead of GMP")
+cvc4_option(USE_GLPK     "Use GLPK simplex solver")
+cvc4_option(USE_READLINE "Use readline for better interactive support")
+# >> 2-valued: ON OFF
+#    > for options where we don't need to detect if set by user (default: OFF)
+option(USE_CADICAL       "Use CaDiCaL SAT solver")
+option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+option(USE_LFSC          "Use LFSC proof checker")
+option(USE_SYMFPU        "Use SymFPU for floating point support")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -203,8 +212,8 @@ set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
 # Supported language bindings
-option(BUILD_BINDINGS_JAVA       "Build Java bindings" OFF)
-option(BUILD_BINDINGS_PYTHON     "Build Python bindings" OFF)
+option(BUILD_BINDINGS_JAVA   "Build Java bindings")
+option(BUILD_BINDINGS_PYTHON "Build Python bindings")
 
 # All bindings: c,java,csharp,perl,php,python,ruby,tcl,ocaml
 
@@ -270,6 +279,16 @@ endif()
 cvc4_set_option(ENABLE_PORTFOLIO OFF)
 cvc4_set_option(ENABLE_SHARED ON)
 cvc4_set_option(ENABLE_VALGRIND OFF)
+
+#-----------------------------------------------------------------------------#
+# Set options for best configuration
+
+if (ENABLE_BEST)
+  cvc4_set_option(USE_ABC ON)
+  cvc4_set_option(USE_CLN ON)
+  cvc4_set_option(USE_GLPK ON)
+  cvc4_set_option(USE_READLINE ON)
+endif()
 
 #-----------------------------------------------------------------------------#
 
