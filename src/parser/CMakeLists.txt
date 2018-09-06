@@ -24,6 +24,13 @@ set(cvc4parser_src_files
 )
 
 add_library(cvc4parser ${cvc4parser_src_files})
+
+set_target_properties(cvc4parser
+  PROPERTIES
+    VERSION ${CVC4_VERSION}
+    SOVERSION ${CVC4_SOVERSION}
+)
+
 target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser parsercvc parsersmt1 parsersmt2 parsertptp cvc4)
 target_link_libraries(cvc4parser ${ANTLR_LIBRARIES})
