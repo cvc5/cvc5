@@ -248,6 +248,22 @@ private:
                                  std::vector<int>& status,
                                  bool singleInvocation);
   //-------------------------------- sygus stream
+  /** current stream guard */
+  Node d_current_stream_guard;
+  /** the decision strategy for streaming solutions */
+  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    SygusStreamDecisionStrategy(CegConjecture * parent, context::Context* satContext, Valuation valuation);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+  /** identify */
+  std::string identify() const override { return std::string("sygus_stream"); }
+  private:
+    /** the parent of this strategy */
+    CegConjecture * d_parent;
+  };
+  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
   /** the streaming guards for sygus streaming mode */
   std::vector< Node > d_stream_guards;
   /** get current stream guard */

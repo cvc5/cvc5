@@ -583,6 +583,21 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
   return n;
 }
 
+CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(CegConjecture * parent,context::Context* satContext, Valuation valuation)
+: DecisionStrategyFmf(satContext,valuation),d_parent(parent)
+{
+  
+}
+    
+Node CegConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Node curr_stream_guard = nm->mkSkolem("G_Stream", nm->booleanType());
+  // when we allocate, we have a new stream
+  //d_parent->printAndContinueStream();
+  return curr_stream_guard;
+}
+    
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   bool value;
   // the conjecture is feasible
