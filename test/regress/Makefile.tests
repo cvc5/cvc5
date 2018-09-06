@@ -1401,6 +1401,7 @@ REG1_TESTS = \
 	regress1/rr-verify/bool-crci.sy \
 	regress1/rr-verify/bv-term-32.sy \
 	regress1/rr-verify/bv-term.sy \
+	regress1/rr-verify/regex.sy \
 	regress1/rr-verify/string-term.sy \
 	regress1/sep/chain-int.smt2 \
 	regress1/sep/crash1220.smt2 \
