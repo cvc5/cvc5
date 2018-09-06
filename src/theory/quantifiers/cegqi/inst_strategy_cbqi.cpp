@@ -115,7 +115,7 @@ class CexLiteralDecisionStrategy : public DecisionStrategySingleton
     return d_qe->getTermUtil()->getCounterexampleLiteral(d_quant);
   }
   /** identify */
-  virtual std::string identify() const { return std::string("CexLiteral"); }
+  virtual std::string identify() const override { return std::string("CexLiteral"); }
 
  private:
   /** pointer to the quantifers engine */
