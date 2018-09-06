@@ -244,6 +244,9 @@ void TheoryEngine::finishInit() {
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if (d_theoryTable[theoryId]) {
+      // set the decision manager for the theory
+      d_theoryTable[theoryId]->setDecisionManager(d_decManager.get());
+      // finish initializing the theory
       d_theoryTable[theoryId]->finishInit();
     }
   }

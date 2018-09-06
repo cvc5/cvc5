@@ -431,17 +431,24 @@ public:
   NodeBoolMap d_com_card_assertions;
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
-
+  /** 
+   * Decision strategy for combined cardinality constraints. This asserts
+   * the minimal combined cardinality constraint positively in the SAT
+   * context. It is enabled by options::ufssFairness(). For details, see 
+   * the extension to multiple sorts in Section 6.3 of Reynolds et al,
+   * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
+   */
   class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    Node mkLiteral(unsigned i) override
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      return nm->mkNode(kind::COMBINED_CARDINALITY_CONSTRAINT,
-                        nm->mkConst(Rational(i)));
-    }
+    CombinedCardinalityDecisionStrategy(context::Context* satContext, Valuation valuation);
+    /** make literal (the i^th combined cardinality literal) */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override;
   };
+  /** combined cardinality decision strategy */
+  std::unique_ptr<CombinedCardinalityDecisionStrategy> d_cc_dec_strat;
 
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;

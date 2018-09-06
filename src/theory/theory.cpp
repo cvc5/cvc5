@@ -69,6 +69,7 @@ Theory::Theory(TheoryId id,
       d_sharedTermsIndex(satContext, 0),
       d_careGraph(NULL),
       d_quantEngine(NULL),
+      d_decManager(nullptr),
       d_extTheory(NULL),
       d_checkTime(getStatsPrefix(id) + name + "::checkTime"),
       d_computeCareGraphTime(getStatsPrefix(id) + name
@@ -351,6 +352,13 @@ void Theory::setQuantifiersEngine(QuantifiersEngine* qe) {
   d_quantEngine = qe;
 }
 
+void Theory::setDecisionManager(DecisionManager* dm)
+{  
+  Assert(d_decManager == nullptr);
+  Assert(dm != nullptr);
+  d_decManager = dm;
+}
+  
 void Theory::setupExtTheory() {
   Assert(d_extTheory == NULL);
   d_extTheory = new ExtTheory(this);

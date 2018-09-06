@@ -43,6 +43,7 @@
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
 #include "util/statistics_registry.h"
+#include "theory/decision_manager.h"
 
 namespace CVC4 {
 
@@ -129,6 +130,9 @@ private:
    * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
+  
+  /** Pointer to the decision manager. */
+  DecisionManager* d_decManager;
 
   /** Extended theory module or NULL. Owned by the theory. */
   ExtTheory* d_extTheory;
@@ -403,6 +407,11 @@ public:
   const QuantifiersEngine* getQuantifiersEngine() const {
     return d_quantEngine;
   }
+  
+  /** Get the decision manager associated to this theory. */
+  DecisionManager* getDecisionManager() {
+    return d_decManager;
+  }
 
   /**
    * Finish theory initialization.  At this point, options and the logic
@@ -461,7 +470,9 @@ public:
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
   /** Called to set the quantifiers engine. */
-  virtual void setQuantifiersEngine(QuantifiersEngine* qe);
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
 
   /** Setup an ExtTheory module for this Theory. Can only be called once. */
   void setupExtTheory();

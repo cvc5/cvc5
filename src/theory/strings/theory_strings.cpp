@@ -883,7 +883,7 @@ void TheoryStrings::check(Effort e) {
 
 bool TheoryStrings::needsCheckLastEffort() {
   if( options::stringGuessModel() ){
-    //     return d_has_extf.get();
+    return d_has_extf.get();
   }else{
     return false;
   }
