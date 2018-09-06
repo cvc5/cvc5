@@ -25,80 +25,58 @@ add_dependencies(base tags_headers)
 #
 # Generate code for debug/trace tags
 #
-set(mktags_script ${CMAKE_CURRENT_LIST_DIR}/mktags)
-set(mktagheaders_script ${CMAKE_CURRENT_LIST_DIR}/mktagheaders)
-file(GLOB_RECURSE source_files ${PROJECT_SOURCE_DIR}/src/*.cpp ${PROJECT_SOURCE_DIR}/src/*.cc ${PROJECT_SOURCE_DIR}/src/*.h ${PROJECT_SOURCE_DIR}/src/*.g)
+set(gentmptags_script ${CMAKE_CURRENT_LIST_DIR}/gentmptags.sh)
+set(gentags_script ${CMAKE_CURRENT_LIST_DIR}/gentags.sh)
+set(genheader_script ${CMAKE_CURRENT_LIST_DIR}/genheader.sh)
+
+file(GLOB_RECURSE source_files
+     ${PROJECT_SOURCE_DIR}/src/*.cpp
+     ${PROJECT_SOURCE_DIR}/src/*.cc
+     ${PROJECT_SOURCE_DIR}/src/*.h
+     ${PROJECT_SOURCE_DIR}/src/*.g)
 string(REPLACE ";" " " source_files_list "${source_files}")
 
 add_custom_command(
-  OUTPUT Debug_tags.tmp
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
   COMMAND
-    ${mktags_script}
-    "Debug"
-    ${source_files_list}
-    > ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
+    ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Debug ${source_files_list}
   DEPENDS mktags
 )
 
 add_custom_command(
-  OUTPUT Trace_tags.tmp
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
   COMMAND
-    ${mktags_script}
-    "Trace"
-    ${source_files_list}
-    > ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
+    ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Trace ${source_files_list}
   DEPENDS mktags
 )
 
 add_custom_command(
-  OUTPUT Debug_tags
-  COMMAND
-    diff -q
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
-    &> /dev/null
-    || mv
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
-    || true
-  DEPENDS Debug_tags.tmp
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
+  COMMAND ${gentags_script} Debug
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
 )
 
 add_custom_command(
-  OUTPUT Trace_tags
-  COMMAND
-    diff -q
-    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
-    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
-    &> /dev/null
-    || mv
-    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
-    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
-    || true
-  DEPENDS Trace_tags.tmp
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
+  COMMAND ${gentags_script} Trace
+  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
 )
 
 add_custom_command(
-  OUTPUT Debug_tags.h
-  COMMAND
-    ${mktagheaders_script}
-    "Debug_tags"
-    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
-    > ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
-  DEPENDS Debug_tags
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
+  COMMAND ${genheader_script} ${CMAKE_CURRENT_LIST_DIR} Debug
+  DEPENDS mktagheaders ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
 )
 
 add_custom_command(
-  OUTPUT Trace_tags.h
-  COMMAND
-    ${mktagheaders_script}
-    "Trace_tags"
-    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
-    > ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
-  DEPENDS Trace_tags
+  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
+  COMMAND ${genheader_script} ${CMAKE_CURRENT_LIST_DIR} Trace
+  DEPENDS mktagheaders ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
 )
 
 add_custom_target(
   tags_headers
-  DEPENDS Debug_tags.h Trace_tags.h
+  DEPENDS
+    ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
+    ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h
 )
