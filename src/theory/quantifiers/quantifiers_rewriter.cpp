@@ -823,18 +823,16 @@ Node QuantifiersRewriter::computeCondSplit(Node body,
             {
               do_split = true;
             }
+            // other splitting criteria go here
 
             if (do_split)
             {
               split_index = i;
               break;
             }
-            else
-            {
-              vars.clear();
-              subs.clear();
-              tmpArgs = args;
-            }
+            vars.clear();
+            subs.clear();
+            tmpArgs = args;
           }
         }
       }
@@ -932,6 +930,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
   {
     return getVarElimLit(lit[0], !pol, args, vars, subs);
   }
+  NodeManager * nm = NodeManager::currentNM();
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
   if (lit.getKind() == APPLY_TESTER && pol && lit[0].getKind() == BOUND_VARIABLE
@@ -951,15 +950,15 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       std::vector<Node> newChildren;
       newChildren.push_back(Node::fromExpr(c.getConstructor()));
       std::vector<Node> newVars;
-      for (unsigned j = 0; j < c.getNumArgs(); j++)
+      for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
       {
         TypeNode tn = TypeNode::fromType(c[j].getRangeType());
-        Node v = NodeManager::currentNM()->mkBoundVar(tn);
+        Node v = nm->mkBoundVar(tn);
         newChildren.push_back(v);
         newVars.push_back(v);
       }
       subs.push_back(
-          NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, newChildren));
+          nm->mkNode(APPLY_CONSTRUCTOR, newChildren));
       Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/"
                            << vars[0] << std::endl;
       args.erase(ita);
@@ -1133,38 +1132,37 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
       // not an inequality, cannot use
       continue;
     }
-    for (std::map<Node, Node>::iterator itm = msum.begin(); itm != msum.end();
-         ++itm)
+    for( const std::pair< const Node, Node >& m : msum )
     {
-      if (!itm->first.isNull())
+      if (!m.first.isNull())
       {
         std::vector<Node>::iterator ita =
-            std::find(args.begin(), args.end(), itm->first);
+            std::find(args.begin(), args.end(), m.first);
         if (ita != args.end())
         {
           // store that this literal is upper/lower bound for itm->first
           Node veq_c;
           Node val;
           int ires =
-              ArithMSum::isolate(itm->first, msum, veq_c, val, lit.getKind());
+              ArithMSum::isolate(m.first, msum, veq_c, val, lit.getKind());
           if (ires != 0 && veq_c.isNull())
           {
             bool is_upper = pol != (ires == 1);
             Trace("var-elim-ineq-debug")
                 << lit << " is a " << (is_upper ? "upper" : "lower")
-                << " bound for " << itm->first << std::endl;
+                << " bound for " << m.first << std::endl;
             Trace("var-elim-ineq-debug")
                 << "  pol/ires = " << pol << " " << ires << std::endl;
-            num_bounds[itm->first][is_upper][lit] = pol;
+            num_bounds[m.first][is_upper][lit] = pol;
           }
           else
           {
             Trace("var-elim-ineq-debug")
-                << "...ineligible " << itm->first
+                << "...ineligible " << m.first
                 << " since it cannot be solved for (" << ires << ", " << veq_c
                 << ")." << std::endl;
-            num_bounds[itm->first][true].clear();
-            num_bounds[itm->first][false].clear();
+            num_bounds[m.first][true].clear();
+            num_bounds[m.first][false].clear();
           }
         }
         else
@@ -1172,14 +1170,14 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
           // compute variables in itm->first, these are not eligible for
           // elimination
           std::vector<Node> bvs;
-          TermUtil::getBoundVars(itm->first, bvs);
-          for (unsigned j = 0; j < bvs.size(); j++)
+          TermUtil::getBoundVars(m.first, bvs);
+          for ( TNode v : bvs )
           {
             Trace("var-elim-ineq-debug")
-                << "...ineligible " << bvs[j]
+                << "...ineligible " << v
                 << " since it is contained in monomial." << std::endl;
-            num_bounds[bvs[j]][true].clear();
-            num_bounds[bvs[j]][false].clear();
+            num_bounds[v][true].clear();
+            num_bounds[v][false].clear();
           }
         }
       }
@@ -1188,22 +1186,19 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
 
   // collect all variables that have only upper/lower bounds
   std::map<Node, bool> elig_vars;
-  for (std::map<Node, std::map<bool, std::map<Node, bool> > >::iterator it =
-           num_bounds.begin();
-       it != num_bounds.end();
-       ++it)
+  for( const std::pair< const Node, std::map<bool, std::map<Node, bool> > >& nb : num_bounds )
   {
-    if (it->second.find(true) == it->second.end())
+    if (nb.second.find(true) == nb.second.end())
     {
       Trace("var-elim-ineq-debug")
-          << "Variable " << it->first << " has only lower bounds." << std::endl;
-      elig_vars[it->first] = false;
+          << "Variable " <<nb.first << " has only lower bounds." << std::endl;
+      elig_vars[nb.first] = false;
     }
-    else if (it->second.find(false) == it->second.end())
+    else if (nb.second.find(false) == nb.second.end())
     {
       Trace("var-elim-ineq-debug")
-          << "Variable " << it->first << " has only upper bounds." << std::endl;
-      elig_vars[it->first] = true;
+          << "Variable " << nb.first << " has only upper bounds." << std::endl;
+      elig_vars[nb.first] = true;
     }
   }
   if (elig_vars.empty())
@@ -1213,15 +1208,13 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   std::vector<Node> inactive_vars;
   std::map<Node, std::map<int, bool> > visited;
   std::map<Node, int> exclude;
-  for (std::map<Node, bool>::iterator it = qpr.d_phase_reqs.begin();
-       it != qpr.d_phase_reqs.end();
-       ++it)
+  for( const std::pair< Node, bool >& pr : qpr.d_phase_reqs )
   {
-    if (it->first.getKind() == GEQ)
+    if (pr.first.getKind() == GEQ)
     {
-      exclude[it->first] = it->second ? -1 : 1;
+      exclude[pr.first] = pr.second ? -1 : 1;
       Trace("var-elim-ineq-debug")
-          << "...exclude " << it->first << " at polarity " << exclude[it->first]
+          << "...exclude " << pr.first << " at polarity " << exclude[pr.first]
           << std::endl;
     }
   }
@@ -1289,24 +1282,19 @@ bool QuantifiersRewriter::getVarElimIneq(Node body,
   } while (!evisit.empty() && !elig_vars.empty());
 
   bool ret = false;
-  for (std::map<Node, bool>::iterator itev = elig_vars.begin();
-       itev != elig_vars.end();
-       ++itev)
+  for( const std::pair< Node, bool >& ev : elig_vars )
   {
-    Node v = itev->first;
+    Node v = ev.first;
     Trace("var-elim-ineq-debug")
         << v << " is eligible for elimination." << std::endl;
     // do substitution corresponding to infinite projection, all literals
     // involving unbounded variable go to true/false
-    for (std::map<Node, bool>::iterator itb =
-             num_bounds[v][elig_vars[v]].begin();
-         itb != num_bounds[v][elig_vars[v]].end();
-         ++itb)
+    for( const std::pair< const Node, bool >& nb : num_bounds[v][elig_vars[v]] )
     {
       Trace("var-elim-ineq-debug")
-          << "  subs : " << itb->first << " -> " << itb->second << std::endl;
-      bounds.push_back(itb->first);
-      subs.push_back(NodeManager::currentNM()->mkConst(itb->second));
+          << "  subs : " << nb.first << " -> " << nb.second << std::endl;
+      bounds.push_back(nb.first);
+      subs.push_back(NodeManager::currentNM()->mkConst(nb.second));
     }
     // eliminate from args
     std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);

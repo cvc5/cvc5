@@ -121,7 +121,7 @@ private:
    * This computes conditional splitting rewrites for a body of a quantified
    * formula with bound variables args. It returns a body' that is equivalent
    * to body. We split body into a conjunction if variable elimination can
-   * occur in one of the conjuncts, examples of this are:
+   * occur in one of the conjuncts. Examples of this are:
    *   ite( x=a, P(x), Q(x) ) ----> ( x!=a V P(x) ) ^ ( x=a V Q(x) )
    *   (x=a) = P(x) ----> ( x!=a V P(x) ) ^ ( x=a V ~P(x) )
    *   ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
