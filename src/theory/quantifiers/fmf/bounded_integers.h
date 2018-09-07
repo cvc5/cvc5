@@ -92,10 +92,10 @@ private:
  {
   public:
    IntRangeDecisionHeuristic(Node r,
-                 context::Context* c,
-                 context::Context* u,
-                 Valuation valuation,
-                 bool isProxy);
+                             context::Context* c,
+                             context::Context* u,
+                             Valuation valuation,
+                             bool isProxy);
    virtual ~IntRangeDecisionHeuristic() {}
    /** make the n^th literal of this strategy */
    Node mkLiteral(unsigned n) override;
@@ -134,7 +134,8 @@ private:
   std::vector< Node > d_ranges;
   /** Decision heuristics for each integer range */
   std::map<Node, IntRangeDecisionHeuristic*> d_rms;
-private:
+
+ private:
   //class to store whether bounding lemmas have been added
   class BoundInstTrie
   {

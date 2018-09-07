@@ -31,11 +31,12 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
-BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(Node r,
-                                              context::Context* c,
-                                              context::Context* u,
-                                              Valuation valuation,
-                                              bool isProxy)
+BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(
+    Node r,
+    context::Context* c,
+    context::Context* u,
+    Valuation valuation,
+    bool isProxy)
     : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
 {
   if( options::fmfBoundLazy() ){
@@ -88,7 +89,8 @@ BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
 {
 }
 
-BoundedIntegers::~BoundedIntegers() {
+BoundedIntegers::~BoundedIntegers()
+{
   for (std::map<Node, IntRangeDecisionHeuristic*>::iterator it = d_rms.begin();
        it != d_rms.end();
        ++it)
@@ -495,11 +497,12 @@ void BoundedIntegers::checkOwnership(Node f)
           if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
-            d_rms[r] = new IntRangeDecisionHeuristic(r,
-                                         d_quantEngine->getSatContext(),
-                                         d_quantEngine->getUserContext(),
-                                         d_quantEngine->getValuation(),
-                                         isProxy);
+            d_rms[r] =
+                new IntRangeDecisionHeuristic(r,
+                                              d_quantEngine->getSatContext(),
+                                              d_quantEngine->getUserContext(),
+                                              d_quantEngine->getValuation(),
+                                              isProxy);
             d_quantEngine->getTheoryEngine()
                 ->getDecisionManager()
                 ->registerStrategy(DecisionManager::strat_quant_bound_int_size,
