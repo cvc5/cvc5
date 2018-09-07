@@ -205,6 +205,8 @@ void CegConjecture::assign( Node q ) {
   {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
+  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+      DecisionManager::strat_quant_sygus_stream_feasible, d_stream_strategy.get());
     d_current_stream_guard = getCurrentStreamGuard();
   }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
@@ -402,32 +404,37 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     d_set_ce_sk_vars = true;
   }
 
-  if (!lem.isNull())
+  if (lem.isNull())
   {
-    lem = Rewriter::rewrite( lem );
-    //eagerly unfold applications of evaluation function
-    Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-    std::map<Node, Node> visited_n;
-    lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
-    // record the instantiation
-    // this is used for remembering the solution
-    recordInstantiation(candidate_values);
-    Node query = lem;
-    if (query.isConst() && !query.getConst<bool>() && options::sygusStream())
-    {
-      // short circuit the check
-      // instead, we immediately print the current solution.
-      // this saves us from introducing a check lemma and a new guard.
-      printAndContinueStream();
-      return;
-    }
+    // no lemma to check
+    return;
+  }
+  
+  lem = Rewriter::rewrite( lem );
+  //eagerly unfold applications of evaluation function
+  Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
+  std::map<Node, Node> visited_n;
+  lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
+  // record the instantiation
+  // this is used for remembering the solution
+  recordInstantiation(candidate_values);
+  Node query = lem;
+  bool success = false;
+  if (query.isConst() && !query.getConst<bool>())
+  {
+    // short circuit the check
+    lem = d_quant.negate();
+    success = true;
+  }
+  else
+  {
     // This is the "verification lemma", which states
     // either this conjecture does not have a solution, or candidate_values
     // is a solution for this conjecture.
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
-      Trace("cegqi-engine") << "  *** Direct verify..." << std::endl;
+      Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
       SmtEngine verifySmt(nm->toExprManager());
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
       verifySmt.assertFormula(query.toExpr());
@@ -447,9 +454,9 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
 #ifdef CVC4_ASSERTIONS
         // the values for the query should be a complete model
         Node squery = query.substitute(d_ce_sk_vars.begin(),
-                                       d_ce_sk_vars.end(),
-                                       d_ce_sk_var_mvs.begin(),
-                                       d_ce_sk_var_mvs.end());
+                                      d_ce_sk_vars.end(),
+                                      d_ce_sk_var_mvs.begin(),
+                                      d_ce_sk_var_mvs.end());
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
         squery = Rewriter::rewrite(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
@@ -462,14 +469,23 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
         // if the result in the subcall was unsatisfiable, we avoid
         // rechecking, hence we drop "query" from the verification lemma
         lem = d_quant.negate();
+        // we can short circuit adding the lemma (for sygus stream)
+        success = true;
       }
       // In the rare case that the subcall is unknown, we add the verification
       // lemma in the main solver. This should only happen if the quantifier
       // free logic is undecidable.
     }
-    lem = getStreamGuardedLemma(lem);
-    lems.push_back(lem);
   }
+  if( success && options::sygusStream())
+  {      
+    // if we were successful, we immediately print the current solution.
+    // this saves us from introducing a verification lemma and a new guard.
+    printAndContinueStream();
+    return;
+  }
+  lem = getStreamGuardedLemma(lem);
+  lems.push_back(lem);
 }
         
 void CegConjecture::doRefine( std::vector< Node >& lems ){

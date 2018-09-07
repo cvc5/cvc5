@@ -144,6 +144,7 @@ class DecisionManager
     //  "sat" for problems that are unsat.
     strat_quant_cegqi_feasible,
     strat_quant_sygus_feasible,
+    strat_quant_sygus_stream_feasible,
     strat_last_m_sound,
 
     //----- finite model finding strategies
