@@ -323,7 +323,7 @@ public:
     /** get cardinality term */
     Node getCardinalityTerm() { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral( unsigned c );
+    Node getCardinalityLiteral(unsigned c);
     /** get maximum negative cardinality */
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug

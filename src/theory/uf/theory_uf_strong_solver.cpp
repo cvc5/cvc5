@@ -449,9 +449,10 @@ SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("ajr-temp") << "Make literal here " << d_cardinality_term << " " << nm << std::endl;
+  Trace("ajr-temp") << "Make literal here " << d_cardinality_term << " " << nm
+                    << std::endl;
   Node lit = nm->mkNode(
-      CARDINALITY_CONSTRAINT, d_cardinality_term, nm->mkConst(Rational(i+1)));
+      CARDINALITY_CONSTRAINT, d_cardinality_term, nm->mkConst(Rational(i + 1)));
   Trace("ajr-temp") << "Return " << lit << std::endl;
   return lit;
 }
@@ -460,24 +461,24 @@ std::string SortModel::CardinalityDecisionStrategy::identify() const
   return std::string("uf_card");
 }
 
-SortModel::SortModel( Node n,
-                      context::Context* c,
-                      context::UserContext* u,
-                      StrongSolverTheoryUF* thss )
-  : d_type( n.getType() )
-  , d_thss( thss )
-  , d_regions_index( c, 0 )
-  , d_regions_map( c )
-  , d_split_score( c )
-  , d_disequalities_index( c, 0 )
-  , d_reps( c, 0 )
-  , d_conflict( c, false )
-  , d_cardinality( c, 1 )
-  , d_hasCard( c, false )
-  , d_maxNegCard( c, 0 )
-  , d_initialized( u, false )
-  , d_lemma_cache( u ),
-  d_c_dec_strat(nullptr)
+SortModel::SortModel(Node n,
+                     context::Context* c,
+                     context::UserContext* u,
+                     StrongSolverTheoryUF* thss)
+    : d_type(n.getType()),
+      d_thss(thss),
+      d_regions_index(c, 0),
+      d_regions_map(c),
+      d_split_score(c),
+      d_disequalities_index(c, 0),
+      d_reps(c, 0),
+      d_conflict(c, false),
+      d_cardinality(c, 1),
+      d_hasCard(c, false),
+      d_maxNegCard(c, 0),
+      d_initialized(u, false),
+      d_lemma_cache(u),
+      d_c_dec_strat(nullptr)
 {
   d_cardinality_term = n;
 
@@ -505,7 +506,8 @@ void SortModel::initialize( OutputChannel* out ){
   if (d_c_dec_strat.get() != nullptr && !d_initialized)
   {
     d_initialized = true;
-    d_thss->getTheory()->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_card,d_c_dec_strat.get());
+    d_thss->getTheory()->getDecisionManager()->registerStrategy(
+        DecisionManager::strat_uf_card, d_c_dec_strat.get());
   }
 }
 
@@ -864,14 +866,17 @@ void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
         }
       }
       // we assert it positively, if its beyond the bound, abort
-      if (options::ufssAbortCardinality() != -1 &&
-          c >= options::ufssAbortCardinality()) {
+      if (options::ufssAbortCardinality() != -1
+          && c >= options::ufssAbortCardinality())
+      {
         std::stringstream ss;
         ss << "Maximum cardinality (" << options::ufssAbortCardinality()
-          << ")  for finite model finding exceeded." << std::endl;
+           << ")  for finite model finding exceeded." << std::endl;
         throw LogicException(ss.str());
       }
-    }else{
+    }
+    else
+    {
       if( c>d_maxNegCard.get() ){
         Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for " << d_type << " is now " << c << std::endl;
         d_maxNegCard.set( c );
@@ -985,14 +990,15 @@ void SortModel::moveNode( Node n, int ri ){
 void SortModel::allocateCardinality( OutputChannel* out ){
   /*
   if( d_aloc_cardinality>0 ){
-    Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists for type " << d_type << " in this branch" << std::endl;
+    Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists
+  for type " << d_type << " in this branch" << std::endl;
   }
-  Trace("uf-ss-debug") << "Allocate cardinality " << d_aloc_cardinality << " for type " << d_type << std::endl;
-  if( Trace.isOn("uf-ss-cliques") ){
-    Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << " for " << d_type << " : " << std::endl;
-    for( size_t i=0; i<d_cliques[ d_aloc_cardinality ].size(); i++ ){
-      Trace("uf-ss-cliques") << "  ";
-      for( size_t j=0; j<d_cliques[ d_aloc_cardinality ][i].size(); j++ ){
+  Trace("uf-ss-debug") << "Allocate cardinality " << d_aloc_cardinality << " for
+  type " << d_type << std::endl; if( Trace.isOn("uf-ss-cliques") ){
+    Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << "
+  for " << d_type << " : " << std::endl; for( size_t i=0; i<d_cliques[
+  d_aloc_cardinality ].size(); i++ ){ Trace("uf-ss-cliques") << "  "; for(
+  size_t j=0; j<d_cliques[ d_aloc_cardinality ][i].size(); j++ ){
         Trace("uf-ss-cliques") << d_cliques[ d_aloc_cardinality ][i][j] << " ";
       }
       Trace("uf-ss-cliques") << std::endl;
@@ -1032,19 +1038,21 @@ void SortModel::allocateCardinality( OutputChannel* out ){
       }else{
         std::stringstream ss;
         ss << "_c_" << d_aloc_cardinality;
-        var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
+        var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a
+  cardinality lemma term" );
       }
       if( d_aloc_cardinality-1<(int)d_totality_terms[0].size() ){
         d_totality_terms[0][d_aloc_cardinality-1] = var;
       }else{
         d_totality_terms[0].push_back( var );
       }
-      Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " << d_type << std::endl;
+      Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " <<
+  d_type << std::endl;
       //must be distinct from all other cardinality terms
       for( int i=0; i<(int)(d_totality_terms[0].size()-1); i++ ){
-        Node lem = NodeManager::currentNM()->mkNode( NOT, var.eqNode( d_totality_terms[0][i] ) );
-        Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem << std::endl;
-        d_thss->getOutputChannel().lemma( lem );
+        Node lem = NodeManager::currentNM()->mkNode( NOT, var.eqNode(
+  d_totality_terms[0][i] ) ); Trace("uf-ss-lemma") << "Totality distinctness
+  lemma : " << lem << std::endl; d_thss->getOutputChannel().lemma( lem );
       }
     }
   Trace("uf-ss-debug") << "2" << std::endl;
@@ -1066,8 +1074,9 @@ void SortModel::allocateCardinality( OutputChannel* out ){
   Trace("uf-ss-debug") << "4" << std::endl;
     if( applyTotality( d_aloc_cardinality ) ){
       //must send totality axioms for each existing term
-      for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it ){
-        addTotalityAxiom( (*it).first, d_aloc_cardinality, &d_thss->getOutputChannel() );
+      for( NodeIntMap::iterator it = d_regions_map.begin(); it !=
+  d_regions_map.end(); ++it ){ addTotalityAxiom( (*it).first,
+  d_aloc_cardinality, &d_thss->getOutputChannel() );
       }
     }
   }
@@ -1349,10 +1358,11 @@ int SortModel::getNumRegions(){
   return count;
 }
 
-Node SortModel::getCardinalityLiteral( unsigned c ) {
-  Assert( c>0 );
+Node SortModel::getCardinalityLiteral(unsigned c)
+{
+  Assert(c > 0);
   if( d_cardinality_literal.find(c) == d_cardinality_literal.end() ){
-    Node lit = d_c_dec_strat->getLiteral(c-1);
+    Node lit = d_c_dec_strat->getLiteral(c - 1);
     d_cardinality_literal[c] = lit;
     return lit;
   }

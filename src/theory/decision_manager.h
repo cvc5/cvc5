@@ -169,8 +169,8 @@ class DecisionManager
   };
   DecisionManager(context::Context* satContext);
   ~DecisionManager() {}
-  /** reset the strategy 
-   * 
+  /** reset the strategy
+   *
    * This clears all decision strategies that are registered to this manager.
    * We require that each satisfiability check beyond the first calls this
    * function exactly once. Currently, it is called during
