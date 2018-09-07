@@ -51,18 +51,18 @@ class TheoryDatatypes;
  * Some of these techniques are described in these papers:
  * "Refutation-Based Synthesis in SMT", Reynolds et al 2017.
  * "Sygus Techniques in the Core of an SMT Solver", Reynolds et al 2017.
- * 
- * This class enforces two decisions stragies via calls to registerStrategy 
+ *
+ * This class enforces two decisions stragies via calls to registerStrategy
  * of the owning theory's DecisionManager:
-* (1) Positive decisions on the active guards G of enumerators e registered
-* to this class. These assert "there are more values to enumerate for e".
-* (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
-* where n is a non-negative integer. This asserts "the measure of terms
-* we are enumerating for enumerators whose measure term m is at most n",
-* where measure is commonly term size, but can also be height.
-*
-* We prioritize decisions of form (1) before (2). Both kinds of decision are
-* critical for solution completeness, which is enforced by DecisionManager.
+ * (1) Positive decisions on the active guards G of enumerators e registered
+ * to this class. These assert "there are more values to enumerate for e".
+ * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
+ * where n is a non-negative integer. This asserts "the measure of terms
+ * we are enumerating for enumerators whose measure term m is at most n",
+ * where measure is commonly term size, but can also be height.
+ *
+ * We prioritize decisions of form (1) before (2). Both kinds of decision are
+ * critical for solution completeness, which is enforced by DecisionManager.
  */
 class SygusSymBreakNew
 {
