@@ -13,34 +13,28 @@ Build types:
 
 
 General options;
-  -h, --help              display this help and exit
-
-  --gpl                   permit GPL dependences, if available
-  --best                  turn on dependences known to give best performance
+  -h, --help               display this help and exit
+  --gpl                    permit GPL dependences, if available
+  --best                   turn on dependences known to give best performance
 
 
 Features:
-
 The following flags enable optional features (disable with --no-<option name>).
-
-  --static                build static libraries and binaries [default=no]
-
-  --proofs                support for proof generation
-  --optimized             optimize the build
-  --debug-symbols         include debug symbols
-  --valgrind              Valgrind instrumentation
-  --debug-context-memory-manager
-                          use the debug context memory manager
-  --statistics            do not include statistics
-  --replay                turn off the replay feature
-  --assertions            turn off assertions
-  --tracing               remove all tracing code
-  --dumping               remove all dumping code
-  --muzzle                complete silence (no non-result output)
-  --coverage              support for gcov coverage testing
-  --profiling             support for gprof profiling
-  --unit-testing          support for unit testing
-  --thread-support        support for multithreaded-capable library
+  --static                 build static libraries and binaries [default=no]
+  --proofs                 support for proof generation
+  --optimized              optimize the build
+  --debug-symbols          include debug symbols
+  --valgrind               Valgrind instrumentation
+  --debug-context-mm       use the debug context memory manager
+  --statistics             do not include statistics
+  --replay                 turn off the replay feature
+  --assertions             turn off assertions
+  --tracing                remove all tracing code
+  --dumping                remove all dumping code
+  --muzzle                 complete silence (no non-result output)
+  --coverage               support for gcov coverage testing
+  --profiling              support for gprof profiling
+  --unit-testing           support for unit testing
 
 The following options configure parameterized features.
 
@@ -48,29 +42,28 @@ The following options configure parameterized features.
                           specify language bindings to build
 
 Optional Packages:
+The following flags enable optional packages (disable with --no-<option name>).
+  --cln                    use CLN instead of GMP
+  --gmp                    use GMP instead of CLN
+  --glpk                   use GLPK simplex solver
+  --abc                    use the ABC AIG library
+  --cadical                use the CaDiCaL SAT solver
+  --cryptominisat          use the CRYPTOMINISAT sat solver
+  --lfsc                   use the LFSC proof checker
+  --symfpu                 use symfpu for floating point solver
+  --portfolio              build the multithreaded portfolio version of CVC4
+                           (pcvc4)
+  --readline               support the readline library
 
-  --cln                   use CLN instead of GMP
-  --gmp                   use GMP instead of CLN
-  --glpk                  use GLPK simplex solver
-  --glpk-dir=PATH         path to top level of glpk installation
-  --abc                   use the ABC AIG library
-  --abc-dir=PATH          path to top level of abc source tree
-  --cadical               use the CaDiCaL SAT solver
-  --cadical-dir=PATH      path to top level of CaDiCaL source tree
-  --cryptominisat         use the CRYPTOMINISAT sat solver
-  --cryptominisat-dir=PATH
-                          path to top level of cryptominisat source tree
-  --lfsc                  use the LFSC proof checker
-  --lfsc-dir=PATH         path to top level of lfsc source tree
-  --symfpu                use symfpu for floating point solver
-  --symfpu-dir=PATH       path to top level of symfpu source tree
-  --cxxtest-dir=DIR       path to CxxTest installation
-  --antlr-dir=PATH        path to ANTLR C headers and libraries
-  --swig=BINARY           path to swig binary
-  --boost=DIR             prefix of Boost [guess]
-  --portfolio             build the multithreaded portfolio version of CVC4
-                          (pcvc4)
-  --readline              support the readline library
+Optional Path to Optional Packages:
+  --abc-dir=PATH           path to top level of abc source tree
+  --antlr-dir=PATH         path to ANTLR C headers and libraries
+  --cadical-dir=PATH       path to top level of CaDiCaL source tree
+  --cryptominisat-dir=PATH path to top level of cryptominisat source tree
+  --cxxtest-dir=DIR        path to CxxTest installation
+  --glpk-dir=PATH          path to top level of glpk installation
+  --lfsc-dir=PATH          path to top level of lfsc source tree
+  --symfpu-dir=PATH        path to top level of symfpu source tree
 
 Report bugs to <cvc4-bugs@cs.stanford.edu>.
 EOF
@@ -170,45 +163,44 @@ BUILDDIR=build
 
 #--------------------------------------------------------------------------#
 
-buildtype=production
+buildtype=default
 
-abc=no
-asan=no
-assertions=no
-best=no
-bsd=no
-cadical=no
-cln=no
-coverage=no
-cryptominisat=no
-debug_symbols=no
-debug_context_mm=no
-dumping=no
-gpl=no
-glpk=no
-glpk_dir=no
-language_bindings=no
-lfsc=no
-muzzle=no
-optimized=no
-portfolio=no
-proofs=no
-replay=no
-static=no
-statistics=no
-symfpu=no
-tracing=no
-unit_testing=no
-valgrind=no
-profiling=no
-readline=no
-thread_support=no
+abc=default
+asan=default
+assertions=default
+best=default
+cadical=default
+cln=default
+coverage=default
+cryptominisat=default
+debug_symbols=default
+debug_context_mm=default
+dumping=default
+gpl=default
+glpk=default
+lfsc=default
+muzzle=default
+optimized=default
+portfolio=default
+proofs=default
+replay=default
+static=default
+statistics=default
+symfpu=default
+tracing=default
+unit_testing=default
+valgrind=default
+profiling=default
+readline=default
+
+language_bindings=default
 
 abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 cxxtest_dir=default
+glpk_dir=default
 lfsc_dir=default
 symfpu_dir=default
 
@@ -217,35 +209,89 @@ symfpu_dir=default
 while [ $# -gt 0 ]
 do
   case $1 in
-    --abc) abc=yes;;
-    --asan) asan=yes;;
-    --assertions) assertions=yes;;
-    --best) best=yes;;
-    --cadical) cadical=yes;;
-    --cln) cln=yes;;
-    --coverage) coverage=yes;;
-    --cryptominisat) cryptominisat=yes;;
-    --debug-symbols) debug_symbols;;
-    --debug-context-memory-manager) debug_context_mm=yes;;
-    --dumping) dumping=yes;;
-    --gpl) gpl=yes;;
-    --glpk) glpk=yes;;
+
     -h|--help) usage;;
-    --lfsc) lfsc=yes;;
-    --muzzle) muzzle=yes;;
-    --optimized) optimized=yes;;
-    --portfolio) portfolio=yes;;
-    --proofs) proofs=yes;;
-    --replay) replay=yes;;
-    --static) static=yes;;
-    --statistics) statistics=yes;;
-    --symfpu) symfpu=yes;;
-    --tracing) tracing=yes;;
-    --unit-testing) unit_testing=yes;;
-    --valgrind) valgrind=yes;;
-    --profiling) profiling=yes;;
-    --readline) readline=yes;;
-    --thread-support) thread_support=yes;;
+
+    --abc) abc=ON;;
+    --no-abc) abc=OFF;;
+
+    --asan) asan=ON;;
+    --no-asan) asan=OFF;;
+
+    --assertions) assertions=ON;;
+    --no-assertions) assertions=OFF;;
+
+    --best) best=ON;;
+    --no-best) best=OFF;;
+
+    --cadical) cadical=ON;;
+    --no-cadical) cadical=OFF;;
+
+    --cln) cln=ON;;
+    --no-cln) cln=OFF;;
+
+    --coverage) coverage=ON;;
+    --no-coverage) coverage=OFF;;
+
+    --cryptominisat) cryptominisat=ON;;
+    --no-cryptominisat) cryptominisat=OFF;;
+
+    --debug-symbols) debug_symbols=ON;;
+    --no-debug-symbols) debug_symbols=OFF;;
+
+    --debug-context-memory-manager) debug_context_mm=ON;;
+    --no-debug-context-memory-manager) debug_context_mm=OFF;;
+
+    --dumping) dumping=ON;;
+    --no-dumping) dumping=OFF;;
+
+    --gpl) gpl=ON;;
+    --no-gpl) gpl=OFF;;
+
+    --glpk) glpk=ON;;
+    --no-glpk) glpk=OFF;;
+
+    --lfsc) lfsc=ON;;
+    --no-lfsc) lfsc=OFF;;
+
+    --muzzle) muzzle=ON;;
+    --no-muzzle) muzzle=OFF;;
+
+    --optimized) optimized=ON;;
+    --no-optimized) optimized=OFF;;
+
+    --portfolio) portfolio=ON;;
+    --no-portfolio) portfolio=OFF;;
+
+    --proofs) proofs=ON;;
+    --no-proofs) proofs=OFF;;
+
+    --replay) replay=ON;;
+    --no-replay) replay=OFF;;
+
+    --static) static=ON;;
+    --no-static) static=OFF;;
+
+    --statistics) statistics=ON;;
+    --no-statistics) statistics=OFF;;
+
+    --symfpu) symfpu=ON;;
+    --no-symfpu) symfpu=OFF;;
+
+    --tracing) tracing=ON;;
+    --no-tracing) tracing=OFF;;
+
+    --unit-testing) unit_testing=ON;;
+    --no-unit-testing) unit_testing=OFF;;
+
+    --valgrind) valgrind=ON;;
+    --no-valgrind) valgrind=OFF;;
+
+    --profiling) profiling=ON;;
+    --no-profiling) profiling=OFF;;
+
+    --readline) readline=ON;;
+    --no-readline) readline=OFF;;
 
     --language-bindings)
       shift
@@ -325,10 +371,66 @@ do
 
     -*) die "invalid option '$1' (try '-h')";;
 
-    *) [[ "production debug testing competition" =~ (^|[[:space:]])"$1"($|[[:space:]]) ]] \
-        || die "invalid build type (try '-h')"
-       buildtype=$1
+    *) case $1 in
+         production)  buildtype=Production;;
+         debug)       buildtype=Debug;;
+         testing)     buildtype=Testing;;
+         competition) buildtype=Competition;;
+         *)           die "invalid build type (try '-h')";;
+       esac
        ;;
   esac
   shift
 done
+
+#--------------------------------------------------------------------------#
+
+cmake_opts=""
+
+[ $buildtype != default ] && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
+
+[ $asan != default ] && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
+[ $assertions != default ] && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
+[ $best != default ] && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
+[ $coverage != default ] && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
+[ $debug_symbols != default ] && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
+[ $debug_context_mm != default ] && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm"
+[ $dumping != default ] && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping"
+[ $gpl != default ] && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
+[ $muzzle != default ] && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
+[ $optimized != default ] && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
+[ $portfolio != default ] && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
+[ $proofs != default ] && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
+[ $replay != default ] && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
+[ $static != default ] && cmake_opts="$cmake_opts -DENABLE_STATIC=$static"
+[ $statistics != default ] && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
+[ $tracing != default ] && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
+[ $unit_testing != default ] && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
+[ $valgrind != default ] && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
+[ $profiling != default ] && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
+[ $readline != default ] && cmake_opts="$cmake_opts -DENABLE_READLINE=$readline"
+
+[ $abc != default ] && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
+[ $cadical != default ] && cmake_opts="$cmake_opts -DUSE_CADICAL=$cadical"
+[ $cln != default ] && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
+[ $cryptominisat != default ] && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat"
+[ $glpk != default ] && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
+[ $lfsc != default ] && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
+[ $symfpu != default ] && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
+
+[ $language_bindings != default ] && cmake_opts="$cmake_opts -DENABLE_LANGUAGE_BINDINGS=$language_bindings"
+
+[ $abc_dir != default ] && cmake_opts="$cmake_opts -DENABLE_ABC_DIR=$abc_dir"
+[ $antlr_dir != default ] && cmake_opts="$cmake_opts -DENABLE_ANTLR_DIR=$antlr_dir"
+[ $cadical_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CADICAL_DIR=$cadical_dir"
+[ $cryptominisat_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CRYPTOMINISAT_DIR=$cryptominisat_dir"
+[ $cxxtest_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CXXTEST_DIR=$cxxtest_dir"
+[ $glpk_dir != default ] && cmake_opts="$cmake_opts -DENABLE_GLPL_DIR=$glpk_dir"
+[ $lfsc_dir != default ] && cmake_opts="$cmake_opts -DENABLE_LFSC_DIR=$lfsc_dir"
+[ $symfpu_dir != default ] && cmake_opts="$cmake_opts -DENABLE_SYMFPU_DIR=$symfpu_dir"
+
+mkdir -p $BUILDDIR
+cd $BUILDDIR
+
+[ -e CMakeCache.txt ] && rm CMakeCache.txt
+cmake .. $cmake_opts
