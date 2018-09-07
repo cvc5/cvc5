@@ -460,9 +460,10 @@ private:
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SygusSizeDecisionStrategy( Node t, context::Context* c, 
-                            Valuation valuation ) : DecisionStrategyFmf(c,valuation),
-                            d_this( t ), d_curr_search_size(0) {}
+    SygusSizeDecisionStrategy(Node t, context::Context* c, Valuation valuation)
+        : DecisionStrategyFmf(c, valuation), d_this(t), d_curr_search_size(0)
+    {
+    }
     /** the measure term */
     Node d_this;
     /**
@@ -515,9 +516,13 @@ private:
     Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
                                    bool mkNew = false);
     /** Returns the s^th fairness literal for this measure term. */
-    Node mkLiteral( unsigned s) override;
+    Node mkLiteral(unsigned s) override;
     /** identify */
-    std::string identify() const override { return std::string("sygus_enum_size"); }
+    std::string identify() const override
+    {
+      return std::string("sygus_enum_size");
+    }
+
    private:
     /** the measure value */
     Node d_measure_value;
@@ -525,13 +530,13 @@ private:
     Node d_measure_value_active;
   };
   /** the above information for each registered measure term */
-  std::map< Node, SygusSizeDecisionStrategy * > d_szinfo;
+  std::map<Node, SygusSizeDecisionStrategy*> d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
   /** map from enumerators (anchors) to a decision stratregy for that guard */
-  std::map< Node, std::unique_ptr<DecisionStrategy >  > d_anchor_to_ag_strategy;
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_anchor_to_ag_strategy;
   /** generic measure term
    *
    * This is a global term that is used as the measure term for all sygus
