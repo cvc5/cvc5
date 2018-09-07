@@ -388,8 +388,7 @@ void CegisUnifEnumManager::initialize(
       Trace("cegis-unif-enum")
           << "* Registering new enumerator " << ceu << " to strategy point "
           << ci.second.d_pt << "\n";
-      d_tds->registerEnumerator(
-          ceu, ci.second.d_pt, d_parent, true, options::sygusUnifRepairCond());
+      d_tds->registerEnumerator(ceu, ci.second.d_pt, d_parent);
       d_enum_to_active_guard[ceu] = d_tds->getActiveGuardForEnumerator(ceu);
     }
   }
@@ -532,12 +531,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         Trace("cegis-unif-enum")
             << "* Registering new enumerator " << e << " to strategy point "
             << ci.second.d_pt << "\n";
-        d_tds->registerEnumerator(e,
-                                  ci.second.d_pt,
-                                  d_parent,
-                                  false,
-                                  index == 0 ? options::sygusUnifRepairRet()
-                                             : options::sygusUnifRepairCond());
+        d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
       }
     }
     // register the evaluation points at the new value
