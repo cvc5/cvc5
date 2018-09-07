@@ -264,16 +264,12 @@ public:
     context::CDO<bool> d_conflict;
     /** cardinality */
     context::CDO< int > d_cardinality;
-    /** maximum allocated cardinality */
-    context::CDO< int > d_aloc_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
     std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
     std::map< int, Node > d_cardinality_literal;
-    /** cardinality lemmas */
-    std::map< int, Node > d_cardinality_lemma;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
@@ -316,8 +312,6 @@ public:
     void presolve();
     /** propagate */
     void propagate( Theory::Effort level, OutputChannel* out );
-    /** get next decision request */
-    Node getNextDecisionRequest();
     /** assert cardinality */
     void assertCardinality( OutputChannel* out, int c, bool val );
     /** is in conflict */
@@ -391,8 +385,6 @@ public:
   void check( Theory::Effort level );
   /** presolve */
   void presolve();
-  /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** identify */

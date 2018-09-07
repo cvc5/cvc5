@@ -300,14 +300,6 @@ void TheoryUF::propagate(Effort effort) {
   //}
 }
 
-Node TheoryUF::getNextDecisionRequest( unsigned& priority ){
-  if (d_thss != NULL && !d_conflict) {
-    return d_thss->getNextDecisionRequest( priority );
-  }else{
-    return Node::null();
-  }
-}
-
 void TheoryUF::explain(TNode literal, std::vector<TNode>& assumptions, eq::EqProof* pf) {
   // Do the work
   bool polarity = literal.getKind() != kind::NOT;

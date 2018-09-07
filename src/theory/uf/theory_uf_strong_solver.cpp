@@ -473,7 +473,6 @@ SortModel::SortModel( Node n,
   , d_reps( c, 0 )
   , d_conflict( c, false )
   , d_cardinality( c, 1 )
-  , d_aloc_cardinality( u, 0 )
   , d_hasCard( c, false )
   , d_maxNegCard( c, 0 )
   , d_initialized( u, false )
@@ -507,7 +506,6 @@ void SortModel::initialize( OutputChannel* out ){
   {
     d_initialized = true;
     d_thss->getTheory()->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_card,d_c_dec_strat.get());
-    //allocateCardinality( out );
   }
 }
 
@@ -786,33 +784,10 @@ void SortModel::check( Theory::Effort level, OutputChannel* out ){
 
 void SortModel::presolve() {
   d_initialized = false;
-  d_aloc_cardinality = 0;
 }
 
 void SortModel::propagate( Theory::Effort level, OutputChannel* out ){
 
-}
-
-Node SortModel::getNextDecisionRequest(){
-  //request the current cardinality as a decision literal, if not already asserted
-  for( int i=1; i<=d_aloc_cardinality; i++ ){
-    if( !d_hasCard || i<d_cardinality ){
-      Node cn = d_cardinality_literal[ i ];
-      Assert( !cn.isNull() );
-      bool value;
-      if( !d_thss->getTheory()->d_valuation.hasSatValue( cn, value ) ){
-        Trace("uf-ss-dec") << "UFSS : Get next decision " << d_type << " " << i << std::endl;
-        return cn;
-      }else{
-        Trace("uf-ss-dec-debug") << "  dec : " << cn << " already asserted " << value << std::endl;
-        Assert( !value );
-      }
-    }
-  }
-  Trace("uf-ss-dec") << "UFSS : no decisions for " << d_type << "." << std::endl;
-  Trace("uf-ss-dec-debug") << "  aloc_cardinality = " << d_aloc_cardinality << ", cardinality = " << d_cardinality << ", hasCard = " << d_hasCard << std::endl;
-  Assert( d_hasCard );
-  return Node::null();
 }
 
 int SortModel::getNumDisequalitiesToRegion( Node n, int ri ){
@@ -888,28 +863,15 @@ void SortModel::assertCardinality( OutputChannel* out, int c, bool val ){
           }
         }
       }
-    }else{
-      //see if we need to request a new cardinality
-      /*
-      if( !d_hasCard ){
-        bool needsCard = true;
-        for( std::map< int, Node >::iterator it = d_cardinality_literal.begin(); it!=d_cardinality_literal.end(); ++it ){
-          if( it->first<=d_aloc_cardinality.get() ){
-            bool value;
-            if( !d_thss->getTheory()->d_valuation.hasSatValue( it->second, value ) ){
-              Debug("fmf-card-debug") << "..does not need allocate because we are waiting for " << it->second << std::endl;
-              needsCard = false;
-              break;
-            }
-          }
-        }
-        if( needsCard ){
-          allocateCardinality( out );
-        }
-      }else{
-        Debug("fmf-card-debug") << "..already has card = " << d_cardinality << std::endl;
+      // we assert it positively, if its beyond the bound, abort
+      if (options::ufssAbortCardinality() != -1 &&
+          c >= options::ufssAbortCardinality()) {
+        std::stringstream ss;
+        ss << "Maximum cardinality (" << options::ufssAbortCardinality()
+          << ")  for finite model finding exceeded." << std::endl;
+        throw LogicException(ss.str());
       }
-      */
+    }else{
       if( c>d_maxNegCard.get() ){
         Trace("uf-ss-com-card-debug") << "Maximum negative cardinality for " << d_type << " is now " << c << std::endl;
         d_maxNegCard.set( c );
@@ -1021,6 +983,7 @@ void SortModel::moveNode( Node n, int ri ){
 }
 
 void SortModel::allocateCardinality( OutputChannel* out ){
+  /*
   if( d_aloc_cardinality>0 ){
     Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists for type " << d_type << " in this branch" << std::endl;
   }
@@ -1057,15 +1020,9 @@ void SortModel::allocateCardinality( OutputChannel* out ){
   }while( increment );
 
   Trace("uf-ss-debug") << "Done check assert" << std::endl;
-  //check for abort case
-  if (options::ufssAbortCardinality() != -1 &&
-      d_aloc_cardinality >= options::ufssAbortCardinality()) {
-    std::stringstream ss;
-    ss << "Maximum cardinality (" << options::ufssAbortCardinality()
-       << ")  for finite model finding exceeded." << std::endl;
-    throw LogicException(ss.str());
+
   }else{
-  Trace("uf-ss-debug") << "1" << std::endl;
+    Trace("uf-ss-debug") << "1" << std::endl;
     if( applyTotality( d_aloc_cardinality ) ){
       //must generate new cardinality lemma term
       Node var;
@@ -1114,6 +1071,7 @@ void SortModel::allocateCardinality( OutputChannel* out ){
       }
     }
   }
+  */
 }
 
 int SortModel::addSplit( Region* r, OutputChannel* out ){
@@ -1726,25 +1684,6 @@ std::string
 StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::identify() const
 {
   return std::string("uf_combined_card");
-}
-
-/** get next decision request */
-Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
-  /*
-  //request the combined cardinality as a decision literal, if not already asserted
-  if( options::ufssMode()==UF_SS_FULL ){
-    //otherwise, check each individual sort
-    for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
-      Node n = it->second->getNextDecisionRequest();
-      if( !n.isNull() ){
-        priority = 1;
-        return n;
-      }
-    }
-  }
-  */
-  Trace("uf-ss-dec") << "...no UF SS decisions." << std::endl;
-  return Node::null();
 }
 
 void StrongSolverTheoryUF::preRegisterTerm( TNode n ){
