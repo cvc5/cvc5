@@ -1380,6 +1380,8 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_aloc_com_card(u, 0),
       d_com_card_assertions(c),
       d_min_pos_com_card(c, -1),
+      d_cc_dec_strat(nullptr),
+      d_initializedCombinedCardinality(false),
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
       d_rel_eqc(c)
@@ -1391,7 +1393,6 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
     // construct this module during TheoryUF::finishInit.
     d_cc_dec_strat.reset(
         new CombinedCardinalityDecisionStrategy(c, th->getValuation()));
-    // th->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_combined_card,d_cc_dec_strat.get());
   }
 }
 
@@ -1709,7 +1710,7 @@ Node StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::mkLiteral(
     unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(kind::COMBINED_CARDINALITY_CONSTRAINT,
+  return nm->mkNode(COMBINED_CARDINALITY_CONSTRAINT,
                     nm->mkConst(Rational(i)));
 }
 
@@ -1723,6 +1724,7 @@ StrongSolverTheoryUF::CombinedCardinalityDecisionStrategy::identify() const
 Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
   //request the combined cardinality as a decision literal, if not already asserted
   if( options::ufssMode()==UF_SS_FULL ){
+    /*
     if( options::ufssFairness() ){
       int comCard = 0;
       Node com_lit;
@@ -1740,6 +1742,7 @@ Node StrongSolverTheoryUF::getNextDecisionRequest( unsigned& priority ){
         }
       }while( !com_lit.isNull() );
     }
+    */
     //otherwise, check each individual sort
     for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
       Node n = it->second->getNextDecisionRequest();
@@ -1871,12 +1874,10 @@ bool StrongSolverTheoryUF::debugModel( TheoryModel* m ){
 
 /** initialize */
 void StrongSolverTheoryUF::initializeCombinedCardinality() {
-  Assert( options::ufssMode()==UF_SS_FULL );
-  if( options::ufssFairness() ){
-    if( d_aloc_com_card.get()==0 ){
-      Trace("uf-ss-com-card-debug") << "Initialize combined cardinality" << std::endl;
-      allocateCombinedCardinality();
-    }
+  if (d_cc_dec_strat.get()!=nullptr && !d_initializedCombinedCardinality)
+  {
+    d_initializedCombinedCardinality = true;
+    d_th->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_combined_card,d_cc_dec_strat.get());
   }
 }
 
@@ -1925,8 +1926,8 @@ void StrongSolverTheoryUF::checkCombinedCardinality() {
     int cc = d_min_pos_com_card.get();
     if( cc !=-1 && totalCombinedCard > cc ){
       //conflict
-      Assert( d_com_card_literal.find( cc ) != d_com_card_literal.end() );
-      Node com_lit = d_com_card_literal[cc];
+      //Assert( d_com_card_literal.find( cc ) != d_com_card_literal.end() );
+      Node com_lit = d_cc_dec_strat->getLiteral(cc);//d_com_card_literal[cc];
       Assert(d_com_card_assertions.find(com_lit)!=d_com_card_assertions.end());
       Assert( d_com_card_assertions[com_lit] );
       std::vector< Node > conf;

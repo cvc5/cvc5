@@ -79,8 +79,10 @@ void TheoryUF::finishInit() {
   TheoryModel* tm = d_valuation.getModel();
   Assert(tm != nullptr);
   tm->setUnevaluatedKind(kind::COMBINED_CARDINALITY_CONSTRAINT);
-  // initialize the strong solver
-  if (options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
+  // Initialize the cardinality constraints solver if the logic includes UF,
+  // finite model finding is enabled, and it is not disabled by
+  // options::ufssMode().
+  if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
   }
 }
