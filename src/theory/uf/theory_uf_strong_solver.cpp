@@ -449,12 +449,8 @@ SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(
 Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
 {
   NodeManager* nm = NodeManager::currentNM();
-  Trace("ajr-temp") << "Make literal here " << d_cardinality_term << " " << nm
-                    << std::endl;
-  Node lit = nm->mkNode(
+  return nm->mkNode(
       CARDINALITY_CONSTRAINT, d_cardinality_term, nm->mkConst(Rational(i + 1)));
-  Trace("ajr-temp") << "Return " << lit << std::endl;
-  return lit;
 }
 std::string SortModel::CardinalityDecisionStrategy::identify() const
 {
@@ -987,102 +983,6 @@ void SortModel::moveNode( Node n, int ri ){
   d_regions_map[n] = ri;
 }
 
-void SortModel::allocateCardinality( OutputChannel* out ){
-  /*
-  if( d_aloc_cardinality>0 ){
-    Trace("uf-ss-fmf") << "No model of size " << d_aloc_cardinality << " exists
-  for type " << d_type << " in this branch" << std::endl;
-  }
-  Trace("uf-ss-debug") << "Allocate cardinality " << d_aloc_cardinality << " for
-  type " << d_type << std::endl; if( Trace.isOn("uf-ss-cliques") ){
-    Trace("uf-ss-cliques") << "Cliques of size " << (d_aloc_cardinality+1) << "
-  for " << d_type << " : " << std::endl; for( size_t i=0; i<d_cliques[
-  d_aloc_cardinality ].size(); i++ ){ Trace("uf-ss-cliques") << "  "; for(
-  size_t j=0; j<d_cliques[ d_aloc_cardinality ][i].size(); j++ ){
-        Trace("uf-ss-cliques") << d_cliques[ d_aloc_cardinality ][i][j] << " ";
-      }
-      Trace("uf-ss-cliques") << std::endl;
-    }
-  }
-
-  Trace("uf-ss-debug") << "Check assert" << std::endl;
-  //allocate the lowest such that it is not asserted
-  Node cl;
-  bool increment;
-  do {
-    increment = false;
-    d_aloc_cardinality = d_aloc_cardinality + 1;
-    cl = getCardinalityLiteral( d_aloc_cardinality );
-  Trace("uf-ss-debug") << "Check " << cl << std::endl;
-    bool value;
-    if( d_thss->getTheory()->d_valuation.hasSatValue( cl, value ) ){
-      if( value ){
-        //if one is already asserted postively, abort
-        return;
-      }else{
-        increment = true;
-      }
-    }
-  }while( increment );
-
-  Trace("uf-ss-debug") << "Done check assert" << std::endl;
-
-  }else{
-    Trace("uf-ss-debug") << "1" << std::endl;
-    if( applyTotality( d_aloc_cardinality ) ){
-      //must generate new cardinality lemma term
-      Node var;
-      if( d_aloc_cardinality==1 && !options::ufssTotalitySymBreak() ){
-        //get arbitrary ground term
-        var = d_cardinality_term;
-      }else{
-        std::stringstream ss;
-        ss << "_c_" << d_aloc_cardinality;
-        var = NodeManager::currentNM()->mkSkolem( ss.str(), d_type, "is a
-  cardinality lemma term" );
-      }
-      if( d_aloc_cardinality-1<(int)d_totality_terms[0].size() ){
-        d_totality_terms[0][d_aloc_cardinality-1] = var;
-      }else{
-        d_totality_terms[0].push_back( var );
-      }
-      Trace("mkVar") << "allocateCardinality, mkVar : " << var << " : " <<
-  d_type << std::endl;
-      //must be distinct from all other cardinality terms
-      for( int i=0; i<(int)(d_totality_terms[0].size()-1); i++ ){
-        Node lem = NodeManager::currentNM()->mkNode( NOT, var.eqNode(
-  d_totality_terms[0][i] ) ); Trace("uf-ss-lemma") << "Totality distinctness
-  lemma : " << lem << std::endl; d_thss->getOutputChannel().lemma( lem );
-      }
-    }
-  Trace("uf-ss-debug") << "2" << std::endl;
-
-    //add splitting lemma for cardinality constraint
-    Assert( !d_cardinality_term.isNull() );
-    Node lem = getCardinalityLiteral( d_aloc_cardinality );
-    lem = NodeManager::currentNM()->mkNode( OR, lem, lem.notNode() );
-    d_cardinality_lemma[ d_aloc_cardinality ] = lem;
-    //add as lemma to output channel
-    if( doSendLemma( lem ) ){
-      Trace("uf-ss-lemma") << "*** Cardinality split on : " << lem << std::endl;
-    }
-  Trace("uf-ss-debug") << "3" << std::endl;
-    //require phase
-    out->requirePhase( d_cardinality_literal[ d_aloc_cardinality ], true );
-    d_thss->d_statistics.d_max_model_size.maxAssign( d_aloc_cardinality );
-
-  Trace("uf-ss-debug") << "4" << std::endl;
-    if( applyTotality( d_aloc_cardinality ) ){
-      //must send totality axioms for each existing term
-      for( NodeIntMap::iterator it = d_regions_map.begin(); it !=
-  d_regions_map.end(); ++it ){ addTotalityAxiom( (*it).first,
-  d_aloc_cardinality, &d_thss->getOutputChannel() );
-      }
-    }
-  }
-  */
-}
-
 int SortModel::addSplit( Region* r, OutputChannel* out ){
   Node s;
   if( r->hasSplits() ){
@@ -1361,12 +1261,47 @@ int SortModel::getNumRegions(){
 Node SortModel::getCardinalityLiteral(unsigned c)
 {
   Assert(c > 0);
-  if( d_cardinality_literal.find(c) == d_cardinality_literal.end() ){
-    Node lit = d_c_dec_strat->getLiteral(c - 1);
-    d_cardinality_literal[c] = lit;
+  std::map< int, Node >::iterator itcl = d_cardinality_literal.find(c);
+  if( itcl != d_cardinality_literal.end() ){
+    return itcl->second;
+  }
+  // get the literal from the decision strategy
+  Node lit = d_c_dec_strat->getLiteral(c - 1);
+  d_cardinality_literal[c] = lit;
+  
+  // Since we are reasoning about cardinality c, we invoke a totality axiom
+  if( !applyTotality( c ) ){
+    // return if we are not using totality axioms
     return lit;
   }
-  return d_cardinality_literal[c];
+  
+  NodeManager * nm = NodeManager::currentNM();
+  Node var;
+  if( c==1 && !options::ufssTotalitySymBreak() ){
+    //get arbitrary ground term
+    var = d_cardinality_term;
+  }else{
+    std::stringstream ss;
+    ss << "_c_" << c;
+    var = nm->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
+  }
+  if( (c-1)<d_totality_terms[0].size() ){
+    d_totality_terms[0][c-1] = var;
+  }else{
+    d_totality_terms[0].push_back( var );
+  }
+  //must be distinct from all other cardinality terms
+  for( int i=1, size = d_totality_terms[0].size(); i<size; i++ ){
+    Node lem = nm->mkNode( NOT, var.eqNode( d_totality_terms[0][i-1] ) ); 
+    Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem << std::endl; 
+    d_thss->getOutputChannel().lemma( lem );
+  }
+  //must send totality axioms for each existing term
+  for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it )
+  { 
+    addTotalityAxiom( (*it).first,c, &d_thss->getOutputChannel() );
+  }
+  return lit;
 }
 
 StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
