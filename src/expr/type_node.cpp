@@ -197,9 +197,9 @@ bool TypeNode::isClosedEnumerable()
       setAttribute(IsClosedEnumerableComputedAttr(), true);
       TypeNode tn = *this;
       const Datatype& dt = getDatatype();
-      for (unsigned i = 0; i < dt.getNumConstructors(); i++)
+      for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
       {
-        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
+        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
         {
           TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
           if (tn != ctn && !ctn.isClosedEnumerable())

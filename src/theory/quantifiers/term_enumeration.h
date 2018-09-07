@@ -46,10 +46,14 @@ class TermEnumeration
    *
    * Returns true if the type tn is closed enumerable, is interpreted as a
    * finite type, and has cardinality less than some reasonable value
-   * (currently < 1000).
+   * (currently < 1000). This method caches the results of whether each type
+   * may be completed.
    */
   bool mayComplete(TypeNode tn);
-  /** Version of the above method where maximum cardinality is configurable. */
+  /** 
+   * Static version of the above method where maximum cardinality is
+   * configurable. 
+   */
   static bool mayComplete(TypeNode tn, unsigned cardMax);
 
  private:
