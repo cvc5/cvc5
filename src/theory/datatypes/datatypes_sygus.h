@@ -453,14 +453,16 @@ private:
    * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * SearchSizeInfo for m below. This may result in lemmas
+   * SygusSizeDecisionStrategy for m below. This may result in lemmas
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
-  /** information for each measure term allocated by this class */
-  class SearchSizeInfo
+  /** A decision strategy for each measure term allocated by this class */
+  class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    SygusSizeDecisionStrategy( Node t, context::Context* c, 
+                            Valuation valuation ) : DecisionStrategyFmf(c,valuation),
+                            d_this( t ), d_curr_search_size(0) {}
     /** the measure term */
     Node d_this;
     /**
@@ -512,56 +514,18 @@ private:
      */
     Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
                                    bool mkNew = false);
-    /**
-     * The current search size literal for this measure term. This corresponds
-     * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
-     * this SAT context.
-     */
-    context::CDO< unsigned > d_curr_lit;
-    /**
-     * Map from integers n to the fairness literal, for each n such that this
-     * literal has been allocated (by getFairnessLiteral below).
-     */
-    std::map< unsigned, Node > d_lits;
-    /**
-     * Returns the s^th fairness literal for this measure term. This adds a
-     * split on this literal to lemmas.
-     */
-    Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
-    /** get the current fairness literal */
-    Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
-      return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
-    }
-    /** increment current term size */
-    void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
-    /** get decision strategy */
-    DecisionStrategy * getDecisionStrategy();
+    /** Returns the s^th fairness literal for this measure term. */
+    Node mkLiteral( unsigned s) override;
+    /** identify */
+    std::string identify() const override { return std::string("sygus_enum_size"); }
    private:
     /** the measure value */
     Node d_measure_value;
     /** the sygus measure value */
     Node d_measure_value_active;
-    /** the decision strategy of this size */
-    class DtSearchSizeDecisionStrategy : public DecisionStrategyFmf
-    {
-    public:
-      DtSearchSizeDecisionStrategy(SearchSizeInfo * ssi,
-                            context::Context* satContext,
-                            Valuation valuation);
-      /**
-      * Make the n^th literal of this strategy. This method returns mkLiteral if
-      * n=0, null otherwise.
-      */
-      Node mkLiteral(unsigned n) override;
-      /** identify */
-      std::string identify() const override { return std::string("sygus_enum_size"); }
-    private:
-      /** pointer to the search size info class */
-      SearchSizeInfo * d_ssi;
-    };
   };
   /** the above information for each registered measure term */
-  std::map< Node, SearchSizeInfo * > d_szinfo;
+  std::map< Node, SygusSizeDecisionStrategy * > d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
@@ -592,7 +556,7 @@ private:
    * incrementSearchSize so far is at least s.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  /** Allocates a SearchSizeInfo object in d_szinfo. */
+  /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
    * Return the current search size for arbitrary term n. This is the current
