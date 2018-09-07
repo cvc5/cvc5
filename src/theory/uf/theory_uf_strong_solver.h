@@ -336,9 +336,30 @@ public:
     void debugPrint( const char* c );
     /** debug a model */
     bool debugModel( TheoryModel* m );
-  public:
     /** get number of regions (for debugging) */
     int getNumRegions();
+  private:
+    /**
+    * Decision strategy for cardinality constraints. This asserts
+    * the minimal constraint positively in the SAT context. For details, see 
+    * Section 6.3 of Reynolds et al, "Constraint Solving for Finite Model
+    * Finding in SMT Solvers", TPLP 2017.
+    */
+    class CardinalityDecisionStrategy : public DecisionStrategyFmf
+    {
+    public:
+      CardinalityDecisionStrategy(Node t, context::Context* satContext,
+                                          Valuation valuation);
+      /** make literal (the i^th combined cardinality literal) */
+      Node mkLiteral(unsigned i) override;
+      /** identify */
+      std::string identify() const override;
+  private:
+    /** the cardinality term */
+    Node d_cardinality_term;
+    };
+    /** cardinality decision strategy */
+    std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;    
   }; /** class SortModel */
 
 public:

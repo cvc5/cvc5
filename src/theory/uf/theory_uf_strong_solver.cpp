@@ -441,6 +441,23 @@ void Region::debugPrint( const char* c, bool incClique ) {
   }
 }
 
+SortModel::CardinalityDecisionStrategy::CardinalityDecisionStrategy(Node t, context::Context* satContext,
+                                    Valuation valuation) : DecisionStrategyFmf(satContext,valuation), d_cardinality_term(t)
+                                    {
+                                      
+                                    }
+Node SortModel::CardinalityDecisionStrategy::mkLiteral(unsigned i)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  return nm->mkNode(CARDINALITY_CONSTRAINT,
+                                       d_cardinality_term,
+                                       nm->mkConst(Rational(i)));
+}
+std::string SortModel::CardinalityDecisionStrategy::identify() const 
+{
+  return std::string("uf_card");
+}
+
 SortModel::SortModel( Node n,
                       context::Context* c,
                       context::UserContext* u,
@@ -461,12 +478,15 @@ SortModel::SortModel( Node n,
   , d_lemma_cache( u )
 {
   d_cardinality_term = n;
-  //if( d_type.isSort() ){
-  //  TypeEnumerator te(tn);
-  //  d_cardinality_term = *te;
-  //}else{
-  //  d_cardinality_term = tn.mkGroundTerm();
-  //}
+
+  if (options::ufssMode() == UF_SS_FULL)
+  {
+    // Register the strategy with the decision manager of the theory.
+    // We are guaranteed that the decision manager is ready since we
+    // construct this module during TheoryUF::finishInit.
+    d_c_dec_strat.reset(
+        new CardinalityDecisionStrategy(n, c, thss->getTheory()->getValuation()));
+  }
 }
 
 SortModel::~SortModel() {
@@ -480,8 +500,9 @@ SortModel::~SortModel() {
 
 /** initialize */
 void SortModel::initialize( OutputChannel* out ){
-  if( !d_initialized ){
+  if( d_c_dec_strat.get()!=nullptr && !d_initialized ){
     d_initialized = true;
+    //d_thss->getTheory()->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_card,d_c_dec_strat.get());
     allocateCardinality( out );
   }
 }
