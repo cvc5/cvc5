@@ -206,7 +206,8 @@ void CegConjecture::assign( Node q ) {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
     d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_quant_sygus_stream_feasible, d_stream_strategy.get());
+        DecisionManager::strat_quant_sygus_stream_feasible,
+        d_stream_strategy.get());
     d_current_stream_guard = getCurrentStreamGuard();
   }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
@@ -409,9 +410,9 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     // no lemma to check
     return;
   }
-  
-  lem = Rewriter::rewrite( lem );
-  //eagerly unfold applications of evaluation function
+
+  lem = Rewriter::rewrite(lem);
+  // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
   std::map<Node, Node> visited_n;
   lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
@@ -454,9 +455,9 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
 #ifdef CVC4_ASSERTIONS
         // the values for the query should be a complete model
         Node squery = query.substitute(d_ce_sk_vars.begin(),
-                                      d_ce_sk_vars.end(),
-                                      d_ce_sk_var_mvs.begin(),
-                                      d_ce_sk_var_mvs.end());
+                                       d_ce_sk_vars.end(),
+                                       d_ce_sk_var_mvs.begin(),
+                                       d_ce_sk_var_mvs.end());
         Trace("cegqi-debug") << "...squery : " << squery << std::endl;
         squery = Rewriter::rewrite(squery);
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
@@ -477,8 +478,8 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
       // free logic is undecidable.
     }
   }
-  if( success && options::sygusStream())
-  {      
+  if (success && options::sygusStream())
+  {
     // if we were successful, we immediately print the current solution.
     // this saves us from introducing a verification lemma and a new guard.
     printAndContinueStream();

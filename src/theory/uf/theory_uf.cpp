@@ -82,7 +82,9 @@ void TheoryUF::finishInit() {
   // Initialize the cardinality constraints solver if the logic includes UF,
   // finite model finding is enabled, and it is not disabled by
   // options::ufssMode().
-  if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind() && options::ufssMode()!=UF_SS_NONE) {
+  if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
+      && options::ufssMode() != UF_SS_NONE)
+  {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
   }
 }

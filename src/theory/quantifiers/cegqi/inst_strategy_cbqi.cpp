@@ -197,13 +197,12 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     // counterexample literal is decided on first. It is user-context dependent.
     std::map<Node, DecisionStrategy*>::iterator itds = d_dstrat.find(q);
     DecisionStrategy* dlds = nullptr;
-    if( itds== d_dstrat.end() )
+    if (itds == d_dstrat.end())
     {
-      dlds =
-          new DecisionStrategySingleton("CexLiteral",
-                                        ceLit,
-                                        d_quantEngine->getSatContext(),
-                                        d_quantEngine->getValuation());
+      dlds = new DecisionStrategySingleton("CexLiteral",
+                                           ceLit,
+                                           d_quantEngine->getSatContext(),
+                                           d_quantEngine->getValuation());
     }
     else
     {

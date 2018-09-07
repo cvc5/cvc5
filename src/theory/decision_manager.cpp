@@ -158,7 +158,8 @@ void DecisionManager::registerStrategy(StrategyId id,
                                        bool append)
 {
   ds->initialize();
-  Trace("dec-manager") << "DecisionManager: Register strategy : " << ds->identify() << ", id = " << id << std::endl;
+  Trace("dec-manager") << "DecisionManager: Register strategy : "
+                       << ds->identify() << ", id = " << id << std::endl;
   if (append)
   {
     d_reg_strategy[id].push_back(ds);
@@ -191,7 +192,8 @@ void DecisionManager::initialize()
 
 Node DecisionManager::getNextDecisionRequest(unsigned& priority)
 {
-  Trace("dec-manager-debug") << "DecisionManager: Get next decision..." << std::endl;
+  Trace("dec-manager-debug")
+      << "DecisionManager: Get next decision..." << std::endl;
   for (const std::pair<StrategyId, std::vector<DecisionStrategy*> >& rs :
        d_reg_strategy)
   {
@@ -205,18 +207,20 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
         priority = sid < strat_last_m_sound
                        ? 0
                        : (sid < strat_last_fm_complete ? 1 : 2);
-        Trace("dec-manager") << "DecisionManager:  -> literal " << lit << " decided by strategy "
-                             << ds->identify() << std::endl;
+        Trace("dec-manager")
+            << "DecisionManager:  -> literal " << lit << " decided by strategy "
+            << ds->identify() << std::endl;
         return lit;
       }
       else
       {
-        Trace("dec-manager-debug")
-            << "DecisionManager:  " << ds->identify() << " has no decisions." << std::endl;
+        Trace("dec-manager-debug") << "DecisionManager:  " << ds->identify()
+                                   << " has no decisions." << std::endl;
       }
     }
   }
-  Trace("dec-manager-debug") << "DecisionManager:  -> no decisions." << std::endl;
+  Trace("dec-manager-debug")
+      << "DecisionManager:  -> no decisions." << std::endl;
   /*
   unsigned sstart = d_curr_strategy.get();
   for (unsigned i = sstart, nstrat = d_strategy.size(); i < nstrat; i++)
