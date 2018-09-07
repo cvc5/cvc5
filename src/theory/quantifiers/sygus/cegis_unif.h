@@ -93,6 +93,9 @@ class CegisUnifEnumManager
    * is not asserted negatively in the current SAT context.
    */
   Node getCurrentLiteral() const;
+  /** map from condition enumerators to active guards (in case they are
+   * enumerated indepedently of the return values) */
+  std::map<Node, Node> d_enum_to_active_guard;
 
  private:
   /** reference to quantifier engine */
