@@ -26,7 +26,7 @@
 
 #pragma once
 
-#include <boost/integer_traits.hpp>
+#include <limits>
 #include <vector>
 
 #include "base/cvc4_assert.h"
@@ -48,7 +48,8 @@ private:
 
   typedef Index Position;
   typedef std::vector<Position> PositionMap;
-  static const Position POSITION_SENTINEL = boost::integer_traits<Position>::const_max;
+  static const Position POSITION_SENTINEL =
+      std::numeric_limits<Position>::max();
 
   //Each Key in the set is mapped to its position in d_list.
   //Each Key not in the set is mapped to KEY_SENTINEL
