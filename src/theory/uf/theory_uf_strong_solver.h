@@ -405,8 +405,6 @@ public:
   SortModel* getSortModel(Node n);
   /** initialize */
   void initializeCombinedCardinality();
-  /** allocateCombinedCardinality */
-  void allocateCombinedCardinality();
   /** check */
   void checkCombinedCardinality();
   /** ensure eqc */
@@ -423,12 +421,6 @@ public:
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
 
-  /** allocated combined cardinality */
-  context::CDO<int> d_aloc_com_card;
-  /** combined cardinality constraints */
-  std::map<int, Node> d_com_card_literal;
-  /** combined cardinality assertions (indexed by cardinality literals ) */
-  NodeBoolMap d_com_card_assertions;
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
   /**
