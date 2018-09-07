@@ -119,13 +119,7 @@ Node DecisionStrategyFmf::getLiteral(unsigned n)
     }
     d_literals.push_back(lit);
   }
-  Node lit = d_literals[n];
-  // must ensure it is a literal  TODO: optimize
-  if( !lit.isNull() )
-  {
-    lit = d_valuation.ensureLiteral(lit);
-  }
-  return lit;
+  return d_literals[n];
 }
 
 DecisionStrategySingleton::DecisionStrategySingleton(
@@ -153,10 +147,17 @@ DecisionManager::DecisionManager(context::Context* satContext)
 {
 }
 
+void DecisionManager::reset()
+{
+  Trace("dec-manager") << "DecisionManager: reset." << std::endl;
+  d_reg_strategy.clear();
+}
+
 void DecisionManager::registerStrategy(StrategyId id,
                                        DecisionStrategy* ds,
                                        bool append)
 {
+  ds->initialize();
   Trace("dec-manager") << "DecisionManager: Register strategy : " << ds->identify() << ", id = " << id << std::endl;
   if (append)
   {

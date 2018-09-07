@@ -1379,7 +1379,7 @@ StrongSolverTheoryUF::StrongSolverTheoryUF(context::Context* c,
       d_rep_model(),
       d_min_pos_com_card(c, -1),
       d_cc_dec_strat(nullptr),
-      d_initializedCombinedCardinality(false),
+      d_initializedCombinedCardinality(u, false),
       d_card_assertions_eqv_lemma(u),
       d_min_pos_tn_master_card(c, -1),
       d_rel_eqc(c)
@@ -1832,7 +1832,7 @@ bool StrongSolverTheoryUF::debugModel( TheoryModel* m ){
 
 /** initialize */
 void StrongSolverTheoryUF::initializeCombinedCardinality() {
-  if (d_cc_dec_strat.get()!=nullptr && !d_initializedCombinedCardinality)
+  if (d_cc_dec_strat.get()!=nullptr && !d_initializedCombinedCardinality.get())
   {
     d_initializedCombinedCardinality = true;
     d_th->getDecisionManager()->registerStrategy(DecisionManager::strat_uf_combined_card,d_cc_dec_strat.get());

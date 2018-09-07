@@ -169,6 +169,8 @@ class DecisionManager
   };
   DecisionManager(context::Context* satContext);
   ~DecisionManager() {}
+  /** reset the strategy */
+  void reset();
   /**
    * Registers the strategy ds with this manager.
    */

@@ -443,7 +443,7 @@ public:
   /** combined cardinality decision strategy */
   std::unique_ptr<CombinedCardinalityDecisionStrategy> d_cc_dec_strat;
   /** Have we initialized combined cardinality? */
-  bool d_initializedCombinedCardinality;
+  context::CDO< bool > d_initializedCombinedCardinality;
 
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;

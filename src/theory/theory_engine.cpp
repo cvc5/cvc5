@@ -943,6 +943,9 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
+  // Reset the decision manager. This clears its decision strategies, which are user-context-dependent.
+  d_decManager->reset();
+  
   // Reset the interrupt flag
   d_interrupted = false;
   bool CVC4_UNUSED wasInConflict = d_inConflict;

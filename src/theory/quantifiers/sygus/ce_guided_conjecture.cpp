@@ -205,8 +205,8 @@ void CegConjecture::assign( Node q ) {
   {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-      DecisionManager::strat_quant_sygus_stream_feasible, d_stream_strategy.get());
+    d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+        DecisionManager::strat_quant_sygus_stream_feasible, d_stream_strategy.get());
     d_current_stream_guard = getCurrentStreamGuard();
   }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
