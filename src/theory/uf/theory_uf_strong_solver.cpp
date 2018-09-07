@@ -1261,45 +1261,57 @@ int SortModel::getNumRegions(){
 Node SortModel::getCardinalityLiteral(unsigned c)
 {
   Assert(c > 0);
-  std::map< int, Node >::iterator itcl = d_cardinality_literal.find(c);
-  if( itcl != d_cardinality_literal.end() ){
+  std::map<int, Node>::iterator itcl = d_cardinality_literal.find(c);
+  if (itcl != d_cardinality_literal.end())
+  {
     return itcl->second;
   }
   // get the literal from the decision strategy
   Node lit = d_c_dec_strat->getLiteral(c - 1);
   d_cardinality_literal[c] = lit;
-  
+
   // Since we are reasoning about cardinality c, we invoke a totality axiom
-  if( !applyTotality( c ) ){
+  if (!applyTotality(c))
+  {
     // return if we are not using totality axioms
     return lit;
   }
-  
-  NodeManager * nm = NodeManager::currentNM();
+
+  NodeManager* nm = NodeManager::currentNM();
   Node var;
-  if( c==1 && !options::ufssTotalitySymBreak() ){
-    //get arbitrary ground term
+  if (c == 1 && !options::ufssTotalitySymBreak())
+  {
+    // get arbitrary ground term
     var = d_cardinality_term;
-  }else{
+  }
+  else
+  {
     std::stringstream ss;
     ss << "_c_" << c;
-    var = nm->mkSkolem( ss.str(), d_type, "is a cardinality lemma term" );
+    var = nm->mkSkolem(ss.str(), d_type, "is a cardinality lemma term");
   }
-  if( (c-1)<d_totality_terms[0].size() ){
-    d_totality_terms[0][c-1] = var;
-  }else{
-    d_totality_terms[0].push_back( var );
+  if ((c - 1) < d_totality_terms[0].size())
+  {
+    d_totality_terms[0][c - 1] = var;
   }
-  //must be distinct from all other cardinality terms
-  for( int i=1, size = d_totality_terms[0].size(); i<size; i++ ){
-    Node lem = nm->mkNode( NOT, var.eqNode( d_totality_terms[0][i-1] ) ); 
-    Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem << std::endl; 
-    d_thss->getOutputChannel().lemma( lem );
+  else
+  {
+    d_totality_terms[0].push_back(var);
   }
-  //must send totality axioms for each existing term
-  for( NodeIntMap::iterator it = d_regions_map.begin(); it != d_regions_map.end(); ++it )
-  { 
-    addTotalityAxiom( (*it).first,c, &d_thss->getOutputChannel() );
+  // must be distinct from all other cardinality terms
+  for (int i = 1, size = d_totality_terms[0].size(); i < size; i++)
+  {
+    Node lem = nm->mkNode(NOT, var.eqNode(d_totality_terms[0][i - 1]));
+    Trace("uf-ss-lemma") << "Totality distinctness lemma : " << lem
+                         << std::endl;
+    d_thss->getOutputChannel().lemma(lem);
+  }
+  // must send totality axioms for each existing term
+  for (NodeIntMap::iterator it = d_regions_map.begin();
+       it != d_regions_map.end();
+       ++it)
+  {
+    addTotalityAxiom((*it).first, c, &d_thss->getOutputChannel());
   }
   return lit;
 }
