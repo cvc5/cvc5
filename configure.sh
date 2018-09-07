@@ -14,8 +14,8 @@ Build types:
 
 General options;
   -h, --help               display this help and exit
-  --gpl                    permit GPL dependences, if available
   --best                   turn on dependences known to give best performance
+  --gpl                    permit GPL dependences, if available
 
 
 Features:
@@ -159,7 +159,7 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-BUILDDIR=build
+builddir=default
 
 #--------------------------------------------------------------------------#
 
@@ -184,7 +184,7 @@ optimized=default
 portfolio=default
 proofs=default
 replay=default
-static=default
+shared=default
 statistics=default
 symfpu=default
 tracing=default
@@ -269,8 +269,8 @@ do
     --replay) replay=ON;;
     --no-replay) replay=OFF;;
 
-    --static) static=ON;;
-    --no-static) static=OFF;;
+    --static) shared=OFF;;
+    --no-static) shared=ON;;
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
@@ -372,10 +372,10 @@ do
     -*) die "invalid option '$1' (try '-h')";;
 
     *) case $1 in
-         production)  buildtype=Production;;
-         debug)       buildtype=Debug;;
-         testing)     buildtype=Testing;;
-         competition) buildtype=Competition;;
+         production)  buildtype=Production; builddir=production;;
+         debug)       buildtype=Debug; builddir=debug;;
+         testing)     buildtype=Testing; builddir=testing;;
+         competition) buildtype=Competition; builddir=competition;;
          *)           die "invalid build type (try '-h')";;
        esac
        ;;
@@ -389,48 +389,113 @@ cmake_opts=""
 
 [ $buildtype != default ] && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
-[ $asan != default ] && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan"
-[ $assertions != default ] && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions"
-[ $best != default ] && cmake_opts="$cmake_opts -DENABLE_BEST=$best"
-[ $coverage != default ] && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage"
-[ $debug_symbols != default ] && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols"
-[ $debug_context_mm != default ] && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm"
-[ $dumping != default ] && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping"
-[ $gpl != default ] && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl"
-[ $muzzle != default ] && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle"
-[ $optimized != default ] && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized"
-[ $portfolio != default ] && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio"
-[ $proofs != default ] && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs"
-[ $replay != default ] && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
-[ $static != default ] && cmake_opts="$cmake_opts -DENABLE_STATIC=$static"
-[ $statistics != default ] && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
-[ $tracing != default ] && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing"
-[ $unit_testing != default ] && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing"
-[ $valgrind != default ] && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind"
-[ $profiling != default ] && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling"
-[ $readline != default ] && cmake_opts="$cmake_opts -DENABLE_READLINE=$readline"
+[ $asan != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan" \
+  && [ $asan = ON ] && builddir="$builddir-asan"
+[ $assertions != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions" \
+  && [ $assertions = ON ] && builddir="$builddir-assertions"
+[ $best != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_BEST=$best" \
+  && [ $best = ON ] && builddir="$builddir-best"
+[ $coverage != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage" \
+  && [ $coverage = ON ] && builddir="$builddir-coverage"
+[ $debug_symbols != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols" \
+  && [ $debug_symbols = ON ] && builddir="$builddir-debug_symbols"
+[ $debug_context_mm != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm" \
+  && [ $debug_context_mm = ON ] &&  builddir="$builddir-debug_context_mm"
+[ $dumping != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping" \
+  && [ $dumping = ON ] &&  builddir="$builddir-dumping"
+[ $gpl != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl" \
+  && [ $gpl = ON ] &&  builddir="$builddir-gpl"
+[ $muzzle != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle" \
+  && [ $muzzle = ON ] &&  builddir="$builddir-muzzle"
+[ $optimized != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized" \
+  && [ $optimized = ON ] &&  builddir="$builddir-optimized"
+[ $portfolio != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio" \
+  && [ $portfolio = ON ] &&  builddir="$builddir-portfolio"
+[ $proofs != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs" \
+  && [ $proofs = ON ] &&  builddir="$builddir-proofs"
+[ $replay != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay" \
+  && [ $replay = ON ] &&  builddir="$builddir-replay"
+[ $shared != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC=$shared" \
+  && [ $shared == OFF ] &&  builddir="$builddir-static"
+[ $statistics != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics" \
+  && [ $statistics = ON ] && builddir="$builddir-stastitics"
+[ $tracing != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing" \
+  && [ $tracing = ON ] && builddir="$builddir-tracing"
+[ $unit_testing != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing" \
+  && [ $unit_testing = ON ] && builddir="$builddir-unit_testing"
+[ $valgrind != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind" \
+  && [ $valgrind = ON ] && builddir="$builddir-valgrind"
+[ $profiling != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling" \
+  && [ $profiling = ON ] && builddir="$builddir-profiling"
+[ $readline != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_READLINE=$readline" \
+  && [ $readline = ON ] && builddir="$builddir-readline"
+[ $abc != default ] \
+  && cmake_opts="$cmake_opts -DUSE_ABC=$abc" \
+  && [ $abc = ON ] && builddir="$builddir-abc"
+[ $cadical != default ] \
+  && cmake_opts="$cmake_opts -DUSE_CADICAL=$cadical" \
+  && [ $cadical = ON ] && builddir="$builddir-cadical"
+[ $cln != default ] \
+  && cmake_opts="$cmake_opts -DUSE_CLN=$cln" \
+  && [ $cln = ON ] && builddir="$builddir-cln"
+[ $cryptominisat != default ] \
+  && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat" \
+  && [ $cryptominisat = ON ] && builddir="$builddir-cryptominisat"
+[ $glpk != default ] \
+  && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk" \
+  && [ $glpk = ON ] && builddir="$builddir-glpk"
+[ $lfsc != default ] \
+  && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc" \
+  && [ $lfsc = ON ] && builddir="$builddir-lfsc"
+[ $symfpu != default ] \
+  && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu" \
+  && [ $symfpu = ON ] && builddir="$builddir-symfpu"
 
-[ $abc != default ] && cmake_opts="$cmake_opts -DUSE_ABC=$abc"
-[ $cadical != default ] && cmake_opts="$cmake_opts -DUSE_CADICAL=$cadical"
-[ $cln != default ] && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
-[ $cryptominisat != default ] && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat"
-[ $glpk != default ] && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
-[ $lfsc != default ] && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc"
-[ $symfpu != default ] && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu"
+[ $language_bindings != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_LANGUAGE_BINDINGS=$language_bindings" \
 
-[ $language_bindings != default ] && cmake_opts="$cmake_opts -DENABLE_LANGUAGE_BINDINGS=$language_bindings"
+[ $abc_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_ABC_DIR=$abc_dir" \
+[ $antlr_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_ANTLR_DIR=$antlr_dir" \
+[ $cadical_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CADICAL_DIR=$cadical_dir" \
+[ $cryptominisat_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CRYPTOMINISAT_DIR=$cryptominisat_dir" \
+[ $cxxtest_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_CXXTEST_DIR=$cxxtest_dir" \
+[ $glpk_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_GLPL_DIR=$glpk_dir" \
+[ $lfsc_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_LFSC_DIR=$lfsc_dir" \
+[ $symfpu_dir != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_SYMFPU_DIR=$symfpu_dir" \
 
-[ $abc_dir != default ] && cmake_opts="$cmake_opts -DENABLE_ABC_DIR=$abc_dir"
-[ $antlr_dir != default ] && cmake_opts="$cmake_opts -DENABLE_ANTLR_DIR=$antlr_dir"
-[ $cadical_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CADICAL_DIR=$cadical_dir"
-[ $cryptominisat_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ $cxxtest_dir != default ] && cmake_opts="$cmake_opts -DENABLE_CXXTEST_DIR=$cxxtest_dir"
-[ $glpk_dir != default ] && cmake_opts="$cmake_opts -DENABLE_GLPL_DIR=$glpk_dir"
-[ $lfsc_dir != default ] && cmake_opts="$cmake_opts -DENABLE_LFSC_DIR=$lfsc_dir"
-[ $symfpu_dir != default ] && cmake_opts="$cmake_opts -DENABLE_SYMFPU_DIR=$symfpu_dir"
-
-mkdir -p $BUILDDIR
-cd $BUILDDIR
+mkdir -p cmake-builds  # builds parent directory
+cd cmake-builds
+ln -s $builddir build  # link to current build directory
+mkdir -p $builddir     # current build directory
+cd $builddir
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
-cmake .. $cmake_opts
+cmake ../.. $cmake_opts
