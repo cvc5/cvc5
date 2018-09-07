@@ -1481,27 +1481,6 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 
-Node SygusSymBreakNew::getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas ) {
-  /*
-  Trace("sygus-dec-debug") << "SygusSymBreakNew: Get next decision " <<
-  std::endl; for( std::map< Node, SygusSizeDecisionStrategy * >::iterator it =
-  d_szinfo.begin(); it != d_szinfo.end(); ++it ){ SygusSizeDecisionStrategy * s
-  = it->second; std::vector< Node > new_lit; Node c_lit =
-  s->getCurrentFairnessLiteral( d_td, lemmas ); Assert( !c_lit.isNull() ); int
-  gstatus = getGuardStatus( c_lit ); if( gstatus==-1 ){
-      s->incrementCurrentLiteral();
-      c_lit = s->getCurrentFairnessLiteral( d_td, lemmas );
-      Assert( !c_lit.isNull() );
-      Trace("sygus-dec") << "Sygus : Decide on next lit : " << c_lit << "..." <<
-  std::endl; priority = 1; return c_lit; }else if( gstatus==0 ){
-      Trace("sygus-dec") << "Sygus : Decide on current lit : " << c_lit << "..."
-  << std::endl; priority = 1; return c_lit;
-    }
-  }
-  */
-  return Node::null();
-}
-
 int SygusSymBreakNew::getGuardStatus( Node g ) {
   bool value;
   if( d_td->getValuation().hasSatValue( g, value ) ) {
