@@ -31,7 +31,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
-BoundedIntegers::IntRangeModel::IntRangeModel(Node r,
+BoundedIntegers::IntRangeDecisionHeuristic::IntRangeDecisionHeuristic(Node r,
                                               context::Context* c,
                                               context::Context* u,
                                               Valuation valuation,
@@ -47,14 +47,14 @@ BoundedIntegers::IntRangeModel::IntRangeModel(Node r,
     Trace("bound-int") << "Introduce proxy " << d_proxy_range << " for " << d_range << std::endl;
   }
 }
-Node BoundedIntegers::IntRangeModel::mkLiteral(unsigned n)
+Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node cn = nm->mkConst(Rational(n == 0 ? 0 : n - 1));
   return nm->mkNode(n == 0 ? LT : LEQ, d_proxy_range, cn);
 }
 
-Node BoundedIntegers::IntRangeModel::proxyCurrentRangeLemma()
+Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 {
   // Trace("model-engine") << "Range(" << d_range << ") currently is " <<
   // d_curr_max.get() << std::endl;
@@ -76,7 +76,7 @@ Node BoundedIntegers::IntRangeModel::proxyCurrentRangeLemma()
   Node currLit = getLiteral(curr);
   Node lem =
       nm->mkNode(EQUAL,
-                 currLit.negate(),
+                 currLit,
                  nm->mkNode(curr == 0 ? LT : LEQ,
                             d_range,
                             nm->mkConst(Rational(curr == 0 ? 0 : curr - 1))));
@@ -89,7 +89,7 @@ BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
 }
 
 BoundedIntegers::~BoundedIntegers() {
-  for (std::map<Node, IntRangeModel*>::iterator it = d_rms.begin();
+  for (std::map<Node, IntRangeDecisionHeuristic*>::iterator it = d_rms.begin();
        it != d_rms.end();
        ++it)
   {
@@ -495,7 +495,7 @@ void BoundedIntegers::checkOwnership(Node f)
           if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
-            d_rms[r] = new IntRangeModel(r,
+            d_rms[r] = new IntRangeDecisionHeuristic(r,
                                          d_quantEngine->getSatContext(),
                                          d_quantEngine->getUserContext(),
                                          d_quantEngine->getValuation(),
@@ -509,34 +509,6 @@ void BoundedIntegers::checkOwnership(Node f)
       }
     }
   }
-}
-
-Node BoundedIntegers::getNextDecisionRequest( unsigned& priority ) {
-  Trace("bound-int-dec-debug") << "bi: Get next decision request?" << std::endl;
-  for( unsigned i=0; i<d_ranges.size(); i++) {
-    Node d = d_rms[d_ranges[i]]->getNextDecisionRequest();
-    if (!d.isNull()) {
-      bool polLit = d.getKind()!=NOT;
-      Node lit = d.getKind()==NOT ? d[0] : d;
-      bool value;
-      if( d_quantEngine->getValuation().hasSatValue( lit, value ) ) {
-        if( value==polLit ){
-          Trace("bound-int-dec-debug") << "...already asserted properly." << std::endl;
-          //already true, we're already fine
-        }else{
-          Trace("bound-int-dec-debug") << "...already asserted with wrong polarity, re-assert." << std::endl;
-          assertNode( d.negate() );
-          i--;
-        }
-      }else{
-        priority = 1;
-        Trace("bound-int-dec") << "Bounded Integers : Decide " << d << std::endl;
-        return d;
-      }
-    }
-  }
-  Trace("bound-int-dec-debug") << "No decision request." << std::endl;
-  return Node::null();
 }
 
 unsigned BoundedIntegers::getBoundVarType( Node q, Node v ) {

@@ -88,15 +88,15 @@ private:
   * arithmetic term t. It decides positively on literals of the form
   * t < 0, t <= 0, t <= 1, t <=2, and so on.
   */
- class IntRangeModel : public DecisionStrategyFmf
+ class IntRangeDecisionHeuristic : public DecisionStrategyFmf
  {
   public:
-   IntRangeModel(Node r,
+   IntRangeDecisionHeuristic(Node r,
                  context::Context* c,
                  context::Context* u,
                  Valuation valuation,
                  bool isProxy);
-   virtual ~IntRangeModel() {}
+   virtual ~IntRangeDecisionHeuristic() {}
    /** make the n^th literal of this strategy */
    Node mkLiteral(unsigned n) override;
    /** identify */
@@ -132,10 +132,8 @@ private:
 private:
   //information for minimizing ranges
   std::vector< Node > d_ranges;
-  //map to range model objects
-  std::map<Node, IntRangeModel*> d_rms;
-  //literal to range
-  std::map< Node, std::vector< Node > > d_lit_to_ranges;
+  /** Decision heuristics for each integer range */
+  std::map<Node, IntRangeDecisionHeuristic*> d_rms;
 private:
   //class to store whether bounding lemmas have been added
   class BoundInstTrie
@@ -166,7 +164,6 @@ public:
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
   void checkOwnership(Node q) override;
-  Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
   unsigned getBoundVarType( Node q, Node v );
   unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }
