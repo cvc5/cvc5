@@ -171,25 +171,6 @@ void DecisionManager::registerStrategy(StrategyId id,
   }
 }
 
-/*
-void DecisionManager::initialize()
-{
-  for (unsigned i = 0; i < strat_last; i++)
-  {
-    StrategyId s = static_cast<StrategyId>(i);
-    std::map<StrategyId, std::vector<DecisionStrategy*> >::iterator itrs =
-        d_reg_strategy.find(s);
-    if (itrs != d_reg_strategy.end())
-    {
-      for (unsigned j = 0, size = itrs->second.size(); j < size; j++)
-      {
-        d_strategy.push_back(itrs->second[j]);
-      }
-    }
-  }
-}
-*/
-
 Node DecisionManager::getNextDecisionRequest(unsigned& priority)
 {
   Trace("dec-manager-debug")

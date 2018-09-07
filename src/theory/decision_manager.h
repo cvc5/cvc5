@@ -169,22 +169,26 @@ class DecisionManager
   };
   DecisionManager(context::Context* satContext);
   ~DecisionManager() {}
-  /** reset the strategy */
+  /** reset the strategy 
+   * 
+   * This clears all decision strategies that are registered to this manager.
+   * We require that each satisfiability check beyond the first calls this
+   * function exactly once. Currently, it is called during
+   * TheoryEngine::postSolve.
+   */
   void reset();
   /**
-   * Registers the strategy ds with this manager.
+   * Registers the strategy ds with this manager. The id specifies when the
+   * strategy should be run.
    */
   void registerStrategy(StrategyId id,
                         DecisionStrategy* ds,
                         bool append = true);
-  /**
-   * Initializes the strategy.
-   */
-  // void initialize();
   /** Get the next decision request */
   Node getNextDecisionRequest(unsigned& priorty);
 
  private:
+  /** Map containing all strategies registered to this manager */
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;
   // std::vector<DecisionStrategy*> d_strategy;
   // context::CDO<unsigned> d_curr_strategy;
