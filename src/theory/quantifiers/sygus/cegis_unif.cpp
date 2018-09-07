@@ -68,8 +68,8 @@ bool CegisUnif::processInitialize(Node n,
       {
         Node cond = d_sygus_unif.getConditionForEvaluationPoint(e);
         Assert(!cond.isNull());
-        Trace("cegis-unif")
-            << "  " << e << " with condition : " << cond << std::endl;
+        Trace("cegis-unif") << "  " << e << " with condition : " << cond
+                            << std::endl;
         pt_to_cond[e] = cond;
       }
     }
@@ -90,8 +90,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     // Collect heads of candidates
     for (const Node& hd : d_sygus_unif.getEvalPointHeads(c))
     {
-      Trace("cegis-unif-enum-debug")
-          << "......cand " << c << " with enum hd " << hd << "\n";
+      Trace("cegis-unif-enum-debug") << "......cand " << c << " with enum hd "
+                                     << hd << "\n";
       enums.push_back(hd);
     }
   }
@@ -265,8 +265,8 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   Assert(options::sygusUnifCondIndependent() || !lemmas.empty());
   for (const Node& lem : lemmas)
   {
-    Trace("cegis-unif-lemma")
-        << "CegisUnif::lemma, separation lemma : " << lem << "\n";
+    Trace("cegis-unif-lemma") << "CegisUnif::lemma, separation lemma : " << lem
+                              << "\n";
     d_qe->getOutputChannel().lemma(lem);
   }
   Trace("cegis-unif") << "..failed to separate heads\n---CegisUnif Engine---\n";
@@ -281,8 +281,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
   std::map<Node, std::vector<Node>> eval_pts;
   Node plem = d_sygus_unif.addRefLemma(lem, eval_pts);
   addRefinementLemma(plem);
-  Trace("cegis-unif-lemma")
-      << "CegisUnif::lemma, refinement lemma : " << plem << "\n";
+  Trace("cegis-unif-lemma") << "CegisUnif::lemma, refinement lemma : " << plem
+                            << "\n";
   // Notify the enumeration manager if there are new evaluation points
   for (const std::pair<const Node, std::vector<Node>>& ep : eval_pts)
   {
@@ -339,8 +339,8 @@ void CegisUnifEnumManager::initialize(
     std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
     Assert(itcc != e_to_cond.end());
     Node cond = itcc->second;
-    Trace("cegis-unif-enum-debug")
-        << "...its condition strategy point is " << cond << "\n";
+    Trace("cegis-unif-enum-debug") << "...its condition strategy point is "
+                                   << cond << "\n";
     d_ce_info[e].d_ce_type = cond.getType();
     // initialize the symmetry breaking lemma templates
     for (unsigned index = 0; index < 2; index++)
@@ -385,9 +385,9 @@ void CegisUnifEnumManager::initialize(
       }
       // register the enumerator
       ci.second.d_enums[1].push_back(ceu);
-      Trace("cegis-unif-enum")
-          << "* Registering new enumerator " << ceu << " to strategy point "
-          << ci.second.d_pt << "\n";
+      Trace("cegis-unif-enum") << "* Registering new enumerator " << ceu
+                               << " to strategy point " << ci.second.d_pt
+                               << "\n";
       d_tds->registerEnumerator(ceu, ci.second.d_pt, d_parent);
       d_enum_to_active_guard[ceu] = d_tds->getActiveGuardForEnumerator(ceu);
     }
@@ -528,9 +528,9 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         }
         // register the enumerator
         ci.second.d_enums[index].push_back(e);
-        Trace("cegis-unif-enum")
-            << "* Registering new enumerator " << e << " to strategy point "
-            << ci.second.d_pt << "\n";
+        Trace("cegis-unif-enum") << "* Registering new enumerator " << e
+                                 << " to strategy point " << ci.second.d_pt
+                                 << "\n";
         d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
       }
     }
@@ -627,8 +627,8 @@ void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
     disj.push_back(ei.eqNode(itc->second.d_enums[0][i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
-  Trace("cegis-unif-enum-lemma")
-      << "CegisUnifEnum::lemma, domain:" << lem << "\n";
+  Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, domain:" << lem
+                                 << "\n";
   d_qe->getOutputChannel().lemma(lem);
 }
 

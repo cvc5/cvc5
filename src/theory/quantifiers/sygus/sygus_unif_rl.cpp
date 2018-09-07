@@ -270,9 +270,9 @@ Node SygusUnifRl::addRefLemma(Node lemma,
         for (const Node& stratpt : d_cenum_to_stratpt[cenum])
         {
           Assert(d_stratpt_to_dt.find(stratpt) != d_stratpt_to_dt.end());
-          Trace("sygus-unif-rl-dt")
-              << "Register point with head " << cp.second[j]
-              << " to strategy point " << stratpt << "\n";
+          Trace("sygus-unif-rl-dt") << "Register point with head "
+                                    << cp.second[j] << " to strategy point "
+                                    << stratpt << "\n";
           // Register new point from new head
           d_stratpt_to_dt[stratpt].d_hds.push_back(cp.second[j]);
         }
@@ -589,8 +589,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
         continue;
       }
       // conflict. Explanation?
-      Trace("sygus-unif-sol")
-          << "  ...can't separate " << e << " from " << er << std::endl;
+      Trace("sygus-unif-sol") << "  ...can't separate " << e << " from " << er
+                              << std::endl;
       return Node::null();
     }
     Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
