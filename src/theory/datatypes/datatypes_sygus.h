@@ -534,12 +534,31 @@ private:
     }
     /** increment current term size */
     void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
-
+    /** get decision strategy */
+    DecisionStrategy * getDecisionStrategy();
    private:
     /** the measure value */
     Node d_measure_value;
     /** the sygus measure value */
     Node d_measure_value_active;
+    /** the decision strategy of this size */
+    class DtSearchSizeDecisionStrategy : public DecisionStrategyFmf
+    {
+    public:
+      DtSearchSizeDecisionStrategy(SearchSizeInfo * ssi,
+                            context::Context* satContext,
+                            Valuation valuation);
+      /**
+      * Make the n^th literal of this strategy. This method returns mkLiteral if
+      * n=0, null otherwise.
+      */
+      Node mkLiteral(unsigned n) override;
+      /** identify */
+      std::string identify() const override { return std::string("sygus_enum_size"); }
+    private:
+      /** pointer to the search size info class */
+      SearchSizeInfo * d_ssi;
+    };
   };
   /** the above information for each registered measure term */
   std::map< Node, SearchSizeInfo * > d_szinfo;
@@ -547,6 +566,8 @@ private:
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
+  /** map from enumerators (anchors) to a decision stratregy for that guard */
+  std::map< Node, std::unique_ptr<DecisionStrategy >  > d_anchor_to_ag_strategy;
   /** generic measure term
    *
    * This is a global term that is used as the measure term for all sygus

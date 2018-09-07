@@ -1073,6 +1073,13 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
           Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
+            std::map< Node, std::unique_ptr<DecisionStrategy >  >::iterator itaas = d_anchor_to_ag_strategy.find(e);
+            if( itaas == d_anchor_to_ag_strategy.end() )
+            {
+              d_anchor_to_ag_strategy[e].reset( new DecisionStrategySingleton("sygus_enum_active",ag,d_td->getSatContext(),d_td->getValuation()) );
+            }
+            d_td->getDecisionManager()->registerStrategy(DecisionManager::strat_dt_sygus_enum_active,d_anchor_to_ag_strategy[e].get());
+            
           }
           Node m;
           if( !ag.isNull() ){
@@ -1123,6 +1130,8 @@ void SygusSymBreakNew::registerMeasureTerm( Node m ) {
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
     d_szinfo[m] = new SearchSizeInfo( m, d_td->getSatContext() );
+    // it also has a decision strategy, register this now
+    
   }
 }
 
@@ -1472,6 +1481,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDat
 
 Node SygusSymBreakNew::getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas ) {
   Trace("sygus-dec-debug") << "SygusSymBreakNew: Get next decision " << std::endl;
+  /*
   for( std::map< Node, Node >::iterator it = d_anchor_to_active_guard.begin(); it != d_anchor_to_active_guard.end(); ++it ){
     if( getGuardStatus( it->second )==0 ){
       Trace("sygus-dec") << "Sygus : Decide next on active guard : " << it->second << "..." << std::endl;
@@ -1479,6 +1489,7 @@ Node SygusSymBreakNew::getNextDecisionRequest( unsigned& priority, std::vector< 
       return it->second;
     }
   }
+  */
   for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
     SearchSizeInfo * s = it->second;
     std::vector< Node > new_lit;

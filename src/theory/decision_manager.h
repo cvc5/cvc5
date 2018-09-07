@@ -154,8 +154,8 @@ class DecisionManager
     //  within a given a bound.
     strat_uf_combined_card,
     strat_uf_card,
-    strat_datatypes_sygus_enum_not_exhaust,
-    strat_datatypes_sygus_enum_size,
+    strat_dt_sygus_enum_active,
+    strat_dt_sygus_enum_size,
     strat_quant_bound_int_size,
     strat_quant_cegis_unif_num_enums,
     strat_strings_sum_lengths,
