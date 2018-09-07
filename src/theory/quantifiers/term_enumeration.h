@@ -50,9 +50,9 @@ class TermEnumeration
    * may be completed.
    */
   bool mayComplete(TypeNode tn);
-  /** 
+  /**
    * Static version of the above method where maximum cardinality is
-   * configurable. 
+   * configurable.
    */
   static bool mayComplete(TypeNode tn, unsigned cardMax);
 
