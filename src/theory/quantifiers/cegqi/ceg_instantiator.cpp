@@ -29,7 +29,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
@@ -1645,7 +1644,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
+  d_closed_enum_type = tn.isClosedEnumerable();
 }
 
 bool Instantiator::processEqualTerm(CegInstantiator* ci,
