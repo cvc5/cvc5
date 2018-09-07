@@ -291,15 +291,6 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
     for (const Node& n : d_cand_to_strat_pt[ep.first])
     {
       d_u_enum_manager.registerEvalPts(ep.second, n);
-      // Notify unif if a substitution is entailed for evaluation point
-      for (const Node& hd_unit : d_rl_eval_hds)
-      {
-        if (std::find(ep.second.begin(), ep.second.end(), hd_unit[0])
-            != ep.second.end())
-        {
-          d_sygus_unif.setEntailed(n, hd_unit[0]);
-        }
-      }
     }
   }
   // Make the refinement lemma and add it to lems. This lemma is guarded by the

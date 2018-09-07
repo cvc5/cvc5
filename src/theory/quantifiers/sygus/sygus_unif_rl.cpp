@@ -511,7 +511,7 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   d_enums.insert(d_enums.end(), enums.begin(), enums.end());
   d_conds.insert(d_conds.end(), conds.begin(), conds.end());
   // add to condition pool
-  if (options::sygusUnifCondIndependent() || options::sygusUnifCondPool())
+  if (options::sygusUnifCondIndependent())
   {
     if (Trace.isOn("sygus-unif-cond-pool"))
     {
