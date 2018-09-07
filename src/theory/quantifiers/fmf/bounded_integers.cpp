@@ -31,10 +31,13 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
 using namespace CVC4::kind;
 
-
-BoundedIntegers::IntRangeModel::IntRangeModel(Node r, context::Context* c, context::Context* u, Valuation valuation, bool isProxy) : 
-DecisionStrategyFmf(c,valuation), 
-      d_range(r), d_ranges_proxied(u) { 
+BoundedIntegers::IntRangeModel::IntRangeModel(Node r,
+                                              context::Context* c,
+                                              context::Context* u,
+                                              Valuation valuation,
+                                              bool isProxy)
+    : DecisionStrategyFmf(c, valuation), d_range(r), d_ranges_proxied(u)
+{
   if( options::fmfBoundLazy() ){
     d_proxy_range = isProxy ? r : NodeManager::currentNM()->mkSkolem( "pbir", r.getType() );
   }else{
@@ -44,45 +47,52 @@ DecisionStrategyFmf(c,valuation),
     Trace("bound-int") << "Introduce proxy " << d_proxy_range << " for " << d_range << std::endl;
   }
 }
-Node BoundedIntegers::IntRangeModel::mkLiteral(unsigned n) 
+Node BoundedIntegers::IntRangeModel::mkLiteral(unsigned n)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  Node cn = nm->mkConst( Rational( n==0 ? 0 : n-1 ) );
-  return nm->mkNode( n==0 ? LT : LEQ, d_proxy_range, cn );
+  NodeManager* nm = NodeManager::currentNM();
+  Node cn = nm->mkConst(Rational(n == 0 ? 0 : n - 1));
+  return nm->mkNode(n == 0 ? LT : LEQ, d_proxy_range, cn);
 }
 
-Node BoundedIntegers::IntRangeModel::proxyCurrentRangeLemma() {
-  //Trace("model-engine") << "Range(" << d_range << ") currently is " << d_curr_max.get() << std::endl;
-  if( d_range==d_proxy_range ){
-    return Node::null();
-  }
-  unsigned curr = 0;
-  if( !getAssertedLiteralIndex(curr) )
+Node BoundedIntegers::IntRangeModel::proxyCurrentRangeLemma()
+{
+  // Trace("model-engine") << "Range(" << d_range << ") currently is " <<
+  // d_curr_max.get() << std::endl;
+  if (d_range == d_proxy_range)
   {
     return Node::null();
   }
-  if( d_ranges_proxied.find( curr )!=d_ranges_proxied.end() ){
+  unsigned curr = 0;
+  if (!getAssertedLiteralIndex(curr))
+  {
+    return Node::null();
+  }
+  if (d_ranges_proxied.find(curr) != d_ranges_proxied.end())
+  {
     return Node::null();
   }
   d_ranges_proxied[curr] = true;
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node currLit = getLiteral(curr);
-  Node lem = nm->mkNode( EQUAL, currLit.negate(),
-                nm->mkNode( curr==0 ? LT : LEQ, d_range, nm->mkConst( Rational(curr==0 ? 0 : curr-1) ) ) );
+  Node lem =
+      nm->mkNode(EQUAL,
+                 currLit.negate(),
+                 nm->mkNode(curr == 0 ? LT : LEQ,
+                            d_range,
+                            nm->mkConst(Rational(curr == 0 ? 0 : curr - 1))));
   return lem;
 }
 
-
-
-
-
-BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe) :
-QuantifiersModule(qe){
-
+BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
+    : QuantifiersModule(qe)
+{
 }
 
-BoundedIntegers::~BoundedIntegers() { 
-  for( std::map< Node, IntRangeModel * >::iterator it = d_rms.begin(); it != d_rms.end(); ++it ){
+BoundedIntegers::~BoundedIntegers() {
+  for (std::map<Node, IntRangeModel*>::iterator it = d_rms.begin();
+       it != d_rms.end();
+       ++it)
+  {
     delete it->second;
   }
 }
@@ -283,11 +293,14 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   }
   Trace("bint-engine") << "---Bounded Integers---" << std::endl;
   bool addedLemma = false;
-  //make sure proxies are up-to-date with range
-  for( unsigned i=0, size = d_ranges.size(); i<size; i++) {
+  // make sure proxies are up-to-date with range
+  for (unsigned i = 0, size = d_ranges.size(); i < size; i++)
+  {
     Node prangeLem = d_rms[d_ranges[i]]->proxyCurrentRangeLemma();
-    if( !prangeLem.isNull() ){
-      Trace("bound-int-lemma") << "*** bound int : proxy lemma : " << prangeLem << std::endl;
+    if (!prangeLem.isNull())
+    {
+      Trace("bound-int-lemma")
+          << "*** bound int : proxy lemma : " << prangeLem << std::endl;
       d_quantEngine->addLemma(prangeLem);
       addedLemma = true;
     }
@@ -482,8 +495,15 @@ void BoundedIntegers::checkOwnership(Node f)
           if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
-            d_rms[r] = new IntRangeModel( r, d_quantEngine->getSatContext(), d_quantEngine->getUserContext(), d_quantEngine->getValuation(), isProxy );
-            d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(DecisionManager::strat_quant_bound_int_size,d_rms[r]);
+            d_rms[r] = new IntRangeModel(r,
+                                         d_quantEngine->getSatContext(),
+                                         d_quantEngine->getUserContext(),
+                                         d_quantEngine->getValuation(),
+                                         isProxy);
+            d_quantEngine->getTheoryEngine()
+                ->getDecisionManager()
+                ->registerStrategy(DecisionManager::strat_quant_bound_int_size,
+                                   d_rms[r]);
           }
         }
       }

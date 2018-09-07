@@ -83,48 +83,57 @@ private:
   void processMatchBoundVars( Node q, Node n, std::vector< Node >& bvs, std::map< Node, bool >& visited );
   std::vector< Node > d_bound_quants;
 private:
-  /** 
-   * This decision strategy is used for minimizing the value of an integer
-   * arithmetic term t. It decides positively on literals of the form
-   * t < 0, t <= 0, t <= 1, t <=2, and so on.
-   */
-  class IntRangeModel : public DecisionStrategyFmf {
+ /**
+  * This decision strategy is used for minimizing the value of an integer
+  * arithmetic term t. It decides positively on literals of the form
+  * t < 0, t <= 0, t <= 1, t <=2, and so on.
+  */
+ class IntRangeModel : public DecisionStrategyFmf
+ {
   public:
-    IntRangeModel( Node r, context::Context* c, context::Context* u, Valuation valuation, bool isProxy);
-    virtual ~IntRangeModel(){}
-    /** make the n^th literal of this strategy */
-    Node mkLiteral(unsigned n) override;
-    /** identify */
-    std::string identify() const override { return std::string("bound_int_range"); }
-    /** Returns the current proxy lemma if one exists (see below). */
-    Node proxyCurrentRangeLemma();
+   IntRangeModel(Node r,
+                 context::Context* c,
+                 context::Context* u,
+                 Valuation valuation,
+                 bool isProxy);
+   virtual ~IntRangeModel() {}
+   /** make the n^th literal of this strategy */
+   Node mkLiteral(unsigned n) override;
+   /** identify */
+   std::string identify() const override
+   {
+     return std::string("bound_int_range");
+   }
+   /** Returns the current proxy lemma if one exists (see below). */
+   Node proxyCurrentRangeLemma();
+
   private:
-    /** The range we are minimizing */
-    Node d_range;
-    /** a proxy of the range 
-     * 
-     * When option::fmfBoundLazy is enabled, this class uses a lazy strategy
-     * for enforcing the bounds on term t by using a fresh variable x of type
-     * integer. The point of this variable is to serve as a proxy for t, so
-     * that we can decide on literals of the form x <= c instead of t <= c. The
-     * advantage of this is that we avoid unfairness, say, if t is constrained
-     * to be strictly greater c. Then, at full effort check, we add "proxy
-     * lemmas" of the form: (t <= c) <=> (x <= c) for the current minimal
-     * upper bound c for x.
-     */
-    Node d_proxy_range;
-    /** ranges that have been proxied
-     * 
-     * This is a user-context-dependent cache that stores which value we have
-     * added proxy lemmas for.
-     */
-    IntBoolMap d_ranges_proxied;
+   /** The range we are minimizing */
+   Node d_range;
+   /** a proxy of the range
+    *
+    * When option::fmfBoundLazy is enabled, this class uses a lazy strategy
+    * for enforcing the bounds on term t by using a fresh variable x of type
+    * integer. The point of this variable is to serve as a proxy for t, so
+    * that we can decide on literals of the form x <= c instead of t <= c. The
+    * advantage of this is that we avoid unfairness, say, if t is constrained
+    * to be strictly greater c. Then, at full effort check, we add "proxy
+    * lemmas" of the form: (t <= c) <=> (x <= c) for the current minimal
+    * upper bound c for x.
+    */
+   Node d_proxy_range;
+   /** ranges that have been proxied
+    *
+    * This is a user-context-dependent cache that stores which value we have
+    * added proxy lemmas for.
+    */
+   IntBoolMap d_ranges_proxied;
   };
 private:
   //information for minimizing ranges
   std::vector< Node > d_ranges;
   //map to range model objects
-  std::map< Node, IntRangeModel * > d_rms;
+  std::map<Node, IntRangeModel*> d_rms;
   //literal to range
   std::map< Node, std::vector< Node > > d_lit_to_ranges;
 private:
