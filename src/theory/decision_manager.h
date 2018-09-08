@@ -58,7 +58,11 @@ class DecisionStrategy
  * asserted true for a minimal i.
  *
  * To enforce this strategy, this class maintains a SAT-context dependent
- * index d_curr_literal, which corresponds to the
+ * index d_curr_literal, which corresponds to the minimal index of a literal 
+ * in the above list that is not asserted false. A call to 
+ * getNextDecisionRequest increments this value until we find a literal L_j
+ * that is not assigned false. If L_j is unassigned, we return it as a decision,
+ * otherwise we return no decisions.
  */
 class DecisionStrategyFmf : public DecisionStrategy
 {
@@ -78,7 +82,7 @@ class DecisionStrategyFmf : public DecisionStrategy
    * is a literal allocated by this class, and is asserted true in the current
    * context. If it returns true, the argument i is set to this i.
    */
-  bool getAssertedLiteralIndex(unsigned& i);
+  bool getAssertedLiteralIndex(unsigned& i) const;
   /**
    * This method returns the literal L_i allocated by this class that
    * has been asserted true in the current context and is such that i is

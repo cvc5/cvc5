@@ -86,7 +86,7 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
 
 bool DecisionStrategyFmf::isReadyForDecision() { return true; }
 
-bool DecisionStrategyFmf::getAssertedLiteralIndex(unsigned& i)
+bool DecisionStrategyFmf::getAssertedLiteralIndex(unsigned& i) const
 {
   if (d_has_curr_literal.get())
   {

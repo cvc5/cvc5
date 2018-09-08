@@ -20,6 +20,7 @@
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
 
@@ -119,7 +120,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   // values
   NodeManager* nm = NodeManager::currentNM();
   bool addedUnifEnumSymBreakLemma = false;
-  Node cost_lit = d_u_enum_manager.getCurrentLiteral();
+  Node cost_lit = d_u_enum_manager.getAssertedLiteral();
   std::map<Node, std::vector<Node>> unif_enums[2];
   std::map<Node, std::vector<Node>> unif_values[2];
   for (const Node& c : d_unif_candidates)
@@ -274,9 +275,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
     : DecisionStrategyFmf(qe->getSatContext(),qe->getValuation()),
       d_qe(qe),
-      d_parent(parent),
-      d_ret_dec(qe->getSatContext(), false),
-      d_curr_guq_val(qe->getSatContext(), 0)
+      d_parent(parent)
 {
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
@@ -285,148 +284,9 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
 Node CegisUnifEnumManager::mkLiteral(unsigned n) 
 {
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkSkolem("G_cost", nm->booleanType());
-}
-
-void CegisUnifEnumManager::initialize(
-    const std::vector<Node>& es,
-    const std::map<Node, Node>& e_to_cond,
-    const std::map<Node, std::vector<Node>>& strategy_lemmas)
-{
-  Assert(!d_initialized);
-  d_initialized = true;
-  if (es.empty())
-  {
-    return;
-  }
-  // initialize type information for candidates
-  NodeManager* nm = NodeManager::currentNM();
-  for (const Node& e : es)
-  {
-    Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
-    // currently, we allocate the same enumerators for candidates of the same
-    // type
-    d_ce_info[e].d_pt = e;
-    std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
-    Assert(itcc != e_to_cond.end());
-    Node cond = itcc->second;
-    Trace("cegis-unif-enum-debug") << "...its condition strategy point is "
-                                   << cond << "\n";
-    d_ce_info[e].d_ce_type = cond.getType();
-    // initialize the symmetry breaking lemma templates
-    for (unsigned index = 0; index < 2; index++)
-    {
-      Assert(d_ce_info[e].d_sbt_lemma_tmpl[index].first.isNull());
-      Node sp = index == 0 ? e : cond;
-      std::map<Node, std::vector<Node>>::const_iterator it =
-          strategy_lemmas.find(sp);
-      if (it == strategy_lemmas.end())
-      {
-        continue;
-      }
-      // collect lemmas for removing redundant ops for this candidate's type
-      Node d_sbt_lemma =
-          it->second.size() == 1 ? it->second[0] : nm->mkNode(AND, it->second);
-      Trace("cegis-unif-enum-debug")
-          << "...adding lemma template to remove redundant operators for " << sp
-          << " --> lambda " << sp << ". " << d_sbt_lemma << "\n";
-      d_ce_info[e].d_sbt_lemma_tmpl[index] =
-          std::pair<Node, Node>(d_sbt_lemma, sp);
-    }
-  }
-
-  // register this strategy
-  //d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(DecisionManager::strat_quant_cegis_unif_num_enums,this);
-  // initialize the current literal
-  incrementNumEnumerators();
-}
-
-void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
-                                                       std::vector<Node>& es,
-                                                       unsigned index) const
-{
-  // the number of active enumerators is related to the current cost value
-  unsigned num_enums = d_curr_guq_val.get();
-  Assert(num_enums > 0);
-  if (index == 1)
-  {
-    // we always use (cost-1) conditions
-    num_enums = num_enums - 1;
-  }
-  if (num_enums > 0)
-  {
-    std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(e);
-    Assert(itc != d_ce_info.end());
-    Assert(num_enums <= itc->second.d_enums[index].size());
-    es.insert(es.end(),
-              itc->second.d_enums[index].begin(),
-              itc->second.d_enums[index].begin() + num_enums);
-  }
-}
-
-void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
-{
-  // candidates of the same type are managed
-  std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(e);
-  Assert(it != d_ce_info.end());
-  it->second.d_eval_points.insert(
-      it->second.d_eval_points.end(), eis.begin(), eis.end());
-  // register at all already allocated sizes
-  for (const Node& ei : eis)
-  {
-    Assert(ei.getType() == e.getType());
-    for( unsigned j=0, size = d_literals.size(); j<size; j++ )
-    {
-      Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
-                               << " at size " << j<< "\n";
-      registerEvalPtAtSize(e, ei, d_literals[j], j);
-    }
-  }
-}
-
-Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
-{
-  // are we not initialized or have we returned our decision in the current SAT
-  // context?
-  if (!d_initialized || d_ret_dec.get())
-  {
-    return Node::null();
-  }
-  if (d_ce_info.empty())
-  {
-    // if no enumerators, the decision is null
-    d_ret_dec = true;
-    return Node::null();
-  }
-  Node lit = getCurrentLiteral();
-  bool value;
-  if (!d_qe->getValuation().hasSatValue(lit, value))
-  {
-    priority = 1;
-    return lit;
-  }
-  else if (!value)
-  {
-    // propagated false, increment
-    incrementNumEnumerators();
-    return getNextDecisionRequest(priority);
-  }
-  d_ret_dec = true;
-  return Node::null();
-}
-
-void CegisUnifEnumManager::incrementNumEnumerators()
-{
-  unsigned new_size = d_curr_guq_val.get() + 1;
-  d_curr_guq_val.set(new_size);
-  if (new_size<d_literals.size())
-  {
-    // already allocated
-    return;
-  }
-  // allocate the new literal
-  NodeManager* nm = NodeManager::currentNM();
-  Node new_lit = getLiteral(new_size);
+  Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
+  unsigned new_size = n + 1;
+    
   // allocate an enumerator for each candidate
   for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
   {
@@ -543,13 +403,147 @@ void CegisUnifEnumManager::incrementNumEnumerators()
       // solution whose size is at most log_2(i-1).
       d_qe->getOutputChannel().lemma(fair_lemma);
     }
+  }  
+  
+  return new_lit;
+}
+
+void CegisUnifEnumManager::initialize(
+    const std::vector<Node>& es,
+    const std::map<Node, Node>& e_to_cond,
+    const std::map<Node, std::vector<Node>>& strategy_lemmas)
+{
+  Assert(!d_initialized);
+  d_initialized = true;
+  if (es.empty())
+  {
+    return;
+  }
+  // initialize type information for candidates
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& e : es)
+  {
+    Trace("cegis-unif-enum-debug") << "...adding strategy point " << e << "\n";
+    // currently, we allocate the same enumerators for candidates of the same
+    // type
+    d_ce_info[e].d_pt = e;
+    std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
+    Assert(itcc != e_to_cond.end());
+    Node cond = itcc->second;
+    Trace("cegis-unif-enum-debug") << "...its condition strategy point is "
+                                   << cond << "\n";
+    d_ce_info[e].d_ce_type = cond.getType();
+    // initialize the symmetry breaking lemma templates
+    for (unsigned index = 0; index < 2; index++)
+    {
+      Assert(d_ce_info[e].d_sbt_lemma_tmpl[index].first.isNull());
+      Node sp = index == 0 ? e : cond;
+      std::map<Node, std::vector<Node>>::const_iterator it =
+          strategy_lemmas.find(sp);
+      if (it == strategy_lemmas.end())
+      {
+        continue;
+      }
+      // collect lemmas for removing redundant ops for this candidate's type
+      Node d_sbt_lemma =
+          it->second.size() == 1 ? it->second[0] : nm->mkNode(AND, it->second);
+      Trace("cegis-unif-enum-debug")
+          << "...adding lemma template to remove redundant operators for " << sp
+          << " --> lambda " << sp << ". " << d_sbt_lemma << "\n";
+      d_ce_info[e].d_sbt_lemma_tmpl[index] =
+          std::pair<Node, Node>(d_sbt_lemma, sp);
+    }
+  }
+
+  // register this strategy
+  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(DecisionManager::strat_quant_cegis_unif_num_enums,this);
+  // initialize the current literal
+  //incrementNumEnumerators();
+}
+
+void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
+                                                       std::vector<Node>& es,
+                                                       unsigned index) const
+{
+  // the number of active enumerators is related to the current cost value
+  unsigned num_enums = 0;
+  bool has_num_enums = getAssertedLiteralIndex(num_enums);
+  AlwaysAssert( has_num_enums );
+  num_enums = num_enums+1;
+  if (index == 1)
+  {
+    // we always use (cost-1) conditions
+    num_enums = num_enums - 1;
+  }
+  if (num_enums > 0)
+  {
+    std::map<Node, StrategyPtInfo>::const_iterator itc = d_ce_info.find(e);
+    Assert(itc != d_ce_info.end());
+    Assert(num_enums <= itc->second.d_enums[index].size());
+    es.insert(es.end(),
+              itc->second.d_enums[index].begin(),
+              itc->second.d_enums[index].begin() + num_enums);
   }
 }
 
-Node CegisUnifEnumManager::getCurrentLiteral()
+void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
 {
-  return getLiteral(d_curr_guq_val.get());
+  // candidates of the same type are managed
+  std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(e);
+  Assert(it != d_ce_info.end());
+  it->second.d_eval_points.insert(
+      it->second.d_eval_points.end(), eis.begin(), eis.end());
+  // register at all already allocated sizes
+  for (const Node& ei : eis)
+  {
+    Assert(ei.getType() == e.getType());
+    for( unsigned j=0, size = d_literals.size(); j<size; j++ )
+    {
+      Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
+                               << " at size " << j<< "\n";
+      registerEvalPtAtSize(e, ei, d_literals[j], j);
+    }
+  }
 }
+
+Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
+{
+  // are we not initialized or have we returned our decision in the current SAT
+  // context?
+  /*
+  if (!d_initialized || d_ret_dec.get())
+  {
+    return Node::null();
+  }
+  if (d_ce_info.empty())
+  {
+    // if no enumerators, the decision is null
+    d_ret_dec = true;
+    return Node::null();
+  }
+  Node lit = getCurrentLiteral();
+  bool value;
+  if (!d_qe->getValuation().hasSatValue(lit, value))
+  {
+    priority = 1;
+    return lit;
+  }
+  else if (!value)
+  {
+    // propagated false, increment
+    incrementNumEnumerators();
+    return getNextDecisionRequest(priority);
+  }
+  d_ret_dec = true;
+  */
+  return Node::null();
+}
+
+
+//Node CegisUnifEnumManager::getCurrentLiteral()
+//{
+//  return getLiteral(d_curr_guq_val.get());
+//}
 
 
 void CegisUnifEnumManager::registerEvalPtAtSize(Node e,

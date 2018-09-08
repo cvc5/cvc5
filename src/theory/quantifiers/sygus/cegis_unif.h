@@ -42,7 +42,7 @@ namespace quantifiers {
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
  * heads of evaluation points and condition enumerators registered to this class
  * and add lemmas that enforce that these terms are equal to at least one
- * enumerator (see registerEvalPtAtValue).
+ * enumerator (see registerEvalPtAtSize).
  */
 class CegisUnifEnumManager : public DecisionStrategyFmf
 {
@@ -78,7 +78,7 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    * for strategy point e, where e was passed to initialize in the vector es.
    *
    * This may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
+   * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
   /** get next decision request
@@ -90,14 +90,14 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    * if necessary.
    *
    * This call may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
+   * registerEvalPtAtSize on the output channel of d_qe.
    */
   Node getNextDecisionRequest(unsigned& priority);
   /**
    * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
    * is not asserted negatively in the current SAT context.
    */
-  Node getCurrentLiteral();
+  //Node getCurrentLiteral();
 
  private:
   /** reference to quantifier engine */
@@ -144,7 +144,7 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
   /** Have we returned a decision in the current SAT context? */
-  context::CDO<bool> d_ret_dec;
+  //context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
    *
    * This enumerator is used for enforcing fairness. In particular, we relate
@@ -167,9 +167,9 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    * The minimal n such that G_uq_n is not asserted negatively in the
    * current SAT context.
    */
-  context::CDO<unsigned> d_curr_guq_val;
+  //context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
-  void incrementNumEnumerators();
+  //void incrementNumEnumerators();
   /** register evaluation point at size
    *
    * This sends a lemma of the form:
