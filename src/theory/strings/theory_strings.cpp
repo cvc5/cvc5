@@ -137,6 +137,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_input_var_lsum(u),
       d_cardinality_lits(u),
       d_curr_cardinality(c, 0),
+      d_sslds(nullptr),
       d_strategy_init(false)
 {
   setupExtTheory();
@@ -489,6 +490,20 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
   initializeStrategy();
+  
+  // if strings fmf is enabled, register the strategy
+  if( options::stringFMF() )
+  {
+    d_sslds.reset(new StringSumLengthDecisionStrategy(getSatContext(),getUserContext(),d_valuation));
+    Trace("strings-dstrat-reg") << "presolve: register decision strategy." << std::endl;
+    std::vector< Node > inputVars;
+    for(NodeSet::const_iterator itr = d_input_vars.begin();
+      itr != d_input_vars.end(); ++itr) {
+      inputVars.push_back( *itr );
+    }
+    d_sslds->initialize(inputVars);
+    getDecisionManager()->registerStrategy(DecisionManager::strat_strings_sum_lengths, d_sslds.get());
+  }
 }
 
 
@@ -763,6 +778,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
                             : kindToTheoryId(k) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
+            Trace("strings-dstrat-reg") << "input variable: " << n << std::endl;
           }
           d_equalityEngine.addTerm(n);
         } else if (tn.isBoolean()) {
@@ -4244,10 +4260,12 @@ TheoryStrings::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(
     : DecisionStrategyFmf(c, valuation), d_input_var_lsum(u)
 {
 }
+
 bool TheoryStrings::StringSumLengthDecisionStrategy::isInitialized()
 {
   return !d_input_var_lsum.get().isNull();
 }
+
 void TheoryStrings::StringSumLengthDecisionStrategy::initialize(
     const std::vector<Node>& vars)
 {
@@ -4266,11 +4284,19 @@ void TheoryStrings::StringSumLengthDecisionStrategy::initialize(
 
 Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
 {
+  if (d_input_var_lsum.get().isNull())
+  {
+    return Node::null();
+  }
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
 }
+std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const { 
+  return std::string("string_sum_len");
+}
 
 Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
+/*
   if( options::stringFMF() && !d_conflict ){
     Node in_var_lsum = d_input_var_lsum.get();
     //Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
@@ -4325,6 +4351,7 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
       }
     }
   }
+  */
   return Node::null();
 }
 
