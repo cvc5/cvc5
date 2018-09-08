@@ -501,22 +501,33 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
   
-  //AJR : no use doing this since we cannot preregister terms with finite types that don't belong to strings.
-  //      change this if we generalize to sequences.
-  //set<Node> termSet;
-  // Compute terms appearing in assertions and shared terms
-  //computeRelevantTerms(termSet);
-  //m->assertEqualityEngine( &d_equalityEngine, &termSet );
+  std::set<Node> termSet;
 
-  if (!m->assertEqualityEngine(&d_equalityEngine))
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  // assert the (relevant) portion of the equality engine to the model
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
     return false;
   }
 
+  std::unordered_set< Node, NodeHashFunction > repSet;
   NodeManager* nm = NodeManager::currentNM();
   // Generate model
+  // get the relevant string equivalence classes
+  for( const Node& s : termSet )
+  {
+    if( s.getType().isString() )
+    {
+      Node r = getRepresentative(s);
+      repSet.insert(r);
+    }
+  }
   std::vector< Node > nodes;
-  getEquivalenceClasses( nodes );
+  for( const Node& r : repSet )
+  {
+    nodes.push_back(r);
+  }
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
@@ -563,7 +574,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
-    Trace("strings-model") << "The equivalence classes ";
+    Trace("strings-model") << "The (" << col[i].size() << ") equivalence classes ";
     for (const Node& eqc : col[i])
     {
       Trace("strings-model") << eqc << " ";
@@ -4102,6 +4113,7 @@ void TheoryStrings::checkCardinality() {
   std::vector< Node > lts;
   separateByLength( d_strings_eqc, cols, lts );
 
+  Trace("strings-card") << "Check cardinality...." << std::endl;
   for( unsigned i = 0; i<cols.size(); ++i ) {
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
@@ -4182,6 +4194,7 @@ void TheoryStrings::checkCardinality() {
       }
     }
   }
+  Trace("strings-card") << "...end check cardinality" << std::endl;
 }
 
 void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
