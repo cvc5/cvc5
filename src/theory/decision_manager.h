@@ -88,7 +88,7 @@ class DecisionStrategyFmf : public DecisionStrategy
   /** Get the n^th literal of this strategy */
   Node getLiteral(unsigned lit);
 
- private:
+ protected:
   /**
    * The valuation of this class, used for knowing what literals are asserted,
    * and with what polarity.
@@ -224,8 +224,6 @@ class DecisionManager
  private:
   /** Map containing all strategies registered to this manager */
   std::map<StrategyId, std::vector<DecisionStrategy*> > d_reg_strategy;
-  // std::vector<DecisionStrategy*> d_strategy;
-  // context::CDO<unsigned> d_curr_strategy;
 };
 
 }  // namespace theory

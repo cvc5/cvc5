@@ -143,7 +143,6 @@ Node DecisionStrategySingleton::mkLiteral(unsigned n)
 Node DecisionStrategySingleton::getSingleLiteral() { return d_literal; }
 
 DecisionManager::DecisionManager(context::Context* satContext)
-//    : d_curr_strategy(0, satContext)
 {
 }
 
@@ -202,18 +201,6 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
   }
   Trace("dec-manager-debug")
       << "DecisionManager:  -> no decisions." << std::endl;
-  /*
-  unsigned sstart = d_curr_strategy.get();
-  for (unsigned i = sstart, nstrat = d_strategy.size(); i < nstrat; i++)
-  {
-    Node lit = d_strategy[i]->getNextDecisionRequest();
-    if (!lit.isNull())
-    {
-      return lit;
-    }
-    // update d_curr_strategy?
-  }
-  */
   return Node::null();
 }
 

@@ -44,10 +44,15 @@ namespace quantifiers {
  * and add lemmas that enforce that these terms are equal to at least one
  * enumerator (see registerEvalPtAtValue).
  */
-class CegisUnifEnumManager
+class CegisUnifEnumManager : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
+  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);  
+  /** Make the n^th literal of this strategy. */
+  Node mkLiteral(unsigned n) override;
+  /** identify */
+  std::string identify() const override { return std::string("cegis_unif_num_enums"); }
+
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
@@ -92,7 +97,7 @@ class CegisUnifEnumManager
    * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
    * is not asserted negatively in the current SAT context.
    */
-  Node getCurrentLiteral() const;
+  Node getCurrentLiteral();
 
  private:
   /** reference to quantifier engine */
@@ -138,8 +143,6 @@ class CegisUnifEnumManager
   };
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
-  /** literals of the form G_uq_n for each n */
-  std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
   context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
@@ -167,8 +170,6 @@ class CegisUnifEnumManager
   context::CDO<unsigned> d_curr_guq_val;
   /** increment the number of enumerators */
   void incrementNumEnumerators();
-  /** get literal G_uq_n */
-  Node getLiteral(unsigned n) const;
   /** register evaluation point at size
    *
    * This sends a lemma of the form:

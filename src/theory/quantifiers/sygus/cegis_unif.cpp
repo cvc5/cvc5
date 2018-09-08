@@ -272,13 +272,20 @@ Node CegisUnif::getNextDecisionRequest(unsigned& priority)
 
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
-    : d_qe(qe),
+    : DecisionStrategyFmf(qe->getSatContext(),qe->getValuation()),
+      d_qe(qe),
       d_parent(parent),
       d_ret_dec(qe->getSatContext(), false),
       d_curr_guq_val(qe->getSatContext(), 0)
 {
   d_initialized = false;
   d_tds = d_qe->getTermDatabaseSygus();
+}
+
+Node CegisUnifEnumManager::mkLiteral(unsigned n) 
+{
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkSkolem("G_cost", nm->booleanType());
 }
 
 void CegisUnifEnumManager::initialize(
@@ -327,6 +334,9 @@ void CegisUnifEnumManager::initialize(
           std::pair<Node, Node>(d_sbt_lemma, sp);
     }
   }
+
+  // register this strategy
+  //d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(DecisionManager::strat_quant_cegis_unif_num_enums,this);
   // initialize the current literal
   incrementNumEnumerators();
 }
@@ -365,11 +375,11 @@ void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
   for (const Node& ei : eis)
   {
     Assert(ei.getType() == e.getType());
-    for (const std::pair<const unsigned, Node>& p : d_guq_lit)
+    for( unsigned j=0, size = d_literals.size(); j<size; j++ )
     {
       Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
-                               << " at size " << p.first << "\n";
-      registerEvalPtAtSize(e, ei, p.second, p.first);
+                               << " at size " << j<< "\n";
+      registerEvalPtAtSize(e, ei, d_literals[j], j);
     }
   }
 }
@@ -409,148 +419,138 @@ void CegisUnifEnumManager::incrementNumEnumerators()
 {
   unsigned new_size = d_curr_guq_val.get() + 1;
   d_curr_guq_val.set(new_size);
-  // ensure that the literal has been allocated
-  std::map<unsigned, Node>::iterator itc = d_guq_lit.find(new_size);
-  if (itc == d_guq_lit.end())
+  if (new_size<d_literals.size())
   {
-    // allocate the new literal
-    NodeManager* nm = NodeManager::currentNM();
-    Node new_lit = Rewriter::rewrite(nm->mkSkolem("G_cost", nm->booleanType()));
-    new_lit = d_qe->getValuation().ensureLiteral(new_lit);
-    AlwaysAssert(!new_lit.isNull());
-    d_qe->getOutputChannel().requirePhase(new_lit, true);
-    d_guq_lit[new_size] = new_lit;
-    // allocate an enumerator for each candidate
-    for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
+    // already allocated
+    return;
+  }
+  // allocate the new literal
+  NodeManager* nm = NodeManager::currentNM();
+  Node new_lit = getLiteral(new_size);
+  // allocate an enumerator for each candidate
+  for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
+  {
+    Node c = ci.first;
+    TypeNode ct = c.getType();
+    Node eu = nm->mkSkolem("eu", ct);
+    Node ceu;
+    if (!ci.second.d_enums[0].empty())
     {
-      Node c = ci.first;
-      TypeNode ct = c.getType();
-      Node eu = nm->mkSkolem("eu", ct);
-      Node ceu;
-      if (!ci.second.d_enums[0].empty())
-      {
-        // make a new conditional enumerator as well, starting the
-        // second type around
-        ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
-      }
-      // register the new enumerators
-      for (unsigned index = 0; index < 2; index++)
-      {
-        Node e = index == 0 ? eu : ceu;
-        if (e.isNull())
-        {
-          continue;
-        }
-        // instantiate template for removing redundant operators
-        if (!ci.second.d_sbt_lemma_tmpl[index].first.isNull())
-        {
-          Node templ = ci.second.d_sbt_lemma_tmpl[index].first;
-          TNode templ_var = ci.second.d_sbt_lemma_tmpl[index].second;
-          Node sym_break_red_ops = templ.substitute(templ_var, e);
-          Trace("cegis-unif-enum-lemma")
-              << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
-              << sym_break_red_ops << "\n";
-          d_qe->getOutputChannel().lemma(sym_break_red_ops);
-        }
-        // symmetry breaking between enumerators
-        if (!ci.second.d_enums[index].empty() && index == 0)
-        {
-          Node e_prev = ci.second.d_enums[index].back();
-          Node size_e = nm->mkNode(DT_SIZE, e);
-          Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
-          Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
-          Trace("cegis-unif-enum-lemma")
-              << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
-          d_qe->getOutputChannel().lemma(sym_break);
-        }
-        // register the enumerator
-        ci.second.d_enums[index].push_back(e);
-        Trace("cegis-unif-enum") << "* Registering new enumerator " << e
-                                 << " to strategy point " << ci.second.d_pt
-                                 << "\n";
-        d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
-        // TODO symmetry breaking for making
-        //   e distinct from ei : (ci.second.d_enums[index] \ {e})
-        // if its respective type has had at least
-        // ci.second.d_enums[index].size() distinct values enumerated
-      }
+      // make a new conditional enumerator as well, starting the
+      // second type around
+      ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
     }
-    // register the evaluation points at the new value
-    for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
+    // register the new enumerators
+    for (unsigned index = 0; index < 2; index++)
     {
-      Node c = ci.first;
-      for (const Node& ei : ci.second.d_eval_points)
+      Node e = index == 0 ? eu : ceu;
+      if (e.isNull())
       {
-        Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
-                                 << " to new size " << new_size << "\n";
-        registerEvalPtAtSize(c, ei, new_lit, new_size);
+        continue;
       }
-    }
-    // enforce fairness between number of enumerators and enumerator size
-    if (new_size > 1)
-    {
-      // construct the "virtual enumerator"
-      if (d_virtual_enum.isNull())
+      // instantiate template for removing redundant operators
+      if (!ci.second.d_sbt_lemma_tmpl[index].first.isNull())
       {
-        // we construct the default integer grammar with no variables, e.g.:
-        //   A -> 0 | 1 | A+A
-        TypeNode intTn = nm->integerType();
-        // use a null variable list
-        Node bvl;
-        std::stringstream ss;
-        ss << "_virtual_enum_grammar";
-        std::string virtualEnumName(ss.str());
-        std::map<TypeNode, std::vector<Node>> extra_cons;
-        std::map<TypeNode, std::vector<Node>> exclude_cons;
-        // do not include "-", which is included by default for integers
-        exclude_cons[intTn].push_back(nm->operatorOf(MINUS));
-        std::unordered_set<Node, NodeHashFunction> term_irrelevant;
-        TypeNode vtn =
-            CegGrammarConstructor::mkSygusDefaultType(intTn,
-                                                      bvl,
-                                                      virtualEnumName,
-                                                      extra_cons,
-                                                      exclude_cons,
-                                                      term_irrelevant);
-        d_virtual_enum = nm->mkSkolem("_ve", vtn);
-        d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent);
-      }
-      // if new_size is a power of two, then isPow2 returns log2(new_size)+1
-      // otherwise, this returns 0. In the case it returns 0, we don't care
-      // since the floor( log2( i ) ) = floor( log2( i - 1 ) ) and we do not
-      // increase our size bound.
-      unsigned pow_two = Integer(new_size).isPow2();
-      if (pow_two > 0)
-      {
-        Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
-        Node fair_lemma =
-            nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
-        fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+        Node templ = ci.second.d_sbt_lemma_tmpl[index].first;
+        TNode templ_var = ci.second.d_sbt_lemma_tmpl[index].second;
+        Node sym_break_red_ops = templ.substitute(templ_var, e);
         Trace("cegis-unif-enum-lemma")
-            << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
-        // this lemma relates the number of conditions we enumerate and the
-        // maximum size of a term that is part of our solution. It is of the
-        // form:
-        //   G_uq_i => size(ve) >= log_2( i-1 )
-        // In other words, if we use i conditions, then we allow terms in our
-        // solution whose size is at most log_2(i-1).
-        d_qe->getOutputChannel().lemma(fair_lemma);
+            << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
+            << sym_break_red_ops << "\n";
+        d_qe->getOutputChannel().lemma(sym_break_red_ops);
       }
+      // symmetry breaking between enumerators
+      if (!ci.second.d_enums[index].empty() && index == 0)
+      {
+        Node e_prev = ci.second.d_enums[index].back();
+        Node size_e = nm->mkNode(DT_SIZE, e);
+        Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
+        Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
+        Trace("cegis-unif-enum-lemma")
+            << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
+        d_qe->getOutputChannel().lemma(sym_break);
+      }
+      // register the enumerator
+      ci.second.d_enums[index].push_back(e);
+      Trace("cegis-unif-enum") << "* Registering new enumerator " << e
+                                << " to strategy point " << ci.second.d_pt
+                                << "\n";
+      d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
+      // TODO symmetry breaking for making
+      //   e distinct from ei : (ci.second.d_enums[index] \ {e})
+      // if its respective type has had at least
+      // ci.second.d_enums[index].size() distinct values enumerated
+    }
+  }
+  // register the evaluation points at the new value
+  for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
+  {
+    Node c = ci.first;
+    for (const Node& ei : ci.second.d_eval_points)
+    {
+      Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
+                                << " to new size " << new_size << "\n";
+      registerEvalPtAtSize(c, ei, new_lit, new_size);
+    }
+  }
+  // enforce fairness between number of enumerators and enumerator size
+  if (new_size > 1)
+  {
+    // construct the "virtual enumerator"
+    if (d_virtual_enum.isNull())
+    {
+      // we construct the default integer grammar with no variables, e.g.:
+      //   A -> 0 | 1 | A+A
+      TypeNode intTn = nm->integerType();
+      // use a null variable list
+      Node bvl;
+      std::stringstream ss;
+      ss << "_virtual_enum_grammar";
+      std::string virtualEnumName(ss.str());
+      std::map<TypeNode, std::vector<Node>> extra_cons;
+      std::map<TypeNode, std::vector<Node>> exclude_cons;
+      // do not include "-", which is included by default for integers
+      exclude_cons[intTn].push_back(nm->operatorOf(MINUS));
+      std::unordered_set<Node, NodeHashFunction> term_irrelevant;
+      TypeNode vtn =
+          CegGrammarConstructor::mkSygusDefaultType(intTn,
+                                                    bvl,
+                                                    virtualEnumName,
+                                                    extra_cons,
+                                                    exclude_cons,
+                                                    term_irrelevant);
+      d_virtual_enum = nm->mkSkolem("_ve", vtn);
+      d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent);
+    }
+    // if new_size is a power of two, then isPow2 returns log2(new_size)+1
+    // otherwise, this returns 0. In the case it returns 0, we don't care
+    // since the floor( log2( i ) ) = floor( log2( i - 1 ) ) and we do not
+    // increase our size bound.
+    unsigned pow_two = Integer(new_size).isPow2();
+    if (pow_two > 0)
+    {
+      Node size_ve = nm->mkNode(DT_SIZE, d_virtual_enum);
+      Node fair_lemma =
+          nm->mkNode(GEQ, size_ve, nm->mkConst(Rational(pow_two - 1)));
+      fair_lemma = nm->mkNode(OR, new_lit, fair_lemma);
+      Trace("cegis-unif-enum-lemma")
+          << "CegisUnifEnum::lemma, fairness size:" << fair_lemma << "\n";
+      // this lemma relates the number of conditions we enumerate and the
+      // maximum size of a term that is part of our solution. It is of the
+      // form:
+      //   G_uq_i => size(ve) >= log_2( i-1 )
+      // In other words, if we use i conditions, then we allow terms in our
+      // solution whose size is at most log_2(i-1).
+      d_qe->getOutputChannel().lemma(fair_lemma);
     }
   }
 }
 
-Node CegisUnifEnumManager::getCurrentLiteral() const
+Node CegisUnifEnumManager::getCurrentLiteral()
 {
   return getLiteral(d_curr_guq_val.get());
 }
 
-Node CegisUnifEnumManager::getLiteral(unsigned n) const
-{
-  std::map<unsigned, Node>::const_iterator itc = d_guq_lit.find(n);
-  Assert(itc != d_guq_lit.end());
-  return itc->second;
-}
 
 void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
                                                 Node ei,
