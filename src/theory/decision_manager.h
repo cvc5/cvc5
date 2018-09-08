@@ -33,8 +33,18 @@ class DecisionStrategy
  public:
   DecisionStrategy() {}
   virtual ~DecisionStrategy() {}
+  /** 
+   * Initalize this strategy, This is called once per satisfiability call by 
+   * the DecisionManager, prior to using this strategy.
+   */
   virtual void initialize() = 0;
+  /** 
+   * If this method returns a non-null node n, then n is the required next
+   * decision of this strategy. It must be the case that n is a literal in
+   * the current CNF stream.
+   */
   virtual Node getNextDecisionRequest() = 0;
+  /** identify this strategy (for debugging) */
   virtual std::string identify() const = 0;
 };
 
@@ -129,6 +139,23 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 
 /** DecisionManager
  *
+ * This class manages all "decision strategies" for theory solvers in
+ * TheoryEngine. A decision strategy is a callback in the SAT solver for
+ * imposing its next decision. This is useful, for instance, in
+ * branch-and-bound algorithms where we require that the first decision
+ * is a bound on some quantity (for instance, a bound on the cardinality
+ * of an uninterpreted sort, for finite model finding).
+ * 
+ * This class maintains a user-context-dependent set of pointers to
+ * DecisionStrategy objects, which implement indivdual decision strategies.
+ * 
+ * Decision strategies may be registered to this class via registerStrategy
+ * at any time during solving. They are cleared via a call to reset during
+ * TheoryEngine's postSolve method.
+ * 
+ * Decision strategies have a fixed order, which is managed by the enumeration
+ * type StrategyId, where strategies with smaller id have higher precedence
+ * in our global decision strategy.
  */
 class DecisionManager
 {
@@ -184,7 +211,14 @@ class DecisionManager
   void registerStrategy(StrategyId id,
                         DecisionStrategy* ds,
                         bool append = true);
-  /** Get the next decision request */
+  /** Get the next decision request 
+   * 
+   * If this method returns a non-null node n, then n is a literal corresponding
+   * to the next decision that the SAT solver should take. If this method 
+   * returns null, then no decisions are required by a decision strategy
+   * registered to this class. In the latter case, the SAT solver will choose
+   * a decision based on its given heuristic.
+   */
   Node getNextDecisionRequest(unsigned& priorty);
 
  private:
