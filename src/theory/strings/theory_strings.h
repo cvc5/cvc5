@@ -671,8 +671,6 @@ private:
   std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
 
  public:
-  //for finite model finding
-  Node getNextDecisionRequest(unsigned& priority) override;
   // ppRewrite
   Node ppRewrite(TNode atom) override;
 

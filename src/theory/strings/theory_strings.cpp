@@ -4295,66 +4295,6 @@ std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const {
   return std::string("string_sum_len");
 }
 
-Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
-/*
-  if( options::stringFMF() && !d_conflict ){
-    Node in_var_lsum = d_input_var_lsum.get();
-    //Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
-    //initialize the term we will minimize
-    if( in_var_lsum.isNull() && !d_input_vars.empty() ){
-      Trace("strings-fmf-debug") << "Input variables: ";
-      std::vector< Node > ll;
-      for(NodeSet::key_iterator itr = d_input_vars.key_begin();
-        itr != d_input_vars.key_end(); ++itr) {
-        Trace("strings-fmf-debug") << " " << (*itr) ;
-        ll.push_back( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr ) );
-      }
-      Trace("strings-fmf-debug") << std::endl;
-      in_var_lsum = ll.size()==1 ? ll[0] : NodeManager::currentNM()->mkNode( kind::PLUS, ll );
-      in_var_lsum = Rewriter::rewrite( in_var_lsum );
-      d_input_var_lsum.set( in_var_lsum );
-    }
-    if( !in_var_lsum.isNull() ){
-      //Trace("strings-fmf") << "Get next decision request." << std::endl;
-      //check if we need to decide on something
-      int decideCard = d_curr_cardinality.get();
-      if( d_cardinality_lits.find( decideCard )!=d_cardinality_lits.end() ){
-        bool value;
-        Node cnode = d_cardinality_lits[ d_curr_cardinality.get() ];
-        if( d_valuation.hasSatValue( cnode, value ) ) {
-          if( !value ){
-            d_curr_cardinality.set( d_curr_cardinality.get() + 1 );
-            decideCard = d_curr_cardinality.get();
-            Trace("strings-fmf-debug") << "Has false SAT value, increment and decide." << std::endl;
-          }else{
-            decideCard = -1;
-            Trace("strings-fmf-debug") << "Has true SAT value, do not decide." << std::endl;
-          }
-        }else{
-          Trace("strings-fmf-debug") << "No SAT value, decide." << std::endl;
-        }
-      }
-      if( decideCard!=-1 ){
-        if( d_cardinality_lits.find( decideCard )==d_cardinality_lits.end() ){
-          Node lit = NodeManager::currentNM()->mkNode( kind::LEQ, in_var_lsum, NodeManager::currentNM()->mkConst( Rational( decideCard ) ) );
-          lit = Rewriter::rewrite( lit );
-          d_cardinality_lits[decideCard] = lit;
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
-          Trace("strings-fmf") << "Strings::FMF: Add decision lemma " << lem << ", decideCard = " << decideCard << std::endl;
-          d_out->lemma( lem );
-          d_out->requirePhase( lit, true );
-        }
-        Node lit = d_cardinality_lits[ decideCard ];
-        Trace("strings-fmf") << "Strings::FMF: Decide positive on " << lit << std::endl;
-        priority = 1;
-        return lit;
-      }
-    }
-  }
-  */
-  return Node::null();
-}
-
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
   Node atomElim;
