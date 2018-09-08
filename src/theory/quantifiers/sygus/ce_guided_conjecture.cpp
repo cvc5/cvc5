@@ -635,23 +635,6 @@ Node CegConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
   return curr_stream_guard;
 }
 
-Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
-  // see if the master module has a decision
-  if (!isSingleInvocation())
-  {
-    Assert(d_master != nullptr);
-    Node mlit = d_master->getNextDecisionRequest(priority);
-    if (!mlit.isNull())
-    {
-      Trace("cegqi-debug") << "getNextDecision : master module returned : "
-                           << mlit << std::endl;
-      return mlit;
-    }
-  }
-
-  return Node::null();
-}
-
 void CegConjecture::printAndContinueStream()
 {
   Assert(d_master != nullptr);

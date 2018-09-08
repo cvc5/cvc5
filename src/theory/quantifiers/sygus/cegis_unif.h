@@ -81,24 +81,6 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
-  /** get next decision request
-   *
-   * This function has the same contract as Theory::getNextDecisionRequest.
-   *
-   * If no guard G_uq_* is asserted positively, then this method returns the
-   * minimal G_uq_i that is not asserted negatively. It allocates this guard
-   * if necessary.
-   *
-   * This call may add new lemmas of the form described above
-   * registerEvalPtAtSize on the output channel of d_qe.
-   */
-  Node getNextDecisionRequest(unsigned& priority);
-  /**
-   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
-   * is not asserted negatively in the current SAT context.
-   */
-  //Node getCurrentLiteral();
-
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -163,13 +145,6 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
    */
   Node d_virtual_enum;
-  /**
-   * The minimal n such that G_uq_n is not asserted negatively in the
-   * current SAT context.
-   */
-  //context::CDO<unsigned> d_curr_guq_val;
-  /** increment the number of enumerators */
-  //void incrementNumEnumerators();
   /** register evaluation point at size
    *
    * This sends a lemma of the form:
@@ -233,8 +208,6 @@ class CegisUnif : public Cegis
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
   /** do cegis-implementation-specific initialization for this class */

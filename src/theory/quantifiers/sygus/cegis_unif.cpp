@@ -266,11 +266,6 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       OR, d_parent->getGuard().negate(), plem));
 }
 
-Node CegisUnif::getNextDecisionRequest(unsigned& priority)
-{
-  return d_u_enum_manager.getNextDecisionRequest(priority);
-}
-
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
     : DecisionStrategyFmf(qe->getSatContext(),qe->getValuation()),
@@ -501,50 +496,10 @@ void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
     {
       Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
                                << " at size " << j<< "\n";
-      registerEvalPtAtSize(e, ei, d_literals[j], j);
+      registerEvalPtAtSize(e, ei, d_literals[j], j+1);
     }
   }
 }
-
-Node CegisUnifEnumManager::getNextDecisionRequest(unsigned& priority)
-{
-  // are we not initialized or have we returned our decision in the current SAT
-  // context?
-  /*
-  if (!d_initialized || d_ret_dec.get())
-  {
-    return Node::null();
-  }
-  if (d_ce_info.empty())
-  {
-    // if no enumerators, the decision is null
-    d_ret_dec = true;
-    return Node::null();
-  }
-  Node lit = getCurrentLiteral();
-  bool value;
-  if (!d_qe->getValuation().hasSatValue(lit, value))
-  {
-    priority = 1;
-    return lit;
-  }
-  else if (!value)
-  {
-    // propagated false, increment
-    incrementNumEnumerators();
-    return getNextDecisionRequest(priority);
-  }
-  d_ret_dec = true;
-  */
-  return Node::null();
-}
-
-
-//Node CegisUnifEnumManager::getCurrentLiteral()
-//{
-//  return getLiteral(d_curr_guq_val.get());
-//}
-
 
 void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
                                                 Node ei,
