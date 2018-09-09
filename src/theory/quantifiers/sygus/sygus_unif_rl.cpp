@@ -515,6 +515,7 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   {
     if (Trace.isOn("sygus-unif-cond-pool"))
     {
+      d_cond_mvs.insert(conds.begin(), conds.end());
       for (const Node& condv : conds)
       {
         if (d_cond_mvs.find(condv) == d_cond_mvs.end())
@@ -525,7 +526,6 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
         }
       }
     }
-    d_cond_mvs.insert(conds.begin(), conds.end());
   }
 }
 
@@ -545,6 +545,62 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   Trace("sygus-unif-sol") << "Decision::buildSol with " << d_hds.size()
                           << " evaluation heads and " << d_conds.size()
                           << " conditions..." << std::endl;
+
+  return options::sygusUnifCondIndependent() ? buildSolAllCond(cons, lemmas)
+                                             : buildSolMinCond(cons, lemmas);
+}
+
+Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
+                                                    std::vector<Node>& lemmas)
+{
+  // model values for evaluation heads
+  std::map<Node, Node> hd_mv;
+  // add conditions
+  d_conds.clear();
+  d_conds.insert(d_conds.end(), d_cond_mvs.begin(), d_cond_mvs.end());
+  unsigned num_conds = d_conds.size();
+  for (unsigned i = 0; i < num_conds; ++i)
+  {
+    d_pt_sep.d_trie.addClassifier(&d_pt_sep, i);
+  }
+  // add heads
+  for (const Node& e : d_hds)
+  {
+    Node v = d_unif->d_parent->getModelValue(e);
+    hd_mv[e] = v;
+    Node er = d_pt_sep.d_trie.add(e, &d_pt_sep, num_conds);
+    // are we in conflict?
+    if (er == e)
+    {
+      // new separation class, no conflict
+      continue;
+    }
+    Assert(hd_mv.find(er) != hd_mv.end())
+    // merged into separation class with same model value, no conflict
+    if (hd_mv[e] == hd_mv[er])
+    {
+      continue;
+    }
+    // conflict. Explanation?
+    Trace("sygus-unif-sol")
+        << "  ...can't separate " << e << " from " << er << std::endl;
+    return Node::null();
+  }
+  Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
+  Node sol = d_pt_sep.extractSol(cons, hd_mv);
+  // repeated solution
+  if (options::sygusUnifCondIndNoRepeatSol()
+      && d_sols.find(sol) != d_sols.end())
+  {
+    return Node::null();
+  }
+  d_sols.insert(sol);
+  return sol;
+}
+
+Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
+                                             std::vector<Node>& lemmas)
+{
   NodeManager* nm = NodeManager::currentNM();
   // model values for evaluation heads
   std::map<Node, Node> hd_mv;
@@ -560,50 +616,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   unsigned c_counter = 0;
   // do we need to resolve a separation conflict?
   bool needs_sep_resolve = false;
-  if (options::sygusUnifCondIndependent())
-  {
-    // add conditions
-    d_conds.clear();
-    d_conds.insert(d_conds.end(), d_cond_mvs.begin(), d_cond_mvs.end());
-    unsigned num_conds = d_conds.size();
-    for (unsigned i = 0; i < num_conds; ++i)
-    {
-      d_pt_sep.d_trie.addClassifier(&d_pt_sep, i);
-    }
-    // add heads
-    for (const Node& e : d_hds)
-    {
-      Node v = d_unif->d_parent->getModelValue(e);
-      hd_mv[e] = v;
-      Node er = d_pt_sep.d_trie.add(e, &d_pt_sep, num_conds);
-      // are we in conflict?
-      if (er == e)
-      {
-        // new separation class, no conflict
-        continue;
-      }
-      Assert(hd_mv.find(er) != hd_mv.end());
-      // merged into separation class with same model value, no conflict
-      if (hd_mv[e] == hd_mv[er])
-      {
-        continue;
-      }
-      // conflict. Explanation?
-      Trace("sygus-unif-sol") << "  ...can't separate " << e << " from " << er
-                              << std::endl;
-      return Node::null();
-    }
-    Trace("sygus-unif-sol") << "...ready to build solution from DT\n";
-    Node sol = d_pt_sep.extractSol(cons, hd_mv);
-    // repeated solution
-    if (options::sygusUnifCondIndNoRepeatSol()
-        && d_sols.find(sol) != d_sols.end())
-    {
-      return Node::null();
-    }
-    d_sols.insert(sol);
-    return sol;
-  }
   // This loop simultaneously builds the solution in terms of a lazy trie
   // (LazyTrieMulti), and checks whether a separation conflict exists. We
   // enforce that the separation conflicts we encounter while building

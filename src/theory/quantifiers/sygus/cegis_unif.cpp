@@ -142,15 +142,14 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         {
           Assert(unif_enums[index][e].size() == 1);
           Node eu = unif_enums[index][e][0];
-          Assert(d_u_enum_manager.d_enum_to_active_guard.find(eu)
-                 != d_u_enum_manager.d_enum_to_active_guard.end());
-          Node g = d_u_enum_manager.d_enum_to_active_guard[eu];
-          // Get whether the active guard for this enumerator is true, otherwise
-          // there are no more values for it, and hence we ignore it
+          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
+          // If active guard for this enumerator is not true, there are no more
+          // values for it, and hence we ignore it
           Node gstatus = valuation.getSatValue(g);
           if (gstatus.isNull() || !gstatus.getConst<bool>())
           {
             Trace("cegis") << "    " << eu << " -> N/A\n";
+            unif_enums[index][e].clear();
             continue;
           }
         }
@@ -232,9 +231,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
       if (options::sygusUnifCondIndependent() && !unif_enums[1][e].empty())
       {
         Node eu = unif_enums[1][e][0];
-        Assert(d_u_enum_manager.d_enum_to_active_guard.find(eu)
-               != d_u_enum_manager.d_enum_to_active_guard.end());
-        Node g = d_u_enum_manager.d_enum_to_active_guard[eu];
+        Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
         Node exp_exc = d_tds->getExplain()
                            ->getExplanationForEquality(eu, unif_values[1][e][0])
                            .negate();
@@ -415,6 +412,12 @@ void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
               itc->second.d_enums[index].begin(),
               itc->second.d_enums[index].begin() + num_enums);
   }
+}
+
+Node CegisUnifEnumManager::getActiveGuardForEnumerator(Node e)
+{
+  Assert(d_enum_to_active_guard.find(eu) != d_enum_to_active_guard.end());
+  return d_enum_to_active_guard[e];
 }
 
 void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)

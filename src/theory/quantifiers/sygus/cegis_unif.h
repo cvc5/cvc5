@@ -76,6 +76,8 @@ class CegisUnifEnumManager
    * registerEvalPtAtValue on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
+  /** Retrieves active guard for enumerator */
+  Node getActiveGuardForEnumerator(Node e);
   /** get next decision request
    *
    * This function has the same contract as Theory::getNextDecisionRequest.
@@ -93,9 +95,6 @@ class CegisUnifEnumManager
    * is not asserted negatively in the current SAT context.
    */
   Node getCurrentLiteral() const;
-  /** map from condition enumerators to active guards (in case they are
-   * enumerated indepedently of the return values) */
-  std::map<Node, Node> d_enum_to_active_guard;
 
  private:
   /** reference to quantifier engine */
@@ -108,6 +107,9 @@ class CegisUnifEnumManager
   bool d_initialized;
   /** null node */
   Node d_null;
+  /** map from condition enumerators to active guards (in case they are
+   * enumerated indepedently of the return values) */
+  std::map<Node, Node> d_enum_to_active_guard;
   /** information per initialized type */
   class StrategyPtInfo
   {
