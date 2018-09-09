@@ -112,7 +112,6 @@ class TheorySep : public Theory {
   /////////////////////////////////////////////////////////////////////////////
 
  public:
-  Node getNextDecisionRequest(unsigned& priority) override;
 
   void presolve() override;
   void shutdown() override {}

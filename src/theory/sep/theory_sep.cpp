@@ -824,42 +824,6 @@ bool TheorySep::needsCheckLastEffort() {
   return hasFacts();
 }
 
-Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
-  /*
-  for( unsigned i=0; i<d_neg_guards.size(); i++ ){
-    Node g = d_neg_guards[i];
-    bool success = true;
-    if( getLogicInfo().isQuantified() ){
-      Assert( d_guard_to_assertion.find( g )!= d_guard_to_assertion.end() );
-      Node a = d_guard_to_assertion[g];
-      Node q = quantifiers::TermUtil::getInstConstAttr( a );
-      if( !q.isNull() ){
-        //must wait to decide on counterexample literal from quantified formula
-        Node cel = getQuantifiersEngine()->getTermUtil()->getCounterexampleLiteral( q );
-        bool value;
-        if( d_valuation.hasSatValue( cel, value ) ){
-          Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : dependent guard " << g << " depends on value for guard for quantified formula : " << value << std::endl;
-          success = value;
-        }else{
-          Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : wait to decide on " << g << " until " << cel << " is set " << std::endl;
-          success = false;
-        }
-      }
-    }
-    if( success ){
-      bool value;
-      if( !d_valuation.hasSatValue( g, value ) ) {
-        Trace("sep-dec") << "TheorySep::getNextDecisionRequest : " << g << " (" << i << "/" << d_neg_guards.size() << ")" << std::endl;
-        priority = 0;
-        return g;
-      }
-    }
-  }
-  Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : null" << std::endl;
-  */
-  return Node::null();
-}
-
 void TheorySep::conflict(TNode a, TNode b) {
   Trace("sep-conflict") << "Sep::conflict : " << a << " " << b << std::endl;
   Node conflictNode = explain(a.eqNode(b));
