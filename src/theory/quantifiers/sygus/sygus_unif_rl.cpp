@@ -576,8 +576,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
       continue;
     }
     Assert(hd_mv.find(er) != hd_mv.end())
-    // merged into separation class with same model value, no conflict
-    if (hd_mv[e] == hd_mv[er])
+        // merged into separation class with same model value, no conflict
+        if (hd_mv[e] == hd_mv[er])
     {
       continue;
     }
@@ -599,7 +599,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
 }
 
 Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
-                                             std::vector<Node>& lemmas)
+                                                    std::vector<Node>& lemmas)
 {
   NodeManager* nm = NodeManager::currentNM();
   // model values for evaluation heads
