@@ -534,7 +534,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   separateByLength( nodes, col, lts );
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map< unsigned, bool > values_used;
+  std::map< unsigned, Node > values_used;
+  std::vector< Node > len_splits;
   for( unsigned i=0; i<col.size(); i++ ) {
     Trace("strings-model") << "Checking length for {";
     for( unsigned j=0; j<col[i].size(); j++ ) {
@@ -544,27 +545,32 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       Trace("strings-model") << col[i][j];
     }
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
+    Node len_value;
     if( lts[i].isConst() ) {
-      lts_values.push_back( lts[i] );
-      Assert(lts[i].getConst<Rational>() <= Rational(String::maxSize()),
-             "Exceeded UINT32_MAX in string model");
-      unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
-      values_used[ lvalue ] = true;
-    }else{
-      //get value for lts[i];
-      if( !lts[i].isNull() ){
-        Node v = d_valuation.getModelValue(lts[i]);
-        Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
-        lts_values.push_back( v );
-        Assert(v.getConst<Rational>() <= Rational(String::maxSize()),
-               "Exceeded UINT32_MAX in string model");
-        unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
-        values_used[ lvalue ] = true;
-      }else{
-        //Trace("strings-model-warn") << "No length for eqc " << col[i][0] << std::endl;
-        //Assert( false );
-        lts_values.push_back( Node::null() );
+      len_value = lts[i];
+    }else if( !lts[i].isNull() ){
+      // get the model value for lts[i]
+      len_value = d_valuation.getModelValue(lts[i]);
+    }
+    if( len_value.isNull() )
+    {
+      lts_values.push_back( Node::null() );
+    }
+    else
+    {
+      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()),
+              "Exceeded UINT32_MAX in string model");
+      unsigned lvalue =  len_value.getConst<Rational>().getNumerator().toUnsignedInt();
+      std::map< unsigned, Node >::iterator itvu = values_used.find(lvalue);
+      if( itvu==values_used.end() )
+      {
+        values_used[ lvalue ] = lts[i];
       }
+      else
+      {
+        len_splits.push_back( lts[i].eqNode(itvu->second) );
+      }
+      lts_values.push_back(len_value);
     }
   }
   ////step 2 : assign arbitrary values for unknown lengths?
@@ -624,7 +630,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
         lts_values[i] = nm->mkConst(Rational(lvalue));
-        values_used[ lvalue ] = true;
+        values_used[ lvalue ] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
       for( unsigned j=0; j<pure_eq.size(); j++ ){
@@ -647,7 +653,18 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           while (m->hasTerm(c))
           {
             ++sel;
-            Assert(!sel.isFinished());
+            if(sel.isFinished())
+            {
+              // We are in a case where model construction failed due to
+              // an insufficient number of constants of a given length.
+              AlwaysAssert( !len_splits.empty() );
+              for( const Node& sl : len_splits )
+              {
+                Node spl = nm->mkNode(OR,sl, sl.negate());
+                d_out->lemma(spl);
+              }
+              return false;
+            }
             c = *sel;
           }
           ++sel;
