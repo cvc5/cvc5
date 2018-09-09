@@ -454,12 +454,14 @@ void TheorySep::check(Effort e) {
             if( !use_polarity ){
               // introduce guard, assert positive version
               Trace("sep-lemma-debug") << "Negated spatial constraint asserted to sep theory: " << fact << std::endl;
-              Node lit = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-              lit = getValuation().ensureLiteral( lit );
+              Node g = NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() );
+              d_neg_guard_strategy[g].reset(new DecisionStrategySingleton("sep_neg_guard",g,getSatContext(),getValuation()));
+              DecisionStrategySingleton * ds = d_neg_guard_strategy[g].get();
+              getDecisionManager()->registerStrategy(DecisionManager::strat_sep_neg_guard,ds);
+              Node lit = ds->getLiteral(0);
               d_neg_guard[s_lbl][s_atom] = lit;
               Trace("sep-lemma-debug") << "Neg guard : " << s_lbl << " " << s_atom << " " << lit << std::endl;
               AlwaysAssert( !lit.isNull() );
-              d_out->requirePhase( lit, true );
               d_neg_guards.push_back( lit );
               d_guard_to_assertion[lit] = s_atom;
               //Node lem = NodeManager::currentNM()->mkNode( kind::EQUAL, lit, conc );
@@ -823,6 +825,7 @@ bool TheorySep::needsCheckLastEffort() {
 }
 
 Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
+  /*
   for( unsigned i=0; i<d_neg_guards.size(); i++ ){
     Node g = d_neg_guards[i];
     bool success = true;
@@ -853,6 +856,7 @@ Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
     }
   }
   Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : null" << std::endl;
+  */
   return Node::null();
 }
 

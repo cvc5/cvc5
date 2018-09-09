@@ -402,6 +402,8 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/sygus_simple_sym.h \
 	theory/decision_manager.cpp \
 	theory/decision_manager.h \
+	theory/decision_strategy.cpp \
+	theory/decision_strategy.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \

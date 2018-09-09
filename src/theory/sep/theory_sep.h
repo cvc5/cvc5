@@ -218,6 +218,8 @@ class TheorySep : public Theory {
   std::map< Node, std::map< Node, Node > > d_red_conc;
   std::map< Node, std::map< Node, Node > > d_neg_guard;
   std::vector< Node > d_neg_guards;
+  /** a (singleton) decision strategy for each negative guard. */
+  std::map< Node, std::unique_ptr<DecisionStrategySingleton> > d_neg_guard_strategy;
   std::map< Node, Node > d_guard_to_assertion;
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
