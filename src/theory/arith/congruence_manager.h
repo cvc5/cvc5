@@ -77,10 +77,11 @@ private:
     void eqNotifyDisequal(TNode t1, TNode t2, TNode reason) override;
   };
   ArithCongruenceNotify d_notify;
-  
-  /** module for shostak normalization, d_eqi_counter is how many pending merges in d_eq_infer we have processed */
-  quantifiers::EqualityInference * d_eq_infer;
-  context::CDO< unsigned > d_eqi_counter;
+
+  /** module for shostak normalization, d_eqi_counter is how many pending merges
+   * in d_eq_infer we have processed */
+  std::unique_ptr<quantifiers::EqualityInference> d_eq_infer;
+  context::CDO<unsigned> d_eqi_counter;
   Node d_true;
 
   context::CDList<Node> d_keepAlive;

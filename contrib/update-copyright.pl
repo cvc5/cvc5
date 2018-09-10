@@ -35,7 +35,6 @@
 
 my $excluded_directories = '^(CVS|generated)$';
 my $excluded_paths = '^(';
-$excluded_paths .= 'src/bindings/compat/.*';
 # different license
 $excluded_paths .= '|src/util/channel.h';
 # minisat license

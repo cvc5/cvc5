@@ -48,7 +48,6 @@ m4_define([library_version], [m4_esyscmd([grep -F "$(grep -v '^#' library_versio
 
 m4_define(_CVC4_LIBRARY_VERSION, library_version([libcvc4]))dnl
 m4_define(_CVC4_PARSER_LIBRARY_VERSION, library_version([libcvc4parser]))dnl
-m4_define(_CVC4_COMPAT_LIBRARY_VERSION, library_version([libcvc4compat]))dnl
 m4_define(_CVC4_BINDINGS_LIBRARY_VERSION, library_version([libcvc4bindings]))dnl
 
 m4_define([fatal_error], [m4_errprint(__program__:__file__:__line__[: fatal error: $*
@@ -56,12 +55,10 @@ m4_define([fatal_error], [m4_errprint(__program__:__file__:__line__[: fatal erro
 
 m4_ifblank(_CVC4_LIBRARY_VERSION,[fatal_error([no CVC4_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
 m4_ifblank(_CVC4_PARSER_LIBRARY_VERSION,[fatal_error([no CVC4_PARSER_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
-m4_ifblank(_CVC4_COMPAT_LIBRARY_VERSION,[fatal_error([no CVC4_COMPAT_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
 m4_ifblank(_CVC4_BINDINGS_LIBRARY_VERSION,[fatal_error([no CVC4_BINDINGS_LIBRARY_VERSION defined for release version "]_CVC4_RELEASE_STRING[" in library_versions file])])dnl
 
 CVC4_LIBRARY_VERSION=_CVC4_LIBRARY_VERSION
 CVC4_PARSER_LIBRARY_VERSION=_CVC4_PARSER_LIBRARY_VERSION
-CVC4_COMPAT_LIBRARY_VERSION=_CVC4_COMPAT_LIBRARY_VERSION
 CVC4_BINDINGS_LIBRARY_VERSION=_CVC4_BINDINGS_LIBRARY_VERSION
 
 # Using AX_CXX_COMPILE_STDCXX_11 and the AC_CANONICAL_* macros destroy the
@@ -1265,20 +1262,6 @@ AC_DEFINE_UNQUOTED([HAVE_LIBREADLINE], $have_libreadline, [Define to 1 to use li
 AC_DEFINE_UNQUOTED([READLINE_COMPENTRY_FUNC_RETURNS_CHARP], $readline_compentry_func_returns_charp, [Define to 1 if rl_completion_entry_function is declared to return pointer to char])
 AC_SUBST([READLINE_LIBS])
 
-# Whether to build compatibility library
-CVC4_BUILD_LIBCOMPAT=yes
-AC_ARG_WITH([compat],
-    AS_HELP_STRING([--with-compat], [build compatibility library (CVC3 API layer)]),
-    [if test "$withval" = no; then CVC4_BUILD_LIBCOMPAT=no; fi])
-AC_MSG_CHECKING([whether to build compatibility library (CVC3 API layer)])
-if test "$CVC4_BUILD_LIBCOMPAT" = yes; then
-  AC_MSG_RESULT([yes])
-else
-  AC_MSG_RESULT([no, disabled by user])
-fi
-AC_SUBST(CVC4_BUILD_LIBCOMPAT)
-AM_CONDITIONAL([CVC4_BUILD_LIBCOMPAT], [test "$CVC4_BUILD_LIBCOMPAT" = yes])
-
 # Whether to compile with google profiling tools
 cvc4_use_google_perftools=0
 AC_ARG_WITH(
@@ -1355,7 +1338,6 @@ AM_CONDITIONAL([CVC4_TRACING], [test "$enable_tracing" = yes])
 
 AC_SUBST(CVC4_LIBRARY_VERSION)
 AC_SUBST(CVC4_PARSER_LIBRARY_VERSION)
-AC_SUBST(CVC4_COMPAT_LIBRARY_VERSION)
 AC_SUBST(CVC4_BINDINGS_LIBRARY_VERSION)
 
 AC_DEFINE_UNQUOTED(CVC4_MAJOR, ${CVC4_MAJOR}, [Major component of the version of CVC4.])
@@ -1523,11 +1505,7 @@ fi
 if test "$gpl" = yes; then isgpl=1; else isgpl=0; fi
 AC_DEFINE_UNQUOTED(CVC4_GPL_DEPS, $isgpl, [Whether CVC4 is built with the (optional) GPLed library dependences.])
 
-CVC4_COMPAT_LIBRARY_VERSION_or_nobuild="$CVC4_COMPAT_LIBRARY_VERSION"
 CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild="$CVC4_BINDINGS_LIBRARY_VERSION"
-if test "$CVC4_BUILD_LIBCOMPAT" = no; then
-  CVC4_COMPAT_LIBRARY_VERSION_or_nobuild="N/A"
-fi
 if test -z "$CVC4_LANGUAGE_BINDINGS"; then
   CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild="N/A"
 fi
@@ -1535,9 +1513,6 @@ fi
 bindings_to_be_built=none
 if test -n "$CVC4_LANGUAGE_BINDINGS"; then
   bindings_to_be_built="$CVC4_LANGUAGE_BINDINGS"
-  if test -z "$SWIG"; then
-    bindings_to_be_built="$bindings_to_be_built (for CVC3 compatibility layer only; SWIG not found)"
-  fi
 fi
 
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([src/util/floatingpoint.h])
@@ -1550,7 +1525,6 @@ CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4.3])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/SmtEngine.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/options.3cvc_template])
 CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4parser.3])
-CVC4_CONFIG_FILE_ONLY_IF_CHANGED([doc/libcvc4compat.3])
 
 AC_OUTPUT
 
@@ -1577,7 +1551,6 @@ gprof support: $enable_profiling
 Static libs  : $enable_static
 Shared libs  : $enable_shared
 Static binary: $enable_static_binary
-Compat lib   : $CVC4_BUILD_LIBCOMPAT
 Bindings     : $bindings_to_be_built
 
 Multithreaded: $support_multithreaded
@@ -1600,7 +1573,6 @@ LDFLAGS      : $LDFLAGS
 
 libcvc4 version        : $CVC4_LIBRARY_VERSION
 libcvc4parser version  : $CVC4_PARSER_LIBRARY_VERSION
-libcvc4compat version  : $CVC4_COMPAT_LIBRARY_VERSION_or_nobuild
 libcvc4bindings version: $CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild
 
 Install into : $prefix

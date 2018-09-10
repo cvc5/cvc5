@@ -911,6 +911,25 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     Node one = nm->mkConst(Rational(1));
     retNode = one.eqNode(nm->mkNode(STRING_LENGTH, x));
   } else if( r.getKind() == kind::REGEXP_STAR ) {
+    if (x.isConst())
+    {
+      String s = x.getConst<String>();
+      if (s.size() == 0)
+      {
+        retNode = nm->mkConst(true);
+        // e.g. (str.in.re "" (re.* (str.to.re x))) ----> true
+        return returnRewrite(node, retNode, "re-empty-in-str-star");
+      }
+      else if (s.size() == 1)
+      {
+        if (r[0].getKind() == STRING_TO_REGEXP)
+        {
+          retNode = r[0][0].eqNode(x);
+          // e.g. (str.in.re "A" (re.* (str.to.re x))) ----> "A" = x
+          return returnRewrite(node, retNode, "re-char-in-str-star");
+        }
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
@@ -919,8 +938,6 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     bool allSigma = true;
     bool allSigmaStrict = true;
     unsigned allSigmaMinSize = 0;
-    bool allString = true;
-    std::vector< Node > cc;
     for (const Node& rc : r)
     {
       Assert(rc.getKind() != kind::REGEXP_EMPTY);
@@ -935,14 +952,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       else
       {
         allSigma = false;
-      }
-      if (rc.getKind() != kind::STRING_TO_REGEXP)
-      {
-        allString = false;
-      }
-      else
-      {
-        cc.push_back(rc);
+        break;
       }
     }
     if (allSigma)
@@ -951,11 +961,6 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       Node lenx = nm->mkNode(STRING_LENGTH, x);
       retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
       return returnRewrite(node, retNode, "re-concat-pure-allchar");
-    }
-    else if (allString)
-    {
-      retNode = x.eqNode(mkConcat(STRING_CONCAT, cc));
-      return returnRewrite(node, retNode, "re-concat-pure-str");
     }
   }else if( r.getKind()==kind::REGEXP_INTER || r.getKind()==kind::REGEXP_UNION ){
     std::vector< Node > mvec;
@@ -2198,6 +2203,57 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       return returnRewrite(node, res, "repl-subst-idx");
     }
   }
+
+  if (node[0].getKind() == STRING_STRREPL)
+  {
+    Node x = node[0];
+    Node y = node[1];
+    Node z = node[2];
+    if (x[0] == x[2] && x[0] == y)
+    {
+      // (str.replace (str.replace y w y) y z) -->
+      //   (str.replace (str.replace y w z) y z)
+      // if (str.len w) >= (str.len z) and w != z
+      //
+      // Reasoning: There are two cases: (1) w does not appear in y and (2) w
+      // does appear in y.
+      //
+      // Case (1): In this case, the reasoning is trivial. The
+      // inner replace does not do anything, so we can just replace its third
+      // argument with any string.
+      //
+      // Case (2): After the inner replace, we are guaranteed to have a string
+      // that contains y at the index of w in the original string y. The outer
+      // replace then replaces that y with z, so we can short-circuit that
+      // replace by directly replacing w with z in the inner replace. We can
+      // only do that if the result of the new inner replace does not contain
+      // y, otherwise we end up doing two replaces that are different from the
+      // original expression. We enforce that by requiring that the length of w
+      // has to be greater or equal to the length of z and that w and z have to
+      // be different. This makes sure that an inner replace changes a string
+      // to a string that is shorter than y, making it impossible for the outer
+      // replace to match.
+      Node w = x[1];
+
+      // (str.len w) >= (str.len z)
+      Node wlen = nm->mkNode(kind::STRING_LENGTH, w);
+      Node zlen = nm->mkNode(kind::STRING_LENGTH, z);
+      if (checkEntailArith(wlen, zlen))
+      {
+        // w != z
+        Node wEqZ = Rewriter::rewrite(nm->mkNode(kind::EQUAL, w, z));
+        if (wEqZ.isConst() && !wEqZ.getConst<bool>())
+        {
+          Node ret = nm->mkNode(kind::STRING_STRREPL,
+                                nm->mkNode(kind::STRING_STRREPL, y, w, z),
+                                y,
+                                z);
+          return returnRewrite(node, ret, "repl-repl-short-circuit");
+        }
+      }
+    }
+  }
+
   if (node[1].getKind() == STRING_STRREPL)
   {
     if (node[1][0] == node[0])
