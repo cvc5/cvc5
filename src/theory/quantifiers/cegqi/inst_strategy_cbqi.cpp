@@ -210,7 +210,7 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     }
     // it is prepended to the list of strategies
     d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_quant_cegqi_feasible, dlds, false);
+        DecisionManager::strat_quant_cegqi_feasible, dlds);
     return true;
   }else{
     return false;

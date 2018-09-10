@@ -32,21 +32,12 @@ void DecisionManager::reset()
 }
 
 void DecisionManager::registerStrategy(StrategyId id,
-                                       DecisionStrategy* ds,
-                                       bool append)
+                                       DecisionStrategy* ds)
 {
-  ds->initialize();
   Trace("dec-manager") << "DecisionManager: Register strategy : "
                        << ds->identify() << ", id = " << id << std::endl;
-  if (append)
-  {
-    d_reg_strategy[id].push_back(ds);
-  }
-  else
-  {
-    std::vector<DecisionStrategy*>& stid = d_reg_strategy[id];
-    stid.insert(stid.begin(), ds);
-  }
+  ds->initialize();
+  d_reg_strategy[id].push_back(ds);
 }
 
 Node DecisionManager::getNextDecisionRequest(unsigned& priority)
