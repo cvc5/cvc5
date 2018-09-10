@@ -258,6 +258,9 @@ bool SubstitutionMinimize::isSingularArg(Node n, Kind k, unsigned arg)
   // Notice that this function is hardcoded. We could compute this function
   // in a theory-independent way using partial evaluation. However, we
   // prefer performance to generality here.
+
+  // TODO: a variant of this code is implemented in quantifiers::TermUtil.
+  // These implementations should be merged (see #1216).
   if (!n.isConst())
   {
     return false;
