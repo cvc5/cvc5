@@ -319,4 +319,3 @@
 (assert (= p2_min_size 10))
 
 (check-sat)
-(get-model)
