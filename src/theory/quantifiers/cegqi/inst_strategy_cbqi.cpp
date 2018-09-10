@@ -544,9 +544,8 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // must register with the instantiator
   // must explicitly remove ITEs so that we record dependencies
   std::vector<Node> ce_vars;
-  TermUtil * tutil = d_quantEngine->getTermUtil(); 
-  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q);
-       i < nics;
+  TermUtil* tutil = d_quantEngine->getTermUtil();
+  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q); i < nics;
        i++)
   {
     ce_vars.push_back(tutil->getInstantiationConstant(q, i));
@@ -711,7 +710,8 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( q );
   if( it==d_cinst.end() ){
-    CegInstantiator * cinst = new CegInstantiator( d_quantEngine, d_out.get(), true, true );
+    CegInstantiator* cinst =
+        new CegInstantiator(d_quantEngine, d_out.get(), true, true);
     d_cinst[q] = cinst;
     return cinst;
   }else{
