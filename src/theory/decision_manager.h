@@ -55,32 +55,32 @@ class DecisionManager
     //  These are required to go first for the sake of model-soundness. In
     //  other words, if these strategies did not go first, we might answer
     //  "sat" for problems that are unsat.
-    strat_quant_cegqi_feasible,
-    strat_quant_sygus_feasible,
-    strat_quant_sygus_stream_feasible,
+    STRAT_QUANT_CEGQI_FEASIBLE,
+    STRAT_QUANT_SYGUS_FEASIBLE,
+    STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
     // placeholder for last model-sound required strategy
-    strat_last_m_sound,
+    STRAT_LAST_M_SOUND,
 
     //----- finite model finding strategies
     //  We require these go here for the sake of finite-model completeness. In
     //  other words, if these strategies did not go before other decisions, we
     //  might be non-terminating instead of answering "sat" with a solution
     //  within a given a bound.
-    strat_uf_combined_card,
-    strat_uf_card,
-    strat_dt_sygus_enum_active,
-    strat_dt_sygus_enum_size,
-    strat_quant_bound_int_size,
-    strat_quant_cegis_unif_num_enums,
-    strat_strings_sum_lengths,
-    strat_sep_neg_guard,
+    STRAT_UF_COMBINED_CARD,
+    STRAT_UF_CARD,
+    STRAT_DT_SYGUS_ENUM_ACTIVE,
+    STRAT_DT_SYGUS_ENUM_SIZE,
+    STRAT_QUANT_BOUND_INT_SIZE,
+    STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS,
+    STRAT_STRINGS_SUM_LENGTHS,
+    STRAT_SEP_NEG_GUARD,
     // placeholder for last finite-model-complete required strategy
-    strat_last_fm_complete,
+    STRAT_LAST_FM_COMPLETE,
 
     //----- decision strategies that are optimizations
-    strat_arrays,
+    STRAT_ARRAYS,
 
-    strat_last
+    STRAT_LAST
   };
   DecisionManager(context::Context* satContext);
   ~DecisionManager() {}
