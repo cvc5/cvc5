@@ -524,7 +524,7 @@ private:
     Node d_measure_value_active;
   };
   /** the above information for each registered measure term */
-  std::map<Node, SygusSizeDecisionStrategy*> d_szinfo;
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy> > d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/

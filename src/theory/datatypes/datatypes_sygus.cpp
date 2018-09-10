@@ -50,13 +50,7 @@ SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
-  for (std::map<Node, SygusSizeDecisionStrategy*>::iterator it =
-           d_szinfo.begin();
-       it != d_szinfo.end();
-       ++it)
-  {
-    delete it->second;
-  }
+
 }
 
 /** add tester */
@@ -112,7 +106,7 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
     if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-      std::map<Node, SygusSizeDecisionStrategy*>::iterator its =
+      std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
           d_szinfo.find(m);
       Assert( its!=d_szinfo.end() );
       Node mt = its->second->getOrMkMeasureValue(lemmas);
@@ -243,7 +237,7 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Node a = d_term_to_anchor[n];
   Assert( d_anchor_to_measure_term.find( a )!=d_anchor_to_measure_term.end() );
   Node m = d_anchor_to_measure_term[a];
-  std::map<Node, SygusSizeDecisionStrategy*>::iterator itsz = d_szinfo.find(m);
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz = d_szinfo.find(m);
   Assert( itsz!=d_szinfo.end() );
   unsigned ssz = itsz->second->d_curr_search_size;
   
@@ -1137,19 +1131,19 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
 }
 
 void SygusSymBreakNew::registerMeasureTerm( Node m ) {
-  std::map<Node, SygusSizeDecisionStrategy*>::iterator it = d_szinfo.find(m);
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator it = d_szinfo.find(m);
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
-    d_szinfo[m] = new SygusSizeDecisionStrategy(
-        m, d_td->getSatContext(), d_td->getValuation());
+    d_szinfo[m].reset( new SygusSizeDecisionStrategy(
+        m, d_td->getSatContext(), d_td->getValuation()) );
     // register this as a decision strategy
     d_td->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_dt_sygus_enum_size, d_szinfo[m]);
+        DecisionManager::strat_dt_sygus_enum_size, d_szinfo[m].get());
   }
 }
 
 void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas ) {
-  std::map<Node, SygusSizeDecisionStrategy*>::iterator its = d_szinfo.find(m);
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its = d_szinfo.find(m);
   Assert( its!=d_szinfo.end() );
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
@@ -1196,13 +1190,13 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
 unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
 {
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
-  std::map<Node, SygusSizeDecisionStrategy*>::iterator its = d_szinfo.find(m);
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its = d_szinfo.find(m);
   Assert( its!=d_szinfo.end() );
   return its->second->d_curr_search_size;
 }
   
 void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas ) {
-  std::map<Node, SygusSizeDecisionStrategy*>::iterator itsz = d_szinfo.find(m);
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz = d_szinfo.find(m);
   Assert( itsz!=d_szinfo.end() );
   itsz->second->d_curr_search_size++;
   Trace("sygus-fair") << "  register search size " << itsz->second->d_curr_search_size << " for " << m << std::endl;
@@ -1344,12 +1338,12 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     if (lemmas.empty() && !d_szinfo.empty())
     {
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
-      for (std::map<Node, SygusSizeDecisionStrategy*>::iterator it =
+      for (std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator it =
                d_szinfo.begin();
            it != d_szinfo.end();
            ++it)
       {
-        SygusSizeDecisionStrategy* s = it->second;
+        SygusSizeDecisionStrategy* s = it->second.get();
         Trace("cegqi-engine") << s->d_curr_search_size << " ";
       }
       Trace("cegqi-engine") << std::endl;

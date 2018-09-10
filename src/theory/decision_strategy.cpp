@@ -84,8 +84,6 @@ Node DecisionStrategyFmf::getNextDecisionRequest()
   return Node::null();
 }
 
-bool DecisionStrategyFmf::isReadyForDecision() { return true; }
-
 bool DecisionStrategyFmf::getAssertedLiteralIndex(unsigned& i) const
 {
   if (d_has_curr_literal.get())
