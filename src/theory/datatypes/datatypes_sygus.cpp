@@ -1083,7 +1083,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
                                                 d_td->getValuation()));
             }
             d_td->getDecisionManager()->registerStrategy(
-                DecisionManager::strat_dt_sygus_enum_active,
+                DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
                 d_anchor_to_ag_strategy[e].get());
           }
           Node m;
@@ -1138,7 +1138,7 @@ void SygusSymBreakNew::registerMeasureTerm( Node m ) {
         m, d_td->getSatContext(), d_td->getValuation()) );
     // register this as a decision strategy
     d_td->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_dt_sygus_enum_size, d_szinfo[m].get());
+        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 

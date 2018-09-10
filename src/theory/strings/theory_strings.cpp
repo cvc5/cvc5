@@ -507,7 +507,7 @@ void TheoryStrings::presolve() {
     }
     d_sslds->initialize(inputVars);
     getDecisionManager()->registerStrategy(
-        DecisionManager::strat_strings_sum_lengths, d_sslds.get());
+        DecisionManager::STRAT_STRINGS_SUM_LENGTHS, d_sslds.get());
   }
 }
 

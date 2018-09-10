@@ -503,7 +503,7 @@ void SortModel::initialize( OutputChannel* out ){
   {
     d_initialized = true;
     d_thss->getTheory()->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_uf_card, d_c_dec_strat.get());
+        DecisionManager::STRAT_UF_CARD, d_c_dec_strat.get());
   }
 }
 
@@ -1766,7 +1766,7 @@ void StrongSolverTheoryUF::initializeCombinedCardinality() {
   {
     d_initializedCombinedCardinality = true;
     d_th->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_uf_combined_card, d_cc_dec_strat.get());
+        DecisionManager::STRAT_UF_COMBINED_CARD, d_cc_dec_strat.get());
   }
 }
 

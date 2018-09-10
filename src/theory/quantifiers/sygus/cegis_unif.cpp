@@ -451,7 +451,7 @@ void CegisUnifEnumManager::initialize(
 
   // register this strategy
   d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-      DecisionManager::strat_quant_cegis_unif_num_enums, this);
+      DecisionManager::STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS, this);
   // initialize the current literal
   // incrementNumEnumerators();
 }

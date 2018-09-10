@@ -460,7 +460,7 @@ void TheorySep::check(Effort e) {
                   "sep_neg_guard", g, getSatContext(), getValuation()));
               DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
               getDecisionManager()->registerStrategy(
-                  DecisionManager::strat_sep_neg_guard, ds);
+                  DecisionManager::STRAT_SEP_NEG_GUARD, ds);
               Node lit = ds->getLiteral(0);
               d_neg_guard[s_lbl][s_atom] = lit;
               Trace("sep-lemma-debug") << "Neg guard : " << s_lbl << " " << s_atom << " " << lit << std::endl;

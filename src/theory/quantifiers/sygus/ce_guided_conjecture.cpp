@@ -175,7 +175,7 @@ void CegConjecture::assign( Node q ) {
                                     d_qe->getSatContext(),
                                     d_qe->getValuation()));
   d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-      DecisionManager::strat_quant_sygus_feasible, d_feasible_strategy.get());
+      DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
@@ -206,7 +206,7 @@ void CegConjecture::assign( Node q ) {
     d_stream_strategy.reset(new SygusStreamDecisionStrategy(
         d_qe->getSatContext(), d_qe->getValuation()));
     d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
-        DecisionManager::strat_quant_sygus_stream_feasible,
+        DecisionManager::STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
         d_stream_strategy.get());
     d_current_stream_guard = getCurrentStreamGuard();
   }

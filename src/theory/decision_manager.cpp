@@ -51,9 +51,9 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
       if (!lit.isNull())
       {
         StrategyId sid = rs.first;
-        priority = sid < strat_last_m_sound
+        priority = sid < STRAT_LAST_M_SOUND
                        ? 0
-                       : (sid < strat_last_fm_complete ? 1 : 2);
+                       : (sid < STRAT_LAST_FM_COMPLETE ? 1 : 2);
         Trace("dec-manager")
             << "DecisionManager:  -> literal " << lit << " decided by strategy "
             << ds->identify() << std::endl;

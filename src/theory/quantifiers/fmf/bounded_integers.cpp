@@ -505,7 +505,7 @@ void BoundedIntegers::checkOwnership(Node f)
                                               isProxy);
             d_quantEngine->getTheoryEngine()
                 ->getDecisionManager()
-                ->registerStrategy(DecisionManager::strat_quant_bound_int_size,
+                ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
                                    d_rms[r]);
           }
         }
