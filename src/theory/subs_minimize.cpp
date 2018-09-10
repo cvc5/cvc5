@@ -76,7 +76,7 @@ bool SubstitutionMinimize::find(Node n,
         {
           visit.push_back(cur.getOperator());
         }
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
     else if (it->second.isNull())
@@ -97,7 +97,7 @@ bool SubstitutionMinimize::find(Node n,
             nb << cur.getOperator();
           }
         }
-        children.insert(children.end(),cur.begin(),cur.end());
+        children.insert(children.end(), cur.begin(), cur.end());
         for (const Node& cn : children)
         {
           it = value.find(cn);

@@ -45,10 +45,10 @@ class SubstitutionMinimize
    * false.
    */
   static bool find(Node n,
-            Node target,
-            const std::vector<Node>& vars,
-            const std::vector<Node>& subs,
-            std::vector<Node>& reqVars);
+                   Node target,
+                   const std::vector<Node>& vars,
+                   const std::vector<Node>& subs,
+                   std::vector<Node>& reqVars);
 
  private:
   /** is singular arg

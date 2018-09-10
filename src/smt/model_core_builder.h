@@ -19,8 +19,8 @@
 
 #include <vector>
 
-#include "smt/model.h"
 #include "expr/expr.h"
+#include "smt/model.h"
 
 namespace CVC4 {
 

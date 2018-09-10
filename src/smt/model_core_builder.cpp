@@ -23,7 +23,7 @@ namespace CVC4 {
 bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
                                     Model* m)
 {
-  if(Trace.isOn("model-core") )
+  if (Trace.isOn("model-core"))
   {
     Trace("model-core") << "Compute model core, assertions:" << std::endl;
     for (const Node& a : assertions)
@@ -38,7 +38,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   {
     asserts.push_back(Node::fromExpr(assertions[i]));
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   Node formula = nm->mkNode(AND, asserts);
   std::vector<Node> vars;
@@ -66,7 +66,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
       {
         visit.push_back(cur.getOperator());
       }
-      visit.insert(visit.end(),cur.begin(),cur.end());
+      visit.insert(visit.end(), cur.begin(), cur.end());
     }
   } while (!visit.empty());
 
@@ -74,7 +74,8 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
 
   Trace("model-core") << "Minimizing substitution..." << std::endl;
   std::vector<Node> coreVars;
-  bool minimized = theory::SubstitutionMinimize::find(formula, truen, vars, subs, coreVars);
+  bool minimized =
+      theory::SubstitutionMinimize::find(formula, truen, vars, subs, coreVars);
   Assert(minimized,
          "cannot compute model core, since model does not satisfy input!");
   if (minimized)
