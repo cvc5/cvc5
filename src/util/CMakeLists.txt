@@ -58,6 +58,10 @@ if(CVC4_USE_GMP_IMP)
   list(APPEND util_src_files rational_gmp_imp.cpp integer_gmp_imp.cpp)
 endif()
 
+set(GMP_HOME ${GMP_DIR})
+find_package(GMP REQUIRED)
+
 add_library(util ${util_src_files})
 target_compile_definitions(util PRIVATE -D__BUILDING_CVC4LIB)
-target_link_libraries(util options)
+target_link_libraries(util options ${GMP_LIBRARIES})
+target_include_directories(util PUBLIC ${GMP_INCLUDE_DIR})

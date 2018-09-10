@@ -14,7 +14,6 @@ add_custom_command(
     ${ANTLR_BINARY}
       ${CMAKE_CURRENT_SOURCE_DIR}/Cvc.g
       -fo ${CMAKE_CURRENT_BINARY_DIR}
-      2> /dev/null # Ignore Antlr3 warnings
   DEPENDS
     Cvc.g
 )
