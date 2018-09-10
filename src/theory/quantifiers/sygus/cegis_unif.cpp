@@ -369,23 +369,7 @@ void CegisUnifEnumManager::initialize(
     for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
     {
       Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
-      // instantiate template for removing redundant operators
-      if (!ci.second.d_sbt_lemma_tmpl[1].first.isNull())
-      {
-        Node templ = ci.second.d_sbt_lemma_tmpl[1].first;
-        TNode templ_var = ci.second.d_sbt_lemma_tmpl[1].second;
-        Node sym_break_red_ops = templ.substitute(templ_var, ceu);
-        Trace("cegis-unif-enum-lemma")
-            << "CegisUnifEnum::lemma, remove redundant ops of " << ceu << " : "
-            << sym_break_red_ops << "\n";
-        d_qe->getOutputChannel().lemma(sym_break_red_ops);
-      }
-      // register the enumerator
-      ci.second.d_enums[1].push_back(ceu);
-      Trace("cegis-unif-enum")
-          << "* Registering new enumerator " << ceu << " to strategy point "
-          << ci.second.d_pt << "\n";
-      d_tds->registerEnumerator(ceu, ci.second.d_pt, d_parent);
+      setUpEnumerator(ceu, ci.second, 1);
       d_enum_to_active_guard[ceu] = d_tds->getActiveGuardForEnumerator(ceu);
     }
   }
@@ -418,6 +402,40 @@ Node CegisUnifEnumManager::getActiveGuardForEnumerator(Node e)
 {
   Assert(d_enum_to_active_guard.find(eu) != d_enum_to_active_guard.end());
   return d_enum_to_active_guard[e];
+}
+
+void CegisUnifEnumManager::setUpEnumerator(Node e,
+                                           StrategyPtInfo& si,
+                                           unsigned index)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  // instantiate template for removing redundant operators
+  if (!si.d_sbt_lemma_tmpl[index].first.isNull())
+  {
+    Node templ = si.d_sbt_lemma_tmpl[index].first;
+    TNode templ_var = si.d_sbt_lemma_tmpl[index].second;
+    Node sym_break_red_ops = templ.substitute(templ_var, e);
+    Trace("cegis-unif-enum-lemma")
+        << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
+        << sym_break_red_ops << "\n";
+    d_qe->getOutputChannel().lemma(sym_break_red_ops);
+  }
+  // symmetry breaking between enumerators
+  if (!si.d_enums[index].empty() && index == 0)
+  {
+    Node e_prev = si.d_enums[index].back();
+    Node size_e = nm->mkNode(DT_SIZE, e);
+    Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
+    Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
+    Trace("cegis-unif-enum-lemma")
+        << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
+    d_qe->getOutputChannel().lemma(sym_break);
+  }
+  // register the enumerator
+  si.d_enums[index].push_back(e);
+  Trace("cegis-unif-enum") << "* Registering new enumerator " << e
+                           << " to strategy point " << si.d_pt << "\n";
+  d_tds->registerEnumerator(e, si.d_pt, d_parent);
 }
 
 void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
@@ -507,34 +525,7 @@ void CegisUnifEnumManager::incrementNumEnumerators()
         {
           continue;
         }
-        // instantiate template for removing redundant operators
-        if (!ci.second.d_sbt_lemma_tmpl[index].first.isNull())
-        {
-          Node templ = ci.second.d_sbt_lemma_tmpl[index].first;
-          TNode templ_var = ci.second.d_sbt_lemma_tmpl[index].second;
-          Node sym_break_red_ops = templ.substitute(templ_var, e);
-          Trace("cegis-unif-enum-lemma")
-              << "CegisUnifEnum::lemma, remove redundant ops of " << e << " : "
-              << sym_break_red_ops << "\n";
-          d_qe->getOutputChannel().lemma(sym_break_red_ops);
-        }
-        // symmetry breaking between enumerators
-        if (!ci.second.d_enums[index].empty() && index == 0)
-        {
-          Node e_prev = ci.second.d_enums[index].back();
-          Node size_e = nm->mkNode(DT_SIZE, e);
-          Node size_e_prev = nm->mkNode(DT_SIZE, e_prev);
-          Node sym_break = nm->mkNode(GEQ, size_e, size_e_prev);
-          Trace("cegis-unif-enum-lemma")
-              << "CegisUnifEnum::lemma, enum sym break:" << sym_break << "\n";
-          d_qe->getOutputChannel().lemma(sym_break);
-        }
-        // register the enumerator
-        ci.second.d_enums[index].push_back(e);
-        Trace("cegis-unif-enum") << "* Registering new enumerator " << e
-                                 << " to strategy point " << ci.second.d_pt
-                                 << "\n";
-        d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
+        setUpEnumerator(e, ci.second, index);
       }
     }
     // register the evaluation points at the new value

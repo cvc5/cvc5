@@ -235,7 +235,7 @@ class SygusUnifRl : public SygusUnif
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
     /** all enumerated model values for conditions */
-    std::set<Node> d_cond_mvs;
+    std::unordered_set<Node, NodeHashFunction> d_cond_mvs;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** set conditions */
@@ -244,8 +244,9 @@ class SygusUnifRl : public SygusUnif
                        const std::vector<Node>& conds);
 
    private:
-    /** built solutions */
-    std::set<Node> d_sols;
+    /** Accumulates solutions built when considering all enumerated condition
+     * values (which may generate repeated solutions) */
+    std::unordered_set<Node, NodeHashFunction> d_sols;
     /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during

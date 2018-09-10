@@ -170,6 +170,15 @@ class CegisUnifEnumManager
    * current SAT context.
    */
   context::CDO<unsigned> d_curr_guq_val;
+  /** Registers an enumerator and adds symmetry breaking lemmas
+   *
+   * The symmetry breaking lemmas are generated according to the stored
+   * information from the enumerator's respective strategy point and whether it
+   * is a condition or return value enumerator. For the latter we add symmetry
+   * breaking lemmas that force enumerators to consider values in an increasing
+   * order of size.
+   */
+  void setUpEnumerator(Node e, StrategyPtInfo& si, unsigned index);
   /** increment the number of enumerators */
   void incrementNumEnumerators();
   /** get literal G_uq_n */
