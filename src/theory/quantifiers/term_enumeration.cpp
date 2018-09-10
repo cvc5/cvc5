@@ -53,84 +53,38 @@ Node TermEnumeration::getEnumerateTerm(TypeNode tn, unsigned index)
   return d_enum_terms[tn][index];
 }
 
-bool TermEnumeration::isClosedEnumerableType(TypeNode tn)
-{
-  std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
-      d_typ_closed_enum.find(tn);
-  if (it == d_typ_closed_enum.end())
-  {
-    d_typ_closed_enum[tn] = true;
-    bool ret = true;
-    if (tn.isArray() || tn.isSort() || tn.isCodatatype() || tn.isFunction())
-    {
-      ret = false;
-    }
-    else if (tn.isSet())
-    {
-      ret = isClosedEnumerableType(tn.getSetElementType());
-    }
-    else if (tn.isDatatype())
-    {
-      const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-      for (unsigned i = 0; i < dt.getNumConstructors(); i++)
-      {
-        for (unsigned j = 0; j < dt[i].getNumArgs(); j++)
-        {
-          TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
-          if (tn != ctn && !isClosedEnumerableType(ctn))
-          {
-            ret = false;
-            break;
-          }
-        }
-        if (!ret)
-        {
-          break;
-        }
-      }
-    }
-    
-    // other parametric sorts go here
-    
-    d_typ_closed_enum[tn] = ret;
-    return ret;
-  }
-  else
-  {
-    return it->second;
-  }
-}
-
-// checks whether a type is closed enumerable and is reasonably small enough (<1000)
-// such that all of its domain elements can be enumerated
 bool TermEnumeration::mayComplete(TypeNode tn)
 {
   std::unordered_map<TypeNode, bool, TypeNodeHashFunction>::iterator it =
       d_may_complete.find(tn);
   if (it == d_may_complete.end())
   {
-    bool mc = false;
-    if (isClosedEnumerableType(tn) && tn.isInterpretedFinite())
-    {
-      Cardinality c = tn.getCardinality();
-      if (!c.isLargeFinite())
-      {
-        NodeManager* nm = NodeManager::currentNM();
-        Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
-        // check if less than fixed upper bound, default 1000
-        Node oth = nm->mkConst(Rational(options::fmfTypeCompletionThresh()));
-        Node eq = nm->mkNode(LEQ, card, oth);
-        eq = Rewriter::rewrite(eq);
-        mc = eq.isConst() && eq.getConst<bool>();
-      }
-    }
+    // cache
+    bool mc = mayComplete(tn, options::fmfTypeCompletionThresh());
     d_may_complete[tn] = mc;
     return mc;
   }
-  else
+  return it->second;
+}
+
+bool TermEnumeration::mayComplete(TypeNode tn, unsigned maxCard)
+{
+  bool mc = false;
+  if (tn.isClosedEnumerable() && tn.isInterpretedFinite())
   {
-    return it->second;
+    Cardinality c = tn.getCardinality();
+    if (!c.isLargeFinite())
+    {
+      NodeManager* nm = NodeManager::currentNM();
+      Node card = nm->mkConst(Rational(c.getFiniteCardinality()));
+      // check if less than fixed upper bound
+      Node oth = nm->mkConst(Rational(maxCard));
+      Node eq = nm->mkNode(LEQ, card, oth);
+      eq = Rewriter::rewrite(eq);
+      mc = eq.isConst() && eq.getConst<bool>();
+    }
   }
+  return mc;
 }
 
 } /* CVC4::theory::quantifiers namespace */

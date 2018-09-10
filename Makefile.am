@@ -130,8 +130,7 @@ EXTRA_DIST = \
 	doc/libcvc4.3.in \
 	doc/SmtEngine.3cvc_template.in \
 	doc/options.3cvc_template.in \
-	doc/libcvc4parser.3.in \
-	doc/libcvc4compat.3.in
+	doc/libcvc4parser.3.in
 
 man_MANS = \
 	doc/cvc4.1 \
@@ -140,8 +139,7 @@ man_MANS = \
 	doc/libcvc4.3 \
 	doc/SmtEngine.3cvc \
 	doc/options.3cvc \
-	doc/libcvc4parser.3 \
-	doc/libcvc4compat.3
+	doc/libcvc4parser.3
 
 doc/pcvc4.1: doc/cvc4.1
 	rm -f doc/pcvc4.1
@@ -167,7 +165,6 @@ DISTCLEANFILES = \
 	doc/pcvc4.1 \
 	doc/cvc4.5 \
 	doc/libcvc4.3 \
-	doc/libcvc4compat.3 \
 	doc/libcvc4parser.3 \
 	doc/SmtEngine.3cvc \
 	doc/SmtEngine.3cvc_template \
