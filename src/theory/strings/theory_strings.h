@@ -638,12 +638,12 @@ private:
   context::CDO< Node > d_input_var_lsum;
   context::CDHashMap< int, Node > d_cardinality_lits;
   context::CDO< int > d_curr_cardinality;
-  /** String sum of lengths decision strategy 
-   * 
+  /** String sum of lengths decision strategy
+   *
    * This decision strategy enforces that len(x_1) + ... + len(x_k) <= n
    * for a minimal natural number n, where x_1, ..., x_n is the list of
    * input variables of the problem of type String.
-   * 
+   *
    * This decision strategy is enabled by option::stringsFmf().
    */
   class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
@@ -660,6 +660,7 @@ private:
     bool isInitialized();
     /** initialize */
     void initialize(const std::vector<Node>& vars);
+
    private:
     /**
      * User-context-dependent node corresponding to the sum of the lengths of

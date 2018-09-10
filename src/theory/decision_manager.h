@@ -29,16 +29,16 @@ namespace theory {
  * TheoryEngine. A decision strategy is a callback in the SAT solver for
  * imposing its next decision. This is useful, for instance, in
  * branch-and-bound algorithms where we require that the first decision
- * is a bound on some quantity. For instance, finite model finding may impose 
+ * is a bound on some quantity. For instance, finite model finding may impose
  * a bound on the cardinality of an uninterpreted sort as the first decision.
- * 
+ *
  * This class maintains a user-context-dependent set of pointers to
  * DecisionStrategy objects, which implement indivdual decision strategies.
- * 
+ *
  * Decision strategies may be registered to this class via registerStrategy
  * at any time during solving. They are cleared via a call to reset during
  * TheoryEngine's postSolve method.
- * 
+ *
  * Decision strategies have a fixed order, which is managed by the enumeration
  * type StrategyId, where strategies with smaller id have higher precedence
  * in our global decision strategy.
@@ -94,12 +94,11 @@ class DecisionManager
    * Registers the strategy ds with this manager. The id specifies when the
    * strategy should be run.
    */
-  void registerStrategy(StrategyId id,
-                        DecisionStrategy* ds);
-  /** Get the next decision request 
-   * 
+  void registerStrategy(StrategyId id, DecisionStrategy* ds);
+  /** Get the next decision request
+   *
    * If this method returns a non-null node n, then n is a literal corresponding
-   * to the next decision that the SAT solver should take. If this method 
+   * to the next decision that the SAT solver should take. If this method
    * returns null, then no decisions are required by a decision strategy
    * registered to this class. In the latter case, the SAT solver will choose
    * a decision based on its given heuristic.

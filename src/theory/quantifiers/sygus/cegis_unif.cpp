@@ -268,7 +268,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 
 CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
                                            CegConjecture* parent)
-    : DecisionStrategyFmf(qe->getSatContext(),qe->getValuation()),
+    : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)
 {
@@ -276,12 +276,12 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-Node CegisUnifEnumManager::mkLiteral(unsigned n) 
+Node CegisUnifEnumManager::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
   unsigned new_size = n + 1;
-    
+
   // allocate an enumerator for each candidate
   for (std::pair<const Node, StrategyPtInfo>& ci : d_ce_info)
   {
@@ -327,9 +327,9 @@ Node CegisUnifEnumManager::mkLiteral(unsigned n)
       }
       // register the enumerator
       ci.second.d_enums[index].push_back(e);
-      Trace("cegis-unif-enum") << "* Registering new enumerator " << e
-                                << " to strategy point " << ci.second.d_pt
-                                << "\n";
+      Trace("cegis-unif-enum")
+          << "* Registering new enumerator " << e << " to strategy point "
+          << ci.second.d_pt << "\n";
       d_tds->registerEnumerator(e, ci.second.d_pt, d_parent);
       // TODO symmetry breaking for making
       //   e distinct from ei : (ci.second.d_enums[index] \ {e})
@@ -344,7 +344,7 @@ Node CegisUnifEnumManager::mkLiteral(unsigned n)
     for (const Node& ei : ci.second.d_eval_points)
     {
       Trace("cegis-unif-enum") << "...increasing enum number for hd " << ei
-                                << " to new size " << new_size << "\n";
+                               << " to new size " << new_size << "\n";
       registerEvalPtAtSize(c, ei, new_lit, new_size);
     }
   }
@@ -367,13 +367,12 @@ Node CegisUnifEnumManager::mkLiteral(unsigned n)
       // do not include "-", which is included by default for integers
       exclude_cons[intTn].push_back(nm->operatorOf(MINUS));
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
-      TypeNode vtn =
-          CegGrammarConstructor::mkSygusDefaultType(intTn,
-                                                    bvl,
-                                                    virtualEnumName,
-                                                    extra_cons,
-                                                    exclude_cons,
-                                                    term_irrelevant);
+      TypeNode vtn = CegGrammarConstructor::mkSygusDefaultType(intTn,
+                                                               bvl,
+                                                               virtualEnumName,
+                                                               extra_cons,
+                                                               exclude_cons,
+                                                               term_irrelevant);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
       d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent);
     }
@@ -398,8 +397,8 @@ Node CegisUnifEnumManager::mkLiteral(unsigned n)
       // solution whose size is at most log_2(i-1).
       d_qe->getOutputChannel().lemma(fair_lemma);
     }
-  }  
-  
+  }
+
   return new_lit;
 }
 
@@ -451,9 +450,10 @@ void CegisUnifEnumManager::initialize(
   }
 
   // register this strategy
-  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(DecisionManager::strat_quant_cegis_unif_num_enums,this);
+  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+      DecisionManager::strat_quant_cegis_unif_num_enums, this);
   // initialize the current literal
-  //incrementNumEnumerators();
+  // incrementNumEnumerators();
 }
 
 void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
@@ -463,8 +463,8 @@ void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
   // the number of active enumerators is related to the current cost value
   unsigned num_enums = 0;
   bool has_num_enums = getAssertedLiteralIndex(num_enums);
-  AlwaysAssert( has_num_enums );
-  num_enums = num_enums+1;
+  AlwaysAssert(has_num_enums);
+  num_enums = num_enums + 1;
   if (index == 1)
   {
     // we always use (cost-1) conditions
@@ -492,11 +492,11 @@ void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
   for (const Node& ei : eis)
   {
     Assert(ei.getType() == e.getType());
-    for( unsigned j=0, size = d_literals.size(); j<size; j++ )
+    for (unsigned j = 0, size = d_literals.size(); j < size; j++)
     {
       Trace("cegis-unif-enum") << "...for cand " << e << " adding hd " << ei
-                               << " at size " << j<< "\n";
-      registerEvalPtAtSize(e, ei, d_literals[j], j+1);
+                               << " at size " << j << "\n";
+      registerEvalPtAtSize(e, ei, d_literals[j], j + 1);
     }
   }
 }

@@ -490,19 +490,24 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
   initializeStrategy();
-  
+
   // if strings fmf is enabled, register the strategy
-  if( options::stringFMF() )
+  if (options::stringFMF())
   {
-    d_sslds.reset(new StringSumLengthDecisionStrategy(getSatContext(),getUserContext(),d_valuation));
-    Trace("strings-dstrat-reg") << "presolve: register decision strategy." << std::endl;
-    std::vector< Node > inputVars;
-    for(NodeSet::const_iterator itr = d_input_vars.begin();
-      itr != d_input_vars.end(); ++itr) {
-      inputVars.push_back( *itr );
+    d_sslds.reset(new StringSumLengthDecisionStrategy(
+        getSatContext(), getUserContext(), d_valuation));
+    Trace("strings-dstrat-reg")
+        << "presolve: register decision strategy." << std::endl;
+    std::vector<Node> inputVars;
+    for (NodeSet::const_iterator itr = d_input_vars.begin();
+         itr != d_input_vars.end();
+         ++itr)
+    {
+      inputVars.push_back(*itr);
     }
     d_sslds->initialize(inputVars);
-    getDecisionManager()->registerStrategy(DecisionManager::strat_strings_sum_lengths, d_sslds.get());
+    getDecisionManager()->registerStrategy(
+        DecisionManager::strat_strings_sum_lengths, d_sslds.get());
   }
 }
 
@@ -4291,7 +4296,8 @@ Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
   NodeManager* nm = NodeManager::currentNM();
   return nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
 }
-std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const { 
+std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const
+{
   return std::string("string_sum_len");
 }
 

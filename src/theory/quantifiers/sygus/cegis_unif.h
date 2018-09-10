@@ -47,11 +47,14 @@ namespace quantifiers {
 class CegisUnifEnumManager : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);  
+  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
   /** Make the n^th literal of this strategy. */
   Node mkLiteral(unsigned n) override;
   /** identify */
-  std::string identify() const override { return std::string("cegis_unif_num_enums"); }
+  std::string identify() const override
+  {
+    return std::string("cegis_unif_num_enums");
+  }
 
   /** initialize candidates
    *
@@ -126,7 +129,7 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
   /** Have we returned a decision in the current SAT context? */
-  //context::CDO<bool> d_ret_dec;
+  // context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
    *
    * This enumerator is used for enforcing fairness. In particular, we relate

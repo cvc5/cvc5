@@ -454,10 +454,13 @@ void TheorySep::check(Effort e) {
             if( !use_polarity ){
               // introduce guard, assert positive version
               Trace("sep-lemma-debug") << "Negated spatial constraint asserted to sep theory: " << fact << std::endl;
-              Node g = NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() );
-              d_neg_guard_strategy[g].reset(new DecisionStrategySingleton("sep_neg_guard",g,getSatContext(),getValuation()));
-              DecisionStrategySingleton * ds = d_neg_guard_strategy[g].get();
-              getDecisionManager()->registerStrategy(DecisionManager::strat_sep_neg_guard,ds);
+              Node g = NodeManager::currentNM()->mkSkolem(
+                  "G", NodeManager::currentNM()->booleanType());
+              d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
+                  "sep_neg_guard", g, getSatContext(), getValuation()));
+              DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
+              getDecisionManager()->registerStrategy(
+                  DecisionManager::strat_sep_neg_guard, ds);
               Node lit = ds->getLiteral(0);
               d_neg_guard[s_lbl][s_atom] = lit;
               Trace("sep-lemma-debug") << "Neg guard : " << s_lbl << " " << s_atom << " " << lit << std::endl;
