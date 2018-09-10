@@ -68,8 +68,8 @@ bool CegisUnif::processInitialize(Node n,
       {
         Node cond = d_sygus_unif.getConditionForEvaluationPoint(e);
         Assert(!cond.isNull());
-        Trace("cegis-unif") << "  " << e << " with condition : " << cond
-                            << std::endl;
+        Trace("cegis-unif")
+            << "  " << e << " with condition : " << cond << std::endl;
         pt_to_cond[e] = cond;
       }
     }
@@ -90,8 +90,8 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     // Collect heads of candidates
     for (const Node& hd : d_sygus_unif.getEvalPointHeads(c))
     {
-      Trace("cegis-unif-enum-debug") << "......cand " << c << " with enum hd "
-                                     << hd << "\n";
+      Trace("cegis-unif-enum-debug")
+          << "......cand " << c << " with enum hd " << hd << "\n";
       enums.push_back(hd);
     }
   }
@@ -336,8 +336,8 @@ void CegisUnifEnumManager::initialize(
     std::map<Node, Node>::const_iterator itcc = e_to_cond.find(e);
     Assert(itcc != e_to_cond.end());
     Node cond = itcc->second;
-    Trace("cegis-unif-enum-debug") << "...its condition strategy point is "
-                                   << cond << "\n";
+    Trace("cegis-unif-enum-debug")
+        << "...its condition strategy point is " << cond << "\n";
     d_ce_info[e].d_ce_type = cond.getType();
     // initialize the symmetry breaking lemma templates
     for (unsigned index = 0; index < 2; index++)
@@ -621,8 +621,8 @@ void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
     disj.push_back(ei.eqNode(itc->second.d_enums[0][i]));
   }
   Node lem = NodeManager::currentNM()->mkNode(OR, disj);
-  Trace("cegis-unif-enum-lemma") << "CegisUnifEnum::lemma, domain:" << lem
-                                 << "\n";
+  Trace("cegis-unif-enum-lemma")
+      << "CegisUnifEnum::lemma, domain:" << lem << "\n";
   d_qe->getOutputChannel().lemma(lem);
 }
 
