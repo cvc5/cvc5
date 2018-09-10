@@ -58,6 +58,7 @@ class DecisionManager
     strat_quant_cegqi_feasible,
     strat_quant_sygus_feasible,
     strat_quant_sygus_stream_feasible,
+    // placeholder for last model-sound required strategy
     strat_last_m_sound,
 
     //----- finite model finding strategies
@@ -73,6 +74,7 @@ class DecisionManager
     strat_quant_cegis_unif_num_enums,
     strat_strings_sum_lengths,
     strat_sep_neg_guard,
+    // placeholder for last finite-model-complete required strategy
     strat_last_fm_complete,
 
     //----- decision strategies that are optimizations
