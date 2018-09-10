@@ -1,28 +1,8 @@
-; COMMAND-LINE: --global-negate
+; COMMAND-LINE: --global-negate --no-check-models
 ; EXPECT: sat
 (set-info :smt-lib-version 2.6)
 (set-logic BV)
 (set-info :status sat)
-(set-info :source |
-These benchmarks used in the paper:
-
-  Dejan Jovanovic and Leonardo de Moura.  Solving Non-Linear Arithmetic.
-  In IJCAR 2012, published as LNCS volume 7364, pp. 339--354.
-
-The keymaera family contains VCs from Keymaera verification, see:
-
-  A. Platzer, J.-D. Quesel, and P. Rummer.  Real world verification.
-  In CADE 2009, pages 485-501. Springer, 2009.
-
-Submitted by Dejan Jovanovic for SMT-LIB.
-
- KeYmaera example: bouncing-ball, node 5808 For more info see: No further information available.
-
-Translated to BV by Mathias Preiner.
-|)
-(set-info :license "https://creativecommons.org/licenses/by/4.0/")
-(set-info :category "industrial")
-(set-info :status unknown)
 (declare-fun v () (_ BitVec 32))
 (declare-fun g () (_ BitVec 32))
 (declare-fun t () (_ BitVec 32))
