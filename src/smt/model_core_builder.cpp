@@ -23,10 +23,13 @@ namespace CVC4 {
 bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
                                     Model* m)
 {
-  Trace("model-core") << "Compute model core, assertions:" << std::endl;
-  for (const Node& a : assertions)
+  if(Trace.isOn("model-core") )
   {
-    Trace("model-core") << "  " << a << std::endl;
+    Trace("model-core") << "Compute model core, assertions:" << std::endl;
+    for (const Node& a : assertions)
+    {
+      Trace("model-core") << "  " << a << std::endl;
+    }
   }
 
   // convert to nodes
@@ -35,8 +38,9 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   {
     asserts.push_back(Node::fromExpr(assertions[i]));
   }
+  NodeManager * nm = NodeManager::currentNM();
 
-  Node formula = NodeManager::currentNM()->mkNode(kind::AND, asserts);
+  Node formula = nm->mkNode(AND, asserts);
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
@@ -58,23 +62,19 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
         vars.push_back(cur);
         subs.push_back(vcur);
       }
-      if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
       {
         visit.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
+      visit.insert(visit.end(),cur.begin(),cur.end());
     }
   } while (!visit.empty());
 
-  Node truen = NodeManager::currentNM()->mkConst(true);
+  Node truen = nm->mkConst(true);
 
   Trace("model-core") << "Minimizing substitution..." << std::endl;
   std::vector<Node> coreVars;
-  theory::SubstitutionMinimize smin;
-  bool minimized = smin.find(formula, truen, vars, subs, coreVars);
+  bool minimized = theory::SubstitutionMinimize::find(formula, truen, vars, subs, coreVars);
   Assert(minimized,
          "cannot compute model core, since model does not satisfy input!");
   if (minimized)

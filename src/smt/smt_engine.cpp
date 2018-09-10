@@ -4497,8 +4497,7 @@ Model* SmtEngine::getModel() {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder mcb;
-    mcb.setModelCore(easserts, m);
+    ModelCoreBuilder::setModelCore(easserts, m);
   }
   m->d_inputName = d_filename;
   return m;

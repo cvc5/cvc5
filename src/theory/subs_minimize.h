@@ -14,10 +14,10 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SUBSTITUTION_MINIMIZE_H
-#define __CVC4__THEORY__SUBSTITUTION_MINIMIZE_H
+#ifndef __CVC4__THEORY__SUBS_MINIMIZE_H
+#define __CVC4__THEORY__SUBS_MINIMIZE_H
 
-#include <map>
+#include <vector>
 
 #include "expr/node.h"
 
@@ -37,14 +37,14 @@ class SubstitutionMinimize
   /** find
    *
    * If n { vars -> subs } rewrites to target, this method returns true, and
-   * vars[i1]...vars[in] are added to rewVars, such that
-   * n { vars[i_1] -> subs[i_1] ... vars[i_n]->subs[i_n] } also rewrites to
+   * vars[i1], ..., vars[in] are added to rewVars, such that
+   * n { vars[i_1] -> subs[i_1], ..., vars[i_n] -> subs[i_n] } also rewrites to
    * target.
    *
    * If n { vars -> subs } does not rewrite to target, this method returns
    * false.
    */
-  bool find(Node n,
+  static bool find(Node n,
             Node target,
             const std::vector<Node>& vars,
             const std::vector<Node>& subs,
@@ -57,10 +57,10 @@ class SubstitutionMinimize
    *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = c
    * always holds for some constant c.
    */
-  bool isSingularArg(Node n, Kind k, unsigned arg);
+  static bool isSingularArg(Node n, Kind k, unsigned arg);
 };
 
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__SUBSTITUTION_MINIMIZE_H */
+#endif /* __CVC4__THEORY__SUBS_MINIMIZE_H */

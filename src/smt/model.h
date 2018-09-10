@@ -78,7 +78,7 @@ class Model {
    */
   virtual void recordModelCoreSymbol(Expr sym) = 0;
   /** Check whether this expr is in the model core */
-  virtual bool isModelCoreSymbol(Expr expr) const { return false; }
+  virtual bool isModelCoreSymbol(Expr expr) const = 0;
   //--------------------------- end model cores
   /** get value for expression */
   virtual Expr getValue(Expr expr) const = 0;

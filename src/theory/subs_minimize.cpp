@@ -31,7 +31,6 @@ bool SubstitutionMinimize::find(Node n,
                                 const std::vector<Node>& subs,
                                 std::vector<Node>& reqVars)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Trace("subs-min") << "Substitution minimize : " << std::endl;
   Trace("subs-min") << "  substitution : " << vars << " -> " << subs
                     << std::endl;
@@ -77,10 +76,7 @@ bool SubstitutionMinimize::find(Node n,
         {
           visit.push_back(cur.getOperator());
         }
-        for (const Node& cn : cur)
-        {
-          visit.push_back(cn);
-        }
+        visit.insert(visit.end(),cur.begin(),cur.end());
       }
     }
     else if (it->second.isNull())
@@ -89,7 +85,7 @@ bool SubstitutionMinimize::find(Node n,
       if (cur.getNumChildren() > 0)
       {
         std::vector<Node> children;
-        std::vector<Node> vchildren;
+        NodeBuilder<> nb(cur.getKind());
         if (cur.getMetaKind() == kind::metakind::PARAMETERIZED)
         {
           if (cur.getKind() == APPLY_UF)
@@ -98,21 +94,18 @@ bool SubstitutionMinimize::find(Node n,
           }
           else
           {
-            vchildren.push_back(cur.getOperator());
+            nb << cur.getOperator();
           }
         }
-        for (const Node& cn : cur)
-        {
-          children.push_back(cn);
-        }
+        children.insert(children.end(),cur.begin(),cur.end());
         for (const Node& cn : children)
         {
           it = value.find(cn);
           Assert(it != value.end());
           Assert(!it->second.isNull());
-          vchildren.push_back(it->second);
+          nb << it->second;
         }
-        ret = nm->mkNode(cur.getKind(), vchildren);
+        ret = nb.constructNode();
         ret = Rewriter::rewrite(ret);
       }
       value[cur] = ret;
@@ -175,16 +168,21 @@ bool SubstitutionMinimize::find(Node n,
           Node op = cur.getOperator();
           it = value.find(op);
           Assert(it != value.end());
-          Node vop = it->second;
+          TNode vop = it->second;
           if (vop.getKind() == LAMBDA)
           {
             visit.push_back(op);
-            Node curr = vop[0];
+            // do iterative partial evaluation on the body of the lambda
+            Node curr = vop[1];
             for (unsigned i = 0, size = cur.getNumChildren(); i < size; i++)
             {
               it = value.find(cur[i]);
               Assert(it != value.end());
-              Node scurr = curr.substitute(cur[i], it->second);
+              Node scurr = curr.substitute(vop[0][i], it->second);
+              // if the valuation of the i^th argument changes the
+              // interpretation of the body of the lambda, then the i^th
+              // argument is relevant to the substitution. Hence, we add
+              // i to visit, and update curr below.
               if (scurr != curr)
               {
                 curr = Rewriter::rewrite(scurr);
