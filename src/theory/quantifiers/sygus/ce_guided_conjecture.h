@@ -266,7 +266,7 @@ private:
    * Notice that for each function-to-synthesize, we enumerate a stream of
    * candidate solutions, where each of these streams is independent. Thus,
    * we maintain separate expression miner managers for each of them.
-   * 
+   *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
