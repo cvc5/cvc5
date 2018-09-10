@@ -125,7 +125,7 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
                             context::Context* satContext,
                             Valuation valuation);
   /**
-   * Make the n^th literal of this strategy. This method returns mkLiteral if
+   * Make the n^th literal of this strategy. This method returns d_literal if
    * n=0, null otherwise.
    */
   Node mkLiteral(unsigned n) override;
