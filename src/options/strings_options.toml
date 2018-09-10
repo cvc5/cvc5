@@ -210,6 +210,22 @@ header = "options/strings_options.h"
   help       = "do length propagation based on constant splits"
 
 [[option]]
+  name       = "regExpElim"
+  category   = "regular"
+  long       = "re-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "elimination techniques for regular expressions"
+
+[[option]]
+  name       = "regExpElimAgg"
+  category   = "regular"
+  long       = "re-elim-agg"
+  type       = "bool"
+  default    = "false"
+  help       = "aggressive elimination techniques for regular expressions"
+
+[[option]]
   name       = "stringFlatForms"
   category   = "regular"
   long       = "strings-ff"

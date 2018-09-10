@@ -148,7 +148,7 @@ public:
  };
 
 public:
- RepSetIterator(const RepSet* rs, RepBoundExt* rext);
+ RepSetIterator(const RepSet* rs, RepBoundExt* rext = nullptr);
  ~RepSetIterator() {}
  /** set that this iterator will be iterating over instantiations for a
   * quantifier */
@@ -168,9 +168,11 @@ public:
  /** get domain size of the i^th field of this iterator */
  unsigned domainSize(unsigned i);
  /** get the i^th term in the tuple we are considering */
- Node getCurrentTerm(unsigned v, bool valTerm = false);
+ Node getCurrentTerm(unsigned v, bool valTerm = false) const;
  /** get the number of terms in the tuple we are considering */
- unsigned getNumTerms() { return d_index_order.size(); }
+ unsigned getNumTerms() const { return d_index_order.size(); }
+ /** get current terms */
+ void getCurrentTerms(std::vector<Node>& terms) const;
  /** get index order, returns var # */
  unsigned getIndexOrder(unsigned v) { return d_index_order[v]; }
  /** get variable order, returns index # */

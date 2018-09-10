@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
 	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
+SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser bindings main
 # The THEORIES list has been moved to Makefile.theories
 include @top_srcdir@/src/Makefile.theories
 
@@ -93,6 +93,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
+	preprocessing/passes/miplib_trick.cpp \
+	preprocessing/passes/miplib_trick.h \
 	preprocessing/passes/quantifiers_preprocess.cpp \
 	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/quantifier_macros.cpp \
@@ -115,6 +117,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
 	preprocessing/passes/synth_rew_rules.h \
+	preprocessing/passes/theory_preprocess.cpp \
+	preprocessing/passes/theory_preprocess.h \
 	preprocessing/passes/unconstrained_simplifier.cpp \
 	preprocessing/passes/unconstrained_simplifier.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -150,6 +154,8 @@ libcvc4_la_SOURCES = \
 	proof/cnf_proof.h \
 	proof/lemma_proof.cpp \
 	proof/lemma_proof.h \
+	proof/lfsc_proof_printer.cpp \
+	proof/lfsc_proof_printer.h \
 	proof/proof.h \
 	proof/proof_manager.cpp \
 	proof/proof_manager.h \
@@ -554,6 +560,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
 	theory/quantifiers/sygus_sampler.h \
+	theory/quantifiers/term_canonize.cpp \
+	theory/quantifiers/term_canonize.h \
 	theory/quantifiers/term_database.cpp \
 	theory/quantifiers/term_database.h \
 	theory/quantifiers/term_enumeration.cpp \
@@ -580,6 +588,8 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
+	theory/strings/regexp_elim.cpp \
+	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
 	theory/strings/theory_strings.cpp \
@@ -784,7 +794,6 @@ uninstall-local:
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
 		rm -f "$(DESTDIR)$(includedir)/cvc4/$$d"; \
 	done
-	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings/compat"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"

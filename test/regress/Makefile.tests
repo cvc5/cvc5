@@ -15,6 +15,7 @@ REG0_TESTS = \
 	regress0/arith/div.04.smt2 \
 	regress0/arith/div.05.smt2 \
 	regress0/arith/div.07.smt2 \
+	regress0/arith/div-chainable.smt2 \
 	regress0/arith/fuzz_3-eq.smt \
 	regress0/arith/integers/arith-int-042.cvc \
 	regress0/arith/integers/arith-int-042.min.cvc \
@@ -437,6 +438,7 @@ REG0_TESTS = \
 	regress0/fmf/quant_real_univ.cvc \
 	regress0/fmf/sat-logic.smt2 \
 	regress0/fmf/sc_bad_model_1221.smt2 \
+	regress0/fmf/sort-infer-typed-082718.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
 	regress0/fp/simple.smt2 \
@@ -608,6 +610,7 @@ REG0_TESTS = \
 	regress0/quantifiers/cegqi-nl-sq.smt2 \
 	regress0/quantifiers/clock-10.smt2 \
 	regress0/quantifiers/clock-3.smt2 \
+	regress0/quantifiers/cond-var-elim-binary.smt2 \
 	regress0/quantifiers/delta-simp.smt2 \
 	regress0/quantifiers/double-pattern.smt2 \
 	regress0/quantifiers/ex3.smt2 \
@@ -619,6 +622,7 @@ REG0_TESTS = \
 	regress0/quantifiers/issue1805.smt2 \
 	regress0/quantifiers/issue2031-bv-var-elim.smt2 \
 	regress0/quantifiers/issue2033-macro-arith.smt2 \
+	regress0/quantifiers/issue2035.smt2 \
 	regress0/quantifiers/lra-triv-gn.smt2 \
 	regress0/quantifiers/macros-int-real.smt2 \
 	regress0/quantifiers/macros-real-arg.smt2 \
@@ -812,6 +816,7 @@ REG0_TESTS = \
 	regress0/strings/norn-31.smt2 \
 	regress0/strings/norn-simp-rew.smt2 \
 	regress0/strings/repl-rewrites2.smt2 \
+	regress0/strings/rewrites-re-concat.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
 	regress0/strings/std2.6.1.smt2 \
 	regress0/strings/str003.smt2 \
@@ -820,6 +825,7 @@ REG0_TESTS = \
 	regress0/strings/strings-charat.cvc \
 	regress0/strings/strings-native-simple.cvc \
 	regress0/strings/strip-endpoint-itos.smt2 \
+	regress0/strings/str_unsound_ext_rew_eq.smt2 \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \
@@ -1099,6 +1105,7 @@ REG1_TESTS = \
 	regress1/fmf/fib-core.smt2 \
 	regress1/fmf/fmf-bound-2dim.smt2 \
 	regress1/fmf/fmf-bound-int.smt2 \
+	regress1/fmf/fmf-fun-divisor-pp.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith.smt2 \
 	regress1/fmf/fmf-fun-no-elim-ext-arith2.smt2 \
 	regress1/fmf/fmf-strange-bounds.smt2 \
@@ -1281,7 +1288,7 @@ REG1_TESTS = \
 	regress1/quantifiers/cdt-0208-to.smt2 \
 	regress1/quantifiers/const.cvc \
 	regress1/quantifiers/constfunc.cvc \
-	regress1/quantifiers/dump-inst.smt2 \  
+	regress1/quantifiers/dump-inst.smt2 \
 	regress1/quantifiers/dump-inst-i.smt2 \
 	regress1/quantifiers/dump-inst-proof.smt2 \
 	regress1/quantifiers/ext-ex-deq-trigger.smt2 \
@@ -1395,6 +1402,7 @@ REG1_TESTS = \
 	regress1/rr-verify/bool-crci.sy \
 	regress1/rr-verify/bv-term-32.sy \
 	regress1/rr-verify/bv-term.sy \
+	regress1/rr-verify/regex.sy \
 	regress1/rr-verify/string-term.sy \
 	regress1/sep/chain-int.smt2 \
 	regress1/sep/crash1220.smt2 \
@@ -1482,6 +1490,7 @@ REG1_TESTS = \
 	regress1/strings/idof-triv.smt2 \
 	regress1/strings/ilc-l-nt.smt2 \
 	regress1/strings/issue1105.smt2 \
+	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
@@ -1493,12 +1502,16 @@ REG1_TESTS = \
 	regress1/strings/loop008.smt2 \
 	regress1/strings/loop009.smt2 \
 	regress1/strings/nf-ff-contains-abs.smt2 \
+	regress1/strings/non_termination_regular_expression4.smt2 \
+	regress1/strings/norn-13.smt2 \
 	regress1/strings/norn-360.smt2 \
 	regress1/strings/norn-ab.smt2 \
 	regress1/strings/norn-nel-bug-052116.smt2 \
 	regress1/strings/norn-simp-rew-sat.smt2 \
 	regress1/strings/nterm-re-inter-sigma.smt2 \
 	regress1/strings/pierre150331.smt2 \
+	regress1/strings/policy_variable.smt2 \
+	regress1/strings/re-elim-exact.smt2 \
 	regress1/strings/re-unsound-080718.smt2 \
 	regress1/strings/regexp001.smt2 \
 	regress1/strings/regexp002.smt2 \
@@ -1673,6 +1686,7 @@ REG2_TESTS = \
 	regress2/strings/cmu-prereg-fmf.smt2 \
 	regress2/strings/cmu-repl-len-nterm.smt2 \
 	regress2/strings/norn-dis-0707-3.smt2 \
+	regress2/strings/repl-repl.smt2 \
 	regress2/sygus/MPwL_d1s3.sy \
 	regress2/sygus/array_sum_dd.sy \
 	regress2/sygus/cegisunif-depth1-bv.sy \

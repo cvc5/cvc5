@@ -90,7 +90,13 @@ public:
   std::vector< MatchGen > d_children;
   short d_type;
   bool d_type_not;
-  void reset_round( QuantConflictFind * p );
+  /** reset round
+   *
+   * Called once at the beginning of each full/last-call effort, prior to
+   * processing this match generator. This method returns false if the reset
+   * failed, e.g. if a conflict was encountered during term indexing.
+   */
+  bool reset_round(QuantConflictFind* p);
   void reset( QuantConflictFind * p, bool tgt, QuantInfo * qi );
   bool getNextMatch( QuantConflictFind * p, QuantInfo * qi );
   bool isValid() { return d_type!=typ_invalid; }

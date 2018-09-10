@@ -36,12 +36,9 @@
 # CVC4 release numbers and the corresponding interface version
 # information of libraries.
 #
-# For now, libcvc4bindings' version info is used for all language
-# bindings libraries, and _also_ for all "compatibility" bindings
-# libraries (i.e., the old CVC3-esque C and Java bindings).  This
-# may need to be split out in future, if some bindings (particularly
-# the compatibility ones) change more(/less) frequently than the
-# others.
+# For now, libcvc4bindings' version info is used for all language bindings
+# libraries.  This may need to be split out in future, if some bindings change
+# more(/less) frequently than the others.
 #
 0\..* libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
 1\.0 libcvc4:0:0:0 libcvc4parser:0:0:0 libcvc4compat:0:0:0 libcvc4bindings:0:0:0
@@ -62,4 +59,4 @@
 1\.5 libcvc4:4:0:0 libcvc4parser:4:0:0 libcvc4compat:4:0:0 libcvc4bindings:4:0:0
 1\.6-prerelease libcvc4:4:0:0 libcvc4parser:4:0:0 libcvc4compat:4:0:0 libcvc4bindings:4:0:0
 1\.6 libcvc4:5:0:0 libcvc4parser:5:0:0 libcvc4compat:5:0:0 libcvc4bindings:5:0:0
-1\.7-prerelease libcvc4:5:0:0 libcvc4parser:5:0:0 libcvc4compat:5:0:0 libcvc4bindings:5:0:0
+1\.7-prerelease libcvc4:5:0:0 libcvc4parser:5:0:0 libcvc4bindings:5:0:0

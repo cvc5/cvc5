@@ -618,10 +618,9 @@ class FloatingPointToRealTotalTypeRule {
 class FloatingPointComponentBit
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentBit");
 
@@ -653,10 +652,9 @@ class FloatingPointComponentBit
 class FloatingPointComponentExponent
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentExponent");
 
@@ -701,10 +699,9 @@ class FloatingPointComponentExponent
 class FloatingPointComponentSignificand
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("FloatingPointComponentSignificand");
 
@@ -745,10 +742,9 @@ class FloatingPointComponentSignificand
 class RoundingModeBitBlast
 {
  public:
-  inline static TypeNode computeType(
-      NodeManager* nodeManager,
-      TNode n,
-      bool check) throw(TypeCheckingExceptionPrivate, AssertionException)
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
     TRACE("RoundingModeBitBlast");
 
