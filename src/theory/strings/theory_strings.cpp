@@ -659,7 +659,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
             ++sel;
             if (sel.isFinished())
             {
-              // We are in a case where model construction failed due to
+              // We are in a case where model construction is impossible due to
               // an insufficient number of constants of a given length.
 
               // Consider an integer equivalence class E whose value is assigned
