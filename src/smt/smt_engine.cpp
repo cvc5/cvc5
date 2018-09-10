@@ -2884,8 +2884,6 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     Trace("simplify") << "SmtEnginePrivate::simplify()" << endl;
 
-    dumpAssertions("pre-nonclausal", d_assertions);
-
     if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
     {
       if (!options::unsatCores() && !options::fewerPreprocessingHoles())
@@ -2921,7 +2919,6 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    dumpAssertions("post-nonclausal", d_assertions);
     Trace("smt") << "POST nonClausalSimplify" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
