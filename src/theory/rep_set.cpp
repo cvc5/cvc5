@@ -403,7 +403,7 @@ int RepSetIterator::increment(){
 
 bool RepSetIterator::isFinished() const { return d_index.empty(); }
 
-Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm)
+Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm) const
 {
   unsigned ii = d_index_order[v];
   unsigned curr = d_index[ii];
@@ -420,6 +420,14 @@ Node RepSetIterator::getCurrentTerm(unsigned v, bool valTerm)
     }
   }
   return t;
+}
+
+void RepSetIterator::getCurrentTerms(std::vector<Node>& terms) const
+{
+  for (unsigned i = 0, size = d_index_order.size(); i < size; i++)
+  {
+    terms.push_back(getCurrentTerm(i));
+  }
 }
 
 void RepSetIterator::debugPrint( const char* c ){

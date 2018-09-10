@@ -610,6 +610,7 @@ REG0_TESTS = \
 	regress0/quantifiers/cegqi-nl-sq.smt2 \
 	regress0/quantifiers/clock-10.smt2 \
 	regress0/quantifiers/clock-3.smt2 \
+	regress0/quantifiers/cond-var-elim-binary.smt2 \
 	regress0/quantifiers/delta-simp.smt2 \
 	regress0/quantifiers/double-pattern.smt2 \
 	regress0/quantifiers/ex3.smt2 \
