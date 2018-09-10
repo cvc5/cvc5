@@ -54,15 +54,12 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+
   d_preprocContext->spendResource(options::preprocessStep());
 
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
-
-  if (options::unsatCores() || options::fewerPreprocessingHoles())
-  {
-    return PreprocessingPassResult::NO_CONFLICT;
-  }
 
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {

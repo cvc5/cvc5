@@ -81,14 +81,16 @@ class PreprocessingPassContext
   void recordSymbolsInAssertions(const std::vector<Node>& assertions);
 
  private:
-  /* Pointer to the SmtEngine that this context was created in. */
+  /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
+
+  /** Pointer to the ResourceManager for this context. */
   ResourceManager* d_resourceManager;
 
-  /* Instance of the ITE remover */
+  /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
 
-  /* Instance of the circuit propagator */
+  /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
 
   /**

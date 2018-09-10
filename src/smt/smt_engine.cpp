@@ -2886,17 +2886,18 @@ bool SmtEnginePrivate::simplifyAssertions()
 
     dumpAssertions("pre-nonclausal", d_assertions);
 
-    if(options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
-      // Perform non-clausal simplification
-      Chat() << "...performing nonclausal simplification..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << "performing non-clausal simplification" << endl;
-      PreprocessingPassResult res =
-          d_preprocessingPassRegistry.getPass("non-clausal-simp")
-              ->apply(&d_assertions);
-      if (res == PreprocessingPassResult::CONFLICT)
+    if (options::simplificationMode() != SIMPLIFICATION_MODE_NONE)
+    {
+      if (!options::unsatCores() && !options::fewerPreprocessingHoles())
       {
-        return false;
+        // Perform non-clausal simplification
+        PreprocessingPassResult res =
+            d_preprocessingPassRegistry.getPass("non-clausal-simp")
+                ->apply(&d_assertions);
+        if (res == PreprocessingPassResult::CONFLICT)
+        {
+          return false;
+        }
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
@@ -2938,7 +2939,6 @@ bool SmtEnginePrivate::simplifyAssertions()
     if (options::doITESimp()
         && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
     {
-      Chat() << "...doing ITE simplification..." << endl;
       PreprocessingPassResult res =
           d_preprocessingPassRegistry.getPass("ite-simp")->apply(&d_assertions);
       if (res == PreprocessingPassResult::CONFLICT)
@@ -2958,10 +2958,10 @@ bool SmtEnginePrivate::simplifyAssertions()
           ->apply(&d_assertions);
     }
 
-    if(options::repeatSimp() && options::simplificationMode() != SIMPLIFICATION_MODE_NONE) {
-      Chat() << "...doing another round of nonclausal simplification..." << endl;
-      Trace("simplify") << "SmtEnginePrivate::simplify(): "
-                        << " doing repeated simplification" << endl;
+    if (options::repeatSimp()
+        && options::simplificationMode() != SIMPLIFICATION_MODE_NONE
+        && !options::unsatCores() && !options::fewerPreprocessingHoles())
+    {
       PreprocessingPassResult res =
           d_preprocessingPassRegistry.getPass("non-clausal-simp")
               ->apply(&d_assertions);
