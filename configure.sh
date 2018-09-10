@@ -14,6 +14,7 @@ Build types:
 
 General options;
   -h, --help               display this help and exit
+  --build-dir-prefix       prefix build directory with given prefix
   --best                   turn on dependences known to give best performance
   --gpl                    permit GPL dependences, if available
 
@@ -160,6 +161,7 @@ msg () {
 #--------------------------------------------------------------------------#
 
 builddir=default
+prefix=""
 
 #--------------------------------------------------------------------------#
 
@@ -223,6 +225,15 @@ do
 
     --best) best=ON;;
     --no-best) best=OFF;;
+
+    --build-dir-prefix)
+      shift
+      if [ $# -eq 0 ]
+      then
+        die "missing argument to --build-dir-prefix"
+      fi
+      prefix=$1
+      ;;
 
     --cadical) cadical=ON;;
     --no-cadical) cadical=OFF;;
@@ -382,6 +393,8 @@ do
   esac
   shift
 done
+
+builddir="$prefix$builddir"
 
 #--------------------------------------------------------------------------#
 
