@@ -9,15 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of expr_miner_manager
+ ** \brief Implementation of expression miner manager.
  **/
 
 #include "theory/quantifiers/expr_miner_manager.h"
-
-#include "theory/quantifiers_engine.h"
-
-using namespace std;
-using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {

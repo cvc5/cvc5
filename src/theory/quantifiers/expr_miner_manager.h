@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief expr_miner_manager
+ ** \brief Expression miner manager, which manages individual expression miners.
  **/
 
 #include "cvc4_private.h"
@@ -21,6 +21,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -42,8 +43,9 @@ class ExpressionMinerManager
    *
    * Initializes this class, informing it that the free variables of terms
    * added to this class via addTerm will have free variables that are a subset
-   * of vars, and have type tn. The arguments nsamples and unique_type_ids are
-   * used for initializing the sampler class of this manager
+   * of vars, and have type tn. All expression miners in this class with be
+   * initialized with this variable list. The arguments nsamples and 
+   * unique_type_ids are used for initializing the sampler class of this manager
    * (see SygusSampler::initialize for details).
    */
   void initialize(const std::vector<Node>& vars,
@@ -68,7 +70,9 @@ class ExpressionMinerManager
   /** add term
    *
    * Expression miners may print information on the output stream out, for
-   * instance, candidate-rewrites.
+   * instance, candidate-rewrites. The method returns true if the term sol is
+   * distinct (up to T-equivalence) with all previous terms added to this class,
+   * which is computed based on the miners that this manager enables.
    */
   bool addTerm(Node sol, std::ostream& out);
   /**
