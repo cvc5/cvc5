@@ -429,6 +429,19 @@ public:
    */
   bool isInterpretedFinite();
 
+  /** is closed enumerable type
+   *
+   * This returns true if this type has an enumerator that produces constants
+   * that are fully handled by CVC4's quantifier-free theory solvers. Examples
+   * of types that are not closed enumerable are:
+   * (1) uninterpreted sorts,
+   * (2) arrays,
+   * (3) codatatypes,
+   * (4) functions,
+   * (5) parametric sorts involving any of the above.
+   */
+  bool isClosedEnumerable();
+
   /**
    * Is this a first-class type?
    * First-class types are types for which:
