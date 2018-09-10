@@ -105,9 +105,15 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   Node trueNode = nm->mkConst(true);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    assertionsToPreprocess->replace(i, trueNode);
+    if( i==0 )
+    {
+      assertionsToPreprocess->replace(i, simplifiedNode);
+    }
+    else
+    {
+      assertionsToPreprocess->replace(i, trueNode);
+    }
   }
-  assertionsToPreprocess->push_back(simplifiedNode);
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
