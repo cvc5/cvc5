@@ -73,8 +73,6 @@ class DecisionStrategyFmf : public DecisionStrategy
   void initialize() override;
   /** get next decision request */
   Node getNextDecisionRequest() override;
-  /** are we currently ready to make the decision? */
-  virtual bool isReadyForDecision();
   /** Make the n^th literal of this strategy */
   virtual Node mkLiteral(unsigned n) = 0;
   /**
