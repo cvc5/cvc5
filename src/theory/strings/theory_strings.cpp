@@ -657,6 +657,30 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
             {
               // We are in a case where model construction failed due to
               // an insufficient number of constants of a given length.
+              
+              // Consider an integer equivalence class E whose value is assigned
+              // n in the model. Let { S_1, ..., S_m } be the set of string 
+              // equivalence classes such that len( x ) is a member of E for 
+              // some member x of each class S1, ...,Sm. Since our calculus is 
+              // saturated with respect to cardinality inference (see Liang
+              // et al, Figure 6, CAV 2014), we have that m <= A^n, where A is
+              // the cardinality of our alphabet.
+              
+              // Now, consider the case where there exists two integer
+              // equivalence classes E1 and E2 that are assigned n, and moreover
+              // we did not received notification from arithmetic that E1 = E2.
+              // This typically should never happen, but assume in the following
+              // that it does.
+              
+              // Now, it may be the case that there are string equivalence
+              // classes { S_1, ..., S_m1 } whose lengths are in E1,
+              // and classes { S'_1, ..., S'_m2 } whose lengths are in E2, where
+              // m1 + m2 > A^n. In this case, we have insufficient strings to
+              // assign to { S_1, ..., S_m1, S'_1, ..., S'_m2 }. If this 
+              // happens, we add a split on len( u1 ) = len( u2 ) for some 
+              // len( u1 ) in E1, len( u2 ) in E2. We do this for each pair of
+              // integer equivalence classes that are assigned to the same value
+              // in the model.
               AlwaysAssert( !len_splits.empty() );
               for( const Node& sl : len_splits )
               {

@@ -589,7 +589,8 @@ private:
   void getEquivalenceClasses(std::vector<Node>& eqcs);
   /** get relevant equivalence classes 
    * 
-   * This adds the representative of all equivalence classes that 
+   * This adds the representative of all equivalence classes that contain at
+   * least one term in termSet.
    */
   void getRelevantEquivalenceClasses(std::vector< Node >& eqcs, std::set<Node>& termSet );
   
