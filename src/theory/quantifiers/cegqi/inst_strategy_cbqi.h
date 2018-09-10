@@ -129,7 +129,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * An output channel used by instantiators for communicating with this
    * class.
    */
-  CegqiOutputInstStrategy* d_out;
+  std::unique_ptr<CegqiOutputInstStrategy> d_out;
   /**
    * The instantiator for each quantified formula q registered to this class.
    * This object is responsible for finding instantiatons for q.
@@ -171,7 +171,6 @@ class InstStrategyCegqi : public QuantifiersModule
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
 
- protected:
   //for identification
   uint64_t d_qid_count;
   //nested qe map

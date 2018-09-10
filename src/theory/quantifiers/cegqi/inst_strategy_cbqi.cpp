@@ -56,12 +56,12 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
       d_incomplete_check(false),
       d_added_cbqi_lemma(qe->getUserContext()),
       d_elim_quants(qe->getSatContext()),
+      d_out(new CegqiOutputInstStrategy(this)),
       d_nested_qe_waitlist_size(qe->getUserContext()),
       d_nested_qe_waitlist_proc(qe->getUserContext())
 //, d_added_inst( qe->getUserContext() )
 {
   d_qid_count = 0;
-  d_out = new CegqiOutputInstStrategy(this);
   d_small_const =
       NodeManager::currentNM()->mkConst(Rational(1) / Rational(1000000));
   d_check_vts_lemma_lc = false;
@@ -69,8 +69,6 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
 
 InstStrategyCegqi::~InstStrategyCegqi()
 {
-  delete d_out;
-
   for (std::pair<const Node, CegInstantiator*>& ci : d_cinst)
   {
     delete ci.second;
@@ -566,18 +564,17 @@ void InstStrategyCegqi::registerCounterexampleLemma(Node q, Node lem)
   // must register with the instantiator
   // must explicitly remove ITEs so that we record dependencies
   std::vector<Node> ce_vars;
-  for (unsigned i = 0;
-       i < d_quantEngine->getTermUtil()->getNumInstantiationConstants(q);
+  TermUtil* tutil = d_quantEngine->getTermUtil();
+  for (unsigned i = 0, nics = tutil->getNumInstantiationConstants(q); i < nics;
        i++)
   {
-    ce_vars.push_back(
-        d_quantEngine->getTermUtil()->getInstantiationConstant(q, i));
+    ce_vars.push_back(tutil->getInstantiationConstant(q, i));
   }
   std::vector<Node> lems;
   lems.push_back(lem);
   CegInstantiator* cinst = getInstantiator(q);
   cinst->registerCounterexampleLemma(lems, ce_vars);
-  for (unsigned i = 0; i < lems.size(); i++)
+  for (unsigned i = 0, size = lems.size(); i < size; i++)
   {
     Trace("cbqi-debug") << "Counterexample lemma " << i << " : " << lems[i]
                         << std::endl;
@@ -689,7 +686,8 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
   std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( q );
   if( it==d_cinst.end() ){
-    CegInstantiator * cinst = new CegInstantiator( d_quantEngine, d_out, true, true );
+    CegInstantiator* cinst =
+        new CegInstantiator(d_quantEngine, d_out.get(), true, true);
     d_cinst[q] = cinst;
     return cinst;
   }else{
