@@ -139,7 +139,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * The decision strategy for each quantified formula q registered to this
    * class.
    */
-  std::map<Node, DecisionStrategy*> d_dstrat;
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_dstrat;
   /** the current quantified formula we are processing */
   Node d_curr_quant;
   //---------------------- for vts delta minimization

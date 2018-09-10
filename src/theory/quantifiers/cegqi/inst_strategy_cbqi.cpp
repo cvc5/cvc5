@@ -74,12 +74,6 @@ InstStrategyCegqi::~InstStrategyCegqi()
     delete ci.second;
   }
   d_cinst.clear();
-  // delete the decision strategies
-  for (std::pair<const Node, DecisionStrategy*>& ds : d_dstrat)
-  {
-    delete ds.second;
-  }
-  d_dstrat.clear();
 }
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
@@ -193,14 +187,15 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     }
     // The decision strategy for this quantified formula ensures that its
     // counterexample literal is decided on first. It is user-context dependent.
-    std::map<Node, DecisionStrategy*>::iterator itds = d_dstrat.find(q);
+    std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itds = d_dstrat.find(q);
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      dlds = new DecisionStrategySingleton("CexLiteral",
+      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
                                            ceLit,
                                            d_quantEngine->getSatContext(),
-                                           d_quantEngine->getValuation());
+                                           d_quantEngine->getValuation()));
+      dlds = d_dstrat[q].get();
     }
     else
     {
