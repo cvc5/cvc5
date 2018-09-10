@@ -30,7 +30,7 @@ namespace quantifiers {
 /** ExpressionMinerManager
  *
  * This class manages a set of expression miners. It provides a common place
- * to register expression so that multiple mining algorithms can be run in
+ * to register expressions so that multiple mining algorithms can be run in
  * coordination, possibly sharing information and utilities like a common
  * sampling object.
  */
@@ -83,7 +83,7 @@ class ExpressionMinerManager
 
  private:
   /** whether we are doing rewrite synthesis */
-  bool d_do_rew_synth;
+  bool d_doRewSynth;
   /** the sygus function passed to initializeSygus, if any */
   Node d_sygus_fun;
   /** whether we are using sygus types */

@@ -19,7 +19,7 @@ namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager()
-    : d_do_rew_synth(false),
+    : d_doRewSynth(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -31,7 +31,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
                                         unsigned nsamples,
                                         bool unique_type_ids)
 {
-  d_do_rew_synth = false;
+  d_doRewSynth = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -45,7 +45,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
                                              unsigned nsamples,
                                              bool useSygusType)
 {
-  d_do_rew_synth = false;
+  d_doRewSynth = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -56,12 +56,12 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
 
 void ExpressionMinerManager::enableRewriteRuleSynth()
 {
-  if (d_do_rew_synth)
+  if (d_doRewSynth)
   {
     // already enabled
     return;
   }
-  d_do_rew_synth = true;
+  d_doRewSynth = true;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // initialize the candidate rewrite database
