@@ -23,6 +23,12 @@ set(cvc4parser_src_files
   parser_exception.h
 )
 
+set(ANTLR_HOME ${ANTLR_DIR})
+find_package(ANTLR REQUIRED)
+
+# Java runtime is required for ANTLR
+find_package(Java COMPONENTS Runtime REQUIRED)
+
 add_library(cvc4parser ${cvc4parser_src_files})
 
 set_target_properties(cvc4parser
