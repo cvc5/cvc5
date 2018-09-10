@@ -187,14 +187,16 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
     }
     // The decision strategy for this quantified formula ensures that its
     // counterexample literal is decided on first. It is user-context dependent.
-    std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itds = d_dstrat.find(q);
+    std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itds =
+        d_dstrat.find(q);
     DecisionStrategy* dlds = nullptr;
     if (itds == d_dstrat.end())
     {
-      d_dstrat[q].reset(new DecisionStrategySingleton("CexLiteral",
-                                           ceLit,
-                                           d_quantEngine->getSatContext(),
-                                           d_quantEngine->getValuation()));
+      d_dstrat[q].reset(
+          new DecisionStrategySingleton("CexLiteral",
+                                        ceLit,
+                                        d_quantEngine->getSatContext(),
+                                        d_quantEngine->getValuation()));
       dlds = d_dstrat[q].get();
     }
     else
