@@ -583,17 +583,18 @@ private:
   void getConcatVec(Node n, std::vector<Node>& c);
 
   /** get equivalence classes
-   * 
-   * This adds the representative of all equivalence classes to eqcs 
+   *
+   * This adds the representative of all equivalence classes to eqcs
    */
   void getEquivalenceClasses(std::vector<Node>& eqcs);
-  /** get relevant equivalence classes 
-   * 
+  /** get relevant equivalence classes
+   *
    * This adds the representative of all equivalence classes that contain at
    * least one term in termSet.
    */
-  void getRelevantEquivalenceClasses(std::vector< Node >& eqcs, std::set<Node>& termSet );
-  
+  void getRelevantEquivalenceClasses(std::vector<Node>& eqcs,
+                                     std::set<Node>& termSet);
+
   // separate into collections with equal length
   void separateByLength(std::vector<Node>& n,
                         std::vector<std::vector<Node> >& col,

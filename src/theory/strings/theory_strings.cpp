@@ -500,7 +500,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 {
   Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
-  
+
   std::set<Node> termSet;
 
   // Compute terms appearing in assertions and shared terms
@@ -511,20 +511,20 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     return false;
   }
 
-  std::unordered_set< Node, NodeHashFunction > repSet;
+  std::unordered_set<Node, NodeHashFunction> repSet;
   NodeManager* nm = NodeManager::currentNM();
   // Generate model
   // get the relevant string equivalence classes
-  for( const Node& s : termSet )
+  for (const Node& s : termSet)
   {
-    if( s.getType().isString() )
+    if (s.getType().isString())
     {
       Node r = getRepresentative(s);
       repSet.insert(r);
     }
   }
   std::vector< Node > nodes;
-  for( const Node& r : repSet )
+  for (const Node& r : repSet)
   {
     nodes.push_back(r);
   }
@@ -534,8 +534,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   separateByLength( nodes, col, lts );
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map< unsigned, Node > values_used;
-  std::vector< Node > len_splits;
+  std::map<unsigned, Node> values_used;
+  std::vector<Node> len_splits;
   for( unsigned i=0; i<col.size(); i++ ) {
     Trace("strings-model") << "Checking length for {";
     for( unsigned j=0; j<col[i].size(); j++ ) {
@@ -548,27 +548,30 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     Node len_value;
     if( lts[i].isConst() ) {
       len_value = lts[i];
-    }else if( !lts[i].isNull() ){
+    }
+    else if (!lts[i].isNull())
+    {
       // get the model value for lts[i]
       len_value = d_valuation.getModelValue(lts[i]);
     }
-    if( len_value.isNull() )
+    if (len_value.isNull())
     {
-      lts_values.push_back( Node::null() );
+      lts_values.push_back(Node::null());
     }
     else
     {
       Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()),
-              "Exceeded UINT32_MAX in string model");
-      unsigned lvalue =  len_value.getConst<Rational>().getNumerator().toUnsignedInt();
-      std::map< unsigned, Node >::iterator itvu = values_used.find(lvalue);
-      if( itvu==values_used.end() )
+             "Exceeded UINT32_MAX in string model");
+      unsigned lvalue =
+          len_value.getConst<Rational>().getNumerator().toUnsignedInt();
+      std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
+      if (itvu == values_used.end())
       {
-        values_used[ lvalue ] = lts[i];
+        values_used[lvalue] = lts[i];
       }
       else
       {
-        len_splits.push_back( lts[i].eqNode(itvu->second) );
+        len_splits.push_back(lts[i].eqNode(itvu->second));
       }
       lts_values.push_back(len_value);
     }
@@ -580,7 +583,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
-    Trace("strings-model") << "The (" << col[i].size() << ") equivalence classes ";
+    Trace("strings-model") << "The (" << col[i].size()
+                           << ") equivalence classes ";
     for (const Node& eqc : col[i])
     {
       Trace("strings-model") << eqc << " ";
@@ -630,7 +634,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
         lts_values[i] = nm->mkConst(Rational(lvalue));
-        values_used[ lvalue ] = Node::null();
+        values_used[lvalue] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
       for( unsigned j=0; j<pure_eq.size(); j++ ){
@@ -653,38 +657,38 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           while (m->hasTerm(c))
           {
             ++sel;
-            if(sel.isFinished())
+            if (sel.isFinished())
             {
               // We are in a case where model construction failed due to
               // an insufficient number of constants of a given length.
-              
+
               // Consider an integer equivalence class E whose value is assigned
-              // n in the model. Let { S_1, ..., S_m } be the set of string 
-              // equivalence classes such that len( x ) is a member of E for 
-              // some member x of each class S1, ...,Sm. Since our calculus is 
+              // n in the model. Let { S_1, ..., S_m } be the set of string
+              // equivalence classes such that len( x ) is a member of E for
+              // some member x of each class S1, ...,Sm. Since our calculus is
               // saturated with respect to cardinality inference (see Liang
               // et al, Figure 6, CAV 2014), we have that m <= A^n, where A is
               // the cardinality of our alphabet.
-              
+
               // Now, consider the case where there exists two integer
               // equivalence classes E1 and E2 that are assigned n, and moreover
               // we did not received notification from arithmetic that E1 = E2.
               // This typically should never happen, but assume in the following
               // that it does.
-              
+
               // Now, it may be the case that there are string equivalence
               // classes { S_1, ..., S_m1 } whose lengths are in E1,
               // and classes { S'_1, ..., S'_m2 } whose lengths are in E2, where
               // m1 + m2 > A^n. In this case, we have insufficient strings to
-              // assign to { S_1, ..., S_m1, S'_1, ..., S'_m2 }. If this 
-              // happens, we add a split on len( u1 ) = len( u2 ) for some 
+              // assign to { S_1, ..., S_m1, S'_1, ..., S'_m2 }. If this
+              // happens, we add a split on len( u1 ) = len( u2 ) for some
               // len( u1 ) in E1, len( u2 ) in E2. We do this for each pair of
               // integer equivalence classes that are assigned to the same value
               // in the model.
-              AlwaysAssert( !len_splits.empty() );
-              for( const Node& sl : len_splits )
+              AlwaysAssert(!len_splits.empty());
+              for (const Node& sl : len_splits)
               {
-                Node spl = nm->mkNode(OR,sl, sl.negate());
+                Node spl = nm->mkNode(OR, sl, sl.negate());
                 d_out->lemma(spl);
               }
               return false;
