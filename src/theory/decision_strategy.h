@@ -33,12 +33,12 @@ class DecisionStrategy
  public:
   DecisionStrategy() {}
   virtual ~DecisionStrategy() {}
-  /** 
-   * Initalize this strategy, This is called once per satisfiability call by 
+  /**
+   * Initalize this strategy, This is called once per satisfiability call by
    * the DecisionManager, prior to using this strategy.
    */
   virtual void initialize() = 0;
-  /** 
+  /**
    * If this method returns a non-null node n, then n is the required next
    * decision of this strategy. It must be the case that n is a literal in
    * the current CNF stream.
@@ -58,8 +58,8 @@ class DecisionStrategy
  * asserted true for a minimal i.
  *
  * To enforce this strategy, this class maintains a SAT-context dependent
- * index d_curr_literal, which corresponds to the minimal index of a literal 
- * in the above list that is not asserted false. A call to 
+ * index d_curr_literal, which corresponds to the minimal index of a literal
+ * in the above list that is not asserted false. A call to
  * getNextDecisionRequest increments this value until we find a literal L_j
  * that is not assigned false. If L_j is unassigned, we return it as a decision,
  * otherwise we return no decisions.

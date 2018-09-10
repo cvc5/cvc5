@@ -21,9 +21,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-DecisionManager::DecisionManager(context::Context* satContext)
-{
-}
+DecisionManager::DecisionManager(context::Context* satContext) {}
 
 void DecisionManager::reset()
 {
@@ -31,8 +29,7 @@ void DecisionManager::reset()
   d_reg_strategy.clear();
 }
 
-void DecisionManager::registerStrategy(StrategyId id,
-                                       DecisionStrategy* ds)
+void DecisionManager::registerStrategy(StrategyId id, DecisionStrategy* ds)
 {
   Trace("dec-manager") << "DecisionManager: Register strategy : "
                        << ds->identify() << ", id = " << id << std::endl;
