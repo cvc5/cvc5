@@ -43,7 +43,7 @@ CandidateRewriteDatabase::CandidateRewriteDatabase()
 void CandidateRewriteDatabase::initialize(const std::vector<Node>& vars,
                                           SygusSampler* ss)
 {
-  Assert( ss!=nullptr );
+  Assert(ss != nullptr);
   d_candidate = Node::null();
   d_using_sygus = false;
   d_qe = nullptr;
@@ -58,14 +58,14 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
                                                Node f,
                                                SygusSampler* ss)
 {
-  Assert( ss!=nullptr );
+  Assert(ss != nullptr);
   d_candidate = f;
   d_using_sygus = true;
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = nullptr;
   d_crewrite_filter.initialize(ss, d_tds, false);
-  ExprMiner::initialize(vars,ss);
+  ExprMiner::initialize(vars, ss);
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,

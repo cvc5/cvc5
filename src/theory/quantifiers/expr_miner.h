@@ -18,8 +18,8 @@
 #define __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
 #include <map>
-#include <vector>
 #include <memory>
+#include <vector>
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"

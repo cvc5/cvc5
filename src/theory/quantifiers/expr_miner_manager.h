@@ -17,11 +17,11 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 #define __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
+#include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
-#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -44,7 +44,7 @@ class ExpressionMinerManager
    * Initializes this class, informing it that the free variables of terms
    * added to this class via addTerm will have free variables that are a subset
    * of vars, and have type tn. All expression miners in this class with be
-   * initialized with this variable list. The arguments nsamples and 
+   * initialized with this variable list. The arguments nsamples and
    * unique_type_ids are used for initializing the sampler class of this manager
    * (see SygusSampler::initialize for details).
    */
