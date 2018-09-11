@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file decision_manager.h
+/*! \file decision_strategy.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief decision_manager
+ ** \brief Base classes for decision strategies used by theory solvers
+ ** for use in the DecisionManager of TheoryEngine.
  **/
 
 #include "cvc4_private.h"
