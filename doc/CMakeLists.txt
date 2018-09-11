@@ -1,3 +1,7 @@
+# Set variables required for the documentation *.in files
+string(TIMESTAMP MAN_DATE "%Y-%m-%d")
+set(VERSION CVC4_RELEASE_STRING)
+
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SmtEngine.3cvc_template.in
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.3cvc_template)
