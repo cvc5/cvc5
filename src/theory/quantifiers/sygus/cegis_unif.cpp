@@ -400,7 +400,7 @@ void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
 
 Node CegisUnifEnumManager::getActiveGuardForEnumerator(Node e)
 {
-  Assert(d_enum_to_active_guard.find(eu) != d_enum_to_active_guard.end());
+  Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
   return d_enum_to_active_guard[e];
 }
 

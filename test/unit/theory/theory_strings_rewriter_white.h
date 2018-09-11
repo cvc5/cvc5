@@ -336,12 +336,27 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node y = d_nm->mkVar("y", strType);
     Node z = d_nm->mkVar("z", strType);
 
-    // (str.replace "A" (str.replace "B", x, "C") "D") --> "A"
+    // (str.replace (str.replace x "B" x) x "A") -->
+    //   (str.replace (str.replace x "B" "A") x "A")
     Node repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
-                                  a,
-                                  d_nm->mkNode(kind::STRING_STRREPL, b, x, c),
-                                  d);
+                                  d_nm->mkNode(kind::STRING_STRREPL, x, b, x),
+                                  x,
+                                  a);
+    Node repl_repl_short =
+        d_nm->mkNode(kind::STRING_STRREPL,
+                     d_nm->mkNode(kind::STRING_STRREPL, x, b, a),
+                     x,
+                     a);
     Node res_repl_repl = Rewriter::rewrite(repl_repl);
+    Node res_repl_repl_short = Rewriter::rewrite(repl_repl_short);
+    TS_ASSERT_EQUALS(res_repl_repl, res_repl_repl_short);
+
+    // (str.replace "A" (str.replace "B", x, "C") "D") --> "A"
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             a,
+                             d_nm->mkNode(kind::STRING_STRREPL, b, x, c),
+                             d);
+    res_repl_repl = Rewriter::rewrite(repl_repl);
     TS_ASSERT_EQUALS(res_repl_repl, a);
 
     // (str.replace "A" (str.replace "B", x, "A") "D") -/-> "A"

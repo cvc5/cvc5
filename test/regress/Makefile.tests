@@ -1672,6 +1672,7 @@ REG2_TESTS = \
 	regress2/piVC_5581bd.smt2 \
 	regress2/push-pop/DRAGON_4_e2_2799_e3_1915.lus.ic3.1.min.smt2 \
 	regress2/quantifiers/AdditiveMethods_AdditiveMethods..ctor.smt2 \
+	regress2/quantifiers/gn-wrong-091018.smt2 \
 	regress2/quantifiers/javafe.ast.ArrayInit.35.smt2 \
 	regress2/quantifiers/javafe.ast.StandardPrettyPrint.319.smt2 \
 	regress2/quantifiers/javafe.ast.WhileStmt.447.smt2 \
@@ -1686,6 +1687,7 @@ REG2_TESTS = \
 	regress2/strings/cmu-prereg-fmf.smt2 \
 	regress2/strings/cmu-repl-len-nterm.smt2 \
 	regress2/strings/norn-dis-0707-3.smt2 \
+	regress2/strings/repl-repl.smt2 \
 	regress2/sygus/MPwL_d1s3.sy \
 	regress2/sygus/array_sum_dd.sy \
 	regress2/sygus/cegisunif-depth1-bv.sy \

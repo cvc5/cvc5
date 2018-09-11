@@ -72,7 +72,6 @@ namespace quantifiers {
   class LtePartialInst;
   class AlphaEquivalence;
   class InstStrategyEnum;
-  class InstStrategyCbqi;
   class InstStrategyCegqi;
   class QuantDSplit;
   class QuantAntiSkolem;
@@ -155,7 +154,7 @@ public:
   /** get full saturation */
   quantifiers::InstStrategyEnum* getInstStrategyEnum() const;
   /** get inst strategy cbqi */
-  quantifiers::InstStrategyCbqi* getInstStrategyCbqi() const;
+  quantifiers::InstStrategyCegqi* getInstStrategyCegqi() const;
   //---------------------- end modules
  private:
   /** owner of quantified formulas */
@@ -384,7 +383,7 @@ public:
   /** full saturation */
   std::unique_ptr<quantifiers::InstStrategyEnum> d_fs;
   /** counterexample-based quantifier instantiation */
-  std::unique_ptr<quantifiers::InstStrategyCbqi> d_i_cbqi;
+  std::unique_ptr<quantifiers::InstStrategyCegqi> d_i_cbqi;
   /** quantifiers splitting */
   std::unique_ptr<quantifiers::QuantDSplit> d_qsplit;
   /** quantifiers anti-skolemization */
