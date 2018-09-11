@@ -435,7 +435,8 @@ void CegisUnifEnumManager::setUpEnumerator(Node e,
   si.d_enums[index].push_back(e);
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(e, si.d_pt, d_parent);
+  d_tds->registerEnumerator(
+      e, si.d_pt, d_parent, options::sygusUnifCondIndependent() && index == 1);
 }
 
 void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
