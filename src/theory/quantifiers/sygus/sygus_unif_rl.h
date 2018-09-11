@@ -205,16 +205,27 @@ class SygusUnifRl : public SygusUnif
                     unsigned strategy_index);
     /** returns index of strategy information of strategy node for this DT */
     unsigned getStrategyIndex() const;
-    /** builds solution stored in DT, if any, using the given constructor
+    /** builds solution, if possible, using the given constructor
      *
-     * The DT contains a solution when no class contains two heads of evaluation
-     * points with different model values, i.e. when all points that must be
-     * separated indeed are separated by the current set of conditions.
-     *
-     * This method either returns a solution (if all points are separated).
-     * It it fails, it adds a conflict lemma to lemmas.
+     * A solution is possible when all different valued heads can be separated,
+     * i.e. the current set of conditions separates them in a decision tree
      */
     Node buildSol(Node cons, std::vector<Node>& lemmas);
+    /** bulids a solution by considering all condition values ever enumerated */
+    Node buildSolAllCond(Node cons, std::vector<Node>& lemmas);
+    /** builds a solution by incrementally adding points and conditions to DT
+     *
+     * Differently from the above method, here a condition is only added to the
+     * DT when it's necessary for resolving a separation conflict (i.e. heads
+     * with different values in the same leaf of the DT). Only one value per
+     * condition enumerated is considered.
+     *
+     * If a solution cannot be built, then there are more conflicts to be
+     * resolved than condition enumerators. A conflict lemma is added to lemmas
+     * that forces a new assigment in which the conflict is removed (heads are
+     * made equal) or a new condition is enumerated to try to separate them.
+     */
+    Node buildSolMinCond(Node cons, std::vector<Node>& lemmas);
     /** reference to parent unif util */
     SygusUnifRl* d_unif;
     /** enumerator template (if no templates, nodes in pair are Node::null()) */
@@ -223,6 +234,8 @@ class SygusUnifRl : public SygusUnif
     std::vector<Node> d_conds;
     /** gathered evaluation point heads */
     std::vector<Node> d_hds;
+    /** all enumerated model values for conditions */
+    std::unordered_set<Node, NodeHashFunction> d_cond_mvs;
     /** get condition enumerator */
     Node getConditionEnumerator() const { return d_cond_enum; }
     /** set conditions */
@@ -231,6 +244,9 @@ class SygusUnifRl : public SygusUnif
                        const std::vector<Node>& conds);
 
    private:
+    /** Accumulates solutions built when considering all enumerated condition
+     * values (which may generate repeated solutions) */
+    std::unordered_set<Node, NodeHashFunction> d_sols;
     /**
      * Conditional enumerator variables corresponding to the condition values in
      * d_conds. These are used for generating separation lemmas during
@@ -278,6 +294,8 @@ class SygusUnifRl : public SygusUnif
 
       /** the lazy trie for building the separation classes */
       LazyTrieMulti d_trie;
+      /** extracts solution from decision tree built */
+      Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
 
      private:
       /** reference to parent unif util */
