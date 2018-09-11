@@ -456,7 +456,8 @@ if(ENABLE_STATISTICS)
 endif()
 
 if(ENABLE_VALGRIND)
-  #TODO check if valgrind available
+  find_package(Valgrind REQUIRED)
+  libcvc4_include_directories(${Valgrind_INCLUDE_DIR})
   add_definitions(-DCVC4_VALGRIND)
 endif()
 
