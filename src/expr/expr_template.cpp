@@ -204,6 +204,10 @@ public:
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
             Node::fromExpr(from_e).getAttribute(GlobalVarAttr(), isGlobal);
+
+            // Temporarily set the node manager to nullptr; this gets around
+            // a check that mkVar isn't called internally
+            NodeManagerScope nullScope(nullptr);
             to_e = to->mkVar(name, type, isGlobal ? ExprManager::VAR_FLAG_GLOBAL : flags);// FIXME thread safety
           } else if(n.getKind() == kind::SKOLEM) {
             // skolems are only available at the Node level (not the Expr level)
@@ -228,6 +232,9 @@ public:
           }
           else
           {
+            // Temporarily set the node manager to nullptr; this gets around
+            // a check that mkVar isn't called internally
+            NodeManagerScope nullScope(nullptr);
             to_e = to->mkVar(type);  // FIXME thread safety
           }
           Debug("export") << "+ exported unnamed var `" << from_e << "' with type `" << from_e.getType() << "' to `" << to_e << "' with type `" << type << "'" << std::endl;

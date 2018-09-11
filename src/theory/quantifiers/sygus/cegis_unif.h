@@ -84,6 +84,8 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
+  /** Retrieves active guard for enumerator */
+  Node getActiveGuardForEnumerator(Node e);
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -95,6 +97,9 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
   bool d_initialized;
   /** null node */
   Node d_null;
+  /** map from condition enumerators to active guards (in case they are
+   * enumerated indepedently of the return values) */
+  std::map<Node, Node> d_enum_to_active_guard;
   /** information per initialized type */
   class StrategyPtInfo
   {
@@ -148,6 +153,15 @@ class CegisUnifEnumManager : public DecisionStrategyFmf
    *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
    */
   Node d_virtual_enum;
+  /** Registers an enumerator and adds symmetry breaking lemmas
+   *
+   * The symmetry breaking lemmas are generated according to the stored
+   * information from the enumerator's respective strategy point and whether it
+   * is a condition or return value enumerator. For the latter we add symmetry
+   * breaking lemmas that force enumerators to consider values in an increasing
+   * order of size.
+   */
+  void setUpEnumerator(Node e, StrategyPtInfo& si, unsigned index);
   /** register evaluation point at size
    *
    * This sends a lemma of the form:
