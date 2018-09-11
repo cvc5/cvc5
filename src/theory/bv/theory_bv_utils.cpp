@@ -57,6 +57,12 @@ unsigned getSignExtendAmount(TNode node)
 
 /* ------------------------------------------------------------------------- */
 
+bool isOnes(TNode node)
+{
+  if (!node.isConst()) return false;
+  return node == mkOnes(getSize(node));
+}
+
 bool isZero(TNode node)
 {
   if (!node.isConst()) return false;
