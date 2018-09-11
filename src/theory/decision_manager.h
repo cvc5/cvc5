@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief decision_manager
+ ** \brief Decision manager, which manages all decision strategies owned by
+ ** theory solvers within TheoryEngine.
  **/
 
 #include "cvc4_private.h"
@@ -104,6 +105,9 @@ class DecisionManager
    * returns null, then no decisions are required by a decision strategy
    * registered to this class. In the latter case, the SAT solver will choose
    * a decision based on its given heuristic.
+   * 
+   * The argument priority has the same role as in
+   * Theory::getNextDecisionRequest.
    */
   Node getNextDecisionRequest(unsigned& priorty);
 
