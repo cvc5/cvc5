@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of decision_manager
+ ** \brief Implementation of Decision manager, which manages all decision
+ ** strategies owned by theory solvers within TheoryEngine.
  **/
 
 #include "theory/decision_manager.h"
@@ -59,11 +60,8 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
             << ds->identify() << std::endl;
         return lit;
       }
-      else
-      {
-        Trace("dec-manager-debug") << "DecisionManager:  " << ds->identify()
-                                   << " has no decisions." << std::endl;
-      }
+      Trace("dec-manager-debug") << "DecisionManager:  " << ds->identify()
+                                 << " has no decisions." << std::endl;
     }
   }
   Trace("dec-manager-debug")
