@@ -304,16 +304,46 @@ class SygusUnifRl : public SygusUnif
       Node d_false;
       /** cache of conditions evaluations on heads */
       std::map<std::pair<Node, Node>, Node> d_eval_cond_hd;
-      std::pair<std::vector<Node>, std::vector<Node>> evaluateCond(
-          std::vector<Node>& pts, Node cond);
+
+      /** rebuild decision tree using information gain heuristic
+       *
+       * In a scenario in which the decision tree potentially contains more
+       * conditions than necessary, it is benefetial to rebuild it in a way that
+       * "better" conditions occurr closer to the top.
+       *
+       * The information gain heuristic selects conditions that lead to a
+       * greater reduction of the Shannon entropy in the set of points
+       */
       void recomputeSolHeuristically(std::map<Node, Node>& hd_mv);
+      /** recursively select (best) conditions to split poinst
+       *
+       * At each call picks the best condition according to information gain and
+       * splits the set of points accordingly, then recurses on them.
+       *
+       * The base case is a set being fully classified (i.e. all points have the
+       * same value)
+       */
       void buildDt(std::vector<Node>& pts,
                    std::vector<Node> conds,
                    std::map<Node, Node>& hd_mv,
                    int ind);
+      /** computes the Shannon entropy of a set of points
+       *
+       * The entropy depends on how many positive and negative points are in the
+       * set and in their distribution. The polarity of the points (evaluation
+       * heads) is queried from hd_mv
+       */
       double getEntropy(const std::vector<Node>& pts,
                         std::map<Node, Node>& hd_mv,
                         int ind);
+      /** evaluates a condition on a set of points
+       *
+       * The result is two sets of points: those on which the condition holds
+       * and those on which it does not
+       */
+      std::pair<std::vector<Node>, std::vector<Node>> evaluateCond(
+          std::vector<Node>& pts, Node cond);
+      /** computes the result of applying cond on the respective point of hd */
       Node computeCond(Node cond, Node hd);
     };
     /**
