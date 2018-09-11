@@ -249,8 +249,6 @@ class TheoryArrays : public Theory {
   // NOTIFICATIONS
   /////////////////////////////////////////////////////////////////////////////
 
- public:
-  Node getNextDecisionRequest(unsigned& priority) override;
 
   void presolve() override;
   void shutdown() override {}
@@ -455,6 +453,25 @@ class TheoryArrays : public Theory {
   /** An equality-engine callback for proof reconstruction */
   ArrayProofReconstruction d_proofReconstruction;
 
+  /** The decision strategy for the theory of arrays */
+  class TheoryArraysDecisionStrategy : public DecisionStrategy
+  {
+  public:
+    TheoryArraysDecisionStrategy( TheoryArrays * ta );
+    /** initialize */
+    void initialize() override;
+    /** get next decision request */
+    Node getNextDecisionRequest() override;
+    /** identify */
+    std::string identify() const override;
+  private:
+    /** pointer to the theory of arrays */
+    TheoryArrays * d_ta;
+  };
+  /** an instance of the above decision strategy */
+  std::unique_ptr< TheoryArraysDecisionStrategy > d_dstrat;
+  /** get the next decision request */
+  Node getNextDecisionRequest();
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
