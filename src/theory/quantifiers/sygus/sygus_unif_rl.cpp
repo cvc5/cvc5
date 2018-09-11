@@ -547,7 +547,8 @@ Node SygusUnifRl::DecisionTreeInfo::buildSol(Node cons,
   Trace("sygus-unif-sol") << "Decision::buildSol with " << d_hds.size()
                           << " evaluation heads and " << d_conds.size()
                           << " conditions..." << std::endl;
-
+  // reset the trie
+  d_pt_sep.d_trie.clear();
   return options::sygusUnifCondIndependent() ? buildSolAllCond(cons, lemmas)
                                              : buildSolMinCond(cons, lemmas);
 }
@@ -606,8 +607,6 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolMinCond(Node cons,
   NodeManager* nm = NodeManager::currentNM();
   // model values for evaluation heads
   std::map<Node, Node> hd_mv;
-  // reset the trie
-  d_pt_sep.d_trie.clear();
   // the current explanation of why there has not yet been a separation conflict
   std::vector<Node> exp;
   // is the above explanation ready to be sent out as a lemma?
