@@ -1,5 +1,9 @@
 cmake_minimum_required(VERSION 3.1)
 
+if(POLICY CMP0075)
+  cmake_policy(SET CMP0075 NEW)
+endif()
+
 #-----------------------------------------------------------------------------#
 
 project(cvc4)
@@ -15,7 +19,8 @@ set(CVC4_EXTRAVERSION "-prerelease")
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
-  set(CVC4_RELEASE_STRING "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}${CVC4_EXTRAVERSION}")
+  set(CVC4_RELEASE_STRING
+      "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}${CVC4_EXTRAVERSION}")
 else()
   set(CVC4_RELEASE_STRING "${CVC4_MAJOR}.${CVC4_MINOR}${CVC4_EXTRAVERSION}")
 endif()
@@ -213,7 +218,7 @@ cvc4_option(ENABLE_ASAN          "Enable ASAN build")
 cvc4_option(ENABLE_ASSERTIONS    "Enable assertions")
 cvc4_option(ENABLE_DEBUG_SYMBOLS "Enable debug symbols")
 cvc4_option(ENABLE_DUMPING       "Enable dumping")
-cvc4_option(ENABLE_MUZZLE        "Supress ALL non-result output")
+cvc4_option(ENABLE_MUZZLE        "Suppress ALL non-result output")
 cvc4_option(ENABLE_OPTIMIZED     "Enable optimization")
 cvc4_option(ENABLE_PORTFOLIO     "Enable portfolio support")
 cvc4_option(ENABLE_PROOFS        "Enable proof support")
@@ -264,13 +269,10 @@ set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 option(BUILD_BINDINGS_JAVA   "Build Java bindings")
 option(BUILD_BINDINGS_PYTHON "Build Python bindings")
 
-# All bindings: c,java,csharp,perl,php,python,ruby,tcl,ocaml
-
-
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
 
-set(OPT_LEVEL 3)
+set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
 
 set(BUILD_TYPES Production Debug Testing Competition)
@@ -285,15 +287,6 @@ set(CVC4_BUILD_PROFILE_TESTING 0)
 set(CVC4_BUILD_PROFILE_COMPETITION 0)
 
 #-----------------------------------------------------------------------------#
-# Compiler flags
-
-add_check_c_cxx_flag("-O${OPT_LEVEL}")
-add_check_c_flag("-fexceptions")
-add_check_c_cxx_flag("-Wno-deprecated")
-add_check_cxx_flag("-Wsuggest-override")
-add_check_cxx_flag("-Wnon-virtual-dtor")
-
-#-----------------------------------------------------------------------------#
 # Build types
 
 if(ENABLE_ASAN)
@@ -302,7 +295,8 @@ endif()
 
 # Set the default build type to Production
 if(NOT CMAKE_BUILD_TYPE)
-  set(CMAKE_BUILD_TYPE Production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
+  set(CMAKE_BUILD_TYPE
+      Production CACHE STRING "Options are: ${BUILD_TYPES}" FORCE)
   # Provide drop down menu options in cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
 endif()
@@ -316,11 +310,16 @@ elseif(CMAKE_BUILD_TYPE STREQUAL "Testing")
   include(ConfigTesting)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
   include(ConfigCompetition)
-  # enable_static=yes
-  #TODO
-  # enable_static_binary=yes
-  #TODO
 endif()
+
+#-----------------------------------------------------------------------------#
+# Compiler flags
+
+add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
+add_check_c_flag("-fexceptions")
+add_check_c_cxx_flag("-Wno-deprecated")
+add_check_cxx_flag("-Wsuggest-override")
+add_check_cxx_flag("-Wnon-virtual-dtor")
 
 #-----------------------------------------------------------------------------#
 # Option defaults (three-valued options (cvc4_option(...)))
@@ -352,8 +351,6 @@ if(NOT ENABLE_SHARED)
   set(BUILD_SHARED_LIBS OFF)
 endif()
 
-find_package(PythonInterp REQUIRED)
-
 #-----------------------------------------------------------------------------#
 # Enable the ctest testing framework
 
@@ -366,10 +363,6 @@ find_package(GMP REQUIRED)
 libcvc4_link_libraries(${GMP_LIBRARIES})
 libcvc4_include_directories(${GMP_INCLUDE_DIR})
 
-if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
-  set(BUILD_BINDINGS TRUE)
-endif()
-
 if(ENABLE_ASAN)
   set(CMAKE_REQUIRED_LIBRARIES -fsanitize=address)
   add_required_c_cxx_flag("-fsanitize=address")
@@ -380,6 +373,8 @@ endif()
 
 if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
+else()
+  add_definitions(-DNDEBUG)
 endif()
 
 if(ENABLE_COVERAGE)
@@ -398,8 +393,6 @@ endif()
 
 if(ENABLE_DUMPING)
   add_definitions(-DCVC4_DUMPING)
-else()
-  add_definitions(-DNDEBUG)
 endif()
 
 if(ENABLE_DEBUG_SYMBOLS)
@@ -414,7 +407,10 @@ if(ENABLE_PORTFOLIO)
   find_package(Boost 1.50.0 REQUIRED COMPONENTS thread)
   # Disable CLN for portfolio builds since it is not thread safe (uses an
   # unlocked hash table internally).
-  set(USE_CLN OFF)
+  if(USE_CLN)
+    message(WARNING "Disabling CLN support since portfolio is enabled.")
+    set(USE_CLN OFF)
+  endif()
   set(THREADS_PREFER_PTHREAD_FLAG ON)
   find_package(Threads REQUIRED)
   if(THREADS_HAVE_PTHREAD_ARG)
@@ -556,11 +552,6 @@ endif()
 
 #-----------------------------------------------------------------------------#
 
-set(VERSION "1.6.0-prerelease")
-string(TIMESTAMP MAN_DATE "%Y-%m-%d")
-
-#-----------------------------------------------------------------------------#
-
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
 git_local_changes(GIT_IS_DIRTY)
@@ -577,18 +568,14 @@ execute_process(
 )
 
 #-----------------------------------------------------------------------------#
+# Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-
-# Defined if using the CLN multi-precision arithmetic library.
-set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
-# Defined if using the GMP multi-precision arithmetic library.
-set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
-
 configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
+# Add subdirectories
 
 # signatures needs to come before src since it adds source files to libcvc4.
 if(ENABLE_PROOFS)
@@ -597,14 +584,18 @@ endif()
 
 add_subdirectory(doc)
 add_subdirectory(src)
-if(BUILD_BINDINGS)
+
+if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/bindings)
 endif()
+
 if(BUILD_BINDINGS_JAVA)
   add_subdirectory(test/java)
 endif()
+
 add_subdirectory(test/regress)
 add_subdirectory(test/system)
+
 if(ENABLE_UNIT_TESTING)
 	add_subdirectory(test/unit)
 endif()

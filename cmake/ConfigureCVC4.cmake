@@ -11,12 +11,13 @@ include(CheckSymbolExists)
 # error).  So we have to keep both happy.  Probably the same underlying
 # issue as the hash specialization below, but let's check separately
 # for flexibility.
-
 check_cxx_source_compiles(
-  "#include <stdint.h>
-   void foo(long) {}
-   void foo(int64_t) {}
-   int main() { return 0; }"
+  "
+  #include <stdint.h>
+  void foo(long) {}
+  void foo(int64_t) {}
+  int main() { return 0; }
+  "
   CVC4_NEED_INT64_T_OVERLOADS
 )
 if(NOT CVC4_NEED_INT64_T_OVERLOADS)
@@ -26,12 +27,13 @@ endif()
 # Check to see if this version/architecture of GNU C++ explicitly
 # instantiates std::hash<uint64_t> or not.  Some do, some don't.
 # See src/util/hash.h.
-
 check_cxx_source_compiles(
-  "#include <cstdint>
-   #include <functional>
-   namespace std { template<> struct hash<uint64_t> {}; }
-   int main() { return 0; }"
+  "
+  #include <cstdint>
+  #include <functional>
+  namespace std { template<> struct hash<uint64_t> {}; }
+  int main() { return 0; }
+  "
   CVC4_NEED_HASH_UINT64_T_OVERLOAD
 )
 if(CVC4_NEED_HASH_UINT64_T_OVERLOAD)
@@ -61,3 +63,8 @@ check_c_source_compiles(
   "
   STRERROR_R_CHAR_P
 )
+
+# Defined if using the CLN multi-precision arithmetic library.
+set(CVC4_CLN_IMP ${CVC4_USE_CLN_IMP})
+# Defined if using the GMP multi-precision arithmetic library.
+set(CVC4_GMP_IMP ${CVC4_USE_GMP_IMP})
