@@ -456,22 +456,24 @@ class TheoryArrays : public Theory {
   /** The decision strategy for the theory of arrays */
   class TheoryArraysDecisionStrategy : public DecisionStrategy
   {
-  public:
-    TheoryArraysDecisionStrategy( TheoryArrays * ta );
+   public:
+    TheoryArraysDecisionStrategy(TheoryArrays* ta);
     /** initialize */
     void initialize() override;
     /** get next decision request */
     Node getNextDecisionRequest() override;
     /** identify */
     std::string identify() const override;
-  private:
+
+   private:
     /** pointer to the theory of arrays */
-    TheoryArrays * d_ta;
+    TheoryArrays* d_ta;
   };
   /** an instance of the above decision strategy */
-  std::unique_ptr< TheoryArraysDecisionStrategy > d_dstrat;
+  std::unique_ptr<TheoryArraysDecisionStrategy> d_dstrat;
   /** get the next decision request */
   Node getNextDecisionRequest();
+
  public:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
