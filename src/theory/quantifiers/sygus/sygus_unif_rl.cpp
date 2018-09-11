@@ -928,8 +928,8 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::recomputeSolHeuristically(
 
   // recursively build trie by picking best condition for respective points
   buildDt(d_dt->d_hds, conds, hd_mv, 1);
-  // if no condition was added (i.e. points are already classified), use last
-  // condition as candidate
+  // if no condition was added (i.e. points are already classified at root
+  // level), use last condition as candidate
   if (d_dt->d_conds.empty())
   {
     Trace("sygus-unif-dt") << "......using last condition "
