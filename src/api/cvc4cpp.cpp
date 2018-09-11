@@ -1907,7 +1907,7 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
   PrettyCheckArgument(arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
                       arg3,
                       "Invalid argument '%s', expected bit-vector constant",
-                      arg3.toString());
+                      arg3.toString().c_str());
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
