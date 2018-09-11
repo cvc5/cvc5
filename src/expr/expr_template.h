@@ -60,6 +60,10 @@ class Type;
 class TypeCheckingException;
 class TypeCheckingExceptionPrivate;
 
+namespace api {
+  class Solver;
+}
+
 namespace expr {
   namespace pickle {
     class Pickler;
@@ -208,6 +212,17 @@ struct ExprHashFunction {
  * expressions.
  */
 class CVC4_PUBLIC Expr {
+
+  friend class ExprManager;
+  friend class NodeManager;
+  friend class SmtEngine;
+  friend class TypeCheckingException;
+  friend class api::Solver;
+  friend class expr::ExportPrivate;
+  friend class expr::pickle::Pickler;
+  friend class prop::TheoryProxy;
+  friend class smt::SmtEnginePrivate;
+  friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
 
   /** The internal expression representation */
   NodeTemplate<true>* d_node;
@@ -592,17 +607,6 @@ private:
    * @return the internal node
    */
   NodeTemplate<false> getTNode() const;
-
-  // Friend to access the actual internal expr information and private methods
-  friend class SmtEngine;
-  friend class smt::SmtEnginePrivate;
-  friend class ExprManager;
-  friend class NodeManager;
-  friend class TypeCheckingException;
-  friend class expr::pickle::Pickler;
-  friend class prop::TheoryProxy;
-  friend class expr::ExportPrivate;
-  friend std::ostream& CVC4::operator<<(std::ostream& out, const Expr& e);
   template <bool ref_count> friend class NodeTemplate;
 
 };/* class Expr */
