@@ -515,9 +515,9 @@ void SygusUnifRl::DecisionTreeInfo::setConditions(
   // add to condition pool
   if (options::sygusUnifCondIndependent())
   {
+    d_cond_mvs.insert(conds.begin(), conds.end());
     if (Trace.isOn("sygus-unif-cond-pool"))
     {
-      d_cond_mvs.insert(conds.begin(), conds.end());
       for (const Node& condv : conds)
       {
         if (d_cond_mvs.find(condv) == d_cond_mvs.end())
