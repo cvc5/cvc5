@@ -14,7 +14,7 @@ Build types:
 
 General options;
   -h, --help               display this help and exit
-  --build-dir-prefix       prefix build directory with given prefix
+  --build-dir-prefix=STR   prefix build directory with given prefix
   --best                   turn on dependences known to give best performance
   --gpl                    permit GPL dependences, if available
 
@@ -39,7 +39,7 @@ The following flags enable optional features (disable with --no-<option name>).
 
 The following options configure parameterized features.
 
-  --language-bindings[=c,c++,java,all]
+  --language-bindings[=java,python,all]
                           specify language bindings to build
 
 Optional Packages:
@@ -123,13 +123,13 @@ valgrind=default
 profiling=default
 readline=default
 
-language_bindings=default
+language_bindings_java=default
+language_bindings_python=default
 
 abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
-cxxtest_dir=default
 glpk_dir=default
 lfsc_dir=default
 symfpu_dir=default
@@ -154,14 +154,8 @@ do
     --best) best=ON;;
     --no-best) best=OFF;;
 
-    --build-dir-prefix)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --build-dir-prefix"
-      fi
-      prefix=$1
-      ;;
+    --build-dir-prefix) die "missing argument to $1 (try -h)" ;;
+    --build-dir-prefix=*) prefix=$1 ;;
 
     --cadical) cadical=ON;;
     --no-cadical) cadical=OFF;;
@@ -232,90 +226,50 @@ do
     --readline) readline=ON;;
     --no-readline) readline=OFF;;
 
-    --language-bindings)
-      shift
-      if [ $# -eq 0 ]
+    --language-bindings) die "missing argument to $1 (try -h)" ;;
+    --language-bindings=*)
+      lang="${1##*=}"
+      [[ "java python all" =~ (^|[[:space:]])"$lang"($|[[:space:]]) ]] \
+        || die "invalid argument to --language-bindings (try -h)"
+      if [ $lang = "java" -o $lang = "all" ]
       then
-        die "missing argument to --language-bindings-dir"
+        language_bindings_java=ON
       fi
-      [[ "c c++ java all" =~ (^|[[:space:]])"$1"($|[[:space:]]) ]] \
-        || die "invalid argument to --language-bindings (try '-h')"
-      language_bindings=$1
+      if [ $lang = "python" -o $lang = "all" ]
+      then
+        language_bindings_python=ON
+      fi
       ;;
 
-    --abc-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --abc-dir"
-      fi
-      abc_dir=$1
-      ;;
-    --antlr-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --antlr-dir"
-      fi
-      antlr_dir=$1
-      ;;
-    --cadical-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --cadical-dir"
-      fi
-      cadical_dir=$1
-      ;;
-    --cryptominisat-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --cryptominisat-dir"
-      fi
-      cryptominisat_dir=$1
-      ;;
-    --cxxtest-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --cxxtest-dir"
-      fi
-      cxxtest_dir=$1
-      ;;
-    --glpk-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --glpk-dir"
-      fi
-      glpk_dir=$1
-      ;;
-    --lfsc-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --lfsc-dir"
-      fi
-      lfsc_dir=$1
-      ;;
-    --symfpu-dir)
-      shift
-      if [ $# -eq 0 ]
-      then
-        die "missing argument to --symfpu-dir"
-      fi
-      symfpu_dir=$1
-      ;;
+    --abc-dir) die "missing argument to $1 (try -h)" ;;
+    --abc-dir=*) abc_dir=${1##*=} ;;
 
-    -*) die "invalid option '$1' (try '-h')";;
+    --antlr-dir) die "missing argument to $1 (try -h)" ;;
+    --antlr-dir=*) antlr_dir=${1##*=} ;;
+
+    --cadical-dir) die "missing argument to $1 (try -h)" ;;
+    --cadical-dir=*) cadical_dir=${1##*=} ;;
+
+    --cryptominisat-dir) die "missing argument to $1 (try -h)" ;;
+    --cryptominisat-dir=*) cryptominisat_dir=${1##*=} ;;
+
+    --glpk-dir) die "missing argument to $1 (try -h)" ;;
+    --glpk-dir=*) glpk_dir=${1##*=} ;;
+
+    --lfsc-dir) die "missing argument to $1 (try -h)" ;;
+    --lfsc-dir=*) lfsc_dir=${1##*=} ;;
+
+    --symfpu-dir) die "missing argument to $1 (try -h)" ;;
+    --symfpu-dir=*) symfpu_dir=${1##*=} ;;
+
+    -*) die "invalid option '$1' (try -h)";;
 
     *) case $1 in
          production)  buildtype=Production; builddir=production;;
          debug)       buildtype=Debug; builddir=debug;;
          testing)     buildtype=Testing; builddir=testing;;
          competition) buildtype=Competition; builddir=competition;;
-         *)           die "invalid build type (try '-h')";;
+         *)           die "invalid build type (try -h)";;
        esac
        ;;
   esac
@@ -412,29 +366,29 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu" \
   && [ $symfpu = ON ] && builddir="$builddir-symfpu"
 
-[ $language_bindings != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_LANGUAGE_BINDINGS=$language_bindings" \
+[ $language_bindings_java != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$language_bindings_java"
+[ $language_bindings_python != default ] \
+  && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$language_bindings_python"
 
 [ $abc_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_ABC_DIR=$abc_dir" \
+  && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
 [ $antlr_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_ANTLR_DIR=$antlr_dir" \
+  && cmake_opts="$cmake_opts -DANTLR_DIR=$antlr_dir"
 [ $cadical_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_CADICAL_DIR=$cadical_dir" \
+  && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ $cryptominisat_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_CRYPTOMINISAT_DIR=$cryptominisat_dir" \
-[ $cxxtest_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_CXXTEST_DIR=$cxxtest_dir" \
+  && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
 [ $glpk_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_GLPL_DIR=$glpk_dir" \
+  && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ $lfsc_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_LFSC_DIR=$lfsc_dir" \
+  && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
 [ $symfpu_dir != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_SYMFPU_DIR=$symfpu_dir" \
+  && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 
 mkdir -p cmake-builds  # builds parent directory
 cd cmake-builds
-ln -s $builddir build  # link to current build directory
+ln -sf $builddir build  # link to current build directory
 mkdir -p $builddir     # current build directory
 cd $builddir
 
