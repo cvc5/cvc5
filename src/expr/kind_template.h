@@ -26,7 +26,7 @@
 namespace CVC4 {
 namespace kind {
 
-enum CVC4_PUBLIC Kind_t {
+enum CVC4_PUBLIC Kind_t : int32_t {
   UNDEFINED_KIND = -1, /**< undefined */
   NULL_EXPR, /**< Null kind */
 ${kind_decls}
