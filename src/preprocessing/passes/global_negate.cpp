@@ -105,7 +105,7 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   Node trueNode = nm->mkConst(true);
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    if( i==0 )
+    if (i == 0)
     {
       assertionsToPreprocess->replace(i, simplifiedNode);
     }
