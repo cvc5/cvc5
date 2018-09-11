@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file decision_manager.cpp
+/*! \file decision_strategy.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of decision_manager
+ ** \brief Implementation of base classes for decision strategies used by theory
+ ** solvers for use in the DecisionManager of TheoryEngine.
  **/
 
 #include "theory/decision_strategy.h"
