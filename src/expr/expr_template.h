@@ -61,7 +61,7 @@ class TypeCheckingException;
 class TypeCheckingExceptionPrivate;
 
 namespace api {
-  class Solver;
+class Solver;
 }
 
 namespace expr {
@@ -212,7 +212,6 @@ struct ExprHashFunction {
  * expressions.
  */
 class CVC4_PUBLIC Expr {
-
   friend class ExprManager;
   friend class NodeManager;
   friend class SmtEngine;

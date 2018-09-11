@@ -1954,20 +1954,20 @@ Term Solver::mkBoundVar(Sort sort) const
         "to create variables and constants see mkVar(), mkBoundVar(), "        \
         "and mkConst().",                                                      \
         kindToString(kind).c_str());                                           \
-    if (nchildren) \
-    { \
-    const uint32_t n =                                                         \
-        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);       \
-    PrettyCheckArgument(                                                       \
-        n >= minArity(kind) && n <= maxArity(kind),                            \
-        kind,                                                                  \
-        "Terms with kind %s must have at least %u children and "               \
-        "at most %u children (the one under construction has %u)",             \
-        kindToString(kind).c_str(),                                            \
-        minArity(kind),                                                        \
-        maxArity(kind),                                                        \
-        n);                                                                    \
-    } \
+    if (nchildren)                                                             \
+    {                                                                          \
+      const uint32_t n =                                                       \
+          nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);     \
+      PrettyCheckArgument(                                                     \
+          n >= minArity(kind) && n <= maxArity(kind),                          \
+          kind,                                                                \
+          "Terms with kind %s must have at least %u children and "             \
+          "at most %u children (the one under construction has %u)",           \
+          kindToString(kind).c_str(),                                          \
+          minArity(kind),                                                      \
+          maxArity(kind),                                                      \
+          n);                                                                  \
+    }                                                                          \
   } while (0)
 
 #define CVC4_API_CHECK_MK_OP_TERM(opTerm, nchildren)              \
@@ -1983,7 +1983,7 @@ Term Solver::mkBoundVar(Sort sort) const
                    != kind::metakind::PARAMETERIZED,              \
         opTerm,                                                   \
         "This term constructor is for parameterized kinds only"); \
-    CVC4_API_CHECK_MK_TERM(kind, nchildren);                   \
+    CVC4_API_CHECK_MK_TERM(kind, nchildren);                      \
   } while (0)
 
 Term Solver::mkTerm(Kind kind) const
