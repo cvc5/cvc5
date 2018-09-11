@@ -89,6 +89,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/ite_simp.cpp \
 	preprocessing/passes/ite_simp.h \
+	preprocessing/passes/non_clausal_simp.cpp \
+	preprocessing/passes/non_clausal_simp.h \
 	preprocessing/passes/nl_ext_purify.cpp \
 	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
