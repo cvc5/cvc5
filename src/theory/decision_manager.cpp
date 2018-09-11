@@ -61,7 +61,7 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
         return lit;
       }
       Trace("dec-manager-debug") << "DecisionManager:  " << ds->identify()
-                                  << " has no decisions." << std::endl;
+                                 << " has no decisions." << std::endl;
     }
   }
   Trace("dec-manager-debug")
