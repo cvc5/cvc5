@@ -18,16 +18,17 @@
 #define __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 
 #include <vector>
-#include "util/hash.h"
-#include "theory/theory.h"
-#include "theory/rewriter.h"
 #include "context/cdhashmap.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
-class SkolemCache {
+class SkolemCache
+{
  public:
   SkolemCache();
   /** identifiers for skolem types */
@@ -49,25 +50,26 @@ class SkolemCache {
     SK_ID_DEQ_Y,
     SK_ID_DEQ_Z,
     SK_ID_FIRST_CTN,
-  };  
-  /** make skolem cached 
-   * 
+  };
+  /** make skolem cached
+   *
    * TODO
    */
   Node mkSkolemCached(Node a, Node b, SkolemId id, const char* c);
   /** make skolem */
-  Node mkSkolem( const char * c );
+  Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
-private:
+
+ private:
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolem_cache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node, NodeHashFunction> d_all_skolems;
 };
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__STRINGS__PREPROCESS_H */

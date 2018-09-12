@@ -24,10 +24,10 @@
 #include "expr/attribute.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/strings/skolem_cache.h"
 
 #include <climits>
 #include <deque>
@@ -392,8 +392,9 @@ private:
     bool d_model_active;
   };
   std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
-private: 
-  //---------------------- skolems  
+
+ private:
+  //---------------------- skolems
   enum LengthStatus
   {
     LENGTH_SPLIT,
@@ -403,10 +404,10 @@ private:
   /** cache of all skolems */
   std::unique_ptr<SkolemCache> d_sk_cache;
   /** register skolem */
-  void registerSkolem( Node sk, LengthStatus s );
+  void registerSkolem(Node sk, LengthStatus s);
   //----------------------- end skolems
-  
-  //------------------------- candidate inferences 
+
+  //------------------------- candidate inferences
   class InferInfo {
   public:
     unsigned d_i;
@@ -414,7 +415,7 @@ private:
     bool d_rev;
     std::vector< Node > d_ant;
     std::vector< Node > d_antn;
-    std::map< LengthStatus, std::vector< Node > > d_new_skolem;
+    std::map<LengthStatus, std::vector<Node> > d_new_skolem;
     Node d_conc;
     Inference d_id;
     std::map< Node, bool > d_pending_phase;
@@ -552,11 +553,11 @@ private:
    * This method is called on non-constant string terms n. It sends a lemma
    * on the output channel that ensures that the length n satisfies its assigned
    * status (given by argument s).
-   * 
+   *
    * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
-   * 
+   *
    * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) >= 1.
-   * 
+   *
    * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
    * This method also ensures that, when applicable, the left branch is taken

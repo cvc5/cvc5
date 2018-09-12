@@ -14,7 +14,6 @@
 
 #include "theory/strings/skolem_cache.h"
 
-
 using namespace CVC4;
 using namespace CVC4::kind;
 
@@ -22,34 +21,33 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SkolemCache::SkolemCache()
-{
-  
-}
+SkolemCache::SkolemCache() {}
 
-Node SkolemCache::mkSkolemCached( Node a, Node b, SkolemId id, const char * c ){
-  std::map< SkolemId, Node >::iterator it = d_skolem_cache[a][b].find( id );
-  if( it==d_skolem_cache[a][b].end() ){
-    Node sk = mkSkolem( c );
+Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
+{
+  std::map<SkolemId, Node>::iterator it = d_skolem_cache[a][b].find(id);
+  if (it == d_skolem_cache[a][b].end())
+  {
+    Node sk = mkSkolem(c);
     d_skolem_cache[a][b][id] = sk;
     return sk;
   }
   return it->second;
 }
 
-Node SkolemCache::mkSkolem( const char * c )
+Node SkolemCache::mkSkolem(const char* c)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  Node n = nm->mkSkolem( c, nm->stringType(), "string skolem" );
+  NodeManager* nm = NodeManager::currentNM();
+  Node n = nm->mkSkolem(c, nm->stringType(), "string skolem");
   d_all_skolems.insert(n);
   return n;
 }
 
 bool SkolemCache::isSkolem(Node n) const
 {
-  return d_all_skolems.find(n)!=d_all_skolems.end();
+  return d_all_skolems.find(n) != d_all_skolems.end();
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
