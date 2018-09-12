@@ -904,18 +904,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   Trace("sym-dt-debug") << ".....types: " << p.d_sterm.getType() << " "
                         << node.getType() << std::endl;
   Assert(p.d_sterm.getType() == node.getType());
-
-  // ensure that this is an accurate substitution
-  /*
-  pvars.clear();
-  psubs.clear();
-  p.getSubstitution(pvars,psubs);
-  Node snode =
-  node.substitute(pvars.begin(),pvars.end(),psubs.begin(),psubs.end());
-  Trace("sym-dt-debug") << ">>> check snode " << snode << " " << p.d_sterm <<
-  std::endl; AlwaysAssert( p.d_sterm==snode );
-  */
-
+  
   // normalize: ensures that variable lists are sorted
   p.normalize();
   d_term_partition[node] = p;
