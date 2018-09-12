@@ -1,4 +1,4 @@
-set(cvc4_src_files
+libcvc4_add_sources(
   api/cvc4cpp.cpp
   api/cvc4cpp.h
   api/cvc4cppkind.h
@@ -26,6 +26,13 @@ set(cvc4_src_files
   decision/decision_strategy.h
   decision/justification_heuristic.cpp
   decision/justification_heuristic.h
+  lib/clock_gettime.c
+  lib/clock_gettime.h
+  lib/ffs.c
+  lib/ffs.h
+  lib/replacements.h
+  lib/strtok_r.c
+  lib/strtok_r.h
   preprocessing/assertion_pipeline.cpp
   preprocessing/assertion_pipeline.h
   preprocessing/passes/apply_substs.cpp
@@ -144,12 +151,48 @@ set(cvc4_src_files
   proof/uf_proof.h
   proof/unsat_core.cpp
   proof/unsat_core.h
+  prop/bvminisat/bvminisat.cpp
+  prop/bvminisat/bvminisat.h
+  prop/bvminisat/core/Dimacs.h
+  prop/bvminisat/core/Solver.cc
+  prop/bvminisat/core/Solver.h
+  prop/bvminisat/core/SolverTypes.h
+  prop/bvminisat/mtl/Alg.h
+  prop/bvminisat/mtl/Alloc.h
+  prop/bvminisat/mtl/Heap.h
+  prop/bvminisat/mtl/IntTypes.h
+  prop/bvminisat/mtl/Map.h
+  prop/bvminisat/mtl/Queue.h
+  prop/bvminisat/mtl/Sort.h
+  prop/bvminisat/mtl/Vec.h
+  prop/bvminisat/mtl/XAlloc.h
+  prop/bvminisat/simp/SimpSolver.cc
+  prop/bvminisat/simp/SimpSolver.h
+  prop/bvminisat/utils/Options.h
   prop/cadical.cpp
   prop/cadical.h
   prop/cnf_stream.cpp
   prop/cnf_stream.h
   prop/cryptominisat.cpp
   prop/cryptominisat.h
+  prop/minisat/core/Dimacs.h
+  prop/minisat/core/Solver.cc
+  prop/minisat/core/Solver.h
+  prop/minisat/core/SolverTypes.h
+  prop/minisat/minisat.cpp
+  prop/minisat/minisat.h
+  prop/minisat/mtl/Alg.h
+  prop/minisat/mtl/Alloc.h
+  prop/minisat/mtl/Heap.h
+  prop/minisat/mtl/IntTypes.h
+  prop/minisat/mtl/Map.h
+  prop/minisat/mtl/Queue.h
+  prop/minisat/mtl/Sort.h
+  prop/minisat/mtl/Vec.h
+  prop/minisat/mtl/XAlloc.h
+  prop/minisat/simp/SimpSolver.cc
+  prop/minisat/simp/SimpSolver.h
+  prop/minisat/utils/Options.h
   prop/prop_engine.cpp
   prop/prop_engine.h
   prop/registrar.h
@@ -184,6 +227,15 @@ set(cvc4_src_files
   smt/term_formula_removal.cpp
   smt/term_formula_removal.h
   smt/update_ostream.h
+  smt_util/boolean_simplification.cpp
+  smt_util/boolean_simplification.h
+  smt_util/lemma_channels.cpp
+  smt_util/lemma_channels.h
+  smt_util/lemma_input_channel.h
+  smt_util/lemma_output_channel.h
+  smt_util/nary_builder.cpp
+  smt_util/nary_builder.h
+  smt_util/node_visitor.h
   theory/arith/approx_simplex.cpp
   theory/arith/approx_simplex.h
   theory/arith/arith_ite_utils.cpp
@@ -594,49 +646,31 @@ set(cvc4_src_files
   theory/valuation.h
 )
 
-# Generated in theory/
-set(cvc4_gen_src_files
-  theory/rewriter_tables.h
-  theory/theory_traits.h
-  theory/type_enumerator.cpp
-)
-# Since these files are generated in a different CMakeLists.txt we have to
-# tell cmake that the files are generated.
-set_source_files_properties(${cvc4_gen_src_files} PROPERTIES GENERATED TRUE)
+# Add required include paths for this and all subdirectories.
+include_directories(include)
+include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
-add_library(cvc4 ${cvc4_src_files} ${cvc4_gen_src_files})
+add_subdirectory(base)
+add_subdirectory(expr)
+add_subdirectory(main)
+add_subdirectory(options)
+add_subdirectory(parser)
+add_subdirectory(theory)
+add_subdirectory(util)
 
-set_target_properties(cvc4
-  PROPERTIES
-    VERSION ${CVC4_VERSION}
-    SOVERSION ${CVC4_SOVERSION}
-)
+# All sources for libcvc4 are now collected via libcvc4_add_sources. We can
+# now build libcvc4.
+set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
+add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
 
+set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
   PRIVATE
     -D__BUILDING_CVC4LIB
     -D__STDC_LIMIT_MACROS
     -D__STDC_FORMAT_MACROS
 )
-add_dependencies(cvc4 gen-theory-files)
-target_link_libraries(cvc4
-  base bvminisat expr minisat options smtutil util replacements
-  ${LIBCVC4_LIBRARIES}
-)
-target_include_directories(cvc4 PRIVATE ${LIBCVC4_INCLUDES})
-
-include_directories(include)
-include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
-
-add_subdirectory(base)
-add_subdirectory(expr)
-add_subdirectory(lib)
-add_subdirectory(main)
-add_subdirectory(options)
-add_subdirectory(parser)
-add_subdirectory(prop/bvminisat)
-add_subdirectory(prop/minisat)
-add_subdirectory(smt_util)
-add_subdirectory(theory)
-add_subdirectory(util)
-
+# Add libcvc4 dependencies for generated sources.
+add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
+target_link_libraries(cvc4 ${LIBCVC4_LIBRARIES})
+target_include_directories(cvc4 PUBLIC ${LIBCVC4_INCLUDES})

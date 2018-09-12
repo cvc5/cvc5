@@ -9,9 +9,8 @@ set(CVC4_SYSTEM_TEST_FLAGS
   -D__BUILDING_CVC4_SYSTEM_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 
 macro(cvc4_add_system_test name)
-  #  add_executable(${name} ${ARGN})
   add_executable(${name} ${name}.cpp)
-  target_link_libraries(${name} main)
+  target_link_libraries(${name} main-test)
   target_compile_definitions(${name} PRIVATE ${CVC4_SYSTEM_TEST_FLAGS})
   add_test(system/${name} ${CMAKE_CURRENT_BINARY_DIR}/${name})
   set_tests_properties(system/${name} PROPERTIES LABELS "system")

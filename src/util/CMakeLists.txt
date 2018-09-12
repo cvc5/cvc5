@@ -2,7 +2,7 @@ configure_file(floatingpoint.h.in floatingpoint.h)
 configure_file(rational.h.in rational.h)
 configure_file(integer.h.in integer.h)
 
-set(util_src_files
+libcvc4_add_sources(
   abstract_value.cpp
   abstract_value.h
   bin_heap.h
@@ -51,17 +51,9 @@ set(util_src_files
 )
 
 if(CVC4_USE_CLN_IMP)
-  list(APPEND util_src_files rational_cln_imp.cpp integer_cln_imp.cpp)
+  libcvc4_add_sources(rational_cln_imp.cpp integer_cln_imp.cpp)
 endif()
 
 if(CVC4_USE_GMP_IMP)
-  list(APPEND util_src_files rational_gmp_imp.cpp integer_gmp_imp.cpp)
+  libcvc4_add_sources(rational_gmp_imp.cpp integer_gmp_imp.cpp)
 endif()
-
-set(GMP_HOME ${GMP_DIR})
-find_package(GMP REQUIRED)
-
-add_library(util ${util_src_files})
-target_compile_definitions(util PRIVATE -D__BUILDING_CVC4LIB)
-target_link_libraries(util options ${GMP_LIBRARIES})
-target_include_directories(util PUBLIC ${GMP_INCLUDE_DIR})
