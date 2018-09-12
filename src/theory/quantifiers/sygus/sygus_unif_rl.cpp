@@ -106,14 +106,14 @@ Node SygusUnifRl::purifyLemma(Node n,
         TNode cand = n[0];
         Node tmp = n.substitute(cand, it->second);
         nv = d_tds->evaluateWithUnfolding(tmp);
-        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << tmp
-                                      << " is " << nv << "\n";
+        Trace("sygus-unif-rl-purify")
+            << "PurifyLemma : model value for " << tmp << " is " << nv << "\n";
       }
       else
       {
         nv = d_parent->getModelValue(n);
-        Trace("sygus-unif-rl-purify") << "PurifyLemma : model value for " << n
-                                      << " is " << nv << "\n";
+        Trace("sygus-unif-rl-purify")
+            << "PurifyLemma : model value for " << n << " is " << nv << "\n";
       }
       Assert(n != nv);
     }
@@ -140,8 +140,8 @@ Node SygusUnifRl::purifyLemma(Node n,
   {
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
-      Trace("sygus-unif-rl-purify-debug") << "Node " << n
-                                          << " is parameterized\n";
+      Trace("sygus-unif-rl-purify-debug")
+          << "Node " << n << " is parameterized\n";
       children.insert(children.begin(), n.getOperator());
     }
     if (Trace.isOn("sygus-unif-rl-purify-debug"))
@@ -154,8 +154,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       }
     }
     nb = NodeManager::currentNM()->mkNode(k, children);
-    Trace("sygus-unif-rl-purify") << "PurifyLemma : transformed " << n
-                                  << " into " << nb << "\n";
+    Trace("sygus-unif-rl-purify")
+        << "PurifyLemma : transformed " << n << " into " << nb << "\n";
   }
   else
   {
@@ -176,8 +176,8 @@ Node SygusUnifRl::purifyLemma(Node n,
                                 "head of unif evaluation point",
                                 NodeManager::SKOLEM_EXACT_NAME);
       // Adds new enumerator to map from candidate
-      Trace("sygus-unif-rl-purify") << "...new enum " << new_f
-                                    << " for candidate " << nb[0] << "\n";
+      Trace("sygus-unif-rl-purify")
+          << "...new enum " << new_f << " for candidate " << nb[0] << "\n";
       d_cand_to_eval_hds[nb[0]].push_back(new_f);
       // Maps new enumerator to its respective tuple of arguments
       d_hd_to_pt[new_f] =
@@ -194,8 +194,8 @@ Node SygusUnifRl::purifyLemma(Node n,
       // replace first child and rebulid node
       Assert(children.size() > 0);
       children[0] = new_f;
-      Trace("sygus-unif-rl-purify-debug") << "Make sygus eval app " << children
-                                          << std::endl;
+      Trace("sygus-unif-rl-purify-debug")
+          << "Make sygus eval app " << children << std::endl;
       np = nm->mkNode(DT_SYGUS_EVAL, children);
       d_app_to_purified[nb] = np;
     }
@@ -214,15 +214,15 @@ Node SygusUnifRl::purifyLemma(Node n,
     model_guards.push_back(
         NodeManager::currentNM()->mkNode(EQUAL, nv, nb).negate());
     nb = nv;
-    Trace("sygus-unif-rl-purify") << "PurifyLemma : adding model eq "
-                                  << model_guards.back() << "\n";
+    Trace("sygus-unif-rl-purify")
+        << "PurifyLemma : adding model eq " << model_guards.back() << "\n";
   }
   nb = Rewriter::rewrite(nb);
   // every non-top level application of function-to-synthesize must be reduced
   // to a concrete constant
   Assert(!ensureConst || nb.isConst());
-  Trace("sygus-unif-rl-purify-debug") << "... caching [" << n << "] = " << nb
-                                      << "\n";
+  Trace("sygus-unif-rl-purify-debug")
+      << "... caching [" << n << "] = " << nb << "\n";
   cache[BoolNodePair(ensureConst, n)] = nb;
   return nb;
 }
@@ -392,8 +392,8 @@ void SygusUnifRl::registerStrategy(
 {
   if (Trace.isOn("sygus-unif-rl-strat"))
   {
-    Trace("sygus-unif-rl-strat") << "Strategy for " << f
-                                 << " is : " << std::endl;
+    Trace("sygus-unif-rl-strat")
+        << "Strategy for " << f << " is : " << std::endl;
     d_strategy[f].debugPrint("sygus-unif-rl-strat");
   }
   Trace("sygus-unif-rl-strat") << "Register..." << std::endl;
@@ -1108,14 +1108,14 @@ Node SygusUnifRl::DecisionTreeInfo::PointSeparator::computeCond(Node cond,
   {
     res = templ.substitute(templ_var, res);
     res = Rewriter::rewrite(res);
-    Trace("sygus-unif-rl-sep") << "...after template res = " << res
-                               << std::endl;
+    Trace("sygus-unif-rl-sep")
+        << "...after template res = " << res << std::endl;
   }
   Assert(res.isConst());
   d_eval_cond_hd[cond_hd] = res;
   return res;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4

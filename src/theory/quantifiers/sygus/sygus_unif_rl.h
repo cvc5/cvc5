@@ -80,7 +80,7 @@ class SygusUnifRl : public SygusUnif
    * whether f is being synthesized with unification strategies. This can be
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
-    */
+   */
   bool usingUnif(Node f) const;
   /** get condition for evaluation point
    *
@@ -242,6 +242,7 @@ class SygusUnifRl : public SygusUnif
     void setConditions(Node guard,
                        const std::vector<Node>& enums,
                        const std::vector<Node>& conds);
+
    private:
     /** Accumulates solutions built when considering all enumerated condition
      * values (which may generate repeated solutions) */
@@ -409,8 +410,8 @@ class SygusUnifRl : public SygusUnif
                                      unsigned strategy_index);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H */
