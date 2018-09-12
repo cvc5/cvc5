@@ -677,21 +677,25 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
-  std::map< Node, std::unique_ptr<CegInstantiator> >::iterator it = d_cinst.find( q );
+  std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
+      d_cinst.find(q);
   if( it==d_cinst.end() ){
-    d_cinst[q].reset(new CegInstantiator(d_quantEngine, d_out.get(), true, true));
+    d_cinst[q].reset(
+        new CegInstantiator(d_quantEngine, d_out.get(), true, true));
     return d_cinst[q].get();
   }
   return it->second.get();
 }
 
 void InstStrategyCegqi::presolve() {
-  if( !options::cbqiPreRegInst() ){
+  if (!options::cbqiPreRegInst())
+  {
     return;
   }
-  for( std::pair< const Node, std::unique_ptr<CegInstantiator> >& ci : d_cinst ){
+  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
+  {
     Trace("cbqi-presolve") << "Presolve " << ci.first << std::endl;
-    ci.second->presolve( ci.first );
+    ci.second->presolve(ci.first);
   }
 }
 
