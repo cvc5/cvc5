@@ -88,7 +88,8 @@ void Printer::toStream(std::ostream& out, const Model& m) const
   for(size_t i = 0; i < m.getNumCommands(); ++i) {
     const Command* cmd = m.getCommand(i);
     const DeclareFunctionCommand* dfc = dynamic_cast<const DeclareFunctionCommand*>(cmd);
-    if (dfc != NULL && m.isDontCare(dfc->getFunction())) {
+    if (dfc != NULL && !m.isModelCoreSymbol(dfc->getFunction()))
+    {
       continue;
     }
     toStream(out, m, cmd);

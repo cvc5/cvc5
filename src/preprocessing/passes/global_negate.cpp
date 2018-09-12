@@ -103,7 +103,7 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
   Node trueNode = nm->mkConst(true);
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     if (i == 0)
     {
