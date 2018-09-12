@@ -140,9 +140,9 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
   std::vector<std::vector<Node>> sterms;
   symbreak::SymmetryDetect symd;
   symd.computeTerms(sterms, assertionsToPreprocess->ref());
-  if( !sterms.empty() )
+  if (!sterms.empty())
   {
-      Trace("sb-constraint") << "; found symmetry" << std::endl;
+    Trace("sb-constraint") << "; found symmetry" << std::endl;
   }
   if (Trace.isOn("sym-break-pass"))
   {
