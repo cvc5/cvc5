@@ -273,10 +273,13 @@ option(BUILD_BINDINGS_PYTHON "Build Python bindings")
 set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
 
-set(BUILD_TYPES Production Debug Testing Competition)
-
 #-----------------------------------------------------------------------------#
 # Build types
+
+
+# Note: Module CodeCoverage requires the name of the debug build to conform
+#       to cmake standards (first letter uppercase).
+set(BUILD_TYPES Production Debug Testing Competition)
 
 if(ENABLE_ASAN)
   set(CMAKE_BUILD_TYPE Debug)
@@ -289,19 +292,16 @@ if(NOT CMAKE_BUILD_TYPE)
   # Provide drop down menu options in cmake-gui
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
 endif()
-message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
-# Note: Module CodeCoverage requires the name of the debug build to conform
-#       to cmake standards (first letter uppercase).
-if(CMAKE_BUILD_TYPE STREQUAL "Debug")
-  include(ConfigDebug)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Production")
-  include(ConfigProduction)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Testing")
-  include(ConfigTesting)
-elseif(CMAKE_BUILD_TYPE STREQUAL "Competition")
-  include(ConfigCompetition)
+list(FIND BUILD_TYPES ${CMAKE_BUILD_TYPE} FOUND_BUILD_TYPE)
+if(${FOUND_BUILD_TYPE} EQUAL -1)
+  message(FATAL_ERROR
+    "'${CMAKE_BUILD_TYPE}' is not a valid build type. "
+    "Available builds are: ${BUILD_TYPES}")
 endif()
+
+message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
+include(Config${CMAKE_BUILD_TYPE})
 
 #-----------------------------------------------------------------------------#
 # Compiler flags
