@@ -394,12 +394,8 @@ private:
   std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
 
  private:
-  //---------------------- skolems
   /** cache of all skolems */
   std::unique_ptr<SkolemCache> d_sk_cache;
-  /** register skolem */
-  void registerSkolem(Node sk, LengthStatus s);
-  //----------------------- end skolems
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
