@@ -1,4 +1,3 @@
-set(CVC4_BUILD_PROFILE_PRODUCTION 1)
 # OPTLEVEL=3
 # enable_optimized=yes
 cvc4_set_option(ENABLE_OPTIMIZED ON)

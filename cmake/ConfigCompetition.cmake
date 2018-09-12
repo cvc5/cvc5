@@ -1,4 +1,3 @@
-set(CVC4_BUILD_PROFILE_COMPETITION 1)
 add_definitions(-DCVC4_COMPETITION_MODE)
 add_check_c_cxx_flag("-funroll-all-loops")
 add_check_c_cxx_flag("-fexpensive-optimizations")
