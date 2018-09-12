@@ -30,4 +30,4 @@ configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/signatures.cpp.in
   ${CMAKE_CURRENT_BINARY_DIR}/signatures.cpp)
 
-add_library(signatures SHARED ${CMAKE_CURRENT_BINARY_DIR}/signatures.cpp)
+libcvc4_add_sources(GENERATED signatures.cpp)

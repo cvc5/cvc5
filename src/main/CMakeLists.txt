@@ -7,22 +7,35 @@ set(libmain_src_files
   util.cpp
 )
 
-add_library(main ${libmain_src_files})
+# Build object library since we will use the object files for cvc4-bin,
+# pcvc4-bin, and main-test library.
+add_library(main OBJECT ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
-target_link_libraries(main cvc4 cvc4parser)
-if(USE_READLINE)
-  target_link_libraries(main ${Readline_LIBRARIES})
-  target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
+if(BUILD_SHARED_LIBS)
+  set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE 1)
 endif()
-add_dependencies(main token-headers)
 
-add_executable(cvc4-bin main.cpp)
+# We can't use target_link_libraries(...) here since this is only supported for
+# cmake version >= 3.12. Hence, we have to manually add the library
+# dependencies for main. As a consequence, include directories from
+# dependencies are not propagated and we need to manually add the include
+# directories of libcvc4 to main.
+add_dependencies(main cvc4 cvc4parser gen-tokens)
+target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
+
+# main-test library is only used for linking against system and unit tests so
+# that we don't have to include all object files of main into each unit/system
+# test. Do not link against main-test in any other case.
+add_library(main-test $<TARGET_OBJECTS:main>)
+target_link_libraries(main-test cvc4 cvc4parser)
+
+add_executable(cvc4-bin main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
 set_target_properties(cvc4-bin
   PROPERTIES
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-target_link_libraries(cvc4-bin main)
+target_link_libraries(cvc4-bin cvc4 cvc4parser)
 
 if(ENABLE_PORTFOLIO)
   set(pcvc4_src_files
@@ -35,55 +48,41 @@ if(ENABLE_PORTFOLIO)
     command_executor_portfolio.h
   )
 
-  add_executable(pcvc4-bin ${pcvc4_src_files})
+  add_executable(pcvc4-bin ${pcvc4_src_files} $<TARGET_OBJECTS:main>)
   target_compile_definitions(pcvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
   set_target_properties(pcvc4-bin
     PROPERTIES
       OUTPUT_NAME pcvc4
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
-  target_link_libraries(pcvc4-bin main)
-  add_dependencies(pcvc4-bin token-headers)
-  target_link_libraries(pcvc4-bin ${Boost_LIBRARIES})
+  target_link_libraries(pcvc4-bin cvc4 cvc4parser ${Boost_LIBRARIES})
   target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
 endif()
 
-add_custom_command(
-  OUTPUT cvc_tokens.h
-  COMMAND
-    sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
-        ${CMAKE_CURRENT_LIST_DIR}/../parser/cvc/Cvc.g
-        ${CMAKE_CURRENT_BINARY_DIR}/cvc_tokens.h
-  DEPENDS ../parser/cvc/Cvc.g
-)
+if(USE_READLINE)
+  target_link_libraries(cvc4-bin ${Readline_LIBRARIES})
+  target_link_libraries(main-test ${Readline_LIBRARIES})
+  target_include_directories(main PRIVATE ${Readline_INCLUDE_DIR})
+  if(ENABLE_PORTFOLIO)
+    target_link_libraries(pcvc4-bin ${Readline_LIBRARIES})
+  endif()
+endif()
 
-add_custom_command(
-  OUTPUT smt1_tokens.h
-  COMMAND
-    sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
-        ${CMAKE_CURRENT_LIST_DIR}/../parser/smt1/Smt1.g
-        ${CMAKE_CURRENT_BINARY_DIR}/smt1_tokens.h
-  DEPENDS ../parser/smt1/Smt1.g
-)
+foreach(lang Cvc Smt1 Smt2 Tptp)
+  string(TOLOWER ${lang} lang_lc)
+  add_custom_command(
+    OUTPUT ${lang_lc}_tokens.h
+    COMMAND
+      sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
+          ${CMAKE_CURRENT_LIST_DIR}/../parser/${lang_lc}/${lang}.g
+          ${CMAKE_CURRENT_BINARY_DIR}/${lang_lc}_tokens.h
+    DEPENDS ../parser/${lang_lc}/${lang}.g
+  )
+endforeach()
 
-add_custom_command(
-  OUTPUT smt2_tokens.h
-  COMMAND
-    sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
-        ${CMAKE_CURRENT_LIST_DIR}/../parser/smt2/Smt2.g
-        ${CMAKE_CURRENT_BINARY_DIR}/smt2_tokens.h
-  DEPENDS ../parser/smt2/Smt2.g
-)
-
-add_custom_command(
-  OUTPUT tptp_tokens.h
-  COMMAND
-    sh ${CMAKE_CURRENT_LIST_DIR}/gen-token-header.sh
-        ${CMAKE_CURRENT_LIST_DIR}/../parser/tptp/Tptp.g
-        ${CMAKE_CURRENT_BINARY_DIR}/tptp_tokens.h
-  DEPENDS ../parser/tptp/Tptp.g
-)
-
-add_custom_target(
-  token-headers
-  DEPENDS cvc_tokens.h smt1_tokens.h smt2_tokens.h tptp_tokens.h
+add_custom_target(gen-tokens
+  DEPENDS
+    cvc_tokens.h
+    smt1_tokens.h
+    smt2_tokens.h
+    tptp_tokens.h
 )

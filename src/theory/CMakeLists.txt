@@ -1,3 +1,9 @@
+libcvc4_add_sources(GENERATED
+  rewriter_tables.h
+  theory_traits.h
+  type_enumerator.cpp
+)
+
 file(GLOB kinds_files ${PROJECT_SOURCE_DIR}/src/theory/*/kinds)
 
 set(mktheorytraits_script ${CMAKE_CURRENT_LIST_DIR}/mktheorytraits)
@@ -33,7 +39,9 @@ add_custom_command(
   DEPENDS mktheorytraits type_enumerator_template.cpp
 )
 
-add_custom_target(
-  gen-theory-files
-  DEPENDS type_enumerator.cpp theory_traits.h rewriter_tables.h
+add_custom_target(gen-theory
+  DEPENDS
+    type_enumerator.cpp
+    theory_traits.h
+    rewriter_tables.h
 )

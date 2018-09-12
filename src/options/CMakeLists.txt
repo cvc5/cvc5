@@ -1,65 +1,4 @@
-macro(prepend_path)
-  foreach(SOURCE_FILE ${ARGN})
-    set(PREPEND_PATH_SOURCES
-      ${PREPEND_PATH_SOURCES}
-      ${CMAKE_CURRENT_LIST_DIR}/${SOURCE_FILE})
-  endforeach()
-  set(PREPEND_PATH_SOURCES ${PREPEND_PATH_SOURCES} PARENT_SCOPE)
-endmacro()
-
-set(options_toml_files
-  arith_options.toml
-  arrays_options.toml
-  base_options.toml
-  booleans_options.toml
-  builtin_options.toml
-  bv_options.toml
-  datatypes_options.toml
-  decision_options.toml
-  expr_options.toml
-  fp_options.toml
-  idl_options.toml
-  main_options.toml
-  parser_options.toml
-  printer_options.toml
-  proof_options.toml
-  prop_options.toml
-  quantifiers_options.toml
-  sep_options.toml
-  sets_options.toml
-  smt_options.toml
-  strings_options.toml
-  theory_options.toml
-  uf_options.toml
-)
-
-string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
-string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
-
-prepend_path(${options_toml_files})
-
-add_custom_command(
-    OUTPUT options.cpp options_holder.h ${options_gen_cpp_files} ${options_gen_h_files}
-    COMMAND
-      ${PYTHON_EXECUTABLE}
-      ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
-      ${CMAKE_CURRENT_LIST_DIR}
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc
-      ${CMAKE_CURRENT_BINARY_DIR}
-      ${PREPEND_PATH_SOURCES}
-    DEPENDS
-      mkoptions.py
-      ${options_toml_files}
-      module_template.h
-      module_template.cpp
-      options_holder_template.h
-      options_template.cpp
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc4.1_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/SmtEngine.3cvc_template
-      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/options.3cvc_template
-)
-
-set(options_src_files
+libcvc4_add_sources(
   argument_extender.h
   argument_extender_implementation.cpp
   argument_extender_implementation.h
@@ -101,5 +40,66 @@ set(options_src_files
   ufss_mode.h
 )
 
-add_library(options options.cpp ${options_gen_cpp_files} ${options_src_files})
-target_compile_definitions(options PRIVATE -D__BUILDING_CVC4LIB)
+set(options_toml_files
+  arith_options.toml
+  arrays_options.toml
+  base_options.toml
+  booleans_options.toml
+  builtin_options.toml
+  bv_options.toml
+  datatypes_options.toml
+  decision_options.toml
+  expr_options.toml
+  fp_options.toml
+  idl_options.toml
+  main_options.toml
+  parser_options.toml
+  printer_options.toml
+  proof_options.toml
+  prop_options.toml
+  quantifiers_options.toml
+  sep_options.toml
+  sets_options.toml
+  smt_options.toml
+  strings_options.toml
+  theory_options.toml
+  uf_options.toml
+)
+
+string(REPLACE "toml" "cpp;" options_gen_cpp_files ${options_toml_files})
+string(REPLACE "toml" "h;"   options_gen_h_files ${options_toml_files})
+
+libcvc4_add_sources(GENERATED options.cpp ${options_gen_cpp_files})
+
+list_prepend(options_toml_files "${CMAKE_CURRENT_LIST_DIR}/" abs_toml_files)
+
+add_custom_command(
+    OUTPUT
+      options.cpp options_holder.h
+      ${options_gen_cpp_files} ${options_gen_h_files}
+    COMMAND
+      ${PYTHON_EXECUTABLE}
+      ${CMAKE_CURRENT_LIST_DIR}/mkoptions.py
+      ${CMAKE_CURRENT_LIST_DIR}
+      ${CMAKE_CURRENT_BINARY_DIR}/../../doc
+      ${CMAKE_CURRENT_BINARY_DIR}
+      ${abs_toml_files}
+    DEPENDS
+      mkoptions.py
+      ${options_toml_files}
+      module_template.h
+      module_template.cpp
+      options_holder_template.h
+      options_template.cpp
+      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/cvc4.1_template
+      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/SmtEngine.3cvc_template
+      ${CMAKE_CURRENT_BINARY_DIR}/../../doc/options.3cvc_template
+)
+
+add_custom_target(gen-options
+  DEPENDS
+    options.cpp
+    options_holder.h
+    ${options_gen_cpp_files}
+    ${options_gen_h_files}
+)

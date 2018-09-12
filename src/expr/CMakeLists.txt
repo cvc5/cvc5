@@ -1,4 +1,4 @@
-set(expr_src_files
+libcvc4_add_sources(
   array.h
   array_store_all.cpp
   array_store_all.h
@@ -49,7 +49,7 @@ set(expr_src_files
   uninterpreted_constant.h
 )
 
-set(expr_gen_src_files
+libcvc4_add_sources(GENERATED
   kind.cpp
   kind.h
   metakind.cpp
@@ -61,10 +61,6 @@ set(expr_gen_src_files
   type_checker.cpp
   type_properties.h
 )
-
-add_library(expr ${expr_src_files} ${expr_gen_src_files})
-target_link_libraries(expr PRIVATE options)
-target_compile_definitions(expr PRIVATE -D__BUILDING_CVC4LIB)
 
 #
 # Generate code for kinds.
@@ -173,4 +169,18 @@ add_custom_command(
     ${kinds_files}
     > ${CMAKE_CURRENT_BINARY_DIR}/type_checker.cpp
   DEPENDS mkexpr type_checker_template.cpp
+)
+
+add_custom_target(gen-expr
+  DEPENDS
+    kind.cpp
+    kind.h
+    metakind.cpp
+    metakind.h
+    expr.cpp
+    expr.h
+    expr_manager.cpp
+    expr_manager.h
+    type_checker.cpp
+    type_properties.h
 )

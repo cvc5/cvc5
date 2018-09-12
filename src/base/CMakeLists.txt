@@ -1,6 +1,6 @@
 configure_file(git_versioninfo.cpp.in git_versioninfo.cpp)
 
-set(base_src_files
+libcvc4_add_sources(
   configuration.cpp
   configuration.h
   configuration_private.h
@@ -17,10 +17,7 @@ set(base_src_files
   output.h
 )
 
-add_library(base
-  ${base_src_files} ${CMAKE_CURRENT_BINARY_DIR}/git_versioninfo.cpp)
-target_compile_definitions(base PRIVATE -D__BUILDING_CVC4LIB)
-add_dependencies(base tags_headers)
+libcvc4_add_sources(GENERATED git_versioninfo.cpp)
 
 #
 # Generate code for debug/trace tags
@@ -74,8 +71,7 @@ add_custom_command(
   DEPENDS mktagheaders ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
 )
 
-add_custom_target(
-  tags_headers
+add_custom_target(gen-tags
   DEPENDS
     ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.h
     ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.h

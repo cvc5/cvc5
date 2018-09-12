@@ -1,4 +1,4 @@
-cmake_minimum_required (VERSION 3.0.1)
+cmake_minimum_required(VERSION 3.1)
 
 #-----------------------------------------------------------------------------#
 
@@ -119,18 +119,6 @@ macro(add_required_c_cxx_flag flag)
   add_required_cxx_flag(${flag})
 endmacro()
 
-# Collect all libraries that must be linked against libcvc4. These will be
-# actually linked in src/CMakeLists.txt with target_link_libaries(...).
-macro(libcvc4_link_libraries library)
-  set(LIBCVC4_LIBRARIES ${LIBCVC4_LIBRARIES} ${library})
-endmacro()
-
-# Collect all include directories that are required for libcvc4. These will be
-# actually included in src/CMakeLists.txt with target_include_directories(...).
-macro(libcvc4_include_directories dirs)
-  set(LIBCVC4_INCLUDES ${LIBCVC4_INCLUDES} ${dirs})
-endmacro()
-
 # CVC4 Boolean options are three-valued to detect if an option was set by the
 # user. The available values are: IGNORE (default), ON, OFF
 # Default options do not override options that were set by the user, i.e.,
@@ -147,6 +135,66 @@ endmacro()
 macro(cvc4_set_option var value)
   if(${var} STREQUAL "IGNORE")
     set(${var} ${value})
+  endif()
+endmacro()
+
+# Prepend 'prepand_value' to each element of the list 'in_list'. The result
+# is stored in 'out_list'.
+function(list_prepend in_list prepand_value out_list)
+  foreach(_elem ${${in_list}})
+    list(APPEND ${out_list} "${prepand_value}${_elem}")
+  endforeach()
+  set(${out_list} ${${out_list}} PARENT_SCOPE)
+endfunction()
+
+#-----------------------------------------------------------------------------#
+# libcvc4 macros
+
+# Collect all libraries that must be linked against libcvc4. These will be
+# actually linked in src/CMakeLists.txt with target_link_libaries(...).
+macro(libcvc4_link_libraries library)
+  set(LIBCVC4_LIBRARIES ${LIBCVC4_LIBRARIES} ${library})
+endmacro()
+
+# Collect all include directories that are required for libcvc4. These will be
+# actually included in src/CMakeLists.txt with target_include_directories(...).
+macro(libcvc4_include_directories dirs)
+  set(LIBCVC4_INCLUDES ${LIBCVC4_INCLUDES} ${dirs})
+endmacro()
+
+# Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
+# or LIBCVC4_GEN_SRCS. If GENERATED is the first argument the sources are
+# added to LIBCVC4_GEN_SRCS. All sources are prepended with the absolute
+# current path path. CMAKE_CURRENT_BINARY_DIR is prepended
+# to generated source files.
+macro(libcvc4_add_sources)
+  set(_sources ${ARGV})
+
+  # Check if the first argument is GENERATED.
+  list(GET _sources 0 _generated)
+  if(${_generated} STREQUAL "GENERATED")
+    list(REMOVE_AT _sources 0)
+    set(_cur_path ${CMAKE_CURRENT_BINARY_DIR})
+    set(_append_to LIBCVC4_GEN_SRCS)
+  else()
+    set(_cur_path ${CMAKE_CURRENT_SOURCE_DIR})
+    set(_append_to LIBCVC4_SRCS)
+  endif()
+
+  # Prepend source files with current path.
+  foreach(_src ${_sources})
+    list(APPEND ${_append_to} "${_cur_path}/${_src}")
+  endforeach()
+
+  file(RELATIVE_PATH
+       _rel_path "${PROJECT_SOURCE_DIR}/src" "${CMAKE_CURRENT_SOURCE_DIR}")
+
+  # Make changes to list ${_append_to} visible to the parent scope if not
+  # called from src/.
+  # Note: ${_append_to} refers to the variable name whereas ${${_append_to}}
+  # refers to the contents of the variable.
+  if(_rel_path)
+    set(${_append_to} ${${_append_to}} PARENT_SCOPE)
   endif()
 endmacro()
 
@@ -313,6 +361,11 @@ enable_testing()
 
 #-----------------------------------------------------------------------------#
 
+set(GMP_HOME ${GMP_DIR})
+find_package(GMP REQUIRED)
+libcvc4_link_libraries(${GMP_LIBRARIES})
+libcvc4_include_directories(${GMP_INCLUDE_DIR})
+
 if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
   set(BUILD_BINDINGS TRUE)
 endif()
@@ -380,7 +433,6 @@ if(ENABLE_PROOFS)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
   set(CVC4_PROOF 1)
-  libcvc4_link_libraries(signatures)
 endif()
 
 if(ENABLE_REPLAY)
@@ -538,6 +590,11 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
 
+# signatures needs to come before src since it adds source files to libcvc4.
+if(ENABLE_PROOFS)
+  add_subdirectory(proofs/signatures)
+endif()
+
 add_subdirectory(doc)
 add_subdirectory(src)
 if(BUILD_BINDINGS)
@@ -550,10 +607,6 @@ add_subdirectory(test/regress)
 add_subdirectory(test/system)
 if(ENABLE_UNIT_TESTING)
 	add_subdirectory(test/unit)
-endif()
-
-if(ENABLE_PROOFS)
-  add_subdirectory(proofs/signatures)
 endif()
 
 #-----------------------------------------------------------------------------#
