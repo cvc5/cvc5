@@ -69,11 +69,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
 
 InstStrategyCegqi::~InstStrategyCegqi()
 {
-  for (std::pair<const Node, CegInstantiator*>& ci : d_cinst)
-  {
-    delete ci.second;
-  }
-  d_cinst.clear();
+
 }
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
@@ -681,23 +677,25 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
-  std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( q );
+  std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
+      d_cinst.find(q);
   if( it==d_cinst.end() ){
-    CegInstantiator* cinst =
-        new CegInstantiator(d_quantEngine, d_out.get(), true, true);
-    d_cinst[q] = cinst;
-    return cinst;
-  }else{
-   return it->second;
+    d_cinst[q].reset(
+        new CegInstantiator(d_quantEngine, d_out.get(), true, true));
+    return d_cinst[q].get();
   }
+  return it->second.get();
 }
 
 void InstStrategyCegqi::presolve() {
-  if( options::cbqiPreRegInst() ){
-    for( std::map< Node, CegInstantiator * >::iterator it = d_cinst.begin(); it != d_cinst.end(); ++it ){
-      Trace("cbqi-presolve") << "Presolve " << it->first << std::endl;
-      it->second->presolve( it->first );
-    }
+  if (!options::cbqiPreRegInst())
+  {
+    return;
+  }
+  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
+  {
+    Trace("cbqi-presolve") << "Presolve " << ci.first << std::endl;
+    ci.second->presolve(ci.first);
   }
 }
 
