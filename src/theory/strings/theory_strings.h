@@ -571,7 +571,6 @@ private:
   inline Node mkConcat(const std::vector<Node>& c);
   inline Node mkLength(Node n);
 
-  // inline Node mkSkolemI(const char * c);
   /** mkExplain **/
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
