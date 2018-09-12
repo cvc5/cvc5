@@ -99,13 +99,13 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
-  name       = "omitDontCares"
+  name       = "produceModelCores"
   category   = "regular"
-  long       = "omit-dont-cares"
+  long       = "produce-model-cores"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "When producing a model, omit variables whose value does not matter"
+  help       = "when printing models, compute a minimal core of relevant definitions"
 
 [[option]]
   name       = "proof"

@@ -313,10 +313,10 @@ public:
 
   /** is singular arg
    * Returns true if
-   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = n
-   * always holds.
+   *   <k>( ... t_{arg-1}, n, t_{arg+1}...) = ret
+   * always holds for some constant ret, which is returned by this function.
    */
-  Node isSingularArg(Node n, Kind ik, int arg);
+  Node isSingularArg(Node n, Kind ik, unsigned arg);
 
   /** get type value
    * This gets the Node that represents value val for Type tn

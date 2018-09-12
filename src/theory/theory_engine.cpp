@@ -244,6 +244,9 @@ void TheoryEngine::finishInit() {
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if (d_theoryTable[theoryId]) {
+      // set the decision manager for the theory
+      d_theoryTable[theoryId]->setDecisionManager(d_decManager.get());
+      // finish initializing the theory
       d_theoryTable[theoryId]->finishInit();
     }
   }
@@ -273,50 +276,50 @@ void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
   }
 }
 
-
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo,
                            LemmaChannels* channels)
-: d_propEngine(NULL),
-  d_decisionEngine(NULL),
-  d_context(context),
-  d_userContext(userContext),
-  d_logicInfo(logicInfo),
-  d_sharedTerms(this, context),
-  d_masterEqualityEngine(NULL),
-  d_masterEENotify(*this),
-  d_quantEngine(NULL),
-  d_curr_model(NULL),
-  d_aloc_curr_model(false),
-  d_curr_model_builder(NULL),
-  d_aloc_curr_model_builder(false),
-  d_ppCache(),
-  d_possiblePropagations(context),
-  d_hasPropagated(context),
-  d_inConflict(context, false),
-  d_hasShutDown(false),
-  d_incomplete(context, false),
-  d_propagationMap(context),
-  d_propagationMapTimestamp(context, 0),
-  d_propagatedLiterals(context),
-  d_propagatedLiteralsIndex(context, 0),
-  d_atomRequests(context),
-  d_tform_remover(iteRemover),
-  d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
-  d_true(),
-  d_false(),
-  d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager()),
-  d_channels(channels),
-  d_inPreregister(false),
-  d_factsAsserted(context, false),
-  d_preRegistrationVisitor(this, context),
-  d_sharedTermsVisitor(d_sharedTerms),
-  d_theoryAlternatives(),
-  d_attr_handle(),
-  d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
+    : d_propEngine(nullptr),
+      d_decisionEngine(nullptr),
+      d_context(context),
+      d_userContext(userContext),
+      d_logicInfo(logicInfo),
+      d_sharedTerms(this, context),
+      d_masterEqualityEngine(nullptr),
+      d_masterEENotify(*this),
+      d_quantEngine(nullptr),
+      d_decManager(new DecisionManager(context)),
+      d_curr_model(nullptr),
+      d_aloc_curr_model(false),
+      d_curr_model_builder(nullptr),
+      d_aloc_curr_model_builder(false),
+      d_ppCache(),
+      d_possiblePropagations(context),
+      d_hasPropagated(context),
+      d_inConflict(context, false),
+      d_hasShutDown(false),
+      d_incomplete(context, false),
+      d_propagationMap(context),
+      d_propagationMapTimestamp(context, 0),
+      d_propagatedLiterals(context),
+      d_propagatedLiteralsIndex(context, 0),
+      d_atomRequests(context),
+      d_tform_remover(iteRemover),
+      d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
+      d_true(),
+      d_false(),
+      d_interrupted(false),
+      d_resourceManager(NodeManager::currentResourceManager()),
+      d_channels(channels),
+      d_inPreregister(false),
+      d_factsAsserted(context, false),
+      d_preRegistrationVisitor(this, context),
+      d_sharedTermsVisitor(d_sharedTerms),
+      d_theoryAlternatives(),
+      d_attr_handle(),
+      d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -324,7 +327,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
-  
+
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -763,9 +766,10 @@ void TheoryEngine::propagate(Theory::Effort effort) {
 }
 
 Node TheoryEngine::getNextDecisionRequest() {
-  // Definition of the statement that is to be run by every theory
   unsigned min_priority = 0;
-  Node dec;
+  Node dec = d_decManager->getNextDecisionRequest(min_priority);
+
+  // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
@@ -939,6 +943,10 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
+  // Reset the decision manager. This clears its decision strategies, which are
+  // user-context-dependent.
+  d_decManager->reset();
+
   // Reset the interrupt flag
   d_interrupted = false;
   bool CVC4_UNUSED wasInConflict = d_inConflict;

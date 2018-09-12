@@ -35,6 +35,7 @@
 #include "smt/command.h"
 #include "smt_util/lemma_channels.h"
 #include "theory/atom_requests.h"
+#include "theory/decision_manager.h"
 #include "theory/interrupted.h"
 #include "theory/rewriter.h"
 #include "theory/shared_terms_database.h"
@@ -198,6 +199,10 @@ class TheoryEngine {
    * The quantifiers engine
    */
   theory::QuantifiersEngine* d_quantEngine;
+  /**
+   * The decision manager
+   */
+  std::unique_ptr<theory::DecisionManager> d_decManager;
 
   /**
    * Default model object
@@ -524,9 +529,15 @@ public:
   theory::QuantifiersEngine* getQuantifiersEngine() const {
     return d_quantEngine;
   }
+  /**
+   * Get a pointer to the underlying decision manager.
+   */
+  theory::DecisionManager* getDecisionManager() const
+  {
+    return d_decManager.get();
+  }
 
-private:
-
+ private:
   /**
    * Helper for preprocess
    */
