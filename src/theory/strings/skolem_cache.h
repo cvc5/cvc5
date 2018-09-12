@@ -36,12 +36,12 @@ class SkolemCache
 {
  public:
   SkolemCache();
-  /** Identifiers for skolem types 
+  /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
    * inference in the strings solver, where by skolem we mean the fresh
    * string variable that witnesses each of "exists k".
-   * 
+   *
    * The skolems with _REV suffixes are used for the reverse version of the
    * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
    */
@@ -68,15 +68,15 @@ class SkolemCache
     SK_ID_CTN_PRE,
     SK_ID_CTN_POST,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
-    //    exists k, k_rem. 
-    //         len( k ) = 1 ^ 
+    //    exists k, k_rem.
+    //         len( k ) = 1 ^
     //         ( ( a = k ++ k_rem ^ k != "c" ) OR ( a = "c" ++ k_rem ) )
     SK_ID_DC_SPT,
     SK_ID_DC_SPT_REM,
     // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
     //    exists k_x k_y k_z.
     //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
-    //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) ) 
+    //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) )
     SK_ID_DEQ_X,
     SK_ID_DEQ_Y,
     SK_ID_DEQ_Z,
