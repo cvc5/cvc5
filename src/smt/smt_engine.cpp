@@ -114,6 +114,7 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -1255,12 +1256,13 @@ void SmtEngine::setDefaults() {
     is_sygus = true;
   }
 
-  if ((options::checkModels() || options::checkSynthSol())
+  if ((options::checkModels() || options::checkSynthSol()
+       || options::produceModelCores())
       && !options::produceAssertions())
   {
-      Notice() << "SmtEngine: turning on produce-assertions to support "
-               << "check-models or check-synth-sol." << endl;
-      setOption("produce-assertions", SExpr("true"));
+    Notice() << "SmtEngine: turning on produce-assertions to support "
+             << "check-models, check-synth-sol or produce-model-cores." << endl;
+    setOption("produce-assertions", SExpr("true"));
   }
 
   // Disable options incompatible with incremental solving, unsat cores, and
@@ -1452,7 +1454,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || is_sygus))
+          || options::produceModelCores() || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -4125,6 +4127,14 @@ Model* SmtEngine::getModel() {
     throw ModalException(msg);
   }
   TheoryModel* m = d_theoryEngine->getModel();
+
+  if (options::produceModelCores())
+  {
+    // If we enabled model cores, we compute a model core for m based on our
+    // assertions using the model core builder utility
+    std::vector<Expr> easserts = getAssertions();
+    ModelCoreBuilder::setModelCore(easserts, m);
+  }
   m->d_inputName = d_filename;
   return m;
 }
