@@ -134,7 +134,7 @@ class InstStrategyCegqi : public QuantifiersModule
    * The instantiator for each quantified formula q registered to this class.
    * This object is responsible for finding instantiatons for q.
    */
-  std::map<Node, CegInstantiator*> d_cinst;
+  std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
   /**
    * The decision strategy for each quantified formula q registered to this
    * class.
