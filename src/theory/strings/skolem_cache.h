@@ -56,7 +56,7 @@ class SkolemCache
     SK_ID_DEQ_Z,
     SK_ID_FIRST_CTN,
   };
-  /** 
+  /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
    * name c.
    */
@@ -65,6 +65,7 @@ class SkolemCache
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
+
  private:
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolem_cache;

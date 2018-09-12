@@ -524,8 +524,8 @@ private:
                      bool asLemma = false);
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);  
-  
+  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+
   /** Length status, used for the registerLength function below */
   enum LengthStatus
   {
@@ -549,25 +549,26 @@ private:
    * first via calls to requirePhase.
    */
   void registerLength(Node n, LengthStatus s);
-  
+
   //------------------------- candidate inferences
-  class InferInfo {
-  public:
+  class InferInfo
+  {
+   public:
     unsigned d_i;
     unsigned d_j;
     bool d_rev;
-    std::vector< Node > d_ant;
-    std::vector< Node > d_antn;
+    std::vector<Node> d_ant;
+    std::vector<Node> d_antn;
     std::map<LengthStatus, std::vector<Node> > d_new_skolem;
     Node d_conc;
     Inference d_id;
-    std::map< Node, bool > d_pending_phase;
+    std::map<Node, bool> d_pending_phase;
     unsigned d_index;
     Node d_nf_pair[2];
     bool sendAsLemma();
   };
   //------------------------- end candidate inferences
-  
+
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
   inline Node mkConcat(Node n1, Node n2, Node n3);

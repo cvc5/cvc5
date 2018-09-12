@@ -2666,7 +2666,7 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
                 pinfer[use_index].d_conc,
                 ssi.str().c_str(),
                 pinfer[use_index].sendAsLemma());
-  // Register the new skolems from this inference. We register them here 
+  // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
   for (std::pair<const LengthStatus, std::vector<Node> > sks :
@@ -3012,7 +3012,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                     isRev ? SkolemCache::SK_ID_V_SPT_REV
                           : SkolemCache::SK_ID_V_SPT,
                     "v_spt");
-                //must add length requirement
+                // must add length requirement
                 info.d_new_skolem[LENGTH_GEQ_ONE].push_back(sk);
                 Node eq1 = normal_forms[i][index].eqNode( isRev ? mkConcat(sk, normal_forms[j][index]) : mkConcat(normal_forms[j][index], sk) );
                 Node eq2 = normal_forms[j][index].eqNode( isRev ? mkConcat(sk, normal_forms[i][index]) : mkConcat(normal_forms[i][index], sk) );
