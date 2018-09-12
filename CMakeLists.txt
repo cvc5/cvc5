@@ -276,15 +276,6 @@ set(GPL_LIBS "")
 set(BUILD_TYPES Production Debug Testing Competition)
 
 #-----------------------------------------------------------------------------#
-# CVC4 build variables
-
-set(CVC4_DEBUG 0)
-set(CVC4_BUILD_PROFILE_PRODUCTION 0)
-set(CVC4_BUILD_PROFILE_DEBUG 0)
-set(CVC4_BUILD_PROFILE_TESTING 0)
-set(CVC4_BUILD_PROFILE_COMPETITION 0)
-
-#-----------------------------------------------------------------------------#
 # Build types
 
 if(ENABLE_ASAN)
@@ -300,6 +291,8 @@ if(NOT CMAKE_BUILD_TYPE)
 endif()
 message(STATUS "Building ${CMAKE_BUILD_TYPE} build")
 
+# Note: Module CodeCoverage requires the name of the debug build to conform
+#       to cmake standards (first letter uppercase).
 if(CMAKE_BUILD_TYPE STREQUAL "Debug")
   include(ConfigDebug)
 elseif(CMAKE_BUILD_TYPE STREQUAL "Production")
@@ -602,21 +595,8 @@ endif()
 #-----------------------------------------------------------------------------#
 # Print build configuration
 
-if(CVC4_BUILD_PROFILE_PRODUCTION)
-  set(CVC4_BUILD_PROFILE_STRING "production")
-elseif(CVC4_BUILD_PROFILE_DEBUG)
-  set(CVC4_BUILD_PROFILE_STRING "debug")
-elseif(CVC4_BUILD_PROFILE_TESTING)
-  set(CVC4_BUILD_PROFILE_STRING "testing")
-elseif(CVC4_BUILD_PROFILE_COMPETITION)
-  set(CVC4_BUILD_PROFILE_STRING "competition")
-endif()
-
-# Get all definitions added via add_definitions to print it below
-get_directory_property(CVC4_DEFINITIONS COMPILE_DEFINITIONS)
-string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
-
-# Print configuration of 2-valued or 3-valued option 'var' with prefix 'str'
+# Helper to print the configuration of a 2-valued or 3-valued option 'var'
+# with prefix 'str'.
 macro(print_config str var)
   if(${var} STREQUAL "ON")
     set(OPT_VAL_STR "on")
@@ -627,6 +607,13 @@ macro(print_config str var)
   endif()
   message("${str} ${OPT_VAL_STR}")
 endmacro()
+
+# Convert build type to lower case.
+string(TOLOWER ${CMAKE_BUILD_TYPE} CVC4_BUILD_PROFILE_STRING)
+
+# Get all definitions added via add_definitions.
+get_directory_property(CVC4_DEFINITIONS COMPILE_DEFINITIONS)
+string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
 
 message("CVC4 ${CVC4_RELEASE_STRING}")
 message("")

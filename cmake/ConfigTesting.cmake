@@ -1,4 +1,3 @@
-set(CVC4_BUILD_PROFILE_TESTING 1)
 # OPTLEVEL=2
 # enable_optimized=yes
 cvc4_set_option(ENABLE_OPTIMIZED ON)

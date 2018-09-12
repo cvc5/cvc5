@@ -1,4 +1,3 @@
-set(CVC4_BUILD_PROFILE_DEBUG 1)
 add_definitions(-DCVC4_DEBUG)
 set(CVC4_DEBUG 1)
 add_check_c_cxx_flag("-fno-inline")
