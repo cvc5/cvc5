@@ -205,6 +205,8 @@ libcvc4_la_SOURCES = \
 	smt/managed_ostreams.h \
 	smt/model.cpp \
 	smt/model.h \
+	smt/model_core_builder.cpp \
+	smt/model_core_builder.h \
 	smt/smt_engine.cpp \
 	smt/smt_engine.h \
 	smt/smt_engine_check_proof.cpp \
@@ -239,6 +241,8 @@ libcvc4_la_SOURCES = \
 	theory/sort_inference.h \
 	theory/substitutions.cpp \
 	theory/substitutions.h \
+	theory/subs_minimize.cpp \
+	theory/subs_minimize.h \
 	theory/term_registration_visitor.cpp \
 	theory/term_registration_visitor.h \
 	theory/theory.cpp \
