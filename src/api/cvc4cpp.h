@@ -2412,6 +2412,10 @@ class CVC4_PUBLIC Solver
   std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
+  /* Helper to check for API misuse in mkTerm functions. */
+  void check_mk_op_term(OpTerm opTerm, uint32_t nchildren) const;
+  /* Helper to check for API misuse in mkOpTerm functions. */
+  void check_mk_term(Kind kind, uint32_t nchildren) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

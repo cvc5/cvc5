@@ -1938,53 +1938,50 @@ Term Solver::mkBoundVar(Sort sort) const
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
 
-#define CVC4_API_CHECK_MK_TERM(kind, nchildren)                                \
-  do                                                                           \
-  {                                                                            \
-    PrettyCheckArgument(isDefinedKind(kind),                                   \
-                        kind,                                                  \
-                        "Invalid kind '%s'",                                   \
-                        kindToString(kind).c_str());                           \
-    const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));      \
-    PrettyCheckArgument(                                                       \
-        mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR, \
-        kind,                                                                  \
-        "Invalid kind '%s', "                                                  \
-        "only operator-style terms are created with mkTerm(), "                \
-        "to create variables and constants see mkVar(), mkBoundVar(), "        \
-        "and mkConst().",                                                      \
-        kindToString(kind).c_str());                                           \
-    if (nchildren)                                                             \
-    {                                                                          \
-      const uint32_t n =                                                       \
-          nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);     \
-      PrettyCheckArgument(                                                     \
-          n >= minArity(kind) && n <= maxArity(kind),                          \
-          kind,                                                                \
-          "Terms with kind %s must have at least %u children and "             \
-          "at most %u children (the one under construction has %u)",           \
-          kindToString(kind).c_str(),                                          \
-          minArity(kind),                                                      \
-          maxArity(kind),                                                      \
-          n);                                                                  \
-    }                                                                          \
-  } while (0)
+void Solver::check_mk_term(Kind kind, uint32_t nchildren) const
+{
+  PrettyCheckArgument(isDefinedKind(kind),
+                      kind,
+                      "Invalid kind '%s'",
+                      kindToString(kind).c_str());
+  const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
+  PrettyCheckArgument(
+      mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
+      kind,
+      "Invalid kind '%s', "
+      "only operator-style terms are created with mkTerm(), "
+      "to create variables and constants see mkVar(), mkBoundVar(), "
+      "and mkConst().",
+      kindToString(kind).c_str());
+  if (nchildren)
+  {
+    const uint32_t n =
+        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
+    PrettyCheckArgument(
+        n >= minArity(kind) && n <= maxArity(kind),
+        kind,
+        "Terms with kind %s must have at least %u children and "
+        "at most %u children (the one under construction has %u)",
+        kindToString(kind).c_str(),
+        minArity(kind),
+        maxArity(kind),
+        n);
+  }
+}
 
-#define CVC4_API_CHECK_MK_OP_TERM(opTerm, nchildren)              \
-  do                                                              \
-  {                                                               \
-    const Kind kind = opTerm.getKind();                           \
-    const CVC4::Kind int_kind = extToIntKind(kind);               \
-    const CVC4::Kind int_op_kind =                                \
-        NodeManager::operatorToKind(opTerm.d_expr->getNode());    \
-    PrettyCheckArgument(                                          \
-        int_kind != kind::BUILTIN                                 \
-            && CVC4::kind::metaKindOf(int_op_kind)                \
-                   != kind::metakind::PARAMETERIZED,              \
-        opTerm,                                                   \
-        "This term constructor is for parameterized kinds only"); \
-    CVC4_API_CHECK_MK_TERM(kind, nchildren);                      \
-  } while (0)
+void Solver::check_mk_op_term(OpTerm opTerm, uint32_t nchildren) const
+{
+  const Kind kind = opTerm.getKind();
+  const CVC4::Kind int_kind = extToIntKind(kind);
+  const CVC4::Kind int_op_kind =
+      NodeManager::operatorToKind(opTerm.d_expr->getNode());
+  PrettyCheckArgument(int_kind != kind::BUILTIN
+                          && CVC4::kind::metaKindOf(int_op_kind)
+                                 != kind::metakind::PARAMETERIZED,
+                      opTerm,
+                      "This term constructor is for parameterized kinds only");
+  check_mk_term(kind, nchildren);
+}
 
 Term Solver::mkTerm(Kind kind) const
 {
@@ -2012,19 +2009,19 @@ Term Solver::mkTerm(Kind kind, Sort sort) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  CVC4_API_CHECK_MK_TERM(kind, 1);
+  check_mk_term(kind, 1);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  CVC4_API_CHECK_MK_TERM(kind, 2);
+  check_mk_term(kind, 2);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  CVC4_API_CHECK_MK_TERM(kind, 3);
+  check_mk_term(kind, 3);
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
@@ -2033,7 +2030,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  CVC4_API_CHECK_MK_TERM(kind, children.size());
+  check_mk_term(kind, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
@@ -2042,32 +2039,32 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 
 Term Solver::mkTerm(OpTerm opTerm) const
 {
-  CVC4_API_CHECK_MK_OP_TERM(opTerm, 0);
+  check_mk_op_term(opTerm, 0);
   return d_exprMgr->mkExpr(*opTerm.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
-  CVC4_API_CHECK_MK_OP_TERM(opTerm, 1);
+  check_mk_op_term(opTerm, 1);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
-  CVC4_API_CHECK_MK_OP_TERM(opTerm, 2);
+  check_mk_op_term(opTerm, 2);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
-  CVC4_API_CHECK_MK_OP_TERM(opTerm, 3);
+  check_mk_op_term(opTerm, 3);
   return d_exprMgr->mkExpr(
       *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
-  CVC4_API_CHECK_MK_OP_TERM(opTerm, children.size());
+  check_mk_op_term(opTerm, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
 }
