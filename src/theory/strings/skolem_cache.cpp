@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A cache of skolems for theory of strings.
+ ** \brief Implementation of a cache of skolems for theory of strings.
  **/
 
 #include "theory/strings/skolem_cache.h"

@@ -445,10 +445,8 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           //positive contains reduces to a equality
           Node sk1 = d_sk_cache->mkSkolemCached(
               x, s, SkolemCache::SK_ID_CTN_PRE, "sc1");
-          registerLength(sk1, LENGTH_SPLIT);
           Node sk2 = d_sk_cache->mkSkolemCached(
               x, s, SkolemCache::SK_ID_CTN_POST, "sc2");
-          registerLength(sk2, LENGTH_SPLIT);
           Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
           std::vector< Node > exp_vec;
           exp_vec.push_back( n );
@@ -2668,7 +2666,9 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
                 pinfer[use_index].d_conc,
                 ssi.str().c_str(),
                 pinfer[use_index].sendAsLemma());
-  // register the new skolems from this inference
+  // Register the new skolems from this inference. We register them here 
+  // (lazily), since the code above has now decided to use the inference
+  // at use_index that involves them.
   for (std::pair<const LengthStatus, std::vector<Node> > sks :
        pinfer[use_index].d_new_skolem)
   {
@@ -3231,11 +3231,9 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
                           << std::endl;
     // right
     Node sk_w = d_sk_cache->mkSkolem("w_loop");
-    registerLength(sk_w, LENGTH_SPLIT);
     Node sk_y = d_sk_cache->mkSkolem("y_loop");
     registerLength(sk_y, LENGTH_GEQ_ONE);
     Node sk_z = d_sk_cache->mkSkolem("z_loop");
-    registerLength(sk_z, LENGTH_SPLIT);
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(mkConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
@@ -3342,7 +3340,6 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                                                  firstChar,
                                                  SkolemCache::SK_ID_DC_SPT_REM,
                                                  "dc_spt_rem");
-                  registerLength(skr, LENGTH_SPLIT);
                   Node eq1 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk, skr ) );
                   eq1 = Rewriter::rewrite( eq1 );
                   Node eq2 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, skr ) );
@@ -3373,10 +3370,8 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               std::vector< Node > conc;
               Node sk1 = d_sk_cache->mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
-              registerLength(sk1, LENGTH_SPLIT);
               Node sk2 = d_sk_cache->mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
-              registerLength(sk2, LENGTH_SPLIT);
               Node sk3 = d_sk_cache->mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
               registerLength(sk3, LENGTH_GEQ_ONE);

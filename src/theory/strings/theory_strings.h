@@ -395,35 +395,12 @@ private:
 
  private:
   //---------------------- skolems
-  enum LengthStatus
-  {
-    LENGTH_SPLIT,
-    LENGTH_ONE,
-    LENGTH_GEQ_ONE
-  };
   /** cache of all skolems */
   std::unique_ptr<SkolemCache> d_sk_cache;
   /** register skolem */
   void registerSkolem(Node sk, LengthStatus s);
   //----------------------- end skolems
 
-  //------------------------- candidate inferences
-  class InferInfo {
-  public:
-    unsigned d_i;
-    unsigned d_j;
-    bool d_rev;
-    std::vector< Node > d_ant;
-    std::vector< Node > d_antn;
-    std::map<LengthStatus, std::vector<Node> > d_new_skolem;
-    Node d_conc;
-    Inference d_id;
-    std::map< Node, bool > d_pending_phase;
-    unsigned d_index;
-    Node d_nf_pair[2];
-    bool sendAsLemma();
-  };
-  //------------------------- end candidate inferences
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
@@ -547,7 +524,15 @@ private:
                      bool asLemma = false);
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  bool sendSplit(Node a, Node b, const char* c, bool preq = true);  
+  
+  /** Length status, used for the registerLength function below */
+  enum LengthStatus
+  {
+    LENGTH_SPLIT,
+    LENGTH_ONE,
+    LENGTH_GEQ_ONE
+  };
   /** register length
    *
    * This method is called on non-constant string terms n. It sends a lemma
@@ -556,7 +541,7 @@ private:
    *
    * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
    *
-   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) >= 1.
+   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
    *
    * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
    *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
@@ -564,6 +549,25 @@ private:
    * first via calls to requirePhase.
    */
   void registerLength(Node n, LengthStatus s);
+  
+  //------------------------- candidate inferences
+  class InferInfo {
+  public:
+    unsigned d_i;
+    unsigned d_j;
+    bool d_rev;
+    std::vector< Node > d_ant;
+    std::vector< Node > d_antn;
+    std::map<LengthStatus, std::vector<Node> > d_new_skolem;
+    Node d_conc;
+    Inference d_id;
+    std::map< Node, bool > d_pending_phase;
+    unsigned d_index;
+    Node d_nf_pair[2];
+    bool sendAsLemma();
+  };
+  //------------------------- end candidate inferences
+  
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
   inline Node mkConcat(Node n1, Node n2, Node n3);
