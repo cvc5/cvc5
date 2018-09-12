@@ -36,6 +36,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
   --unit-testing           support for unit testing
+  --python2                prefer using Python 2 (for Python bindings)
 
 The following options configure parameterized features.
 
@@ -119,6 +120,7 @@ statistics=default
 symfpu=default
 tracing=default
 unit_testing=default
+python2=default
 valgrind=default
 profiling=default
 readline=default
@@ -216,6 +218,9 @@ do
 
     --unit-testing) unit_testing=ON;;
     --no-unit-testing) unit_testing=OFF;;
+
+    --python2) python2=ON;;
+    --no-python2) python2=OFF;;
 
     --valgrind) valgrind=ON;;
     --no-valgrind) valgrind=OFF;;
@@ -335,6 +340,9 @@ cmake_opts=""
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing" \
   && [ $unit_testing = ON ] && builddir="$builddir-unit_testing"
+[ $python2 != default ] \
+  && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2" \
+  && [ $python2 = ON ] && builddir="$builddir-python2"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind" \
   && [ $valgrind = ON ] && builddir="$builddir-valgrind"

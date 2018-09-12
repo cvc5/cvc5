@@ -31,3 +31,4 @@ configure_file(
   ${CMAKE_CURRENT_BINARY_DIR}/signatures.cpp)
 
 libcvc4_add_sources(GENERATED signatures.cpp)
+install(FILES ${core_signature_files} DESTINATION share/cvc4)

@@ -674,3 +674,133 @@ target_compile_definitions(cvc4
 add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
 target_link_libraries(cvc4 ${LIBCVC4_LIBRARIES})
 target_include_directories(cvc4 PUBLIC ${LIBCVC4_INCLUDES})
+install(TARGETS cvc4 DESTINATION lib)
+
+# Note:
+# We define all install commands for all public headers here in one
+# place so that we can easily remove them as soon as we enforce the new
+# C++ API.
+#
+# All (generated) headers that either include cvc4_public.h or
+# cvc4parser_public.h need to be listed explicitly here.
+#
+install(FILES
+          api/cvc4cpp.h
+          api/cvc4cppkind.h
+        DESTINATION
+          include/api)
+install(FILES
+          base/configuration.h
+          base/exception.h
+          base/listener.h
+          base/modal_exception.h
+        DESTINATION
+          include/base)
+install(FILES
+          context/cdhashmap_forward.h
+          context/cdhashset_forward.h
+          context/cdinsert_hashmap_forward.h
+          context/cdlist_forward.h
+        DESTINATION
+          include/context)
+install(FILES
+          include/cvc4.h
+          include/cvc4_public.h
+          include/cvc4parser_public.h
+        DESTINATION
+          include)
+install(FILES
+          expr/array.h
+          expr/array_store_all.h
+          expr/ascription_type.h
+          expr/chain.h
+          expr/datatype.h
+          expr/emptyset.h
+          expr/expr_iomanip.h
+          expr/expr_stream.h
+          expr/pickler.h
+          expr/record.h
+          expr/symbol_table.h
+          expr/type.h
+          expr/uninterpreted_constant.h
+          expr/variable_type_map.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
+          ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
+        DESTINATION
+          include/expr)
+install(FILES
+          options/argument_extender.h
+          options/arith_heuristic_pivot_rule.h
+          options/arith_propagation_mode.h
+          options/arith_unate_lemma_mode.h
+          options/datatypes_modes.h
+          options/language.h
+          options/option_exception.h
+          options/options.h
+          options/printer_modes.h
+          options/quantifiers_modes.h
+          options/set_language.h
+          options/simplification_mode.h
+          options/sygus_out_mode.h
+          options/theoryof_mode.h
+        DESTINATION
+          include/options)
+install(FILES
+          parser/input.h
+          parser/parser.h
+          parser/parser_builder.h
+          parser/parser_exception.h
+        DESTINATION
+          include/parser)
+install(FILES
+          printer/sygus_print_callback.h
+        DESTINATION
+          include/printer)
+install(FILES
+          proof/unsat_core.h
+        DESTINATION
+          include/proof)
+install(FILES
+          smt/command.h
+          smt/logic_exception.h
+          smt/smt_engine.h
+        DESTINATION
+          include/smt)
+install(FILES
+          smt_util/lemma_channels.h
+          smt_util/lemma_input_channel.h
+          smt_util/lemma_output_channel.h
+        DESTINATION
+          include/smt_util)
+install(FILES
+          theory/logic_info.h
+        DESTINATION
+          include/theory)
+install(FILES
+        util/abstract_value.h
+        util/bitvector.h
+        util/bool.h
+        util/cardinality.h
+        util/channel.h
+        util/divisible.h
+        util/gmp_util.h
+        util/hash.h
+        util/integer_cln_imp.h
+        util/integer_gmp_imp.h
+        util/maybe.h
+        util/proof.h
+        util/rational_cln_imp.h
+        util/rational_gmp_imp.h
+        util/regexp.h
+        util/resource_manager.h
+        util/result.h
+        util/sexpr.h
+        util/statistics.h
+        util/tuple.h
+        util/unsafe_interrupt_exception.h
+        ${CMAKE_CURRENT_BINARY_DIR}/util/floatingpoint.h
+        ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
+        ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
+        DESTINATION
+          include/util)

@@ -1,3 +1,7 @@
+if(NOT ENABLE_SHARED)
+  message(FATAL_ERROR "Can't build language bindings for static CVC4 build.")
+endif()
+
 find_package(SWIG 3.0.0 REQUIRED)
 include(${SWIG_USE_FILE})
 
