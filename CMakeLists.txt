@@ -352,9 +352,12 @@ endif()
 #-----------------------------------------------------------------------------#
 # Enable the ctest testing framework
 
+# This needs to be enabled here rather than in subdirectory test in order to
+# allow calling ctest from the root build directory.
 enable_testing()
 
 #-----------------------------------------------------------------------------#
+# Check options, find packages and configure build.
 
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
@@ -590,24 +593,15 @@ endif()
 
 add_subdirectory(doc)
 add_subdirectory(src)
+add_subdirectory(test)
 
 if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
   add_subdirectory(src/bindings)
 endif()
 
-if(BUILD_BINDINGS_JAVA)
-  add_subdirectory(test/java)
-endif()
-
-add_subdirectory(test/regress)
-add_subdirectory(test/system)
-
-if(ENABLE_UNIT_TESTING)
-	add_subdirectory(test/unit)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Print build configuration
+
 if(CVC4_BUILD_PROFILE_PRODUCTION)
   set(CVC4_BUILD_PROFILE_STRING "production")
 elseif(CVC4_BUILD_PROFILE_DEBUG)
@@ -622,7 +616,7 @@ endif()
 get_directory_property(CVC4_DEFINITIONS COMPILE_DEFINITIONS)
 string(REPLACE ";" " " CVC4_DEFINITIONS "${CVC4_DEFINITIONS}")
 
-# Print configuration of 2/3-valued option 'var' with prefix 'str'
+# Print configuration of 2-valued or 3-valued option 'var' with prefix 'str'
 macro(print_config str var)
   if(${var} STREQUAL "ON")
     set(OPT_VAL_STR "on")

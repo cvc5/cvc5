@@ -3,7 +3,12 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
-add_custom_target(systemtests COMMAND ctest --output-on-failure -L "system" $(ARGS))
+#-----------------------------------------------------------------------------#
+# Add target 'systemtests', builds and runs
+# > system tests
+
+add_custom_target(systemtests
+  COMMAND ctest --output-on-failure -L "system" -j${NTHREADS} $(ARGS))
 
 set(CVC4_SYSTEM_TEST_FLAGS
   -D__BUILDING_CVC4_SYSTEM_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)

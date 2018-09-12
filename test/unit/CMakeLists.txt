@@ -3,7 +3,12 @@ include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
 
-add_custom_target(units COMMAND ctest -L "unit" $(ARGS))
+#-----------------------------------------------------------------------------#
+# Add target 'units', builds and runs
+# > unit tests
+
+add_custom_target(units
+  COMMAND ctest --output-on-failure -L "unit" -j${NTHREADS} $(ARGS))
 
 set(CVC4_CXXTEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST

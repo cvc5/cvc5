@@ -2050,11 +2050,15 @@ set(regression_disabled_tests
   regress2/xs-11-20-5-2-5-3.smt2
 )
 
+#-----------------------------------------------------------------------------#
+# Add target 'regress', builds and runs
+# > regression tests of levels 0 and 1
+
 get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
 add_custom_target(regress
-  COMMAND ctest --output-on-failure -L "regress[0-1]" $(ARGS)
+  COMMAND ctest --output-on-failure -L "regress[0-1]" -j${NTHREADS} $(ARGS)
   DEPENDS cvc4-bin)
 
 macro(cvc4_add_regression_test level file)
