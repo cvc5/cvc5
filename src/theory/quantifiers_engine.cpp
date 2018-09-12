@@ -382,7 +382,7 @@ quantifiers::InstStrategyEnum* QuantifiersEngine::getInstStrategyEnum() const
 {
   return d_fs.get();
 }
-quantifiers::InstStrategyCbqi* QuantifiersEngine::getInstStrategyCbqi() const
+quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
 {
   return d_i_cbqi.get();
 }
