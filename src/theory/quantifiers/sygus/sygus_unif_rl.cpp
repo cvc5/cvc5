@@ -926,7 +926,7 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::recomputeSolHeuristically(
   conds.insert(conds.end(), d_dt->d_cond_mvs.begin(), d_dt->d_cond_mvs.end());
 
   // recursively build trie by picking best condition for respective points
-  buildDt(d_dt->d_hds, conds, hd_mv, 1);
+  buildDtInfoGain(d_dt->d_hds, conds, hd_mv, 1);
   // if no condition was added (i.e. points are already classified at root
   // level), use last condition as candidate
   if (d_dt->d_conds.empty())
@@ -940,25 +940,25 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::recomputeSolHeuristically(
   }
 }
 
-void SygusUnifRl::DecisionTreeInfo::PointSeparator::buildDt(
-    std::vector<Node>& pts,
+void SygusUnifRl::DecisionTreeInfo::PointSeparator::buildDtInfoGain(
+    std::vector<Node>& hds,
     std::vector<Node> conds,
     std::map<Node, Node>& hd_mv,
     int ind)
 {
   // test if fully classified
-  if (pts.size() < 2)
+  if (hds.size() < 2)
   {
     indent("sygus-unif-dt", ind);
     Trace("sygus-unif-dt") << "..set fully classified: "
-                           << (pts.empty() ? "empty" : "unary") << "\n";
+                           << (hds.empty() ? "empty" : "unary") << "\n";
     return;
   }
-  Node v1 = hd_mv[pts[0]];
-  unsigned i = 1, size = pts.size();
+  Node v1 = hd_mv[hds[0]];
+  unsigned i = 1, size = hds.size();
   for (; i < size; ++i)
   {
-    if (hd_mv[pts[i]] != v1)
+    if (hd_mv[hds[i]] != v1)
     {
       break;
     }
@@ -966,7 +966,7 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::buildDt(
   if (i == size)
   {
     indent("sygus-unif-dt", ind);
-    Trace("sygus-unif-dt") << "..set fully classified: " << pts.size() << " "
+    Trace("sygus-unif-dt") << "..set fully classified: " << hds.size() << " "
                            << (d_dt->d_unif->d_tds->sygusToBuiltin(v1,
                                                                    v1.getType())
                                        == d_true
@@ -979,18 +979,18 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::buildDt(
   double maxgain = -1;
   unsigned picked_cond = 0;
   std::vector<std::pair<std::vector<Node>, std::vector<Node>>> splits;
-  double current_set_entropy = getEntropy(pts, hd_mv, ind);
+  double current_set_entropy = getEntropy(hds, hd_mv, ind);
   for (unsigned i = 0, size = conds.size(); i < size; ++i)
   {
     std::pair<std::vector<Node>, std::vector<Node>> split =
-        evaluateCond(pts, conds[i]);
+        evaluateCond(hds, conds[i]);
     splits.push_back(split);
-    Assert(pts.size() == split.first.size() + split.second.size());
+    Assert(hds.size() == split.first.size() + split.second.size());
     double gain =
         current_set_entropy
         - (split.first.size() * getEntropy(split.first, hd_mv, ind)
            + split.second.size() * getEntropy(split.second, hd_mv, ind))
-              / pts.size();
+              / hds.size();
     indent("sygus-unif-dt-debug", ind);
     Trace("sygus-unif-dt-debug")
         << "..gain of "
@@ -1013,8 +1013,8 @@ void SygusUnifRl::DecisionTreeInfo::PointSeparator::buildDt(
   conds.erase(conds.begin() + picked_cond);
   d_trie.addClassifier(this, d_dt->d_conds.size() - 1);
   // recurse
-  buildDt(splits[picked_cond].first, conds, hd_mv, ind + 1);
-  buildDt(splits[picked_cond].second, conds, hd_mv, ind + 1);
+  buildDtInfoGain(splits[picked_cond].first, conds, hd_mv, ind + 1);
+  buildDtInfoGain(splits[picked_cond].second, conds, hd_mv, ind + 1);
 }
 
 std::pair<std::vector<Node>, std::vector<Node>>
@@ -1036,11 +1036,11 @@ SygusUnifRl::DecisionTreeInfo::PointSeparator::evaluateCond(
 }
 
 double SygusUnifRl::DecisionTreeInfo::PointSeparator::getEntropy(
-    const std::vector<Node>& pts, std::map<Node, Node>& hd_mv, int ind)
+    const std::vector<Node>& hds, std::map<Node, Node>& hd_mv, int ind)
 {
   double p = 0, n = 0;
   // get number of points evaluated positively and negatively with feature
-  for (const Node& e : pts)
+  for (const Node& e : hds)
   {
     if (d_dt->d_unif->d_tds->sygusToBuiltin(hd_mv[e]) == d_true)
     {

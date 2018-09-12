@@ -308,32 +308,43 @@ class SygusUnifRl : public SygusUnif
       /** rebuild decision tree using information gain heuristic
        *
        * In a scenario in which the decision tree potentially contains more
-       * conditions than necessary, it is benefetial to rebuild it in a way that
+       * conditions than necessary, it is beneficial to rebuild it in a way that
        * "better" conditions occurr closer to the top.
        *
        * The information gain heuristic selects conditions that lead to a
        * greater reduction of the Shannon entropy in the set of points
        */
       void recomputeSolHeuristically(std::map<Node, Node>& hd_mv);
-      /** recursively select (best) conditions to split poinst
+      /** recursively select (best) conditions to split heads
        *
-       * At each call picks the best condition according to information gain and
-       * splits the set of points accordingly, then recurses on them.
+       * At each call picks the best condition based on the information gain
+       * heuristic and splits the set of heads accordingly, then recurses on
+       * them.
        *
-       * The base case is a set being fully classified (i.e. all points have the
+       * The base case is a set being fully classified (i.e. all heads have the
        * same value)
-       */
-      void buildDt(std::vector<Node>& pts,
-                   std::vector<Node> conds,
-                   std::map<Node, Node>& hd_mv,
-                   int ind);
-      /** computes the Shannon entropy of a set of points
        *
-       * The entropy depends on how many positive and negative points are in the
-       * set and in their distribution. The polarity of the points (evaluation
-       * heads) is queried from hd_mv
+       * hds is the set of evaluation point heads we must classify with the
+       * values in conds. The classification is guided by how a condition value
+       * splits the heads through its evaluation on the points associated with
+       * the heads. The metric is based on the model values of the heads (hd_mv)
+       * in the resulting splits.
+       *
+       * ind is the current level of indentation (for debugging)
        */
-      double getEntropy(const std::vector<Node>& pts,
+      void buildDtInfoGain(std::vector<Node>& hds,
+                           std::vector<Node> conds,
+                           std::map<Node, Node>& hd_mv,
+                           int ind);
+      /** computes the Shannon entropy of a set of heads
+       *
+       * The entropy depends on how many positive and negative heads are in the
+       * set and in their distribution. The polarity of the evaluation heads is
+       * queried from their model values in hd_mv.
+       *
+       * ind is the current level of indentation (for debugging)
+       */
+      double getEntropy(const std::vector<Node>& hds,
                         std::map<Node, Node>& hd_mv,
                         int ind);
       /** evaluates a condition on a set of points
