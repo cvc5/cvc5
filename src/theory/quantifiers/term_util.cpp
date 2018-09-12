@@ -881,7 +881,7 @@ bool TermUtil::isIdempotentArg(Node n, Kind ik, int arg)
   return false;
 }
 
-Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
+Node TermUtil::isSingularArg(Node n, Kind ik, unsigned arg)
 {
   TypeNode tn = n.getType();
   if (n == getTypeValue(tn, 0))
@@ -919,10 +919,6 @@ Node TermUtil::isSingularArg(Node n, Kind ik, int arg)
       if (arg == 0)
       {
         return n;
-      }
-      else
-      {
-        // TODO?
       }
     }
     else if (ik == STRING_SUBSTR)

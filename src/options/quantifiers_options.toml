@@ -741,7 +741,7 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
-### Rewrite rules options 
+### Rewrite rules options
 
 [[option]]
   name       = "quantRewriteRules"
@@ -761,7 +761,7 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "add one instance of rewrite rule per round"
 
-### Induction options 
+### Induction options
 
 [[option]]
   name       = "quantInduction"
@@ -976,6 +976,22 @@ header = "options/quantifiers_options.h"
   help       = "Unification-based function synthesis"
 
 [[option]]
+  name       = "sygusUnifCondIndependent"
+  category   = "regular"
+  long       = "sygus-unif-cond-independent"
+  type       = "bool"
+  default    = "false"
+  help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
+
+[[option]]
+  name       = "sygusUnifCondIndNoRepeatSol"
+  category   = "regular"
+  long       = "sygus-unif-cond-indpendent-no-repeat-sol"
+  type       = "bool"
+  default    = "true"
+  help       = "Do not try repeated solutions when using independent synthesis of conditions in unification-based function synthesis"
+
+[[option]]
   name       = "sygusBoolIteReturnConst"
   category   = "regular"
   long       = "sygus-bool-ite-return-const"
@@ -999,6 +1015,13 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
+
+[[option]]
+  name       = "sygusRepairConstTimeout"
+  category   = "regular"
+  long       = "sygus-repair-const-timeout=N"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -1157,7 +1180,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "Minimize synthesis solutions"
-  
+
 [[option]]
   name       = "sygusEvalOpt"
   category   = "regular"
@@ -1173,7 +1196,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "static inference techniques for computing whether arguments of functions-to-synthesize are relevant"
-  
+
 # Internal uses of sygus
 
 [[option]]

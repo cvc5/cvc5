@@ -793,7 +793,6 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   return node;
 }
 
-
 void TheoryStrings::check(Effort e) {
   if (done() && e<EFFORT_FULL) {
     return;
@@ -3052,6 +3051,11 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     ss << "Looping word equation encountered." << std::endl;
     throw LogicException(ss.str());
   }
+  if (!options::stringProcessLoop())
+  {
+    d_out->setIncomplete();
+    return false;
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   Trace("strings-loop") << "Detected possible loop for "
@@ -3229,16 +3233,11 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     d_regexp_ant[str_in_re] = ant;
   }
   // we will be done
-  if (options::stringProcessLoop())
-  {
-    info.d_conc = conc;
-    info.d_id = INFER_FLOOP;
-    info.d_nf_pair[0] = normal_form_src[i];
-    info.d_nf_pair[1] = normal_form_src[j];
-    return true;
-  }
-  d_out->setIncomplete();
-  return false;
+  info.d_conc = conc;
+  info.d_id = INFER_FLOOP;
+  info.d_nf_pair[0] = normal_form_src[i];
+  info.d_nf_pair[1] = normal_form_src[j];
+  return true;
 }
 
 //return true for lemma, false if we succeed
@@ -4301,6 +4300,19 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  Node atomElim;
+  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
+  {
+    // aggressive elimination of regular expression membership
+    atomElim = d_regexp_elim.eliminate(atom);
+    if (!atomElim.isNull())
+    {
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+                           << " via regular expression elimination."
+                           << std::endl;
+      atom = atomElim;
+    }
+  }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;
