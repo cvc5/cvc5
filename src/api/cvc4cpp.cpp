@@ -617,7 +617,7 @@ bool isDefinedKind(Kind k)
 
 bool isDefinedIntKind(CVC4::Kind k)
 {
-  return k >= CVC4::Kind::NULL_EXPR && k < CVC4::Kind::LAST_KIND;
+  return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
 
 Kind intToExtKind(CVC4::Kind k)
