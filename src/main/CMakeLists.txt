@@ -36,6 +36,7 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
+install(TARGETS cvc4-bin DESTINATION bin)
 
 if(ENABLE_PORTFOLIO)
   set(pcvc4_src_files
@@ -56,6 +57,7 @@ if(ENABLE_PORTFOLIO)
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
   target_link_libraries(pcvc4-bin cvc4 cvc4parser ${Boost_LIBRARIES})
   target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
+  install(TARGETS pcvc4-bin DESTINATION bin)
 endif()
 
 if(USE_READLINE)

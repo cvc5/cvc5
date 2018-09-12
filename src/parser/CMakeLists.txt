@@ -78,8 +78,8 @@ foreach(lang Cvc Smt1 Smt2 Tptp)
 endforeach()
 
 add_library(cvc4parser ${cvc4parser_src_files})
-set_target_properties(cvc4parser
-  PROPERTIES VERSION ${CVC4_VERSION} SOVERSION ${CVC4_SOVERSION})
+set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})
 target_include_directories(cvc4parser PRIVATE ${ANTLR_INCLUDE_DIR})
+install(TARGETS cvc4parser DESTINATION lib)

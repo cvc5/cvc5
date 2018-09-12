@@ -8,14 +8,15 @@ endif()
 
 project(cvc4)
 
-# Major component of the version of CVC4.
-set(CVC4_MAJOR 1)
-# Minor component of the version of CVC4.
-set(CVC4_MINOR 7)
-# Release component of the version of CVC4.
-set(CVC4_RELEASE 0)
+set(CVC4_MAJOR   1) # Major component of the version of CVC4.
+set(CVC4_MINOR   7) # Minor component of the version of CVC4.
+set(CVC4_RELEASE 0) # Release component of the version of CVC4.
+
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
+
+# Shared library versioning. Increment SOVERSION for every new CVC4 release.
+set(CVC4_SOVERSION 5)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
@@ -27,10 +28,6 @@ endif()
 
 # Define to the full name of this package.
 set(PACKAGE_NAME "${PROJECT_NAME}")
-
-# Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_VERSION "${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}")
-set(CVC4_SOVERSION 5)
 
 #### These defines are only use in autotools make files, will likely be 
 #### replaced with corresponding CPack stuff
@@ -250,6 +247,7 @@ option(USE_CADICAL       "Use CaDiCaL SAT solver")
 option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_LFSC          "Use LFSC proof checker")
 option(USE_SYMFPU        "Use SymFPU for floating point support")
+option(USE_PYTHON2       "Prefer using Python 2 (for Python bindings)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -357,6 +355,13 @@ endif()
 enable_testing()
 
 #-----------------------------------------------------------------------------#
+
+if(USE_PYTHON2)
+  find_package(PythonInterp 2.7 REQUIRED)
+else()
+  find_package(PythonInterp 3)
+  find_package(PythonInterp REQUIRED)
+endif()
 
 set(GMP_HOME ${GMP_DIR})
 find_package(GMP REQUIRED)
