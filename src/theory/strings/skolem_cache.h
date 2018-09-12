@@ -36,25 +36,50 @@ class SkolemCache
 {
  public:
   SkolemCache();
-  /** identifiers for skolem types */
+  /** Identifiers for skolem types 
+   *
+   * The comments below document the properties of each skolem introduced by
+   * inference in the strings solver, where by skolem we mean the fresh
+   * string variable that witnesses each of "exists k".
+   * 
+   * The skolems with _REV suffixes are used for the reverse version of the
+   * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
+   */
   enum SkolemId
   {
+    // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
+    //    exists k. a = "cccc" + k
     SK_ID_C_SPT,
-    SK_ID_VC_SPT,
-    SK_ID_VC_BIN_SPT,
-    SK_ID_V_SPT,
     SK_ID_C_SPT_REV,
+    // a != "" ^ b = "c" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. a = "c" ++ k
+    SK_ID_VC_SPT,
     SK_ID_VC_SPT_REV,
+    // a != "" ^ b = "cccccccc" ^ len(a)!=len(b) a ++ a' = b = b' =>
+    //    exists k. a = "cccc" ++ k OR ( len(k) > 0 ^ "cccc" = a ++ k )
+    SK_ID_VC_BIN_SPT,
     SK_ID_VC_BIN_SPT_REV,
+    // a != "" ^ b != "" ^ len(a)!=len(b) ^ a ++ a' = b ++ b' =>
+    //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
+    SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
+    // contains( a, b ) =>
+    //    exists k_pre, k_post. a = k_pre ++ b ++ k_post
     SK_ID_CTN_PRE,
     SK_ID_CTN_POST,
+    // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
+    //    exists k, k_rem. 
+    //         len( k ) = 1 ^ 
+    //         ( ( a = k ++ k_rem ^ k != "c" ) OR ( a = "c" ++ k_rem ) )
     SK_ID_DC_SPT,
     SK_ID_DC_SPT_REM,
+    // a != ""  ^ b != "" ^ len( a ) != len( b ) ^ a ++ a' != b ++ b' =>
+    //    exists k_x k_y k_z.
+    //         ( len( k_y ) = len( a ) ^ len( k_x ) = len( b ) ^ len( k_z) > 0
+    //           ( a = k_x ++ k_z OR b = k_y ++ k_z ) ) 
     SK_ID_DEQ_X,
     SK_ID_DEQ_Y,
     SK_ID_DEQ_Z,
-    SK_ID_FIRST_CTN,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
