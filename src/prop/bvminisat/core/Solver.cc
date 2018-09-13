@@ -35,8 +35,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/mtl/Sort.h"
-#include "util/utility.h"
 #include "theory/interrupted.h"
+#include "util/utility.h"
 
 namespace CVC4 {
 namespace BVMinisat {

@@ -24,12 +24,11 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <zlib.h>
 #include <sys/resource.h>
 
-#include "prop/bvminisat/utils/System.h"
-#include "prop/bvminisat/utils/ParseUtils.h"
-#include "prop/bvminisat/utils/Options.h"
 #include "prop/bvminisat/core/Dimacs.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
-
+#include "prop/bvminisat/utils/Options.h"
+#include "prop/bvminisat/utils/ParseUtils.h"
+#include "prop/bvminisat/utils/System.h"
 
 //=================================================================================================
 
