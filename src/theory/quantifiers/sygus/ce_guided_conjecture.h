@@ -259,8 +259,6 @@ private:
     }
   };
   std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
-  /** the streaming guards for sygus streaming mode */
-  std::vector< Node > d_stream_guards;
   /** get current stream guard */
   Node getCurrentStreamGuard() const;
   /** get stream guarded lemma

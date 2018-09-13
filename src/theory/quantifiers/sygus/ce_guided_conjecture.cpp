@@ -208,7 +208,7 @@ void CegConjecture::assign( Node q ) {
     d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
         DecisionManager::STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
         d_stream_strategy.get());
-    d_current_stream_guard = getCurrentStreamGuard();
+    d_current_stream_guard = d_stream_strategy->getLiteral(0);
   }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
@@ -589,25 +589,18 @@ void CegConjecture::debugPrint( const char * c ) {
 }
 
 Node CegConjecture::getCurrentStreamGuard() const {
-  if( d_stream_guards.empty() ){
-    return Node::null();
-  }else{
-    return d_stream_guards.back();
-  }
-  /*
   if( d_stream_strategy!=nullptr )
   {
     // the stream guard is the current asserted literal of the stream strategy
     Node lit = d_stream_strategy->getAssertedLiteral();
     if( lit.isNull() )
     {
-      // if none exist, get the first   TODO: is this right?
+      // if none exist, get the first
       lit = d_stream_strategy->getLiteral(0);
     }
     return lit;
   }
   return Node::null();
-    */
 }
 
 Node CegConjecture::getStreamGuardedLemma(Node n) const
