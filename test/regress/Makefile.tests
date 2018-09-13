@@ -1544,6 +1544,7 @@ REG1_TESTS = \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/bvudiv-by-2.sy \
+	regress1/sygus/car_3.lus.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cegisunif-depth1.sy \
