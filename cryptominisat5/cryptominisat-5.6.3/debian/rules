@@ -1,0 +1,66 @@
+#!/usr/bin/make -f
+# See debhelper(7) (uncomment to enable)
+# output every command that modifies files on the build system.
+#DH_VERBOSE = 1
+
+# see EXAMPLES in dpkg-buildflags(1) and read /usr/share/dpkg/*
+DPKG_EXPORT_BUILDFLAGS = 1
+include /usr/share/dpkg/default.mk
+
+# This has to be exported to make some magic below work.
+export DH_OPTIONS
+
+# see FEATURE AREAS in dpkg-buildflags(1)
+#export DEB_BUILD_MAINT_OPTIONS = hardening=+all
+
+# see ENVIRONMENT in dpkg-buildflags(1)
+# package maintainers to append CFLAGS
+#export DEB_CFLAGS_MAINT_APPEND  = -Wall -pedantic
+# package maintainers to append LDFLAGS
+#export DEB_LDFLAGS_MAINT_APPEND = -Wl,--as-needed
+
+BUILDDIR = $(CURDIR)/build
+OUTPUTCHECK_ARCHIVE = $(CURDIR)/../cryptominisat5_5.0.0+dfsg.orig-outputcheck.tar.gz
+UTILS_DIR = $(CURDIR)/utils
+
+override_dh_auto_clean:
+	dh_auto_clean
+	$(RM) -rf $(UTILS_DIR)/gtest/*
+	$(RM) -rf $(UTILS_DIR)/OutputCheck
+
+override_dh_auto_configure: configure_cryptominisat5 configure_gtest
+
+override_dh_auto_build:
+	dh_auto_build
+	$(MAKE) --directory=$(CURDIR)/utils/gtest
+
+configure_cryptominisat5: copy_gtest extract_outputcheck
+	dh_auto_configure -- \
+	-DENABLE_TESTING=ON \
+	-DLIT_TOOL=/usr/lib/llvm-3.5/build/utils/lit/lit.py \
+	-DENABLE_PYTHON_INTERFACE=ON \
+	-DCMAKE_BUILD_TYPE=RelWithDebInfo \
+	-DENABLE_ASSERTIONS=ON \
+	-DCMAKE_INSTALL_PREFIX=/usr
+
+configure_gtest: copy_gtest
+	cd $(CURDIR)/utils/gtest && \
+	cmake . && \
+	cd -
+
+copy_gtest:
+	cp -a /usr/src/gtest $(CURDIR)/utils/
+
+extract_outputcheck:
+	tar xf $(OUTPUTCHECK_ARCHIVE) --directory $(UTILS_DIR)
+
+# main packaging script based on dh7 syntax
+%:
+	dh $@ --parallel --builddirectory=$(BUILDDIR)
+
+# debmake generated override targets
+# This is example for Cmake (See http://bugs.debian.org/641051 )
+#override_dh_auto_configure:
+#	dh_auto_configure -- \
+#	-DCMAKE_LIBRARY_PATH=$(DEB_HOST_MULTIARCH)
+

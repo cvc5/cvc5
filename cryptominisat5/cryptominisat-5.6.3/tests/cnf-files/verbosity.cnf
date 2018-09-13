@@ -1,0 +1,4 @@
+c RUN: %solver --verb=0 %s | %OutputCheck %s
+p cnf 1 1
+1 0
+c CHECK-NOT: ^c.*$

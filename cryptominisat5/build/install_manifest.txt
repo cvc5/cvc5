@@ -1,0 +1,10 @@
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/lib/cmake/cryptominisat5/cryptominisat5Config.cmake
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/lib/cmake/cryptominisat5/cryptominisat5Targets-relwithdebinfo.cmake
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/lib/libcryptominisat5.a
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include/cryptominisat5/cryptominisat_c.h
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include/cryptominisat5/cryptominisat.h
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include/cryptominisat5/solvertypesmini.h
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include/cryptominisat5/dimacsparser.h
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include/cryptominisat5/streambuffer.h
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/bin/cryptominisat5_simple

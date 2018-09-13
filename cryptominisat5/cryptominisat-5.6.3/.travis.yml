@@ -1,0 +1,156 @@
+language: cpp
+cache: ccache
+
+branches:
+  only:
+    - master
+
+compiler:
+  - gcc
+  - clang
+
+os:
+  - linux
+  - osx
+
+dist: trusty
+
+# not container-based
+sudo: required
+
+python:
+    - "2.7"
+    - "3.6"
+
+env:
+  global:
+    # below is coveralls token
+    - secure: "fZqRStzy+aN3BPTRcc97+J4oidbIXcHlAQo2Sc25WGS1pV4+NOiM/gJeh+7WDfPmszXZBHdyyg/XPXeI86OMikXL7DaG53D/6Zq+qzVehyTlHi3sT93sDs53FbwAqa5F/dDf+z74VK7P+pQZkAr96ra8sU0Pz9nWr/8XhSpdZlE="
+
+    # below is coverity token
+    - secure: "WXFslB4aWOcCtMYnNlIYLkxi0aQ8R9ApMmV3fWlGN98gm2+5aaDKsRxpy9Q25ghQNgouS894klSqJhfB9Xa7SW389LHVor3FIYvYHZC0vSQQjFMg4/kUZg+t3HXhRt4254sxIJrTXSeF/3nOq1HMVIk4UanVUp7aihEyNcfJ6rk="
+
+  matrix:
+    - CMS_CONFIG=NORMAL
+    - CMS_CONFIG=NORMAL_PYTHON2
+    - CMS_CONFIG=LARGEMEM_GAUSS
+    - CMS_CONFIG=ONLY_SIMPLE
+    - CMS_CONFIG=STATS
+    - CMS_CONFIG=NOZLIB
+    - CMS_CONFIG=RELEASE
+    - CMS_CONFIG=NOSQLITE
+    - CMS_CONFIG=NOPYTHON
+    - CMS_CONFIG=SQLITE
+    - CMS_CONFIG=M4RI
+    - CMS_CONFIG=GAUSS
+    - CMS_CONFIG=COVERAGE
+    - CMS_CONFIG=SLOW_DEBUG
+    - CMS_CONFIG=INTREE_BUILD
+    - CMS_CONFIG=NOTEST
+    - CMS_CONFIG=STATIC
+    - CMS_CONFIG=COVERAGE
+    - CMS_CONFIG=ONLY_SIMPLE_STATIC
+
+matrix:
+  exclude:
+    - os: osx
+      compiler: gcc
+
+    # COVERAGE scan should only run once
+    - compiler: clang
+      env: CMS_CONFIG=COVERAGE
+
+    - compiler: clang
+      env: CMS_CONFIG=STATS
+
+    - compiler: clang
+      env: CMS_CONFIG=SLOW_DEBUG
+
+    - compiler: clang
+      env: CMS_CONFIG=NOPYTHON
+
+    - compiler: clang
+      env: CMS_CONFIG=NOTEST
+
+      #####
+    - os: osx
+      env: CMS_CONFIG=STATS
+
+    - os: osx
+      env: CMS_CONFIG=SLOW_DEBUG
+
+    - os: osx
+      env: CMS_CONFIG=NOTEST
+
+    - os: osx
+      env: CMS_CONFIG=COVERAGE
+
+    - os: osx
+      env: CMS_CONFIG=NOSQLITE
+
+    - os: osx
+      env: CMS_CONFIG=NOZLIB
+
+    - os: osx
+      env: CMS_CONFIG=LARGEMEM_GAUSS
+
+    - os: osx
+      env: CMS_CONFIG=NOPYTHON
+
+
+  include:
+    # Covertiy scan should only run once
+    - os: linux
+      compiler: gcc
+      env: COVERITY_SCAN=1 CMS_CONFIG=NORMAL
+
+  allow_failures:
+    # Covertiy scan might fail
+    - env: COVERITY_SCAN=1 CMS_CONFIG=NORMAL
+
+addons:
+  coverity_scan:
+    project:
+      name: "msoos/cryptominisat"
+      description: "Advanced SAT solver"
+    notification_email: soos.mate@gmail.com
+    build_command_prepend: "cmake ."
+    build_command: "make"
+    branch_pattern: coverity_scan
+
+before_install:
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then brew update; fi
+  # we probably want to install python 3 though...
+  - if [[ ("$TRAVIS_OS_NAME" == "osx")  &&  ("$CMS_CONFIG" != "NORMAL_PYTHON2") ]]; then brew upgrade python --universal; fi
+  # -  if [[ "$TRAVIS_OS_NAME" == "osx"  ]]; then sudo easy_install pip; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get update; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y --force-yes help2man; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y --force-yes python3-pip; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y --force-yes libboost-test-dev; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo apt-get install -y --force-yes cmake3; fi
+
+install:
+#cmake
+  #- if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then ./scripts/travis-install-cmake.sh; fi
+#coveralls
+  - if [[ "$CMS_CONFIG" == "COVERAGE" ]]; then ./scripts/travis-install-lcov.sh; fi
+# lit
+    # NOTE we probably should NOT use 'sudo' because Travis uses virtualenvs
+    # curl --silent --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py | sudo python
+
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then curl --show-error --retry 5 https://bootstrap.pypa.io/get-pip.py -o get-pip.py; fi
+  - if [[ "$TRAVIS_OS_NAME" == "osx"   ]]; then sudo python get-pip.py; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then sudo -H pip install --upgrade pip; fi
+  - pip install --user lit
+  - echo $PATH
+  - export PATH=$PATH:/Users/travis/Library/Python/2.7/bin
+  - lit --version
+  - which lit
+#submodules
+  - git submodule init
+  - git submodule update
+#bulid dir
+  - mkdir -p build
+
+script:
+  - if [ "${COVERITY_SCAN_BRANCH}" != 1 ]; then ./scripts/travis-cmake.sh ; fi

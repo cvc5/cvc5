@@ -1,0 +1,134 @@
+# branches to build
+branches:
+  # whitelist
+  only:
+    - master
+    - appveyor_debug
+
+image:
+  - Visual Studio 2015
+  # if 2015 works, this should work too
+  - Visual Studio 2017
+  # may or may not work, let's not try
+  #- Visual Studio 2013
+
+# scripts that are called at very beginning, before repo cloning
+init:
+  - git config --global core.autocrlf input
+
+
+# clone directory
+clone_folder: c:\projects\cryptominisat
+
+platform:
+  - x64
+#  - x86
+
+environment:
+  global:
+    BOOST_ROOT: C:\projects\cryptominisat\boost_1_59_0_install
+    ZLIB_ROOT: C:\projects\cryptominisat\zlib\myinstall
+    PYTHON: "C:\\Python27"
+    PYTHON_ARCH: "x86"
+    PYTHON_VERSION: "2.7.13"
+    BUILD_TYPE: Release
+    APPVEYOR_SAVE_CACHE_ON_ERROR: false
+
+    # WarningLevel of 1 is ONLY SEVERE warnings, nothing else. See
+    # https://stackoverflow.com/questions/1023858/how-to-suppress-specific-msbuild-warning
+    MSBUILD_FLAGS: /maxcpucount /nologo /property:WarningLevel=1
+  matrix:
+  # No Gauss
+  - STATICCOMPILE_SETTING: OFF
+    EXTRA_FLAGS:
+    BOOST_OPTIONS:
+  - STATICCOMPILE_SETTING: ON
+    EXTRA_FLAGS:
+    BOOST_OPTIONS: runtime-link=static  link=static
+  # Gauss ---
+  - STATICCOMPILE_SETTING: ON
+    BOOST_OPTIONS: runtime-link=static  link=static
+    EXTRA_FLAGS: -DUSE_GAUSS=ON
+  # Largemem ---
+  - STATICCOMPILE_SETTING: ON
+    BOOST_OPTIONS: runtime-link=static  link=static
+    EXTRA_FLAGS: -DLARGEMEM=ON
+
+configuration:
+  - Release
+
+before_build:
+  - echo %PYTHON% %PYTHON_VERSION% %PYTHON_ARCH%
+  #- "%PYTHON%\python -c \"import platform; print(platform.architecture())\""
+  - IF "%PLATFORM%" == "x86" ( SET CMAKE_GENERATOR="Visual Studio 14 2015")
+  - IF "%PLATFORM%" == "x64" ( SET CMAKE_GENERATOR="Visual Studio 14 2015 Win64")
+  - echo %PLATFORM%
+  - echo %CMAKE_GENERATOR%
+  - echo %configuration%
+
+  # get "lit" from python pip
+  - "%PYTHON%/python -m pip install lit"
+
+  # boost
+  - cd c:\projects\cryptominisat
+  - mkdir boost_1_59_0_install
+  - ps: . .\scripts\appveyor.ps1
+  - cd boost_1_59_0
+  - echo "Building boost.."
+  - bootstrap.bat --with-libraries=program_options
+  - cat project-config.jam
+  - b2 --with-program_options address-model=64 toolset=msvc-14.0 variant=release %BOOST_OPTIONS% threading=multi  install --prefix="C:\projects\cryptominisat\boost_1_59_0_install" > boost_install.out
+
+  # zlib
+  # TODO check out http://stackoverflow.com/questions/10507893/libzip-with-visual-studio-2010
+  # below is C:\projects\cryptominisat
+  - cd C:\projects\cryptominisat
+  - git clone https://github.com/madler/zlib
+  - cd zlib
+  - git checkout v1.2.8
+  - echo %cd%
+  - mkdir build
+  - mkdir myinstall
+  - cd build
+  - cmake -G %CMAKE_GENERATOR% -DCMAKE_INSTALL_PREFIX=%ZLIB_ROOT% ..
+  - if %PLATFORM%==x86 call msbuild %MSBUILD_FLAGS% /t:Build /p:Configuration=%CONFIGURATION% /p:Platform="x86" zlib.sln
+  - if %PLATFORM%==x64 call msbuild %MSBUILD_FLAGS% /t:Build /p:Configuration=%CONFIGURATION% /p:Platform="x64" zlib.sln
+  - msbuild %MSBUILD_FLAGS% INSTALL.vcxproj
+
+  # build CMS
+  - echo Running cmake...
+  - cd c:\projects\cryptominisat
+  - git submodule update --init --recursive
+  - mkdir build
+  - cd build
+  - cmake --version
+  # AppVeyor is broken, its python was compiled with MSVC 9.0 which doesn't understand atomic
+  # so the python interface cannot work.
+  - cmake -G %CMAKE_GENERATOR% %EXTRA_FLAGS% -DENABLE_TESTING=%STATICCOMPILE_SETTING%  -DCMAKE_BUILD_TYPE=%CONFIGURATION% -DSTATICCOMPILE=%STATICCOMPILE_SETTING% -DZLIB_ROOT=%ZLIB_ROOT% -DENABLE_PYTHON_INTERFACE=OFF -DBoost_DEBUG=1 ..
+  - ls
+
+after_build:
+  - call ctest -V -C %CONFIGURATION%
+    # - call DUMPBIN C:\Program Files\cryptominisat5\bin\cryptominisat5_simple.exe /ALL
+    # - call "C:\Program Files\cryptominisat5\bin\cryptominisat5_simple.exe" --help
+  - if %STATICCOMPILE_SETTING%==ON call "C:\Program Files\cryptominisat5\bin\cryptominisat5.exe" --help
+  - echo %APPVEYOR_BUILD_FOLDER%
+  - 7z a c:\projects\cryptominisat\cryptominisat.zip %APPVEYOR_BUILD_FOLDER%\build -tzip
+  - cd c:\projects\cryptominisat
+
+
+build:
+  project: build\INSTALL.vcxproj
+  parallel: true
+  verbosity: minimal
+
+
+artifacts:
+  - path: cryptominisat.zip
+    name: cryptominisat.zip
+
+deploy_script:
+  #- cd c:\projects\cryptominisat
+  #- curl -T cryptominisat.zip --user %ACCOUNT% https://someplace/
+
+test: off

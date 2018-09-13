@@ -1,0 +1,45 @@
+#set term epslatex color rounded size 4.9,2.2
+#set term postscript size 8,4
+set term png rounded size 800,600
+
+set pointsize 1
+set tics scale 2 
+
+#set ytics 4e+8
+#set output "only-vs-congl.eps"
+set xlabel "No. solved instances from SAT Comp'09"
+set ylabel "Time (s)"
+#unset key
+set xtics 20
+#set key inside b
+#set logscale x
+#set xtics (10,40,160,640,2560,5000)
+set style line 1 lt 1 lw 1 pt 4 ps 0.3 linecolor rgbcolor "red"
+set style line 2 lt 2 lw 1 pt 8 ps 0.3 linecolor rgbcolor "orange"
+set style line 3 lt 3 lw 1 pt 12 ps 0.3 linecolor rgbcolor "blue"
+
+##########################################
+
+#set key lmargin
+set key left top
+#set output "CryptoMiniSat2.5.0_vs_CryptoMiniSat2.6.0.png"
+#plot "./solveTimes56Graph" w lp title "CryptoMiniSat 2.5.0 (SAT Race version)" ls 1, "solveTimes82-learntminimGraph" w lp title "CryptoMiniSat 2.6.0" ls 2
+
+#set output "Ligeling_vs_CryptoMiniSat2.6.1.png"
+#plot [80:] "./solveTimes97Graph" w lp title "CryptoMiniSat 2.6.1",  "./solveTimesLingelingGraph" w lp title "Lingeling"
+
+#set output "CryptoMiniSat2.7.1-compare.png"
+#plot [80:] "./solveTimesMiniSatGraph" w lp title "MiniSat 2.2", "./solveTimesLingelingGraph" w lp title "lingeling", "./solveTimesPrecoSat465Graph" w lp title "PrecoSat465", "./solveTimes97Graph" w lp title "CryptoMiniSat2.7.1"
+
+#set output "With-without-tans-strong-minim.png"
+#plot [80:] "./solveTimes97Graph" w lp title "With transitive strong minimisation", "./solveTimes97-nolfminimGraph" w lp title "Without transitive strong minimisation"
+
+set output "CryptoMiniSat3Beta-compare.eps"
+plot [80:] "./solveTimesMiniSatGraph" w lp title "MiniSat 2.2", "./solveTimesLingelingGraph" w lp title "lingeling", "./solveTimesPrecoSat465Graph" w lp title "PrecoSat465", "./solveTimes129Graph" w lp title "CryptoMiniSat3Beta"
+
+
+#set term png rounded size 700,400
+set term postscript eps color lw 1.5 "Helvetica" 29 size 7,3
+set output "CryptoMiniSat-Competition.eps"
+plot [80:] "./solveTimesMiniSatGraph" w lp title "MiniSat 2.2", "./solveTimesLingelingGraph" w lp title "lingeling", "./solveTimesPrecoSat465Graph" w lp title "PrecoSat465", "./solveTimes129Graph" w lp title "CryptoMiniSat SAT Comp'11"
+

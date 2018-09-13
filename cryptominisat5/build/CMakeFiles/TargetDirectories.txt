@@ -1,0 +1,16 @@
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/install/local.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/rebuild_cache.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/edit_cache.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/install/strip.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/uninstall.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/install.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/list_install_components.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install/local.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/list_install_components.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/edit_cache.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/cryptominisat5_simple.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/CopyPublicHeaders.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/rebuild_cache.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install/strip.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install.dir
+/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/libcryptominisat5.dir

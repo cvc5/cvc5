@@ -1,0 +1,76 @@
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wlogical-op failed with the following output:
+Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_75820/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_75820.dir/build.make CMakeFiles/cmTC_75820.dir/build
+Building CXX object CMakeFiles/cmTC_75820.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wlogical-op   -Wlogical-op -o CMakeFiles/cmTC_75820.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wlogical-op'; did you mean '-Wlong-long'? [-Wunknown-warning-option]
+In file included from <built-in>:352:
+<command line>:1:19: warning: whitespace recommended after macro name
+#define HAVE_FLAG_-Wlogical-op 1
+                  ^
+2 warnings generated.
+Linking CXX executable cmTC_75820
+/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_75820.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wlogical-op -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_75820.dir/src.cxx.o  -o cmTC_75820 
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wrestrict failed with the following output:
+Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_1af51/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_1af51.dir/build.make CMakeFiles/cmTC_1af51.dir/build
+Building CXX object CMakeFiles/cmTC_1af51.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wrestrict   -Wrestrict -o CMakeFiles/cmTC_1af51.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wrestrict' [-Wunknown-warning-option]
+In file included from <built-in>:352:
+<command line>:1:19: warning: whitespace recommended after macro name
+#define HAVE_FLAG_-Wrestrict 1
+                  ^
+2 warnings generated.
+Linking CXX executable cmTC_1af51
+/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1af51.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wrestrict -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_1af51.dir/src.cxx.o  -o cmTC_1af51 
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wjump-misses-init failed with the following output:
+Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_06333/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_06333.dir/build.make CMakeFiles/cmTC_06333.dir/build
+Building CXX object CMakeFiles/cmTC_06333.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -DHAVE_FLAG_-Wjump-misses-init   -Wjump-misses-init -o CMakeFiles/cmTC_06333.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wjump-misses-init' [-Wunknown-warning-option]
+In file included from <built-in>:352:
+<command line>:1:19: warning: whitespace recommended after macro name
+#define HAVE_FLAG_-Wjump-misses-init 1
+                  ^
+2 warnings generated.
+Linking CXX executable cmTC_06333
+/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_06333.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -DHAVE_FLAG_-Wjump-misses-init -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_06333.dir/src.cxx.o  -o cmTC_06333 
+
+Source file was:
+int main() { return 0; }
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wno-class-memaccess failed with the following output:
+Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+
+Run Build Command:"/usr/bin/make" "cmTC_c0686/fast"
+/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_c0686.dir/build.make CMakeFiles/cmTC_c0686.dir/build
+Building CXX object CMakeFiles/cmTC_c0686.dir/src.cxx.o
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DHAVE_FLAG_-Wno-class-memaccess   -Wno-class-memaccess -o CMakeFiles/cmTC_c0686.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+warning: unknown warning option '-Wno-class-memaccess'; did you mean '-Wno-class-varargs'? [-Wunknown-warning-option]
+In file included from <built-in>:352:
+<command line>:1:19: warning: whitespace recommended after macro name
+#define HAVE_FLAG_-Wno-class-memaccess 1
+                  ^
+2 warnings generated.
+Linking CXX executable cmTC_c0686
+/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c0686.dir/link.txt --verbose=1
+/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DHAVE_FLAG_-Wno-class-memaccess -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_c0686.dir/src.cxx.o  -o cmTC_c0686 
+
+Source file was:
+int main() { return 0; }

@@ -1,0 +1,8 @@
+Format: http://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
+Upstream-Name: cryptominisat
+Upstream-Contact: soos.mate@gmail.com
+Source: https://github.com/msoos/cryptominisat
+
+Files: *
+Copyright: 2009-2018, Mate Soos
+License: MIT

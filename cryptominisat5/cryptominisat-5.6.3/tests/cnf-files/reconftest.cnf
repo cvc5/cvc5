@@ -1,0 +1,8 @@
+c RUN: %solver --reconfat 0 --reconf 15 %s | %OutputCheck %s
+1 2 0
+-1 2 0
+3 4 0
+1 2 3 4 0
+1 2 3 -4 0
+4 -2 0
+c CHECK: reconfigured solver to config 15

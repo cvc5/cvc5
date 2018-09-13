@@ -1,0 +1,143 @@
+div.draghandle {
+ cursor: move;
+ font-family: sans-serif;
+ /*font-size:0.70em;*/
+ padding-top:0px;
+ padding-bottom:10px;
+ vertical-align:top;
+ text-align:left;
+}
+
+div.full_selector {
+    max-width:800px;
+    margin: 0;
+    margin-top: 0px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+#labelW {
+    width:20%;
+    vertical-align: middle;
+}
+
+div.draghandle.dygraph-label {
+ font-family: Arial, Helvetica, sans-serif;
+}
+
+div.myPlotData {
+  height:165px;
+}
+
+canvas.canvasPlot {
+  margin:0;
+}
+
+body {
+    /*color: white;
+    background-color: black;*/
+    margin: 0px;
+    padding: 0px;
+}
+
+h1 {
+  margin-left: 20px;
+  font-size: 96px;
+  margin-bottom: 0;
+}
+
+h1 , h2,  h3{
+  margin-top: 0px;
+}
+
+h3 {
+    margin: 0;
+    margin-top: 0px;
+    margin-left: 20px;
+    margin-bottom: 20px;
+    font-size: 13px;
+}
+
+h2 {
+  margin-top: 50px;
+  margin-left: 20px;
+  margin-bottom: 5px;
+  font-weight: 400;
+  font-size: 28px;
+}
+
+h1, h2 {
+  font-family: "Yanone Kaffeesatz";
+  text-rendering: optimizeLegibility;
+}
+
+p {
+    font-size: 16px;
+    margin-left: 20px;
+    max-width: 500px;
+    font-family: "Myriad Pro", Myriad, "Liberation Sans", "Nimbus Sans L", "Helvetica Neue", Helvetica, Arial, sans-serif;
+    /*font-family: Century Gothic, sans-serif;*/
+    /*font-family: Tahoma, Geneva, sans-serif;*/
+}
+
+a {
+    text-decoration: none
+}
+
+
+@font-face {
+  font-family: 'Yanone Kaffeesatz';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Yanone Kaffeesatz Regular'), local('YanoneKaffeesatz-Regular');
+}
+@font-face {
+  font-family: 'Yanone Kaffeesatz';
+  font-style: normal;
+  font-weight: 700;
+  src: local('Yanone Kaffeesatz Bold'), local('YanoneKaffeesatz-Bold');
+}
+
+#plot-table-a
+{
+    width:100%;
+    margin-left: 0px;
+    margin-top: 0;
+    margin-bottom: 0;
+    margin-right: 0;
+    border: 0;
+    border-collapse: collapse;
+    text-align:left;
+}
+
+#plot-table-a td
+{
+    padding: 0 0 0 0;
+    text-align:left;
+    font-size:0.80em;
+}
+
+table.gridtable {
+    margin-left: 20px;
+    font-family: verdana,arial,sans-serif;
+    font-size:11px;
+    color:#333333;
+    border-width: 1px;
+    border-color: #666666;
+    border-collapse: collapse;
+}
+table.gridtable th {
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #dedede;
+}
+table.gridtable td {
+    border-width: 1px;
+    padding: 8px;
+    border-style: solid;
+    border-color: #666666;
+    background-color: #ffffff;
+}

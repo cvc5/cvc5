@@ -1,0 +1,76 @@
+%\documentclass[runningheads]{llncs}
+\documentclass[final]{ieee}
+
+\usepackage{microtype} %This gives MUCH better PDF results!
+%\usepackage[active]{srcltx} %DVI search
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{fnbreak} %warn for split footnotes
+\usepackage{url}
+%\usepackage{qtree} %for drawing trees
+%\usepackage{fancybox} % if we need rounded corners
+%\usepackage{pict2e} % large circles can be drawn
+%\usepackage{courier} %for using courier in texttt{}
+%\usepackage{nth} %allows to \nth{4} to make 1st 2nd, etc.
+%\usepackage{subfigure} %allows to have side-by-side figures
+%\usepackage{booktabs} %nice tables
+%\usepackage{multirow} %allow multiple cells with rows in tabular
+\usepackage[utf8]{inputenc} % allows to write Faugere correctly
+\usepackage[bookmarks=true, citecolor=black, linkcolor=black, colorlinks=true]{hyperref}
+\hypersetup{
+pdfauthor = {Mate Soos},
+pdftitle = {CryptoMiniSat v5.5},
+pdfsubject = {SAT Competition 2018},
+pdfkeywords = {SAT Solver, DPLL},
+pdfcreator = {PdfLaTeX with hyperref package},
+pdfproducer = {PdfLaTex}}
+%\usepackage{butterma}
+
+%\usepackage{pstricks}
+\usepackage{graphicx,epsfig,xcolor}
+
+\begin{document}
+\title{The CryptoMiniSat 5.5 set of solvers at the SAT Competition 2018}
+\author{Mate Soos, National University of Singapore}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+\section{Introduction}
+This paper presents the conflict-driven clause-learning SAT solver CryptoMiniSat v5.5 (\emph{CMS}) as submitted to SAT Competition 2018. CMS aims to be a modern, open-source SAT solver that allows for multi-threaded in-processing techniques while still retaining a strong CDCL component. In general, CMS is a inprocessing SAT solver that uses optimised data structures and finely-tuned timeouts to have good control over both memory and time usage of simplification steps. Below are the changes to CMS compared to the SAT Competition 2016 version.
+
+\section{Major Improvements}
+\subsection{Careful code review}
+Over the years, much cruft has accumulated in CryptoMiniSat. This has left serious bugs in the implementation in important parts of the solver such as clause cleaning and restarting. This has lead to low performance. A code review of the most important parts of the solver such as bounded variable elimination, restarting, clause cleaning and variable activities has been conducted.
+
+\subsection{Integration of ideas from Maple\_LCM\_Dist}
+Some of the ideas from Maple\_LCM\_Dist\cite{maple}\cite{learning-based-maple} have been included into CMS. In particular, the clause cleaning system, the radical in-process distillation and the Maple-based variable activities are all used.
+
+\subsection{Cluster Tuning}
+The author has been generously given time on the ASPIRE-1 cluster of the National Supercomputing Centre Singapore\cite{nscc}. This allowed experimentation and tuning that would have been impossible otherwise. CMS has not been tuned on a cluster for over 6 years and the difference shows. A slightly interesting side-effect is that the parameters suggested by the cluster are non-intuitive, such as not simplifying the CNF straight away, but rather CDCL-solving it first. Another interesting effect is that intree probing\cite{HeuleJB13} seems to be very important.
+
+\subsection{Parallel Solving}
+As in previous competitions, CMS only shares unit and binary clauses, and shares them very rarely. The different threads, however, are run with very different, hoping to be orthogonal, parameters varying everything from clause cleaning strategies to default polarities.
+
+\subsection{Automatic Tuning}
+The "autotune" version of the solver measures internal solving parameters and re-configures itself after a preset number of conflicts to a configuration that has been suggested by the parameters and the machine learning algorithm C4.5\cite{Salzberg1994}.
+
+\section{General Notes}
+\subsection{On-the-fly Gaussian Elimination}
+On-the-fly Gaussian elimination is again part of CryptoMiniSat. This is explicitly disabled for the competition, but the code is available and well-tested. This allows for special uses of the solver that other solvers, without on-the-fly Gaussian elimination, are not capable of.
+
+\subsection{Robustness}
+CMS aims to be usable in both industry and academia. CMS has over 150 test cases and over 2000 lines of Python just for fuzzing orchestration, and runs without fault under both the ASAN and UBSAN sanitisers of clang. It also compiles and runs under Windows, Linux and MacOS X. This is in contrast many academic winning SAT solvers that produce results that are non-reproducible, cannot be compiled on anything but a few select systems, and/or produce segmentation faults if used as a library. CryptoMiniSat has extensive fuzzing setup for library usage and is very robust under strange/unexpected use cases.
+
+\section{Thanks}
+This work was supported in part by NUS ODPRT Grant, R-252-000-685-133. The computational work for this article was performed on resources of the National Supercomputing Centre, Singapore\cite{nscc}. The author would also like to thank all the users of CryptoMiniSat who have submitted over 400 issues and many pull requests to the GitHub CMS repository\cite{CMS}.
+
+
+\bibliographystyle{splncs03}
+\bibliography{sigproc}
+
+\vfill
+\pagebreak
+
+\end{document}

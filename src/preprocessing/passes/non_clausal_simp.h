@@ -39,15 +39,13 @@ class NonClausalSimp : public PreprocessingPass
  private:
   struct Statistics
   {
-    IntStat d_numConstantProps;
+    IntStat d_callsToSolve;
     Statistics();
     ~Statistics();
   };
 
   Statistics d_statistics;
 
-  /** Learned literals */
-  std::vector<Node> d_nonClausalLearnedLiterals;
 };
 
 }  // namespace passes

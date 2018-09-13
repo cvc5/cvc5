@@ -1,0 +1,36 @@
+[submodule "utils/OutputCheck"]
+	path = utils/OutputCheck
+	url = https://github.com/stp/OutputCheck.git
+[submodule "utils/gtest"]
+	path = utils/gtest
+	url = https://github.com/stp/googletest.git
+[submodule "utils/cnf-utils"]
+	path = utils/cnf-utils
+	url = https://github.com/msoos/cnf-utils.git
+[submodule "utils/sha1-sat"]
+	path = utils/sha1-sat
+	url = https://github.com/msoos/sha1-sat.git
+[submodule "web/dygraphs"]
+	path = web/dygraphs
+	url = https://github.com/danvk/dygraphs
+	ignore = dirty
+[submodule "utils/licensecheck"]
+	path = utils/licensecheck
+	url = https://github.com/msoos/licensecheck.git
+[submodule "scripts/build_scripts"]
+	path = scripts/build_scripts
+	url = https://github.com/msoos/cryptominisat_build.git
+[submodule "utils/drat-trim"]
+	path = utils/drat-trim
+	url = https://github.com/msoos/drat-trim
+[submodule "utils/minisat_only_elim_and_subsume"]
+	path = utils/minisat_only_elim_and_subsume
+	url = https://github.com/msoos/minisat
+	branch = only_elim_and_subsume
+[submodule "tests/simp-checks/simplifiy_testfiles"]
+	path = tests/simp-checks/simplifiy_testfiles
+	url = https://github.com/msoos/simplifiy_testfiles
+[submodule "minisat-fuzz"]
+	path = utils/minisat
+	url = https://github.com/msoos/minisat
+	branch = fuzzer
