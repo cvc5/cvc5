@@ -80,7 +80,7 @@ class SygusUnifRl : public SygusUnif
    * whether f is being synthesized with unification strategies. This can be
    * checked through wehether f has conditional or point enumerators (we use the
    * former)
-    */
+   */
   bool usingUnif(Node f) const;
   /** get condition for evaluation point
    *
@@ -244,6 +244,9 @@ class SygusUnifRl : public SygusUnif
                        const std::vector<Node>& conds);
 
    private:
+    /** true and false nodes */
+    Node d_true;
+    Node d_false;
     /** Accumulates solutions built when considering all enumerated condition
      * values (which may generate repeated solutions) */
     std::unordered_set<Node, NodeHashFunction> d_sols;
@@ -275,6 +278,63 @@ class SygusUnifRl : public SygusUnif
      * decision tree.
      */
     Node d_cond_enum;
+    /** extracts solution from decision tree built
+     *
+     * Depending on the active options, the decision tree might be rebuilt
+     * before a solution is extracted, for example to optimize size (smaller
+     * DTs) or chance of having a general solution (information gain heuristics)
+     */
+    Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
+
+    /** rebuild decision tree using information gain heuristic
+     *
+     * In a scenario in which the decision tree potentially contains more
+     * conditions than necessary, it is beneficial to rebuild it in a way that
+     * "better" conditions occurr closer to the top.
+     *
+     * The information gain heuristic selects conditions that lead to a
+     * greater reduction of the Shannon entropy in the set of points
+     */
+    void recomputeSolHeuristically(std::map<Node, Node>& hd_mv);
+    /** recursively select (best) conditions to split heads
+     *
+     * At each call picks the best condition based on the information gain
+     * heuristic and splits the set of heads accordingly, then recurses on
+     * them.
+     *
+     * The base case is a set being fully classified (i.e. all heads have the
+     * same value)
+     *
+     * hds is the set of evaluation point heads we must classify with the
+     * values in conds. The classification is guided by how a condition value
+     * splits the heads through its evaluation on the points associated with
+     * the heads. The metric is based on the model values of the heads (hd_mv)
+     * in the resulting splits.
+     *
+     * ind is the current level of indentation (for debugging)
+     */
+    void buildDtInfoGain(std::vector<Node>& hds,
+                         std::vector<Node> conds,
+                         std::map<Node, Node>& hd_mv,
+                         int ind);
+    /** computes the Shannon entropy of a set of heads
+     *
+     * The entropy depends on how many positive and negative heads are in the
+     * set and in their distribution. The polarity of the evaluation heads is
+     * queried from their model values in hd_mv.
+     *
+     * ind is the current level of indentation (for debugging)
+     */
+    double getEntropy(const std::vector<Node>& hds,
+                      std::map<Node, Node>& hd_mv,
+                      int ind);
+    /** evaluates a condition on a set of points
+     *
+     * The result is two sets of points: those on which the condition holds
+     * and those on which it does not
+     */
+    std::pair<std::vector<Node>, std::vector<Node>> evaluateCond(
+        std::vector<Node>& pts, Node cond);
     /** Classifies evaluation points according to enumerated condition values
      *
      * Maintains the invariant that points evaluated in the same way in the
@@ -296,10 +356,26 @@ class SygusUnifRl : public SygusUnif
       LazyTrieMulti d_trie;
       /** extracts solution from decision tree built */
       Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
+      /** computes the result of applying cond on the respective point of hd
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1) this function will result in true, since
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
+      Node computeCond(Node cond, Node hd);
 
      private:
       /** reference to parent unif util */
       DecisionTreeInfo* d_dt;
+      /** cache of conditions evaluations on heads
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1), then after invoking computeCond(cond, hd) this map
+       * will contain d_eval_cond_hd[<cond, hd>] = true, since
+       *
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
+      std::map<std::pair<Node, Node>, Node> d_eval_cond_hd;
     };
     /**
      * Utility for determining how evaluation points are separated by currently
@@ -353,8 +429,8 @@ class SygusUnifRl : public SygusUnif
                                      unsigned strategy_index);
 };
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H */
