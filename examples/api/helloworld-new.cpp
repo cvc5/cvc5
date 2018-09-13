@@ -16,6 +16,7 @@
 
 #include <iostream>
 
+//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace CVC4::api;
