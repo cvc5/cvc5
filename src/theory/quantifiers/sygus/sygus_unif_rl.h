@@ -371,7 +371,7 @@ class SygusUnifRl : public SygusUnif
        *
        * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
        * in point (hd 0 1), then after invoking computeCond(cond, hd) this map
-       * will contain d_eval_cond_hd[<c, hd>] = true, since
+       * will contain d_eval_cond_hd[<cond, hd>] = true, since
        *
        *   (\lambda xy. x < y) 0 1 evaluates to true
        */
