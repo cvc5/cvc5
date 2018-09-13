@@ -356,13 +356,25 @@ class SygusUnifRl : public SygusUnif
       LazyTrieMulti d_trie;
       /** extracts solution from decision tree built */
       Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
-      /** computes the result of applying cond on the respective point of hd */
+      /** computes the result of applying cond on the respective point of hd
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1) this function will result in true, since
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
       Node computeCond(Node cond, Node hd);
 
      private:
       /** reference to parent unif util */
       DecisionTreeInfo* d_dt;
-      /** cache of conditions evaluations on heads */
+      /** cache of conditions evaluations on heads
+       *
+       * If for example cond is (\lambda xy. x < y) and hd is an evaluation head
+       * in point (hd 0 1), then after invoking computeCond(cond, hd) this map
+       * will contain d_eval_cond_hd[<c, hd>] = true, since
+       *
+       *   (\lambda xy. x < y) 0 1 evaluates to true
+       */
       std::map<std::pair<Node, Node>, Node> d_eval_cond_hd;
     };
     /**
