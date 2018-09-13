@@ -585,6 +585,7 @@ if(ENABLE_PROOFS)
 endif()
 
 add_subdirectory(doc)
+add_subdirectory(examples)
 add_subdirectory(src)
 add_subdirectory(test)
 
