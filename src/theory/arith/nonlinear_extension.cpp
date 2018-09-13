@@ -883,7 +883,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   // get model bounds for all transcendental functions
   Trace("nl-ext-cm-debug") << "  get bounds for transcendental functions..."
                            << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tf_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
   {
     Kind k = tfs.first;
     for (const Node& tf : tfs.second)
@@ -1866,7 +1866,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   d_ci.clear();
   d_ci_exp.clear();
   d_ci_max.clear();
-  d_tf_map.clear();
+  d_f_map.clear();
   d_tf_region.clear();
   d_waiting_lemmas.clear();
 
@@ -1981,14 +1981,14 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
         }
         else
         {
-          d_tf_map[ak].push_back(a);
+          d_f_map[ak].push_back(a);
         }
       }
     }
     else if (ak == PI)
     {
       needPi = true;
-      d_tf_map[ak].push_back(a);
+      d_f_map[ak].push_back(a);
     }
     else
     {
@@ -2081,7 +2081,7 @@ int NonlinearExtension::checkLastCall(const std::vector<Node>& assertions,
   {
     Trace("nl-ext-mv") << "Arguments of trancendental functions : "
                        << std::endl;
-    for (std::pair<const Kind, std::vector<Node> >& tfl : d_tf_map)
+    for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
     {
       Kind k = tfl.first;
       if (k == SINE || k == EXPONENTIAL)
@@ -3820,7 +3820,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {
 std::vector<Node> NonlinearExtension::checkTranscendentalInitialRefine() {
   std::vector< Node > lemmas;
   Trace("nl-ext") << "Get initial refinement lemmas for transcendental functions..." << std::endl;
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_tf_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
     Kind k = tfl.first;
     for (const Node& t : tfl.second)
@@ -3931,7 +3931,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   std::map< Kind, std::vector< Node > > sorted_tf_args;
   std::map< Kind, std::map< Node, Node > > tf_arg_to_term;
 
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_tf_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
     Kind k = tfl.first;
     if (k == EXPONENTIAL || k == SINE)
@@ -3956,7 +3956,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalMonotonic() {
   //sort by concrete values
   smv.d_order_type = 0;
   smv.d_reverse_order = true;
-  for (std::pair<const Kind, std::vector<Node> >& tfl : d_tf_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfl : d_f_map)
   {
     Kind k = tfl.first;
     if( !sorted_tf_args[k].empty() ){
@@ -4093,7 +4093,7 @@ std::vector<Node> NonlinearExtension::checkTranscendentalTangentPlanes()
                   << std::endl;
   // this implements Figure 3 of "Satisfiaility Modulo Transcendental Functions
   // via Incremental Linearization" by Cimatti et al
-  for (std::pair<const Kind, std::vector<Node> >& tfs : d_tf_map)
+  for (std::pair<const Kind, std::vector<Node> >& tfs : d_f_map)
   {
     Kind k = tfs.first;
     if (k == PI)
