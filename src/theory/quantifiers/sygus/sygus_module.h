@@ -114,14 +114,6 @@ class SygusModule
                                        std::vector<Node>& lems)
   {
   }
-  /** get next decision request
-   *
-   * This has the same contract as Theory::getNextDecisionRequest.
-   */
-  virtual Node getNextDecisionRequest(unsigned& priority)
-  {
-    return Node::null();
-  }
   /**
    * Are we trying to repair constants in candidate solutions?
    * If we return true for usingRepairConst is true, then this module has
