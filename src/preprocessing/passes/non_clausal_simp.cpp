@@ -36,25 +36,14 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-/* -------------------------------------------------------------------------- */
-
-NonClausalSimp::Statistics::Statistics()
-    : d_callsToSolve("theory::bv::non_clausal_simp_solver::cryptominisat::calls_to_solves", 1)
-{
-  smtStatisticsRegistry()->registerStat(&d_callsToSolve);
-}
-
-NonClausalSimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_callsToSolve);
-}
-
 
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp")
 {
+  d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
+
 }
 
 PreprocessingPassResult NonClausalSimp::applyInternal(
@@ -73,7 +62,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   d_preprocContext->spendResource(options::preprocessStep());
 
 
-  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
   //SatSolver* d_satSolver = prop::SatSolverFactory::createCadical(smtStatisticsRegistry(),
                                                  //"non-clausal-simp");
   //Registrar d_registrar = new CVC4::prop::NullRegistrar();
@@ -85,10 +73,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
 
   Trace("non-clausal-simplify") << "asserting to sat solver" << std::endl;
-  d_cnfStream.convertAndAssert(NodeManager::currentNM()->mkConst<bool>(true), false, false, RULE_GIVEN);
+
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
+
+  }
 
   SatValue result = d_satSolver->solve();
-  //d_statistics.d_callsToSolve += 1;
 
   if (result==SAT_VALUE_FALSE) return PreprocessingPassResult::CONFLICT;
 

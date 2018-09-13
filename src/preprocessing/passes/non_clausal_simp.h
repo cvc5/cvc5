@@ -36,15 +36,8 @@ class NonClausalSimp : public PreprocessingPass
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
 
- private:
-  struct Statistics
-  {
-    IntStat d_callsToSolve;
-    Statistics();
-    ~Statistics();
-  };
 
-  Statistics d_statistics;
+  SatSolver* d_satSolver;
 
 };
 
