@@ -358,6 +358,7 @@ class SygusUnifRl : public SygusUnif
       Node extractSol(Node cons, std::map<Node, Node>& hd_mv);
       /** computes the result of applying cond on the respective point of hd */
       Node computeCond(Node cond, Node hd);
+
      private:
       /** reference to parent unif util */
       DecisionTreeInfo* d_dt;
