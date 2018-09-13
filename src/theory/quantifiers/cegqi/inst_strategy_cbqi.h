@@ -18,6 +18,7 @@
 #ifndef __CVC4__INST_STRATEGY_CBQI_H
 #define __CVC4__INST_STRATEGY_CBQI_H
 
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "util/statistics_registry.h"
 
@@ -84,8 +85,6 @@ class InstStrategyCegqi : public QuantifiersModule
   void preRegisterQuantifier(Node q) override;
   // presolve
   void presolve() override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
   /** Do nested quantifier elimination. */
   Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
 
@@ -135,7 +134,12 @@ class InstStrategyCegqi : public QuantifiersModule
    * The instantiator for each quantified formula q registered to this class.
    * This object is responsible for finding instantiatons for q.
    */
-  std::map<Node, CegInstantiator*> d_cinst;
+  std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
+  /**
+   * The decision strategy for each quantified formula q registered to this
+   * class.
+   */
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_dstrat;
   /** the current quantified formula we are processing */
   Node d_curr_quant;
   //---------------------- for vts delta minimization
@@ -164,8 +168,6 @@ class InstStrategyCegqi : public QuantifiersModule
   void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** get next decision request with dependency checking */
-  Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
   void process(Node q, Theory::Effort effort, int e);
 

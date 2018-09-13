@@ -74,14 +74,10 @@ extract_new_LDADD = \
 
 helloworld_SOURCES = \
 	helloworld.cpp
-helloworld_CXXFLAGS = \
-	-DCVC4_MAKE_EXAMPLES
 helloworld_LDADD = \
 	@builddir@/../../src/libcvc4.la
 helloworld_new_SOURCES = \
 	helloworld-new.cpp
-helloworld_new_CXXFLAGS = \
-	-DCVC4_MAKE_EXAMPLES
 helloworld_new_LDADD = \
 	@builddir@/../../src/libcvc4.la
 
