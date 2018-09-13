@@ -589,11 +589,11 @@ void CegConjecture::debugPrint( const char * c ) {
 }
 
 Node CegConjecture::getCurrentStreamGuard() const {
-  if( d_stream_strategy!=nullptr )
+  if (d_stream_strategy != nullptr)
   {
     // the stream guard is the current asserted literal of the stream strategy
     Node lit = d_stream_strategy->getAssertedLiteral();
-    if( lit.isNull() )
+    if (lit.isNull())
     {
       // if none exist, get the first
       lit = d_stream_strategy->getLiteral(0);
@@ -615,19 +615,19 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
   return n;
 }
 
-Node CegConjecture::getNextDecisionRequest( unsigned& priority )
+Node CegConjecture::getNextDecisionRequest(unsigned& priority)
 {
-  // see if the master module has a decision	
-  if (!isSingleInvocation())	
-  {	
-    Assert(d_master != nullptr);	
-    Node mlit = d_master->getNextDecisionRequest(priority);	
-    if (!mlit.isNull())	
-    {	
-      Trace("cegqi-debug") << "getNextDecision : master module returned : "	
-                           << mlit << std::endl;	
-      return mlit;	
-    }	
+  // see if the master module has a decision
+  if (!isSingleInvocation())
+  {
+    Assert(d_master != nullptr);
+    Node mlit = d_master->getNextDecisionRequest(priority);
+    if (!mlit.isNull())
+    {
+      Trace("cegqi-debug") << "getNextDecision : master module returned : "
+                           << mlit << std::endl;
+      return mlit;
+    }
   }
   return Node::null();
 }

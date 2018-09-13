@@ -51,7 +51,7 @@ public:
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
   Node getEmbeddedConjecture() { return d_embed_quant; }
-  /** get next decision request */	
+  /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
   //-------------------------------for counterexample-guided check/refine
   /** increment the number of times we have successfully done candidate
