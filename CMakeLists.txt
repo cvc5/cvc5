@@ -145,6 +145,7 @@ if(NOT CMAKE_BUILD_TYPE)
   set_property(CACHE CMAKE_BUILD_TYPE PROPERTY STRINGS ${BUILD_TYPES})
 endif()
 
+# Check if specified build type is valid.
 list(FIND BUILD_TYPES ${CMAKE_BUILD_TYPE} FOUND_BUILD_TYPE)
 if(${FOUND_BUILD_TYPE} EQUAL -1)
   message(FATAL_ERROR
@@ -166,18 +167,16 @@ add_check_cxx_flag("-Wnon-virtual-dtor")
 
 #-----------------------------------------------------------------------------#
 # Option defaults (three-valued options (cvc4_option(...)))
+#
+# These options are only set if their value is IGNORE. Otherwise, the user
+# already set the option, which we don't want to overwrite.
 
-cvc4_set_option(ENABLE_PORTFOLIO OFF)
 cvc4_set_option(ENABLE_SHARED ON)
-cvc4_set_option(ENABLE_VALGRIND OFF)
-cvc4_set_option(USE_ABC OFF)
-cvc4_set_option(USE_GLPK OFF)
-cvc4_set_option(USE_READLINE OFF)
 
 #-----------------------------------------------------------------------------#
 # Set options for best configuration
 
-if (ENABLE_BEST)
+if(ENABLE_BEST)
   cvc4_set_option(USE_ABC ON)
   cvc4_set_option(USE_CLN ON)
   cvc4_set_option(USE_GLPK ON)
@@ -185,6 +184,7 @@ if (ENABLE_BEST)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Static libraries
 
 # This needs to be set before any find_package(...) command since we want to
 # search for static libraries with suffix .a.
@@ -256,6 +256,7 @@ if(ENABLE_MUZZLE)
   add_definitions(-DCVC4_MUZZLE)
 endif()
 
+# This check needs to come before the USE_CLN check.
 if(ENABLE_PORTFOLIO)
   find_package(Boost 1.50.0 REQUIRED COMPONENTS thread)
   # Disable CLN for portfolio builds since it is not thread safe (uses an
@@ -281,7 +282,6 @@ endif()
 if(ENABLE_PROOFS)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --enable-proof)
   add_definitions(-DCVC4_PROOF)
-  set(CVC4_PROOF 1)
 endif()
 
 if(ENABLE_REPLAY)
@@ -290,7 +290,6 @@ endif()
 
 if(ENABLE_TRACING)
   add_definitions(-DCVC4_TRACING)
-  set(CVC4_TRACING 1)
 endif()
 
 if(ENABLE_UNIT_TESTING)
@@ -372,9 +371,6 @@ if(USE_LFSC)
   libcvc4_link_libraries(${LFSC_LIBRARIES})
   libcvc4_include_directories(${LFSC_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_LFSC)
-  set(CVC4_USE_LFSC 1)
-else()
-  set(CVC4_USE_LFSC 0)
 endif()
 
 if(USE_READLINE)
@@ -484,6 +480,7 @@ message("")
 print_config("Shared libs          :" ENABLE_SHARED)
 print_config("Java bindings        :" BUILD_BINDINGS_JAVA)
 print_config("Python bindings      :" BUILD_BINDINGS_PYTHON)
+print_config("Python2              :" USE_PYTHON2)
 message("")
 print_config("Portfolio            :" ENABLE_PORTFOLIO)
 message("")
