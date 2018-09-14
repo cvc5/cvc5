@@ -17,15 +17,9 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 #define __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
-<<<<<<< HEAD
-#include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/extended_rewrite.h"
-#include "theory/quantifiers/query_generator.h"
-=======
 #include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
->>>>>>> 4a9a0dcb8b06e3fc917b642426140b044a64facd
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
