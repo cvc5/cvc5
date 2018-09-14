@@ -1,5 +1,3 @@
-set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples)
-
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
@@ -47,6 +45,8 @@ set(CVC4_EXAMPLES_SETS_TRANSLATE
   sets2axioms
 )
 
+set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin/examples) 
+
 add_executable(simple_vc_cxx EXCLUDE_FROM_ALL simple_vc_cxx.cpp)
 target_link_libraries(simple_vc_cxx cvc4 cvc4parser)
 
@@ -55,6 +55,9 @@ target_link_libraries(simple_vc_quant_cxx cvc4 cvc4parser)
 
 add_executable(translator EXCLUDE_FROM_ALL translator.cpp)
 target_link_libraries(translator cvc4 cvc4parser)
+
+set_target_properties(simple_vc_cxx simple_vc_quant_cxx translator
+  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EXAMPLES_BIN_DIR})
 
 add_custom_target(examples
   DEPENDS
