@@ -2668,7 +2668,7 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
-  for (std::pair<const LengthStatus, std::vector<Node> >& sks :
+  for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
        pinfer[use_index].d_new_skolem)
   {
     for (const Node& n : sks.second)
@@ -4373,14 +4373,12 @@ TheoryStrings::Statistics::Statistics():
   d_splits("theory::strings::NumOfSplitOnDemands", 0),
   d_eq_splits("theory::strings::NumOfEqSplits", 0),
   d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-  d_loop_lemmas("theory::strings::NumOfLoops", 0),
-  d_new_skolems("theory::strings::NumOfNewSkolems", 0)
+  d_loop_lemmas("theory::strings::NumOfLoops", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_splits);
   smtStatisticsRegistry()->registerStat(&d_eq_splits);
   smtStatisticsRegistry()->registerStat(&d_deq_splits);
   smtStatisticsRegistry()->registerStat(&d_loop_lemmas);
-  smtStatisticsRegistry()->registerStat(&d_new_skolems);
 }
 
 TheoryStrings::Statistics::~Statistics(){
@@ -4388,7 +4386,6 @@ TheoryStrings::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
   smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
   smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_new_skolems);
 }
 
 
