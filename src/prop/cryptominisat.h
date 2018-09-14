@@ -22,6 +22,7 @@
 #ifdef CVC4_USE_CRYPTOMINISAT
 
 #include "prop/sat_solver.h"
+#include <cryptominisat5/cryptominisat.h>
 
 // Cryptominisat has name clashes with the other Minisat implementations since
 // the Minisat implementations export var_Undef, l_True, ... as macro whereas
@@ -61,7 +62,7 @@ public:
   void markUnremovable(SatLiteral lit);
 
   void interrupt() override;
-  
+
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
@@ -71,6 +72,10 @@ public:
   SatValue modelValue(SatLiteral l) override;
 
   unsigned getAssertionLevel() const override;
+
+  std::vector<SatLiteral> getTopLevelUnits() override;
+
+  SatLiteral toSatLiteral(CMSat::Lit lit);
 
   class Statistics {
   public:

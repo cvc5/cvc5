@@ -31,7 +31,7 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
+
 class BitVectorProof;
 
 namespace prop {
@@ -54,7 +54,7 @@ public:
 
   /** Add a clause corresponding to rhs = l1 xor .. xor ln  */
   virtual ClauseId addXorClause(SatClause& clause, bool rhs, bool removable) = 0;
-  
+
   /**
    * Create a new boolean variable in the solver.
    * @param isTheoryAtom is this a theory atom that needs to be asserted to theory
@@ -96,9 +96,16 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-  
+
   virtual void setProofLog( BitVectorProof * bvp ) {}
-  
+
+
+  virtual std::vector<SatLiteral> getTopLevelUnits()
+  {
+    return std::vector<SatLiteral>();
+  };
+
+
 };/* class SatSolver */
 
 
