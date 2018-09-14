@@ -8,7 +8,8 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > system tests
 
 add_custom_target(systemtests
-  COMMAND ctest --output-on-failure -L "system" -j${NTHREADS} $(ARGS))
+  COMMAND ctest --output-on-failure -L "system" -j${NTHREADS} $(ARGS)
+  DEPENDS cvc4)
 
 set(CVC4_SYSTEM_TEST_FLAGS
   -D__BUILDING_CVC4_SYSTEM_TEST -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
