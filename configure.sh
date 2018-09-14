@@ -167,7 +167,7 @@ do
         # absolute.
         case $install_prefix in
           /*) ;;                                      # absolute path
-          *) install_prefix=`pwd`/$install_prefix ;;  # make absolute path
+          *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
         esac
         ;;
 
@@ -252,16 +252,18 @@ do
     --language-bindings) die "missing argument to $1 (try -h)" ;;
     --language-bindings=*)
       lang="${1##*=}"
-      [[ "java python all" =~ (^|[[:space:]])"$lang"($|[[:space:]]) ]] \
-        || die "invalid argument to --language-bindings (try -h)"
-      if [ $lang = "java" -o $lang = "all" ]
-      then
-        language_bindings_java=ON
-      fi
-      if [ $lang = "python" -o $lang = "all" ]
-      then
-        language_bindings_python=ON
-      fi
+      IFS=','
+      for l in $lang; do
+        case $l in
+          java) language_bindings_java=ON ;;
+          python) language_bindings_python=ON ;;
+          all)
+            language_bindings_python=ON
+            language_bindings_java=ON ;;
+          *) die "invalid language binding '$l' specified  (try -h)" ;;
+        esac
+      done
+      unset IFS
       ;;
 
     --abc-dir) die "missing argument to $1 (try -h)" ;;
@@ -345,8 +347,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay" \
   && [ $replay = ON ] &&  build_dir="$build_dir-replay"
 [ $shared != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_STATIC=$shared" \
-  && [ $shared == OFF ] &&  build_dir="$build_dir-static"
+  && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared" \
+  && [ $shared = OFF ] &&  build_dir="$build_dir-static"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics" \
   && [ $statistics = ON ] && build_dir="$build_dir-stastitics"
@@ -395,42 +397,42 @@ cmake_opts=""
 [ $language_bindings_python != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_PYTHON=$language_bindings_python"
 
-[ $abc_dir != default ] \
+[ "$abc_dir" != default ] \
   && cmake_opts="$cmake_opts -DABC_DIR=$abc_dir"
-[ $antlr_dir != default ] \
+[ "$antlr_dir" != default ] \
   && cmake_opts="$cmake_opts -DANTLR_DIR=$antlr_dir"
-[ $cadical_dir != default ] \
+[ "$cadical_dir" != default ] \
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
-[ $cryptominisat_dir != default ] \
+[ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ $glpk_dir != default ] \
+[ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
-[ $lfsc_dir != default ] \
+[ "$lfsc_dir" != default ] \
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
-[ $symfpu_dir != default ] \
+[ "$symfpu_dir" != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
-[ $install_prefix != default ] \
+[ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 
-root_dir=`pwd`
+root_dir=$(pwd)
 
 if [ -n "$build_name" ]; then
   # If a build name is specified just create directory 'build_name' for the
   # current build.
   build_dir=$build_name
-  mkdir -p $build_name
+  mkdir -p "$build_name"
 else
   # If no build name is specified create 'cmake-builds' directory and create
   # the current build directory. Set symlink 'cmake-builds/build/' to current
   # build.
   build_dir="$build_prefix$build_dir"
-  mkdir -p cmake-builds/$build_dir
-  cd cmake-builds
+  mkdir -p "cmake-builds/$build_dir"
+  cd cmake-builds || exit 1
   [ -e build ] && rm build
-  ln -s $build_dir build  # link to current build directory
+  ln -s "$build_dir" build  # link to current build directory
 fi
 
-cd $build_dir
+cd "$build_dir" || exit 1
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
-cmake $root_dir $cmake_opts
+cmake "$root_dir" $cmake_opts
