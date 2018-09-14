@@ -28,7 +28,6 @@ namespace theory {
 namespace quantifiers {
 
 QueryGenerator::QueryGenerator() : d_query_count(0) {}
-
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   Assert(ss != nullptr);
@@ -108,8 +107,8 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   {
     return true;
   }
-  Trace("sygus-qgen-debug")
-      << "query: Check " << queries.size() << " queries..." << std::endl;
+  Trace("sygus-qgen-debug") << "query: Check " << queries.size()
+                            << " queries..." << std::endl;
   LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
   // literal queries
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
@@ -221,8 +220,7 @@ void QueryGenerator::findQueries(
     std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
   TypeNode tn = n.getType();
-  LazyTrie * lt = &d_qgt_trie[tn]
-  std::vector<unsigned> eqIndex[2];
+  LazyTrie* lt = &d_qgt_trie[tn] std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
 
   LazyTrieEvaluator* ev = d_sampler;
@@ -279,10 +277,10 @@ void QueryGenerator::findQueries(
       }
       int eqAllow = d_deq_thresh - eqIndex[0].size();
       int deqAllow = d_deq_thresh - eqIndex[1].size();
-      Trace("sygus-qgen-debug")
-          << "Find queries " << n << " " << index << "/" << ntotal
-          << ", deq/eq allow = " << deqAllow << "/" << eqAllow
-          << ", exact = " << exact << std::endl;
+      Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
+                                << ntotal << ", deq/eq allow = " << deqAllow
+                                << "/" << eqAllow << ", exact = " << exact
+                                << std::endl;
       if (index == ntotal)
       {
         if (exact)
