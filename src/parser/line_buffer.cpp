@@ -54,10 +54,12 @@ uint8_t* LineBuffer::getPtrWithOffset(size_t line, size_t pos_in_line,
 }
 
 bool LineBuffer::isPtrBefore(uint8_t* ptr, size_t line, size_t pos_in_line) {
-  for (ssize_t i = line; i >= 0; i--) {
+  for (size_t j = 0; j < line; j++)
+  {
     // NOTE: std::less is guaranteed to give consistent results when comparing
     // pointers of different arrays (in contrast to built-in comparison
     // operators).
+    size_t i = line - j;
     uint8_t* end = d_lines[i] + ((i == line) ? pos_in_line : d_sizes[i]);
     if (std::less<uint8_t*>()(d_lines[i] - 1, ptr) &&
         std::less<uint8_t*>()(ptr, end)) {

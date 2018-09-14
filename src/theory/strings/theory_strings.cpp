@@ -103,7 +103,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
                              Valuation valuation,
                              const LogicInfo& logicInfo)
     : Theory(THEORY_STRINGS, c, u, out, valuation, logicInfo),
-      RMAXINT(LONG_MAX),
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_conflict(c, false),
@@ -536,7 +535,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
     if( lts[i].isConst() ) {
       lts_values.push_back( lts[i] );
-      Assert(lts[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts[i].getConst<Rational>() <= Rational(String::maxSize()),
+             "Exceeded UINT32_MAX in string model");
       unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
       values_used[ lvalue ] = true;
     }else{
@@ -545,7 +545,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         Node v = d_valuation.getModelValue(lts[i]);
         Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
         lts_values.push_back( v );
-        Assert(v.getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+        Assert(v.getConst<Rational>() <= Rational(String::maxSize()),
+               "Exceeded UINT32_MAX in string model");
         unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
         values_used[ lvalue ] = true;
       }else{
@@ -621,7 +622,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       Trace("strings-model") << std::endl;
 
       //use type enumerator
-      Assert(lts_values[i].getConst<Rational>() <= RMAXINT, "Exceeded LONG_MAX in string model");
+      Assert(lts_values[i].getConst<Rational>() <= Rational(String::maxSize()),
+             "Exceeded UINT32_MAX in string model");
       StringEnumeratorLength sel(lts_values[i].getConst<Rational>().getNumerator().toUnsignedInt());
       for (const Node& eqc : pure_eq)
       {
@@ -790,7 +792,6 @@ Node TheoryStrings::expandDefinition(LogicRequest &logicRequest, Node node) {
   Trace("strings-exp-def") << "TheoryStrings::expandDefinition : " << node << std::endl;
   return node;
 }
-
 
 void TheoryStrings::check(Effort e) {
   if (done() && e<EFFORT_FULL) {
@@ -2625,7 +2626,8 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
   }
   if( !pinfer.empty() ){
     //now, determine which of the possible inferences we want to add
-    int use_index = -1;
+    unsigned use_index = 0;
+    bool set_use_index = false;
     Trace("strings-solve") << "Possible inferences (" << pinfer.size() << ") : " << std::endl;
     unsigned min_id = 9;
     unsigned max_index = 0;
@@ -2634,10 +2636,13 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
       Trace("strings-solve") << "From " << pinfer[i].d_i << " / " << pinfer[i].d_j << " (rev=" << pinfer[i].d_rev << ") : ";
       Trace("strings-solve")
           << pinfer[i].d_conc << " by " << pinfer[i].d_id << std::endl;
-      if( use_index==-1 || pinfer[i].d_id<min_id || ( pinfer[i].d_id==min_id && pinfer[i].d_index>max_index ) ){
+      if (!set_use_index || pinfer[i].d_id < min_id
+          || (pinfer[i].d_id == min_id && pinfer[i].d_index > max_index))
+      {
         min_id = pinfer[i].d_id;
         max_index = pinfer[i].d_index;
         use_index = i;
+        set_use_index = true;
       }
     }
     //send the inference
@@ -3046,6 +3051,11 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     ss << "Looping word equation encountered." << std::endl;
     throw LogicException(ss.str());
   }
+  if (!options::stringProcessLoop())
+  {
+    d_out->setIncomplete();
+    return false;
+  }
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   Trace("strings-loop") << "Detected possible loop for "
@@ -3223,16 +3233,11 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     d_regexp_ant[str_in_re] = ant;
   }
   // we will be done
-  if (options::stringProcessLoop())
-  {
-    info.d_conc = conc;
-    info.d_id = INFER_FLOOP;
-    info.d_nf_pair[0] = normal_form_src[i];
-    info.d_nf_pair[1] = normal_form_src[j];
-    return true;
-  }
-  d_out->setIncomplete();
-  return false;
+  info.d_conc = conc;
+  info.d_id = INFER_FLOOP;
+  info.d_nf_pair[0] = normal_form_src[i];
+  info.d_nf_pair[1] = normal_form_src[j];
+  return true;
 }
 
 //return true for lemma, false if we succeed
@@ -4295,6 +4300,19 @@ Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
 
 Node TheoryStrings::ppRewrite(TNode atom) {
   Trace("strings-ppr") << "TheoryStrings::ppRewrite " << atom << std::endl;
+  Node atomElim;
+  if (options::regExpElim() && atom.getKind() == STRING_IN_REGEXP)
+  {
+    // aggressive elimination of regular expression membership
+    atomElim = d_regexp_elim.eliminate(atom);
+    if (!atomElim.isNull())
+    {
+      Trace("strings-ppr") << "  rewrote " << atom << " -> " << atomElim
+                           << " via regular expression elimination."
+                           << std::endl;
+      atom = atomElim;
+    }
+  }
   if( !options::stringLazyPreproc() ){
     //eager preprocess here
     std::vector< Node > new_nodes;

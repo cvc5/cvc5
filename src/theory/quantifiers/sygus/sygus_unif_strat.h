@@ -277,7 +277,7 @@ struct StrategyRestrictions
 class SygusUnifStrategy
 {
  public:
-  SygusUnifStrategy() {}
+  SygusUnifStrategy() : d_qe(nullptr) {}
   /** initialize
    *
    * This initializes this class with function-to-synthesize f. We also call

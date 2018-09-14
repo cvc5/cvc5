@@ -37,18 +37,22 @@ private:
 
   ExprManager* d_exprManager;
 
-public:
-
-  void setUp() {
-    try {
+ public:
+  void setUp() override
+  {
+    try
+    {
       d_exprManager = new ExprManager;
-    } catch(Exception e) {
+    }
+    catch (Exception e)
+    {
       cerr << "Exception during setUp():" << endl << e;
       throw;
     }
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     try {
       delete d_exprManager;
     } catch(Exception e) {

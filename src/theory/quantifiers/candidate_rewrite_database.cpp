@@ -63,7 +63,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_using_sygus = true;
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
-  d_ext_rewrite = d_tds->getExtRewriter();
+  d_ext_rewrite = nullptr;
   d_crewrite_filter.initialize(ss, d_tds, false);
   ExprMiner::initialize(vars, ss);
 }
@@ -270,7 +270,7 @@ void CandidateRewriteDatabase::setExtendedRewriter(ExtendedRewriter* er)
 
 CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
     std::vector<Node>& vars, unsigned nsamples)
-    : d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
+    : d_qe(nullptr), d_vars(vars.begin(), vars.end()), d_nsamples(nsamples)
 {
 }
 

@@ -40,7 +40,6 @@
 #include "theory/arith/arith_ite_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/care_graph.h"
-#include "theory/ite_utilities.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/theory_quantifiers.h"
@@ -50,7 +49,6 @@
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/unconstrained_simplifier.h"
 #include "util/resource_manager.h"
 
 using namespace std;
@@ -246,6 +244,9 @@ void TheoryEngine::finishInit() {
 
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST; ++ theoryId) {
     if (d_theoryTable[theoryId]) {
+      // set the decision manager for the theory
+      d_theoryTable[theoryId]->setDecisionManager(d_decManager.get());
+      // finish initializing the theory
       d_theoryTable[theoryId]->finishInit();
     }
   }
@@ -275,51 +276,50 @@ void TheoryEngine::eqNotifyDisequal(TNode t1, TNode t2, TNode reason){
   }
 }
 
-
 TheoryEngine::TheoryEngine(context::Context* context,
                            context::UserContext* userContext,
                            RemoveTermFormulas& iteRemover,
                            const LogicInfo& logicInfo,
                            LemmaChannels* channels)
-: d_propEngine(NULL),
-  d_decisionEngine(NULL),
-  d_context(context),
-  d_userContext(userContext),
-  d_logicInfo(logicInfo),
-  d_sharedTerms(this, context),
-  d_masterEqualityEngine(NULL),
-  d_masterEENotify(*this),
-  d_quantEngine(NULL),
-  d_curr_model(NULL),
-  d_aloc_curr_model(false),
-  d_curr_model_builder(NULL),
-  d_aloc_curr_model_builder(false),
-  d_ppCache(),
-  d_possiblePropagations(context),
-  d_hasPropagated(context),
-  d_inConflict(context, false),
-  d_hasShutDown(false),
-  d_incomplete(context, false),
-  d_propagationMap(context),
-  d_propagationMapTimestamp(context, 0),
-  d_propagatedLiterals(context),
-  d_propagatedLiteralsIndex(context, 0),
-  d_atomRequests(context),
-  d_tform_remover(iteRemover),
-  d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
-  d_true(),
-  d_false(),
-  d_interrupted(false),
-  d_resourceManager(NodeManager::currentResourceManager()),
-  d_channels(channels),
-  d_inPreregister(false),
-  d_factsAsserted(context, false),
-  d_preRegistrationVisitor(this, context),
-  d_sharedTermsVisitor(d_sharedTerms),
-  d_unconstrainedSimp(new UnconstrainedSimplifier(context, logicInfo)),
-  d_theoryAlternatives(),
-  d_attr_handle(),
-  d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
+    : d_propEngine(nullptr),
+      d_decisionEngine(nullptr),
+      d_context(context),
+      d_userContext(userContext),
+      d_logicInfo(logicInfo),
+      d_sharedTerms(this, context),
+      d_masterEqualityEngine(nullptr),
+      d_masterEENotify(*this),
+      d_quantEngine(nullptr),
+      d_decManager(new DecisionManager(context)),
+      d_curr_model(nullptr),
+      d_aloc_curr_model(false),
+      d_curr_model_builder(nullptr),
+      d_aloc_curr_model_builder(false),
+      d_ppCache(),
+      d_possiblePropagations(context),
+      d_hasPropagated(context),
+      d_inConflict(context, false),
+      d_hasShutDown(false),
+      d_incomplete(context, false),
+      d_propagationMap(context),
+      d_propagationMapTimestamp(context, 0),
+      d_propagatedLiterals(context),
+      d_propagatedLiteralsIndex(context, 0),
+      d_atomRequests(context),
+      d_tform_remover(iteRemover),
+      d_combineTheoriesTime("TheoryEngine::combineTheoriesTime"),
+      d_true(),
+      d_false(),
+      d_interrupted(false),
+      d_resourceManager(NodeManager::currentResourceManager()),
+      d_channels(channels),
+      d_inPreregister(false),
+      d_factsAsserted(context, false),
+      d_preRegistrationVisitor(this, context),
+      d_sharedTermsVisitor(d_sharedTerms),
+      d_theoryAlternatives(),
+      d_attr_handle(),
+      d_arithSubstitutionsAdded("theory::arith::zzz::arith::substitutions", 0)
 {
   for(TheoryId theoryId = theory::THEORY_FIRST; theoryId != theory::THEORY_LAST;
       ++ theoryId)
@@ -327,7 +327,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
     d_theoryTable[theoryId] = NULL;
     d_theoryOut[theoryId] = NULL;
   }
-  
+
   smtStatisticsRegistry()->registerStat(&d_combineTheoriesTime);
   d_true = NodeManager::currentNM()->mkConst<bool>(true);
   d_false = NodeManager::currentNM()->mkConst<bool>(false);
@@ -335,8 +335,6 @@ TheoryEngine::TheoryEngine(context::Context* context,
 #ifdef CVC4_PROOF
   ProofManager::currentPM()->initTheoryProofEngine();
 #endif
-
-  d_iteUtilities = new ITEUtilities();
 
   smtStatisticsRegistry()->registerStat(&d_arithSubstitutionsAdded);
 }
@@ -363,11 +361,6 @@ TheoryEngine::~TheoryEngine() {
   delete d_masterEqualityEngine;
 
   smtStatisticsRegistry()->unregisterStat(&d_combineTheoriesTime);
-
-  delete d_unconstrainedSimp;
-
-  delete d_iteUtilities;
-
   smtStatisticsRegistry()->unregisterStat(&d_arithSubstitutionsAdded);
 }
 
@@ -646,17 +639,12 @@ void TheoryEngine::check(Theory::Effort effort) {
         AlwaysAssert(d_curr_model->isBuiltSuccess());
         if (options::produceModels())
         {
-          // if we are incomplete, there is no guarantee on the model.
-          // thus, we do not check the model here. (related to #1693)
-          // we also don't debug-check the model if the checkModels()
-          // is not enabled.
-          if (!d_incomplete && options::checkModels())
-          {
-            d_curr_model_builder->debugCheckModel(d_curr_model);
-          }
           // Do post-processing of model from the theories (used for THEORY_SEP
           // to construct heap model)
           postProcessModel(d_curr_model);
+          // also call the model builder's post-process model
+          d_curr_model_builder->postProcessModel(d_incomplete.get(),
+                                                 d_curr_model);
         }
       }
     }
@@ -778,9 +766,10 @@ void TheoryEngine::propagate(Theory::Effort effort) {
 }
 
 Node TheoryEngine::getNextDecisionRequest() {
-  // Definition of the statement that is to be run by every theory
   unsigned min_priority = 0;
-  Node dec;
+  Node dec = d_decManager->getNextDecisionRequest(min_priority);
+
+  // Definition of the statement that is to be run by every theory
 #ifdef CVC4_FOR_EACH_THEORY_STATEMENT
 #undef CVC4_FOR_EACH_THEORY_STATEMENT
 #endif
@@ -954,6 +943,10 @@ bool TheoryEngine::presolve() {
 }/* TheoryEngine::presolve() */
 
 void TheoryEngine::postsolve() {
+  // Reset the decision manager. This clears its decision strategies, which are
+  // user-context-dependent.
+  d_decManager->reset();
+
   // Reset the interrupt flag
   d_interrupted = false;
   bool CVC4_UNUSED wasInConflict = d_inConflict;
@@ -2000,111 +1993,6 @@ void TheoryEngine::staticInitializeBVOptions(
   }
 }
 
-Node TheoryEngine::ppSimpITE(TNode assertion)
-{
-  if (!d_iteUtilities->containsTermITE(assertion))
-  {
-    return assertion;
-  } else {
-    Node result = d_iteUtilities->simpITE(assertion);
-    Node res_rewritten = Rewriter::rewrite(result);
-
-    if(options::simplifyWithCareEnabled()){
-      Chat() << "starting simplifyWithCare()" << endl;
-      Node postSimpWithCare = d_iteUtilities->simplifyWithCare(res_rewritten);
-      Chat() << "ending simplifyWithCare()"
-             << " post simplifyWithCare()" << postSimpWithCare.getId() << endl;
-      result = Rewriter::rewrite(postSimpWithCare);
-    } else {
-      result = res_rewritten;
-    }
-    return result;
-  }
-}
-
-bool TheoryEngine::donePPSimpITE(std::vector<Node>& assertions){
-  // This pass does not support dependency tracking yet
-  // (learns substitutions from all assertions so just
-  // adding addDependence is not enough)
-  if (options::unsatCores() || options::fewerPreprocessingHoles()) {
-    return true;
-  }
-  bool result = true;
-  bool simpDidALotOfWork = d_iteUtilities->simpIteDidALotOfWorkHeuristic();
-  if(simpDidALotOfWork){
-    if(options::compressItes()){
-      result = d_iteUtilities->compress(assertions);
-    }
-
-    if(result){
-      // if false, don't bother to reclaim memory here.
-      NodeManager* nm = NodeManager::currentNM();
-      if(nm->poolSize() >= options::zombieHuntThreshold()){
-        Chat() << "..ite simplifier did quite a bit of work.. " << nm->poolSize() << endl;
-        Chat() << "....node manager contains " << nm->poolSize() << " nodes before cleanup" << endl;
-        d_iteUtilities->clear();
-        Rewriter::clearCaches();
-        nm->reclaimZombiesUntil(options::zombieHuntThreshold());
-        Chat() << "....node manager contains " << nm->poolSize() << " nodes after cleanup" << endl;
-      }
-    }
-  }
-
-  // Do theory specific preprocessing passes
-  if(d_logicInfo.isTheoryEnabled(theory::THEORY_ARITH)
-     && !options::incrementalSolving() ){
-    if(!simpDidALotOfWork){
-      ContainsTermITEVisitor& contains =
-          *(d_iteUtilities->getContainsVisitor());
-      arith::ArithIteUtils aiteu(contains, d_userContext, getModel());
-      bool anyItes = false;
-      for(size_t i = 0;  i < assertions.size(); ++i){
-        Node curr = assertions[i];
-        if(contains.containsTermITE(curr)){
-          anyItes = true;
-          Node res = aiteu.reduceVariablesInItes(curr);
-          Debug("arith::ite::red") << "@ " << i << " ... " << curr << endl << "   ->" << res << endl;
-          if(curr != res){
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = Rewriter::rewrite(more);
-          }
-        }
-      }
-      if(!anyItes){
-        unsigned prevSubCount = aiteu.getSubCount();
-        aiteu.learnSubstitutions(assertions);
-        if(prevSubCount < aiteu.getSubCount()){
-          d_arithSubstitutionsAdded += aiteu.getSubCount() - prevSubCount;
-          bool anySuccess = false;
-          for(size_t i = 0, N =  assertions.size();  i < N; ++i){
-            Node curr = assertions[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
-            Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            if(more != next){
-              anySuccess = true;
-              break;
-            }
-          }
-          for(size_t i = 0, N =  assertions.size();  anySuccess && i < N; ++i){
-            Node curr = assertions[i];
-            Node next = Rewriter::rewrite(aiteu.applySubstitutions(curr));
-            Node res = aiteu.reduceVariablesInItes(next);
-            Debug("arith::ite::red") << "@ " << i << " ... " << next << endl << "   ->" << res << endl;
-            Node more = aiteu.reduceConstantIteByGCD(res);
-            Debug("arith::ite::red") << "  gcd->" << more << endl;
-            assertions[i] = Rewriter::rewrite(more);
-          }
-        }
-      }
-    }
-  }
-  return result;
-}
-
 void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector, LemmaProofRecipe* proofRecipe) {
   Assert(explanationVector.size() > 0);
 
@@ -2254,11 +2142,6 @@ void TheoryEngine::getExplanation(std::vector<NodeTheoryPair>& explanationVector
         }
       }
     });
-}
-
-void TheoryEngine::ppUnconstrainedSimp(vector<Node>& assertions)
-{
-  d_unconstrainedSimp->processAssertions(assertions);
 }
 
 void TheoryEngine::setUserAttribute(const std::string& attr,

@@ -1,3 +1,6 @@
+; COMMAND-LINE: --decision=justification
+; EXPECT: sat
+
 (benchmark fuzzsmt
 :logic QF_AUFBV
 :status sat

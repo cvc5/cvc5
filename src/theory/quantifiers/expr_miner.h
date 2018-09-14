@@ -18,6 +18,8 @@
 #define __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
 
 #include <map>
+#include <memory>
+#include <vector>
 #include "expr/expr_manager.h"
 #include "expr/node.h"
 #include "smt/smt_engine.h"
@@ -40,7 +42,10 @@ class ExprMiner
   virtual ~ExprMiner() {}
   /** initialize
    *
-   *
+   * This initializes this expression miner. The argument vars indicates the
+   * free variables of terms that will be added to this class. The argument
+   * sampler gives an (optional) pointer to a sampler, which is used to
+   * sample tuples of valuations of these variables.
    */
   virtual void initialize(const std::vector<Node>& vars,
                           SygusSampler* ss = nullptr);

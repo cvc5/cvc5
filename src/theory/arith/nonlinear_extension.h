@@ -580,14 +580,8 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** transcendental function representative map
-   *
-   * For each transcendental function n = tf( x ),
-   * this stores ( n.getKind(), r ) -> n
-   * where r is the current representative of x
-   * in the equality engine assoiated with this class.
-   */
-  std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
+  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
+  std::map<Kind, std::vector<Node> > d_f_map;
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;

@@ -19,6 +19,8 @@
 #ifndef __CVC4__THEORY__SETS__THEORY_SETS_H
 #define __CVC4__THEORY__SETS__THEORY_SETS_H
 
+#include <memory>
+
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -29,56 +31,41 @@ namespace sets {
 class TheorySetsPrivate;
 class TheorySetsScrutinize;
 
-class TheorySets : public Theory {
-private:
+class TheorySets : public Theory
+{
+ public:
+  /** Constructs a new instance of TheorySets w.r.t. the provided contexts. */
+  TheorySets(context::Context* c,
+             context::UserContext* u,
+             OutputChannel& out,
+             Valuation valuation,
+             const LogicInfo& logicInfo);
+  ~TheorySets() override;
+
+  void addSharedTerm(TNode) override;
+  void check(Effort) override;
+  bool needsCheckLastEffort() override;
+  bool collectModelInfo(TheoryModel* m) override;
+  void computeCareGraph() override;
+  Node explain(TNode) override;
+  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
+  Node getModelValue(TNode) override;
+  std::string identify() const override { return "THEORY_SETS"; }
+  void preRegisterTerm(TNode node) override;
+  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
+  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
+  void presolve() override;
+  void propagate(Effort) override;
+  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
+  bool isEntailed(Node n, bool pol);
+
+ private:
   friend class TheorySetsPrivate;
   friend class TheorySetsScrutinize;
   friend class TheorySetsRels;
-  TheorySetsPrivate* d_internal;
-public:
 
-  /**
-   * Constructs a new instance of TheorySets w.r.t. the provided
-   * contexts.
-   */
-  TheorySets(context::Context* c, context::UserContext* u, OutputChannel& out,
-             Valuation valuation, const LogicInfo& logicInfo);
-
-  ~TheorySets();
-
-  void addSharedTerm(TNode) override;
-
-  void check(Effort) override;
-
-  bool needsCheckLastEffort() override;
-
-  bool collectModelInfo(TheoryModel* m) override;
-
-  void computeCareGraph() override;
-
-  Node explain(TNode) override;
-
-  EqualityStatus getEqualityStatus(TNode a, TNode b) override;
-
-  Node getModelValue(TNode) override;
-
-  std::string identify() const override { return "THEORY_SETS"; }
-
-  void preRegisterTerm(TNode node) override;
-
-  Node expandDefinition(LogicRequest& logicRequest, Node n) override;
-
-  PPAssertStatus ppAssert(TNode in, SubstitutionMap& outSubstitutions) override;
-
-  void presolve() override;
-
-  void propagate(Effort) override;
-
-  void setMasterEqualityEngine(eq::EqualityEngine* eq) override;
-
-  bool isEntailed( Node n, bool pol );
-
-};/* class TheorySets */
+  std::unique_ptr<TheorySetsPrivate> d_internal;
+}; /* class TheorySets */
 
 }/* CVC4::theory::sets namespace */
 }/* CVC4::theory namespace */

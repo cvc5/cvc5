@@ -39,6 +39,7 @@
 #include "preprocessing/preprocessing_pass_context.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
+#include "theory/logic_info.h"
 #include "theory/substitutions.h"
 
 namespace CVC4 {
@@ -56,7 +57,12 @@ class AssertionPipeline
   size_t size() const { return d_nodes.size(); }
 
   void resize(size_t n) { d_nodes.resize(n); }
-  void clear() { d_nodes.clear(); }
+
+  void clear()
+  {
+    d_nodes.clear();
+    d_realAssertionsEnd = 0;
+  }
 
   Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
@@ -99,6 +105,10 @@ class AssertionPipeline
     return d_topLevelSubstitutions;
   }
 
+  size_t getRealAssertionsEnd() { return d_realAssertionsEnd; }
+
+  void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
+
  private:
   std::vector<Node> d_nodes;
 
@@ -107,12 +117,15 @@ class AssertionPipeline
    * corresponding introduced Boolean ite
    */
   IteSkolemMap d_iteSkolemMap;
-  
+
   /* Index for where to store substitutions */
   context::CDO<unsigned> d_substitutionsIndex;
 
   /* The top level substitutions */
   theory::SubstitutionMap d_topLevelSubstitutions;
+
+  /** Size of d_nodes when preprocessing starts */
+  size_t d_realAssertionsEnd;
 }; /* class AssertionPipeline */
 
 /**

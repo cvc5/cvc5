@@ -245,10 +245,10 @@ bool Instantiate::addInstantiation(
   Node orig_body = body;
   if (options::cbqiNestedQE())
   {
-    InstStrategyCbqi* icbqi = d_qe->getInstStrategyCbqi();
-    if (icbqi)
+    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
+    if (icegqi)
     {
-      body = icbqi->doNestedQE(q, terms, body, doVts);
+      body = icegqi->doNestedQE(q, terms, body, doVts);
     }
   }
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
@@ -491,7 +491,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 
 Node Instantiate::getTermForType(TypeNode tn)
 {
-  if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+  if (tn.isClosedEnumerable())
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }

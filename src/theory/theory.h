@@ -25,8 +25,8 @@
 #include <string>
 #include <unordered_set>
 
-#include "context/cdlist.h"
 #include "context/cdhashset.h"
+#include "context/cdlist.h"
 #include "context/cdo.h"
 #include "context/context.h"
 #include "expr/node.h"
@@ -39,6 +39,7 @@
 #include "smt/logic_request.h"
 #include "theory/assertion.h"
 #include "theory/care_graph.h"
+#include "theory/decision_manager.h"
 #include "theory/logic_info.h"
 #include "theory/output_channel.h"
 #include "theory/valuation.h"
@@ -129,6 +130,9 @@ private:
    * supported or not enabled). Not owned by the theory.
    */
   QuantifiersEngine* d_quantEngine;
+
+  /** Pointer to the decision manager. */
+  DecisionManager* d_decManager;
 
   /** Extended theory module or NULL. Owned by the theory. */
   ExtTheory* d_extTheory;
@@ -404,6 +408,9 @@ public:
     return d_quantEngine;
   }
 
+  /** Get the decision manager associated to this theory. */
+  DecisionManager* getDecisionManager() { return d_decManager; }
+
   /**
    * Finish theory initialization.  At this point, options and the logic
    * setting are final, and the master equality engine and quantifiers
@@ -461,7 +468,9 @@ public:
   virtual void setMasterEqualityEngine(eq::EqualityEngine* eq) { }
 
   /** Called to set the quantifiers engine. */
-  virtual void setQuantifiersEngine(QuantifiersEngine* qe);
+  void setQuantifiersEngine(QuantifiersEngine* qe);
+  /** Called to set the decision manager. */
+  void setDecisionManager(DecisionManager* dm);
 
   /** Setup an ExtTheory module for this Theory. Can only be called once. */
   void setupExtTheory();

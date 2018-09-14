@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief expr_miner_manager
+ ** \brief Expression miner manager, which manages individual expression miners.
  **/
 
 #include "cvc4_private.h"
@@ -17,9 +17,15 @@
 #ifndef __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 #define __CVC4__THEORY__QUANTIFIERS__EXPR_MINER_MANAGER_H
 
+<<<<<<< HEAD
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/query_generator.h"
+=======
+#include "expr/node.h"
+#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/extended_rewrite.h"
+>>>>>>> 4a9a0dcb8b06e3fc917b642426140b044a64facd
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
@@ -30,7 +36,7 @@ namespace quantifiers {
 /** ExpressionMinerManager
  *
  * This class manages a set of expression miners. It provides a common place
- * to register expression so that multiple mining algorithms can be run in
+ * to register expressions so that multiple mining algorithms can be run in
  * coordination, possibly sharing information and utilities like a common
  * sampling object.
  */
@@ -43,8 +49,9 @@ class ExpressionMinerManager
    *
    * Initializes this class, informing it that the free variables of terms
    * added to this class via addTerm will have free variables that are a subset
-   * of vars, and have type tn. The arguments nsamples and unique_type_ids are
-   * used for initializing the sampler class of this manager
+   * of vars, and have type tn. All expression miners in this class with be
+   * initialized with this variable list. The arguments nsamples and
+   * unique_type_ids are used for initializing the sampler class of this manager
    * (see SygusSampler::initialize for details).
    */
   void initialize(const std::vector<Node>& vars,
@@ -71,7 +78,9 @@ class ExpressionMinerManager
   /** add term
    *
    * Expression miners may print information on the output stream out, for
-   * instance, candidate-rewrites.
+   * instance, candidate-rewrites. The method returns true if the term sol is
+   * distinct (up to T-equivalence) with all previous terms added to this class,
+   * which is computed based on the miners that this manager enables.
    */
   bool addTerm(Node sol, std::ostream& out);
   /**
@@ -82,9 +91,9 @@ class ExpressionMinerManager
 
  private:
   /** whether we are doing rewrite synthesis */
-  bool d_do_rew_synth;
+  bool d_doRewSynth;
   /** whether we are doing query generation */
-  bool d_do_query_gen;
+  bool d_doQueryGen;
   /** the sygus function passed to initializeSygus, if any */
   Node d_sygus_fun;
   /** whether we are using sygus types */

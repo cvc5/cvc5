@@ -1,0 +1,8 @@
+(set-info :smt-lib-version 2.5)
+(set-logic QF_S)
+(set-info :status sat)
+(set-option :strings-exp true)
+(declare-const s String)
+(assert (str.in.re s (re.* (re.range "\x00" "\xFF"))))
+(assert (str.in.re s (re.range "\x00" "\xFF")))
+(check-sat)

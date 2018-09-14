@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
@@ -234,7 +235,6 @@ private:
   Node d_zero;
   Node d_one;
   Node d_neg_one;
-  CVC4::Rational RMAXINT;
   unsigned d_card_size;
   // Helper functions
   Node getRepresentative( Node t );
@@ -619,10 +619,10 @@ private:
   NodeSet d_processed_memberships;
   // antecedant for why regexp membership must be true
   NodeNodeMap d_regexp_ant;
-  // membership length
-  //std::map< Node, bool > d_membership_length;
-  // regular expression operations
+  /** regular expression operation module */
   RegExpOpr d_regexp_opr;
+  /** regular expression elimination module */
+  RegExpElimination d_regexp_elim;
 
   CVC4::String getHeadConst( Node x );
   bool deriveRegExp( Node x, Node r, Node ant );

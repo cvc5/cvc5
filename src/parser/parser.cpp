@@ -505,9 +505,9 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
   return getExprManager()->mkFunctionType(sorts, range);
 }
 
-Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex)
+Expr Parser::mkHoApply(Expr expr, std::vector<Expr>& args)
 {
-  for (unsigned i = startIndex; i < args.size(); i++)
+  for (unsigned i = 0; i < args.size(); i++)
   {
     expr = getExprManager()->mkExpr(HO_APPLY, expr, args[i]);
   }

@@ -46,19 +46,7 @@ class CandidateRewriteDatabase : public ExprMiner
  public:
   CandidateRewriteDatabase();
   ~CandidateRewriteDatabase() {}
-  /**  Initialize this class
-   *
-   * er : pointer to the extended rewriter (if any) we are using to compute
-   * candidate rewrites,
-   *
-   * unique_type_ids : if this is set to true, then each variable is treated
-   * as unique. This affects whether or not a rewrite rule is considered
-   * redundant or not. For example the rewrite f(y)=y is redundant if
-   * f(x)=x has also been printed as a rewrite and x and y have the same type
-   * id (see SygusSampler for details). On the other hand, when a candidate
-   * rewrite database is initialized with sygus below, the type ids of the
-   * (sygus formal argument list) variables are always computed and used.
-   */
+  /**  Initialize this class */
   void initialize(const std::vector<Node>& var,
                   SygusSampler* ss = nullptr) override;
   /**  Initialize this class
@@ -71,13 +59,7 @@ class CandidateRewriteDatabase : public ExprMiner
    * database when computing candidate rewrites,
    * f : a term of some SyGuS datatype type whose values we will be
    * testing under the free variables in the grammar of f. This is the
-   * "candidate variable" CegConjecture::d_candidates,
-   * useSygusType : whether we will register terms with this sampler that have
-   * the same type as f. If this flag is false, then we will be registering
-   * terms of the analog of the type of f, that is, the builtin type that
-   * f's type encodes in the deep embedding.
-   *
-   * These arguments are used to initialize the sygus sampler class.
+   * "candidate variable" CegConjecture::d_candidates.
    */
   void initializeSygus(const std::vector<Node>& vars,
                        QuantifiersEngine* qe,
@@ -142,7 +124,7 @@ class CandidateRewriteDatabaseGen
   QuantifiersEngine* d_qe;
   /** the variables */
   std::vector<Node> d_vars;
-  /** sygus sampler object for each type FIXME: when rec, can use only one */
+  /** sygus sampler object for each type */
   std::map<TypeNode, SygusSampler> d_sampler;
   /** the number of samples */
   unsigned d_nsamples;

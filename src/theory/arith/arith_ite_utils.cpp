@@ -2,7 +2,7 @@
 /*! \file arith_ite_utils.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Kshitij Bansal
+ **   Tim King, Aina Niemetz, Kshitij Bansal
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -21,9 +21,9 @@
 
 #include "base/output.h"
 #include "options/smt_options.h"
+#include "preprocessing/util/ite_utilities.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
-#include "theory/ite_utilities.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 #include "theory/theory_model.h"
@@ -140,18 +140,19 @@ Node ArithIteUtils::reduceVariablesInItes(Node n){
   Unreachable();
 }
 
-ArithIteUtils::ArithIteUtils(ContainsTermITEVisitor& contains,
-                             context::Context* uc,
-                             TheoryModel* model)
-  : d_contains(contains)
-  , d_subs(NULL)
-  , d_model(model)
-  , d_one(1)
-  , d_subcount(uc, 0)
-  , d_skolems(uc)
-  , d_implies()
-  , d_skolemsAdded()
-  , d_orBinEqs()
+ArithIteUtils::ArithIteUtils(
+    preprocessing::util::ContainsTermITEVisitor& contains,
+    context::Context* uc,
+    TheoryModel* model)
+    : d_contains(contains),
+      d_subs(NULL),
+      d_model(model),
+      d_one(1),
+      d_subcount(uc, 0),
+      d_skolems(uc),
+      d_implies(),
+      d_skolemsAdded(),
+      d_orBinEqs()
 {
   d_subs = new SubstitutionMap(uc);
 }

@@ -408,7 +408,10 @@ void BoundedIntegers::checkOwnership(Node f)
         bool setBoundVar = false;
         if( it->second==BOUND_INT_RANGE ){
           //must have both
-          if( bound_lit_map[0].find( v )!=bound_lit_map[0].end() && bound_lit_map[1].find( v )!=bound_lit_map[1].end() ){
+          std::map<Node, Node>& blm0 = bound_lit_map[0];
+          std::map<Node, Node>& blm1 = bound_lit_map[1];
+          if (blm0.find(v) != blm0.end() && blm1.find(v) != blm1.end())
+          {
             setBoundedVar( f, v, BOUND_INT_RANGE );
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
@@ -459,18 +462,18 @@ void BoundedIntegers::checkOwnership(Node f)
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
+            std::map<Node, Node>& blm = bound_lit_map[b];
+            if (blm.find(v) != blm.end())
             {
+              std::map<Node, bool>& blmp = bound_lit_pol_map[b];
               // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in
               // production as it is considered safe for this to fail. We fail
               // the assertion in debug mode to have this instance raised to
               // our attention.
-              Assert(bound_lit_pol_map[b].find(v)
-                     != bound_lit_pol_map[b].end());
+              Assert(blmp.find(v) != blmp.end());
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute(bila,
-                                               bound_lit_pol_map[b][v] ? 1 : 0);
+              bound_lit_map[b][v].setAttribute(bila, blmp[v] ? 1 : 0);
             }
             else
             {

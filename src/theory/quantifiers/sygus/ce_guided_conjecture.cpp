@@ -50,8 +50,7 @@ CegConjecture::CegConjecture(QuantifiersEngine* qe)
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
-      d_refine_count(0),
-      d_syntax_guided(false)
+      d_refine_count(0)
 {
   if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
   {
@@ -71,6 +70,7 @@ void CegConjecture::assign( Node q ) {
   Assert( q.getKind()==FORALL );
   Trace("cegqi") << "CegConjecture : assign : " << q << std::endl;
   d_quant = q;
+  NodeManager* nm = NodeManager::currentNM();
 
   // pre-simplify the quantified formula based on the process utility
   d_simp_quant = d_ceg_proc->preSimplify(d_quant);
@@ -153,38 +153,30 @@ void CegConjecture::assign( Node q ) {
     Assert(d_master != nullptr);
   }
 
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  Assert(d_qe->getQuantAttributes()->isSygus(q));
+  // if the base instantiation is an existential, store its variables
+  if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
   {
-    // if the base instantiation is an existential, store its variables
-    if (d_base_inst.getKind() == NOT && d_base_inst[0].getKind() == FORALL)
+    for (const Node& v : d_base_inst[0][0])
     {
-      for (const Node& v : d_base_inst[0][0])
-      {
-        d_inner_vars.push_back(v);
-      }
+      d_inner_vars.push_back(v);
     }
-    d_syntax_guided = true;
-  }
-  else if (d_qe->getQuantAttributes()->isSynthesis(q))
-  {
-    d_syntax_guided = false;
-  }else{
-    Assert( false );
   }
   
   // initialize the guard
-  if( !d_syntax_guided ){
-    if( d_nsg_guard.isNull() ){
-      d_nsg_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-      d_nsg_guard = d_qe->getValuation().ensureLiteral( d_nsg_guard );
-      AlwaysAssert( !d_nsg_guard.isNull() );
-      d_qe->getOutputChannel().requirePhase( d_nsg_guard, true );
-      // negated base as a guarded lemma
-      guarded_lemmas.push_back( d_base_inst.negate() );
-    }
-  }else if( d_ceg_si->getGuard().isNull() ){
+  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
+  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  AlwaysAssert(!d_feasible_guard.isNull());
+  // this must be called, both to ensure that the feasible guard is
+  // decided on with true polariy, but also to ensure that output channel
+  // has been used on this call to check.
+  d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
+
+  if (isSingleInvocation())
+  {
     std::vector< Node > lems;
-    d_ceg_si->getInitialSingleInvLemma( lems );
+    d_ceg_si->getInitialSingleInvLemma(d_feasible_guard, lems);
     for( unsigned i=0; i<lems.size(); i++ ){
       Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation " << i << " : " << lems[i] << std::endl;
       d_qe->getOutputChannel().lemma( lems[i] );
@@ -194,10 +186,9 @@ void CegConjecture::assign( Node q ) {
       }
     }
   }
-  Assert( !getGuard().isNull() );
-  Node gneg = getGuard().negate();
+  Node gneg = d_feasible_guard.negate();
   for( unsigned i=0; i<guarded_lemmas.size(); i++ ){
-    Node lem = NodeManager::currentNM()->mkNode( OR, gneg, guarded_lemmas[i] );
+    Node lem = nm->mkNode(OR, gneg, guarded_lemmas[i]);
     Trace("cegqi-lemma") << "Cegqi::Lemma : initial (guarded) lemma : " << lem << std::endl;
     d_qe->getOutputChannel().lemma( lem );
   }
@@ -205,31 +196,35 @@ void CegConjecture::assign( Node q ) {
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
-Node CegConjecture::getGuard() {
-  return !d_syntax_guided ? d_nsg_guard : d_ceg_si->getGuard();
-}
+Node CegConjecture::getGuard() const { return d_feasible_guard; }
 
 bool CegConjecture::isSingleInvocation() const {
   return d_ceg_si->isSingleInvocation();
 }
 
-bool CegConjecture::needsCheck( std::vector< Node >& lem ) {
+bool CegConjecture::needsCheck()
+{
   if( isSingleInvocation() && !d_ceg_si->needsCheck() ){
     return false;
-  }else{
-    bool value;
-    Assert( !getGuard().isNull() );
-    // non or fully single invocation : look at guard only
-    if( d_qe->getValuation().hasSatValue( getGuard(), value ) ) {
-      if( !value ){
-        Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
-        return false;
-      }
-    }else{
-      Assert( false );
-    }
-    return true;
   }
+  bool value;
+  Assert(!d_feasible_guard.isNull());
+  // non or fully single invocation : look at guard only
+  if (d_qe->getValuation().hasSatValue(d_feasible_guard, value))
+  {
+    if (!value)
+    {
+      Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
+      return false;
+    }
+  }
+  else
+  {
+    Trace("cegqi-warn") << "WARNING: Guard " << d_feasible_guard
+                        << " is not assigned!" << std::endl;
+    Assert(false);
+  }
+  return true;
 }
 
 
@@ -583,7 +578,7 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
 Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
   // first, must try the guard
   // which denotes "this conjecture is feasible"
-  Node feasible_guard = getGuard();
+  Node feasible_guard = d_feasible_guard;
   bool value;
   if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
     priority = 0;

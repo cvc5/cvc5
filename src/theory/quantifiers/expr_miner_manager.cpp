@@ -9,23 +9,19 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of expr_miner_manager
+ ** \brief Implementation of expression miner manager.
  **/
 
 #include "theory/quantifiers/expr_miner_manager.h"
-
 #include "theory/quantifiers_engine.h"
-
-using namespace std;
-using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager()
-    : d_do_rew_synth(false),
-      d_do_query_gen(false),
+    : d_doRewSynth(false),
+      d_doQueryGen(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -37,8 +33,8 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
                                         unsigned nsamples,
                                         bool unique_type_ids)
 {
-  d_do_rew_synth = false;
-  d_do_query_gen = false;
+  d_doRewSynth = false;
+  d_doQueryGen = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -52,8 +48,8 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
                                              unsigned nsamples,
                                              bool useSygusType)
 {
-  d_do_rew_synth = false;
-  d_do_query_gen = false;
+  d_doRewSynth = false;
+  d_doQueryGen = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -64,12 +60,12 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
 
 void ExpressionMinerManager::enableRewriteRuleSynth()
 {
-  if (d_do_rew_synth)
+  if (d_doRewSynth)
   {
     // already enabled
     return;
   }
-  d_do_rew_synth = true;
+  d_doRewSynth = true;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // initialize the candidate rewrite database
@@ -88,12 +84,12 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
 
 void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
 {
-  if (d_do_query_gen)
+  if (d_doQueryGen)
   {
     // already enabled
     return;
   }
-  d_do_query_gen = true;
+  d_doQueryGen = true;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // must also enable rewrite rule synthesis
@@ -113,7 +109,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
                                      bool& rew_print)
 {
   bool ret = d_crd.addTerm(sol, out, rew_print);
-  if (ret && d_do_query_gen)
+  if (ret && d_doQueryGen)
   {
     // always use the builtin version
     Node solb = sol;
