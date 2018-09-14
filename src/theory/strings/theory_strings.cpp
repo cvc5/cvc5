@@ -4369,11 +4369,11 @@ Node TheoryStrings::ppRewrite(TNode atom) {
 }
 
 // Stats
-TheoryStrings::Statistics::Statistics():
-  d_splits("theory::strings::NumOfSplitOnDemands", 0),
-  d_eq_splits("theory::strings::NumOfEqSplits", 0),
-  d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
-  d_loop_lemmas("theory::strings::NumOfLoops", 0)
+TheoryStrings::Statistics::Statistics()
+    : d_splits("theory::strings::NumOfSplitOnDemands", 0),
+      d_eq_splits("theory::strings::NumOfEqSplits", 0),
+      d_deq_splits("theory::strings::NumOfDiseqSplits", 0),
+      d_loop_lemmas("theory::strings::NumOfLoops", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_splits);
   smtStatisticsRegistry()->registerStat(&d_eq_splits);
