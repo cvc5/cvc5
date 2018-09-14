@@ -1,4 +1,4 @@
-set(EXAMPLES_API_JAVA_BIN_DIR ${CMAKE_BINARY_DIR}/bin/examples/api/java) 
+set(EXAMPLES_API_JAVA_BIN_DIR ${EXAMPLES_API_BIN_DIR}/java) 
 file(MAKE_DIRECTORY ${EXAMPLES_API_JAVA_BIN_DIR})
 
 add_custom_target(BitVectorsjava
