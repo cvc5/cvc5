@@ -3,7 +3,7 @@
 
 usage () {
 cat <<EOF
-Usage: VAR=VALUE $0 [<build type>] [<option> ...]
+Usage: $0 [<build type>] [<option> ...]
 
 Build types:
   production
@@ -15,7 +15,8 @@ Build types:
 General options;
   -h, --help               display this help and exit
   --prefix=STR             install directory
-  --build-dir-prefix=STR   prefix build directory with given prefix
+  --build-prefix=STR       prefix build directory with given prefix
+  --name=STR               use custom build directory name
   --best                   turn on dependences known to give best performance
   --gpl                    permit GPL dependences, if available
 
@@ -90,9 +91,10 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-builddir=production
+build_dir=production
 install_prefix=default
-build_dir_prefix=""
+build_prefix=""
+build_name=""
 
 #--------------------------------------------------------------------------#
 
@@ -169,8 +171,11 @@ do
         esac
         ;;
 
-    --build-dir-prefix) die "missing argument to $1 (try -h)" ;;
-    --build-dir-prefix=*) build_dir_prefix=${1##*=} ;;
+    --build-prefix) die "missing argument to $1 (try -h)" ;;
+    --build-prefix=*) build_prefix=${1##*=} ;;
+
+    --name) die "missing argument to $1 (try -h)" ;;
+    --name=*) build_name=${1##*=} ;;
 
     --cadical) cadical=ON;;
     --no-cadical) cadical=OFF;;
@@ -283,18 +288,16 @@ do
     -*) die "invalid option '$1' (try -h)";;
 
     *) case $1 in
-         production)  buildtype=Production; builddir=production;;
-         debug)       buildtype=Debug; builddir=debug;;
-         testing)     buildtype=Testing; builddir=testing;;
-         competition) buildtype=Competition; builddir=competition;;
+         production)  buildtype=Production; build_dir=production;;
+         debug)       buildtype=Debug; build_dir=debug;;
+         testing)     buildtype=Testing; build_dir=testing;;
+         competition) buildtype=Competition; build_dir=competition;;
          *)           die "invalid build type (try -h)";;
        esac
        ;;
   esac
   shift
 done
-
-builddir="$build_dir_prefix$builddir"
 
 #--------------------------------------------------------------------------#
 
@@ -304,88 +307,88 @@ cmake_opts=""
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan" \
-  && [ $asan = ON ] && builddir="$builddir-asan"
+  && [ $asan = ON ] && build_dir="$build_dir-asan"
 [ $assertions != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASSERTIONS=$assertions" \
-  && [ $assertions = ON ] && builddir="$builddir-assertions"
+  && [ $assertions = ON ] && build_dir="$build_dir-assertions"
 [ $best != default ] \
   && cmake_opts="$cmake_opts -DENABLE_BEST=$best" \
-  && [ $best = ON ] && builddir="$builddir-best"
+  && [ $best = ON ] && build_dir="$build_dir-best"
 [ $coverage != default ] \
   && cmake_opts="$cmake_opts -DENABLE_COVERAGE=$coverage" \
-  && [ $coverage = ON ] && builddir="$builddir-coverage"
+  && [ $coverage = ON ] && build_dir="$build_dir-coverage"
 [ $debug_symbols != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_SYMBOLS=$debug_symbols" \
-  && [ $debug_symbols = ON ] && builddir="$builddir-debug_symbols"
+  && [ $debug_symbols = ON ] && build_dir="$build_dir-debug_symbols"
 [ $debug_context_mm != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DEBUG_CONTEXT_MM=$debug_context_mm" \
-  && [ $debug_context_mm = ON ] &&  builddir="$builddir-debug_context_mm"
+  && [ $debug_context_mm = ON ] &&  build_dir="$build_dir-debug_context_mm"
 [ $dumping != default ] \
   && cmake_opts="$cmake_opts -DENABLE_DUMPING=$dumping" \
-  && [ $dumping = ON ] &&  builddir="$builddir-dumping"
+  && [ $dumping = ON ] &&  build_dir="$build_dir-dumping"
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl" \
-  && [ $gpl = ON ] &&  builddir="$builddir-gpl"
+  && [ $gpl = ON ] &&  build_dir="$build_dir-gpl"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle" \
-  && [ $muzzle = ON ] &&  builddir="$builddir-muzzle"
+  && [ $muzzle = ON ] &&  build_dir="$build_dir-muzzle"
 [ $optimized != default ] \
   && cmake_opts="$cmake_opts -DENABLE_OPTIMIZED=$optimized" \
-  && [ $optimized = ON ] &&  builddir="$builddir-optimized"
+  && [ $optimized = ON ] &&  build_dir="$build_dir-optimized"
 [ $portfolio != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PORTFOLIO=$portfolio" \
-  && [ $portfolio = ON ] &&  builddir="$builddir-portfolio"
+  && [ $portfolio = ON ] &&  build_dir="$build_dir-portfolio"
 [ $proofs != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROOFS=$proofs" \
-  && [ $proofs = ON ] &&  builddir="$builddir-proofs"
+  && [ $proofs = ON ] &&  build_dir="$build_dir-proofs"
 [ $replay != default ] \
   && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay" \
-  && [ $replay = ON ] &&  builddir="$builddir-replay"
+  && [ $replay = ON ] &&  build_dir="$build_dir-replay"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATIC=$shared" \
-  && [ $shared == OFF ] &&  builddir="$builddir-static"
+  && [ $shared == OFF ] &&  build_dir="$build_dir-static"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics" \
-  && [ $statistics = ON ] && builddir="$builddir-stastitics"
+  && [ $statistics = ON ] && build_dir="$build_dir-stastitics"
 [ $tracing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_TRACING=$tracing" \
-  && [ $tracing = ON ] && builddir="$builddir-tracing"
+  && [ $tracing = ON ] && build_dir="$build_dir-tracing"
 [ $unit_testing != default ] \
   && cmake_opts="$cmake_opts -DENABLE_UNIT_TESTING=$unit_testing" \
-  && [ $unit_testing = ON ] && builddir="$builddir-unit_testing"
+  && [ $unit_testing = ON ] && build_dir="$build_dir-unit_testing"
 [ $python2 != default ] \
   && cmake_opts="$cmake_opts -DUSE_PYTHON2=$python2" \
-  && [ $python2 = ON ] && builddir="$builddir-python2"
+  && [ $python2 = ON ] && build_dir="$build_dir-python2"
 [ $valgrind != default ] \
   && cmake_opts="$cmake_opts -DENABLE_VALGRIND=$valgrind" \
-  && [ $valgrind = ON ] && builddir="$builddir-valgrind"
+  && [ $valgrind = ON ] && build_dir="$build_dir-valgrind"
 [ $profiling != default ] \
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling" \
-  && [ $profiling = ON ] && builddir="$builddir-profiling"
+  && [ $profiling = ON ] && build_dir="$build_dir-profiling"
 [ $readline != default ] \
   && cmake_opts="$cmake_opts -DUSE_READLINE=$readline" \
-  && [ $readline = ON ] && builddir="$builddir-readline"
+  && [ $readline = ON ] && build_dir="$build_dir-readline"
 [ $abc != default ] \
   && cmake_opts="$cmake_opts -DUSE_ABC=$abc" \
-  && [ $abc = ON ] && builddir="$builddir-abc"
+  && [ $abc = ON ] && build_dir="$build_dir-abc"
 [ $cadical != default ] \
   && cmake_opts="$cmake_opts -DUSE_CADICAL=$cadical" \
-  && [ $cadical = ON ] && builddir="$builddir-cadical"
+  && [ $cadical = ON ] && build_dir="$build_dir-cadical"
 [ $cln != default ] \
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln" \
-  && [ $cln = ON ] && builddir="$builddir-cln"
+  && [ $cln = ON ] && build_dir="$build_dir-cln"
 [ $cryptominisat != default ] \
   && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat" \
-  && [ $cryptominisat = ON ] && builddir="$builddir-cryptominisat"
+  && [ $cryptominisat = ON ] && build_dir="$build_dir-cryptominisat"
 [ $glpk != default ] \
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk" \
-  && [ $glpk = ON ] && builddir="$builddir-glpk"
+  && [ $glpk = ON ] && build_dir="$build_dir-glpk"
 [ $lfsc != default ] \
   && cmake_opts="$cmake_opts -DUSE_LFSC=$lfsc" \
-  && [ $lfsc = ON ] && builddir="$builddir-lfsc"
+  && [ $lfsc = ON ] && build_dir="$build_dir-lfsc"
 [ $symfpu != default ] \
   && cmake_opts="$cmake_opts -DUSE_SYMFPU=$symfpu" \
-  && [ $symfpu = ON ] && builddir="$builddir-symfpu"
+  && [ $symfpu = ON ] && build_dir="$build_dir-symfpu"
 
 [ $language_bindings_java != default ] \
   && cmake_opts="$cmake_opts -DBUILD_BINDINGS_JAVA=$language_bindings_java"
@@ -409,12 +412,25 @@ cmake_opts=""
 [ $install_prefix != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 
-mkdir -p cmake-builds  # builds parent directory
-cd cmake-builds
-mkdir -p $builddir     # current build directory
-[ -e build ] && rm build
-ln -s $builddir build  # link to current build directory
-cd $builddir
+root_dir=`pwd`
+
+if [ -n "$build_name" ]; then
+  # If a build name is specified just create directory 'build_name' for the
+  # current build.
+  build_dir=$build_name
+  mkdir -p $build_name
+else
+  # If no build name is specified create 'cmake-builds' directory and create
+  # the current build directory. Set symlink 'cmake-builds/build/' to current
+  # build.
+  build_dir="$build_prefix$build_dir"
+  mkdir -p cmake-builds/$build_dir
+  cd cmake-builds
+  [ -e build ] && rm build
+  ln -s $build_dir build  # link to current build directory
+fi
+
+cd $build_dir
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
-cmake ../.. $cmake_opts
+cmake $root_dir $cmake_opts
