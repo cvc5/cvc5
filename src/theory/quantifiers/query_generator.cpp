@@ -102,7 +102,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   }
 
   // collect equality queries
-  findQueries(&d_qgt_trie[tn], nn, queries, queriesPtTrue);
+  findQueries(nn, queries, queriesPtTrue);
   Assert(queries.size() == queriesPtTrue.size());
   if (queries.empty())
   {
@@ -243,52 +243,15 @@ class PtTrieSet
   }
 };
 
-// FIXME: make robust up to irrelevant variables
 void QueryGenerator::findQueries(
-    LazyTrie* lt,
     Node n,
     std::vector<Node>& queries,
     std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
   TypeNode tn = n.getType();
+  LazyTrie * lt = &d_qgt_trie[tn]
   std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
-
-  /*
-  PtTrieSet eqPtTrie[2];
-  // the variables indices we will cache points on
-  bool useRlvIndices = false;
-  std::vector< unsigned > rlvIndices;
-  // get the free variables of n
-  std::vector< Node > nvars;
-  d_sampler->computeFreeVariables(n,nvars);
-  std::sort(nvars.begin(),nvars.end());
-  if( nvars.size()<d_vars.size() )
-  {
-    useRlvIndices = true;
-    Trace("sygus-qgen-debug") << "  use indices { ";
-    if( !nvars.empty() )
-    {
-      unsigned j=0;
-      // if less than all free variables
-      for( unsigned i=0,size=d_vars.size(); i<size; i++ )
-      {
-        if( nvars[j]==d_vars[i] )
-        {
-          rlvIndices.push_back(i);
-          Trace("sygus-qgen-debug") << i << " ";
-          j++;
-          if( j==nvars.size() )
-          {
-            break;
-          }
-        }
-      }
-    }
-    Trace("sygus-qgen-debug") << "} for free variables (" << nvars << ")\n";
-    Assert( rlvIndices.size()==nvars.size() );
-  }
-  */
 
   LazyTrieEvaluator* ev = d_sampler;
   unsigned ntotal = d_sampler->getNumSamplePoints();

@@ -22,6 +22,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/query_generator.h"
 
 namespace CVC4 {
 namespace theory {
