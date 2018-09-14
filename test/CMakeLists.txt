@@ -10,14 +10,14 @@ endif()
 # Add subdirectories
 
 add_subdirectory(regress)
-add_subdirectory(system)
+add_subdirectory(system EXCLUDE_FROM_ALL)
 
 if(BUILD_BINDINGS_JAVA)
   add_subdirectory(java)
 endif()
 
 if(ENABLE_UNIT_TESTING)
-	add_subdirectory(unit)
+  add_subdirectory(unit EXCLUDE_FROM_ALL)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -27,4 +27,8 @@ endif()
 # > system tests
 
 add_custom_target(check
-  COMMAND ctest --output-on-failure -LE "regress[2-4]" -j${NTHREADS} $(ARGS))
+  COMMAND ctest --output-on-failure -LE "regress[2-4]" -j${NTHREADS} $(ARGS)
+  DEPENDS units regress systemtests)
+if(BUILD_BINDINGS_JAVA)
+  add_dependencies(check cvc4javatests)
+endif()

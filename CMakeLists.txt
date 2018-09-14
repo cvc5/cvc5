@@ -433,7 +433,7 @@ if(ENABLE_PROOFS)
 endif()
 
 add_subdirectory(doc)
-add_subdirectory(examples)
+add_subdirectory(examples EXCLUDE_FROM_ALL)
 add_subdirectory(src)
 add_subdirectory(test)
 

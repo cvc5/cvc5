@@ -16,6 +16,12 @@ set(CVC4_CXXTEST_FLAGS_BLACK
 set(CVC4_CXXTEST_FLAGS_WHITE -fno-access-control ${CVC4_CXXTEST_FLAGS_BLACK})
 
 macro(cvc4_add_unit_test is_white name)
+  # cxxtest_add_test generates the unit test executables into directory
+  # CMAKE_BINARY_DIR/test/unit by default and does not allow to change this
+  # location (it's possible to set corresponding target properties with
+  # set_target_properties, but then the test environment does not find them).
+  # Hence, these are the only executables that are not generated into our
+  # default directory for executables (CMAKE_BINARY_DIR/bin).
   cxxtest_add_test(${name} ${name}.cpp ${CMAKE_CURRENT_LIST_DIR}/${name}.h)
   set_tests_properties(${name} PROPERTIES LABELS "unit")
   target_link_libraries(${name} main-test)
