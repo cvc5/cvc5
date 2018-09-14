@@ -17,11 +17,9 @@
 #ifndef __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 #define __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 
-#include <vector>
-#include "context/cdhashmap.h"
-#include "theory/rewriter.h"
-#include "theory/theory.h"
-#include "util/hash.h"
+#include <unordered_set>
+#include <map>
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -93,9 +91,9 @@ class SkolemCache
 
  private:
   /** map from node pairs and identifiers to skolems */
-  std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolem_cache;
+  std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
-  std::unordered_set<Node, NodeHashFunction> d_all_skolems;
+  std::unordered_set<Node, NodeHashFunction> d_allSkolems;
 };
 
 }  // namespace strings

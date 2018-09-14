@@ -123,7 +123,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
-      d_sk_cache(new SkolemCache),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -443,9 +442,9 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Node x = n[0];
           Node s = n[1];
           //positive contains reduces to a equality
-          Node sk1 = d_sk_cache->mkSkolemCached(
+          Node sk1 = d_sk_cache.mkSkolemCached(
               x, s, SkolemCache::SK_ID_CTN_PRE, "sc1");
-          Node sk2 = d_sk_cache->mkSkolemCached(
+          Node sk2 = d_sk_cache.mkSkolemCached(
               x, s, SkolemCache::SK_ID_CTN_POST, "sc2");
           Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
           std::vector< Node > exp_vec;
@@ -761,7 +760,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // but not an internally generated Skolem, or a term that does
           // not belong to this theory.
           if (options::stringFMF()
-              && (n.isVar() ? !d_sk_cache->isSkolem(n)
+              && (n.isVar() ? !d_sk_cache.isSkolem(n)
                             : kindToTheoryId(k) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
@@ -2669,7 +2668,7 @@ void TheoryStrings::processNEqc( std::vector< std::vector< Node > > &normal_form
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
-  for (std::pair<const LengthStatus, std::vector<Node> > sks :
+  for (std::pair<const LengthStatus, std::vector<Node> >& sks :
        pinfer[use_index].d_new_skolem)
   {
     for (const Node& n : sks.second)
@@ -2904,7 +2903,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                         getExplanationVectorForPrefixEq( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, 
                                                          const_k, nconst_k, index_c_k, index_nc_k, isRev, info.d_ant );   
                         Node prea = p==stra.size() ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( p ) : stra.prefix( p ) );
-                        Node sk = d_sk_cache->mkSkolemCached(
+                        Node sk = d_sk_cache.mkSkolemCached(
                             other_str,
                             prea,
                             isRev ? SkolemCache::SK_ID_C_SPT_REV
@@ -2939,7 +2938,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                     if( options::stringBinaryCsp() && stra.size()>3 ){
                       //split string in half
                       Node c_firstHalf =  NodeManager::currentNM()->mkConst( isRev ? stra.substr( stra.size()/2 ) : stra.substr(0, stra.size()/2 ) );
-                      Node sk = d_sk_cache->mkSkolemCached(
+                      Node sk = d_sk_cache.mkSkolemCached(
                           other_str,
                           c_firstHalf,
                           isRev ? SkolemCache::SK_ID_VC_BIN_SPT_REV
@@ -2956,7 +2955,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                     }else{
                       // normal v/c split
                       Node firstChar = stra.size() == 1 ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( 1 ) : stra.prefix( 1 ) );
-                      Node sk = d_sk_cache->mkSkolemCached(
+                      Node sk = d_sk_cache.mkSkolemCached(
                           other_str,
                           firstChar,
                           isRev ? SkolemCache::SK_ID_VC_SPT_REV
@@ -3006,7 +3005,7 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
                     info.d_antn.push_back( xgtz );
                   }
                 }
-                Node sk = d_sk_cache->mkSkolemCached(
+                Node sk = d_sk_cache.mkSkolemCached(
                     normal_forms[i][index],
                     normal_forms[j][index],
                     isRev ? SkolemCache::SK_ID_V_SPT_REV
@@ -3230,10 +3229,10 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking."
                           << std::endl;
     // right
-    Node sk_w = d_sk_cache->mkSkolem("w_loop");
-    Node sk_y = d_sk_cache->mkSkolem("y_loop");
+    Node sk_w = d_sk_cache.mkSkolem("w_loop");
+    Node sk_y = d_sk_cache.mkSkolem("y_loop");
     registerLength(sk_y, LENGTH_GEQ_ONE);
-    Node sk_z = d_sk_cache->mkSkolem("z_loop");
+    Node sk_z = d_sk_cache.mkSkolem("z_loop");
     // t1 * ... * tn = y * z
     Node conc1 = t_yz.eqNode(mkConcat(sk_y, sk_z));
     // s1 * ... * sk = z * y * r
@@ -3332,11 +3331,11 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                     }
                   }
                 }else{
-                  Node sk = d_sk_cache->mkSkolemCached(
+                  Node sk = d_sk_cache.mkSkolemCached(
                       nconst_k, firstChar, SkolemCache::SK_ID_DC_SPT, "dc_spt");
                   registerLength(sk, LENGTH_ONE);
                   Node skr =
-                      d_sk_cache->mkSkolemCached(nconst_k,
+                      d_sk_cache.mkSkolemCached(nconst_k,
                                                  firstChar,
                                                  SkolemCache::SK_ID_DC_SPT_REM,
                                                  "dc_spt_rem");
@@ -3368,11 +3367,11 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               }
               antec_new_lits.push_back( li.eqNode( lj ).negate() );
               std::vector< Node > conc;
-              Node sk1 = d_sk_cache->mkSkolemCached(
+              Node sk1 = d_sk_cache.mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_X, "x_dsplit");
-              Node sk2 = d_sk_cache->mkSkolemCached(
+              Node sk2 = d_sk_cache.mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Y, "y_dsplit");
-              Node sk3 = d_sk_cache->mkSkolemCached(
+              Node sk3 = d_sk_cache.mkSkolemCached(
                   i, j, SkolemCache::SK_ID_DEQ_Z, "z_dsplit");
               registerLength(sk3, LENGTH_GEQ_ONE);
               //Node nemp = sk3.eqNode(d_emptyString).negate();
@@ -3598,7 +3597,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         return;
       }
     }
-    Node sk = d_sk_cache->mkSkolem("lsym");
+    Node sk = d_sk_cache.mkSkolem("lsym");
     StringsProxyVarAttribute spva;
     sk.setAttribute(spva, true);
     Node eq = Rewriter::rewrite(sk.eqNode(n));

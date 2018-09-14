@@ -437,7 +437,7 @@ private:
   };
   //------------------------- end candidate inferences
   /** cache of all skolems */
-  std::unique_ptr<SkolemCache> d_sk_cache;
+  SkolemCache d_sk_cache;
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
@@ -648,7 +648,6 @@ private:
     IntStat d_eq_splits;
     IntStat d_deq_splits;
     IntStat d_loop_lemmas;
-    IntStat d_new_skolems;
     Statistics();
     ~Statistics();
   };/* class TheoryStrings::Statistics */
