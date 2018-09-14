@@ -3336,9 +3336,9 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   registerLength(sk, LENGTH_ONE);
                   Node skr =
                       d_sk_cache.mkSkolemCached(nconst_k,
-                                                 firstChar,
-                                                 SkolemCache::SK_ID_DC_SPT_REM,
-                                                 "dc_spt_rem");
+                                                firstChar,
+                                                SkolemCache::SK_ID_DC_SPT_REM,
+                                                "dc_spt_rem");
                   Node eq1 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk, skr ) );
                   eq1 = Rewriter::rewrite( eq1 );
                   Node eq2 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, firstChar, skr ) );

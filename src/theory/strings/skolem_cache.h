@@ -17,8 +17,8 @@
 #ifndef __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 #define __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 
-#include <unordered_set>
 #include <map>
+#include <unordered_set>
 #include "expr/node.h"
 
 namespace CVC4 {
