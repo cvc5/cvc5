@@ -1,3 +1,5 @@
+set(CMAKE_RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin/examples)
+
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
 include_directories(${CMAKE_BINARY_DIR}/src)
@@ -45,11 +47,6 @@ set(CVC4_EXAMPLES_SETS_TRANSLATE
   sets2axioms
 )
 
-add_subdirectory(api)
-add_subdirectory(hashsmt)
-add_subdirectory(nra-translate)
-add_subdirectory(sets-translate)
-
 add_executable(simple_vc_cxx EXCLUDE_FROM_ALL simple_vc_cxx.cpp)
 target_link_libraries(simple_vc_cxx cvc4 cvc4parser)
 
@@ -67,4 +64,21 @@ add_custom_target(examples
   ${CVC4_EXAMPLES_NRA_TRANSLATE}
   ${CVC4_EXAMPLES_SETS_TRANSLATE}
 )
+
+if(BUILD_BINDINGS_JAVA)
+  find_package(Java REQUIRED)
+  set(EXAMPLES_JAVA_CLASSPATH "${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar")
+  add_custom_target(SimpleVCjava
+    COMMAND
+      ${Java_JAVAC_EXECUTABLE}
+        -cp ${EXAMPLES_JAVA_CLASSPATH} ${CMAKE_CURRENT_SOURCE_DIR}/SimpleVC.java
+        -d ${CMAKE_BINARY_DIR}/bin/examples
+    DEPENDS cvc4jar)
+  add_dependencies(examples SimpleVCjava)
+endif()
+
+add_subdirectory(api)
+add_subdirectory(hashsmt)
+add_subdirectory(nra-translate)
+add_subdirectory(sets-translate)
 
