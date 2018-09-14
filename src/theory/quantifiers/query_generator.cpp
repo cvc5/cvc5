@@ -215,34 +215,6 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
   d_query_count++;
 }
 
-class PtTrieSet
-{
- public:
-  PtTrieSet() : d_data(false) {}
-  std::map<Node, PtTrieSet> d_children;
-  bool d_data;
-  bool add(std::vector<Node>& pt)
-  {
-    PtTrieSet* pts = this;
-    for (const Node& n : pt)
-    {
-      pts = &(pts->d_children[n]);
-    }
-    bool ret = pts->d_data;
-    pts->d_data = true;
-    return !ret;
-  }
-  void rm(std::vector<Node>& pt)
-  {
-    PtTrieSet* pts = this;
-    for (const Node& n : pt)
-    {
-      pts = &(pts->d_children[n]);
-    }
-    pts->d_data = false;
-  }
-};
-
 void QueryGenerator::findQueries(
     Node n,
     std::vector<Node>& queries,
