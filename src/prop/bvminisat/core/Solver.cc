@@ -18,7 +18,7 @@ DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE,
 OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
 **************************************************************************************************/
 
-#include "core/Solver.h"
+#include "prop/bvminisat/core/Solver.h"
 
 #include <math.h>
 
@@ -27,7 +27,6 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 
 #include "base/exception.h"
 #include "base/output.h"
-#include "mtl/Sort.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/bitvector_proof.h"
@@ -35,6 +34,7 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "proof/proof_manager.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
+#include "prop/bvminisat/mtl/Sort.h"
 #include "theory/interrupted.h"
 #include "util/utility.h"
 

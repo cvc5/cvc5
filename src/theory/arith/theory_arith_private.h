@@ -433,7 +433,6 @@ public:
   Node expandDefinition(LogicRequest &logicRequest, Node node);
 
   void setMasterEqualityEngine(eq::EqualityEngine* eq);
-  void setQuantifiersEngine(QuantifiersEngine* qe);
 
   void check(Theory::Effort e);
   bool needsCheckLastEffort();

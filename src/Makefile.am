@@ -406,6 +406,10 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/type_enumerator.h \
 	theory/datatypes/sygus_simple_sym.cpp \
 	theory/datatypes/sygus_simple_sym.h \
+	theory/decision_manager.cpp \
+	theory/decision_manager.h \
+	theory/decision_strategy.cpp \
+	theory/decision_strategy.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
@@ -466,6 +470,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/expr_miner.cpp \
+	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/expr_miner_manager.cpp \
+	theory/quantifiers/expr_miner_manager.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
