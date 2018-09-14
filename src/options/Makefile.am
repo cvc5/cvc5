@@ -85,6 +85,7 @@ liboptions_la_SOURCES = \
 	language.h \
 	open_ostream.cpp \
 	open_ostream.h \
+	option_exception.cpp \
 	option_exception.h \
 	options.h \
 	options_handler.cpp \
