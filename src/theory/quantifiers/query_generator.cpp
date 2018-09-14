@@ -220,7 +220,8 @@ void QueryGenerator::findQueries(
     std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
   TypeNode tn = n.getType();
-  LazyTrie* lt = &d_qgt_trie[tn] std::vector<unsigned> eqIndex[2];
+  LazyTrie* lt = &d_qgt_trie[tn];
+  std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
 
   LazyTrieEvaluator* ev = d_sampler;
