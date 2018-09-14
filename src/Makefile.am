@@ -602,6 +602,8 @@ libcvc4_la_SOURCES = \
 	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
+	theory/strings/skolem_cache.cpp \
+	theory/strings/skolem_cache.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings_preprocess.cpp \
