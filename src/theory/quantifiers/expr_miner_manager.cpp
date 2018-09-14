@@ -93,7 +93,7 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
   // must also enable rewrite rule synthesis
-  if (!d_do_rew_synth)
+  if (!d_doRewSynth)
   {
     // initialize the candidate rewrite database, in silent mode
     enableRewriteRuleSynth();
