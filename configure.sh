@@ -14,6 +14,7 @@ Build types:
 
 General options;
   -h, --help               display this help and exit
+  --prefix=STR             install directory
   --build-dir-prefix=STR   prefix build directory with given prefix
   --best                   turn on dependences known to give best performance
   --gpl                    permit GPL dependences, if available
@@ -89,8 +90,9 @@ msg () {
 
 #--------------------------------------------------------------------------#
 
-builddir=default
-prefix=""
+builddir=production
+install_prefix=default
+build_dir_prefix=""
 
 #--------------------------------------------------------------------------#
 
@@ -156,8 +158,19 @@ do
     --best) best=ON;;
     --no-best) best=OFF;;
 
+    --prefix) die "missing argument to $1 (try -h)" ;;
+    --prefix=*)
+        install_prefix=${1##*=}
+        # Check if install_prefix is an absolute path and if not, make it
+        # absolute.
+        case $install_prefix in
+          /*) ;;                                      # absolute path
+          *) install_prefix=`pwd`/$install_prefix ;;  # make absolute path
+        esac
+        ;;
+
     --build-dir-prefix) die "missing argument to $1 (try -h)" ;;
-    --build-dir-prefix=*) prefix=$1 ;;
+    --build-dir-prefix=*) build_dir_prefix=${1##*=} ;;
 
     --cadical) cadical=ON;;
     --no-cadical) cadical=OFF;;
@@ -281,7 +294,7 @@ do
   shift
 done
 
-builddir="$prefix$builddir"
+builddir="$build_dir_prefix$builddir"
 
 #--------------------------------------------------------------------------#
 
@@ -350,7 +363,7 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_PROFILING=$profiling" \
   && [ $profiling = ON ] && builddir="$builddir-profiling"
 [ $readline != default ] \
-  && cmake_opts="$cmake_opts -DENABLE_READLINE=$readline" \
+  && cmake_opts="$cmake_opts -DUSE_READLINE=$readline" \
   && [ $readline = ON ] && builddir="$builddir-readline"
 [ $abc != default ] \
   && cmake_opts="$cmake_opts -DUSE_ABC=$abc" \
@@ -393,11 +406,14 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
 [ $symfpu_dir != default ] \
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
+[ $install_prefix != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
 
 mkdir -p cmake-builds  # builds parent directory
 cd cmake-builds
-ln -sf $builddir build  # link to current build directory
 mkdir -p $builddir     # current build directory
+[ -e build ] && rm build
+ln -s $builddir build  # link to current build directory
 cd $builddir
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
