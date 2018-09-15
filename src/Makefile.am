@@ -19,7 +19,7 @@ AM_CPPFLAGS = \
 	-I@builddir@ -I@srcdir@/include -I@srcdir@
 AM_CXXFLAGS = -Wall -Wno-unknown-pragmas -Wno-parentheses $(FLAG_VISIBILITY_HIDDEN)
 
-SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser compat bindings main
+SUBDIRS = lib base options util expr smt_util prop/minisat prop/bvminisat . parser bindings main
 # The THEORIES list has been moved to Makefile.theories
 include @top_srcdir@/src/Makefile.theories
 
@@ -91,6 +91,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/ite_simp.cpp \
 	preprocessing/passes/ite_simp.h \
+	preprocessing/passes/non_clausal_simp.cpp \
+	preprocessing/passes/non_clausal_simp.h \
 	preprocessing/passes/nl_ext_purify.cpp \
 	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
@@ -119,6 +121,8 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/symmetry_detect.h \
 	preprocessing/passes/synth_rew_rules.cpp \
 	preprocessing/passes/synth_rew_rules.h \
+	preprocessing/passes/theory_preprocess.cpp \
+	preprocessing/passes/theory_preprocess.h \
 	preprocessing/passes/unconstrained_simplifier.cpp \
 	preprocessing/passes/unconstrained_simplifier.h \
 	preprocessing/preprocessing_pass.cpp \
@@ -203,6 +207,8 @@ libcvc4_la_SOURCES = \
 	smt/managed_ostreams.h \
 	smt/model.cpp \
 	smt/model.h \
+	smt/model_core_builder.cpp \
+	smt/model_core_builder.h \
 	smt/smt_engine.cpp \
 	smt/smt_engine.h \
 	smt/smt_engine_check_proof.cpp \
@@ -237,6 +243,8 @@ libcvc4_la_SOURCES = \
 	theory/sort_inference.h \
 	theory/substitutions.cpp \
 	theory/substitutions.h \
+	theory/subs_minimize.cpp \
+	theory/subs_minimize.h \
 	theory/term_registration_visitor.cpp \
 	theory/term_registration_visitor.h \
 	theory/theory.cpp \
@@ -400,6 +408,10 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/type_enumerator.h \
 	theory/datatypes/sygus_simple_sym.cpp \
 	theory/datatypes/sygus_simple_sym.h \
+	theory/decision_manager.cpp \
+	theory/decision_manager.h \
+	theory/decision_strategy.cpp \
+	theory/decision_strategy.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
@@ -460,6 +472,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/expr_miner.cpp \
+	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/expr_miner_manager.cpp \
+	theory/quantifiers/expr_miner_manager.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
@@ -584,8 +600,12 @@ libcvc4_la_SOURCES = \
 	theory/sets/theory_sets_rewriter.h \
 	theory/sets/theory_sets_type_enumerator.h \
 	theory/sets/theory_sets_type_rules.h \
+	theory/strings/regexp_elim.cpp \
+	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
+	theory/strings/skolem_cache.cpp \
+	theory/strings/skolem_cache.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings_preprocess.cpp \
@@ -788,7 +808,6 @@ uninstall-local:
 		d="$$(echo "$$f" | sed 's,^include/,,')"; \
 		rm -f "$(DESTDIR)$(includedir)/cvc4/$$d"; \
 	done
-	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings/compat"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4/bindings"
 	-rmdir "$(DESTDIR)$(includedir)/cvc4"
 	-rmdir "$(DESTDIR)$(libdir)/ocaml/cvc4"

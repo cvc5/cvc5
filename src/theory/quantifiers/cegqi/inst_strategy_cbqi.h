@@ -18,23 +18,88 @@
 #ifndef __CVC4__INST_STRATEGY_CBQI_H
 #define __CVC4__INST_STRATEGY_CBQI_H
 
-#include "theory/arith/arithvar.h"
+#include "theory/decision_manager.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace theory {
-
-namespace arith {
-  class TheoryArith;
-}
-
 namespace quantifiers {
 
-class InstStrategyCbqi : public QuantifiersModule {
+class InstStrategyCegqi;
+
+/**
+ * An output channel class, used by instantiator objects below. The methods
+ * of this class call the corresponding functions of InstStrategyCegqi below.
+ */
+class CegqiOutputInstStrategy : public CegqiOutput
+{
+ public:
+  CegqiOutputInstStrategy(InstStrategyCegqi* out) : d_out(out) {}
+  /** The module whose functions we call. */
+  InstStrategyCegqi* d_out;
+  /** add instantiation */
+  bool doAddInstantiation(std::vector<Node>& subs) override;
+  /** is eligible for instantiation */
+  bool isEligibleForInstantiation(Node n) override;
+  /** add lemma */
+  bool addLemma(Node lem) override;
+};
+
+/**
+ * Counterexample-guided quantifier instantiation module.
+ *
+ * This class manages counterexample-guided instantiation strategies for all
+ * asserted quantified formulas.
+ */
+class InstStrategyCegqi : public QuantifiersModule
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
+
+ public:
+  InstStrategyCegqi(QuantifiersEngine* qe);
+  ~InstStrategyCegqi();
+
+  /** whether to do counterexample-guided instantiation for quantifier q */
+  bool doCbqi(Node q);
+  /** needs check at effort */
+  bool needsCheck(Theory::Effort e) override;
+  /** needs model at effort */
+  QEffort needsModel(Theory::Effort e) override;
+  /** reset round */
+  void reset_round(Theory::Effort e) override;
+  /** check */
+  void check(Theory::Effort e, QEffort quant_e) override;
+  /** check complete */
+  bool checkComplete() override;
+  /** check complete for quantified formula */
+  bool checkCompleteFor(Node q) override;
+  /** check ownership */
+  void checkOwnership(Node q) override;
+  /** identify */
+  std::string identify() const override { return std::string("Cegqi"); }
+  /** get instantiator for quantifier */
+  CegInstantiator* getInstantiator(Node q);
+  /** pre-register quantifier */
+  void preRegisterQuantifier(Node q) override;
+  // presolve
+  void presolve() override;
+  /** Do nested quantifier elimination. */
+  Node doNestedQE(Node q, std::vector<Node>& inst_terms, Node lem, bool doVts);
+
+  //------------------- interface for CegqiOutputInstStrategy
+  /** Instantiate the current quantified formula forall x. Q with x -> subs. */
+  bool doAddInstantiation(std::vector<Node>& subs);
+  /**
+   * Are we allowed to instantiate the current quantified formula with n? This
+   * includes restrictions such as if n is a variable, it must occur free in
+   * the current quantified formula.
+   */
+  bool isEligibleForInstantiation(Node n);
+  /** Add lemma lem via the output channel of this class. */
+  bool addLemma(Node lem);
+  //------------------- end interface for CegqiOutputInstStrategy
 
  protected:
   /** set quantified formula inactive
@@ -60,18 +125,52 @@ class InstStrategyCbqi : public QuantifiersModule {
   std::map< Node, bool > d_active_quant;
   /** Whether cegqi handles each quantified formula. */
   std::map<Node, CegHandledStatus> d_do_cbqi;
+  /**
+   * An output channel used by instantiators for communicating with this
+   * class.
+   */
+  std::unique_ptr<CegqiOutputInstStrategy> d_out;
+  /**
+   * The instantiator for each quantified formula q registered to this class.
+   * This object is responsible for finding instantiatons for q.
+   */
+  std::map<Node, std::unique_ptr<CegInstantiator>> d_cinst;
+  /**
+   * The decision strategy for each quantified formula q registered to this
+   * class.
+   */
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_dstrat;
+  /** the current quantified formula we are processing */
+  Node d_curr_quant;
+  //---------------------- for vts delta minimization
+  /**
+   * Whether we will use vts delta minimization. If this flag is true, we
+   * add lemmas on demand of the form delta < c^1, delta < c^2, ... where c
+   * is a small (< 1) constant. This heuristic is used in strategies where
+   * vts delta cannot be fully eliminated from assertions (for example, when
+   * using nested quantifiers and a non-innermost instantiation strategy).
+   * The same strategy applies for vts infinity, which we add lemmas of the
+   * form inf > (1/c)^1, inf > (1/c)^2, ....
+   */
+  bool d_check_vts_lemma_lc;
+  /** a small constant, used as a coefficient above */
+  Node d_small_const;
+  //---------------------- end for vts delta minimization
   /** register ce lemma */
   bool registerCbqiLemma( Node q );
-  virtual void registerCounterexampleLemma( Node q, Node lem );
+  /** register counterexample lemma
+   *
+   * This is called when we have constructed lem, the negation of the body of
+   * quantified formula q, skolemized with the instantiation constants of q.
+   * This function is used for setting up the proper information in the
+   * instantiator for q.
+   */
+  void registerCounterexampleLemma(Node q, Node lem);
   /** has added cbqi lemma */
   bool hasAddedCbqiLemma( Node q ) { return d_added_cbqi_lemma.find( q )!=d_added_cbqi_lemma.end(); }
-  /** get next decision request with dependency checking */
-  Node getNextDecisionRequestProc( Node q, std::map< Node, bool >& proc );  
   /** process functions */
-  virtual void processResetInstantiationRound( Theory::Effort effort ) = 0;
-  virtual void process( Node q, Theory::Effort effort, int e ) = 0;
+  void process(Node q, Theory::Effort effort, int e);
 
- protected:
   //for identification
   uint64_t d_qid_count;
   //nested qe map
@@ -98,71 +197,8 @@ class InstStrategyCbqi : public QuantifiersModule {
   NodeIntMap d_nested_qe_waitlist_proc;
   std::map< Node, std::vector< Node > > d_nested_qe_waitlist;
 
- public:
-  //do nested quantifier elimination
-  Node doNestedQE( Node q, std::vector< Node >& inst_terms, Node lem, bool doVts );
-
- public:
-  InstStrategyCbqi( QuantifiersEngine * qe );
-
-  /** whether to do CBQI for quantifier q */
-  bool doCbqi( Node q );
-  /** process functions */
-  bool needsCheck(Theory::Effort e) override;
-  QEffort needsModel(Theory::Effort e) override;
-  void reset_round(Theory::Effort e) override;
-  void check(Theory::Effort e, QEffort quant_e) override;
-  bool checkComplete() override;
-  bool checkCompleteFor(Node q) override;
-  void checkOwnership(Node q) override;
-  void preRegisterQuantifier(Node q) override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
 };
 
-//generalized counterexample guided quantifier instantiation
-
-class InstStrategyCegqi;
-
-class CegqiOutputInstStrategy : public CegqiOutput {
-public:
-  CegqiOutputInstStrategy( InstStrategyCegqi * out ) : d_out( out ){}
-  InstStrategyCegqi * d_out;
-  bool doAddInstantiation(std::vector<Node>& subs) override;
-  bool isEligibleForInstantiation(Node n) override;
-  bool addLemma(Node lem) override;
-};
-
-class InstStrategyCegqi : public InstStrategyCbqi {
- protected:
-  CegqiOutputInstStrategy * d_out;
-  std::map< Node, CegInstantiator * > d_cinst;
-  Node d_small_const;
-  Node d_curr_quant;
-  bool d_check_vts_lemma_lc;
-  /** process functions */
-  void processResetInstantiationRound(Theory::Effort effort) override;
-  void process(Node f, Theory::Effort effort, int e) override;
-  /** register ce lemma */
-  void registerCounterexampleLemma(Node q, Node lem) override;
-
- public:
-  InstStrategyCegqi( QuantifiersEngine * qe );
-  ~InstStrategyCegqi() override;
-
-  bool doAddInstantiation( std::vector< Node >& subs );
-  bool isEligibleForInstantiation( Node n );
-  bool addLemma( Node lem );
-  /** identify */
-  std::string identify() const override { return std::string("Cegqi"); }
-
-  //get instantiator for quantifier
-  CegInstantiator * getInstantiator( Node q );
-  /** pre-register quantifier */
-  void preRegisterQuantifier(Node q) override;
-  //presolve
-  void presolve() override;
-};
 
 }
 }

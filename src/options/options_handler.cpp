@@ -29,7 +29,6 @@
 #include "base/modal_exception.h"
 #include "base/output.h"
 #include "lib/strtok_r.h"
-#include "gmp.h"
 #include "options/arith_heuristic_pivot_rule.h"
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"

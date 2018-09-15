@@ -63,15 +63,13 @@ class CircuitPropagator
   /**
    * Construct a new CircuitPropagator.
    */
-  CircuitPropagator(std::vector<Node>& outLearnedLiterals,
-                    bool enableForward = true,
-                    bool enableBackward = true)
+  CircuitPropagator(bool enableForward = true, bool enableBackward = true)
       : d_context(),
         d_propagationQueue(),
         d_propagationQueueClearer(&d_context, d_propagationQueue),
         d_conflict(&d_context, false),
-        d_learnedLiterals(outLearnedLiterals),
-        d_learnedLiteralClearer(&d_context, outLearnedLiterals),
+        d_learnedLiterals(),
+        d_learnedLiteralClearer(&d_context, d_learnedLiterals),
         d_backEdges(),
         d_backEdgesClearer(&d_context, d_backEdges),
         d_seen(&d_context),
@@ -96,6 +94,8 @@ class CircuitPropagator
   void setNeedsFinish(bool value) { d_needsFinish = value; }
 
   bool getNeedsFinish() { return d_needsFinish; }
+
+  std::vector<Node>& getLearnedLiterals() { return d_learnedLiterals; }
 
   void finish() { d_context.pop(); }
 
@@ -275,12 +275,12 @@ class CircuitPropagator
   context::CDO<bool> d_conflict;
 
   /** Map of substitutions */
-  std::vector<Node>& d_learnedLiterals;
+  std::vector<Node> d_learnedLiterals;
 
   /**
    * Similar data clearer for learned literals.
    */
-  DataClearer<std::vector<Node> > d_learnedLiteralClearer;
+  DataClearer<std::vector<Node>> d_learnedLiteralClearer;
 
   /**
    * Back edges from nodes to where they are used.
