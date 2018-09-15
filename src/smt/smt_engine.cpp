@@ -568,7 +568,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
-        d_assertions(d_smt.d_userContext),
+        d_assertions(),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
@@ -715,7 +715,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   Node applySubstitutions(TNode node)
   {
     return Rewriter::rewrite(
-        d_assertions.getTopLevelSubstitutions().apply(node));
+        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
   }
 
   /**
@@ -3113,7 +3113,8 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(options::preprocessStep());
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
@@ -3138,7 +3139,7 @@ void SmtEnginePrivate::processAssertions() {
     // proper data structure.
 
     // Placeholder for storing substitutions
-    d_assertions.getSubstitutionsIndex() = d_assertions.size();
+    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   }
 
@@ -3478,9 +3479,7 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(d_assertions.ref(),
-                                          d_assertions.getRealAssertionsEnd(),
-                                          getIteSkolemMap());
+    d_smt.d_decisionEngine->addAssertions(d_assertions);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or

@@ -19,7 +19,10 @@
 #ifndef __CVC4_PRIVATE_LIBRARY_H
 #define __CVC4_PRIVATE_LIBRARY_H
 
-#if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST) || defined(__BUILDING_CVC4PARSERLIB) || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST) || defined(__BUILDING_CVC4DRIVER))
+#if !(defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST) \
+      || defined(__BUILDING_CVC4PARSERLIB)                                 \
+      || defined(__BUILDING_CVC4PARSERLIB_UNIT_TEST)                       \
+      || defined(__BUILDING_CVC4DRIVER))
 #  error A "private library" CVC4 header was included when not building the library, driver, or private unit test code.
 #endif /* ! (__BUILDING_CVC4LIB || __BUILDING_CVC4LIB_UNIT_TEST || __BUILDING_CVC4PARSERLIB || __BUILDING_CVC4PARSERLIB_UNIT_TEST || __BUILDING_CVC4DRIVER) */
 
