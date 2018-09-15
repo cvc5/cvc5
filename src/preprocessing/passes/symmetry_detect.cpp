@@ -13,6 +13,7 @@
  **/
 
 #include "preprocessing/passes/symmetry_detect.h"
+
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 

@@ -14,6 +14,7 @@
 
 #include "preprocessing/passes/sygus_inference.h"
 
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
@@ -315,6 +316,8 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   }
   return true;
 }
+
+static RegisterPass<SygusInference> X("sygus-infer");
 
 }  // namespace passes
 }  // namespace preprocessing

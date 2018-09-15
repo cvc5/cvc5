@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
 
@@ -333,6 +334,8 @@ PreprocessingPassResult IntToBV::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<IntToBV> X("int-to-bv");
 
 }  // namespace passes
 }  // namespace preprocessing

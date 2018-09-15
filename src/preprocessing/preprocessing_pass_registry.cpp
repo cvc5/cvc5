@@ -11,11 +11,14 @@
  **
  ** \brief The preprocessing pass registry
  **
- ** The preprocessing pass registry.
+ ** This file defines the classes PreprocessingPassRegistry, which keeps track
+ ** of the available preprocessing passes, and RegisterPass, which registers a
+ ** preprocessing pass with the registry.
  **/
 
 #include "preprocessing/preprocessing_pass_registry.h"
 
+#include <algorithm>
 #include <utility>
 
 #include "base/cvc4_assert.h"
@@ -25,29 +28,39 @@
 namespace CVC4 {
 namespace preprocessing {
 
-void PreprocessingPassRegistry::registerPass(
-    const std::string& ppName,
-    std::unique_ptr<PreprocessingPass> preprocessingPass) {
-  Debug("pp-registry") << "Registering pass " << ppName << std::endl;
-  Assert(preprocessingPass != nullptr);
-  Assert(!this->hasPass(ppName));
-  d_stringToPreprocessingPass[ppName] = std::move(preprocessingPass);
-}
-
-bool PreprocessingPassRegistry::hasPass(const std::string& ppName) {
-  return d_stringToPreprocessingPass.find(ppName) !=
-         d_stringToPreprocessingPass.end();
-}
-
-PreprocessingPass* PreprocessingPassRegistry::getPass(
-    const std::string& ppName) {
-  Assert(this->hasPass(ppName));
-  return d_stringToPreprocessingPass[ppName].get();
-}
-
-void PreprocessingPassRegistry::unregisterPasses()
+PreprocessingPassRegistry& PreprocessingPassRegistry::getInstance()
 {
-  d_stringToPreprocessingPass.clear();
+  static PreprocessingPassRegistry* ppReg = new PreprocessingPassRegistry();
+  return *ppReg;
+}
+
+void PreprocessingPassRegistry::registerPassInfo(
+    const std::string& name,
+    std::function<PreprocessingPass*(PreprocessingPassContext*)> ctor)
+{
+  d_ppInfo[name] = ctor;
+}
+
+PreprocessingPass* PreprocessingPassRegistry::createPass(
+    PreprocessingPassContext* ppCtx, const std::string& name)
+{
+  return d_ppInfo[name](ppCtx);
+}
+
+std::vector<std::string> PreprocessingPassRegistry::getAvailablePasses()
+{
+  std::vector<std::string> passes;
+  for (const auto& info : d_ppInfo)
+  {
+    passes.push_back(info.first);
+  }
+  std::sort(passes.begin(), passes.end());
+  return passes;
+}
+
+bool PreprocessingPassRegistry::hasPass(const std::string& name)
+{
+  return d_ppInfo.find(name) != d_ppInfo.end();
 }
 
 }  // namespace preprocessing
