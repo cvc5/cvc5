@@ -1,6 +1,10 @@
 set(ANTLR_HOME ${ANTLR_DIR})
 find_package(ANTLR REQUIRED)
 
+if(NOT HAVE_ANTLR3_FILE_STREAM_NEW)
+  add_definitions(-DCVC4_ANTLR3_OLD_INPUT_STREAM)
+endif()
+
 # Java runtime is required for ANTLR
 find_package(Java COMPONENTS Runtime REQUIRED)
 
