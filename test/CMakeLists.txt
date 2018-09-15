@@ -28,7 +28,10 @@ endif()
 
 add_custom_target(check
   COMMAND ctest --output-on-failure -LE "regress[2-4]" -j${NTHREADS} $(ARGS)
-  DEPENDS units regress systemtests)
+  DEPENDS regress systemtests)
 if(BUILD_BINDINGS_JAVA)
   add_dependencies(check cvc4javatests)
+endif()
+if(ENABLE_UNIT_TESTING)
+  add_dependencies(check units)
 endif()
