@@ -228,6 +228,9 @@ if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
+  # Only enable unit testing if assertions are enabled. Otherwise, unit tests
+  # that expect AssertionException to be thrown will fail.
+  set(ENABLE_UNIT_TESTING OFF)
 endif()
 
 if(ENABLE_COVERAGE)
