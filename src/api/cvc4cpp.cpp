@@ -610,10 +610,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
 
 namespace {
 
-bool isDefinedKind(Kind k)
-{
-  return k > UNDEFINED_KIND && k < LAST_KIND;
-}
+bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
 bool isDefinedIntKind(CVC4::Kind k)
 {

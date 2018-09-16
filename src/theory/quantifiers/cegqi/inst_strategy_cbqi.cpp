@@ -67,10 +67,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   d_check_vts_lemma_lc = false;
 }
 
-InstStrategyCegqi::~InstStrategyCegqi()
-{
-
-}
+InstStrategyCegqi::~InstStrategyCegqi() {}
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 {
