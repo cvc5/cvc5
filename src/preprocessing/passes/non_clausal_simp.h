@@ -37,10 +37,6 @@ class NonClausalSimp : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
-
-  //SatSolver* d_satSolver;
-
 };
 
 }  // namespace passes
