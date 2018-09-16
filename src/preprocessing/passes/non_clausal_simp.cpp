@@ -15,13 +15,6 @@
  **/
 
 #include "preprocessing/passes/non_clausal_simp.h"
-#include <cryptominisat5/cryptominisat.h>
-
-#include "prop/registrar.h"
-#include "prop/cnf_stream.h"
-#include "prop/sat_solver_factory.h"
-
-#include "proof/proof_manager.h"
 
 #include "context/cdo.h"
 #include "options/proof_options.h"
@@ -37,13 +30,25 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+/* -------------------------------------------------------------------------- */
+
+NonClausalSimp::Statistics::Statistics()
+    : d_numConstantProps(
+          "preprocessing::passes::NonClausalSimp::NumConstantProps", 0)
+{
+  smtStatisticsRegistry()->registerStat(&d_numConstantProps);
+}
+
+NonClausalSimp::Statistics::~Statistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
+}
 
 /* -------------------------------------------------------------------------- */
 
 NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "non-clausal-simp")
 {
-  //d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
 }
 
 PreprocessingPassResult NonClausalSimp::applyInternal(
@@ -53,21 +58,24 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   d_preprocContext->spendResource(options::preprocessStep());
 
+  theory::booleans::CircuitPropagator* propagator =
+      d_preprocContext->getCircuitPropagator();
 
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
+                                  << (*assertionsToPreprocess)[i] << std::endl;
+  }
 
-    d_preprocContext->spendResource(options::preprocessStep());
+  if (propagator->getNeedsFinish())
+  {
+    propagator->finish();
+    propagator->setNeedsFinish(false);
+  }
+  propagator->initialize();
 
-
-  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
-
-
-  CVC4::prop::NullRegistrar d_registrar;
-  context::Context d_context;
-  CVC4::prop::TseitinCnfStream d_cnfStream (d_satSolver, &d_registrar, &d_context, true, "toCNF-non-clausal");
-
-
-  Trace("non-clausal-simplify") << "asserting to sat solver" << std::endl;
-
+  // Assert all the assertions to the propagator
+  Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   context::CDO<unsigned>& substs_index =
       assertionsToPreprocess->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
@@ -81,12 +89,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     Trace("non-clausal-simplify")
         << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
+    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
+                   << std::endl;
+    propagator->assertTrue((*assertionsToPreprocess)[i]);
   }
 
-  SatValue result = d_satSolver->solve();
-
-  if (result==SAT_VALUE_FALSE){
+  Trace("non-clausal-simplify") << "propagating" << std::endl;
+  if (propagator->propagate())
+  {
     // If in conflict, just return false
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
@@ -95,37 +105,26 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
     PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-    delete d_satSolver;
+    propagator->setNeedsFinish(true);
     return PreprocessingPassResult::CONFLICT;
   }
 
-  std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
-
-  std::vector<TNode> learned_literals;
-
-  for (size_t i = 0; i < topLevelUnits.size(); i++){
-    SatLiteral lit = topLevelUnits[i];
-    if (d_cnfStream.getNodeCache().find(lit) != d_cnfStream.getNodeCache().end()) {
-      // if the literal is in the getNodeCache
-      Node learnedLiteral = d_cnfStream.getNode(lit);
-      learned_literals.push_back(learnedLiteral);
-    }
-  }
-
+  Trace("non-clausal-simplify")
+      << "Iterate through " << propagator->getLearnedLiterals().size()
+      << " learned literals." << std::endl;
+  // No conflict, go through the literals and solve them
   SubstitutionMap& top_level_substs =
       assertionsToPreprocess->getTopLevelSubstitutions();
-
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
-
   SubstitutionMap::iterator pos;
   size_t j = 0;
+  std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i];
-
-    //Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
+    Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
     Trace("non-clausal-simplify")
         << "Process learnedLiteral : " << learnedLiteral << std::endl;
@@ -144,9 +143,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
+      d_statistics.d_numConstantProps += 1;
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
-
     Trace("non-clausal-simplify")
         << "Process learnedLiteral, after constProp : " << learnedLiteral
         << std::endl;
@@ -162,13 +161,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         // If the learned literal simplifies to false, we're in conflict
         Trace("non-clausal-simplify")
-            << "conflict with " << learnedLiteral << std::endl;
+            << "conflict with " << learned_literals[i] << std::endl;
         Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        delete d_satSolver;
+        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
     }
@@ -211,7 +210,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        delete d_satSolver;
+        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
       default:
@@ -258,49 +257,49 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
   }
 
-  #ifdef CVC4_ASSERTIONS
-    // NOTE: When debugging this code, consider moving this check inside of the
-    // loop over propagator->getLearnedLiterals(). This check has been moved
-    // outside because it is costly for certain inputs (see bug 508).
-    //
-    // Check data structure invariants:
-    // 1. for each lhs of top_level_substs, does not appear anywhere in rhs of
-    // top_level_substs or anywhere in constantPropagations
-    // 2. each lhs of constantPropagations rewrites to itself
-    // 3. if l -> r is a constant propagation and l is a subterm of l' with l' ->
-    // r' another constant propagation, then l'[l/r] -> r' should be a
-    //    constant propagation too
-    // 4. each lhs of constantPropagations is different from each rhs
-    for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
-    {
-      Assert((*pos).first.isVar());
-      Assert(top_level_substs.apply((*pos).first) == (*pos).first);
-      Assert(top_level_substs.apply((*pos).second) == (*pos).second);
-      Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second))
-             == newSubstitutions.apply((*pos).second));
-    }
-    for (pos = constantPropagations.begin(); pos != constantPropagations.end();
-         ++pos)
-    {
-      Assert((*pos).second.isConst());
-      Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
-      // Node newLeft = top_level_substs.apply((*pos).first);
-      // if (newLeft != (*pos).first) {
-      //   newLeft = Rewriter::rewrite(newLeft);
-      //   Assert(newLeft == (*pos).second ||
-      //          (constantPropagations.hasSubstitution(newLeft) &&
-      //          constantPropagations.apply(newLeft) == (*pos).second));
-      // }
-      // newLeft = constantPropagations.apply((*pos).first);
-      // if (newLeft != (*pos).first) {
-      //   newLeft = Rewriter::rewrite(newLeft);
-      //   Assert(newLeft == (*pos).second ||
-      //          (constantPropagations.hasSubstitution(newLeft) &&
-      //          constantPropagations.apply(newLeft) == (*pos).second));
-      // }
-      Assert(constantPropagations.apply((*pos).second) == (*pos).second);
-    }
-  #endif /* CVC4_ASSERTIONS */
+#ifdef CVC4_ASSERTIONS
+  // NOTE: When debugging this code, consider moving this check inside of the
+  // loop over propagator->getLearnedLiterals(). This check has been moved
+  // outside because it is costly for certain inputs (see bug 508).
+  //
+  // Check data structure invariants:
+  // 1. for each lhs of top_level_substs, does not appear anywhere in rhs of
+  // top_level_substs or anywhere in constantPropagations
+  // 2. each lhs of constantPropagations rewrites to itself
+  // 3. if l -> r is a constant propagation and l is a subterm of l' with l' ->
+  // r' another constant propagation, then l'[l/r] -> r' should be a
+  //    constant propagation too
+  // 4. each lhs of constantPropagations is different from each rhs
+  for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
+  {
+    Assert((*pos).first.isVar());
+    Assert(top_level_substs.apply((*pos).first) == (*pos).first);
+    Assert(top_level_substs.apply((*pos).second) == (*pos).second);
+    Assert(newSubstitutions.apply(newSubstitutions.apply((*pos).second))
+           == newSubstitutions.apply((*pos).second));
+  }
+  for (pos = constantPropagations.begin(); pos != constantPropagations.end();
+       ++pos)
+  {
+    Assert((*pos).second.isConst());
+    Assert(Rewriter::rewrite((*pos).first) == (*pos).first);
+    // Node newLeft = top_level_substs.apply((*pos).first);
+    // if (newLeft != (*pos).first) {
+    //   newLeft = Rewriter::rewrite(newLeft);
+    //   Assert(newLeft == (*pos).second ||
+    //          (constantPropagations.hasSubstitution(newLeft) &&
+    //          constantPropagations.apply(newLeft) == (*pos).second));
+    // }
+    // newLeft = constantPropagations.apply((*pos).first);
+    // if (newLeft != (*pos).first) {
+    //   newLeft = Rewriter::rewrite(newLeft);
+    //   Assert(newLeft == (*pos).second ||
+    //          (constantPropagations.hasSubstitution(newLeft) &&
+    //          constantPropagations.apply(newLeft) == (*pos).second));
+    // }
+    Assert(constantPropagations.apply((*pos).second) == (*pos).second);
+  }
+#endif /* CVC4_ASSERTIONS */
 
   // Resize the learnt
   Trace("non-clausal-simplify")
@@ -329,6 +328,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
+      d_statistics.d_numConstantProps += 1;
       Trace("non-clausal-simplify")
           << "assertionNew = " << assertionNew << std::endl;
       assertion = Rewriter::rewrite(assertionNew);
@@ -393,7 +393,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       learned = Rewriter::rewrite(learnedNew);
     }
-    //Assert(Rewriter::rewrite(learned) == learned);
+    Assert(Rewriter::rewrite(learned) == learned);
     for (;;)
     {
       learnedNew = constantPropagations.apply(learned);
@@ -401,6 +401,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
+      d_statistics.d_numConstantProps += 1;
       learned = Rewriter::rewrite(learnedNew);
     }
     if (s.find(learned) != s.end())
@@ -439,7 +440,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   // Note that we don't have to keep rhs's in full solved form
   // because SubstitutionMap::apply does a fixed-point iteration when
   // substituting
-
   top_level_substs.addSubstitutions(newSubstitutions);
 
   if (learnedBuilder.getNumChildren() > 1)
@@ -449,9 +449,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Rewriter::rewrite(Node(learnedBuilder)));
   }
 
-  delete d_satSolver;
+  propagator->setNeedsFinish(true);
   return PreprocessingPassResult::NO_CONFLICT;
-
 }  // namespace passes
 
 /* -------------------------------------------------------------------------- */
