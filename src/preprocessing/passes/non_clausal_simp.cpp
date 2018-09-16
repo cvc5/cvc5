@@ -2,7 +2,7 @@
 /*! \file non_clausal_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Haoze Wu
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -53,13 +53,15 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   d_preprocContext->spendResource(options::preprocessStep());
 
 
-  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
-
-
+  // Convert the original formula into a boolean formula and solve it
+  // with cryptominisat
+  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(
+                smtStatisticsRegistry(), "non_clausal_simp_solver");
   CVC4::prop::NullRegistrar d_registrar;
   context::Context d_context;
-  CVC4::prop::TseitinCnfStream d_cnfStream (d_satSolver, &d_registrar, &d_context, true, "toCNF-non-clausal");
-
+  CVC4::prop::TseitinCnfStream d_cnfStream (d_satSolver, &d_registrar,
+                                            &d_context, true,
+                                            "toCNF-non-clausal");
 
   Trace("non-clausal-simplify") << "asserting to sat solver" << std::endl;
 
@@ -75,30 +77,31 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
        }
        Trace("non-clausal-simplify")
            << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-       d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
+       d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false,
+                                    RULE_GIVEN);
   }
-
   SatValue result = d_satSolver->solve();
 
-    if (result==SAT_VALUE_FALSE){
-      // If in conflict, just return false
-      Trace("non-clausal-simplify")
-          << "conflict in non-clausal propagation" << std::endl;
-      Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
-      assertionsToPreprocess->clear();
-      Node n = NodeManager::currentNM()->mkConst<bool>(false);
-      assertionsToPreprocess->push_back(n);
-      PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-      delete d_satSolver;
-      return PreprocessingPassResult::CONFLICT;
-    }
+  if (result==SAT_VALUE_FALSE){
+    // If in conflict, just return false
+    Trace("non-clausal-simplify")
+        << "conflict in non-clausal propagation" << std::endl;
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    assertionsToPreprocess->clear();
+    Node n = NodeManager::currentNM()->mkConst<bool>(false);
+    assertionsToPreprocess->push_back(n);
+    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+    delete d_satSolver;
+    return PreprocessingPassResult::CONFLICT;
+  }
 
   std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
   std::vector<TNode> learned_literals;
 
   for (size_t i = 0; i < topLevelUnits.size(); i++){
     SatLiteral lit = topLevelUnits[i];
-    if (d_cnfStream.getNodeCache().find(lit) != d_cnfStream.getNodeCache().end()) {
+    if (d_cnfStream.getNodeCache().find(lit)
+        != d_cnfStream.getNodeCache().end()) {
       // if the literal is in the getNodeCache
       Node learnedLiteral = d_cnfStream.getNode(lit);
       learned_literals.push_back(learnedLiteral);
