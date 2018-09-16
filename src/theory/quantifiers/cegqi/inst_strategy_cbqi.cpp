@@ -67,18 +67,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   d_check_vts_lemma_lc = false;
 }
 
-InstStrategyCegqi::~InstStrategyCegqi()
-{
-  for (std::map<Node, CegInstantiator*>::iterator i = d_cinst.begin(),
-                                                  iend = d_cinst.end();
-       i != iend;
-       ++i)
-  {
-    CegInstantiator* instantiator = (*i).second;
-    delete instantiator;
-  }
-  d_cinst.clear();
-}
+InstStrategyCegqi::~InstStrategyCegqi() {}
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 {
@@ -189,6 +178,27 @@ bool InstStrategyCegqi::registerCbqiLemma(Node q)
         }
       }
     }
+    // The decision strategy for this quantified formula ensures that its
+    // counterexample literal is decided on first. It is user-context dependent.
+    std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itds =
+        d_dstrat.find(q);
+    DecisionStrategy* dlds = nullptr;
+    if (itds == d_dstrat.end())
+    {
+      d_dstrat[q].reset(
+          new DecisionStrategySingleton("CexLiteral",
+                                        ceLit,
+                                        d_quantEngine->getSatContext(),
+                                        d_quantEngine->getValuation()));
+      dlds = d_dstrat[q].get();
+    }
+    else
+    {
+      dlds = itds->second.get();
+    }
+    // it is appended to the list of strategies
+    d_quantEngine->getTheoryEngine()->getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_QUANT_CEGQI_FEASIBLE, dlds);
     return true;
   }else{
     return false;
@@ -574,50 +584,6 @@ bool InstStrategyCegqi::doCbqi(Node q)
   return it->second != CEG_UNHANDLED;
 }
 
-Node InstStrategyCegqi::getNextDecisionRequestProc(Node q,
-                                                   std::map<Node, bool>& proc)
-{
-  if( proc.find( q )==proc.end() ){
-    proc[q] = true;
-    //first check children
-    std::map< Node, std::vector< Node > >::iterator itc = d_children_quant.find( q );
-    if( itc!=d_children_quant.end() ){
-      for( unsigned j=0; j<itc->second.size(); j++ ){
-        Node d = getNextDecisionRequestProc( itc->second[j], proc );
-        if( !d.isNull() ){
-          return d;
-        }
-      }
-    }
-    //then check self
-    if( hasAddedCbqiLemma( q ) ){
-      Node cel = d_quantEngine->getTermUtil()->getCounterexampleLiteral( q );
-      bool value;
-      if( !d_quantEngine->getValuation().hasSatValue( cel, value ) ){
-        Trace("cbqi-dec") << "CBQI: get next decision " << cel << std::endl;
-        return cel;
-      }
-    }    
-  }
-  return Node::null(); 
-}
-
-Node InstStrategyCegqi::getNextDecisionRequest(unsigned& priority)
-{
-  std::map< Node, bool > proc;
-  //for( unsigned i=0; i<d_quantEngine->getModel()->getNumAssertedQuantifiers(); i++ ){
-  //  Node q = d_quantEngine->getModel()->getAssertedQuantifier( i );
-  for( NodeSet::const_iterator it = d_added_cbqi_lemma.begin(); it != d_added_cbqi_lemma.end(); ++it ){
-    Node q = *it;
-    Node d = getNextDecisionRequestProc( q, proc );
-    if( !d.isNull() ){
-      priority = 0;
-      return d;
-    }
-  }
-  return Node::null();
-}
-
 void InstStrategyCegqi::process( Node q, Theory::Effort effort, int e ) {
   if( e==0 ){
     CegInstantiator * cinst = getInstantiator( q );
@@ -708,23 +674,25 @@ bool InstStrategyCegqi::isEligibleForInstantiation( Node n ) {
 }
 
 CegInstantiator * InstStrategyCegqi::getInstantiator( Node q ) {
-  std::map< Node, CegInstantiator * >::iterator it = d_cinst.find( q );
+  std::map<Node, std::unique_ptr<CegInstantiator>>::iterator it =
+      d_cinst.find(q);
   if( it==d_cinst.end() ){
-    CegInstantiator* cinst =
-        new CegInstantiator(d_quantEngine, d_out.get(), true, true);
-    d_cinst[q] = cinst;
-    return cinst;
-  }else{
-   return it->second;
+    d_cinst[q].reset(
+        new CegInstantiator(d_quantEngine, d_out.get(), true, true));
+    return d_cinst[q].get();
   }
+  return it->second.get();
 }
 
 void InstStrategyCegqi::presolve() {
-  if( options::cbqiPreRegInst() ){
-    for( std::map< Node, CegInstantiator * >::iterator it = d_cinst.begin(); it != d_cinst.end(); ++it ){
-      Trace("cbqi-presolve") << "Presolve " << it->first << std::endl;
-      it->second->presolve( it->first );
-    }
+  if (!options::cbqiPreRegInst())
+  {
+    return;
+  }
+  for (std::pair<const Node, std::unique_ptr<CegInstantiator>>& ci : d_cinst)
+  {
+    Trace("cbqi-presolve") << "Presolve " << ci.first << std::endl;
+    ci.second->presolve(ci.first);
   }
 }
 

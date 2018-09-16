@@ -609,7 +609,13 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 namespace {
+
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
+
+bool isDefinedIntKind(CVC4::Kind k)
+{
+  return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
+}
 
 Kind intToExtKind(CVC4::Kind k)
 {
@@ -2044,7 +2050,9 @@ Term Solver::mkTerm(Kind kind) const
       kindToString(kind).c_str());
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
-    return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    return d_exprMgr->mkExpr(k, std::vector<Expr>());
   }
   Assert(kind == PI);
   return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
@@ -2079,7 +2087,9 @@ Term Solver::mkTerm(Kind kind, Term child) const
                       kind,
                       "Invalid kind '%s'",
                       kindToString(kind).c_str());
-  return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
+  CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
+  return d_exprMgr->mkExpr(k, *child.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
@@ -2104,7 +2114,9 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
   // n < minArity(kind) || n > maxArity(kind)
   // else "Exprs with kind %s must have at least %u children and "
   //      "at most %u children (the one under construction has %u)"
-  return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
+  CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
+  return d_exprMgr->mkExpr(k, *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
@@ -2133,6 +2145,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
                       kindToString(kind).c_str());
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
@@ -2160,6 +2173,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
                       kindToString(kind).c_str());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
