@@ -89,12 +89,7 @@ BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
 
 BoundedIntegers::~BoundedIntegers()
 {
-  for (std::map<Node, IntRangeDecisionHeuristic*>::iterator it = d_rms.begin();
-       it != d_rms.end();
-       ++it)
-  {
-    delete it->second;
-  }
+
 }
 
 void BoundedIntegers::presolve() {
@@ -294,9 +289,9 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   Trace("bint-engine") << "---Bounded Integers---" << std::endl;
   bool addedLemma = false;
   // make sure proxies are up-to-date with range
-  for (unsigned i = 0, size = d_ranges.size(); i < size; i++)
+  for( const Node& r : d_ranges )
   {
-    Node prangeLem = d_rms[d_ranges[i]]->proxyCurrentRangeLemma();
+    Node prangeLem = d_rms[r]->proxyCurrentRangeLemma();
     if (!prangeLem.isNull())
     {
       Trace("bound-int-lemma")
@@ -492,19 +487,19 @@ void BoundedIntegers::checkOwnership(Node f)
           isProxy = true;
         }
         if( !r.isConst() ){
-          if( std::find(d_ranges.begin(), d_ranges.end(), r)==d_ranges.end() ){
+          if( d_rms.find(r)==d_rms.end() ){
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
-            d_rms[r] =
+            d_rms[r].reset(
                 new IntRangeDecisionHeuristic(r,
                                               d_quantEngine->getSatContext(),
                                               d_quantEngine->getUserContext(),
                                               d_quantEngine->getValuation(),
-                                              isProxy);
+                                              isProxy));
             d_quantEngine->getTheoryEngine()
                 ->getDecisionManager()
                 ->registerStrategy(DecisionManager::STRAT_QUANT_BOUND_INT_SIZE,
-                                   d_rms[r]);
+                                   d_rms[r].get());
           }
         }
       }

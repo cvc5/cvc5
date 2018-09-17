@@ -96,7 +96,6 @@ private:
                              context::Context* u,
                              Valuation valuation,
                              bool isProxy);
-   virtual ~IntRangeDecisionHeuristic() {}
    /** make the n^th literal of this strategy */
    Node mkLiteral(unsigned n) override;
    /** identify */
@@ -133,7 +132,7 @@ private:
   //information for minimizing ranges
   std::vector< Node > d_ranges;
   /** Decision heuristics for each integer range */
-  std::map<Node, IntRangeDecisionHeuristic*> d_rms;
+  std::map<Node, std::unique_ptr<IntRangeDecisionHeuristic>> d_rms;
 
  private:
   //class to store whether bounding lemmas have been added
