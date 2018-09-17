@@ -76,13 +76,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
-  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
            == (*assertionsToPreprocess)[i]);
     // Don't reprocess substitutions
-    if (substs_index > 0 && i == substs_index)
+    if (assertionsToPreprocess->isSubstsIndex(i))
     {
       continue;
     }
@@ -344,14 +343,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   TheoryModel* m = d_preprocContext->getTheoryEngine()->getModel();
   Assert(m != nullptr);
   NodeManager* nm = NodeManager::currentNM();
-  NodeBuilder<> substitutionsBuilder(kind::AND);
   for (pos = newSubstitutions.begin(); pos != newSubstitutions.end(); ++pos)
   {
     Node lhs = (*pos).first;
     Node rhs = newSubstitutions.apply((*pos).second);
     // If using incremental, we must check whether this variable has occurred
     // before now. If it hasn't we can add this as a substitution.
-    if (substs_index == 0
+    if (!assertionsToPreprocess->storeSubstsInAsserts()
         || d_preprocContext->getSymsInAssertions().find(lhs)
                == d_preprocContext->getSymsInAssertions().end())
     {
@@ -366,15 +364,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       Trace("non-clausal-simplify")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
-      substitutionsBuilder << eq;
+      assertionsToPreprocess->addSubstitutionNode(eq);
     }
-  }
-  // add to the last assertion if necessary
-  if (substitutionsBuilder.getNumChildren() > 0)
-  {
-    substitutionsBuilder << (*assertionsToPreprocess)[substs_index];
-    assertionsToPreprocess->replace(
-        substs_index, Rewriter::rewrite(Node(substitutionsBuilder)));
   }
 
   NodeBuilder<> learnedBuilder(kind::AND);
