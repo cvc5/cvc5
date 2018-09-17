@@ -201,8 +201,6 @@ public:
 struct SmtEngineStatistics {
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
-  /** time spent in non-clausal simplification */
-  TimerStat d_nonclausalSimplificationTime;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
   /** time spent converting to CNF */
@@ -231,7 +229,6 @@ struct SmtEngineStatistics {
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-    d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
@@ -246,7 +243,6 @@ struct SmtEngineStatistics {
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
@@ -263,7 +259,6 @@ struct SmtEngineStatistics {
 
   ~SmtEngineStatistics() {
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
@@ -2921,7 +2916,6 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    Trace("smt") << "POST nonClausalSimplify" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // before ppRewrite check if only core theory for BV theory
@@ -2947,8 +2941,6 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    dumpAssertions("post-itesimp", d_assertions);
-    Trace("smt") << "POST iteSimp" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // Unconstrained simplification
@@ -3278,13 +3270,9 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   if( d_smt.d_logic.isQuantified() ){
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-
-    dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
     d_preprocessingPassRegistry.getPass("quantifiers-preprocess")
         ->apply(&d_assertions);
-    dumpAssertions("post-skolem-quant", d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
       d_preprocessingPassRegistry.getPass("quantifier-macros")
@@ -3324,7 +3312,6 @@ void SmtEnginePrivate::processAssertions() {
     {
       d_preprocessingPassRegistry.getPass("sygus-infer")->apply(&d_assertions);
     }
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
