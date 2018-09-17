@@ -8,7 +8,10 @@ endif()
 # Java runtime is required for ANTLR
 find_package(Java COMPONENTS Runtime REQUIRED)
 
-set(cvc4parser_src_files
+#-----------------------------------------------------------------------------#
+# libcvc4parser source files
+
+set(libcvc4parser_src_files
   antlr_input.cpp
   antlr_input.h
   antlr_input_imports.cpp
@@ -51,7 +54,9 @@ set(cvc4parser_src_files
   tptp/tptp_input.h
 )
 
+#-----------------------------------------------------------------------------#
 # Generate parsers for all supported languages
+
 foreach(lang Cvc Smt1 Smt2 Tptp)
   string(TOLOWER ${lang} lang_dir)
   file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/${lang_dir})
@@ -78,10 +83,13 @@ foreach(lang Cvc Smt1 Smt2 Tptp)
   set_source_files_properties(${gen_src_files} PROPERTIES GENERATED TRUE)
 
   # Add generated source files to the parser source files
-  list(APPEND cvc4parser_src_files ${gen_src_files})
+  list(APPEND libcvc4parser_src_files ${gen_src_files})
 endforeach()
 
-add_library(cvc4parser ${cvc4parser_src_files})
+#-----------------------------------------------------------------------------#
+# libcvc4parser configuration
+
+add_library(cvc4parser ${libcvc4parser_src_files})
 set_target_properties(cvc4parser PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4parser PRIVATE -D__BUILDING_CVC4PARSERLIB)
 target_link_libraries(cvc4parser cvc4 ${ANTLR_LIBRARIES})

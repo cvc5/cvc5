@@ -1,3 +1,6 @@
+#-----------------------------------------------------------------------------#
+# libmain source files
+
 set(libmain_src_files
   command_executor.cpp
   driver_unified.cpp
@@ -7,8 +10,10 @@ set(libmain_src_files
   util.cpp
 )
 
+#-----------------------------------------------------------------------------#
 # Build object library since we will use the object files for cvc4-bin,
 # pcvc4-bin, and main-test library.
+
 add_library(main OBJECT ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
 if(BUILD_SHARED_LIBS)
@@ -28,6 +33,9 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 # test. Do not link against main-test in any other case.
 add_library(main-test $<TARGET_OBJECTS:main>)
 target_link_libraries(main-test cvc4 cvc4parser)
+
+#-----------------------------------------------------------------------------#
+# cvc4 binary configuration
 
 add_executable(cvc4-bin main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
@@ -69,6 +77,9 @@ if(USE_READLINE)
   endif()
 endif()
 
+#-----------------------------------------------------------------------------#
+# Generate language tokens header files.
+
 foreach(lang Cvc Smt1 Smt2 Tptp)
   string(TOLOWER ${lang} lang_lc)
   add_custom_command(
@@ -81,6 +92,7 @@ foreach(lang Cvc Smt1 Smt2 Tptp)
   )
 endforeach()
 
+# Create target used as a dependency for libmain.
 add_custom_target(gen-tokens
   DEPENDS
     cvc_tokens.h
@@ -88,3 +100,4 @@ add_custom_target(gen-tokens
     smt2_tokens.h
     tptp_tokens.h
 )
+

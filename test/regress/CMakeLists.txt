@@ -1,3 +1,6 @@
+#-----------------------------------------------------------------------------#
+# Regression level 0 tests
+
 set(regress_0_tests
   regress0/arith/arith.01.cvc
   regress0/arith/arith.02.cvc
@@ -1005,6 +1008,9 @@ set(regress_0_tests
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
 )
 
+#-----------------------------------------------------------------------------#
+# Regression level 1 tests
+
 set(regress_1_tests
   regress1/arith/arith-int-004.cvc
   regress1/arith/arith-int-011.cvc
@@ -1640,6 +1646,9 @@ set(regress_1_tests
   regress1/wrong-qfabvfp-smtcomp2018.smt2
 )
 
+#-----------------------------------------------------------------------------#
+# Regression level 2 tests
+
 set(regress_2_tests
   regress2/DTP_k2_n35_c175_s15.smt2
   regress2/FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2
@@ -1717,6 +1726,9 @@ set(regress_2_tests
   regress2/xs-09-16-3-4-1-5.smt
 )
 
+#-----------------------------------------------------------------------------#
+# Regression level 3 tests
+
 set(regress_3_tests
   regress3/bmc-ibm-1.smt
   regress3/bmc-ibm-2.smt
@@ -1732,6 +1744,9 @@ set(regress_3_tests
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
 )
 
+#-----------------------------------------------------------------------------#
+# Regression level 4 tests
+
 set(regress_4_tests
   regress4/C880mul.miter.shuffled-as.sat03-348.smt
   regress4/NEQ016_size5.smt
@@ -1741,7 +1756,9 @@ set(regress_4_tests
   regress4/instance_1151.smt
 )
 
-# These tests will not be run.
+#-----------------------------------------------------------------------------#
+# Disabled tests, will not be run.
+
 set(regression_disabled_tests
   regress0/arith/bug549.cvc
   regress0/arith/incorrect1.smt

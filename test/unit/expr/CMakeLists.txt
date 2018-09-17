@@ -1,3 +1,6 @@
+#-----------------------------------------------------------------------------#
+# Add unit tests
+
 cvc4_add_unit_test_black(attribute_black)
 cvc4_add_unit_test_white(attribute_white)
 cvc4_add_unit_test_black(expr_manager_public)
