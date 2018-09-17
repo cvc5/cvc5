@@ -42,16 +42,24 @@ public:
   StringsPreprocess( SkolemCache * sc, context::UserContext* u );
   ~StringsPreprocess();
   /** 
-   * Returns a node that is equivalent to t, under assumptions in new_nodes.
+   * Returns a node t' such that
+   *   (exists k) new_nodes => t = t'
+   * is valid, where k are the free skolems introduced when constructing
+   * new_nodes.
    */
   Node simplify( Node t, std::vector< Node > &new_nodes );
   /** 
-   * 
+   * Applies simplifyRec on t until a fixed point is reached, and returns 
+   * the resulting term t', which is such that
+   *   (exists k) new_nodes => t = t'
+   * is valid, where k are the free skolems introduced when constructing
+   * new_nodes.
    */
-  Node processAssertion( Node n, std::vector< Node > &new_nodes );
+  Node processAssertion( Node t, std::vector< Node > &new_nodes );
   /**
-   * Replaces all formulas n in vec_node with an equivalent formula n' that
-   * contains no instances of extended functions.
+   * Replaces all formulas t in vec_node with an equivalent formula t' that
+   * contains no free instances of extended functions. This applies simplifyRec
+   * on each assertion in vec_node until a fixed point is reached.
    */
   void processAssertions( std::vector< Node > &vec_node );
 private:
@@ -61,9 +69,10 @@ private:
   Node d_empty_str;
   /** pointer to the skolem cache used by this class */
   SkolemCache * d_sc;
-  /** recursive simplify 
-   * 
-   * 
+  /** 
+   * Applies simplify to all top-level extended function subterms of t. New
+   * assertions created in this reduction are added to new_nodes. The argument
+   * visited stores a cache of previous results.
    */
   Node simplifyRec( Node t, std::vector< Node > &new_nodes, std::map< Node, Node >& visited );
 };

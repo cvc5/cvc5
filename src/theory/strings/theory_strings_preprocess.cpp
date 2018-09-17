@@ -42,8 +42,6 @@ StringsPreprocess::~StringsPreprocess(){
 
 }
 
-//returns an n such that t can be replaced by n, under the assumption of lemmas in new_nodes
-
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   unsigned prev_new_nodes = new_nodes.size();
   Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << std::endl;
@@ -160,12 +158,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret;
-    if( options::stringUfReduct() ){
-      pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
-    }else{
-      pret = NodeManager::currentNM()->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
-    }
+    Node pret = nm->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
