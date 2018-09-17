@@ -229,7 +229,7 @@ void LtePartialInst::getPartialInstantiations( std::vector< Node >& conj, Node q
         if( !curr ){
           Assert( paindex==0 );
           //start traversing term index for the operator
-          curr = d_quantEngine->getTermDatabase()->getTNodeTrie( pat.getOperator() );
+          curr = d_quantEngine->getTermDatabase()->getTermArgTrie( pat.getOperator() );
         }
         for( std::map< TNode, TNodeTrie >::iterator it = curr->d_data.begin(); it != curr->d_data.end(); ++it ){
           terms[d_pat_var_order[q][iindex]] = it->first;

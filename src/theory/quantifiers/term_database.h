@@ -151,10 +151,10 @@ class TermDb : public QuantifiersUtil {
   */
   Node getMatchOperator(Node n);
   /** get term arg index for all f-applications in the current context */
-  TNodeTrie* getTNodeTrie(Node f);
+  TNodeTrie* getTermArgTrie(Node f);
   /** get the term arg trie for f-applications in the equivalence class of eqc.
    */
-  TNodeTrie* getTNodeTrie(Node eqc, Node f);
+  TNodeTrie* getTermArgTrie(Node eqc, Node f);
   /** get congruent term
   * If possible, returns a term t such that:
   * (1) t is a term that is currently indexed by this database,

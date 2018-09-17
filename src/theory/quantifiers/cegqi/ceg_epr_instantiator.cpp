@@ -165,7 +165,7 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
   TermDb* tdb = ci->getQuantifiersEngine()->getTermDatabase();
   Node rep = ee->getRepresentative(eqc);
   Node op = tdb->getMatchOperator(catom);
-  TNodeTrie* tat = tdb->getTNodeTrie(rep, op);
+  TNodeTrie* tat = tdb->getTermArgTrie(rep, op);
   Trace("cegqi-epr") << "EPR instantiation match term : " << catom
                      << ", check ground terms=" << (tat != NULL) << std::endl;
   if (tat)

@@ -1013,7 +1013,7 @@ bool TermDb::reset( Theory::Effort effort ){
   return true;
 }
 
-TNodeTrie * TermDb::getTNodeTrie( Node f ) {
+TNodeTrie * TermDb::getTermArgTrie( Node f ) {
   if( options::ufHo() ){
     f = getOperatorRepresentative( f );
   }
@@ -1026,7 +1026,7 @@ TNodeTrie * TermDb::getTNodeTrie( Node f ) {
   }
 }
 
-TNodeTrie * TermDb::getTNodeTrie( Node eqc, Node f ) {
+TNodeTrie * TermDb::getTermArgTrie( Node eqc, Node f ) {
   if( options::ufHo() ){
     f = getOperatorRepresentative( f );
   }

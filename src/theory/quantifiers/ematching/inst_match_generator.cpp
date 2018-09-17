@@ -1025,13 +1025,13 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
   int addedLemmas = 0;
   TNodeTrie* tat;
   if( d_eqc.isNull() ){
-    tat = qe->getTermDatabase()->getTNodeTrie( d_op );
+    tat = qe->getTermDatabase()->getTermArgTrie( d_op );
   }else{
     if( d_pol ){
-      tat = qe->getTermDatabase()->getTNodeTrie( d_eqc, d_op );
+      tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
     }else{
       //iterate over all classes except r
-      tat = qe->getTermDatabase()->getTNodeTrie( Node::null(), d_op );
+      tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);

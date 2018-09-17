@@ -1293,7 +1293,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     Assert( isHandledUfTerm( d_n ) );
     TNode f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
-    TNodeTrie * qni = p->getTermDatabase()->getTNodeTrie( Node::null(), f );
+    TNodeTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
     if (qni == nullptr || qni->empty())
     {
       //inform irrelevant quantifiers
