@@ -255,17 +255,6 @@ void CegInstantiation::registerQuantifier(Node q)
   }
 }
 
-Node CegInstantiation::getNextDecisionRequest( unsigned& priority ) {
-  if( d_conj->isAssigned() ){
-    Node dec_req = d_conj->getNextDecisionRequest( priority );
-    if( !dec_req.isNull() ){
-      Trace("cegqi-debug") << "CEGQI : Decide next on : " << dec_req << "..." << std::endl;
-      return dec_req;
-    }
-  }
-  return Node::null();
-}
-
 void CegInstantiation::checkConjecture(CegConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();

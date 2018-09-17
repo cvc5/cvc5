@@ -42,12 +42,20 @@ namespace quantifiers {
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
  * heads of evaluation points and condition enumerators registered to this class
  * and add lemmas that enforce that these terms are equal to at least one
- * enumerator (see registerEvalPtAtValue).
+ * enumerator (see registerEvalPtAtSize).
  */
-class CegisUnifEnumManager
+class CegisUnifEnumManager : public DecisionStrategyFmf
 {
  public:
   CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
+  /** Make the n^th literal of this strategy. */
+  Node mkLiteral(unsigned n) override;
+  /** identify */
+  std::string identify() const override
+  {
+    return std::string("cegis_unif_num_enums");
+  }
+
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
@@ -73,29 +81,11 @@ class CegisUnifEnumManager
    * for strategy point e, where e was passed to initialize in the vector es.
    *
    * This may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
+   * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
   /** Retrieves active guard for enumerator */
   Node getActiveGuardForEnumerator(Node e);
-  /** get next decision request
-   *
-   * This function has the same contract as Theory::getNextDecisionRequest.
-   *
-   * If no guard G_uq_* is asserted positively, then this method returns the
-   * minimal G_uq_i that is not asserted negatively. It allocates this guard
-   * if necessary.
-   *
-   * This call may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
-   */
-  Node getNextDecisionRequest(unsigned& priority);
-  /**
-   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
-   * is not asserted negatively in the current SAT context.
-   */
-  Node getCurrentLiteral() const;
-
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -143,10 +133,8 @@ class CegisUnifEnumManager
   };
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
-  /** literals of the form G_uq_n for each n */
-  std::map<unsigned, Node> d_guq_lit;
   /** Have we returned a decision in the current SAT context? */
-  context::CDO<bool> d_ret_dec;
+  // context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
    *
    * This enumerator is used for enforcing fairness. In particular, we relate
@@ -165,11 +153,6 @@ class CegisUnifEnumManager
    *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
    */
   Node d_virtual_enum;
-  /**
-   * The minimal n such that G_uq_n is not asserted negatively in the
-   * current SAT context.
-   */
-  context::CDO<unsigned> d_curr_guq_val;
   /** Registers an enumerator and adds symmetry breaking lemmas
    *
    * The symmetry breaking lemmas are generated according to the stored
@@ -179,10 +162,6 @@ class CegisUnifEnumManager
    * order of size.
    */
   void setUpEnumerator(Node e, StrategyPtInfo& si, unsigned index);
-  /** increment the number of enumerators */
-  void incrementNumEnumerators();
-  /** get literal G_uq_n */
-  Node getLiteral(unsigned n) const;
   /** register evaluation point at size
    *
    * This sends a lemma of the form:
@@ -246,8 +225,6 @@ class CegisUnif : public Cegis
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
   /** do cegis-implementation-specific initialization for this class */
