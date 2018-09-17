@@ -374,24 +374,7 @@ private:
     //all variables in this term
     std::vector< Node > d_vars;
   };
-  // non-static information about extf
-  class ExtfInfoTmp {
-  public:
-    void init(){
-      d_pol = 0;
-      d_model_active = true;
-    }
-    // list of terms that something (does not) contain and their explanation
-    std::map< bool, std::vector< Node > > d_ctn;
-    std::map< bool, std::vector< Node > > d_ctn_from;
-    //polarity
-    int d_pol;
-    //explanation
-    std::vector< Node > d_exp;
-    //false if it is reduced in the model
-    bool d_model_active;
-  };
-  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
+
 
  private:
   /** Length status, used for the registerLength function below */
@@ -440,8 +423,50 @@ private:
   SkolemCache d_sk_cache;
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+  
+  
+  //--------------------------for checkExtfEval
+  /** 
+   * Non-static information about an extended function t. This information is
+   * constructed and used during the check extended function evaluation
+   * inference schema.
+   */
+  class ExtfInfoTmp {
+  public:
+    /** initialize */
+    void init(){
+      d_pol = 0;
+      d_model_active = true;
+    }
+    /** 
+     * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s ) 
+     * (resp. ~contains( t, s )) holds in the current context. The vector
+     * d_ctn_from is the explanation for why this holds. For example,
+     * 
+     */
+    std::map< bool, std::vector< Node > > d_ctn;
+    std::map< bool, std::vector< Node > > d_ctn_from;
+    //polarity
+    int d_pol;
+    //explanation
+    std::vector< Node > d_exp;
+    //false if it is reduced in the model
+    bool d_model_active;
+  };
+  /** map extended functions to the above information */
+  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
+  /** check extended function inferences 
+   * 
+   * This function makes additional inferences for n that do not contribute
+   * to its reduction, but may help show a refutation.
+   * 
+   * This function is called when the context-depdendent simplified form of 
+   * n is nr. The argument in is the information object for n. The argument
+   * effort has the same meaning as the effort argument of checkExtfEval.
+   */
+  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
+  //--------------------------end for checkExtfEval
 
   //--------------------------for checkFlatForm
   /**
