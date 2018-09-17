@@ -23,6 +23,8 @@
 #include "theory/theory.h"
 #include "util/statistics_registry.h"
 
+#include "theory/decision_manager.h"
+
 namespace CVC4 {
 class SortInference;
 namespace theory {
@@ -262,16 +264,12 @@ public:
     context::CDO<bool> d_conflict;
     /** cardinality */
     context::CDO< int > d_cardinality;
-    /** maximum allocated cardinality */
-    context::CDO< int > d_aloc_cardinality;
     /** cardinality lemma term */
     Node d_cardinality_term;
     /** cardinality totality terms */
     std::map< int, std::vector< Node > > d_totality_terms;
     /** cardinality literals */
     std::map< int, Node > d_cardinality_literal;
-    /** cardinality lemmas */
-    std::map< int, Node > d_cardinality_lemma;
     /** whether a positive cardinality constraint has been asserted */
     context::CDO< bool > d_hasCard;
     /** clique lemmas that have been asserted */
@@ -314,8 +312,6 @@ public:
     void presolve();
     /** propagate */
     void propagate( Theory::Effort level, OutputChannel* out );
-    /** get next decision request */
-    Node getNextDecisionRequest();
     /** assert cardinality */
     void assertCardinality( OutputChannel* out, int c, bool val );
     /** is in conflict */
@@ -327,16 +323,40 @@ public:
     /** get cardinality term */
     Node getCardinalityTerm() { return d_cardinality_term; }
     /** get cardinality literal */
-    Node getCardinalityLiteral( int c );
+    Node getCardinalityLiteral(unsigned c);
     /** get maximum negative cardinality */
     int getMaximumNegativeCardinality() { return d_maxNegCard.get(); }
     //print debug
     void debugPrint( const char* c );
     /** debug a model */
     bool debugModel( TheoryModel* m );
-  public:
     /** get number of regions (for debugging) */
     int getNumRegions();
+
+   private:
+    /**
+     * Decision strategy for cardinality constraints. This asserts
+     * the minimal constraint positively in the SAT context. For details, see
+     * Section 6.3 of Reynolds et al, "Constraint Solving for Finite Model
+     * Finding in SMT Solvers", TPLP 2017.
+     */
+    class CardinalityDecisionStrategy : public DecisionStrategyFmf
+    {
+     public:
+      CardinalityDecisionStrategy(Node t,
+                                  context::Context* satContext,
+                                  Valuation valuation);
+      /** make literal (the i^th combined cardinality literal) */
+      Node mkLiteral(unsigned i) override;
+      /** identify */
+      std::string identify() const override;
+
+     private:
+      /** the cardinality term */
+      Node d_cardinality_term;
+    };
+    /** cardinality decision strategy */
+    std::unique_ptr<CardinalityDecisionStrategy> d_c_dec_strat;
   }; /** class SortModel */
 
 public:
@@ -365,8 +385,6 @@ public:
   void check( Theory::Effort level );
   /** presolve */
   void presolve();
-  /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
   /** preregister a term */
   void preRegisterTerm( TNode n );
   /** identify */
@@ -403,8 +421,6 @@ public:
   SortModel* getSortModel(Node n);
   /** initialize */
   void initializeCombinedCardinality();
-  /** allocateCombinedCardinality */
-  void allocateCombinedCardinality();
   /** check */
   void checkCombinedCardinality();
   /** ensure eqc */
@@ -420,14 +436,31 @@ public:
   context::CDO<bool> d_conflict;
   /** rep model structure, one for each type */
   std::map<TypeNode, SortModel*> d_rep_model;
-  /** allocated combined cardinality */
-  context::CDO<int> d_aloc_com_card;
-  /** combined cardinality constraints */
-  std::map<int, Node> d_com_card_literal;
-  /** combined cardinality assertions (indexed by cardinality literals ) */
-  NodeBoolMap d_com_card_assertions;
+
   /** minimum positive combined cardinality */
   context::CDO<int> d_min_pos_com_card;
+  /**
+   * Decision strategy for combined cardinality constraints. This asserts
+   * the minimal combined cardinality constraint positively in the SAT
+   * context. It is enabled by options::ufssFairness(). For details, see
+   * the extension to multiple sorts in Section 6.3 of Reynolds et al,
+   * "Constraint Solving for Finite Model Finding in SMT Solvers", TPLP 2017.
+   */
+  class CombinedCardinalityDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    CombinedCardinalityDecisionStrategy(context::Context* satContext,
+                                        Valuation valuation);
+    /** make literal (the i^th combined cardinality literal) */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override;
+  };
+  /** combined cardinality decision strategy */
+  std::unique_ptr<CombinedCardinalityDecisionStrategy> d_cc_dec_strat;
+  /** Have we initialized combined cardinality? */
+  context::CDO<bool> d_initializedCombinedCardinality;
+
   /** cardinality literals for which we have added */
   NodeBoolMap d_card_assertions_eqv_lemma;
   /** the master monotone type (if ufssFairnessMonotone enabled) */
