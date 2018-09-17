@@ -172,7 +172,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         if (index == 0)
         {
           // given a pool of unification enumerators eu_1, ..., eu_n,
-          // CegisUnifEnumManager insists that size(eu_1) <= ... <= size(eu_n).
+          // CegisUnifEnumDecisionStrategy insists that size(eu_1) <= ... <= size(eu_n).
           // We additionally insist that M(eu_i) < M(eu_{i+1}) when
           // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
           // We enforce this below by adding symmetry breaking lemmas of the
@@ -299,7 +299,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       OR, d_parent->getGuard().negate(), plem));
 }
 
-CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
+CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
                                            CegConjecture* parent)
     : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
       d_qe(qe),
@@ -309,7 +309,7 @@ CegisUnifEnumManager::CegisUnifEnumManager(QuantifiersEngine* qe,
   d_tds = d_qe->getTermDatabaseSygus();
 }
 
-Node CegisUnifEnumManager::mkLiteral(unsigned n)
+Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
 {
   NodeManager* nm = NodeManager::currentNM();
   Node new_lit = nm->mkSkolem("G_cost", nm->booleanType());
@@ -404,7 +404,7 @@ Node CegisUnifEnumManager::mkLiteral(unsigned n)
   return new_lit;
 }
 
-void CegisUnifEnumManager::initialize(
+void CegisUnifEnumDecisionStrategy::initialize(
     const std::vector<Node>& es,
     const std::map<Node, Node>& e_to_cond,
     const std::map<Node, std::vector<Node>>& strategy_lemmas)
@@ -468,7 +468,7 @@ void CegisUnifEnumManager::initialize(
   }
 }
 
-void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
+void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(Node e,
                                                        std::vector<Node>& es,
                                                        unsigned index) const
 {
@@ -493,13 +493,13 @@ void CegisUnifEnumManager::getEnumeratorsForStrategyPt(Node e,
   }
 }
 
-Node CegisUnifEnumManager::getActiveGuardForEnumerator(Node e)
+Node CegisUnifEnumDecisionStrategy::getActiveGuardForEnumerator(Node e)
 {
   Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
   return d_enum_to_active_guard[e];
 }
 
-void CegisUnifEnumManager::setUpEnumerator(Node e,
+void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
                                            StrategyPtInfo& si,
                                            unsigned index)
 {
@@ -534,7 +534,7 @@ void CegisUnifEnumManager::setUpEnumerator(Node e,
       e, si.d_pt, d_parent, options::sygusUnifCondIndependent() && index == 1);
 }
 
-void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
+void CegisUnifEnumDecisionStrategy::registerEvalPts(const std::vector<Node>& eis, Node e)
 {
   // candidates of the same type are managed
   std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(e);
@@ -555,7 +555,7 @@ void CegisUnifEnumManager::registerEvalPts(const std::vector<Node>& eis, Node e)
 }
 
 
-void CegisUnifEnumManager::registerEvalPtAtSize(Node e,
+void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
                                                 Node ei,
                                                 Node guq_lit,
                                                 unsigned n)

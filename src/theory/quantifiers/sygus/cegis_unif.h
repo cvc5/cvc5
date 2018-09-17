@@ -26,9 +26,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Cegis Unif Enumeration Manager
+/** Cegis Unif Enumerators Decision Strategy
  *
- * This class enforces a decision heuristic that limits the number of
+ * This class enforces a decision strategy that limits the number of
  * unique values given to the set of heads of evaluation points and conditions
  * enumerators for these points, which are variables of sygus datatype type that
  * are introduced by CegisUnif.
@@ -44,10 +44,10 @@ namespace quantifiers {
  * and add lemmas that enforce that these terms are equal to at least one
  * enumerator (see registerEvalPtAtSize).
  */
-class CegisUnifEnumManager : public DecisionStrategyFmf
+class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
+  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, CegConjecture* parent);
   /** Make the n^th literal of this strategy. */
   Node mkLiteral(unsigned n) override;
   /** identify */
@@ -265,7 +265,7 @@ class CegisUnif : public Cegis
    */
   SygusUnifRl d_sygus_unif;
   /** enumerator manager utility */
-  CegisUnifEnumManager d_u_enum_manager;
+  CegisUnifEnumDecisionStrategy d_u_enum_manager;
   /* The null node */
   Node d_null;
   /** the unification candidates */
