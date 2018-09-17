@@ -466,7 +466,7 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
     d_sb_vars[tn].clear();
     it = d_sb_vars.find(tn);
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while (it->second.size() <= index)
   {
     std::stringstream ss;
