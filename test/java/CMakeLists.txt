@@ -1,5 +1,5 @@
 find_package(Java REQUIRED)
-find_package(JUnit REQUIRED)
+find_package(JUnit 4.0 REQUIRED)
 include(UseJava)
 
 set(java_test_src_files
@@ -28,7 +28,7 @@ foreach(src_file ${java_test_src_files})
   add_test(
     NAME ${name}
     COMMAND
-      java
+      ${Java_JAVA_EXECUTABLE}
         -Djava.library.path=${CMAKE_BINARY_DIR}/src/bindings/java/
         -cp ${classpath}
         org.junit.runner.JUnitCore
