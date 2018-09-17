@@ -30,7 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess( context::UserContext* u ){
+StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u)
+    : d_sc(sc)
+{
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -41,36 +43,6 @@ StringsPreprocess::~StringsPreprocess(){
 
 }
 
-Node StringsPreprocess::getUfForNode( Kind k, Node n, unsigned id ) {
-  std::map< unsigned, Node >::iterator it = d_uf[k].find( id );
-  if( it==d_uf[k].end() ){
-    std::vector< TypeNode > types;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      types.push_back( n[i].getType() );
-    }
-    TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, n.getType() );
-    Node f = NodeManager::currentNM()->mkSkolem( "sop", typ, "op created for string op" );
-    d_uf[k][id] = f;
-    return f;
-  }else{
-    return it->second;
-  }
-}
-
-//pro: congruence possible, con: introduces UF/requires theory combination
-//  currently hurts performance
-//TODO: for all skolems below
-Node StringsPreprocess::getUfAppForNode( Kind k, Node n, unsigned id ) {
-  std::vector< Node > children;
-  children.push_back( getUfForNode( k, n, id ) );
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    children.push_back( n[i] );
-  }
-  return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
-}
-
-//returns an n such that t can be replaced by n, under the assumption of lemmas in new_nodes
-
 Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   unsigned prev_new_nodes = new_nodes.size();
   Trace("strings-preprocess-debug") << "StringsPreprocess::simplify: " << t << std::endl;
@@ -78,48 +50,54 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   NodeManager *nm = NodeManager::currentNM();
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
-    Node skt;
-    if( options::stringUfReduct() ){
-      skt = getUfAppForNode( kind::STRING_SUBSTR, t );
-    }else{
-      skt = NodeManager::currentNM()->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
-    }
-    Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
-    Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
+    // processing term:  substr( s, n, m )
+    Node s = t[0];
+    Node n = t[1];
+    Node m = t[2];
+    Node skt = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node t12 = nm->mkNode(PLUS, n, m);
+    t12 = Rewriter::rewrite(t12);
+    Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
-    Node c1 = NodeManager::currentNM()->mkNode( kind::GEQ, t[1], d_zero );
+    Node c1 = nm->mkNode(GEQ, n, d_zero);
     //start point is less than end of string
-    Node c2 = NodeManager::currentNM()->mkNode( kind::GT, lt0, t[1] );
+    Node c2 = nm->mkNode(GT, lt0, n);
     //length is positive
-    Node c3 = NodeManager::currentNM()->mkNode( kind::GT, t[2], d_zero );
-    Node cond = NodeManager::currentNM()->mkNode( kind::AND, c1, c2, c3 );
-  
-    Node sk1 = NodeManager::currentNM()->mkSkolem( "ss1", NodeManager::currentNM()->stringType(), "created for substr" );
-    Node sk2 = NodeManager::currentNM()->mkSkolem( "ss2", NodeManager::currentNM()->stringType(), "created for substr" );
-    Node b11 = t[0].eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk1, skt, sk2 ) );
-    //length of first skolem is second argument
-    Node b12 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk1 ).eqNode( t[1] );
-    //length of second skolem is abs difference between end point and end of string
-    Node b13 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, sk2 ).eqNode(
-                 NodeManager::currentNM()->mkNode( kind::ITE, NodeManager::currentNM()->mkNode( kind::GEQ, lt0, t12 ),
-                    NodeManager::currentNM()->mkNode( kind::MINUS, lt0, t12 ), d_zero ) );
+    Node c3 = nm->mkNode(GT, m, d_zero);
+    Node cond = nm->mkNode(AND, c1, c2, c3);
 
-    Node b1 = NodeManager::currentNM()->mkNode( kind::AND, b11, b12, b13 );
-    Node b2 = skt.eqNode( NodeManager::currentNM()->mkConst( ::CVC4::String("") ) );
-    Node lemma = NodeManager::currentNM()->mkNode( kind::ITE, cond, b1, b2 );
+    Node sk1 = d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 =
+        d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
+    //length of first skolem is second argument
+    Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    //length of second skolem is abs difference between end point and end of string
+    Node b13 = nm->mkNode(STRING_LENGTH, sk2)
+                   .eqNode(nm->mkNode(ITE,
+                                      nm->mkNode(GEQ, lt0, t12),
+                                      nm->mkNode(MINUS, lt0, t12),
+                                      d_zero));
+
+    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    Node b2 = skt.eqNode(d_empty_str);
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
+    // assert:
+    // IF    n >=0 AND n < len( s ) AND m > 0
+    // THEN: s = sk1 ++ skt ++ sk2 AND
+    //       len( sk1 ) = n AND
+    //       len( sk2 ) = ite( len( s ) >= n+m, len( s )-(n+m), 0 )
+    // ELSE: skt = ""
     new_nodes.push_back( lemma );
+
+    // Thus, substr( s, n, m ) = skt
     retNode = skt;
   }
   else if (t.getKind() == kind::STRING_STRIDOF)
   {
     // processing term:  indexof( x, y, n )
-
-    Node skk;
-    if( options::stringUfReduct() ){
-      skk = getUfAppForNode( kind::STRING_STRIDOF, t );
-    }else{
-      skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
-    }
+    Node skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
 
     Node negone = nm->mkConst(::CVC4::Rational(-1));
     Node krange = nm->mkNode(kind::GEQ, skk, negone);
@@ -196,12 +174,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret;
-    if( options::stringUfReduct() ){
-      pret = NodeManager::currentNM()->mkNode(kind::STRING_ITOS, num);
-    }else{
-      pret = NodeManager::currentNM()->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
-    }
+    Node pret = nm->mkSkolem("itost", nm->stringType(), "created for itos");
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
@@ -298,14 +271,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     retNode = pret;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
-    Node pret;
-    if( options::stringUfReduct() ){
-      pret = getUfAppForNode( kind::STRING_STOI, t );
-    }else{
-      pret = NodeManager::currentNM()->mkSkolem( "stoit", NodeManager::currentNM()->integerType(), "created for stoi" );
-    }
-    //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
-    //Node pret = getUfAppForNode( kind::STRING_STOI, t );
+    Node pret = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
@@ -410,9 +376,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node y = t[1];
     Node z = t[2];
     TypeNode tn = t[0].getType();
-    Node rp1 = nm->mkSkolem("rp1", tn, "created for replace");
-    Node rp2 = nm->mkSkolem("rp2", tn, "created for replace");
-    Node rpw = nm->mkSkolem("rpw", tn, "created for replace");
+    Node rp1 =
+        d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_PRE, "rfcpre");
+    Node rp2 =
+        d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_POST, "rfcpost");
+    Node rpw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpw");
 
     // y = ""
     Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));
