@@ -78,6 +78,11 @@ class SkolemCache
     SK_ID_DEQ_X,
     SK_ID_DEQ_Y,
     SK_ID_DEQ_Z,
+    // contains( a, b ) =>
+    //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
+    //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
+    SK_FIRST_CTN_PRE,
+    SK_FIRST_CTN_POST,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has

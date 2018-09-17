@@ -361,8 +361,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node y = t[1];
     Node z = t[2];
     TypeNode tn = t[0].getType();
-    Node rp1 = nm->mkSkolem("rp1", tn, "created for replace");
-    Node rp2 = nm->mkSkolem("rp2", tn, "created for replace");
+    Node rp1 = d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_PRE, "rfcpre");
+    Node rp2 = d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_POST, "rfcpost");
     Node rpw = nm->mkSkolem("rpw", tn, "created for replace");
 
     // y = ""
