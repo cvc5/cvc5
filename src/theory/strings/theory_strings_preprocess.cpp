@@ -30,7 +30,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess( context::UserContext* u ){
+StringsPreprocess::StringsPreprocess(  SkolemCache * sc, context::UserContext* u ) 
+: d_sc(sc){
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -39,34 +40,6 @@ StringsPreprocess::StringsPreprocess( context::UserContext* u ){
 
 StringsPreprocess::~StringsPreprocess(){
 
-}
-
-Node StringsPreprocess::getUfForNode( Kind k, Node n, unsigned id ) {
-  std::map< unsigned, Node >::iterator it = d_uf[k].find( id );
-  if( it==d_uf[k].end() ){
-    std::vector< TypeNode > types;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      types.push_back( n[i].getType() );
-    }
-    TypeNode typ = NodeManager::currentNM()->mkFunctionType( types, n.getType() );
-    Node f = NodeManager::currentNM()->mkSkolem( "sop", typ, "op created for string op" );
-    d_uf[k][id] = f;
-    return f;
-  }else{
-    return it->second;
-  }
-}
-
-//pro: congruence possible, con: introduces UF/requires theory combination
-//  currently hurts performance
-//TODO: for all skolems below
-Node StringsPreprocess::getUfAppForNode( Kind k, Node n, unsigned id ) {
-  std::vector< Node > children;
-  children.push_back( getUfForNode( k, n, id ) );
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    children.push_back( n[i] );
-  }
-  return NodeManager::currentNM()->mkNode( kind::APPLY_UF, children );
 }
 
 //returns an n such that t can be replaced by n, under the assumption of lemmas in new_nodes
@@ -79,11 +52,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
     Node skt;
-    if( options::stringUfReduct() ){
-      skt = getUfAppForNode( kind::STRING_SUBSTR, t );
-    }else{
-      skt = NodeManager::currentNM()->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
-    }
+    skt = nm->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
     Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
     Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
     //start point is greater than or equal zero
@@ -114,12 +83,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   {
     // processing term:  indexof( x, y, n )
 
-    Node skk;
-    if( options::stringUfReduct() ){
-      skk = getUfAppForNode( kind::STRING_STRIDOF, t );
-    }else{
-      skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
-    }
+    Node skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
 
     Node negone = nm->mkConst(::CVC4::Rational(-1));
     Node krange = nm->mkNode(kind::GEQ, skk, negone);
@@ -298,14 +262,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     retNode = pret;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
-    Node pret;
-    if( options::stringUfReduct() ){
-      pret = getUfAppForNode( kind::STRING_STOI, t );
-    }else{
-      pret = NodeManager::currentNM()->mkSkolem( "stoit", NodeManager::currentNM()->integerType(), "created for stoi" );
-    }
+    Node pret = nm->mkSkolem( "stoit", nm->integerType(), "created for stoi" );
     //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
-    //Node pret = getUfAppForNode( kind::STRING_STOI, t );
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
