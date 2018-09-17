@@ -1343,7 +1343,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     if (lemmas.empty() && !d_szinfo.empty())
     {
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
-      for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>& p : d_szinfo)
+      for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
+               p : d_szinfo)
       {
         SygusSizeDecisionStrategy* s = p.second.get();
         Trace("cegqi-engine") << s->d_curr_search_size << " ";
