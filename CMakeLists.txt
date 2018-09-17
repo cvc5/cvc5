@@ -245,10 +245,6 @@ if(ENABLE_DEBUG_CONTEXT_MM)
   add_definitions(-DCVC4_DEBUG_CONTEXT_MEMORY_MANAGER)
 endif()
 
-if(ENABLE_DUMPING)
-  add_definitions(-DCVC4_DUMPING)
-endif()
-
 if(ENABLE_DEBUG_SYMBOLS)
   add_check_c_cxx_flag("-ggdb3")
 endif()
@@ -260,6 +256,9 @@ endif()
 # This check needs to come before the USE_CLN check.
 if(ENABLE_PORTFOLIO)
   find_package(Boost 1.50.0 REQUIRED COMPONENTS thread)
+  if (ENABLE_DUMPING)
+    message(FATAL_ERROR "Dumping not supported with a portfolio build.")
+  endif()
   # Disable CLN for portfolio builds since it is not thread safe (uses an
   # unlocked hash table internally).
   if(USE_CLN)
@@ -273,6 +272,11 @@ if(ENABLE_PORTFOLIO)
   endif()
   add_definitions(-DCVC4_PORTFOLIO)
   set(BOOST_HAS_THREAD_ATTR 1)
+endif()
+
+# This has to be processed after ENABLE_PORTFOLIO (disables dumping support).
+if(ENABLE_DUMPING)
+  add_definitions(-DCVC4_DUMPING)
 endif()
 
 if(ENABLE_PROFILING)

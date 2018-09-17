@@ -18,7 +18,16 @@ cvc4_set_option(ENABLE_PROOFS ON)
 # enable_tracing=yes
 cvc4_set_option(ENABLE_TRACING ON)
 # enable_dumping=yes
-cvc4_set_option(ENABLE_DUMPING ON)
+if(ENABLE_PORTFOLIO)
+  if(ENABLE_DUMPING)
+    message(FATAL_ERROR "Dumping not supported with a portfolio build.")
+  else()
+    message(WARNING
+      "Disabling dumping support, not supported with a portfolio build.")
+  endif()
+else()
+  cvc4_set_option(ENABLE_DUMPING ON)
+endif()
 # enable_muzzle=no
 cvc4_set_option(ENABLE_MUZZLE OFF)
 # enable_valgrind=optional
