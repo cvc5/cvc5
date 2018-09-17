@@ -288,6 +288,25 @@ private:
   NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
+  /** 
+   * The following three vectors are used for tracking constants that each
+   * equivalence class is entailed to be equal to. 
+   * - The map d_eqc_to_const maps (representatives) r of equivalence classes to
+   * the constant that that equivalence class is entailed to be equal to,
+   * - The term d_eqc_to_const_base[r] is the term in the equivalence class r
+   * that is entailed to be equal to the constant d_eqc_to_const[r],
+   * - The term d_eqc_to_const_exp[r] is the explanation of why 
+   * d_eqc_to_const_base[r] is equal to d_eqc_to_const[r].
+   * 
+   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
+   * assume x = "" and y = "bb" in the current context. We have that
+   *   d_eqc_to_const[r] = "abb",
+   *   d_eqc_to_const_base[r] = x++"a"++y
+   *   d_eqc_to_const_exp[r] = ( x = "" AND y = "bb" ) 
+   * 
+   * This information is computed during checkInit and is used during various
+   * inference schemas for deriving inferences.
+   */
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
@@ -431,14 +450,16 @@ private:
    * Non-static information about an extended function t. This information is
    * constructed and used during the check extended function evaluation
    * inference schema.
+   * 
+   * In the following, we refer to the "context-dependent simplified form"
+   * of a term t is the result of rewriting t * sigma where sigma is a
+   * derived substitution in the current context. For example, the
+   * context-depdendent simplified form of contains( x++y, "a" ) given
+   * sigma = { x -> "" } is contains(y,"a").
    */
   class ExtfInfoTmp {
   public:
-    /** initialize */
-    void init(){
-      d_pol = 0;
-      d_model_active = true;
-    }
+    ExtfInfoTmp() : d_model_active(true){}
     /** 
      * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s ) 
      * (resp. ~contains( t, s )) holds in the current context. The vector
@@ -447,11 +468,16 @@ private:
      */
     std::map< bool, std::vector< Node > > d_ctn;
     std::map< bool, std::vector< Node > > d_ctn_from;
-    //polarity
-    int d_pol;
-    //explanation
+    /** 
+     * The constant that t is entailed to be equal to, or null if none exist. 
+     */
+    Node d_const;
+    /** 
+     * The explanation for why t is equal to its context-depedent simplified
+     * form. 
+     */
     std::vector< Node > d_exp;
-    //false if it is reduced in the model
+    /** This flag is false if t is reduced in the model. */
     bool d_model_active;
   };
   /** map extended functions to the above information */
