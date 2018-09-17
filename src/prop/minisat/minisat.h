@@ -78,8 +78,6 @@ public:
 
   void requirePhase(SatLiteral lit) override;
 
-  bool flipDecision() override;
-
   bool isDecision(SatVariable decn) const override;
 
  private:

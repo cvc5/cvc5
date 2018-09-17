@@ -69,6 +69,8 @@ public:
     return d_stats;
   }
 
+  SmtEngine* getSmtEngine() { return d_smtEngine; }
+
   /**
    * Flushes statistics to a file descriptor.
    */

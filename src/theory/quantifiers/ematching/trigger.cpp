@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/ematching/trigger.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/ematching/candidate_generator.h"
 #include "theory/quantifiers/ematching/ho_trigger.h"
@@ -305,10 +306,12 @@ bool Trigger::isUsableEqTerms( Node q, Node n1, Node n2 ) {
     }
   }else if( isUsableAtomicTrigger( n1, q ) ){
     if (options::relationalTriggers() && n2.getKind() == INST_CONSTANT
-        && !n1.hasSubterm(n2))
+        && !expr::hasSubterm(n1, n2))
     {
       return true;
-    }else if( !quantifiers::TermUtil::hasInstConstAttr(n2) ){
+    }
+    else if (!quantifiers::TermUtil::hasInstConstAttr(n2))
+    {
       return true;
     }
   }
@@ -835,6 +838,7 @@ Node Trigger::getInversion( Node n, Node x ) {
     return x;
   }else if( n.getKind()==PLUS || n.getKind()==MULT ){
     int cindex = -1;
+    bool cindexSet = false;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( !quantifiers::TermUtil::hasInstConstAttr(n[i]) ){
         if( n.getKind()==PLUS ){
@@ -856,12 +860,15 @@ Node Trigger::getInversion( Node n, Node x ) {
         }
         x = Rewriter::rewrite( x );
       }else{
-        Assert( cindex==-1 );
+        Assert(!cindexSet);
         cindex = i;
+        cindexSet = true;
       }
     }
-    Assert( cindex!=-1 );
-    return getInversion( n[cindex], x );
+    if (cindexSet)
+    {
+      return getInversion(n[cindex], x);
+    }
   }
   return Node::null();
 }

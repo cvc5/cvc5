@@ -19,8 +19,6 @@ AM_CPPFLAGS = \
 	-I@builddir@/.. -I@srcdir@/../include -I@srcdir@/..
 AM_CXXFLAGS = -Wall
 
-SUBDIRS = compat
-
 # any binding-specific flags to pass to swig
 java_cpp_SWIGFLAGS = -package edu.nyu.acsys.CVC4
 

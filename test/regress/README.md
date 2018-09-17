@@ -121,9 +121,3 @@ This benchmark is only run when symfpu has been configured.  Multiple
 as a requirement, refer to CVC4's `--show-config` output. Features can also be
 excluded by adding the `no-` prefix, e.g. `no-symfpu` means that the test is
 not valid for builds that include symfpu support.
-
-Sometimes it is useful to keep the directives separate. You can separate the
-benchmark from the output expectations by putting the benchmark in `<benchmark
-file>.smt` and the directives in `<benchmark file>.smt.expect`, which is looked
-for by the regression script. Note that `*.expect` files should be added to the
-`EXTRA_DIST` variable in [Makefile.am](Makefile.am).

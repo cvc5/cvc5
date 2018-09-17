@@ -19,6 +19,7 @@
 #include "theory/quantifiers/cegqi/ceg_dt_instantiator.h"
 #include "theory/quantifiers/cegqi/ceg_epr_instantiator.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
@@ -28,7 +29,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
@@ -516,11 +516,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     activateInstantiationVariable(pv, i);
 
     //get the instantiator object
-    Instantiator * vinst = NULL;
-    std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
-    if( itin!=d_instantiator.end() ){
-      vinst = itin->second;
-    }
+    Assert(d_instantiator.find(pv) != d_instantiator.end());
+    Instantiator* vinst = d_instantiator[pv];
     Assert( vinst!=NULL );
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);
@@ -1214,7 +1211,7 @@ void collectPresolveEqTerms( Node n, std::map< Node, std::vector< Node > >& teq 
     {
       Node nn = n[i == 0 ? 1 : 0];
       std::map<Node, std::vector<Node> >::iterator it = teq.find(n[i]);
-      if (it != teq.end() && !nn.hasFreeVar()
+      if (it != teq.end() && !expr::hasFreeVar(nn)
           && std::find(it->second.begin(), it->second.end(), nn)
                  == it->second.end())
       {
@@ -1268,7 +1265,7 @@ void CegInstantiator::presolve( Node q ) {
       Node g = NodeManager::currentNM()->mkSkolem( "g", NodeManager::currentNM()->booleanType() );
       lem = NodeManager::currentNM()->mkNode( OR, g, lem );
       Trace("cbqi-presolve-debug") << "Presolve lemma : " << lem << std::endl;
-      Assert(!lem.hasFreeVar());
+      Assert(!expr::hasFreeVar(lem));
       d_qe->getOutputChannel().lemma( lem, false, true );
     }
   }
@@ -1647,7 +1644,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
+  d_closed_enum_type = tn.isClosedEnumerable();
 }
 
 bool Instantiator::processEqualTerm(CegInstantiator* ci,

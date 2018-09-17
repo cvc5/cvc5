@@ -14,6 +14,7 @@
  **/
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
@@ -48,12 +49,12 @@ CegConjectureSingleInv::CegConjectureSingleInv(QuantifiersEngine* qe,
       d_sip(new SingleInvocationPartition),
       d_sol(new CegConjectureSingleInvSol(qe)),
       d_cosi(new CegqiOutputSingleInv(this)),
-      d_cinst(NULL),
+      d_cinst(new CegInstantiator(d_qe, d_cosi, false, false)),
       d_c_inst_match_trie(NULL),
-      d_single_invocation(false) {
-  //  third and fourth arguments set to (false,false) until we have solution
-  //  reconstruction for delta and infinity
-  d_cinst = new CegInstantiator(d_qe, d_cosi, false, false);
+      d_single_invocation(false)
+{
+  // The third and fourth arguments of d_cosi set to (false,false) until we have
+  // solution reconstruction for delta and infinity.
 
   if (options::incrementalSolving()) {
     d_c_inst_match_trie = new inst::CDInstMatchTrie(qe->getUserContext());
@@ -64,51 +65,53 @@ CegConjectureSingleInv::~CegConjectureSingleInv() {
   if (d_c_inst_match_trie) {
     delete d_c_inst_match_trie;
   }
-  delete d_cinst;
   delete d_cosi;
   delete d_sol;  // (new CegConjectureSingleInvSol(qe)),
   delete d_sip;  // d_sip(new SingleInvocationPartition),
 }
 
-void CegConjectureSingleInv::getInitialSingleInvLemma( std::vector< Node >& lems ) {
-  Assert( d_si_guard.isNull() );
-  //single invocation guard
-  d_si_guard = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-  d_si_guard = d_qe->getValuation().ensureLiteral( d_si_guard );
-  AlwaysAssert( !d_si_guard.isNull() );
-  d_qe->getOutputChannel().requirePhase( d_si_guard, true );
-
-  if( !d_single_inv.isNull() ) {
-    //make for new var/sk
-    d_single_inv_var.clear();
-    d_single_inv_sk.clear();
-    Node inst;
-    if( d_single_inv.getKind()==FORALL ){
-      for( unsigned i=0; i<d_single_inv[0].getNumChildren(); i++ ){
-        std::stringstream ss;
-        ss << "k_" << d_single_inv[0][i];
-        Node k = NodeManager::currentNM()->mkSkolem( ss.str(), d_single_inv[0][i].getType(), "single invocation function skolem" );
-        d_single_inv_var.push_back( d_single_inv[0][i] );
-        d_single_inv_sk.push_back( k );
-        d_single_inv_sk_index[k] = i;
-      }
-      inst = d_single_inv[1].substitute( d_single_inv_var.begin(), d_single_inv_var.end(), d_single_inv_sk.begin(), d_single_inv_sk.end() );
-    }else{
-      inst = d_single_inv;
+void CegConjectureSingleInv::getInitialSingleInvLemma(Node g,
+                                                      std::vector<Node>& lems)
+{
+  Assert(!g.isNull());
+  Assert(!d_single_inv.isNull());
+  // make for new var/sk
+  d_single_inv_var.clear();
+  d_single_inv_sk.clear();
+  Node inst;
+  NodeManager* nm = NodeManager::currentNM();
+  if (d_single_inv.getKind() == FORALL)
+  {
+    for (unsigned i = 0, size = d_single_inv[0].getNumChildren(); i < size; i++)
+    {
+      std::stringstream ss;
+      ss << "k_" << d_single_inv[0][i];
+      Node k = nm->mkSkolem(ss.str(),
+                            d_single_inv[0][i].getType(),
+                            "single invocation function skolem");
+      d_single_inv_var.push_back(d_single_inv[0][i]);
+      d_single_inv_sk.push_back(k);
+      d_single_inv_sk_index[k] = i;
     }
-    inst = TermUtil::simpleNegate( inst );
-    Trace("cegqi-si") << "Single invocation initial lemma : " << inst << std::endl;
-
-    //register with the instantiator
-    Node ginst = NodeManager::currentNM()->mkNode( OR, d_si_guard.negate(), inst );
-    lems.push_back( ginst );
-    //make and register the instantiator
-    if( d_cinst ){
-      delete d_cinst;
-    }
-    d_cinst = new CegInstantiator( d_qe, d_cosi, false, false );
-    d_cinst->registerCounterexampleLemma( lems, d_single_inv_sk );
+    inst = d_single_inv[1].substitute(d_single_inv_var.begin(),
+                                      d_single_inv_var.end(),
+                                      d_single_inv_sk.begin(),
+                                      d_single_inv_sk.end());
   }
+  else
+  {
+    inst = d_single_inv;
+  }
+  inst = TermUtil::simpleNegate(inst);
+  Trace("cegqi-si") << "Single invocation initial lemma : " << inst
+                    << std::endl;
+
+  // register with the instantiator
+  Node ginst = nm->mkNode(OR, g.negate(), inst);
+  lems.push_back(ginst);
+  // make and register the instantiator
+  d_cinst.reset(new CegInstantiator(d_qe, d_cosi, false, false));
+  d_cinst->registerCounterexampleLemma(lems, d_single_inv_sk);
 }
 
 void CegConjectureSingleInv::initialize( Node q ) {
@@ -726,12 +729,14 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
       // check if it is a variable equality
       TNode v;
       Node s;
-      for( unsigned r=0; r<2; r++ ){
-        if( std::find( vars.begin(), vars.end(), slit[r] )!=vars.end() ){
-          if (!slit[1 - r].hasSubterm(slit[r]))
+      for (unsigned r = 0; r < 2; r++)
+      {
+        if (std::find(vars.begin(), vars.end(), slit[r]) != vars.end())
+        {
+          if (!expr::hasSubterm(slit[1 - r], slit[r]))
           {
             v = slit[r];
-            s = slit[1-r];
+            s = slit[1 - r];
             break;
           }
         }
@@ -741,13 +746,18 @@ void TransitionInference::getConstantSubstitution( std::vector< Node >& vars, st
         std::map< Node, Node > msum;
         if (ArithMSum::getMonomialSumLit(slit, msum))
         {
-          for( std::map< Node, Node >::iterator itm = msum.begin(); itm != msum.end(); ++itm ){
-            if( std::find( vars.begin(), vars.end(), itm->first )!=vars.end() ){  
+          for (std::map<Node, Node>::iterator itm = msum.begin();
+               itm != msum.end();
+               ++itm)
+          {
+            if (std::find(vars.begin(), vars.end(), itm->first) != vars.end())
+            {
               Node veq_c;
               Node val;
               int ires =
                   ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if (ires != 0 && veq_c.isNull() && !val.hasSubterm(itm->first))
+              if (ires != 0 && veq_c.isNull()
+                  && !expr::hasSubterm(val, itm->first))
               {
                 v = itm->first;
                 s = val;
@@ -859,7 +869,8 @@ void TransitionInference::process( Node n ) {
         }else{
           res = NodeManager::currentNM()->mkNode( kind::OR, disjuncts );
         }
-        if( !res.hasBoundVar() ){
+        if (!expr::hasBoundVar(res))
+        {
           Trace("cegqi-inv") << "*** inferred " << ( comp_num==1 ? "pre" : ( comp_num==-1 ? "post" : "trans" ) ) << "-condition : " << res << std::endl;
           d_com[comp_num].d_conjuncts.push_back( res );
           if( !const_var.empty() ){
@@ -1027,8 +1038,11 @@ int TransitionInference::incrementTrace( DetTrace& dt, Node loc, bool fwd ) {
     }
   }
   if( fwd ){
-    std::map< Node, std::map< Node, Node > >::iterator it = d_com[0].d_const_eq.find( loc );
-    if( it!=d_com[0].d_const_eq.end() ){
+    Component& cm = d_com[0];
+    std::map<Node, std::map<Node, Node> >::iterator it =
+        cm.d_const_eq.find(loc);
+    if (it != cm.d_const_eq.end())
+    {
       std::vector< Node > next;
       for( unsigned i=0; i<d_prime_vars.size(); i++ ){
         Node pv = d_prime_vars[i];
@@ -1076,4 +1090,3 @@ Node TransitionInference::constructFormulaTrace( DetTrace& dt ) {
 }
   
 } //namespace CVC4
-

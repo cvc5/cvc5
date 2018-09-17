@@ -15,6 +15,7 @@
 
 #include "theory/bv/theory_bv.h"
 
+#include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
 #include "proof/proof_manager.h"
@@ -43,79 +44,72 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-TheoryBV::TheoryBV(context::Context* c, context::UserContext* u,
-                   OutputChannel& out, Valuation valuation,
-                   const LogicInfo& logicInfo, std::string name)
-  : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
-    d_context(c),
-    d_alreadyPropagatedSet(c),
-    d_sharedTermsSet(c),
-    d_subtheories(),
-    d_subtheoryMap(),
-    d_statistics(),
-    d_staticLearnCache(),
-    d_BVDivByZero(),
-    d_BVRemByZero(),
-    d_lemmasAdded(c, false),
-    d_conflict(c, false),
-    d_invalidateModelCache(c, true),
-    d_literalsToPropagate(c),
-    d_literalsToPropagateIndex(c, 0),
-    d_propagatedBy(c),
-    d_eagerSolver(NULL),
-    d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
-    d_isCoreTheory(false),
-    d_calledPreregister(false),
-    d_needsLastCallCheck(false),
-    d_extf_range_infer(u),
-    d_extf_collapse_infer(u)
+TheoryBV::TheoryBV(context::Context* c,
+                   context::UserContext* u,
+                   OutputChannel& out,
+                   Valuation valuation,
+                   const LogicInfo& logicInfo,
+                   std::string name)
+    : Theory(THEORY_BV, c, u, out, valuation, logicInfo, name),
+      d_context(c),
+      d_alreadyPropagatedSet(c),
+      d_sharedTermsSet(c),
+      d_subtheories(),
+      d_subtheoryMap(),
+      d_statistics(),
+      d_staticLearnCache(),
+      d_BVDivByZero(),
+      d_BVRemByZero(),
+      d_lemmasAdded(c, false),
+      d_conflict(c, false),
+      d_invalidateModelCache(c, true),
+      d_literalsToPropagate(c),
+      d_literalsToPropagateIndex(c, 0),
+      d_propagatedBy(c),
+      d_eagerSolver(),
+      d_abstractionModule(new AbstractionModule(getStatsPrefix(THEORY_BV))),
+      d_isCoreTheory(false),
+      d_calledPreregister(false),
+      d_needsLastCallCheck(false),
+      d_extf_range_infer(u),
+      d_extf_collapse_infer(u)
 {
   setupExtTheory();
   getExtTheory()->addFunctionKind(kind::BITVECTOR_TO_NAT);
   getExtTheory()->addFunctionKind(kind::INT_TO_BITVECTOR);
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    d_eagerSolver = new EagerBitblastSolver(c, this);
+    d_eagerSolver.reset(new EagerBitblastSolver(c, this));
     return;
   }
 
   if (options::bitvectorEqualitySolver() && !options::proof())
   {
-    SubtheorySolver* core_solver = new CoreSolver(c, this);
-    d_subtheories.push_back(core_solver);
-    d_subtheoryMap[SUB_CORE] = core_solver;
+    d_subtheories.emplace_back(new CoreSolver(c, this));
+    d_subtheoryMap[SUB_CORE] = d_subtheories.back().get();
   }
 
   if (options::bitvectorInequalitySolver() && !options::proof())
   {
-    SubtheorySolver* ineq_solver = new InequalitySolver(c, u, this);
-    d_subtheories.push_back(ineq_solver);
-    d_subtheoryMap[SUB_INEQUALITY] = ineq_solver;
+    d_subtheories.emplace_back(new InequalitySolver(c, u, this));
+    d_subtheoryMap[SUB_INEQUALITY] = d_subtheories.back().get();
   }
 
   if (options::bitvectorAlgebraicSolver() && !options::proof())
   {
-    SubtheorySolver* alg_solver = new AlgebraicSolver(c, this);
-    d_subtheories.push_back(alg_solver);
-    d_subtheoryMap[SUB_ALGEBRAIC] = alg_solver;
+    d_subtheories.emplace_back(new AlgebraicSolver(c, this));
+    d_subtheoryMap[SUB_ALGEBRAIC] = d_subtheories.back().get();
   }
 
   BitblastSolver* bb_solver = new BitblastSolver(c, this);
-  if (options::bvAbstraction()) {
-    bb_solver->setAbstraction(d_abstractionModule);
+  if (options::bvAbstraction())
+  {
+    bb_solver->setAbstraction(d_abstractionModule.get());
   }
-  d_subtheories.push_back(bb_solver);
+  d_subtheories.emplace_back(bb_solver);
   d_subtheoryMap[SUB_BITBLAST] = bb_solver;
 }
 
-TheoryBV::~TheoryBV() {
-  if (d_eagerSolver) {
-    delete d_eagerSolver;
-  }
-  for (unsigned i = 0; i < d_subtheories.size(); ++i) {
-    delete d_subtheories[i];
-  }
-  delete d_abstractionModule;
-}
+TheoryBV::~TheoryBV() {}
 
 void TheoryBV::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
@@ -670,13 +664,13 @@ Theory::PPAssertStatus TheoryBV::ppAssert(TNode in,
   {
     case kind::EQUAL:
     {
-      if (in[0].isVar() && !in[1].hasSubterm(in[0]))
+      if (in[0].isVar() && !expr::hasSubterm(in[1], in[0]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[0], in[1]);
         return PP_ASSERT_STATUS_SOLVED;
       }
-      if (in[1].isVar() && !in[0].hasSubterm(in[1]))
+      if (in[1].isVar() && !expr::hasSubterm(in[0], in[1]))
       {
         ++(d_statistics.d_solveSubstitutions);
         outSubstitutions.addSubstitution(in[1], in[0]);
@@ -860,9 +854,11 @@ bool TheoryBV::storePropagation(TNode literal, SubTheory subtheory)
   }
 
   // Propagate differs depending on the subtheory
-  // * bitblaster needs to be left alone until it's done, otherwise it doesn't know how to explain
+  // * bitblaster needs to be left alone until it's done, otherwise it doesn't
+  //   know how to explain
   // * equality engine can propagate eagerly
-  bool ok = true;
+  // TODO(2348): Determine if ok should be set by propagate. If not, remove ok.
+  constexpr bool ok = true;
   if (subtheory == SUB_CORE) {
     d_out->propagate(literal);
     if (!ok) {

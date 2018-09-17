@@ -15,11 +15,13 @@
  **/
 
 #include "theory/booleans/circuit_propagator.h"
-#include "util/utility.h"
 
 #include <stack>
 #include <vector>
 #include <algorithm>
+
+#include "expr/node_algorithm.h"
+#include "util/utility.h"
 
 using namespace std;
 
@@ -208,7 +210,7 @@ void CircuitPropagator::propagateForward(TNode child, bool childAssignment) {
   for(; parent_it != parent_it_end && !d_conflict; ++ parent_it) {
     // The current parent of the child
     TNode parent = *parent_it;
-    Assert(parent.hasSubterm(child));
+    Assert(expr::hasSubterm(parent, child));
 
     // Forward rules
     switch(parent.getKind()) {
@@ -366,7 +368,9 @@ bool CircuitPropagator::propagate() {
     Debug("circuit-prop") << "CircuitPropagator::propagate(): assigned to " << (assignment ? "true" : "false") << std::endl;
 
     // Is this an atom
-    bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.isVar();
+    bool atom = Theory::theoryOf(current) != THEORY_BOOL || current.isVar()
+                || (current.getKind() == kind::EQUAL
+                    && (current[0].isVar() && current[1].isVar()));
 
     // If an atom, add to the list for simplification
     if (atom) {

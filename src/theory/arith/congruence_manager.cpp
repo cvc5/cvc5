@@ -28,35 +28,36 @@ namespace CVC4 {
 namespace theory {
 namespace arith {
 
-ArithCongruenceManager::ArithCongruenceManager(context::Context* c, ConstraintDatabase& cd, SetupLiteralCallBack setup, const ArithVariables& avars, RaiseEqualityEngineConflict raiseConflict)
-  : d_inConflict(c),
-    d_raiseConflict(raiseConflict),
-    d_notify(*this),
-    d_eq_infer(NULL),
-    d_eqi_counter(0,c),
-    d_keepAlive(c),
-    d_propagatations(c),
-    d_explanationMap(c),
-    d_constraintDatabase(cd),
-    d_setupLiteral(setup),
-    d_avariables(avars),
-    d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
+ArithCongruenceManager::ArithCongruenceManager(
+    context::Context* c,
+    ConstraintDatabase& cd,
+    SetupLiteralCallBack setup,
+    const ArithVariables& avars,
+    RaiseEqualityEngineConflict raiseConflict)
+    : d_inConflict(c),
+      d_raiseConflict(raiseConflict),
+      d_notify(*this),
+      d_eq_infer(),
+      d_eqi_counter(0, c),
+      d_keepAlive(c),
+      d_propagatations(c),
+      d_explanationMap(c),
+      d_constraintDatabase(cd),
+      d_setupLiteral(setup),
+      d_avariables(avars),
+      d_ee(d_notify, c, "theory::arith::ArithCongruenceManager", true)
 {
   d_ee.addFunctionKind(kind::NONLINEAR_MULT);
   d_ee.addFunctionKind(kind::EXPONENTIAL);
   d_ee.addFunctionKind(kind::SINE);
   //module to infer additional equalities based on normalization
   if( options::sNormInferEq() ){
-    d_eq_infer = new quantifiers::EqualityInference(c, true);
+    d_eq_infer.reset(new quantifiers::EqualityInference(c, true));
     d_true = NodeManager::currentNM()->mkConst( true );
   }
 }
 
-ArithCongruenceManager::~ArithCongruenceManager() {
-  if( d_eq_infer ){
-    delete d_eq_infer;
-  }
-}
+ArithCongruenceManager::~ArithCongruenceManager() {}
 
 ArithCongruenceManager::Statistics::Statistics():
   d_watchedVariables("theory::arith::congruence::watchedVariables", 0),

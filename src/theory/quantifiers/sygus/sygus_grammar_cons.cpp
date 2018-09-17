@@ -18,6 +18,7 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
@@ -345,22 +346,27 @@ TypeNode CegGrammarConstructor::mkUnresolvedType(const std::string& name, std::s
   return unresolved;
 }
 
-void CegGrammarConstructor::mkSygusConstantsForType( TypeNode type, std::vector<CVC4::Node>& ops ) {
+void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
+                                                    std::vector<Node>& ops)
+{
+  NodeManager* nm = NodeManager::currentNM();
   if (type.isReal())
   {
-    ops.push_back(NodeManager::currentNM()->mkConst(Rational(0)));
-    ops.push_back(NodeManager::currentNM()->mkConst(Rational(1)));
-  }else if( type.isBitVector() ){
-    unsigned sz = ((BitVectorType)type.toType()).getSize();
-    BitVector bval0(sz, (unsigned int)0);
-    ops.push_back( NodeManager::currentNM()->mkConst(bval0) );
-    BitVector bval1(sz, (unsigned int)1);
-    ops.push_back( NodeManager::currentNM()->mkConst(bval1) );
-  }else if( type.isBoolean() ){
-    ops.push_back(NodeManager::currentNM()->mkConst(true));
-    ops.push_back(NodeManager::currentNM()->mkConst(false));
+    ops.push_back(nm->mkConst(Rational(0)));
+    ops.push_back(nm->mkConst(Rational(1)));
   }
-  //TODO : others?
+  else if (type.isBitVector())
+  {
+    unsigned size = type.getBitVectorSize();
+    ops.push_back(bv::utils::mkZero(size));
+    ops.push_back(bv::utils::mkOne(size));
+  }
+  else if (type.isBoolean())
+  {
+    ops.push_back(nm->mkConst(true));
+    ops.push_back(nm->mkConst(false));
+  }
+  // TODO #1178 : add other missing types
 }
 
 void CegGrammarConstructor::collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels ){
@@ -494,7 +500,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //ITE
     CVC4::Kind k = kind::ITE;
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+    ops[i].push_back(nm->operatorOf(k).toExpr());
     cnames.push_back( kind::kindToString(k) );
     cargs.push_back( std::vector< CVC4::Type >() );
     cargs.back().push_back(unres_bt);
@@ -509,7 +515,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       {
         Kind k = j == 0 ? PLUS : MINUS;
         Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-        ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+        ops[i].push_back(nm->operatorOf(k).toExpr());
         cnames.push_back(kind::kindToString(k));
         cargs.push_back(std::vector<CVC4::Type>());
         cargs.back().push_back(unres_t);
@@ -534,15 +540,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         std::vector<std::vector<Type>> cargs_pos_int;
         /* Add operator 1 */
         Trace("sygus-grammar-def") << "\t...add for 1 to Pos_Int\n";
-        ops_pos_int.push_back(
-            NodeManager::currentNM()->mkConst(Rational(1)).toExpr());
+        ops_pos_int.push_back(nm->mkConst(Rational(1)).toExpr());
         ss << "_1";
         cnames_pos_int.push_back(ss.str());
         cargs_pos_int.push_back(std::vector<Type>());
         /* Add operator PLUS */
         Kind k = PLUS;
         Trace("sygus-grammar-def") << "\t...add for PLUS to Pos_Int\n";
-        ops_pos_int.push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+        ops_pos_int.push_back(nm->operatorOf(k).toExpr());
         cnames_pos_int.push_back(kindToString(k));
         cargs_pos_int.push_back(std::vector<Type>());
         cargs_pos_int.back().push_back(unres_pos_int_t);
@@ -558,7 +563,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         /* Adding division at root */
         k = DIVISION;
         Trace("sygus-grammar-def") << "\t...add for " << k << std::endl;
-        ops[i].push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+        ops[i].push_back(nm->operatorOf(k).toExpr());
         cnames.push_back(kindToString(k));
         cargs.push_back(std::vector<Type>());
         cargs.back().push_back(unres_t);
@@ -566,7 +571,49 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs.push_back(nullptr);
         weights.push_back(-1);
       }
-    }else if( types[i].isDatatype() ){
+    }
+    else if (types[i].isBitVector())
+    {
+      // unary apps
+      std::vector<Kind> un_kinds = {BITVECTOR_NOT, BITVECTOR_NEG};
+      for (const Kind k : un_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        ops[i].push_back(nm->operatorOf(k).toExpr());
+        cnames.push_back(kindToString(k));
+        cargs.push_back(std::vector<Type>());
+        cargs.back().push_back(unres_t);
+        pcs.push_back(nullptr);
+        weights.push_back(-1);
+      }
+      // binary apps
+      std::vector<Kind> bin_kinds = {BITVECTOR_AND,
+                                     BITVECTOR_OR,
+                                     BITVECTOR_XOR,
+                                     BITVECTOR_PLUS,
+                                     BITVECTOR_SUB,
+                                     BITVECTOR_MULT,
+                                     BITVECTOR_UDIV_TOTAL,
+                                     BITVECTOR_UREM_TOTAL,
+                                     BITVECTOR_SDIV,
+                                     BITVECTOR_SREM,
+                                     BITVECTOR_SHL,
+                                     BITVECTOR_LSHR,
+                                     BITVECTOR_ASHR};
+      for (const Kind k : bin_kinds)
+      {
+        Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+        ops[i].push_back(nm->operatorOf(k).toExpr());
+        cnames.push_back(kindToString(k));
+        cargs.push_back(std::vector<Type>());
+        cargs.back().push_back(unres_t);
+        cargs.back().push_back(unres_t);
+        pcs.push_back(nullptr);
+        weights.push_back(-1);
+      }
+    }
+    else if (types[i].isDatatype())
+    {
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
       const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
       for( unsigned k=0; k<dt.getNumConstructors(); k++ ){
@@ -628,7 +675,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
   }
 
   //------ make Boolean type
-  TypeNode btype = NodeManager::currentNM()->booleanType();
+  TypeNode btype = nm->booleanType();
   datatypes.push_back(Datatype(dbname));
   ops.push_back(std::vector<Expr>());
   std::vector<std::string> cnames;
@@ -672,7 +719,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     //add equality per type
     CVC4::Kind k = kind::EQUAL;
     Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-    ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+    ops.back().push_back(nm->operatorOf(k).toExpr());
     std::stringstream ss;
     ss << kind::kindToString(k) << "_" << types[i];
     cnames.push_back(ss.str());
@@ -686,14 +733,28 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     {
       CVC4::Kind k = kind::LEQ;
       Trace("sygus-grammar-def") << "...add for " << k << std::endl;
-      ops.back().push_back(NodeManager::currentNM()->operatorOf(k).toExpr());
+      ops.back().push_back(nm->operatorOf(k).toExpr());
       cnames.push_back(kind::kindToString(k));
       cargs.push_back( std::vector< CVC4::Type >() );
       cargs.back().push_back(unres_types[i]);
       cargs.back().push_back(unres_types[i]);
       pcs.push_back(nullptr);
       weights.push_back(-1);
-    }else if( types[i].isDatatype() ){
+    }
+    else if (types[i].isBitVector())
+    {
+      Kind k = BITVECTOR_ULT;
+      Trace("sygus-grammar-def") << "...add for " << k << std::endl;
+      ops.back().push_back(nm->operatorOf(k).toExpr());
+      cnames.push_back(kindToString(k));
+      cargs.push_back(std::vector<Type>());
+      cargs.back().push_back(unres_types[i]);
+      cargs.back().push_back(unres_types[i]);
+      pcs.push_back(nullptr);
+      weights.push_back(-1);
+    }
+    else if (types[i].isDatatype())
+    {
       //add for testers
       Trace("sygus-grammar-def") << "...add for testers" << std::endl;
       const Datatype& dt = ((DatatypeType)types[i].toType()).getDatatype();
@@ -782,7 +843,9 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert( !datatypes.empty() );
-  std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
+  std::vector<DatatypeType> types =
+      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
+          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert( types.size()==datatypes.size() );
   return TypeNode::fromType( types[0] );
 }
@@ -821,7 +884,9 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     // we have a single sygus constructor that encodes the template
     datatypes.back().addSygusConstructor( op.toExpr(), cname, argTypes );
     datatypes.back().setSygus( templ.getType().toType(), bvl.toExpr(), true, true );
-    std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
+    std::vector<DatatypeType> types =
+        NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
+            datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     Assert( types.size()==1 );
     return TypeNode::fromType( types[0] );
   }

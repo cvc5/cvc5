@@ -24,63 +24,49 @@
 
 namespace CVC4 {
 
-class CVC4_PUBLIC CVC4dumpstream {
+#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE) && !defined(CVC4_PORTFOLIO)
 
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
-  std::ostream* d_os;
-#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
-
-#ifdef CVC4_PORTFOLIO
-  CommandSequence* d_commands;
-#endif /* CVC4_PORTFOLIO */
-
+class CVC4_PUBLIC CVC4dumpstream
+{
  public:
-  CVC4dumpstream()
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE) && defined(CVC4_PORTFOLIO)
-      : d_os(NULL), d_commands(NULL)
-#elif defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
-      : d_os(NULL)
-#elif defined(CVC4_PORTFOLIO)
-      : d_commands(NULL)
-#endif /* CVC4_PORTFOLIO */
-  { }
-
-  CVC4dumpstream(std::ostream& os, CommandSequence& commands)
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE) && defined(CVC4_PORTFOLIO)
-      : d_os(&os), d_commands(&commands)
-#elif defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
-      : d_os(&os)
-#elif defined(CVC4_PORTFOLIO)
-      : d_commands(&commands)
-#endif /* CVC4_PORTFOLIO */
-  { }
+  CVC4dumpstream() : d_os(nullptr) {}
+  CVC4dumpstream(std::ostream& os) : d_os(&os) {}
 
   CVC4dumpstream& operator<<(const Command& c) {
-#if defined(CVC4_DUMPING) && !defined(CVC4_MUZZLE)
-    if(d_os != NULL) {
+    if (d_os != nullptr)
+    {
       (*d_os) << c << std::endl;
     }
-#endif
-#if defined(CVC4_PORTFOLIO)
-    if(d_commands != NULL) {
-      d_commands->addCommand(c.clone());
-    }
-#endif
     return *this;
   }
-};/* class CVC4dumpstream */
+
+ private:
+  std::ostream* d_os;
+}; /* class CVC4dumpstream */
+
+#else
+
+/**
+ * Dummy implementation of the dump stream when dumping is disabled or the
+ * build is muzzled.
+ */
+class CVC4_PUBLIC CVC4dumpstream
+{
+ public:
+  CVC4dumpstream() {}
+  CVC4dumpstream(std::ostream& os) {}
+  CVC4dumpstream& operator<<(const Command& c) { return *this; }
+}; /* class CVC4dumpstream */
+
+#endif /* CVC4_DUMPING && !CVC4_MUZZLE */
 
 /** The dump class */
-class CVC4_PUBLIC DumpC {
-  std::set<std::string> d_tags;
-  CommandSequence d_commands;
-
-  static const std::string s_dumpHelp;
-
-public:
+class CVC4_PUBLIC DumpC
+{
+ public:
   CVC4dumpstream operator()(const char* tag) {
     if(!d_tags.empty() && d_tags.find(std::string(tag)) != d_tags.end()) {
-      return CVC4dumpstream(getStream(), d_commands);
+      return CVC4dumpstream(getStream());
     } else {
       return CVC4dumpstream();
     }
@@ -88,14 +74,11 @@ public:
 
   CVC4dumpstream operator()(std::string tag) {
     if(!d_tags.empty() && d_tags.find(tag) != d_tags.end()) {
-      return CVC4dumpstream(getStream(), d_commands);
+      return CVC4dumpstream(getStream());
     } else {
       return CVC4dumpstream();
     }
   }
-
-  void clear() { d_commands.clear(); }
-  const CommandSequence& getCommands() const { return d_commands; }
 
   bool on (const char* tag) { d_tags.insert(std::string(tag)); return true; }
   bool on (std::string tag) { d_tags.insert(tag); return true; }
@@ -111,6 +94,13 @@ public:
   std::ostream* getStreamPointer();
 
   void setDumpFromString(const std::string& optarg);
+
+ private:
+  /** Set of dumping tags that are currently active. */
+  std::set<std::string> d_tags;
+
+  /** The message printed on `--dump help`. */
+  static const std::string s_dumpHelp;
 };/* class DumpC */
 
 /** The dump singleton */

@@ -49,7 +49,6 @@ EXTRA_DIST = \
   $(REG2_TESTS) \
   $(REG3_TESTS) \
   $(REG4_TESTS) \
-  $(TESTS_EXPECT) \
 	regress0/uf/mkpidgeon \
 	regress0/tptp/Axioms/BOO004-0.ax \
 	regress0/tptp/Axioms/SYN000+0.ax \

@@ -15,7 +15,10 @@
  **/
 
 #include "theory/sep/theory_sep.h"
+
 #include <map>
+
+#include "base/map_util.h"
 #include "expr/kind.h"
 #include "options/quantifiers_options.h"
 #include "options/sep_options.h"
@@ -357,8 +360,12 @@ void TheorySep::check(Effort e) {
           Trace("sep-lemma-debug") << "Reducing assertion " << fact << std::endl;
           d_reduce.insert( fact );
           Node conc;
-          std::map< Node, Node >::iterator its = d_red_conc[s_lbl].find( s_atom );
-          if( its==d_red_conc[s_lbl].end() ){
+          if (Node* in_map = FindOrNull(d_red_conc[s_lbl], s_atom))
+          {
+            conc = *in_map;
+          }
+          else
+          {
             //make conclusion based on type of assertion
             if( s_atom.getKind()==kind::SEP_STAR || s_atom.getKind()==kind::SEP_WAND ){
               std::vector< Node > children;
@@ -441,8 +448,6 @@ void TheorySep::check(Effort e) {
               Assert( false );
             }
             d_red_conc[s_lbl][s_atom] = conc;
-          }else{
-            conc = its->second;
           }
           if( !conc.isNull() ){
             bool use_polarity = s_atom.getKind()==kind::SEP_WAND ? !polarity : polarity;
@@ -641,7 +646,9 @@ void TheorySep::check(Effort e) {
             if( assert_active[fact] ){
               Assert( atom.getKind()==kind::SEP_LABEL );
               TNode s_lbl = atom[1];
-              if( d_label_map[s_atom].find( s_lbl )!=d_label_map[s_atom].end() ){
+              std::map<Node, std::map<int, Node> >& lms = d_label_map[s_atom];
+              if (lms.find(s_lbl) != lms.end())
+              {
                 Trace("sep-process-debug") << "Active lbl : " << s_lbl << std::endl;
                 active_lbl[s_lbl] = true;
               }
@@ -666,7 +673,8 @@ void TheorySep::check(Effort e) {
             TNode s_lbl = atom[1];
             Trace("sep-process") << "--> Active negated atom : " << s_atom << ", lbl = " << s_lbl << std::endl;
             //add refinement lemma
-            if( d_label_map[s_atom].find( s_lbl )!=d_label_map[s_atom].end() ){
+            if (ContainsKey(d_label_map[s_atom], s_lbl))
+            {
               needAddLemma = true;
               TypeNode tn = getReferenceType( s_atom );
               tn = NodeManager::currentNM()->mkSetType(tn);
@@ -676,15 +684,17 @@ void TheorySep::check(Effort e) {
 
               //get model values
               std::map< int, Node > mvals;
-              for( std::map< int, Node >::iterator itl = d_label_map[s_atom][s_lbl].begin(); itl != d_label_map[s_atom][s_lbl].end(); ++itl ){
-                Node sub_lbl = itl->second;
-                int sub_index = itl->first;
+              for (const std::pair<int, Node>& sub_element :
+                   d_label_map[s_atom][s_lbl])
+              {
+                int sub_index = sub_element.first;
+                Node sub_lbl = sub_element.second;
                 computeLabelModel( sub_lbl );
                 Node lbl_mval = d_label_model[sub_lbl].getValue( tn );
                 Trace("sep-process-debug") << "  child " << sub_index << " : " << sub_lbl << ", mval = " << lbl_mval << std::endl;
                 mvals[sub_index] = lbl_mval;
               }
-  
+
               // Now, assert model-instantiated implication based on the negation
               Assert( d_label_model.find( s_lbl )!=d_label_model.end() );
               std::vector< Node > conc;
@@ -727,7 +737,9 @@ void TheorySep::check(Effort e) {
                   Trace("sep-warn") << "TheorySep : WARNING : repeated refinement lemma : " << lem << "!!!" << std::endl;
                 }
               }
-            }else{
+            }
+            else
+            {
               Trace("sep-process-debug") << "  no children." << std::endl;
               Assert( s_atom.getKind()==kind::SEP_PTO || s_atom.getKind()==kind::SEP_EMP );
             }
@@ -1618,9 +1630,9 @@ void TheorySep::validatePto( HeapAssertInfo * ei, Node ei_n ) {
   if( !ei->d_pto.get().isNull() && ei->d_has_neg_pto.get() ){
     for( NodeList::const_iterator i = d_spatial_assertions.begin(); i != d_spatial_assertions.end(); ++i ) {
       Node fact = (*i);
-      bool polarity = fact.getKind() != kind::NOT;
-      if( !polarity ){
-        TNode atom = polarity ? fact : fact[0];
+      if (fact.getKind() == kind::NOT)
+      {
+        TNode atom = fact[0];
         Assert( atom.getKind()==kind::SEP_LABEL );
         TNode s_atom = atom[0];
         if( s_atom.getKind()==kind::SEP_PTO ){

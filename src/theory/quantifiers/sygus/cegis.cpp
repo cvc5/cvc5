@@ -166,7 +166,17 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
-      Trace("cegis") << "    " << enums[i] << " -> ";
+      bool isUnit = false;
+      for (const Node& hd_unit : d_rl_eval_hds)
+      {
+        if (enums[i] == hd_unit[0])
+        {
+          isUnit = true;
+          break;
+        }
+      }
+      Trace("cegis") << "    " << enums[i]
+                     << (options::sygusUnif() && isUnit ? "*" : "") << " -> ";
       std::stringstream ss;
       Printer::getPrinter(options::outputLanguage())
           ->toStreamSygus(ss, enum_values[i]);
@@ -526,9 +536,8 @@ bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,
         Trace("cegis-sample-debug") << "...false for point #" << i << std::endl;
         // mark this as a CEGIS point (no longer sampled)
         d_cegis_sample_refine.insert(i);
-        std::vector<Node> vars;
         std::vector<Node> pt;
-        d_cegis_sampler.getSamplePoint(i, vars, pt);
+        d_cegis_sampler.getSamplePoint(i, pt);
         Assert(d_base_vars.size() == pt.size());
         Node rlem = d_base_body.substitute(
             d_base_vars.begin(), d_base_vars.end(), pt.begin(), pt.end());

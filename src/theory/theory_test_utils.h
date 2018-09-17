@@ -86,7 +86,6 @@ public:
   }
 
   void requirePhase(TNode, bool) override {}
-  bool flipDecision() override { return true; }
   void setIncomplete() override {}
   void handleUserAttribute(const char* attr, theory::Theory* t) override {}
 

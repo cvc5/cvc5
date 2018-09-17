@@ -15,6 +15,9 @@
  **/
 #include "theory/bv/bv_subtheory_algebraic.h"
 
+#include <unordered_set>
+
+#include "expr/node_algorithm.h"
 #include "options/bv_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
@@ -22,8 +25,6 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/theory_model.h"
-
-#include <unordered_set>
 
 using namespace CVC4::context;
 using namespace CVC4::prop;
@@ -227,30 +228,28 @@ void SubstitutionEx::storeCache(TNode from, TNode to, Node reason) {
 }
 
 AlgebraicSolver::AlgebraicSolver(context::Context* c, TheoryBV* bv)
-  : SubtheorySolver(c, bv)
-  , d_modelMap(NULL)
-  , d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv))
-  , d_isComplete(c, false)
-  , d_isDifficult(c, false)
-  , d_budget(options::bitvectorAlgebraicBudget())
-  , d_explanations()
-  , d_inputAssertions()
-  , d_ids()
-  , d_numSolved(0)
-  , d_numCalls(0)
-  , d_ctx(new context::Context())
-  , d_quickXplain(options::bitvectorQuickXplain() ? new QuickXPlain("theory::bv::algebraic", d_quickSolver) : NULL)
-  , d_statistics()
-{}
-
-AlgebraicSolver::~AlgebraicSolver() {
-  if(d_modelMap != NULL) { delete d_modelMap; }
-  delete d_quickXplain;
-  delete d_quickSolver;
-  delete d_ctx;
+    : SubtheorySolver(c, bv),
+      d_modelMap(),
+      d_quickSolver(new BVQuickCheck("theory::bv::algebraic", bv)),
+      d_isComplete(c, false),
+      d_isDifficult(c, false),
+      d_budget(options::bitvectorAlgebraicBudget()),
+      d_explanations(),
+      d_inputAssertions(),
+      d_ids(),
+      d_numSolved(0),
+      d_numCalls(0),
+      d_quickXplain(),
+      d_statistics()
+{
+  if (options::bitvectorQuickXplain())
+  {
+    d_quickXplain.reset(
+        new QuickXPlain("theory::bv::algebraic", d_quickSolver.get()));
+  }
 }
 
-
+AlgebraicSolver::~AlgebraicSolver() {}
 
 bool AlgebraicSolver::check(Theory::Effort e)
 {
@@ -297,16 +296,15 @@ bool AlgebraicSolver::check(Theory::Effort e)
 
   Assert (d_explanations.size() == worklist.size());
 
-  delete d_modelMap;
-  d_modelMap = new SubstitutionMap(d_context);
-  SubstitutionEx subst(d_modelMap);
+  d_modelMap.reset(new SubstitutionMap(d_context));
+  SubstitutionEx subst(d_modelMap.get());
 
   // first round of substitutions
   processAssertions(worklist, subst);
 
   if (!d_isDifficult.get()) {
     // skolemize all possible extracts
-    ExtractSkolemizer skolemizer(d_modelMap);
+    ExtractSkolemizer skolemizer(d_modelMap.get());
     skolemizer.skolemize(worklist);
     // second round of substitutions
     processAssertions(worklist, subst);
@@ -490,11 +488,13 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   TNode left = fact[0];
   TNode right = fact[1];
 
-  if (left.isVar() && !right.hasSubterm(left)) {
-    bool changed  = subst.addSubstitution(left, right, reason);
+  if (left.isVar() && !expr::hasSubterm(right, left))
+  {
+    bool changed = subst.addSubstitution(left, right, reason);
     return changed;
   }
-  if (right.isVar() && !left.hasSubterm(right)) {
+  if (right.isVar() && !expr::hasSubterm(left, right))
+  {
     bool changed = subst.addSubstitution(right, left, reason);
     return changed;
   }
@@ -507,7 +507,8 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
       return false;
 
     // simplify xor with same variable on both sides
-    if (right.hasSubterm(var)) {
+    if (expr::hasSubterm(right, var))
+    {
       std::vector<Node> right_children;
       for (unsigned i = 0; i < right.getNumChildren(); ++i) {
         if (right[i] != var)
@@ -548,9 +549,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   }
 
   // (a xor t = a) <=> (t = 0)
-  if (left.getKind() == kind::BITVECTOR_XOR &&
-      right.getMetaKind() == kind::metakind::VARIABLE &&
-      left.hasSubterm(right)) {
+  if (left.getKind() == kind::BITVECTOR_XOR
+      && right.getMetaKind() == kind::metakind::VARIABLE
+      && expr::hasSubterm(left, right))
+  {
     TNode var = right;
     Node new_left = nm->mkNode(kind::BITVECTOR_XOR, var, left);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
@@ -559,9 +561,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
     return changed;
   }
 
-  if (right.getKind() == kind::BITVECTOR_XOR &&
-      left.getMetaKind() == kind::metakind::VARIABLE &&
-      right.hasSubterm(left)) {
+  if (right.getKind() == kind::BITVECTOR_XOR
+      && left.getMetaKind() == kind::metakind::VARIABLE
+      && expr::hasSubterm(right, left))
+  {
     TNode var = left;
     Node new_right = nm->mkNode(kind::BITVECTOR_XOR, var, right);
     Node zero = utils::mkConst(utils::getSize(var), 0u);
@@ -584,9 +587,10 @@ bool AlgebraicSolver::solve(TNode fact, TNode reason, SubstitutionEx& subst) {
   return false;
 }
 
-bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in) {
-  if (node.getMetaKind() == kind::metakind::VARIABLE &&
-      !in.hasSubterm(node))
+bool AlgebraicSolver::isSubstitutableIn(TNode node, TNode in)
+{
+  if (node.getMetaKind() == kind::metakind::VARIABLE
+      && !expr::hasSubterm(in, node))
     return true;
   return false;
 }

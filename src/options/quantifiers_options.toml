@@ -225,15 +225,6 @@ header = "options/quantifiers_options.h"
   help       = "infer equalities for trigger terms based on solving arithmetic equalities"
 
 [[option]]
-  name       = "inferArithTriggerEqExp"
-  category   = "regular"
-  long       = "infer-arith-trigger-eq-exp"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "record explanations for inferArithTriggerEq"
-
-[[option]]
   name       = "strictTriggers"
   category   = "regular"
   long       = "strict-triggers"
@@ -750,7 +741,7 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "optimization, skip instances based on possibly irrelevant portions of quantified formulas"
 
-### Rewrite rules options 
+### Rewrite rules options
 
 [[option]]
   name       = "quantRewriteRules"
@@ -770,7 +761,7 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "add one instance of rewrite rule per round"
 
-### Induction options 
+### Induction options
 
 [[option]]
   name       = "quantInduction"
@@ -985,6 +976,30 @@ header = "options/quantifiers_options.h"
   help       = "Unification-based function synthesis"
 
 [[option]]
+  name       = "sygusUnifCondIndependent"
+  category   = "regular"
+  long       = "sygus-unif-cond-independent"
+  type       = "bool"
+  default    = "false"
+  help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
+
+[[option]]
+  name       = "sygusUnifBooleanHeuristicDt"
+  category   = "regular"
+  long       = "sygus-unif-boolean-heuristic-dt"
+  type       = "bool"
+  default    = "false"
+  help       = "Build boolean solutions using heuristic decision tree learning (generates smaller solutions)"
+
+[[option]]
+  name       = "sygusUnifCondIndNoRepeatSol"
+  category   = "regular"
+  long       = "sygus-unif-cond-indpendent-no-repeat-sol"
+  type       = "bool"
+  default    = "true"
+  help       = "Do not try repeated solutions when using independent synthesis of conditions in unification-based function synthesis"
+
+[[option]]
   name       = "sygusBoolIteReturnConst"
   category   = "regular"
   long       = "sygus-bool-ite-return-const"
@@ -1008,6 +1023,13 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "use approach to repair constants in sygus candidate solutions"
+
+[[option]]
+  name       = "sygusRepairConstTimeout"
+  category   = "regular"
+  long       = "sygus-repair-const-timeout=N"
+  type       = "unsigned long"
+  help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -1166,7 +1188,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "true"
   help       = "Minimize synthesis solutions"
-  
+
 [[option]]
   name       = "sygusEvalOpt"
   category   = "regular"
@@ -1182,7 +1204,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "static inference techniques for computing whether arguments of functions-to-synthesize are relevant"
-  
+
 # Internal uses of sygus
 
 [[option]]
@@ -1284,11 +1306,11 @@ header = "options/quantifiers_options.h"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
-  name       = "sygusRewSynthCheckTimeout"
+  name       = "sygusExprMinerCheckTimeout"
   category   = "regular"
-  long       = "sygus-rr-synth-check-timeout=N"
+  long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
-  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
+  help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 # CEGQI applied to general quantified formulas
 

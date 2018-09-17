@@ -16,6 +16,7 @@
 
 #include "theory/quantifiers/fmf/bounded_integers.h"
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -407,7 +408,10 @@ void BoundedIntegers::checkOwnership(Node f)
         bool setBoundVar = false;
         if( it->second==BOUND_INT_RANGE ){
           //must have both
-          if( bound_lit_map[0].find( v )!=bound_lit_map[0].end() && bound_lit_map[1].find( v )!=bound_lit_map[1].end() ){
+          std::map<Node, Node>& blm0 = bound_lit_map[0];
+          std::map<Node, Node>& blm1 = bound_lit_map[1];
+          if (blm0.find(v) != blm0.end() && blm1.find(v) != blm1.end())
+          {
             setBoundedVar( f, v, BOUND_INT_RANGE );
             setBoundVar = true;
             for( unsigned b=0; b<2; b++ ){
@@ -436,34 +440,40 @@ void BoundedIntegers::checkOwnership(Node f)
                                << bound_lit_map[2][v] << std::endl;
           }
         }else if( it->second==BOUND_FIXED_SET ){
-          setBoundedVar( f, v, BOUND_FIXED_SET );
+          setBoundedVar(f, v, BOUND_FIXED_SET);
           setBoundVar = true;
-          for( unsigned i=0; i<bound_fixed_set[v].size(); i++ ){
+          for (unsigned i = 0; i < bound_fixed_set[v].size(); i++)
+          {
             Node t = bound_fixed_set[v][i];
-            if( t.hasBoundVar() ){
-              d_fixed_set_ngr_range[f][v].push_back( t ); 
-            }else{
-              d_fixed_set_gr_range[f][v].push_back( t ); 
+            if (expr::hasBoundVar(t))
+            {
+              d_fixed_set_ngr_range[f][v].push_back(t);
             }
-          } 
-          Trace("bound-int") << "Variable " << v << " is bound because of disequality conjunction " << bound_lit_map[3][v] << std::endl;
+            else
+            {
+              d_fixed_set_gr_range[f][v].push_back(t);
+            }
+          }
+          Trace("bound-int") << "Variable " << v
+                             << " is bound because of disequality conjunction "
+                             << bound_lit_map[3][v] << std::endl;
         }
         if( setBoundVar ){
           success = true;
           //set Attributes on literals
           for( unsigned b=0; b<2; b++ ){
-            if (bound_lit_map[b].find(v) != bound_lit_map[b].end())
+            std::map<Node, Node>& blm = bound_lit_map[b];
+            if (blm.find(v) != blm.end())
             {
+              std::map<Node, bool>& blmp = bound_lit_pol_map[b];
               // WARNING_CANDIDATE:
               // This assertion may fail. We intentionally do not enable this in
               // production as it is considered safe for this to fail. We fail
               // the assertion in debug mode to have this instance raised to
               // our attention.
-              Assert(bound_lit_pol_map[b].find(v)
-                     != bound_lit_pol_map[b].end());
+              Assert(blmp.find(v) != blmp.end());
               BoundIntLitAttribute bila;
-              bound_lit_map[b][v].setAttribute(bila,
-                                               bound_lit_pol_map[b][v] ? 1 : 0);
+              bound_lit_map[b][v].setAttribute(bila, blmp[v] ? 1 : 0);
             }
             else
             {
@@ -543,9 +553,11 @@ void BoundedIntegers::checkOwnership(Node f)
         Node r = itr->second;
         Assert( !r.isNull() );
         bool isProxy = false;
-        if( r.hasBoundVar() ){
-          //introduce a new bound
-          Node new_range = NodeManager::currentNM()->mkSkolem( "bir", r.getType(), "bound for term" );
+        if (expr::hasBoundVar(r))
+        {
+          // introduce a new bound
+          Node new_range = NodeManager::currentNM()->mkSkolem(
+              "bir", r.getType(), "bound for term");
           d_nground_range[f][v] = r;
           d_range[f][v] = new_range;
           r = new_range;
@@ -645,13 +657,21 @@ void BoundedIntegers::getBoundValues( Node f, Node v, RepSetIterator * rsi, Node
   return;
 }
 
-bool BoundedIntegers::isGroundRange( Node q, Node v ) {
-  if( isBoundVar(q,v) ){
-    if( d_bound_type[q][v]==BOUND_INT_RANGE ){
-      return !getLowerBound(q,v).hasBoundVar() && !getUpperBound(q,v).hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_SET_MEMBER ){
-      return !d_setm_range[q][v].hasBoundVar();
-    }else if( d_bound_type[q][v]==BOUND_FIXED_SET ){
+bool BoundedIntegers::isGroundRange(Node q, Node v)
+{
+  if (isBoundVar(q, v))
+  {
+    if (d_bound_type[q][v] == BOUND_INT_RANGE)
+    {
+      return !expr::hasBoundVar(getLowerBound(q, v))
+             && !expr::hasBoundVar(getUpperBound(q, v));
+    }
+    else if (d_bound_type[q][v] == BOUND_SET_MEMBER)
+    {
+      return !expr::hasBoundVar(d_setm_range[q][v]);
+    }
+    else if (d_bound_type[q][v] == BOUND_FIXED_SET)
+    {
       return !d_fixed_set_ngr_range[q][v].empty();
     }
   }
@@ -684,7 +704,7 @@ Node BoundedIntegers::getSetRangeValue( Node q, Node v, RepSetIterator * rsi ) {
     return sr;
   }
   Trace("bound-int-rsi") << "Get value in model for..." << sr << std::endl;
-  Assert(!sr.hasFreeVar());
+  Assert(!expr::hasFreeVar(sr));
   Node sro = sr;
   sr = d_quantEngine->getModel()->getValue(sr);
   // if non-constant, then sr does not occur in the model, we fail
@@ -915,4 +935,3 @@ bool BoundedIntegers::getBoundElements( RepSetIterator * rsi, bool initial, Node
     return true;
   }
 }
-

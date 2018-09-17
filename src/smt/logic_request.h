@@ -42,6 +42,9 @@ public:
   /** Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
+  /** Enable Integers. */
+  void enableIntegers();
+
 };/* class LogicRequest */
 
 }/* CVC4 namespace */

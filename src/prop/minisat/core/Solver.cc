@@ -1703,43 +1703,6 @@ void Solver::pop()
   trail_ok.pop();
 }
 
-bool Solver::flipDecision() {
-  Debug("flipdec") << "FLIP: decision level is " << decisionLevel() << std::endl;
-  if(decisionLevel() == 0) {
-    Debug("flipdec") << "FLIP: no decisions, returning false" << std::endl;
-    return false;
-  }
-
-  // find the level to cancel until
-  int level = trail_lim.size() - 1;
-  Debug("flipdec") << "FLIP: looking at level " << level << " dec is " << trail[trail_lim[level]] << " flippable?" << ((polarity[var(trail[trail_lim[level]])] & 0x2) == 0 ? 1 : 0) << " flipped?" << flipped[level] << std::endl;
-  while(level > 0 && (flipped[level] || /* phase-locked */ (polarity[var(trail[trail_lim[level]])] & 0x2) != 0)) {
-    --level;
-    Debug("flipdec") << "FLIP: looking at level " << level << " dec is " << trail[trail_lim[level]] << " flippable?" << ((polarity[var(trail[trail_lim[level]])] & 0x2) == 0 ? 2 : 0) << " flipped?" << flipped[level] << std::endl;
-  }
-  if(level < 0) {
-    Lit l = trail[trail_lim[0]];
-    Debug("flipdec") << "FLIP: canceling everything, flipping root decision " << l << std::endl;
-    cancelUntil(0);
-    newDecisionLevel();
-    Debug("flipdec") << "FLIP: enqueuing " << ~l << std::endl;
-    uncheckedEnqueue(~l);
-    flipped[0] = true;
-    Debug("flipdec") << "FLIP: returning false" << std::endl;
-    return false;
-  }
-  Lit l = trail[trail_lim[level]];
-  Debug("flipdec") << "FLIP: canceling to level " << level << ", flipping decision " << l << std::endl;
-  cancelUntil(level);
-  newDecisionLevel();
-  Debug("flipdec") << "FLIP: enqueuing " << ~l << std::endl;
-  uncheckedEnqueue(~l);
-  flipped[level] = true;
-  Debug("flipdec") << "FLIP: returning true" << std::endl;
-  return true;
-}
-
-
 CRef Solver::updateLemmas() {
 
   Debug("minisat::lemmas") << "Solver::updateLemmas() begin" << std::endl;

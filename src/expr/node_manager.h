@@ -62,8 +62,10 @@ class NodeManagerListener {
   virtual void nmNotifyNewSortConstructor(TypeNode tn, uint32_t flags) {}
   virtual void nmNotifyInstantiateSortConstructor(TypeNode ctor, TypeNode sort,
                                                   uint32_t flags) {}
-  virtual void nmNotifyNewDatatypes(
-      const std::vector<DatatypeType>& datatypes) {}
+  virtual void nmNotifyNewDatatypes(const std::vector<DatatypeType>& datatypes,
+                                    uint32_t flags)
+  {
+  }
   virtual void nmNotifyNewVar(TNode n, uint32_t flags) {}
   virtual void nmNotifyNewSkolem(TNode n, const std::string& comment,
                                  uint32_t flags) {}
@@ -86,7 +88,8 @@ class NodeManager {
   friend Expr ExprManager::mkVar(Type, uint32_t flags);
 
   // friend so it can access NodeManager's d_listeners and notify clients
-  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(std::vector<Datatype>&, std::set<Type>&);
+  friend std::vector<DatatypeType> ExprManager::mkMutualDatatypeTypes(
+      std::vector<Datatype>&, std::set<Type>&, uint32_t);
 
   /** Predicate for use with STL algorithms */
   struct NodeValueReferenceCountNonZero {
@@ -128,10 +131,7 @@ class NodeManager {
    * contexts, like as a key in attribute tables), even though
    * normally it's an error to have a TNode to a node value with a
    * reference count of 0.  Being "under deletion" also enables
-   * assertions that inc() is not called on it.  (A poorly-behaving
-   * attribute cleanup function could otherwise create a "Node" that
-   * points to the node value that is in the process of being deleted,
-   * springing it back to life.)
+   * assertions that inc() is not called on it.
    */
   expr::NodeValue* d_nodeUnderDeletion;
 
