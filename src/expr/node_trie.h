@@ -26,11 +26,12 @@ namespace theory {
 
 /** TNode trie class
 *
-* This is a trie data structure whose distinguish feature is that it has
-* references to children only and no "data" members, for the sake of efficiency.
+* This is a trie data structure whose distinguishing feature is that it has
+* no "data" members and only references to children. The motivation for having
+* no data members is efficiency.
 * 
-* One use of this class is to represent "term indices" or a "signature tables",
-* for symbols with fixed arities. In this case, we "index" terms by the list
+* One use of this class is to represent "term indices" or a "signature tables"
+* for symbols with fixed arities. In this use case, we "index" terms by the list
 * of representatives of their arguments.
 *
 * For example, consider the equivalence classes :
