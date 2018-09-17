@@ -171,10 +171,6 @@ void TheoryQuantifiers::check(Effort e) {
   getQuantifiersEngine()->check( e );
 }
 
-Node TheoryQuantifiers::getNextDecisionRequest( unsigned& priority ){
-  return getQuantifiersEngine()->getNextDecisionRequest( priority );
-}
-
 void TheoryQuantifiers::assertUniversal( Node n ){
   Assert( n.getKind()==FORALL );
   if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n) ){
