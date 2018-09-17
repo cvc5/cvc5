@@ -70,37 +70,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/passes/apply_substs.h"
-#include "preprocessing/passes/apply_to_const.h"
-#include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_abstraction.h"
-#include "preprocessing/passes/bv_ackermann.h"
-#include "preprocessing/passes/bv_eager_atoms.h"
-#include "preprocessing/passes/bv_gauss.h"
-#include "preprocessing/passes/bv_intro_pow2.h"
-#include "preprocessing/passes/bv_to_bool.h"
-#include "preprocessing/passes/extended_rewriter_pass.h"
-#include "preprocessing/passes/global_negate.h"
-#include "preprocessing/passes/int_to_bv.h"
-#include "preprocessing/passes/ite_removal.h"
-#include "preprocessing/passes/ite_simp.h"
-#include "preprocessing/passes/miplib_trick.h"
-#include "preprocessing/passes/nl_ext_purify.h"
-#include "preprocessing/passes/non_clausal_simp.h"
-#include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifier_macros.h"
-#include "preprocessing/passes/quantifiers_preprocess.h"
-#include "preprocessing/passes/real_to_int.h"
-#include "preprocessing/passes/rewrite.h"
-#include "preprocessing/passes/sep_skolem_emp.h"
-#include "preprocessing/passes/sort_infer.h"
-#include "preprocessing/passes/static_learning.h"
-#include "preprocessing/passes/sygus_inference.h"
-#include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/symmetry_detect.h"
-#include "preprocessing/passes/synth_rew_rules.h"
-#include "preprocessing/passes/theory_preprocess.h"
-#include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -145,7 +114,6 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
-using namespace CVC4::preprocessing::passes;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
