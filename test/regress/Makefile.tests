@@ -1493,6 +1493,7 @@ REG1_TESTS = \
 	regress1/strings/issue1105.smt2 \
 	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
+	regress1/strings/issue2429-code.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
 	regress1/strings/loop003.smt2 \
@@ -1722,6 +1723,7 @@ REG3_TESTS = \
 	regress3/hole9.cvc \
 	regress3/incorrect1.smt \
 	regress3/incorrect2.smt \
+	regress3/issue2429.smt2 \
 	regress3/pp-regfile.smt \
 	regress3/qwh.35.405.shuffled-as.sat03-1651.smt
 
