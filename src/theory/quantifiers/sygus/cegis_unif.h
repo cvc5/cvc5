@@ -48,7 +48,11 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
   CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, CegConjecture* parent);
-  /** Make the n^th literal of this strategy. */
+  /** Make the n^th literal of this strategy (G_uq_n).
+   *
+   * This call may add new lemmas of the form described above
+   * registerEvalPtAtValue on the output channel of d_qe.
+   */
   Node mkLiteral(unsigned n) override;
   /** identify */
   std::string identify() const override
@@ -133,8 +137,6 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   };
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
-  /** Have we returned a decision in the current SAT context? */
-  // context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
    *
    * This enumerator is used for enforcing fairness. In particular, we relate
