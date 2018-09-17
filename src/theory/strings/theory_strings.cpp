@@ -112,7 +112,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_length_lemma_terms_cache(u),
-      d_preproc(u),
+      d_preproc(&d_sk_cache, u),
       d_preproc_cache(u),
       d_extf_infer_cache(c),
       d_extf_infer_cache_u(u),
@@ -3649,7 +3649,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         return;
       }
     }
-    Node sk = d_sk_cache.mkSkolem("lsym");
+    Node sk = d_sk_cache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
     StringsProxyVarAttribute spva;
     sk.setAttribute(spva, true);
     Node eq = Rewriter::rewrite(sk.eqNode(n));
