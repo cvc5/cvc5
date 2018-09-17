@@ -112,7 +112,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
       d_length_lemma_terms_cache(u),
-      d_preproc(u),
+      d_preproc(&d_sk_cache, u),
       d_preproc_cache(u),
       d_extf_infer_cache(c),
       d_extf_infer_cache_u(u),
@@ -501,30 +501,38 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
 {
   Trace("strings-model") << "TheoryStrings : Collect model info" << std::endl;
   Trace("strings-model") << "TheoryStrings : assertEqualityEngine." << std::endl;
-  
-  //AJR : no use doing this since we cannot preregister terms with finite types that don't belong to strings.
-  //      change this if we generalize to sequences.
-  //set<Node> termSet;
-  // Compute terms appearing in assertions and shared terms
-  //computeRelevantTerms(termSet);
-  //m->assertEqualityEngine( &d_equalityEngine, &termSet );
 
-  if (!m->assertEqualityEngine(&d_equalityEngine))
+  std::set<Node> termSet;
+
+  // Compute terms appearing in assertions and shared terms
+  computeRelevantTerms(termSet);
+  // assert the (relevant) portion of the equality engine to the model
+  if (!m->assertEqualityEngine(&d_equalityEngine, &termSet))
   {
     return false;
   }
 
+  std::unordered_set<Node, NodeHashFunction> repSet;
   NodeManager* nm = NodeManager::currentNM();
   // Generate model
-  std::vector< Node > nodes;
-  getEquivalenceClasses( nodes );
+  // get the relevant string equivalence classes
+  for (const Node& s : termSet)
+  {
+    if (s.getType().isString())
+    {
+      Node r = getRepresentative(s);
+      repSet.insert(r);
+    }
+  }
+  std::vector<Node> nodes(repSet.begin(), repSet.end());
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
   separateByLength( nodes, col, lts );
   //step 1 : get all values for known lengths
   std::vector< Node > lts_values;
-  std::map< unsigned, bool > values_used;
+  std::map<unsigned, Node> values_used;
+  std::vector<Node> len_splits;
   for( unsigned i=0; i<col.size(); i++ ) {
     Trace("strings-model") << "Checking length for {";
     for( unsigned j=0; j<col[i].size(); j++ ) {
@@ -534,27 +542,35 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       Trace("strings-model") << col[i][j];
     }
     Trace("strings-model") << " } (length is " << lts[i] << ")" << std::endl;
+    Node len_value;
     if( lts[i].isConst() ) {
-      lts_values.push_back( lts[i] );
-      Assert(lts[i].getConst<Rational>() <= Rational(String::maxSize()),
+      len_value = lts[i];
+    }
+    else if (!lts[i].isNull())
+    {
+      // get the model value for lts[i]
+      len_value = d_valuation.getModelValue(lts[i]);
+    }
+    if (len_value.isNull())
+    {
+      lts_values.push_back(Node::null());
+    }
+    else
+    {
+      Assert(len_value.getConst<Rational>() <= Rational(String::maxSize()),
              "Exceeded UINT32_MAX in string model");
-      unsigned lvalue = lts[i].getConst<Rational>().getNumerator().toUnsignedInt();
-      values_used[ lvalue ] = true;
-    }else{
-      //get value for lts[i];
-      if( !lts[i].isNull() ){
-        Node v = d_valuation.getModelValue(lts[i]);
-        Trace("strings-model") << "Model value for " << lts[i] << " is " << v << std::endl;
-        lts_values.push_back( v );
-        Assert(v.getConst<Rational>() <= Rational(String::maxSize()),
-               "Exceeded UINT32_MAX in string model");
-        unsigned lvalue =  v.getConst<Rational>().getNumerator().toUnsignedInt();
-        values_used[ lvalue ] = true;
-      }else{
-        //Trace("strings-model-warn") << "No length for eqc " << col[i][0] << std::endl;
-        //Assert( false );
-        lts_values.push_back( Node::null() );
+      unsigned lvalue =
+          len_value.getConst<Rational>().getNumerator().toUnsignedInt();
+      std::map<unsigned, Node>::iterator itvu = values_used.find(lvalue);
+      if (itvu == values_used.end())
+      {
+        values_used[lvalue] = lts[i];
       }
+      else
+      {
+        len_splits.push_back(lts[i].eqNode(itvu->second));
+      }
+      lts_values.push_back(len_value);
     }
   }
   ////step 2 : assign arbitrary values for unknown lengths?
@@ -564,7 +580,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   //step 3 : assign values to equivalence classes that are pure variables
   for( unsigned i=0; i<col.size(); i++ ){
     std::vector< Node > pure_eq;
-    Trace("strings-model") << "The equivalence classes ";
+    Trace("strings-model") << "The (" << col[i].size()
+                           << ") equivalence classes ";
     for (const Node& eqc : col[i])
     {
       Trace("strings-model") << eqc << " ";
@@ -614,7 +631,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
         }
         Trace("strings-model") << "*** Decide to make length of " << lvalue << std::endl;
         lts_values[i] = nm->mkConst(Rational(lvalue));
-        values_used[ lvalue ] = true;
+        values_used[lvalue] = Node::null();
       }
       Trace("strings-model") << "Need to assign values of length " << lts_values[i] << " to equivalence classes ";
       for( unsigned j=0; j<pure_eq.size(); j++ ){
@@ -637,7 +654,42 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
           while (m->hasTerm(c))
           {
             ++sel;
-            Assert(!sel.isFinished());
+            if (sel.isFinished())
+            {
+              // We are in a case where model construction is impossible due to
+              // an insufficient number of constants of a given length.
+
+              // Consider an integer equivalence class E whose value is assigned
+              // n in the model. Let { S_1, ..., S_m } be the set of string
+              // equivalence classes such that len( x ) is a member of E for
+              // some member x of each class S1, ...,Sm. Since our calculus is
+              // saturated with respect to cardinality inference (see Liang
+              // et al, Figure 6, CAV 2014), we have that m <= A^n, where A is
+              // the cardinality of our alphabet.
+
+              // Now, consider the case where there exists two integer
+              // equivalence classes E1 and E2 that are assigned n, and moreover
+              // we did not received notification from arithmetic that E1 = E2.
+              // This typically should never happen, but assume in the following
+              // that it does.
+
+              // Now, it may be the case that there are string equivalence
+              // classes { S_1, ..., S_m1 } whose lengths are in E1,
+              // and classes { S'_1, ..., S'_m2 } whose lengths are in E2, where
+              // m1 + m2 > A^n. In this case, we have insufficient strings to
+              // assign to { S_1, ..., S_m1, S'_1, ..., S'_m2 }. If this
+              // happens, we add a split on len( u1 ) = len( u2 ) for some
+              // len( u1 ) in E1, len( u2 ) in E2. We do this for each pair of
+              // integer equivalence classes that are assigned to the same value
+              // in the model.
+              AlwaysAssert(!len_splits.empty());
+              for (const Node& sl : len_splits)
+              {
+                Node spl = nm->mkNode(OR, sl, sl.negate());
+                d_out->lemma(spl);
+              }
+              return false;
+            }
             c = *sel;
           }
           ++sel;
@@ -3597,7 +3649,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         return;
       }
     }
-    Node sk = d_sk_cache.mkSkolem("lsym");
+    Node sk = d_sk_cache.mkSkolemCached(n, SkolemCache::SK_PURIFY, "lsym");
     StringsProxyVarAttribute spva;
     sk.setAttribute(spva, true);
     Node eq = Rewriter::rewrite(sk.eqNode(n));
@@ -4139,6 +4191,7 @@ void TheoryStrings::checkCardinality() {
   std::vector< Node > lts;
   separateByLength( d_strings_eqc, cols, lts );
 
+  Trace("strings-card") << "Check cardinality...." << std::endl;
   for( unsigned i = 0; i<cols.size(); ++i ) {
     Node lr = lts[i];
     Trace("strings-card") << "Number of strings with length equal to " << lr << " is " << cols[i].size() << std::endl;
@@ -4219,6 +4272,7 @@ void TheoryStrings::checkCardinality() {
       }
     }
   }
+  Trace("strings-card") << "...end check cardinality" << std::endl;
 }
 
 void TheoryStrings::getEquivalenceClasses( std::vector< Node >& eqcs ) {
