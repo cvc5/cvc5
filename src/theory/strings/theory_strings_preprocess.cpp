@@ -30,8 +30,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-StringsPreprocess::StringsPreprocess(  SkolemCache * sc, context::UserContext* u ) 
-: d_sc(sc){
+StringsPreprocess::StringsPreprocess(SkolemCache *sc, context::UserContext *u)
+    : d_sc(sc)
+{
   //Constants
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
   d_one = NodeManager::currentNM()->mkConst(Rational(1));
@@ -50,7 +51,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
   if( t.getKind() == kind::STRING_SUBSTR ) {
     Node skt;
-    skt = nm->mkSkolem( "sst", NodeManager::currentNM()->stringType(), "created for substr" );
+    skt = nm->mkSkolem("sst", nm->stringType(), "created for substr");
     Node t12 = NodeManager::currentNM()->mkNode( kind::PLUS, t[1], t[2] );
     Node lt0 = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t[0] );
     //start point is greater than or equal zero
@@ -158,7 +159,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret = nm->mkSkolem( "itost", NodeManager::currentNM()->stringType(), "created for itos" );
+    Node pret = nm->mkSkolem("itost", nm->stringType(), "created for itos");
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
@@ -255,7 +256,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     retNode = pret;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
-    Node pret = nm->mkSkolem( "stoit", nm->integerType(), "created for stoi" );
+    Node pret = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
     //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
@@ -361,8 +362,10 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node y = t[1];
     Node z = t[2];
     TypeNode tn = t[0].getType();
-    Node rp1 = d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_PRE, "rfcpre");
-    Node rp2 = d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_POST, "rfcpost");
+    Node rp1 =
+        d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_PRE, "rfcpre");
+    Node rp2 =
+        d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_POST, "rfcpost");
     Node rpw = nm->mkSkolem("rpw", tn, "created for replace");
 
     // y = ""
