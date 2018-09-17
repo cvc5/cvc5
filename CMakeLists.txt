@@ -5,6 +5,7 @@ if(POLICY CMP0075)
 endif()
 
 #-----------------------------------------------------------------------------#
+# Project configuration
 
 project(cvc4)
 
@@ -41,8 +42,6 @@ set(PACKAGE_NAME "${PROJECT_NAME}")
 #set(PACKAGE_VERSION "${CVC4_RELEASE_STRING}")
 ## Define to the address where bug reports for this package should be sent.
 #set(PACKAGE_BUGREPORT "cvc4-bugs@cs.stanford.edu")
-
-#-----------------------------------------------------------------------------#
 
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
@@ -127,7 +126,6 @@ set(GPL_LIBS "")
 
 #-----------------------------------------------------------------------------#
 # Build types
-
 
 # Note: Module CodeCoverage requires the name of the debug build to conform
 #       to cmake standards (first letter uppercase).
@@ -404,23 +402,6 @@ if(GPL_LIBS)
 endif()
 
 #-----------------------------------------------------------------------------#
-
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-git_local_changes(GIT_IS_DIRTY)
-if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
-  set(GIT_IS_DIRTY "true")
-else()
-  set(GIT_IS_DIRTY "false")
-endif()
-
-execute_process(
-  COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-  OUTPUT_VARIABLE GIT_BRANCH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
-
-#-----------------------------------------------------------------------------#
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
@@ -436,7 +417,7 @@ if(ENABLE_PROOFS)
 endif()
 
 add_subdirectory(doc)
-add_subdirectory(examples EXCLUDE_FROM_ALL)
+add_subdirectory(examples EXCLUDE_FROM_ALL)  # excluded from all target
 add_subdirectory(src)
 add_subdirectory(test)
 
@@ -529,14 +510,7 @@ message("")
 message("CPPLAGS (-D...)      : ${CVC4_DEFINITIONS}")
 message("CXXFLAGS             : ${CMAKE_CXX_FLAGS}")
 message("CFLAGS               : ${CMAKE_C_FLAGS}")
-#message("LIBS         : ${LIBS}")
-#message("LDFLAGS      : ${LDFLAGS}")
-#message("")
-#message("libcvc4 version        : ${{CVC4_LIBRARY_VERSION}")
-#message("libcvc4parser version  : ${CVC4_PARSER_LIBRARY_VERSION}")
-#message("libcvc4compat version  : ${CVC4_COMPAT_LIBRARY_VERSION_or_nobuild}")
-#message("libcvc4bindings version: ${CVC4_BINDINGS_LIBRARY_VERSION_or_nobuild}")
-#message("")
+message("")
 message("Install prefix       : ${CMAKE_INSTALL_PREFIX}")
 message("")
 

@@ -1,3 +1,23 @@
+#-----------------------------------------------------------------------------#
+# Extract info from Git for git_versioninfo.cpp
+
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+git_local_changes(GIT_IS_DIRTY)
+if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
+  set(GIT_IS_DIRTY "true")
+else()
+  set(GIT_IS_DIRTY "false")
+endif()
+execute_process(
+  COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
+  OUTPUT_VARIABLE GIT_BRANCH
+  OUTPUT_STRIP_TRAILING_WHITESPACE
+)
+
+#-----------------------------------------------------------------------------#
+# Generate git_versioninfo.cpp
+
 configure_file(git_versioninfo.cpp.in git_versioninfo.cpp)
 
 libcvc4_add_sources(
@@ -19,9 +39,9 @@ libcvc4_add_sources(
 
 libcvc4_add_sources(GENERATED git_versioninfo.cpp)
 
-#
+#-----------------------------------------------------------------------------#
 # Generate code for debug/trace tags
-#
+
 set(gentmptags_script ${CMAKE_CURRENT_LIST_DIR}/gentmptags.sh)
 set(gentags_script ${CMAKE_CURRENT_LIST_DIR}/gentags.sh)
 set(genheader_script ${CMAKE_CURRENT_LIST_DIR}/genheader.sh)
