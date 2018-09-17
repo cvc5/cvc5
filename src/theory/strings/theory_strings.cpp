@@ -3597,7 +3597,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
         return;
       }
     }
-    Node sk = d_sk_cache.mkSkolem("lsym");
+    Node sk = d_sk_cache.mkSkolemCached(n,SkolemCache::SK_PURIFY,"lsym");
     StringsProxyVarAttribute spva;
     sk.setAttribute(spva, true);
     Node eq = Rewriter::rewrite(sk.eqNode(n));

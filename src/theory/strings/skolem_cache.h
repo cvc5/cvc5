@@ -42,9 +42,13 @@ class SkolemCache
    *
    * The skolems with _REV suffixes are used for the reverse version of the
    * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
+   * 
+   * All skolems assume a and b are strings unless otherwise stated.
    */
   enum SkolemId
   {
+    // exists k. k = a 
+    SK_PURIFY,
     // a != "" ^ b = "ccccd" ^ a ++ "d" ++ a' = b ++ b' =>
     //    exists k. a = "cccc" + k
     SK_ID_C_SPT,
@@ -83,12 +87,25 @@ class SkolemCache
     //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
+    // For integer b,  
+    // len( a ) > b =>
+    //    exists k. a = k ++ a' ^ len( k ) = b
+    SK_PREFIX,
+    // For integer b,  
+    // b > 0 =>
+    //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
+    SK_SUFFIX_REM,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
    * name c.
    */
   Node mkSkolemCached(Node a, Node b, SkolemId id, const char* c);
+  /**
+   * Returns a skolem of type string that is cached for (a,[null],id) and has
+   * name c.
+   */
+  Node mkSkolemCached(Node a, SkolemId id, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
   /** Returns true if n is a skolem allocated by this class */
