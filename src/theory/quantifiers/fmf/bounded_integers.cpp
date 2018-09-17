@@ -87,10 +87,7 @@ BoundedIntegers::BoundedIntegers(context::Context* c, QuantifiersEngine* qe)
 {
 }
 
-BoundedIntegers::~BoundedIntegers()
-{
-
-}
+BoundedIntegers::~BoundedIntegers() {}
 
 void BoundedIntegers::presolve() {
   d_bnd_it.clear();
@@ -289,7 +286,7 @@ void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)
   Trace("bint-engine") << "---Bounded Integers---" << std::endl;
   bool addedLemma = false;
   // make sure proxies are up-to-date with range
-  for( const Node& r : d_ranges )
+  for (const Node& r : d_ranges)
   {
     Node prangeLem = d_rms[r]->proxyCurrentRangeLemma();
     if (!prangeLem.isNull())
@@ -487,7 +484,8 @@ void BoundedIntegers::checkOwnership(Node f)
           isProxy = true;
         }
         if( !r.isConst() ){
-          if( d_rms.find(r)==d_rms.end() ){
+          if (d_rms.find(r) == d_rms.end())
+          {
             Trace("bound-int") << "For " << v << ", bounded Integer Module will try to minimize : " << r << std::endl;
             d_ranges.push_back( r );
             d_rms[r].reset(
