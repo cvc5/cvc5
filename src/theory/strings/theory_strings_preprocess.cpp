@@ -54,40 +54,43 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node s = t[0];
     Node n = t[1];
     Node m = t[2];
-    Node skt = d_sc->mkSkolemCached(t,SkolemCache::SK_PURIFY,"sst");
-    Node t12 = nm->mkNode( PLUS, n, m );
-    t12 = Rewriter::rewrite( t12 );
-    Node lt0 = nm->mkNode( STRING_LENGTH, s );
+    Node skt = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "sst");
+    Node t12 = nm->mkNode(PLUS, n, m);
+    t12 = Rewriter::rewrite(t12);
+    Node lt0 = nm->mkNode(STRING_LENGTH, s);
     //start point is greater than or equal zero
-    Node c1 = nm->mkNode( GEQ, n, d_zero );
+    Node c1 = nm->mkNode(GEQ, n, d_zero);
     //start point is less than end of string
-    Node c2 = nm->mkNode( GT, lt0, n );
+    Node c2 = nm->mkNode(GT, lt0, n);
     //length is positive
-    Node c3 = nm->mkNode( GT, m, d_zero );
-    Node cond = nm->mkNode( AND, c1, c2, c3 );
-  
-    Node sk1 = d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
-    Node b11 = s.eqNode( nm->mkNode( STRING_CONCAT, sk1, skt, sk2 ) );
-    //length of first skolem is second argument
-    Node b12 = nm->mkNode( STRING_LENGTH, sk1 ).eqNode( n );
-    //length of second skolem is abs difference between end point and end of string
-    Node b13 = nm->mkNode( STRING_LENGTH, sk2 ).eqNode(
-                 nm->mkNode( ITE, nm->mkNode( GEQ, lt0, t12 ),
-                   nm->mkNode( MINUS, lt0, t12 ), d_zero ) );
+    Node c3 = nm->mkNode(GT, m, d_zero);
+    Node cond = nm->mkNode(AND, c1, c2, c3);
 
-    Node b1 = nm->mkNode( AND, b11, b12, b13 );
-    Node b2 = skt.eqNode( d_empty_str );
-    Node lemma = nm->mkNode( ITE, cond, b1, b2 );   
-    
+    Node sk1 = d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 =
+        d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
+    //length of first skolem is second argument
+    Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
+    //length of second skolem is abs difference between end point and end of string
+    Node b13 = nm->mkNode(STRING_LENGTH, sk2)
+                   .eqNode(nm->mkNode(ITE,
+                                      nm->mkNode(GEQ, lt0, t12),
+                                      nm->mkNode(MINUS, lt0, t12),
+                                      d_zero));
+
+    Node b1 = nm->mkNode(AND, b11, b12, b13);
+    Node b2 = skt.eqNode(d_empty_str);
+    Node lemma = nm->mkNode(ITE, cond, b1, b2);
+
     // assert:
     // IF    n >=0 AND n < len( s ) AND m > 0
-    // THEN: s = sk1 ++ skt ++ sk2 AND 
-    //       len( sk1 ) = n AND 
+    // THEN: s = sk1 ++ skt ++ sk2 AND
+    //       len( sk1 ) = n AND
     //       len( sk2 ) = ite( len( s ) >= n+m, len( s )-(n+m), 0 )
     // ELSE: skt = ""
     new_nodes.push_back( lemma );
-    
+
     // Thus, substr( s, n, m ) = skt
     retNode = skt;
   }
@@ -377,7 +380,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_PRE, "rfcpre");
     Node rp2 =
         d_sc->mkSkolemCached(x, y, SkolemCache::SK_FIRST_CTN_POST, "rfcpost");
-    Node rpw = d_sc->mkSkolemCached(t,SkolemCache::SK_PURIFY,"rpw");
+    Node rpw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpw");
 
     // y = ""
     Node cond1 = y.eqNode(nm->mkConst(CVC4::String("")));

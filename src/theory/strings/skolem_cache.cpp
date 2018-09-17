@@ -34,7 +34,7 @@ Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
 
 Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
 {
-  return mkSkolemCached(a,Node::null(),id,c);
+  return mkSkolemCached(a, Node::null(), id, c);
 }
 
 Node SkolemCache::mkSkolem(const char* c)
