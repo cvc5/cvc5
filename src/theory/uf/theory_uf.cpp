@@ -643,7 +643,7 @@ void TheoryUF::computeCareGraph() {
         }
       }
       if( has_trigger_arg ){
-        index[op].addTerm( f1, reps, arg_start_index );
+        index[op].addTerm( f1, reps );
         arity[op] = reps.size();
       }
     }
