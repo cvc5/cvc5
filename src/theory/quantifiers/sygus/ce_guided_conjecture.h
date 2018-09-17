@@ -21,7 +21,7 @@
 #include <memory>
 
 #include "theory/decision_manager.h"
-#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
@@ -29,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -51,7 +50,6 @@ public:
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
   Node getEmbeddedConjecture() { return d_embed_quant; }
-
   //-------------------------------for counterexample-guided check/refine
   /** increment the number of times we have successfully done candidate
    * refinement */
@@ -259,8 +257,6 @@ private:
     }
   };
   std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
-  /** the streaming guards for sygus streaming mode */
-  std::vector< Node > d_stream_guards;
   /** get current stream guard */
   Node getCurrentStreamGuard() const;
   /** get stream guarded lemma
@@ -276,12 +272,16 @@ private:
    */
   void printAndContinueStream();
   //-------------------------------- end sygus stream
-  /** candidate rewrite objects for each program variable
+  /** expression miner managers for each function-to-synthesize
+   *
+   * Notice that for each function-to-synthesize, we enumerate a stream of
+   * candidate solutions, where each of these streams is independent. Thus,
+   * we maintain separate expression miner managers for each of them.
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, CandidateRewriteDatabase> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
 } /* namespace CVC4::theory::quantifiers */
