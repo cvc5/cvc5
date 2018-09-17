@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inst_strategy_ceqqi.h
+/*! \file inst_strategy_cegqi.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
