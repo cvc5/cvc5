@@ -58,7 +58,8 @@ public:
  Node processAssertion(Node t, std::vector<Node> &new_nodes);
  /**
   * Replaces all formulas t in vec_node with an equivalent formula t' that
-  * contains no free instances of extended functions. This applies simplifyRec
+  * contains no free instances of extended functions (that is, extended
+  * functions may only appear beneath quantifiers). This applies simplifyRec
   * on each assertion in vec_node until a fixed point is reached.
   */
  void processAssertions(std::vector<Node> &vec_node);

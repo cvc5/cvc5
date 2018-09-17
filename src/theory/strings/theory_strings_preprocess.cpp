@@ -66,9 +66,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c3 = nm->mkNode( GT, m, d_zero );
     Node cond = nm->mkNode( AND, c1, c2, c3 );
   
-    Node sk1 = d_sc->mkSkolemCached(t[0], n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = d_sc->mkSkolemCached(t[0], t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
-    Node b11 = t[0].eqNode( nm->mkNode( STRING_CONCAT, sk1, skt, sk2 ) );
+    Node sk1 = d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node b11 = s.eqNode( nm->mkNode( STRING_CONCAT, sk1, skt, sk2 ) );
     //length of first skolem is second argument
     Node b12 = nm->mkNode( STRING_LENGTH, sk1 ).eqNode( n );
     //length of second skolem is abs difference between end point and end of string
@@ -269,7 +269,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
     Node pret = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
-    //Node pret = NodeManager::currentNM()->mkNode(kind::STRING_STOI, str);
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, str);
 
     Node negone = NodeManager::currentNM()->mkConst( ::CVC4::Rational(-1) );
