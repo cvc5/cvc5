@@ -20,12 +20,11 @@
 #include "context/cdhashmap.h"
 #include "theory/quantifiers_engine.h"
 #include "theory/type_enumerator.h"
+#include "expr/node_trie.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 //algorithm for computing candidate subgoals
 
@@ -105,8 +104,8 @@ class TermGenerator
   //2 : variables must map to non-ground terms
   unsigned d_match_mode;
   //children
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_match_children_end;
+  std::vector< std::map< TNode, TNodeTrie >::iterator > d_match_children;
+  std::vector< std::map< TNode, TNodeTrie >::iterator > d_match_children_end;
 
   void reset( TermGenEnv * s, TypeNode tn );
   bool getNextTerm( TermGenEnv * s, unsigned depth );

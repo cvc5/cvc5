@@ -19,14 +19,12 @@
 
 #include <map>
 #include "theory/quantifiers/inst_match_trie.h"
+#include "expr/node_trie.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-namespace quantifiers{
-  class TermArgTrie;
-}
 
 namespace inst {
 
@@ -662,7 +660,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
                          QuantifiersEngine* qe,
                          int& addedLemmas,
                          unsigned argIndex,
-                         quantifiers::TermArgTrie* tat);
+                         TNodeTrie* tat);
 };/* class InstMatchGeneratorSimple */
 }
 }

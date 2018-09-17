@@ -24,7 +24,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/term_database.h"
+#include "expr/node_trie.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -72,7 +72,7 @@ public:
   TNode getCongruentTermExp( Node f, std::vector< TNode >& args, std::vector< Node >& exp );
 private:
   /** term index */
-  std::map< Node, TermArgTrie > d_uf_func_map_trie;
+  std::map< Node, TNodeTrie > d_uf_func_map_trie;
   /** union find for terms beyond what is stored in equality engine */
   std::map< Node, Node > d_uf;
   std::map< Node, std::vector< Node > > d_uf_exp;

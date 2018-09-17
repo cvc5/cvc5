@@ -28,17 +28,13 @@
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "expr/node_trie.h"
 
 #include <climits>
 #include <deque>
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace strings {
 
 /**
@@ -495,7 +491,7 @@ private:
   //--------------------------------end for checkMemberships
 
  private:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
+  void addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth );
 
  public:
   /** preregister term */
