@@ -21,6 +21,7 @@
 #ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
+#include "context/cdo.h"
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "preprocessing/util/ite_utilities.h"
@@ -55,6 +56,11 @@ class PreprocessingPassContext
     return d_circuitPropagator;
   }
 
+  context::CDHashSet<Node, NodeHashFunction>& getSymsInAssertions()
+  {
+    return d_symsInAssertions;
+  }
+
   void spendResource(unsigned amount)
   {
     d_resourceManager->spendResource(amount);
@@ -65,19 +71,51 @@ class PreprocessingPassContext
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
+  unsigned getSubstitutionsIndex() const { return d_substitutionsIndex.get(); }
+
+  void setSubstitutionsIndex(unsigned i) { d_substitutionsIndex = i; }
+
+  /** Gets a reference to the top-level substitution map */
+  theory::SubstitutionMap& getTopLevelSubstitutions()
+  {
+    return d_topLevelSubstitutions;
+  }
+
   /* Enable Integers. */
   void enableIntegers();
 
+  /** Record symbols in assertions
+   *
+   * This method is called when a set of assertions is finalized. It adds
+   * the symbols to d_symsInAssertions that occur in assertions.
+   */
+  void recordSymbolsInAssertions(const std::vector<Node>& assertions);
+
  private:
-  /* Pointer to the SmtEngine that this context was created in. */
+  /** Pointer to the SmtEngine that this context was created in. */
   SmtEngine* d_smt;
+
+  /** Pointer to the ResourceManager for this context. */
   ResourceManager* d_resourceManager;
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
 
+  /* Index for where to store substitutions */
+  context::CDO<unsigned> d_substitutionsIndex;
+
+  /* The top level substitutions */
+  theory::SubstitutionMap d_topLevelSubstitutions;
+
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
+
+  /**
+   * The (user-context-dependent) set of symbols that occur in at least one
+   * assertion in the current user context.
+   */
+  context::CDHashSet<Node, NodeHashFunction> d_symsInAssertions;
+
 };  // class PreprocessingPassContext
 
 }  // namespace preprocessing

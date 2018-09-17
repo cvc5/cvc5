@@ -168,6 +168,14 @@ void CegConjecture::assign( Node q ) {
   d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
   d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
   AlwaysAssert(!d_feasible_guard.isNull());
+  // register the strategy
+  d_feasible_strategy.reset(
+      new DecisionStrategySingleton("sygus_feasible",
+                                    d_feasible_guard,
+                                    d_qe->getSatContext(),
+                                    d_qe->getValuation()));
+  d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+      DecisionManager::STRAT_QUANT_SYGUS_FEASIBLE, d_feasible_strategy.get());
   // this must be called, both to ensure that the feasible guard is
   // decided on with true polariy, but also to ensure that output channel
   // has been used on this call to check.
@@ -193,6 +201,15 @@ void CegConjecture::assign( Node q ) {
     d_qe->getOutputChannel().lemma( lem );
   }
 
+  if (options::sygusStream())
+  {
+    d_stream_strategy.reset(new SygusStreamDecisionStrategy(
+        d_qe->getSatContext(), d_qe->getValuation()));
+    d_qe->getTheoryEngine()->getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_QUANT_SYGUS_STREAM_FEASIBLE,
+        d_stream_strategy.get());
+    d_current_stream_guard = d_stream_strategy->getLiteral(0);
+  }
   Trace("cegqi") << "...finished, single invocation = " << isSingleInvocation() << std::endl;
 }
 
@@ -234,23 +251,25 @@ void CegConjecture::doSingleInvCheck(std::vector< Node >& lems) {
   }
 }
 
-void CegConjecture::doBasicCheck(std::vector< Node >& lems) {
-  std::vector< Node > model_terms;
-  Assert(d_candidates.size() == d_quant[0].getNumChildren());
-  getModelValues(d_candidates, model_terms);
-  if (d_qe->getInstantiate()->addInstantiation(d_quant, model_terms))
-  {
-    //record the instantiation
-    recordInstantiation( model_terms );
-  }else{
-    Assert( false );
-  }
-}
-
 bool CegConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 void CegConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
+
+  // process the sygus streaming guard
+  if (options::sygusStream())
+  {
+    Assert(!isSingleInvocation());
+    // it may be the case that we have a new solution now
+    Node currGuard = getCurrentStreamGuard();
+    if (currGuard != d_current_stream_guard)
+    {
+      // we have a new guard, print and continue the stream
+      printAndContinueStream();
+      d_current_stream_guard = currGuard;
+      return;
+    }
+  }
 
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -386,32 +405,37 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
     d_set_ce_sk_vars = true;
   }
 
-  if (!lem.isNull())
+  if (lem.isNull())
   {
-    lem = Rewriter::rewrite( lem );
-    //eagerly unfold applications of evaluation function
-    Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
-    std::map<Node, Node> visited_n;
-    lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
-    // record the instantiation
-    // this is used for remembering the solution
-    recordInstantiation(candidate_values);
-    Node query = lem;
-    if (query.isConst() && !query.getConst<bool>() && options::sygusStream())
-    {
-      // short circuit the check
-      // instead, we immediately print the current solution.
-      // this saves us from introducing a check lemma and a new guard.
-      printAndContinueStream();
-      return;
-    }
+    // no lemma to check
+    return;
+  }
+
+  lem = Rewriter::rewrite(lem);
+  // eagerly unfold applications of evaluation function
+  Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
+  std::map<Node, Node> visited_n;
+  lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
+  // record the instantiation
+  // this is used for remembering the solution
+  recordInstantiation(candidate_values);
+  Node query = lem;
+  bool success = false;
+  if (query.isConst() && !query.getConst<bool>())
+  {
+    // short circuit the check
+    lem = d_quant.negate();
+    success = true;
+  }
+  else
+  {
     // This is the "verification lemma", which states
     // either this conjecture does not have a solution, or candidate_values
     // is a solution for this conjecture.
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
-      Trace("cegqi-engine") << "  *** Direct verify..." << std::endl;
+      Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
       SmtEngine verifySmt(nm->toExprManager());
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
       verifySmt.assertFormula(query.toExpr());
@@ -446,14 +470,23 @@ void CegConjecture::doCheck(std::vector<Node>& lems)
         // if the result in the subcall was unsatisfiable, we avoid
         // rechecking, hence we drop "query" from the verification lemma
         lem = d_quant.negate();
+        // we can short circuit adding the lemma (for sygus stream)
+        success = true;
       }
       // In the rare case that the subcall is unknown, we add the verification
       // lemma in the main solver. This should only happen if the quantifier
       // free logic is undecidable.
     }
-    lem = getStreamGuardedLemma(lem);
-    lems.push_back(lem);
   }
+  if (success && options::sygusStream())
+  {
+    // if we were successful, we immediately print the current solution.
+    // this saves us from introducing a verification lemma and a new guard.
+    printAndContinueStream();
+    return;
+  }
+  lem = getStreamGuardedLemma(lem);
+  lems.push_back(lem);
 }
         
 void CegConjecture::doRefine( std::vector< Node >& lems ){
@@ -556,11 +589,18 @@ void CegConjecture::debugPrint( const char * c ) {
 }
 
 Node CegConjecture::getCurrentStreamGuard() const {
-  if( d_stream_guards.empty() ){
-    return Node::null();
-  }else{
-    return d_stream_guards.back();
+  if (d_stream_strategy != nullptr)
+  {
+    // the stream guard is the current asserted literal of the stream strategy
+    Node lit = d_stream_strategy->getAssertedLiteral();
+    if (lit.isNull())
+    {
+      // if none exist, get the first
+      lit = d_stream_strategy->getLiteral(0);
+    }
+    return lit;
   }
+  return Node::null();
 }
 
 Node CegConjecture::getStreamGuardedLemma(Node n) const
@@ -575,69 +615,8 @@ Node CegConjecture::getStreamGuardedLemma(Node n) const
   return n;
 }
 
-Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
-  // first, must try the guard
-  // which denotes "this conjecture is feasible"
-  Node feasible_guard = d_feasible_guard;
-  bool value;
-  if( !d_qe->getValuation().hasSatValue( feasible_guard, value ) ) {
-    priority = 0;
-    return feasible_guard;
-  }
-  if (!value)
-  {
-    Trace("cegqi-debug") << "getNextDecision : conjecture is infeasible."
-                         << std::endl;
-    return Node::null();
-  }
-  // the conjecture is feasible
-  if (options::sygusStream())
-  {
-    Assert(!isSingleInvocation());
-    // if we are in sygus streaming mode, then get the "next guard"
-    // which denotes "we have not yet generated the next solution to the
-    // conjecture"
-    Node curr_stream_guard = getCurrentStreamGuard();
-    bool needs_new_stream_guard = false;
-    if (curr_stream_guard.isNull())
-    {
-      needs_new_stream_guard = true;
-    }else{
-      // check the polarity of the guard
-      if (!d_qe->getValuation().hasSatValue(curr_stream_guard, value))
-      {
-        priority = 0;
-        return curr_stream_guard;
-      }
-      if (!value)
-      {
-        Trace("cegqi-debug") << "getNextDecision : we have a new solution "
-                                "since stream guard was propagated false: "
-                             << curr_stream_guard << std::endl;
-        // need to make the next stream guard
-        needs_new_stream_guard = true;
-        // the guard has propagated false, indicating that a verify
-        // lemma was unsatisfiable. Hence, the previous candidate is
-        // an actual solution. We print and continue the stream.
-        printAndContinueStream();
-      }
-    }
-    if (needs_new_stream_guard)
-    {
-      // generate a new stream guard
-      curr_stream_guard = Rewriter::rewrite(NodeManager::currentNM()->mkSkolem(
-          "G_Stream", NodeManager::currentNM()->booleanType()));
-      curr_stream_guard = d_qe->getValuation().ensureLiteral(curr_stream_guard);
-      AlwaysAssert(!curr_stream_guard.isNull());
-      d_qe->getOutputChannel().requirePhase(curr_stream_guard, true);
-      d_stream_guards.push_back(curr_stream_guard);
-      Trace("cegqi-debug") << "getNextDecision : allocate new stream guard : "
-                           << curr_stream_guard << std::endl;
-      // return it as a decision
-      priority = 0;
-      return curr_stream_guard;
-    }
-  }
+Node CegConjecture::getNextDecisionRequest(unsigned& priority)
+{
   // see if the master module has a decision
   if (!isSingleInvocation())
   {
@@ -650,8 +629,20 @@ Node CegConjecture::getNextDecisionRequest( unsigned& priority ) {
       return mlit;
     }
   }
-
   return Node::null();
+}
+
+CegConjecture::SygusStreamDecisionStrategy::SygusStreamDecisionStrategy(
+    context::Context* satContext, Valuation valuation)
+    : DecisionStrategyFmf(satContext, valuation)
+{
+}
+
+Node CegConjecture::SygusStreamDecisionStrategy::mkLiteral(unsigned i)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node curr_stream_guard = nm->mkSkolem("G_Stream", nm->booleanType());
+  return curr_stream_guard;
 }
 
 void CegConjecture::printAndContinueStream()
@@ -723,16 +714,20 @@ void CegConjecture::printSynthSolution( std::ostream& out, bool singleInvocation
 
       if (status != 0 && options::sygusRewSynth())
       {
-        std::map<Node, CandidateRewriteDatabase>::iterator its =
-            d_crrdb.find(prog);
-        if (its == d_crrdb.end())
+        std::map<Node, ExpressionMinerManager>::iterator its =
+            d_exprm.find(prog);
+        if (its == d_exprm.end())
         {
-          d_crrdb[prog].initializeSygus(
+          d_exprm[prog].initializeSygus(
               d_qe, d_candidates[i], options::sygusSamples(), true);
-          its = d_crrdb.find(prog);
+          if (options::sygusRewSynth())
+          {
+            d_exprm[prog].enableRewriteRuleSynth();
+          }
+          its = d_exprm.find(prog);
         }
         bool rew_print = false;
-        is_unique_term = d_crrdb[prog].addTerm(sol, out, rew_print);
+        is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
         if (rew_print)
         {
           ++(cei->d_statistics.d_candidate_rewrites_print);

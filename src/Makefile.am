@@ -61,6 +61,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/assertion_pipeline.cpp \
+	preprocessing/assertion_pipeline.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/apply_to_const.cpp \
@@ -89,16 +91,18 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/ite_removal.h \
 	preprocessing/passes/ite_simp.cpp \
 	preprocessing/passes/ite_simp.h \
+	preprocessing/passes/non_clausal_simp.cpp \
+	preprocessing/passes/non_clausal_simp.h \
 	preprocessing/passes/nl_ext_purify.cpp \
 	preprocessing/passes/nl_ext_purify.h \
 	preprocessing/passes/pseudo_boolean_processor.cpp \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/miplib_trick.cpp \
 	preprocessing/passes/miplib_trick.h \
-	preprocessing/passes/quantifiers_preprocess.cpp \
-	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/quantifier_macros.cpp \
 	preprocessing/passes/quantifier_macros.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
@@ -203,6 +207,8 @@ libcvc4_la_SOURCES = \
 	smt/managed_ostreams.h \
 	smt/model.cpp \
 	smt/model.h \
+	smt/model_core_builder.cpp \
+	smt/model_core_builder.h \
 	smt/smt_engine.cpp \
 	smt/smt_engine.h \
 	smt/smt_engine_check_proof.cpp \
@@ -237,6 +243,8 @@ libcvc4_la_SOURCES = \
 	theory/sort_inference.h \
 	theory/substitutions.cpp \
 	theory/substitutions.h \
+	theory/subs_minimize.cpp \
+	theory/subs_minimize.h \
 	theory/term_registration_visitor.cpp \
 	theory/term_registration_visitor.h \
 	theory/theory.cpp \
@@ -400,6 +408,10 @@ libcvc4_la_SOURCES = \
 	theory/datatypes/type_enumerator.h \
 	theory/datatypes/sygus_simple_sym.cpp \
 	theory/datatypes/sygus_simple_sym.h \
+	theory/decision_manager.cpp \
+	theory/decision_manager.h \
+	theory/decision_strategy.cpp \
+	theory/decision_strategy.h \
 	theory/ext_theory.cpp \
 	theory/ext_theory.h \
 	theory/fp/theory_fp.cpp \
@@ -460,6 +472,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/expr_miner.cpp \
+	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/expr_miner_manager.cpp \
+	theory/quantifiers/expr_miner_manager.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
@@ -588,6 +604,8 @@ libcvc4_la_SOURCES = \
 	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
+	theory/strings/skolem_cache.cpp \
+	theory/strings/skolem_cache.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings_preprocess.cpp \

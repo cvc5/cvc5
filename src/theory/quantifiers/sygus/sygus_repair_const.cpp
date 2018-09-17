@@ -255,7 +255,7 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
 
   Trace("cegqi-engine") << "Repairing previous solution..." << std::endl;
   // make the satisfiability query
-  bool needExport = false;
+  bool needExport = true;
   ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> repcChecker;
@@ -307,8 +307,8 @@ bool SygusRepairConst::repairSolution(const std::vector<Node>& candidates,
   }
   Trace("cegqi-engine") << "...success:" << std::endl;
   Trace("cegqi-engine") << ss.str();
-  Trace("sygus-repair-const") << "Repaired constants in solution : "
-                              << std::endl;
+  Trace("sygus-repair-const")
+      << "Repaired constants in solution : " << std::endl;
   Trace("sygus-repair-const") << ss.str();
   return true;
 }

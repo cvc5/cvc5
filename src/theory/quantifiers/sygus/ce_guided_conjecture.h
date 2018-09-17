@@ -20,7 +20,8 @@
 
 #include <memory>
 
-#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/decision_manager.h"
+#include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
@@ -28,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -52,7 +52,6 @@ public:
   Node getEmbeddedConjecture() { return d_embed_quant; }
   /** get next decision request */
   Node getNextDecisionRequest( unsigned& priority );
-
   //-------------------------------for counterexample-guided check/refine
   /** increment the number of times we have successfully done candidate
    * refinement */
@@ -69,10 +68,6 @@ public:
   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
   */
   void doCheck(std::vector<Node>& lems);
-  /** do basic check 
-  * This is called for non-SyGuS synthesis conjectures
-  */
-  void doBasicCheck(std::vector< Node >& lems);
   /** do refinement 
   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
   */
@@ -137,6 +132,8 @@ private:
   QuantifiersEngine * d_qe;
   /** The feasible guard. */
   Node d_feasible_guard;
+  /** the decision strategy for the feasible guard */
+  std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
   std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
   /** utility for static preprocessing and analysis of conjectures */
@@ -245,8 +242,23 @@ private:
                                  std::vector<int>& status,
                                  bool singleInvocation);
   //-------------------------------- sygus stream
-  /** the streaming guards for sygus streaming mode */
-  std::vector< Node > d_stream_guards;
+  /** current stream guard */
+  Node d_current_stream_guard;
+  /** the decision strategy for streaming solutions */
+  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    SygusStreamDecisionStrategy(context::Context* satContext,
+                                Valuation valuation);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override
+    {
+      return std::string("sygus_stream");
+    }
+  };
+  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
   /** get current stream guard */
   Node getCurrentStreamGuard() const;
   /** get stream guarded lemma
@@ -262,12 +274,16 @@ private:
    */
   void printAndContinueStream();
   //-------------------------------- end sygus stream
-  /** candidate rewrite objects for each program variable
+  /** expression miner managers for each function-to-synthesize
+   *
+   * Notice that for each function-to-synthesize, we enumerate a stream of
+   * candidate solutions, where each of these streams is independent. Thus,
+   * we maintain separate expression miner managers for each of them.
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, CandidateRewriteDatabase> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
 } /* namespace CVC4::theory::quantifiers */

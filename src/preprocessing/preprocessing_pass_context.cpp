@@ -16,6 +16,8 @@
 
 #include "preprocessing_pass_context.h"
 
+#include "expr/node_algorithm.h"
+
 namespace CVC4 {
 namespace preprocessing {
 
@@ -27,7 +29,10 @@ PreprocessingPassContext::PreprocessingPassContext(
     : d_smt(smt),
       d_resourceManager(resourceManager),
       d_iteRemover(iteRemover),
-      d_circuitPropagator(circuitPropagator)
+      d_substitutionsIndex(smt->d_userContext, 0),
+      d_topLevelSubstitutions(smt->d_userContext),
+      d_circuitPropagator(circuitPropagator),
+      d_symsInAssertions(smt->d_userContext)
 {
 }
 
@@ -41,6 +46,21 @@ void PreprocessingPassContext::enableIntegers()
 {
   LogicRequest req(*d_smt);
   req.enableIntegers();
+}
+
+void PreprocessingPassContext::recordSymbolsInAssertions(
+    const std::vector<Node>& assertions)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<Node, NodeHashFunction> syms;
+  for (TNode cn : assertions)
+  {
+    expr::getSymbols(cn, syms, visited);
+  }
+  for (const Node& s : syms)
+  {
+    d_symsInAssertions.insert(s);
+  }
 }
 
 }  // namespace preprocessing

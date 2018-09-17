@@ -223,10 +223,8 @@ public:
   /** Get value function.
    * This should be called only after a ModelBuilder
    * has called buildModel(...) on this model.
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getValue(TNode n, bool useDontCares = false) const;
+  Node getValue(TNode n) const;
   /** get comments */
   void getComments(std::ostream& out) const override;
 
@@ -245,8 +243,16 @@ public:
   const RepSet* getRepSet() const { return &d_rep_set; }
   /** get the representative set object (FIXME: remove this, see #1199) */
   RepSet* getRepSetPtr() { return &d_rep_set; }
-  /** return whether this node is a don't-care */
-  bool isDontCare(Expr expr) const override;
+
+  //---------------------------- model cores
+  /** set using model core */
+  void setUsingModelCore() override;
+  /** record model core symbol */
+  void recordModelCoreSymbol(Expr sym) override;
+  /** Return whether symbol expr is in the model core. */
+  bool isModelCoreSymbol(Expr sym) const override;
+  //---------------------------- end model cores
+
   /** get value function for Exprs. */
   Expr getValue(Expr expr) const override;
   /** get cardinality for sort */
@@ -301,16 +307,16 @@ public:
   Node d_false;
   /** comment stream to include in printing */
   std::stringstream d_comment_str;
+  /** are we using model cores? */
+  bool d_using_model_core;
+  /** symbols that are in the model core */
+  std::unordered_set<Node, NodeHashFunction> d_model_core;
   /** Get model value function.
    *
    * This function is a helper function for getValue.
    *   hasBoundVars is whether n may contain bound variables
-   *   useDontCares is whether to return Node::null() if
-   *     n does not occur in the equality engine.
    */
-  Node getModelValue(TNode n,
-                     bool hasBoundVars = false,
-                     bool useDontCares = false) const;
+  Node getModelValue(TNode n, bool hasBoundVars = false) const;
   /** add term internal
    *
    * This will do any model-specific processing necessary for n,
