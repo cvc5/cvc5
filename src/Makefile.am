@@ -450,8 +450,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.h \
-	theory/quantifiers/cegqi/inst_strategy_cbqi.cpp \
-	theory/quantifiers/cegqi/inst_strategy_cbqi.h \
+	theory/quantifiers/cegqi/inst_strategy_cegqi.cpp \
+	theory/quantifiers/cegqi/inst_strategy_cegqi.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/dynamic_rewrite.cpp \

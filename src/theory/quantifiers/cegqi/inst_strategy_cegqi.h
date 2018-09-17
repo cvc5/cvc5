@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inst_strategy_cbqi.h
+/*! \file inst_strategy_ceqqi.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Mathias Preiner
@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_CBQI_H
-#define __CVC4__INST_STRATEGY_CBQI_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
+#define __CVC4__THEORY__QUANTIFIERS__INST_STRATEGY_CEGQI_H
 
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
