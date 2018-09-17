@@ -76,8 +76,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
-  context::CDO<unsigned>& substs_index =
-      assertionsToPreprocess->getSubstitutionsIndex();
+  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
@@ -114,7 +113,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   SubstitutionMap& top_level_substs =
-      assertionsToPreprocess->getTopLevelSubstitutions();
+      d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
   SubstitutionMap::iterator pos;

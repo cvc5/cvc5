@@ -21,6 +21,7 @@
 #ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 #define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
+#include "context/cdo.h"
 #include "context/context.h"
 #include "decision/decision_engine.h"
 #include "preprocessing/util/ite_utilities.h"
@@ -70,6 +71,16 @@ class PreprocessingPassContext
   /* Widen the logic to include the given theory. */
   void widenLogic(theory::TheoryId id);
 
+  unsigned getSubstitutionsIndex() const { return d_substitutionsIndex.get(); }
+
+  void setSubstitutionsIndex(unsigned i) { d_substitutionsIndex = i; }
+
+  /** Gets a reference to the top-level substitution map */
+  theory::SubstitutionMap& getTopLevelSubstitutions()
+  {
+    return d_topLevelSubstitutions;
+  }
+
   /* Enable Integers. */
   void enableIntegers();
 
@@ -89,6 +100,12 @@ class PreprocessingPassContext
 
   /** Instance of the ITE remover */
   RemoveTermFormulas* d_iteRemover;
+
+  /* Index for where to store substitutions */
+  context::CDO<unsigned> d_substitutionsIndex;
+
+  /* The top level substitutions */
+  theory::SubstitutionMap d_topLevelSubstitutions;
 
   /** Instance of the circuit propagator */
   theory::booleans::CircuitPropagator* d_circuitPropagator;
