@@ -1,3 +1,6 @@
+#-----------------------------------------------------------------------------#
+# Add unit tests
+
 cvc4_add_unit_test_black(cdlist_black)
 cvc4_add_unit_test_black(cdmap_black)
 cvc4_add_unit_test_white(cdmap_white)

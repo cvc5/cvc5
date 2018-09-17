@@ -1,6 +1,11 @@
+#-----------------------------------------------------------------------------#
 # Set variables required for the documentation *.in files
+
 string(TIMESTAMP MAN_DATE "%Y-%m-%d")
 set(VERSION CVC4_RELEASE_STRING)
+
+#-----------------------------------------------------------------------------#
+# Generate files
 
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/SmtEngine.3cvc_template.in
@@ -25,6 +30,9 @@ configure_file(
 configure_file(
   ${CMAKE_CURRENT_SOURCE_DIR}/options.3cvc_template.in
   ${CMAKE_CURRENT_BINARY_DIR}/options.3cvc_template)
+
+#-----------------------------------------------------------------------------#
+# Install man pages
 
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cvc4.1 DESTINATION share/man/man1)
 install(FILES ${CMAKE_CURRENT_BINARY_DIR}/cvc4.5 DESTINATION share/man/man5)

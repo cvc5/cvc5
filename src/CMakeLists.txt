@@ -1,3 +1,6 @@
+#-----------------------------------------------------------------------------#
+# Collect libcvc4 source files
+
 libcvc4_add_sources(
   api/cvc4cpp.cpp
   api/cvc4cpp.h
@@ -646,9 +649,14 @@ libcvc4_add_sources(
   theory/valuation.h
 )
 
+#-----------------------------------------------------------------------------#
 # Add required include paths for this and all subdirectories.
+
 include_directories(include)
 include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
+
+#-----------------------------------------------------------------------------#
+# Add subdirectories
 
 add_subdirectory(base)
 add_subdirectory(expr)
@@ -658,8 +666,10 @@ add_subdirectory(parser)
 add_subdirectory(theory)
 add_subdirectory(util)
 
-# All sources for libcvc4 are now collected via libcvc4_add_sources. We can
-# now build libcvc4.
+#-----------------------------------------------------------------------------#
+# All sources for libcvc4 are now collected in LIBCVC4_SRCS and (if generated)
+# LIBCVC4_GEN_SRCS (via libcvc4_add_sources). We can now build libcvc4.
+
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
 add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
 
