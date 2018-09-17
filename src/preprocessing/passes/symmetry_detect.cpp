@@ -368,7 +368,7 @@ bool PartitionMerger::mergeNewVar(unsigned curr_index,
         // can now include in the base
         d_base_vars.insert(merge_var);
         Trace("sym-dt-debug") << "found symmetry : { ";
-        for (const unsigned& i : new_indices)
+        for (unsigned i : new_indices)
         {
           Assert(d_base_indices.find(i) == d_base_indices.end());
           d_base_indices.insert(i);
@@ -466,11 +466,12 @@ Node SymmetryDetect::getSymBreakVariable(TypeNode tn, unsigned index)
     d_sb_vars[tn].clear();
     it = d_sb_vars.find(tn);
   }
+  NodeManager * nm = NodeManager::currentNM();
   while (it->second.size() <= index)
   {
     std::stringstream ss;
     ss << "_sym_bk_" << tn << "_" << (it->second.size() + 1);
-    Node fresh_var = NodeManager::currentNM()->mkBoundVar(ss.str(), tn);
+    Node fresh_var = nm->mkBoundVar(ss.str(), tn);
     it->second.push_back(fresh_var);
   }
   return it->second[index];
@@ -537,7 +538,7 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
         // get the substitution
         std::vector<Node> vars;
         std::vector<Node> subs;
-        for (const Node v : sp.second)
+        for (const Node& v : sp.second)
         {
           vars.push_back(v);
           subs.push_back(sv);
@@ -586,7 +587,7 @@ void SymmetryDetect::computeTerms(std::vector<std::vector<Node> >& sterms,
 /**
  * We build the partition trie indexed by
  * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. The leaves of a
- * partition trie is the new regions of a partition
+ * partition trie are the new regions of a partition
  */
 class PartitionTrie
 {
@@ -654,7 +655,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   // Children of node
   std::vector<Node> children;
   bool operatorChild = false;
-  if (node.getKind() == kind::APPLY_UF)
+  if (node.getKind() == APPLY_UF)
   {
     // compute for the operator
     children.push_back(node.getOperator());
@@ -733,7 +734,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   p.d_sterm = node;
   // for all active indices
   vector<Node> all_vars;
-  for (const unsigned& i : active_indices)
+  for (unsigned i : active_indices)
   {
     Trace("sym-dt-debug") << "Reconstruct partition for active index : " << i
                           << std::endl;
@@ -771,7 +772,7 @@ Partition SymmetryDetect::findPartitions(Node node)
     std::vector<Node> subvars;
     std::vector<unsigned> useVarInd;
     Node useVar;
-    for (const unsigned& i : active_indices)
+    for (unsigned i : active_indices)
     {
       Partition& pa = partitions[i];
       std::map<Node, Node>::iterator var_sub_it = pa.d_var_to_subvar.find(n);
@@ -836,7 +837,7 @@ Partition SymmetryDetect::findPartitions(Node node)
     if (!usingUseVar)
     {
       // can't use the useVar, indicate indices for reconstruction
-      for (unsigned& ui : useVarInd)
+      for (unsigned ui : useVarInd)
       {
         rcons_indices[ui] = true;
       }
@@ -862,7 +863,7 @@ Partition SymmetryDetect::findPartitions(Node node)
     // order matters, and there is no chance we merged children
     schildren.resize(children.size());
   }
-  for (const unsigned& i : active_indices)
+  for (unsigned i : active_indices)
   {
     Partition& pa = partitions[i];
     Node sterm = pa.d_sterm;
@@ -894,7 +895,7 @@ Partition SymmetryDetect::findPartitions(Node node)
   }
   else
   {
-    if (node.getMetaKind() == kind::metakind::PARAMETERIZED && !operatorChild)
+    if (node.getMetaKind() == metakind::PARAMETERIZED && !operatorChild)
     {
       schildren.insert(schildren.begin(), node.getOperator());
     }

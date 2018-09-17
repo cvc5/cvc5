@@ -66,11 +66,11 @@ class Partition
    * { w-> { x, y } }
    */
   std::map<Node, std::vector<Node> > d_subvar_to_vars;
-  /** add variable */
+  /** Add variable v to d_subvar_to_vars[sv]. */
   void addVariable(Node sv, Node v);
-  /** remove variable */
+  /** Remove variable sv from the domain of d_subvar_to_vars. */
   void removeVariable(Node sv);
-  /** sorts the ranges of d_subvar_to_vars. */
+  /** Sorts the ranges of d_subvar_to_vars. */
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
@@ -205,7 +205,7 @@ class SymmetryDetect
   /** Get the final partition after symmetry detection.
    *
    *  If a vector in sterms contains two variables x and y,
-   *  then assertions and assertions { x -> y, x -> y } are
+   *  then assertions and assertions { x -> y, y -> x } are
    *  equisatisfiable.
    * */
   void compute(std::vector<std::vector<Node> >& part,
@@ -268,10 +268,11 @@ class SymmetryDetect
 
   /** Compute alpha equivalent terms
    *
-   * This constructs sterm_to_indices such that if sterm_to_indices[t]
-   * contains an index i, then there exists a k such that indices[k] = i and
-   * sterms[k] is alpha-equivalent to t, and sterm_to_indices contains
-   * indices[k] for each k=1,...,indicies.size()-1. For example,
+   * This is used for determining pairs of terms in sterms that are
+   * alpha-equivalent. In detail, this constructs sterm_to_indices such that if
+   * sterm_to_indices[t] contains an index i, then there exists a k such that
+   * indices[k] = i and sterms[k] is alpha-equivalent to t, and sterm_to_indices
+   * contains indices[k] for each k=1,...,indicies.size()-1. For example,
    * computeAlphaEqTerms( { 0, 3, 7 }, { Q(a), forall x. P(x), forall y. P(y) }
    * may construct sterm_to_indices such that
    *   sterm_to_indices[Q(a)] -> { 0 }
