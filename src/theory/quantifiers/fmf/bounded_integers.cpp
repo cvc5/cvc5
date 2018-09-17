@@ -57,8 +57,6 @@ Node BoundedIntegers::IntRangeDecisionHeuristic::mkLiteral(unsigned n)
 
 Node BoundedIntegers::IntRangeDecisionHeuristic::proxyCurrentRangeLemma()
 {
-  // Trace("model-engine") << "Range(" << d_range << ") currently is " <<
-  // d_curr_max.get() << std::endl;
   if (d_range == d_proxy_range)
   {
     return Node::null();
