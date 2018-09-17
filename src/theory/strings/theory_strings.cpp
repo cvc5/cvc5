@@ -523,11 +523,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       repSet.insert(r);
     }
   }
-  std::vector< Node > nodes;
-  for (const Node& r : repSet)
-  {
-    nodes.push_back(r);
-  }
+  std::vector< Node > nodes( repSet.begin(), repSet.end() );
   std::map< Node, Node > processed;
   std::vector< std::vector< Node > > col;
   std::vector< Node > lts;
