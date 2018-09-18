@@ -1495,29 +1495,32 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
-    else if( t.size()==1 )
+    else if (t.size() == 1)
     {
-      if( node[0].getKind()==STRING_CONCAT )
+      if (node[0].getKind() == STRING_CONCAT)
       {
         std::vector<Node> nc1;
         getConcat(node[0], nc1);
-        std::vector< Node > children;
-        for( const Node& ncc : nc1 )
+        std::vector<Node> children;
+        for (const Node& ncc : nc1)
         {
-          children.push_back( nm->mkNode(STRING_STRCTN,ncc,node[1]) );
+          children.push_back(nm->mkNode(STRING_STRCTN, ncc, node[1]));
         }
-        Node ret = nm->mkNode( OR, children );
+        Node ret = nm->mkNode(OR, children);
         return returnRewrite(node, ret, "ctn-concat-char");
       }
-      else if( node[0].getKind()==STRING_STRREPL )
+      else if (node[0].getKind() == STRING_STRREPL)
       {
         Node rplDomain = nm->mkNode(STRING_STRCTN, node[0][1], node[1]);
-        rplDomain = Rewriter::rewrite( rplDomain );
-        if( rplDomain.isConst() && !rplDomain.getConst<bool>() )
+        rplDomain = Rewriter::rewrite(rplDomain);
+        if (rplDomain.isConst() && !rplDomain.getConst<bool>())
         {
-          Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1] );
-          Node d2 = nm->mkNode( AND, nm->mkNode( STRING_STRCTN, node[0][0], node[0][1] ), nm->mkNode(STRING_STRCTN,node[0][2], node[1] ) );
-          Node ret = nm->mkNode( OR, d1, d2 );
+          Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
+          Node d2 =
+              nm->mkNode(AND,
+                         nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
+                         nm->mkNode(STRING_STRCTN, node[0][2], node[1]));
+          Node ret = nm->mkNode(OR, d1, d2);
           Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
           return returnRewrite(node, ret, "ctn-repl-char");
         }
@@ -3371,7 +3374,7 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     // TODO (#1180) : abstract interpretation goes here
     Node ua = getArithApproximation(ar, true);
     ua = Rewriter::rewrite(ua);
-    if( checkEntailArithInternal(ua) )
+    if (checkEntailArithInternal(ua))
     {
       return true;
     }
@@ -3633,54 +3636,55 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
 
 Node TheoryStringsRewriter::getArithApproximation(Node a, bool isUnder)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Kind ak = a.getKind();
-  if( ak==PLUS )
+  if (ak == PLUS)
   {
-    std::vector< Node > sum;
-    for (const Node& ac : a )
+    std::vector<Node> sum;
+    for (const Node& ac : a)
     {
-      Node aac = getArithApproximation(ac,isUnder);
+      Node aac = getArithApproximation(ac, isUnder);
       sum.push_back(aac);
     }
-    return nm->mkNode( PLUS, sum );
+    return nm->mkNode(PLUS, sum);
   }
-  else if( ak==MULT )
+  else if (ak == MULT)
   {
     Node c;
     Node v;
-    if( !ArithMSum::getMonomial(a,c,v) )
+    if (!ArithMSum::getMonomial(a, c, v))
     {
       return a;
     }
     bool ap = c.isNull() || c.getConst<Rational>().sgn() > 0;
-    Node av = getArithApproximation(v, ap ? isUnder : !isUnder );
-    return nm->mkNode( MULT, c, av );
+    Node av = getArithApproximation(v, ap ? isUnder : !isUnder);
+    return nm->mkNode(MULT, c, av);
   }
-  if( ak==STRING_STRIDOF )
+  if (ak == STRING_STRIDOF)
   {
-    if( isUnder )
+    if (isUnder)
     {
-      return nm->mkConst( Rational(-1) );
+      return nm->mkConst(Rational(-1));
     }
     else
     {
-      Node aa = nm->mkNode( MINUS, nm->mkNode( STRING_LENGTH, a[0] ), nm->mkNode( STRING_LENGTH, a[1] ) );
-      aa = Rewriter::rewrite( aa );
-      return getArithApproximation( aa, false );
+      Node aa = nm->mkNode(MINUS,
+                           nm->mkNode(STRING_LENGTH, a[0]),
+                           nm->mkNode(STRING_LENGTH, a[1]));
+      aa = Rewriter::rewrite(aa);
+      return getArithApproximation(aa, false);
     }
   }
-  else if( ak==STRING_STOI )
+  else if (ak == STRING_STOI)
   {
-    if( isUnder )
+    if (isUnder)
     {
-      return nm->mkConst( Rational(-1) );
+      return nm->mkConst(Rational(-1));
     }
   }
-  else if( ak==STRING_LENGTH )
+  else if (ak == STRING_LENGTH)
   {
     Kind ask = a[0].getKind();
-    
   }
   return a;
 }

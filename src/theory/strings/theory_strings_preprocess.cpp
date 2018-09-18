@@ -67,8 +67,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c3 = nm->mkNode(GT, m, d_zero);
     Node cond = nm->mkNode(AND, c1, c2, c3);
 
-    Node sk1 = n==d_zero ? d_empty_str : d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 = TheoryStringsRewriter::checkEntailArith( t12, lt0 ) ? d_empty_str : d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node sk1 = n == d_zero ? d_empty_str
+                           : d_sc->mkSkolemCached(
+                                 s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = TheoryStringsRewriter::checkEntailArith(t12, lt0)
+                   ? d_empty_str
+                   : d_sc->mkSkolemCached(
+                         s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
@@ -111,19 +116,19 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     new_nodes.push_back( krange );
 
     // substr( x, n, len( x ) - n )
-    Node st = nm->mkNode(
-        STRING_SUBSTR,
-        x,
-        n,
-        nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), n));
-    Node io2 = d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_PRE, "iopre");
-    Node io4 = d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_POST, "iopost");
+    Node st = nm->mkNode(STRING_SUBSTR,
+                         x,
+                         n,
+                         nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), n));
+    Node io2 =
+        d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_PRE, "iopre");
+    Node io4 =
+        d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_POST, "iopost");
 
     // ~contains( substr( x, n, len( x ) - n ), y )
     Node c11 = nm->mkNode(STRING_STRCTN, st, y).negate();
     // n > len( x )
-    Node c12 =
-        nm->mkNode(GT, n, nm->mkNode(STRING_LENGTH, x));
+    Node c12 = nm->mkNode(GT, n, nm->mkNode(STRING_LENGTH, x));
     // 0 > n
     Node c13 = nm->mkNode(GT, d_zero, n);
     Node cond1 = nm->mkNode(OR, c11, c12, c13);
@@ -144,17 +149,15 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
               nm->mkNode(
                   STRING_CONCAT,
                   io2,
-                  nm->mkNode(STRING_SUBSTR,
-                             y,
-                             d_zero,
-                             nm->mkNode(MINUS,
-                                        nm->mkNode(STRING_LENGTH, y),
-                                        d_one))),
+                  nm->mkNode(
+                      STRING_SUBSTR,
+                      y,
+                      d_zero,
+                      nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, y), d_one))),
               y)
             .negate();
     // skk = n + len( io2 )
-    Node c33 = skk.eqNode(
-        nm->mkNode(PLUS, n, nm->mkNode(STRING_LENGTH, io2)));
+    Node c33 = skk.eqNode(nm->mkNode(PLUS, n, nm->mkNode(STRING_LENGTH, io2)));
     Node cc3 = nm->mkNode(AND, c31, c32, c33);
 
     // assert:
@@ -166,8 +169,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //       ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y ) ^
     //       skk = n + len( io2 )
     // for fresh io2, io4.
-    Node rr = nm->mkNode(
-        ITE, cond1, cc1, nm->mkNode(ITE, cond2, cc2, cc3));
+    Node rr = nm->mkNode(ITE, cond1, cc1, nm->mkNode(ITE, cond2, cc2, cc3));
     new_nodes.push_back( rr );
 
     // Thus, indexof( x, y, n ) = skk.
@@ -177,7 +179,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret = d_sc->mkSkolemCached(t,SkolemCache::SK_PURIFY,"itost");
+    Node pret = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
