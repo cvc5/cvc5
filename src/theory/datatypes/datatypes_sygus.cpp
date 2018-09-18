@@ -22,7 +22,6 @@
 #include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -50,9 +49,7 @@ SygusSymBreakNew::SygusSymBreakNew(TheoryDatatypes* td,
 }
 
 SygusSymBreakNew::~SygusSymBreakNew() {
-  for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
-    delete it->second;
-  }
+
 }
 
 /** add tester */
@@ -108,7 +105,8 @@ void SygusSymBreakNew::assertFact( Node n, bool polarity, std::vector< Node >& l
     Trace("sygus-fair") << "Have sygus bound : " << n << ", polarity=" << polarity << " on measure " << m << std::endl;
     registerMeasureTerm( m );
     if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-      std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
+      std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
+          d_szinfo.find(m);
       Assert( its!=d_szinfo.end() );
       Node mt = its->second->getOrMkMeasureValue(lemmas);
       //it relates the measure term to arithmetic
@@ -238,7 +236,8 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
   Node a = d_term_to_anchor[n];
   Assert( d_anchor_to_measure_term.find( a )!=d_anchor_to_measure_term.end() );
   Node m = d_anchor_to_measure_term[a];
-  std::map< Node, SearchSizeInfo * >::iterator itsz = d_szinfo.find( m );
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
+      d_szinfo.find(m);
   Assert( itsz!=d_szinfo.end() );
   unsigned ssz = itsz->second->d_curr_search_size;
   
@@ -313,11 +312,11 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       // static conjecture-dependent symmetry breaking
       Trace("sygus-sb-debug")
           << "  conjecture-dependent symmetry breaking...\n";
-      std::map<Node, quantifiers::CegConjecture*>::iterator itc =
+      std::map<Node, quantifiers::SynthConjecture*>::iterator itc =
           d_anchor_to_conj.find(a);
       if (itc != d_anchor_to_conj.end())
       {
-        quantifiers::CegConjecture* conj = itc->second;
+        quantifiers::SynthConjecture* conj = itc->second;
         Assert(conj != NULL);
         Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
         if (!dpred.isNull())
@@ -803,7 +802,7 @@ Node SygusSymBreakNew::registerSearchValue(
     d_cache[a].d_search_val_proc.insert(cnv);
     // get the root (for PBE symmetry breaking)
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
-    quantifiers::CegConjecture* aconj = d_anchor_to_conj[a];
+    quantifiers::SynthConjecture* aconj = d_anchor_to_conj[a];
     Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << cnv
                             << ", type=" << tn << std::endl;
@@ -827,9 +826,9 @@ Node SygusSymBreakNew::registerSearchValue(
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         // TODO (github #1210) conjecture-specific symmetry breaking
-        // this should be generalized and encapsulated within the CegConjecture
-        // class
-        // is it equivalent under examples?
+        // this should be generalized and encapsulated within the
+        // SynthConjecture class.
+        // Is it equivalent under examples?
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
@@ -1073,6 +1072,19 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
           Node ag = d_tds->getActiveGuardForEnumerator(e);
           if( !ag.isNull() ){
             d_anchor_to_active_guard[e] = ag;
+            std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itaas =
+                d_anchor_to_ag_strategy.find(e);
+            if (itaas == d_anchor_to_ag_strategy.end())
+            {
+              d_anchor_to_ag_strategy[e].reset(
+                  new DecisionStrategySingleton("sygus_enum_active",
+                                                ag,
+                                                d_td->getSatContext(),
+                                                d_td->getValuation()));
+            }
+            d_td->getDecisionManager()->registerStrategy(
+                DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+                d_anchor_to_ag_strategy[e].get());
           }
           Node m;
           if( !ag.isNull() ){
@@ -1119,15 +1131,21 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
 }
 
 void SygusSymBreakNew::registerMeasureTerm( Node m ) {
-  std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.find( m );
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator it =
+      d_szinfo.find(m);
   if( it==d_szinfo.end() ){
     Trace("sygus-sb") << "Sygus : register measure term : " << m << std::endl;
-    d_szinfo[m] = new SearchSizeInfo( m, d_td->getSatContext() );
+    d_szinfo[m].reset(new SygusSizeDecisionStrategy(
+        m, d_td->getSatContext(), d_td->getValuation()));
+    // register this as a decision strategy
+    d_td->getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_SIZE, d_szinfo[m].get());
   }
 }
 
 void SygusSymBreakNew::notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas ) {
-  std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
+      d_szinfo.find(m);
   Assert( its!=d_szinfo.end() );
   if( its->second->d_search_size.find( s )==its->second->d_search_size.end() ){
     its->second->d_search_size[s] = true;
@@ -1174,13 +1192,15 @@ unsigned SygusSymBreakNew::getSearchSizeForAnchor( Node a ) {
 unsigned SygusSymBreakNew::getSearchSizeForMeasureTerm(Node m)
 {
   Trace("sygus-sb-debug2") << "get search size for measure : " << m << std::endl;
-  std::map< Node, SearchSizeInfo * >::iterator its = d_szinfo.find( m );
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator its =
+      d_szinfo.find(m);
   Assert( its!=d_szinfo.end() );
   return its->second->d_curr_search_size;
 }
   
 void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& lemmas ) {
-  std::map< Node, SearchSizeInfo * >::iterator itsz = d_szinfo.find( m );
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>>::iterator itsz =
+      d_szinfo.find(m);
   Assert( itsz!=d_szinfo.end() );
   itsz->second->d_curr_search_size++;
   Trace("sygus-fair") << "  register search size " << itsz->second->d_curr_search_size << " for " << m << std::endl;
@@ -1322,8 +1342,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     if (lemmas.empty() && !d_szinfo.empty())
     {
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
-      for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
-        SearchSizeInfo * s = it->second;
+      for (std::pair<const Node, std::unique_ptr<SygusSizeDecisionStrategy>>&
+               p : d_szinfo)
+      {
+        SygusSizeDecisionStrategy* s = p.second.get();
         Trace("cegqi-engine") << s->d_curr_search_size << " ";
       }
       Trace("cegqi-engine") << std::endl;
@@ -1403,7 +1425,7 @@ Node SygusSymBreakNew::getCurrentTemplate( Node n, std::map< TypeNode, int >& va
   }
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkMeasureValue(
+Node SygusSymBreakNew::SygusSizeDecisionStrategy::getOrMkMeasureValue(
     std::vector<Node>& lemmas)
 {
   if (d_measure_value.isNull())
@@ -1418,7 +1440,7 @@ Node SygusSymBreakNew::SearchSizeInfo::getOrMkMeasureValue(
   return d_measure_value;
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getOrMkActiveMeasureValue(
+Node SygusSymBreakNew::SygusSizeDecisionStrategy::getOrMkActiveMeasureValue(
     std::vector<Node>& lemmas, bool mkNew)
 {
   if (mkNew)
@@ -1436,69 +1458,23 @@ Node SygusSymBreakNew::SearchSizeInfo::getOrMkActiveMeasureValue(
   return d_measure_value_active;
 }
 
-Node SygusSymBreakNew::SearchSizeInfo::getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas ) {
-  if( options::sygusFair()!=SYGUS_FAIR_NONE ){
-    std::map< unsigned, Node >::iterator it = d_lits.find( s );
-    if( it==d_lits.end() ){
-      if (options::sygusAbortSize() != -1
-          && static_cast<int>(s) > options::sygusAbortSize())
-      {
-        std::stringstream ss;
-        ss << "Maximum term size (" << options::sygusAbortSize()
-           << ") for enumerative SyGuS exceeded.";
-        throw LogicException(ss.str());
-      }
-      Assert( !d_this.isNull() );
-      Node c = NodeManager::currentNM()->mkConst( Rational( s ) );
-      Node lit = NodeManager::currentNM()->mkNode( DT_SYGUS_BOUND, d_this, c );
-      lit = d->getValuation().ensureLiteral( lit );
-      
-      Trace("sygus-fair") << "******* Sygus : allocate size literal " << s << " for " << d_this << " : " << lit << std::endl;
-      Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s << " for " << d_this << std::endl;
-      Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
-      Trace("sygus-dec") << "Sygus : Fairness split : " << lem << std::endl;
-      lemmas.push_back( lem );
-      d->getOutputChannel().requirePhase( lit, true );
-    
-      d_lits[s] = lit;
-      return lit;
-    }else{
-      return it->second;
-    }
-  }else{
+Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
+{
+  if (options::sygusFair() == SYGUS_FAIR_NONE)
+  {
     return Node::null();
   }
-}
-
-Node SygusSymBreakNew::getNextDecisionRequest( unsigned& priority, std::vector< Node >& lemmas ) {
-  Trace("sygus-dec-debug") << "SygusSymBreakNew: Get next decision " << std::endl;
-  for( std::map< Node, Node >::iterator it = d_anchor_to_active_guard.begin(); it != d_anchor_to_active_guard.end(); ++it ){
-    if( getGuardStatus( it->second )==0 ){
-      Trace("sygus-dec") << "Sygus : Decide next on active guard : " << it->second << "..." << std::endl;
-      priority = 1;
-      return it->second;
-    }
+  if (options::sygusAbortSize() != -1
+      && static_cast<int>(s) > options::sygusAbortSize())
+  {
+    std::stringstream ss;
+    ss << "Maximum term size (" << options::sygusAbortSize()
+       << ") for enumerative SyGuS exceeded.";
+    throw LogicException(ss.str());
   }
-  for( std::map< Node, SearchSizeInfo * >::iterator it = d_szinfo.begin(); it != d_szinfo.end(); ++it ){
-    SearchSizeInfo * s = it->second;
-    std::vector< Node > new_lit;
-    Node c_lit = s->getCurrentFairnessLiteral( d_td, lemmas );
-    Assert( !c_lit.isNull() );
-    int gstatus = getGuardStatus( c_lit );
-    if( gstatus==-1 ){
-      s->incrementCurrentLiteral();
-      c_lit = s->getCurrentFairnessLiteral( d_td, lemmas );
-      Assert( !c_lit.isNull() );
-      Trace("sygus-dec") << "Sygus : Decide on next lit : " << c_lit << "..." << std::endl;
-      priority = 1;
-      return c_lit;
-    }else if( gstatus==0 ){
-      Trace("sygus-dec") << "Sygus : Decide on current lit : " << c_lit << "..." << std::endl;
-      priority = 1;
-      return c_lit;
-    }
-  }
-  return Node::null();
+  Assert(!d_this.isNull());
+  NodeManager* nm = NodeManager::currentNM();
+  return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 
 int SygusSymBreakNew::getGuardStatus( Node g ) {

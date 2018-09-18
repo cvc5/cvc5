@@ -127,7 +127,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -3182,7 +3182,9 @@ void SmtEnginePrivate::processAssertions() {
   if( options::ceGuidedInst() ){
     //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
+      d_smt.d_theoryEngine->getQuantifiersEngine()
+          ->getSynthEngine()
+          ->preregisterAssertion(d_assertions[i]);
     }
   }
 

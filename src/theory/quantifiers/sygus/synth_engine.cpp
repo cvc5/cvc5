@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ce_guided_instantiation.cpp
+/*! \file synth_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief counterexample guided instantiation class
- **   This class is the entry point for both synthesis algorithms in Reynolds et al CAV 2015
+ ** \brief Implementation of the quantifiers module for managing all approaches
+ ** to synthesis, in particular, those described in Reynolds et al CAV 2015.
  **
  **/
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
@@ -31,26 +31,27 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( qe );
+SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
+    : QuantifiersModule(qe)
+{
+  d_conj = new SynthConjecture(qe);
   d_last_inst_si = false;
 }
 
-CegInstantiation::~CegInstantiation(){ 
-  delete d_conj;
-}
+SynthEngine::~SynthEngine() { delete d_conj; }
 
-bool CegInstantiation::needsCheck( Theory::Effort e ) {
+bool SynthEngine::needsCheck(Theory::Effort e)
+{
   return !d_quantEngine->getTheoryEngine()->needCheck()
          && e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
 {
   return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
 }
 
-void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
+void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
   unsigned echeck =
@@ -100,7 +101,7 @@ void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
-bool CegInstantiation::assignConjecture(Node q)
+bool SynthEngine::assignConjecture(Node q)
 {
   if (d_conj->isAssigned())
   {
@@ -231,7 +232,7 @@ bool CegInstantiation::assignConjecture(Node q)
   return true;
 }
 
-void CegInstantiation::registerQuantifier(Node q)
+void SynthEngine::registerQuantifier(Node q)
 {
   if (d_quantEngine->getOwner(q) == this)
   {  // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
@@ -247,35 +248,30 @@ void CegInstantiation::registerQuantifier(Node q)
         // assign it now
         assignConjecture(q);
       }
-    }else{
-      Assert( d_conj->getEmbeddedConjecture()==q );
     }
-  }else{
+    else
+    {
+      Assert(d_conj->getEmbeddedConjecture() == q);
+    }
+  }
+  else
+  {
     Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
   }
 }
 
-Node CegInstantiation::getNextDecisionRequest( unsigned& priority ) {
-  if( d_conj->isAssigned() ){
-    Node dec_req = d_conj->getNextDecisionRequest( priority );
-    if( !dec_req.isNull() ){
-      Trace("cegqi-debug") << "CEGQI : Decide next on : " << dec_req << "..." << std::endl;
-      return dec_req;
-    }
-  }
-  return Node::null();
-}
-
-void CegInstantiation::checkConjecture(CegConjecture* conj)
+void SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
-  if( Trace.isOn("cegqi-engine-debug") ){
+  if (Trace.isOn("cegqi-engine-debug"))
+  {
     conj->debugPrint("cegqi-engine-debug");
     Trace("cegqi-engine-debug") << std::endl;
   }
 
-  if( !conj->needsRefinement() ){
+  if (!conj->needsRefinement())
+  {
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
     if (conj->isSingleInvocation())
     {
@@ -319,7 +315,9 @@ void CegInstantiation::checkConjecture(CegConjecture* conj)
       {
         ++(d_statistics.d_cegqi_lemmas_ce);
         addedLemma = true;
-      }else{
+      }
+      else
+      {
         // this may happen if we eagerly unfold, simplify to true
         Trace("cegqi-engine-debug")
             << "  ...FAILED to add candidate!" << std::endl;
@@ -328,7 +326,9 @@ void CegInstantiation::checkConjecture(CegConjecture* conj)
     if (addedLemma)
     {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
-    }else{
+    }
+    else
+    {
       if (conj->needsRefinement())
       {
         // immediately go to refine candidate
@@ -336,41 +336,50 @@ void CegInstantiation::checkConjecture(CegConjecture* conj)
         return;
       }
     }
-  }else{
+  }
+  else
+  {
     Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
-    std::vector< Node > rlems;
-    conj->doRefine( rlems );
+    std::vector<Node> rlems;
+    conj->doRefine(rlems);
     bool addedLemma = false;
-    for( unsigned i=0; i<rlems.size(); i++ ){
+    for (unsigned i = 0; i < rlems.size(); i++)
+    {
       Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem << std::endl;
-      bool res = d_quantEngine->addLemma( lem );
-      if( res ){
+      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
+                           << std::endl;
+      bool res = d_quantEngine->addLemma(lem);
+      if (res)
+      {
         ++(d_statistics.d_cegqi_lemmas_refine);
         conj->incrementRefineCount();
         addedLemma = true;
-      }else{
+      }
+      else
+      {
         Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
       }
     }
-    if( addedLemma ){
+    if (addedLemma)
+    {
       Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
     }
   }
 }
 
-void CegInstantiation::printSynthSolution( std::ostream& out ) {
-  if( d_conj->isAssigned() )
+void SynthEngine::printSynthSolution(std::ostream& out)
+{
+  if (d_conj->isAssigned())
   {
-    d_conj->printSynthSolution( out, d_last_inst_si );
+    d_conj->printSynthSolution(out, d_last_inst_si);
   }
   else
   {
-    Assert( false );
+    Assert(false);
   }
 }
 
-void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
+void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   if (d_conj->isAssigned())
   {
@@ -378,22 +387,25 @@ void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
   }
 }
 
-void CegInstantiation::preregisterAssertion( Node n ) {
-  //check if it sygus conjecture
-  if( QuantAttributes::checkSygusConjecture( n ) ){
-    //this is a sygus conjecture
+void SynthEngine::preregisterAssertion(Node n)
+{
+  // check if it sygus conjecture
+  if (QuantAttributes::checkSygusConjecture(n))
+  {
+    // this is a sygus conjecture
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->preregisterConjecture( n );
+    d_conj->preregisterConjecture(n);
   }
 }
 
-CegInstantiation::Statistics::Statistics()
-    : d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
-      d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
-      d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0),
-      d_solutions("CegConjecture::solutions", 0),
-      d_candidate_rewrites_print("CegConjecture::candidate_rewrites_print", 0),
-      d_candidate_rewrites("CegConjecture::candidate_rewrites", 0)
+SynthEngine::Statistics::Statistics()
+    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
+      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
+      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
+      d_solutions("SynthConjecture::solutions", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
+                                 0),
+      d_candidate_rewrites("SynthConjecture::candidate_rewrites", 0)
 
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
@@ -404,7 +416,8 @@ CegInstantiation::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_candidate_rewrites);
 }
 
-CegInstantiation::Statistics::~Statistics(){
+SynthEngine::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
@@ -413,6 +426,6 @@ CegInstantiation::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites);
 }
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+} /* namespace CVC4 */

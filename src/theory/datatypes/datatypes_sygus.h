@@ -30,8 +30,8 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -51,6 +51,18 @@ class TheoryDatatypes;
  * Some of these techniques are described in these papers:
  * "Refutation-Based Synthesis in SMT", Reynolds et al 2017.
  * "Sygus Techniques in the Core of an SMT Solver", Reynolds et al 2017.
+ *
+ * This class enforces two decisions stragies via calls to registerStrategy
+ * of the owning theory's DecisionManager:
+ * (1) Positive decisions on the active guards G of enumerators e registered
+ * to this class. These assert "there are more values to enumerate for e".
+ * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
+ * where n is a non-negative integer. This asserts "the measure of terms
+ * we are enumerating for enumerators whose measure term m is at most n",
+ * where measure is commonly term size, but can also be height.
+ *
+ * We prioritize decisions of form (1) before (2). Both kinds of decision are
+ * critical for solution completeness, which is enforced by DecisionManager.
  */
 class SygusSymBreakNew
 {
@@ -95,24 +107,6 @@ class SygusSymBreakNew
    * all preregistered enumerators.
    */
   void check(std::vector<Node>& lemmas);
-  /** get next decision request
-   *
-   * This function has the same interface as Theory::getNextDecisionRequest.
-   *
-   * The decisions returned by this method are of one of two forms:
-   * (1) Positive decisions on the active guards G of enumerators e registered
-   * to this class. These assert "there are more values to enumerate for e".
-   * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
-   * where n is a non-negative integer. This asserts "the measure of terms
-   * we are enumerating for enumerators whose measure term m is at most n",
-   * where measure is commonly term size, but can also be height.
-   *
-   * We prioritize decisions of form (1) before (2). For both decisions,
-   * we set the priority argument to "1", indicating that the decision is
-   * critical for solution completeness.
-   */
-  Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
-
  private:
   /** Pointer to the datatype theory that owns this class. */
   TheoryDatatypes* d_td;
@@ -158,7 +152,7 @@ class SygusSymBreakNew
   /**
    * Map from anchors to the conjecture they are associated with.
    */
-  std::map<Node, quantifiers::CegConjecture*> d_anchor_to_conj;
+  std::map<Node, quantifiers::SynthConjecture*> d_anchor_to_conj;
   /**
    * Map from terms (selector chains) to their depth. The depth of a selector
    * chain S1( ... Sn( x ) ... ) is:
@@ -235,7 +229,7 @@ private:
    * (2) static symmetry breaking clauses for subterms of n (those added to
    * lemmas on getSimpleSymBreakPred, see function below),
    * (3) conjecture-specific symmetry breaking lemmas, see
-   * CegConjecture::getSymmetryBreakingPredicate,
+   * SynthConjecture::getSymmetryBreakingPredicate,
    * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
@@ -453,14 +447,17 @@ private:
    * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * SearchSizeInfo for m below. This may result in lemmas
+   * SygusSizeDecisionStrategy for m below. This may result in lemmas
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
-  /** information for each measure term allocated by this class */
-  class SearchSizeInfo
+  /** A decision strategy for each measure term allocated by this class */
+  class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    SygusSizeDecisionStrategy(Node t, context::Context* c, Valuation valuation)
+        : DecisionStrategyFmf(c, valuation), d_this(t), d_curr_search_size(0)
+    {
+    }
     /** the measure term */
     Node d_this;
     /**
@@ -512,28 +509,13 @@ private:
      */
     Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
                                    bool mkNew = false);
-    /**
-     * The current search size literal for this measure term. This corresponds
-     * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
-     * this SAT context.
-     */
-    context::CDO< unsigned > d_curr_lit;
-    /**
-     * Map from integers n to the fairness literal, for each n such that this
-     * literal has been allocated (by getFairnessLiteral below).
-     */
-    std::map< unsigned, Node > d_lits;
-    /**
-     * Returns the s^th fairness literal for this measure term. This adds a
-     * split on this literal to lemmas.
-     */
-    Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
-    /** get the current fairness literal */
-    Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
-      return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
+    /** Returns the s^th fairness literal for this measure term. */
+    Node mkLiteral(unsigned s) override;
+    /** identify */
+    std::string identify() const override
+    {
+      return std::string("sygus_enum_size");
     }
-    /** increment current term size */
-    void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
 
    private:
     /** the measure value */
@@ -542,11 +524,13 @@ private:
     Node d_measure_value_active;
   };
   /** the above information for each registered measure term */
-  std::map< Node, SearchSizeInfo * > d_szinfo;
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>> d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
+  /** map from enumerators (anchors) to a decision stratregy for that guard */
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_anchor_to_ag_strategy;
   /** generic measure term
    *
    * This is a global term that is used as the measure term for all sygus
@@ -571,7 +555,7 @@ private:
    * incrementSearchSize so far is at least s.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  /** Allocates a SearchSizeInfo object in d_szinfo. */
+  /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
    * Return the current search size for arbitrary term n. This is the current
