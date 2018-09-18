@@ -1776,8 +1776,8 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
 void TheorySetsPrivate::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
   if( depth==arity ){
     if( t2!=NULL ){
-      Node f1 = t1->getNodeData();
-      Node f2 = t2->getNodeData();
+      Node f1 = t1->getData();
+      Node f2 = t2->getData();
       if( !ee_areEqual( f1, f2 ) ){
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;

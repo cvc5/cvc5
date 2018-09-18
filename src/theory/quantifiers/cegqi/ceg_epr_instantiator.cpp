@@ -113,8 +113,8 @@ void EprInstantiator::computeMatchScore(CegInstantiator* ci,
 {
   if (index == catom.getNumChildren())
   {
-    Assert(tat->hasNodeData());
-    Node gcatom = tat->getNodeData();
+    Assert(tat->hasData());
+    Node gcatom = tat->getData();
     Trace("cegqi-epr") << "Matched : " << catom << " and " << gcatom
                        << std::endl;
     for (unsigned i = 0, nchild = catom.getNumChildren(); i < nchild; i++)

@@ -20,19 +20,20 @@ namespace theory {
 
 TNode TNodeTrie::existsTerm( std::vector< TNode >& reps ) {
   TNodeTrie * tnt = this;
+  std::map< TNode, TNodeTrie >::iterator it;
   for( TNode r : reps )
   {
-    std::map< TNode, TNodeTrie >::iterator it = tnt->d_data.find( r );
-    if( it==d_data.end() ){
+    it = tnt->d_data.find( r );
+    if( it==tnt->d_data.end() ){
       // didn't find this child, return null
       return Node::null();
     }
     tnt = &it->second;
   }
-  if( d_data.empty() ){
+  if( tnt->d_data.empty() ){
     return Node::null();
   }
-  return d_data.begin()->first;
+  return tnt->d_data.begin()->first;
 }
 
 bool TNodeTrie::addTerm( TNode n, std::vector< TNode >& reps ){

@@ -23,7 +23,6 @@
 namespace CVC4 {
 namespace theory {
 
-
 /** TNode trie class
 *
 * This is a trie data structure whose distinguishing feature is that it has
@@ -59,12 +58,12 @@ namespace theory {
 */
 class TNodeTrie {
  public:
-  /** the data */
+  /** The children of this node. */
   std::map< TNode, TNodeTrie > d_data;
-  /** for leaf nodes : does this trie have data? */
-  bool hasNodeData() { return !d_data.empty(); }
-  /** for leaf nodes : get term corresponding to this leaf */
-  TNode getNodeData() { return d_data.begin()->first; }
+  /** For leaf nodes : does this node have data? */
+  bool hasData() { return !d_data.empty(); }
+  /** For leaf nodes : get the node corresponding to this leaf. */
+  TNode getData() { return d_data.begin()->first; }
   /** 
   * Returns the term that is indexed by reps, if one exists, or
   * or returns null otherwise.
@@ -72,7 +71,7 @@ class TNodeTrie {
   TNode existsTerm(std::vector<TNode>& reps);
   /**
   * Returns the term that is previously indexed by reps, if one exists, or
-  * Adds n to the trie, indexed by reps, and returns n.
+  * adds n to the trie, indexed by reps, and returns n.
   */
   TNode addOrGetTerm(TNode n, std::vector<TNode>& reps);
   /** 
@@ -81,11 +80,11 @@ class TNodeTrie {
   *   and adds n to the trie, indexed by reps, and returns n.
   */
   bool addTerm(TNode n, std::vector<TNode>& reps);
-  /** debug print this trie */
+  /** Debug print this trie. */
   void debugPrint(const char* c, Node n, unsigned depth = 0);
-  /** clear all data from this trie */
+  /** Clear all data from this trie. */
   void clear() { d_data.clear(); }
-  /** is empty */
+  /** Is this trie empty? */
   bool empty() { return d_data.empty(); }
 };/* class TNodeTrie */
 

@@ -1067,7 +1067,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
   if (argIndex == d_match_pattern.getNumChildren())
   {
     Assert( !tat->d_data.empty() );
-    TNode t = tat->getNodeData();
+    TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
     for (std::map<unsigned, int>::iterator it = d_var_num.begin();

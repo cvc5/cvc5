@@ -1063,8 +1063,8 @@ void TheoryStrings::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
 void TheoryStrings::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth ) {
   if( depth==arity ){
     if( t2!=NULL ){
-      Node f1 = t1->getNodeData();
-      Node f2 = t2->getNodeData();
+      Node f1 = t1->getData();
+      Node f2 = t2->getData();
       if( !d_equalityEngine.areEqual( f1, f2 ) ){
         Trace("strings-cg-debug") << "TheoryStrings::computeCareGraph(): checking function " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
