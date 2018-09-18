@@ -1822,9 +1822,9 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for( std::pair< const TNode, TNodeTrie >& t : t1->d_data )
+        for (std::pair<const TNode, TNodeTrie>& t : t1->d_data)
         {
-          addCarePairs( &t.second, NULL, arity, depth+1, n_pairs );
+          addCarePairs(&t.second, NULL, arity, depth + 1, n_pairs);
         }
       }
       //add care pairs based on each pair of non-disequal arguments
@@ -1844,13 +1844,15 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::pair< const TNode, TNodeTrie >& tt1 : t1->d_data )
+      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
       {
-        for( std::pair< const TNode, TNodeTrie >& tt2 : t2->d_data )
+        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if( !d_equalityEngine.areDisequal(tt1.first, tt2.first, false) ){
-            if( !ee_areCareDisequal(tt1.first, tt2.first) ){
-              addCarePairs( &tt1.second, &tt2.second, arity, depth+1, n_pairs );
+          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          {
+            if (!ee_areCareDisequal(tt1.first, tt2.first))
+            {
+              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1, n_pairs);
             }
           }
         }
@@ -1892,10 +1894,11 @@ void TheorySetsPrivate::computeCareGraph() {
       }
       if( arity>0 ){
         //for each index
-        for( std::pair< const TypeNode, TNodeTrie >& tt : index )
+        for (std::pair<const TypeNode, TNodeTrie>& tt : index)
         {
-          Trace("sets-cg") << "Process index " << tt.first << "..." << std::endl;
-          addCarePairs( &tt.second, nullptr, arity, 0, n_pairs );
+          Trace("sets-cg") << "Process index " << tt.first << "..."
+                           << std::endl;
+          addCarePairs(&tt.second, nullptr, arity, 0, n_pairs);
         }
       }
       Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;

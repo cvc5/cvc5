@@ -1035,11 +1035,12 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
-        for( std::pair< const TNode, TNodeTrie >& t : tat->d_data )
+        for (std::pair<const TNode, TNodeTrie>& t : tat->d_data)
         {
-          if( t.first!=r ){
+          if (t.first != r)
+          {
             InstMatch m( q );
-            addInstantiations( m, qe, addedLemmas, 0, &(t.second) );
+            addInstantiations(m, qe, addedLemmas, 0, &(t.second));
             if( qe->inConflict() ){
               break;
             }
@@ -1092,7 +1093,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     if( d_match_pattern[argIndex].getKind()==INST_CONSTANT ){
       int v = d_var_num[argIndex];
       if( v!=-1 ){
-        for( std::pair< const TNode, TNodeTrie >& tt : tat->d_data )
+        for (std::pair<const TNode, TNodeTrie>& tt : tat->d_data)
         {
           Node t = tt.first;
           Node prev = m.get( v );
@@ -1100,7 +1101,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
           Assert( t.getType().isComparableTo( d_match_pattern_arg_types[argIndex] ) );
           if( prev.isNull() || prev==t ){
             m.setValue( v, t);
-            addInstantiations( m, qe, addedLemmas, argIndex+1, &(tt.second) );
+            addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second));
             m.setValue( v, prev);
             if( qe->inConflict() ){
               break;

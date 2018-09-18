@@ -1097,9 +1097,9 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for (std::pair<const TNode, TNodeTrie >& tt : t1->d_data )
+        for (std::pair<const TNode, TNodeTrie>& tt : t1->d_data)
         {
-          addCarePairs( &tt.second, nullptr, arity, depth+1 );
+          addCarePairs(&tt.second, nullptr, arity, depth + 1);
         }
       }
       //add care pairs based on each pair of non-disequal arguments
@@ -1119,13 +1119,15 @@ void TheoryStrings::addCarePairs(TNodeTrie* t1,
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::pair< const TNode, TNodeTrie >& tt1 : t1->d_data )
+      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
       {
-        for( std::pair< const TNode, TNodeTrie >& tt2 : t2->d_data )
+        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
         {
-          if( !d_equalityEngine.areDisequal(tt1.first, tt2.first, false) ){
-            if( !areCareDisequal(tt1.first, tt2.first) ){
-              addCarePairs( &tt1.second, &tt2.second, arity, depth+1 );
+          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          {
+            if (!areCareDisequal(tt1.first, tt2.first))
+            {
+              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1);
             }
           }
         }
@@ -1158,10 +1160,11 @@ void TheoryStrings::computeCareGraph(){
     }
   }
   //for each index
-  for( std::pair< const Node, TNodeTrie >& tt : index )
+  for (std::pair<const Node, TNodeTrie>& tt : index)
   {
-    Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index " << tt.first << "..." << std::endl;
-    addCarePairs( &tt.second, nullptr, arity[ tt.first ], 0 );
+    Trace("strings-cg") << "TheoryStrings::computeCareGraph(): Process index "
+                        << tt.first << "..." << std::endl;
+    addCarePairs(&tt.second, nullptr, arity[tt.first], 0);
   }
 }
 

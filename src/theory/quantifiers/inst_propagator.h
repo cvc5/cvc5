@@ -86,6 +86,7 @@ private:
                   bool is_watch);
  /** register term */
  void registerUfTerm(TNode n);
+
 public:
   enum {
     STATUS_CONFLICT,
