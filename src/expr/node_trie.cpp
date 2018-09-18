@@ -18,9 +18,9 @@ namespace CVC4 {
 namespace theory {
   
 
-TNode TNodeTrie::existsTerm( std::vector< TNode >& reps ) {
-  TNodeTrie * tnt = this;
-  std::map< TNode, TNodeTrie >::iterator it;
+TNode TNodeTrie::existsTerm( std::vector< TNode >& reps ) const {
+  const TNodeTrie * tnt = this;
+  std::map< TNode, TNodeTrie >::const_iterator it;
   for( TNode r : reps )
   {
     it = tnt->d_data.find( r );
@@ -55,8 +55,8 @@ TNode TNodeTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps ) {
   return tnt->d_data.begin()->first;
 }
 
-void TNodeTrie::debugPrint( const char * c, Node n, unsigned depth ) {
-  for( std::pair< const TNode, TNodeTrie >& p : d_data )
+void TNodeTrie::debugPrint( const char * c, Node n, unsigned depth ) const {
+  for( const std::pair< const TNode, TNodeTrie >& p : d_data )
   {
     for( unsigned i=0; i<depth; i++ ){ 
       Trace(c) << "  ";

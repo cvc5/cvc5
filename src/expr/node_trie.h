@@ -61,14 +61,14 @@ class TNodeTrie {
   /** The children of this node. */
   std::map< TNode, TNodeTrie > d_data;
   /** For leaf nodes : does this node have data? */
-  bool hasData() { return !d_data.empty(); }
+  bool hasData() const { return !d_data.empty(); }
   /** For leaf nodes : get the node corresponding to this leaf. */
-  TNode getData() { return d_data.begin()->first; }
+  TNode getData() const { return d_data.begin()->first; }
   /** 
   * Returns the term that is indexed by reps, if one exists, or
   * or returns null otherwise.
   */
-  TNode existsTerm(std::vector<TNode>& reps);
+  TNode existsTerm(std::vector<TNode>& reps) const;
   /**
   * Returns the term that is previously indexed by reps, if one exists, or
   * adds n to the trie, indexed by reps, and returns n.
@@ -81,11 +81,11 @@ class TNodeTrie {
   */
   bool addTerm(TNode n, std::vector<TNode>& reps);
   /** Debug print this trie. */
-  void debugPrint(const char* c, Node n, unsigned depth = 0);
+  void debugPrint(const char* c, Node n, unsigned depth = 0) const;
   /** Clear all data from this trie. */
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
-  bool empty() { return d_data.empty(); }
+  bool empty() const { return d_data.empty(); }
 };/* class TNodeTrie */
 
 } /* CVC4::theory namespace */
