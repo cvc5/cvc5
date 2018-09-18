@@ -23,13 +23,13 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -340,13 +340,13 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
   getModelValues(terms, enum_values);
-  
+
   // if the master requires a full model and the model is partial, we fail
-  if( !d_master->allowPartialModel() )
+  if (!d_master->allowPartialModel())
   {
-    for( const Node& v : enum_values )
+    for (const Node& v : enum_values)
     {
-      if( v.isNull() )
+      if (v.isNull())
       {
         Trace("cegqi-check") << "...partial model, fail." << std::endl;
         return;
@@ -610,7 +610,7 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
     if (Trace.isOn("cegqi-engine"))
     {
       Trace("cegqi-engine") << n[i] << " -> ";
-      if( nv.isNull() )
+      if (nv.isNull())
       {
         Trace("cegqi-engine") << nv << std::endl;
       }
@@ -636,7 +636,7 @@ Node SynthConjecture::getModelValue(Node n)
 {
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
   Node mv = d_qe->getModel()->getValue(n);
-  if( mv.getAttribute(SygusSymBreakExcAttribute()))
+  if (mv.getAttribute(SygusSymBreakExcAttribute()))
   {
     return Node::null();
   }

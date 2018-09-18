@@ -39,11 +39,13 @@ struct SygusAnyConstAttributeId
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
-/** Attribute true for terms that have been excluded by sygus symmetry breaking. */
+/** Attribute true for terms that have been excluded by sygus symmetry breaking.
+ */
 struct SygusSymBreakExcAttributeId
 {
 };
-typedef expr::Attribute<SygusSymBreakExcAttributeId, bool> SygusSymBreakExcAttribute;
+typedef expr::Attribute<SygusSymBreakExcAttributeId, bool>
+    SygusSymBreakExcAttribute;
 
 namespace datatypes {
 

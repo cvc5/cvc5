@@ -1320,7 +1320,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           if (rsv.isNull())
           {
             SygusSymBreakExcAttribute ssbea;
-            progv.setAttribute(ssbea,true);
+            progv.setAttribute(ssbea, true);
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
           }
           else
@@ -1476,7 +1476,8 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
-  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s << " for " << d_this << std::endl;
+  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
+                        << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 

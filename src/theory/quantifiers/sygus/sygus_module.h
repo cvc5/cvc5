@@ -71,8 +71,8 @@ class SygusModule
    */
   virtual void getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& terms) = 0;
-  /** allow partial model 
-   * 
+  /** allow partial model
+   *
    * This method returns true if this module does not require that all
    * terms returned by getTermList have non-null model values when calling
    * constructCandidates.
