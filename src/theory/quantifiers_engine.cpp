@@ -22,7 +22,7 @@
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -934,19 +934,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
     mdl->assertNode(f);
   }
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
-}
-
-Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
-  unsigned min_priority = 0;
-  Node dec;  
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    Node n = d_modules[i]->getNextDecisionRequest( priority );
-    if( !n.isNull() && ( dec.isNull() || priority<min_priority ) ){
-      dec = n;
-      min_priority = priority;
-    }
-  }
-  return dec;
 }
 
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
