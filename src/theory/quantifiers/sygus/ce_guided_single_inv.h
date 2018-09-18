@@ -30,7 +30,6 @@ namespace quantifiers {
 
 class SynthConjecture;
 class CegSingleInv;
-class CegEntailmentInfer;
 
 class CegqiOutputSingleInv : public CegqiOutput {
 public:
