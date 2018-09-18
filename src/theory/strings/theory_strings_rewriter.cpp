@@ -1495,6 +1495,46 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
+    else if (t.size() == 1)
+    {
+      // The following rewrites are specific to a single character second
+      // argument of contains, where we can reason that this character is
+      // not split over multiple components in the first argument.
+      if (node[0].getKind() == STRING_CONCAT)
+      {
+        std::vector<Node> nc1;
+        getConcat(node[0], nc1);
+        std::vector<Node> children;
+        for (const Node& ncc : nc1)
+        {
+          children.push_back(nm->mkNode(STRING_STRCTN, ncc, node[1]));
+        }
+        Node ret = nm->mkNode(OR, children);
+        // str.contains( x ++ y, "A" ) --->
+        //   str.contains( x, "A" ) OR str.contains( y, "A" )
+        return returnRewrite(node, ret, "ctn-concat-char");
+      }
+      else if (node[0].getKind() == STRING_STRREPL)
+      {
+        Node rplDomain = nm->mkNode(STRING_STRCTN, node[0][1], node[1]);
+        rplDomain = Rewriter::rewrite(rplDomain);
+        if (rplDomain.isConst() && !rplDomain.getConst<bool>())
+        {
+          Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
+          Node d2 =
+              nm->mkNode(AND,
+                         nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
+                         nm->mkNode(STRING_STRCTN, node[0][2], node[1]));
+          Node ret = nm->mkNode(OR, d1, d2);
+          Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
+          // If str.contains( y, "A" ) ---> false, then:
+          // str.contains( str.replace( x, y, z ), "A" ) --->
+          //   str.contains( x, "A" ) OR
+          //   ( str.contains( x, y ) AND str.contains( z, "A" ) )
+          return returnRewrite(node, ret, "ctn-repl-char");
+        }
+      }
+    }
   }
   std::vector<Node> nc1;
   getConcat(node[0], nc1);
