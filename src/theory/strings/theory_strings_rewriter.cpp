@@ -1526,7 +1526,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                          nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
                          nm->mkNode(STRING_STRCTN, node[0][2], node[1]));
           Node ret = nm->mkNode(OR, d1, d2);
-          Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
           // If str.contains( y, "A" ) ---> false, then:
           // str.contains( str.replace( x, y, z ), "A" ) --->
           //   str.contains( x, "A" ) OR
