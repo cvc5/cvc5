@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ce_guided_conjecture.h
+/*! \file synth_conjecture.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Haniel Barbosa
@@ -9,8 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief class that encapsulates counterexample-guided instantiation
- **        techniques for a single SyGuS synthesis conjecture
+ ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis 
+ ** conjecture.
  **/
 
 #include "cvc4_private.h"
@@ -42,10 +42,10 @@ namespace quantifiers {
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class CegConjecture {
+class SynthConjecture {
 public:
-  CegConjecture( QuantifiersEngine * qe );
-  ~CegConjecture();
+  SynthConjecture( QuantifiersEngine * qe );
+  ~SynthConjecture();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
@@ -115,11 +115,11 @@ public:
   Node getModelValue( Node n );
 
   /** get utility for static preprocessing and analysis of conjectures */
-  CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
+  SynthConjectureProcess* getProcess() { return d_ceg_proc.get(); }
   /** get constant repair utility */
   SygusRepairConst* getRepairConst() { return d_sygus_rconst.get(); }
   /** get program by examples module */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
+  SygusPbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
@@ -133,9 +133,9 @@ private:
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
-  std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
+  std::unique_ptr<CegSingleInv> d_ceg_si;
   /** utility for static preprocessing and analysis of conjectures */
-  std::unique_ptr<CegConjectureProcess> d_ceg_proc;
+  std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
   /** repair constant utility */
@@ -143,7 +143,7 @@ private:
 
   //------------------------modules
   /** program by examples module */
-  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
+  std::unique_ptr<SygusPbe> d_ceg_pbe;
   /** CEGIS module */
   std::unique_ptr<Cegis> d_ceg_cegis;
   /** CEGIS UNIF module */

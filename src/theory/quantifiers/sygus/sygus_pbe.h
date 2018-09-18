@@ -25,9 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
-/** CegConjecturePbe
+/** SygusPbe
 *
 * This class implements optimizations that target synthesis conjectures
 * that are in Programming-By-Examples (PBE) form.
@@ -55,7 +55,7 @@ class CegConjecture;
 *     of particular types in the grammar through use of fresh variables which
 *     we call "enumerators".
 *
-* Points (1)-(3) happen within a call to CegConjecturePbe::initialize(...).
+* Points (1)-(3) happen within a call to SygusPbe::initialize(...).
 *
 * Notice that each enumerator is associated with a single
 * function-to-synthesize, but a function-to-sythesize may be mapped to multiple
@@ -76,15 +76,15 @@ class CegConjecture;
 *     are equivalent up to examples on the above conjecture, since they have the
 *     same value on the points x = 0,5,6. Hence, we need only consider one of
 *     them. The interface for querying this is
-*       CegConjecturePbe::addSearchVal(...).
+*       SygusPbe::addSearchVal(...).
 *     For details, see Reynolds et al. SYNT 2017.
 *
 * (5) When the extension of quantifier-free datatypes procedure for SyGuS
 *     datatypes terminates with a model, the parent of this class calls
-*     CegConjecturePbe::getCandidateList(...), where this class returns the list
+*     SygusPbe::getCandidateList(...), where this class returns the list
 *     of active enumerators.
 * (6) The parent class subsequently calls
-*     CegConjecturePbe::constructValues(...), which informs this class that new
+*     SygusPbe::constructValues(...), which informs this class that new
 *     values have been enumerated for active enumerators, as indicated by the
 *     current model. This call also requests that based on these
 *     newly enumerated values, whether this class is now able to construct a
@@ -93,11 +93,11 @@ class CegConjecture;
 * This class is not designed to work in incremental mode, since there is no way
 * to specify incremental problems in SyguS.
 */
-class CegConjecturePbe : public SygusModule
+class SygusPbe : public SygusModule
 {
  public:
-  CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p);
-  ~CegConjecturePbe();
+  SygusPbe(QuantifiersEngine* qe, CegConjecture* p);
+  ~SygusPbe();
 
   /** initialize this class
   *
@@ -276,7 +276,7 @@ class CegConjecturePbe : public SygusModule
     Node addPbeExample(TypeNode etn,
                        Node e,
                        Node b,
-                       CegConjecturePbe* cpbe,
+                       SygusPbe* cpbe,
                        unsigned index,
                        unsigned ntotal);
 
@@ -286,7 +286,7 @@ class CegConjecturePbe : public SygusModule
                            Node e,
                            Node b,
                            std::vector<Node>& ex,
-                           CegConjecturePbe* cpbe,
+                           SygusPbe* cpbe,
                            unsigned index,
                            unsigned ntotal);
   };

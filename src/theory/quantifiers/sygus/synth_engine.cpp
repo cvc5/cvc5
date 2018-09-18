@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ce_guided_instantiation.cpp
+/*! \file synth_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
@@ -9,11 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief counterexample guided instantiation class
- **   This class is the entry point for both synthesis algorithms in Reynolds et al CAV 2015
+ ** \brief Implementation of the quantifiers module for managing all approaches
+ ** to synthesis, in particular, those described in Reynolds et al CAV 2015.
  **
  **/
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 
 #include "options/quantifiers_options.h"
 #include "smt/smt_engine.h"
@@ -31,26 +31,26 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegInstantiation::CegInstantiation( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new CegConjecture( qe );
+SynthEngine::SynthEngine( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
+  d_conj = new SynthConjecture( qe );
   d_last_inst_si = false;
 }
 
-CegInstantiation::~CegInstantiation(){ 
+SynthEngine::~SynthEngine(){ 
   delete d_conj;
 }
 
-bool CegInstantiation::needsCheck( Theory::Effort e ) {
+bool SynthEngine::needsCheck( Theory::Effort e ) {
   return !d_quantEngine->getTheoryEngine()->needCheck()
          && e >= Theory::EFFORT_LAST_CALL;
 }
 
-QuantifiersModule::QEffort CegInstantiation::needsModel(Theory::Effort e)
+QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
 {
   return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
 }
 
-void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
+void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
   unsigned echeck =
@@ -100,7 +100,7 @@ void CegInstantiation::check(Theory::Effort e, QEffort quant_e)
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
-bool CegInstantiation::assignConjecture(Node q)
+bool SynthEngine::assignConjecture(Node q)
 {
   if (d_conj->isAssigned())
   {
@@ -231,7 +231,7 @@ bool CegInstantiation::assignConjecture(Node q)
   return true;
 }
 
-void CegInstantiation::registerQuantifier(Node q)
+void SynthEngine::registerQuantifier(Node q)
 {
   if (d_quantEngine->getOwner(q) == this)
   {  // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
@@ -255,7 +255,7 @@ void CegInstantiation::registerQuantifier(Node q)
   }
 }
 
-void CegInstantiation::checkConjecture(CegConjecture* conj)
+void SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
@@ -348,7 +348,7 @@ void CegInstantiation::checkConjecture(CegConjecture* conj)
   }
 }
 
-void CegInstantiation::printSynthSolution( std::ostream& out ) {
+void SynthEngine::printSynthSolution( std::ostream& out ) {
   if( d_conj->isAssigned() )
   {
     d_conj->printSynthSolution( out, d_last_inst_si );
@@ -359,7 +359,7 @@ void CegInstantiation::printSynthSolution( std::ostream& out ) {
   }
 }
 
-void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
+void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   if (d_conj->isAssigned())
   {
@@ -367,7 +367,7 @@ void CegInstantiation::getSynthSolutions(std::map<Node, Node>& sol_map)
   }
 }
 
-void CegInstantiation::preregisterAssertion( Node n ) {
+void SynthEngine::preregisterAssertion( Node n ) {
   //check if it sygus conjecture
   if( QuantAttributes::checkSygusConjecture( n ) ){
     //this is a sygus conjecture
@@ -376,13 +376,13 @@ void CegInstantiation::preregisterAssertion( Node n ) {
   }
 }
 
-CegInstantiation::Statistics::Statistics()
-    : d_cegqi_lemmas_ce("CegInstantiation::cegqi_lemmas_ce", 0),
-      d_cegqi_lemmas_refine("CegInstantiation::cegqi_lemmas_refine", 0),
-      d_cegqi_si_lemmas("CegInstantiation::cegqi_lemmas_si", 0),
-      d_solutions("CegConjecture::solutions", 0),
-      d_candidate_rewrites_print("CegConjecture::candidate_rewrites_print", 0),
-      d_candidate_rewrites("CegConjecture::candidate_rewrites", 0)
+SynthEngine::Statistics::Statistics()
+    : d_cegqi_lemmas_ce("SynthEngine::cegqi_lemmas_ce", 0),
+      d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
+      d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
+      d_solutions("SynthConjecture::solutions", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0),
+      d_candidate_rewrites("SynthConjecture::candidate_rewrites", 0)
 
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
@@ -393,7 +393,7 @@ CegInstantiation::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_candidate_rewrites);
 }
 
-CegInstantiation::Statistics::~Statistics(){
+SynthEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);

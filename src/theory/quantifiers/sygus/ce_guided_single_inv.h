@@ -29,14 +29,14 @@ namespace theory {
 namespace quantifiers {
 
 class CegConjecture;
-class CegConjectureSingleInv;
+class CegSingleInv;
 class CegEntailmentInfer;
 
 class CegqiOutputSingleInv : public CegqiOutput {
 public:
-  CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
+  CegqiOutputSingleInv( CegSingleInv * out ) : d_out( out ){}
   virtual ~CegqiOutputSingleInv() {}
-  CegConjectureSingleInv * d_out;
+  CegSingleInv * d_out;
   bool doAddInstantiation(std::vector<Node>& subs) override;
   bool isEligibleForInstantiation(Node n) override;
   bool addLemma(Node lem) override;
@@ -123,7 +123,7 @@ private:
 // (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
 // For these techniques, we may generate a template (d_templ) which specifies a restricted
 // solution space. We may in turn embed this template as a SyGuS grammar.
-class CegConjectureSingleInv {
+class CegSingleInv {
  private:
   friend class CegqiOutputSingleInv;
   //presolve
@@ -145,7 +145,7 @@ class CegConjectureSingleInv {
   // transition inference module for each function to synthesize
   std::map< Node, TransitionInference > d_ti;
   // solution reconstruction
-  CegConjectureSingleInvSol* d_sol;
+  CegSingleInvSol* d_sol;
   // the instantiator's output channel
   CegqiOutputSingleInv* d_cosi;
   // the instantiator
@@ -197,8 +197,8 @@ class CegConjectureSingleInv {
   std::map< Node, Node > d_templ_arg;
   
  public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
-  ~CegConjectureSingleInv();
+  CegSingleInv( QuantifiersEngine * qe, CegConjecture * p );
+  ~CegSingleInv();
 
   // get simplified conjecture
   Node getSimplifiedConjecture() { return d_simp_quant; }
