@@ -311,6 +311,7 @@ void TheorySep::check(Effort e) {
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("sep-check") << "Sep::check(): " << e << endl;
+  NodeManager * nm = NodeManager::currentNM();
 
   while( !done() && !d_conflict ){
     // Get all the assertions
@@ -454,8 +455,8 @@ void TheorySep::check(Effort e) {
             if( !use_polarity ){
               // introduce guard, assert positive version
               Trace("sep-lemma-debug") << "Negated spatial constraint asserted to sep theory: " << fact << std::endl;
-              Node g = NodeManager::currentNM()->mkSkolem(
-                  "G", NodeManager::currentNM()->booleanType());
+              Node g = nm->mkSkolem(
+                  "G", nm->booleanType());
               d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
                   "sep_neg_guard", g, getSatContext(), getValuation()));
               DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
