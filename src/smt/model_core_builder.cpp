@@ -40,7 +40,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   }
   NodeManager* nm = NodeManager::currentNM();
 
-  Node formula = nm->mkNode(AND, asserts);
+  Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
   std::vector<Node> vars;
   std::vector<Node> subs;
   Trace("model-core") << "Assignments: " << std::endl;
