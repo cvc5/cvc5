@@ -1509,6 +1509,16 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         Node ret = nm->mkNode( OR, children );
         return returnRewrite(node, ret, "ctn-concat-char");
       }
+      else if( node[0].getKind()==STRING_STRREPL )
+      {
+        Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
+        rplRange = Rewriter::rewrite( rplRange );
+        if( rplRange.isConst() && !rplRange.getConst<bool>() )
+        {
+          Node ret = nm->mkNode(STRING_STRCTN,node[0][0], node[1] );
+          return returnRewrite(node, ret, "ctn-repl-char");
+        }
+      }
     }
   }
   std::vector<Node> nc1;
