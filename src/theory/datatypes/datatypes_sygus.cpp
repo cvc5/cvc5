@@ -1319,6 +1319,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
           if (rsv.isNull())
           {
+            SygusSymBreakExcAttribute ssbea;
+            progv.setAttribute(ssbea,true);
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
           }
           else

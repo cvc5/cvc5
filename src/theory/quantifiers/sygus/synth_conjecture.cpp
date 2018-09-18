@@ -595,19 +595,25 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
     v.push_back(nv);
     if (Trace.isOn("cegqi-engine"))
     {
-      TypeNode tn = nv.getType();
       Trace("cegqi-engine") << n[i] << " -> ";
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
-      Trace("cegqi-engine") << ss.str() << " ";
-      if (Trace.isOn("cegqi-engine-rr"))
+      if( nv.isNull() )
       {
-        Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
-        bv = Rewriter::rewrite(bv);
-        Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+        Trace("cegqi-engine") << nv << std::endl;
+      }
+      else
+      {
+        TypeNode tn = nv.getType();
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
+        Trace("cegqi-engine") << ss.str() << " ";
+        if (Trace.isOn("cegqi-engine-rr"))
+        {
+          Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
+          bv = Rewriter::rewrite(bv);
+          Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+        }
       }
     }
-    Assert(!nv.isNull());
   }
   Trace("cegqi-engine") << std::endl;
 }
@@ -615,7 +621,12 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 Node SynthConjecture::getModelValue(Node n)
 {
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
-  return d_qe->getModel()->getValue(n);
+  Node mv = d_qe->getModel()->getValue(n);
+  if( mv.getAttribute(SygusSymBreakExcAttribute()))
+  {
+    return Node::null();
+  }
+  return mv;
 }
 
 void SynthConjecture::debugPrint(const char* c)
