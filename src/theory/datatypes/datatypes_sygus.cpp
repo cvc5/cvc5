@@ -826,9 +826,9 @@ Node SygusSymBreakNew::registerSearchValue(
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         // TODO (github #1210) conjecture-specific symmetry breaking
-        // this should be generalized and encapsulated within the SynthConjecture
-        // class
-        // is it equivalent under examples?
+        // this should be generalized and encapsulated within the
+        // SynthConjecture class.
+        // Is it equivalent under examples?
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {

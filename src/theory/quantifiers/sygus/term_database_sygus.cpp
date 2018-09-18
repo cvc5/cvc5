@@ -565,7 +565,9 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
 {
   for (std::map<Node, SynthConjecture*>::iterator itm =
            d_enum_to_conjecture.begin();
-       itm != d_enum_to_conjecture.end(); ++itm) {
+       itm != d_enum_to_conjecture.end();
+       ++itm)
+  {
     mts.push_back( itm->first );
   }
 }

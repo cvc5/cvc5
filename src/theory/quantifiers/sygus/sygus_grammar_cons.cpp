@@ -20,9 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -95,7 +95,8 @@ Node CegGrammarConstructor::process(Node q,
 {
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
-  Trace("cegqi") << "SynthConjecture : convert to deep embedding..." << std::endl;
+  Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
+                 << std::endl;
   std::map< TypeNode, std::vector< Node > > extra_cons;
   if( options::sygusAddConstGrammar() ){
     Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;

@@ -254,51 +254,50 @@ struct SynthConjectureProcessFun
 };
 
 /** Ceg Conjecture Process
-*
-* This class implements static techniques for preprocessing and analysis of
-* sygus conjectures.
-*
-* It is used as a back-end to SynthConjecture, which calls it using the following
-* interface:
-* (1) When a sygus conjecture is asserted, we call
-* SynthConjectureProcess::simplify( q ),
-*     where q is the sygus conjecture in original form.
-*
-* (2) After a sygus conjecture is simplified and converted to deep
-* embedding form, we call SynthConjectureProcess::initialize( n, candidates ).
-*
-* (3) During enumerative SyGuS search, calls may be made by
-* the extension of the quantifier-free datatypes decision procedure for
-* sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
-* used for pruning search space based on conjecture-specific analysis.
-*/
+ *
+ * This class implements static techniques for preprocessing and analysis of
+ * sygus conjectures.
+ *
+ * It is used as a back-end to SynthConjecture, which calls it using the
+ * following interface: (1) When a sygus conjecture is asserted, we call
+ * SynthConjectureProcess::simplify( q ),
+ *     where q is the sygus conjecture in original form.
+ *
+ * (2) After a sygus conjecture is simplified and converted to deep
+ * embedding form, we call SynthConjectureProcess::initialize( n, candidates ).
+ *
+ * (3) During enumerative SyGuS search, calls may be made by
+ * the extension of the quantifier-free datatypes decision procedure for
+ * sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
+ * used for pruning search space based on conjecture-specific analysis.
+ */
 class SynthConjectureProcess
 {
  public:
   SynthConjectureProcess(QuantifiersEngine* qe);
   ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
-  * Returns a formula that is equivalent to q.
-  * This simplification pass is called before all others
-  * in SynthConjecture::assign.
-  *
-  * This function is intended for simplifications that
-  * impact whether or not the synthesis conjecture is
-  * single-invocation.
-  */
+   * Returns a formula that is equivalent to q.
+   * This simplification pass is called before all others
+   * in SynthConjecture::assign.
+   *
+   * This function is intended for simplifications that
+   * impact whether or not the synthesis conjecture is
+   * single-invocation.
+   */
   Node preSimplify(Node q);
   /** simplify the synthesis conjecture q
-  * Returns a formula that is equivalent to q.
-  * This simplification pass is called after all others
-  * in SynthConjecture::assign.
-  */
+   * Returns a formula that is equivalent to q.
+   * This simplification pass is called after all others
+   * in SynthConjecture::assign.
+   */
   Node postSimplify(Node q);
   /** initialize
-  *
-  * n is the "base instantiation" of the deep-embedding version of
-  *   the synthesis conjecture under "candidates".
-  *   (see SynthConjecture::d_base_inst)
-  */
+   *
+   * n is the "base instantiation" of the deep-embedding version of
+   *   the synthesis conjecture under "candidates".
+   *   (see SynthConjecture::d_base_inst)
+   */
   void initialize(Node n, std::vector<Node>& candidates);
   /** is the i^th argument of the function-to-synthesize f relevant? */
   bool isArgRelevant(Node f, unsigned i);

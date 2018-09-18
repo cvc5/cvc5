@@ -47,8 +47,8 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
@@ -1148,8 +1148,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if( d_synth_e ){
-    d_synth_e->printSynthSolution( out );
+  if (d_synth_e)
+  {
+    d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }

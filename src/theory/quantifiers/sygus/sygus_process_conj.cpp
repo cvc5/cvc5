@@ -166,8 +166,8 @@ Node SynthConjectureProcessFun::inferDefinition(
   return visited[n];
 }
 
-unsigned SynthConjectureProcessFun::assignRelevantDef(Node def,
-                                                    std::vector<unsigned>& args)
+unsigned SynthConjectureProcessFun::assignRelevantDef(
+    Node def, std::vector<unsigned>& args)
 {
   unsigned id = 0;
   if (def.isNull())
@@ -605,8 +605,8 @@ bool SynthConjectureProcess::isArgRelevant(Node f, unsigned i)
   return true;
 }
 
-bool SynthConjectureProcess::getIrrelevantArgs(Node f,
-                                             std::unordered_set<unsigned>& args)
+bool SynthConjectureProcess::getIrrelevantArgs(
+    Node f, std::unordered_set<unsigned>& args)
 {
   std::map<Node, SynthConjectureProcessFun>::iterator its = d_sf_info.find(f);
   if (its != d_sf_info.end())
@@ -787,8 +787,8 @@ Node SynthConjectureProcess::getSymmetryBreakingPredicate(
 
 void SynthConjectureProcess::debugPrint(const char* c) {}
 void SynthConjectureProcess::getComponentVector(Kind k,
-                                              Node n,
-                                              std::vector<Node>& args)
+                                                Node n,
+                                                std::vector<Node>& args)
 {
   if (n.getKind() == k)
   {

@@ -31,16 +31,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SynthEngine::SynthEngine( QuantifiersEngine * qe, context::Context* c ) : QuantifiersModule( qe ){
-  d_conj = new SynthConjecture( qe );
+SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
+    : QuantifiersModule(qe)
+{
+  d_conj = new SynthConjecture(qe);
   d_last_inst_si = false;
 }
 
-SynthEngine::~SynthEngine(){ 
-  delete d_conj;
-}
+SynthEngine::~SynthEngine() { delete d_conj; }
 
-bool SynthEngine::needsCheck( Theory::Effort e ) {
+bool SynthEngine::needsCheck(Theory::Effort e)
+{
   return !d_quantEngine->getTheoryEngine()->needCheck()
          && e >= Theory::EFFORT_LAST_CALL;
 }
@@ -247,10 +248,14 @@ void SynthEngine::registerQuantifier(Node q)
         // assign it now
         assignConjecture(q);
       }
-    }else{
-      Assert( d_conj->getEmbeddedConjecture()==q );
     }
-  }else{
+    else
+    {
+      Assert(d_conj->getEmbeddedConjecture() == q);
+    }
+  }
+  else
+  {
     Trace("cegqi-debug") << "Register quantifier : " << q << std::endl;
   }
 }
@@ -259,12 +264,14 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
-  if( Trace.isOn("cegqi-engine-debug") ){
+  if (Trace.isOn("cegqi-engine-debug"))
+  {
     conj->debugPrint("cegqi-engine-debug");
     Trace("cegqi-engine-debug") << std::endl;
   }
 
-  if( !conj->needsRefinement() ){
+  if (!conj->needsRefinement())
+  {
     Trace("cegqi-engine-debug") << "Do conjecture check..." << std::endl;
     if (conj->isSingleInvocation())
     {
@@ -308,7 +315,9 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
       {
         ++(d_statistics.d_cegqi_lemmas_ce);
         addedLemma = true;
-      }else{
+      }
+      else
+      {
         // this may happen if we eagerly unfold, simplify to true
         Trace("cegqi-engine-debug")
             << "  ...FAILED to add candidate!" << std::endl;
@@ -317,7 +326,9 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
     if (addedLemma)
     {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
-    }else{
+    }
+    else
+    {
       if (conj->needsRefinement())
       {
         // immediately go to refine candidate
@@ -325,37 +336,46 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
         return;
       }
     }
-  }else{
+  }
+  else
+  {
     Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
-    std::vector< Node > rlems;
-    conj->doRefine( rlems );
+    std::vector<Node> rlems;
+    conj->doRefine(rlems);
     bool addedLemma = false;
-    for( unsigned i=0; i<rlems.size(); i++ ){
+    for (unsigned i = 0; i < rlems.size(); i++)
+    {
       Node lem = rlems[i];
-      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem << std::endl;
-      bool res = d_quantEngine->addLemma( lem );
-      if( res ){
+      Trace("cegqi-lemma") << "Cegqi::Lemma : candidate refinement : " << lem
+                           << std::endl;
+      bool res = d_quantEngine->addLemma(lem);
+      if (res)
+      {
         ++(d_statistics.d_cegqi_lemmas_refine);
         conj->incrementRefineCount();
         addedLemma = true;
-      }else{
+      }
+      else
+      {
         Trace("cegqi-warn") << "  ...FAILED to add refinement!" << std::endl;
       }
     }
-    if( addedLemma ){
+    if (addedLemma)
+    {
       Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
     }
   }
 }
 
-void SynthEngine::printSynthSolution( std::ostream& out ) {
-  if( d_conj->isAssigned() )
+void SynthEngine::printSynthSolution(std::ostream& out)
+{
+  if (d_conj->isAssigned())
   {
-    d_conj->printSynthSolution( out, d_last_inst_si );
+    d_conj->printSynthSolution(out, d_last_inst_si);
   }
   else
   {
-    Assert( false );
+    Assert(false);
   }
 }
 
@@ -367,12 +387,14 @@ void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
   }
 }
 
-void SynthEngine::preregisterAssertion( Node n ) {
-  //check if it sygus conjecture
-  if( QuantAttributes::checkSygusConjecture( n ) ){
-    //this is a sygus conjecture
+void SynthEngine::preregisterAssertion(Node n)
+{
+  // check if it sygus conjecture
+  if (QuantAttributes::checkSygusConjecture(n))
+  {
+    // this is a sygus conjecture
     Trace("cegqi") << "Preregister sygus conjecture : " << n << std::endl;
-    d_conj->preregisterConjecture( n );
+    d_conj->preregisterConjecture(n);
   }
 }
 
@@ -381,7 +403,8 @@ SynthEngine::Statistics::Statistics()
       d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
       d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
       d_solutions("SynthConjecture::solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
+                                 0),
       d_candidate_rewrites("SynthConjecture::candidate_rewrites", 0)
 
 {
@@ -393,7 +416,8 @@ SynthEngine::Statistics::Statistics()
   smtStatisticsRegistry()->registerStat(&d_candidate_rewrites);
 }
 
-SynthEngine::Statistics::~Statistics(){
+SynthEngine::Statistics::~Statistics()
+{
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
@@ -402,6 +426,6 @@ SynthEngine::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites);
 }
 
-}/* namespace CVC4::theory::quantifiers */
-}/* namespace CVC4::theory */
-}/* namespace CVC4 */
+}  // namespace quantifiers
+}  // namespace theory
+} /* namespace CVC4 */

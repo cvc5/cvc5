@@ -24,7 +24,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
 class CegSingleInv;
 
 /** CegSingleInvSol
@@ -36,7 +35,8 @@ class CegSingleInv;
 class CegSingleInvSol
 {
   friend class CegSingleInv;
-private:
+
+ private:
   QuantifiersEngine * d_qe;
   std::vector< Node > d_varList;
   std::map< Node, int > d_dterm_size;

@@ -20,8 +20,8 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -43,9 +43,12 @@ bool doCompare(Node a, Node b, Kind k)
 }
 
 CegSingleInvSol::CegSingleInvSol(QuantifiersEngine* qe)
-    : d_qe(qe), d_id_count(0), d_root_id() {}
+    : d_qe(qe), d_id_count(0), d_root_id()
+{
+}
 
-bool CegSingleInvSol::debugSolution( Node sol ) {
+bool CegSingleInvSol::debugSolution(Node sol)
+{
   if( sol.getKind()==SKOLEM ){
     return false;
   }else{
@@ -59,7 +62,8 @@ bool CegSingleInvSol::debugSolution( Node sol ) {
 
 }
 
-void CegSingleInvSol::debugTermSize( Node sol, int& t_size, int& num_ite ) {
+void CegSingleInvSol::debugTermSize(Node sol, int& t_size, int& num_ite)
+{
   std::map< Node, int >::iterator it = d_dterm_size.find( sol );
   if( it==d_dterm_size.end() ){
     int prev = t_size;
@@ -79,8 +83,8 @@ void CegSingleInvSol::debugTermSize( Node sol, int& t_size, int& num_ite ) {
   }
 }
 
-
-Node CegSingleInvSol::pullITEs( Node s ) {
+Node CegSingleInvSol::pullITEs(Node s)
+{
   if( s.getKind()==ITE ){
     bool success;
     do {
@@ -107,7 +111,13 @@ Node CegSingleInvSol::pullITEs( Node s ) {
 }
 
 // pull condition common to all ITE conditions in path of size > 1
-bool CegSingleInvSol::pullITECondition( Node root, Node n_ite, std::vector< Node >& conj, Node& t, Node& rem, int depth ) {
+bool CegSingleInvSol::pullITECondition(Node root,
+                                       Node n_ite,
+                                       std::vector<Node>& conj,
+                                       Node& t,
+                                       Node& rem,
+                                       int depth)
+{
   Assert( n_ite.getKind()==ITE );
   std::vector< Node > curr_conj;
   std::vector< Node > orig_conj;
@@ -196,7 +206,8 @@ bool CegSingleInvSol::pullITECondition( Node root, Node n_ite, std::vector< Node
   }
 }
 
-Node CegSingleInvSol::flattenITEs( Node n, bool rec ) {
+Node CegSingleInvSol::flattenITEs(Node n, bool rec)
+{
   Assert( !n.isNull() );
   if( n.getKind()==ITE ){
     Trace("csi-sol-debug") << "Flatten ITE." << std::endl;
@@ -260,8 +271,14 @@ Node CegSingleInvSol::flattenITEs( Node n, bool rec ) {
 // assign is from literals to booleans
 // union_find is from args to values
 
-bool CegSingleInvSol::getAssign( bool pol, Node n, std::map< Node, bool >& assign, std::vector< Node >& new_assign, std::vector< Node >& vars,
-                                        std::vector< Node >& new_vars, std::vector< Node >& new_subs ) {
+bool CegSingleInvSol::getAssign(bool pol,
+                                Node n,
+                                std::map<Node, bool>& assign,
+                                std::vector<Node>& new_assign,
+                                std::vector<Node>& vars,
+                                std::vector<Node>& new_vars,
+                                std::vector<Node>& new_subs)
+{
   std::map< Node, bool >::iterator ita = assign.find( n );
   if( ita!=assign.end() ){
     Trace("csi-simp-debug") << "---already assigned, lookup " << pol << " " << ita->second << std::endl;
@@ -287,7 +304,11 @@ bool CegSingleInvSol::getAssign( bool pol, Node n, std::map< Node, bool >& assig
   return true;
 }
 
-bool CegSingleInvSol::getAssignEquality( Node eq, std::vector< Node >& vars, std::vector< Node >& new_vars, std::vector< Node >& new_subs ) {
+bool CegSingleInvSol::getAssignEquality(Node eq,
+                                        std::vector<Node>& vars,
+                                        std::vector<Node>& new_vars,
+                                        std::vector<Node>& new_subs)
+{
   Assert( eq.getKind()==EQUAL );
   //try to find valid argument
   for( unsigned r=0; r<2; r++ ){
@@ -309,7 +330,8 @@ bool CegSingleInvSol::getAssignEquality( Node eq, std::vector< Node >& vars, std
   return false;
 }
 
-Node CegSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
+Node CegSingleInvSol::simplifySolution(Node sol, TypeNode stn)
+{
   int tsize, itesize;
   if( Trace.isOn("csi-sol") ){
     tsize = 0;itesize = 0;
@@ -373,9 +395,13 @@ Node CegSingleInvSol::simplifySolution( Node sol, TypeNode stn ){
   return curr_sol;
 }
 
-Node CegSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, std::map< Node, bool >& assign,
-                                                      std::vector< Node >& vars, std::vector< Node >& subs, int status ) {
-
+Node CegSingleInvSol::simplifySolutionNode(Node sol,
+                                           TypeNode stn,
+                                           std::map<Node, bool>& assign,
+                                           std::vector<Node>& vars,
+                                           std::vector<Node>& subs,
+                                           int status)
+{
   Assert( vars.size()==subs.size() );
   std::map< Node, bool >::iterator ita = assign.find( sol );
   if( ita!=assign.end() ){
@@ -618,8 +644,8 @@ Node CegSingleInvSol::simplifySolutionNode( Node sol, TypeNode stn, std::map< No
   }
 }
 
-
-void CegSingleInvSol::preregisterConjecture( Node q ) {
+void CegSingleInvSol::preregisterConjecture(Node q)
+{
   Trace("csi-sol") << "Preregister conjecture : " << q << std::endl;
   Node n = q;
   if( n.getKind()==FORALL ){
@@ -642,9 +668,9 @@ void CegSingleInvSol::preregisterConjecture( Node q ) {
 }
 
 Node CegSingleInvSol::reconstructSolution(Node sol,
-                                                    TypeNode stn,
-                                                    int& reconstructed,
-                                                    int enumLimit)
+                                          TypeNode stn,
+                                          int& reconstructed,
+                                          int enumLimit)
 {
   Trace("csi-rcons") << "Solution (pre-reconstruction) is : " << sol << std::endl;
   int status;
@@ -743,7 +769,8 @@ Node CegSingleInvSol::reconstructSolution(Node sol,
   return Node::null();
 }
 
-int CegSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, int& status ) {
+int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
+{
   std::map< Node, int >::iterator itri = d_rcons_to_status[stn].find( t );
   if( itri!=d_rcons_to_status[stn].end() ){
     status = itri->second;
@@ -956,7 +983,12 @@ int CegSingleInvSol::collectReconstructNodes( Node t, TypeNode stn, int& status 
   }
 }
 
-bool CegSingleInvSol::collectReconstructNodes( int pid, std::vector< Node >& ts, const DatatypeConstructor& dtc, std::vector< int >& ids, int& status ) {
+bool CegSingleInvSol::collectReconstructNodes(int pid,
+                                              std::vector<Node>& ts,
+                                              const DatatypeConstructor& dtc,
+                                              std::vector<int>& ids,
+                                              int& status)
+{
   Assert( dtc.getNumArgs()==ts.size() );
   for( unsigned i=0; i<ts.size(); i++ ){
     TypeNode cstn = d_qe->getTermDatabaseSygus()->getArgType( dtc, i );
@@ -1001,8 +1033,9 @@ bool CegSingleInvSol::collectReconstructNodes( int pid, std::vector< Node >& ts,
   }
   */
 
-
-Node CegSingleInvSol::CegSingleInvSol::getReconstructedSolution( int id, bool mod_eq ) {
+Node CegSingleInvSol::CegSingleInvSol::getReconstructedSolution(int id,
+                                                                bool mod_eq)
+{
   std::map< int, Node >::iterator it = d_reconstruct.find( id );
   if( it!=d_reconstruct.end() ){
     return it->second;
@@ -1053,7 +1086,8 @@ Node CegSingleInvSol::CegSingleInvSol::getReconstructedSolution( int id, bool mo
   }
 }
 
-int CegSingleInvSol::allocate( Node n, TypeNode stn ) {
+int CegSingleInvSol::allocate(Node n, TypeNode stn)
+{
   std::map< Node, int >::iterator it = d_rcons_to_id[stn].find( n );
   if( it==d_rcons_to_id[stn].end() ){
     int ret = d_id_count;
@@ -1073,7 +1107,8 @@ int CegSingleInvSol::allocate( Node n, TypeNode stn ) {
   }
 }
 
-bool CegSingleInvSol::getPathToRoot( int id ) {
+bool CegSingleInvSol::getPathToRoot(int id)
+{
   if( id==d_root_id ){
     return true;
   }else{
@@ -1092,7 +1127,8 @@ bool CegSingleInvSol::getPathToRoot( int id ) {
   }
 }
 
-void CegSingleInvSol::setReconstructed( int id, Node n ) {
+void CegSingleInvSol::setReconstructed(int id, Node n)
+{
   //set all equivalent to this as reconstructed
   int rid = d_rep[id];
   for( unsigned i=0; i<d_eqc[rid].size(); i++ ){
@@ -1100,7 +1136,10 @@ void CegSingleInvSol::setReconstructed( int id, Node n ) {
   }
 }
 
-void CegSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& equiv ) {
+void CegSingleInvSol::getEquivalentTerms(Kind k,
+                                         Node n,
+                                         std::vector<Node>& equiv)
+{
   if( k==AND || k==OR ){
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, n ) );
     equiv.push_back( NodeManager::currentNM()->mkNode( k, n, NodeManager::currentNM()->mkConst( k==AND ) ) );
@@ -1201,7 +1240,8 @@ void CegSingleInvSol::getEquivalentTerms( Kind k, Node n, std::vector< Node >& e
   }
 }
 
-void CegSingleInvSol::registerEquivalentTerms( Node n ) {
+void CegSingleInvSol::registerEquivalentTerms(Node n)
+{
   for( unsigned i=0; i<n.getNumChildren(); i++ ){
     registerEquivalentTerms( n[i] );
   }
@@ -1219,9 +1259,7 @@ void CegSingleInvSol::registerEquivalentTerms( Node n ) {
   }
 }
 
-Node CegSingleInvSol::builtinToSygusConst(Node c,
-                                                    TypeNode tn,
-                                                    int rcons_depth)
+Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
 {
   std::map<Node, Node>::iterator it = d_builtin_const_to_sygus[tn].find(c);
   if (it != d_builtin_const_to_sygus[tn].end())
@@ -1408,9 +1446,9 @@ void CegSingleInvSol::registerType(TypeNode tn)
 }
 
 bool CegSingleInvSol::getMatch(Node p,
-                                         Node n,
-                                         std::map<int, Node>& s,
-                                         std::vector<int>& new_s)
+                               Node n,
+                               std::map<int, Node>& s,
+                               std::vector<int>& new_s)
 {
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   if (tds->isFreeVar(p))
@@ -1462,11 +1500,11 @@ bool CegSingleInvSol::getMatch(Node p,
 }
 
 bool CegSingleInvSol::getMatch(Node t,
-                                         TypeNode st,
-                                         int& index_found,
-                                         std::vector<Node>& args,
-                                         int index_exc,
-                                         int index_start)
+                               TypeNode st,
+                               int& index_found,
+                               std::vector<Node>& args,
+                               int index_exc,
+                               int index_start)
 {
   Assert(st.isDatatype());
   const Datatype& dt = static_cast<DatatypeType>(st.toType()).getDatatype();
@@ -1517,9 +1555,7 @@ bool CegSingleInvSol::getMatch(Node t,
   return false;
 }
 
-Node CegSingleInvSol::getGenericBase(TypeNode tn,
-                                               const Datatype& dt,
-                                               int c)
+Node CegSingleInvSol::getGenericBase(TypeNode tn, const Datatype& dt, int c)
 {
   std::map<int, Node>::iterator it = d_generic_base[tn].find(c);
   if (it != d_generic_base[tn].end())

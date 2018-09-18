@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis 
+ ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis
  ** conjecture.
  **/
 
@@ -42,9 +42,10 @@ namespace quantifiers {
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class SynthConjecture {
-public:
-  SynthConjecture( QuantifiersEngine * qe );
+class SynthConjecture
+{
+ public:
+  SynthConjecture(QuantifiersEngine* qe);
   ~SynthConjecture();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
@@ -58,18 +59,19 @@ public:
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement() const;
-  /** do single invocation check 
-  * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
-  */
-  void doSingleInvCheck(std::vector< Node >& lems);
-  /** do syntax-guided enumerative check 
-  * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
-  */
+  /** do single invocation check
+   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al
+   * CAV 2015.
+   */
+  void doSingleInvCheck(std::vector<Node>& lems);
+  /** do syntax-guided enumerative check
+   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
+   */
   void doCheck(std::vector<Node>& lems);
-  /** do refinement 
-  * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
-  */
-  void doRefine(std::vector< Node >& lems);
+  /** do refinement
+   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
+   */
+  void doRefine(std::vector<Node>& lems);
   //-------------------------------end for counterexample-guided check/refine
   /**
    * prints the synthesis solution to output stream out.
@@ -77,7 +79,7 @@ public:
    * singleInvocation : set to true if we should consult the single invocation
    * module to get synthesis solutions.
    */
-  void printSynthSolution( std::ostream& out, bool singleInvocation );
+  void printSynthSolution(std::ostream& out, bool singleInvocation);
   /** get synth solutions
    *
    * This returns a map from function-to-synthesize variables to their
@@ -99,20 +101,21 @@ public:
   bool isGround() { return d_inner_vars.empty(); }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
-  /** preregister conjecture 
-  * This is used as a heuristic for solution reconstruction, so that we 
-  * remember expressions in the conjecture before preprocessing, since they
-  * may be helpful during solution reconstruction (Figure 5 of Reynolds et al CAV 2015)
-  */
-  void preregisterConjecture( Node q );
+  /** preregister conjecture
+   * This is used as a heuristic for solution reconstruction, so that we
+   * remember expressions in the conjecture before preprocessing, since they
+   * may be helpful during solution reconstruction (Figure 5 of Reynolds et al
+   * CAV 2015)
+   */
+  void preregisterConjecture(Node q);
   /** assign conjecture q to this class */
-  void assign( Node q );
+  void assign(Node q);
   /** has a conjecture been assigned to this class */
   bool isAssigned() { return !d_embed_quant.isNull(); }
   /** get model values for terms n, store in vector v */
-  void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
+  void getModelValues(std::vector<Node>& n, std::vector<Node>& v);
   /** get model value for term n */
-  Node getModelValue( Node n );
+  Node getModelValue(Node n);
 
   /** get utility for static preprocessing and analysis of conjectures */
   SynthConjectureProcess* getProcess() { return d_ceg_proc.get(); }
@@ -124,10 +127,11 @@ public:
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
-  void debugPrint( const char * c );
-private:
+  void debugPrint(const char* c);
+
+ private:
   /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** The feasible guard. */
   Node d_feasible_guard;
   /** the decision strategy for the feasible guard */
@@ -159,17 +163,17 @@ private:
   //------------------------end modules
 
   /** list of constants for quantified formula
-  * The outer Skolems for the negation of d_embed_quant.
-  */
-  std::vector< Node > d_candidates;
+   * The outer Skolems for the negation of d_embed_quant.
+   */
+  std::vector<Node> d_candidates;
   /** base instantiation
-  * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  exists y. P( d_candidates, y ). Notice that
-  * (exists y. F) is shorthand above for ~( forall y. ~F ).
-  */
+   * If d_embed_quant is forall d. exists y. P( d, y ), then
+   * this is the formula  exists y. P( d_candidates, y ). Notice that
+   * (exists y. F) is shorthand above for ~( forall y. ~F ).
+   */
   Node d_base_inst;
   /** list of variables on inner quantification */
-  std::vector< Node > d_inner_vars;
+  std::vector<Node> d_inner_vars;
   /**
    * The set of skolems for the current "verification" lemma, if one exists.
    * This may be added to during calls to doCheck(). The model values for these
@@ -195,11 +199,12 @@ private:
   /** (negated) conjecture after simplification, conversion to deep embedding */
   Node d_embed_quant;
   /** candidate information */
-  class CandidateInfo {
-  public:
-    CandidateInfo(){}
+  class CandidateInfo
+  {
+   public:
+    CandidateInfo() {}
     /** list of terms we have instantiated candidates with */
-    std::vector< Node > d_inst;
+    std::vector<Node> d_inst;
   };
   std::map<Node, CandidateInfo> d_cinfo;
   /**
@@ -210,12 +215,14 @@ private:
   /** number of times we have called doRefine */
   unsigned d_refine_count;
   /** get candidadate */
-  Node getCandidate( unsigned int i ) { return d_candidates[i]; }
+  Node getCandidate(unsigned int i) { return d_candidates[i]; }
   /** record instantiation (this is used to construct solutions later) */
-  void recordInstantiation( std::vector< Node >& vs ) {
-    Assert( vs.size()==d_candidates.size() );
-    for( unsigned i=0; i<vs.size(); i++ ){
-      d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
+  void recordInstantiation(std::vector<Node>& vs)
+  {
+    Assert(vs.size() == d_candidates.size());
+    for (unsigned i = 0; i < vs.size(); i++)
+    {
+      d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
     }
   }
   /** get synth solutions internal
@@ -284,8 +291,8 @@ private:
   std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
+}  // namespace quantifiers
+}  // namespace theory
 } /* namespace CVC4 */
 
 #endif

@@ -229,10 +229,11 @@ void QuantAttributes::computeAttributes( Node q ) {
     d_fun_defs[f] = true;
   }
   if( d_qattr[q].d_sygus ){
-    if( d_quantEngine->getSynthEngine()==nullptr ){
+    if (d_quantEngine->getSynthEngine() == nullptr)
+    {
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getSynthEngine(), 2 );
+    d_quantEngine->setOwner(q, d_quantEngine->getSynthEngine(), 2);
   }
 }
 

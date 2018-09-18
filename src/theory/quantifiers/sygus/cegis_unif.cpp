@@ -17,8 +17,8 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
 
@@ -299,8 +299,8 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
       OR, d_parent->getGuard().negate(), plem));
 }
 
-CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
-                                           SynthConjecture* parent)
+CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(
+    QuantifiersEngine* qe, SynthConjecture* parent)
     : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)

@@ -32,13 +32,13 @@ class SynthConjecture;
 class CegSingleInv;
 
 class CegqiOutputSingleInv : public CegqiOutput {
-public:
-  CegqiOutputSingleInv( CegSingleInv * out ) : d_out( out ){}
-  virtual ~CegqiOutputSingleInv() {}
-  CegSingleInv * d_out;
-  bool doAddInstantiation(std::vector<Node>& subs) override;
-  bool isEligibleForInstantiation(Node n) override;
-  bool addLemma(Node lem) override;
+ public:
+ CegqiOutputSingleInv(CegSingleInv* out) : d_out(out) {}
+ virtual ~CegqiOutputSingleInv() {}
+ CegSingleInv* d_out;
+ bool doAddInstantiation(std::vector<Node>& subs) override;
+ bool isEligibleForInstantiation(Node n) override;
+ bool addLemma(Node lem) override;
 };
 
 class DetTrace {
@@ -122,7 +122,8 @@ private:
 // (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
 // For these techniques, we may generate a template (d_templ) which specifies a restricted
 // solution space. We may in turn embed this template as a SyGuS grammar.
-class CegSingleInv {
+class CegSingleInv
+{
  private:
   friend class CegqiOutputSingleInv;
   //presolve
@@ -198,7 +199,7 @@ class CegSingleInv {
   std::map< Node, Node > d_templ_arg;
   
  public:
-  CegSingleInv( QuantifiersEngine * qe, SynthConjecture * p );
+  CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p);
   ~CegSingleInv();
 
   // get simplified conjecture

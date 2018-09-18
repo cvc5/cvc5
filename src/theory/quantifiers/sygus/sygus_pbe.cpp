@@ -36,13 +36,15 @@ SygusPbe::SygusPbe(QuantifiersEngine* qe, SynthConjecture* p)
   d_is_pbe = false;
 }
 
-SygusPbe::~SygusPbe() {
-
-}
+SygusPbe::~SygusPbe() {}
 
 //--------------------------------- collecting finite input/output domain information
 
-void SygusPbe::collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol ) {
+void SygusPbe::collectExamples(Node n,
+                               std::map<Node, bool>& visited,
+                               bool hasPol,
+                               bool pol)
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     Node neval;
@@ -117,8 +119,8 @@ void SygusPbe::collectExamples( Node n, std::map< Node, bool >& visited, bool ha
 }
 
 bool SygusPbe::initialize(Node n,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& lemmas)
+                          const std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
 
@@ -248,9 +250,13 @@ bool SygusPbe::initialize(Node n,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
-                                              SygusPbe* cpbe,
-                                              unsigned index, unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn,
+                                      Node e,
+                                      Node b,
+                                      SygusPbe* cpbe,
+                                      unsigned index,
+                                      unsigned ntotal)
+{
   if (index == ntotal) {
     // lazy child holds the leaf data
     if (d_lazy_child.isNull()) {
@@ -281,16 +287,20 @@ Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
   }
 }
 
-Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn, Node e, Node b,
-                                                  std::vector<Node>& ex,
-                                                  SygusPbe* cpbe,
-                                                  unsigned index,
-                                                  unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn,
+                                          Node e,
+                                          Node b,
+                                          std::vector<Node>& ex,
+                                          SygusPbe* cpbe,
+                                          unsigned index,
+                                          unsigned ntotal)
+{
   Node eb = cpbe->d_tds->evaluateBuiltin(etn, b, ex);
   return d_children[eb].addPbeExample(etn, e, b, cpbe, index + 1, ntotal);
 }
 
-bool SygusPbe::hasExamples(Node e) {
+bool SygusPbe::hasExamples(Node e)
+{
   if (isPbe()) {
     e = d_tds->getSynthFunForEnumerator(e);
     Assert(!e.isNull());
@@ -302,7 +312,8 @@ bool SygusPbe::hasExamples(Node e) {
   return false;
 }
 
-unsigned SygusPbe::getNumExamples(Node e) {
+unsigned SygusPbe::getNumExamples(Node e)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -314,7 +325,8 @@ unsigned SygusPbe::getNumExamples(Node e) {
   }
 }
 
-void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
+void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -327,7 +339,8 @@ void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
   }
 }
 
-Node SygusPbe::getExampleOut(Node e, unsigned i) {
+Node SygusPbe::getExampleOut(Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
@@ -340,7 +353,8 @@ Node SygusPbe::getExampleOut(Node e, unsigned i) {
   }
 }
 
-Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
+Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
+{
   Assert(isPbe());
   Assert(!e.isNull());
   e = d_tds->getSynthFunForEnumerator(e);
@@ -355,8 +369,8 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
   return Node::null();
 }
 
-Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
-                                       unsigned i) {
+Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
@@ -374,7 +388,7 @@ Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
 // ------------------------------------------- solution construction from enumeration
 
 void SygusPbe::getTermList(const std::vector<Node>& candidates,
-                                   std::vector<Node>& terms)
+                           std::vector<Node>& terms)
 {
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
@@ -402,10 +416,10 @@ void SygusPbe::getTermList(const std::vector<Node>& candidates,
 }
 
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
-                                           const std::vector<Node>& enum_values,
-                                           const std::vector<Node>& candidates,
-                                           std::vector<Node>& candidate_values,
-                                           std::vector<Node>& lems)
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   std::vector<Node>& lems)
 {
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){

@@ -30,8 +30,8 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
