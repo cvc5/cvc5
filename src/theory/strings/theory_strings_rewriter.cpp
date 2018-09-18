@@ -2545,6 +2545,14 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   // general reduction to equality + substr
   Node retNode = n[0].eqNode(
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
+  // add length constraint if it cannot be shown by simple entailment check
+  if (!checkEntailArith(lent, lens))
+  {
+    retNode = NodeManager::currentNM()->mkNode(
+        kind::AND,
+        retNode,
+        NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens));
+  }
   return retNode;
 }
 
