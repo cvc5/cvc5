@@ -423,7 +423,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
 
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
-                                     CegConjecture* conj,
+                                     SynthConjecture* conj,
                                      bool mkActiveGuard,
                                      bool useSymbolicCons)
 {
@@ -522,9 +522,9 @@ bool TermDbSygus::isEnumerator(Node e) const
   return d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end();
 }
 
-CegConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
+SynthConjecture* TermDbSygus::getConjectureForEnumerator(Node e) const
 {
-  std::map<Node, CegConjecture*>::const_iterator itm =
+  std::map<Node, SynthConjecture*>::const_iterator itm =
       d_enum_to_conjecture.find(e);
   if (itm != d_enum_to_conjecture.end()) {
     return itm->second;
@@ -563,9 +563,11 @@ bool TermDbSygus::usingSymbolicConsForEnumerator(Node e) const
 
 void TermDbSygus::getEnumerators(std::vector<Node>& mts)
 {
-  for (std::map<Node, CegConjecture*>::iterator itm =
+  for (std::map<Node, SynthConjecture*>::iterator itm =
            d_enum_to_conjecture.begin();
-       itm != d_enum_to_conjecture.end(); ++itm) {
+       itm != d_enum_to_conjecture.end();
+       ++itm)
+  {
     mts.push_back( itm->first );
   }
 }
