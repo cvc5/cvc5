@@ -591,11 +591,6 @@ size_t KindHashFunction::operator()(Kind k) const { return k; }
 /* -------------------------------------------------------------------------- */
 
 namespace {
-class CVC4_PUBLIC CVC4ApiException : public Exception
-{
- public:
-  CVC4ApiException(std::stringstream& stream) { d_msg = stream.str(); }
-};
 
 class CVC4ApiExceptionStream
 {
@@ -610,12 +605,6 @@ class CVC4ApiExceptionStream
   }
 
   std::ostream& ostream() { return d_stream; }
-
-  CVC4ApiExceptionStream& operator<<(const std::string& msg)
-  {
-    d_stream << msg;
-    return *this;
-  }
 
  private:
   std::stringstream d_stream;
