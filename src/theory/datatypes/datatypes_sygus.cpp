@@ -1475,6 +1475,7 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
+  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 
