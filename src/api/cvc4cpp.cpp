@@ -599,9 +599,12 @@ class CVC4ApiExceptionStream
   /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
    * a destructor that throws an exception and in C++11 all destructors
    * default to noexcept(true) (else this triggers a call to std::terminate). */
-  CVC4_NO_RETURN ~CVC4ApiExceptionStream() noexcept(false)
+  ~CVC4ApiExceptionStream() noexcept(false)
   {
-    throw CVC4ApiException(d_stream);
+    if (!std::uncaught_exception())
+    {
+      throw CVC4ApiException(d_stream.str());
+    }
   }
 
   std::ostream& ostream() { return d_stream; }
