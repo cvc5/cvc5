@@ -47,8 +47,8 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
@@ -96,7 +96,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_qcf(nullptr),
       d_rr_engine(nullptr),
       d_sg_gen(nullptr),
-      d_ceg_inst(nullptr),
+      d_synth_e(nullptr),
       d_lte_part_inst(nullptr),
       d_fs(nullptr),
       d_i_cbqi(nullptr),
@@ -192,8 +192,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     }
   }
   if( options::ceGuidedInst() ){
-    d_ceg_inst.reset(new quantifiers::CegInstantiation(this, c));
-    d_modules.push_back(d_ceg_inst.get());
+    d_synth_e.reset(new quantifiers::SynthEngine(this, c));
+    d_modules.push_back(d_synth_e.get());
     //needsBuilder = true;
   }  
   //finite model finding
@@ -374,9 +374,9 @@ quantifiers::RewriteEngine* QuantifiersEngine::getRewriteEngine() const
 {
   return d_rr_engine.get();
 }
-quantifiers::CegInstantiation* QuantifiersEngine::getCegInstantiation() const
+quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
-  return d_ceg_inst.get();
+  return d_synth_e.get();
 }
 quantifiers::InstStrategyEnum* QuantifiersEngine::getInstStrategyEnum() const
 {
@@ -1148,8 +1148,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if( d_ceg_inst ){
-    d_ceg_inst->printSynthSolution( out );
+  if (d_synth_e)
+  {
+    d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }
@@ -1260,7 +1261,7 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 
 void QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  d_ceg_inst->getSynthSolutions(sol_map);
+  d_synth_e->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

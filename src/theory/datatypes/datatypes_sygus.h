@@ -30,8 +30,8 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -152,7 +152,7 @@ class SygusSymBreakNew
   /**
    * Map from anchors to the conjecture they are associated with.
    */
-  std::map<Node, quantifiers::CegConjecture*> d_anchor_to_conj;
+  std::map<Node, quantifiers::SynthConjecture*> d_anchor_to_conj;
   /**
    * Map from terms (selector chains) to their depth. The depth of a selector
    * chain S1( ... Sn( x ) ... ) is:
@@ -229,7 +229,7 @@ private:
    * (2) static symmetry breaking clauses for subterms of n (those added to
    * lemmas on getSimpleSymBreakPred, see function below),
    * (3) conjecture-specific symmetry breaking lemmas, see
-   * CegConjecture::getSymmetryBreakingPredicate,
+   * SynthConjecture::getSymmetryBreakingPredicate,
    * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
