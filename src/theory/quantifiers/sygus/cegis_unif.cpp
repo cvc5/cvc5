@@ -17,7 +17,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegisUnif::CegisUnif(QuantifiersEngine* qe, CegConjecture* p)
+CegisUnif::CegisUnif(QuantifiersEngine* qe, SynthConjecture* p)
     : Cegis(qe, p), d_sygus_unif(p), d_u_enum_manager(qe, p)
 {
 }
@@ -300,7 +300,7 @@ void CegisUnif::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 CegisUnifEnumDecisionStrategy::CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe,
-                                           CegConjecture* parent)
+                                           SynthConjecture* parent)
     : DecisionStrategyFmf(qe->getSatContext(), qe->getValuation()),
       d_qe(qe),
       d_parent(parent)

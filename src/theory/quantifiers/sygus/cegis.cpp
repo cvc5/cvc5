@@ -16,7 +16,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
 
@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p)
+Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
     : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
 {
   if (options::sygusEvalUnfold())

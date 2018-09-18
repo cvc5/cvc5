@@ -26,7 +26,7 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
@@ -690,7 +690,7 @@ void SynthConjecture::printSynthSolution( std::ostream& out, bool singleInvocati
       ss << prog;
       std::string f(ss.str());
       f.erase(f.begin());
-      CegInstantiation* cei = d_qe->getCegInstantiation();
+      SynthEngine* cei = d_qe->getSynthEngine();
       ++(cei->d_statistics.d_solutions);
 
       bool is_unique_term = true;

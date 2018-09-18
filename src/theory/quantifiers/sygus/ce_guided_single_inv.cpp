@@ -43,7 +43,7 @@ bool CegqiOutputSingleInv::addLemma( Node n ) {
 }
 
 CegSingleInv::CegSingleInv(QuantifiersEngine* qe,
-                                               CegConjecture* p)
+                                               SynthConjecture* p)
     : d_qe(qe),
       d_parent(p),
       d_sip(new SingleInvocationPartition),

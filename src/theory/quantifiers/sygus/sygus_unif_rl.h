@@ -35,7 +35,7 @@ using BoolNodePairMap =
 using NodePairMap = std::unordered_map<Node, Node, NodeHashFunction>;
 using NodePair = std::pair<Node, Node>;
 
-class CegConjecture;
+class SynthConjecture;
 
 /** Sygus unification Refinement Lemmas utility
  *
@@ -46,7 +46,7 @@ class CegConjecture;
 class SygusUnifRl : public SygusUnif
 {
  public:
-  SygusUnifRl(CegConjecture* p);
+  SygusUnifRl(SynthConjecture* p);
   ~SygusUnifRl();
 
   /** initialize */
@@ -105,7 +105,7 @@ class SygusUnifRl : public SygusUnif
 
  protected:
   /** reference to the parent conjecture */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
   /* Functions-to-synthesize (a.k.a. candidates) with unification strategies */
   std::unordered_set<Node, NodeHashFunction> d_unif_candidates;
   /** construct sol */

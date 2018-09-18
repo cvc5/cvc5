@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 class CegSingleInv;
 class CegEntailmentInfer;
 
@@ -138,8 +138,10 @@ class CegSingleInv {
                          unsigned index, std::map<Node, Node>& weak_imp);
   Node postProcessSolution(Node n);
  private:
+  /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
-  CegConjecture* d_parent;
+  /** the parent of this class */
+  SynthConjecture* d_parent;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
   // transition inference module for each function to synthesize
@@ -197,7 +199,7 @@ class CegSingleInv {
   std::map< Node, Node > d_templ_arg;
   
  public:
-  CegSingleInv( QuantifiersEngine * qe, CegConjecture * p );
+  CegSingleInv( QuantifiersEngine * qe, SynthConjecture * p );
   ~CegSingleInv();
 
   // get simplified conjecture
