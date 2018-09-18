@@ -22,7 +22,7 @@
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
