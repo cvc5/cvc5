@@ -22,6 +22,7 @@
 #include "options/strings_options.h"
 #include "proof/proof_manager.h"
 #include "smt/logic_exception.h"
+#include "theory/strings/theory_strings_rewriter.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -66,9 +67,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node c3 = nm->mkNode(GT, m, d_zero);
     Node cond = nm->mkNode(AND, c1, c2, c3);
 
-    Node sk1 = d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
-    Node sk2 =
-        d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
+    Node sk1 = n==d_zero ? d_empty_str : d_sc->mkSkolemCached(s, n, SkolemCache::SK_PREFIX, "sspre");
+    Node sk2 = TheoryStringsRewriter::checkEntailArith( t12, lt0 ) ? d_empty_str : d_sc->mkSkolemCached(s, t12, SkolemCache::SK_SUFFIX_REM, "sssufr");
     Node b11 = s.eqNode(nm->mkNode(STRING_CONCAT, sk1, skt, sk2));
     //length of first skolem is second argument
     Node b12 = nm->mkNode(STRING_LENGTH, sk1).eqNode(n);
