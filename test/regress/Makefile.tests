@@ -1618,6 +1618,10 @@ REG1_TESTS = \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
 	regress1/sygus/univ_2-long-repeat.sy \
+	regress1/sym/qf-function.smt2 \
+	regress1/sym/q-constant.smt2 \
+	regress1/sym/q-function.smt2 \
+	regress1/sym/sb-wrong.smt2 \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \
@@ -1625,6 +1629,7 @@ REG1_TESTS = \
 	regress1/sym/sym5.smt2 \
 	regress1/sym/sym6.smt2 \
 	regress1/sym/sym7-uf.smt2 \
+	regress1/sym/sym-setAB.smt2 \
 	regress1/test12.cvc \
 	regress1/trim.cvc \
 	regress1/uf2.smt2 \
