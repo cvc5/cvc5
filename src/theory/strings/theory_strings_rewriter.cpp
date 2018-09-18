@@ -3369,6 +3369,12 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       return true;
     }
     // TODO (#1180) : abstract interpretation goes here
+    Node ua = getArithApproximation(ar, true);
+    ua = Rewriter::rewrite(ua);
+    if( checkEntailArithInternal(ua) )
+    {
+      return true;
+    }
 
     // over approximation O/U
 
@@ -3623,6 +3629,60 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
          || (ret.isNull() || ret.getConst<Rational>().sgn() <= 0)
                 != checkEntailArith(a, true));
   return ret;
+}
+
+Node TheoryStringsRewriter::getArithApproximation(Node a, bool isUnder)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  Kind ak = a.getKind();
+  if( ak==PLUS )
+  {
+    std::vector< Node > sum;
+    for (const Node& ac : a )
+    {
+      Node aac = getArithApproximation(ac,isUnder);
+      sum.push_back(aac);
+    }
+    return nm->mkNode( PLUS, sum );
+  }
+  else if( ak==MULT )
+  {
+    Node c;
+    Node v;
+    if( !ArithMSum::getMonomial(a,c,v) )
+    {
+      return a;
+    }
+    bool ap = c.isNull() || c.getConst<Rational>().sgn() > 0;
+    Node av = getArithApproximation(v, ap ? isUnder : !isUnder );
+    return nm->mkNode( MULT, c, av );
+  }
+  if( ak==STRING_STRIDOF )
+  {
+    if( isUnder )
+    {
+      return nm->mkConst( Rational(-1) );
+    }
+    else
+    {
+      Node aa = nm->mkNode( MINUS, nm->mkNode( STRING_LENGTH, a[0] ), nm->mkNode( STRING_LENGTH, a[1] ) );
+      aa = Rewriter::rewrite( aa );
+      return getArithApproximation( aa, false );
+    }
+  }
+  else if( ak==STRING_STOI )
+  {
+    if( isUnder )
+    {
+      return nm->mkConst( Rational(-1) );
+    }
+  }
+  else if( ak==STRING_LENGTH )
+  {
+    Kind ask = a[0].getKind();
+    
+  }
+  return a;
 }
 
 bool TheoryStringsRewriter::checkEntailArithInternal(Node a)

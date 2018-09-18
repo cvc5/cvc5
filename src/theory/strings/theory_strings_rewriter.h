@@ -501,6 +501,9 @@ class TheoryStringsRewriter {
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
+  /** get arithmetic approximation
+   */
+  static Node getArithApproximation(Node a, bool isUnder);
   /** decompose substr chain
    *
    * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
