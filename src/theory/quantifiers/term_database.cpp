@@ -1013,12 +1013,13 @@ bool TermDb::reset( Theory::Effort effort ){
   return true;
 }
 
-TNodeTrie * TermDb::getTermArgTrie( Node f ) {
+TNodeTrie* TermDb::getTermArgTrie(Node f)
+{
   if( options::ufHo() ){
     f = getOperatorRepresentative( f );
   }
   computeUfTerms( f );
-  std::map< Node, TNodeTrie >::iterator itut = d_func_map_trie.find( f );
+  std::map<Node, TNodeTrie>::iterator itut = d_func_map_trie.find(f);
   if( itut!=d_func_map_trie.end() ){
     return &itut->second;
   }else{
@@ -1026,19 +1027,21 @@ TNodeTrie * TermDb::getTermArgTrie( Node f ) {
   }
 }
 
-TNodeTrie * TermDb::getTermArgTrie( Node eqc, Node f ) {
+TNodeTrie* TermDb::getTermArgTrie(Node eqc, Node f)
+{
   if( options::ufHo() ){
     f = getOperatorRepresentative( f );
   }
   computeUfEqcTerms( f );
-  std::map< Node, TNodeTrie >::iterator itut = d_func_map_eqc_trie.find( f );
+  std::map<Node, TNodeTrie>::iterator itut = d_func_map_eqc_trie.find(f);
   if( itut==d_func_map_eqc_trie.end() ){
     return NULL;
   }else{
     if( eqc.isNull() ){
       return &itut->second;
     }else{
-      std::map< TNode, TNodeTrie >::iterator itute = itut->second.d_data.find( eqc );
+      std::map<TNode, TNodeTrie>::iterator itute =
+          itut->second.d_data.find(eqc);
       if( itute!=itut->second.d_data.end() ){
         return &itute->second;
       }else{
@@ -1053,7 +1056,7 @@ TNode TermDb::getCongruentTerm( Node f, Node n ) {
     f = getOperatorRepresentative( f );
   }
   computeUfTerms( f );
-  std::map< Node, TNodeTrie >::iterator itut = d_func_map_trie.find( f );
+  std::map<Node, TNodeTrie>::iterator itut = d_func_map_trie.find(f);
   if( itut!=d_func_map_trie.end() ){
     computeArgReps( n );
     return itut->second.existsTerm( d_arg_reps[n] );

@@ -22,13 +22,13 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "expr/node_trie.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "expr/node_trie.h"
 
 #include <climits>
 #include <deque>
@@ -491,7 +491,10 @@ private:
   //--------------------------------end for checkMemberships
 
  private:
-  void addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth);
 
  public:
   /** preregister term */

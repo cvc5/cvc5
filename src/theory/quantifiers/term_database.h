@@ -21,10 +21,10 @@
 #include <unordered_set>
 
 #include "expr/attribute.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/theory.h"
 #include "theory/type_enumerator.h"
-#include "theory/quantifiers/quant_util.h"
-#include "expr/node_trie.h"
 
 namespace CVC4 {
 namespace theory {
@@ -296,8 +296,8 @@ class TermDb : public QuantifiersUtil {
   /** mapping from terms to representatives of their arguments */
   std::map< TNode, std::vector< TNode > > d_arg_reps;
   /** map from operators to trie */
-  std::map< Node, TNodeTrie > d_func_map_trie;
-  std::map< Node, TNodeTrie > d_func_map_eqc_trie;
+  std::map<Node, TNodeTrie> d_func_map_trie;
+  std::map<Node, TNodeTrie> d_func_map_eqc_trie;
   /** mapping from operators to their representative relevant domains */
   std::map< Node, std::map< unsigned, std::vector< Node > > > d_func_map_rel_dom;
   /** has map */

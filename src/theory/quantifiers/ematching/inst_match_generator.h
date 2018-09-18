@@ -18,8 +18,8 @@
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 
 #include <map>
-#include "theory/quantifiers/inst_match_trie.h"
 #include "expr/node_trie.h"
+#include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {

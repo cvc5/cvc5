@@ -1773,7 +1773,12 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
-void TheorySetsPrivate::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
+void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
+                                     TNodeTrie* t2,
+                                     unsigned arity,
+                                     unsigned depth,
+                                     unsigned& n_pairs)
+{
   if( depth==arity ){
     if( t2!=NULL ){
       Node f1 = t1->getData();
@@ -1817,13 +1822,19 @@ void TheorySetsPrivate::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned a
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+             it != t1->d_data.end();
+             ++it)
+        {
           addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
         }
       }
       //add care pairs based on each pair of non-disequal arguments
-      for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        std::map< TNode, TNodeTrie >::iterator it2 = it;
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
@@ -1835,8 +1846,14 @@ void TheorySetsPrivate::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned a
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        for( std::map< TNode, TNodeTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        for (std::map<TNode, TNodeTrie>::iterator it2 = t2->d_data.begin();
+             it2 != t2->d_data.end();
+             ++it2)
+        {
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
             if( !ee_areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
@@ -1854,7 +1871,7 @@ void TheorySetsPrivate::computeCareGraph() {
       unsigned n_pairs = 0;
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << it->first << "..." << it->second.size() << std::endl;
       Trace("sets-cg") << "Build index for " << it->first << "..." << std::endl;
-      std::map< TypeNode, TNodeTrie > index;
+      std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
       //populate indices
       for( unsigned i=0; i<it->second.size(); i++ ){
@@ -1881,7 +1898,10 @@ void TheorySetsPrivate::computeCareGraph() {
       }
       if( arity>0 ){
         //for each index
-        for( std::map< TypeNode, TNodeTrie >::iterator iti = index.begin(); iti != index.end(); ++iti ){
+        for (std::map<TypeNode, TNodeTrie>::iterator iti = index.begin();
+             iti != index.end();
+             ++iti)
+        {
           Trace("sets-cg") << "Process index " << iti->first << "..." << std::endl;
           addCarePairs( &iti->second, NULL, arity, 0, n_pairs );
         }

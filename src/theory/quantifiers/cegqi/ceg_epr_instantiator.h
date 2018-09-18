@@ -19,8 +19,8 @@
 
 #include <map>
 #include <vector>
-#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 #include "expr/node_trie.h"
+#include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace CVC4 {
 namespace theory {

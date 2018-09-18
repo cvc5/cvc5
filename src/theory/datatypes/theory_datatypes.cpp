@@ -1320,9 +1320,12 @@ EqualityStatus TheoryDatatypes::getEqualityStatus(TNode a, TNode b){
   return EQUALITY_FALSE_IN_MODEL;
 }
 
-
-
-void TheoryDatatypes::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
+void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
+                                   TNodeTrie* t2,
+                                   unsigned arity,
+                                   unsigned depth,
+                                   unsigned& n_pairs)
+{
   if( depth==arity ){
     if( t2!=NULL ){
       Node f1 = t1->getData();
@@ -1357,13 +1360,19 @@ void TheoryDatatypes::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned ari
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
+        for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+             it != t1->d_data.end();
+             ++it)
+        {
           addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
         }
       }
       //add care pairs based on each pair of non-disequal arguments
-      for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        std::map< TNode, TNodeTrie >::iterator it2 = it;
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
@@ -1375,8 +1384,14 @@ void TheoryDatatypes::addCarePairs( TNodeTrie * t1, TNodeTrie * t2, unsigned ari
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::map< TNode, TNodeTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        for( std::map< TNode, TNodeTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        for (std::map<TNode, TNodeTrie>::iterator it2 = t2->d_data.begin();
+             it2 != t2->d_data.end();
+             ++it2)
+        {
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
             if( !areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
@@ -1392,7 +1407,7 @@ void TheoryDatatypes::computeCareGraph(){
   unsigned n_pairs = 0;
   Trace("dt-cg-summary") << "Compute graph for dt..." << d_functionTerms.size() << " " << d_sharedTerms.size() << std::endl;
   Trace("dt-cg") << "Build indices..." << std::endl;
-  std::map< TypeNode, std::map< Node, TNodeTrie > > index;
+  std::map<TypeNode, std::map<Node, TNodeTrie> > index;
   std::map< Node, unsigned > arity;
   //populate indices
   unsigned functionTerms = d_functionTerms.size();
@@ -1418,8 +1433,15 @@ void TheoryDatatypes::computeCareGraph(){
     }
   }
   //for each index
-  for( std::map< TypeNode, std::map< Node, TNodeTrie > >::iterator iti = index.begin(); iti != index.end(); ++iti ){
-    for( std::map< Node, TNodeTrie >::iterator itii = iti->second.begin(); itii != iti->second.end(); ++itii ){
+  for (std::map<TypeNode, std::map<Node, TNodeTrie> >::iterator iti =
+           index.begin();
+       iti != index.end();
+       ++iti)
+  {
+    for (std::map<Node, TNodeTrie>::iterator itii = iti->second.begin();
+         itii != iti->second.end();
+         ++itii)
+    {
       Trace("dt-cg") << "Process index " << itii->first << ", " << iti->first << "..." << std::endl;
       addCarePairs( &itii->second, NULL, arity[ itii->first ], 0, n_pairs );
     }

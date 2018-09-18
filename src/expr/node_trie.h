@@ -24,61 +24,62 @@ namespace CVC4 {
 namespace theory {
 
 /** TNode trie class
-*
-* This is a trie data structure whose distinguishing feature is that it has
-* no "data" members and only references to children. The motivation for having
-* no data members is efficiency.
-* 
-* One use of this class is to represent "term indices" or a "signature tables"
-* for symbols with fixed arities. In this use case, we "index" terms by the list
-* of representatives of their arguments.
-*
-* For example, consider the equivalence classes :
-*
-* { a, d, f( d, c ), f( a, c ) }
-* { b, f( b, d ) }
-* { c, f( b, b ) }
-*
-* where the first elements ( a, b, c ) are the representatives of these classes.
-* The TNodeTrie t we may build for f is :
-*
-* t :
-*   t.d_data[a] :
-*     t.d_data[a].d_data[c] :
-*       t.d_data[a].d_data[c].d_data[f(d,c)] : (leaf)
-*   t.d_data[b] :
-*     t.d_data[b].d_data[b] :
-*       t.d_data[b].d_data[b].d_data[f(b,b)] : (leaf)
-*     t.d_data[b].d_data[d] :
-*       t.d_data[b].d_data[d].d_data[f(b,d)] : (leaf)
-*
-* Leaf nodes store the terms that are indexed by the arguments, for example
-* term f(d,c) is indexed by the representative arguments (a,c), and is stored
-* as a the (single) key in the data of t.d_data[a].d_data[c].
-*/
-class TNodeTrie {
+ *
+ * This is a trie data structure whose distinguishing feature is that it has
+ * no "data" members and only references to children. The motivation for having
+ * no data members is efficiency.
+ *
+ * One use of this class is to represent "term indices" or a "signature tables"
+ * for symbols with fixed arities. In this use case, we "index" terms by the
+ * list of representatives of their arguments.
+ *
+ * For example, consider the equivalence classes :
+ *
+ * { a, d, f( d, c ), f( a, c ) }
+ * { b, f( b, d ) }
+ * { c, f( b, b ) }
+ *
+ * where the first elements ( a, b, c ) are the representatives of these
+ * classes. The TNodeTrie t we may build for f is :
+ *
+ * t :
+ *   t.d_data[a] :
+ *     t.d_data[a].d_data[c] :
+ *       t.d_data[a].d_data[c].d_data[f(d,c)] : (leaf)
+ *   t.d_data[b] :
+ *     t.d_data[b].d_data[b] :
+ *       t.d_data[b].d_data[b].d_data[f(b,b)] : (leaf)
+ *     t.d_data[b].d_data[d] :
+ *       t.d_data[b].d_data[d].d_data[f(b,d)] : (leaf)
+ *
+ * Leaf nodes store the terms that are indexed by the arguments, for example
+ * term f(d,c) is indexed by the representative arguments (a,c), and is stored
+ * as a the (single) key in the data of t.d_data[a].d_data[c].
+ */
+class TNodeTrie
+{
  public:
   /** The children of this node. */
-  std::map< TNode, TNodeTrie > d_data;
+  std::map<TNode, TNodeTrie> d_data;
   /** For leaf nodes : does this node have data? */
   bool hasData() const { return !d_data.empty(); }
   /** For leaf nodes : get the node corresponding to this leaf. */
   TNode getData() const { return d_data.begin()->first; }
-  /** 
-  * Returns the term that is indexed by reps, if one exists, or
-  * or returns null otherwise.
-  */
+  /**
+   * Returns the term that is indexed by reps, if one exists, or
+   * or returns null otherwise.
+   */
   TNode existsTerm(std::vector<TNode>& reps) const;
   /**
-  * Returns the term that is previously indexed by reps, if one exists, or
-  * adds n to the trie, indexed by reps, and returns n.
-  */
+   * Returns the term that is previously indexed by reps, if one exists, or
+   * adds n to the trie, indexed by reps, and returns n.
+   */
   TNode addOrGetTerm(TNode n, std::vector<TNode>& reps);
-  /** 
-  * Returns false if a term is previously indexed by reps.
-  * Returns true if no term is previously indexed by reps,
-  *   and adds n to the trie, indexed by reps, and returns n.
-  */
+  /**
+   * Returns false if a term is previously indexed by reps.
+   * Returns true if no term is previously indexed by reps,
+   *   and adds n to the trie, indexed by reps, and returns n.
+   */
   bool addTerm(TNode n, std::vector<TNode>& reps);
   /** Debug print this trie. */
   void debugPrint(const char* c, Node n, unsigned depth = 0) const;
@@ -86,9 +87,9 @@ class TNodeTrie {
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
-};/* class TNodeTrie */
+}; /* class TNodeTrie */
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__EXPR__NODE_TRIE_H */

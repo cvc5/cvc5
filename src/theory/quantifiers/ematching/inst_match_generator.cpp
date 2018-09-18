@@ -1035,7 +1035,10 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
-        for( std::map< TNode, TNodeTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
+        for (std::map<TNode, TNodeTrie>::iterator it = tat->d_data.begin();
+             it != tat->d_data.end();
+             ++it)
+        {
           if( it->first!=r ){
             InstMatch m( q );
             addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
@@ -1091,7 +1094,10 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     if( d_match_pattern[argIndex].getKind()==INST_CONSTANT ){
       int v = d_var_num[argIndex];
       if( v!=-1 ){
-        for( std::map< TNode, TNodeTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
+        for (std::map<TNode, TNodeTrie>::iterator it = tat->d_data.begin();
+             it != tat->d_data.end();
+             ++it)
+        {
           Node t = it->first;
           Node prev = m.get( v );
           //using representatives, just check if equal
@@ -1110,7 +1116,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
       //inst constant from another quantified formula, treat as ground term  TODO: remove this?
     }
     Node r = qe->getEqualityQuery()->getRepresentative( d_match_pattern[argIndex] );
-    std::map< TNode, TNodeTrie >::iterator it = tat->d_data.find( r );
+    std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(r);
     if( it!=tat->d_data.end() ){
       addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
     }

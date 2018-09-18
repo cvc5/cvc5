@@ -16,37 +16,42 @@
 
 namespace CVC4 {
 namespace theory {
-  
 
-TNode TNodeTrie::existsTerm( std::vector< TNode >& reps ) const {
-  const TNodeTrie * tnt = this;
-  std::map< TNode, TNodeTrie >::const_iterator it;
-  for( TNode r : reps )
+TNode TNodeTrie::existsTerm(std::vector<TNode>& reps) const
+{
+  const TNodeTrie* tnt = this;
+  std::map<TNode, TNodeTrie>::const_iterator it;
+  for (TNode r : reps)
   {
-    it = tnt->d_data.find( r );
-    if( it==tnt->d_data.end() ){
+    it = tnt->d_data.find(r);
+    if (it == tnt->d_data.end())
+    {
       // didn't find this child, return null
       return Node::null();
     }
     tnt = &it->second;
   }
-  if( tnt->d_data.empty() ){
+  if (tnt->d_data.empty())
+  {
     return Node::null();
   }
   return tnt->d_data.begin()->first;
 }
 
-bool TNodeTrie::addTerm( TNode n, std::vector< TNode >& reps ){
-  return addOrGetTerm( n, reps )==n;
+bool TNodeTrie::addTerm(TNode n, std::vector<TNode>& reps)
+{
+  return addOrGetTerm(n, reps) == n;
 }
 
-TNode TNodeTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps ) {
-  TNodeTrie * tnt = this;
-  for( TNode r : reps )
+TNode TNodeTrie::addOrGetTerm(TNode n, std::vector<TNode>& reps)
+{
+  TNodeTrie* tnt = this;
+  for (TNode r : reps)
   {
     tnt = &(tnt->d_data[r]);
   }
-  if( tnt->d_data.empty() ){
+  if (tnt->d_data.empty())
+  {
     // Store n in d_data. This should be interpretted as the "data" and not as a
     // reference to a child.
     tnt->d_data[n].clear();
@@ -55,16 +60,18 @@ TNode TNodeTrie::addOrGetTerm( TNode n, std::vector< TNode >& reps ) {
   return tnt->d_data.begin()->first;
 }
 
-void TNodeTrie::debugPrint( const char * c, Node n, unsigned depth ) const {
-  for( const std::pair< const TNode, TNodeTrie >& p : d_data )
+void TNodeTrie::debugPrint(const char* c, Node n, unsigned depth) const
+{
+  for (const std::pair<const TNode, TNodeTrie>& p : d_data)
   {
-    for( unsigned i=0; i<depth; i++ ){ 
+    for (unsigned i = 0; i < depth; i++)
+    {
       Trace(c) << "  ";
     }
     Trace(c) << p.first << std::endl;
-    p.second.debugPrint( c, n, depth+1 );
+    p.second.debugPrint(c, n, depth + 1);
   }
 }
 
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace theory
+}  // namespace CVC4
