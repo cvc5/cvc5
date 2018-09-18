@@ -1035,13 +1035,11 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
-        for (std::map<TNode, TNodeTrie>::iterator it = tat->d_data.begin();
-             it != tat->d_data.end();
-             ++it)
+        for( std::pair< const TNode, TNodeTrie >& t : tat->d_data )
         {
-          if( it->first!=r ){
+          if( t.first!=r ){
             InstMatch m( q );
-            addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
+            addInstantiations( m, qe, addedLemmas, 0, &(t.second) );
             if( qe->inConflict() ){
               break;
             }

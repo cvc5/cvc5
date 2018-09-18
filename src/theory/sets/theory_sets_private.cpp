@@ -1892,12 +1892,10 @@ void TheorySetsPrivate::computeCareGraph() {
       }
       if( arity>0 ){
         //for each index
-        for (std::map<TypeNode, TNodeTrie>::iterator iti = index.begin();
-             iti != index.end();
-             ++iti)
+        for( std::pair< const TypeNode, TNodeTrie >& tt : index )
         {
-          Trace("sets-cg") << "Process index " << iti->first << "..." << std::endl;
-          addCarePairs( &iti->second, NULL, arity, 0, n_pairs );
+          Trace("sets-cg") << "Process index " << tt.first << "..." << std::endl;
+          addCarePairs( &tt.second, nullptr, arity, 0, n_pairs );
         }
       }
       Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;

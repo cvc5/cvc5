@@ -657,12 +657,10 @@ void TheoryUF::computeCareGraph() {
       }
     }
     //for each index
-    for (std::map<Node, TNodeTrie>::iterator itii = index.begin();
-         itii != index.end();
-         ++itii)
+    for( std::pair< const Node, TNodeTrie >& tt : index )
     {
-      Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index " << itii->first << "..." << std::endl;
-      addCarePairs( &itii->second, NULL, arity[ itii->first ], 0 );
+      Debug("uf::sharing") << "TheoryUf::computeCareGraph(): Process index " << tt.first << "..." << std::endl;
+      addCarePairs( &tt.second, nullptr, arity[ tt.first ], 0 );
     }
     Debug("uf::sharing") << "TheoryUf::computeCareGraph(): finished." << std::endl;
   }
