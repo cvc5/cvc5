@@ -188,8 +188,6 @@ public:
   void registerPattern( std::vector<Node> & pattern);
   /** assert universal quantifier */
   void assertQuantifier( Node q, bool pol );
-  /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
 private:
  /** (context-indepentent) register quantifier internal
   *

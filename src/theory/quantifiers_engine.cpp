@@ -936,19 +936,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
-  unsigned min_priority = 0;
-  Node dec;  
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    Node n = d_modules[i]->getNextDecisionRequest( priority );
-    if( !n.isNull() && ( dec.isNull() || priority<min_priority ) ){
-      dec = n;
-      min_priority = priority;
-    }
-  }
-  return dec;
-}
-
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
