@@ -431,10 +431,17 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Trace("sygus-pbe-enum") << "  " << enums[i] << " -> ";
       TermDbSygus::toStreamSygus("sygus-pbe-enum", enum_values[i]);
       Trace("sygus-pbe-enum") << std::endl;
-      unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
-      szs.push_back(sz);
-      if( i==0 || sz<min_term_size ){
-        min_term_size = sz;
+      if( !enum_values[i].isNull() )
+      {
+        unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
+        szs.push_back(sz);
+        if( i==0 || sz<min_term_size ){
+          min_term_size = sz;
+        }
+      }
+      else
+      {
+        szs.push_back(0);
       }
     }
     // Assume two enumerators of types T1 and T2.
@@ -448,11 +455,14 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      Assert(szs[i] >= min_term_size);
-      int diff = szs[i] - min_term_size;
-      if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+      if( !enum_values[i].isNull() )
       {
-        enum_consider.push_back( i );
+        Assert(szs[i] >= min_term_size);
+        int diff = szs[i] - min_term_size;
+        if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+        {
+          enum_consider.push_back( i );
+        }
       }
     }
 

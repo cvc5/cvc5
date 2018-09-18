@@ -29,6 +29,7 @@
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4::kind;
@@ -339,6 +340,19 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
   getModelValues(terms, enum_values);
+  
+  // if the master requires a full model and the model is partial, we fail
+  if( !d_master->allowPartialModel() )
+  {
+    for( const Node& v : enum_values )
+    {
+      if( v.isNull() )
+      {
+        Trace("cegqi-check") << "...partial model, fail." << std::endl;
+        return;
+      }
+    }
+  }
 
   if (!constructed_cand)
   {
