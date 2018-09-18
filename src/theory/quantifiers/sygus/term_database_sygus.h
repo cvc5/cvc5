@@ -29,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
@@ -76,13 +76,13 @@ class TermDbSygus {
    */
   void registerEnumerator(Node e,
                           Node f,
-                          CegConjecture* conj,
+                          SynthConjecture* conj,
                           bool mkActiveGuard = false,
                           bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e) const;
+  SynthConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
   Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
@@ -252,7 +252,7 @@ class TermDbSygus {
   //------------------------------enumerators
   /** mapping from enumerator terms to the conjecture they are associated with
    */
-  std::map<Node, CegConjecture*> d_enum_to_conjecture;
+  std::map<Node, SynthConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
    * associated with 
    */
