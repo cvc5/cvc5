@@ -1863,32 +1863,32 @@ Term Solver::mkConst(Kind kind, Sort arg) const
 Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
 {
   CVC4_API_CHECK(kind == UNINTERPRETED_CONSTANT)
-      << "Invalid kind '%s', expected UNINTERPRETED_CONSTANT"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected UNINTERPRETED_CONSTANT";
   return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
 }
 
 Term Solver::mkConst(Kind kind, bool arg) const
 {
   CVC4_API_CHECK(kind == CONST_BOOLEAN)
-      << "Invalid kind '%s', expected CONST_BOOLEAN"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_BOOLEAN";
   return d_exprMgr->mkConst<bool>(arg);
 }
 
 Term Solver::mkConst(Kind kind, const char* arg) const
 {
   CVC4_API_CHECK(kind == CONST_STRING)
-      << "Invalid kind '%s', expected CONST_STRING"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg) const
 {
   CVC4_API_CHECK(kind == CONST_STRING)
-      << "Invalid kind '%s', expected CONST_STRING"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
@@ -1896,9 +1896,8 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
                  || kind == CONST_BITVECTOR)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or "
-         "CONST_RATIONAL or CONST_BITVECTOR"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1914,9 +1913,8 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
                  || kind == CONST_BITVECTOR)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or "
-         "CONST_RATIONAL or CONST_BITVECTOR"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1932,9 +1930,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
                  || kind == CONST_BITVECTOR)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or "
-         "CONST_RATIONAL or CONST_BITVECTOR"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1949,8 +1946,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1961,8 +1958,8 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1973,8 +1970,8 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
   CVC4_API_CHECK(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1985,40 +1982,40 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
   CVC4_API_CHECK(kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
   CVC4_API_CHECK(kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
   CVC4_API_CHECK(kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
   CVC4_API_CHECK(kind == CONST_RATIONAL)
-      << "Invalid kind '%s', expected CONST_RATIONAL"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
   CVC4_API_CHECK(kind == CONST_BITVECTOR)
-      << "Invalid kind '%s', expected CONST_BITVECTOR"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_BITVECTOR";
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
@@ -2026,8 +2023,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
   // CHECK: arg 3 is bit-vector constant
   CVC4_API_CHECK(kind == CONST_FLOATINGPOINT)
-      << "Invalid kind '%s', expected CONST_FLOATINGPOINT"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CONST_FLOATINGPOINT";
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
@@ -2065,8 +2062,8 @@ Term Solver::mkBoundVar(Sort sort) const
 Term Solver::mkTerm(Kind kind) const
 {
   CVC4_API_CHECK(kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
-      << "Invalid kind '%s', expected PI or REGEXP_EMPTY or REGEXP_SIGMA"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected PI or REGEXP_EMPTY or REGEXP_SIGMA";
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     CVC4::Kind k = extToIntKind(kind);
@@ -2080,7 +2077,7 @@ Term Solver::mkTerm(Kind kind) const
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
   CVC4_API_CHECK(kind == SEP_NIL || kind == UNIVERSE_SET)
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
 }
 
@@ -2101,7 +2098,7 @@ Term Solver::mkTerm(Kind kind, Term child) const
   // else "Exprs with kind %s must have at least %u children and "
   //      "at most %u children (the one under construction has %u)"
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
   return d_exprMgr->mkExpr(k, *child.d_expr);
@@ -2110,7 +2107,7 @@ Term Solver::mkTerm(Kind kind, Term child) const
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   // CHECK:
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(child1.getExprManager())
@@ -2153,7 +2150,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
   // else "Exprs with kind %s must have at least %u children and "
   //      "at most %u children (the one under construction has %u)"
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2179,7 +2176,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   // must have at least %u children and "
   //      "at most %u children (the one under construction has %u)"
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2306,22 +2303,23 @@ std::vector<Expr> Solver::termVectorToExprs(
 OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 {
   CVC4_API_CHECK(kind == CHAIN_OP)
-      << "Invalid kind '%s', expected CHAIN_OP" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected CHAIN_OP";
   return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
   CVC4_API_CHECK(kind == RECORD_UPDATE_OP)
-      << "Invalid kind '%s', expected RECORD_UPDATE_OP"
-      << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str()
+      << "', expected RECORD_UPDATE_OP";
   return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 {
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   OpTerm res;
   switch (kind)
   {
@@ -2369,7 +2367,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
 {
   CVC4_API_CHECK(isDefinedKind(kind))
-      << "Invalid kind '%s'" << kindToString(kind).c_str();
+      << "Invalid kind '" << kindToString(kind).c_str() << "'";
   OpTerm res;
   switch (kind)
   {
