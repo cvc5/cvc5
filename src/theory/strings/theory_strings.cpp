@@ -4385,7 +4385,9 @@ Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
     return Node::null();
   }
   NodeManager* nm = NodeManager::currentNM();
-  return nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
+  Node lit = nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
+  Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
+  return lit;
 }
 std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const
 {
