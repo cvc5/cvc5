@@ -1511,11 +1511,14 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
       else if( node[0].getKind()==STRING_STRREPL )
       {
-        Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
-        rplRange = Rewriter::rewrite( rplRange );
-        if( rplRange.isConst() && !rplRange.getConst<bool>() )
+        Node rplDomain = nm->mkNode(STRING_STRCTN, node[0][1], node[1]);
+        rplDomain = Rewriter::rewrite( rplDomain );
+        if( rplDomain.isConst() && !rplDomain.getConst<bool>() )
         {
-          Node ret = nm->mkNode(STRING_STRCTN,node[0][0], node[1] );
+          Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1] );
+          Node d2 = nm->mkNode( AND, nm->mkNode( STRING_STRCTN, node[0][0], node[0][1] ), nm->mkNode(STRING_STRCTN,node[0][2], node[1] ) );
+          Node ret = nm->mkNode( OR, d1, d2 );
+          Node rplRange = nm->mkNode(STRING_STRCTN, node[0][2], node[1]);
           return returnRewrite(node, ret, "ctn-repl-char");
         }
       }
