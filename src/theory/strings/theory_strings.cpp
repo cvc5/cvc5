@@ -1660,8 +1660,8 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
       //   we may infer str.contains( x, y1 ), ..., str.contains( x, yn )
       // The following recognizes two situations related to the above reasoning:
       // (1) If ~str.contains( x, yi ) holds for some i, we are in conflict,
-      // (2) If str.contains( x, yi ) already holds for some i, then the term
-      // str.contains( x, yi ) is irrelevant since it is satisfied by all models
+      // (2) If str.contains( x, yj ) already holds for some j, then the term
+      // str.contains( x, yj ) is irrelevant since it is satisfied by all models
       // for str.contains( x, str.++( y1, ..., yn ) ).
 
       // Notice that the dual of the above reasoning also holds, i.e.

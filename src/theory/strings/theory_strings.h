@@ -450,8 +450,8 @@ private:
    * inference schema.
    *
    * In the following, we refer to the "context-dependent simplified form"
-   * of a term t is the result of rewriting t * sigma where sigma is a
-   * derived substitution in the current context. For example, the
+   * of a term t is the result of rewriting t * sigma, where sigma is a
+   * derivable substitution in the current context. For example, the
    * context-depdendent simplified form of contains( x++y, "a" ) given
    * sigma = { x -> "" } is contains(y,"a").
    */
@@ -463,7 +463,8 @@ private:
      * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
      * (resp. ~contains( t, s )) holds in the current context. The vector
      * d_ctn_from is the explanation for why this holds. For example,
-     *
+     * if d_ctn[false][i] is "A", then d_ctn_from[false][i] might be
+     * t = x ++ y AND x = "" AND y = "B".
      */
     std::map<bool, std::vector<Node> > d_ctn;
     std::map<bool, std::vector<Node> > d_ctn_from;
@@ -472,7 +473,7 @@ private:
      */
     Node d_const;
     /**
-     * The explanation for why t is equal to its context-depedent simplified
+     * The explanation for why t is equal to its context-dependent simplified
      * form.
      */
     std::vector<Node> d_exp;
@@ -487,8 +488,8 @@ private:
    * to its reduction, but may help show a refutation.
    *
    * This function is called when the context-depdendent simplified form of
-   * n is nr. The argument in is the information object for n. The argument
-   * effort has the same meaning as the effort argument of checkExtfEval.
+   * n is nr. The argument "in" is the information object for n. The argument
+   * "effort" has the same meaning as the effort argument of checkExtfEval.
    */
   void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
   //--------------------------end for checkExtfEval
