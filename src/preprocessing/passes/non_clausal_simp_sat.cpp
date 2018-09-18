@@ -2,7 +2,7 @@
 /*! \file non_clausal_simp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Haoze Wu
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -14,12 +14,20 @@
  ** Run the nonclausal solver and try to solve all assigned theory literals.
  **/
 
-#include "preprocessing/passes/non_clausal_simp.h"
+ #include "preprocessing/passes/non_clausal_simp_sat.h"
+ #include <cryptominisat5/cryptominisat.h>
 
-#include "context/cdo.h"
-#include "options/proof_options.h"
-#include "smt/smt_statistics_registry.h"
-#include "theory/theory_model.h"
+ #include "prop/registrar.h"
+ #include "prop/cnf_stream.h"
+ #include "prop/sat_solver_factory.h"
+
+ #include "proof/proof_manager.h"
+
+ #include "context/cdo.h"
+ #include "options/proof_options.h"
+ #include "smt/smt_statistics_registry.h"
+ #include "theory/theory_model.h"
+#include <ctime>
 
 #include <vector>
 
@@ -30,87 +38,106 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-/* -------------------------------------------------------------------------- */
-
-NonClausalSimp::Statistics::Statistics()
-    : d_numConstantProps(
-          "preprocessing::passes::NonClausalSimp::NumConstantProps", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-}
-
-NonClausalSimp::Statistics::~Statistics()
-{
-  smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-}
 
 /* -------------------------------------------------------------------------- */
 
-NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "non-clausal-simp")
+NonClausalSimpSAT::NonClausalSimpSAT(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "non-clausal-simp-sat")
 {
 }
 
-PreprocessingPassResult NonClausalSimp::applyInternal(
+PreprocessingPassResult NonClausalSimpSAT::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+
   Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
 
   d_preprocContext->spendResource(options::preprocessStep());
 
-  theory::booleans::CircuitPropagator* propagator =
-      d_preprocContext->getCircuitPropagator();
 
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                  << (*assertionsToPreprocess)[i] << std::endl;
-  }
+  // Convert the original formula into a boolean formula and solve it
+  // with cryptominisat
+  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(
+                smtStatisticsRegistry(), "non_clausal_simp_solver");
+  CVC4::prop::NullRegistrar d_registrar;
+  context::Context d_context;
+  CVC4::prop::TseitinCnfStream d_cnfStream (d_satSolver, &d_registrar,
+                                            &d_context, true,
+                                            "toCNF-non-clausal-simp");
 
-  if (propagator->getNeedsFinish())
-  {
-    propagator->finish();
-    propagator->setNeedsFinish(false);
-  }
-  propagator->initialize();
+  Trace("non-clausal-simplify-sat") << "asserting to sat solver" << std::endl;
 
-  // Assert all the assertions to the propagator
-  Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
-           == (*assertionsToPreprocess)[i]);
-    // Don't reprocess substitutions
-    if (substs_index > 0 && i == substs_index)
-    {
-      continue;
-    }
-    Trace("non-clausal-simplify")
-        << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
-                   << std::endl;
-    propagator->assertTrue((*assertionsToPreprocess)[i]);
+              == (*assertionsToPreprocess)[i]);
+       // Don't reprocess substitutions
+       if (substs_index > 0 && i == substs_index)
+       {
+         continue;
+       }
+       Trace("non-clausal-simplify-sat")
+           << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
+       d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false,
+                                    RULE_GIVEN);
   }
 
-  Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
-  {
+
+
+  SatValue result = d_satSolver->solve();
+
+  if (result==SAT_VALUE_FALSE){
     // If in conflict, just return false
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "conflict in non-clausal propagation" << std::endl;
     Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
     assertionsToPreprocess->clear();
     Node n = NodeManager::currentNM()->mkConst<bool>(false);
     assertionsToPreprocess->push_back(n);
     PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-    propagator->setNeedsFinish(true);
+    delete d_satSolver;
     return PreprocessingPassResult::CONFLICT;
   }
 
-  Trace("non-clausal-simplify")
-      << "Iterate through " << propagator->getLearnedLiterals().size()
-      << " learned literals." << std::endl;
+  std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
+
+  std::vector<TNode> learned_literals;
+
+
+  for (size_t i = 0; i < topLevelUnits.size(); i++){
+    SatLiteral lit = topLevelUnits[i];
+    if (d_cnfStream.getNodeCache().find(lit)
+        != d_cnfStream.getNodeCache().end()) {
+      // if the literal is in the getNodeCache
+      Node learnedLiteral = Rewriter::rewrite(d_cnfStream.getNode(lit));
+      if (learnedLiteral.isConst())
+      {
+        if (learnedLiteral.getConst<bool>())
+        {
+          // If the learned literal simplifies to true, it's redundant
+          continue;
+        }
+        else
+        {
+          // If the learned literal simplifies to false, we're in conflict
+          Trace("non-clausal-simplify-sat")
+              << "conflict with " << learned_literals[i] << std::endl;
+          Assert(!options::unsatCores());
+          assertionsToPreprocess->clear();
+          Node n = NodeManager::currentNM()->mkConst<bool>(false);
+          assertionsToPreprocess->push_back(n);
+          PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+          delete d_satSolver;
+          return PreprocessingPassResult::CONFLICT;
+        }
+      }
+      learned_literals.push_back(learnedLiteral);
+    }
+  }
+
+
+
   // No conflict, go through the literals and solve them
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
@@ -118,21 +145,20 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
   SubstitutionMap::iterator pos;
   size_t j = 0;
-  std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
     Node learnedLiteral = learned_literals[i];
     Assert(Rewriter::rewrite(learnedLiteral) == learnedLiteral);
     Assert(top_level_substs.apply(learnedLiteral) == learnedLiteral);
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "Process learnedLiteral : " << learnedLiteral << std::endl;
     Node learnedLiteralNew = newSubstitutions.apply(learnedLiteral);
     if (learnedLiteral != learnedLiteralNew)
     {
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "Process learnedLiteral, after newSubs : " << learnedLiteral
         << std::endl;
     for (;;)
@@ -142,10 +168,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      d_statistics.d_numConstantProps += 1;
       learnedLiteral = Rewriter::rewrite(learnedLiteralNew);
     }
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "Process learnedLiteral, after constProp : " << learnedLiteral
         << std::endl;
     // It might just simplify to a constant
@@ -159,21 +184,21 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       else
       {
         // If the learned literal simplifies to false, we're in conflict
-        Trace("non-clausal-simplify")
+        Trace("non-clausal-simplify-sat")
             << "conflict with " << learned_literals[i] << std::endl;
         Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        propagator->setNeedsFinish(true);
+        delete d_satSolver;
         return PreprocessingPassResult::CONFLICT;
       }
     }
 
     // Solve it with the corresponding theory, possibly adding new
     // substitutions to newSubstitutions
-    Trace("non-clausal-simplify") << "solving " << learnedLiteral << std::endl;
+    Trace("non-clausal-simplify-sat") << "solving " << learnedLiteral << std::endl;
 
     Theory::PPAssertStatus solveStatus =
         d_preprocContext->getTheoryEngine()->solve(learnedLiteral,
@@ -184,7 +209,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       case Theory::PP_ASSERT_STATUS_SOLVED:
       {
         // The literal should rewrite to true
-        Trace("non-clausal-simplify")
+        Trace("non-clausal-simplify-sat")
             << "solved " << learnedLiteral << std::endl;
         Assert(Rewriter::rewrite(newSubstitutions.apply(learnedLiteral))
                    .isConst());
@@ -202,14 +227,14 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       case Theory::PP_ASSERT_STATUS_CONFLICT:
       {
         // If in conflict, we return false
-        Trace("non-clausal-simplify")
+        Trace("non-clausal-simplify-sat")
             << "conflict while solving " << learnedLiteral << std::endl;
         Assert(!options::unsatCores());
         assertionsToPreprocess->clear();
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        propagator->setNeedsFinish(true);
+        delete d_satSolver;
         return PreprocessingPassResult::CONFLICT;
       }
       default:
@@ -301,7 +326,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 #endif /* CVC4_ASSERTIONS */
 
   // Resize the learnt
-  Trace("non-clausal-simplify")
+  Trace("non-clausal-simplify-sat")
       << "Resize non-clausal learned literals to " << j << std::endl;
   learned_literals.resize(j);
 
@@ -310,13 +335,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   {
     Node assertion = (*assertionsToPreprocess)[i];
     Node assertionNew = newSubstitutions.apply(assertion);
-    Trace("non-clausal-simplify") << "assertion = " << assertion << std::endl;
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat") << "assertion = " << assertion << std::endl;
+    Trace("non-clausal-simplify-sat")
         << "assertionNew = " << assertionNew << std::endl;
     if (assertion != assertionNew)
     {
       assertion = Rewriter::rewrite(assertionNew);
-      Trace("non-clausal-simplify")
+      Trace("non-clausal-simplify-sat")
           << "rewrite(assertion) = " << assertion << std::endl;
     }
     Assert(Rewriter::rewrite(assertion) == assertion);
@@ -327,16 +352,15 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      d_statistics.d_numConstantProps += 1;
-      Trace("non-clausal-simplify")
+      Trace("non-clausal-simplify-sat")
           << "assertionNew = " << assertionNew << std::endl;
       assertion = Rewriter::rewrite(assertionNew);
-      Trace("non-clausal-simplify")
+      Trace("non-clausal-simplify-sat")
           << "assertionNew = " << assertionNew << std::endl;
     }
     s.insert(assertion);
     assertionsToPreprocess->replace(i, assertion);
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "non-clausal preprocessed: " << assertion << std::endl;
   }
 
@@ -355,7 +379,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         || d_preprocContext->getSymsInAssertions().find(lhs)
                == d_preprocContext->getSymsInAssertions().end())
     {
-      Trace("non-clausal-simplify")
+      Trace("non-clausal-simplify-sat")
           << "substitute: " << lhs << " " << rhs << std::endl;
       m->addSubstitution(lhs, rhs);
     }
@@ -363,7 +387,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     {
       // if it has, the substitution becomes an assertion
       Node eq = nm->mkNode(kind::EQUAL, lhs, rhs);
-      Trace("non-clausal-simplify")
+      Trace("non-clausal-simplify-sat")
           << "substitute: will notify SAT layer of substitution: " << eq
           << std::endl;
       substitutionsBuilder << eq;
@@ -400,7 +424,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       {
         break;
       }
-      d_statistics.d_numConstantProps += 1;
       learned = Rewriter::rewrite(learnedNew);
     }
     if (s.find(learned) != s.end())
@@ -409,7 +432,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     s.insert(learned);
     learnedBuilder << learned;
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "non-clausal learned : " << learned << std::endl;
   }
   learned_literals.clear();
@@ -431,7 +454,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     }
     s.insert(cProp);
     learnedBuilder << cProp;
-    Trace("non-clausal-simplify")
+    Trace("non-clausal-simplify-sat")
         << "non-clausal constant propagation : " << cProp << std::endl;
   }
 
@@ -448,7 +471,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Rewriter::rewrite(Node(learnedBuilder)));
   }
 
-  propagator->setNeedsFinish(true);
+  delete d_satSolver;
+
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
 

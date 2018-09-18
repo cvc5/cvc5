@@ -358,15 +358,15 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   help       = "calculate sort inference of input problem, convert the input based on monotonic sorts"
-  
+
 [[option]]
   name       = "symmetryBreakerExp"
   category   = "regular"
   long       = "symmetry-breaker-exp"
   type       = "bool"
   default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"    
-  
+  help       = "generate symmetry breaking constraints after symmetry detection"
+
 [[option]]
   name       = "incrementalSolving"
   category   = "common"
@@ -639,3 +639,14 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
+
+
+
+[[option]]
+  name       = "skeletonPreprocessing"
+  category   = "undocumented"
+  long       = "skeleton-preprocessing"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use cryptominisat for skeleton preprocessing"

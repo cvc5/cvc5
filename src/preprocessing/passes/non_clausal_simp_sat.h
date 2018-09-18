@@ -2,7 +2,7 @@
 /*! \file non_clausal_simp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andrew Wu
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -14,10 +14,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
-#define __CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_H
+#ifndef __CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_SAT_H
+#define __CVC4__PREPROCESSING__PASSES__NON_CLAUSAL_SIMP_SAT_H
 
 #include <vector>
+
+#include "prop/cryptominisat.h"
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -27,27 +29,14 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-class NonClausalSimp : public PreprocessingPass
+class NonClausalSimpSAT : public PreprocessingPass
 {
  public:
-  NonClausalSimp(PreprocessingPassContext* preprocContext);
+  NonClausalSimpSAT(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
- private:
-  struct Statistics
-  {
-    IntStat d_numConstantProps;
-    Statistics();
-    ~Statistics();
-  };
-
-  Statistics d_statistics;
-
-  /** Learned literals */
-  std::vector<Node> d_nonClausalLearnedLiterals;
 };
 
 }  // namespace passes
