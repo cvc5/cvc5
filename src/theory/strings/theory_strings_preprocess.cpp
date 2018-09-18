@@ -97,62 +97,65 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   else if (t.getKind() == kind::STRING_STRIDOF)
   {
     // processing term:  indexof( x, y, n )
+    Node x = t[0];
+    Node y = t[1];
+    Node n = t[2];
     Node skk = nm->mkSkolem("iok", nm->integerType(), "created for indexof");
 
-    Node negone = nm->mkConst(::CVC4::Rational(-1));
-    Node krange = nm->mkNode(kind::GEQ, skk, negone);
+    Node negone = nm->mkConst(Rational(-1));
+    Node krange = nm->mkNode(GEQ, skk, negone);
     // assert:   indexof( x, y, n ) >= -1
     new_nodes.push_back( krange );
-    krange = nm->mkNode(kind::GEQ, nm->mkNode(kind::STRING_LENGTH, t[0]), skk);
+    krange = nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, x), skk);
     // assert:   len( x ) >= indexof( x, y, z )
     new_nodes.push_back( krange );
 
     // substr( x, n, len( x ) - n )
     Node st = nm->mkNode(
-        kind::STRING_SUBSTR,
-        t[0],
-        t[2],
-        nm->mkNode(kind::MINUS, nm->mkNode(kind::STRING_LENGTH, t[0]), t[2]));
-    Node io2 = nm->mkSkolem("io2", nm->stringType(), "created for indexof");
-    Node io4 = nm->mkSkolem("io4", nm->stringType(), "created for indexof");
+        STRING_SUBSTR,
+        x,
+        n,
+        nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), n));
+    Node io2 = d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_PRE, "iopre");
+    Node io4 = d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_POST, "iopost");
 
     // ~contains( substr( x, n, len( x ) - n ), y )
-    Node c11 = nm->mkNode(kind::STRING_STRCTN, st, t[1]).negate();
+    Node c11 = nm->mkNode(STRING_STRCTN, st, y).negate();
     // n > len( x )
     Node c12 =
-        nm->mkNode(kind::GT, t[2], nm->mkNode(kind::STRING_LENGTH, t[0]));
+        nm->mkNode(GT, n, nm->mkNode(STRING_LENGTH, x));
     // 0 > n
-    Node c13 = nm->mkNode(kind::GT, d_zero, t[2]);
-    Node cond1 = nm->mkNode(kind::OR, c11, c12, c13);
+    Node c13 = nm->mkNode(GT, d_zero, n);
+    Node cond1 = nm->mkNode(OR, c11, c12, c13);
     // skk = -1
     Node cc1 = skk.eqNode(negone);
 
     // y = ""
-    Node cond2 = t[1].eqNode(nm->mkConst(CVC4::String("")));
+    Node cond2 = y.eqNode(d_empty_str);
     // skk = n
     Node cc2 = skk.eqNode(t[2]);
 
     // substr( x, n, len( x ) - n ) = str.++( io2, y, io4 )
-    Node c31 = st.eqNode(nm->mkNode(kind::STRING_CONCAT, io2, t[1], io4));
+    Node c31 = st.eqNode(nm->mkNode(STRING_CONCAT, io2, y, io4));
     // ~contains( str.++( io2, substr( y, 0, len( y ) - 1) ), y )
     Node c32 =
         nm->mkNode(
-              kind::STRING_STRCTN,
+              STRING_STRCTN,
               nm->mkNode(
-                  kind::STRING_CONCAT,
+                  STRING_CONCAT,
                   io2,
-                  nm->mkNode(kind::STRING_SUBSTR,
-                             t[1],
+                  nm->mkNode(STRING_SUBSTR,
+                             y,
                              d_zero,
-                             nm->mkNode(kind::MINUS,
-                                        nm->mkNode(kind::STRING_LENGTH, t[1]),
+                             nm->mkNode(MINUS,
+                                        nm->mkNode(STRING_LENGTH, y),
                                         d_one))),
-              t[1])
+              y)
             .negate();
     // skk = n + len( io2 )
     Node c33 = skk.eqNode(
-        nm->mkNode(kind::PLUS, t[2], nm->mkNode(kind::STRING_LENGTH, io2)));
-    Node cc3 = nm->mkNode(kind::AND, c31, c32, c33);
+        nm->mkNode(PLUS, n, nm->mkNode(STRING_LENGTH, io2)));
+    Node cc3 = nm->mkNode(AND, c31, c32, c33);
 
     // assert:
     // IF:   ~contains( substr( x, n, len( x ) - n ), y ) OR n > len(x) OR 0 > n
@@ -164,7 +167,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //       skk = n + len( io2 )
     // for fresh io2, io4.
     Node rr = nm->mkNode(
-        kind::ITE, cond1, cc1, nm->mkNode(kind::ITE, cond2, cc2, cc3));
+        ITE, cond1, cc1, nm->mkNode(ITE, cond2, cc2, cc3));
     new_nodes.push_back( rr );
 
     // Thus, indexof( x, y, n ) = skk.
@@ -174,7 +177,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
     //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
     Node num = t[0];
-    Node pret = nm->mkSkolem("itost", nm->stringType(), "created for itos");
+    Node pret = d_sc->mkSkolemCached(t,SkolemCache::SK_PURIFY,"itost");
     Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
 
     Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
