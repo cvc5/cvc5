@@ -1094,17 +1094,15 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     if( d_match_pattern[argIndex].getKind()==INST_CONSTANT ){
       int v = d_var_num[argIndex];
       if( v!=-1 ){
-        for (std::map<TNode, TNodeTrie>::iterator it = tat->d_data.begin();
-             it != tat->d_data.end();
-             ++it)
+        for( std::pair< const TNode, TNodeTrie >& tt : tat->d_data )
         {
-          Node t = it->first;
+          Node t = tt.first;
           Node prev = m.get( v );
           //using representatives, just check if equal
           Assert( t.getType().isComparableTo( d_match_pattern_arg_types[argIndex] ) );
           if( prev.isNull() || prev==t ){
             m.setValue( v, t);
-            addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
+            addInstantiations( m, qe, addedLemmas, argIndex+1, &(tt.second) );
             m.setValue( v, prev);
             if( qe->inConflict() ){
               break;

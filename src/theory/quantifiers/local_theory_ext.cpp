@@ -239,12 +239,10 @@ void LtePartialInst::getPartialInstantiations(std::vector<Node>& conj,
           //start traversing term index for the operator
           curr = d_quantEngine->getTermDatabase()->getTermArgTrie( pat.getOperator() );
         }
-        for (std::map<TNode, TNodeTrie>::iterator it = curr->d_data.begin();
-             it != curr->d_data.end();
-             ++it)
+        for( std::pair< const TNode, TNodeTrie >& t : curr->d_data )
         {
-          terms[d_pat_var_order[q][iindex]] = it->first;
-          getPartialInstantiations( conj, q, bvl, vars, terms, types, &it->second, pindex, paindex+1, iindex+1 );
+          terms[d_pat_var_order[q][iindex]] = t.first;
+          getPartialInstantiations( conj, q, bvl, vars, terms, types, &t.second, pindex, paindex+1, iindex+1 );
         }
       }
     }else{

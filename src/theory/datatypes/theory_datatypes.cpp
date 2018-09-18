@@ -1360,11 +1360,9 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
-             it != t1->d_data.end();
-             ++it)
+        for (std::pair<const TNode, TNodeTrie >& tt : t1->d_data )
         {
-          addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
+          addCarePairs( &tt.second, nullptr, arity, depth+1, n_pairs );
         }
       }
       //add care pairs based on each pair of non-disequal arguments
@@ -1384,17 +1382,13 @@ void TheoryDatatypes::addCarePairs(TNodeTrie* t1,
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
-           it != t1->d_data.end();
-           ++it)
+      for( std::pair< const TNode, TNodeTrie >& tt1 : t1->d_data )
       {
-        for (std::map<TNode, TNodeTrie>::iterator it2 = t2->d_data.begin();
-             it2 != t2->d_data.end();
-             ++it2)
+        for( std::pair< const TNode, TNodeTrie >& tt2 : t2->d_data )
         {
-          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            if( !areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+          if( !d_equalityEngine.areDisequal(tt1.first, tt2.first, false) ){
+            if( !areCareDisequal(tt1.first, tt2.first) ){
+              addCarePairs( &tt1.second, &tt2.second, arity, depth+1, n_pairs );
             }
           }
         }
@@ -1433,17 +1427,12 @@ void TheoryDatatypes::computeCareGraph(){
     }
   }
   //for each index
-  for (std::map<TypeNode, std::map<Node, TNodeTrie> >::iterator iti =
-           index.begin();
-       iti != index.end();
-       ++iti)
+  for( std::pair< const TypeNode, std::map<Node, TNodeTrie> >& tt : index )
   {
-    for (std::map<Node, TNodeTrie>::iterator itii = iti->second.begin();
-         itii != iti->second.end();
-         ++itii)
+    for( std::pair< const Node, TNodeTrie >& t : tt.second )
     {
-      Trace("dt-cg") << "Process index " << itii->first << ", " << iti->first << "..." << std::endl;
-      addCarePairs( &itii->second, NULL, arity[ itii->first ], 0, n_pairs );
+      Trace("dt-cg") << "Process index " << tt.first << ", " << t.first << "..." << std::endl;
+      addCarePairs( &t.second, nullptr, arity[ t.first ], 0, n_pairs );
     }
   }
   Trace("dt-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;
