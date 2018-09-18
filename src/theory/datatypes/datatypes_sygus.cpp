@@ -22,7 +22,6 @@
 #include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -313,11 +312,11 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       // static conjecture-dependent symmetry breaking
       Trace("sygus-sb-debug")
           << "  conjecture-dependent symmetry breaking...\n";
-      std::map<Node, quantifiers::CegConjecture*>::iterator itc =
+      std::map<Node, quantifiers::SynthConjecture*>::iterator itc =
           d_anchor_to_conj.find(a);
       if (itc != d_anchor_to_conj.end())
       {
-        quantifiers::CegConjecture* conj = itc->second;
+        quantifiers::SynthConjecture* conj = itc->second;
         Assert(conj != NULL);
         Node dpred = conj->getSymmetryBreakingPredicate(x, a, ntn, tindex, ds);
         if (!dpred.isNull())
@@ -803,7 +802,7 @@ Node SygusSymBreakNew::registerSearchValue(
     d_cache[a].d_search_val_proc.insert(cnv);
     // get the root (for PBE symmetry breaking)
     Assert(d_anchor_to_conj.find(a) != d_anchor_to_conj.end());
-    quantifiers::CegConjecture* aconj = d_anchor_to_conj[a];
+    quantifiers::SynthConjecture* aconj = d_anchor_to_conj[a];
     Assert(aconj != NULL);
     Trace("sygus-sb-debug") << "  ...register search value " << cnv
                             << ", type=" << tn << std::endl;
@@ -827,9 +826,9 @@ Node SygusSymBreakNew::registerSearchValue(
       bool by_examples = false;
       if( itsv==d_cache[a].d_search_val[tn].end() ){
         // TODO (github #1210) conjecture-specific symmetry breaking
-        // this should be generalized and encapsulated within the CegConjecture
-        // class
-        // is it equivalent under examples?
+        // this should be generalized and encapsulated within the
+        // SynthConjecture class.
+        // Is it equivalent under examples?
         Node bvr_equiv;
         if (options::sygusSymBreakPbe())
         {
