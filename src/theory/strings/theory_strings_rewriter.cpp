@@ -1504,12 +1504,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       {
         std::vector<Node> nc1;
         getConcat(node[0], nc1);
-        std::vector<Node> children;
+        NodeBuilder<> nb(OR);
         for (const Node& ncc : nc1)
         {
-          children.push_back(nm->mkNode(STRING_STRCTN, ncc, node[1]));
+          nb << nm->mkNode(STRING_STRCTN, ncc, node[1]);
         }
-        Node ret = nm->mkNode(OR, children);
+        Node ret = nb.constructNode();
         // str.contains( x ++ y, "A" ) --->
         //   str.contains( x, "A" ) OR str.contains( y, "A" )
         return returnRewrite(node, ret, "ctn-concat-char");
