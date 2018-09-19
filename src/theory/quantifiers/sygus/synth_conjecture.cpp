@@ -616,7 +616,7 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
       Trace("cegqi-engine") << n[i] << " -> ";
       if (nv.isNull())
       {
-        Trace("cegqi-engine") << "[exc: " << ss.str() << "] ";
+        Trace("cegqi-engine") << "[EXC: " << ss.str() << "] ";
       }
       else
       {
