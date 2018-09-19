@@ -542,7 +542,7 @@ public:
    * only be used once.  For more details see the 4/27/2010 CVC4
    * developer's meeting notes at:
    *
-   * http://goedel.cims.nyu.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
+   * http://cvc4.cs.stanford.edu/wiki/Meeting_Minutes_-_April_27,_2010#isAtomic.28.29_and_isAtomicFormula.28.29
    */
   // bool containsDecision(); // is "atomic"
   // bool properlyContainsDecision(); // maybe not atomic but all children are
