@@ -27,22 +27,6 @@ else()
   set(CVC4_RELEASE_STRING "${CVC4_MAJOR}.${CVC4_MINOR}${CVC4_EXTRAVERSION}")
 endif()
 
-# Define to the full name of this package.
-set(PACKAGE_NAME "${PROJECT_NAME}")
-
-#### These defines are only use in autotools make files, will likely be 
-#### replaced with corresponding CPack stuff
-## Define to the full name and version of this package.
-#set(PACKAGE_STRING "${PROJECT_NAME} ${CVC4_RELEASE_STRING}")
-## Define to the one symbol short name of this package.
-#set(PACKAGE_TARNAME "${PROJECT_NAME}")
-## Define to the home page for this package.
-#set(PACKAGE_URL "")
-## Define to the version of this package.
-#set(PACKAGE_VERSION "${CVC4_RELEASE_STRING}")
-## Define to the address where bug reports for this package should be sent.
-#set(PACKAGE_BUGREPORT "cvc4-bugs@cs.stanford.edu")
-
 set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
