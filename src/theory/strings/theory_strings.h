@@ -450,7 +450,7 @@ private:
    * inference schema.
    *
    * In the following, we refer to the "context-dependent simplified form"
-   * of a term t is the result of rewriting t * sigma, where sigma is a
+   * of a term t to be the result of rewriting t * sigma, where sigma is a
    * derivable substitution in the current context. For example, the
    * context-depdendent simplified form of contains( x++y, "a" ) given
    * sigma = { x -> "" } is contains(y,"a").
