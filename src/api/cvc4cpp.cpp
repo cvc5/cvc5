@@ -571,11 +571,15 @@ CVC4::Kind extToIntKind(Kind k)
 
 uint32_t minArity(Kind k)
 {
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
   return CVC4::ExprManager::minArity(extToIntKind(k));
 }
 
 uint32_t maxArity(Kind k)
 {
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
   return CVC4::ExprManager::maxArity(extToIntKind(k));
 }
 }  // namespace
@@ -1954,6 +1958,7 @@ Term Solver::mkBoundVar(Sort sort) const
 void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 {
   CVC4_API_KIND_CHECK(kind);
+  Assert(isDefinedIntKind(extToIntKind(k)));
   const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
   CVC4_API_KIND_CHECK_EXPECTED(
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
@@ -1977,6 +1982,7 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
 {
   const Kind kind = opTerm.getKind();
+  Assert(isDefinedIntKind(extToIntKind(k)));
   const CVC4::Kind int_kind = extToIntKind(kind);
   const CVC4::Kind int_op_kind =
       NodeManager::operatorToKind(opTerm.d_expr->getNode());
