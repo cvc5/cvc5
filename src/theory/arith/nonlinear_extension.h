@@ -586,14 +586,14 @@ class NonlinearExtension {
 
   /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
   std::map<Kind, std::vector<Node> > d_f_map;
-  
+
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
 
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
-  
+
   /** secant points (sorted list) for transcendental functions
    *
    * This is used for tangent plane refinements for

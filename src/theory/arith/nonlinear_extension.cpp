@@ -658,7 +658,7 @@ Node NonlinearExtension::mkMonomialRemFactor(
 int NonlinearExtension::flushLemma(Node lem) {
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
-  lem = Rewriter::rewrite( lem );
+  lem = Rewriter::rewrite(lem);
   if (Contains(d_lemmas, lem)) {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
@@ -893,17 +893,19 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       Node atf = computeModelValue(tf, 0);
       if (k == PI)
       {
-        success =addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
+        success = addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
       }
       else if (isRefineableTfFun(tf))
       {
         d_used_approx = true;
         std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        success =addCheckModelBound(atf, bounds.first, bounds.second);
+        success = addCheckModelBound(atf, bounds.first, bounds.second);
       }
-      if( !success )
+      if (!success)
       {
-        Trace("nl-ext-cm-debug") << "...failed to set bound for transcendental function." << std::endl;
+        Trace("nl-ext-cm-debug")
+            << "...failed to set bound for transcendental function."
+            << std::endl;
         return false;
       }
       if (Trace.isOn("nl-ext-cm"))
@@ -969,7 +971,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
               printRationalApprox("nl-ext-cm", curv);
               Trace("nl-ext-cm") << std::endl;
               bool ret = addCheckModelSubstitution(cur, curv);
-              AlwaysAssert( ret );
+              AlwaysAssert(ret);
             }
           }
         }
@@ -1055,14 +1057,17 @@ bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
     Assert( false );
     return false;
   }
-  // if we previously had an approximate bound, the exact bound should be in its range
-  std::map<Node, std::pair<Node, Node> >::iterator itb = d_check_model_bounds.find(v);
+  // if we previously had an approximate bound, the exact bound should be in its
+  // range
+  std::map<Node, std::pair<Node, Node> >::iterator itb =
+      d_check_model_bounds.find(v);
   if (itb != d_check_model_bounds.end())
   {
-    if( s.getConst<Rational>()>=itb->second.first.getConst<Rational>() ||
-        s.getConst<Rational>()<=itb->second.second.getConst<Rational>() )
+    if (s.getConst<Rational>() >= itb->second.first.getConst<Rational>()
+        || s.getConst<Rational>() <= itb->second.second.getConst<Rational>())
     {
-      Trace("nl-ext-model") << "...ERROR: already has bound which is out of range." << std::endl;
+      Trace("nl-ext-model")
+          << "...ERROR: already has bound which is out of range." << std::endl;
       return false;
     }
   }
@@ -1087,13 +1092,16 @@ bool NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
   if( l==u )
   {
     // bound is exact, can add as substitution
-    return addCheckModelSubstitution(v,l);
+    return addCheckModelSubstitution(v, l);
   }
   // should not set a bound for a value that is exact
-  if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
+  if (std::find(d_check_model_vars.begin(), d_check_model_vars.end(), v)
+      != d_check_model_vars.end())
   {
-    Trace("nl-ext-model") << "...ERROR: setting bound for variable that already has exact value." << std::endl;
-    Assert( false );
+    Trace("nl-ext-model")
+        << "...ERROR: setting bound for variable that already has exact value."
+        << std::endl;
+    Assert(false);
     return false;
   }
   Assert(l.isConst());
@@ -1230,7 +1238,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
             bool ret = addCheckModelSubstitution(uv, slv);
-            if( ret )
+            if (ret)
             {
               Trace("nl-ext-cms") << "...success, model substitution " << uv
                                   << " -> " << slv << std::endl;
@@ -1282,7 +1290,7 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     printRationalApprox("nl-ext-cm", val);
     Trace("nl-ext-cm") << std::endl;
     bool ret = addCheckModelSubstitution(var, val);
-    if( ret )
+    if (ret)
     {
       Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
       d_check_model_solved[eq] = var;
@@ -1384,8 +1392,9 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cm") << " <= " << var << " <= ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
   Trace("nl-ext-cm") << std::endl;
-  bool ret = addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
-  if( ret )
+  bool ret =
+      addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
+  if (ret)
   {
     d_check_model_solved[eq] = var;
     Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
@@ -3657,7 +3666,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             sum = Rewriter::rewrite( sum );
             Trace("nl-ext-factor")
                 << "* Factored sum for " << x << " : " << sum << std::endl;
-            Node kf = getFactorSkolem( sum, lemmas );
+            Node kf = getFactorSkolem(sum, lemmas);
             std::vector< Node > poly;
             poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
             std::map<Node, std::vector<Node> >::iterator itfo =
