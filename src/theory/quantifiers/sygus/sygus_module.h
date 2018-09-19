@@ -25,20 +25,20 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
 /** SygusModule
  *
- * This is the base class of sygus modules, owned by CegConjecture. The purpose
- * of this class is to, when applicable, suggest candidate solutions for
- * CegConjecture to test.
+ * This is the base class of sygus modules, owned by SynthConjecture. The
+ * purpose of this class is to, when applicable, suggest candidate solutions for
+ * SynthConjecture to test.
  *
- * In more detail, an instance of the conjecture class (CegConjecture) creates
+ * In more detail, an instance of the conjecture class (SynthConjecture) creates
  * the negated deep embedding form of the synthesis conjecture. In the
  * following, assume this is:
  *   forall d. exists x. P( d, x )
  * where d are of sygus datatype type. The "base instantiation" of this
- * conjecture (see CegConjecture::d_base_inst) is the formula:
+ * conjecture (see SynthConjecture::d_base_inst) is the formula:
  *   exists y. P( k, y )
  * where k are the "candidate" variables for the conjecture.
  *
@@ -48,12 +48,12 @@ class CegConjecture;
 class SygusModule
 {
  public:
-  SygusModule(QuantifiersEngine* qe, CegConjecture* p);
+  SygusModule(QuantifiersEngine* qe, SynthConjecture* p);
   virtual ~SygusModule() {}
   /** initialize
    *
    * n is the "base instantiation" of the deep-embedding version of the
-   * synthesis conjecture under candidates (see CegConjecture::d_base_inst).
+   * synthesis conjecture under candidates (see SynthConjecture::d_base_inst).
    *
    * This function may add lemmas to the argument lemmas, which should be
    * sent out on the output channel of quantifiers by the caller.
@@ -114,14 +114,6 @@ class SygusModule
                                        std::vector<Node>& lems)
   {
   }
-  /** get next decision request
-   *
-   * This has the same contract as Theory::getNextDecisionRequest.
-   */
-  virtual Node getNextDecisionRequest(unsigned& priority)
-  {
-    return Node::null();
-  }
   /**
    * Are we trying to repair constants in candidate solutions?
    * If we return true for usingRepairConst is true, then this module has
@@ -135,7 +127,7 @@ class SygusModule
   /** sygus term database of d_qe */
   quantifiers::TermDbSygus* d_tds;
   /** reference to the parent conjecture */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
 };
 
 } /* CVC4::theory::quantifiers namespace */

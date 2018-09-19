@@ -136,6 +136,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_input_var_lsum(u),
       d_cardinality_lits(u),
       d_curr_cardinality(c, 0),
+      d_sslds(nullptr),
       d_strategy_init(false)
 {
   setupExtTheory();
@@ -495,6 +496,25 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
 void TheoryStrings::presolve() {
   Debug("strings-presolve") << "TheoryStrings::Presolving : get fmf options " << (options::stringFMF() ? "true" : "false") << std::endl;
   initializeStrategy();
+
+  // if strings fmf is enabled, register the strategy
+  if (options::stringFMF())
+  {
+    d_sslds.reset(new StringSumLengthDecisionStrategy(
+        getSatContext(), getUserContext(), d_valuation));
+    Trace("strings-dstrat-reg")
+        << "presolve: register decision strategy." << std::endl;
+    std::vector<Node> inputVars;
+    for (NodeSet::const_iterator itr = d_input_vars.begin();
+         itr != d_input_vars.end();
+         ++itr)
+    {
+      inputVars.push_back(*itr);
+    }
+    d_sslds->initialize(inputVars);
+    getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_STRINGS_SUM_LENGTHS, d_sslds.get());
+  }
 }
 
 
@@ -821,6 +841,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
                             : kindToTheoryId(k) != THEORY_STRINGS))
           {
             d_input_vars.insert(n);
+            Trace("strings-dstrat-reg") << "input variable: " << n << std::endl;
           }
           d_equalityEngine.addTerm(n);
         } else if (tn.isBoolean()) {
@@ -941,7 +962,7 @@ void TheoryStrings::check(Effort e) {
 
 bool TheoryStrings::needsCheckLastEffort() {
   if( options::stringGuessModel() ){
-    return d_has_extf.get();  
+    return d_has_extf.get();
   }else{
     return false;
   }
@@ -4407,65 +4428,49 @@ void TheoryStrings::printConcat( std::vector< Node >& n, const char * c ) {
 }
 
 
-
 //// Finite Model Finding
 
-Node TheoryStrings::getNextDecisionRequest( unsigned& priority ) {
-  if( options::stringFMF() && !d_conflict ){
-    Node in_var_lsum = d_input_var_lsum.get();
-    //Trace("strings-fmf-debug") << "Strings::FMF: Assertion Level = " << d_valuation.getAssertionLevel() << std::endl;
-    //initialize the term we will minimize
-    if( in_var_lsum.isNull() && !d_input_vars.empty() ){
-      Trace("strings-fmf-debug") << "Input variables: ";
-      std::vector< Node > ll;
-      for(NodeSet::key_iterator itr = d_input_vars.key_begin();
-        itr != d_input_vars.key_end(); ++itr) {
-        Trace("strings-fmf-debug") << " " << (*itr) ;
-        ll.push_back( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, *itr ) );
-      }
-      Trace("strings-fmf-debug") << std::endl;
-      in_var_lsum = ll.size()==1 ? ll[0] : NodeManager::currentNM()->mkNode( kind::PLUS, ll );
-      in_var_lsum = Rewriter::rewrite( in_var_lsum );
-      d_input_var_lsum.set( in_var_lsum );
+TheoryStrings::StringSumLengthDecisionStrategy::StringSumLengthDecisionStrategy(
+    context::Context* c, context::UserContext* u, Valuation valuation)
+    : DecisionStrategyFmf(c, valuation), d_input_var_lsum(u)
+{
+}
+
+bool TheoryStrings::StringSumLengthDecisionStrategy::isInitialized()
+{
+  return !d_input_var_lsum.get().isNull();
+}
+
+void TheoryStrings::StringSumLengthDecisionStrategy::initialize(
+    const std::vector<Node>& vars)
+{
+  if (d_input_var_lsum.get().isNull() && !vars.empty())
+  {
+    NodeManager* nm = NodeManager::currentNM();
+    std::vector<Node> sum;
+    for (const Node& v : vars)
+    {
+      sum.push_back(nm->mkNode(STRING_LENGTH, v));
     }
-    if( !in_var_lsum.isNull() ){
-      //Trace("strings-fmf") << "Get next decision request." << std::endl;
-      //check if we need to decide on something
-      int decideCard = d_curr_cardinality.get();
-      if( d_cardinality_lits.find( decideCard )!=d_cardinality_lits.end() ){
-        bool value;
-        Node cnode = d_cardinality_lits[ d_curr_cardinality.get() ];
-        if( d_valuation.hasSatValue( cnode, value ) ) {
-          if( !value ){
-            d_curr_cardinality.set( d_curr_cardinality.get() + 1 );
-            decideCard = d_curr_cardinality.get();
-            Trace("strings-fmf-debug") << "Has false SAT value, increment and decide." << std::endl;
-          }else{
-            decideCard = -1;
-            Trace("strings-fmf-debug") << "Has true SAT value, do not decide." << std::endl;
-          }
-        }else{
-          Trace("strings-fmf-debug") << "No SAT value, decide." << std::endl;
-        }
-      }
-      if( decideCard!=-1 ){
-        if( d_cardinality_lits.find( decideCard )==d_cardinality_lits.end() ){
-          Node lit = NodeManager::currentNM()->mkNode( kind::LEQ, in_var_lsum, NodeManager::currentNM()->mkConst( Rational( decideCard ) ) );
-          lit = Rewriter::rewrite( lit );
-          d_cardinality_lits[decideCard] = lit;
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, lit, lit.negate() );
-          Trace("strings-fmf") << "Strings::FMF: Add decision lemma " << lem << ", decideCard = " << decideCard << std::endl;
-          d_out->lemma( lem );
-          d_out->requirePhase( lit, true );
-        }
-        Node lit = d_cardinality_lits[ decideCard ];
-        Trace("strings-fmf") << "Strings::FMF: Decide positive on " << lit << std::endl;
-        priority = 1;
-        return lit;
-      }
-    }
+    Node sumn = sum.size() == 1 ? sum[0] : nm->mkNode(PLUS, sum);
+    d_input_var_lsum.set(sumn);
   }
-  return Node::null();
+}
+
+Node TheoryStrings::StringSumLengthDecisionStrategy::mkLiteral(unsigned i)
+{
+  if (d_input_var_lsum.get().isNull())
+  {
+    return Node::null();
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node lit = nm->mkNode(LEQ, d_input_var_lsum.get(), nm->mkConst(Rational(i)));
+  Trace("strings-fmf") << "StringsFMF::mkLiteral: " << lit << std::endl;
+  return lit;
+}
+std::string TheoryStrings::StringSumLengthDecisionStrategy::identify() const
+{
+  return std::string("string_sum_len");
 }
 
 Node TheoryStrings::ppRewrite(TNode atom) {

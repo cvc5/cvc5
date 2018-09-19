@@ -134,11 +134,6 @@ class QuantifiersModule {
    * Called when a quantified formula q is asserted to the quantifiers theory
    */
   virtual void assertNode(Node q) {}
-  /* Get the next decision request.
-   *
-   * Identical to Theory::getNextDecisionRequest(...)
-   */
-  virtual Node getNextDecisionRequest( unsigned& priority ) { return TNode::null(); }
   /** Identify this module (for debugging, dynamic configuration, etc..) */
   virtual std::string identify() const = 0;
   //----------------------------general queries
