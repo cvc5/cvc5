@@ -17,6 +17,7 @@
 #include "api/cvc4cpp.h"
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
@@ -35,77 +36,6 @@
 
 namespace CVC4 {
 namespace api {
-
-/* -------------------------------------------------------------------------- */
-/* Result                                                                     */
-/* -------------------------------------------------------------------------- */
-
-Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
-
-bool Result::isSat(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::SAT;
-}
-
-bool Result::isUnsat(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::UNSAT;
-}
-
-bool Result::isSatUnknown(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
-}
-
-bool Result::isValid(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALID;
-}
-
-bool Result::isInvalid(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::INVALID;
-}
-
-bool Result::isValidUnknown(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
-}
-
-bool Result::operator==(const Result& r) const
-{
-  return *d_result == *r.d_result;
-}
-
-bool Result::operator!=(const Result& r) const
-{
-  return *d_result != *r.d_result;
-}
-
-std::string Result::getUnknownExplanation(void) const
-{
-  std::stringstream ss;
-  ss << d_result->whyUnknown();
-  return ss.str();
-}
-
-std::string Result::toString(void) const { return d_result->toString(); }
-
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Result Result::getResult(void) const { return *d_result; }
-
-std::ostream& operator<<(std::ostream& out, const Result& r)
-{
-  out << r.toString();
-  return out;
-}
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -611,7 +541,13 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 namespace {
+
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
+
+bool isDefinedIntKind(CVC4::Kind k)
+{
+  return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
+}
 
 Kind intToExtKind(CVC4::Kind k)
 {
@@ -661,6 +597,118 @@ std::ostream& operator<<(std::ostream& out, Kind k)
 }
 
 size_t KindHashFunction::operator()(Kind k) const { return k; }
+
+/* -------------------------------------------------------------------------- */
+/* API guard helpers                                                          */
+/* -------------------------------------------------------------------------- */
+
+namespace {
+
+class CVC4ApiExceptionStream
+{
+ public:
+  CVC4ApiExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC4ApiExceptionStream() noexcept(false)
+  {
+    if (!std::uncaught_exception())
+    {
+      throw CVC4ApiException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
+#define CVC4_API_CHECK(cond) \
+  CVC4_PREDICT_FALSE(cond)   \
+  ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
+
+#define CVC4_API_KIND_CHECK(kind)     \
+  CVC4_API_CHECK(isDefinedKind(kind)) \
+      << "Invalid kind '" << kindToString(kind) << "'";
+
+#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind, expected_kind_str) \
+  CVC4_API_CHECK(cond) << "Invalid kind '" << kindToString(kind)    \
+                       << "', expected " << expected_kind_str;
+
+}  // namespace
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
+
+bool Result::isSat(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::SAT;
+}
+
+bool Result::isUnsat(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::UNSAT;
+}
+
+bool Result::isSatUnknown(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
+}
+
+bool Result::isValid(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::VALID;
+}
+
+bool Result::isInvalid(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::INVALID;
+}
+
+bool Result::isValidUnknown(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
+}
+
+bool Result::operator==(const Result& r) const
+{
+  return *d_result == *r.d_result;
+}
+
+bool Result::operator!=(const Result& r) const
+{
+  return *d_result != *r.d_result;
+}
+
+std::string Result::getUnknownExplanation(void) const
+{
+  std::stringstream ss;
+  ss << d_result->whyUnknown();
+  return ss.str();
+}
+
+std::string Result::toString(void) const { return d_result->toString(); }
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Result Result::getResult(void) const { return *d_result; }
+
+std::ostream& operator<<(std::ostream& out, const Result& r)
+{
+  out << r.toString();
+  return out;
+}
 
 /* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
@@ -1711,57 +1759,42 @@ Term Solver::mkConst(RoundingMode rm) const
 
 Term Solver::mkConst(Kind kind, Sort arg) const
 {
-  PrettyCheckArgument(kind == EMPTYSET,
-                      kind,
-                      "Invalid kind '%s', expected EMPTY_SET",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET, kind, "EMPTY_SET");
   return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
 }
 
 Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
 {
-  PrettyCheckArgument(kind == UNINTERPRETED_CONSTANT,
-                      kind,
-                      "Invalid kind '%s', expected UNINTERPRETED_CONSTANT",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == UNINTERPRETED_CONSTANT, kind, "UNINTERPRETED_CONSTANT");
   return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
 }
 
 Term Solver::mkConst(Kind kind, bool arg) const
 {
-  PrettyCheckArgument(kind == CONST_BOOLEAN,
-                      kind,
-                      "Invalid kind '%s', expected CONST_BOOLEAN",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind, "CONST_BOOLEAN");
   return d_exprMgr->mkConst<bool>(arg);
 }
 
 Term Solver::mkConst(Kind kind, const char* arg) const
 {
-  PrettyCheckArgument(kind == CONST_STRING,
-                      kind,
-                      "Invalid kind '%s', expected CONST_STRING",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind, "CONST_STRING");
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg) const
 {
-  PrettyCheckArgument(kind == CONST_STRING,
-                      kind,
-                      "Invalid kind '%s', expected CONST_STRING",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind, "CONST_STRING");
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+          || kind == CONST_BITVECTOR,
+      kind,
+      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1775,12 +1808,11 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+          || kind == CONST_BITVECTOR,
+      kind,
+      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1794,12 +1826,11 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+          || kind == CONST_BITVECTOR,
+      kind,
+      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1813,11 +1844,9 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind,
+                               "ABSTRACT_VALUE or CONST_RATIONAL");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1827,11 +1856,9 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind,
+                               "ABSTRACT_VALUE or CONST_RATIONAL");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1841,11 +1868,9 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind,
+                               "ABSTRACT_VALUE or CONST_RATIONAL");
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1855,55 +1880,39 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == CONST_BITVECTOR, kind, "CONST_BITVECTOR");
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
-  PrettyCheckArgument(kind == CONST_FLOATINGPOINT,
-                      kind,
-                      "Invalid kind '%s', expected CONST_FLOATINGPOINT",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == CONST_FLOATINGPOINT, kind, "CONST_FLOATINGPOINT");
   PrettyCheckArgument(arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
                       arg3,
                       "Invalid argument '%s', expected bit-vector constant",
@@ -1985,14 +1994,15 @@ void Solver::check_mk_op_term(OpTerm opTerm, uint32_t nchildren) const
 
 Term Solver::mkTerm(Kind kind) const
 {
-  PrettyCheckArgument(
+  CVC4_API_KIND_CHECK_EXPECTED(
       kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA,
       kind,
-      "Invalid kind '%s', expected PI or REGEXP_EMPTY or REGEXP_SIGMA",
-      kindToString(kind).c_str());
+      "PI or REGEXP_EMPTY or REGEXP_SIGMA");
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
-    return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    return d_exprMgr->mkExpr(k, std::vector<Expr>());
   }
   Assert(kind == PI);
   return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
@@ -2000,10 +2010,8 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
-  PrettyCheckArgument(kind == SEP_NIL || kind == UNIVERSE_SET,
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == SEP_NIL || kind == UNIVERSE_SET, kind, "SEP_NIL or UNIVERSE_SET");
   return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
 }
 
@@ -2024,6 +2032,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
   check_mk_term(kind, 3);
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
@@ -2033,6 +2042,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   check_mk_term(kind, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
@@ -2085,28 +2095,20 @@ std::vector<Expr> Solver::termVectorToExprs(
 
 OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 {
-  PrettyCheckArgument(kind == CHAIN_OP,
-                      kind,
-                      "Invalid kind '%s', expected CHAIN_OP",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind, "CHAIN_OP");
   return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
-  PrettyCheckArgument(kind == RECORD_UPDATE_OP,
-                      kind,
-                      "Invalid kind '%s', expected RECORD_UPDATE_OP",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == RECORD_UPDATE_OP, kind, "RECORD_UPDATE_OP");
   return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK(kind);
   OpTerm res;
   switch (kind)
   {
@@ -2157,10 +2159,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK(kind);
   OpTerm res;
   switch (kind)
   {

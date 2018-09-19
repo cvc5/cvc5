@@ -984,6 +984,14 @@ header = "options/quantifiers_options.h"
   help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
 
 [[option]]
+  name       = "sygusUnifBooleanHeuristicDt"
+  category   = "regular"
+  long       = "sygus-unif-boolean-heuristic-dt"
+  type       = "bool"
+  default    = "false"
+  help       = "Build boolean solutions using heuristic decision tree learning (generates smaller solutions)"
+
+[[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
   category   = "regular"
   long       = "sygus-unif-cond-indpendent-no-repeat-sol"
@@ -1298,11 +1306,11 @@ header = "options/quantifiers_options.h"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
-  name       = "sygusRewSynthCheckTimeout"
+  name       = "sygusExprMinerCheckTimeout"
   category   = "regular"
-  long       = "sygus-rr-synth-check-timeout=N"
+  long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
-  help       = "timeout (in milliseconds) for the satisfiability check to verify correctness of candidate rewrites"
+  help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 # CEGQI applied to general quantified formulas
 

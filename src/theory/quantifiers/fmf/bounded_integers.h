@@ -83,47 +83,58 @@ private:
   void processMatchBoundVars( Node q, Node n, std::vector< Node >& bvs, std::map< Node, bool >& visited );
   std::vector< Node > d_bound_quants;
 private:
-  class RangeModel {
+ /**
+  * This decision strategy is used for minimizing the value of an integer
+  * arithmetic term t. It decides positively on literals of the form
+  * t < 0, t <= 0, t <= 1, t <=2, and so on.
+  */
+ class IntRangeDecisionHeuristic : public DecisionStrategyFmf
+ {
   public:
-    RangeModel(){}
-    virtual ~RangeModel(){}
-    virtual void initialize() = 0;
-    virtual void assertNode(Node n) = 0;
-    virtual Node getNextDecisionRequest() = 0;
-    virtual bool proxyCurrentRange() = 0;
-  };
-  class IntRangeModel : public RangeModel {
+   IntRangeDecisionHeuristic(Node r,
+                             context::Context* c,
+                             context::Context* u,
+                             Valuation valuation,
+                             bool isProxy);
+   /** make the n^th literal of this strategy */
+   Node mkLiteral(unsigned n) override;
+   /** identify */
+   std::string identify() const override
+   {
+     return std::string("bound_int_range");
+   }
+   /** Returns the current proxy lemma if one exists (see below). */
+   Node proxyCurrentRangeLemma();
+
   private:
-    BoundedIntegers * d_bi;
-    void allocateRange();
-    Node d_proxy_range;
-  public:
-    IntRangeModel( BoundedIntegers * bi, Node r, context::Context* c, context::Context* u, bool isProxy);
-    virtual ~IntRangeModel(){}
-    Node d_range;
-    int d_curr_max;
-    std::map< int, Node > d_range_literal;
-    std::map< Node, bool > d_lit_to_pol;
-    NodeIntMap d_lit_to_range;
-    NodeBoolMap d_range_assertions;
-    context::CDO< bool > d_has_range;
-    context::CDO< int > d_curr_range;
-    IntBoolMap d_ranges_proxied;
-    void initialize() override;
-    void assertNode(Node n) override;
-    Node getNextDecisionRequest() override;
-    bool proxyCurrentRange() override;
+   /** The range we are minimizing */
+   Node d_range;
+   /** a proxy of the range
+    *
+    * When option::fmfBoundLazy is enabled, this class uses a lazy strategy
+    * for enforcing the bounds on term t by using a fresh variable x of type
+    * integer. The point of this variable is to serve as a proxy for t, so
+    * that we can decide on literals of the form x <= c instead of t <= c. The
+    * advantage of this is that we avoid unfairness, say, if t is constrained
+    * to be strictly greater c. Then, at full effort check, we add "proxy
+    * lemmas" of the form: (t <= c) <=> (x <= c) for the current minimal
+    * upper bound c for x.
+    */
+   Node d_proxy_range;
+   /** ranges that have been proxied
+    *
+    * This is a user-context-dependent cache that stores which value we have
+    * added proxy lemmas for.
+    */
+   IntBoolMap d_ranges_proxied;
   };
 private:
   //information for minimizing ranges
   std::vector< Node > d_ranges;
-  //map to range model objects
-  std::map< Node, RangeModel * > d_rms;
-  //literal to range
-  std::map< Node, std::vector< Node > > d_lit_to_ranges;
-  //list of currently asserted arithmetic literals
-  NodeBoolMap d_assertions;
-private:
+  /** Decision heuristics for each integer range */
+  std::map<Node, std::unique_ptr<IntRangeDecisionHeuristic>> d_rms;
+
+ private:
   //class to store whether bounding lemmas have been added
   class BoundInstTrie
   {
@@ -143,7 +154,6 @@ private:
   };
   std::map< Node, std::map< Node, BoundInstTrie > > d_bnd_it;
 private:
-  void addLiteralFromRange( Node lit, Node r );
   
   void setBoundedVar( Node f, Node v, unsigned bound_type );
 public:
@@ -154,8 +164,6 @@ public:
   bool needsCheck(Theory::Effort e) override;
   void check(Theory::Effort e, QEffort quant_e) override;
   void checkOwnership(Node q) override;
-  void assertNode(Node n) override;
-  Node getNextDecisionRequest(unsigned& priority) override;
   bool isBoundVar( Node q, Node v ) { return std::find( d_set[q].begin(), d_set[q].end(), v )!=d_set[q].end(); }
   unsigned getBoundVarType( Node q, Node v );
   unsigned getNumBoundVars( Node q ) { return d_set[q].size(); }

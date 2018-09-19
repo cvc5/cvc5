@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file ce_guided_conjecture.h
+/*! \file synth_conjecture.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Haniel Barbosa
@@ -9,18 +9,19 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief class that encapsulates counterexample-guided instantiation
- **        techniques for a single SyGuS synthesis conjecture
+ ** \brief Class that encapsulates techniques for a single (SyGuS) synthesis
+ ** conjecture.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
-#define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_CONJECTURE_H
+#ifndef __CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
+#define __CVC4__THEORY__QUANTIFIERS__SYNTH_CONJECTURE_H
 
 #include <memory>
 
-#include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/decision_manager.h"
+#include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv.h"
 #include "theory/quantifiers/sygus/cegis.h"
 #include "theory/quantifiers/sygus/cegis_unif.h"
@@ -28,7 +29,6 @@
 #include "theory/quantifiers/sygus/sygus_pbe.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
 #include "theory/quantifiers/sygus/sygus_repair_const.h"
-#include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -42,17 +42,15 @@ namespace quantifiers {
  * determines which approach and optimizations are applicable to the
  * conjecture, and has interfaces for implementing them.
  */
-class CegConjecture {
-public:
-  CegConjecture( QuantifiersEngine * qe );
-  ~CegConjecture();
+class SynthConjecture
+{
+ public:
+  SynthConjecture(QuantifiersEngine* qe);
+  ~SynthConjecture();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
   Node getEmbeddedConjecture() { return d_embed_quant; }
-  /** get next decision request */
-  Node getNextDecisionRequest( unsigned& priority );
-
   //-------------------------------for counterexample-guided check/refine
   /** increment the number of times we have successfully done candidate
    * refinement */
@@ -61,22 +59,19 @@ public:
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement() const;
-  /** do single invocation check 
-  * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al CAV 2015.
-  */
-  void doSingleInvCheck(std::vector< Node >& lems);
-  /** do syntax-guided enumerative check 
-  * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
-  */
+  /** do single invocation check
+   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al
+   * CAV 2015.
+   */
+  void doSingleInvCheck(std::vector<Node>& lems);
+  /** do syntax-guided enumerative check
+   * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
+   */
   void doCheck(std::vector<Node>& lems);
-  /** do basic check 
-  * This is called for non-SyGuS synthesis conjectures
-  */
-  void doBasicCheck(std::vector< Node >& lems);
-  /** do refinement 
-  * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
-  */
-  void doRefine(std::vector< Node >& lems);
+  /** do refinement
+   * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
+   */
+  void doRefine(std::vector<Node>& lems);
   //-------------------------------end for counterexample-guided check/refine
   /**
    * prints the synthesis solution to output stream out.
@@ -84,7 +79,7 @@ public:
    * singleInvocation : set to true if we should consult the single invocation
    * module to get synthesis solutions.
    */
-  void printSynthSolution( std::ostream& out, bool singleInvocation );
+  void printSynthSolution(std::ostream& out, bool singleInvocation);
   /** get synth solutions
    *
    * This returns a map from function-to-synthesize variables to their
@@ -106,41 +101,45 @@ public:
   bool isGround() { return d_inner_vars.empty(); }
   /** are we using single invocation techniques */
   bool isSingleInvocation() const;
-  /** preregister conjecture 
-  * This is used as a heuristic for solution reconstruction, so that we 
-  * remember expressions in the conjecture before preprocessing, since they
-  * may be helpful during solution reconstruction (Figure 5 of Reynolds et al CAV 2015)
-  */
-  void preregisterConjecture( Node q );
+  /** preregister conjecture
+   * This is used as a heuristic for solution reconstruction, so that we
+   * remember expressions in the conjecture before preprocessing, since they
+   * may be helpful during solution reconstruction (Figure 5 of Reynolds et al
+   * CAV 2015)
+   */
+  void preregisterConjecture(Node q);
   /** assign conjecture q to this class */
-  void assign( Node q );
+  void assign(Node q);
   /** has a conjecture been assigned to this class */
   bool isAssigned() { return !d_embed_quant.isNull(); }
   /** get model values for terms n, store in vector v */
-  void getModelValues( std::vector< Node >& n, std::vector< Node >& v );
+  void getModelValues(std::vector<Node>& n, std::vector<Node>& v);
   /** get model value for term n */
-  Node getModelValue( Node n );
+  Node getModelValue(Node n);
 
   /** get utility for static preprocessing and analysis of conjectures */
-  CegConjectureProcess* getProcess() { return d_ceg_proc.get(); }
+  SynthConjectureProcess* getProcess() { return d_ceg_proc.get(); }
   /** get constant repair utility */
   SygusRepairConst* getRepairConst() { return d_sygus_rconst.get(); }
   /** get program by examples module */
-  CegConjecturePbe* getPbe() { return d_ceg_pbe.get(); }
+  SygusPbe* getPbe() { return d_ceg_pbe.get(); }
   /** get the symmetry breaking predicate for type */
   Node getSymmetryBreakingPredicate(
       Node x, Node e, TypeNode tn, unsigned tindex, unsigned depth);
   /** print out debug information about this conjecture */
-  void debugPrint( const char * c );
-private:
+  void debugPrint(const char* c);
+
+ private:
   /** reference to quantifier engine */
-  QuantifiersEngine * d_qe;
+  QuantifiersEngine* d_qe;
   /** The feasible guard. */
   Node d_feasible_guard;
+  /** the decision strategy for the feasible guard */
+  std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */
-  std::unique_ptr<CegConjectureSingleInv> d_ceg_si;
+  std::unique_ptr<CegSingleInv> d_ceg_si;
   /** utility for static preprocessing and analysis of conjectures */
-  std::unique_ptr<CegConjectureProcess> d_ceg_proc;
+  std::unique_ptr<SynthConjectureProcess> d_ceg_proc;
   /** grammar utility */
   std::unique_ptr<CegGrammarConstructor> d_ceg_gc;
   /** repair constant utility */
@@ -148,7 +147,7 @@ private:
 
   //------------------------modules
   /** program by examples module */
-  std::unique_ptr<CegConjecturePbe> d_ceg_pbe;
+  std::unique_ptr<SygusPbe> d_ceg_pbe;
   /** CEGIS module */
   std::unique_ptr<Cegis> d_ceg_cegis;
   /** CEGIS UNIF module */
@@ -164,17 +163,17 @@ private:
   //------------------------end modules
 
   /** list of constants for quantified formula
-  * The outer Skolems for the negation of d_embed_quant.
-  */
-  std::vector< Node > d_candidates;
+   * The outer Skolems for the negation of d_embed_quant.
+   */
+  std::vector<Node> d_candidates;
   /** base instantiation
-  * If d_embed_quant is forall d. exists y. P( d, y ), then
-  * this is the formula  exists y. P( d_candidates, y ). Notice that
-  * (exists y. F) is shorthand above for ~( forall y. ~F ).
-  */
+   * If d_embed_quant is forall d. exists y. P( d, y ), then
+   * this is the formula  exists y. P( d_candidates, y ). Notice that
+   * (exists y. F) is shorthand above for ~( forall y. ~F ).
+   */
   Node d_base_inst;
   /** list of variables on inner quantification */
-  std::vector< Node > d_inner_vars;
+  std::vector<Node> d_inner_vars;
   /**
    * The set of skolems for the current "verification" lemma, if one exists.
    * This may be added to during calls to doCheck(). The model values for these
@@ -200,11 +199,12 @@ private:
   /** (negated) conjecture after simplification, conversion to deep embedding */
   Node d_embed_quant;
   /** candidate information */
-  class CandidateInfo {
-  public:
-    CandidateInfo(){}
+  class CandidateInfo
+  {
+   public:
+    CandidateInfo() {}
     /** list of terms we have instantiated candidates with */
-    std::vector< Node > d_inst;
+    std::vector<Node> d_inst;
   };
   std::map<Node, CandidateInfo> d_cinfo;
   /**
@@ -215,12 +215,14 @@ private:
   /** number of times we have called doRefine */
   unsigned d_refine_count;
   /** get candidadate */
-  Node getCandidate( unsigned int i ) { return d_candidates[i]; }
+  Node getCandidate(unsigned int i) { return d_candidates[i]; }
   /** record instantiation (this is used to construct solutions later) */
-  void recordInstantiation( std::vector< Node >& vs ) {
-    Assert( vs.size()==d_candidates.size() );
-    for( unsigned i=0; i<vs.size(); i++ ){
-      d_cinfo[d_candidates[i]].d_inst.push_back( vs[i] );
+  void recordInstantiation(std::vector<Node>& vs)
+  {
+    Assert(vs.size() == d_candidates.size());
+    for (unsigned i = 0; i < vs.size(); i++)
+    {
+      d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
     }
   }
   /** get synth solutions internal
@@ -245,8 +247,23 @@ private:
                                  std::vector<int>& status,
                                  bool singleInvocation);
   //-------------------------------- sygus stream
-  /** the streaming guards for sygus streaming mode */
-  std::vector< Node > d_stream_guards;
+  /** current stream guard */
+  Node d_current_stream_guard;
+  /** the decision strategy for streaming solutions */
+  class SygusStreamDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    SygusStreamDecisionStrategy(context::Context* satContext,
+                                Valuation valuation);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override
+    {
+      return std::string("sygus_stream");
+    }
+  };
+  std::unique_ptr<SygusStreamDecisionStrategy> d_stream_strategy;
   /** get current stream guard */
   Node getCurrentStreamGuard() const;
   /** get stream guarded lemma
@@ -262,16 +279,20 @@ private:
    */
   void printAndContinueStream();
   //-------------------------------- end sygus stream
-  /** candidate rewrite objects for each program variable
+  /** expression miner managers for each function-to-synthesize
+   *
+   * Notice that for each function-to-synthesize, we enumerate a stream of
+   * candidate solutions, where each of these streams is independent. Thus,
+   * we maintain separate expression miner managers for each of them.
    *
    * This is used for the sygusRewSynth() option to synthesize new candidate
    * rewrite rules.
    */
-  std::map<Node, CandidateRewriteDatabase> d_crrdb;
+  std::map<Node, ExpressionMinerManager> d_exprm;
 };
 
-} /* namespace CVC4::theory::quantifiers */
-} /* namespace CVC4::theory */
+}  // namespace quantifiers
+}  // namespace theory
 } /* namespace CVC4 */
 
 #endif

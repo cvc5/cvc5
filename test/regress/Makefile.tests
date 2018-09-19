@@ -500,6 +500,7 @@ REG0_TESTS = \
 	regress0/logops.03.cvc \
 	regress0/logops.04.cvc \
 	regress0/logops.05.cvc \
+	regress0/model-core.smt2 \
 	regress0/nl/coeff-sat.smt2 \
 	regress0/nl/ext-rew-aggr-test.smt2 \
 	regress0/nl/magnitude-wrong-1020-m.smt2 \
@@ -1492,6 +1493,7 @@ REG1_TESTS = \
 	regress1/strings/issue1105.smt2 \
 	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
+	regress1/strings/issue2429-code.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
 	regress1/strings/loop003.smt2 \
@@ -1544,6 +1546,7 @@ REG1_TESTS = \
 	regress1/sygus/array_search_5-Q-easy.sy \
 	regress1/sygus/array_sum_2_5.sy \
 	regress1/sygus/bvudiv-by-2.sy \
+	regress1/sygus/car_3.lus.sy \
 	regress1/sygus/cegar1.sy \
 	regress1/sygus/cegis-unif-inv-eq-fair.sy \
 	regress1/sygus/cegisunif-depth1.sy \
@@ -1615,6 +1618,10 @@ REG1_TESTS = \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
 	regress1/sygus/univ_2-long-repeat.sy \
+	regress1/sym/qf-function.smt2 \
+	regress1/sym/q-constant.smt2 \
+	regress1/sym/q-function.smt2 \
+	regress1/sym/sb-wrong.smt2 \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \
@@ -1622,6 +1629,7 @@ REG1_TESTS = \
 	regress1/sym/sym5.smt2 \
 	regress1/sym/sym6.smt2 \
 	regress1/sym/sym7-uf.smt2 \
+	regress1/sym/sym-setAB.smt2 \
 	regress1/test12.cvc \
 	regress1/trim.cvc \
 	regress1/uf2.smt2 \
@@ -1720,6 +1728,7 @@ REG3_TESTS = \
 	regress3/hole9.cvc \
 	regress3/incorrect1.smt \
 	regress3/incorrect2.smt \
+	regress3/issue2429.smt2 \
 	regress3/pp-regfile.smt \
 	regress3/qwh.35.405.shuffled-as.sat03-1651.smt
 

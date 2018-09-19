@@ -45,7 +45,6 @@ class TheoryQuantifiers : public Theory {
   void presolve() override;
   void ppNotifyAssertions(const std::vector<Node>& assertions) override;
   void check(Effort e) override;
-  Node getNextDecisionRequest(unsigned& priority) override;
   bool collectModelInfo(TheoryModel* m) override;
   void shutdown() override {}
   std::string identify() const override
