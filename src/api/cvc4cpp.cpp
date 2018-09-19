@@ -637,6 +637,10 @@ class CVC4ApiExceptionStream
   CVC4_API_CHECK(cond) << "Invalid kind '" << kindToString(kind)    \
                        << "', expected " << expected_kind_str;
 
+#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg, expected_arg_str)               \
+  CVC4_API_CHECK(cond) << "Invalid argument '" << (arg).toString() << "' for " \
+                       << #arg << " expected " << expected_arg_str;
+
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -1913,10 +1917,10 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(
       kind == CONST_FLOATINGPOINT, kind, "CONST_FLOATINGPOINT");
-  PrettyCheckArgument(arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
-                      arg3,
-                      "Invalid argument '%s', expected bit-vector constant",
-                      arg3.toString().c_str());
+  CVC4_API_ARG_CHECK_EXPECTED(
+      arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
+      arg3,
+      "bit-vector constant");
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
@@ -1949,32 +1953,24 @@ Term Solver::mkBoundVar(Sort sort) const
 
 void Solver::check_mk_term(Kind kind, uint32_t nchildren) const
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK(kind);
   const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
-  PrettyCheckArgument(
+  CVC4_API_KIND_CHECK_EXPECTED(
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
       kind,
-      "Invalid kind '%s', "
-      "only operator-style terms are created with mkTerm(), "
+      "Only operator-style terms are created with mkTerm(), "
       "to create variables and constants see mkVar(), mkBoundVar(), "
-      "and mkConst().",
-      kindToString(kind).c_str());
+      "and mkConst().");
   if (nchildren)
   {
     const uint32_t n =
         nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
-    PrettyCheckArgument(
+    CVC4_API_KIND_CHECK_EXPECTED(
         n >= minArity(kind) && n <= maxArity(kind),
         kind,
-        "Terms with kind %s must have at least %u children and "
-        "at most %u children (the one under construction has %u)",
-        kindToString(kind).c_str(),
-        minArity(kind),
-        maxArity(kind),
-        n);
+        "Terms with kind " << kindToString(kind) << " must have at least "
+        << minArity(kind) << " children and at most " << maxArity(kind)
+        << " children (the one under construction has " << n << ")");
   }
 }
 
@@ -1984,12 +1980,25 @@ void Solver::check_mk_op_term(OpTerm opTerm, uint32_t nchildren) const
   const CVC4::Kind int_kind = extToIntKind(kind);
   const CVC4::Kind int_op_kind =
       NodeManager::operatorToKind(opTerm.d_expr->getNode());
-  PrettyCheckArgument(int_kind != kind::BUILTIN
-                          && CVC4::kind::metaKindOf(int_op_kind)
-                                 != kind::metakind::PARAMETERIZED,
-                      opTerm,
-                      "This term constructor is for parameterized kinds only");
-  check_mk_term(kind, nchildren);
+  CVC4_API_ARG_CHECK_EXPECTED(
+      int_kind == kind::BUILTIN
+          || CVC4::kind::metaKindOf(int_op_kind)
+                 == kind::metakind::PARAMETERIZED,
+      opTerm,
+      "This term constructor is for parameterized kinds only");
+  if (nchildren)
+  {
+    uint32_t min_arity = ExprManager::minArity(int_op_kind);
+    uint32_t max_arity = ExprManager::maxArity(int_op_kind);
+    CVC4_API_KIND_CHECK_EXPECTED(
+        nchildren >=  min_arity && nchildren <= max_arity,
+        kind,
+        "Terms with kind " << kindToString(kind) << " must have at least "
+                           << min_arity << " children and at most "
+                           << max_arity
+                           << " children (the one under construction has "
+                           << nchildren << ")");
+  }
 }
 
 Term Solver::mkTerm(Kind kind) const
@@ -2147,11 +2156,8 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
       res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
       break;
     default:
-      PrettyCheckArgument(true,
-                          kind,
-                          "Invalid kind '%s', ",
-                          "expected operator kind with uint32_t argument",
-                          kindToString(kind).c_str());
+      CVC4_API_KIND_CHECK_EXPECTED(
+          false, kind, "operator kind with uint32_t argument");
   }
   Assert(!res.isNull());
   return res;
@@ -2189,11 +2195,8 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
       res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
       break;
     default:
-      PrettyCheckArgument(true,
-                          kind,
-                          "Invalid kind '%s', ",
-                          "expected operator kind with two uint32_t argument2",
-                          kindToString(kind).c_str());
+      CVC4_API_KIND_CHECK_EXPECTED(
+          false, kind, "operator kind with two uint32_t arguments");
   }
   Assert(!res.isNull());
   return res;
