@@ -36,7 +36,7 @@ add_custom_target(runexamples
 #         as arguments to the test executable.
 macro(cvc4_add_example name src_files libs output_dir)
   # The build target is created without the path prefix (not supported),
-  # e.g., for '<subdirs>/myexample.cpp'
+  # e.g., for '<output_dir>/myexample.cpp'
   #   we create build target 'myexample'
   #   and build it with 'make myexample'.
   # As a consequence, all build target names must be globally unique.
@@ -50,15 +50,14 @@ macro(cvc4_add_example name src_files libs output_dir)
   target_link_libraries(${name} ${libs})
   add_dependencies(examples ${name})
   # The test target is prefixed with test identifier 'example/' and the path,
-  # e.g., for '<subdirs>/myexample.cpp'
-  #   we create test target 'example/<subdirs>/myexample'
-  #   and run it with 'ctest -R "example/<subdirs>/<example>"'.
+  # e.g., for '<output_dir>/myexample.cpp'
+  #   we create test target 'example/<output_dir>/myexample'
+  #   and run it with 'ctest -R "example/<output_dir>/myunittest"'.
+  set(example_bin_dir ${EXAMPLES_BIN_DIR}/${output_dir})
   if("${output_dir}" STREQUAL "")
     set(example_test example/${name})
-    set(example_bin_dir ${EXAMPLES_BIN_DIR})
   else()
     set(example_test example/${output_dir}/${name})
-    set(example_bin_dir ${EXAMPLES_BIN_DIR}/${output_dir})
   endif()
   set_target_properties(${name}
     PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${example_bin_dir})
