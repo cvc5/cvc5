@@ -25,6 +25,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -43,6 +44,20 @@ class Random;
 class Result;
 
 namespace api {
+
+/* -------------------------------------------------------------------------- */
+/* Exception                                                                  */
+/* -------------------------------------------------------------------------- */
+
+class CVC4_PUBLIC CVC4ApiException : public std::exception
+{
+ public:
+  CVC4ApiException(const std::string& str) : d_msg(str) {}
+  CVC4ApiException(const std::stringstream& stream) :d_msg(stream.str()) {}
+  std::string getMessage() const { return d_msg; }
+ private:
+  std::string d_msg;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
