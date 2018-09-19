@@ -3459,7 +3459,7 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
         // compute if bound is not satisfied, and store what is required
         // for a possible refinement
         if (options::nlExtTangentPlanes()) {
-          if (is_false_lit){
+          if (is_false_lit) {
             d_tplane_refine.insert(x);
           }
         }
