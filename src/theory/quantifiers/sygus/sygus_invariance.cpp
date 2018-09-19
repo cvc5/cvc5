@@ -14,8 +14,8 @@
 
 #include "theory/quantifiers/sygus/sygus_invariance.h"
 
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_pbe.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 using namespace CVC4::kind;
@@ -87,7 +87,7 @@ bool EvalSygusInvarianceTest::invariant(TermDbSygus* tds, Node nvn, Node x)
 }
 
 void EquivSygusInvarianceTest::init(
-    TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr)
+    TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr)
 {
   // compute the current examples
   d_bvr = bvr;

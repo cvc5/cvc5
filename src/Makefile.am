@@ -532,10 +532,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/cegis.h \
 	theory/quantifiers/sygus/cegis_unif.cpp \
 	theory/quantifiers/sygus/cegis_unif.h \
-	theory/quantifiers/sygus/ce_guided_conjecture.cpp \
-	theory/quantifiers/sygus/ce_guided_conjecture.h \
-	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
-	theory/quantifiers/sygus/ce_guided_instantiation.h \
 	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv.h \
 	theory/quantifiers/sygus/sygus_pbe.cpp \
@@ -568,6 +564,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif_rl.h \
 	theory/quantifiers/sygus/sygus_unif_strat.cpp \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
+	theory/quantifiers/sygus/synth_conjecture.cpp \
+	theory/quantifiers/sygus/synth_conjecture.h \
+	theory/quantifiers/sygus/synth_engine.cpp \
+	theory/quantifiers/sygus/synth_engine.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \

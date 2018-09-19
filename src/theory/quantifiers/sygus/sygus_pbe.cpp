@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
+SygusPbe::SygusPbe(QuantifiersEngine* qe, SynthConjecture* p)
     : SygusModule(qe, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -36,13 +36,15 @@ CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
   d_is_pbe = false;
 }
 
-CegConjecturePbe::~CegConjecturePbe() {
-
-}
+SygusPbe::~SygusPbe() {}
 
 //--------------------------------- collecting finite input/output domain information
 
-void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol ) {
+void SygusPbe::collectExamples(Node n,
+                               std::map<Node, bool>& visited,
+                               bool hasPol,
+                               bool pol)
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     Node neval;
@@ -116,9 +118,9 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
   }
 }
 
-bool CegConjecturePbe::initialize(Node n,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& lemmas)
+bool SygusPbe::initialize(Node n,
+                          const std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
 
@@ -248,9 +250,13 @@ bool CegConjecturePbe::initialize(Node n,
   return true;
 }
 
-Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
-                                              CegConjecturePbe* cpbe,
-                                              unsigned index, unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn,
+                                      Node e,
+                                      Node b,
+                                      SygusPbe* cpbe,
+                                      unsigned index,
+                                      unsigned ntotal)
+{
   if (index == ntotal) {
     // lazy child holds the leaf data
     if (d_lazy_child.isNull()) {
@@ -281,16 +287,20 @@ Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
   }
 }
 
-Node CegConjecturePbe::PbeTrie::addPbeExampleEval(TypeNode etn, Node e, Node b,
-                                                  std::vector<Node>& ex,
-                                                  CegConjecturePbe* cpbe,
-                                                  unsigned index,
-                                                  unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn,
+                                          Node e,
+                                          Node b,
+                                          std::vector<Node>& ex,
+                                          SygusPbe* cpbe,
+                                          unsigned index,
+                                          unsigned ntotal)
+{
   Node eb = cpbe->d_tds->evaluateBuiltin(etn, b, ex);
   return d_children[eb].addPbeExample(etn, e, b, cpbe, index + 1, ntotal);
 }
 
-bool CegConjecturePbe::hasExamples(Node e) {
+bool SygusPbe::hasExamples(Node e)
+{
   if (isPbe()) {
     e = d_tds->getSynthFunForEnumerator(e);
     Assert(!e.isNull());
@@ -302,7 +312,8 @@ bool CegConjecturePbe::hasExamples(Node e) {
   return false;
 }
 
-unsigned CegConjecturePbe::getNumExamples(Node e) {
+unsigned SygusPbe::getNumExamples(Node e)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -314,7 +325,8 @@ unsigned CegConjecturePbe::getNumExamples(Node e) {
   }
 }
 
-void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
+void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -327,7 +339,8 @@ void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
   }
 }
 
-Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
+Node SygusPbe::getExampleOut(Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
@@ -340,7 +353,8 @@ Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
   }
 }
 
-Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
+Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
+{
   Assert(isPbe());
   Assert(!e.isNull());
   e = d_tds->getSynthFunForEnumerator(e);
@@ -355,8 +369,8 @@ Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
   return Node::null();
 }
 
-Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
-                                       unsigned i) {
+Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
@@ -373,8 +387,8 @@ Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
 
 // ------------------------------------------- solution construction from enumeration
 
-void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
-                                   std::vector<Node>& terms)
+void SygusPbe::getTermList(const std::vector<Node>& candidates,
+                           std::vector<Node>& terms)
 {
   Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
@@ -401,11 +415,11 @@ void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
-                                           const std::vector<Node>& enum_values,
-                                           const std::vector<Node>& candidates,
-                                           std::vector<Node>& candidate_values,
-                                           std::vector<Node>& lems)
+bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   std::vector<Node>& lems)
 {
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){
