@@ -659,7 +659,6 @@ int NonlinearExtension::flushLemma(Node lem) {
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
   lem = Rewriter::rewrite( lem );
-  
   if (Contains(d_lemmas, lem)) {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
@@ -3276,16 +3275,8 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
     // if this term requires a refinement
-    if (d_tplane_refine.find(t) == d_tplane_refine.end())
+    if (d_tplane_refine.find(t) != d_tplane_refine.end())
     {
-      continue;
-    }
-    unsigned applyCount = d_tplane_mon_count[t];
-    if (options::nlExtTangentPlanes()
-        || applyCount < options::nlExtTangentPlanesLimit())
-    {
-      // increment the number of times we have applied tangent planes to this
-      d_tplane_mon_count[t] = applyCount + 1;
       Trace("nl-ext-tplanes")
           << "Look at monomial requiring refinement : " << t << std::endl;
       // get a decomposition
