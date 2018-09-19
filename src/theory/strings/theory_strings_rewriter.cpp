@@ -3430,46 +3430,174 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   {
     return a.getConst<Rational>().sgn() >= (strict ? 1 : 0);
   }
-  else
+
+  Node ar = strict
+                ? NodeManager::currentNM()->mkNode(
+                      kind::MINUS,
+                      a,
+                      NodeManager::currentNM()->mkConst(Rational(1)))
+                : a;
+  ar = Rewriter::rewrite(ar);
+  if (checkEntailArithInternal(ar))
   {
-    Node ar = strict
-                  ? NodeManager::currentNM()->mkNode(
-                        kind::MINUS,
-                        a,
-                        NodeManager::currentNM()->mkConst(Rational(1)))
-                  : a;
-    ar = Rewriter::rewrite(ar);
-    if (checkEntailArithInternal(ar))
-    {
-      return true;
-    }
-    // TODO (#1180) : abstract interpretation goes here
-
-    // over approximation O/U
-
-    // O( x + y ) -> O( x ) + O( y )
-    // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
-    // O( len( x ) ) -> len( x )
-    // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
-    // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
-    // O( len( str.replace( x, y, z ) ) ) ->
-    //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
-    // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
-    // O( str.to.int( x ) ) -> str.to.int( x )
-
-    // U( x + y ) -> U( x ) + U( y )
-    // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
-    // U( len( x ) ) -> len( x )
-    // U( len( int.to.str( x ) ) ) -> 1
-    // U( len( str.substr( x, n1, n2 ) ) ) ->
-    //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
-    // U( len( str.replace( x, y, z ) ) ) ->
-    //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
-    // U( indexof( x, y, n ) ) -> -1    ?
-    // U( str.to.int( x ) ) -> -1
-
-    return false;
+    return true;
   }
+    
+  if( ar.getKind()==PLUS )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    std::map< Node, Node > msum;
+    if( !ArithMSum::getMonomialSum(ar,msum) )
+    {
+      return false;
+    }
+    // for each monomial v*c, msumApprox[v] a list of
+    // possibilities for how the term can be soundly approximated, that is,
+    // if msumApprox[v] contains av, then v*c > av*c. Notice that if c
+    // is positive, then v > av, otherwise if c is negative, then v < av.
+    // In other words, av is an under-approximation if c is positive, and an
+    // over-approximation if c is negative.
+    std::map< Node, std::vector< Node > > msumApprox;
+    // the final result of the approximation
+    std::map< Node, Node > msumFinal;
+    for( std::pair< const Node, Node >& m : msum )
+    {
+      Node v = m.first;
+      Node c = m.second;
+      // c.isNull() means c = 1
+      bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn()==-1;
+      std::vector< Node >& approx = msumApprox[v];
+      if( v.isNull() )
+      {
+        approx.push_back(nm->mkConst(Rational(1)));
+      }
+      std::unordered_set< Node, NodeHashFunction > visited;
+      std::vector< Node > toProcess;
+      std::vector< bool > toProcessPol;
+      toProcess.push_back( v );
+      do
+      {
+        Node curr = toProcess.back();
+        toProcess.pop_back();
+        if( visited.find(curr)==visited.end() )
+        {
+          visited.insert(curr);
+          unsigned prevProcessSize = toProcess.size();
+          if( curr.getKind()==STRING_LENGTH )
+          {
+            if( curr[0].getKind()==STRING_SUBSTR )
+            {
+              // over,under-approximations for len( substr( x, n, m ) )
+              if( isOverApprox )
+              {
+                // m>=0 implies m >= len( substr( x, n, m ) )
+                if( checkEntailArithInternal( curr[0][2] ) )
+                {
+                  toProcess.push_back( curr[0][2] );
+                }
+                // TODO n >= 0 implies len( x ) - n >= len( substr( x, n, m ) )
+                // len( x ) >= len( substr( x, n, m ) )
+                toProcess.push_back( nm->mkNode( STRING_LENGTH, curr[0][0] ) );
+              }
+              else
+              {
+                // TODO 0 <= n and n+m < len( x ) implies m <= len( substr( x, n, m ) )  ...already rewritten?
+              }
+            }
+            else if( curr[0].getKind()==STRING_STRREPL )
+            {
+              // over,under-approximations for len( replace( x, y, z ) )
+              if( isOverApprox )
+              {
+                // TODO len( y ) >= len( z ) implies len( x ) >= len( replace( x, y, z ) )
+                // TODO len( x ) + len( z ) >= len( replace( x, y, z ) )
+              }
+              else
+              {
+                // TODO len( y ) <= len( z ) implies len( x ) <= len( replace( x, y, z ) )
+                
+              }
+            }
+          }
+          else if( curr.getKind()==STRING_STRIDOF )
+          {
+            // over,under-approximations for indexof( x, y, n )
+            if( isOverApprox )
+            {
+              // TODO len( x ) - len( y ) >= indexof( x, y, n )
+              
+            }
+            else
+            {
+              // indexof( x, y, n ) >= -1
+              toProcess.push_back(nm->mkConst(Rational(-1)));
+            }
+          }
+          else if( v.getKind()==STRING_STOI )
+          {
+            // over,under-approximations for str.to.int( x )
+            if( isOverApprox )
+            {
+              // ???
+            }
+            else
+            {
+              // str.to.int( x ) >= -1
+              toProcess.push_back(nm->mkConst(Rational(-1)));
+            }
+          }
+          if( prevProcessSize == toProcess.size())
+          {
+            // no approximations, thus curr is a possibility
+            approx.push_back(curr);
+          }
+        }
+      }while( !toProcess.empty() );
+      Assert( !approx.empty() );
+      // if we have only one approximation, move it to final
+      if( approx.size()==1 )
+      {
+        msumApprox.erase(v);
+        msumFinal[v] = c;
+      }
+    }
+    // we add
+    bool success = true;
+    while( !msumApprox.empty() && success )
+    {
+      success = false;
+      // try to incorporate a non basic monomial
+      for( std::pair< const Node, std::vector< Node > >& nbm : msumApprox )
+      {
+        // check if any possibilities cancel
+      }
+    }
+  }
+  
+  // over approximation O/U
+
+  // O( x + y ) -> O( x ) + O( y )
+  // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
+  // O( len( x ) ) -> len( x )
+  // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
+  // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
+  // O( len( str.replace( x, y, z ) ) ) ->
+  //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
+  // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
+  // O( str.to.int( x ) ) -> str.to.int( x )
+
+  // U( x + y ) -> U( x ) + U( y )
+  // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
+  // U( len( x ) ) -> len( x )
+  // U( len( int.to.str( x ) ) ) -> 1
+  // U( len( str.substr( x, n1, n2 ) ) ) ->
+  //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
+  // U( len( str.replace( x, y, z ) ) ) ->
+  //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
+  // U( indexof( x, y, n ) ) -> -1    ?
+  // U( str.to.int( x ) ) -> -1
+
+  return false;
 }
 
 bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
