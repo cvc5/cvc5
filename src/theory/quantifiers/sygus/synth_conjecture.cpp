@@ -635,7 +635,7 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 
 Node SynthConjecture::getModelValue(Node n)
 {
-  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;  
+  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
   if (n.getAttribute(SygusSymBreakExcAttribute()))
   {
     // if the current model value of n was excluded by symmetry breaking, then

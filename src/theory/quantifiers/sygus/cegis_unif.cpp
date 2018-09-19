@@ -166,7 +166,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                 ->toStreamSygus(ss, m_eu);
             Trace("cegis") << ss.str() << std::endl;
           }
-          if( m_eu.isNull() )
+          if (m_eu.isNull())
           {
             return false;
           }

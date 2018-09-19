@@ -117,7 +117,7 @@ class SygusPbe : public SygusModule
   */
   void getTermList(const std::vector<Node>& candidates,
                    std::vector<Node>& terms) override;
-  /** 
+  /**
    * PBE allows partial models to handle multiple enumerators if we are not
    * using a strictly fair enumeration strategy.
    */

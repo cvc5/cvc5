@@ -415,10 +415,7 @@ void SygusPbe::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool SygusPbe::allowPartialModel()
-{ 
-  return !options::sygusPbeMultiFair(); 
-}
+bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
 
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
