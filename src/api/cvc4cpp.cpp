@@ -1951,7 +1951,7 @@ Term Solver::mkBoundVar(Sort sort) const
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
 
-void Solver::check_mk_term(Kind kind, uint32_t nchildren) const
+void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
 {
   CVC4_API_KIND_CHECK(kind);
   const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
@@ -1974,7 +1974,7 @@ void Solver::check_mk_term(Kind kind, uint32_t nchildren) const
   }
 }
 
-void Solver::check_mk_op_term(OpTerm opTerm, uint32_t nchildren) const
+void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
 {
   const Kind kind = opTerm.getKind();
   const CVC4::Kind int_kind = extToIntKind(kind);
@@ -2026,19 +2026,19 @@ Term Solver::mkTerm(Kind kind, Sort sort) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  check_mk_term(kind, 1);
+  checkMkTerm(kind, 1);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  check_mk_term(kind, 2);
+  checkMkTerm(kind, 2);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  check_mk_term(kind, 3);
+  checkMkTerm(kind, 3);
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2048,7 +2048,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  check_mk_term(kind, children.size());
+  checkMkTerm(kind, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2058,32 +2058,32 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 
 Term Solver::mkTerm(OpTerm opTerm) const
 {
-  check_mk_op_term(opTerm, 0);
+  checkMkOpTerm(opTerm, 0);
   return d_exprMgr->mkExpr(*opTerm.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
-  check_mk_op_term(opTerm, 1);
+  checkMkOpTerm(opTerm, 1);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
-  check_mk_op_term(opTerm, 2);
+  checkMkOpTerm(opTerm, 2);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
-  check_mk_op_term(opTerm, 3);
+  checkMkOpTerm(opTerm, 3);
   return d_exprMgr->mkExpr(
       *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
-  check_mk_op_term(opTerm, children.size());
+  checkMkOpTerm(opTerm, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
 }
