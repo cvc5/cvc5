@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/skolem_cache.h"
@@ -288,6 +289,25 @@ private:
   NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
+  /**
+   * The following three vectors are used for tracking constants that each
+   * equivalence class is entailed to be equal to.
+   * - The map d_eqc_to_const maps (representatives) r of equivalence classes to
+   * the constant that that equivalence class is entailed to be equal to,
+   * - The term d_eqc_to_const_base[r] is the term in the equivalence class r
+   * that is entailed to be equal to the constant d_eqc_to_const[r],
+   * - The term d_eqc_to_const_exp[r] is the explanation of why
+   * d_eqc_to_const_base[r] is equal to d_eqc_to_const[r].
+   *
+   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
+   * assume x = "" and y = "bb" in the current context. We have that
+   *   d_eqc_to_const[r] = "abb",
+   *   d_eqc_to_const_base[r] = x++"a"++y
+   *   d_eqc_to_const_exp[r] = ( x = "" AND y = "bb" )
+   *
+   * This information is computed during checkInit and is used during various
+   * inference schemas for deriving inferences.
+   */
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
@@ -374,24 +394,6 @@ private:
     //all variables in this term
     std::vector< Node > d_vars;
   };
-  // non-static information about extf
-  class ExtfInfoTmp {
-  public:
-    void init(){
-      d_pol = 0;
-      d_model_active = true;
-    }
-    // list of terms that something (does not) contain and their explanation
-    std::map< bool, std::vector< Node > > d_ctn;
-    std::map< bool, std::vector< Node > > d_ctn_from;
-    //polarity
-    int d_pol;
-    //explanation
-    std::vector< Node > d_exp;
-    //false if it is reduced in the model
-    bool d_model_active;
-  };
-  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
 
  private:
   /** Length status, used for the registerLength function below */
@@ -440,8 +442,58 @@ private:
   SkolemCache d_sk_cache;
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+
+  //--------------------------for checkExtfEval
+  /**
+   * Non-static information about an extended function t. This information is
+   * constructed and used during the check extended function evaluation
+   * inference schema.
+   *
+   * In the following, we refer to the "context-dependent simplified form"
+   * of a term t to be the result of rewriting t * sigma, where sigma is a
+   * derivable substitution in the current context. For example, the
+   * context-depdendent simplified form of contains( x++y, "a" ) given
+   * sigma = { x -> "" } is contains(y,"a").
+   */
+  class ExtfInfoTmp
+  {
+   public:
+    ExtfInfoTmp() : d_model_active(true) {}
+    /**
+     * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
+     * (resp. ~contains( t, s )) holds in the current context. The vector
+     * d_ctn_from is the explanation for why this holds. For example,
+     * if d_ctn[false][i] is "A", then d_ctn_from[false][i] might be
+     * t = x ++ y AND x = "" AND y = "B".
+     */
+    std::map<bool, std::vector<Node> > d_ctn;
+    std::map<bool, std::vector<Node> > d_ctn_from;
+    /**
+     * The constant that t is entailed to be equal to, or null if none exist.
+     */
+    Node d_const;
+    /**
+     * The explanation for why t is equal to its context-dependent simplified
+     * form.
+     */
+    std::vector<Node> d_exp;
+    /** This flag is false if t is reduced in the model. */
+    bool d_model_active;
+  };
+  /** map extended functions to the above information */
+  std::map<Node, ExtfInfoTmp> d_extf_info_tmp;
+  /** check extended function inferences
+   *
+   * This function makes additional inferences for n that do not contribute
+   * to its reduction, but may help show a refutation.
+   *
+   * This function is called when the context-depdendent simplified form of
+   * n is nr. The argument "in" is the information object for n. The argument
+   * "effort" has the same meaning as the effort argument of checkExtfEval.
+   */
+  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
+  //--------------------------end for checkExtfEval
 
   //--------------------------for checkFlatForm
   /**
@@ -643,10 +695,40 @@ private:
   context::CDO< Node > d_input_var_lsum;
   context::CDHashMap< int, Node > d_cardinality_lits;
   context::CDO< int > d_curr_cardinality;
+  /** String sum of lengths decision strategy
+   *
+   * This decision strategy enforces that len(x_1) + ... + len(x_k) <= n
+   * for a minimal natural number n, where x_1, ..., x_n is the list of
+   * input variables of the problem of type String.
+   *
+   * This decision strategy is enabled by option::stringsFmf().
+   */
+  class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    StringSumLengthDecisionStrategy(context::Context* c,
+                                    context::UserContext* u,
+                                    Valuation valuation);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override;
+    /** is initialized */
+    bool isInitialized();
+    /** initialize */
+    void initialize(const std::vector<Node>& vars);
+
+   private:
+    /**
+     * User-context-dependent node corresponding to the sum of the lengths of
+     * input variables of type string
+     */
+    context::CDO<Node> d_input_var_lsum;
+  };
+  /** an instance of the above class */
+  std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
 
  public:
-  //for finite model finding
-  Node getNextDecisionRequest(unsigned& priority) override;
   // ppRewrite
   Node ppRewrite(TNode atom) override;
 

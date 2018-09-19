@@ -17,7 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/quantifiers_engine.h"
 
@@ -229,10 +229,11 @@ void QuantAttributes::computeAttributes( Node q ) {
     d_fun_defs[f] = true;
   }
   if( d_qattr[q].d_sygus ){
-    if( d_quantEngine->getCegInstantiation()==NULL ){
+    if (d_quantEngine->getSynthEngine() == nullptr)
+    {
       Trace("quant-warn") << "WARNING : ceg instantiation is null, and we have : " << q << std::endl;
     }
-    d_quantEngine->setOwner( q, d_quantEngine->getCegInstantiation(), 2 );
+    d_quantEngine->setOwner(q, d_quantEngine->getSynthEngine(), 2);
   }
 }
 

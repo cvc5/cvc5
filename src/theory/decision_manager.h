@@ -71,9 +71,9 @@ class DecisionManager
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,
     STRAT_DT_SYGUS_ENUM_SIZE,
+    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_QUANT_BOUND_INT_SIZE,
     STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS,
-    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_SEP_NEG_GUARD,
     // placeholder for last finite-model-complete required strategy
     STRAT_LAST_FM_COMPLETE,
