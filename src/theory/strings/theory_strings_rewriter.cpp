@@ -315,10 +315,162 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
   {
     return NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
   }
-  else
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
+{
+  Assert( node.getKind()==EQUAL );
+  if( !node[0].getType().isString() )
   {
     return node;
   }
+  NodeManager * nm = NodeManager::currentNM();
+  std::vector<Node> c[2];
+  Node new_ret;
+  for (unsigned i = 0; i < 2; i++)
+  {
+    getConcat(node[i], c[i]);
+  }
+  // ------- equality unification
+  bool changed = false;
+  for (unsigned i = 0; i < 2; i++)
+  {
+    while (!c[0].empty() && !c[1].empty() && c[0].back() == c[1].back())
+    {
+      c[0].pop_back();
+      c[1].pop_back();
+      changed = true;
+    }
+    // splice constants
+    if (!c[0].empty() && !c[1].empty() && c[0].back().isConst()
+        && c[1].back().isConst())
+    {
+      String cs[2];
+      for (unsigned j = 0; j < 2; j++)
+      {
+        cs[j] = c[j].back().getConst<String>();
+      }
+      unsigned larger = cs[0].size() > cs[1].size() ? 0 : 1;
+      unsigned smallerSize = cs[1 - larger].size();
+      if (cs[1 - larger]
+          == (i == 0 ? cs[larger].suffix(smallerSize)
+                      : cs[larger].prefix(smallerSize)))
+      {
+        unsigned sizeDiff = cs[larger].size() - smallerSize;
+        c[larger][c[larger].size() - 1] =
+            nm->mkConst(i == 0 ? cs[larger].prefix(sizeDiff)
+                                : cs[larger].suffix(sizeDiff));
+        c[1 - larger].pop_back();
+        changed = true;
+      }
+    }
+    for (unsigned j = 0; j < 2; j++)
+    {
+      std::reverse(c[j].begin(), c[j].end());
+    }
+  }
+  if (changed)
+  {
+    // e.g. x++y = x++z ---> y = z, "AB" ++ x = "A" ++ y --> "B" ++ x = y
+    Node s1 = mkConcat(STRING_CONCAT, c[0]);
+    Node s2 = mkConcat(STRING_CONCAT, c[1]);
+    new_ret = s1.eqNode(s2);
+    return returnRewrite(node, new_ret, "str-eq-unify");
+  }
+  
+  // ------- homogeneous constants
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (node[i].isConst())
+    {
+      bool isHomogeneous = true;
+      unsigned hchar = 0;
+      String lhss = node[i].getConst<String>();
+      std::vector<unsigned> vec = lhss.getVec();
+      if (vec.size() > 1)
+      {
+        hchar = vec[0];
+        for (unsigned j = 1, size = vec.size(); j < size; j++)
+        {
+          if (vec[j] != hchar)
+          {
+            isHomogeneous = false;
+            break;
+          }
+        }
+      }
+      if (isHomogeneous)
+      {
+        std::sort(c[1 - i].begin(), c[1 - i].end());
+        std::vector<Node> trimmed;
+        unsigned rmChar = 0;
+        for (unsigned j = 0, size = c[1 - i].size(); j < size; j++)
+        {
+          if (c[1 - i][j].isConst())
+          {
+            // process the constant : either we have a conflict, or we
+            // drop an equal number of constants on the LHS
+            std::vector<unsigned> vecj =
+                c[1 - i][j].getConst<String>().getVec();
+            for (unsigned k = 0, sizev = vecj.size(); k < sizev; k++)
+            {
+              bool conflict = false;
+              if (vec.empty())
+              {
+                // e.g. "" = x ++ "A" ---> false
+                conflict = true;
+              }
+              else if (vecj[k] != hchar)
+              {
+                // e.g. "AA" = x ++ "B" ---> false
+                conflict = true;
+              }
+              else
+              {
+                rmChar++;
+                if (rmChar > lhss.size())
+                {
+                  // e.g. "AA" = x ++ "AAA" ---> false
+                  conflict = true;
+                }
+              }
+              if (conflict)
+              {
+                // The three conflict cases should mostly should be taken
+                // care of by multiset reasoning in the strings rewriter,
+                // but we recognize this conflict just in case.
+                new_ret = nm->mkConst(false);
+                return returnRewrite(node, new_ret, "string-eq-const-conflict");
+              }
+            }
+          }
+          else
+          {
+            trimmed.push_back(c[1 - i][j]);
+          }
+        }
+        Node lhs = node[i];
+        if (rmChar > 0)
+        {
+          Assert(lhss.size() >= rmChar);
+          // we trimmed
+          lhs = nm->mkConst(lhss.substr(0, lhss.size() - rmChar));
+        }
+        Node ss = mkConcat(STRING_CONCAT,
+                                                            trimmed);
+        if (lhs != node[i] || ss != node[1 - i])
+        {
+          // e.g.
+          //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
+          //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
+          new_ret = lhs.eqNode(ss);
+          return returnRewrite(node, new_ret, "str-eq-homog-const");
+        }
+      }
+    }
+  }
+  return node;
 }
 
 // TODO (#1180) add rewrite
@@ -1587,6 +1739,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     // len( n2 ) > len( n1 ) => contains( n1, n2 ) ---> false
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
+  }
+  else if( checkEntailArith(len_n2, len_n1, false) )
+  {
+    // len( n2 ) >= len( n1 ) => contains( n1, n2 ) ---> n1 = n2
+    Node ret = node[0].eqNode( node[1] );
+    return returnRewrite(node, ret, "ctn-len-ineq-nstrict");
   }
 
   // multi-set reasoning
@@ -3372,20 +3530,13 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       return true;
     }
     // TODO (#1180) : abstract interpretation goes here
-    Node ua = getArithApproximation(ar, true);
-    ua = Rewriter::rewrite(ua);
-    if (checkEntailArithInternal(ua))
-    {
-      return true;
-    }
-
     // over approximation O/U
 
     // O( x + y ) -> O( x ) + O( y )
     // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
     // O( len( x ) ) -> len( x )
     // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
-    // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
+    // O( len( str.substr( x, n1, n2 ) ) ) -> max( O( n2 ), O( len( x ) ) )
     // O( len( str.replace( x, y, z ) ) ) ->
     //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
     // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
@@ -3394,12 +3545,12 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     // U( x + y ) -> U( x ) + U( y )
     // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
     // U( len( x ) ) -> len( x )
-    // U( len( int.to.str( x ) ) ) -> 1
+    // U( len( int.to.str( x ) ) ) -> ite( x>=0, 1, 0 )
     // U( len( str.substr( x, n1, n2 ) ) ) ->
     //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
     // U( len( str.replace( x, y, z ) ) ) ->
     //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
-    // U( indexof( x, y, n ) ) -> -1    ?
+    // U( indexof( x, y, n ) ) -> ite( contains( substr(x,n,len(x)-n), y ), n, -1 )
     // U( str.to.int( x ) ) -> -1
 
     return false;
@@ -3634,61 +3785,6 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
   return ret;
 }
 
-Node TheoryStringsRewriter::getArithApproximation(Node a, bool isUnder)
-{
-  NodeManager* nm = NodeManager::currentNM();
-  Kind ak = a.getKind();
-  if (ak == PLUS)
-  {
-    std::vector<Node> sum;
-    for (const Node& ac : a)
-    {
-      Node aac = getArithApproximation(ac, isUnder);
-      sum.push_back(aac);
-    }
-    return nm->mkNode(PLUS, sum);
-  }
-  else if (ak == MULT)
-  {
-    Node c;
-    Node v;
-    if (!ArithMSum::getMonomial(a, c, v))
-    {
-      return a;
-    }
-    bool ap = c.isNull() || c.getConst<Rational>().sgn() > 0;
-    Node av = getArithApproximation(v, ap ? isUnder : !isUnder);
-    return nm->mkNode(MULT, c, av);
-  }
-  if (ak == STRING_STRIDOF)
-  {
-    if (isUnder)
-    {
-      return nm->mkConst(Rational(-1));
-    }
-    else
-    {
-      Node aa = nm->mkNode(MINUS,
-                           nm->mkNode(STRING_LENGTH, a[0]),
-                           nm->mkNode(STRING_LENGTH, a[1]));
-      aa = Rewriter::rewrite(aa);
-      return getArithApproximation(aa, false);
-    }
-  }
-  else if (ak == STRING_STOI)
-  {
-    if (isUnder)
-    {
-      return nm->mkConst(Rational(-1));
-    }
-  }
-  else if (ak == STRING_LENGTH)
-  {
-    Kind ask = a[0].getKind();
-  }
-  return a;
-}
-
 bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
 {
   Assert(Rewriter::rewrite(a) == a);
@@ -3802,5 +3898,18 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
                            << "." << std::endl;
+  // standard post-processing
+  if( ret.getKind()==EQUAL && node.getKind()!=EQUAL )
+  {
+    // We rewrite (string) equalities immediately here. This allows us to forego
+    // the standard invariant on equality rewrites (that s=t must rewrite to one
+    // of { s=t, t=s, true, false } ).
+    Trace("strings-rewrite") << "Apply extended equality rewrite on " << ret << std::endl;
+    Node eret = rewriteEqualityExt( ret );
+    if( !eret.isNull() )
+    {
+      ret = eret;
+    }
+  }
   return ret;
 }

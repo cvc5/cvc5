@@ -98,12 +98,16 @@ class TheoryStringsRewriter {
    * a is in rewritten form.
    */
   static bool checkEntailArithInternal(Node a);
-  /** return rewrite
+  /**
    * Called when node rewrites to ret.
-   * The string c indicates the justification
-   * for the rewrite, which is printed by this
-   * function for debugging.
-   * This function returns ret.
+   * 
+   * The string c indicates the justification for the rewrite, which is printed
+   * by this function for debugging.
+   * 
+   * If node is not an equality and ret is an equality, this method applies
+   * an additional rewrite step (rewriteEqualityExt) that performs
+   * additional rewrites on ret, after which we return the result of this call.
+   * Otherwise, this method simply returns ret.
    */
   static Node returnRewrite(Node node, Node ret, const char* c);
 
@@ -118,9 +122,18 @@ class TheoryStringsRewriter {
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
-   * two strings, given by node.
+   * two strings s = t, given by node. The result of rewrite is one of 
+   * { s = t, t = s, true, false }.
    */
   static Node rewriteEquality(Node node);
+  /** rewrite equality extended
+   * 
+   * This method returns a formula that is equivalent to the equality between
+   * two strings s = t, given by node. Specifically, this function performs
+   * rewrites whose conclusion is not necessarily one of
+   * { s = t, t = s, true, false }.
+   */
+  static Node rewriteEqualityExt( Node node );
   /** rewrite concat
   * This is the entry point for post-rewriting terms node of the form
   *   str.++( t1, .., tn )
@@ -501,9 +514,6 @@ class TheoryStringsRewriter {
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
-  /** get arithmetic approximation
-   */
-  static Node getArithApproximation(Node a, bool isUnder);
   /** decompose substr chain
    *
    * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
