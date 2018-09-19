@@ -442,22 +442,27 @@ if [ -n "$build_name" ]; then
   [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
   mkdir -p "$build_name"
 else
+  default_builds_dir="cmake-builds"
+  current_build_dir="$default_builds_dir/build"
+
   # If no build name is specified create 'cmake-builds' directory and create
   # the current build directory. Set symlink 'cmake-builds/build/' to current
   # build.
-  build_dir="$build_prefix$build_dir"
+  build_dir="$default_builds_dir/$build_prefix$build_dir"
 
   # The cmake toolchain can't be changed once it is configured in $build_dir.
   # Thus, remove $build_dir and create an empty directory.
-  [ $win64 = ON ] && [ -e "cmake-build/$build_dir" ] \
-    && rm -r "cmake-builds/$build_dir"
-  mkdir -p "cmake-builds/$build_dir"
-  cd cmake-builds || exit 1
-  [ -e build ] && rm build
-  ln -s "$build_dir" build  # link to current build directory
+  [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
+
+  # Create build directory and symlink to it
+  mkdir -p "$build_dir"
+  [ -L $current_build_dir ] && rm "$current_build_dir"
+  ln -s "$root_dir/$build_dir" "$current_build_dir"
 fi
 
 cd "$build_dir" || exit 1
 
 [ -e CMakeCache.txt ] && rm CMakeCache.txt
-cmake "$root_dir" $cmake_opts
+build_dir_escaped=$(echo "$build_dir" | sed 's/\//\\\//g')
+cmake "$root_dir" $cmake_opts 2>&1 | \
+  sed "s/^Now just/Now change to '$build_dir_escaped' and/"
