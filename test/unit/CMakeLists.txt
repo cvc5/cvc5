@@ -15,15 +15,29 @@ set(CVC4_CXXTEST_FLAGS_BLACK
   -D__STDC_LIMIT_MACROS -D__STDC_FORMAT_MACROS)
 set(CVC4_CXXTEST_FLAGS_WHITE -fno-access-control ${CVC4_CXXTEST_FLAGS_BLACK})
 
-macro(cvc4_add_unit_test is_white name)
-  # cxxtest_add_test generates the unit test executables into directory
-  # CMAKE_BINARY_DIR/test/unit by default and does not allow to change this
-  # location (it's possible to set corresponding target properties with
-  # set_target_properties, but then the test environment does not find them).
-  # Hence, these are the only executables that are not generated into our
-  # default directory for executables (CMAKE_BINARY_DIR/bin).
-  cxxtest_add_test(${name} ${name}.cpp ${CMAKE_CURRENT_LIST_DIR}/${name}.h)
-  set_tests_properties(${name} PROPERTIES LABELS "unit")
+# Generate and add unit test.
+# Note: we do not use cxxtest_add_test from the FindCxxTest module since it
+#       does not allow test names containing '/'.
+macro(cvc4_add_unit_test is_white name output_dir)
+  # generate the test sources
+  set(test_src ${CMAKE_CURRENT_BINARY_DIR}/${name}.cpp)
+  set(test_header ${CMAKE_CURRENT_LIST_DIR}/${name}.h)
+  add_custom_command(
+      OUTPUT  ${test_src}
+      DEPENDS ${test_header}
+      COMMAND
+        ${CXXTEST_TESTGEN_INTERPRETER}
+          ${CXXTEST_TESTGEN_EXECUTABLE}
+          ${CXXTEST_TESTGEN_ARGS} -o ${test_src} ${test_header}
+  )
+  set_source_files_properties(${test_src} PROPERTIES GENERATED true)
+  # The build target is created without the path prefix (not supported),
+  # e.g., for '<output_dir>/myunittest.h'
+  #   we generate '${CMAKE_BINAR_DIR}/test/unit/<output_dir>/myunittest.cpp',
+  #   create build target 'myunittest'
+  #   and build it with 'make myunittest'.
+  # As a consequence, all build target names must be globally unique.
+  add_executable(${name} ${test_src} ${test_header})
   target_link_libraries(${name} main-test)
   target_compile_definitions(${name} PRIVATE ${CVC4_CXXTEST_FLAGS_BLACK})
   if(${is_white})
@@ -33,16 +47,31 @@ macro(cvc4_add_unit_test is_white name)
   # code that does not properly add the override keyword to runTest().
   target_compile_options(${name} PRIVATE -Wno-suggest-override)
   add_dependencies(units ${name})
+  # Generate into bin/test/unit/<output_dir>.
+  set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
+  set_target_properties(${name}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${test_bin_dir})
+  # The test target is prefixed with test identifier 'unit/' and the path,
+  # e.g., for '<output_dir>/myunittest.h'
+  #   we create test target 'unit/<output_dir>/myunittest'
+  #   and run it with 'ctest -R "example/<output_dir>/myunittest"'.
+  if("${output_dir}" STREQUAL "")
+    set(test_name unit/${name})
+  else()
+    set(test_name unit/${output_dir}/${name})
+  endif()
+  add_test(${test_name} ${test_bin_dir}/${name})
+  set_tests_properties(${test_name} PROPERTIES LABELS "unit")
   if(ENABLE_COVERAGE)
     add_dependencies(coverage ${name})
   endif()
 endmacro()
 
-macro(cvc4_add_unit_test_black name)
-  cvc4_add_unit_test(FALSE ${name})
+macro(cvc4_add_unit_test_black name output_dir)
+  cvc4_add_unit_test(FALSE ${name} ${output_dir})
 endmacro()
-macro(cvc4_add_unit_test_white name)
-  cvc4_add_unit_test(TRUE ${name})
+macro(cvc4_add_unit_test_white name output_dir)
+  cvc4_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
 add_subdirectory(base)
