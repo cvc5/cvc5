@@ -114,7 +114,10 @@ class SynthConjecture
   bool isAssigned() { return !d_embed_quant.isNull(); }
   /** get model values for terms n, store in vector v */
   void getModelValues(std::vector<Node>& n, std::vector<Node>& v);
-  /** get model value for term n */
+  /** 
+   * Get model value for term n. If n has a value that was excluded by
+   * datatypes sygus symmetry breaking, this method returns null.
+   */
   Node getModelValue(Node n);
 
   /** get utility for static preprocessing and analysis of conjectures */

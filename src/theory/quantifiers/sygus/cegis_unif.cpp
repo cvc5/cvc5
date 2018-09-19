@@ -166,6 +166,10 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                 ->toStreamSygus(ss, m_eu);
             Trace("cegis") << ss.str() << std::endl;
           }
+          if( m_eu.isNull() )
+          {
+            return false;
+          }
           unif_values[index][e].push_back(m_eu);
         }
         // inter-enumerator symmetry breaking for return values

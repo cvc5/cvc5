@@ -609,16 +609,17 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
     v.push_back(nv);
     if (Trace.isOn("cegqi-engine"))
     {
+      Node onv = nv.isNull() ? d_qe->getModel()->getValue(n[i]) : nv;
+      TypeNode tn = onv.getType();
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
       Trace("cegqi-engine") << n[i] << " -> ";
       if (nv.isNull())
       {
-        Trace("cegqi-engine") << "X ";
+        Trace("cegqi-engine") << "[exc: " << ss.str() << "] ";
       }
       else
       {
-        TypeNode tn = nv.getType();
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
         Trace("cegqi-engine") << ss.str() << " ";
         if (Trace.isOn("cegqi-engine-rr"))
         {
@@ -634,12 +635,15 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 
 Node SynthConjecture::getModelValue(Node n)
 {
-  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
-  Node mv = d_qe->getModel()->getValue(n);
-  if (mv.getAttribute(SygusSymBreakExcAttribute()))
+  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;  
+  if (n.getAttribute(SygusSymBreakExcAttribute()))
   {
+    // if the current model value of n was excluded by symmetry breaking, then
+    // it does not have a proper model value that we should consider, thus we
+    // return null.
     return Node::null();
   }
+  Node mv = d_qe->getModel()->getValue(n);
   return mv;
 }
 

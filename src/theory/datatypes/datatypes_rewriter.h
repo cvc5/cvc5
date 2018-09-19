@@ -39,7 +39,10 @@ struct SygusAnyConstAttributeId
 };
 typedef expr::Attribute<SygusAnyConstAttributeId, bool> SygusAnyConstAttribute;
 
-/** Attribute true for terms that have been excluded by sygus symmetry breaking.
+/** 
+ * Attribute true for enumerators whose current model values have been excluded
+ * by sygus symmetry breaking. This is set by the datatypes sygus solver during
+ * LAST_CALL effort checks for each active sygus enumerator.
  */
 struct SygusSymBreakExcAttributeId
 {

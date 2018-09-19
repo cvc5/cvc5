@@ -74,7 +74,10 @@ class SygusModule
   /** allow partial model
    *
    * This method returns true if this module does not require that all
-   * terms returned by getTermList have non-null model values when calling
+   * terms returned by getTermList have "proper" model values when calling
+   * constructCandidates. A term may have a model value that is not proper
+   * if is excluded by symmetry breaking, e.g. x+0 is not proper. All model
+   * values that are not proper are replaced by "null" when calling
    * constructCandidates.
    */
   virtual bool allowPartialModel() { return false; }

@@ -1317,10 +1317,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( options::sygusSymBreakDynamic() ){
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
+          SygusSymBreakExcAttribute ssbea;
+          prog.setAttribute(ssbea, rsv.isNull());
           if (rsv.isNull())
           {
-            SygusSymBreakExcAttribute ssbea;
-            progv.setAttribute(ssbea, true);
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
           }
           else
