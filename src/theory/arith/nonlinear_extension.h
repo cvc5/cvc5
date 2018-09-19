@@ -317,8 +317,10 @@ class NonlinearExtension {
    * Adds the model substitution v -> s. This applies the substitution
    * { v -> s } to each term in d_check_model_subs and adds v,s to
    * d_check_model_vars and d_check_model_subs respectively.
+   * If this method returns false, then the substitution v -> s is inconsistent
+   * with the current substitution and bounds.
    */
-  void addCheckModelSubstitution(TNode v, TNode s);
+  bool addCheckModelSubstitution(TNode v, TNode s);
   /** lower and upper bounds for check model
    *
    * For each term t in the domain of this map, if this stores the pair
@@ -335,9 +337,11 @@ class NonlinearExtension {
   /** add check model bound
    *
    * Adds the bound x -> < l, u > to the map above, and records the
-   * approximation ( x, l <= x <= u ) in the model.
+   * approximation ( x, l <= x <= u ) in the model. This method returns false
+   * if the bound is inconsistent with the current model substitution or
+   * bounds.
    */
-  void addCheckModelBound(TNode v, TNode l, TNode u);
+  bool addCheckModelBound(TNode v, TNode l, TNode u);
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
@@ -582,14 +586,14 @@ class NonlinearExtension {
 
   /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
   std::map<Kind, std::vector<Node> > d_f_map;
-
+  
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
-  
+
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
-
+  
   /** secant points (sorted list) for transcendental functions
    *
    * This is used for tangent plane refinements for

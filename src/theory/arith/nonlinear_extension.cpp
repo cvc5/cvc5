@@ -658,7 +658,8 @@ Node NonlinearExtension::mkMonomialRemFactor(
 int NonlinearExtension::flushLemma(Node lem) {
   Trace("nl-ext-lemma-debug")
       << "NonlinearExtension::Lemma pre-rewrite : " << lem << std::endl;
-  lem = Rewriter::rewrite(lem);
+  lem = Rewriter::rewrite( lem );
+  
   if (Contains(d_lemmas, lem)) {
     Trace("nl-ext-lemma-debug")
         << "NonlinearExtension::Lemma duplicate : " << lem << std::endl;
@@ -888,17 +889,23 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
     Kind k = tfs.first;
     for (const Node& tf : tfs.second)
     {
+      bool success = true;
       // tf is Figure 3 : tf( x )
       Node atf = computeModelValue(tf, 0);
       if (k == PI)
       {
-        addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
+        success =addCheckModelBound(atf, d_pi_bound[0], d_pi_bound[1]);
       }
       else if (isRefineableTfFun(tf))
       {
         d_used_approx = true;
         std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
-        addCheckModelBound(atf, bounds.first, bounds.second);
+        success =addCheckModelBound(atf, bounds.first, bounds.second);
+      }
+      if( !success )
+      {
+        Trace("nl-ext-cm-debug") << "...failed to set bound for transcendental function." << std::endl;
+        return false;
       }
       if (Trace.isOn("nl-ext-cm"))
       {
@@ -962,7 +969,8 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
                   << "check-model-bound : exact : " << cur << " = ";
               printRationalApprox("nl-ext-cm", curv);
               Trace("nl-ext-cm") << std::endl;
-              addCheckModelSubstitution(cur, curv);
+              bool ret = addCheckModelSubstitution(cur, curv);
+              AlwaysAssert( ret );
             }
           }
         }
@@ -1036,15 +1044,28 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
   return true;
 }
 
-void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
+bool NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
 {
   // should not substitute the same variable twice
   Trace("nl-ext-model") << "* check model substitution : " << v << " -> " << s << std::endl;
   // should not set exact bound more than once
   if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
   {
+    Trace("nl-ext-model") << "...ERROR: already has value." << std::endl;
+    // this should never happen since substitutions should be applied eagerly
     Assert( false );
-    return;
+    return false;
+  }
+  // if we previously had an approximate bound, the exact bound should be in its range
+  std::map<Node, std::pair<Node, Node> >::iterator itb = d_check_model_bounds.find(v);
+  if (itb != d_check_model_bounds.end())
+  {
+    if( s.getConst<Rational>()>=itb->second.first.getConst<Rational>() ||
+        s.getConst<Rational>()<=itb->second.second.getConst<Rational>() )
+    {
+      Trace("nl-ext-model") << "...ERROR: already has bound which is out of range." << std::endl;
+      return false;
+    }
   }
   for (unsigned i = 0, size = d_check_model_subs.size(); i < size; i++)
   {
@@ -1058,23 +1079,29 @@ void NonlinearExtension::addCheckModelSubstitution(TNode v, TNode s)
   }
   d_check_model_vars.push_back(v);
   d_check_model_subs.push_back(s);
+  return true;
 }
 
-void NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
+bool NonlinearExtension::addCheckModelBound(TNode v, TNode l, TNode u)
 {
   Trace("nl-ext-model") << "* check model bound : " << v << " -> [" << l << " " << u << "]" << std::endl;
   if( l==u )
   {
     // bound is exact, can add as substitution
-    addCheckModelSubstitution(v,l);
-    return;
+    return addCheckModelSubstitution(v,l);
   }
   // should not set a bound for a value that is exact
-  Assert(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)==d_check_model_vars.end());
+  if(std::find(d_check_model_vars.begin(),d_check_model_vars.end(),v)!=d_check_model_vars.end())
+  {
+    Trace("nl-ext-model") << "...ERROR: setting bound for variable that already has exact value." << std::endl;
+    Assert( false );
+    return false;
+  }
   Assert(l.isConst());
   Assert(u.isConst());
   Assert(l.getConst<Rational>() <= u.getConst<Rational>());
   d_check_model_bounds[v] = std::pair<Node, Node>(l, u);
+  return true;
 }
 
 bool NonlinearExtension::hasCheckModelAssignment(Node v) const
@@ -1203,11 +1230,14 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
           {
             Trace("nl-ext-cm")
                 << "check-model-subs : " << uv << " -> " << slv << std::endl;
-            addCheckModelSubstitution(uv, slv);
-            Trace("nl-ext-cms") << "...success, model substitution " << uv
-                                << " -> " << slv << std::endl;
-            d_check_model_solved[eq] = uv;
-            return true;
+            bool ret = addCheckModelSubstitution(uv, slv);
+            if( ret )
+            {
+              Trace("nl-ext-cms") << "...success, model substitution " << uv
+                                  << " -> " << slv << std::endl;
+              d_check_model_solved[eq] = uv;
+            }
+            return ret;
           }
         }
       }
@@ -1223,9 +1253,9 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
         Trace("nl-ext-cm") << "check-model-bound : exact : " << uvf << " = ";
         printRationalApprox("nl-ext-cm", uvfv);
         Trace("nl-ext-cm") << std::endl;
-        addCheckModelSubstitution(uvf, uvfv);
+        bool ret = addCheckModelSubstitution(uvf, uvfv);
         // recurse
-        return solveEqualitySimple(eq);
+        return ret ? solveEqualitySimple(eq) : false;
       }
     }
     Trace("nl-ext-cms") << "...fail due to constrained invalid terms."
@@ -1252,10 +1282,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
     Trace("nl-ext-cm") << "check-model-bound : exact : " << var << " = ";
     printRationalApprox("nl-ext-cm", val);
     Trace("nl-ext-cm") << std::endl;
-    addCheckModelSubstitution(var, val);
-    Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
-    d_check_model_solved[eq] = var;
-    return true;
+    bool ret = addCheckModelSubstitution(var, val);
+    if( ret )
+    {
+      Trace("nl-ext-cms") << "...success, solved linear." << std::endl;
+      d_check_model_solved[eq] = var;
+    }
+    return ret;
   }
   Trace("nl-ext-quad") << "Solve quadratic : " << seq << std::endl;
   Trace("nl-ext-quad") << "  a : " << a << std::endl;
@@ -1352,10 +1385,13 @@ bool NonlinearExtension::solveEqualitySimple(Node eq)
   Trace("nl-ext-cm") << " <= " << var << " <= ";
   printRationalApprox("nl-ext-cm", bounds[r_use_index][1]);
   Trace("nl-ext-cm") << std::endl;
-  addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
-  d_check_model_solved[eq] = var;
-  Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
-  return true;
+  bool ret = addCheckModelBound(var, bounds[r_use_index][0], bounds[r_use_index][1]);
+  if( ret )
+  {
+    d_check_model_solved[eq] = var;
+    Trace("nl-ext-cms") << "...success, solved quadratic." << std::endl;
+  }
+  return ret;
 }
 
 bool NonlinearExtension::simpleCheckModelLit(Node lit)
@@ -3240,8 +3276,16 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
     // if this term requires a refinement
-    if (d_tplane_refine.find(t) != d_tplane_refine.end())
+    if (d_tplane_refine.find(t) == d_tplane_refine.end())
     {
+      continue;
+    }
+    unsigned applyCount = d_tplane_mon_count[t];
+    if (options::nlExtTangentPlanes()
+        || applyCount < options::nlExtTangentPlanesLimit())
+    {
+      // increment the number of times we have applied tangent planes to this
+      d_tplane_mon_count[t] = applyCount + 1;
       Trace("nl-ext-tplanes")
           << "Look at monomial requiring refinement : " << t << std::endl;
       // get a decomposition
@@ -3423,10 +3467,9 @@ std::vector<Node> NonlinearExtension::checkMonomialInferBounds(
         }
         // compute if bound is not satisfied, and store what is required
         // for a possible refinement
-        if (options::nlExtTangentPlanes()) {
-          if (is_false_lit) {
-            d_tplane_refine.insert(x);
-          }
+        if (is_false_lit)
+        {
+          d_tplane_refine.insert(x);
         }
       }
     }
@@ -3622,7 +3665,7 @@ std::vector<Node> NonlinearExtension::checkFactoring(
             sum = Rewriter::rewrite( sum );
             Trace("nl-ext-factor")
                 << "* Factored sum for " << x << " : " << sum << std::endl;
-            Node kf = getFactorSkolem( sum, lemmas ); 
+            Node kf = getFactorSkolem( sum, lemmas );
             std::vector< Node > poly;
             poly.push_back(NodeManager::currentNM()->mkNode(MULT, x, kf));
             std::map<Node, std::vector<Node> >::iterator itfo =
@@ -3672,7 +3715,7 @@ Node NonlinearExtension::getFactorSkolem( Node n, std::vector< Node >& lemmas ) 
     return itf->second;
   }  
 }
-                    
+
 std::vector<Node> NonlinearExtension::checkMonomialInferResBounds() {            
   std::vector< Node > lemmas; 
   Trace("nl-ext") << "Get monomial resolution inferred bound lemmas..." << std::endl;
