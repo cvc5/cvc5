@@ -168,6 +168,9 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
           }
           if (m_eu.isNull())
           {
+            // A condition enumerator was excluded by symmetry breaking, fail.
+            // TODO (#2498): either move conditions to getTermList or handle
+            // partial models in this module.
             return false;
           }
           unif_values[index][e].push_back(m_eu);
