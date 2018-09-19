@@ -10,10 +10,15 @@ set(CVC4_EXAMPLES_NRA_TRANSLATE
   smt2toredlog
 )
 
+set(EXAMPLES_NRA_TRANSLATE_LINK_LIBS cvc4 cvc4parser)
 foreach(example ${CVC4_EXAMPLES_NRA_TRANSLATE})
-  add_executable(${example} EXCLUDE_FROM_ALL ${example}.cpp)
-  target_link_libraries(${example} cvc4 cvc4parser)
-  set_target_properties(${example}
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EXAMPLES_NRA_TRANSLATE_BIN_DIR})
-  add_dependencies(examples ${example})
+  cvc4_add_example(${example}
+    "" "${EXAMPLES_NRA_TRANSLATE_LINK_LIBS}" "nra-translate"
+    # arguments to binary (for testing)
+    # input file is required by all tests
+    ${CMAKE_CURRENT_SOURCE_DIR}/nra-translate-example-input.smt2
+    # This is a dummy argument for smt2toredlog (argument is only printed, can
+    # be anything for testing purposes). We pass this to all examples since the
+    # other examples ignore additional arguments.
+    "foo")
 endforeach()

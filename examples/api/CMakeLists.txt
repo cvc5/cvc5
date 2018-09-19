@@ -1,5 +1,3 @@
-set(EXAMPLES_API_BIN_DIR ${EXAMPLES_BIN_DIR}/api)
-
 set(CVC4_EXAMPLES_API
   bitvectors
   bitvectors-new
@@ -21,12 +19,10 @@ set(CVC4_EXAMPLES_API
   strings-new
 )
 
+set(EXAMPLES_API_LINK_LIBS cvc4 cvc4parser)
 foreach(example ${CVC4_EXAMPLES_API})
-  add_executable(${example} EXCLUDE_FROM_ALL ${example}.cpp)
-  target_link_libraries(${example} cvc4)
-  set_target_properties(${example}
-    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EXAMPLES_API_BIN_DIR})
-  add_dependencies(examples ${example})
+  cvc4_add_example(${example}
+    "" "${EXAMPLES_API_LINK_LIBS}" "api")
 endforeach()
 
 if(BUILD_BINDINGS_JAVA)
