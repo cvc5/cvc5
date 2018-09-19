@@ -453,7 +453,10 @@ class TheoryArrays : public Theory {
   /** An equality-engine callback for proof reconstruction */
   ArrayProofReconstruction d_proofReconstruction;
 
-  /** The decision strategy for the theory of arrays */
+  /**
+   * The decision strategy for the theory of arrays, which calls the
+   * getNextDecisionEngineRequest function below.
+   */
   class TheoryArraysDecisionStrategy : public DecisionStrategy
   {
    public:
@@ -471,7 +474,12 @@ class TheoryArrays : public Theory {
   };
   /** an instance of the above decision strategy */
   std::unique_ptr<TheoryArraysDecisionStrategy> d_dstrat;
-  /** get the next decision request */
+  /** get the next decision request
+   *
+   * If the "arrays-eager-index" option is enabled, then whenever a
+   * read-over-write lemma is generated, a decision request is also generated
+   * for the comparison between the indexes that appears in the lemma.
+   */
   Node getNextDecisionRequest();
 
  public:
