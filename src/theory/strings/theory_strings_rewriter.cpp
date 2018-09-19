@@ -3442,6 +3442,8 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   {
     return true;
   }
+  // TODO
+  return false;
     
   if( ar.getKind()==PLUS )
   {
@@ -3478,6 +3480,7 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       do
       {
         Node curr = toProcess.back();
+        curr = Rewriter::rewrite(curr);
         toProcess.pop_back();
         if( visited.find(curr)==visited.end() )
         {
@@ -3507,15 +3510,28 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
             else if( curr[0].getKind()==STRING_STRREPL )
             {
               // over,under-approximations for len( replace( x, y, z ) )
+              Node leny = nm->mkNode( STRING_LENGTH, curr[0][1] );
+              Node lenz = nm->mkNode( STRING_LENGTH, curr[0][1] );
+              Node lenx = nm->mkNode( STRING_LENGTH, curr[0][0] );
               if( isOverApprox )
               {
                 // TODO len( y ) >= len( z ) implies len( x ) >= len( replace( x, y, z ) )
-                // TODO len( x ) + len( z ) >= len( replace( x, y, z ) )
+                if( checkEntailArith( leny, lenz ) )
+                {
+                  toProcess.push_back(lenx);
+                }
+                else
+                {
+                  // TODO len( x ) + len( z ) >= len( replace( x, y, z ) )
+                }
               }
               else
               {
                 // TODO len( y ) <= len( z ) implies len( x ) <= len( replace( x, y, z ) )
-                
+                if( checkEntailArith( lenz, leny ) )
+                {
+                  toProcess.push_back(lenx);
+                }
               }
             }
           }
