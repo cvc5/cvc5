@@ -8,23 +8,68 @@ find_package(Boost)
 
 set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin/examples)
 
-# Create target examples. Add a dependency for each examples you add.
+# Create target examples.
+#
+# Only builds the examples, but does not run them. To run and build all
+# examples, use target runexamples (below).
+# Use macro cvc4_add_example to add examples.
 add_custom_target(examples)
 
-add_executable(simple_vc_cxx EXCLUDE_FROM_ALL simple_vc_cxx.cpp)
-target_link_libraries(simple_vc_cxx cvc4 cvc4parser)
-add_dependencies(examples simple_vc_cxx)
+# Create target runexamples.
+# Builds and runs all examples.
+add_custom_target(runexamples
+  COMMAND ctest --output-on-failure -L "example" -j${NTHREADS} $(ARGS)
+  DEPENDS examples)
 
-add_executable(simple_vc_quant_cxx EXCLUDE_FROM_ALL simple_vc_quant_cxx.cpp)
-target_link_libraries(simple_vc_quant_cxx cvc4 cvc4parser)
-add_dependencies(examples simple_vc_quant_cxx)
+# Add example target and create test to run example with ctest.
+#
+# > name: The name of the example
+# > src_files: The list of source files passed as string "src1 src2 ..."
+#              (alternative: "src1;src2;...").  If empty, <name>.cpp is assumed.
+# > libs: The list of libraries to link the example against, passed as either
+#           - a list variable: set(<list name> <libs1> <libs2> ...) and pass
+#                              as "${<list name>}"
+#           - a string: pass as "lib1 lib2 ..." (alternative: "lib1;lib2;...")
+# > ouput_dir: Determines the examples subdirectory and is empty (passed as
+#              empty string) for the examples root director (this)
+# > ARGN: Any additional arguments passed to the macro are interpreted as
+#         as arguments to the test executable.
+macro(cvc4_add_example name src_files libs output_dir)
+  # The build target is created without the path prefix (not supported),
+  # e.g., for '<subdirs>/myexample.cpp'
+  #   we create build target 'myexample'
+  #   and build it with 'make myexample'.
+  # As a consequence, all build target names must be globally unique.
+  if("${src_files}" STREQUAL "")
+    set(src_files_list ${name}.cpp)
+  else()
+    string(REPLACE " " ";" src_files_list "${src_files}")
+  endif()
+  add_executable(${name} EXCLUDE_FROM_ALL ${src_files_list})
+  string(REPLACE " " ";" libs_list "${libs_list}")
+  target_link_libraries(${name} ${libs})
+  add_dependencies(examples ${name})
+  # The test target is prefixed with test identifier 'example/' and the path,
+  # e.g., for '<subdirs>/myexample.cpp'
+  #   we create test target 'example/<subdirs>/myexample'
+  #   and run it with 'ctest -R "example/<subdirs>/<example>"'.
+  if("${output_dir}" STREQUAL "")
+    set(example_test example/${name})
+    set(example_bin_dir ${EXAMPLES_BIN_DIR})
+  else()
+    set(example_test example/${output_dir}/${name})
+    set(example_bin_dir ${EXAMPLES_BIN_DIR}/${output_dir})
+  endif()
+  set_target_properties(${name}
+    PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${example_bin_dir})
+  add_test(${example_test} ${example_bin_dir}/${name} ${ARGN})
+  set_tests_properties(${example_test} PROPERTIES LABELS "example")
+endmacro()
 
-add_executable(translator EXCLUDE_FROM_ALL translator.cpp)
-target_link_libraries(translator cvc4 cvc4parser)
-add_dependencies(examples translator)
-
-set_target_properties(simple_vc_cxx simple_vc_quant_cxx translator
-  PROPERTIES RUNTIME_OUTPUT_DIRECTORY ${EXAMPLES_BIN_DIR})
+set(EXAMPLES_LINK_LIBS cvc4 cvc4parser)
+cvc4_add_example(simple_vc_cxx "" "${EXAMPLES_LINK_LIBS}" "")
+cvc4_add_example(simple_vc_quant_cxx "" "${EXAMPLES_LINK_LIBS}" "")
+cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" "")
 
 if(BUILD_BINDINGS_JAVA)
   find_package(Java REQUIRED)
@@ -36,6 +81,15 @@ if(BUILD_BINDINGS_JAVA)
         -d ${CMAKE_BINARY_DIR}/bin/examples
     DEPENDS cvc4jar)
   add_dependencies(examples SimpleVCjava)
+  add_test(
+    NAME example/SimpleVCjava
+    COMMAND
+      ${Java_JAVA_EXECUTABLE}
+        -Djava.library.path=${CMAKE_BINARY_DIR}/src/bindings/java/
+        -cp "${EXAMPLES_JAVA_CLASSPATH}:${CMAKE_BINARY_DIR}/bin/examples/"
+        SimpleVC
+  )
+  set_tests_properties(example/SimpleVCjava PROPERTIES LABELS "example")
 endif()
 
 add_subdirectory(api)
