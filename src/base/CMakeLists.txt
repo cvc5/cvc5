@@ -3,17 +3,25 @@
 
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-git_local_changes(GIT_IS_DIRTY)
-if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
-  set(GIT_IS_DIRTY "true")
+
+if(GIT_SHA1)
+  git_local_changes(GIT_IS_DIRTY)
+  set(GIT_BUILD "true")
+  if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
+    set(GIT_IS_DIRTY "true")
+  else()
+    set(GIT_IS_DIRTY "false")
+  endif()
+  execute_process(
+    COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    OUTPUT_VARIABLE GIT_BRANCH
+    OUTPUT_STRIP_TRAILING_WHITESPACE
+  )
 else()
+  set(GIT_BUILD "false")
   set(GIT_IS_DIRTY "false")
+  set(GIT_SHA1 "")
 endif()
-execute_process(
-  COMMAND "${GIT_EXECUTABLE}" rev-parse --abbrev-ref HEAD
-  OUTPUT_VARIABLE GIT_BRANCH
-  OUTPUT_STRIP_TRAILING_WHITESPACE
-)
 
 #-----------------------------------------------------------------------------#
 # Generate git_versioninfo.cpp
