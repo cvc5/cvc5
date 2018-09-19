@@ -3977,11 +3977,7 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
     // of { s=t, t=s, true, false } ).
     Trace("strings-rewrite")
         << "Apply extended equality rewrite on " << ret << std::endl;
-    Node eret = rewriteEqualityExt(ret);
-    if (!eret.isNull())
-    {
-      ret = eret;
-    }
+    ret = rewriteEqualityExt(ret);
   }
   return ret;
 }
