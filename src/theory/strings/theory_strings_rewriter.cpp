@@ -3600,13 +3600,14 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       return true;
     }
     // TODO (#1180) : abstract interpretation goes here
+
     // over approximation O/U
 
     // O( x + y ) -> O( x ) + O( y )
     // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
     // O( len( x ) ) -> len( x )
     // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
-    // O( len( str.substr( x, n1, n2 ) ) ) -> max( O( n2 ), O( len( x ) ) )
+    // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
     // O( len( str.replace( x, y, z ) ) ) ->
     //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
     // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
@@ -3615,13 +3616,13 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     // U( x + y ) -> U( x ) + U( y )
     // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
     // U( len( x ) ) -> len( x )
-    // U( len( int.to.str( x ) ) ) -> ite( x>=0, 1, 0 )
+    // U( len( int.to.str( x ) ) ) -> 1
     // U( len( str.substr( x, n1, n2 ) ) ) ->
     //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
     // U( len( str.replace( x, y, z ) ) ) ->
     //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
-    // U( indexof( x, y, n ) ) -> ite( contains( substr(x,n,len(x)-n), y ), n,
-    // -1 ) U( str.to.int( x ) ) -> -1
+    // U( indexof( x, y, n ) ) -> -1    ?
+    // U( str.to.int( x ) ) -> -1
 
     return false;
   }
