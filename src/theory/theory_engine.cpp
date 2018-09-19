@@ -767,7 +767,7 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   }
 }
 
-Node TheoryEngine::getNextDecisionRequest() 
+Node TheoryEngine::getNextDecisionRequest()
 {
   return d_decManager->getNextDecisionRequest();
 }

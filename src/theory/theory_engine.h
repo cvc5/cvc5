@@ -702,7 +702,7 @@ public:
     }
   }
 
-  /** 
+  /**
    * Returns the next decision request, or null if none exist. The next
    * decision request is a literal that this theory engine prefers the SAT
    * solver to make as its next decision. Decision requests are managed by
