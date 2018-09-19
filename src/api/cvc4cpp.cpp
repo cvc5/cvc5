@@ -643,7 +643,7 @@ class CVC4ApiExceptionStream
 
 #define CVC4_API_ARG_CHECK_EXPECTED(cond, arg, expected_arg_str)               \
   CVC4_API_CHECK(cond) << "Invalid argument '" << (arg).toString() << "' for " \
-                       << #arg << " expected " << expected_arg_str;
+                       << #arg << ", expected " << expected_arg_str;
 
 }  // namespace
 
