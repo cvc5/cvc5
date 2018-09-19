@@ -19,6 +19,7 @@ General options;
   --name=STR               use custom build directory name
   --best                   turn on dependences known to give best performance
   --gpl                    permit GPL dependences, if available
+  --win64                  cross-compile for Windows 64 bit
 
 
 Features:
@@ -66,6 +67,7 @@ Optional Path to Optional Packages:
   --cryptominisat-dir=PATH path to top level of cryptominisat source tree
   --cxxtest-dir=DIR        path to CxxTest installation
   --glpk-dir=PATH          path to top level of glpk installation
+  --gmp-dir=PATH           path to top level of GMP installation
   --lfsc-dir=PATH          path to top level of lfsc source tree
   --symfpu-dir=PATH        path to top level of symfpu source tree
 
@@ -112,6 +114,7 @@ debug_symbols=default
 debug_context_mm=default
 dumping=default
 gpl=default
+win64=default
 glpk=default
 lfsc=default
 muzzle=default
@@ -137,6 +140,7 @@ antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
 glpk_dir=default
+gmp_dir=default
 lfsc_dir=default
 symfpu_dir=default
 
@@ -200,6 +204,9 @@ do
 
     --gpl) gpl=ON;;
     --no-gpl) gpl=OFF;;
+
+    --win64) win64=ON;;
+    --no-win64) win64=OFF;;
 
     --glpk) glpk=ON;;
     --no-glpk) glpk=OFF;;
@@ -281,6 +288,9 @@ do
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
+    --gmp-dir) die "missing argument to $1 (try -h)" ;;
+    --gmp-dir=*) gmp_dir=${1##*=} ;;
+
     --lfsc-dir) die "missing argument to $1 (try -h)" ;;
     --lfsc-dir=*) lfsc_dir=${1##*=} ;;
 
@@ -305,7 +315,8 @@ done
 
 cmake_opts=""
 
-[ $buildtype != default ] && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
+[ $buildtype != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_BUILD_TYPE=$buildtype"
 
 [ $asan != default ] \
   && cmake_opts="$cmake_opts -DENABLE_ASAN=$asan" \
@@ -331,6 +342,9 @@ cmake_opts=""
 [ $gpl != default ] \
   && cmake_opts="$cmake_opts -DENABLE_GPL=$gpl" \
   && [ $gpl = ON ] &&  build_dir="$build_dir-gpl"
+[ $win64 != default ] \
+  && cmake_opts="$cmake_opts -DCMAKE_TOOLCHAIN_FILE=../cmake/Toolchain-mingw64.cmake" \
+  && [ $win64 = ON ] &&  build_dir="$build_dir-win64"
 [ $muzzle != default ] \
   && cmake_opts="$cmake_opts -DENABLE_MUZZLE=$muzzle" \
   && [ $muzzle = ON ] &&  build_dir="$build_dir-muzzle"
@@ -407,6 +421,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
+[ "$gmp_dir" != default ] \
+  && cmake_opts="$cmake_opts -DGMP_DIR=$gmp_dir"
 [ "$lfsc_dir" != default ] \
   && cmake_opts="$cmake_opts -DLFSC_DIR=$lfsc_dir"
 [ "$symfpu_dir" != default ] \
@@ -420,12 +436,21 @@ if [ -n "$build_name" ]; then
   # If a build name is specified just create directory 'build_name' for the
   # current build.
   build_dir=$build_name
+
+  # The cmake toolchain can't be changed once it is configured in $build_dir.
+  # Thus, remove $build_dir and create an empty directory.
+  [ $win64 = ON ] && [ -e "$build_dir" ] && rm -r "$build_dir"
   mkdir -p "$build_name"
 else
   # If no build name is specified create 'cmake-builds' directory and create
   # the current build directory. Set symlink 'cmake-builds/build/' to current
   # build.
   build_dir="$build_prefix$build_dir"
+
+  # The cmake toolchain can't be changed once it is configured in $build_dir.
+  # Thus, remove $build_dir and create an empty directory.
+  [ $win64 = ON ] && [ -e "cmake-build/$build_dir" ] \
+    && rm -r "cmake-builds/$build_dir"
   mkdir -p "cmake-builds/$build_dir"
   cd cmake-builds || exit 1
   [ -e build ] && rm build
