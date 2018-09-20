@@ -68,9 +68,9 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusInvVars, d_sygusConstraints,
-      d_sygusFunSymbols;
-  std::map< Expr, bool > d_sygusVarPrimed;
+  std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
+  /** maps sygus variables to their respective primed variabels */
+  std::map< Expr, Expr > d_sygusVarPrimed;
 
 protected:
  Smt2(api::Solver* solver,
@@ -287,7 +287,14 @@ public:
   const std::vector<Expr>& getSygusVars() {
     return d_sygusVars;
   }
-  const void getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed );
+  /** retrieves the invariant variables (both regular and primed)
+   *
+   * To ensure that the variable list represent the correct argument type order
+   * the type  of the invariant predicate is used during the variable retrieval
+   */
+  const void getSygusInvVars(FunctionType t,
+                             std::vector<Expr>& vars,
+                             std::vector<Expr>& primed_vars);
 
   const void addSygusFunSymbol( Type t, Expr synth_fun );
   const std::vector<Expr>& getSygusFunSymbols() {

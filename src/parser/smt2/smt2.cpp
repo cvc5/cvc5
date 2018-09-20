@@ -632,15 +632,12 @@ void Smt2::includeFile(const std::string& filename) {
 Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) {
   Expr e = mkBoundVar(name, type);
   d_sygusVars.push_back(e);
-  d_sygusVarPrimed[e] = false;
   if( isPrimed ){
-    d_sygusInvVars.push_back(e);
     std::stringstream ss;
     ss << name << "'";
     Expr ep = mkBoundVar(ss.str(), type);
     d_sygusVars.push_back(ep);
-    d_sygusInvVars.push_back(ep);
-    d_sygusVarPrimed[ep] = true;
+    d_sygusVarPrimed[e] = ep;
   }
   return e;
 }
@@ -1235,14 +1232,21 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
   return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
 }
 
-const void Smt2::getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed ) {
-  for (unsigned i = 0, size = d_sygusInvVars.size(); i < size; i++)
+const void Smt2::getSygusInvVars(FunctionType t,
+                                 std::vector<Expr>& vars,
+                                 std::vector<Expr>& primed_vars)
+{
+  std::vector<Type> argTypes = t.getArgTypes();
+  for (const Type& ti : argTypes)
   {
-    Expr v = d_sygusInvVars[i];
-    std::map< Expr, bool >::iterator it = d_sygusVarPrimed.find( v );
-    if( it!=d_sygusVarPrimed.end() ){
-      if( it->second==isPrimed ){
-        vars.push_back( v );
+    for (const std::pair<const Expr, Expr>& p : d_sygusVarPrimed)
+    {
+      if (p.first.getType() == ti)
+      {
+        vars.push_back(p.first);
+        primed_vars.push_back(p.second);
+        d_sygusVarPrimed.erase(p.first);
+        break;
       }
     }
   }
