@@ -726,8 +726,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
       }
       // get variables (regular and their respective primed versions)
       std::vector<Expr> vars, primed_vars;
-      PARSER_STATE->getSygusInvVars(
-          terms[0].getType(), vars, primed_vars);
+      PARSER_STATE->getSygusInvVars(terms[0].getType(), vars, primed_vars);
       // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
       for (unsigned i = 0; i < 4; ++i)
       {
