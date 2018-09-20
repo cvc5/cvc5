@@ -3424,6 +3424,16 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, Node b, bool strict)
   }
 }
 
+struct StrCheckEntailArithTag
+{
+};
+struct StrCheckEntailArithComputedTag
+{
+};
+/** Attribute true for expressions for which checkEntailArith returned true */
+typedef expr::Attribute<StrCheckEntailArithTag, bool> StrCheckEntailArithAttr;
+typedef expr::Attribute<StrCheckEntailArithComputedTag, bool> StrCheckEntailArithComputedAttr;
+
 bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
 {
   if (a.isConst())
@@ -3438,15 +3448,27 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
                       NodeManager::currentNM()->mkConst(Rational(1)))
                 : a;
   ar = Rewriter::rewrite(ar);
-  if (checkEntailArithInternal(ar))
+  
+  if( ar.getAttribute(StrCheckEntailArithComputedAttr()) )
   {
-    return true;
+    return ar.getAttribute(StrCheckEntailArithAttr());
   }
-    
-  if( ar.getKind()!=PLUS )
+  
+  bool ret = checkEntailArithInternal(ar);
+  if (!ret)
   {
-    return false;
+    // try with approximations
+    ret = checkEntailArithApprox(ar);
   }
+  // cache the result
+  ar.setAttribute(StrCheckEntailArithAttr(), ret);
+  ar.setAttribute(StrCheckEntailArithComputedAttr(), true);
+  return ret;
+}
+
+bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
+{
+  Assert( Rewriter::rewrite(ar)==ar );
   NodeManager * nm = NodeManager::currentNM();
   std::map< Node, Node > msum;
   Trace("strings-ent-approx-debug") << "Setup arithmetic approximations for " << ar << std::endl;
@@ -3580,11 +3602,14 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
       {
         for( const Node& aa : nam.second )
         {
-          bool helpsCancel = false;
-          bool addsCancelObligation = false;
+          unsigned helpsCancelCount = 0;
+          unsigned addsObligationCount = 0;
           for( std::pair< const Node, Node >& aam : approxMsums[aa] )
           {
-            
+            // Say aar is of the form t + c1*v, and aam is the monomial c2*v 
+            // where c2 != 0. We say aam:
+            // (1) helps cancel if c1 != 0 and c1>0 != c2>0
+            // (2) adds obligation if c1+c2<0
           }
           int score = 0;
           // if its the best, update v and vapprox
@@ -3619,9 +3644,19 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     }
     Trace("strings-ent-approx") << "-----------------" << std::endl;
   }
-  Assert( aar!=ar );
-  // check entailment on the final node
-  if (checkEntailArithInternal(aar))
+  if( aar==ar )
+  {
+    Assert( false );
+    return false;
+  }
+  // check entailment on the approximation of ar
+  // notice that this may trigger further reasoning by approximation. For
+  // example, len( replace( x ++ y, substr( x, 0, n ), z ) ) may be 
+  // under-approximated as len( x ) + len( y ) - len( substr( x, 0, n ) ) on
+  // this call, where in the recursive call we may over-approximate
+  // len( substr( x, 0, n ) ) as len( x ). In this example, we can infer 
+  // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ).
+  if (checkEntailArith(aar))
   {
     Trace("strings-ent-approx") << "*** StrArithApprox: showed " << ar << " >= 0 using under-approximation!" << std::endl;
     Trace("strings-ent-approx") << "*** StrArithApprox: under-approximation was " << aar << std::endl;
@@ -3657,30 +3692,9 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
 void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& approx, bool isOverApprox)
 {
   NodeManager * nm = NodeManager::currentNM();
-  /*
-  if( a.getKind()==PLUS )
-  {
-    std::vector< std::vector< Node > > capprox;
-    std::vector< Node > defaultSum;
-    unsigned maxApproxIndex = 0;
-    for( const Node& ac : a )
-    {
-      std::vector< Node > caac;
-      getArithApproximations(ac,caac);
-      capprox.push_back(caac);
-      if( caac.size()>capprox[maxApproxIndex].size() )
-      {
-        maxApproxIndex = capprox.size()-1;
-      }
-      defaultSum.push_back(caac.empty() ? ac : caac[0]);
-    }
-    for( const Node& aac : capprox[maxApproxIndex] )
-    {
-      defaultSum[maxApproxIndex] = aac;
-      approx.push_back(nm->mkNode(PLUS,defaultSum));
-    }
-  }
-  */
+  // We do not handle PLUS here since this leads to exponential behavior.
+  // Instead, this is managed, e.g. during checkEntailArithApprox, where 
+  // PLUS terms are expanded "on-demand" during the reasoning.
   Trace("strings-ent-approx-debug") << "Get arith approximations " << a << std::endl;
   Kind ak = a.getKind();
   if( ak==MULT )

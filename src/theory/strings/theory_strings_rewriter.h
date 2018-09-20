@@ -436,6 +436,10 @@ class TheoryStringsRewriter {
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+  /** check arithmetic entailment with approximations
+   * Returns true if it is always the case that a >= 0.
+   */
+  static bool checkEntailArithApprox(Node ar);
   /** Get arithmetic approximations
    * 
    * 
