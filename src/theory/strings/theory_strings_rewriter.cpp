@@ -3723,7 +3723,8 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
   }
   else if( ak==STRING_LENGTH )
   {
-    if( a[0].getKind()==STRING_SUBSTR )
+    Kind aak = a[0].getKind();
+    if( aak==STRING_SUBSTR )
     {
       // over,under-approximations for len( substr( x, n, m ) )
       Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
@@ -3731,7 +3732,7 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
       {
         // m >= 0 implies 
         //  m >= len( substr( x, n, m ) )
-        if( checkEntailArithInternal( a[0][2] ) )
+        if( checkEntailArith( a[0][2] ) )
         {
           approx.push_back( a[0][2] );
         }
@@ -3752,19 +3753,19 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
         // 0 <= n and n+m <= len( x ) implies 
         //   m <= len( substr( x, n, m ) )
         Node npm = nm->mkNode(PLUS, a[0][1], a[0][2] );
-        if( checkEntailArithInternal( a[0][1] ) && checkEntailArith( lenx, npm ) )
+        if( checkEntailArith( a[0][1] ) && checkEntailArith( lenx, npm ) )
         {
           approx.push_back( a[0][2] );
         }
         // 0 <= n and n+m >= len( x ) implies 
         //   len(x)-n <= len( substr( x, n, m ) )
-        if( checkEntailArithInternal( a[0][1] ) && checkEntailArith( npm, lenx ) )
+        if( checkEntailArith( a[0][1] ) && checkEntailArith( npm, lenx ) )
         {
           approx.push_back( nm->mkNode( MINUS, lenx, a[0][1] ) );
         }
       }
     }
-    else if( a[0].getKind()==STRING_STRREPL )
+    else if( aak==STRING_STRREPL )
     {
       // over,under-approximations for len( replace( x, y, z ) )
       // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
@@ -3800,7 +3801,7 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
         }
       }
     }
-    else if( a[0].getKind()==STRING_ITOS )
+    else if( aak==STRING_ITOS )
     {
       // over,under-approximations for len( int.to.str( x ) )
       if( isOverApprox )
@@ -3809,7 +3810,7 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
       }
       else
       {
-        if( checkEntailArithInternal( a[0][0] ) )
+        if( checkEntailArith( a[0][0] ) )
         {
           // x >= 0 implies
           //   len( int.to.str( x ) ) >= 1
@@ -3825,8 +3826,8 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
     // over,under-approximations for indexof( x, y, n )
     if( isOverApprox )
     {
-      Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
-      Node leny = nm->mkNode( STRING_LENGTH, a[0][1] );
+      Node lenx = nm->mkNode( STRING_LENGTH, a[0] );
+      Node leny = nm->mkNode( STRING_LENGTH, a[1] );
       if( checkEntailArith( leny, lenx ) )
       {
         // len( y ) >= len( x ) implies 
