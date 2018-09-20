@@ -70,15 +70,15 @@ private:
   // for sygus
   std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
   /** maps sygus variables to their respective primed variabels */
-  std::map< Expr, Expr > d_sygusVarPrimed;
+  std::map<Expr, Expr> d_sygusVarPrimed;
 
-protected:
- Smt2(api::Solver* solver,
-      Input* input,
-      bool strictMode = false,
-      bool parseOnly = false);
+ protected:
+  Smt2(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
+       bool parseOnly = false);
 
-public:
+ public:
   /**
    * Add theory symbols to the parser state.
    *
