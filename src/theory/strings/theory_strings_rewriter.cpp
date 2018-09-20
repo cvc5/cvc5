@@ -3646,6 +3646,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   }
   if( aar==ar )
   {
+    Trace("strings-ent-approx-debug") << "...approximation had no effect" << std::endl;
+    // this should never happen, but we avoid the infinite loop for sanity here
     Assert( false );
     return false;
   }
@@ -3662,30 +3664,6 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
     Trace("strings-ent-approx") << "*** StrArithApprox: under-approximation was " << aar << std::endl;
     return true;
   }
-  
-  // over approximation O/U
-
-  // O( x + y ) -> O( x ) + O( y )
-  // O( c * x ) -> O( x ) if c > 0, U( x ) if c < 0
-  // O( len( x ) ) -> len( x )
-  // O( len( int.to.str( x ) ) ) -> len( int.to.str( x ) )
-  // O( len( str.substr( x, n1, n2 ) ) ) -> O( n2 ) | O( len( x ) )
-  // O( len( str.replace( x, y, z ) ) ) ->
-  //   O( len( x ) ) + O( len( z ) ) - U( len( y ) )
-  // O( indexof( x, y, n ) ) -> O( len( x ) ) - U( len( y ) )
-  // O( str.to.int( x ) ) -> str.to.int( x )
-
-  // U( x + y ) -> U( x ) + U( y )
-  // U( c * x ) -> U( x ) if c > 0, O( x ) if c < 0
-  // U( len( x ) ) -> len( x )
-  // U( len( int.to.str( x ) ) ) -> 1
-  // U( len( str.substr( x, n1, n2 ) ) ) ->
-  //   min( U( len( x ) ) - O( n1 ), U( n2 ) )
-  // U( len( str.replace( x, y, z ) ) ) ->
-  //   U( len( x ) ) + U( len( z ) ) - O( len( y ) ) | 0
-  // U( indexof( x, y, n ) ) -> -1    ?
-  // U( str.to.int( x ) ) -> -1
-
   return false;
 }
 
@@ -3805,6 +3783,8 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
           //   len( int.to.str( x ) ) >= 1
           approx.push_back(nm->mkConst(Rational(1)));
         }
+        // other crazy things are possible here, e.g.
+        // len( int.to.str( len( y ) + 10 ) ) >= 2
       }
     }
   }
@@ -3824,8 +3804,12 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
     }
     else
     {
-      // TODO?: contains( substr( x, n, len( x ) ), y ) implies indexof( x, y, n ) >= n
-      // indexof( x, y, n ) >= -1
+      // TODO?:
+      // contains( substr( x, n, len( x ) ), y ) implies 
+      //   n <= indexof( x, y, n )
+      // ...hard to test, runs risk of non-termination
+      
+      // -1 <= indexof( x, y, n )
       approx.push_back(nm->mkConst(Rational(-1)));
     }
   }
@@ -3834,11 +3818,13 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
     // over,under-approximations for str.to.int( x )
     if( isOverApprox )
     {
-      // ???
+      // TODO?:
+      // y >= 0 implies 
+      //   y >= str.to.int( int.to.str( y ) )
     }
     else
     {
-      // str.to.int( x ) >= -1
+      // -1 <= str.to.int( x )
       approx.push_back(nm->mkConst(Rational(-1)));
     }
   }
