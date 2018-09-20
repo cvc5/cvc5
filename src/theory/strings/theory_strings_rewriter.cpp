@@ -3690,10 +3690,14 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
     // over,under-approximations for indexof( x, y, n )
     if( isOverApprox )
     {
-      // len( x ) - len( y ) >= indexof( x, y, n )
       Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
       Node leny = nm->mkNode( STRING_LENGTH, a[0][1] );
-      approx.push_back(nm->mkNode(MINUS,lenx,leny));
+      if( checkEntailArith( leny, lenx ) )
+      {
+        // len( y ) >= len( x ) implies 
+        //   len( x ) - len( y ) >= indexof( x, y, n )
+        approx.push_back(nm->mkNode(MINUS,lenx,leny));
+      }
     }
     else
     {
