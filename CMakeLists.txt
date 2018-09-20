@@ -105,6 +105,16 @@ set(OPTIMIZATION_LEVEL 3)
 set(GPL_LIBS "")
 
 #-----------------------------------------------------------------------------#
+# Determine number of threads available, used to configure (default) parallel
+# execution of custom test targets (can be overriden with ARGS=-jN).
+
+include(ProcessorCount)
+ProcessorCount(CTEST_NTHREADS)
+if(CTEST_NTHREADS EQUAL 0)
+  set(CTEST_NTHREADS 1)
+endif()
+
+#-----------------------------------------------------------------------------#
 # Build types
 
 # Note: Module CodeCoverage requires the name of the debug build to conform
@@ -221,7 +231,7 @@ if(ENABLE_COVERAGE)
   add_definitions(-DCVC4_COVERAGE)
   setup_target_for_coverage_lcov(
     NAME coverage
-    EXECUTABLE ctest $(ARGS)
+    EXECUTABLE ctest -j${CTEST_NTHREADS} $(ARGS)
     DEPENDENCIES cvc4-bin)
 endif()
 

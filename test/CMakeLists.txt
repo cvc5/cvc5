@@ -1,11 +1,3 @@
-# Determine number of threads available, used to configure (default) parallel
-# execution of custom test targets (can be overriden with ARGS=-jN).
-include(ProcessorCount)
-ProcessorCount(NTHREADS)
-if(NTHREADS EQUAL 0)
-  set(NTHREADS 1)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Add subdirectories
 
@@ -27,7 +19,8 @@ endif()
 # > system tests
 
 add_custom_target(check
-  COMMAND ctest --output-on-failure -LE "regress[2-4]" -j${NTHREADS} $(ARGS)
+  COMMAND
+    ctest --output-on-failure -LE "regress[2-4]" -j${CTEST_NTHREADS} $(ARGS)
   DEPENDS regress systemtests)
 if(BUILD_BINDINGS_JAVA)
   add_dependencies(check cvc4javatests)

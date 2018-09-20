@@ -8,7 +8,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > system tests
 
 add_custom_target(systemtests
-  COMMAND ctest --output-on-failure -L "system" -j${NTHREADS} $(ARGS)
+  COMMAND ctest --output-on-failure -L "system" -j${CTEST_NTHREADS} $(ARGS)
   DEPENDS cvc4)
 
 set(CVC4_SYSTEM_TEST_FLAGS
