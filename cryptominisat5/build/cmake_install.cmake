@@ -1,8 +1,8 @@
-# Install script for directory: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/cryptominisat-5.6.3
+# Install script for directory: /barrett/scratch/haozewu/CVC4/cryptominisat5/cryptominisat-5.6.3
 
 # Set the install prefix
 if(NOT DEFINED CMAKE_INSTALL_PREFIX)
-  set(CMAKE_INSTALL_PREFIX "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install")
+  set(CMAKE_INSTALL_PREFIX "/barrett/scratch/haozewu/CVC4/cryptominisat5/install")
 endif()
 string(REGEX REPLACE "/$" "" CMAKE_INSTALL_PREFIX "${CMAKE_INSTALL_PREFIX}")
 
@@ -27,20 +27,20 @@ if(NOT CMAKE_INSTALL_COMPONENT)
   endif()
 endif()
 
-# Is this installation the result of a crosscompile?
-if(NOT DEFINED CMAKE_CROSSCOMPILING)
-  set(CMAKE_CROSSCOMPILING "FALSE")
+# Install shared libraries without execute permission?
+if(NOT DEFINED CMAKE_INSTALL_SO_NO_EXE)
+  set(CMAKE_INSTALL_SO_NO_EXE "1")
 endif()
 
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build//CMakeFiles/cryptominisat5Config.cmake")
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/barrett/scratch/haozewu/CVC4/cryptominisat5/build//CMakeFiles/cryptominisat5Config.cmake")
 endif()
 
-if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_COMPONENT)
+if(NOT CMAKE_INSTALL_COMPONENT OR "${CMAKE_INSTALL_COMPONENT}" STREQUAL "Unspecified")
   if(EXISTS "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake")
     file(DIFFERENT EXPORT_FILE_CHANGED FILES
          "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake"
-         "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake")
+         "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake")
     if(EXPORT_FILE_CHANGED)
       file(GLOB OLD_CONFIG_FILES "$ENV{DESTDIR}${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5/cryptominisat5Targets-*.cmake")
       if(OLD_CONFIG_FILES)
@@ -49,15 +49,15 @@ if("x${CMAKE_INSTALL_COMPONENT}x" STREQUAL "xUnspecifiedx" OR NOT CMAKE_INSTALL_
       endif()
     endif()
   endif()
-  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake")
+  file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets.cmake")
   if("${CMAKE_INSTALL_CONFIG_NAME}" MATCHES "^([Rr][Ee][Ll][Ww][Ii][Tt][Hh][Dd][Ee][Bb][Ii][Nn][Ff][Oo])$")
-    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets-relwithdebinfo.cmake")
+    file(INSTALL DESTINATION "${CMAKE_INSTALL_PREFIX}/lib/cmake/cryptominisat5" TYPE FILE FILES "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/Export/lib/cmake/cryptominisat5/cryptominisat5Targets-relwithdebinfo.cmake")
   endif()
 endif()
 
 if(NOT CMAKE_INSTALL_LOCAL_ONLY)
   # Include the install script for each subdirectory.
-  include("/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/cmsat5-src/cmake_install.cmake")
+  include("/barrett/scratch/haozewu/CVC4/cryptominisat5/build/cmsat5-src/cmake_install.cmake")
 
 endif()
 
@@ -69,5 +69,5 @@ endif()
 
 string(REPLACE ";" "\n" CMAKE_INSTALL_MANIFEST_CONTENT
        "${CMAKE_INSTALL_MANIFEST_FILES}")
-file(WRITE "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/${CMAKE_INSTALL_MANIFEST}"
+file(WRITE "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/${CMAKE_INSTALL_MANIFEST}"
      "${CMAKE_INSTALL_MANIFEST_CONTENT}")

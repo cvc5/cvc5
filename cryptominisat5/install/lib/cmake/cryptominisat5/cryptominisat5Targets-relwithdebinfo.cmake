@@ -24,5 +24,14 @@ set_target_properties(cryptominisat5_simple PROPERTIES
 list(APPEND _IMPORT_CHECK_TARGETS cryptominisat5_simple )
 list(APPEND _IMPORT_CHECK_FILES_FOR_cryptominisat5_simple "${_IMPORT_PREFIX}/bin/cryptominisat5_simple" )
 
+# Import target "cryptominisat5" for configuration "RelWithDebInfo"
+set_property(TARGET cryptominisat5 APPEND PROPERTY IMPORTED_CONFIGURATIONS RELWITHDEBINFO)
+set_target_properties(cryptominisat5 PROPERTIES
+  IMPORTED_LOCATION_RELWITHDEBINFO "${_IMPORT_PREFIX}/bin/cryptominisat5"
+  )
+
+list(APPEND _IMPORT_CHECK_TARGETS cryptominisat5 )
+list(APPEND _IMPORT_CHECK_FILES_FOR_cryptominisat5 "${_IMPORT_PREFIX}/bin/cryptominisat5" )
+
 # Commands beyond this point should not need to know the version.
 set(CMAKE_IMPORT_FILE_VERSION)

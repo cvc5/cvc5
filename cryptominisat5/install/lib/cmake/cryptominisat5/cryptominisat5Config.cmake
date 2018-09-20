@@ -6,7 +6,7 @@
 
 # Compute paths
 get_filename_component(CRYPTOMINISAT5_CMAKE_DIR "${CMAKE_CURRENT_LIST_FILE}" PATH)
-set(CRYPTOMINISAT5_INCLUDE_DIRS "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/install/include")
+set(CRYPTOMINISAT5_INCLUDE_DIRS "/barrett/scratch/haozewu/CVC4/cryptominisat5/install/include")
 
 # Our library dependencies (contains definitions for IMPORTED targets)
 include("${CRYPTOMINISAT5_CMAKE_DIR}/cryptominisat5Targets.cmake")

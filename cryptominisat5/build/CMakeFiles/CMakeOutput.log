@@ -1,8 +1,8 @@
-The system is: Darwin - 17.7.0 - x86_64
+The system is: Linux - 4.4.0-131-generic - x86_64
 Compiling the C compiler identification source file "CMakeCCompilerId.c" succeeded.
-Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc 
+Compiler: /usr/bin/cc 
 Build flags: 
-Id flags:  
+Id flags: 
 
 The output was:
 0
@@ -10,12 +10,12 @@ The output was:
 
 Compilation of the C compiler identification source "CMakeCCompilerId.c" produced "a.out"
 
-The C compiler identification is AppleClang, found in "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/3.12.2/CompilerIdC/a.out"
+The C compiler identification is GNU, found in "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/3.5.1/CompilerIdC/a.out"
 
 Compiling the CXX compiler identification source file "CMakeCXXCompilerId.cpp" succeeded.
-Compiler: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ 
+Compiler: /usr/bin/c++ 
 Build flags: 
-Id flags:  
+Id flags: 
 
 The output was:
 0
@@ -23,103 +23,147 @@ The output was:
 
 Compilation of the CXX compiler identification source "CMakeCXXCompilerId.cpp" produced "a.out"
 
-The CXX compiler identification is AppleClang, found in "/Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/3.12.2/CompilerIdCXX/a.out"
+The CXX compiler identification is GNU, found in "/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/3.5.1/CompilerIdCXX/a.out"
 
 Determining if the C compiler works passed with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_3dc9e/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_3dc9e.dir/build.make CMakeFiles/cmTC_3dc9e.dir/build
-Building C object CMakeFiles/cmTC_3dc9e.dir/testCCompiler.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc    -o CMakeFiles/cmTC_3dc9e.dir/testCCompiler.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/testCCompiler.c
-Linking C executable cmTC_3dc9e
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_3dc9e.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_3dc9e.dir/testCCompiler.c.o  -o cmTC_3dc9e 
+Run Build Command:"/usr/bin/make" "cmTC_80640/fast"
+/usr/bin/make -f CMakeFiles/cmTC_80640.dir/build.make CMakeFiles/cmTC_80640.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_80640.dir/testCCompiler.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_80640.dir/testCCompiler.c.o   -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/testCCompiler.c
+Linking C executable cmTC_80640
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_80640.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_80640.dir/testCCompiler.c.o  -o cmTC_80640 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
 Detecting C compiler ABI info compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c32f6/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_c32f6.dir/build.make CMakeFiles/cmTC_c32f6.dir/build
-Building C object CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc    -o CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o   -c /usr/local/Cellar/cmake/3.12.2/share/cmake/Modules/CMakeCCompilerABI.c
-Linking C executable cmTC_c32f6
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c32f6.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o  -o cmTC_c32f6 
-Apple LLVM version 9.1.0 (clang-902.0.39.2)
-Target: x86_64-apple-darwin17.7.0
+Run Build Command:"/usr/bin/make" "cmTC_c53bf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c53bf.dir/build.make CMakeFiles/cmTC_c53bf.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c
+Linking C executable cmTC_c53bf
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c53bf.dir/link.txt --verbose=1
+/usr/bin/cc      -v CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o  -o cmTC_c53bf -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/cc
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.10' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.13.0 -o cmTC_c32f6 -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
-@(#)PROGRAM:ld  PROJECT:ld64-351.8
-configured to support archs: armv6 armv7 armv7s arm64 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em (tvOS)
-Library search paths:
-	/usr/lib
-	/usr/local/lib
-Framework search paths:
-	/Library/Frameworks/
-	/System/Library/Frameworks/
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.10) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c53bf' '-rdynamic' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccKGirDT.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_c53bf /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
 Parsed C implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp]
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_c32f6/fast"]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_c32f6.dir/build.make CMakeFiles/cmTC_c32f6.dir/build]
-  ignore line: [Building C object CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc    -o CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o   -c /usr/local/Cellar/cmake/3.12.2/share/cmake/Modules/CMakeCCompilerABI.c]
-  ignore line: [Linking C executable cmTC_c32f6]
-  ignore line: [/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c32f6.dir/link.txt --verbose=1]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o  -o cmTC_c32f6 ]
-  ignore line: [Apple LLVM version 9.1.0 (clang-902.0.39.2)]
-  ignore line: [Target: x86_64-apple-darwin17.7.0]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_c53bf/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_c53bf.dir/build.make CMakeFiles/cmTC_c53bf.dir/build]
+  ignore line: [make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building C object CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o]
+  ignore line: [/usr/bin/cc     -o CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o   -c /usr/share/cmake-3.5/Modules/CMakeCCompilerABI.c]
+  ignore line: [Linking C executable cmTC_c53bf]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c53bf.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/cc      -v CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o  -o cmTC_c53bf -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/cc]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.10' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
   ignore line: [Thread model: posix]
-  ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.13.0 -o cmTC_c32f6 -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
-    arg [-demangle] ==> ignore
-    arg [-lto_library] ==> ignore, skip following value
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib] ==> skip value of -lto_library
-    arg [-dynamic] ==> ignore
-    arg [-arch] ==> ignore
-    arg [x86_64] ==> ignore
-    arg [-macosx_version_min] ==> ignore
-    arg [10.13.0] ==> ignore
+  ignore line: [gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.10) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_c53bf' '-rdynamic' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccKGirDT.res -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lgcc_s --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_c53bf /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o -lgcc --as-needed -lgcc_s --no-as-needed -lc -lgcc --as-needed -lgcc_s --no-as-needed /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccKGirDT.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_c32f6] ==> ignore
-    arg [-search_paths_first] ==> ignore
-    arg [-headerpad_max_install_names] ==> ignore
-    arg [-v] ==> ignore
-    arg [CMakeFiles/cmTC_c32f6.dir/CMakeCCompilerABI.c.o] ==> ignore
-    arg [-lSystem] ==> lib [System]
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-  Library search paths: [;/usr/lib;/usr/local/lib]
-  Framework search paths: [;/Library/Frameworks/;/System/Library/Frameworks/]
-  remove lib [System]
-  remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-  collapse library dir [/usr/lib] ==> [/usr/lib]
-  collapse library dir [/usr/local/lib] ==> [/usr/local/lib]
-  collapse framework dir [/Library/Frameworks/] ==> [/Library/Frameworks]
-  collapse framework dir [/System/Library/Frameworks/] ==> [/System/Library/Frameworks]
-  implicit libs: []
-  implicit dirs: [/usr/lib;/usr/local/lib]
-  implicit fwks: [/Library/Frameworks;/System/Library/Frameworks]
+    arg [cmTC_c53bf] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..]
+    arg [CMakeFiles/cmTC_c53bf.dir/CMakeCCompilerABI.c.o] ==> ignore
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [-lc] ==> lib [c]
+    arg [-lgcc] ==> lib [gcc]
+    arg [--as-needed] ==> ignore
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [--no-as-needed] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5] ==> [/usr/lib/gcc/x86_64-linux-gnu/5]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> [/usr/lib]
+  implicit libs: [c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/5;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
 
 
 
 
 Detecting C [-std=c11] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_4e50e/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_4e50e.dir/build.make CMakeFiles/cmTC_4e50e.dir/build
-Building C object CMakeFiles/cmTC_4e50e.dir/feature_tests.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -std=c11 -o CMakeFiles/cmTC_4e50e.dir/feature_tests.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_4e50e
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_4e50e.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_4e50e.dir/feature_tests.c.o  -o cmTC_4e50e 
+Run Build Command:"/usr/bin/make" "cmTC_6f083/fast"
+/usr/bin/make -f CMakeFiles/cmTC_6f083.dir/build.make CMakeFiles/cmTC_6f083.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_6f083.dir/feature_tests.c.o
+/usr/bin/cc    -std=c11 -o CMakeFiles/cmTC_6f083.dir/feature_tests.c.o   -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_6f083
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6f083.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_6f083.dir/feature_tests.c.o  -o cmTC_6f083 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -129,15 +173,17 @@ Linking C executable cmTC_4e50e
 
 
 Detecting C [-std=c99] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_be2f4/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_be2f4.dir/build.make CMakeFiles/cmTC_be2f4.dir/build
-Building C object CMakeFiles/cmTC_be2f4.dir/feature_tests.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -std=c99 -o CMakeFiles/cmTC_be2f4.dir/feature_tests.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_be2f4
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_be2f4.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_be2f4.dir/feature_tests.c.o  -o cmTC_be2f4 
+Run Build Command:"/usr/bin/make" "cmTC_121bd/fast"
+/usr/bin/make -f CMakeFiles/cmTC_121bd.dir/build.make CMakeFiles/cmTC_121bd.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_121bd.dir/feature_tests.c.o
+/usr/bin/cc    -std=c99 -o CMakeFiles/cmTC_121bd.dir/feature_tests.c.o   -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_121bd
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_121bd.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_121bd.dir/feature_tests.c.o  -o cmTC_121bd -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -147,15 +193,17 @@ Linking C executable cmTC_be2f4
 
 
 Detecting C [-std=c90] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7c69a/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_7c69a.dir/build.make CMakeFiles/cmTC_7c69a.dir/build
-Building C object CMakeFiles/cmTC_7c69a.dir/feature_tests.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -std=c90 -o CMakeFiles/cmTC_7c69a.dir/feature_tests.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
-Linking C executable cmTC_7c69a
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7c69a.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_7c69a.dir/feature_tests.c.o  -o cmTC_7c69a 
+Run Build Command:"/usr/bin/make" "cmTC_5f16a/fast"
+/usr/bin/make -f CMakeFiles/cmTC_5f16a.dir/build.make CMakeFiles/cmTC_5f16a.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_5f16a.dir/feature_tests.c.o
+/usr/bin/cc    -std=c90 -o CMakeFiles/cmTC_5f16a.dir/feature_tests.c.o   -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.c
+Linking C executable cmTC_5f16a
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_5f16a.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_5f16a.dir/feature_tests.c.o  -o cmTC_5f16a -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: C_FEATURE:1c_function_prototypes
@@ -163,172 +211,142 @@ Linking C executable cmTC_7c69a
     Feature record: C_FEATURE:0c_static_assert
     Feature record: C_FEATURE:0c_variadic_macros
 Determining if the CXX compiler works passed with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_cb3d0/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_cb3d0.dir/build.make CMakeFiles/cmTC_cb3d0.dir/build
-Building CXX object CMakeFiles/cmTC_cb3d0.dir/testCXXCompiler.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++     -o CMakeFiles/cmTC_cb3d0.dir/testCXXCompiler.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
-Linking CXX executable cmTC_cb3d0
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cb3d0.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_cb3d0.dir/testCXXCompiler.cxx.o  -o cmTC_cb3d0 
+Run Build Command:"/usr/bin/make" "cmTC_cd941/fast"
+/usr/bin/make -f CMakeFiles/cmTC_cd941.dir/build.make CMakeFiles/cmTC_cd941.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_cd941.dir/testCXXCompiler.cxx.o
+/usr/bin/c++      -o CMakeFiles/cmTC_cd941.dir/testCXXCompiler.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/testCXXCompiler.cxx
+Linking CXX executable cmTC_cd941
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_cd941.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_cd941.dir/testCXXCompiler.cxx.o  -o cmTC_cd941 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
 Detecting CXX compiler ABI info compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_c2eea/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_c2eea.dir/build.make CMakeFiles/cmTC_c2eea.dir/build
-Building CXX object CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++     -o CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/Cellar/cmake/3.12.2/share/cmake/Modules/CMakeCXXCompilerABI.cpp
-Linking CXX executable cmTC_c2eea
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c2eea.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_c2eea 
-Apple LLVM version 9.1.0 (clang-902.0.39.2)
-Target: x86_64-apple-darwin17.7.0
+Run Build Command:"/usr/bin/make" "cmTC_e8777/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e8777.dir/build.make CMakeFiles/cmTC_e8777.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o
+/usr/bin/c++      -o CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp
+Linking CXX executable cmTC_e8777
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e8777.dir/link.txt --verbose=1
+/usr/bin/c++       -v CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_e8777 -rdynamic  
+Using built-in specs.
+COLLECT_GCC=/usr/bin/c++
+COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper
+Target: x86_64-linux-gnu
+Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.10' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu
 Thread model: posix
-InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin
- "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.13.0 -o cmTC_c2eea -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a
-@(#)PROGRAM:ld  PROJECT:ld64-351.8
-configured to support archs: armv6 armv7 armv7s arm64 i386 x86_64 x86_64h armv6m armv7k armv7m armv7em (tvOS)
-Library search paths:
-	/usr/lib
-	/usr/local/lib
-Framework search paths:
-	/Library/Frameworks/
-	/System/Library/Frameworks/
+gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.10) 
+COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/
+LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/
+COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_e8777' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64'
+ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUksyoq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_e8777 /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
 Parsed CXX implicit link information from above output:
-  link line regex: [^( *|.*[/\])(ld|CMAKE_LINK_STARTFILE-NOTFOUND|([^/\]+-)?ld|collect2)[^/\]*( |$)]
-  ignore line: [Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp]
+  link line regex: [^( *|.*[/\])(ld|([^/\]+-)?ld|collect2)[^/\]*( |$)]
+  ignore line: [Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp]
   ignore line: []
-  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_c2eea/fast"]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_c2eea.dir/build.make CMakeFiles/cmTC_c2eea.dir/build]
-  ignore line: [Building CXX object CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++     -o CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o -c /usr/local/Cellar/cmake/3.12.2/share/cmake/Modules/CMakeCXXCompilerABI.cpp]
-  ignore line: [Linking CXX executable cmTC_c2eea]
-  ignore line: [/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c2eea.dir/link.txt --verbose=1]
-  ignore line: [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -v -Wl,-v CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_c2eea ]
-  ignore line: [Apple LLVM version 9.1.0 (clang-902.0.39.2)]
-  ignore line: [Target: x86_64-apple-darwin17.7.0]
+  ignore line: [Run Build Command:"/usr/bin/make" "cmTC_e8777/fast"]
+  ignore line: [/usr/bin/make -f CMakeFiles/cmTC_e8777.dir/build.make CMakeFiles/cmTC_e8777.dir/build]
+  ignore line: [make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp']
+  ignore line: [Building CXX object CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o]
+  ignore line: [/usr/bin/c++      -o CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o -c /usr/share/cmake-3.5/Modules/CMakeCXXCompilerABI.cpp]
+  ignore line: [Linking CXX executable cmTC_e8777]
+  ignore line: [/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e8777.dir/link.txt --verbose=1]
+  ignore line: [/usr/bin/c++       -v CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o  -o cmTC_e8777 -rdynamic  ]
+  ignore line: [Using built-in specs.]
+  ignore line: [COLLECT_GCC=/usr/bin/c++]
+  ignore line: [COLLECT_LTO_WRAPPER=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper]
+  ignore line: [Target: x86_64-linux-gnu]
+  ignore line: [Configured with: ../src/configure -v --with-pkgversion='Ubuntu 5.4.0-6ubuntu1~16.04.10' --with-bugurl=file:///usr/share/doc/gcc-5/README.Bugs --enable-languages=c,ada,c++,java,go,d,fortran,objc,obj-c++ --prefix=/usr --program-suffix=-5 --enable-shared --enable-linker-build-id --libexecdir=/usr/lib --without-included-gettext --enable-threads=posix --libdir=/usr/lib --enable-nls --with-sysroot=/ --enable-clocale=gnu --enable-libstdcxx-debug --enable-libstdcxx-time=yes --with-default-libstdcxx-abi=new --enable-gnu-unique-object --disable-vtable-verify --enable-libmpx --enable-plugin --with-system-zlib --disable-browser-plugin --enable-java-awt=gtk --enable-gtk-cairo --with-java-home=/usr/lib/jvm/java-1.5.0-gcj-5-amd64/jre --enable-java-home --with-jvm-root-dir=/usr/lib/jvm/java-1.5.0-gcj-5-amd64 --with-jvm-jar-dir=/usr/lib/jvm-exports/java-1.5.0-gcj-5-amd64 --with-arch-directory=amd64 --with-ecj-jar=/usr/share/java/eclipse-ecj.jar --enable-objc-gc --enable-multiarch --disable-werror --with-arch-32=i686 --with-abi=m64 --with-multilib-list=m32,m64,mx32 --enable-multilib --with-tune=generic --enable-checking=release --build=x86_64-linux-gnu --host=x86_64-linux-gnu --target=x86_64-linux-gnu]
   ignore line: [Thread model: posix]
-  ignore line: [InstalledDir: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin]
-  link line: [ "/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld" -demangle -lto_library /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib -dynamic -arch x86_64 -macosx_version_min 10.13.0 -o cmTC_c2eea -search_paths_first -headerpad_max_install_names -v CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o -lc++ -lSystem /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/ld] ==> ignore
-    arg [-demangle] ==> ignore
-    arg [-lto_library] ==> ignore, skip following value
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/libLTO.dylib] ==> skip value of -lto_library
-    arg [-dynamic] ==> ignore
-    arg [-arch] ==> ignore
-    arg [x86_64] ==> ignore
-    arg [-macosx_version_min] ==> ignore
-    arg [10.13.0] ==> ignore
+  ignore line: [gcc version 5.4.0 20160609 (Ubuntu 5.4.0-6ubuntu1~16.04.10) ]
+  ignore line: [COMPILER_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/]
+  ignore line: [LIBRARY_PATH=/usr/lib/gcc/x86_64-linux-gnu/5/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib/:/lib/x86_64-linux-gnu/:/lib/../lib/:/usr/lib/x86_64-linux-gnu/:/usr/lib/../lib/:/usr/lib/gcc/x86_64-linux-gnu/5/../../../:/lib/:/usr/lib/]
+  ignore line: [COLLECT_GCC_OPTIONS='-v' '-o' 'cmTC_e8777' '-rdynamic' '-shared-libgcc' '-mtune=generic' '-march=x86-64']
+  link line: [ /usr/lib/gcc/x86_64-linux-gnu/5/collect2 -plugin /usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so -plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper -plugin-opt=-fresolution=/tmp/ccUksyoq.res -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc -plugin-opt=-pass-through=-lc -plugin-opt=-pass-through=-lgcc_s -plugin-opt=-pass-through=-lgcc --sysroot=/ --build-id --eh-frame-hdr -m elf_x86_64 --hash-style=gnu --as-needed -export-dynamic -dynamic-linker /lib64/ld-linux-x86-64.so.2 -z relro -o cmTC_e8777 /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o /usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o -L/usr/lib/gcc/x86_64-linux-gnu/5 -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu -L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib -L/lib/x86_64-linux-gnu -L/lib/../lib -L/usr/lib/x86_64-linux-gnu -L/usr/lib/../lib -L/usr/lib/gcc/x86_64-linux-gnu/5/../../.. CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o -lstdc++ -lm -lgcc_s -lgcc -lc -lgcc_s -lgcc /usr/lib/gcc/x86_64-linux-gnu/5/crtend.o /usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/collect2] ==> ignore
+    arg [-plugin] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/liblto_plugin.so] ==> ignore
+    arg [-plugin-opt=/usr/lib/gcc/x86_64-linux-gnu/5/lto-wrapper] ==> ignore
+    arg [-plugin-opt=-fresolution=/tmp/ccUksyoq.res] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lc] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc_s] ==> ignore
+    arg [-plugin-opt=-pass-through=-lgcc] ==> ignore
+    arg [--sysroot=/] ==> ignore
+    arg [--build-id] ==> ignore
+    arg [--eh-frame-hdr] ==> ignore
+    arg [-m] ==> ignore
+    arg [elf_x86_64] ==> ignore
+    arg [--hash-style=gnu] ==> ignore
+    arg [--as-needed] ==> ignore
+    arg [-export-dynamic] ==> ignore
+    arg [-dynamic-linker] ==> ignore
+    arg [/lib64/ld-linux-x86-64.so.2] ==> ignore
+    arg [-zrelro] ==> ignore
     arg [-o] ==> ignore
-    arg [cmTC_c2eea] ==> ignore
-    arg [-search_paths_first] ==> ignore
-    arg [-headerpad_max_install_names] ==> ignore
-    arg [-v] ==> ignore
-    arg [CMakeFiles/cmTC_c2eea.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
-    arg [-lc++] ==> lib [c++]
-    arg [-lSystem] ==> lib [System]
-    arg [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a] ==> lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-  Library search paths: [;/usr/lib;/usr/local/lib]
-  Framework search paths: [;/Library/Frameworks/;/System/Library/Frameworks/]
-  remove lib [System]
-  remove lib [/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/clang/9.1.0/lib/darwin/libclang_rt.osx.a]
-  collapse library dir [/usr/lib] ==> [/usr/lib]
-  collapse library dir [/usr/local/lib] ==> [/usr/local/lib]
-  collapse framework dir [/Library/Frameworks/] ==> [/Library/Frameworks]
-  collapse framework dir [/System/Library/Frameworks/] ==> [/System/Library/Frameworks]
-  implicit libs: [c++]
-  implicit dirs: [/usr/lib;/usr/local/lib]
-  implicit fwks: [/Library/Frameworks;/System/Library/Frameworks]
+    arg [cmTC_e8777] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crt1.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crti.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtbegin.o] ==> ignore
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib]
+    arg [-L/lib/x86_64-linux-gnu] ==> dir [/lib/x86_64-linux-gnu]
+    arg [-L/lib/../lib] ==> dir [/lib/../lib]
+    arg [-L/usr/lib/x86_64-linux-gnu] ==> dir [/usr/lib/x86_64-linux-gnu]
+    arg [-L/usr/lib/../lib] ==> dir [/usr/lib/../lib]
+    arg [-L/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..]
+    arg [CMakeFiles/cmTC_e8777.dir/CMakeCXXCompilerABI.cpp.o] ==> ignore
+    arg [-lstdc++] ==> lib [stdc++]
+    arg [-lm] ==> lib [m]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [-lc] ==> lib [c]
+    arg [-lgcc_s] ==> lib [gcc_s]
+    arg [-lgcc] ==> lib [gcc]
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/crtend.o] ==> ignore
+    arg [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu/crtn.o] ==> ignore
+  remove lib [gcc_s]
+  remove lib [gcc]
+  remove lib [gcc_s]
+  remove lib [gcc]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5] ==> [/usr/lib/gcc/x86_64-linux-gnu/5]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../../../lib] ==> [/usr/lib]
+  collapse library dir [/lib/x86_64-linux-gnu] ==> [/lib/x86_64-linux-gnu]
+  collapse library dir [/lib/../lib] ==> [/lib]
+  collapse library dir [/usr/lib/x86_64-linux-gnu] ==> [/usr/lib/x86_64-linux-gnu]
+  collapse library dir [/usr/lib/../lib] ==> [/usr/lib]
+  collapse library dir [/usr/lib/gcc/x86_64-linux-gnu/5/../../..] ==> [/usr/lib]
+  implicit libs: [stdc++;m;c]
+  implicit dirs: [/usr/lib/gcc/x86_64-linux-gnu/5;/usr/lib/x86_64-linux-gnu;/usr/lib;/lib/x86_64-linux-gnu;/lib]
+  implicit fwks: []
 
 
-
-
-Detecting CXX [-std=c++1z] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_2b5b3/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_2b5b3.dir/build.make CMakeFiles/cmTC_2b5b3.dir/build
-Building CXX object CMakeFiles/cmTC_2b5b3.dir/feature_tests.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -std=c++1z -o CMakeFiles/cmTC_2b5b3.dir/feature_tests.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_2b5b3
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2b5b3.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_2b5b3.dir/feature_tests.cxx.o  -o cmTC_2b5b3 
-
-
-    Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
-    Feature record: CXX_FEATURE:1cxx_alias_templates
-    Feature record: CXX_FEATURE:1cxx_alignas
-    Feature record: CXX_FEATURE:1cxx_alignof
-    Feature record: CXX_FEATURE:1cxx_attributes
-    Feature record: CXX_FEATURE:1cxx_attribute_deprecated
-    Feature record: CXX_FEATURE:1cxx_auto_type
-    Feature record: CXX_FEATURE:1cxx_binary_literals
-    Feature record: CXX_FEATURE:1cxx_constexpr
-    Feature record: CXX_FEATURE:1cxx_contextual_conversions
-    Feature record: CXX_FEATURE:1cxx_decltype
-    Feature record: CXX_FEATURE:1cxx_decltype_auto
-    Feature record: CXX_FEATURE:1cxx_decltype_incomplete_return_types
-    Feature record: CXX_FEATURE:1cxx_default_function_template_args
-    Feature record: CXX_FEATURE:1cxx_defaulted_functions
-    Feature record: CXX_FEATURE:1cxx_defaulted_move_initializers
-    Feature record: CXX_FEATURE:1cxx_delegating_constructors
-    Feature record: CXX_FEATURE:1cxx_deleted_functions
-    Feature record: CXX_FEATURE:1cxx_digit_separators
-    Feature record: CXX_FEATURE:1cxx_enum_forward_declarations
-    Feature record: CXX_FEATURE:1cxx_explicit_conversions
-    Feature record: CXX_FEATURE:1cxx_extended_friend_declarations
-    Feature record: CXX_FEATURE:1cxx_extern_templates
-    Feature record: CXX_FEATURE:1cxx_final
-    Feature record: CXX_FEATURE:1cxx_func_identifier
-    Feature record: CXX_FEATURE:1cxx_generalized_initializers
-    Feature record: CXX_FEATURE:1cxx_generic_lambdas
-    Feature record: CXX_FEATURE:1cxx_inheriting_constructors
-    Feature record: CXX_FEATURE:1cxx_inline_namespaces
-    Feature record: CXX_FEATURE:1cxx_lambdas
-    Feature record: CXX_FEATURE:1cxx_lambda_init_captures
-    Feature record: CXX_FEATURE:1cxx_local_type_template_args
-    Feature record: CXX_FEATURE:1cxx_long_long_type
-    Feature record: CXX_FEATURE:1cxx_noexcept
-    Feature record: CXX_FEATURE:1cxx_nonstatic_member_init
-    Feature record: CXX_FEATURE:1cxx_nullptr
-    Feature record: CXX_FEATURE:1cxx_override
-    Feature record: CXX_FEATURE:1cxx_range_for
-    Feature record: CXX_FEATURE:1cxx_raw_string_literals
-    Feature record: CXX_FEATURE:1cxx_reference_qualified_functions
-    Feature record: CXX_FEATURE:1cxx_relaxed_constexpr
-    Feature record: CXX_FEATURE:1cxx_return_type_deduction
-    Feature record: CXX_FEATURE:1cxx_right_angle_brackets
-    Feature record: CXX_FEATURE:1cxx_rvalue_references
-    Feature record: CXX_FEATURE:1cxx_sizeof_member
-    Feature record: CXX_FEATURE:1cxx_static_assert
-    Feature record: CXX_FEATURE:1cxx_strong_enums
-    Feature record: CXX_FEATURE:1cxx_template_template_parameters
-    Feature record: CXX_FEATURE:1cxx_thread_local
-    Feature record: CXX_FEATURE:1cxx_trailing_return_types
-    Feature record: CXX_FEATURE:1cxx_unicode_literals
-    Feature record: CXX_FEATURE:1cxx_uniform_initialization
-    Feature record: CXX_FEATURE:1cxx_unrestricted_unions
-    Feature record: CXX_FEATURE:1cxx_user_literals
-    Feature record: CXX_FEATURE:1cxx_variable_templates
-    Feature record: CXX_FEATURE:1cxx_variadic_macros
-    Feature record: CXX_FEATURE:1cxx_variadic_templates
 
 
 Detecting CXX [-std=c++14] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_182fc/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_182fc.dir/build.make CMakeFiles/cmTC_182fc.dir/build
-Building CXX object CMakeFiles/cmTC_182fc.dir/feature_tests.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -std=c++14 -o CMakeFiles/cmTC_182fc.dir/feature_tests.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_182fc
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_182fc.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_182fc.dir/feature_tests.cxx.o  -o cmTC_182fc 
+Run Build Command:"/usr/bin/make" "cmTC_d642d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d642d.dir/build.make CMakeFiles/cmTC_d642d.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d642d.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++14 -o CMakeFiles/cmTC_d642d.dir/feature_tests.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_d642d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d642d.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_d642d.dir/feature_tests.cxx.o  -o cmTC_d642d -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:1cxx_aggregate_default_initializers
@@ -391,15 +409,17 @@ Linking CXX executable cmTC_182fc
 
 
 Detecting CXX [-std=c++11] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_62123/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_62123.dir/build.make CMakeFiles/cmTC_62123.dir/build
-Building CXX object CMakeFiles/cmTC_62123.dir/feature_tests.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -std=c++11 -o CMakeFiles/cmTC_62123.dir/feature_tests.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_62123
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_62123.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_62123.dir/feature_tests.cxx.o  -o cmTC_62123 
+Run Build Command:"/usr/bin/make" "cmTC_a9341/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a9341.dir/build.make CMakeFiles/cmTC_a9341.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_a9341.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++11 -o CMakeFiles/cmTC_a9341.dir/feature_tests.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_a9341
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a9341.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_a9341.dir/feature_tests.cxx.o  -o cmTC_a9341 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -462,15 +482,17 @@ Linking CXX executable cmTC_62123
 
 
 Detecting CXX [-std=c++98] compiler features compiled with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_65a8d/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_65a8d.dir/build.make CMakeFiles/cmTC_65a8d.dir/build
-Building CXX object CMakeFiles/cmTC_65a8d.dir/feature_tests.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -std=c++98 -o CMakeFiles/cmTC_65a8d.dir/feature_tests.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
-Linking CXX executable cmTC_65a8d
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_65a8d.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_65a8d.dir/feature_tests.cxx.o  -o cmTC_65a8d 
+Run Build Command:"/usr/bin/make" "cmTC_c9150/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c9150.dir/build.make CMakeFiles/cmTC_c9150.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_c9150.dir/feature_tests.cxx.o
+/usr/bin/c++     -std=c++98 -o CMakeFiles/cmTC_c9150.dir/feature_tests.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/feature_tests.cxx
+Linking CXX executable cmTC_c9150
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c9150.dir/link.txt --verbose=1
+/usr/bin/c++        CMakeFiles/cmTC_c9150.dir/feature_tests.cxx.o  -o cmTC_c9150 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 
     Feature record: CXX_FEATURE:0cxx_aggregate_default_initializers
@@ -531,511 +553,416 @@ Linking CXX executable cmTC_65a8d
     Feature record: CXX_FEATURE:0cxx_variadic_macros
     Feature record: CXX_FEATURE:0cxx_variadic_templates
 Determining if the include file pthread.h exists passed with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_64a0e/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_64a0e.dir/build.make CMakeFiles/cmTC_64a0e.dir/build
-Building C object CMakeFiles/cmTC_64a0e.dir/CheckIncludeFile.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc    -o CMakeFiles/cmTC_64a0e.dir/CheckIncludeFile.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
-Linking C executable cmTC_64a0e
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_64a0e.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_64a0e.dir/CheckIncludeFile.c.o  -o cmTC_64a0e 
+Run Build Command:"/usr/bin/make" "cmTC_a42b0/fast"
+/usr/bin/make -f CMakeFiles/cmTC_a42b0.dir/build.make CMakeFiles/cmTC_a42b0.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building C object CMakeFiles/cmTC_a42b0.dir/CheckIncludeFile.c.o
+/usr/bin/cc     -o CMakeFiles/cmTC_a42b0.dir/CheckIncludeFile.c.o   -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/CheckIncludeFile.c
+Linking C executable cmTC_a42b0
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a42b0.dir/link.txt --verbose=1
+/usr/bin/cc       CMakeFiles/cmTC_a42b0.dir/CheckIncludeFile.c.o  -o cmTC_a42b0 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
-
-Determining if the pthread_create exist passed with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_62d67/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_62d67.dir/build.make CMakeFiles/cmTC_62d67.dir/build
-Building C object CMakeFiles/cmTC_62d67.dir/CheckSymbolExists.c.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc    -o CMakeFiles/cmTC_62d67.dir/CheckSymbolExists.c.o   -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c
-Linking C executable cmTC_62d67
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_62d67.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/cc   -Wl,-search_paths_first -Wl,-headerpad_max_install_names   CMakeFiles/cmTC_62d67.dir/CheckSymbolExists.c.o  -o cmTC_62d67 
-
-File /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/CheckSymbolExists.c:
-/* */
-#include <pthread.h>
-
-int main(int argc, char** argv)
-{
-  (void)argv;
-#ifndef pthread_create
-  return ((int*)(&pthread_create))[argc];
-#else
-  (void)argc;
-  return 0;
-#endif
-}
 
 Performing C++ SOURCE FILE Test HAVE_FLAG_-mtune=native succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_2ddc2/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_2ddc2.dir/build.make CMakeFiles/cmTC_2ddc2.dir/build
-Building CXX object CMakeFiles/cmTC_2ddc2.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -DHAVE_FLAG_-mtune=native   -mtune=native -o CMakeFiles/cmTC_2ddc2.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-mtune native
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_2ddc2
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_2ddc2.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -DHAVE_FLAG_-mtune=native -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_2ddc2.dir/src.cxx.o  -o cmTC_2ddc2 
+Run Build Command:"/usr/bin/make" "cmTC_687db/fast"
+/usr/bin/make -f CMakeFiles/cmTC_687db.dir/build.make CMakeFiles/cmTC_687db.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_687db.dir/src.cxx.o
+/usr/bin/c++     -DHAVE_FLAG_-mtune=native   -mtune=native -o CMakeFiles/cmTC_687db.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_687db
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_687db.dir/link.txt --verbose=1
+/usr/bin/c++    -DHAVE_FLAG_-mtune=native   -O2  CMakeFiles/cmTC_687db.dir/src.cxx.o  -o cmTC_687db -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wall succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_fdade/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_fdade.dir/build.make CMakeFiles/cmTC_fdade.dir/build
-Building CXX object CMakeFiles/cmTC_fdade.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -DHAVE_FLAG_-Wall   -Wall -o CMakeFiles/cmTC_fdade.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wall 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_fdade
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fdade.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -DHAVE_FLAG_-Wall -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_fdade.dir/src.cxx.o  -o cmTC_fdade 
+Run Build Command:"/usr/bin/make" "cmTC_ceffc/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ceffc.dir/build.make CMakeFiles/cmTC_ceffc.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_ceffc.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -DHAVE_FLAG_-Wall   -Wall -o CMakeFiles/cmTC_ceffc.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_ceffc
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ceffc.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -DHAVE_FLAG_-Wall   -O2  CMakeFiles/cmTC_ceffc.dir/src.cxx.o  -o cmTC_ceffc -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wextra succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_6efe5/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_6efe5.dir/build.make CMakeFiles/cmTC_6efe5.dir/build
-Building CXX object CMakeFiles/cmTC_6efe5.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -DHAVE_FLAG_-Wextra   -Wextra -o CMakeFiles/cmTC_6efe5.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wextra 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_6efe5
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6efe5.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -DHAVE_FLAG_-Wextra -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_6efe5.dir/src.cxx.o  -o cmTC_6efe5 
+Run Build Command:"/usr/bin/make" "cmTC_bbda4/fast"
+/usr/bin/make -f CMakeFiles/cmTC_bbda4.dir/build.make CMakeFiles/cmTC_bbda4.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_bbda4.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -DHAVE_FLAG_-Wextra   -Wextra -o CMakeFiles/cmTC_bbda4.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_bbda4
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bbda4.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -DHAVE_FLAG_-Wextra   -O2  CMakeFiles/cmTC_bbda4.dir/src.cxx.o  -o cmTC_bbda4 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wunused succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_ae7bc/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_ae7bc.dir/build.make CMakeFiles/cmTC_ae7bc.dir/build
-Building CXX object CMakeFiles/cmTC_ae7bc.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -DHAVE_FLAG_-Wunused   -Wunused -o CMakeFiles/cmTC_ae7bc.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wunused 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_ae7bc
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ae7bc.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -DHAVE_FLAG_-Wunused -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_ae7bc.dir/src.cxx.o  -o cmTC_ae7bc 
+Run Build Command:"/usr/bin/make" "cmTC_e0fd6/fast"
+/usr/bin/make -f CMakeFiles/cmTC_e0fd6.dir/build.make CMakeFiles/cmTC_e0fd6.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_e0fd6.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -DHAVE_FLAG_-Wunused   -Wunused -o CMakeFiles/cmTC_e0fd6.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_e0fd6
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_e0fd6.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -DHAVE_FLAG_-Wunused   -O2  CMakeFiles/cmTC_e0fd6.dir/src.cxx.o  -o cmTC_e0fd6 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wsign-compare succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_531c3/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_531c3.dir/build.make CMakeFiles/cmTC_531c3.dir/build
-Building CXX object CMakeFiles/cmTC_531c3.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -DHAVE_FLAG_-Wsign-compare   -Wsign-compare -o CMakeFiles/cmTC_531c3.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wsign-compare 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_531c3
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_531c3.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -DHAVE_FLAG_-Wsign-compare -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_531c3.dir/src.cxx.o  -o cmTC_531c3 
+Run Build Command:"/usr/bin/make" "cmTC_71026/fast"
+/usr/bin/make -f CMakeFiles/cmTC_71026.dir/build.make CMakeFiles/cmTC_71026.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_71026.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -DHAVE_FLAG_-Wsign-compare   -Wsign-compare -o CMakeFiles/cmTC_71026.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_71026
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_71026.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -DHAVE_FLAG_-Wsign-compare   -O2  CMakeFiles/cmTC_71026.dir/src.cxx.o  -o cmTC_71026 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-fno-omit-frame-pointer succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_671a1/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_671a1.dir/build.make CMakeFiles/cmTC_671a1.dir/build
-Building CXX object CMakeFiles/cmTC_671a1.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -DHAVE_FLAG_-fno-omit-frame-pointer   -fno-omit-frame-pointer -o CMakeFiles/cmTC_671a1.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-fno-omit-frame-pointer 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_671a1
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_671a1.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -DHAVE_FLAG_-fno-omit-frame-pointer -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_671a1.dir/src.cxx.o  -o cmTC_671a1 
+Run Build Command:"/usr/bin/make" "cmTC_252ce/fast"
+/usr/bin/make -f CMakeFiles/cmTC_252ce.dir/build.make CMakeFiles/cmTC_252ce.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_252ce.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -DHAVE_FLAG_-fno-omit-frame-pointer   -fno-omit-frame-pointer -o CMakeFiles/cmTC_252ce.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_252ce
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_252ce.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -DHAVE_FLAG_-fno-omit-frame-pointer   -O2  CMakeFiles/cmTC_252ce.dir/src.cxx.o  -o cmTC_252ce -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wtype-limits succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7b94b/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_7b94b.dir/build.make CMakeFiles/cmTC_7b94b.dir/build
-Building CXX object CMakeFiles/cmTC_7b94b.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -DHAVE_FLAG_-Wtype-limits   -Wtype-limits -o CMakeFiles/cmTC_7b94b.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wtype-limits 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_7b94b
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7b94b.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -DHAVE_FLAG_-Wtype-limits -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_7b94b.dir/src.cxx.o  -o cmTC_7b94b 
+Run Build Command:"/usr/bin/make" "cmTC_f9287/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f9287.dir/build.make CMakeFiles/cmTC_f9287.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_f9287.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -DHAVE_FLAG_-Wtype-limits   -Wtype-limits -o CMakeFiles/cmTC_f9287.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_f9287
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f9287.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -DHAVE_FLAG_-Wtype-limits   -O2  CMakeFiles/cmTC_f9287.dir/src.cxx.o  -o cmTC_f9287 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wuninitialized succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_ac968/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_ac968.dir/build.make CMakeFiles/cmTC_ac968.dir/build
-Building CXX object CMakeFiles/cmTC_ac968.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -DHAVE_FLAG_-Wuninitialized   -Wuninitialized -o CMakeFiles/cmTC_ac968.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:353:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wuninitialized 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_ac968
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ac968.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -DHAVE_FLAG_-Wuninitialized -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_ac968.dir/src.cxx.o  -o cmTC_ac968 
+Run Build Command:"/usr/bin/make" "cmTC_f9bda/fast"
+/usr/bin/make -f CMakeFiles/cmTC_f9bda.dir/build.make CMakeFiles/cmTC_f9bda.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_f9bda.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -DHAVE_FLAG_-Wuninitialized   -Wuninitialized -o CMakeFiles/cmTC_f9bda.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_f9bda
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f9bda.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -DHAVE_FLAG_-Wuninitialized   -O2  CMakeFiles/cmTC_f9bda.dir/src.cxx.o  -o cmTC_f9bda -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wno-deprecated succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_7287d/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_7287d.dir/build.make CMakeFiles/cmTC_7287d.dir/build
-Building CXX object CMakeFiles/cmTC_7287d.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -DHAVE_FLAG_-Wno-deprecated   -Wno-deprecated -o CMakeFiles/cmTC_7287d.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wno-deprecated 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_7287d
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_7287d.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -DHAVE_FLAG_-Wno-deprecated -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_7287d.dir/src.cxx.o  -o cmTC_7287d 
+Run Build Command:"/usr/bin/make" "cmTC_31242/fast"
+/usr/bin/make -f CMakeFiles/cmTC_31242.dir/build.make CMakeFiles/cmTC_31242.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_31242.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -DHAVE_FLAG_-Wno-deprecated   -Wno-deprecated -o CMakeFiles/cmTC_31242.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_31242
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_31242.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -DHAVE_FLAG_-Wno-deprecated   -O2  CMakeFiles/cmTC_31242.dir/src.cxx.o  -o cmTC_31242 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wstrict-aliasing succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a79ca/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_a79ca.dir/build.make CMakeFiles/cmTC_a79ca.dir/build
-Building CXX object CMakeFiles/cmTC_a79ca.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -DHAVE_FLAG_-Wstrict-aliasing   -Wstrict-aliasing -o CMakeFiles/cmTC_a79ca.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wstrict-aliasing 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_a79ca
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a79ca.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -DHAVE_FLAG_-Wstrict-aliasing -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_a79ca.dir/src.cxx.o  -o cmTC_a79ca 
+Run Build Command:"/usr/bin/make" "cmTC_eee2d/fast"
+/usr/bin/make -f CMakeFiles/cmTC_eee2d.dir/build.make CMakeFiles/cmTC_eee2d.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_eee2d.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -DHAVE_FLAG_-Wstrict-aliasing   -Wstrict-aliasing -o CMakeFiles/cmTC_eee2d.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_eee2d
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_eee2d.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -DHAVE_FLAG_-Wstrict-aliasing   -O2  CMakeFiles/cmTC_eee2d.dir/src.cxx.o  -o cmTC_eee2d -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wpointer-arith succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_78e44/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_78e44.dir/build.make CMakeFiles/cmTC_78e44.dir/build
-Building CXX object CMakeFiles/cmTC_78e44.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -DHAVE_FLAG_-Wpointer-arith   -Wpointer-arith -o CMakeFiles/cmTC_78e44.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wpointer-arith 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_78e44
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_78e44.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -DHAVE_FLAG_-Wpointer-arith -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_78e44.dir/src.cxx.o  -o cmTC_78e44 
-
-Source file was:
-int main() { return 0; }
-Performing C++ SOURCE FILE Test HAVE_FLAG_-Wheader-guard succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_407d9/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_407d9.dir/build.make CMakeFiles/cmTC_407d9.dir/build
-Building CXX object CMakeFiles/cmTC_407d9.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -DHAVE_FLAG_-Wheader-guard   -Wheader-guard -o CMakeFiles/cmTC_407d9.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wheader-guard 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_407d9
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_407d9.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -DHAVE_FLAG_-Wheader-guard -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_407d9.dir/src.cxx.o  -o cmTC_407d9 
+Run Build Command:"/usr/bin/make" "cmTC_826c5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_826c5.dir/build.make CMakeFiles/cmTC_826c5.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_826c5.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -DHAVE_FLAG_-Wpointer-arith   -Wpointer-arith -o CMakeFiles/cmTC_826c5.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_826c5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_826c5.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -DHAVE_FLAG_-Wpointer-arith   -O2  CMakeFiles/cmTC_826c5.dir/src.cxx.o  -o cmTC_826c5 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wformat-nonliteral succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_ddacb/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_ddacb.dir/build.make CMakeFiles/cmTC_ddacb.dir/build
-Building CXX object CMakeFiles/cmTC_ddacb.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -DHAVE_FLAG_-Wformat-nonliteral   -Wformat-nonliteral -o CMakeFiles/cmTC_ddacb.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wformat-nonliteral 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_ddacb
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ddacb.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -DHAVE_FLAG_-Wformat-nonliteral -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_ddacb.dir/src.cxx.o  -o cmTC_ddacb 
+Run Build Command:"/usr/bin/make" "cmTC_0f903/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0f903.dir/build.make CMakeFiles/cmTC_0f903.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0f903.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -DHAVE_FLAG_-Wformat-nonliteral   -Wformat-nonliteral -o CMakeFiles/cmTC_0f903.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_0f903
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0f903.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -DHAVE_FLAG_-Wformat-nonliteral   -O2  CMakeFiles/cmTC_0f903.dir/src.cxx.o  -o cmTC_0f903 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Winit-self succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_8f8c2/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_8f8c2.dir/build.make CMakeFiles/cmTC_8f8c2.dir/build
-Building CXX object CMakeFiles/cmTC_8f8c2.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -DHAVE_FLAG_-Winit-self   -Winit-self -o CMakeFiles/cmTC_8f8c2.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Winit-self 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_8f8c2
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_8f8c2.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -DHAVE_FLAG_-Winit-self -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_8f8c2.dir/src.cxx.o  -o cmTC_8f8c2 
+Run Build Command:"/usr/bin/make" "cmTC_0cfda/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0cfda.dir/build.make CMakeFiles/cmTC_0cfda.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0cfda.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -DHAVE_FLAG_-Winit-self   -Winit-self -o CMakeFiles/cmTC_0cfda.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_0cfda
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0cfda.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -DHAVE_FLAG_-Winit-self   -O2  CMakeFiles/cmTC_0cfda.dir/src.cxx.o  -o cmTC_0cfda -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wparentheses succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_854a4/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_854a4.dir/build.make CMakeFiles/cmTC_854a4.dir/build
-Building CXX object CMakeFiles/cmTC_854a4.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -DHAVE_FLAG_-Wparentheses   -Wparentheses -o CMakeFiles/cmTC_854a4.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wparentheses 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_854a4
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_854a4.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -DHAVE_FLAG_-Wparentheses -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_854a4.dir/src.cxx.o  -o cmTC_854a4 
+Run Build Command:"/usr/bin/make" "cmTC_c7ccf/fast"
+/usr/bin/make -f CMakeFiles/cmTC_c7ccf.dir/build.make CMakeFiles/cmTC_c7ccf.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_c7ccf.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -DHAVE_FLAG_-Wparentheses   -Wparentheses -o CMakeFiles/cmTC_c7ccf.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_c7ccf
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_c7ccf.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -DHAVE_FLAG_-Wparentheses   -O2  CMakeFiles/cmTC_c7ccf.dir/src.cxx.o  -o cmTC_c7ccf -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wunreachable-code succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_86684/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_86684.dir/build.make CMakeFiles/cmTC_86684.dir/build
-Building CXX object CMakeFiles/cmTC_86684.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -DHAVE_FLAG_-Wunreachable-code   -Wunreachable-code -o CMakeFiles/cmTC_86684.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wunreachable-code 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_86684
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_86684.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -DHAVE_FLAG_-Wunreachable-code -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_86684.dir/src.cxx.o  -o cmTC_86684 
+Run Build Command:"/usr/bin/make" "cmTC_0da10/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0da10.dir/build.make CMakeFiles/cmTC_0da10.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0da10.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -DHAVE_FLAG_-Wunreachable-code   -Wunreachable-code -o CMakeFiles/cmTC_0da10.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_0da10
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0da10.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -DHAVE_FLAG_-Wunreachable-code   -O2  CMakeFiles/cmTC_0da10.dir/src.cxx.o  -o cmTC_0da10 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-ggdb3 succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_992ef/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_992ef.dir/build.make CMakeFiles/cmTC_992ef.dir/build
-Building CXX object CMakeFiles/cmTC_992ef.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -DHAVE_FLAG_-ggdb3   -ggdb3 -o CMakeFiles/cmTC_992ef.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-ggdb3 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_992ef
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_992ef.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -DHAVE_FLAG_-ggdb3 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_992ef.dir/src.cxx.o  -o cmTC_992ef 
+Run Build Command:"/usr/bin/make" "cmTC_d9586/fast"
+/usr/bin/make -f CMakeFiles/cmTC_d9586.dir/build.make CMakeFiles/cmTC_d9586.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_d9586.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -DHAVE_FLAG_-ggdb3   -ggdb3 -o CMakeFiles/cmTC_d9586.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_d9586
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_d9586.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -DHAVE_FLAG_-ggdb3   -O2  CMakeFiles/cmTC_d9586.dir/src.cxx.o  -o cmTC_d9586 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
-Performing C++ SOURCE FILE Test HAVE_FLAG_-Wno-bitfield-constant-conversion succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Performing C++ SOURCE FILE Test HAVE_FLAG_-Wlogical-op succeeded with the following output:
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_bab08/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_bab08.dir/build.make CMakeFiles/cmTC_bab08.dir/build
-Building CXX object CMakeFiles/cmTC_bab08.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -DHAVE_FLAG_-Wno-bitfield-constant-conversion   -Wno-bitfield-constant-conversion -o CMakeFiles/cmTC_bab08.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wno-bitfield-constant-conversion 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_bab08
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_bab08.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -DHAVE_FLAG_-Wno-bitfield-constant-conversion -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_bab08.dir/src.cxx.o  -o cmTC_bab08 
-
-Source file was:
-int main() { return 0; }
-Performing C++ SOURCE FILE Test HAVE_FLAG_-Wnull-dereference succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_534e0/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_534e0.dir/build.make CMakeFiles/cmTC_534e0.dir/build
-Building CXX object CMakeFiles/cmTC_534e0.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wnull-dereference   -Wnull-dereference -o CMakeFiles/cmTC_534e0.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wnull-dereference 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_534e0
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_534e0.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -DHAVE_FLAG_-Wnull-dereference -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_534e0.dir/src.cxx.o  -o cmTC_534e0 
+Run Build Command:"/usr/bin/make" "cmTC_ef040/fast"
+/usr/bin/make -f CMakeFiles/cmTC_ef040.dir/build.make CMakeFiles/cmTC_ef040.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_ef040.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -DHAVE_FLAG_-Wlogical-op   -Wlogical-op -o CMakeFiles/cmTC_ef040.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_ef040
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_ef040.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -DHAVE_FLAG_-Wlogical-op    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_ef040.dir/src.cxx.o  -o cmTC_ef040 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wdouble-promotion succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_1816c/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_1816c.dir/build.make CMakeFiles/cmTC_1816c.dir/build
-Building CXX object CMakeFiles/cmTC_1816c.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -DHAVE_FLAG_-Wdouble-promotion   -Wdouble-promotion -o CMakeFiles/cmTC_1816c.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wdouble-promotion 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_1816c
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_1816c.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -DHAVE_FLAG_-Wdouble-promotion -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_1816c.dir/src.cxx.o  -o cmTC_1816c 
+Run Build Command:"/usr/bin/make" "cmTC_22623/fast"
+/usr/bin/make -f CMakeFiles/cmTC_22623.dir/build.make CMakeFiles/cmTC_22623.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_22623.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -DHAVE_FLAG_-Wdouble-promotion   -Wdouble-promotion -o CMakeFiles/cmTC_22623.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_22623
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_22623.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -DHAVE_FLAG_-Wdouble-promotion    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_22623.dir/src.cxx.o  -o cmTC_22623 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wshadow succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_b55f9/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_b55f9.dir/build.make CMakeFiles/cmTC_b55f9.dir/build
-Building CXX object CMakeFiles/cmTC_b55f9.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -DHAVE_FLAG_-Wshadow   -Wshadow -o CMakeFiles/cmTC_b55f9.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wshadow 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_b55f9
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b55f9.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -DHAVE_FLAG_-Wshadow -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_b55f9.dir/src.cxx.o  -o cmTC_b55f9 
+Run Build Command:"/usr/bin/make" "cmTC_b0f45/fast"
+/usr/bin/make -f CMakeFiles/cmTC_b0f45.dir/build.make CMakeFiles/cmTC_b0f45.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_b0f45.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -DHAVE_FLAG_-Wshadow   -Wshadow -o CMakeFiles/cmTC_b0f45.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_b0f45
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_b0f45.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -DHAVE_FLAG_-Wshadow    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_b0f45.dir/src.cxx.o  -o cmTC_b0f45 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-Wformat=2 succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_74054/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_74054.dir/build.make CMakeFiles/cmTC_74054.dir/build
-Building CXX object CMakeFiles/cmTC_74054.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -DHAVE_FLAG_-Wformat=2   -Wformat=2 -o CMakeFiles/cmTC_74054.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wformat 2
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_74054
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_74054.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -DHAVE_FLAG_-Wformat=2 -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_74054.dir/src.cxx.o  -o cmTC_74054 
-
-Source file was:
-int main() { return 0; }
-Performing C++ SOURCE FILE Test HAVE_FLAG_-Wextra-semi succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
-
-Run Build Command:"/usr/bin/make" "cmTC_6603c/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_6603c.dir/build.make CMakeFiles/cmTC_6603c.dir/build
-Building CXX object CMakeFiles/cmTC_6603c.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -DHAVE_FLAG_-Wextra-semi   -Wextra-semi -o CMakeFiles/cmTC_6603c.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-Wextra-semi 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_6603c
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_6603c.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -DHAVE_FLAG_-Wextra-semi -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_6603c.dir/src.cxx.o  -o cmTC_6603c 
+Run Build Command:"/usr/bin/make" "cmTC_fad2f/fast"
+/usr/bin/make -f CMakeFiles/cmTC_fad2f.dir/build.make CMakeFiles/cmTC_fad2f.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_fad2f.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -DHAVE_FLAG_-Wformat=2   -Wformat=2 -o CMakeFiles/cmTC_fad2f.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_fad2f
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_fad2f.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -DHAVE_FLAG_-Wformat=2    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_fad2f.dir/src.cxx.o  -o cmTC_fad2f -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test HAVE_FLAG_-pedantic succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_537b8/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_537b8.dir/build.make CMakeFiles/cmTC_537b8.dir/build
-Building CXX object CMakeFiles/cmTC_537b8.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -DHAVE_FLAG_-pedantic   -pedantic -o CMakeFiles/cmTC_537b8.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-In file included from <built-in>:352:
-<command line>:1:19: warning: whitespace recommended after macro name
-#define HAVE_FLAG_-pedantic 1
-                  ^
-1 warning generated.
-Linking CXX executable cmTC_537b8
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_537b8.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -DHAVE_FLAG_-pedantic -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_537b8.dir/src.cxx.o  -o cmTC_537b8 
+Run Build Command:"/usr/bin/make" "cmTC_0d8d5/fast"
+/usr/bin/make -f CMakeFiles/cmTC_0d8d5.dir/build.make CMakeFiles/cmTC_0d8d5.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_0d8d5.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -DHAVE_FLAG_-pedantic   -pedantic -o CMakeFiles/cmTC_0d8d5.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+<command-line>:0:11: warning: missing whitespace after the macro name
+Linking CXX executable cmTC_0d8d5
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_0d8d5.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -DHAVE_FLAG_-pedantic    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_0d8d5.dir/src.cxx.o  -o cmTC_0d8d5 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test COMPILER_HAS_HIDDEN_VISIBILITY succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_68e4a/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_68e4a.dir/build.make CMakeFiles/cmTC_68e4a.dir/build
-Building CXX object CMakeFiles/cmTC_68e4a.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_HIDDEN_VISIBILITY   -fvisibility=hidden -o CMakeFiles/cmTC_68e4a.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_68e4a
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_68e4a.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_HIDDEN_VISIBILITY -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_68e4a.dir/src.cxx.o  -o cmTC_68e4a 
+Run Build Command:"/usr/bin/make" "cmTC_73362/fast"
+/usr/bin/make -f CMakeFiles/cmTC_73362.dir/build.make CMakeFiles/cmTC_73362.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_73362.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_HIDDEN_VISIBILITY   -fvisibility=hidden -o CMakeFiles/cmTC_73362.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_73362
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_73362.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_HIDDEN_VISIBILITY    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_73362.dir/src.cxx.o  -o cmTC_73362 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test COMPILER_HAS_HIDDEN_INLINE_VISIBILITY succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_a2ad5/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_a2ad5.dir/build.make CMakeFiles/cmTC_a2ad5.dir/build
-Building CXX object CMakeFiles/cmTC_a2ad5.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_HIDDEN_INLINE_VISIBILITY   -fvisibility-inlines-hidden -o CMakeFiles/cmTC_a2ad5.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_a2ad5
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_a2ad5.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_HIDDEN_INLINE_VISIBILITY -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_a2ad5.dir/src.cxx.o  -o cmTC_a2ad5 
+Run Build Command:"/usr/bin/make" "cmTC_99a4c/fast"
+/usr/bin/make -f CMakeFiles/cmTC_99a4c.dir/build.make CMakeFiles/cmTC_99a4c.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_99a4c.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_HIDDEN_INLINE_VISIBILITY   -fvisibility-inlines-hidden -o CMakeFiles/cmTC_99a4c.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+Linking CXX executable cmTC_99a4c
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_99a4c.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_HIDDEN_INLINE_VISIBILITY    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_99a4c.dir/src.cxx.o  -o cmTC_99a4c -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 int main() { return 0; }
 Performing C++ SOURCE FILE Test COMPILER_HAS_DEPRECATED_ATTR succeeded with the following output:
-Change Dir: /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
+Change Dir: /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp
 
-Run Build Command:"/usr/bin/make" "cmTC_f6643/fast"
-/Applications/Xcode.app/Contents/Developer/usr/bin/make -f CMakeFiles/cmTC_f6643.dir/build.make CMakeFiles/cmTC_f6643.dir/build
-Building CXX object CMakeFiles/cmTC_f6643.dir/src.cxx.o
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_DEPRECATED_ATTR   -o CMakeFiles/cmTC_f6643.dir/src.cxx.o -c /Users/anwu/Monkeyswedding/Projects/cvc4Preprocess/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
-Linking CXX executable cmTC_f6643
-/usr/local/Cellar/cmake/3.12.2/bin/cmake -E cmake_link_script CMakeFiles/cmTC_f6643.dir/link.txt --verbose=1
-/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic -DCOMPILER_HAS_DEPRECATED_ATTR -Wl,-search_paths_first -Wl,-headerpad_max_install_names  -O2  CMakeFiles/cmTC_f6643.dir/src.cxx.o  -o cmTC_f6643 
+Run Build Command:"/usr/bin/make" "cmTC_daec7/fast"
+/usr/bin/make -f CMakeFiles/cmTC_daec7.dir/build.make CMakeFiles/cmTC_daec7.dir/build
+make[1]: Entering directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
+Building CXX object CMakeFiles/cmTC_daec7.dir/src.cxx.o
+/usr/bin/c++     -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_DEPRECATED_ATTR   -o CMakeFiles/cmTC_daec7.dir/src.cxx.o -c /barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx: In function ‘int main()’:
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:2:25: warning: ‘int somefunc()’ is deprecated [-Wdeprecated-declarations]
+     int main() { return somefunc();}
+                         ^
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:1:37: note: declared here
+ __attribute__((__deprecated__)) int somefunc() { return 0; }
+                                     ^
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:2:25: warning: ‘int somefunc()’ is deprecated [-Wdeprecated-declarations]
+     int main() { return somefunc();}
+                         ^
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:1:37: note: declared here
+ __attribute__((__deprecated__)) int somefunc() { return 0; }
+                                     ^
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:2:34: warning: ‘int somefunc()’ is deprecated [-Wdeprecated-declarations]
+     int main() { return somefunc();}
+                                  ^
+/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp/src.cxx:1:37: note: declared here
+ __attribute__((__deprecated__)) int somefunc() { return 0; }
+                                     ^
+Linking CXX executable cmTC_daec7
+/usr/bin/cmake -E cmake_link_script CMakeFiles/cmTC_daec7.dir/link.txt --verbose=1
+/usr/bin/c++    -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic -DCOMPILER_HAS_DEPRECATED_ATTR    -O2 -Wl,--discard-all -Wl,--build-id=sha1 -static -Wl,--whole-archive -ldl -lpthread -Wl,--no-whole-archive -static   CMakeFiles/cmTC_daec7.dir/src.cxx.o  -o cmTC_daec7 -rdynamic 
+make[1]: Leaving directory '/barrett/scratch/haozewu/CVC4/cryptominisat5/build/CMakeFiles/CMakeTmp'
 
 Source file was:
 __attribute__((__deprecated__)) int somefunc() { return 0; }

@@ -24,7 +24,7 @@ THE SOFTWARE.
 
 const char* CMSat::get_version_sha1()
 {
-    static const char myversion_sha1[] = "527fb3c6c00ba1516f85e6e024d71d5c6ffba93b";
+    static const char myversion_sha1[] = "c1890978d9a402ca98d079a57fb287c92c7e601d";
     return myversion_sha1;
 }
 
@@ -37,23 +37,23 @@ const char* CMSat::get_version_tag()
 const char* CMSat::get_compilation_env()
 {
     static const char compilation_env[] =
-    "CMAKE_CXX_COMPILER = /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/c++ | "
-    "CMAKE_CXX_FLAGS =  -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wheader-guard -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wno-bitfield-constant-conversion -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -Wextra-semi -pedantic | "
+    "CMAKE_CXX_COMPILER = /usr/bin/c++ | "
+    "CMAKE_CXX_FLAGS =  -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wdouble-promotion -Wshadow -Wformat=2 -pedantic | "
     "COMPILE_DEFINES =  -DUSE_ZLIB | "
     "STATICCOMPILE = ON | "
-    "ONLY_SIMPLE = ON | "
-    "Boost_FOUND = 0 | "
+    "ONLY_SIMPLE = OFF | "
+    "Boost_FOUND = 1 | "
     "STATS = OFF | "
     "SQLITE3_FOUND =  | "
     "ZLIB_FOUND = TRUE | "
-    "VALGRIND_FOUND = FALSE | "
+    "VALGRIND_FOUND = TRUE | "
     "ENABLE_TESTING = OFF | "
     "M4RI_FOUND =  | "
     "SLOW_DEBUG = OFF | "
     "ENABLE_ASSERTIONS = ON | "
-    "PYTHON_EXECUTABLE = /usr/bin/python2.7 | "
-    "PYTHON_LIBRARY = /usr/lib/python2.7/config/libpython2.7.a | "
-    "PYTHON_INCLUDE_DIRS = /usr/include/python2.7 | "
+    "PYTHON_EXECUTABLE = /usr/bin/python3 | "
+    "PYTHON_LIBRARY = /usr/lib/x86_64-linux-gnu/libpython3.5m.a | "
+    "PYTHON_INCLUDE_DIRS = /usr/include/python3.5m | "
     "MY_TARGETS =  | "
     "LARGEMEM = OFF | "
     "LIMITMEM = OFF | "
