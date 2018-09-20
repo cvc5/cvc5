@@ -3443,173 +3443,189 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     return true;
   }
     
-  if( ar.getKind()==PLUS )
+  if( ar.getKind()!=PLUS )
   {
-    NodeManager * nm = NodeManager::currentNM();
-    std::map< Node, Node > msum;
-    Trace("strings-ent-approx-debug") << "Setup arithmetic approximations for " << ar << std::endl;
-    if( !ArithMSum::getMonomialSum(ar,msum) )
+    return false;
+  }
+  NodeManager * nm = NodeManager::currentNM();
+  std::map< Node, Node > msum;
+  Trace("strings-ent-approx-debug") << "Setup arithmetic approximations for " << ar << std::endl;
+  if( !ArithMSum::getMonomialSum(ar,msum) )
+  {
+    Trace("strings-ent-approx-debug") << "...failed to get monomial sum!" << std::endl;
+    return false;
+  }
+  // for each monomial v*c, mApprox[v] a list of
+  // possibilities for how the term can be soundly approximated, that is,
+  // if mApprox[v] contains av, then v*c > av*c. Notice that if c
+  // is positive, then v > av, otherwise if c is negative, then v < av.
+  // In other words, av is an under-approximation if c is positive, and an
+  // over-approximation if c is negative.
+  bool changed = false;
+  std::map< Node, std::vector< Node > > mApprox;
+  // map from approximations to their monomial sums
+  std::map< Node, std::map< Node, Node > > approxMsums;
+  // aarSum stores each monomial that does not have multiple approximations
+  std::vector< Node > aarSum;
+  for( std::pair< const Node, Node >& m : msum )
+  {
+    Node v = m.first;
+    Node c = m.second;
+    Trace("strings-ent-approx-debug") << "Get approximations " << v << "..." << std::endl;
+    if( v.isNull() )
     {
-      Trace("strings-ent-approx-debug") << "...failed to get monomial sum!" << std::endl;
-      return false;
+      Node mn = c.isNull() ? nm->mkConst(Rational(1)) : c;
+      aarSum.push_back(mn);
     }
-    // for each monomial v*c, msumApprox[v] a list of
-    // possibilities for how the term can be soundly approximated, that is,
-    // if msumApprox[v] contains av, then v*c > av*c. Notice that if c
-    // is positive, then v > av, otherwise if c is negative, then v < av.
-    // In other words, av is an under-approximation if c is positive, and an
-    // over-approximation if c is negative.
-    bool changed = false;
-    std::map< Node, std::vector< Node > > msumApprox;
-    std::vector< Node > finalSum;
-    for( std::pair< const Node, Node >& m : msum )
+    else
     {
-      Node v = m.first;
-      Node c = m.second;
-      Trace("strings-ent-approx-debug") << "Get approximations " << v << "..." << std::endl;
-      if( v.isNull() )
+      // c.isNull() means c = 1
+      bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn()==-1;
+      std::vector< Node >& approx = mApprox[v];
+      std::unordered_set< Node, NodeHashFunction > visited;
+      std::vector< Node > toProcess;
+      toProcess.push_back( v );
+      do
       {
-        Node mn = c.isNull() ? nm->mkConst(Rational(1)) : c;
-        finalSum.push_back(mn);
+        Node curr = toProcess.back();
+        Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
+        curr = Rewriter::rewrite(curr);
+        toProcess.pop_back();
+        if( visited.find(curr)==visited.end() )
+        {
+          visited.insert(curr);
+          std::vector< Node > currApprox;
+          getArithApproximations(curr,currApprox,isOverApprox);
+          if(currApprox.empty())
+          {
+            Trace("strings-ent-approx-debug") << "...approximation: " << curr << std::endl;
+            // no approximations, thus curr is a possibility
+            approx.push_back(curr);
+          }
+          else
+          {
+            toProcess.insert(toProcess.end(),currApprox.begin(),currApprox.end());
+          }
+        }
+      }while( !toProcess.empty() );
+      Assert( !approx.empty() );
+      // if we have only one approximation, move it to final
+      if( approx.size()==1 )
+      {
+        changed = v!=approx[0];
+        Node mn = ArithMSum::mkCoeffTerm( c, approx[0] );
+        aarSum.push_back(mn);
+        mApprox.erase(v);
       }
       else
       {
-        // c.isNull() means c = 1
-        bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn()==-1;
-        std::vector< Node >& approx = msumApprox[v];
-        std::unordered_set< Node, NodeHashFunction > visited;
-        std::vector< Node > toProcess;
-        toProcess.push_back( v );
-        do
+        // compute monomial sum form for each approximation, used below
+        for( const Node& aa : approx )
         {
-          Node curr = toProcess.back();
-          Trace("strings-ent-approx-debug") << "  process " << curr << std::endl;
-          curr = Rewriter::rewrite(curr);
-          toProcess.pop_back();
-          if( visited.find(curr)==visited.end() )
+          if( approxMsums.find(aa)==approxMsums.end() )
           {
-            visited.insert(curr);
-            std::vector< Node > currApprox;
-            getArithApproximations(curr,currApprox,isOverApprox);
-            if(currApprox.empty())
-            {
-              Trace("strings-ent-approx-debug") << "...approximation: " << curr << std::endl;
-              // no approximations, thus curr is a possibility
-              approx.push_back(curr);
-            }
-            else
-            {
-              toProcess.insert(toProcess.end(),currApprox.begin(),currApprox.end());
-            }
+            CVC4_UNUSED bool ret = ArithMSum::getMonomialSum(aa,approxMsums[aa]);
+            Assert( ret );
           }
-        }while( !toProcess.empty() );
-        Assert( !approx.empty() );
-        // if we have only one approximation, move it to final
-        if( approx.size()==1 )
-        {
-          changed = v!=approx[0];
-          Node mn = ArithMSum::mkCoeffTerm( c, approx[0] );
-          finalSum.push_back(mn);
-          msumApprox.erase(v);
         }
-        else
-        {
-          changed = true;
-        }
+        changed = true;
       }
     }
-    if( !changed )
-    {
-      // approximations had no effect, return
-      Trace("strings-ent-approx-debug") << "...no approximations" << std::endl;
+  }
+  if( !changed )
+  {
+    // approximations had no effect, return
+    Trace("strings-ent-approx-debug") << "...no approximations" << std::endl;
+    return false;
+  }
+  // get the current "fixed" sum for the abstraction of ar
+  Node aar = aarSum.empty() ? nm->mkConst(Rational(0)) : ( aarSum.size()==1 ? aarSum[0] : nm->mkNode( PLUS, aarSum ) );
+  aar = Rewriter::rewrite( aar );
+  Trace("strings-ent-approx-debug") << "...processed fixed sum " << aar << " with " << mApprox.size() << " approximated monomials." << std::endl;
+  // if we have a choice of how to approximate
+  if( !mApprox.empty() )
+  {
+    // convert finaln back to monomial sum
+    std::map< Node, Node > msumAar;
+    if( !ArithMSum::getMonomialSum(aar,msumAar) )
+    {        
       return false;
     }
-    // get the current "fixed" sum
-    Node aar = finalSum.empty() ? nm->mkConst(Rational(0)) : ( finalSum.size()==1 ? finalSum[0] : nm->mkNode( PLUS, finalSum ) );
-    aar = Rewriter::rewrite( aar );
-    Trace("strings-ent-approx-debug") << "...processed fixed sum " << aar << " with " << msumApprox.size() << " approximated monomials." << std::endl;
-    // if we have a choice of how to approximate
-    if( !msumApprox.empty() )
+    if( Trace.isOn("strings-ent-approx") )
     {
-      // convert finaln back to monomial sum
-      std::map< Node, Node > msumAar;
+      Trace("strings-ent-approx") << "---- Check arithmetic entailment by under-approximation " << ar << " >= 0" << std::endl;
+      Trace("strings-ent-approx") << "FIXED:" << std::endl;
+      ArithMSum::debugPrintMonomialSum( msumAar, "strings-ent-approx" );
+      Trace("strings-ent-approx") << "APPROX:" << std::endl;
+      for( std::pair< const Node, std::vector< Node > >& a : mApprox )
+      {
+        Node c = msum[a.first];
+        Trace("strings-ent-approx") << "  ";
+        if( !c.isNull() )
+        {
+          Trace("strings-ent-approx") << c << " * ";
+        }
+        Trace("strings-ent-approx") << a.second << " ...from " << a.first << std::endl;
+      }
+      Trace("strings-ent-approx") << std::endl;
+    }
+    // incorporate monomials one at a time that have a choice of approximations
+    while( !mApprox.empty() )
+    {
+      Node v;
+      Node vapprox;
+      int maxScore = -1;
+      // look at each approximation, take the one with the best score
+      for( std::pair< const Node, std::vector< Node > >& nam : mApprox )
+      {
+        for( const Node& aa : nam.second )
+        {
+          bool helpsCancel = false;
+          bool addsCancelObligation = false;
+          for( std::pair< const Node, Node >& aam : approxMsums[aa] )
+          {
+            
+          }
+          int score = 0;
+          // if its the best, update v and vapprox
+          if( score>maxScore )
+          {
+            v = nam.first;
+            vapprox = aa;
+          }
+        }
+        if( !v.isNull() )
+        {
+          break;
+        }
+      }
+      Trace("strings-ent-approx") << "- Decide " << v << " = " << vapprox << std::endl;
+      // we incorporate v approximated by vapprox into the overall approximation for ar
+      Assert( !v.isNull() && !vapprox.isNull() );
+      Assert( msum.find(v)!=msum.end() );
+      Node mn = ArithMSum::mkCoeffTerm( msum[v], vapprox );
+      aar = nm->mkNode( PLUS, aar, mn );
+      // update the msumAar map
+      aar = Rewriter::rewrite( aar );
+      msumAar.clear();
       if( !ArithMSum::getMonomialSum(aar,msumAar) )
-      {        
+      {
+        Assert( false );
+        Trace("strings-ent-approx") << "...failed to get monomial sum!" << std::endl;
         return false;
       }
-      if( Trace.isOn("strings-ent-approx") )
-      {
-        Trace("strings-ent-approx") << "---- Check arithmetic entailment by under-approximation " << ar << " >= 0" << std::endl;
-        Trace("strings-ent-approx") << "FIXED:" << std::endl;
-        ArithMSum::debugPrintMonomialSum( msumAar, "strings-ent-approx" );
-        Trace("strings-ent-approx") << "APPROX:" << std::endl;
-        for( std::pair< const Node, std::vector< Node > >& a : msumApprox )
-        {
-          Node c = msum[a.first];
-          Trace("strings-ent-approx") << "  ";
-          if( !c.isNull() )
-          {
-            Trace("strings-ent-approx") << c << " * ";
-          }
-          Trace("strings-ent-approx") << a.second << " ...from " << a.first << std::endl;
-        }
-        Trace("strings-ent-approx") << std::endl;
-      }
-      bool success = true;
-      // incorporate monomials one at a time that have a choice of approximations
-      while( !msumApprox.empty() && success )
-      {
-        success = false;
-        // first, check if any possibilities cancel
-        for( std::pair< const Node, std::vector< Node > >& nam : msumApprox )
-        {
-          for( const Node& aa : nam->second )
-          {
-            std::map< Node, Node > msumAa;
-            if( ArithMSum::getMonomialSum(aa,msumAa) )
-            {
-              for( std::pair< const Node, Node >& aam : msumAa )
-              {
-                
-              }
-            }
-            else
-            {
-              Assert( false );
-            }
-          }
-        }
-        if( !success )
-        {
-          // otherwise, incorporate the first approximation of the first bound
-          std::map< Node, std::vector< Node > >::iterator itnam = msumApprox.begin();
-          Node v = itnam->first;
-          Trace("strings-ent-approx") << "- Decide " << v << " = " << itnam->second[0] << std::endl;
-          Assert( msum.find(v)!=msum.end() );
-          Node mn = ArithMSum::mkCoeffTerm( msum[v], itnam->second[0] );
-          aar = nm->mkNode( PLUS, aar, mn );
-          // update the msumAar map
-          aar = Rewriter::rewrite( aar );
-          msumAar.clear();
-          if( !ArithMSum::getMonomialSum(aar,msumAar) )
-          {
-            Assert( false );
-            Trace("strings-ent-approx") << "...failed to get monomial sum!" << std::endl;
-            return false;
-          }
-          msumApprox.erase(v);
-          success = true;
-        }
-      }
-      Trace("strings-ent-approx") << "-----------------" << std::endl;
+      // we have processed the approximation for v
+      mApprox.erase(v);
     }
-    // check entailment on the final node
-    if (checkEntailArithInternal(aar))
-    {
-      Trace("strings-ent-approx") << "*** StrArithApprox: showed " << ar << " >= 0 using under-approximation!" << std::endl;
-      Trace("strings-ent-approx") << "*** StrArithApprox: under-approximation was " << aar << std::endl;
-      return true;
-    }
+    Trace("strings-ent-approx") << "-----------------" << std::endl;
+  }
+  Assert( aar!=ar );
+  // check entailment on the final node
+  if (checkEntailArithInternal(aar))
+  {
+    Trace("strings-ent-approx") << "*** StrArithApprox: showed " << ar << " >= 0 using under-approximation!" << std::endl;
+    Trace("strings-ent-approx") << "*** StrArithApprox: under-approximation was " << aar << std::endl;
+    return true;
   }
   
   // over approximation O/U
