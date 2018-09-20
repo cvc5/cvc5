@@ -8,7 +8,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > unit tests
 
 add_custom_target(units
-  COMMAND ctest --output-on-failure -L "unit" -j${NTHREADS} $(ARGS))
+  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS))
 
 set(CVC4_CXXTEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
