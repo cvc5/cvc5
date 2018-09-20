@@ -436,6 +436,11 @@ class TheoryStringsRewriter {
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+  /** Get arithmetic approximations
+   * 
+   * 
+   */
+  static void getArithApproximations(Node a, std::vector< Node >& approx, bool isOverApprox=false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or

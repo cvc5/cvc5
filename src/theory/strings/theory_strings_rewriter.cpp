@@ -3466,115 +3466,46 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
     {
       Node v = m.first;
       Node c = m.second;
-      // c.isNull() means c = 1
-      bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn()==-1;
-      std::vector< Node >& approx = msumApprox[v];
       if( v.isNull() )
       {
-        approx.push_back(nm->mkConst(Rational(1)));
-      }
-      std::unordered_set< Node, NodeHashFunction > visited;
-      std::vector< Node > toProcess;
-      std::vector< bool > toProcessPol;
-      toProcess.push_back( v );
-      do
-      {
-        Node curr = toProcess.back();
-        curr = Rewriter::rewrite(curr);
-        toProcess.pop_back();
-        if( visited.find(curr)==visited.end() )
-        {
-          visited.insert(curr);
-          unsigned prevProcessSize = toProcess.size();
-          if( curr.getKind()==STRING_LENGTH )
-          {
-            if( curr[0].getKind()==STRING_SUBSTR )
-            {
-              // over,under-approximations for len( substr( x, n, m ) )
-              if( isOverApprox )
-              {
-                // m>=0 implies m >= len( substr( x, n, m ) )
-                if( checkEntailArithInternal( curr[0][2] ) )
-                {
-                  toProcess.push_back( curr[0][2] );
-                }
-                // TODO n >= 0 implies len( x ) - n >= len( substr( x, n, m ) )
-                // len( x ) >= len( substr( x, n, m ) )
-                toProcess.push_back( nm->mkNode( STRING_LENGTH, curr[0][0] ) );
-              }
-              else
-              {
-                // TODO 0 <= n and n+m < len( x ) implies m <= len( substr( x, n, m ) )  ...already rewritten?
-              }
-            }
-            else if( curr[0].getKind()==STRING_STRREPL )
-            {
-              // over,under-approximations for len( replace( x, y, z ) )
-              Node leny = nm->mkNode( STRING_LENGTH, curr[0][1] );
-              Node lenz = nm->mkNode( STRING_LENGTH, curr[0][1] );
-              Node lenx = nm->mkNode( STRING_LENGTH, curr[0][0] );
-              if( isOverApprox )
-              {
-                // TODO len( y ) >= len( z ) implies len( x ) >= len( replace( x, y, z ) )
-                if( checkEntailArith( leny, lenz ) )
-                {
-                  toProcess.push_back(lenx);
-                }
-                else
-                {
-                  // TODO len( x ) + len( z ) >= len( replace( x, y, z ) )
-                }
-              }
-              else
-              {
-                // TODO len( y ) <= len( z ) implies len( x ) <= len( replace( x, y, z ) )
-                if( checkEntailArith( lenz, leny ) )
-                {
-                  toProcess.push_back(lenx);
-                }
-              }
-            }
-          }
-          else if( curr.getKind()==STRING_STRIDOF )
-          {
-            // over,under-approximations for indexof( x, y, n )
-            if( isOverApprox )
-            {
-              // TODO len( x ) - len( y ) >= indexof( x, y, n )
-              
-            }
-            else
-            {
-              // indexof( x, y, n ) >= -1
-              toProcess.push_back(nm->mkConst(Rational(-1)));
-            }
-          }
-          else if( v.getKind()==STRING_STOI )
-          {
-            // over,under-approximations for str.to.int( x )
-            if( isOverApprox )
-            {
-              // ???
-            }
-            else
-            {
-              // str.to.int( x ) >= -1
-              toProcess.push_back(nm->mkConst(Rational(-1)));
-            }
-          }
-          if( prevProcessSize == toProcess.size())
-          {
-            // no approximations, thus curr is a possibility
-            approx.push_back(curr);
-          }
-        }
-      }while( !toProcess.empty() );
-      Assert( !approx.empty() );
-      // if we have only one approximation, move it to final
-      if( approx.size()==1 )
-      {
-        msumApprox.erase(v);
         msumFinal[v] = c;
+      }
+      else
+      {
+        // c.isNull() means c = 1
+        bool isOverApprox = !c.isNull() && c.getConst<Rational>().sgn()==-1;
+        std::vector< Node >& approx = msumApprox[v];
+        std::unordered_set< Node, NodeHashFunction > visited;
+        std::vector< Node > toProcess;
+        toProcess.push_back( v );
+        do
+        {
+          Node curr = toProcess.back();
+          curr = Rewriter::rewrite(curr);
+          toProcess.pop_back();
+          if( visited.find(curr)==visited.end() )
+          {
+            visited.insert(curr);
+            std::vector< Node > currApprox;
+            getArithApproximations(curr,currApprox,isOverApprox);
+            if(currApprox.empty())
+            {
+              // no approximations, thus curr is a possibility
+              approx.push_back(curr);
+            }
+            else
+            {
+              toProcess.insert(toProcess.end(),currApprox.begin(),currApprox.end());
+            }
+          }
+        }while( !toProcess.empty() );
+        Assert( !approx.empty() );
+        // if we have only one approximation, move it to final
+        if( approx.size()==1 )
+        {
+          msumApprox.erase(v);
+          msumFinal[v] = c;
+        }
       }
     }
     // we add
@@ -3614,6 +3545,176 @@ bool TheoryStringsRewriter::checkEntailArith(Node a, bool strict)
   // U( str.to.int( x ) ) -> -1
 
   return false;
+}
+
+void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& approx, bool isOverApprox)
+{
+  NodeManager * nm = NodeManager::currentNM();
+  /*
+  if( a.getKind()==PLUS )
+  {
+    std::vector< std::vector< Node > > capprox;
+    std::vector< Node > defaultSum;
+    unsigned maxApproxIndex = 0;
+    for( const Node& ac : a )
+    {
+      std::vector< Node > caac;
+      getArithApproximations(ac,caac);
+      capprox.push_back(caac);
+      if( caac.size()>capprox[maxApproxIndex].size() )
+      {
+        maxApproxIndex = capprox.size()-1;
+      }
+      defaultSum.push_back(caac.empty() ? ac : caac[0]);
+    }
+    for( const Node& aac : capprox[maxApproxIndex] )
+    {
+      defaultSum[maxApproxIndex] = aac;
+      approx.push_back(nm->mkNode(PLUS,defaultSum));
+    }
+  }
+  */
+  if( a.getKind()==MULT )
+  {
+    Node c;
+    Node v;
+    if( ArithMSum::getMonomial(a,c,v))
+    {
+      bool isNeg = c.getConst<Rational>().sgn()==-1;
+      getArithApproximations(v,approx,isNeg ? !isOverApprox : isOverApprox);
+      for( unsigned i=0, size = approx.size(); i<size; i++ )
+      {
+        approx[i] = nm->mkNode( MULT, c, approx[i] );
+      }
+    }
+  }
+  else if( a.getKind()==STRING_LENGTH )
+  {
+    if( a[0].getKind()==STRING_SUBSTR )
+    {
+      // over,under-approximations for len( substr( x, n, m ) )
+      Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
+      if( isOverApprox )
+      {
+        // m >= 0 implies 
+        //  m >= len( substr( x, n, m ) )
+        if( checkEntailArithInternal( a[0][2] ) )
+        {
+          approx.push_back( a[0][2] );
+        }
+        if( checkEntailArith( lenx, a[0][1] ) )
+        {
+          // n <= len( x ) implies 
+          //   len( x ) - n >= len( substr( x, n, m ) )
+          approx.push_back( nm->mkNode( MINUS, lenx, a[0][1] ) );
+        }
+        else
+        {
+          // len( x ) >= len( substr( x, n, m ) )
+          approx.push_back( lenx );
+        }
+      }
+      else
+      {
+        // 0 <= n and n+m <= len( x ) implies 
+        //   m <= len( substr( x, n, m ) )
+        Node npm = nm->mkNode(PLUS, a[0][1], a[0][2] );
+        if( checkEntailArithInternal( a[0][1] ) && checkEntailArith( lenx, npm ) )
+        {
+          approx.push_back( a[0][2] );
+        }
+        // 0 <= n and n+m >= len( x ) implies 
+        //   len(x)-n <= len( substr( x, n, m ) )
+        if( checkEntailArithInternal( a[0][1] ) && checkEntailArith( npm, lenx ) )
+        {
+          approx.push_back( nm->mkNode( MINUS, lenx, a[0][1] ) );
+        }
+      }
+    }
+    else if( a[0].getKind()==STRING_STRREPL )
+    {
+      // over,under-approximations for len( replace( x, y, z ) )
+      // notice this is either len( x ) or ( len( x ) + len( z ) - len( y ) )
+      Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
+      Node leny = nm->mkNode( STRING_LENGTH, a[0][1] );
+      Node lenz = nm->mkNode( STRING_LENGTH, a[0][2] );
+      if( isOverApprox )
+      {
+        if( checkEntailArith( leny, lenz ) )
+        {
+          // len( y ) >= len( z ) implies 
+          //   len( x ) >= len( replace( x, y, z ) )
+          approx.push_back(lenx);
+        }
+        else
+        {
+          // len( x ) + len( z ) >= len( replace( x, y, z ) )
+          approx.push_back(nm->mkNode(PLUS,lenx,lenz));
+        }
+      }
+      else
+      {
+        if( checkEntailArith( lenz, leny ) || checkEntailArith( lenz, lenx ) )
+        {
+          // len( y ) <= len( z ) or len( x ) <= len( z ) implies 
+          //   len( x ) <= len( replace( x, y, z ) )
+          approx.push_back(lenx);
+        }
+        else
+        {
+          // len( x ) - len( y ) <= len( replace( x, y, z ) )
+          approx.push_back(nm->mkNode(MINUS,lenx,leny));
+        }
+      }
+    }
+    else if( a[0].getKind()==STRING_ITOS )
+    {
+      // over,under-approximations for len( int.to.str( x ) )
+      if( isOverApprox )
+      {
+        // ???
+      }
+      else
+      {
+        if( checkEntailArithInternal( a[0][0] ) )
+        {
+          // x >= 0 implies
+          //   len( int.to.str( x ) ) >= 1
+          approx.push_back(nm->mkConst(Rational(1)));
+        }
+      }
+    }
+  }
+  else if( a.getKind()==STRING_STRIDOF )
+  {
+    // over,under-approximations for indexof( x, y, n )
+    if( isOverApprox )
+    {
+      // len( x ) - len( y ) >= indexof( x, y, n )
+      Node lenx = nm->mkNode( STRING_LENGTH, a[0][0] );
+      Node leny = nm->mkNode( STRING_LENGTH, a[0][1] );
+      approx.push_back(nm->mkNode(MINUS,lenx,leny));
+    }
+    else
+    {
+      // TODO?: contains( substr( x, n, len( x ) ), y ) implies indexof( x, y, n ) >= n
+      // indexof( x, y, n ) >= -1
+      approx.push_back(nm->mkConst(Rational(-1)));
+    }
+  }
+  else if( a.getKind()==STRING_STOI )
+  {
+    // over,under-approximations for str.to.int( x )
+    if( isOverApprox )
+    {
+      // ???
+    }
+    else
+    {
+      // str.to.int( x ) >= -1
+      approx.push_back(nm->mkConst(Rational(-1)));
+    }
+  }
 }
 
 bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
