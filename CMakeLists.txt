@@ -1,9 +1,5 @@
 cmake_minimum_required(VERSION 3.1)
 
-if(POLICY CMP0075)
-  cmake_policy(SET CMP0075 NEW)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Project configuration
 
@@ -43,7 +39,7 @@ option(ENABLE_GPL "Enable GPL dependencies")
 
 # General build options
 #
-# >> 3-valued: INGORE ON OFF
+# >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for build types
 cvc4_option(ENABLE_ASAN          "Enable ASAN build")
@@ -69,7 +65,7 @@ option(ENABLE_PROFILING        "Enable support for gprof profiling")
 
 # Optional dependencies
 #
-# >> 3-valued: INGORE ON OFF
+# >> 3-valued: IGNORE ON OFF
 #    > allows to detect if set by user (default: IGNORE)
 #    > only necessary for options set for ENABLE_BEST
 cvc4_option(USE_ABC      "Use ABC for AIG bit-blasting")
@@ -160,7 +156,9 @@ cvc4_set_option(ENABLE_SHARED ON)
 
 if(ENABLE_BEST)
   cvc4_set_option(USE_ABC ON)
+  cvc4_set_option(USE_CADICAL ON)
   cvc4_set_option(USE_CLN ON)
+  cvc4_set_option(USE_CRYPTOMINISAT ON)
   cvc4_set_option(USE_GLPK ON)
   cvc4_set_option(USE_READLINE ON)
 endif()
@@ -199,9 +197,11 @@ libcvc4_link_libraries(${GMP_LIBRARIES})
 libcvc4_include_directories(${GMP_INCLUDE_DIR})
 
 if(ENABLE_ASAN)
-  set(CMAKE_REQUIRED_LIBRARIES -fsanitize=address)
+  # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
+  # otherwise the -fsanitize=address check will fail while linking.
+  set(CMAKE_REQUIRED_FLAGS -fsanitize=address)
   add_required_c_cxx_flag("-fsanitize=address")
-  unset(CMAKE_REQUIRED_LIBRARIES)
+  unset(CMAKE_REQUIRED_FLAGS)
   add_required_c_cxx_flag("-fno-omit-frame-pointer")
   add_check_c_cxx_flag("-fsanitize-recover=address")
 endif()
@@ -282,7 +282,7 @@ if(ENABLE_TRACING)
 endif()
 
 if(ENABLE_UNIT_TESTING)
-	find_package(CxxTest REQUIRED)
+  find_package(CxxTest REQUIRED)
   # Force shared libs for unit tests, static libs with unit tests are not
   # working right now.
   set(ENABLE_SHARED ON)
@@ -363,6 +363,7 @@ if(USE_LFSC)
 endif()
 
 if(USE_READLINE)
+  set(GPL_LIBS "${GPL_LIBS} readline")
   find_package(Readline REQUIRED)
   set(HAVE_LIBREADLINE 1)
   if(Readline_COMPENTRY_FUNC_RETURNS_CHARPTR)
@@ -517,7 +518,7 @@ if(GPL_LIBS)
   "\n"
   "If you prefer to license CVC4 under those terms, please configure CVC4 to"
   "\n"
-  "disable all optional GPLed library dependences (-DENABLE_BSD_ONLY=ON)."
+  "disable all optional GPLed library dependencies (-DENABLE_BSD_ONLY=ON)."
   )
 else()
   message(

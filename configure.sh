@@ -16,8 +16,8 @@ General options;
   -h, --help               display this help and exit
   --prefix=STR             install directory
   --name=STR               use custom build directory name (optionally: +path)
-  --best                   turn on dependences known to give best performance
-  --gpl                    permit GPL dependences, if available
+  --best                   turn on dependencies known to give best performance
+  --gpl                    permit GPL dependencies, if available
   --win64                  cross-compile for Windows 64 bit
 
 
@@ -29,11 +29,11 @@ The following flags enable optional features (disable with --no-<option name>).
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
   --debug-context-mm       use the debug context memory manager
-  --statistics             do not include statistics
-  --replay                 turn off the replay feature
-  --assertions             turn off assertions
-  --tracing                remove all tracing code
-  --dumping                remove all dumping code
+  --statistics             include statistics
+  --replay                 turn on the replay feature
+  --assertions             turn on assertions
+  --tracing                include tracing code
+  --dumping                include dumping code
   --muzzle                 complete silence (no non-result output)
   --coverage               support for gcov coverage testing
   --profiling              support for gprof profiling
@@ -52,23 +52,23 @@ The following flags enable optional packages (disable with --no-<option name>).
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
-  --cryptominisat          use the CRYPTOMINISAT sat solver
+  --cryptominisat          use the CryptoMiniSat sat solver
   --lfsc                   use the LFSC proof checker
-  --symfpu                 use symfpu for floating point solver
+  --symfpu                 use SymFPU for floating point solver
   --portfolio              build the multithreaded portfolio version of CVC4
                            (pcvc4)
   --readline               support the readline library
 
 Optional Path to Optional Packages:
-  --abc-dir=PATH           path to top level of abc source tree
+  --abc-dir=PATH           path to top level of ABC source tree
   --antlr-dir=PATH         path to ANTLR C headers and libraries
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
-  --cryptominisat-dir=PATH path to top level of cryptominisat source tree
+  --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
   --cxxtest-dir=DIR        path to CxxTest installation
-  --glpk-dir=PATH          path to top level of glpk installation
+  --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
-  --lfsc-dir=PATH          path to top level of lfsc source tree
-  --symfpu-dir=PATH        path to top level of symfpu source tree
+  --lfsc-dir=PATH          path to top level of LFSC source tree
+  --symfpu-dir=PATH        path to top level of SymFPU source tree
 
 Report bugs to <cvc4-bugs@cs.stanford.edu>.
 EOF
