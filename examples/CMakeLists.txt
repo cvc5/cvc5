@@ -30,8 +30,8 @@ add_custom_target(runexamples
 #           - a list variable: set(<list name> <libs1> <libs2> ...) and pass
 #                              as "${<list name>}"
 #           - a string: pass as "lib1 lib2 ..." (alternative: "lib1;lib2;...")
-# > ouput_dir: Determines the examples subdirectory and is empty (passed as
-#              empty string) for the examples root director (this)
+# > output_dir: Determines the examples subdirectory and is empty (passed as
+#               empty string) for the examples root directory (this)
 # > ARGN: Any additional arguments passed to the macro are interpreted as
 #         as arguments to the test executable.
 macro(cvc4_add_example name src_files libs output_dir)

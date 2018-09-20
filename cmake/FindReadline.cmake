@@ -2,6 +2,8 @@
 # Readline_FOUND - system has Readline lib
 # Readline_INCLUDE_DIR - the Readline include directory
 # Readline_LIBRARIES - Libraries needed to use Readline
+# Readline_COMPENTRY_FUNC_RETURNS_CHARPTR - Indicates if compentry function
+#                                           returns a (char *)
 
 find_path(Readline_INCLUDE_DIR NAMES readline/readline.h)
 find_library(Readline_LIBRARIES NAMES readline)
@@ -19,6 +21,8 @@ if(Readline_INCLUDE_DIR)
      int main() { rl_completion_entry_function = foo; return 0; }"
      Readline_COMPENTRY_FUNC_RETURNS_CHARPTR
   )
+  unset(CMAKE_REQUIRED_QUIET)
+  unset(CMAKE_REQUIRED_LIBRARIES)
 endif()
 
 include(FindPackageHandleStandardArgs)

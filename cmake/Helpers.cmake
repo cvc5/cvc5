@@ -1,6 +1,7 @@
 include(CheckCCompilerFlag)
 include(CheckCXXCompilerFlag)
 
+# Add a C flag to the global list of C flags.
 macro(add_c_flag flag)
   if(CMAKE_C_FLAGS)
     set(CMAKE_C_FLAGS "${CMAKE_C_FLAGS} ${flag}")
@@ -10,6 +11,7 @@ macro(add_c_flag flag)
   message(STATUS "Configuring with C flag '${flag}'")
 endmacro()
 
+# Add a CXX flag to the global list of CXX flags.
 macro(add_cxx_flag flag)
   if(CMAKE_CXX_FLAGS)
     set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${flag}")
@@ -19,11 +21,13 @@ macro(add_cxx_flag flag)
   message(STATUS "Configuring with CXX flag '${flag}'")
 endmacro()
 
+# Add a C and CXX flag to the global list of C/CXX flags.
 macro(add_c_cxx_flag flag)
   add_c_flag(${flag})
   add_cxx_flag(${flag})
 endmacro()
 
+# Check if C flag is supported and add to global list of C flags.
 macro(add_check_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_c_compiler_flag("${flag}" HAVE_FLAG${flagname})
@@ -32,6 +36,7 @@ macro(add_check_c_flag flag)
   endif()
 endmacro()
 
+# Check if CXX flag is supported and add to global list of CXX flags.
 macro(add_check_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_cxx_compiler_flag("${flag}" HAVE_FLAG${flagname})
@@ -40,11 +45,14 @@ macro(add_check_cxx_flag flag)
   endif()
 endmacro()
 
+# Check if C/CXX flag is supported and add to global list of C/CXX flags.
 macro(add_check_c_cxx_flag flag)
   add_check_c_flag(${flag})
   add_check_cxx_flag(${flag})
 endmacro()
 
+# Add required CXX flag. Configuration fails if the CXX flag is not supported
+# by the compiler.
 macro(add_required_cxx_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagnamename ${flag})
   check_cxx_compiler_flag("${flag}" HAVE_FLAG${flagname})
@@ -54,6 +62,8 @@ macro(add_required_cxx_flag flag)
   add_cxx_flag(${flag})
 endmacro()
 
+# Add required C flag. Configuration fails if the C flag is not supported by
+# the compiler.
 macro(add_required_c_flag flag)
   string(REGEX REPLACE "[-=]" "_" flagname ${flag})
   check_c_compiler_flag("${flag}" HAVE_FLAG${flagname})
@@ -63,6 +73,8 @@ macro(add_required_c_flag flag)
   add_c_flag(${flag})
 endmacro()
 
+# Add requied C/CXX flag. Configuration fails if the C/CXX flag is not
+# supported by the compiler.
 macro(add_required_c_cxx_flag flag)
   add_required_c_flag(${flag})
   add_required_cxx_flag(${flag})
