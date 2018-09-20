@@ -239,6 +239,12 @@ public:
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
 
+  // wrap term with (p_app ... ) if needed and print
+  // used for "trust" assertions
+  static void printTrustedTerm(Node term,
+                               std::ostream& os,
+                               ProofLetMap& globalLetMap);
+
   /** Add proof assertion - unlike addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
 
