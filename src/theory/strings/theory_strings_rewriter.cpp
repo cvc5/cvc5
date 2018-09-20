@@ -375,7 +375,7 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
     Node s1 = mkConcat(STRING_CONCAT, c[0]);
     Node s2 = mkConcat(STRING_CONCAT, c[1]);
     new_ret = s1.eqNode(s2);
-    return returnRewrite(node, new_ret, "str-eq-unify");
+    node = returnRewrite(node, new_ret, "str-eq-unify");
   }
 
   // ------- homogeneous constants
@@ -463,7 +463,7 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
           //  "AA" = y ++ x ---> "AA" = x ++ y if x < y
           //  "AAA" = y ++ "A" ++ z ---> "AA" = y ++ z
           new_ret = lhs.eqNode(ss);
-          return returnRewrite(node, new_ret, "str-eq-homog-const");
+          node = returnRewrite(node, new_ret, "str-eq-homog-const");
         }
       }
     }
