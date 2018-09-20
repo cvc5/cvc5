@@ -1064,11 +1064,9 @@ void ProofManager::printTrustedTerm(Node term,
                                     std::ostream& os,
                                     ProofLetMap& globalLetMap)
 {
-  if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(term))
-    os << "(p_app ";
-  ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(
-      term.toExpr(), os, globalLetMap);
-  if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(term))
-    os << ")";
+  TheoryProofEngine* tpe = ProofManager::currentPM()->getTheoryProofEngine();
+  if (tpe->printsAsBool(term)) os << "(p_app ";
+  tpe->printTheoryTerm(term.toExpr(), os, globalLetMap);
+  if (tpe->printsAsBool(term)) os << ")";
 }
 } /* CVC4  namespace */
