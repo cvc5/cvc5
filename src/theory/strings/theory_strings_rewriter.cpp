@@ -3642,12 +3642,13 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
             }
           }
           Trace("strings-ent-approx-debug") << "counts=" << helpsCancelCount << "," << addsObligationCount << " for " << aa << " into " << aar << std::endl;
-          int score = ( addsObligationCount>0 ? -2 : 0 ) + ( helpsCancelCount>0 ? 1 : 0 );
+          int score = ( addsObligationCount>0 ? 0 : 2 ) + ( helpsCancelCount>0 ? 1 : 0 );
           // if its the best, update v and vapprox
-          if( score>maxScore )
+          if( v.isNull() || score>maxScore )
           {
             v = nam.first;
             vapprox = aa;
+            maxScore = score;
           }
         }
         if( !v.isNull() )
