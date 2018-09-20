@@ -112,7 +112,7 @@ class SynthConjecture
   void assign(Node q);
   /** has a conjecture been assigned to this class */
   bool isAssigned() { return !d_embed_quant.isNull(); }
-  /** 
+  /**
    * Get model values for terms n, store in vector v. This method returns true
    * if and only if all values added to v are non-null.
    */
