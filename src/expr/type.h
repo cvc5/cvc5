@@ -145,6 +145,32 @@ protected:
   bool isWellFounded() const;
 
   /**
+   * Is this a first-class type?
+   *
+   * First-class types are types for which:
+   * (1) we handle equalities between terms of that type, and
+   * (2) they are allowed to be parameters of parametric types (e.g. index or
+   * element types of arrays).
+   *
+   * Examples of types that are not first-class include constructor types,
+   * selector types, tester types, regular expressions and SExprs.
+   */
+  bool isFirstClass() const;
+
+  /**
+   * Is this a function-LIKE type?
+   *
+   * Function-like things (e.g. datatype selectors) that aren't actually
+   * functions ARE considered functions, here. The main point is that this is
+   * used to avoid anything higher-order: anything function-like can not be
+   * the argument or return value for anything else function-like.
+   *
+   * Arrays are explicitly NOT function-like for the purposes of this test.
+   * However, functions still can not contain anything function-like.
+   */
+  bool isFunctionLike() const;
+
+  /**
    * Construct and return a ground term for this Type.  Throws an
    * exception if this type is not well-founded.
    */
