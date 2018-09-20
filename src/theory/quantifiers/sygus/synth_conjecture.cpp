@@ -339,19 +339,13 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
 
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
-  getModelValues(terms, enum_values);
+  bool fullModel = getModelValues(terms, enum_values);
 
   // if the master requires a full model and the model is partial, we fail
-  if (!d_master->allowPartialModel())
+  if (!d_master->allowPartialModel() && !fullModel)
   {
-    for (const Node& v : enum_values)
-    {
-      if (v.isNull())
-      {
-        Trace("cegqi-check") << "...partial model, fail." << std::endl;
-        return;
-      }
-    }
+    Trace("cegqi-check") << "...partial model, fail." << std::endl;
+    return;
   }
 
   if (!constructed_cand)
@@ -600,13 +594,15 @@ void SynthConjecture::preregisterConjecture(Node q)
   d_ceg_si->preregisterConjecture(q);
 }
 
-void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
+bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 {
+  bool ret = true;
   Trace("cegqi-engine") << "  * Value is : ";
   for (unsigned i = 0; i < n.size(); i++)
   {
     Node nv = getModelValue(n[i]);
     v.push_back(nv);
+    ret = ret && !nv.isNull();
     if (Trace.isOn("cegqi-engine"))
     {
       Node onv = nv.isNull() ? d_qe->getModel()->getValue(n[i]) : nv;
@@ -631,6 +627,7 @@ void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
     }
   }
   Trace("cegqi-engine") << std::endl;
+  return ret;
 }
 
 Node SynthConjecture::getModelValue(Node n)
