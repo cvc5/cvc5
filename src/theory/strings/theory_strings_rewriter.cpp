@@ -1495,6 +1495,45 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       Node ret = NodeManager::currentNM()->mkConst(true);
       return returnRewrite(node, ret, "ctn-rhs-emptystr");
     }
+    else if (t.size() == 1)
+    {
+      // The following rewrites are specific to a single character second
+      // argument of contains, where we can reason that this character is
+      // not split over multiple components in the first argument.
+      if (node[0].getKind() == STRING_CONCAT)
+      {
+        std::vector<Node> nc1;
+        getConcat(node[0], nc1);
+        NodeBuilder<> nb(OR);
+        for (const Node& ncc : nc1)
+        {
+          nb << nm->mkNode(STRING_STRCTN, ncc, node[1]);
+        }
+        Node ret = nb.constructNode();
+        // str.contains( x ++ y, "A" ) --->
+        //   str.contains( x, "A" ) OR str.contains( y, "A" )
+        return returnRewrite(node, ret, "ctn-concat-char");
+      }
+      else if (node[0].getKind() == STRING_STRREPL)
+      {
+        Node rplDomain = nm->mkNode(STRING_STRCTN, node[0][1], node[1]);
+        rplDomain = Rewriter::rewrite(rplDomain);
+        if (rplDomain.isConst() && !rplDomain.getConst<bool>())
+        {
+          Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
+          Node d2 =
+              nm->mkNode(AND,
+                         nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
+                         nm->mkNode(STRING_STRCTN, node[0][2], node[1]));
+          Node ret = nm->mkNode(OR, d1, d2);
+          // If str.contains( y, "A" ) ---> false, then:
+          // str.contains( str.replace( x, y, z ), "A" ) --->
+          //   str.contains( x, "A" ) OR
+          //   ( str.contains( x, y ) AND str.contains( z, "A" ) )
+          return returnRewrite(node, ret, "ctn-repl-char");
+        }
+      }
+    }
   }
   std::vector<Node> nc1;
   getConcat(node[0], nc1);
@@ -1544,6 +1583,35 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           Node res = nm->mkConst(false);
           return returnRewrite(node, res, "ctn-rpl-non-ctn");
         }
+      }
+
+      // (str.contains x (str.++ w (str.replace x y x) z)) --->
+      //   (and (= w "") (= x (str.replace x y x)) (= z ""))
+      if (node[0] == n[0] && node[0] == n[2])
+      {
+        Node ret;
+        if (nc2.size() > 1)
+        {
+          Node emp = nm->mkConst(CVC4::String(""));
+          NodeBuilder<> nb(kind::AND);
+          for (const Node& n2 : nc2)
+          {
+            if (n2 == n)
+            {
+              nb << nm->mkNode(kind::EQUAL, node[0], node[1]);
+            }
+            else
+            {
+              nb << nm->mkNode(kind::EQUAL, emp, n2);
+            }
+          }
+          ret = nb.constructNode();
+        }
+        else
+        {
+          ret = nm->mkNode(kind::EQUAL, node[0], node[1]);
+        }
+        return returnRewrite(node, ret, "ctn-repl-self");
       }
     }
   }
@@ -1746,6 +1814,41 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
           }
         }
       }
+    }
+  }
+
+  if (node[0].getKind() == kind::STRING_SUBSTR)
+  {
+    // (str.contains (str.substr x n (str.len y)) y) --->
+    //   (= (str.substr x n (str.len y)) y)
+    //
+    // TODO: generalize with over-/underapproximation to:
+    //
+    // (str.contains x y) ---> (= x y) if (<= (str.len x) (str.len y))
+    if (node[0][2] == nm->mkNode(kind::STRING_LENGTH, node[1]))
+    {
+      Node ret = nm->mkNode(kind::EQUAL, node[0], node[1]);
+      return returnRewrite(node, ret, "ctn-substr");
+    }
+  }
+
+  if (node[1].getKind() == kind::STRING_STRREPL)
+  {
+    // (str.contains x (str.replace y x y)) --->
+    //   (str.contains x y)
+    if (node[0] == node[1][1] && node[1][0] == node[1][2])
+    {
+      Node ret = nm->mkNode(kind::STRING_STRCTN, node[0], node[1][0]);
+      return returnRewrite(node, ret, "ctn-repl");
+    }
+
+    // (str.contains x (str.replace "" x y)) --->
+    //   (= "" (str.replace "" x y))
+    Node emp = nm->mkConst(CVC4::String(""));
+    if (node[0] == node[1][1] && node[1][0] == emp)
+    {
+      Node ret = nm->mkNode(kind::EQUAL, emp, node[1]);
+      return returnRewrite(node, ret, "ctn-repl-empty");
     }
   }
 
