@@ -3591,6 +3591,7 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
       }
       Trace("strings-ent-approx") << std::endl;
     }
+    Rational one(1);
     // incorporate monomials one at a time that have a choice of approximations
     while( !mApprox.empty() )
     {
@@ -3604,14 +3605,44 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
         {
           unsigned helpsCancelCount = 0;
           unsigned addsObligationCount = 0;
+          std::map< Node, Node >::iterator it;
           for( std::pair< const Node, Node >& aam : approxMsums[aa] )
           {
             // Say aar is of the form t + c1*v, and aam is the monomial c2*v 
             // where c2 != 0. We say aam:
             // (1) helps cancel if c1 != 0 and c1>0 != c2>0
-            // (2) adds obligation if c1+c2<0
+            // (2) adds obligation if c1>=0 and c1+c2<0
+            Node v = aam.first;
+            Node c2 = aam.second;
+            int c2Sgn = c2.isNull() ? 1 : c2.getConst<Rational>().sgn();
+            it = msumAar.find(v);
+            if( it!=msumAar.end() )
+            {
+              Node c1 = it->second;
+              int c1Sgn = c1.isNull() ? 1 : c1.getConst<Rational>().sgn();
+              if( c1Sgn==0 )
+              {
+                addsObligationCount += ( c2Sgn==-1  ? 1 : 0 );
+              }
+              else if( c1Sgn!=c2Sgn )
+              {
+                helpsCancelCount++;
+                Rational r1 = c1.isNull() ? one : c1.getConst<Rational>();
+                Rational r2 = c2.isNull() ? one : c2.getConst<Rational>();
+                Rational r12 = r1 + r2;
+                if( r12.sgn()==-1 )
+                {
+                  addsObligationCount++;
+                }
+              }
+            }
+            else
+            {
+              addsObligationCount += ( c2Sgn==-1  ? 1 : 0 );
+            }
           }
-          int score = 0;
+          Trace("strings-ent-approx-debug") << "counts=" << helpsCancelCount << "," << addsObligationCount << " for " << aa << " into " << aar << std::endl;
+          int score = ( addsObligationCount>0 ? -2 : 0 ) + ( helpsCancelCount>0 ? 1 : 0 );
           // if its the best, update v and vapprox
           if( score>maxScore )
           {
@@ -3651,13 +3682,14 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
     Assert( false );
     return false;
   }
-  // check entailment on the approximation of ar
-  // notice that this may trigger further reasoning by approximation. For
+  // Check entailment on the approximation of ar.
+  // Notice that this may trigger further reasoning by approximation. For
   // example, len( replace( x ++ y, substr( x, 0, n ), z ) ) may be 
   // under-approximated as len( x ) + len( y ) - len( substr( x, 0, n ) ) on
   // this call, where in the recursive call we may over-approximate
   // len( substr( x, 0, n ) ) as len( x ). In this example, we can infer 
-  // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ).
+  // that len( replace( x ++ y, substr( x, 0, n ), z ) ) >= len( y ) in two 
+  // steps.
   if (checkEntailArith(aar))
   {
     Trace("strings-ent-approx") << "*** StrArithApprox: showed " << ar << " >= 0 using under-approximation!" << std::endl;
