@@ -445,7 +445,7 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
   std::map<Node, Node>::iterator ittb;
   std::vector<TNode> visit;
   TNode cur;
-  visit.push(n);
+  visit.push_back(n);
   do 
   {
     cur = visit.back();
@@ -473,10 +473,10 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
       else
       {
         visited[cur] = Node::null();
-        visit.push(cur);
+        visit.push_back(cur);
         for (const Node& cn : cur )
         {
-          visit.push(cn);
+          visit.push_back(cn);
         }
       }
     } 
@@ -1242,71 +1242,83 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
 }
 
 void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
-  if( d_register_st.find( e )==d_register_st.end() ){
-    if( e.getType().isDatatype() ){
-      const Datatype& dt = ((DatatypeType)(e.getType()).toType()).getDatatype();
-      if( dt.isSygus() ){
-        if (d_tds->isEnumerator(e))
-        {
-          d_register_st[e] = true;
-          Node ag = d_tds->getActiveGuardForEnumerator(e);
-          if( !ag.isNull() ){
-            d_anchor_to_active_guard[e] = ag;
-            std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itaas =
-                d_anchor_to_ag_strategy.find(e);
-            if (itaas == d_anchor_to_ag_strategy.end())
-            {
-              d_anchor_to_ag_strategy[e].reset(
-                  new DecisionStrategySingleton("sygus_enum_active",
-                                                ag,
-                                                d_td->getSatContext(),
-                                                d_td->getValuation()));
-            }
-            d_td->getDecisionManager()->registerStrategy(
-                DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
-                d_anchor_to_ag_strategy[e].get());
-          }
-          Node m;
-          if( !ag.isNull() ){
-            // if it has an active guard (it is an enumerator), use itself as measure term. This will enforce fairness on it independently.
-            m = e;
-          }else{
-            // otherwise we enforce fairness in a unified way for all
-            if( d_generic_measure_term.isNull() ){
-              // choose e as master for all future terms
-              d_generic_measure_term = e;
-            }
-            m = d_generic_measure_term;
-          }
-          Trace("sygus-sb") << "Sygus : register size term : " << e << " with measure " << m << std::endl;
-          registerMeasureTerm( m );
-          d_szinfo[m]->d_anchors.push_back( e );
-          d_anchor_to_measure_term[e] = m;
-          if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
-            // update constraints on the measure term
-            if( options::sygusFairMax() ){
-              Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
-              Node slem = NodeManager::currentNM()->mkNode(
-                  kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
-              lemmas.push_back(slem);
-            }else{
-              Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
-              Node new_mt =
-                  d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
-              Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
-              lemmas.push_back(mt.eqNode(
-                  NodeManager::currentNM()->mkNode(kind::PLUS, new_mt, ds)));
-            }
-          }
-        }else{
-          // not sure if it is a size term or not (may be registered later?)
-        }
-      }else{
-        d_register_st[e] = false;
-      }
-    }else{
-      d_register_st[e] = false;
+  if( d_register_st.find( e )!=d_register_st.end() ){
+    // already registered
+    return;
+  }
+  TypeNode etn = e.getType();
+  if( !etn.isDatatype() ){
+    // not a datatype term
+    d_register_st[e] = false;
+    return;
+  }
+  const Datatype& dt = etn.getDatatype();
+  if( !dt.isSygus() ){
+    // not a sygus datatype term
+    d_register_st[e] = false;
+    return;
+  }
+  if (!d_tds->isEnumerator(e))
+  {
+    // not sure if it is a size term or not (may be registered later?)
+    return;
+  }
+  d_register_st[e] = true;
+  Node ag = d_tds->getActiveGuardForEnumerator(e);
+  if( !ag.isNull() ){
+    d_anchor_to_active_guard[e] = ag;
+    std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itaas =
+        d_anchor_to_ag_strategy.find(e);
+    if (itaas == d_anchor_to_ag_strategy.end())
+    {
+      d_anchor_to_ag_strategy[e].reset(
+          new DecisionStrategySingleton("sygus_enum_active",
+                                        ag,
+                                        d_td->getSatContext(),
+                                        d_td->getValuation()));
     }
+    d_td->getDecisionManager()->registerStrategy(
+        DecisionManager::STRAT_DT_SYGUS_ENUM_ACTIVE,
+        d_anchor_to_ag_strategy[e].get());
+  }
+  Node m;
+  if( !ag.isNull() ){
+    // if it has an active guard (it is an enumerator), use itself as measure term. This will enforce fairness on it independently.
+    m = e;
+  }else{
+    // otherwise we enforce fairness in a unified way for all
+    if( d_generic_measure_term.isNull() ){
+      // choose e as master for all future terms
+      d_generic_measure_term = e;
+    }
+    m = d_generic_measure_term;
+  }
+  Trace("sygus-sb") << "Sygus : register size term : " << e << " with measure " << m << std::endl;
+  registerMeasureTerm( m );
+  d_szinfo[m]->d_anchors.push_back( e );
+  d_anchor_to_measure_term[e] = m;
+  if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
+    // update constraints on the measure term
+    if( options::sygusFairMax() ){
+      Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
+      Node slem = NodeManager::currentNM()->mkNode(
+          kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
+      lemmas.push_back(slem);
+    }else{
+      Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
+      Node new_mt =
+          d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
+      Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
+      lemmas.push_back(mt.eqNode(
+          NodeManager::currentNM()->mkNode(kind::PLUS, new_mt, ds)));
+    }
+  }
+  // if it is variable agnostic, enforce top-level constraint that says no variables occur pre-traversal at top-level
+  Node varList = Node::fromExpr( dt.getSygusVarList() );
+  std::vector< Node > constraints;
+  for( const Node& v : varList )
+  {
+    
   }
 }
 
