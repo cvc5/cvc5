@@ -208,9 +208,9 @@ private:
   /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
   /** pre/post traversal predicates for each type */
-  std::map< TypeNode, std::map< Node, Node > > d_traversal_pred[2];
+  std::map<TypeNode, std::map<Node, Node>> d_traversal_pred[2];
   /** traversal applications to Boolean variables */
-  std::map< Node, Node > d_traversal_bool;
+  std::map<Node, Node> d_traversal_bool;
   /** get traversal predicate */
   Node getTraversalPredicate(TypeNode tn, Node n, bool isPre);
   /** eliminate traversal predicates */
@@ -408,7 +408,7 @@ private:
    * the type tn,
    * isVarAgnostic: whether the terms we are enumerating are agnostic to
    * variables.
-   * 
+   *
    * The latter two options may affect the form of the predicate we construct.
    */
   Node getSimpleSymBreakPred(Node e,
@@ -416,10 +416,11 @@ private:
                              int tindex,
                              unsigned depth,
                              bool usingSymCons,
-                             bool isVarAgnostic
-                            );
+                             bool isVarAgnostic);
   /** Cache of the above function */
-  std::map< Node, std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>>
+  std::map<Node,
+           std::map<TypeNode,
+                    std::map<int, std::map<bool, std::map<unsigned, Node>>>>>
       d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
