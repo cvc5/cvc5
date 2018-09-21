@@ -1,0 +1,16 @@
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/install/strip.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/edit_cache.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/uninstall.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/rebuild_cache.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/list_install_components.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/install/local.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/CMakeFiles/install.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install/strip.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install/local.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/install.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/CopyPublicHeaders.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/cryptominisat5_simple.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/rebuild_cache.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/libcryptominisat5.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/list_install_components.dir
+/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/CMakeFiles/edit_cache.dir

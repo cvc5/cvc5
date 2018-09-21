@@ -82,6 +82,12 @@ public:
     Unimplemented("Solving under assumptions not implemented");
   };
 
+  /** Simplify the formula **/
+  virtual SatValue simp(){
+    return SAT_VALUE_UNKNOWN;
+  };
+
+  
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 
@@ -100,6 +106,7 @@ public:
   virtual void setProofLog( BitVectorProof * bvp ) {}
 
 
+  /** Get the top level unit clauses of a formula **/
   virtual std::vector<SatLiteral> getTopLevelUnits()
   {
     return std::vector<SatLiteral>();

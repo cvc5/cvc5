@@ -1,0 +1,197 @@
+[
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/cryptominisat5_simple.dir/main_simple.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/main_simple.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/main_simple.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/cnf.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cnf.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cnf.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/propengine.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/propengine.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/propengine.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/varreplacer.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/varreplacer.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/varreplacer.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/clausecleaner.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clausecleaner.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clausecleaner.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/clauseusagestats.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clauseusagestats.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clauseusagestats.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/prober.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/prober.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/prober.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/occsimplifier.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/occsimplifier.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/occsimplifier.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/subsumestrengthen.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/subsumestrengthen.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/subsumestrengthen.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/clauseallocator.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clauseallocator.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clauseallocator.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/sccfinder.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/sccfinder.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/sccfinder.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/solverconf.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solverconf.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solverconf.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/distillerlong.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/distillerlong.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/distillerlong.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/distillerlongwithimpl.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/distillerlongwithimpl.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/distillerlongwithimpl.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/str_impl_w_impl_stamp.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/str_impl_w_impl_stamp.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/str_impl_w_impl_stamp.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/solutionextender.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solutionextender.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solutionextender.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/completedetachreattacher.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/completedetachreattacher.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/completedetachreattacher.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/searcher.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/searcher.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/searcher.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/solver.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solver.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solver.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/sqlstats.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/sqlstats.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/sqlstats.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/implcache.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/implcache.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/implcache.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/stamp.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/stamp.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/stamp.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/compfinder.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/compfinder.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/compfinder.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/comphandler.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/comphandler.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/comphandler.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/hyperengine.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/hyperengine.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/hyperengine.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/subsumeimplicit.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/subsumeimplicit.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/subsumeimplicit.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/datasync.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/datasync.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/datasync.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/reducedb.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/reducedb.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/reducedb.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/clausedumper.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clausedumper.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/clausedumper.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/bva.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/bva.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/bva.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/intree.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/intree.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/intree.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/features_calc.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/features_calc.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/features_calc.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/features_to_reconf.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/features_to_reconf.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/features_to_reconf.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/solvefeatures.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solvefeatures.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/solvefeatures.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/searchstats.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/searchstats.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/searchstats.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/xorfinder.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/xorfinder.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/xorfinder.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/cryptominisat_c.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cryptominisat_c.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cryptominisat_c.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/GitSHA1.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/GitSHA1.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src/GitSHA1.cpp"
+},
+{
+  "directory": "/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src",
+  "command": "/usr/bin/c++   -I/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3 -I/home/haozewu/Projects/CVC4/cryptominisat5/build/cmsat5-src   -mtune=native -Wall -Wextra -Wunused -Wsign-compare -fno-omit-frame-pointer -Wtype-limits -Wuninitialized -Wno-deprecated -Wstrict-aliasing -Wpointer-arith -Wpointer-arith -Wformat-nonliteral -Winit-self -Wparentheses -Wunreachable-code -ggdb3 -Wlogical-op -Wrestrict -Wnull-dereference -Wdouble-promotion -Wshadow -Wformat=2 -pedantic   -g -pthread -O2 -mtune=native -fPIC -std=gnu++11 -o CMakeFiles/libcryptominisat5.dir/cryptominisat.cpp.o -c /home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cryptominisat.cpp",
+  "file": "/home/haozewu/Projects/CVC4/cryptominisat5/cryptominisat-5.6.3/src/cryptominisat.cpp"
+}
+]

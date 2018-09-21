@@ -1,0 +1,4 @@
+c RUN: %solver --onlyindep --indep 1 --presimp 1 --varelim 1 --verb=0 %s | %OutputCheck %s
+1 2 3 0
+4 5 6 0
+c CHECK-NOT: ^v .*4

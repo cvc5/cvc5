@@ -1,0 +1,4 @@
+c RUN: %solver %s | %OutputCheck %s
+1 0
+c CHECK: ^s SATISFIABLE$
+c CHECK-NEXT: ^v 1 0$

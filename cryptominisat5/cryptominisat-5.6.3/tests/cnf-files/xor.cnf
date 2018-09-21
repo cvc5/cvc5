@@ -1,0 +1,5 @@
+c RUN: %solver %s | %OutputCheck %s
+p cnf 1 1
+x1 0
+c CHECK: s SATISFIABLE
+c CHECK: v 1 0

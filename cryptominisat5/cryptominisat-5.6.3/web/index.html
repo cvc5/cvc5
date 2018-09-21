@@ -1,0 +1,137 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+    <meta charset="utf-8">
+    <title>Cryptominisat 5 visualization</title>
+
+    <link rel="stylesheet" type="text/css" href="jquery.jqplot.css" />
+    <script type="text/javascript" src="jquery-1.11.3.min.js"></script>
+    <script type="text/javascript" src="dygraphs/dist/dygraph.min.js"></script>
+    <script type="text/javascript" src="selectdata.js"></script>
+    <script type="text/javascript" src="drawgraphs.js"></script>
+
+    <style>
+    @import url(style.css);
+    </style>
+</head>
+
+<body>
+<h1>Cryptominisat 5</h1>
+
+<h3>Replacing wordy authority with visible certainty</h4>
+
+
+<p>The X axis is conflicts, Y axis is some measure of sovling.
+Every datapoint corresponds to a restart. You may zoom in by
+clicking on an interesting point and dragging the cursor along the X axis.
+Double-click to unzoom. Blue vertical lines indicate the positions of
+<i>simplification sessions</i>. Between the blue lines are <i>search
+sessions</i>. The angle of the "time" graph indicates conflicts/second.
+Simplification sessions are not detailed. However, time jumps during
+simplifcaition, and the solver behaviour changes afterwards.</p>
+
+<div class="full_selector">
+<input id="need_unfinished" type="checkbox" name="unfinished" onclick="fill_files_options();" checked>unfinished</input>
+<input id="need_SAT" type="checkbox" name="SAT" onclick="fill_files_options();" checked>satisfiable</input>
+<input id="need_UNSAT" type="checkbox" name="UNSAT" onclick="fill_files_options();" checked>unsatisfiable</input>
+&nbsp;
+&nbsp;
+<div style="display:inline;" id="total_files_info"></div>
+<br/>
+<!--<select id='version' onchange='changed_version(this.value);' style="width:20%;">
+<option value = "idtest">idtest</option>
+</select>-->
+<select id="fname" style="width:60%;">
+<option value="test">Test</option>
+</select>
+</p>
+</div>
+
+<script type="text/javascript">
+fill_files_options();
+
+$('#fname').change(function(){
+    selected_runID(jQuery("#fname option:selected").val());
+});
+
+function fill_files_options()
+{
+    link = "get_files.php?";
+    link += "unfinish=" + $('#need_unfinished')[0].checked;
+    link += "&sat=" + $('#need_SAT')[0].checked;
+    link += "&unsat=" + $('#need_UNSAT')[0].checked;
+    jQuery.getJSON(link,
+        function(data){
+            var select = document.getElementById('fname');
+            select.options.length = 0; // clear out existing items
+            var filelist = data['filelist'];
+            for(var i=0; i < filelist.length; i++) {
+                var d = filelist[i];
+                select.options.add(new Option(d.fname, d.runID));
+            }
+            var v = document.getElementById("total_files_info");
+            v.innerHTML = ""+data['numfiles']+" files";
+
+            selected_runID(jQuery("#fname option:selected").val());
+        }
+    );
+};
+
+// fill_versions();
+</script>
+
+<p id="fileinfo"></p>
+<div id="datagraphs"></div>
+
+<!-- clear out column layout -->
+<p style="clear:both"></p>
+
+<h2>Terms used</h2>
+
+<table class="gridtable">
+<tr><th>Abbreviation</th><th>Explanation</th></tr>
+<tr><td>red.</td><td>reducible, also called learnt</td></tr>
+<tr><td>irred.</td><td>irreducible, also called non-learnt</td></tr>
+<tr><td>confl</td><td>conflict reached by the solver</td></tr>
+<tr><td>learnt</td><td>clause learnt during 1UIP conflict analysis</td></tr>
+<tr><td>trail depth</td><td>depth of serach i.e. the number of variables set when the solver reached a conflict</td></tr>
+<tr><td>brach depth</td><td>the number of branches made before conflict was encountered</td></tr>
+<tr><td>trail depth delta</td><td>the number of variables we jumped back when doing conflict-directed backjumping</td></tr>
+<tr><td>branch depth delta</td><td>the number of branches jumped back during conflict-directed backjumping</td></tr>
+<tr><td>propagations/decision</td><td>number of variables set due to the
+propagation of a decision (note that there is always at least one, the variable itself)
+</td></tr>
+<tr><td>vars replaced</td><td>the number or variables replaced due to equivalent literal simplfication</td></tr>
+<tr><td>polarity flipped</td><td>polarities of variables are
+<a href="http://dx.doi.org/10.1007/978-3-540-72788-0_28">saved</a> and then used
+if branching is needed, but if propagation takes place, they are sometimes flipped
+</td></tr>
+<tr><td>std dev</td><td>standard deviation, the square root of variance</td></tr>
+<tr><td>confl by</td><td>the clause that caused the conflict</td></tr>
+<tr><td>agility</td><td>See
+<a href="http://www.inf.ucv.cl/~bcrawford/PapersAutonomousSearch_julio2008/BRODERICK_CRAWFORD_AGO_01_X.pdf">
+here</a>.</td></tr>
+<tr><td>glue</td><td>the number of different decision levels of the literals found
+in newly learnt clauses. See <a href = "http://citeseerx.ist.psu.edu/viewdoc/summary?doi=10.1.1.150.1911">
+here</a></td></tr>
+<tr><td>conflict after conflict %</td><td>How often does it happen that a conflict
+, after backtracking and propagating immeediately (i.e. without branching) leads
+to a conflict. This is displayed because it's extremely high percentage relative
+to what most would expect. Thanks to
+<a href="http://www.cril.univ-artois.fr/~jabbour/">Said Jabbour</a> for this.
+</td></tr>
+</table>
+
+<p>This webpage shows the partial solving of a SAT instance.
+I was amazed by <a href="http://www.edwardtufte.com/tufte/">Edward Tufte</a>'s
+work (hence the subtitle) and this came out of it.</p>
+
+
+<br/>
+<p><small>Copyright <a href="http://www.msoos.org">Mate Soos</a>, 2016.
+Licensed under <a href="http://creativecommons.org/licenses/by-nc-sa/2.5/">
+CC BY-NC-SA 2.5</a></small>
+</p>
+
+</body>
+</html>

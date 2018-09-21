@@ -1,0 +1,52 @@
+1) You will need:
+* MySQL server
+* MySQL libraries
+* PHP5
+* Apache
+* Chrome or Firefox, but prefer chrome, js is faster there
+
+2) create "cryptoms database" in mysql:
+
+$ mysql -u root -p PASS
+$ create database cryptoms
+
+3) create two MySQL users:
+* one "cryptomsuser" , with empty password, which can read-write to database "cryptoms"
+* one "presenter", with empty password, which can read database "cryptoms"
+
+4) run:
+
+$ mysql -u cryptomsuser cryptoms < web/tablestructure.sql
+
+this will create the table structures needed
+
+4) compile and exectute cryptoms as:
+
+$ ./cryptominisat --sql 1 MYFILE.cnf
+
+and let it run for at least 20'000 conflicts. It should run without any problems.
+If there is any problem with MySQL, it will print the exact error, errors are not
+silently ignored.
+
+5) you can now play around with the data in mysql:
+
+$ mysql -u cryptomsuser cryptoms
+$ show tables;
+$ select * from restartDB;
+
+3) Copy everything under "web" into /var/www/cryptoms and make sure that it's
+readable by apache.
+
+4) point your browser to
+
+http://localhost/cryptoms
+
+you should see the output of the last run. You can also refresh it, and if it's
+running in the background, you will see the graphs update. Note that if your
+last solving run was aborted early,and there was no data input into MySQL
+then there will be no data shown. So make sure your last run of cryptominisat
+with option "--sql 1" was meaningful, i.e. long enough.
+
+
+
+

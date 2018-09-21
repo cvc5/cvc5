@@ -1,0 +1,10 @@
+opcontrol --deinit
+opcontrol --reset
+
+#for callgraph
+opcontrol --vmlinux=/usr/lib/debug/boot/vmlinux-2.6.32-5-amd64 --callgraph=10 -i /home/soos/Development/sat_solvers/cryptominisat/build/cryptominisat --event=LLC_MISSES:200000 --event=CPU_CLK_UNHALTED:90000 --start
+
+#for l2 cache miss
+opcontrol --vmlinux=/usr/lib/debug/boot/vmlinux-2.6.32-5-amd64 --setup -i /home/soos/Development/sat_solvers/cryptominisat/build/cryptominisat --event=LLC_MISSES:300000 --callgraph=10 --start
+
+

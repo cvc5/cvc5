@@ -1,0 +1,7 @@
+#does not work
+CXX="clang++" ~/development/llvm/llvm/tools/clang/tools/scan-build/scan-build --use-cc="clang" --use-c++="clang++" -v --use-analyzer=/usr/local/bin/clang cmake ../
+
+#clang-check
+CXX="clang++" cmake -DCMAKE_EXPORT_COMPILE_COMMANDS="ON" ..
+make -j4
+clang-check -analyze ../cmsat/solver.cpp

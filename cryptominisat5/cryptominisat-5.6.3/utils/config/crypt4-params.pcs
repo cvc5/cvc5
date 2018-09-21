@@ -1,0 +1,65 @@
+#Config parametrization file for CryptoMiniSat
+#All rights reserved.
+
+#restarts
+gluehist [80,300][100]li
+blkrest {0,1}[1]
+blkrestlen [2000,10000][5000]li
+blkrestlen | blkrest in {1}
+blkrestmultip [1.1,2][1.4]
+blkrestmultip | blkrest in {1}
+burst {100,300,1000,2000}[300]
+clbtwsimp [1,5][2]li
+
+# Red clause removal
+ltclean [0.3,0.7][0.5]
+cleanconflmult {0,1,2}[1]
+lockuip [50,1000][500]i
+locktop [0,2000][0]i
+perfmult [0.00001,0.8][0.00001]l
+startclean [100,50000][10000]li
+incclean [1.02,1.8][1.1]
+
+# Variable branching
+freq[0,0.05][0]
+dompickf [100,10000][400]li
+morebump {0,1}[1]
+#topnrndpick [5,1000][20]il
+#topnrndpickfreq [0.0000001,1][0.000001]l
+
+# Variable polarity
+flippolf {0,400}[0]
+calcpolar1st {0,1} [1]
+calcpolarall {0,1} [1]
+
+# Conflict
+# recur {0,1}[1] # not a good idea to set it to 0
+moreminimcache [20,600][200]il
+moreminimbin [20,5000][100]il
+
+# Probing
+probemaxm [800,4000][1600]i
+
+# Stamping
+cachesize [1024,4096][2048]il
+
+calcreach {0,1}[1]
+cachecutoff [600,5000][2000]il
+
+# Simplification
+presimp {0,1}[0]
+elimcoststrategy {0,1}[0]
+bva2lit {0,1}[1]
+eratio [0.05,1][0.12]l
+occredmax [100,400][200]il
+
+# Equivalent literal
+sccperc [0.001,0.5][0.02]l
+
+# Misc
+viviflongmaxm [5,80][20]il
+viviffastmaxm [100,1000][400]il
+
+# turn off verbosity
+printsol {0}[0]
+#verb {0}[0]

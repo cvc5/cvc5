@@ -86,7 +86,7 @@
 #include "preprocessing/passes/ite_simp.h"
 #include "preprocessing/passes/miplib_trick.h"
 #include "preprocessing/passes/nl_ext_purify.h"
-#include "preprocessing/passes/non_clausal_simp_sat.h"
+#include "preprocessing/passes/skeleton_preprocessing.h"
 #include "preprocessing/passes/non_clausal_simp.h"
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 #include "preprocessing/passes/quantifier_macros.h"
@@ -2191,14 +2191,15 @@ void SmtEngine::setDefaults() {
   if (options::skeletonPreprocessing()
       &&  options::arithMLTrick())
   {
-    if (options::skeletonPreprocessing.wasSetByUser()
-        && options::arithMLTrick.wasSetByUser())
-    {
-      throw OptionException(std::string(
-          "Cannot use MipLibTrick when using cryptominisat instead of circuit"
-          "propagators. Try turn off --skeletonPreprocessing"));
-    }
-    else if (options::skeletonPreprocessing.wasSetByUser()){
+    //    if (options::skeletonPreprocessing.wasSetByUser()
+    //    && options::arithMLTrick.wasSetByUser())
+    //{
+    //  throw OptionException(std::string(
+    //      "Cannot use MipLibTrick when using cryptominisat instead of circuit"
+    //      "propagators. Try turn off --skeletonPreprocessing"));
+    //}
+    // else
+    if (options::skeletonPreprocessing.wasSetByUser()){
           setOption("skeleton-preprocessing", false);
     }
     else if (options::arithMLTrick.wasSetByUser()){
@@ -2614,8 +2615,6 @@ void SmtEnginePrivate::finishInit()
       new NlExtPurify(d_preprocessingPassContext.get()));
   std::unique_ptr<NonClausalSimp> nonClausalSimp(
       new NonClausalSimp(d_preprocessingPassContext.get()));
-  std::unique_ptr<NonClausalSimpSAT> nonClausalSimpSAT(
-      new NonClausalSimpSAT(d_preprocessingPassContext.get()));
   std::unique_ptr<MipLibTrick> mipLibTrick(
       new MipLibTrick(d_preprocessingPassContext.get()));
   std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
@@ -2628,6 +2627,8 @@ void SmtEnginePrivate::finishInit()
       new RealToInt(d_preprocessingPassContext.get()));
   std::unique_ptr<Rewrite> rewrite(
       new Rewrite(d_preprocessingPassContext.get()));
+  std::unique_ptr<SkeletonPreprocessing> skeletonPreprocessing(
+      new SkeletonPreprocessing(d_preprocessingPassContext.get()));
   std::unique_ptr<SortInferencePass> sortInfer(
       new SortInferencePass(d_preprocessingPassContext.get(),
                             d_smt.d_theoryEngine->getSortInference()));
@@ -2673,8 +2674,8 @@ void SmtEnginePrivate::finishInit()
                                            std::move(nlExtPurify));
   d_preprocessingPassRegistry.registerPass("non-clausal-simp",
                                             std::move(nonClausalSimp));
- d_preprocessingPassRegistry.registerPass("non-clausal-simp-sat",
-                                          std::move(nonClausalSimpSAT));
+ d_preprocessingPassRegistry.registerPass("skeleton-preprocessing",
+                                          std::move(skeletonPreprocessing));
   d_preprocessingPassRegistry.registerPass("miplib-trick",
                                            std::move(mipLibTrick));
   d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
@@ -2924,7 +2925,7 @@ bool SmtEnginePrivate::simplifyAssertions()
         else {
           // Use cryptominisat to perform non-clausal simplification
           PreprocessingPassResult res =
-              d_preprocessingPassRegistry.getPass("non-clausal-simp-sat")
+              d_preprocessingPassRegistry.getPass("skeleton-preprocessing")
                   ->apply(&d_assertions);
           if (res == PreprocessingPassResult::CONFLICT)
             {
@@ -3006,7 +3007,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
       else{
         PreprocessingPassResult res =
-            d_preprocessingPassRegistry.getPass("non-clausal-simp-sat")
+            d_preprocessingPassRegistry.getPass("skeleton-preprocessing")
                 ->apply(&d_assertions);
         if (res == PreprocessingPassResult::CONFLICT)
         {

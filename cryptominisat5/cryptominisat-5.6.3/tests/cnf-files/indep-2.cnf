@@ -1,0 +1,6 @@
+c RUN: %solver --verb=0 %s | %OutputCheck %s
+c ind 1 0
+1 2 3 0
+2 0
+c CHECK: Independent .*1
+c CHECK: ^s SATISFIABLE$
