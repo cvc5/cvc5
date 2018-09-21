@@ -32,3 +32,6 @@ find_package_handle_standard_args(LFSC
   LFSC_INCLUDE_DIR LFSC_LIBRARIES)
 
 mark_as_advanced(LFSC_INCLUDE_DIR LFSC_LIBRARIES)
+if(LFSC_LIBRARIES)
+  message(STATUS "Found LFSC libs: ${LFSC_LIBRARIES}")
+endif()

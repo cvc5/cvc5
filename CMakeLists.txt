@@ -173,15 +173,31 @@ if(ENABLE_BEST)
   cvc4_set_option(USE_READLINE ON)
 endif()
 
-#-----------------------------------------------------------------------------#
-# Static libraries
+# Only enable unit testing if assertions are enabled. Otherwise, unit tests
+# that expect AssertionException to be thrown will fail.
+if(NOT ENABLE_ASSERTIONS)
+  set(ENABLE_UNIT_TESTING OFF)
+endif()
 
+# Never build unit tests as static binaries, otherwise we'll end up with
+# ~300MB per unit test.
+if(ENABLE_UNIT_TESTING)
+  set(ENABLE_SHARED ON)
+endif()
+
+#-----------------------------------------------------------------------------#
+# Shared/static libraries
+#
 # This needs to be set before any find_package(...) command since we want to
 # search for static libraries with suffix .a.
-if(NOT ENABLE_SHARED)
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a")
-  set(CMAKE_EXE_LINKER_FLAGS "-static")
+
+if(ENABLE_SHARED)
+  set(BUILD_SHARED_LIBS ON)
+else()
+  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
   set(BUILD_SHARED_LIBS OFF)
+  # This is required to force find_package(Boost) to use static libraries.
+  set(Boost_USE_STATIC_LIBS ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -203,8 +219,6 @@ endif()
 
 set(GMP_HOME ${GMP_DIR})
 find_package(GMP REQUIRED)
-libcvc4_link_libraries(${GMP_LIBRARIES})
-libcvc4_include_directories(${GMP_INCLUDE_DIR})
 
 if(ENABLE_ASAN)
   # -fsanitize=address requires CMAKE_REQUIRED_FLAGS to be explicitely set,
@@ -220,9 +234,6 @@ if(ENABLE_ASSERTIONS)
   add_definitions(-DCVC4_ASSERTIONS)
 else()
   add_definitions(-DNDEBUG)
-  # Only enable unit testing if assertions are enabled. Otherwise, unit tests
-  # that expect AssertionException to be thrown will fail.
-  set(ENABLE_UNIT_TESTING OFF)
 endif()
 
 if(ENABLE_COVERAGE)
@@ -293,13 +304,6 @@ endif()
 
 if(ENABLE_UNIT_TESTING)
   find_package(CxxTest REQUIRED)
-  # Force shared libs for unit tests, static libs with unit tests are not
-  # working right now.
-  set(ENABLE_SHARED ON)
-endif()
-
-if(ENABLE_SHARED)
-  set(BUILD_SHARED_LIBS ON)
 endif()
 
 if(ENABLE_STATISTICS)
@@ -308,31 +312,24 @@ endif()
 
 if(ENABLE_VALGRIND)
   find_package(Valgrind REQUIRED)
-  libcvc4_include_directories(${Valgrind_INCLUDE_DIR})
   add_definitions(-DCVC4_VALGRIND)
 endif()
 
 if(USE_ABC)
   set(ABC_HOME "${ABC_DIR}")
   find_package(ABC REQUIRED)
-  libcvc4_link_libraries(${ABC_LIBRARIES})
-  libcvc4_include_directories(${ABC_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_ABC ${ABC_ARCH_FLAGS})
 endif()
 
 if(USE_CADICAL)
   set(CaDiCaL_HOME ${CADICAL_DIR})
   find_package(CaDiCaL REQUIRED)
-  libcvc4_link_libraries(${CaDiCaL_LIBRARIES})
-  libcvc4_include_directories(${CaDiCaL_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_CADICAL)
 endif()
 
 if(USE_CLN)
   set(GPL_LIBS "${GPL_LIBS} cln")
   find_package(CLN 1.2.2 REQUIRED)
-  libcvc4_link_libraries(${CLN_LIBRARIES})
-  libcvc4_include_directories(${CLN_INCLUDE_DIR})
   set(CVC4_USE_CLN_IMP 1)
   set(CVC4_USE_GMP_IMP 0)
 else()
@@ -349,8 +346,6 @@ if(USE_CRYPTOMINISAT)
   endif()
   set(CryptoMiniSat_HOME ${CRYPTOMINISAT_DIR})
   find_package(CryptoMiniSat REQUIRED)
-  libcvc4_link_libraries(${CryptoMiniSat_LIBRARIES})
-  libcvc4_include_directories(${CryptoMiniSat_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
@@ -358,8 +353,6 @@ if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
   set(GLPK_HOME ${GLPK_DIR})
   find_package(GLPK REQUIRED)
-  libcvc4_link_libraries(${GLPK_LIBRARIES})
-  libcvc4_include_directories(${GLPK_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_GLPK)
 endif()
 
@@ -367,8 +360,6 @@ if(USE_LFSC)
   set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --with-lfsc)
   set(LFSC_HOME ${LFSC_DIR})
   find_package(LFSC REQUIRED)
-  libcvc4_link_libraries(${LFSC_LIBRARIES})
-  libcvc4_include_directories(${LFSC_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_LFSC)
 endif()
 
@@ -384,7 +375,6 @@ endif()
 if(USE_SYMFPU)
   set(SymFPU_HOME ${SYMFPU_DIR})
   find_package(SymFPU REQUIRED)
-  libcvc4_include_directories(${SymFPU_INCLUDE_DIR})
   add_definitions(-DCVC4_USE_SYMFPU)
   set(CVC4_USE_SYMFPU 1)
 else()

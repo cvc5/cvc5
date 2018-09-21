@@ -16,8 +16,8 @@ set(libmain_src_files
 
 add_library(main OBJECT ${libmain_src_files})
 target_compile_definitions(main PRIVATE -D__BUILDING_CVC4DRIVER)
-if(BUILD_SHARED_LIBS)
-  set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE 1)
+if(ENABLE_SHARED)
+  set_target_properties(main PROPERTIES POSITION_INDEPENDENT_CODE ON)
 endif()
 
 # We can't use target_link_libraries(...) here since this is only supported for
@@ -26,6 +26,7 @@ endif()
 # dependencies are not propagated and we need to manually add the include
 # directories of libcvc4 to main.
 add_dependencies(main cvc4 cvc4parser gen-tokens)
+get_target_property(LIBCVC4_INCLUDES cvc4 INCLUDE_DIRECTORIES)
 target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 
 # main-test library is only used for linking against system and unit tests so
@@ -45,6 +46,16 @@ set_target_properties(cvc4-bin
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
 install(TARGETS cvc4-bin DESTINATION bin)
+
+# In order to get a fully static executable we have to make sure that we also
+# use the static system libraries.
+#   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
+#   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
+if(NOT ENABLE_SHARED)
+  set_target_properties(cvc4-bin PROPERTIES LINK_FLAGS -static)
+  set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
+  set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
+endif()
 
 if(ENABLE_PORTFOLIO)
   set(pcvc4_src_files
@@ -66,6 +77,12 @@ if(ENABLE_PORTFOLIO)
   target_link_libraries(pcvc4-bin cvc4 cvc4parser ${Boost_LIBRARIES})
   target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
   install(TARGETS pcvc4-bin DESTINATION bin)
+
+  if(NOT ENABLE_SHARED)
+    set_target_properties(pcvc4-bin PROPERTIES LINK_FLAGS -static)
+    set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
+    set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
+  endif()
 endif()
 
 if(USE_READLINE)

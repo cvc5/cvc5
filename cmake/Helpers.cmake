@@ -120,21 +120,6 @@ macro(print_config str var)
 endmacro()
 
 
-#-----------------------------------------------------------------------------#
-# libcvc4 helper macros
-
-# Collect all libraries that must be linked against libcvc4. These will be
-# actually linked in src/CMakeLists.txt with target_link_libaries(...).
-macro(libcvc4_link_libraries library)
-  set(LIBCVC4_LIBRARIES ${LIBCVC4_LIBRARIES} ${library})
-endmacro()
-
-# Collect all include directories that are required for libcvc4. These will be
-# actually included in src/CMakeLists.txt with target_include_directories(...).
-macro(libcvc4_include_directories dirs)
-  set(LIBCVC4_INCLUDES ${LIBCVC4_INCLUDES} ${dirs})
-endmacro()
-
 # Collect all source files that are required to build libcvc4 in LIBCVC4_SRCS
 # or LIBCVC4_GEN_SRCS. If GENERATED is the first argument the sources are
 # added to LIBCVC4_GEN_SRCS. All sources are prepended with the absolute
