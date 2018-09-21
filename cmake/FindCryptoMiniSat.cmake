@@ -32,3 +32,6 @@ find_package_handle_standard_args(CryptoMiniSat
   CryptoMiniSat_INCLUDE_DIR CryptoMiniSat_LIBRARIES)
 
 mark_as_advanced(CryptoMiniSat_INCLUDE_DIR CryptoMiniSat_LIBRARIES)
+if(CryptoMiniSat_LIBRARIES)
+  message(STATUS "Found CryptoMiniSat libs: ${CryptoMiniSat_LIBRARIES}")
+endif()

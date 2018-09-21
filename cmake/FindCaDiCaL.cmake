@@ -32,3 +32,6 @@ find_package_handle_standard_args(CaDiCaL
   CaDiCaL_INCLUDE_DIR CaDiCaL_LIBRARIES)
 
 mark_as_advanced(CaDiCaL_INCLUDE_DIR CaDiCaL_LIBRARIES)
+if(CaDiCaL_LIBRARIES)
+  message(STATUS "Found CaDiCaL libs: ${CaDiCaL_LIBRARIES}")
+endif()

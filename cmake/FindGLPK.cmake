@@ -44,3 +44,6 @@ find_package_handle_standard_args(GLPK
   GLPK_INCLUDE_DIR GLPK_LIBRARIES)
 
 mark_as_advanced(GLPK_INCLUDE_DIR GLPK_LIBRARIES)
+if(GLPK_LIBRARIES)
+  message(STATUS "Found GLPK libs: ${GLPK_LIBRARIES}")
+endif()

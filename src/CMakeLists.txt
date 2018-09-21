@@ -660,7 +660,6 @@ include_directories(. ${CMAKE_CURRENT_BINARY_DIR})
 
 add_subdirectory(base)
 add_subdirectory(expr)
-add_subdirectory(main)
 add_subdirectory(options)
 add_subdirectory(parser)
 add_subdirectory(theory)
@@ -672,6 +671,7 @@ add_subdirectory(util)
 
 set_source_files_properties(${LIBCVC4_GEN_SRCS} PROPERTIES GENERATED TRUE)
 add_library(cvc4 ${LIBCVC4_SRCS} ${LIBCVC4_GEN_SRCS})
+install(TARGETS cvc4 DESTINATION lib)
 
 set_target_properties(cvc4 PROPERTIES SOVERSION ${CVC4_SOVERSION})
 target_compile_definitions(cvc4
@@ -682,10 +682,53 @@ target_compile_definitions(cvc4
 )
 # Add libcvc4 dependencies for generated sources.
 add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
-target_link_libraries(cvc4 ${LIBCVC4_LIBRARIES})
-target_include_directories(cvc4 PUBLIC ${LIBCVC4_INCLUDES})
-install(TARGETS cvc4 DESTINATION lib)
 
+# Add library/include dependencies
+if(ENABLE_VALGRIND)
+  target_include_directories(cvc4 PUBLIC ${Valgrind_INCLUDE_DIR})
+endif()
+if(USE_ABC)
+  target_link_libraries(cvc4 ${ABC_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${ABC_INCLUDE_DIR})
+endif()
+if(USE_CADICAL)
+  target_link_libraries(cvc4 ${CaDiCaL_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${CaDiCaL_INCLUDE_DIR})
+endif()
+if(USE_CLN)
+  target_link_libraries(cvc4 ${CLN_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${CLN_INCLUDE_DIR})
+endif()
+if(USE_CRYPTOMINISAT)
+  target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${CryptoMiniSat_INCLUDE_DIR})
+endif()
+if(USE_GLPK)
+  target_link_libraries(cvc4 ${GLPK_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${GLPK_INCLUDE_DIR})
+endif()
+if(USE_LFSC)
+  target_link_libraries(cvc4 ${LFSC_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${LFSC_INCLUDE_DIR})
+endif()
+if(USE_SYMFPU)
+  target_include_directories(cvc4 PUBLIC ${SymFPU_INCLUDE_DIR})
+endif()
+
+# Note: When linked statically GMP needs to be linked after CLN since CLN
+# depends on GMP.
+target_link_libraries(cvc4 ${GMP_LIBRARIES})
+target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
+
+#-----------------------------------------------------------------------------#
+# Visit main subdirectory after creating target cvc4. For target main, we have
+# to manually add library dependencies since we can't use
+# target_link_libraries(...) with object libraries for cmake versions <= 3.12.
+# Thus, we can only visit main as soon as all dependencies for cvc4 are set up.
+
+add_subdirectory(main)
+
+#-----------------------------------------------------------------------------#
 # Note:
 # We define all install commands for all public headers here in one
 # place so that we can easily remove them as soon as we enforce the new

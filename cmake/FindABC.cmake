@@ -36,3 +36,6 @@ find_package_handle_standard_args(ABC
   ABC_INCLUDE_DIR ABC_LIBRARIES ABC_ARCH_FLAGS)
 
 mark_as_advanced(ABC_INCLUDE_DIR ABC_LIBRARIES ABC_ARCH_FLAGS)
+if(ABC_LIBRARIES)
+  message(STATUS "Found ABC libs: ${ABC_LIBRARIES}")
+endif()

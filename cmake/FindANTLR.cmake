@@ -48,3 +48,6 @@ find_package_handle_standard_args(
 
 mark_as_advanced(ANTLR_BINARY ANTLR_INCLUDE_DIR ANTLR_LIBRARIES
                  HAVE_ANTLR3_FILE_STREAM_NEW)
+if(ANTLR_LIBRARIES)
+  message(STATUS "Found ANTLR libs: ${ANTLR_LIBRARIES}")
+endif()
