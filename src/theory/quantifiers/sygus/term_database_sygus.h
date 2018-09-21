@@ -83,8 +83,7 @@ class TermDbSygus {
                           SynthConjecture* conj,
                           bool mkActiveGuard = false,
                           bool useSymbolicCons = false,
-                          bool isVarAgnostic = false
-                         );
+                          bool isVarAgnostic = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -282,7 +281,7 @@ class TermDbSygus {
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
   /** enumerators to whether they are variable agnostic */
-  std::map<Node, bool > d_enum_var_agnostic;
+  std::map<Node, bool> d_enum_var_agnostic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin

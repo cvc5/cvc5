@@ -565,7 +565,7 @@ void TermDbSygus::registerEnumerator(Node e,
   Trace("sygus-db") << "  ...finished" << std::endl;
 
   d_enum_var_agnostic[e] = isVarAgnostic;
-  if( isVarAgnostic )
+  if (isVarAgnostic)
   {
     // if not done so already, compute type class identifiers for each variable
     if (d_var_subclass_id.find(et) == d_var_subclass_id.end())
