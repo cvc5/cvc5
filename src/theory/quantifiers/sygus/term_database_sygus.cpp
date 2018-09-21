@@ -576,6 +576,15 @@ void TermDbSygus::registerEnumerator(Node e,
       // 0 is reserved for "no type class id"
       unsigned typeIdCount = 1;
       tnit.assignIds(d_var_subclass_id[et], typeIdCount);
+      // assign the list and reverse map to index
+      for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
+      {
+        Node v = to.first;
+        unsigned sc = d_var_subclass_id[et][v];
+        Trace("sygus-db") << v << " has subclass id " << sc << std::endl;
+        d_var_subclass_list_index[et][v] = d_var_subclass_list[et][sc].size();
+        d_var_subclass_list[et][sc].push_back(v);
+      }
     }
   }
 }
@@ -954,7 +963,7 @@ bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
   return d_has_subterm_sym_cons.find(tn) != d_has_subterm_sym_cons.end();
 }
 
-unsigned TermDbSygus::getSubclassIdForVar(TypeNode tn, Node n) const
+unsigned TermDbSygus::getSubclassForVar(TypeNode tn, Node n) const
 {
   std::map<TypeNode, std::map<Node, unsigned> >::const_iterator itc =
       d_var_subclass_id.find(tn);
@@ -972,6 +981,51 @@ unsigned TermDbSygus::getSubclassIdForVar(TypeNode tn, Node n) const
   return itcc->second;
 }
 
+unsigned TermDbSygus::getNumSubclassVars(TypeNode tn, unsigned sc) const
+{
+  std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::const_iterator itv = d_var_subclass_list.find(tn);
+  if( itv==d_var_subclass_list.end() )
+  {
+    return 0;
+  }
+  std::map< unsigned, std::vector< Node > >::const_iterator itvv = itv->second.find(sc);
+  if( itvv==itv->second.end() )
+  {
+    return 0;
+  }
+  return itvv->second.size();
+}
+Node TermDbSygus::getVarSubclassIndex( TypeNode tn, unsigned sc, unsigned i ) const
+{
+  std::map< TypeNode, std::map< unsigned, std::vector< Node > > >::const_iterator itv = d_var_subclass_list.find(tn);
+  if( itv==d_var_subclass_list.end() )
+  {
+    return Node::null();
+  }
+  std::map< unsigned, std::vector< Node > >::const_iterator itvv = itv->second.find(sc);
+  if( itvv==itv->second.end() || i>=itvv->second.size())
+  {
+    return Node::null();
+  }
+  return itvv->second[i];
+}
+
+bool TermDbSygus::getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const
+{
+  std::map< TypeNode, std::map< Node, unsigned > >::const_iterator itv = d_var_subclass_list_index.find(tn);
+  if( itv==d_var_subclass_list_index.end() )
+  {
+    return false;
+  }
+  std::map< Node, unsigned >::const_iterator itvv = itv->second.find(v);
+  if( itvv==itv->second.end() )
+  {
+    return false;
+  }
+  index = itvv->second;
+  return true;
+}
+  
 bool TermDbSygus::isSymbolicConsApp(Node n) const
 {
   if (n.getKind() != APPLY_CONSTRUCTOR)

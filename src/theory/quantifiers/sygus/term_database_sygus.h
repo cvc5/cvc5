@@ -360,6 +360,10 @@ class TermDbSygus {
    * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
    */
   std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
+  /** the list of variables with given subclass */
+  std::map< TypeNode, std::map< unsigned, std::vector< Node > > > d_var_subclass_list;
+  /** the index of each variable in the above list */
+  std::map< TypeNode, std::map< Node, unsigned > > d_var_subclass_list_index;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
@@ -405,6 +409,7 @@ class TermDbSygus {
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;
+  //--------------------------------- variable subclasses 
   /** Get subclass id for variable
    *
    * This returns the "subclass" identifier for variable v in sygus
@@ -428,7 +433,20 @@ class TermDbSygus {
    * The type tn should be a (top-level) type of an enumerator registered to
    * this database.
    */
-  unsigned getSubclassIdForVar(TypeNode tn, Node v) const;
+  unsigned getSubclassForVar(TypeNode tn, Node v) const;
+  /** 
+   * Get the number of variable in the subclass with identifier sc for type tn. 
+   */
+  unsigned getNumSubclassVars(TypeNode tn, unsigned sc) const;
+  /** Get the i^th variable in the subclass with identifier sc for type tn */
+  Node getVarSubclassIndex( TypeNode tn, unsigned sc, unsigned i ) const;
+  /** 
+   * Get the a variable's index in its subclass list. This method returns true
+   * iff variable v has been assigned a subclass in tn. It updates index to
+   * be v's index iff the method returns true.
+   */
+  bool getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const;
+  //--------------------------------- end variable subclasses 
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind
