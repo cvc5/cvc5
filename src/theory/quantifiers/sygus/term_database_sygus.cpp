@@ -465,7 +465,8 @@ void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
                                      bool mkActiveGuard,
-                                     bool useSymbolicCons)
+                                     bool useSymbolicCons,
+                                     bool isVarAgnostic)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -481,15 +482,7 @@ void TermDbSygus::registerEnumerator(Node e,
   NodeManager* nm = NodeManager::currentNM();
   if( mkActiveGuard ){
     // make the guard
-    Node eg = Rewriter::rewrite(nm->mkSkolem("eG", nm->booleanType()));
-    eg = d_quantEngine->getValuation().ensureLiteral( eg );
-    AlwaysAssert( !eg.isNull() );
-    d_quantEngine->getOutputChannel().requirePhase( eg, true );
-    //add immediate lemma
-    Node lem = nm->mkNode(OR, eg, eg.negate());
-    Trace("cegqi-lemma") << "Cegqi::Lemma : enumerator : " << lem << std::endl;
-    d_quantEngine->getOutputChannel().lemma( lem );
-    d_enum_to_active_guard[e] = eg;
+    d_enum_to_active_guard[e] = nm->mkSkolem("eG", nm->booleanType());
   }
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
@@ -571,18 +564,22 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  // if not done so already, compute type class identifiers for each variable
-  if (d_var_subclass_id.find(et) == d_var_subclass_id.end())
+  d_enum_var_agnostic[e] = isVarAgnostic;
+  if( isVarAgnostic )
   {
-    d_var_subclass_id[et].clear();
-    TypeNodeIdTrie tnit;
-    for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
+    // if not done so already, compute type class identifiers for each variable
+    if (d_var_subclass_id.find(et) == d_var_subclass_id.end())
     {
-      tnit.add(to.first, to.second);
+      d_var_subclass_id[et].clear();
+      TypeNodeIdTrie tnit;
+      for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
+      {
+        tnit.add(to.first, to.second);
+      }
+      // 0 is reserved for "no type class id"
+      unsigned typeIdCount = 1;
+      tnit.assignIds(d_var_subclass_id[et], typeIdCount);
     }
-    // 0 is reserved for "no type class id"
-    unsigned typeIdCount = 1;
-    tnit.assignIds(d_var_subclass_id[et], typeIdCount);
   }
 }
 
@@ -624,6 +621,16 @@ bool TermDbSygus::usingSymbolicConsForEnumerator(Node e) const
 {
   std::map<Node, bool>::const_iterator itus = d_enum_to_using_sym_cons.find(e);
   if (itus != d_enum_to_using_sym_cons.end())
+  {
+    return itus->second;
+  }
+  return false;
+}
+
+bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
+{
+  std::map<Node, bool>::const_iterator itus = d_enum_var_agnostic.find(e);
+  if (itus != d_enum_var_agnostic.end())
   {
     return itus->second;
   }
