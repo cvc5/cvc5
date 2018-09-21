@@ -345,12 +345,12 @@ class TermDbSygus {
    * for this type.
    */
   std::map<TypeNode, bool> d_has_subterm_sym_cons;
-  /** 
+  /**
    * Map from sygus types and bound variables to their type subclass id. Note
    * type class identifiers are computed for each type of registered sygus
    * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
    */
-  std::map< TypeNode, std::map< Node, unsigned > > d_var_subclass_id;
+  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
@@ -396,13 +396,13 @@ class TermDbSygus {
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;
-  /** Get subclass id for variable 
-   * 
+  /** Get subclass id for variable
+   *
    * This returns the "subclass" identifier for variable v in sygus
    * type tn. A subclass identifier groups variables based on the sygus
    * types they occur in:
    *   A -> A + B | C + C | x | y | z | w | u
-   *   B -> y | z 
+   *   B -> y | z
    *   C -> u
    * The variables in this grammar can be grouped according to the sygus types
    * they appear in:
@@ -410,16 +410,16 @@ class TermDbSygus {
    *   { y,z } occur in A,B
    *   { u } occurs in A,C
    * We say that e.g. x, w are in the same subclass.
-   * 
+   *
    * If this method returns 0, then v is not a variable in sygus type tn.
-   * Otherwise, this method returns a positive value n, such that 
+   * Otherwise, this method returns a positive value n, such that
    * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
    * same subclass.
-   * 
+   *
    * The type tn should be a (top-level) type of an enumerator registered to
    * this database.
    */
-  unsigned getSubclassIdForVar( TypeNode tn, Node v ) const;
+  unsigned getSubclassIdForVar(TypeNode tn, Node v) const;
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind

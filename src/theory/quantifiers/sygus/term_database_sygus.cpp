@@ -427,36 +427,36 @@ class TypeNodeIdTrie
 {
  public:
   /** children of this node */
-  std::map< TypeNode, TypeNodeIdTrie > d_children;
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
   /** the data stored at this node */
-  std::vector< Node > d_data;
+  std::vector<Node> d_data;
   /** add v to this trie, indexed by types */
-  void add( Node v, std::vector< TypeNode >& types )
+  void add(Node v, std::vector<TypeNode>& types)
   {
-    TypeNodeIdTrie * tnt = this;
-    for( unsigned i=0, size = types.size(); i<size; i++ )
+    TypeNodeIdTrie* tnt = this;
+    for (unsigned i = 0, size = types.size(); i < size; i++)
     {
       tnt = &tnt->d_children[types[i]];
     }
     tnt->d_data.push_back(v);
   }
-  /** 
+  /**
    * Assign each node in this trie an identifier such that
    * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
    */
-  void assignIds( std::map< Node, unsigned >& assign, unsigned& idCount )
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
   {
-    if( !d_data.empty() )
+    if (!d_data.empty())
     {
-      for( const Node& v : d_data )
+      for (const Node& v : d_data)
       {
         assign[v] = idCount;
       }
       idCount++;
     }
-    for( std::pair< const TypeNode, TypeNodeIdTrie >& c : d_children )
+    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
     {
-      c.second.assignIds(assign,idCount);
+      c.second.assignIds(assign, idCount);
     }
   }
 };
@@ -500,10 +500,10 @@ void TermDbSygus::registerEnumerator(Node e,
   std::vector<TypeNode> sf_types;
   getSubfieldTypes(et, sf_types);
   // maps variables to the list of subfield types they occur in
-  std::map< Node, std::vector< TypeNode > > type_occurs;
-  std::map< TypeNode, std::vector< Node > >::iterator itv = d_var_list.find( et );
-  Assert( itv!=d_var_list.end() );
-  for( const Node& v : itv->second )
+  std::map<Node, std::vector<TypeNode> > type_occurs;
+  std::map<TypeNode, std::vector<Node> >::iterator itv = d_var_list.find(et);
+  Assert(itv != d_var_list.end());
+  for (const Node& v : itv->second)
   {
     type_occurs[v].clear();
   }
@@ -519,22 +519,22 @@ void TermDbSygus::registerEnumerator(Node e,
     for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
     {
       Expr sop = dt[i].getSygusOp();
-      Assert( !sop.isNull() );
-      bool isAnyC = static_cast<int>(i)==anyC;
-      Node sopn = Node::fromExpr( sop );
-      if( type_occurs.find(sopn)!=type_occurs.end() )
+      Assert(!sop.isNull());
+      bool isAnyC = static_cast<int>(i) == anyC;
+      Node sopn = Node::fromExpr(sop);
+      if (type_occurs.find(sopn) != type_occurs.end())
       {
         // if it is a variable, store that it occurs in stn
         type_occurs[sopn].push_back(stn);
       }
-      else if( isAnyC && !useSymbolicCons )
+      else if (isAnyC && !useSymbolicCons)
       {
         // if we are not using the any constant constructor
         // do not use the symbolic constructor
         rm_guards.push_back(Node::null());
         rm_indices.push_back(i);
       }
-      else if( anyC!=-1 && !isAnyC && useSymbolicCons )
+      else if (anyC != -1 && !isAnyC && useSymbolicCons)
       {
         // if we are using the any constant constructor, do not use any
         // concrete constant
@@ -570,19 +570,19 @@ void TermDbSygus::registerEnumerator(Node e,
     }
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
-  
+
   // if not done so already, compute type class identifiers for each variable
-  if( d_var_subclass_id.find(et)==d_var_subclass_id.end() )
+  if (d_var_subclass_id.find(et) == d_var_subclass_id.end())
   {
     d_var_subclass_id[et].clear();
     TypeNodeIdTrie tnit;
-    for( std::pair< const Node, std::vector< TypeNode > >& to : type_occurs )
+    for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
     {
-      tnit.add(to.first,to.second);
+      tnit.add(to.first, to.second);
     }
     // 0 is reserved for "no type class id"
     unsigned typeIdCount = 1;
-    tnit.assignIds(d_var_subclass_id[et],typeIdCount);
+    tnit.assignIds(d_var_subclass_id[et], typeIdCount);
   }
 }
 
@@ -950,18 +950,19 @@ bool TermDbSygus::hasSubtermSymbolicCons(TypeNode tn) const
   return d_has_subterm_sym_cons.find(tn) != d_has_subterm_sym_cons.end();
 }
 
-unsigned TermDbSygus::getSubclassIdForVar( TypeNode tn, Node n ) const
+unsigned TermDbSygus::getSubclassIdForVar(TypeNode tn, Node n) const
 {
-  std::map< TypeNode, std::map< Node, unsigned > >::const_iterator itc = d_var_subclass_id.find(tn);
-  if( itc==d_var_subclass_id.end() )
+  std::map<TypeNode, std::map<Node, unsigned> >::const_iterator itc =
+      d_var_subclass_id.find(tn);
+  if (itc == d_var_subclass_id.end())
   {
-    Assert( false );
+    Assert(false);
     return 0;
   }
-  std::map< Node, unsigned >::const_iterator itcc = itc->second.find(n);
-  if( itcc==itc->second.end() )
+  std::map<Node, unsigned>::const_iterator itcc = itc->second.find(n);
+  if (itcc == itc->second.end())
   {
-    Assert( false);
+    Assert(false);
     return 0;
   }
   return itcc->second;
