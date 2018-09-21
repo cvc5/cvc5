@@ -405,14 +405,18 @@ class DtSygusEvalTypeRule
   }
 }; /* class DtSygusEvalTypeRule */
 
-
-class DtSygusCtnTypeRule {
+class DtSygusCtnTypeRule
+{
  public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
-                                     bool check) {
-    if (check) {
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    if (check)
+    {
       TypeNode tn = n[0].getType();
-      if (!tn.isDatatype()) {
+      if (!tn.isDatatype())
+      {
         throw TypeCheckingExceptionPrivate(
             n, "dt sygus contains expects a datatype as first argument");
       }
@@ -423,10 +427,12 @@ class DtSygusCtnTypeRule {
             n, "dt sygus contains expects a sygus datatype as first argument");
       }
       TypeNode stn = TypeNode::fromType(dt.getSygusType());
-      if (n[1].getType()!=stn)
+      if (n[1].getType() != stn)
       {
-        throw TypeCheckingExceptionPrivate(
-            n, "dt sygus contains expects a variable whose type is the analog type of the first argument");
+        throw TypeCheckingExceptionPrivate(n,
+                                           "dt sygus contains expects a "
+                                           "variable whose type is the analog "
+                                           "type of the first argument");
       }
     }
     return nodeManager->booleanType();

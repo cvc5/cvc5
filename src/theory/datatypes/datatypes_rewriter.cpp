@@ -45,20 +45,20 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
     {
       std::vector<Node> children;
-      for (unsigned i = 0, size = in[0].getNumChildren(); i < size; i++)
+      for (unsigned i = 0, size = in [0].getNumChildren(); i < size; i++)
       {
         TypeNode ct = in[0][i].getType();
         if (ct.isDatatype())
         {
-          if( k == DT_SIZE )
+          if (k == DT_SIZE)
           {
             children.push_back(nm->mkNode(DT_SIZE, in[0][i]));
           }
-          else if( k == DT_SYGUS_CTN )
+          else if (k == DT_SYGUS_CTN)
           {
-            if( ct.getDatatype().isSygus() )
+            if (ct.getDatatype().isSygus())
             {
-              children.push_back(nm->mkNode(DT_SYGUS_CTN, in[0][i], in[1] ));
+              children.push_back(nm->mkNode(DT_SYGUS_CTN, in[0][i], in[1]));
             }
           }
         }
@@ -68,30 +68,32 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       const Datatype& dt = Datatype::datatypeOf(constructor.toExpr());
       const DatatypeConstructor& c = dt[constructorIndex];
       Node res;
-      if( k==DT_SIZE )
+      if (k == DT_SIZE)
       {
         unsigned weight = c.getWeight();
         children.push_back(nm->mkConst(Rational(weight)));
         res = children.size() == 1 ? children[0] : nm->mkNode(PLUS, children);
       }
-      else if( k == DT_SYGUS_CTN )
+      else if (k == DT_SYGUS_CTN)
       {
-        if( dt.isSygus() )
+        if (dt.isSygus())
         {
-          Node sop = Node::fromExpr( c.getSygusOp() );
-          if( sop==in[1] )
+          Node sop = Node::fromExpr(c.getSygusOp());
+          if (sop == in[1])
           {
             res = nm->mkConst(true);
           }
         }
-        if( res.isNull() )
+        if (res.isNull())
         {
-          res = children.empty() ? nm->mkConst(false) : ( children.size()==1 ? children[0] : nm->mkNode( OR, children ) );
+          res = children.empty()
+                    ? nm->mkConst(false)
+                    : (children.size() == 1 ? children[0]
+                                            : nm->mkNode(OR, children));
         }
       }
-      Trace("datatypes-rewrite")
-          << "DatatypesRewriter::postRewrite: rewrite " << in << " to "
-          << res << std::endl;
+      Trace("datatypes-rewrite") << "DatatypesRewriter::postRewrite: rewrite "
+                                 << in << " to " << res << std::endl;
       return RewriteResponse(REWRITE_AGAIN_FULL, res);
     }
   }
