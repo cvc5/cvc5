@@ -207,6 +207,14 @@ private:
   };
   /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
+  /** pre/post traversal predicates for each type */
+  std::map< TypeNode, std::map< Node, Node > > d_traversal_pred[2];
+  /** traversal applications to Boolean variables */
+  std::map< Node, Node > d_traversal_bool;
+  /** get traversal predicate */
+  Node getTraversalPredicate(TypeNode tn, Node n, bool isPre);
+  /** eliminate traversal predicates */
+  Node eliminateTraversalPredicates(Node n);
   /** a sygus sampler object for each (anchor, sygus type) pair
    *
    * This is used for the sygusRewVerify() option to verify the correctness of
@@ -396,15 +404,22 @@ private:
    * where t is a search term, see registerSearchTerm for definition of search
    * term.
    *
-   * usingSymCons is whether we are using symbolic constructors for subterms in
-   * the type tn. This may affect the form of the predicate we construct.
+   * usingSymCons: whether we are using symbolic constructors for subterms in
+   * the type tn,
+   * isVarAgnostic: whether the terms we are enumerating are agnostic to
+   * variables.
+   * 
+   * The latter two options may affect the form of the predicate we construct.
    */
-  Node getSimpleSymBreakPred(TypeNode tn,
+  Node getSimpleSymBreakPred(Node e,
+                             TypeNode tn,
                              int tindex,
                              unsigned depth,
-                             bool usingSymCons);
+                             bool usingSymCons,
+                             bool isVarAgnostic
+                            );
   /** Cache of the above function */
-  std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>
+  std::map< Node, std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>>
       d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
