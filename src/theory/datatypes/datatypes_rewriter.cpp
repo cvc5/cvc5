@@ -42,10 +42,10 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   }
   else if (k == DT_SIZE || k == DT_CTN)
   {
-    if (k==DT_CTN && in[0] == in[1])
+    if (k == DT_CTN && in[0] == in[1])
     {
       Node res = nm->mkConst(true);
-      return RewriteResponse(REWRITE_DONE,res);
+      return RewriteResponse(REWRITE_DONE, res);
     }
     if (in[0].getKind() == APPLY_CONSTRUCTOR)
     {
@@ -66,9 +66,9 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         }
         else
         {
-          if( k==DT_CTN )
+          if (k == DT_CTN)
           {
-            if( ct.isComparableTo(in[1].getType()) )
+            if (ct.isComparableTo(in[1].getType()))
             {
               children.push_back(in[0][i].eqNode(in[1]));
             }

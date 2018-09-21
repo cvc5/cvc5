@@ -1293,7 +1293,6 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
       if (!checkValue(prog, progv, isVarAgnostic, 0, lemmas))
       {
-
       }else{
         //debugging : ensure fairness was properly handled
         if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
@@ -1314,7 +1313,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( options::sygusSymBreakDynamic() ){
-          // check that it is unique up to theory-specific rewriting and conjecture-specific symmetry breaking.
+          // check that it is unique up to theory-specific rewriting and
+          // conjecture-specific symmetry breaking.
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
           if (rsv.isNull())
           {
@@ -1352,11 +1352,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 }
 
-bool SygusSymBreakNew::checkValue(Node n,
-                                    Node vn,
-                                    bool isVarAgnostic,
-                                    int ind,
-                                    std::vector<Node>& lemmas)
+bool SygusSymBreakNew::checkValue(
+    Node n, Node vn, bool isVarAgnostic, int ind, std::vector<Node>& lemmas)
 {
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
@@ -1364,19 +1361,21 @@ bool SygusSymBreakNew::checkValue(Node n,
     Assert(!vn.getType().isDatatype());
     return true;
   }
-  NodeManager * nm = NodeManager::currentNM();
-  if( Trace.isOn("sygus-sb-check-value") ){
-    Node prog_sz = nm->mkNode( DT_SIZE, n );
+  NodeManager* nm = NodeManager::currentNM();
+  if (Trace.isOn("sygus-sb-check-value"))
+  {
+    Node prog_sz = nm->mkNode(DT_SIZE, n);
     Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
     for( int i=0; i<ind; i++ ){
       Trace("sygus-sb-check-value") << "  ";
     }
-    Trace("sygus-sb-check-value") << n << " : " << vn << " : " << prog_szv << std::endl;
+    Trace("sygus-sb-check-value")
+        << n << " : " << vn << " : " << prog_szv << std::endl;
   }
   TypeNode tn = n.getType();
   const Datatype& dt = tn.getDatatype();
-  Assert( dt.isSygus() );
-  
+  Assert(dt.isSygus());
+
   // ensure that the expected size bound is met
   int cindex = DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
@@ -1388,23 +1387,30 @@ bool SygusSymBreakNew::checkValue(Node n,
   }
   if (!hastst || tstrep != d_true)
   {
-    Trace("sygus-check-value") << "- has tester : " << tst << " : " << ( hastst ? "true" : "false" );
+    Trace("sygus-check-value")
+        << "- has tester : " << tst << " : " << (hastst ? "true" : "false");
     Trace("sygus-check-value") << ", value=" << tstrep << std::endl;
     if( !hastst ){
-      // This should not happen generally, it is caused by a sygus term not being assigned a tester.
+      // This should not happen generally, it is caused by a sygus term not
+      // being assigned a tester.
       Node split = DatatypesRewriter::mkSplit(n, dt);
-      Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << n << "." << std::endl;
+      Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered "
+                           "missing split for "
+                        << n << "." << std::endl;
       Assert( !split.isNull() );
       lemmas.push_back( split );
       return false;
     }
   }
-  if( isVarAgnostic && vn.getNumChildren()==0 )
+  if (isVarAgnostic && vn.getNumChildren() == 0)
   {
     // check that it is ordered
   }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL,
+        Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
+        n);
     if (!checkValue(sel, vn[i], isVarAgnostic, ind + 1, lemmas))
     {
       return false;
