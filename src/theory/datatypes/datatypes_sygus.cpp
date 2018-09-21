@@ -439,8 +439,73 @@ Node SygusSymBreakNew::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 
 Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
 {
-  // TODO
-  return n;
+  NodeManager * nm = NodeManager::currentNM();
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::map<Node, Node>::iterator ittb;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push(n);
+  do 
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) 
+    {
+      if( cur.getKind()==APPLY_UF )
+      {
+        Assert( cur.getType().isBoolean() );
+        Assert( cur.getNumChildren()==1 && ( cur[0].isVar() || cur[0].getKind()==APPLY_SELECTOR_TOTAL ) );
+        ittb = d_traversal_bool.find(cur);
+        Node ret;
+        if( ittb==d_traversal_bool.end() )
+        {
+          ret = nm->mkSkolem("tpred",cur.getType());
+        }
+        else
+        {
+          ret = ittb->second;
+        }
+        visited[cur] = ret;
+      }
+      else
+      {
+        visited[cur] = Node::null();
+        visit.push(cur);
+        for (const Node& cn : cur )
+        {
+          visit.push(cn);
+        }
+      }
+    } 
+    else if (it->second.isNull()) 
+    {
+      Node ret = cur;
+      bool childChanged = false;
+      std::vector<Node> children;
+      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+        children.push_back(cur.getOperator());
+      }
+      for (const Node& cn : cur )
+      {
+        it = visited.find(cn);
+        Assert(it != visited.end());
+        Assert(!it->second.isNull());
+        childChanged = childChanged || cn != it->second;
+        children.push_back(it->second);
+      }
+      if (childChanged) 
+      {
+        ret = nm->mkNode(cur.getKind(), children);
+      }
+      visited[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  Assert(!visited.find(n)->second.isNull());
+  return visited[n];
 }
 
 Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
