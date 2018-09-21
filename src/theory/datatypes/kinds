@@ -117,7 +117,7 @@ typerule DT_SYGUS_BOUND ::CVC4::theory::datatypes::DtSygusBoundTypeRule
 operator DT_SYGUS_EVAL 1: "datatypes sygus evaluation function"
 typerule DT_SYGUS_EVAL ::CVC4::theory::datatypes::DtSygusEvalTypeRule
 
-operator DT_SYGUS_CTN 2 "datatypes sygus contains predicate"
-typerule DT_SYGUS_CTN ::CVC4::theory::datatypes::DtSygusCtnTypeRule
+operator DT_CTN 2 "datatypes contains predicate"
+typerule DT_CTN ::CVC4::theory::datatypes::DtCtnTypeRule
 
 endtheory

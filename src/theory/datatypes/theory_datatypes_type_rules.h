@@ -405,7 +405,7 @@ class DtSygusEvalTypeRule
   }
 }; /* class DtSygusEvalTypeRule */
 
-class DtSygusCtnTypeRule
+class DtCtnTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -414,30 +414,15 @@ class DtSygusCtnTypeRule
   {
     if (check)
     {
-      TypeNode tn = n[0].getType();
-      if (!tn.isDatatype())
+      if (!n[0].getType().isDatatype())
       {
         throw TypeCheckingExceptionPrivate(
-            n, "dt sygus contains expects a datatype as first argument");
-      }
-      const Datatype& dt = tn.getDatatype();
-      if (!dt.isSygus())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "dt sygus contains expects a sygus datatype as first argument");
-      }
-      TypeNode stn = TypeNode::fromType(dt.getSygusType());
-      if (n[1].getType() != stn)
-      {
-        throw TypeCheckingExceptionPrivate(n,
-                                           "dt sygus contains expects a "
-                                           "variable whose type is the analog "
-                                           "type of the first argument");
+            n, "dt contains expects a datatype as its first argument");
       }
     }
     return nodeManager->booleanType();
   }
-}; /* class DtSygusCtnTypeRule */
+}; /* class DtCtnTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */

@@ -579,7 +579,7 @@ private:
    */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
-  /** check testers
+  /** check value
    *
    * This is called when we have a model assignment vn for n, where n is
    * a selector chain applied to an enumerator (a search term). This function
@@ -602,7 +602,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  bool checkValue(Node n, Node vn, bool isVarAgnostic, int ind, std::vector<Node>& lemmas);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted

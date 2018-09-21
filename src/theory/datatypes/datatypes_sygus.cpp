@@ -1290,12 +1290,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             ->toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
-      // TODO : remove this step (ensure there is no way a sygus term cannot be assigned a tester before this point)
-      if (!checkTesters(prog, progv, 0, lemmas))
+      bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
+      if (!checkValue(prog, progv, isVarAgnostic, 0, lemmas))
       {
-        Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << prog << "." << std::endl;
-        // this should not happen generally, it is caused by a sygus term not being assigned a tester
-        //Assert( false );
+
       }else{
         //debugging : ensure fairness was properly handled
         if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
@@ -1316,6 +1314,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( options::sygusSymBreakDynamic() ){
+          // check that it is unique up to theory-specific rewriting and conjecture-specific symmetry breaking.
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
           if (rsv.isNull())
           {
@@ -1353,8 +1352,9 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 }
 
-bool SygusSymBreakNew::checkTesters(Node n,
+bool SygusSymBreakNew::checkValue(Node n,
                                     Node vn,
+                                    bool isVarAgnostic,
                                     int ind,
                                     std::vector<Node>& lemmas)
 {
@@ -1364,16 +1364,20 @@ bool SygusSymBreakNew::checkTesters(Node n,
     Assert(!vn.getType().isDatatype());
     return true;
   }
-  if( Trace.isOn("sygus-sb-warn") ){
-    Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, n );
+  NodeManager * nm = NodeManager::currentNM();
+  if( Trace.isOn("sygus-sb-check-value") ){
+    Node prog_sz = nm->mkNode( DT_SIZE, n );
     Node prog_szv = d_td->getValuation().getModel()->getValue( prog_sz );
     for( int i=0; i<ind; i++ ){
-      Trace("sygus-sb-warn") << "  ";
+      Trace("sygus-sb-check-value") << "  ";
     }
-    Trace("sygus-sb-warn") << n << " : " << vn << " : " << prog_szv << std::endl;
+    Trace("sygus-sb-check-value") << n << " : " << vn << " : " << prog_szv << std::endl;
   }
   TypeNode tn = n.getType();
-  const Datatype& dt = ((DatatypeType)tn.toType()).getDatatype();
+  const Datatype& dt = tn.getDatatype();
+  Assert( dt.isSygus() );
+  
+  // ensure that the expected size bound is met
   int cindex = DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
   bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
@@ -1384,18 +1388,24 @@ bool SygusSymBreakNew::checkTesters(Node n,
   }
   if (!hastst || tstrep != d_true)
   {
-    Trace("sygus-sb-warn") << "- has tester : " << tst << " : " << ( hastst ? "true" : "false" );
-    Trace("sygus-sb-warn") << ", value=" << tstrep << std::endl;
+    Trace("sygus-check-value") << "- has tester : " << tst << " : " << ( hastst ? "true" : "false" );
+    Trace("sygus-check-value") << ", value=" << tstrep << std::endl;
     if( !hastst ){
+      // This should not happen generally, it is caused by a sygus term not being assigned a tester.
       Node split = DatatypesRewriter::mkSplit(n, dt);
+      Trace("sygus-sb") << "  SygusSymBreakNew::check: ...WARNING: considered missing split for " << n << "." << std::endl;
       Assert( !split.isNull() );
       lemmas.push_back( split );
       return false;
     }
   }
+  if( isVarAgnostic && vn.getNumChildren()==0 )
+  {
+    // check that it is ordered
+  }
   for( unsigned i=0; i<vn.getNumChildren(); i++ ){
-    Node sel = NodeManager::currentNM()->mkNode( kind::APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
-    if (!checkTesters(sel, vn[i], ind + 1, lemmas))
+    Node sel = nm->mkNode( APPLY_SELECTOR_TOTAL, Node::fromExpr( dt[cindex].getSelectorInternal( tn.toType(), i ) ), n );
+    if (!checkValue(sel, vn[i], isVarAgnostic, ind + 1, lemmas))
     {
       return false;
     }
