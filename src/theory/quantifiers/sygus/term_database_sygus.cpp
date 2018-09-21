@@ -503,7 +503,6 @@ void TermDbSygus::registerEnumerator(Node e,
   // for each type of subfield type of this enumerator
   for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
   {
-    std::vector<Node> rm_guards;
     std::vector<unsigned> rm_indices;
     TypeNode stn = sf_types[i];
     Assert(stn.isDatatype());
@@ -524,7 +523,6 @@ void TermDbSygus::registerEnumerator(Node e,
       {
         // if we are not using the any constant constructor
         // do not use the symbolic constructor
-        rm_guards.push_back(Node::null());
         rm_indices.push_back(i);
       }
       else if (anyC != -1 && !isAnyC && useSymbolicCons)
@@ -534,7 +532,6 @@ void TermDbSygus::registerEnumerator(Node e,
         Node c_op = getConsNumConst(stn, i);
         if (!c_op.isNull())
         {
-          rm_guards.push_back(Node::null());
           rm_indices.push_back(i);
         }
       }
