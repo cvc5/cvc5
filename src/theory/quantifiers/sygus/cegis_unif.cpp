@@ -17,6 +17,7 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "theory/quantifiers/sygus/enum_stream_concrete.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -153,6 +154,19 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
             unif_enums[index][e].clear();
             continue;
           }
+          // TEST ABSTRACT VALUE PERMUTATION
+          EnumStreamConcrete stream(d_qe, d_parent);
+          stream.registerEnumerator(eu);
+          stream.registerAbstractValue(d_parent->getModelValue(eu));
+          Trace("synth-stream-concrete")
+              << " * Streaming concrete values for enum " << eu << "and value "
+              << d_parent->getModelValue(eu) << ":\n";
+          Node v;
+          do
+          {
+            v = stream.getNext();
+            Trace("synth-stream-concrete") << " ..perm : " << v << "\n";
+          } while (!v.isNull());
         }
         // get the model value of each enumerator
         for (const Node& eu : unif_enums[index][e])
