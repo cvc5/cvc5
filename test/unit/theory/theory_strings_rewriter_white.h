@@ -654,4 +654,47 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node res_eq_x_repl = Rewriter::rewrite(eq_x_repl);
     TS_ASSERT_EQUALS(res_x_repl, res_eq_x_repl);
   }
+
+  void testRewritePrefixSuffix()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node xx = d_nm->mkNode(kind::STRING_CONCAT, x, x);
+    Node xxa = d_nm->mkNode(kind::STRING_CONCAT, x, x, a);
+    Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
+    Node f = d_nm->mkConst(false);
+
+    // Same normal form for:
+    //
+    // (str.prefix x (str.++ x y))
+    //
+    // (= y "")
+    Node p_xy = d_nm->mkNode(kind::STRING_PREFIX, x, xy);
+    Node empty_y = d_nm->mkNode(kind::EQUAL, y, empty);
+    Node res_p_xy = Rewriter::rewrite(p_xy);
+    Node res_empty_y = Rewriter::rewrite(empty_y);
+    TS_ASSERT_EQUALS(res_p_xy, res_empty_y);
+
+    // Same normal form for:
+    //
+    // (str.suffix x (str.++ x x))
+    //
+    // (= x "")
+    Node p_xx = d_nm->mkNode(kind::STRING_SUFFIX, x, xx);
+    Node empty_x = d_nm->mkNode(kind::EQUAL, x, empty);
+    Node res_p_xx = Rewriter::rewrite(p_xx);
+    Node res_empty_x = Rewriter::rewrite(empty_x);
+    TS_ASSERT_EQUALS(res_p_xx, res_empty_x);
+
+    // (str.suffix x (str.++ x x "A")) --> false
+    //
+    // (= x "")
+    Node p_xxa = d_nm->mkNode(kind::STRING_SUFFIX, x, xxa);
+    Node res_p_xxa = Rewriter::rewrite(p_xxa);
+    TS_ASSERT_EQUALS(res_p_xxa, f);
+  }
 };

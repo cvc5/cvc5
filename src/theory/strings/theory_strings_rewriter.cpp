@@ -2562,6 +2562,15 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   {
     val = NodeManager::currentNM()->mkNode(kind::MINUS, lent, lens);
   }
+
+  // Check if we can turn the prefix/suffix into equalities by showing that the
+  // prefix/suffix is at least as long as the string
+  Node eqs = inferEqsFromContains(n[0], n[1]);
+  if (!eqs.isNull())
+  {
+    return returnRewrite(n, eqs, "suf/prefix-to-eqs");
+  }
+
   // general reduction to equality + substr
   Node retNode = n[0].eqNode(
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
