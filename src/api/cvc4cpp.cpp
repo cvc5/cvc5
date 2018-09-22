@@ -648,6 +648,11 @@ class CVC4ApiExceptionStream
 #define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg, expected_arg_str) \
   CVC4_API_CHECK(cond) << "Invalid size of argument '" << #arg        \
                        << "', expected " << expected_arg_str;
+
+#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(                              \
+    cond, what, arg, idx, expected_arg_str)                                \
+  CVC4_API_CHECK(cond) << "Invalid " << what << "'" << arg << "' at index" \
+                       << idx << ", expected " << expected_arg_str;
 }  // namespace
 
 /* -------------------------------------------------------------------------- */
@@ -1704,10 +1709,12 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
       sorts.size() >= 1, sorts, "at least one argument sort for function sort");
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
-    CVC4_API_CHECK(sorts[i].isFirstClass())
-        << "Invalid argument sort '" << sorts[i].toString() << "' at index "
-        << i
-        << ", expected first-class sort as argument sort for function sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(),
+        "argument sort",
+        sorts[i],
+        i,
+        "first-class sort as argument sort for function sort");
   }
   CVC4_API_ARG_CHECK_EXPECTED(
       codomain.isFirstClass(),
@@ -1733,10 +1740,12 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
       "at least one argument sort for predicate sort");
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
-    CVC4_API_CHECK(sorts[i].isFirstClass())
-        << "Invalid argument sort '" << sorts[i].toString() << "' at index "
-        << i
-        << ", expected first-class sort as argument sort for predicate sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(),
+        "argument sort",
+        sorts[i],
+        i,
+        "first-class sort as argument sort for predicate sort");
   }
   std::vector<Type> types = sortVectorToTypes(sorts);
   return d_exprMgr->mkPredicateType(types);
@@ -1767,10 +1776,12 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
-    CVC4_API_CHECK(!sorts[i].isFunctionLike())
-        << "Invalid argument sort '" << sorts[i].toString() << "' at index "
-        << i
-        << ", expected non-function-like sort as argument sort for tuple sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !sorts[i].isFunctionLike(),
+        "argument sort",
+        sorts[i],
+        i,
+        "non-function-like sort as argument sort for tuple sort");
   }
   std::vector<Type> types = sortVectorToTypes(sorts);
   return d_exprMgr->mkTupleType(types);
@@ -2523,10 +2534,12 @@ Term Solver::declareFun(const std::string& symbol,
 {
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
-    CVC4_API_CHECK(sorts[i].isFirstClass())
-        << "Invalid argument sort '" << sorts[i].toString() << "' at index "
-        << i
-        << ", expected first-class sort as argument sort for function sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(),
+        "argument sort",
+        sorts[i],
+        i,
+        "first-class sort as argument sort for function sort");
   }
   CVC4_API_ARG_CHECK_EXPECTED(
       sort.isFirstClass(), sort, "first-class sort as function codomain sort");
@@ -2607,9 +2620,12 @@ Term Solver::defineFun(Term fun,
       size == domain_sorts.size(), bound_vars, domain_sorts.size());
   for (size_t i = 0; i < size; ++i)
   {
-    CVC4_API_CHECK(domain_sorts[i] == bound_vars[i].getSort())
-        << "Invalid sort of parameter '" << bound_vars[i] << "' at index " << i
-        << ", expected '" << domain_sorts[i] << "'";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        domain_sorts[i] == bound_vars[i].getSort(),
+        "sort of parameter",
+        bound_vars[i],
+        i,
+        "'" << domain_sorts[i] << "'");
   }
   Sort codomain = fun.getSort().getFunctionCodomainSort();
   CVC4_API_CHECK(codomain == term.getSort())
@@ -2681,9 +2697,12 @@ Term Solver::defineFunRec(Term fun,
       size == domain_sorts.size(), bound_vars, domain_sorts.size());
   for (size_t i = 0; i < size; ++i)
   {
-    CVC4_API_CHECK(domain_sorts[i] == bound_vars[i].getSort())
-        << "Invalid sort of parameter '" << bound_vars[i] << "' at index " << i
-        << ", expected '" << domain_sorts[i] << "'";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        domain_sorts[i] == bound_vars[i].getSort(),
+        "sort of parameter",
+        bound_vars[i],
+        i,
+        "'" << domain_sorts[i] << "'");
   }
   Sort codomain = fun.getSort().getFunctionCodomainSort();
   CVC4_API_CHECK(codomain == term.getSort())
@@ -2728,15 +2747,19 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
         size == domain_sorts.size(), bvars, domain_sorts.size());
     for (size_t i = 0; i < size; ++i)
     {
-      CVC4_API_CHECK(domain_sorts[i] == bvars[i].getSort())
-          << "Invalid sort of parameter '" << bvars[i] << "' at index " << i
-          << ", expected '" << domain_sorts[i] << "' in argument bound_vars["
-          << j << "]";
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          domain_sorts[i] == bvars[i].getSort(),
+          "sort of parameter",
+          bvars[i],
+          i,
+          "'" << domain_sorts[i] << "' in argument bound_vars[" << j << "]");
     }
     Sort codomain = fun.getSort().getFunctionCodomainSort();
-    CVC4_API_CHECK(codomain == term.getSort())
-        << "Invalid sort of function body '" << term << "', expected '"
-        << codomain << "' at index " << j;
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(codomain == term.getSort(),
+                                         "sort of function body",
+                                         term,
+                                         j,
+                                         "'" << codomain << "'");
   }
   // CHECK:
   // for bv in bound_vars (for v in bv): is bound var
