@@ -148,10 +148,15 @@ include(Config${CMAKE_BUILD_TYPE})
 # Compiler flags
 
 add_check_c_cxx_flag("-O${OPTIMIZATION_LEVEL}")
+add_check_c_cxx_flag("-Wall")
 add_check_c_flag("-fexceptions")
 add_check_c_cxx_flag("-Wno-deprecated")
 add_check_cxx_flag("-Wsuggest-override")
 add_check_cxx_flag("-Wnon-virtual-dtor")
+
+# Temporarily disable -Wclass-memaccess to suppress 'no trivial copy-assignment'
+# cdlist.h warnings. Remove when fixed.
+add_check_cxx_flag("-Wno-class-memaccess")
 
 #-----------------------------------------------------------------------------#
 # Option defaults (three-valued options (cvc4_option(...)))
