@@ -343,7 +343,9 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       // if we require predicate elimination
       if (sb_elim_pred.find(slem) != sb_elim_pred.end())
       {
+        Trace("sygus-sb-tp") << "Eliminate traversal predicates: start " << sslem << std::endl;
         sslem = eliminateTraversalPredicates(sslem);
+        Trace("sygus-sb-tp") << "Eliminate traversal predicates: finish " << sslem << std::endl;
       }
       if (!rlv.isNull())
       {
@@ -462,7 +464,10 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
         Node ret;
         if( ittb==d_traversal_bool.end() )
         {
-          ret = nm->mkSkolem("tpred",cur.getType());
+          std::stringstream ss;
+          ss << "v_" << cur;
+          ret = nm->mkSkolem(ss.str(),cur.getType());
+          d_traversal_bool[cur] = ret;
         }
         else
         {
@@ -618,7 +623,6 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       //      // pre-definition
       //      pre( z.a, x_i ) = a=0 ? pre( z, x_i ) : post( z.{a-1}, x_i )
       //   post( z, x_i ) = post( z.a_{n-1}, x_i ) OR is-x_i( z )
-      std::vector<Node> constraints;
       // for each variable in the sygus type
       Node svl = Node::fromExpr(dt.getSygusVarList());
       // for each variable
@@ -626,6 +630,12 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       TypeNode etn = e.getType();
       for (const Node& var : svl)
       {
+        unsigned sc = d_tds->getSubclassForVar(etn, var);
+        if( d_tds->getNumSubclassVars(etn,sc)==1 )
+        {
+          // unique variable in singleton subclass, skip
+          continue;
+        }
         // Compute the "predecessor" variable in the subclass of var.
         Node predVar;
         unsigned tindex = 0;
@@ -633,7 +643,6 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         {
           if (tindex > 0)
           {
-            unsigned sc = d_tds->getSubclassForVar(etn, var);
             predVar = d_tds->getVarSubclassIndex(etn, sc, tindex - 1);
           }
         }
@@ -645,9 +654,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         {
           TypeNode ctn = child.getType();
           // my pre is equal to the previous
-          Node preCurrOp = getTraversalPredicate(ctn, child, false);
+          Node preCurrOp = getTraversalPredicate(ctn, child, true);
           Node preCurr = nm->mkNode(APPLY_UF, preCurrOp, child);
-          constraints.push_back(preCurr.eqNode(prev));
+          sbp_conj.push_back(preCurr.eqNode(prev));
           Node postCurrOp = getTraversalPredicate(ctn, child, false);
           prev = nm->mkNode(APPLY_UF, postCurrOp, child);
         }
@@ -667,10 +676,10 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             Node preParentPredVarOp = getTraversalPredicate(tn, predVar, true);
             Node preParentPredVar = nm->mkNode(APPLY_UF, preParentPredVarOp, n);
             Node require = nm->mkNode(OR, tst.negate(), preParentPredVar);
-            constraints.push_back(require);
+            sbp_conj.push_back(require);
           }
         }
-        constraints.push_back(finish.eqNode(prev));
+        sbp_conj.push_back(finish.eqNode(prev));
       }
     }
     // depth 1 symmetry breaking : talks about direct children
@@ -1297,28 +1306,45 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
   registerMeasureTerm( m );
   d_szinfo[m]->d_anchors.push_back( e );
   d_anchor_to_measure_term[e] = m;
+  NodeManager * nm = NodeManager::currentNM();
   if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
     // update constraints on the measure term
+    Node slem;
     if( options::sygusFairMax() ){
-      Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
-      Node slem = NodeManager::currentNM()->mkNode(
-          kind::LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
-      lemmas.push_back(slem);
+      Node ds = nm->mkNode(DT_SIZE, e);
+      slem = nm->mkNode(
+          LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
     }else{
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
       Node new_mt =
           d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
-      Node ds = NodeManager::currentNM()->mkNode(kind::DT_SIZE, e);
-      lemmas.push_back(mt.eqNode(
-          NodeManager::currentNM()->mkNode(kind::PLUS, new_mt, ds)));
+      Node ds = nm->mkNode(DT_SIZE, e);
+      slem = mt.eqNode(
+          nm->mkNode(PLUS, new_mt, ds));
     }
+    Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
+    lemmas.push_back(slem);
   }
   // if it is variable agnostic, enforce top-level constraint that says no variables occur pre-traversal at top-level
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   std::vector< Node > constraints;
   for( const Node& v : varList )
   {
-    
+    unsigned sc = d_tds->getSubclassForVar(etn,v);
+    if( d_tds->getNumSubclassVars(etn,sc)>1 )
+    {
+      Node preRootOp = getTraversalPredicate(etn,v,true);
+      Node preRoot = nm->mkNode( APPLY_UF, preRootOp, e );
+      constraints.push_back( preRoot.negate() );
+    }
+  }
+  if( !constraints.empty() )
+  {
+    Node preNoVar = constraints.size()==1 ? constraints[0] : nm->mkNode( AND, constraints );
+    Node preNoVarProc = eliminateTraversalPredicates( preNoVar );
+    Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
+    Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc << std::endl;
+    lemmas.push_back( preNoVarProc );
   }
 }
 
@@ -1482,8 +1508,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             ->toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
-      bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
-      if (!checkValue(prog, progv, isVarAgnostic, 0, lemmas))
+      if (!checkValue(prog, progv, 0, lemmas))
       {
       }else{
         //debugging : ensure fairness was properly handled
@@ -1545,7 +1570,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
 }
 
 bool SygusSymBreakNew::checkValue(
-    Node n, Node vn, bool isVarAgnostic, int ind, std::vector<Node>& lemmas)
+    Node n, Node vn, int ind, std::vector<Node>& lemmas)
 {
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
@@ -1599,7 +1624,7 @@ bool SygusSymBreakNew::checkValue(
         APPLY_SELECTOR_TOTAL,
         Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
         n);
-    if (!checkValue(sel, vn[i], isVarAgnostic, ind + 1, lemmas))
+    if (!checkValue(sel, vn[i], ind + 1, lemmas))
     {
       return false;
     }

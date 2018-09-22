@@ -560,7 +560,7 @@ void TermDbSygus::registerEnumerator(Node e,
     }
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
-
+  isVarAgnostic = true;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
