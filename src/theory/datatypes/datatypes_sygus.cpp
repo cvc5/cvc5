@@ -638,45 +638,42 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         }
         // Compute the "predecessor" variable in the subclass of var.
         Node predVar;
-        unsigned tindex = 0;
-        if (d_tds->getIndexInSubclassForVar(etn, var, tindex))
+        unsigned scindex = 0;
+        if (d_tds->getIndexInSubclassForVar(etn, var, scindex))
         {
-          if (tindex > 0)
+          if (scindex > 0)
           {
-            predVar = d_tds->getVarSubclassIndex(etn, sc, tindex - 1);
+            predVar = d_tds->getVarSubclassIndex(etn, sc, scindex - 1);
           }
         }
-        // for each child
         Node preParentOp = getTraversalPredicate(tn, var, true);
         Node preParent = nm->mkNode(APPLY_UF, preParentOp, n);
         Node prev = preParent;
+        // for each child
         for (const Node& child : children)
         {
           TypeNode ctn = child.getType();
           // my pre is equal to the previous
-          Node preCurrOp = getTraversalPredicate(ctn, child, true);
+          Node preCurrOp = getTraversalPredicate(ctn, var, true);
           Node preCurr = nm->mkNode(APPLY_UF, preCurrOp, child);
           sbp_conj.push_back(preCurr.eqNode(prev));
-          Node postCurrOp = getTraversalPredicate(ctn, child, false);
+          Node postCurrOp = getTraversalPredicate(ctn, var, false);
           prev = nm->mkNode(APPLY_UF, postCurrOp, child);
         }
         Node postParent = getTraversalPredicate(tn, var, false);
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
-        // if i have the operator, add as disjunct
+        // check if i am the variable in question
         int varCn = d_tds->getOpConsNum(tn, var);
-        if (varCn != -1)
+        if (varCn == static_cast<int>(tindex) )
         {
-          Assert(varCn < static_cast<int>(dt.getNumConstructors()));
-          Node tst = DatatypesRewriter::mkTester(n, varCn, dt);
-          finish = nm->mkNode(OR, finish, tst);
+          prev = d_true;
           // requirement : If I am the variable, I must have seen
           // the variable before this one in its type class.
           if (!predVar.isNull())
           {
             Node preParentPredVarOp = getTraversalPredicate(tn, predVar, true);
             Node preParentPredVar = nm->mkNode(APPLY_UF, preParentPredVarOp, n);
-            Node require = nm->mkNode(OR, tst.negate(), preParentPredVar);
-            sbp_conj.push_back(require);
+            sbp_conj.push_back(preParentPredVar);
           }
         }
         sbp_conj.push_back(finish.eqNode(prev));
