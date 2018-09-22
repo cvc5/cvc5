@@ -1,6 +1,6 @@
 # Make sure that interpreter and libraries have a compatible version.
 # Note: We use the Python interpreter to determine the install path for Python
-# modules.  If the interpreter and library have different version, the module
+# modules.  If the interpreter and library have different versions, the module
 # will be installed for the wrong Python version. Hence, we require the library
 # version to match the Python interpreter's version.
 find_package(PythonLibs

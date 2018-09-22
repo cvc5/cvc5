@@ -79,6 +79,7 @@ option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
 option(USE_LFSC          "Use LFSC proof checker")
 option(USE_SYMFPU        "Use SymFPU for floating point support")
 option(USE_PYTHON2       "Prefer using Python 2 (for Python bindings)")
+option(USE_PYTHON3       "Prefer using Python 3 (for Python bindings)")
 
 # Custom install directories for dependencies
 # If no directory is provided by the user, we first check if the dependency was
@@ -217,8 +218,9 @@ enable_testing()
 
 if(USE_PYTHON2)
   find_package(PythonInterp 2.7 REQUIRED)
+elseif(USE_PYTHON3)
+  find_package(PythonInterp 3 REQUIRED)
 else()
-  find_package(PythonInterp 3)
   find_package(PythonInterp REQUIRED)
 endif()
 
@@ -459,6 +461,7 @@ print_config("Shared libs          :" ENABLE_SHARED)
 print_config("Java bindings        :" BUILD_BINDINGS_JAVA)
 print_config("Python bindings      :" BUILD_BINDINGS_PYTHON)
 print_config("Python2              :" USE_PYTHON2)
+print_config("Python3              :" USE_PYTHON3)
 message("")
 print_config("Portfolio            :" ENABLE_PORTFOLIO)
 message("")
