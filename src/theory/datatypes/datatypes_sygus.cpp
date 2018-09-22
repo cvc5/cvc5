@@ -1505,9 +1505,9 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             ->toStreamSygus(ss, progv);
         Trace("dt-sygus") << ss.str() << std::endl;
       }
-      if (!checkValue(prog, progv, 0, lemmas))
+      // first check that the value progv for prog is what we expected
+      if (checkValue(prog, progv, 0, lemmas))
       {
-      }else{
         //debugging : ensure fairness was properly handled
         if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
           Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );

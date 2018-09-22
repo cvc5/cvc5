@@ -359,7 +359,7 @@ class DtSygusBoundTypeRule {
   }
 }; /* class DtSygusBoundTypeRule */
 
-class DtSygusEvalTypeRule
+class DtSyguEvalTypeRule
 {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager,
@@ -403,26 +403,7 @@ class DtSygusEvalTypeRule
     }
     return TypeNode::fromType(dt.getSygusType());
   }
-}; /* class DtSygusEvalTypeRule */
-
-class DtCtnTypeRule
-{
- public:
-  inline static TypeNode computeType(NodeManager* nodeManager,
-                                     TNode n,
-                                     bool check)
-  {
-    if (check)
-    {
-      if (!n[0].getType().isDatatype())
-      {
-        throw TypeCheckingExceptionPrivate(
-            n, "dt contains expects a datatype as its first argument");
-      }
-    }
-    return nodeManager->booleanType();
-  }
-}; /* class DtCtnTypeRule */
+}; /* class DtSygusBoundTypeRule */
 
 } /* CVC4::theory::datatypes namespace */
 } /* CVC4::theory namespace */
