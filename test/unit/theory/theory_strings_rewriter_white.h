@@ -673,7 +673,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // (str.prefix x (str.++ x y))
     //
     // (= y "")
-    Node p_xy = d_nm->mkNode(kind::STRING_PREFIX, x, xy);
+    Node p_xy = d_nm->mkNode(kind::STRING_PREFIX, xy, x);
     Node empty_y = d_nm->mkNode(kind::EQUAL, y, empty);
     Node res_p_xy = Rewriter::rewrite(p_xy);
     Node res_empty_y = Rewriter::rewrite(empty_y);
@@ -684,7 +684,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // (str.suffix x (str.++ x x))
     //
     // (= x "")
-    Node p_xx = d_nm->mkNode(kind::STRING_SUFFIX, x, xx);
+    Node p_xx = d_nm->mkNode(kind::STRING_SUFFIX, xx, x);
     Node empty_x = d_nm->mkNode(kind::EQUAL, x, empty);
     Node res_p_xx = Rewriter::rewrite(p_xx);
     Node res_empty_x = Rewriter::rewrite(empty_x);
@@ -693,7 +693,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // (str.suffix x (str.++ x x "A")) --> false
     //
     // (= x "")
-    Node p_xxa = d_nm->mkNode(kind::STRING_SUFFIX, x, xxa);
+    Node p_xxa = d_nm->mkNode(kind::STRING_SUFFIX, xxa, x);
     Node res_p_xxa = Rewriter::rewrite(p_xxa);
     TS_ASSERT_EQUALS(res_p_xxa, f);
   }

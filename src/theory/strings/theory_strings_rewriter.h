@@ -552,8 +552,8 @@ class TheoryStringsRewriter {
    *     str.len(y) >= str.len(x)
    */
   static bool inferZerosInSumGeq(Node x,
-                                 std::vector<Node>* ys,
-                                 std::vector<Node>* zeroYs);
+                                 std::vector<Node>& ys,
+                                 std::vector<Node>& zeroYs);
 
   /**
    * Infers a conjunction of equalities that correspond to (str.contains x y)

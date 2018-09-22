@@ -2565,7 +2565,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
 
   // Check if we can turn the prefix/suffix into equalities by showing that the
   // prefix/suffix is at least as long as the string
-  Node eqs = inferEqsFromContains(n[0], n[1]);
+  Node eqs = inferEqsFromContains(n[1], n[0]);
   if (!eqs.isNull())
   {
     return returnRewrite(n, eqs, "suf/prefix-to-eqs");
@@ -3775,15 +3775,15 @@ Node TheoryStringsRewriter::getStringOrEmpty(Node n)
 }
 
 bool TheoryStringsRewriter::inferZerosInSumGeq(Node x,
-                                               std::vector<Node>* ys,
-                                               std::vector<Node>* zeroYs)
+                                               std::vector<Node>& ys,
+                                               std::vector<Node>& zeroYs)
 {
-  Assert(zeroYs->empty());
+  Assert(zeroYs.empty());
 
   NodeManager* nm = NodeManager::currentNM();
 
   // Check if we can show that y1 + ... + yn >= x
-  Node sum = (ys->size() > 1) ? nm->mkNode(kind::PLUS, *ys) : (*ys)[0];
+  Node sum = (ys.size() > 1) ? nm->mkNode(PLUS, ys) : ys[0];
   if (!checkEntailArith(sum, x))
   {
     return false;
@@ -3796,26 +3796,26 @@ bool TheoryStringsRewriter::inferZerosInSumGeq(Node x,
   // If that's the case, we know that yi can be zero and the inequality still
   // holds.
   size_t i = 0;
-  while (i < ys->size())
+  while (i < ys.size())
   {
-    Node yi = (*ys)[i];
-    std::vector<Node>::iterator pos = ys->erase(ys->begin() + i);
-    if (ys->size() > 1)
+    Node yi = ys[i];
+    std::vector<Node>::iterator pos = ys.erase(ys.begin() + i);
+    if (ys.size() > 1)
     {
-      sum = nm->mkNode(kind::PLUS, *ys);
+      sum = nm->mkNode(PLUS, ys);
     }
     else
     {
-      sum = ys->size() == 1 ? (*ys)[0] : nm->mkConst(Rational(0));
+      sum = ys.size() == 1 ? ys[0] : nm->mkConst(Rational(0));
     }
 
     if (checkEntailArith(sum, x))
     {
-      zeroYs->push_back(yi);
+      zeroYs.push_back(yi);
     }
     else
     {
-      ys->insert(pos, yi);
+      ys.insert(pos, yi);
       i++;
     }
   }
@@ -3827,17 +3827,17 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
   NodeManager* nm = NodeManager::currentNM();
   Node emp = nm->mkConst(String(""));
 
-  Node xLen = nm->mkNode(kind::STRING_LENGTH, x);
+  Node xLen = nm->mkNode(STRING_LENGTH, x);
   std::vector<Node> yLens;
-  if (y.getKind() != kind::STRING_CONCAT)
+  if (y.getKind() != STRING_CONCAT)
   {
-    yLens.push_back(nm->mkNode(kind::STRING_LENGTH, y));
+    yLens.push_back(nm->mkNode(STRING_LENGTH, y));
   }
   else
   {
     for (const Node& yi : y)
     {
-      yLens.push_back(nm->mkNode(kind::STRING_LENGTH, yi));
+      yLens.push_back(nm->mkNode(STRING_LENGTH, yi));
     }
   }
 
@@ -3856,7 +3856,7 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
     // str.len(yn) (where y = y1 ++ ... ++ yn) while keeping the inequality
     // true. The terms that can have length zero without making the inequality
     // false must be all be empty if (str.contains x y) is true.
-    if (!inferZerosInSumGeq(xLen, &yLens, &zeroLens))
+    if (!inferZerosInSumGeq(xLen, yLens, zeroLens))
     {
       // We could not prove that the inequality holds
       return Node::null();
@@ -3865,23 +3865,23 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
     {
       // We could only prove that the inequality holds but not that any of the
       // ys must be empty
-      return nm->mkNode(kind::EQUAL, x, y);
+      return nm->mkNode(EQUAL, x, y);
     }
   }
 
-  if (y.getKind() != kind::STRING_CONCAT)
+  if (y.getKind() != STRING_CONCAT)
   {
     if (zeroLens.size() == 1)
     {
       // y is not a concatenation and we found that it must be empty, so just
       // return (= y "")
       Assert(zeroLens[0][0] == y);
-      return nm->mkNode(kind::EQUAL, y, emp);
+      return nm->mkNode(EQUAL, y, emp);
     }
     else
     {
       Assert(yLens.size() == 1 && yLens[0][0] == y);
-      return nm->mkNode(kind::EQUAL, x, y);
+      return nm->mkNode(EQUAL, x, y);
     }
   }
 
@@ -3892,17 +3892,17 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
     cs.push_back(yiLen[0]);
   }
 
-  NodeBuilder<> nb(kind::AND);
+  NodeBuilder<> nb(AND);
   // (= x (str.++ y1' ... ym'))
   if (!cs.empty())
   {
-    nb << nm->mkNode(kind::EQUAL, x, mkConcat(kind::STRING_CONCAT, cs));
+    nb << nm->mkNode(EQUAL, x, mkConcat(STRING_CONCAT, cs));
   }
   // (= y1'' "") ... (= yk'' "")
   for (const Node& zeroLen : zeroLens)
   {
     Assert(std::find(y.begin(), y.end(), zeroLen[0]) != y.end());
-    nb << nm->mkNode(kind::EQUAL, zeroLen[0], emp);
+    nb << nm->mkNode(EQUAL, zeroLen[0], emp);
   }
 
   // (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
