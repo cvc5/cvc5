@@ -736,7 +736,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
             << op.getType() << "..." << std::endl;
         std::vector<Expr> children;
         children.push_back(op);
-        // wether transition relation
+        // transition relation applied over both variable lists
         if (i == 2)
         {
           children.insert(children.end(), vars.begin(), vars.end());
