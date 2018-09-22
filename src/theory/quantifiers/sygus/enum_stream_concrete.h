@@ -66,13 +66,6 @@ class EnumStreamConcrete
  public:
   EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p);
   ~EnumStreamConcrete();
-
-  /** retrieve next value
-   *
-   * if no more permutations exist from the last registered value, this method
-   * returns Node::null()
-   */
-  Node getNext();
   /** register enumerator for this class
    *
    * during registration builds a map from the canonical variables of e's type
@@ -81,8 +74,20 @@ class EnumStreamConcrete
   void registerEnumerator(Node e);
   /** register abstract value v */
   void registerAbstractValue(Node v);
+  /** retrieve next value
+   *
+   * if no more permutations exist from the last registered value, this method
+   * returns Node::null()
+   */
+  Node getNext();
 
  private:
+  /** reference to quantifier engine */
+  QuantifiersEngine* d_qe;
+  /** sygus term database of d_qe */
+  quantifiers::TermDbSygus* d_tds;
+  /** reference to the parent conjecture */
+  SynthConjecture* d_parent;
   /** enumerator we are concretizing values for */
   Node d_enum;
   /** list of registered abstract values */

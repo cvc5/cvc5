@@ -118,6 +118,27 @@ bool PermutationState::getNextPermutation(std::vector<Node>& perm)
 }
 
 namespace EnumStreamConcrete {
+
+EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p)
+    : d_qe(qe), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
+{
+}
+
+void registerEnumerator(Node e)
+{
+
+}
+
+void registerAbstractValue(Node v)
+{
+
+}
+
+Node getNext()
+{
+
+}
+
 }
 
 }  // namespace quantifiers
