@@ -112,6 +112,14 @@ header = "options/bv_options.h"
   help       = "convert booleans to bit-vectors of size 1 when possible"
 
 [[option]]
+  name       = "bitwiseEq"
+  category   = "regular"
+  long       = "bitwise-eq"
+  type       = "bool"
+  default    = "true"
+  help       = "lift equivalence with one-bit bitvectors to be boolean operations"
+
+[[option]]
   name       = "bitvectorDivByZeroConst"
   category   = "regular"
   long       = "bv-div-zero-const"

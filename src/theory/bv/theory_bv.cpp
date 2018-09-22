@@ -740,7 +740,7 @@ Node TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
-  if (RewriteRule<BitwiseEq>::applies(t)) {
+  if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
   } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
