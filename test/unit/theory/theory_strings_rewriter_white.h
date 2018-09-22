@@ -422,6 +422,8 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node c = d_nm->mkConst(::CVC4::String("C"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
+    Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
+    Node yx = d_nm->mkNode(kind::STRING_CONCAT, y, x);
     Node z = d_nm->mkVar("z", strType);
     Node n = d_nm->mkVar("n", intType);
     Node one = d_nm->mkConst(Rational(2));
@@ -494,11 +496,9 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // (str.contains (str.++ y x) (str.++ x z y))
     //
     // (and (str.contains (str.++ y x) (str.++ x y)) (= z ""))
-    Node yx = d_nm->mkNode(kind::STRING_CONCAT, y, x);
     Node yx_cnts_xzy = d_nm->mkNode(
         kind::STRING_STRCTN, yx, d_nm->mkNode(kind::STRING_CONCAT, x, z, y));
     Node res_yx_cnts_xzy = Rewriter::rewrite(yx_cnts_xzy);
-    Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
     Node yx_cnts_xy = d_nm->mkNode(kind::AND,
                                    d_nm->mkNode(kind::STRING_STRCTN, yx, xy),
                                    d_nm->mkNode(kind::EQUAL, z, empty));
@@ -573,5 +573,85 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node res_ctn_repl_empty = Rewriter::rewrite(ctn_repl_empty);
     Node res_eq_repl_empty = Rewriter::rewrite(eq_repl_empty);
     TS_ASSERT_EQUALS(res_ctn_repl_empty, res_eq_repl_empty);
+
+    // Same normal form for:
+    //
+    // (str.contains x (str.++ x y))
+    //
+    // (= "" y)
+    Node ctn_x_x_y = d_nm->mkNode(
+        kind::STRING_STRCTN, x, d_nm->mkNode(kind::STRING_CONCAT, x, y));
+    Node eq_emp_y = d_nm->mkNode(kind::EQUAL, empty, y);
+    Node res_ctn_x_x_y = Rewriter::rewrite(ctn_x_x_y);
+    Node res_eq_emp_y = Rewriter::rewrite(eq_emp_y);
+    TS_ASSERT_EQUALS(res_ctn_x_x_y, res_eq_emp_y);
+
+    // Same normal form for:
+    //
+    // (str.contains (str.++ y x) (str.++ x y))
+    //
+    // (= (str.++ y x) (str.++ x y))
+    Node ctn_yxxy = d_nm->mkNode(kind::STRING_STRCTN, yx, xy);
+    Node eq_yxxy = d_nm->mkNode(kind::EQUAL, yx, xy);
+    Node res_ctn_yxxy = Rewriter::rewrite(ctn_yxxy);
+    Node res_eq_yxxy = Rewriter::rewrite(eq_yxxy);
+    TS_ASSERT_EQUALS(res_ctn_yxxy, res_eq_yxxy);
+  }
+
+  void testInferEqsFromContains()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node b = d_nm->mkConst(::CVC4::String("B"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
+    Node f = d_nm->mkConst(false);
+
+    // inferEqsFromContains("", (str.++ x y)) returns something equivalent to
+    // (= "" y)
+    Node empty_x_y = d_nm->mkNode(kind::AND,
+                                  d_nm->mkNode(kind::EQUAL, empty, x),
+                                  d_nm->mkNode(kind::EQUAL, empty, y));
+    Node res_xy = Rewriter::rewrite(
+        TheoryStringsRewriter::inferEqsFromContains(empty, xy));
+    Node res_empty_x_y = Rewriter::rewrite(empty_x_y);
+    TS_ASSERT_EQUALS(res_xy, res_empty_x_y);
+
+    // inferEqsFromContains(x, (str.++ x y)) returns false
+    Node bxya = d_nm->mkNode(kind::STRING_CONCAT, b, y, x, a);
+    Node res_bxya =
+        Rewriter::rewrite(TheoryStringsRewriter::inferEqsFromContains(x, bxya));
+    TS_ASSERT_EQUALS(res_bxya, f);
+
+    // inferEqsFromContains(x, y) returns null
+    Node n = TheoryStringsRewriter::inferEqsFromContains(x, y);
+    TS_ASSERT(n.isNull());
+
+    // inferEqsFromContains(x, x) returns something equivalent to (= x x)
+    Node eq_x_x = d_nm->mkNode(kind::EQUAL, x, x);
+    Node res_x_x =
+        Rewriter::rewrite(TheoryStringsRewriter::inferEqsFromContains(x, x));
+    Node res_eq_x_x = Rewriter::rewrite(eq_x_x);
+    TS_ASSERT_EQUALS(res_x_x, res_eq_x_x);
+
+    // inferEqsFromContains((str.replace x "B" "A"), x) returns something
+    // equivalent to (= (str.replace x "B" "A") x)
+    Node repl = d_nm->mkNode(kind::STRING_STRREPL, x, b, a);
+    Node eq_repl_x = d_nm->mkNode(kind::EQUAL, repl, x);
+    Node res_repl_x =
+        Rewriter::rewrite(TheoryStringsRewriter::inferEqsFromContains(repl, x));
+    Node res_eq_repl_x = Rewriter::rewrite(eq_repl_x);
+    TS_ASSERT_EQUALS(res_repl_x, res_eq_repl_x);
+
+    // inferEqsFromContains(x, (str.replace x "B" "A")) returns something
+    // equivalent to (= (str.replace x "B" "A") x)
+    Node eq_x_repl = d_nm->mkNode(kind::EQUAL, x, repl);
+    Node res_x_repl =
+        Rewriter::rewrite(TheoryStringsRewriter::inferEqsFromContains(x, repl));
+    Node res_eq_x_repl = Rewriter::rewrite(eq_x_repl);
+    TS_ASSERT_EQUALS(res_x_repl, res_eq_x_repl);
   }
 };
