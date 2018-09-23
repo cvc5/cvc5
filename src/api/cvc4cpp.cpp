@@ -1456,7 +1456,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ?  new Options() : opts;
+  Options* o = opts == nullptr ? new Options() : opts;
   d_exprMgr.reset(new ExprManager(*o));
   d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
   d_rng.reset(new Random((*o)[options::seed]));
@@ -1937,10 +1937,7 @@ Term Solver::mkVar(const std::string& symbol, Sort sort) const
   return d_exprMgr->mkVar(symbol, *sort.d_type);
 }
 
-Term Solver::mkVar(Sort sort) const
-{
-  return d_exprMgr->mkVar(*sort.d_type);
-}
+Term Solver::mkVar(Sort sort) const { return d_exprMgr->mkVar(*sort.d_type); }
 
 Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
 {
@@ -1974,8 +1971,10 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
         n >= minArity(kind) && n <= maxArity(kind),
         kind,
         "Terms with kind " << kindToString(kind) << " must have at least "
-        << minArity(kind) << " children and at most " << maxArity(kind)
-        << " children (the one under construction has " << n << ")");
+                           << minArity(kind) << " children and at most "
+                           << maxArity(kind)
+                           << " children (the one under construction has " << n
+                           << ")");
   }
 }
 
@@ -1997,11 +1996,10 @@ void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
     uint32_t min_arity = ExprManager::minArity(int_op_kind);
     uint32_t max_arity = ExprManager::maxArity(int_op_kind);
     CVC4_API_KIND_CHECK_EXPECTED(
-        nchildren >=  min_arity && nchildren <= max_arity,
+        nchildren >= min_arity && nchildren <= max_arity,
         kind,
         "Terms with kind " << kindToString(kind) << " must have at least "
-                           << min_arity << " children and at most "
-                           << max_arity
+                           << min_arity << " children and at most " << max_arity
                            << " children (the one under construction has "
                            << nchildren << ")");
   }
