@@ -14,39 +14,41 @@
 
 #include "theory/quantifiers/sygus/enum_stream_concrete.h"
 
+#include "theory/quantifiers/sygus/term_database_sygus.h"
+
 using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-namespace StreamPermutation {
-
-StreamPermutation(Node value,
-                  const std::map<unsigned, std::vector<Node>>& var_classes)
+StreamPermutation::StreamPermutation(
+    Node value,
+    const std::vector<std::vector<Node>>& var_classes,
+    TermDbSygus* tds)
     : d_tds(tds)
 {
   d_value = value;
-  for (const std::pair<unsigned, std::vector<Node>>& p : var_classes)
+  for (unsigned i = 0, size = var_classes.size(); i < size; ++i)
   {
-    d_perm_state_class.push_back(PermutationState(p.second));
-    d_vars.insert(d_vars.end(), p.second);
+    d_perm_state_class.push_back(PermutationState(var_classes[i]));
+    d_vars.insert(d_vars.end(), var_classes[i].begin(), var_classes[i].end());
   }
 }
 
-Node getNextPermutation()
+Node StreamPermutation::getNextPermutation()
 {
   Node perm_value;
   do
   {
     bool new_perm = false;
     std::vector<Node> sub;
-    for (unsigned i = 0, size = d_var_classes.size(); i < size; ++i)
+    for (unsigned i = 0, size = d_perm_state_class.size(); i < size; ++i)
     {
       std::vector<Node> perm;
       if (!d_perm_state_class[i].getNextPermutation(perm))
       {
-        getLasttPermutation(perm);
+        d_perm_state_class[i].getLastPermutation(perm);
       }
       else
       {
@@ -68,25 +70,28 @@ Node getNextPermutation()
   return perm_value;
 }
 
-PermutationState::PermutationState(const std::vector<Node>& vars)
+StreamPermutation::PermutationState::PermutationState(
+    const std::vector<Node>& vars)
 {
   d_vars = vars;
   std::fill(d_seq.begin(), d_seq.end(), 0);
-  curr_var_ind = 0;
+  d_curr_ind = 0;
 }
 
-void PermutationState::getLastPermutation(std::vector<Node>& perm)
+void StreamPermutation::PermutationState::getLastPermutation(
+    std::vector<Node>& perm)
 {
-  perm.insert(perm.end(), d_last_perm.begin(), d_last_prem.end());
+  perm.insert(perm.end(), d_last_perm.begin(), d_last_perm.end());
 }
 
-bool PermutationState::getNextPermutation(std::vector<Node>& perm)
+bool StreamPermutation::PermutationState::getNextPermutation(
+    std::vector<Node>& perm)
 {
   // initial case
   if (d_last_perm.empty())
   {
-    d_last_perm = vars;
-    perm = vars;
+    d_last_perm = d_vars;
+    perm = d_vars;
     return true;
   }
   // exhausted permutations
@@ -115,30 +120,89 @@ bool PermutationState::getNextPermutation(std::vector<Node>& perm)
   return true;
 }
 
-}
-
-namespace EnumStreamConcrete {
-
-EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p)
+EnumStreamConcrete::EnumStreamConcrete(QuantifiersEngine* qe,
+                                       SynthConjecture* p)
     : d_qe(qe), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
 {
 }
 
-void registerEnumerator(Node e)
+void EnumStreamConcrete::collectVars(
+    Node n,
+    std::vector<Node>& vars,
+    std::unordered_set<Node, NodeHashFunction>& visited)
 {
-
+  if (visited.find(n) != visited.end())
+  {
+    return;
+  }
+  visited.insert(n);
+  if (n.getKind() == kind::BOUND_VARIABLE)
+  {
+    if (std::find(vars.begin(), vars.end(), n) == vars.end())
+    {
+      vars.push_back(n);
+    }
+    return;
+  }
+  for (const Node& ni : n)
+  {
+    collectVars(ni, vars, visited);
+  }
 }
 
-void registerAbstractValue(Node v)
+void EnumStreamConcrete::splitVarClasses(
+    const std::vector<Node>& vars, std::vector<std::vector<Node>>& var_classes)
 {
-
+  std::unordered_set<unsigned> seen_classes;
+  for (unsigned i = 0, size = vars.size(); i < size - 1; ++i)
+  {
+    unsigned curr_class = d_var_class[vars[i]];
+    if (!seen_classes.insert(curr_class).second)
+    {
+      continue;
+    }
+    var_classes.push_back(std::vector<Node>());
+    for (unsigned j = i; j < size; ++j)
+    {
+      if (d_var_class[vars[j]] == curr_class)
+      {
+        var_classes.back().push_back(vars[j]);
+      }
+    }
+  }
 }
 
-Node getNext()
+void EnumStreamConcrete::registerEnumerator(Node e)
 {
-
+  // get variables in enumerator
+  TypeNode tn = e.getType();
+  const Datatype& dt = tn.getDatatype();
+  Node var_list = Node::fromExpr(dt.getSygusVarList());
+  for (const Node& v : var_list)
+  {
+    d_var_class[v] = d_tds->getSubclassForVar(tn, v);
+    Assert(d_var_class[v] > 0);
+  }
 }
 
+void EnumStreamConcrete::registerAbstractValue(Node v)
+{
+  d_abs_values.push_back(v);
+  std::vector<Node> vars;
+  std::unordered_set<Node, NodeHashFunction> visited;
+  collectVars(v, vars, visited);
+  std::vector<std::vector<Node>> var_classes;
+  if (!vars.empty())
+  {
+    splitVarClasses(vars, var_classes);
+  }
+  d_stream_permutations.push_back(StreamPermutation(v, var_classes, d_tds));
+}
+
+Node EnumStreamConcrete::getNext()
+{
+  Assert(!d_stream_permutations.empty());
+  return d_stream_permutations.back().getNextPermutation();
 }
 
 }  // namespace quantifiers

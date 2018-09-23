@@ -18,6 +18,7 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 
 namespace CVC4 {
 namespace theory {
@@ -30,7 +31,7 @@ class StreamPermutation
 {
  public:
   StreamPermutation(Node value,
-                    const std::map<unsigned, std::vector<Node>>& var_classes,
+                    const std::vector<std::vector<Node>>& var_classes,
                     TermDbSygus* tds);
   Node getNextPermutation();
 
@@ -48,9 +49,10 @@ class StreamPermutation
   {
    public:
     PermutationState(const std::vector<Node>& vars);
-    void getLasttPermutation(std::vector<Node>& perm);
+    void getLastPermutation(std::vector<Node>& perm);
 
     bool getNextPermutation(std::vector<Node>& perm);
+
    private:
     std::vector<Node> d_vars;
     std::vector<Node> d_last_perm;
@@ -65,11 +67,11 @@ class EnumStreamConcrete
 {
  public:
   EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p);
-  ~EnumStreamConcrete();
+  ~EnumStreamConcrete() {}
   /** register enumerator for this class
    *
-   * during registration builds a map from the canonical variables of e's type
-   * to their type classes
+   * during registration builds a map from the variables of e's type to their
+   * type classes
    */
   void registerEnumerator(Node e);
   /** register abstract value v */
@@ -92,14 +94,15 @@ class EnumStreamConcrete
   Node d_enum;
   /** list of registered abstract values */
   std::vector<Node> d_abs_values;
+  std::vector<StreamPermutation> d_stream_permutations;
   /** maps variables to ids of their respective type classes */
   std::map<Node, unsigned> d_var_class;
-  /** reverse map of the above */
-  std::map<unsigned, std::vector<Node>> d_class_vars;
-  /** retrieve canonical valiables occurring in value */
-  void getVars(Node v, std::vector<Node>& vars);
-  void getVarClasses(const std::vector<Node>& vars,
-                     std::vector<std::vector<Node>>& var_classes);
+  /** retrieve valiables occurring in value */
+  void collectVars(Node n,
+                   std::vector<Node>& vars,
+                   std::unordered_set<Node, NodeHashFunction>& visited);
+  void splitVarClasses(const std::vector<Node>& vars,
+                       std::vector<std::vector<Node>>& var_classes);
 };
 
 }  // namespace quantifiers
