@@ -160,13 +160,14 @@ protected:
   /**
    * Is this a function-LIKE type?
    *
-   * Function-like things (e.g. datatype selectors) that aren't actually
-   * functions ARE considered functions, here. The main point is that this is
-   * used to avoid anything higher-order: anything function-like can not be
-   * the argument or return value for anything else function-like.
+   * Anything function-like except arrays (e.g., datatype selectors) is
+   * considered a function here. Function-like terms can not be the argument
+   * or return value for any term that is function-like.
+   * This is mainly to avoid higher order.
    *
-   * Arrays are explicitly NOT function-like for the purposes of this test.
-   * However, functions still can not contain anything function-like.
+   * Note that arrays are explicitly not considered function-like here.
+   *
+   * @return true if this is a function-like type
    */
   bool isFunctionLike() const;
 

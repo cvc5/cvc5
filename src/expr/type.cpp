@@ -72,9 +72,17 @@ bool Type::isWellFounded() const {
   return d_typeNode->isWellFounded();
 }
 
-bool Type::isFirstClass() const { return d_typeNode->isFirstClass(); }
+bool Type::isFirstClass() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFirstClass();
+}
 
-bool Type::isFunctionLike() const { return d_typeNode->isFunctionLike(); }
+bool Type::isFunctionLike() const
+{
+  NodeManagerScope nms(d_nodeManager);
+  return d_typeNode->isFunctionLike();
+}
 
 Expr Type::mkGroundTerm() const {
   NodeManagerScope nms(d_nodeManager);

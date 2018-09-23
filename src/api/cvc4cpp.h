@@ -342,7 +342,7 @@ class CVC4_PUBLIC Sort
   bool isFirstClass() const;
 
   /**
-   * Is this a function-LIKE type?
+   * Is this a function-LIKE sort?
    *
    * Anything function-like except arrays (e.g., datatype selectors) is
    * considered a function here. Function-like terms can not be the argument
@@ -390,7 +390,7 @@ class CVC4_PUBLIC Sort
   size_t getFunctionArity() const;
 
   /**
-   * @return the domain sort of a function sort
+   * @return the domain sorts of a function sort
    */
   std::vector<Sort> getFunctionDomainSorts() const;
 
@@ -452,19 +452,19 @@ class CVC4_PUBLIC Sort
   /**
    * @return the bit-width of the bit-vector sort
    */
-  unsigned getBVSize() const;
+  uint32_t getBVSize() const;
 
   /* Floating-point sort ------------------------------------------------- */
 
   /**
-   * @return the bit-width of the floating-point exponent sort
+   * @return the bit-width of the exponent of the floating-point sort
    */
-  unsigned getFPExponentSize() const;
+  uint32_t getFPExponentSize() const;
 
   /**
-   * @return the width of the floating-point significand sort
+   * @return the width of the significand of the floating-point sort
    */
-  unsigned getFPSignificandSize() const;
+  uint32_t getFPSignificandSize() const;
 
   /* Datatype sort ------------------------------------------------------- */
 
@@ -1316,7 +1316,7 @@ class CVC4_PUBLIC Datatype
    */
   Term getConstructorTerm(const std::string& name) const;
 
-  /** Get the number of constructors (so far) for this Datatype. */
+  /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
 
   /** Is this Datatype parametric? */

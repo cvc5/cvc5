@@ -50,12 +50,13 @@ int main()
   // Creating a bit-vector type of width 32
   Sort bitvector32 = slv.mkBitVectorSort(32);
 
-  std::cout << "bitvector32 " << bitvector32 << std::endl;
   // Variables
   Term x = slv.mkVar("x", bitvector32);
-  std::cout << "bitvector32 " << bitvector32 << std::endl;
   Term a = slv.mkVar("a", bitvector32);
   Term b = slv.mkVar("b", bitvector32);
+
+  Sort funsort = slv.mkFunctionSort(bitvector32, bitvector32);
+  Term c = slv.declareFun("c", {bitvector32, funsort}, bitvector32);
 
   // First encode the assumption that x must be equal to a or b
   Term x_eq_a = slv.mkTerm(EQUAL, x, a);
