@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file inst_strategy_cbqi.cpp
+/*! \file inst_strategy_cegqi.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
@@ -11,7 +11,7 @@
  **
  ** \brief Implementation of counterexample-guided quantifier instantiation strategies
  **/
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
@@ -67,10 +67,7 @@ InstStrategyCegqi::InstStrategyCegqi(QuantifiersEngine* qe)
   d_check_vts_lemma_lc = false;
 }
 
-InstStrategyCegqi::~InstStrategyCegqi()
-{
-
-}
+InstStrategyCegqi::~InstStrategyCegqi() {}
 
 bool InstStrategyCegqi::needsCheck(Theory::Effort e)
 {

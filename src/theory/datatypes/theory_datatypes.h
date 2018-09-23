@@ -346,8 +346,6 @@ private:
  /** sygus symmetry breaking utility */
  SygusSymBreakNew* d_sygus_sym_break;
 
-public:
- Node getNextDecisionRequest(unsigned& priority) override;
 };/* class TheoryDatatypes */
 
 }/* CVC4::theory::datatypes namespace */

@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "options/proof_options.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/assertion_pipeline.h"
 #include "proof/cnf_proof.h"
 #include "proof/lemma_proof.h"
 #include "proof/proof_manager.h"
@@ -53,6 +54,7 @@
 
 using namespace std;
 
+using namespace CVC4::preprocessing;
 using namespace CVC4::theory;
 
 namespace CVC4 {
@@ -1818,8 +1820,7 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
     d_channels->getLemmaOutputChannel()->notifyNewLemma(node.toExpr());
   }
 
-  std::vector<Node> additionalLemmas;
-  IteSkolemMap iteSkolemMap;
+  AssertionPipeline additionalLemmas;
 
   // Run theory preprocessing, maybe
   Node ppNode = preprocess ? this->preprocess(node) : Node(node);
@@ -1827,9 +1828,11 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // Remove the ITEs
   Debug("ite") << "Remove ITE from " << ppNode << std::endl;
   additionalLemmas.push_back(ppNode);
-  d_tform_remover.run(additionalLemmas, iteSkolemMap);
+  additionalLemmas.updateRealAssertionsEnd();
+  d_tform_remover.run(additionalLemmas.ref(),
+                      additionalLemmas.getIteSkolemMap());
   Debug("ite") << "..done " << additionalLemmas[0] << std::endl;
-  additionalLemmas[0] = theory::Rewriter::rewrite(additionalLemmas[0]);
+  additionalLemmas.replace(0, theory::Rewriter::rewrite(additionalLemmas[0]));
 
   if(Debug.isOn("lemma-ites")) {
     Debug("lemma-ites") << "removed ITEs from lemma: " << ppNode << endl;
@@ -1846,19 +1849,19 @@ theory::LemmaStatus TheoryEngine::lemma(TNode node,
   // assert to prop engine
   d_propEngine->assertLemma(additionalLemmas[0], negated, removable, rule, node);
   for (unsigned i = 1; i < additionalLemmas.size(); ++ i) {
-    additionalLemmas[i] = theory::Rewriter::rewrite(additionalLemmas[i]);
+    additionalLemmas.replace(i, theory::Rewriter::rewrite(additionalLemmas[i]));
     d_propEngine->assertLemma(additionalLemmas[i], false, removable, rule, node);
   }
 
   // WARNING: Below this point don't assume additionalLemmas[0] to be not negated.
   if(negated) {
-    additionalLemmas[0] = additionalLemmas[0].notNode();
+    additionalLemmas.replace(0, additionalLemmas[0].notNode());
     negated = false;
   }
 
   // assert to decision engine
   if(!removable) {
-    d_decisionEngine->addAssertions(additionalLemmas, 1, iteSkolemMap);
+    d_decisionEngine->addAssertions(additionalLemmas);
   }
 
   // Mark that we added some lemmas

@@ -11,32 +11,29 @@ cache:
  - apt
  - ccache
 
-# We need more than 4G memory for compiling CVC4. Hence, we cannot switch
-# to container-based virtualization environments since they only provide 4G of
-# memory. We will stick with the VM-based environments for now.
-sudo: required
+sudo: false
 dist: trusty
 
 env:
  global:
-  - TEST_GROUPS=2
   - CCACHE_COMPRESS=1
 addons:
  apt:
   sources:
   - ubuntu-toolchain-r-test
   packages: &common_deps
-  - libgmp-dev
-  - libboost-dev
-  - libboost-thread-dev
-  - swig3.0
-  - libcln-dev
-  - openjdk-7-jdk
   - antlr3
-  - libantlr3c-dev
-  - ant-optional
+  - cmake
   - cxxtest
-  - libreadline-dev
+  - junit4
+  - libantlr3c-dev
+  - libboost-dev         # Remove with autotools build
+  - libboost-thread-dev  # Remove with autotools build
+  - libcln-dev
+  - libgmp-dev
+  - libhamcrest-java
+  - openjdk-7-jdk
+  - swig3.0
 before_install:
  - eval "${MATRIX_EVAL}"
  # Clang does not play nice with ccache (at least the versions offered by
@@ -50,10 +47,7 @@ before_install:
      sudo ln -s $(which ccache) /usr/lib/ccache/clang++
    fi
 before_script:
- - export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
- - export PATH=$PATH:$JAVA_HOME/bin
- - export JAVA_CPPFLAGS=-I$JAVA_HOME/include
- - ./autogen.sh
+  export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
 script:
  - ccache -M 1G
  - ccache -z
@@ -64,8 +58,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-     ./configure --enable-unit-testing $TRAVIS_CVC4_CONFIG ||
-       (echo; echo "Trying to print config.log"; cat builds/config.log; error "CONFIGURE FAILED");
+     ./configure.sh --name=build --unit-testing $TRAVIS_CVC4_CONFIG
    }
    error() {
      echo;
@@ -73,22 +66,29 @@ script:
      echo;
      exit 1;
    }
-   makeDistcheck() {
-     make V=1 -j2 distcheck REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' ||
-       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
+   makeAutotools() {
+     ./autogen.sh
+     ./configure debug --with-lfsc --disable-debug-symbols
+     make -j2 check REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' || error "AUTOTOOLS BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
    }
+   #   makeDistcheck() {
+   #     make V=1 -j2 distcheck REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' ||
+   #       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
+   #   }
    makeCheck() {
-     make V=1 -j2 check REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
+     cd build
+     make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
    }
    makeExamples() {
-     make V=1 -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
+     cd build
+     make -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
    }
-   addNewTheoryTest() {
-       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
-       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.theories || error "NEWTHEORY FAILED";
-       contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
-       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
-   }
+   #   addNewTheoryTest() {
+   #       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
+   #       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.theories || error "NEWTHEORY FAILED";
+   #       contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
+   #       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
+   #   }
    run() {
      echo "travis_fold:start:$1"
      echo "Running $1"
@@ -96,10 +96,11 @@ script:
      echo "travis_fold:end:$1"
    }
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
-   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
-   [ -n "$TRAVIS_CVC4" ] && run configureCVC4
-   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
-   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && run makeCheck && run makeExamples
+   [ -n "$TRAVIS_AUTOTOOLS" ] && run makeAutotools
+   #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
+   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run configureCVC4
+   #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
+   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run makeCheck && run makeExamples
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
@@ -110,18 +111,23 @@ matrix:
     # Test with GCC
     - compiler: gcc
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --enable-language-bindings=java,c --with-lfsc'
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --language-bindings=java --lfsc'
     - compiler: gcc
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-lfsc --disable-debug-symbols'
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --lfsc --no-debug-symbols'
+
+    # Add autotools build until cmake is the default
+    - compiler: gcc
+      env:
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_AUTOTOOLS=yes
     #
     # Test with Clang
     - compiler: clang
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --with-cln --enable-gpl --disable-debug-symbols --disable-proof'
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --cln --gpl --no-debug-symbols --no-proofs'
     - compiler: clang
       env:
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--enable-proof'
+        - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--proofs'
 notifications:
   email:
     on_success: change

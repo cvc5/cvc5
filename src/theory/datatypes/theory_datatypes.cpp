@@ -2238,17 +2238,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
   return make_pair(false, Node::null());
 }
 
-Node TheoryDatatypes::getNextDecisionRequest( unsigned& priority ) {
-  if( d_sygus_sym_break ){
-    std::vector< Node > lemmas;
-    Node ret = d_sygus_sym_break->getNextDecisionRequest( priority, lemmas );
-    doSendLemmas( lemmas );
-    return ret;
-  }else{
-    return Node::null();
-  }
-}
-
 } /* namepsace CVC4::theory::datatypes */
 } /* namepsace CVC4::theory */
 } /* namepsace CVC4 */

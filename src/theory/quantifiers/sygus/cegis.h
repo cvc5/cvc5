@@ -41,7 +41,7 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe, CegConjecture* p);
+  Cegis(QuantifiersEngine* qe, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node n,
@@ -69,11 +69,11 @@ class Cegis : public SygusModule
  protected:
   /** the evaluation unfold utility of d_tds */
   SygusEvalUnfold* d_eval_unfold;
-  /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
+  /** If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
-   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the
-   * formula P( CegConjecture::d_candidates, y ).
+   * If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is the
+   * formula P( SynthConjecture::d_candidates, y ).
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
