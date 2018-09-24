@@ -18,24 +18,23 @@
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/quantifiers/extended_rewrite.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 
 #include <cxxtest/TestSuite.h>
+#include <iostream>
+#include <memory>
 #include <vector>
 
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::theory;
+using namespace CVC4::theory::quantifiers;
 using namespace CVC4::theory::strings;
 
 class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 {
-  ExprManager *d_em;
-  NodeManager *d_nm;
-  SmtEngine *d_smt;
-  SmtScope *d_scope;
-
  public:
   TheoryStringsRewriterWhite() {}
 
@@ -44,16 +43,41 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Options opts;
     opts.setOutputLanguage(language::output::LANG_SMTLIB_V2);
     d_em = new ExprManager(opts);
-    d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
+    d_rewriter = new ExtendedRewriter(true);
+
+    d_nm = NodeManager::currentNM();
   }
 
   void tearDown() override
   {
+    delete d_rewriter;
     delete d_scope;
     delete d_smt;
     delete d_em;
+  }
+
+  void sameNormalForm(Node t1, Node t2)
+  {
+    Node res_t1 = d_rewriter->extendedRewrite(t1);
+    Node res_t2 = d_rewriter->extendedRewrite(t2);
+
+    std::cout << std::endl;
+    std::cout << t1 << " ---> " << res_t1 << std::endl;
+    std::cout << t2 << " ---> " << res_t2 << std::endl;
+    TS_ASSERT_EQUALS(res_t1, res_t2);
+  }
+
+  void differentNormalForms(Node t1, Node t2)
+  {
+    Node res_t1 = d_rewriter->extendedRewrite(t1);
+    Node res_t2 = d_rewriter->extendedRewrite(t2);
+
+    std::cout << std::endl;
+    std::cout << t1 << " ---> " << res_t1 << std::endl;
+    std::cout << t2 << " ---> " << res_t2 << std::endl;
+    TS_ASSERT_DIFFERS(res_t1, res_t2);
   }
 
   void testCheckEntailArithWithAssumption()
@@ -199,9 +223,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node repl_a_x_e = d_nm->mkNode(kind::STRING_STRREPL, a, x, empty);
     Node repl_a = d_nm->mkNode(kind::STRING_CONCAT, repl_a_x_e, a);
     Node a_repl = d_nm->mkNode(kind::STRING_CONCAT, a, repl_a_x_e);
-    Node res_repl_a = Rewriter::rewrite(repl_a);
-    Node res_a_repl = Rewriter::rewrite(a_repl);
-    TS_ASSERT_EQUALS(res_repl_a, res_a_repl);
+    sameNormalForm(repl_a, a_repl);
 
     // Same normal form for:
     //
@@ -212,9 +234,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node repl_e_x_z = d_nm->mkNode(kind::STRING_STRREPL, empty, x, z);
     repl_a = d_nm->mkNode(kind::STRING_CONCAT, y, repl_e_x_z, z, a, z);
     a_repl = d_nm->mkNode(kind::STRING_CONCAT, y, z, repl_e_x_z, a, z);
-    res_repl_a = Rewriter::rewrite(repl_a);
-    res_a_repl = Rewriter::rewrite(a_repl);
-    TS_ASSERT_EQUALS(res_repl_a, res_a_repl);
+    sameNormalForm(repl_a, a_repl);
 
     // Same normal form for:
     //
@@ -226,9 +246,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         d_nm->mkNode(kind::STRING_CONCAT, a, substr_a, repl_a_x_e);
     Node substr_repl_a =
         d_nm->mkNode(kind::STRING_CONCAT, substr_a, repl_a_x_e, a);
-    Node res_a_substr_repl = Rewriter::rewrite(a_substr_repl);
-    Node res_substr_repl_a = Rewriter::rewrite(substr_repl_a);
-    TS_ASSERT_EQUALS(res_a_substr_repl, res_substr_repl_a);
+    sameNormalForm(a_substr_repl, substr_repl_a);
 
     // Same normal form for:
     //
@@ -241,9 +259,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         d_nm->mkNode(kind::STRING_CONCAT, repl_e_x_s, substr_a, charat_a);
     Node a_repl_substr =
         d_nm->mkNode(kind::STRING_CONCAT, charat_a, repl_e_x_s, substr_a);
-    Node res_repl_substr_a = Rewriter::rewrite(repl_substr_a);
-    Node res_a_repl_substr = Rewriter::rewrite(a_repl_substr);
-    TS_ASSERT_EQUALS(res_repl_substr_a, res_a_repl_substr);
+    sameNormalForm(repl_substr_a, a_repl_substr);
   }
 
   void testLengthPreserveRewrite()
@@ -301,9 +317,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node itos_a_idof_x = d_nm->mkNode(kind::STRING_ITOS, a_idof_x);
     Node b_idof_x = d_nm->mkNode(kind::STRING_STRIDOF, b, x, one);
     Node itos_b_idof_x = d_nm->mkNode(kind::STRING_ITOS, b_idof_x);
-    Node res_itos_a_idof_x = Rewriter::rewrite(itos_a_idof_x);
-    Node res_itos_b_idof_x = Rewriter::rewrite(itos_b_idof_x);
-    TS_ASSERT_EQUALS(res_itos_a_idof_x, res_itos_b_idof_x);
+    sameNormalForm(itos_a_idof_x, itos_b_idof_x);
 
     // Same normal form for:
     //
@@ -318,9 +332,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                                   d_nm->mkNode(kind::STRING_CONCAT, aaad, x),
                                   y,
                                   three);
-    Node res_idof_abcd = Rewriter::rewrite(idof_abcd);
-    Node res_idof_aaad = Rewriter::rewrite(idof_aaad);
-    TS_ASSERT_EQUALS(res_idof_abcd, res_idof_aaad);
+    sameNormalForm(idof_abcd, idof_aaad);
   }
 
   void testRewriteReplace()
@@ -347,25 +359,21 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      d_nm->mkNode(kind::STRING_STRREPL, x, b, a),
                      x,
                      a);
-    Node res_repl_repl = Rewriter::rewrite(repl_repl);
-    Node res_repl_repl_short = Rewriter::rewrite(repl_repl_short);
-    TS_ASSERT_EQUALS(res_repl_repl, res_repl_repl_short);
+    sameNormalForm(repl_repl, repl_repl_short);
 
     // (str.replace "A" (str.replace "B", x, "C") "D") --> "A"
     repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
                              a,
                              d_nm->mkNode(kind::STRING_STRREPL, b, x, c),
                              d);
-    res_repl_repl = Rewriter::rewrite(repl_repl);
-    TS_ASSERT_EQUALS(res_repl_repl, a);
+    sameNormalForm(repl_repl, a);
 
     // (str.replace "A" (str.replace "B", x, "A") "D") -/-> "A"
     repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
                              a,
                              d_nm->mkNode(kind::STRING_STRREPL, b, x, a),
                              d);
-    res_repl_repl = Rewriter::rewrite(repl_repl);
-    TS_ASSERT_DIFFERS(res_repl_repl, a);
+    differentNormalForms(repl_repl, a);
 
     // Same normal form for:
     //
@@ -375,17 +383,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node xyz = d_nm->mkNode(kind::STRING_CONCAT, x, y, z);
     Node repl_x_xyz = d_nm->mkNode(kind::STRING_STRREPL, x, xyz, y);
     Node repl_x_zyx = d_nm->mkNode(kind::STRING_STRREPL, x, xyz, z);
-    Node res_repl_x_xyz = Rewriter::rewrite(repl_x_xyz);
-    Node res_repl_x_zyx = Rewriter::rewrite(repl_x_zyx);
-    TS_ASSERT_EQUALS(res_repl_x_xyz, res_repl_x_zyx);
+    sameNormalForm(repl_x_xyz, repl_x_zyx);
 
     // (str.replace "" (str.++ x x) x) --> ""
     Node repl_empty_xx = d_nm->mkNode(kind::STRING_STRREPL,
                                       empty,
                                       d_nm->mkNode(kind::STRING_CONCAT, x, x),
                                       x);
-    Node res_repl_empty_xx = Rewriter::rewrite(repl_empty_xx);
-    TS_ASSERT_EQUALS(res_repl_empty_xx, empty);
+    sameNormalForm(repl_empty_xx, empty);
 
     // (str.replace "AB" (str.++ x "A") x) --> (str.replace "AB" (str.++ x "A")
     // "")
@@ -397,9 +402,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                                      d_nm->mkNode(kind::STRING_CONCAT, a, b),
                                      d_nm->mkNode(kind::STRING_CONCAT, x, a),
                                      empty);
-    Node res_repl_ab_xa_x = Rewriter::rewrite(repl_ab_xa_x);
-    Node res_repl_ab_xa_e = Rewriter::rewrite(repl_ab_xa_e);
-    TS_ASSERT_EQUALS(res_repl_ab_xa_x, res_repl_ab_xa_e);
+    sameNormalForm(repl_ab_xa_x, repl_ab_xa_e);
 
     // (str.replace "AB" (str.++ x "A") x) -/-> (str.replace "AB" (str.++ "A" x)
     // "")
@@ -407,8 +410,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                                      d_nm->mkNode(kind::STRING_CONCAT, a, b),
                                      d_nm->mkNode(kind::STRING_CONCAT, a, x),
                                      empty);
-    Node res_repl_ab_ax_e = Rewriter::rewrite(repl_ab_ax_e);
-    TS_ASSERT_DIFFERS(res_repl_ab_xa_x, res_repl_ab_ax_e);
+    differentNormalForms(repl_ab_ax_e, repl_ab_xa_e);
   }
 
   void testRewriteContains()
@@ -444,9 +446,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      a,
                      d_nm->mkNode(kind::STRING_SUBSTR, x, one, four),
                      z);
-    Node res_substr_3 = Rewriter::rewrite(substr_3);
-    Node res_substr_4 = Rewriter::rewrite(substr_4);
-    TS_ASSERT_EQUALS(res_substr_3, res_substr_4);
+    sameNormalForm(substr_3, substr_4);
 
     // Same normal form for:
     //
@@ -467,9 +467,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      y,
                      d_nm->mkNode(kind::STRING_SUBSTR, x, one, four)),
         z);
-    Node res_concat_substr_3 = Rewriter::rewrite(concat_substr_3);
-    Node res_concat_substr_4 = Rewriter::rewrite(concat_substr_4);
-    TS_ASSERT_EQUALS(res_concat_substr_3, res_concat_substr_4);
+    sameNormalForm(concat_substr_3, concat_substr_4);
 
     // (str.contains "A" (str.++ a (str.replace "B", x, "C")) --> false
     Node ctn_repl =
@@ -478,16 +476,12 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      d_nm->mkNode(kind::STRING_CONCAT,
                                   a,
                                   d_nm->mkNode(kind::STRING_STRREPL, b, x, c)));
-    Node res_ctn_repl = Rewriter::rewrite(ctn_repl);
-    TS_ASSERT_EQUALS(res_ctn_repl, f);
+    sameNormalForm(ctn_repl, f);
 
     // (str.contains x (str.++ x x)) --> (= x "")
     Node x_cnts_x_x = d_nm->mkNode(
         kind::STRING_STRCTN, x, d_nm->mkNode(kind::STRING_CONCAT, x, x));
-    Node res_x_cnts_x_x = Rewriter::rewrite(x_cnts_x_x);
-    Node res_x_eq_empty =
-        Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, x, empty));
-    TS_ASSERT_EQUALS(res_x_cnts_x_x, res_x_eq_empty);
+    sameNormalForm(x_cnts_x_x, d_nm->mkNode(kind::EQUAL, x, empty));
 
     // Same normal form for:
     //
@@ -497,13 +491,11 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node yx = d_nm->mkNode(kind::STRING_CONCAT, y, x);
     Node yx_cnts_xzy = d_nm->mkNode(
         kind::STRING_STRCTN, yx, d_nm->mkNode(kind::STRING_CONCAT, x, z, y));
-    Node res_yx_cnts_xzy = Rewriter::rewrite(yx_cnts_xzy);
     Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
     Node yx_cnts_xy = d_nm->mkNode(kind::AND,
-                                   d_nm->mkNode(kind::STRING_STRCTN, yx, xy),
-                                   d_nm->mkNode(kind::EQUAL, z, empty));
-    Node res_yx_cnts_xy = Rewriter::rewrite(yx_cnts_xy);
-    TS_ASSERT_EQUALS(res_yx_cnts_xzy, res_yx_cnts_xy);
+                                   d_nm->mkNode(kind::EQUAL, z, empty),
+                                   d_nm->mkNode(kind::STRING_STRCTN, yx, xy));
+    sameNormalForm(yx_cnts_xzy, yx_cnts_xy);
 
     // Same normal form for:
     //
@@ -520,9 +512,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         d_nm->mkNode(
             kind::STRING_SUBSTR, x, n, d_nm->mkNode(kind::STRING_LENGTH, y)),
         y);
-    Node res_ctn_substr = Rewriter::rewrite(ctn_substr);
-    Node res_substr_eq = Rewriter::rewrite(substr_eq);
-    TS_ASSERT_EQUALS(res_ctn_substr, res_substr_eq);
+    sameNormalForm(ctn_substr, substr_eq);
 
     // Same normal form for:
     //
@@ -532,9 +522,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node ctn_repl_y_x_y = d_nm->mkNode(
         kind::STRING_STRCTN, x, d_nm->mkNode(kind::STRING_STRREPL, y, x, y));
     Node ctn_x_y = d_nm->mkNode(kind::STRING_STRCTN, x, y);
-    Node res_ctn_repl_y_x_y = Rewriter::rewrite(ctn_repl_y_x_y);
-    Node res_ctn_x_y = Rewriter::rewrite(ctn_x_y);
-    TS_ASSERT_EQUALS(res_ctn_repl_y_x_y, res_ctn_x_y);
+    sameNormalForm(ctn_repl_y_x_y, ctn_repl_y_x_y);
 
     // Same normal form for:
     //
@@ -545,9 +533,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         kind::STRING_STRCTN, x, d_nm->mkNode(kind::STRING_STRREPL, x, y, x));
     Node eq_repl = d_nm->mkNode(
         kind::EQUAL, x, d_nm->mkNode(kind::STRING_STRREPL, x, y, x));
-    Node res_ctn_repl_self = Rewriter::rewrite(ctn_repl_self);
-    Node res_eq_repl = Rewriter::rewrite(eq_repl);
-    TS_ASSERT_EQUALS(res_ctn_repl_self, res_eq_repl);
+    sameNormalForm(ctn_repl_self, eq_repl);
 
     // (str.contains x (str.++ "A" (str.replace x y x))) ---> false
     Node ctn_repl_self_f =
@@ -556,8 +542,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      d_nm->mkNode(kind::STRING_CONCAT,
                                   a,
                                   d_nm->mkNode(kind::STRING_STRREPL, x, y, x)));
-    Node res_ctn_repl_self_f = Rewriter::rewrite(ctn_repl_self_f);
-    TS_ASSERT_EQUALS(res_ctn_repl_self_f, f);
+    sameNormalForm(ctn_repl_self_f, f);
 
     // Same normal form for:
     //
@@ -570,8 +555,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                      d_nm->mkNode(kind::STRING_STRREPL, empty, x, y));
     Node eq_repl_empty = d_nm->mkNode(
         kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, empty, x, y));
-    Node res_ctn_repl_empty = Rewriter::rewrite(ctn_repl_empty);
-    Node res_eq_repl_empty = Rewriter::rewrite(eq_repl_empty);
-    TS_ASSERT_EQUALS(res_ctn_repl_empty, res_eq_repl_empty);
+    sameNormalForm(ctn_repl_empty, eq_repl_empty);
   }
+
+ private:
+  ExprManager* d_em;
+  SmtEngine* d_smt;
+  SmtScope* d_scope;
+  ExtendedRewriter* d_rewriter;
+
+  NodeManager* d_nm;
 };
