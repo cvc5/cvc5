@@ -72,7 +72,7 @@ class TermDbSygus {
    * isVarAgnostic : if this flag is true, the enumerator will only generate
    * values whose variables are in canonical order (for example, only x1-x2
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
-   * subclass).
+   * "subclass", see getSubclassForVar).
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction
@@ -431,8 +431,9 @@ class TermDbSygus {
    * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
    * same subclass.
    *
-   * The type tn should be a (top-level) type of an enumerator registered to
-   * this database.
+   * The type tn should be the type of an enumerator registered to this
+   * database, where notice that we do not compute this information for the
+   * subfield types of the enumerator.
    */
   unsigned getSubclassForVar(TypeNode tn, Node v) const;
   /**

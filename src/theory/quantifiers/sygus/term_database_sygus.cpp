@@ -987,12 +987,14 @@ unsigned TermDbSygus::getNumSubclassVars(TypeNode tn, unsigned sc) const
       itv = d_var_subclass_list.find(tn);
   if (itv == d_var_subclass_list.end())
   {
+    Assert(false);
     return 0;
   }
   std::map<unsigned, std::vector<Node> >::const_iterator itvv =
       itv->second.find(sc);
   if (itvv == itv->second.end())
   {
+    Assert(false);
     return 0;
   }
   return itvv->second.size();
@@ -1005,12 +1007,14 @@ Node TermDbSygus::getVarSubclassIndex(TypeNode tn,
       itv = d_var_subclass_list.find(tn);
   if (itv == d_var_subclass_list.end())
   {
+    Assert(false);
     return Node::null();
   }
   std::map<unsigned, std::vector<Node> >::const_iterator itvv =
       itv->second.find(sc);
   if (itvv == itv->second.end() || i >= itvv->second.size())
   {
+    Assert(false);
     return Node::null();
   }
   return itvv->second[i];
