@@ -17,8 +17,8 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_CONCRETE_H
 
 #include "expr/node.h"
-#include "theory/quantifiers_engine.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -49,13 +49,13 @@ class StreamPermutation
   {
    public:
     PermutationState(const std::vector<Node>& vars);
-    void getLastPermutation(std::vector<Node>& perm);
 
-    bool getNextPermutation(std::vector<Node>& perm);
+    bool getNextPermutation();
 
-   private:
     std::vector<Node> d_vars;
     std::vector<Node> d_last_perm;
+
+   private:
     std::vector<unsigned> d_seq;
     unsigned d_curr_ind;
   };
