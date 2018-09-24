@@ -594,7 +594,8 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node empty_x_y = d_nm->mkNode(kind::AND,
                                   d_nm->mkNode(kind::EQUAL, empty, x),
                                   d_nm->mkNode(kind::EQUAL, empty, y));
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(empty, xy), empty_x_y);
+    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(empty, xy),
+                   empty_x_y);
 
     // inferEqsFromContains(x, (str.++ x y)) returns false
     Node bxya = d_nm->mkNode(kind::STRING_CONCAT, b, y, x, a);
@@ -612,12 +613,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     // equivalent to (= (str.replace x "B" "A") x)
     Node repl = d_nm->mkNode(kind::STRING_STRREPL, x, b, a);
     Node eq_repl_x = d_nm->mkNode(kind::EQUAL, repl, x);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(repl, x), eq_repl_x);
+    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(repl, x),
+                   eq_repl_x);
 
     // inferEqsFromContains(x, (str.replace x "B" "A")) returns something
     // equivalent to (= (str.replace x "B" "A") x)
     Node eq_x_repl = d_nm->mkNode(kind::EQUAL, x, repl);
-    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(x, repl), eq_x_repl);
+    sameNormalForm(TheoryStringsRewriter::inferEqsFromContains(x, repl),
+                   eq_x_repl);
   }
 
   void testRewritePrefixSuffix()
@@ -655,9 +658,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     //
     // (= x "")
     Node p_xxa = d_nm->mkNode(kind::STRING_SUFFIX, xxa, x);
-    Node res_p_xxa = Rewriter::rewrite(p_xxa);
-    sameNormalForm(p_xxa, empty_x);
-    TS_ASSERT_EQUALS(res_p_xxa, f);
+    sameNormalForm(p_xxa, f);
   }
 
  private:
