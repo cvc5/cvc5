@@ -787,7 +787,7 @@ Node ExtendedRewriter::extendedRewriteBcp(
 
           // also, treat it as clause if possible
           if (cln.getNumChildren() > 0
-              & (bcp_kinds.empty()
+              && (bcp_kinds.empty()
                  || bcp_kinds.find(cln.getKind()) != bcp_kinds.end()))
           {
             if (std::find(clauses.begin(), clauses.end(), cn) == clauses.end()
