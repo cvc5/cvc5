@@ -11,7 +11,7 @@
 tags_type="$1" # Debug/Trace
 tags_file="${tags_type}_tags"
 
-if [ "${tags_type}" != "Debug" -a "${tags_type}" != "Trace" ]; then
+if [ "${tags_type}" != "Debug" ] && [ "${tags_type}" != "Trace" ]; then
   echo "$0: Invalid tags type '${tags_type}' (must be 'Debug' or 'Trace')"
   exit 1
 fi
@@ -21,6 +21,6 @@ fi
 
 if [ -e "${tags_file}" ]; then
   # Do not update file if tags didn't change.
-  diff -q ${tags_file}.tmp ${tags_file} &> /dev/null && exit 0
+  diff -q "${tags_file}.tmp" "${tags_file}" > /dev/null 2>&1 && exit 0
 fi
-mv ${tags_file}.tmp ${tags_file}
+mv "${tags_file}.tmp" "${tags_file}"
