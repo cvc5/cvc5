@@ -484,7 +484,7 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
     new_ret = inferEqsFromContains(node[i], node[1-i]);
     if (!new_ret.isNull())
     {
-      node = returnRewrite(node, new_ret, "str-eq-len-entail");
+      return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
     }
   }
   return node;
