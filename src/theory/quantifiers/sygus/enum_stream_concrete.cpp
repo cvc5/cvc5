@@ -276,15 +276,18 @@ Node StreamCombination::getNext()
     }
     Trace("synth-stream-concrete-debug2") << "\n";
   }
-  // Node comb_value = d_last;
-  Node comb_value;
-
-  comb_value = d_last.substitute(
+  Node comb_value = d_last.substitute(
       d_perm_vars.begin(), d_perm_vars.end(), sub.begin(), sub.end());
   ss.str("");
   Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, comb_value);
-
   Trace("synth-stream-concrete") << " ..return new comb " << ss.str() << "\n\n";
+#ifdef CVC4_ASSERTIONS
+  // the new combination value should be fresh, modulo rewriting, by
+  // construction (unless it's equiv to a constant, e.g. true / false)
+  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
+      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
+  Assert(builtin_comb_value.isConst() || d_comb_values.insert(builtin_comb_value).second);
+#endif
   return comb_value;
 }
 

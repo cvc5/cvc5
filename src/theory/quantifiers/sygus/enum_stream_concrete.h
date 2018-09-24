@@ -86,6 +86,8 @@ class StreamCombination
   std::vector<Node> d_all_vars;
   std::vector<Node> d_perm_vars;
   std::map<Node, std::vector<Node>> d_var_cons;
+  /** generated combinations (for debugging) */
+  std::unordered_set<Node, NodeHashFunction> d_comb_values;
   /** sygus term database */
   TermDbSygus* d_tds;
 
