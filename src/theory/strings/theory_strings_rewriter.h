@@ -534,6 +534,42 @@ class TheoryStringsRewriter {
    * because the function could not compute a simpler
    */
   static Node getStringOrEmpty(Node n);
+
+  /**
+   * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
+   * original inequality still holds. Returns true if the original inequality
+   * holds and false otherwise. The list of ys is modified to contain a subset
+   * of the original ys.
+   *
+   * Example:
+   *
+   * inferZerosInSumGeq( (str.len x), [ (str.len x), (str.len y), 1 ], [] )
+   * --> returns true with ys = [ (str.len x) ] and zeroYs = [ (str.len y), 1 ]
+   *     (can be used to rewrite the inequality to false)
+   *
+   * inferZerosInSumGeq( (str.len x), [ (str.len y) ], [] )
+   * --> returns false because it is not possible to show
+   *     str.len(y) >= str.len(x)
+   */
+  static bool inferZerosInSumGeq(Node x,
+                                 std::vector<Node>& ys,
+                                 std::vector<Node>& zeroYs);
+
+  /**
+   * Infers a conjunction of equalities that correspond to (str.contains x y)
+   * if it can show that the length of y is greater or equal to the length of
+   * x. If y is a concatentation, we get x = y1 ++ ... ++ yn, the conjunction
+   * is of the form:
+   *
+   * (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
+   *
+   * where each yi'' are yi that must be empty for (= x y) to hold and yi' are
+   * yi that the function could not infer anything about.  Returns a null node
+   * if the function cannot infer that str.len(y) >= str.len(x). Returns (= x
+   * y) if the function can infer that str.len(y) >= str.len(x) but cannot
+   * infer that any of the yi must be empty.
+   */
+  static Node inferEqsFromContains(Node x, Node y);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
