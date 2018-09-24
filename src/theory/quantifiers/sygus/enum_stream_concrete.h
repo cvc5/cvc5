@@ -31,13 +31,17 @@ class StreamPermutation
 {
  public:
   StreamPermutation(Node value,
+                    const std::vector<Node>& perm_vars,
                     const std::vector<std::vector<Node>>& var_classes,
                     TermDbSygus* tds);
-  Node getNextPermutation();
+  Node getNext();
+
+  Node getLast();
 
  private:
   /** value to which we are generating permutations */
   Node d_value;
+  Node d_last_value;
   /** all variables of value */
   std::vector<Node> d_vars;
   /** generated permutations (modulo rewriting) */
@@ -61,6 +65,49 @@ class StreamPermutation
   };
   /** permutation state of each variable class */
   std::vector<PermutationState> d_perm_state_class;
+};
+
+// TODO need to have the same handling of type classes as above
+class StreamCombination
+{
+ public:
+  StreamCombination(Node value,
+                    const std::vector<Node>& all_vars,
+                    const std::vector<std::vector<Node>>& all_var_classes,
+                    const std::vector<Node>& perm_vars,
+                    const std::vector<std::vector<Node>>& perm_var_classes,
+                    TermDbSygus* tds);
+  Node getNext();
+
+ private:
+  Node d_last;
+  /** all variables */
+  std::vector<Node> d_all_vars;
+  std::vector<Node> d_perm_vars;
+  /** sygus term database */
+  TermDbSygus* d_tds;
+
+  StreamPermutation d_stream_permutations;
+  /** Heap's algorithm for permutation */
+  class CombinationState
+  {
+   public:
+    CombinationState(unsigned n, unsigned k, const std::vector<Node>& vars);
+
+    bool getNextCombination();
+
+    void reset();
+    void getLastVars(std::vector<Node>& vars);
+
+
+
+   private:
+    unsigned d_n, d_k;
+    std::vector<unsigned> d_last_comb;
+    std::vector<Node> d_vars_class;
+  };
+  /** combination state */
+  std::vector<CombinationState> d_comb_state_class;
 };
 
 class EnumStreamConcrete
@@ -92,9 +139,12 @@ class EnumStreamConcrete
   SynthConjecture* d_parent;
   /** enumerator we are concretizing values for */
   Node d_enum;
+  /** variables from enumerator's type */
+  std::vector<Node> d_vars;
+  std::vector<std::vector<Node>> d_var_classes;
   /** list of registered abstract values */
   std::vector<Node> d_abs_values;
-  std::vector<StreamPermutation> d_stream_permutations;
+  std::vector<StreamCombination> d_stream_combinations;
   /** maps variables to ids of their respective type classes */
   std::map<Node, unsigned> d_var_class;
   /** retrieve valiables occurring in value */
