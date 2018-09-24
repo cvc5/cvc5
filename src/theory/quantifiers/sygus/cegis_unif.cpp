@@ -158,14 +158,10 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
           EnumStreamConcrete stream(d_qe, d_parent);
           stream.registerEnumerator(eu);
           stream.registerAbstractValue(d_parent->getModelValue(eu));
-          Trace("synth-stream-concrete")
-              << " * Streaming concrete values for enum " << eu << "and value "
-              << d_parent->getModelValue(eu) << ":\n";
           Node v;
           do
           {
             v = stream.getNext();
-            Trace("synth-stream-concrete") << " ..perm : " << v << "\n";
           } while (!v.isNull());
         }
         // get the model value of each enumerator
@@ -544,8 +540,12 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   si.d_enums[index].push_back(e);
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(
-      e, si.d_pt, d_parent, options::sygusUnifCondIndependent() && index == 1);
+  d_tds->registerEnumerator(e,
+                            si.d_pt,
+                            d_parent,
+                            options::sygusUnifCondIndependent() && index == 1,
+                            false,
+                            options::sygusUnifCondIndependent() && index == 1);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(const std::vector<Node>& eis, Node e)
