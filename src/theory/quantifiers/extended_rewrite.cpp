@@ -1671,57 +1671,6 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   Node new_ret;
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << ret << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  if (ret.getKind() == EQUAL)
-  {
-    if (ret[0].getType().isString())
-    {
-
-      // ------- using the contains rewriter to reduce equalities
-      Node tcontains[2];
-      bool tcontainsOneTrue = false;
-      unsigned tcontainsTrueIndex = 0;
-      for (unsigned i = 0; i < 2; i++)
-      {
-        Node tc = nm->mkNode(STRING_STRCTN, ret[i], ret[1 - i]);
-        tcontains[i] = Rewriter::rewrite(tc);
-        if (tcontains[i].isConst())
-        {
-          if (tcontains[i].getConst<bool>())
-          {
-            tcontainsOneTrue = true;
-            tcontainsTrueIndex = i;
-          }
-          else
-          {
-            new_ret = tcontains[i];
-            // if str.contains( x, y ) ---> false  then   x = y ---> false
-            // Notice we may not catch this in the rewriter for strings
-            // equality, since it only calls the specific rewriter for
-            // contains and not the full rewriter.
-            debugExtendedRewrite(ret, new_ret, "eq-contains-one-false");
-            return new_ret;
-          }
-        }
-      }
-      if (tcontainsOneTrue)
-      {
-        // if str.contains( x, y ) ---> true
-        // then x = y ---> contains( y, x )
-        new_ret = tcontains[1 - tcontainsTrueIndex];
-        debugExtendedRewrite(ret, new_ret, "eq-contains-one-true");
-        return new_ret;
-      }
-      else if (tcontains[0] == tcontains[1] && tcontains[0] != ret)
-      {
-        // if str.contains( x, y ) ---> t and str.contains( y, x ) ---> t,
-        // then x = y ---> t
-        new_ret = tcontains[0];
-        debugExtendedRewrite(ret, new_ret, "eq-dual-contains-eq");
-        return new_ret;
-      }
-    }
-  }
 
   return new_ret;
 }

@@ -1777,12 +1777,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
-  else if (checkEntailArith(len_n2, len_n1, false))
-  {
-    // len( n2 ) >= len( n1 ) => contains( n1, n2 ) ---> n1 = n2
-    Node ret = node[0].eqNode(node[1]);
-    return returnRewrite(node, ret, "ctn-len-ineq-nstrict");
-  }
 
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
