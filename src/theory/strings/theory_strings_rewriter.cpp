@@ -468,9 +468,9 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
       }
     }
   }
-  
-  Assert( node.getKind()==EQUAL );
-  
+
+  Assert(node.getKind() == EQUAL);
+
   // Try to rewrite (= x y) into a conjunction of equalities based on length
   // entailment.
   //
@@ -479,9 +479,9 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
   //
   // where yi' and yi'' correspond to some yj and
   //   (<= (str.len x) (str.++ y1' ... ym'))
-  for( unsigned i=0; i<2; i++ )
+  for (unsigned i = 0; i < 2; i++)
   {
-    new_ret = inferEqsFromContains(node[i], node[1-i]);
+    new_ret = inferEqsFromContains(node[i], node[1 - i]);
     if (!new_ret.isNull())
     {
       return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
@@ -4069,23 +4069,23 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
   // the standard invariant on equality rewrites (that s=t must rewrite to one
   // of { s=t, t=s, true, false } ).
   Kind retk = ret.getKind();
-  if( retk==OR || retk==AND )
+  if (retk == OR || retk == AND)
   {
-    std::vector< Node > children;
+    std::vector<Node> children;
     bool childChanged = false;
-    for( const Node& cret : ret )
+    for (const Node& cret : ret)
     {
       Node creter = cret;
-      if( cret.getKind()==EQUAL )
+      if (cret.getKind() == EQUAL)
       {
         creter = rewriteEqualityExt(cret);
       }
-      childChanged = childChanged || cret!=creter;
+      childChanged = childChanged || cret != creter;
       children.push_back(creter);
     }
-    if( childChanged )
+    if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode( retk, children );
+      ret = NodeManager::currentNM()->mkNode(retk, children);
     }
   }
   else if (retk == EQUAL && node.getKind() != EQUAL)
