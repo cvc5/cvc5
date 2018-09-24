@@ -72,6 +72,7 @@ class StreamCombination
 {
  public:
   StreamCombination(Node value,
+                    const std::map<Node, std::vector<Node>>& var_cons,
                     const std::vector<Node>& all_vars,
                     const std::vector<std::vector<Node>>& all_var_classes,
                     const std::vector<Node>& perm_vars,
@@ -84,6 +85,7 @@ class StreamCombination
   /** all variables */
   std::vector<Node> d_all_vars;
   std::vector<Node> d_perm_vars;
+  std::map<Node, std::vector<Node>> d_var_cons;
   /** sygus term database */
   TermDbSygus* d_tds;
 
@@ -141,7 +143,11 @@ class EnumStreamConcrete
   Node d_enum;
   /** variables from enumerator's type */
   std::vector<Node> d_vars;
+  /** partition of variables per type classes */
   std::vector<std::vector<Node>> d_var_classes;
+  /** maps variables to their respective constructors in all the enumerator
+   * sutypes */
+  std::map<Node, std::vector<Node>> d_var_cons;
   /** list of registered abstract values */
   std::vector<Node> d_abs_values;
   std::vector<StreamCombination> d_stream_combinations;
