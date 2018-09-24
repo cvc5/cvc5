@@ -15,6 +15,7 @@ Build types:
 General options;
   -h, --help               display this help and exit
   --prefix=STR             install directory
+  --program-prefix=STR     prefix of binaries prepended on make install
   --name=STR               use custom build directory name (optionally: +path)
   --best                   turn on dependencies known to give best performance
   --gpl                    permit GPL dependencies, if available
@@ -95,6 +96,7 @@ msg () {
 
 build_dir=build
 install_prefix=default
+program_prefix=""
 
 #--------------------------------------------------------------------------#
 
@@ -173,6 +175,9 @@ do
           *) install_prefix=$(pwd)/$install_prefix ;; # make absolute path
         esac
         ;;
+
+    --program-prefix) die "missing argument to $1 (try -h)" ;;
+    --program-prefix=*) program_prefix=${1##*=} ;;
 
     --name) die "missing argument to $1 (try -h)" ;;
     --name=*) build_dir=${1##*=} ;;
@@ -401,6 +406,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DSYMFPU_DIR=$symfpu_dir"
 [ "$install_prefix" != default ] \
   && cmake_opts="$cmake_opts -DCMAKE_INSTALL_PREFIX=$install_prefix"
+[ -n "$program_prefix" ] \
+  && cmake_opts="$cmake_opts -DPROGRAM_PREFIX=$program_prefix"
 
 root_dir=$(pwd)
 

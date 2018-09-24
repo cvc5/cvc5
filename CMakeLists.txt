@@ -95,6 +95,9 @@ set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
 set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 
+# Prepend binaries with prefix on make install
+set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
+
 # Supported language bindings
 option(BUILD_BINDINGS_JAVA   "Build Java bindings")
 option(BUILD_BINDINGS_PYTHON "Build Python bindings")

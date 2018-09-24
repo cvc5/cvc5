@@ -45,7 +45,12 @@ set_target_properties(cvc4-bin
     OUTPUT_NAME cvc4
     RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
 target_link_libraries(cvc4-bin cvc4 cvc4parser)
-install(TARGETS cvc4-bin DESTINATION bin)
+if(PROGRAM_PREFIX)
+  install(PROGRAMS
+    $<TARGET_FILE:cvc4-bin> DESTINATION bin RENAME ${PROGRAM_PREFIX}cvc4)
+else()
+  install(TARGETS cvc4-bin DESTINATION bin)
+endif()
 
 # In order to get a fully static executable we have to make sure that we also
 # use the static system libraries.
@@ -76,7 +81,12 @@ if(ENABLE_PORTFOLIO)
       RUNTIME_OUTPUT_DIRECTORY ${CMAKE_BINARY_DIR}/bin)
   target_link_libraries(pcvc4-bin cvc4 cvc4parser ${Boost_LIBRARIES})
   target_include_directories(pcvc4-bin PRIVATE ${Boost_INCLUDE_DIRS})
-  install(TARGETS pcvc4-bin DESTINATION bin)
+  if(PROGRAM_PREFIX)
+    install(PROGRAMS
+      $<TARGET_FILE:pcvc4-bin> DESTINATION bin RENAME ${PROGRAM_PREFIX}pcvc4)
+  else()
+    install(TARGETS pcvc4-bin DESTINATION bin)
+  endif()
 
   if(NOT ENABLE_SHARED)
     set_target_properties(pcvc4-bin PROPERTIES LINK_FLAGS -static)
