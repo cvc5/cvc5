@@ -468,6 +468,25 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
       }
     }
   }
+  
+  Assert( node.getKind()==EQUAL );
+  
+  // Try to rewrite (= x y) into a conjunction of equalities based on length
+  // entailment.
+  //
+  // (<= (str.len x) (str.++ y1 ... yn)) AND (= x (str.++ y1 ... yn)) --->
+  //  (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
+  //
+  // where yi' and yi'' correspond to some yj and
+  //   (<= (str.len x) (str.++ y1' ... ym'))
+  for( unsigned i=0; i<2; i++ )
+  {
+    new_ret = inferEqsFromContains(node[i], node[1-i]);
+    if (!new_ret.isNull())
+    {
+      node = returnRewrite(node, new_ret, "str-eq-len-entail");
+    }
+  }
   return node;
 }
 
@@ -1777,6 +1796,12 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     Node ret = NodeManager::currentNM()->mkConst(false);
     return returnRewrite(node, ret, "ctn-len-ineq");
   }
+  else if (checkEntailArith(len_n2, len_n1, false))
+  {
+    // len( n2 ) >= len( n1 ) => contains( n1, n2 ) ---> n1 = n2
+    Node ret = node[0].eqNode(node[1]);
+    return returnRewrite(node, ret, "ctn-len-ineq-nstrict");
+  }
 
   // multi-set reasoning
   //   For example, contains( str.++( x, "b" ), str.++( "a", x ) ) ---> false
@@ -1859,24 +1884,6 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
 
   // TODO (#1180): abstract interpretation with multi-set domain
   // to show first argument is a strict subset of second argument
-
-  // Try to rewrite (str.contains x y) into an equality or a conjunction of
-  // equalities:
-  //
-  // (str.contains x y) ---> (= x y) if (<= (str.len x) (str.len y))
-  //
-  // or more generally:
-  //
-  // (str.contains x (str.++ y1 ... yn)) --->
-  //  (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
-  //
-  // where yi' and yi'' correspond to some yj and
-  // (<= (str.len x) (str.++ y1' ... ym'))
-  Node eqs = inferEqsFromContains(node[0], node[1]);
-  if (!eqs.isNull())
-  {
-    return returnRewrite(node, eqs, "ctn-to-eqs");
-  }
 
   // splitting
   if (node[0].getKind() == kind::STRING_CONCAT)
@@ -2724,14 +2731,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
   // general reduction to equality + substr
   Node retNode = n[0].eqNode(
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
-  // add length constraint if it cannot be shown by simple entailment check
-  if (!checkEntailArith(lent, lens))
-  {
-    retNode = NodeManager::currentNM()->mkNode(
-        kind::AND,
-        retNode,
-        NodeManager::currentNM()->mkNode(kind::GEQ, lent, lens));
-  }
+
   return retNode;
 }
 
