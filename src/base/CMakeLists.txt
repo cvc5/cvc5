@@ -1,26 +1,38 @@
 #-----------------------------------------------------------------------------#
 # Extract info from Git for git_versioninfo.cpp
 
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+find_package(Git)
 
-if(GIT_SHA1)
-  git_local_changes(GIT_IS_DIRTY)
-  set(GIT_BUILD "true")
-  if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
-    set(GIT_IS_DIRTY "true")
-  else()
-    set(GIT_IS_DIRTY "false")
-  endif()
+set(GIT_BUILD "false")
+set(GIT_IS_DIRTY "false")
+set(GIT_SHA1 "")
+set(GIT_BRANCH "")
+
+if(GIT_FOUND)
+  # Get current git branch, result is != 0 if this is not a git repository
   execute_process(
     COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    RESULT_VARIABLE GIT_RESULT
     OUTPUT_VARIABLE GIT_BRANCH
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-else()
-  set(GIT_BUILD "false")
-  set(GIT_IS_DIRTY "false")
-  set(GIT_SHA1 "")
+  if("${GIT_RESULT}" STREQUAL "0")
+    set(GIT_BUILD "true")
+    # Extract sha1 of HEAD
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} rev-parse HEAD
+      OUTPUT_VARIABLE GIT_SHA1
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # Result is != 0 if worktree is dirty
+    execute_process(
+      COMMAND git diff --quiet
+      RESULT_VARIABLE GIT_RESULT
+    )
+    if(NOT "${GIT_RESULT}" STREQUAL "0")
+      set(GIT_IS_DIRTY "true")
+    endif()
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
