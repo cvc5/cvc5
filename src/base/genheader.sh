@@ -11,11 +11,11 @@ shift
 tags_type="$1" # Debug/Trace
 tags_file="${tags_type}_tags"
 
-if [ "${tags_type}" != "Debug" -a "${tags_type}" != "Trace" ]; then
+if [ "${tags_type}" != "Debug" ] && [ "${tags_type}" != "Trace" ]; then
   echo "$0: Invalid tags type '${tags_type}' (must be 'Debug' or 'Trace')"
   exit 1
 fi
 
 [ ! -e "${tags_file}" ] && echo "$0: ${tags_file} does not exist" && exit 1
 
-${path}/mktagheaders ${tags_file} ${tags_file} > ${tags_file}.h
+"${path}/mktagheaders" "${tags_file}" "${tags_file}" > "${tags_file}.h"
