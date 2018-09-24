@@ -4,7 +4,24 @@ libcvc4_add_sources(GENERATED
   type_enumerator.cpp
 )
 
-file(GLOB kinds_files ${PROJECT_SOURCE_DIR}/src/theory/*/kinds)
+# IMPORTANT: The order of the theories is important. It affects the order in
+# which theory solvers are called/initialized internally. For example, strings
+# depends on arith, quantifiers needs to come as the very last.
+# See issue https://github.com/CVC4/CVC4/issues/2517 for more details.
+set(kinds_files
+  ${PROJECT_SOURCE_DIR}/src/theory/builtin/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/booleans/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/uf/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arith/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/bv/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/fp/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/arrays/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/datatypes/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/sep/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/sets/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/strings/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/quantifiers/kinds
+  ${PROJECT_SOURCE_DIR}/src/theory/idl/kinds)
 
 set(mktheorytraits_script ${CMAKE_CURRENT_LIST_DIR}/mktheorytraits)
 set(mkrewriter_script ${CMAKE_CURRENT_LIST_DIR}/mkrewriter)
