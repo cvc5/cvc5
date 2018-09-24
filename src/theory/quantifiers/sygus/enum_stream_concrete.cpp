@@ -57,28 +57,30 @@ Node StreamPermutation::getNext()
   do
   {
     bool new_perm = false;
-    std::vector<Node> sub;
     for (unsigned i = 0, size = d_perm_state_class.size(); i < size; ++i)
     {
-      Trace("synth-stream-concrete-debug2") << " ....class " << i << " : ";
       if (d_perm_state_class[i].getNextPermutation())
       {
         new_perm = true;
-        Trace("synth-stream-concrete-debug2") << "new perm\n";
+        Trace("synth-stream-concrete-debug2")
+            << " ....class " << i << " has new perm\n";
+        break;
       }
-      else
-      {
-        Trace("synth-stream-concrete-debug2") << "last perm\n";
-      }
-      sub.insert(sub.end(),
-                 d_perm_state_class[i].d_last_perm.begin(),
-                 d_perm_state_class[i].d_last_perm.end());
     }
     // no new permutation
     if (!new_perm)
     {
       Trace("synth-stream-concrete") << " ....no new perm, return null\n";
       return Node::null();
+    }
+    // build sub
+    std::vector<Node> sub;
+    for (unsigned i = 0, size = d_perm_state_class.size(); i < size; ++i)
+    {
+      sub.insert(sub.end(),
+                 d_perm_state_class[i].d_last_perm.begin(),
+                 d_perm_state_class[i].d_last_perm.end());
+
     }
     if (Trace.isOn("synth-stream-concrete-debug2"))
     {
@@ -193,15 +195,12 @@ Node StreamCombination::getNext()
     bool new_comb = false;
     for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
     {
-      Trace("synth-stream-concrete-debug2") << " ....class " << i << " : ";
       if (d_comb_state_class[i].getNextCombination())
       {
         new_comb = true;
-        Trace("synth-stream-concrete-debug2") << "new comb\n";
-      }
-      else
-      {
-        Trace("synth-stream-concrete-debug2") << "last comb\n";
+        Trace("synth-stream-concrete-debug2")
+            << " ....class " << i << " has new comb\n";
+        break;
       }
     }
     if (!new_comb)
@@ -225,6 +224,7 @@ Node StreamCombination::getNext()
   {
     d_last = d_stream_permutations.getLast();
   }
+  // building substitution
   std::vector<Node> sub;
   for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
   {
