@@ -4064,11 +4064,31 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
                            << "." << std::endl;
   // standard post-processing
-  if (ret.getKind() == EQUAL && node.getKind() != EQUAL)
+  // We rewrite (string) equalities immediately here. This allows us to forego
+  // the standard invariant on equality rewrites (that s=t must rewrite to one
+  // of { s=t, t=s, true, false } ).
+  Kind retk = ret.getKind();
+  if( retk==OR || retk==AND )
   {
-    // We rewrite (string) equalities immediately here. This allows us to forego
-    // the standard invariant on equality rewrites (that s=t must rewrite to one
-    // of { s=t, t=s, true, false } ).
+    std::vector< Node > children;
+    bool childChanged = false;
+    for( const Node& cret : ret )
+    {
+      Node creter = cret;
+      if( cret.getKind()==EQUAL )
+      {
+        creter = rewriteEqualityExt(cret);
+      }
+      childChanged = childChanged || cret!=creter;
+      children.push_back(creter);
+    }
+    if( childChanged )
+    {
+      ret = NodeManager::currentNM()->mkNode( retk, children );
+    }
+  }
+  else if (retk == EQUAL && node.getKind() != EQUAL)
+  {
     Trace("strings-rewrite")
         << "Apply extended equality rewrite on " << ret << std::endl;
     ret = rewriteEqualityExt(ret);
