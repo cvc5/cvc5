@@ -602,6 +602,7 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  //-------------------------------------send inferences
   /** send internal inferences
    * 
    * This is called when we have inferred exp => conc, where exp is a set
@@ -628,6 +629,7 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  //-------------------------------------end send inferences
 
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);

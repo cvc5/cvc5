@@ -1660,12 +1660,26 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   }
   NodeManager* nm = NodeManager::currentNM();
   Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const << std::endl;
-  
-  Node exp = n.eqNode(in.d_const);
-  exp = Rewriter::rewrite(exp);
 
   // add original to explanation
-  in.d_exp.push_back(exp);
+  if( n.getType().isBoolean() )
+  {
+    // if Boolean, its easy
+    in.d_exp.push_back(in.d_const.getConst<bool>() ? n : n.negate());
+  }
+  else
+  {
+    // otherwise, must explain via base node
+    Node r = getRepresentative( n );
+    // we have that:
+    //   d_eqc_to_const_exp[r] => d_eqc_to_const_base[r] = in.d_const
+    // thus:
+    //   n = d_eqc_to_const_base[r] ^ d_eqc_to_const_exp[r] => n = in.d_const
+    Assert(d_eqc_to_const_base.find(r)!=d_eqc_to_const_base.end());
+    addToExplanation(n,d_eqc_to_const_base[r],in.d_exp);
+    Assert( d_eqc_to_const_exp.find(r)!=d_eqc_to_const_exp.end());
+    in.d_exp.insert(in.d_exp.end(),d_eqc_to_const_exp[r].begin(),d_eqc_to_const_exp[r].end());
+  }
 
   // d_extf_infer_cache stores whether we have made the inferences associated
   // with a node n,
@@ -1799,16 +1813,18 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   
   // If its not a predicate, see if we can solve the equality n = c, where c
   // is the constant that extended term n is equal to.
-  if( exp.getKind()==EQUAL )
+  Node inferEq = nr.eqNode(in.d_const);
+  Node inferEqr = Rewriter::rewrite(inferEq);
+  if( inferEq.getKind()==EQUAL )
   {
     // try to use the extended rewriter for equalities
-    Node expr = TheoryStringsRewriter::rewriteEqualityExt(exp);
-    if( expr!=exp )
-    {
-      expr = Rewriter::rewrite( expr );
-      Trace("strings-extf-infer") << "checkExtfInference: ...reduces to " << expr << std::endl;
-      sendInternalInference(in.d_exp, expr, "EXTF_equality_rew");
-    }
+    inferEqr = TheoryStringsRewriter::rewriteEqualityExt(inferEq);
+  }
+  if( inferEqr!=inferEq )
+  {
+    inferEqr = Rewriter::rewrite( inferEqr );
+    Trace("strings-extf-infer") << "checkExtfInference: ...reduces to " << inferEqr << std::endl;
+    sendInternalInference(in.d_exp, inferEqr, "EXTF_equality_rew");
   }
 }
 
