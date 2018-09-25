@@ -2191,15 +2191,14 @@ void SmtEngine::setDefaults() {
   if (options::skeletonPreprocessing()
       &&  options::arithMLTrick())
   {
-    //    if (options::skeletonPreprocessing.wasSetByUser()
-    //    && options::arithMLTrick.wasSetByUser())
-    //{
-    //  throw OptionException(std::string(
-    //      "Cannot use MipLibTrick when using cryptominisat instead of circuit"
-    //      "propagators. Try turn off --skeletonPreprocessing"));
-    //}
-    // else
-    if (options::skeletonPreprocessing.wasSetByUser()){
+    if (options::skeletonPreprocessing.wasSetByUser()
+        && options::arithMLTrick.wasSetByUser())
+    {
+      throw OptionException(std::string(
+          "Cannot use MipLibTrick when using cryptominisat instead of circuit"
+          "propagators. Try turn off --skeletonPreprocessing"));
+    }
+    else if (options::skeletonPreprocessing.wasSetByUser()){
           setOption("skeleton-preprocessing", false);
     }
     else if (options::arithMLTrick.wasSetByUser()){
@@ -2384,8 +2383,6 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
   } else {
     throw UnrecognizedOptionException();
   }
-
-
 }
 
 void SmtEngine::debugCheckFormals(const std::vector<Expr>& formals, Expr func)
@@ -2674,7 +2671,7 @@ void SmtEnginePrivate::finishInit()
                                            std::move(nlExtPurify));
   d_preprocessingPassRegistry.registerPass("non-clausal-simp",
                                             std::move(nonClausalSimp));
- d_preprocessingPassRegistry.registerPass("skeleton-preprocessing",
+  d_preprocessingPassRegistry.registerPass("skeleton-preprocessing",
                                           std::move(skeletonPreprocessing));
   d_preprocessingPassRegistry.registerPass("miplib-trick",
                                            std::move(mipLibTrick));

@@ -21,8 +21,9 @@
 
 #ifdef CVC4_USE_CRYPTOMINISAT
 
+#include <cryptominisat5/cryptominisat.h>  
+
 #include "prop/sat_solver.h"
-#include <cryptominisat5/cryptominisat.h>
 
 // Cryptominisat has name clashes with the other Minisat implementations since
 // the Minisat implementations export var_Undef, l_True, ... as macro whereas
