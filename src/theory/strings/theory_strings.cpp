@@ -1660,8 +1660,12 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   }
   NodeManager* nm = NodeManager::currentNM();
   Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const << std::endl;
-
+  
+  Node exp = n.eqNode(in.d_const);	
+  exp = Rewriter::rewrite(exp);
+  
   // add original to explanation
+  /*
   if( n.getType().isBoolean() )
   {
     // if Boolean, its easy
@@ -1669,7 +1673,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   }
   else
   {
-    /*
     // otherwise, must explain via base node
     Node r = getRepresentative( n );
     // we have that:
@@ -1680,8 +1683,9 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     addToExplanation(n,d_eqc_to_const_base[r],in.d_exp);
     Assert( d_eqc_to_const_exp.find(r)!=d_eqc_to_const_exp.end());
     in.d_exp.insert(in.d_exp.end(),d_eqc_to_const_exp[r].begin(),d_eqc_to_const_exp[r].end());
-    */
+
   }
+  */
 
   // d_extf_infer_cache stores whether we have made the inferences associated
   // with a node n,
