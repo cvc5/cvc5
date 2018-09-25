@@ -619,19 +619,23 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
 
     if (isVarAgnostic && depth == 0)
     {
-      // for variable indices i = 1, ..., m
-      //   ~pre( e, x_i )
+      // Enforce symmetry breaking lemma template:
       // template z.
-      //   is-x_i( z ) => pre( z, x_{i-1} )
+      //   is-x_i( z ) => pre_{x_{i-1}}( z )
       //   for args a = 1...n
       //      // pre-definition
-      //      pre( z.a, x_i ) = a=0 ? pre( z, x_i ) : post( z.{a-1}, x_i )
-      //   post( z, x_i ) = post( z.a_{n-1}, x_i ) OR is-x_i( z )
-      // for each variable in the sygus type
+      //      pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} )
+      //   post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
+      
+      // Notice that we are assuming is-C( z ) in this function, where C
+      // is the tindex^{th} constructor of dt. Thus, is-x_i( z ) is either
+      // true or false below.
+      
       Node svl = Node::fromExpr(dt.getSygusVarList());
       // for each variable
       Assert(!e.isNull());
       TypeNode etn = e.getType();
+      // for each variable in the sygus type
       for (const Node& var : svl)
       {
         unsigned sc = d_tds->getSubclassForVar(etn, var);
@@ -660,16 +664,18 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
           // my pre is equal to the previous
           Node preCurrOp = getTraversalPredicate(ctn, var, true);
           Node preCurr = nm->mkNode(APPLY_UF, preCurrOp, child);
+          // definition of pre, for each argument
           sbp_conj.push_back(preCurr.eqNode(prev));
           Node postCurrOp = getTraversalPredicate(ctn, var, false);
           prev = nm->mkNode(APPLY_UF, postCurrOp, child);
         }
         Node postParent = getTraversalPredicate(tn, var, false);
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
-        // check if i am the variable in question
+        // check if we are constructing the symmetry breaking predicate for the variable in question. If so, is-{x_i}( z ) is true.
         int varCn = d_tds->getOpConsNum(tn, var);
         if (varCn == static_cast<int>(tindex))
         {
+          // the post value is true
           prev = d_true;
           // requirement : If I am the variable, I must have seen
           // the variable before this one in its type class.
@@ -680,6 +686,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             sbp_conj.push_back(preParentPredVar);
           }
         }
+        // definition of post
         sbp_conj.push_back(finish.eqNode(prev));
       }
     }
