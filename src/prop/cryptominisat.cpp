@@ -73,7 +73,7 @@ CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
   std::vector<CMSat::Lit> clause(1);
   clause[0] = CMSat::Lit(d_true, false);
   d_solver->add_clause(clause);
-
+  
   clause[0] = CMSat::Lit(d_false, true);
   d_solver->add_clause(clause);
 }
@@ -92,7 +92,7 @@ ClauseId CryptoMinisatSolver::addXorClause(SatClause& clause,
   }
 
   ++(d_statistics.d_xorClausesAdded);
-
+  
   // ensure all sat literals have positive polarity by pushing
   // the negation on the result
   std::vector<CMSatVar> xor_clause;
@@ -114,7 +114,7 @@ ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
   }
 
   ++(d_statistics.d_clausesAdded);
-
+  
   std::vector<CMSat::Lit> internal_clause;
   toInternalClause(clause, internal_clause);
   bool res = d_solver->add_clause(internal_clause);
@@ -123,7 +123,7 @@ ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
 }
 
 bool CryptoMinisatSolver::ok() const {
-  return d_okay;
+  return d_okay; 
 }
 
 
@@ -160,7 +160,7 @@ SatValue CryptoMinisatSolver::solve(){
 
 SatValue CryptoMinisatSolver::solve(long unsigned int& resource) {
   // CMSat::SalverConf conf = d_solver->getConf();
-  Unreachable("Not sure how to set different limits for calls to solve in Cryptominisat");
+  Unreachable("Not sure how to set different limits for calls to solve in Cryptominisat"); 
   return solve();
 }
 
@@ -179,17 +179,13 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
 SatValue CryptoMinisatSolver::simp(){
   return toSatLiteralValue(d_solver->simplify());
 }
-
-  //SatValue CryptoMinisatSolver::simplifyFormula(){
-  //return toSatLiteralValue(d_solver->simplify());
-  //}
   
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
   Assert (var < model.size());
   CMSat::lbool value = model[var];
-  return toSatLiteralValue(value);
+  return toSatLiteralValue(value); 
 }
 
 SatValue CryptoMinisatSolver::modelValue(SatLiteral l){

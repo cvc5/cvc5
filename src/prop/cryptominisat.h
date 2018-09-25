@@ -62,7 +62,7 @@ public:
   void markUnremovable(SatLiteral lit);
 
   void interrupt() override;
-
+  
   SatValue solve() override;
   SatValue solve(long unsigned int&) override;
   SatValue solve(const std::vector<SatLiteral>& assumptions) override;
