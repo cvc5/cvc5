@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status sat)
 (set-option :produce-models true)
 (declare-fun x () String)
 (assert (= (str.to.int x) 12345)) 
