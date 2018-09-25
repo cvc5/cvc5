@@ -42,8 +42,8 @@ TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
   d_false = NodeManager::currentNM()->mkConst( false );
 }
 
-bool TermDbSygus::reset( Theory::Effort e ) {
-  return true;
+bool TermDbSygus::reset( Theory::Effort e ) { 
+  return true;  
 }
 
 TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
@@ -55,7 +55,7 @@ TNode TermDbSygus::getFreeVar( TypeNode tn, int i, bool useSygusType ) {
       if( !dt.getSygusType().isNull() ){
         vtn = TypeNode::fromType( dt.getSygusType() );
         sindex = 1;
-      }
+      } 
     }
   }
   while( i>=(int)d_fv[sindex][tn].size() ){
@@ -91,7 +91,7 @@ bool TermDbSygus::hasFreeVar( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if( isFreeVar( n ) ){
-      return true;
+      return true;    
     }
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       if( hasFreeVar( n[i], visited ) ){
@@ -740,11 +740,11 @@ void TermDbSygus::computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, un
     }
   }
 }
-
+  
 unsigned TermDbSygus::getMinTypeDepth( TypeNode root_tn, TypeNode tn ){
   std::map< TypeNode, unsigned >::iterator it = d_min_type_depth[root_tn].find( tn );
   if( it==d_min_type_depth[root_tn].end() ){
-    Assert( d_min_type_depth[root_tn].find( tn )!=d_min_type_depth[root_tn].end() );
+    Assert( d_min_type_depth[root_tn].find( tn )!=d_min_type_depth[root_tn].end() );  
     return d_min_type_depth[root_tn][tn];
   }else{
     return it->second;
@@ -1228,7 +1228,7 @@ bool TermDbSygus::involvesDivByZero( Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     Kind k = n.getKind();
-    if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL ||
+    if( k==DIVISION || k==DIVISION_TOTAL || k==INTS_DIVISION || k==INTS_DIVISION_TOTAL || 
         k==INTS_MODULUS || k==INTS_MODULUS_TOTAL ){
       if( n[1].isConst() ){
         if (n[1]
@@ -1398,7 +1398,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
       Trace("cegqi-eager-debug") << "check " << n[0].getType() << std::endl;
       if( tn.isDatatype() ){
         const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
-        if( dt.isSygus() ){
+        if( dt.isSygus() ){ 
           Trace("cegqi-eager") << "Unfold eager : " << n << std::endl;
           Node bTerm = sygusToBuiltin( n[0], tn );
           Trace("cegqi-eager") << "Built-in term : " << bTerm << std::endl;
@@ -1420,7 +1420,7 @@ Node TermDbSygus::getEagerUnfold( Node n, std::map< Node, Node >& visited ) {
           Trace("cegqi-eager") << "Built-in term after subs : " << bTerm << std::endl;
           Trace("cegqi-eager-debug") << "Types : " << bTerm.getType() << " " << n.getType() << std::endl;
           Assert(n.getType().isComparableTo(bTerm.getType()));
-          ret = bTerm;
+          ret = bTerm; 
         }
       }
     }
@@ -1500,7 +1500,7 @@ Node TermDbSygus::evaluateWithUnfolding(
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
       ret = unfold( ret );
-    }
+    }    
     if( ret.getNumChildren()>0 ){
       std::vector< Node > children;
       if( ret.getMetaKind() == kind::metakind::PARAMETERIZED ){
@@ -1508,7 +1508,7 @@ Node TermDbSygus::evaluateWithUnfolding(
       }
       bool childChanged = false;
       for( unsigned i=0; i<ret.getNumChildren(); i++ ){
-        Node nc = evaluateWithUnfolding( ret[i], visited );
+        Node nc = evaluateWithUnfolding( ret[i], visited ); 
         childChanged = childChanged || nc!=ret[i];
         children.push_back( nc );
       }
@@ -1552,3 +1552,4 @@ bool TermDbSygus::isEvaluationPoint(Node n) const
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
+

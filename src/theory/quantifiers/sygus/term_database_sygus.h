@@ -261,7 +261,7 @@ class TermDbSygus {
    */
   std::map<Node, SynthConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
-   * associated with
+   * associated with 
    */
   std::map<Node, Node> d_enum_to_synth_fun;
   /** mapping from enumerator terms to the guard they are associated with
