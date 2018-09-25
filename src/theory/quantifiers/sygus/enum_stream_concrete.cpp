@@ -296,7 +296,7 @@ Node StreamCombination::getNext()
       {
         if (cons.getType() == perm_var_tn)
         {
-          Trace("synth-stream-concrete-debug")
+          Trace("synth-stream-concrete-debug2")
               << "\n ....{ replacing " << raw_sub[j] << " ["
               << raw_sub[j].getType() << "] by " << cons << " ["
               << cons.getType() << "] }";
