@@ -321,10 +321,10 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL);
-  //if( node[0].getType().isInteger() )
-  //{
-  //  return rewriteArithEqualityExt(node);
-  //}
+  if( node[0].getType().isInteger() )
+  {
+    return rewriteArithEqualityExt(node);
+  }
   if (node[0].getType().isString())
   {
     return rewriteStrEqualityExt(node);
@@ -494,12 +494,14 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   {
     // there is no use if node[1-i] is not concat, as this will only flip
     // the equality or do nothing.
-
+    if( node[1-i].getKind()==STRING_CONCAT )
+    {
       new_ret = inferEqsFromContains(node[i], node[1 - i]);
       if (!new_ret.isNull())
       {
         return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
       }
+    }
   }
   return node;
 }

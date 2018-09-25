@@ -1661,11 +1661,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   NodeManager* nm = NodeManager::currentNM();
   Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const << std::endl;
   
-  Node exp = n.eqNode(in.d_const);	
-  exp = Rewriter::rewrite(exp);
-  
   // add original to explanation
-  /*
   if( n.getType().isBoolean() )
   {
     // if Boolean, its easy
@@ -1685,7 +1681,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     in.d_exp.insert(in.d_exp.end(),d_eqc_to_const_exp[r].begin(),d_eqc_to_const_exp[r].end());
 
   }
-  */
 
   // d_extf_infer_cache stores whether we have made the inferences associated
   // with a node n,
@@ -1817,7 +1812,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     return;
   }
   
-  return;
   // If its not a predicate, see if we can solve the equality n = c, where c
   // is the constant that extended term n is equal to.
   Node inferEq = nr.eqNode(in.d_const);
