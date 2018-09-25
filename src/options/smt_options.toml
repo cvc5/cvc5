@@ -365,7 +365,7 @@ header = "options/smt_options.h"
   long       = "symmetry-breaker-exp"
   type       = "bool"
   default    = "false"
-  help       = "generate symmetry breaking constraints after symmetry detection"
+  help       = "generate symmetry breaking constraints after symmetry detection"    
   
 [[option]]
   name       = "incrementalSolving"
