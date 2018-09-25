@@ -1,5 +1,0 @@
-include LICENSE
-include README.rst
-recursive-include tests *.py
-recursive-include cryptominisat5 *.h
-recursive-include src *.cpp *.h
