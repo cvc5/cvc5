@@ -625,7 +625,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       //   for args a = 1...n
       //      // pre-definition
       //      pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} )
-      //   post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
+      //   post_{x_i}( z ) = post_{x_i}( z.n ) OR is-x_i( z )
 
       // Notice that we are constructing a symmetry breaking template
       // under the condition that is-C( z ) holds in this method, where C

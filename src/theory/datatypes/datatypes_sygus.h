@@ -257,7 +257,7 @@ private:
    *       // pre-definition for each argument of this term
    *       pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} ) AND
    *     // post-definition for this term
-   *     post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
+   *     post_{x_i}( z ) = post_{x_i}( z.n ) OR is-x_i( z )
    *
    * Notice that predicates pre and post should not be considered first-order
    * predicates. For example, given the term f( x_1, x_1 ), we have that
