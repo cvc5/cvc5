@@ -11,11 +11,11 @@ shift
 tags_type="$1"
 tags_file="${tags_type}_tags"
 shift
-source_files_list="$@"
+source_files_list="$*"
 
-if [ "${tags_type}" != "Debug" -a "${tags_type}" != "Trace" ]; then
+if [ "${tags_type}" != "Debug" ] && [ "${tags_type}" != "Trace" ]; then
   echo "$0: Invalid tags type '${tags_type}' (must be 'Debug' or 'Trace')"
   exit 1
 fi
 
-${path}/mktags ${tags_type} ${source_files_list} > ${tags_file}.tmp
+"${path}/mktags" "${tags_type}" "${source_files_list}" > "${tags_file}.tmp"

@@ -1,26 +1,38 @@
 #-----------------------------------------------------------------------------#
 # Extract info from Git for git_versioninfo.cpp
 
-include(GetGitRevisionDescription)
-get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+find_package(Git)
 
-if(GIT_SHA1)
-  git_local_changes(GIT_IS_DIRTY)
-  set(GIT_BUILD "true")
-  if(${GIT_IS_DIRTY} STREQUAL "DIRTY")
-    set(GIT_IS_DIRTY "true")
-  else()
-    set(GIT_IS_DIRTY "false")
-  endif()
+set(GIT_BUILD "false")
+set(GIT_IS_DIRTY "false")
+set(GIT_SHA1 "")
+set(GIT_BRANCH "")
+
+if(GIT_FOUND)
+  # Get current git branch, result is != 0 if this is not a git repository
   execute_process(
-    COMMAND ${GIT_EXECUTABLE} rev-parse --abbrev-ref HEAD
+    COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse --abbrev-ref HEAD
+    RESULT_VARIABLE GIT_RESULT
     OUTPUT_VARIABLE GIT_BRANCH
     OUTPUT_STRIP_TRAILING_WHITESPACE
   )
-else()
-  set(GIT_BUILD "false")
-  set(GIT_IS_DIRTY "false")
-  set(GIT_SHA1 "")
+  if("${GIT_RESULT}" STREQUAL "0")
+    set(GIT_BUILD "true")
+    # Extract sha1 of HEAD
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse HEAD
+      OUTPUT_VARIABLE GIT_SHA1
+      OUTPUT_STRIP_TRAILING_WHITESPACE
+    )
+    # Result is != 0 if worktree is dirty
+    execute_process(
+      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} diff --quiet
+      RESULT_VARIABLE GIT_RESULT
+    )
+    if(NOT "${GIT_RESULT}" STREQUAL "0")
+      set(GIT_IS_DIRTY "true")
+    endif()
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -61,15 +73,17 @@ file(GLOB_RECURSE source_files
      ${PROJECT_SOURCE_DIR}/src/*.g)
 string(REPLACE ";" " " source_files_list "${source_files}")
 
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
+# Note: {Debug,Trace}_tags.tmp are targets since we always want to generate
+# the temporary tag files in order to check if anything changed.
+add_custom_target(
+  Debug_tags.tmp
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Debug ${source_files_list}
   DEPENDS mktags
 )
 
-add_custom_command(
-  OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
+add_custom_target(
+  Trace_tags.tmp
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Trace ${source_files_list}
   DEPENDS mktags
@@ -78,13 +92,13 @@ add_custom_command(
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
   COMMAND ${gentags_script} Debug
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
+  DEPENDS Debug_tags.tmp
 )
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
   COMMAND ${gentags_script} Trace
-  DEPENDS ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
+  DEPENDS Trace_tags.tmp
 )
 
 add_custom_command(
