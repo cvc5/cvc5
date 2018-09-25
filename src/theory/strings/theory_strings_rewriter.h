@@ -459,7 +459,8 @@ class TheoryStringsRewriter {
    * an over-approximation for len( substr( y, n, m ) ) is m; an
    * under-approximation for indexof( x, y, n ) is -1.
    *
-   * Notice that this function is not recursive. It simply returns the shape
+   * Notice that this function is not generally recursive (although it may make
+   * a small bounded of recursive calls). Instead, it returns the shape
    * of the approximations for a. For example, an under-approximation
    * for the term len( replace( substr( x, 0, n ), y, z ) ) returned by this
    * function might be len( substr( x, 0, n ) ) - len( y ), where we don't

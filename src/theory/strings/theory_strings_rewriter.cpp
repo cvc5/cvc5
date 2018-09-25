@@ -3567,7 +3567,7 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   // if we have a choice of how to approximate
   if( !mApprox.empty() )
   {
-    // convert finaln back to monomial sum
+    // convert aar back to monomial sum
     std::map< Node, Node > msumAar;
     if( !ArithMSum::getMonomialSum(aar,msumAar) )
     {        
@@ -3807,7 +3807,21 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
       // over,under-approximations for len( int.to.str( x ) )
       if( isOverApprox )
       {
-        // ???
+        if( checkEntailArith( a[0][0], false ) )
+        {
+          if( checkEntailArith( a[0][0], true ) )
+          {
+            // x > 0 implies
+            //   x >= len( int.to.str( x ) )
+            approx.push_back(a[0][0]);
+          }
+          else
+          {
+            // x >= 0 implies
+            //   x+1 >= len( int.to.str( x ) )
+            approx.push_back(nm->mkNode(PLUS,nm->mkConst(Rational(1)),a[0][0]));
+          }
+        }
       }
       else
       {
@@ -3829,11 +3843,16 @@ void TheoryStringsRewriter::getArithApproximations(Node a, std::vector< Node >& 
     {
       Node lenx = nm->mkNode( STRING_LENGTH, a[0] );
       Node leny = nm->mkNode( STRING_LENGTH, a[1] );
-      if( checkEntailArith( leny, lenx ) )
+      if( checkEntailArith( lenx, leny ) )
       {
-        // len( y ) >= len( x ) implies 
+        // len( x ) >= len( y ) implies 
         //   len( x ) - len( y ) >= indexof( x, y, n )
         approx.push_back(nm->mkNode(MINUS,lenx,leny));
+      }
+      else
+      {
+        // len( x ) >= indexof( x, y, n )
+        approx.push_back(lenx);
       }
     }
     else
