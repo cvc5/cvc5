@@ -1317,6 +1317,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( options::sygusSymBreakDynamic() ){
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
+          SygusSymBreakExcAttribute ssbea;
+          prog.setAttribute(ssbea, rsv.isNull());
           if (rsv.isNull())
           {
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
@@ -1474,6 +1476,8 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
+  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
+                        << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 
