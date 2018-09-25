@@ -580,7 +580,13 @@ private:
   void doPendingFacts();
   void doPendingLemmas();
   bool hasProcessed();
+  /** 
+   * Adds equality a = b to the vector exp if a and b are distinct. Checks 
+   * that a = b holds in this context, throws an assertion failure via Assert
+   * if not.
+   */
   void addToExplanation(Node a, Node b, std::vector<Node>& exp);
+  /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
