@@ -224,7 +224,7 @@ enable_testing()
 
 if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
   execute_process(
-    COMMAND gcc -dumpversion
+    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
     OUTPUT_VARIABLE GCC_VERSION
     OUTPUT_STRIP_TRAILING_WHITESPACE)
   if(GCC_VERSION VERSION_EQUAL "4.5.1")
