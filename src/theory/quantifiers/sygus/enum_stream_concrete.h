@@ -81,13 +81,13 @@ class StreamPermutation
   {
    public:
     PermutationState(const std::vector<Node>& vars);
-    /** resets permutation state to initial variable ordering */
-    void reset();
     /** computes next permutation
      *
      * returns true if one exists, false otherwise
      */
     bool getNextPermutation();
+    /** resets permutation state to initial variable ordering */
+    void reset();
     /** variables being permuted */
     std::vector<Node> d_vars;
     /** last computed permutation of variables */
@@ -105,10 +105,31 @@ class StreamPermutation
   unsigned d_curr_ind;
 };
 
-/***/
+/** Streamer of different values according to variable combinations and
+ * permutations
+ *
+ * Generates a new value when queried in which a new ordered combination of
+ * variables is used. When all combinations are exhausted, a new base value is
+ * generated in which its variables are permuted (if any such new value exist
+ * modulo rewriting), and the cycle restarts.
+ */
 class StreamCombination
 {
  public:
+  /** initializes utility
+   *
+   * the combinations are generated from a initial set of variables (all_vars)
+   * from which we choose a subset of variables in the same quantitity as those
+   * in the given value (perm_vars).
+   *
+   * The combinations are performed module type classes. For each subset of the
+   * given variables, a combination utility is initialized.
+   *
+   * Since the same variable can occur in different subtypes (and therefore ther
+   * datatype equivalents would have different types) a map from variable to set
+   * of constructors (var_cons) is used to build substitutions in a proper way
+   * when generating different combinatinos.
+   */
   StreamCombination(Node value,
                     const std::map<Node, std::vector<Node>>& var_cons,
                     const std::vector<Node>& all_vars,
@@ -117,9 +138,22 @@ class StreamCombination
                     const std::vector<std::vector<Node>>& perm_var_classes,
                     TermDbSygus* tds);
   ~StreamCombination() {}
+  /** computes next combination, if any, of value
+   *
+   * a "next" combination is determined by having at least one new combination
+   * in one of the variable type classes in the initial set of variables. If no
+   * new combination exist, the cycle restarts with a new base value generated
+   * by StreamPermutation::getNext() (see above).
+   *
+   * This layered approach (of deriving all combinations for each permutation)
+   * allows the generation of ordered combinatinos. See the example in
+   * EnumStreamConcrete for further details.
+   */
   Node getNext();
 
  private:
+  /** sygus term database */
+  TermDbSygus* d_tds;
   Node d_last;
   /** all variables */
   std::vector<Node> d_all_vars;
@@ -127,25 +161,37 @@ class StreamCombination
   std::map<Node, std::vector<Node>> d_var_cons;
   /** generated combinations (for debugging) */
   std::unordered_set<Node, NodeHashFunction> d_comb_values;
-  /** sygus term database */
-  TermDbSygus* d_tds;
 
+  /** permutation utility */
   StreamPermutation d_stream_permutations;
-  /** Heap's algorithm for permutation */
+  /** Utility for stepwise generation of ordered subsets of size k from n
+   * variables */
   class CombinationState
   {
    public:
     CombinationState(unsigned n, unsigned k, const std::vector<Node>& vars);
-
+    /** computes next combination
+     *
+     * returns true if one exists, false otherwise
+     */
     bool getNextCombination();
-
+    /** resets combination state to first k variables in vars */
     void reset();
-    void getLastVars(std::vector<Node>& vars);
+    /** retrieves last variable combination
+     *
+     * variables in new combination are stored in argument vars
+     */
+    void getLastComb(std::vector<Node>& vars);
 
    private:
-    unsigned d_n, d_k;
+    /** number of variables */
+    unsigned d_n;
+    /** size of subset */
+    unsigned d_k;
+    /** last combination state */
     std::vector<unsigned> d_last_comb;
-    std::vector<Node> d_vars_class;
+    /** variables from which combination is extracted */
+    std::vector<Node> d_vars;
   };
   /** combination state */
   std::vector<CombinationState> d_comb_state_class;

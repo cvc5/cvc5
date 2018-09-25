@@ -292,7 +292,7 @@ Node StreamCombination::getNext()
   {
     Trace("synth-stream-concrete") << " ..comb for class " << i << " is";
     std::vector<Node> raw_sub;
-    d_comb_state_class[i].getLastVars(raw_sub);
+    d_comb_state_class[i].getLastComb(raw_sub);
     unsigned curr_size = sub.size();
     // build proper substitution based on variables types and constructors
     for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
@@ -366,7 +366,7 @@ StreamCombination::CombinationState::CombinationState(
   Assert(k <= n);
   d_last_comb.resize(k);
   std::iota(d_last_comb.begin(), d_last_comb.end(), 0);
-  d_vars_class = vars;
+  d_vars = vars;
 }
 
 void StreamCombination::CombinationState::reset()
@@ -374,15 +374,18 @@ void StreamCombination::CombinationState::reset()
   std::iota(d_last_comb.begin(), d_last_comb.end(), 0);
 }
 
-void StreamCombination::CombinationState::getLastVars(std::vector<Node>& vars)
+void StreamCombination::CombinationState::getLastComb(std::vector<Node>& vars)
 {
   for (unsigned i = 0, size = d_last_comb.size(); i < size; ++i)
   {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())
-        ->toStreamSygus(ss, d_vars_class[d_last_comb[i]]);
-    Trace("synth-stream-concrete") << " " << ss.str();
-    vars.push_back(d_vars_class[d_last_comb[i]]);
+    if (Trace.isOn("synth-stream-concrete"))
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())
+          ->toStreamSygus(ss, d_vars[d_last_comb[i]]);
+      Trace("synth-stream-concrete") << " " << ss.str();
+    }
+    vars.push_back(d_vars[d_last_comb[i]]);
   }
 }
 
