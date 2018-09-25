@@ -607,6 +607,11 @@ Lit Solver::pickBranchLit()
             << "getNextTheoryDecisionRequest(): now deciding on " << nextLit
             << std::endl;
         decisions++;
+
+        // org-mode tracing, including propagations is a separate trace
+        Trace("dtview") << std::string(context->getLevel()  - (options::incrementalSolving() ? 1 : 0), '*') << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)) << " :THEORY-DECISION:" << std::endl;
+        Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+
         return nextLit;
       } else {
         Debug("theoryDecision")
@@ -630,10 +635,13 @@ Lit Solver::pickBranchLit()
       decisions++;
       Var next = var(nextLit);
       if(polarity[next] & 0x2) {
-        return mkLit(next, polarity[next] & 0x1);
-      } else {
-        return nextLit;
+        nextLit = mkLit(next, polarity[next] & 0x1);
       }
+
+      // org-mode tracing, including propagations is a separate trace
+      Trace("dtview") << std::string(context->getLevel() - (options::incrementalSolving() ? 1 : 0), '*')<< " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)) << " :DE-DECISION:" << std::endl;
+      Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+      return nextLit;
     }
 
     Var next = var_Undef;
@@ -667,12 +675,19 @@ Lit Solver::pickBranchLit()
       // Check with decision engine if it can tell polarity
       lbool dec_pol = MinisatSatSolver::toMinisatlbool
         (proxy->getDecisionPolarity(MinisatSatSolver::toSatVariable(next)));
+      Lit decisionLit;
       if(dec_pol != l_Undef) {
         Assert(dec_pol == l_True || dec_pol == l_False);
-        return mkLit(next, (dec_pol == l_True) );
+        decisionLit = mkLit(next, (dec_pol == l_True) );
       }
-      // If it can't use internal heuristic to do that
-      return mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+      else {
+        // If it can't use internal heuristic to do that
+        decisionLit = mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+      }
+
+      // org-mode tracing, including propagations is a separate trace
+      Trace("dtview") << std::string(context->getLevel() - (options::incrementalSolving() ? 1 : 0), '*') << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)) << " :DE-DECISION:" << std::endl;
+      Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
     }
 }
 

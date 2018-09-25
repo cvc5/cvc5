@@ -265,6 +265,7 @@ void EchoCommand::invoke(SmtEngine* smtEngine)
 void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out)
 {
   out << d_output << std::endl;
+  Trace("dtview::command") << "* ~COMMAND: echo |" << d_output << "|~" << std::endl;
   d_commandStatus = CommandSuccess::instance();
   printResult(out,
               smtEngine->getOption("command-verbosity:" + getCommandName())
@@ -393,6 +394,7 @@ CheckSatCommand::CheckSatCommand(const Expr& expr) : d_expr(expr) {}
 Expr CheckSatCommand::getExpr() const { return d_expr; }
 void CheckSatCommand::invoke(SmtEngine* smtEngine)
 {
+  Trace("dtview::command") << "* ~COMMAND: " << getCommandName() << "~" << std::endl;
   try
   {
     d_result = smtEngine->checkSat(d_expr);
@@ -413,6 +415,7 @@ void CheckSatCommand::printResult(std::ostream& out, uint32_t verbosity) const
   }
   else
   {
+    Trace("dtview::command") << "* RESULT: " << d_result << std::endl;
     out << d_result << endl;
   }
 }
@@ -453,6 +456,7 @@ const std::vector<Expr>& CheckSatAssumingCommand::getTerms() const
 
 void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
 {
+  Trace("dtview::command") << "* ~COMMAND: (check-sat-assuming ( " << d_terms << " )~" << std::endl;
   try
   {
     d_result = smtEngine->checkSat(d_terms);
@@ -466,6 +470,7 @@ void CheckSatAssumingCommand::invoke(SmtEngine* smtEngine)
 
 Result CheckSatAssumingCommand::getResult() const
 {
+  Trace("dtview::command") << "* ~RESULT: " << d_result << "~" << std::endl;
   return d_result;
 }
 
