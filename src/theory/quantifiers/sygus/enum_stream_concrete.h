@@ -24,35 +24,47 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** Streamer of different values according to variable permutations
+ *
+ * Generates a new value (modulo rewriting) when queried in which its variables
+ * are permuted.
+ */
 class StreamPermutation
 {
  public:
+  /** initializes utility
+   *
+   * for each subset of the variables in value (according to type classes), a
+   * permutation utility is initialized
+   */
   StreamPermutation(Node value,
                     const std::vector<Node>& perm_vars,
                     const std::vector<std::vector<Node>>& var_classes,
                     TermDbSygus* tds);
-  /** compute next permutation, if any, of value
+  ~StreamPermutation() {}
+  /** computes next permutation, if any, of value
    *
-   * a "next" permutation is determined by having at one new permutation in one
-   * of the variable type classes in the value.
+   * a "next" permutation is determined by having at least one new permutation
+   * in one of the variable type classes in the value.
    *
    * For example, if the variables of value (OP x1 x2 x3 x4) are partioned into
    * {{x1, x4}, {x2, x3}} then the sequence of getNext() is
    *
    * (OP x4 x2 x3 x1)
+   * (OP x1 x3 x2 x4)
+   * (OP x4 x3 x2 x1)
    *
    * Moreover, new values are only considered if they are unique modulo
    * rewriting. If for example OP were "+", then no next value would exist,
-   * while if OP were "-" the next values would be
-   *
-   * (- x4 ...)
-
+   * while if OP were "-" the only next value would be: (- x4 x2 x3 x1)
    */
   Node getNext();
-  /** retrieve last permutation */
+  /** retrieves last permutation */
   Node getLast();
 
  private:
+  /** sygus term database */
+  TermDbSygus* d_tds;
   /** value to which we are generating permutations */
   Node d_value;
  /** last value generated */
@@ -61,22 +73,29 @@ class StreamPermutation
   std::vector<Node> d_vars;
   /** generated permutations (modulo rewriting) */
   std::unordered_set<Node, NodeHashFunction> d_perm_values;
-  /** sygus term database */
-  TermDbSygus* d_tds;
-  /** Heap's algorithm for permutation */
+  /** Utility for stepwise application of Heap's algorithm for permutation
+   *
+   * see https://en.wikipedia.org/wiki/Heap%27s_algorithm
+   */
   class PermutationState
   {
    public:
     PermutationState(const std::vector<Node>& vars);
-
+    /** resets permutation state to initial variable ordering */
     void reset();
+    /** computes next permutation
+     *
+     * returns true if one exists, false otherwise
+     */
     bool getNextPermutation();
-
+    /** variables being permuted */
     std::vector<Node> d_vars;
+    /** last computed permutation of variables */
     std::vector<Node> d_last_perm;
-
    private:
+    /** auxiliary position list for generating permutations */
     std::vector<unsigned> d_seq;
+    /** current index being permuted */
     unsigned d_curr_ind;
   };
   /** permutation state of each variable class */
@@ -85,7 +104,7 @@ class StreamPermutation
   unsigned d_curr_ind;
 };
 
-// TODO need to have the same handling of type classes as above
+/***/
 class StreamCombination
 {
  public:
@@ -96,6 +115,7 @@ class StreamCombination
                     const std::vector<Node>& perm_vars,
                     const std::vector<std::vector<Node>>& perm_var_classes,
                     TermDbSygus* tds);
+  ~StreamCombination() {}
   Node getNext();
 
  private:
@@ -170,20 +190,20 @@ class EnumStreamConcrete
  public:
   EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p);
   ~EnumStreamConcrete() {}
-  /** register enumerator for this class
+  /** registers enumerator for this class
    *
    * during registration builds a map from the variables of the enumerator's
    * type to their type classes
    */
   void registerEnumerator(Node e);
-  /** register abstract value v
+  /** registers abstract value v
    *
    * during registration collects variables occurring in value and sets up
    * utilities for streaming combinatinos and permutations for building concrete
    * values
    */
   void registerAbstractValue(Node v);
-  /** generate next concrete value
+  /** generates next concrete value
    *
    * if no more combinations / permutations exist from the last registered
    * value, this method returns Node::null()
@@ -212,11 +232,11 @@ class EnumStreamConcrete
   std::vector<StreamCombination> d_stream_combinations;
   /** maps variables to ids of their respective type classes */
   std::map<Node, unsigned> d_var_class;
-  /** retrieve valiables occurring in value */
+  /** retrieves valiables occurring in value */
   void collectVars(Node n,
                    std::vector<Node>& vars,
                    std::unordered_set<Node, NodeHashFunction>& visited);
-  /** partition variable set according to different type classes */
+  /** partitions variable set according to different type classes */
   void splitVarClasses(const std::vector<Node>& vars,
                        std::vector<std::vector<Node>>& var_classes);
 };

@@ -49,11 +49,14 @@ StreamPermutation::StreamPermutation(
 
 Node StreamPermutation::getNext()
 {
-  std::stringstream ss;
-  Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, d_value);
-  Trace("synth-stream-concrete")
-      << " ....streaming next permutation for value : " << ss.str() << " with "
-      << d_perm_state_class.size() << " permutation classes\n";
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, d_value);
+    Trace("synth-stream-concrete")
+        << " ....streaming next permutation for value : " << ss.str()
+        << " with " << d_perm_state_class.size() << " permutation classes\n";
+  }
   unsigned n_classes = d_perm_state_class.size();
   Assert(n_classes > 0);
   Node perm_value, bultin_perm_value;
@@ -96,7 +99,7 @@ Node StreamPermutation::getNext()
       Trace("synth-stream-concrete-debug2") << "  ......sub is :";
       for (unsigned i = 0, size = d_vars.size(); i < size; ++i)
       {
-        ss.str("");
+        std::stringstream ss;
         Printer::getPrinter(options::outputLanguage())
             ->toStreamSygus(ss, d_vars[i]);
         Trace("synth-stream-concrete-debug2") << " " << ss.str();
@@ -121,10 +124,14 @@ Node StreamPermutation::getNext()
     // if permuted value is equivalent modulo rewriting to a previous one, look
     // for another
   } while (!d_perm_values.insert(bultin_perm_value).second);
-
-  ss.str("");
-  Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, perm_value);
-  Trace("synth-stream-concrete") << " ....return new perm " << ss.str() << "\n";
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, perm_value);
+    Trace("synth-stream-concrete")
+        << " ....return new perm " << ss.str() << "\n";
+  }
   d_last_value = perm_value;
   return perm_value;
 }
@@ -401,7 +408,7 @@ bool StreamCombination::CombinationState::getNextCombination()
 
 EnumStreamConcrete::EnumStreamConcrete(QuantifiersEngine* qe,
                                        SynthConjecture* p)
-    : d_qe(qe), d_tds(qe->getTermDatabaseSygus()), d_parent(p)
+    : d_qe(qe), d_parent(p), d_tds(qe->getTermDatabaseSygus())
 {
 }
 
