@@ -209,25 +209,25 @@ private:
   std::map< Node, SearchCache > d_cache;
   //-----------------------------------traversal predicates
   /** pre/post traversal predicates for each type, variable
-   * 
+   *
    * This stores predicates (pre, post) whose semantics correspond to whether
-   * a variable has occurred by a (pre, post) traversal of a symbolic term, 
-   * where index = 0 corresponds to pre, index = 1 corresponds to post. For 
+   * a variable has occurred by a (pre, post) traversal of a symbolic term,
+   * where index = 0 corresponds to pre, index = 1 corresponds to post. For
    * details, see getTraversalPredicate below.
    */
   std::map<TypeNode, std::map<Node, Node>> d_traversal_pred[2];
   /** traversal applications to Boolean variables
-   * 
+   *
    * This maps each application of a traversal predicate pre_x( t ) or
    * post_x( t ) to a fresh Boolean variable.
    */
   std::map<Node, Node> d_traversal_bool;
   /** get traversal predicate
-   * 
+   *
    * Get the predicates (pre, post) whose semantics correspond to whether
    * a variable has occurred by this point in a (pre, post) traversal of a term.
    * The type of getTraversalPredicate(tn, n, _) is tn -> Bool.
-   * 
+   *
    * For example, consider the term:
    *   f( x_1, g( x_2, x_3 ) )
    * and a left-to-right, depth-first traversal of this term. Let e be
@@ -238,12 +238,12 @@ private:
    *   post_{x_1} is true for e.1, e.2.1, e.2.2, e.2, e
    *   post_{x_2} is false for e.1 and true for e.2.1, e.2.2, e.2, e
    *   post_{x_3} is false for e.1, e.2.1 and true for e.2.2, e.2, e
-   * 
+   *
    * We enforce a symmetry breaking scheme for each enumerator e that is
    * "variable-agnostic" (see argument isVarAgnostic in registerEnumerator)
    * that ensures the variables are ordered. This scheme makes use of these
    * predicates, described in the following:
-   * 
+   *
    * Let x_1, ..., x_m be variables that occur in the same subclass in the type
    * of e (see TermDb::getSubclassForVar).
    * For i = 1, ..., m:
@@ -258,18 +258,18 @@ private:
    *       pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} ) AND
    *     // post-definition for this term
    *     post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
-   * 
+   *
    * Notice that predicates pre and post should not be considered first-order
    * predicates. For example, given the term f( x_1, x_1 ), we have that
    * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is false,
    * although the model values for e.1 and e.2 are equal. Instead, these
-   * predicates should be seen as Boolean (0-argument) variables that are 
+   * predicates should be seen as Boolean (0-argument) variables that are
    * indexed by a variable and a selector chain. We eliminate all applications
-   * of these predicates eagerly in the method eliminateTraversalPredicates. 
+   * of these predicates eagerly in the method eliminateTraversalPredicates.
    */
   Node getTraversalPredicate(TypeNode tn, Node n, bool isPre);
-  /** eliminate traversal predicates 
-   * 
+  /** eliminate traversal predicates
+   *
    * This replaces all applications of traversal predicates P( x ) in n with
    * a unique Boolean variable, given by d_traversal_bool[ P( x ) ], and
    * returns the result.

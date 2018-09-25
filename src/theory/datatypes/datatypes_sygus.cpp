@@ -626,11 +626,11 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       //      // pre-definition
       //      pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} )
       //   post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
-      
+
       // Notice that we are assuming is-C( z ) in this function, where C
       // is the tindex^{th} constructor of dt. Thus, is-x_i( z ) is either
       // true or false below.
-      
+
       Node svl = Node::fromExpr(dt.getSygusVarList());
       // for each variable
       Assert(!e.isNull());
@@ -671,7 +671,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         }
         Node postParent = getTraversalPredicate(tn, var, false);
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
-        // check if we are constructing the symmetry breaking predicate for the variable in question. If so, is-{x_i}( z ) is true.
+        // check if we are constructing the symmetry breaking predicate for the
+        // variable in question. If so, is-{x_i}( z ) is true.
         int varCn = d_tds->getOpConsNum(tn, var);
         if (varCn == static_cast<int>(tindex))
         {
