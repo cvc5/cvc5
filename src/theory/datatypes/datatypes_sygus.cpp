@@ -619,7 +619,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
 
     if (isVarAgnostic && depth == 0)
     {
-      // Enforce symmetry breaking lemma template:
+      // Enforce symmetry breaking lemma template for each x_i:
       // template z.
       //   is-x_i( z ) => pre_{x_{i-1}}( z )
       //   for args a = 1...n
@@ -627,7 +627,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       //      pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} )
       //   post_{x_i}( z ) = post_{x_i}( z.a_{n-1} ) OR is-x_i( z )
 
-      // Notice that we are assuming is-C( z ) in this function, where C
+      // Notice that we are constructing a symmetry breaking template
+      // under the condition that is-C( z ) holds in this method, where C
       // is the tindex^{th} constructor of dt. Thus, is-x_i( z ) is either
       // true or false below.
 
