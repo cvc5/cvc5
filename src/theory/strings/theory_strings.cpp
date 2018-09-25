@@ -1816,10 +1816,10 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   // is the constant that extended term n is equal to.
   Node inferEq = nr.eqNode(in.d_const);
   Node inferEqr = Rewriter::rewrite(inferEq);
-  if( inferEq.getKind()==EQUAL )
+  if( inferEqr.getKind()==EQUAL )
   {
     // try to use the extended rewriter for equalities
-    inferEqr = TheoryStringsRewriter::rewriteEqualityExt(inferEq);
+    inferEqr = TheoryStringsRewriter::rewriteEqualityExt(inferEqr);
   }
   if( inferEqr!=inferEq )
   {
