@@ -484,7 +484,7 @@ void TermDbSygus::registerEnumerator(Node e,
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral( ag );
+    ag = d_quantEngine->getValuation().ensureLiteral(ag);
     d_enum_to_active_guard[e] = ag;
   }
 
