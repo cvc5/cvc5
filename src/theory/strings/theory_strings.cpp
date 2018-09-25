@@ -1663,17 +1663,6 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   
   Node exp = n.eqNode(in.d_const);
   exp = Rewriter::rewrite(exp);
-  
-  if( exp.getKind()==EQUAL )
-  {
-    // try to use the extended rewriter for equalities
-    Node expr = TheoryStringsRewriter::rewriteEqualityExt(exp);
-    if( expr!=exp )
-    {
-      Trace("strings-extf-infer") << "checkExtfInference: ...reduces to " << expr << std::endl;
-      
-    }
-  }
 
   // add original to explanation
   in.d_exp.push_back(exp);
@@ -1804,6 +1793,21 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
         Trace("strings-extf-debug") << "  redundant." << std::endl;
         getExtTheory()->markReduced(n);
       }
+    }
+    return;
+  }
+  
+  // If its not a predicate, see if we can solve the equality n = c, where c
+  // is the constant that extended term n is equal to.
+  if( exp.getKind()==EQUAL )
+  {
+    // try to use the extended rewriter for equalities
+    Node expr = TheoryStringsRewriter::rewriteEqualityExt(exp);
+    if( expr!=exp )
+    {
+      expr = Rewriter::rewrite( expr );
+      Trace("strings-extf-infer") << "checkExtfInference: ...reduces to " << expr << std::endl;
+      sendInternalInference(in.d_exp, expr, "EXTF_equality_rew");
     }
   }
 }
@@ -3821,6 +3825,40 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
 }
 
+void TheoryStrings::sendInternalInference(std::vector< Node >& exp, Node conc, const char * c)
+{
+  if( conc.getKind()==AND )
+  {
+    for( const Node& cc : conc )
+    {
+      sendInternalInference( exp, cc, c );
+    }
+    return;
+  }
+  if( conc.getKind()==EQUAL )
+  {
+    for( unsigned i=0; i<2; i++ )
+    {
+      if( !conc[i].isConst() && !hasTerm( conc[i] ) )
+      {
+        // introduces a new non-constant term, do not infer
+        return;
+      }
+    }
+    // does it already hold?
+    if( areEqual( conc[0], conc[1] ) )
+    {
+      return;
+    }
+  }
+  else if( conc.isConst() && !hasTerm( conc ) )
+  {
+    // introduces a new non-constant term, do not infer
+    return;
+  }
+  sendInference( exp, conc, c );
+}
+  
 void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {
   eq = eq.isNull() ? d_false : Rewriter::rewrite( eq );
   if( eq!=d_true ){

@@ -602,6 +602,19 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  /** send internal inferences
+   * 
+   * This is called when we have inferred exp => conc, where exp is a set
+   * of equalities and disequalities that hold in the current equality engine.
+   * This method adds equalities and disequalities ~( s = t ) via
+   * sendInference such that both s (resp. t) is either a constant or a term
+   * that already occurs in the equality engine. This function can be seen
+   * as a "safe" version of sendInference below in that it does not introduce
+   * any non-constant terms to the state. 
+   * 
+   * The argument c is used for debugging.
+   */
+  void sendInternalInference(std::vector< Node >& exp, Node conc, const char * c);
   // send lemma
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,

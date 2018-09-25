@@ -1,0 +1,6 @@
+(set-logic ALL)
+(set-option :produce-models true)
+(declare-fun x () String)
+(assert (= (str.to.int x) 12345)) 
+(check-sat)
+(get-model)
