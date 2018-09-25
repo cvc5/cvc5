@@ -73,17 +73,18 @@ file(GLOB_RECURSE source_files
      ${PROJECT_SOURCE_DIR}/src/*.g)
 string(REPLACE ";" " " source_files_list "${source_files}")
 
-# Note: {Debug,Trace}_tags.tmp are targets since we always want to generate
-# the temporary tag files in order to check if anything changed.
+# Note: gen-tags-{debug,trace} are targets since we always want to generate
+# the temporary tag files {Debug,Trace}_tags.tmp in order to check if tags
+# were added/modified/deleted.
 add_custom_target(
-  Debug_tags.tmp
+  gen-tags-debug
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Debug ${source_files_list}
   DEPENDS mktags
 )
 
 add_custom_target(
-  Trace_tags.tmp
+  gen-tags-trace
   COMMAND
     ${gentmptags_script} ${CMAKE_CURRENT_LIST_DIR} Trace ${source_files_list}
   DEPENDS mktags
@@ -92,13 +93,13 @@ add_custom_target(
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags
   COMMAND ${gentags_script} Debug
-  DEPENDS Debug_tags.tmp
+  DEPENDS gen-tags-debug ${CMAKE_CURRENT_BINARY_DIR}/Debug_tags.tmp
 )
 
 add_custom_command(
   OUTPUT ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags
   COMMAND ${gentags_script} Trace
-  DEPENDS Trace_tags.tmp
+  DEPENDS gen-tags-trace ${CMAKE_CURRENT_BINARY_DIR}/Trace_tags.tmp
 )
 
 add_custom_command(
