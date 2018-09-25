@@ -67,7 +67,7 @@ class StreamPermutation
   TermDbSygus* d_tds;
   /** value to which we are generating permutations */
   Node d_value;
- /** last value generated */
+  /** last value generated */
   Node d_last_value;
   /** all variables of value */
   std::vector<Node> d_vars;
@@ -92,6 +92,7 @@ class StreamPermutation
     std::vector<Node> d_vars;
     /** last computed permutation of variables */
     std::vector<Node> d_last_perm;
+
    private:
     /** auxiliary position list for generating permutations */
     std::vector<unsigned> d_seq;
