@@ -261,7 +261,7 @@ private:
    *
    * Notice that predicates pre and post should not be considered first-order
    * predicates. For example, given the term f( x_1, x_1 ), we have that
-   * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is false,
+   * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is true,
    * although the model values for e.1 and e.2 are equal. Instead, these
    * predicates should be seen as Boolean (0-argument) variables that are
    * indexed by a variable and a selector chain. We eliminate all applications
