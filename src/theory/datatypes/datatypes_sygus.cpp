@@ -343,9 +343,11 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
       // if we require predicate elimination
       if (sb_elim_pred.find(slem) != sb_elim_pred.end())
       {
-        Trace("sygus-sb-tp") << "Eliminate traversal predicates: start " << sslem << std::endl;
+        Trace("sygus-sb-tp") << "Eliminate traversal predicates: start "
+                             << sslem << std::endl;
         sslem = eliminateTraversalPredicates(sslem);
-        Trace("sygus-sb-tp") << "Eliminate traversal predicates: finish " << sslem << std::endl;
+        Trace("sygus-sb-tp") << "Eliminate traversal predicates: finish "
+                             << sslem << std::endl;
       }
       if (!rlv.isNull())
       {
@@ -441,32 +443,33 @@ Node SygusSymBreakNew::getTraversalPredicate(TypeNode tn, Node n, bool isPre)
 
 Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
   std::map<Node, Node>::iterator ittb;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do 
+  do
   {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) 
+    if (it == visited.end())
     {
-      if( cur.getKind()==APPLY_UF )
+      if (cur.getKind() == APPLY_UF)
       {
-        Assert( cur.getType().isBoolean() );
-        Assert( cur.getNumChildren()==1 && ( cur[0].isVar() || cur[0].getKind()==APPLY_SELECTOR_TOTAL ) );
+        Assert(cur.getType().isBoolean());
+        Assert(cur.getNumChildren() == 1
+               && (cur[0].isVar() || cur[0].getKind() == APPLY_SELECTOR_TOTAL));
         ittb = d_traversal_bool.find(cur);
         Node ret;
-        if( ittb==d_traversal_bool.end() )
+        if (ittb == d_traversal_bool.end())
         {
           std::stringstream ss;
           ss << "v_" << cur;
-          ret = nm->mkSkolem(ss.str(),cur.getType());
+          ret = nm->mkSkolem(ss.str(), cur.getType());
           d_traversal_bool[cur] = ret;
         }
         else
@@ -479,21 +482,22 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
       {
         visited[cur] = Node::null();
         visit.push_back(cur);
-        for (const Node& cn : cur )
+        for (const Node& cn : cur)
         {
           visit.push_back(cn);
         }
       }
-    } 
-    else if (it->second.isNull()) 
+    }
+    else if (it->second.isNull())
     {
       Node ret = cur;
       bool childChanged = false;
       std::vector<Node> children;
-      if (cur.getMetaKind() == metakind::PARAMETERIZED) {
+      if (cur.getMetaKind() == metakind::PARAMETERIZED)
+      {
         children.push_back(cur.getOperator());
       }
-      for (const Node& cn : cur )
+      for (const Node& cn : cur)
       {
         it = visited.find(cn);
         Assert(it != visited.end());
@@ -501,7 +505,7 @@ Node SygusSymBreakNew::eliminateTraversalPredicates(Node n)
         childChanged = childChanged || cn != it->second;
         children.push_back(it->second);
       }
-      if (childChanged) 
+      if (childChanged)
       {
         ret = nm->mkNode(cur.getKind(), children);
       }
@@ -631,7 +635,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       for (const Node& var : svl)
       {
         unsigned sc = d_tds->getSubclassForVar(etn, var);
-        if( d_tds->getNumSubclassVars(etn,sc)==1 )
+        if (d_tds->getNumSubclassVars(etn, sc) == 1)
         {
           // unique variable in singleton subclass, skip
           continue;
@@ -664,7 +668,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         Node finish = nm->mkNode(APPLY_UF, postParent, n);
         // check if i am the variable in question
         int varCn = d_tds->getOpConsNum(tn, var);
-        if (varCn == static_cast<int>(tindex) )
+        if (varCn == static_cast<int>(tindex))
         {
           prev = d_true;
           // requirement : If I am the variable, I must have seen
@@ -1248,18 +1252,21 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
 }
 
 void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
-  if( d_register_st.find( e )!=d_register_st.end() ){
+  if (d_register_st.find(e) != d_register_st.end())
+  {
     // already registered
     return;
   }
   TypeNode etn = e.getType();
-  if( !etn.isDatatype() ){
+  if (!etn.isDatatype())
+  {
     // not a datatype term
     d_register_st[e] = false;
     return;
   }
   const Datatype& dt = etn.getDatatype();
-  if( !dt.isSygus() ){
+  if (!dt.isSygus())
+  {
     // not a sygus datatype term
     d_register_st[e] = false;
     return;
@@ -1271,7 +1278,8 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
   }
   d_register_st[e] = true;
   Node ag = d_tds->getActiveGuardForEnumerator(e);
-  if( !ag.isNull() ){
+  if (!ag.isNull())
+  {
     d_anchor_to_active_guard[e] = ag;
     std::map<Node, std::unique_ptr<DecisionStrategy>>::iterator itaas =
         d_anchor_to_ag_strategy.find(e);
@@ -1288,60 +1296,67 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
         d_anchor_to_ag_strategy[e].get());
   }
   Node m;
-  if( !ag.isNull() ){
-    // if it has an active guard (it is an enumerator), use itself as measure term. This will enforce fairness on it independently.
+  if (!ag.isNull())
+  {
+    // if it has an active guard (it is an enumerator), use itself as measure
+    // term. This will enforce fairness on it independently.
     m = e;
-  }else{
+  }
+  else
+  {
     // otherwise we enforce fairness in a unified way for all
-    if( d_generic_measure_term.isNull() ){
+    if (d_generic_measure_term.isNull())
+    {
       // choose e as master for all future terms
       d_generic_measure_term = e;
     }
     m = d_generic_measure_term;
   }
-  Trace("sygus-sb") << "Sygus : register size term : " << e << " with measure " << m << std::endl;
-  registerMeasureTerm( m );
-  d_szinfo[m]->d_anchors.push_back( e );
+  Trace("sygus-sb") << "Sygus : register size term : " << e << " with measure "
+                    << m << std::endl;
+  registerMeasureTerm(m);
+  d_szinfo[m]->d_anchors.push_back(e);
   d_anchor_to_measure_term[e] = m;
-  NodeManager * nm = NodeManager::currentNM();
-  if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){
+  NodeManager* nm = NodeManager::currentNM();
+  if (options::sygusFair() == SYGUS_FAIR_DT_SIZE)
+  {
     // update constraints on the measure term
     Node slem;
-    if( options::sygusFairMax() ){
+    if (options::sygusFairMax())
+    {
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = nm->mkNode(
-          LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
+      slem = nm->mkNode(LEQ, ds, d_szinfo[m]->getOrMkMeasureValue(lemmas));
     }else{
       Node mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas);
-      Node new_mt =
-          d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
+      Node new_mt = d_szinfo[m]->getOrMkActiveMeasureValue(lemmas, true);
       Node ds = nm->mkNode(DT_SIZE, e);
-      slem = mt.eqNode(
-          nm->mkNode(PLUS, new_mt, ds));
+      slem = mt.eqNode(nm->mkNode(PLUS, new_mt, ds));
     }
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     lemmas.push_back(slem);
   }
-  // if it is variable agnostic, enforce top-level constraint that says no variables occur pre-traversal at top-level
-  Node varList = Node::fromExpr( dt.getSygusVarList() );
-  std::vector< Node > constraints;
-  for( const Node& v : varList )
+  // if it is variable agnostic, enforce top-level constraint that says no
+  // variables occur pre-traversal at top-level
+  Node varList = Node::fromExpr(dt.getSygusVarList());
+  std::vector<Node> constraints;
+  for (const Node& v : varList)
   {
-    unsigned sc = d_tds->getSubclassForVar(etn,v);
-    if( d_tds->getNumSubclassVars(etn,sc)>1 )
+    unsigned sc = d_tds->getSubclassForVar(etn, v);
+    if (d_tds->getNumSubclassVars(etn, sc) > 1)
     {
-      Node preRootOp = getTraversalPredicate(etn,v,true);
-      Node preRoot = nm->mkNode( APPLY_UF, preRootOp, e );
-      constraints.push_back( preRoot.negate() );
+      Node preRootOp = getTraversalPredicate(etn, v, true);
+      Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);
+      constraints.push_back(preRoot.negate());
     }
   }
-  if( !constraints.empty() )
+  if (!constraints.empty())
   {
-    Node preNoVar = constraints.size()==1 ? constraints[0] : nm->mkNode( AND, constraints );
-    Node preNoVarProc = eliminateTraversalPredicates( preNoVar );
+    Node preNoVar =
+        constraints.size() == 1 ? constraints[0] : nm->mkNode(AND, constraints);
+    Node preNoVarProc = eliminateTraversalPredicates(preNoVar);
     Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
     Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc << std::endl;
-    lemmas.push_back( preNoVarProc );
+    lemmas.push_back(preNoVarProc);
   }
 }
 
@@ -1566,8 +1581,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 }
 
-bool SygusSymBreakNew::checkValue(
-    Node n, Node vn, int ind, std::vector<Node>& lemmas)
+bool SygusSymBreakNew::checkValue(Node n,
+                                  Node vn,
+                                  int ind,
+                                  std::vector<Node>& lemmas)
 {
   if (vn.getKind() != kind::APPLY_CONSTRUCTOR)
   {
@@ -1583,8 +1600,8 @@ bool SygusSymBreakNew::checkValue(
     for( int i=0; i<ind; i++ ){
       Trace("sygus-sb-check-value") << "  ";
     }
-    Trace("sygus-sb-check-value")
-        << n << " : " << vn << " : " << prog_szv << std::endl;
+    Trace("sygus-sb-check-value") << n << " : " << vn << " : " << prog_szv
+                                  << std::endl;
   }
   TypeNode tn = n.getType();
   const Datatype& dt = tn.getDatatype();
@@ -1601,8 +1618,8 @@ bool SygusSymBreakNew::checkValue(
   }
   if (!hastst || tstrep != d_true)
   {
-    Trace("sygus-check-value")
-        << "- has tester : " << tst << " : " << (hastst ? "true" : "false");
+    Trace("sygus-check-value") << "- has tester : " << tst << " : "
+                               << (hastst ? "true" : "false");
     Trace("sygus-check-value") << ", value=" << tstrep << std::endl;
     if( !hastst ){
       // This should not happen generally, it is caused by a sygus term not

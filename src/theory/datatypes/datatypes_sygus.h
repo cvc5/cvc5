@@ -618,8 +618,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkValue(
-      Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  bool checkValue(Node n, Node vn, int ind, std::vector<Node>& lemmas);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted
