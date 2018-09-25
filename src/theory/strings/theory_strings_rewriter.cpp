@@ -3714,7 +3714,17 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
       Node v;
       Node vapprox;
       int maxScore = -1;
-      // look at each approximation, take the one with the best score
+      // Look at each approximation, take the one with the best score.
+      // Notice that we are in the process of trying to prove
+      // ( c1*t1 + .. + cn*tn ) + ( approx_1 | ... | approx_m ) >= 0,
+      // where c1*t1 + .. + cn*tn is the "fixed" component of our sum (aar)
+      // and approx_1 ... approx_m are possible approximations. The
+      // intution here is that we want coefficients c1...cn to be positive.
+      // This is because arithmetic string terms t1...tn (which may be
+      // applications of len, indexof, str.to.int) are never entailed to be
+      // negative. Hence, we add the approx_i that contributes the "most"
+      // towards making all constants c1...cn positive and cancelling negative
+      // monomials in approx_i itself.
       for( std::pair< const Node, std::vector< Node > >& nam : mApprox )
       {
         for( const Node& aa : nam.second )
