@@ -34,6 +34,7 @@ StreamPermutation::StreamPermutation(
     TermDbSygus* tds)
     : d_tds(tds)
 {
+  d_curr_ind = 0;
   d_value = value;
   d_vars = perm_vars;
   for (unsigned i = 0, size = var_classes.size(); i < size; ++i)
@@ -53,20 +54,33 @@ Node StreamPermutation::getNext()
   Trace("synth-stream-concrete")
       << " ....streaming next permutation for value : " << ss.str() << " with "
       << d_perm_state_class.size() << " permutation classes\n";
+  unsigned n_classes = d_perm_state_class.size();
+  if (n_classes == 0)
+  {
+    Trace("synth-stream-concrete") << " ....no new perm, return null\n";
+    return Node::null();
+  }
   Node perm_value, bultin_perm_value;
   do
   {
     bool new_perm = false;
-    for (unsigned i = 0, size = d_perm_state_class.size(); i < size; ++i)
+    do
     {
-      if (d_perm_state_class[i].getNextPermutation())
+      if (d_perm_state_class[d_curr_ind].getNextPermutation())
       {
         new_perm = true;
         Trace("synth-stream-concrete-debug2")
-            << " ....class " << i << " has new perm\n";
-        break;
+            << " ....class " << d_curr_ind << " has new perm\n";
+        d_curr_ind = 0;
       }
-    }
+      else
+      {
+        Trace("synth-stream-concrete-debug2")
+            << " ....class " << d_curr_ind << " reset\n";
+        d_perm_state_class[d_curr_ind].reset();
+        d_curr_ind++;
+      }
+    } while (!new_perm && d_curr_ind < n_classes);
     // no new permutation
     if (!new_perm)
     {
@@ -80,7 +94,6 @@ Node StreamPermutation::getNext()
       sub.insert(sub.end(),
                  d_perm_state_class[i].d_last_perm.begin(),
                  d_perm_state_class[i].d_last_perm.end());
-
     }
     if (Trace.isOn("synth-stream-concrete-debug2"))
     {
@@ -127,6 +140,15 @@ StreamPermutation::PermutationState::PermutationState(
 {
   d_vars = vars;
   d_seq.resize(vars.size());
+  std::fill(d_seq.begin(), d_seq.end(), 0);
+  d_curr_ind = 0;
+  d_last_perm = d_vars;
+}
+
+void StreamPermutation::PermutationState::reset()
+{
+  d_seq.clear();
+  d_seq.resize(d_vars.size());
   std::fill(d_seq.begin(), d_seq.end(), 0);
   d_curr_ind = 0;
   d_last_perm = d_vars;
@@ -208,7 +230,7 @@ Node StreamCombination::getNext()
       Trace("synth-stream-concrete")
           << " ..no new comb, get next permutation\n";
       d_last = d_stream_permutations.getNext();
-      // no more permutation
+      // exhausted permutations
       if (d_last.isNull())
       {
         Trace("synth-stream-concrete") << " ..no new comb, return null\n";
@@ -460,7 +482,7 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
     if (Trace.isOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete") << " with vars ";
-      for (auto& var : vars)
+      for (const Node& var : vars)
       {
         ss.str("");
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, var);
@@ -470,7 +492,7 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
       for (auto& v_class : var_classes)
       {
         Trace("synth-stream-concrete") << " [";
-        for (auto& var : v_class)
+        for (const Node& var : v_class)
         {
           ss.str("");
           Printer::getPrinter(options::outputLanguage())

@@ -54,6 +54,7 @@ class StreamPermutation
    public:
     PermutationState(const std::vector<Node>& vars);
 
+    void reset();
     bool getNextPermutation();
 
     std::vector<Node> d_vars;
@@ -65,6 +66,8 @@ class StreamPermutation
   };
   /** permutation state of each variable class */
   std::vector<PermutationState> d_perm_state_class;
+  /** current class being permuted */
+  unsigned d_curr_ind;
 };
 
 // TODO need to have the same handling of type classes as above
