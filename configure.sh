@@ -50,7 +50,6 @@ The following options configure parameterized features.
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
   --cln                    use CLN instead of GMP
-  --gmp                    use GMP instead of CLN
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
