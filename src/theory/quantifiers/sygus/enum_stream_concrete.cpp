@@ -476,9 +476,13 @@ void EnumStreamConcrete::registerEnumerator(Node e)
   Trace("synth-stream-concrete") << " with variables :";
   for (const Node& v : var_list)
   {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
-    Trace("synth-stream-concrete") << " " << ss.str() << "[" << d_var_class[v];
+    if (Trace.isOn("synth-stream-concrete"))
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
+      Trace("synth-stream-concrete")
+          << " " << ss.str() << "[" << d_var_class[v];
+    }
     d_vars.push_back(v);
     d_var_class[v] = d_tds->getSubclassForVar(tn, v);
     Assert(d_var_class[v] > 0);
@@ -506,11 +510,14 @@ void EnumStreamConcrete::registerEnumerator(Node e)
 void EnumStreamConcrete::registerAbstractValue(Node v)
 {
   d_abs_values.push_back(v);
-  std::stringstream ss;
-  Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
-  Trace("synth-stream-concrete")
-      << " * Streaming concrete: registering for enum " << d_enum << " value "
-      << ss.str();
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
+    Trace("synth-stream-concrete")
+        << " * Streaming concrete: registering for enum " << d_enum << " value "
+        << ss.str();
+  }
   std::vector<Node> vars;
   std::unordered_set<Node, NodeHashFunction> visited;
   collectVars(v, vars, visited);
@@ -523,7 +530,7 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
       Trace("synth-stream-concrete") << " with vars ";
       for (const Node& var : vars)
       {
-        ss.str("");
+        std::stringstream ss;
         Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, var);
         Trace("synth-stream-concrete") << " " << ss.str();
       }
@@ -533,7 +540,7 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
         Trace("synth-stream-concrete") << " [";
         for (const Node& var : v_class)
         {
-          ss.str("");
+          std::stringstream ss;
           Printer::getPrinter(options::outputLanguage())
               ->toStreamSygus(ss, var);
           Trace("synth-stream-concrete") << " " << ss.str();
