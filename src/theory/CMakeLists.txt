@@ -14,7 +14,7 @@ add_custom_command(
     ${CMAKE_CURRENT_LIST_DIR}/rewriter_tables_template.h
     ${KINDS_FILES}
     > ${CMAKE_CURRENT_BINARY_DIR}/rewriter_tables.h
-  DEPENDS mkrewriter rewriter_tables_template.h
+  DEPENDS mkrewriter rewriter_tables_template.h ${KINDS_FILES}
 )
 
 add_custom_command(
@@ -24,7 +24,7 @@ add_custom_command(
     ${CMAKE_CURRENT_LIST_DIR}/theory_traits_template.h
     ${KINDS_FILES}
     > ${CMAKE_CURRENT_BINARY_DIR}/theory_traits.h
-  DEPENDS mktheorytraits theory_traits_template.h
+  DEPENDS mktheorytraits theory_traits_template.h ${KINDS_FILES}
 )
 
 add_custom_command(
@@ -34,7 +34,7 @@ add_custom_command(
     ${CMAKE_CURRENT_LIST_DIR}/type_enumerator_template.cpp
     ${KINDS_FILES}
     > ${CMAKE_CURRENT_BINARY_DIR}/type_enumerator.cpp
-  DEPENDS mktheorytraits type_enumerator_template.cpp
+  DEPENDS mktheorytraits type_enumerator_template.cpp ${KINDS_FILES}
 )
 
 add_custom_target(gen-theory
