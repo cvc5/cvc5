@@ -55,11 +55,7 @@ Node StreamPermutation::getNext()
       << " ....streaming next permutation for value : " << ss.str() << " with "
       << d_perm_state_class.size() << " permutation classes\n";
   unsigned n_classes = d_perm_state_class.size();
-  if (n_classes == 0)
-  {
-    Trace("synth-stream-concrete") << " ....no new perm, return null\n";
-    return Node::null();
-  }
+  Assert(n_classes > 0);
   Node perm_value, bultin_perm_value;
   do
   {
@@ -194,6 +190,7 @@ StreamCombination::StreamCombination(
     : d_tds(tds), d_stream_permutations(value, perm_vars, perm_var_classes, tds)
 {
   Assert(all_vars.size() >= perm_vars.size());
+  d_curr_ind = 0;
   d_all_vars = all_vars;
   d_perm_vars = perm_vars;
   d_var_cons = var_cons;
@@ -208,23 +205,53 @@ StreamCombination::StreamCombination(
 
 Node StreamCombination::getNext()
 {
-  std::stringstream ss;
   Trace("synth-stream-concrete")
       << " ..streaming next combination of " << d_perm_vars.size() << " vars\n";
+  unsigned n_classes = d_comb_state_class.size();
+  // if no variables
+  if (d_perm_vars.size() == 0)
+  {
+    if (d_last.isNull())
+    {
+      if (Trace.isOn("synth-stream-concrete"))
+      {
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss, d_stream_permutations.getLast());
+        Trace("synth-stream-concrete")
+            << " ..only comb is " << ss.str() << "\n";
+      }
+      d_last = d_stream_permutations.getLast();
+      return d_last;
+    }
+    else
+    {
+      Trace("synth-stream-concrete") << " ..no new comb, return null\n";
+      return Node::null();
+    }
+  }
   // if not in intial case
   if (!d_last.isNull())
   {
     bool new_comb = false;
-    for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
+    do
     {
-      if (d_comb_state_class[i].getNextCombination())
+      if (d_comb_state_class[d_curr_ind].getNextCombination())
       {
         new_comb = true;
         Trace("synth-stream-concrete-debug2")
-            << " ....class " << i << " has new comb\n";
-        break;
+            << " ....class " << d_curr_ind << " has new comb\n";
+        d_curr_ind = 0;
       }
-    }
+      else
+      {
+        Trace("synth-stream-concrete-debug2")
+            << " ....class " << d_curr_ind << " reset\n";
+        d_comb_state_class[d_curr_ind].reset();
+        d_curr_ind++;
+      }
+    } while (!new_comb && d_curr_ind < n_classes);
+    // no new combination
     if (!new_comb)
     {
       Trace("synth-stream-concrete")
@@ -240,6 +267,8 @@ Node StreamCombination::getNext()
         Trace("synth-stream-concrete") << " ..no new comb, return null\n";
         return Node::null();
       }
+      // reset combination classes for next permutation
+      d_curr_ind = 0;
       for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
       {
         d_comb_state_class[i].reset();
@@ -283,7 +312,7 @@ Node StreamCombination::getNext()
   Assert(d_perm_vars.size() == sub.size());
   if (Trace.isOn("synth-stream-concrete-debug2"))
   {
-    ss.str("");
+    std::stringstream ss;
     Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, d_last);
     Trace("synth-stream-concrete-debug2")
         << "  ....sub on " << ss.str() << " is :";
@@ -304,15 +333,21 @@ Node StreamCombination::getNext()
   }
   Node comb_value = d_last.substitute(
       d_perm_vars.begin(), d_perm_vars.end(), sub.begin(), sub.end());
-  ss.str("");
-  Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, comb_value);
-  Trace("synth-stream-concrete") << " ..return new comb " << ss.str() << "\n\n";
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, comb_value);
+    Trace("synth-stream-concrete")
+        << " ..return new comb " << ss.str() << "\n\n";
+  }
 #ifdef CVC4_ASSERTIONS
   // the new combination value should be fresh, modulo rewriting, by
   // construction (unless it's equiv to a constant, e.g. true / false)
   Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
       d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
-  Assert(builtin_comb_value.isConst() || d_comb_values.insert(builtin_comb_value).second);
+  Assert(builtin_comb_value.isConst()
+         || d_comb_values.insert(builtin_comb_value).second);
 #endif
   return comb_value;
 }

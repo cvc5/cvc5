@@ -115,6 +115,8 @@ class StreamCombination
   };
   /** combination state */
   std::vector<CombinationState> d_comb_state_class;
+  /** current class being combined */
+  unsigned d_curr_ind;
 };
 
 class EnumStreamConcrete
