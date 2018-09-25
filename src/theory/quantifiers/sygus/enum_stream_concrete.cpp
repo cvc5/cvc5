@@ -471,7 +471,7 @@ void EnumStreamConcrete::splitVarClasses(
   }
 }
 
-void EnumStreamConcrete::registerEnumerator(Node e)
+void EnumStreamConcrete::initialize(Node e)
 {
   Trace("synth-stream-concrete")
       << " * Streaming concrete: registering enum " << e;
