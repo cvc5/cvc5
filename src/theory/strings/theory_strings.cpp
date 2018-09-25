@@ -1659,9 +1659,21 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-
+  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr << " == " << in.d_const << std::endl;
+  
   Node exp = n.eqNode(in.d_const);
   exp = Rewriter::rewrite(exp);
+  
+  if( exp.getKind()==EQUAL )
+  {
+    // try to use the extended rewriter for equalities
+    Node expr = TheoryStringsRewriter::rewriteEqualityExt(exp);
+    if( expr!=exp )
+    {
+      Trace("strings-extf-infer") << "checkExtfInference: ...reduces to " << expr << std::endl;
+      
+    }
+  }
 
   // add original to explanation
   in.d_exp.push_back(exp);
