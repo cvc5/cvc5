@@ -1223,8 +1223,8 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
             for (const TNode& t : itt->second)
             {
               if (!options::sygusSymBreakLazy()
-                  || d_active_terms.find(t) != d_active_terms.end()
-                         && !it->second.empty())
+                  || (d_active_terms.find(t) != d_active_terms.end()
+                      && !it->second.empty()))
               {
                 Node rlv = getRelevancyCondition(t);
                 std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
