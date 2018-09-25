@@ -1344,28 +1344,32 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     lemmas.push_back(slem);
   }
-  // if it is variable agnostic, enforce top-level constraint that says no
-  // variables occur pre-traversal at top-level
-  Node varList = Node::fromExpr(dt.getSygusVarList());
-  std::vector<Node> constraints;
-  for (const Node& v : varList)
+  if( d_tds->isVariableAgnosticEnumerator(e) )
   {
-    unsigned sc = d_tds->getSubclassForVar(etn, v);
-    if (d_tds->getNumSubclassVars(etn, sc) > 1)
+    // if it is variable agnostic, enforce top-level constraint that says no
+    // variables occur pre-traversal at top-level
+    Node varList = Node::fromExpr(dt.getSygusVarList());
+    std::vector<Node> constraints;
+    for (const Node& v : varList)
     {
-      Node preRootOp = getTraversalPredicate(etn, v, true);
-      Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);
-      constraints.push_back(preRoot.negate());
+      unsigned sc = d_tds->getSubclassForVar(etn, v);
+      // no symmetry breaking occurs for variables in singleton subclasses
+      if (d_tds->getNumSubclassVars(etn, sc) > 1)
+      {
+        Node preRootOp = getTraversalPredicate(etn, v, true);
+        Node preRoot = nm->mkNode(APPLY_UF, preRootOp, e);
+        constraints.push_back(preRoot.negate());
+      }
     }
-  }
-  if (!constraints.empty())
-  {
-    Node preNoVar =
-        constraints.size() == 1 ? constraints[0] : nm->mkNode(AND, constraints);
-    Node preNoVarProc = eliminateTraversalPredicates(preNoVar);
-    Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
-    Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc << std::endl;
-    lemmas.push_back(preNoVarProc);
+    if (!constraints.empty())
+    {
+      Node preNoVar =
+          constraints.size() == 1 ? constraints[0] : nm->mkNode(AND, constraints);
+      Node preNoVarProc = eliminateTraversalPredicates(preNoVar);
+      Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
+      Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc << std::endl;
+      lemmas.push_back(preNoVarProc);
+    }
   }
 }
 
