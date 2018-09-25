@@ -17,7 +17,6 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/quantifiers/sygus/enum_stream_concrete.h"
 #include "theory/quantifiers/sygus/sygus_unif_rl.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -154,15 +153,6 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
             unif_enums[index][e].clear();
             continue;
           }
-          // TEST ABSTRACT VALUE PERMUTATION
-          EnumStreamConcrete stream(d_qe, d_parent);
-          stream.registerEnumerator(eu);
-          stream.registerAbstractValue(d_parent->getModelValue(eu));
-          Node v;
-          do
-          {
-            v = stream.getNext();
-          } while (!v.isNull());
         }
         // get the model value of each enumerator
         for (const Node& eu : unif_enums[index][e])
@@ -540,12 +530,8 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   si.d_enums[index].push_back(e);
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(e,
-                            si.d_pt,
-                            d_parent,
-                            options::sygusUnifCondIndependent() && index == 1,
-                            false,
-                            options::sygusUnifCondIndependent() && index == 1);
+  d_tds->registerEnumerator(
+      e, si.d_pt, d_parent, options::sygusUnifCondIndependent() && index == 1);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(const std::vector<Node>& eis, Node e)
