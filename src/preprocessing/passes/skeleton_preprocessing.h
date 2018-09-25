@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file non_clausal_simp.h
+/*! \file skeleton_preprocessing.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Andrew Wu
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Non-clausal simplification preprocessing pass.
+ ** \brief Boolean skeleton simplification preprocessing pass.
  **/
 
 #include "cvc4_private.h"
@@ -18,8 +18,6 @@
 #define __CVC4__PREPROCESSING__PASSES__SKELETON_PREPROCESSING_H
 
 #include <vector>
-
-#include "prop/cryptominisat.h"
 
 #include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"

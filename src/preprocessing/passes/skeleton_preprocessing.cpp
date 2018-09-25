@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file non_clausal_simp.cpp
+/*! \file skeleton_preprocessing.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz, Haoze Wu
@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Non-clausal simplification preprocessing pass.
+ ** \brief Boolean skeleton preprocessing pass.
  **
- ** Run the nonclausal solver and try to solve all assigned theory literals.
+ ** Run cryptominisat and try to solve all assigned theory literals.
  **/
 
  #include "preprocessing/passes/skeleton_preprocessing.h"
@@ -86,7 +86,7 @@ PreprocessingPassResult SkeletonPreprocessing::applyInternal(
 
 
 
-  SatValue result = d_satSolver->simp();
+  SatValue result = d_satSolver->solve();
 
   if (result==SAT_VALUE_FALSE){
     // If in conflict, just return false
