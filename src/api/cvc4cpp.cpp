@@ -21,6 +21,8 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -566,6 +568,20 @@ CVC4::Kind extToIntKind(Kind k)
   }
   return it->second;
 }
+
+uint32_t minArity(Kind k)
+{
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
+  return CVC4::ExprManager::minArity(extToIntKind(k));
+}
+
+uint32_t maxArity(Kind k)
+{
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
+  return CVC4::ExprManager::maxArity(extToIntKind(k));
+}
 }  // namespace
 
 std::string kindToString(Kind k)
@@ -624,6 +640,10 @@ class CVC4ApiExceptionStream
 #define CVC4_API_KIND_CHECK_EXPECTED(cond, kind, expected_kind_str) \
   CVC4_API_CHECK(cond) << "Invalid kind '" << kindToString(kind)    \
                        << "', expected " << expected_kind_str;
+
+#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg, expected_arg_str)               \
+  CVC4_API_CHECK(cond) << "Invalid argument '" << (arg).toString() << "' for " \
+                       << #arg << ", expected " << expected_arg_str;
 
 }  // namespace
 
@@ -708,7 +728,6 @@ Sort::~Sort() {}
 
 Sort& Sort::operator=(const Sort& s)
 {
-  // CHECK: valid sort s?
   if (this != &s)
   {
     *d_type = *s.d_type;
@@ -716,119 +735,43 @@ Sort& Sort::operator=(const Sort& s)
   return *this;
 }
 
-bool Sort::operator==(const Sort& s) const
-{
-  // CHECK: valid sort s?
-  return *d_type == *s.d_type;
-}
+bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
-bool Sort::operator!=(const Sort& s) const
-{
-  // CHECK: valid sort s?
-  return *d_type != *s.d_type;
-}
+bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
 
-bool Sort::isBoolean() const
-{
-  // CHECK: valid sort s?
-  return d_type->isBoolean();
-}
+bool Sort::isBoolean() const { return d_type->isBoolean(); }
 
-bool Sort::isInteger() const
-{
-  // CHECK: valid sort s?
-  return d_type->isInteger();
-}
+bool Sort::isInteger() const { return d_type->isInteger(); }
 
-bool Sort::isReal() const
-{
-  // CHECK: valid sort s?
-  return d_type->isReal();
-}
+bool Sort::isReal() const { return d_type->isReal(); }
 
-bool Sort::isString() const
-{
-  // CHECK: valid sort s?
-  return d_type->isString();
-}
+bool Sort::isString() const { return d_type->isString(); }
 
-bool Sort::isRegExp() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRegExp();
-}
+bool Sort::isRegExp() const { return d_type->isRegExp(); }
 
-bool Sort::isRoundingMode() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRoundingMode();
-}
+bool Sort::isRoundingMode() const { return d_type->isRoundingMode(); }
 
-bool Sort::isBitVector() const
-{
-  // CHECK: valid sort s?
-  return d_type->isBitVector();
-}
+bool Sort::isBitVector() const { return d_type->isBitVector(); }
 
-bool Sort::isFloatingPoint() const
-{
-  // CHECK: valid sort s?
-  return d_type->isFloatingPoint();
-}
+bool Sort::isFloatingPoint() const { return d_type->isFloatingPoint(); }
 
-bool Sort::isDatatype() const
-{
-  // CHECK: valid sort s?
-  return d_type->isDatatype();
-}
+bool Sort::isDatatype() const { return d_type->isDatatype(); }
 
-bool Sort::isFunction() const
-{
-  // CHECK: valid sort s?
-  return d_type->isFunction();
-}
+bool Sort::isFunction() const { return d_type->isFunction(); }
 
-bool Sort::isPredicate() const
-{
-  // CHECK: valid sort s?
-  return d_type->isPredicate();
-}
+bool Sort::isPredicate() const { return d_type->isPredicate(); }
 
-bool Sort::isTuple() const
-{
-  // CHECK: valid sort s?
-  return d_type->isTuple();
-}
+bool Sort::isTuple() const { return d_type->isTuple(); }
 
-bool Sort::isRecord() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRecord();
-}
+bool Sort::isRecord() const { return d_type->isRecord(); }
 
-bool Sort::isArray() const
-{
-  // CHECK: valid sort s?
-  return d_type->isArray();
-}
+bool Sort::isArray() const { return d_type->isArray(); }
 
-bool Sort::isSet() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSet();
-}
+bool Sort::isSet() const { return d_type->isSet(); }
 
-bool Sort::isUninterpretedSort() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSort();
-}
+bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
 
-bool Sort::isSortConstructor() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSortConstructor();
-}
+bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
 
 Datatype Sort::getDatatype() const
 {
@@ -855,11 +798,7 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
 
-std::string Sort::toString() const
-{
-  // CHECK: valid sort s?
-  return d_type->toString();
-}
+std::string Sort::toString() const { return d_type->toString(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
@@ -888,7 +827,6 @@ Term::~Term() {}
 
 Term& Term::operator=(const Term& t)
 {
-  // CHECK: expr managers must match
   if (this != &t)
   {
     *d_expr = *t.d_expr;
@@ -896,17 +834,9 @@ Term& Term::operator=(const Term& t)
   return *this;
 }
 
-bool Term::operator==(const Term& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr == *t.d_expr;
-}
+bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
-bool Term::operator!=(const Term& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr != *t.d_expr;
-}
+bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
 Kind Term::getKind() const { return intToExtKind(d_expr->getKind()); }
 
@@ -1069,7 +999,6 @@ OpTerm::~OpTerm() {}
 
 OpTerm& OpTerm::operator=(const OpTerm& t)
 {
-  // CHECK: expr managers must match
   if (this != &t)
   {
     *d_expr = *t.d_expr;
@@ -1077,17 +1006,9 @@ OpTerm& OpTerm::operator=(const OpTerm& t)
   return *this;
 }
 
-bool OpTerm::operator==(const OpTerm& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr == *t.d_expr;
-}
+bool OpTerm::operator==(const OpTerm& t) const { return *d_expr == *t.d_expr; }
 
-bool OpTerm::operator!=(const OpTerm& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr != *t.d_expr;
-}
+bool OpTerm::operator!=(const OpTerm& t) const { return *d_expr != *t.d_expr; }
 
 Kind OpTerm::getKind() const { return intToExtKind(d_expr->getKind()); }
 
@@ -1535,7 +1456,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ?  new Options() : opts;
+  Options* o = opts == nullptr ? new Options() : opts;
   d_exprMgr.reset(new ExprManager(*o));
   d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
   d_rng.reset(new Random((*o)[options::seed]));
@@ -1566,8 +1487,6 @@ Sort Solver::getRoundingmodeSort(void) const
 
 Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 {
-  // CHECK: indexSort exists
-  // CHECK: elemSort exists
   return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
 }
 
@@ -1585,8 +1504,6 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 
 Sort Solver::mkFunctionSort(Sort domain, Sort range) const
 {
-  // CHECK: domain exists
-  // CHECK: range exists
   // CHECK:
   // domain.isFirstClass()
   // else "can not create function type for domain type that is not
@@ -1603,8 +1520,6 @@ Sort Solver::mkFunctionSort(Sort domain, Sort range) const
 
 Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
 {
-  // CHECK: for all s in argSorts, s exists
-  // CHECK: range exists
   // CHECK: argSorts.size() >= 1
   // CHECK:
   // for (unsigned i = 0; i < argSorts.size(); ++ i)
@@ -1629,7 +1544,6 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
-  // CHECK: for all s in sorts, s exists
   // CHECK: sorts.size() >= 1
   // CHECK:
   // for (unsigned i = 0; i < sorts.size(); ++ i)
@@ -1663,7 +1577,6 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
-  // CHECK: for all s in sorts, s exists
   // CHECK:
   // for (unsigned i = 0; i < sorts.size(); ++ i)
   //   !sorts[i].isFunctionLike()
@@ -1849,7 +1762,6 @@ Term Solver::mkBitVector(std::string& s, uint32_t base) const
 
 Term Solver::mkConst(RoundingMode rm) const
 {
-  // CHECK: valid rm?
   return d_exprMgr->mkConst(s_rmodes.at(rm));
 }
 
@@ -2007,9 +1919,12 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
-  // CHECK: arg 3 is bit-vector constant
   CVC4_API_KIND_CHECK_EXPECTED(
       kind == CONST_FLOATINGPOINT, kind, "CONST_FLOATINGPOINT");
+  CVC4_API_ARG_CHECK_EXPECTED(
+      arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
+      arg3,
+      "bit-vector constant");
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
@@ -2019,30 +1934,76 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 
 Term Solver::mkVar(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkVar(symbol, *sort.d_type);
 }
 
-Term Solver::mkVar(Sort sort) const
-{
-  // CHECK: sort exists?
-  return d_exprMgr->mkVar(*sort.d_type);
-}
+Term Solver::mkVar(Sort sort) const { return d_exprMgr->mkVar(*sort.d_type); }
 
 Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
 }
 
 Term Solver::mkBoundVar(Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkBoundVar(*sort.d_type);
 }
 
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
+
+void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
+{
+  CVC4_API_KIND_CHECK(kind);
+  Assert(isDefinedIntKind(extToIntKind(kind)));
+  const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
+  CVC4_API_KIND_CHECK_EXPECTED(
+      mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
+      kind,
+      "Only operator-style terms are created with mkTerm(), "
+      "to create variables and constants see mkVar(), mkBoundVar(), "
+      "and mkConst().");
+  if (nchildren)
+  {
+    const uint32_t n =
+        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
+    CVC4_API_KIND_CHECK_EXPECTED(
+        n >= minArity(kind) && n <= maxArity(kind),
+        kind,
+        "Terms with kind " << kindToString(kind) << " must have at least "
+                           << minArity(kind) << " children and at most "
+                           << maxArity(kind)
+                           << " children (the one under construction has " << n
+                           << ")");
+  }
+}
+
+void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
+{
+  const Kind kind = opTerm.getKind();
+  Assert(isDefinedIntKind(extToIntKind(kind)));
+  const CVC4::Kind int_kind = extToIntKind(kind);
+  const CVC4::Kind int_op_kind =
+      NodeManager::operatorToKind(opTerm.d_expr->getNode());
+  CVC4_API_ARG_CHECK_EXPECTED(
+      int_kind == kind::BUILTIN
+          || CVC4::kind::metaKindOf(int_op_kind)
+                 == kind::metakind::PARAMETERIZED,
+      opTerm,
+      "This term constructor is for parameterized kinds only");
+  if (nchildren)
+  {
+    uint32_t min_arity = ExprManager::minArity(int_op_kind);
+    uint32_t max_arity = ExprManager::maxArity(int_op_kind);
+    CVC4_API_KIND_CHECK_EXPECTED(
+        nchildren >= min_arity && nchildren <= max_arity,
+        kind,
+        "Terms with kind " << kindToString(kind) << " must have at least "
+                           << min_arity << " children and at most " << max_arity
+                           << " children (the one under construction has "
+                           << nchildren << ")");
+  }
+}
 
 Term Solver::mkTerm(Kind kind) const
 {
@@ -2069,71 +2030,19 @@ Term Solver::mkTerm(Kind kind, Sort sort) const
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  CVC4_API_KIND_CHECK(kind);
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  return d_exprMgr->mkExpr(k, *child.d_expr);
+  checkMkTerm(kind, 1);
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  CVC4_API_KIND_CHECK(kind);
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  return d_exprMgr->mkExpr(k, *child1.d_expr, *child2.d_expr);
+  checkMkTerm(kind, 2);
+  return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child3.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  CVC4_API_KIND_CHECK(kind);
+  checkMkTerm(kind, 3);
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2143,22 +2052,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  // CHECK:
-  // for c in children:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(c.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
-  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
-  // must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  CVC4_API_KIND_CHECK(kind);
+  checkMkTerm(kind, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
   Assert(isDefinedIntKind(k));
@@ -2168,102 +2062,32 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 
 Term Solver::mkTerm(OpTerm opTerm) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
+  checkMkOpTerm(opTerm, 0);
   return d_exprMgr->mkExpr(*opTerm.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 1);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 2);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child3.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 3);
   return d_exprMgr->mkExpr(
       *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // for c in children:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(c.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
-  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
-  // must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
 }
@@ -2336,9 +2160,10 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
       res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
       break;
     default:
-      // CHECK: kind valid?
-      Assert(!res.isNull());
+      CVC4_API_KIND_CHECK_EXPECTED(
+          false, kind, "operator kind with uint32_t argument");
   }
+  Assert(!res.isNull());
   return res;
 }
 
@@ -2374,9 +2199,10 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
       res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
       break;
     default:
-      // CHECK: kind valid?
-      Assert(!res.isNull());
+      CVC4_API_KIND_CHECK_EXPECTED(
+          false, kind, "operator kind with two uint32_t arguments");
   }
+  Assert(!res.isNull());
   return res;
 }
 
@@ -2466,7 +2292,6 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
  */
 Term Solver::declareConst(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists
   return d_exprMgr->mkVar(symbol, *sort.d_type);
 }
 
@@ -2490,7 +2315,6 @@ Sort Solver::declareDatatype(
  */
 Term Solver::declareFun(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists
   // CHECK:
   // sort.isFirstClass()
   // else "can not create function type for range type that is not first class"
@@ -2511,8 +2335,6 @@ Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
                         Sort sort) const
 {
-  // CHECK: for all s in sorts, s exists
-  // CHECK: sort exists
   // CHECK:
   // for (unsigned i = 0; i < sorts.size(); ++ i)
   //   sorts[i].isFirstClass()
@@ -2563,7 +2385,6 @@ Term Solver::defineFun(const std::string& symbol,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK: sort exists
   // CHECK: not recursive
   // CHECK:
   // sort.isFirstClass()
@@ -2627,7 +2448,6 @@ Term Solver::defineFunRec(const std::string& symbol,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK: sort exists
   // CHECK:
   // sort.isFirstClass()
   // else "can not create function type for range type that is not first class"
