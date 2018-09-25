@@ -66,6 +66,8 @@ libcvc4_add_sources(
   preprocessing/passes/ite_removal.h
   preprocessing/passes/ite_simp.cpp
   preprocessing/passes/ite_simp.h
+  preprocessing/passes/ite_to_bvite.cpp
+  preprocessing/passes/ite_to_bvite.h
   preprocessing/passes/miplib_trick.cpp
   preprocessing/passes/miplib_trick.h
   preprocessing/passes/nl_ext_purify.cpp
