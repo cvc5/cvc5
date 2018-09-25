@@ -1,0 +1,64 @@
+%\documentclass[runningheads]{llncs}
+\documentclass[final]{ieee}
+
+\usepackage{microtype} %This gives MUCH better PDF results!
+%\usepackage[active]{srcltx} %DVI search
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{fnbreak} %warn for split footnotes
+\usepackage{url}
+%\usepackage{qtree} %for drawing trees
+%\usepackage{fancybox} % if we need rounded corners
+%\usepackage{pict2e} % large circles can be drawn
+%\usepackage{courier} %for using courier in texttt{}
+%\usepackage{nth} %allows to \nth{4} to make 1st 2nd, etc.
+%\usepackage{subfigure} %allows to have side-by-side figures
+%\usepackage{booktabs} %nice tables
+%\usepackage{multirow} %allow multiple cells with rows in tabular
+\usepackage[utf8]{inputenc} % allows to write Faugere correctly
+\usepackage[bookmarks=true, citecolor=black, linkcolor=black, colorlinks=true]{hyperref}
+\hypersetup{
+pdfauthor = {Mate Soos},
+pdftitle = {CryptoMiniSat v5},
+pdfsubject = {SAT Competition 2016},
+pdfkeywords = {SAT Solver, DPLL},
+pdfcreator = {PdfLaTeX with hyperref package},
+pdfproducer = {PdfLaTex}}
+%\usepackage{butterma}
+
+%\usepackage{pstricks}
+\usepackage{graphicx,epsfig,xcolor}
+
+\begin{document}
+\title{The CryptoMiniSat 5 set of solvers at SAT Competition 2016}
+\author{Mate Soos}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+\section{Introduction}
+This paper presents the conflict-driven clause-learning SAT solver CryptoMiniSat v5 (\emph{CMS5}) as submitted to SAT Competition 2016. CMS5 aims to be a modern, open-source SAT solver that allows for multi-threaded in-processing techniques while still retaining a strong CDCL component. In this description only the features relative to CMS4.4, the previous year's submission, are explained. Please refer to the previous years' description for details. In general, CMS5 is a in-processing SAT solver that usues optimized datastructures and finely-tuned timeouts to have good control over both memory and time usage of simplification steps.
+
+\subsection{Removal of uneeded code}
+Over the years, many lines of code has been added to CMS that in the end didn't help and often was detrimental to both maintinability and efficiency of the solver. Many such additions have now been removed. This simplifies understanding and developing the system. Further, it allows the system to be more lean especially in the tight loops such as propagation and conflict analysis where most of the time is spent.
+
+\subsection{Integration of ideas from COMiniSatPS}
+Some of the ideas from COMiniSatPS\cite{swdia} have been included into CMS. In particular, the clause cleaning system employed and the switching restart have both made their way into CMS.
+
+\subsection{On-the-fly Gaussian Elimination}
+On-the-fly Gaussian elimination is again part of CryptoMiniSat. This is explicitly disabled for the compeititon, but the code is available and well-tested. This allows for special uses of the solver that other solvers, without on-the-fly Gaussian elimination, are not capable of.
+
+\subsection{Clause usefulness guessing}
+Besides glues and clause activites, CMS5 also tries to guess clause usefulness based on the trail size, the backjump level and the activity of the variables in the ancestor of the learnt clause. Although this is at a very early stage of development, it has been found to be helpful.
+
+\subsection{Auto-tuning}
+The version 'autotune' reconfigures itself after about 160K conflicts. The configuration picked is one of 2 different setups that vary many different parameters of the solving such as learnt clause removal strategy, restart strategy, and in-processing strategies. CMS5 was run on all SAT Comp'09 + 11 + 13 + 14 + 15 problems with both configurations, extracting relevant information from the all problems after they have been solved and simplified for 160K conflicts.  configurations were then given to a machine learning algorithm (C5.0\cite{Quinlan:1993:CPM:152181}) which built a decision tree from this data. This decision tree was then translated into C++ and compiled into the CMS5 source code.
+
+\bibliographystyle{splncs03}
+\bibliography{sigproc}
+
+\vfill
+\pagebreak
+
+\end{document}

@@ -1,0 +1,11 @@
+To 'connect' to already running instance
+========================================
+perf top
+
+But MUCH better results are achievable
+========================================
+Run cryptoms and record its profile into perf.data :
+perf record ./cryptominisat satfile.cnf
+
+Read perf.data and display profile: 
+perf report          

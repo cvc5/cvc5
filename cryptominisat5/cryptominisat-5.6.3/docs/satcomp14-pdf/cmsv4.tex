@@ -1,0 +1,73 @@
+%\documentclass[runningheads]{llncs}
+\documentclass[final]{ieee}
+
+\usepackage{microtype} %This gives MUCH better PDF results!
+%\usepackage[active]{srcltx} %DVI search
+\usepackage[cmex10]{amsmath}
+\usepackage{amssymb}
+\usepackage{fnbreak} %warn for split footnotes
+\usepackage{url}
+%\usepackage{qtree} %for drawing trees
+%\usepackage{fancybox} % if we need rounded corners
+%\usepackage{pict2e} % large circles can be drawn
+%\usepackage{courier} %for using courier in texttt{}
+%\usepackage{nth} %allows to \nth{4} to make 1st 2nd, etc.
+%\usepackage{subfigure} %allows to have side-by-side figures
+%\usepackage{booktabs} %nice tables
+%\usepackage{multirow} %allow multiple cells with rows in tabular
+\usepackage[utf8]{inputenc} % allows to write Faugere correctly
+\usepackage[bookmarks=true, citecolor=black, linkcolor=black, colorlinks=true]{hyperref}
+\hypersetup{
+pdfauthor = {Mate Soos},
+pdftitle = {CryptoMiniSat v4},
+pdfsubject = {SAT Competition 2013},
+pdfkeywords = {SAT Solver, DPLL},
+pdfcreator = {PdfLaTeX with hyperref package},
+pdfproducer = {PdfLaTex}}
+%\usepackage{butterma}
+
+%\usepackage{pstricks}
+\usepackage{graphicx,epsfig,xcolor}
+\usepackage[algoruled, linesnumbered, lined]{algorithm2e} %algorithms
+
+\begin{document}
+\title{CryptoMiniSat v4}
+\author{Mate Soos\\Security Research Labs}
+
+\maketitle
+\thispagestyle{empty}
+\pagestyle{empty}
+
+\section{Introduction}
+This paper presents the conflict-driven clause-learning SAT solver CryptoMiniSat v4 (\emph{cmsat4}). \emph{cmsat4} aims to be a modern SAT Solver that allows for multi-threaded in-processing techniques while still retaining a strong CDCL component. In this description only the features relative to \emph{forl}, the previous year's submission, are explained. Please refer to the previous years' description for details.
+
+
+\subsection{Cleaner code}
+The code has been significantly cleaned up. In particular, it has been refactored to use more descriptive names, smaller functions and uses C++11 constructs that aid in simplifying code.
+
+\subsection{Better data gathering}
+More data is gathered into an SQL database that allows for interactive display of solving parameters. It also allows for later analysis of the solving, spotting e.g. that certain simplification steps take too long. Every simplification step is recorded and many important factors about clauses, clause cleaning, propagation and conflict analysis are dumped to the database.
+
+\subsection{Bounded variable addition}
+As per \cite{DBLP:conf/hvc/MantheyHB12}
+variables are added to simplify the formula. CryptoMiniSat allows for not only 1-literal diff as per the research paper, but also 2-literal diffs. In terms of the algorithm in the research paper this difference introduces almost no change, though makes the implementation somewhat more elaborate.
+
+\subsection{Tuned time-outs}
+Thanks to the SQL-based query functionality, time-outs could be queried easily and checked. This allowed for fine-tuning of time-outs for weird problems.
+
+\subsection{Multi-threading}
+An experimental multi-threading system has been added. It only exchanges unit and binary lemmas. The system works even in case of library usage: it cleanly aborts the other threads even if the other threads are solving subcomponents with subsolvers.
+
+\subsection{Better stability}
+The API has been cleaned up and connected to a number of fuzzers, including e.g. a wrapper for python and a python-based test-suite. This allowed for more rigorious testing to be carried out.
+
+\section*{Acknowledgements}
+The author would like to thank in no particular order Horst Samulowitz, Marius T. Lindauer, Martin Maurer, Martin Albrecht, Vegard Nossum, Valentin Mayer-Eichberger, George Katsirelos, Karsten Nohl, Luca Melette, Marijn Heule, Vijay Ganesh, Trevor Hansen and Robert Aston for their help.
+
+\bibliographystyle{splncs03}
+\bibliography{sigproc}
+
+\vfill
+\pagebreak
+
+\end{document}

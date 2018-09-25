@@ -1,0 +1,53 @@
+[General]
+def_graphic_ext=
+img_extIsRegExp=false
+img_extensions=.eps .jpg .jpeg .png .pdf .ps .fig .gif .dvi
+kileprversion=2
+kileversion=2.1.0
+lastDocument=cmsv4.tex
+masterDocument=
+name=auth_eloadas
+pkg_extIsRegExp=false
+pkg_extensions=.cls .sty .bbx .cbx .lbx
+src_extIsRegExp=false
+src_extensions=.tex .ltx .latex .dtx .ins .bib .mp
+
+[Tools]
+MakeIndex=
+QuickBuild=
+
+[document-settings,item:cmsv4.tex]
+Bookmarks=
+Encoding=UTF-8
+FoldedColumns=
+FoldedLines=
+Highlighting=LaTeX
+Indentation Mode=normal
+Mode=LaTeX
+ReadWrite=true
+
+[item:cmsv4.kilepr]
+archive=true
+column=0
+encoding=
+highlight=
+line=0
+mode=
+open=false
+order=-1
+
+[item:cmsv4.tex]
+archive=true
+column=1
+encoding=UTF-8
+highlight=LaTeX
+line=245
+mode=LaTeX
+open=true
+order=0
+
+[view-settings,view=0,item:cmsv4.tex]
+CursorColumn=1
+CursorLine=245
+JumpList=
+ViMarks=

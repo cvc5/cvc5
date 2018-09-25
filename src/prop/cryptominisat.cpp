@@ -185,11 +185,11 @@ SatValue CryptoMinisatSolver::value(SatLiteral l){
   CMSatVar var = l.getSatVariable();
   Assert (var < model.size());
   CMSat::lbool value = model[var];
-  return toSatLiteralValue(value); 
+  return toSatLiteralValue(value);
 }
 
 SatValue CryptoMinisatSolver::modelValue(SatLiteral l){
-  return value(l);
+  return value(l); 
 }
 
 unsigned CryptoMinisatSolver::getAssertionLevel() const {
