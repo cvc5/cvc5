@@ -40,6 +40,7 @@ class NonClausalSimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_numConstantProps;
+    TimerStat d_addingAssertions;
     Statistics();
     ~Statistics();
   };
@@ -49,12 +50,19 @@ class NonClausalSimp : public PreprocessingPass
   /** Learned literals */
   std::vector<Node> d_nonClausalLearnedLiterals;
 
-  /** Solve the boolean skeleton with Cryptominisat */
+  /** Preprocess the boolean skeleton,
+  which calls solveByCryptominisat or solveByCircuitPropagator */
+  std::tuple<bool, std::vector<Node>> preprocessByCryptominisat(
+      AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
+
+  std::tuple<bool, std::vector<Node>> preprocessByCircuitPropagator(
+      AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
+
+  /** Solve the boolean skeleton */
   SatValue solveByCryptominisat(CVC4::prop::TseitinCnfStream* d_cnfStream,
                                 AssertionPipeline* assertionsToPreprocess,
                                 unsigned substs_index);
 
-  /** Solve the boolean skeleton with circuit propagator */
   bool solveByCircuitPropagator(theory::booleans::CircuitPropagator* propagator,
                                 AssertionPipeline* assertionsToPreprocess,
                                 unsigned substs_index);
