@@ -492,7 +492,7 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
       == SAT_VALUE_FALSE)
   {
     // If in conflict, just return false
-    return {PreprocessingPassResult::CONFLICT, learned_literals};
+    return std::make_tuple(false, learned_literals);
   }
 
   std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
@@ -514,13 +514,13 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
         else
         {
           // If the learned literal simplifies to false, we're in conflict
-          return {false, learned_literals};
+          return std::make_tuple(false, learned_literals);
         }
       }
       learned_literals.push_back(learnedLiteral);
     }
   }
-  return {true, learned_literals};
+  return std::make_tuple(true, learned_literals);
 }
 
 bool NonClausalSimp::solveByCircuitPropagator(
@@ -579,11 +579,11 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCircuitPropagato
     // If in conflict, just return false
     handleConflictCase(assertionsToPreprocess);
     propagator->setNeedsFinish(true);
-    return {false, learned_literals};
+    return std::make_tuple(false, learned_literals);
   }
   learned_literals = propagator->getLearnedLiterals();
   propagator->setNeedsFinish(true);
-  return {true, learned_literals};
+  return std::make_tuple(true, learned_literals);
 }
 
 /* -------------------------------------------------------------------------- */
