@@ -22,7 +22,13 @@
  *      Author: dejan
  */
 
+#include <boost/version.hpp>
+#if BOOST_VERSION > 106700
+#include <boost/uuid/detail/sha1.hpp>
+#else
 #include <boost/uuid/sha1.hpp>
+#endif
+
 #include <fstream>
 #include <iostream>
 #include <sstream>
