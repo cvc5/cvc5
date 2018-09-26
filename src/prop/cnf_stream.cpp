@@ -675,13 +675,10 @@ void TseitinCnfStream::convertAndAssert(TNode node,
                                         bool negated,
                                         ProofRule proof_id,
                                         TNode from) {
-
   Debug("cnf") << "convertAndAssert(" << node
                << ", removable = " << (removable ? "true" : "false")
                << ", negated = " << (negated ? "true" : "false") << ")" << endl;
   d_removable = removable;
-
-
   PROOF
     (if (d_cnfProof) {
       Node assertion = negated ? node.notNode() : (Node)node;
@@ -698,12 +695,10 @@ void TseitinCnfStream::convertAndAssert(TNode node,
     });
 
   convertAndAssert(node, negated);
-
   PROOF
     (if (d_cnfProof) {
       d_cnfProof->popCurrentAssertion();
     });
-
 }
 
 void TseitinCnfStream::convertAndAssert(TNode node, bool negated) {

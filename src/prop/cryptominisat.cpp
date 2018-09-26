@@ -198,10 +198,9 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
 }
 
 std::vector<SatLiteral> CryptoMinisatSolver::getTopLevelUnits(){
-  std::vector<CMSat::Lit> lits = d_solver->get_zero_assigned_lits();
   std::vector<SatLiteral> satLits;
-  for (int i = 0; i < lits.size(); i++){
-    satLits.push_back(toSatLiteral(lits[i]));
+  for (const auto& lit : d_solver->get_zero_assigned_lits()){
+    satLits.push_back(toSatLiteral(lit));
   }
   return satLits;
 }

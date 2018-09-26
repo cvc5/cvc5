@@ -49,9 +49,12 @@ class NonClausalSimp : public PreprocessingPass
   /** Learned literals */
   std::vector<Node> d_nonClausalLearnedLiterals;
 
+  /** Solve the boolean skeleton with Cryptominisat */
   SatValue solveByCryptominisat(CVC4::prop::TseitinCnfStream* d_cnfStream,
                                 AssertionPipeline* assertionsToPreprocess,
                                 unsigned substs_index);
+
+  /** Solve the boolean skeleton with circuit propagator */
   bool solveByCircuitPropagator(theory::booleans::CircuitPropagator* propagator,
                                 AssertionPipeline* assertionsToPreprocess,
                                 unsigned substs_index);
