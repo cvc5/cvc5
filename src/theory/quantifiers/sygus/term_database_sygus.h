@@ -96,6 +96,11 @@ class TermDbSygus {
   bool usingSymbolicConsForEnumerator(Node e) const;
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this a "passive" enumerator?
+   * 
+   * A passive enumerator is one for which its TODO
+   */
+  bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma

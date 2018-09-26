@@ -138,6 +138,8 @@ class SynthConjecture
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
+  /** term database sygus of d_qe */
+  TermDbSygus* d_tds;
   /** The feasible guard. */
   Node d_feasible_guard;
   /** the decision strategy for the feasible guard */

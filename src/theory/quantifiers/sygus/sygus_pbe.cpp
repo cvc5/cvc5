@@ -481,14 +481,17 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
-      // the lemmas must be guarded by the active guard of the enumerator
-      Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-      Node g = d_enum_to_active_guard[e];
-      for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+      if( !enum_lems.empty() )
       {
-        enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        // the lemmas must be guarded by the active guard of the enumerator
+        Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
+        Node g = d_enum_to_active_guard[e];
+        for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+        {
+          enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        }
+        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
-      lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){

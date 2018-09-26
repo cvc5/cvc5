@@ -41,6 +41,7 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
+      d_tds(qe->getTermDatabaseSygus()),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -450,7 +451,7 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
   std::map<Node, Node> visited_n;
-  lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
+  lem = d_tds->getEagerUnfold(lem, visited_n);
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
@@ -619,7 +620,7 @@ bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
         Trace("cegqi-engine") << ss.str() << " ";
         if (Trace.isOn("cegqi-engine-rr"))
         {
-          Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
+          Node bv = d_tds->sygusToBuiltin(nv, tn);
           bv = Rewriter::rewrite(bv);
           Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
         }
@@ -632,6 +633,7 @@ bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 
 Node SynthConjecture::getModelValue(Node n)
 {
+  Assert( d_tds->isEnumerator(n) );
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
   if (n.getAttribute(SygusSymBreakExcAttribute()))
   {
@@ -718,7 +720,7 @@ void SynthConjecture::printAndContinueStream()
     {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
-      d_qe->getTermDatabaseSygus()->getExplain()->getExplanationForEquality(
+      d_tds->getExplain()->getExplanationForEquality(
           cprog, sol, exp);
     }
   }
@@ -817,7 +819,6 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
                                         bool singleInvocation)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
   std::vector<Node> sols;
   std::vector<int> statuses;
   if (!getSynthSolutionsInternal(sols, statuses, singleInvocation))
@@ -833,7 +834,7 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
     if (status != 0)
     {
       // convert sygus to builtin here
-      bsol = sygusDb->sygusToBuiltin(sol, sol.getType());
+      bsol = d_tds->sygusToBuiltin(sol, sol.getType());
     }
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();
@@ -894,8 +895,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           {
             TNode templa = d_ceg_si->getTemplateArg(sf);
             // make the builtin version of the full solution
-            TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-            sol = sygusDb->sygusToBuiltin(sol, sol.getType());
+            sol = d_tds->sygusToBuiltin(sol, sol.getType());
             Trace("cegqi-inv") << "Builtin version of solution is : " << sol
                                << ", type : " << sol.getType() << std::endl;
             TNode tsol = sol;
