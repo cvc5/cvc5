@@ -562,9 +562,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  Assert( d_tds->isEnumerator(e) );
+  Assert(d_tds->isEnumerator(e));
   bool isPassive = d_tds->isPassiveEnumerator(e);
-  if (isPassive && getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
+  if (isPassive
+      && getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -709,7 +710,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     }
   }
 
-  if( isPassive )
+  if (isPassive)
   {
     // exclude this value on subsequent iterations
     if (exp_exc.isNull())

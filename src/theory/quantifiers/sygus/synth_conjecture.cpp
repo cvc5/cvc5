@@ -633,7 +633,7 @@ bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 
 Node SynthConjecture::getModelValue(Node n)
 {
-  Assert( d_tds->isEnumerator(n) );
+  Assert(d_tds->isEnumerator(n));
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
   if (n.getAttribute(SygusSymBreakExcAttribute()))
   {
@@ -720,8 +720,7 @@ void SynthConjecture::printAndContinueStream()
     {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
-      d_tds->getExplain()->getExplanationForEquality(
-          cprog, sol, exp);
+      d_tds->getExplain()->getExplanationForEquality(cprog, sol, exp);
     }
   }
   Assert(!exp.empty());

@@ -648,7 +648,7 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
 
 bool TermDbSygus::isPassiveEnumerator(Node e) const
 {
-  if( isVariableAgnosticEnumerator(e) )
+  if (isVariableAgnosticEnumerator(e))
   {
     return false;
   }

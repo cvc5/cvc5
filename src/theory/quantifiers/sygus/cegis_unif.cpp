@@ -101,9 +101,9 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
     {
       for (unsigned index = 0; index < 2; index++)
       {
-        std::vector< Node > uenums;
+        std::vector<Node> uenums;
         // get the current unification enumerators
-        d_u_enum_manager.getEnumeratorsForStrategyPt(e, uenums, index);        
+        d_u_enum_manager.getEnumeratorsForStrategyPt(e, uenums, index);
         if (index == 1 && options::sygusUnifCondIndependent())
         {
           Assert(uenums.size() == 1);
@@ -118,7 +118,7 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
           }
         }
         // get the model value of each enumerator
-        enums.insert(enums.end(),uenums.begin(),uenums.end());
+        enums.insert(enums.end(), uenums.begin(), uenums.end());
       }
     }
   }
@@ -145,11 +145,11 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     return false;
   }
   // build model value map
-  std::map< Node, Node > mvMap;
-  for( unsigned i=0, size=enums.size(); i<size; i++ )
+  std::map<Node, Node> mvMap;
+  for (unsigned i = 0, size = enums.size(); i < size; i++)
   {
     mvMap[enums[i]] = enum_values[i];
-  }  
+  }
   // the unification enumerators (return values, conditions) and their model
   // values
   NodeManager* nm = NodeManager::currentNM();
@@ -174,7 +174,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         {
           Assert(unif_enums[index][e].size() == 1);
           Node eu = unif_enums[index][e][0];
-          if( mvMap.find(eu)==mvMap.end() )
+          if (mvMap.find(eu) == mvMap.end())
           {
             Trace("cegis") << "    " << eu << " -> N/A\n";
             unif_enums[index][e].clear();
@@ -184,7 +184,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         // get the model value of each enumerator
         for (const Node& eu : unif_enums[index][e])
         {
-          Assert( mvMap.find(eu)!=mvMap.end() );
+          Assert(mvMap.find(eu) != mvMap.end());
           Node m_eu = mvMap[eu];
           if (Trace.isOn("cegis"))
           {

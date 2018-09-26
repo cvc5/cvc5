@@ -481,7 +481,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
-      if( !enum_lems.empty() )
+      if (!enum_lems.empty())
       {
         // the lemmas must be guarded by the active guard of the enumerator
         Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
