@@ -68,9 +68,7 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusConstraints, d_sygusFunSymbols;
-  /** maps sygus variables to their respective primed variabels */
-  std::map<Expr, Expr> d_sygusVarPrimed;
+  std::vector<Expr> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints, d_sygusFunSymbols;
 
  protected:
   Smt2(api::Solver* solver,

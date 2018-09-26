@@ -629,17 +629,18 @@ void Smt2::includeFile(const std::string& filename) {
   }
 }
 
-Expr Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed) {
-  Expr e = mkBoundVar(name, type);
-  d_sygusVars.push_back(e);
-  if( isPrimed ){
-    std::stringstream ss;
-    ss << name << "'";
-    Expr ep = mkBoundVar(ss.str(), type);
-    d_sygusVars.push_back(ep);
-    d_sygusVarPrimed[e] = ep;
+void Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed)
+{
+  if (!isPrimed)
+  {
+    d_sygusVars.push_back(mkBoundVar(name, type));
   }
-  return e;
+#ifdef CVC4_ASSERTIONS
+  else
+  {
+    d_sygusVarPrimed.push_back(mkBoundVar(name, type));
+  }
+#endif
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1237,18 +1238,40 @@ const void Smt2::getSygusInvVars(FunctionType t,
                                  std::vector<Expr>& primed_vars)
 {
   std::vector<Type> argTypes = t.getArgTypes();
+  std::map<Type, unsigned> type_count;
   for (const Type& ti : argTypes)
   {
-    for (const std::pair<const Expr, Expr>& p : d_sygusVarPrimed)
+    if (type_count.find(ti) == type_count.end())
     {
-      if (p.first.getType() == ti)
+      type_count[ti] = 0;
+    }
+    std::stringstream ss;
+    ss << ti << "_" << type_count[ti]++;
+    vars.push_back(mkBoundVar(ss.str(), ti));
+    d_sygusVars.push_back(vars.back());
+    ss << vars.back() << "'";
+    primed_vars.push_back(mkBoundVar(ss.str(), ti));
+    d_sygusVars.push_back(primed_vars.back());
+#ifdef CVC4_ASSERTIONS
+    bool find_new_declared_var = false;
+    for (const Expr& e : d_sygusVarPrimed)
+    {
+      if (e.getType() == ti)
       {
-        vars.push_back(p.first);
-        primed_vars.push_back(p.second);
-        d_sygusVarPrimed.erase(p.first);
+        d_sygusVarPrimed.erase(
+            std::find(d_sygusVarPrimed.begin(), d_sygusVarPrimed.end(), e));
+        find_new_declared_var = true;
         break;
       }
     }
+    if (!find_new_declared_var)
+    {
+      ss.str("");
+      ss << "warning: decleared primed variables do not match invariant's "
+            "type\n";
+      warning(ss.str());
+    }
+#endif
   }
 }
 
