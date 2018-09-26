@@ -74,7 +74,6 @@ NonClausalSimp::NonClausalSimp(PreprocessingPassContext* preprocContext)
 {
 }
 
-
 PreprocessingPassResult NonClausalSimp::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
@@ -112,7 +111,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
   SubstitutionMap::iterator pos;
   size_t j = 0;
-
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
