@@ -120,10 +120,10 @@ class StreamCombination
   /** initializes utility
    *
    * the combinations are generated from a initial set of variables (all_vars)
-   * from which we choose a subset of variables in the same quantitity as those
+   * from which we choose a subset of variables in the same quantity as those
    * in the given value (perm_vars).
    *
-   * The combinations are performed module subclasses. For each subset of the
+   * The combinations are performed modulo subclasses. For each subset of the
    * given variables, a combination utility is initialized.
    *
    * Since the same variable can occur in different subfield types (and
@@ -268,7 +268,7 @@ class EnumStreamConcrete
   Node getNext();
 
  private:
-  /** sygus term database of d_qe */
+  /** sygus term database of current quantifiers engine */
   quantifiers::TermDbSygus* d_tds;
   /** enumerator we are concretizing values for */
   Node d_enum;
@@ -279,10 +279,10 @@ class EnumStreamConcrete
   /** maps variables to their respective constructors in all the enumerator
    * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
-  /** list of registered abstract values */
-  std::vector<Node> d_abs_values;
-  /** combination utils of registered values */
-  std::vector<StreamCombination> d_stream_combinations;
+  /** last registered abstract value */
+  Node d_abs_value;
+  /** combination util for registered value */
+  StreamCombination d_stream_combination;
   /** maps variables to ids of their respective subclasses */
   std::map<Node, unsigned> d_var_class;
   /** retrieves variables occurring in value */

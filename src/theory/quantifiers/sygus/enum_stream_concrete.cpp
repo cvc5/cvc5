@@ -520,7 +520,7 @@ void EnumStreamConcrete::initialize(Node e)
 
 void EnumStreamConcrete::registerAbstractValue(Node v)
 {
-  d_abs_values.push_back(v);
+  d_abs_value = v;
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
@@ -565,14 +565,14 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
   {
     Trace("synth-stream-concrete") << " with no vars\n";
   }
-  d_stream_combinations.push_back(StreamCombination(
-      v, d_var_cons, d_vars, d_var_classes, vars, var_classes, d_tds));
+  d_stream_combination.~StreamCombination();
+  d_stream_combination = StreamCombination(
+      v, d_var_cons, d_vars, d_var_classes, vars, var_classes, d_tds);
 }
 
 Node EnumStreamConcrete::getNext()
 {
-  Assert(!d_stream_combinations.empty());
-  return d_stream_combinations.back().getNext();
+  return d_stream_combination.getNext();
 }
 
 }  // namespace quantifiers
