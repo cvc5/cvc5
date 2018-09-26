@@ -189,7 +189,7 @@ The examples provided in directory `examples` are not built by default.
     make examples                      # build all examples
     make runexamples                   # build and run all examples
     make <example>                     # build examples/<subdir>/<example>.<ext>
-    ctest example//<subdir>/<example>  # run examples/<subdir>/<example>.<ext>
+    ctest example//<subdir>/<example>  # run test example/<subdir>/<example>
 
 All examples binaries are built into `<build_dir>/bin/examples`.
 
@@ -229,7 +229,7 @@ We use prefix `example/` + `<subdir>/` + `<example>` (for `<example>` in
     make bitvectors                       # build example/api/bitvectors.cpp
     ctest -R bitvectors                   # run all tests that match '*bitvectors*'
                                           # > runs example/api/bitvectors
-                                          # >      examples/api/bitvectors_and_arrays
+                                          # >      example/api/bitvectors_and_arrays
                                           # >      ...
     ctest -R bitvectors$                  # run all tests that match '*bitvectors'
                                           # > runs example/api/bitvectors
