@@ -476,7 +476,7 @@ public:
 
   /** Create a new CVC4 bound variable expression of the given type. */
   Expr mkBoundVar(const std::string& name, const Type& type);
-  /** as above, but using internal naminc scheme */
+  /** as above, but using internal naming scheme */
   Expr mkBoundVar(const Type& type);
 
   /**
