@@ -1238,17 +1238,11 @@ const void Smt2::getSygusInvVars(FunctionType t,
                                  std::vector<Expr>& primed_vars)
 {
   std::vector<Type> argTypes = t.getArgTypes();
-  std::map<Type, unsigned> type_count;
   for (const Type& ti : argTypes)
   {
-    if (type_count.find(ti) == type_count.end())
-    {
-      type_count[ti] = 0;
-    }
-    std::stringstream ss;
-    ss << ti << "_" << type_count[ti]++;
-    vars.push_back(mkBoundVar(ss.str(), ti));
+    vars.push_back(mkBoundVar(ti));
     d_sygusVars.push_back(vars.back());
+    std::stringstream ss;
     ss << vars.back() << "'";
     primed_vars.push_back(mkBoundVar(ss.str(), ti));
     d_sygusVars.push_back(primed_vars.back());

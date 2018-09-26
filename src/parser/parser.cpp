@@ -231,6 +231,14 @@ Expr Parser::mkBoundVar(const std::string& name, const Type& type) {
   return expr;
 }
 
+Expr Parser::mkBoundVar(const Type& type)
+{
+  Debug("parser") << "mkVar(_, " << type << ")" << std::endl;
+  Expr expr = getExprManager()->mkBoundVar(type);
+  defineVar(expr.toString(), expr, false);
+  return expr;
+}
+
 Expr Parser::mkFunction(const std::string& name, const Type& type,
                         uint32_t flags, bool doOverload) {
   if (d_globalDeclarations) {
