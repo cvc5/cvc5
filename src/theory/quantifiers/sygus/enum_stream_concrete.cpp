@@ -29,18 +29,30 @@ namespace quantifiers {
 
 StreamPermutation::StreamPermutation(
     Node value,
-    const std::vector<Node>& perm_vars,
-    const std::vector<std::vector<Node>>& var_classes,
-    TermDbSygus* tds)
-    : d_tds(tds)
+    const std::vector<std::vector<Node>>& perm_var_classes,
+    EnumStreamConcrete* esc)
 {
   d_curr_ind = 0;
   d_value = value;
-  d_vars = perm_vars;
-  for (unsigned i = 0, size = var_classes.size(); i < size; ++i)
+  Trace("synth-stream-concrete") << " ..permutting vars :";
+  for (unsigned i = 0, size = perm_var_classes.size(); i < size; ++i)
   {
-    d_perm_state_class.push_back(PermutationState(var_classes[i]));
+    d_vars.insert(
+        d_vars.end(), perm_var_classes.begin(), perm_var_classes.end());
+    d_perm_state_class.push_back(PermutationState(perm_var_classes[i]));
+    if (Trace.isOn("synth-stream-concrete"))
+    {
+      Trace("synth-stream-concrete") << " [";
+      for (const Node& var : perm_var_classes[i])
+      {
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, var);
+        Trace("synth-stream-concrete") << " " << ss.str();
+      }
+      Trace("synth-stream-concrete") << " ]";
+    }
   }
+  Trace("synth-stream-concrete") << "\n";
 }
 
 Node StreamPermutation::getNext()
@@ -57,9 +69,9 @@ Node StreamPermutation::getNext()
   if (d_last_value.isNull())
   {
     d_last_value = value;
-    Node bultin_value = d_tds->sygusToBuiltin(value, value.getType());
+    Node bultin_value = esc->d_tds->sygusToBuiltin(value, value.getType());
     d_perm_values.insert(
-        d_tds->getExtRewriter()->extendedRewrite(bultin_value));
+        esc->d_tds->getExtRewriter()->extendedRewrite(bultin_value));
     return d_last_value;
   }
   unsigned n_classes = d_perm_state_class.size();
@@ -117,12 +129,12 @@ Node StreamPermutation::getNext()
     }
     perm_value = d_value.substitute(
         d_vars.begin(), d_vars.end(), sub.begin(), sub.end());
-    bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
+    bultin_perm_value = esc->d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm is " << bultin_perm_value;
 
     bultin_perm_value =
-        d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
+        esc->d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
 
     Trace("synth-stream-concrete-debug")
         << " and rewrites to " << bultin_perm_value << "\n";
@@ -189,28 +201,26 @@ bool StreamPermutation::PermutationState::getNextPermutation()
   return true;
 }
 
-StreamCombination::StreamCombination(
-    Node value,
-    const std::map<Node, std::vector<Node>>& var_cons,
-    const std::vector<Node>& all_vars,
-    const std::vector<std::vector<Node>>& all_var_classes,
-    const std::vector<Node>& perm_vars,
-    const std::vector<std::vector<Node>>& perm_var_classes,
-    TermDbSygus* tds)
-    : d_tds(tds), d_stream_permutations(value, perm_vars, perm_var_classes, tds)
+StreamCombination::StreamCombination(Node value, EnumStreamConcrete* esc)
 {
   Assert(all_vars.size() >= perm_vars.size());
   d_curr_ind = 0;
-  d_all_vars = all_vars;
-  d_perm_vars = perm_vars;
-  d_var_cons = var_cons;
-  for (unsigned i = 0, size = all_var_classes.size(); i < size; ++i)
+  // collect variables occurring in value
+  std::unordered_set<Node, NodeHashFunction> visited;
+  collectVars(v, d_perm_vars, visited);
+  std::vector<std::vector<Node>> perm_var_classes;
+  esc->splitVarClasses(d_perm_vars, perm_var_classes);
+  // partition permutation variables
+  unsigned n_perm_var_classes = perm_var_classes.size();
+  for (unsigned i = 0, size = esc->d_var_classes.size(); i < size; ++i)
   {
     d_comb_state_class.push_back(CombinationState(
-        all_var_classes[i].size(),
-        i < perm_var_classes.size() ? perm_var_classes[i].size() : 0,
-        all_var_classes[i]));
+        esc->d_var_classes[i].size(),
+        i < n_perm_var_classes ? perm_var_classes[i].size() : 0,
+        esc->d_var_classes[i]));
   }
+  // init permutation util
+  d_stream_permutations = StreamPermutation(value, perm_var_classes, esc);
 }
 
 Node StreamCombination::getNext()
@@ -301,8 +311,8 @@ Node StreamCombination::getNext()
     for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
     {
       TypeNode perm_var_tn = d_perm_vars[j + curr_size].getType();
-      Assert(!d_var_cons[raw_sub[j]].empty());
-      for (const Node& cons : d_var_cons[raw_sub[j]])
+      Assert(!esc->d_var_cons[raw_sub[j]].empty());
+      for (const Node& cons : esc->d_var_cons[raw_sub[j]])
       {
         if (cons.getType() == perm_var_tn)
         {
@@ -353,8 +363,8 @@ Node StreamCombination::getNext()
 #ifdef CVC4_ASSERTIONS
   // the new combination value should be fresh, modulo rewriting, by
   // construction (unless it's equiv to a constant, e.g. true / false)
-  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
-      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
+  Node builtin_comb_value = esc->d_tds->getExtRewriter()->extendedRewrite(
+      esc->d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
   Assert(builtin_comb_value.isConst()
          || d_comb_values.insert(builtin_comb_value).second);
 #endif
@@ -527,47 +537,10 @@ void EnumStreamConcrete::registerAbstractValue(Node v)
     Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, v);
     Trace("synth-stream-concrete")
         << " * Streaming concrete: registering for enum " << d_enum << " value "
-        << ss.str();
-  }
-  std::vector<Node> vars;
-  std::unordered_set<Node, NodeHashFunction> visited;
-  collectVars(v, vars, visited);
-  std::vector<std::vector<Node>> var_classes;
-  if (!vars.empty())
-  {
-    splitVarClasses(vars, var_classes);
-    if (Trace.isOn("synth-stream-concrete"))
-    {
-      Trace("synth-stream-concrete") << " with vars ";
-      for (const Node& var : vars)
-      {
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, var);
-        Trace("synth-stream-concrete") << " " << ss.str();
-      }
-      Trace("synth-stream-concrete") << "\n  ..var classes : ";
-      for (auto& v_class : var_classes)
-      {
-        Trace("synth-stream-concrete") << " [";
-        for (const Node& var : v_class)
-        {
-          std::stringstream ss;
-          Printer::getPrinter(options::outputLanguage())
-              ->toStreamSygus(ss, var);
-          Trace("synth-stream-concrete") << " " << ss.str();
-        }
-        Trace("synth-stream-concrete") << " ]";
-      }
-      Trace("synth-stream-concrete") << "\n";
-    }
-  }
-  else
-  {
-    Trace("synth-stream-concrete") << " with no vars\n";
+        << ss.str() << "\n";
   }
   d_stream_combination.~StreamCombination();
-  d_stream_combination = StreamCombination(
-      v, d_var_cons, d_vars, d_var_classes, vars, var_classes, d_tds);
+  d_stream_combination = StreamCombination(v, this);
 }
 
 Node EnumStreamConcrete::getNext()

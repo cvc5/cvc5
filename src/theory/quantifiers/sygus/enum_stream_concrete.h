@@ -38,9 +38,8 @@ class StreamPermutation
    * defined in the partition var_classes), a permutation utility is initialized
    */
   StreamPermutation(Node value,
-                    const std::vector<Node>& perm_vars,
-                    const std::vector<std::vector<Node>>& var_classes,
-                    TermDbSygus* tds);
+                    const std::vector<std::vector<Node>>& perm_var_classes,
+                    EnumStreamConcrete* esc);
   ~StreamPermutation() {}
   /** computes next permutation, if any, of value
    *
@@ -61,8 +60,8 @@ class StreamPermutation
   Node getNext();
 
  private:
-  /** sygus term database */
-  TermDbSygus* d_tds;
+  /** parent streaming utility */
+  EnumStreamConcrete* d_ecs;
   /** value to which we are generating permutations */
   Node d_value;
   /** last value generated */
@@ -119,25 +118,15 @@ class StreamCombination
  public:
   /** initializes utility
    *
-   * the combinations are generated from a initial set of variables (all_vars)
-   * from which we choose a subset of variables in the same quantity as those
-   * in the given value (perm_vars).
+   * the combinations are generated from a initial set of variables (the union
+   * of d_vars_classes in the parent EnumStreamConcrete) from which we choose a
+   * subset of variables in the same quantity as those occurring in the given
+   * value.
    *
-   * The combinations are performed modulo subclasses. For each subset of the
+   * The combinations are performed modulo subclasses. For each subclass of the
    * given variables, a combination utility is initialized.
-   *
-   * Since the same variable can occur in different subfield types (and
-   * therefore their datatype equivalents would have different types) a map from
-   * variable to set of constructors (var_cons) is used to build substitutions
-   * in a proper way when generating different combinations.
    */
-  StreamCombination(Node value,
-                    const std::map<Node, std::vector<Node>>& var_cons,
-                    const std::vector<Node>& all_vars,
-                    const std::vector<std::vector<Node>>& all_var_classes,
-                    const std::vector<Node>& perm_vars,
-                    const std::vector<std::vector<Node>>& perm_var_classes,
-                    TermDbSygus* tds);
+  StreamCombination(Node value, EnumStreamConcrete* esc);
   ~StreamCombination() {}
   /** computes next combination, if any, of value
    *
@@ -149,29 +138,28 @@ class StreamCombination
    * This layered approach (of deriving all combinations for each permutation)
    * allows the generation of ordered combinations. See the example in
    * EnumStreamConcrete for further details.
+   *
+   * Since the same variable can occur in different subfield types (and
+   * therefore their datatype equivalents would have different types) a map from
+   * variable to set of constructors (var_cons) is used to build substitutions
+   * in a proper way when generating different combinations.
    */
   Node getNext();
 
  private:
-  /** sygus term database */
-  TermDbSygus* d_tds;
+  /** parent streaming utility */
+  EnumStreamConcrete* d_ecs;
   /** last value generated after a combination
    *
    * If getNext() has been called, this is the return value of the most recent
    * call to getNext(). Otherwise, this value is null.
    */
   Node d_last;
-  /** all variables being combined */
-  std::vector<Node> d_all_vars;
   /** variables ocurring in the value and that are permuted after each
    * combination cycle */
   std::vector<Node> d_perm_vars;
-  /** maps variables to their respective constructors in all the enumerator
-   * subfield types */
-  std::map<Node, std::vector<Node>> d_var_cons;
   /** generated combinations (for debugging) */
   std::unordered_set<Node, NodeHashFunction> d_comb_values;
-
   /** permutation utility */
   StreamPermutation d_stream_permutations;
   /** Utility for stepwise generation of ordered subsets of size k from n
@@ -266,21 +254,21 @@ class EnumStreamConcrete
    * value, this method returns Node::null()
    */
   Node getNext();
-
- private:
-  /** sygus term database of current quantifiers engine */
-  quantifiers::TermDbSygus* d_tds;
-  /** enumerator we are concretizing values for */
-  Node d_enum;
-  /** variables from enumerator's type */
-  std::vector<Node> d_vars;
   /** partition of variables per subclasses */
   std::vector<std::vector<Node>> d_var_classes;
   /** maps variables to their respective constructors in all the enumerator
    * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
+  /** sygus term database of current quantifiers engine */
+  quantifiers::TermDbSygus* d_tds;
+
+ private:
+  /** enumerator we are concretizing values for */
+  Node d_enum;
   /** last registered abstract value */
   Node d_abs_value;
+  /** variables from enumerator's type */
+  std::vector<Node> d_vars;
   /** combination util for registered value */
   StreamCombination d_stream_combination;
   /** maps variables to ids of their respective subclasses */
