@@ -102,13 +102,11 @@ public:
   
   virtual void setProofLog( BitVectorProof * bvp ) {}
 
-
   /** Get the top level unit clauses of a formula **/
   virtual std::vector<SatLiteral> getTopLevelUnits()
   {
     return std::vector<SatLiteral>();
   };
-
 
 };/* class SatSolver */
 

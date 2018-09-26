@@ -245,7 +245,6 @@ CryptoMinisatSolver::Statistics::~Statistics() {
   d_registry->unregisterStat(&d_solveTime);
 }
 
-
 }  // namespace prop
 }  // namespace CVC4
 #endif
