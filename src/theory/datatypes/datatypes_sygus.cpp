@@ -1470,8 +1470,8 @@ void SygusSymBreakNew::incrementCurrentSearchSize( Node m, std::vector< Node >& 
             for (const TNode& t : itt->second)
             {
               if (!options::sygusSymBreakLazy()
-                  || d_active_terms.find(t) != d_active_terms.end()
-                         && !it->second.empty())
+                  || (d_active_terms.find(t) != d_active_terms.end()
+                      && !it->second.empty()))
               {
                 Node rlv = getRelevancyCondition(t);
                 std::unordered_map<TNode, TNode, TNodeHashFunction> cache;
@@ -1562,6 +1562,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
+          SygusSymBreakExcAttribute ssbea;
+          prog.setAttribute(ssbea, rsv.isNull());
           if (rsv.isNull())
           {
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
@@ -1734,6 +1736,8 @@ Node SygusSymBreakNew::SygusSizeDecisionStrategy::mkLiteral(unsigned s)
   }
   Assert(!d_this.isNull());
   NodeManager* nm = NodeManager::currentNM();
+  Trace("cegqi-engine") << "******* Sygus : allocate size literal " << s
+                        << " for " << d_this << std::endl;
   return nm->mkNode(DT_SYGUS_BOUND, d_this, nm->mkConst(Rational(s)));
 }
 
