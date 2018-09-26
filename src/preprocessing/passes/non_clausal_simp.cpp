@@ -77,29 +77,9 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
                                             &d_context, true,
                                             "toCNF-skeleton-preprocessing");
 
-  Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
-
-  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  if (solveByCryptominisat(&d_cnfStream, assertionsToPreprocess, substs_index)
+      == SAT_VALUE_FALSE)
   {
-    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
-              == (*assertionsToPreprocess)[i]);
-       // Don't reprocess substitutions                                                                                                                                                                     
-       if (substs_index > 0 && i == substs_index)
-       {
-         continue;
-       }
-       Trace("skeleton-preprocessing")
-           << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-       d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false,
-                                    RULE_GIVEN);
-  }
-
-
-
-  SatValue result = d_satSolver->solve();
-
-  if (result==SAT_VALUE_FALSE){
     // If in conflict, just return false                                                                                                                                                                    
     Trace("skeleton-preprocessing")
         << "conflict in non-clausal propagation" << std::endl;
@@ -113,8 +93,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   }
 
   std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
-
-  std::vector<TNode> learned_literals;
 
     for (size_t i = 0; i < topLevelUnits.size(); i++){
     SatLiteral lit = topLevelUnits[i];
@@ -156,39 +134,8 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
 
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                  << (*assertionsToPreprocess)[i] << std::endl;
-  }
-
-  if (propagator->getNeedsFinish())
-  {
-    propagator->finish();
-    propagator->setNeedsFinish(false);
-  }
-  propagator->initialize();
-
-  // Assert all the assertions to the propagator
-  Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
-           == (*assertionsToPreprocess)[i]);
-    // Don't reprocess substitutions
-    if (substs_index > 0 && i == substs_index)
-    {
-      continue;
-    }
-    Trace("non-clausal-simplify")
-        << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
-                   << std::endl;
-    propagator->assertTrue((*assertionsToPreprocess)[i]);
-  }
-
-  Trace("non-clausal-simplify") << "propagating" << std::endl;
-  if (propagator->propagate())
+  if (solveByCircuitPropagator(
+          propagator, assertionsToPreprocess, substs_index))
   {
     // If in conflict, just return false
     Trace("non-clausal-simplify")
@@ -547,6 +494,71 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
+
+SatValue NonClausalSimp::solveByCryptominisat(
+    CVC4::prop::TseitinCnfStream* d_cnfStream,
+    AssertionPipeline* assertionsToPreprocess,
+    unsigned substs_index)
+{
+  Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
+  SatSolver* d_satSolver = d_cnfStream->getSatSolver();
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
+           == (*assertionsToPreprocess)[i]);
+    // Don't reprocess substitutions
+    if (substs_index > 0 && i == substs_index)
+    {
+      continue;
+    }
+    Trace("skeleton-preprocessing")
+        << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
+    d_cnfStream->convertAndAssert(
+        (*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
+  }
+
+  return d_satSolver->solve();
+}
+
+bool NonClausalSimp::solveByCircuitPropagator(
+    theory::booleans::CircuitPropagator* propagator,
+    AssertionPipeline* assertionsToPreprocess,
+    unsigned substs_index)
+{
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
+                                  << (*assertionsToPreprocess)[i] << std::endl;
+  }
+
+  if (propagator->getNeedsFinish())
+  {
+    propagator->finish();
+    propagator->setNeedsFinish(false);
+  }
+  propagator->initialize();
+
+  // Assert all the assertions to the propagator
+  Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
+           == (*assertionsToPreprocess)[i]);
+    // Don't reprocess substitutions
+    if (substs_index > 0 && i == substs_index)
+    {
+      continue;
+    }
+    Trace("non-clausal-simplify")
+        << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
+    Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
+                   << std::endl;
+    propagator->assertTrue((*assertionsToPreprocess)[i]);
+  }
+
+  Trace("non-clausal-simplify") << "propagating" << std::endl;
+  return propagator->propagate();
+}
 
 /* -------------------------------------------------------------------------- */
 

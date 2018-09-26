@@ -211,6 +211,8 @@ class CnfStream {
                                 ProofRule proof_id,
                                 TNode from = TNode::null()) = 0;
 
+  inline SatSolver* getSatSolver() { return d_satSolver; };
+
   /**
    * Get the node that is represented by the given SatLiteral.
    * @param literal the literal from the sat solver
