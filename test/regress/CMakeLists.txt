@@ -626,6 +626,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
+  regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
   regress0/quantifiers/qbv-simp.smt2
   regress0/quantifiers/qbv-test-invert-bvadd-neq.smt2
