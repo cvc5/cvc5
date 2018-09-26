@@ -245,7 +245,7 @@ private:
    * predicates, described in the following:
    *
    * Let x_1, ..., x_m be variables that occur in the same subclass in the type
-   * of e (see TermDb::getSubclassForVar).
+   * of e (see TermDbSygus::getSubclassForVar).
    * For i = 1, ..., m:
    *   // each variable does not occur initially in a traversal of e
    *   ~pre_{x_i}( e ) AND
@@ -259,19 +259,26 @@ private:
    *     // post-definition for this term
    *     post_{x_i}( z ) = post_{x_i}( z.n ) OR is-x_i( z )
    *
-   * Notice that predicates pre and post should not be considered first-order
-   * predicates. For example, given the term f( x_1, x_1 ), we have that
-   * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is true,
-   * although the model values for e.1 and e.2 are equal. Instead, these
-   * predicates should be seen as Boolean (0-argument) variables that are
-   * indexed by a variable and a selector chain. We eliminate all applications
-   * of these predicates eagerly in the method eliminateTraversalPredicates.
+   * For clarity, above we have written pre and post as first-order predicates.
+   * However, applications of pre/post should be seen as indexed Boolean
+   * variables. The reason for this is pre and post cannot be given a consistent
+   * semantics. For example, consider term f( x_1, x_1 ) and enumerator variable
+   * e of the same type over which we are encoding a traversal. We have that
+   * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is true, although the model
+   * values for e.1 and e.2 are equal. Instead, pre_{x_1}( e.1 ) should be seen
+   * as a Boolean variable V_pre_{x_1,e.1} indexed by x_1 and e.1. and likewise
+   * for e.2. We convert all applications of pre/post to Boolean variables in
+   * the method eliminateTraversalPredicates below. Nevertheless, it is
+   * important that applications pre and post are encoded as APPLY_UF
+   * applications so that they behave as expected under substitutions. For
+   * example, pre_{x_1}( z.1 ) { z -> e.2 } results in pre_{x_1}( e.2.1 ), which
+   * after eliminateTraversalPredicates is V_pre_{x_1, e.2.1}.
    */
   Node getTraversalPredicate(TypeNode tn, Node n, bool isPre);
   /** eliminate traversal predicates
    *
    * This replaces all applications of traversal predicates P( x ) in n with
-   * a unique Boolean variable, given by d_traversal_bool[ P( x ) ], and
+   * unique Boolean variables, given by d_traversal_bool[ P( x ) ], and
    * returns the result.
    */
   Node eliminateTraversalPredicates(Node n);

@@ -524,6 +524,9 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
                                              bool usingSymCons,
                                              bool isVarAgnostic)
 {
+  // Compute the tuple of expressions we hash the predicate for.
+  
+  // The hash value in d_simple_sb_pred for the given options
   unsigned optHashVal = usingSymCons ? 1 : 0;
   if (isVarAgnostic && depth == 0)
   {
