@@ -4901,7 +4901,7 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
       success = true;
       unsigned n = 2 * ds;
       std::pair<Node, Node> taylor = getTaylor(tft, n);
-      // check that 1-c^{n+1}/(n+1) > 0
+      // check that 1-c^{n+1}/(n+1)! > 0
       Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
       rus = Rewriter::rewrite(rus);
