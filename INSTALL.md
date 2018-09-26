@@ -189,7 +189,7 @@ The examples provided in directory `examples` are not built by default.
     make examples                      # build all examples
     make runexamples                   # build and run all examples
     make <example>                     # build examples/<subdir>/<example>.<ext>
-    ctest example//<subdir>/<example>  # run test example/<subdir>/<example>
+    ctest example/<subdir>/<example>  # run test example/<subdir>/<example>
 
 All examples binaries are built into `<build_dir>/bin/examples`.
 
