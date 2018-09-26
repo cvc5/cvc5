@@ -4488,6 +4488,8 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
         Assert(rcoeff_n.isConst());
         Rational rcoeff = rcoeff_n.getConst<Rational>();
         Assert(rcoeff.sgn() != 0);
+        poly_approx_b = Rewriter::rewrite( poly_approx_b );
+        poly_approx_c = Rewriter::rewrite( poly_approx_c );
         splane = nm->mkNode(
             PLUS,
             poly_approx_b,
@@ -4881,6 +4883,46 @@ void NonlinearExtension::getPolynomialApproximationBounds(
   }
 }
 
+void NonlinearExtension::getPolynomialApproximationBoundForArg(Kind k, Node c,
+                                      unsigned d,
+                                      std::vector<Node>& pbounds)
+{
+  getPolynomialApproximationBounds( k, d, pbounds );
+  if( k==EXPONENTIAL )
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    Node tft = nm->mkNode(k, d_zero);
+    bool success = false;
+    unsigned ds = d;
+    TNode ttrf = d_taylor_real_fv;
+    TNode tc = c;
+    do
+    {
+      success = true;
+      // check that 1-c^{n+1}/(n+1) > 0
+      unsigned n = 2 * ds;
+      std::pair<Node, Node> taylor = getTaylor(tft, n);
+      Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
+      Node rus = ru.substitute(ttrf,tc);
+      rus = Rewriter::rewrite(rus);
+      Assert( rus.isConst() );
+      if( rus.getConst<Rational>()>d_one.getConst<Rational>() )
+      {
+        success = false;
+        ds = ds+1;
+      }
+    }while( !success );
+    if( ds>d )
+    {
+      // must use sound upper bound
+      std::vector< Node > pboundss;
+      getPolynomialApproximationBounds( k, ds, pboundss );
+      pbounds[2] = pboundss[2];
+    }
+  }
+}
+
+
 std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
 {
   // compute the model value of the argument
@@ -4891,7 +4933,7 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;
-  getPolynomialApproximationBounds(tf.getKind(), d, pbounds);
+  getPolynomialApproximationBoundForArg(tf.getKind(), c, d, pbounds);
 
   std::vector<Node> bounds;
   TNode tfv = d_taylor_real_fv;
