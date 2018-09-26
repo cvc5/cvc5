@@ -658,9 +658,10 @@ class NonlinearExtension {
   void getPolynomialApproximationBounds(Kind k,
                                         unsigned d,
                                         std::vector<Node>& pbounds);
-  void getPolynomialApproximationBoundForArg(Kind k, Node c,
-                                        unsigned d,
-                                        std::vector<Node>& pbounds);
+  void getPolynomialApproximationBoundForArg(Kind k,
+                                             Node c,
+                                             unsigned d,
+                                             std::vector<Node>& pbounds);
   /** cache of the above function */
   std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
   /** get transcendental function model bounds
