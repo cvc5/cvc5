@@ -109,10 +109,13 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                           << std::endl;
     // see if any refinement lemma is refuted by evaluation
     std::vector<Node> cre_lems;
-    bool ret = getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
-    if( ret && !doGen )
+    bool ret =
+        getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
+    if (ret && !doGen)
     {
-      Trace("cegqi-engine") << "...(actively enumerated) candidate failed refinement lemma evaluation." << std::endl;
+      Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+                               "refinement lemma evaluation."
+                            << std::endl;
       return true;
     }
     if (!cre_lems.empty())
@@ -231,10 +234,9 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   }
   // Is every enumerator in enums a passive one? If so, we can do conjecture.
   bool allPassive = true;
-  
 
   // evaluate on refinement lemmas
-  bool addedEvalLemmas = addEvalLemmas(enums, enum_values,allPassive);
+  bool addedEvalLemmas = addEvalLemmas(enums, enum_values, allPassive);
 
   // try to construct candidates
   if (!processConstructCandidates(enums,
@@ -422,7 +424,7 @@ bool Cegis::usingRepairConst() { return true; }
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
                                     std::vector<Node>& lems,
-                               bool doGen)
+                                    bool doGen)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
@@ -459,7 +461,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
-        if( !doGen )
+        if (!doGen)
         {
           // we are not generating the lemmas, instead just return
           return true;
@@ -497,7 +499,7 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         else
         {
           cre_lem = neg_guard;
-        }      
+        }
         if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
         {
           Trace("sygus-cref-eval")
