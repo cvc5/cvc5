@@ -227,7 +227,7 @@ private:
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
-  Expr mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
+  void mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
