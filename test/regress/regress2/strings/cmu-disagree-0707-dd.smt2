@@ -1,6 +1,8 @@
 (set-logic ALL_SUPPORTED)
 (set-info :status sat)
 (set-option :strings-exp true)
+(set-option :strings-fmf true)
+
 
 (declare-fun url () String)
 

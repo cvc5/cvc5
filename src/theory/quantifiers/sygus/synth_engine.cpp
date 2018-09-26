@@ -42,8 +42,7 @@ SynthEngine::~SynthEngine() { delete d_conj; }
 
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
-  return !d_quantEngine->getTheoryEngine()->needCheck()
-         && e >= Theory::EFFORT_LAST_CALL;
+  return e >= Theory::EFFORT_LAST_CALL;
 }
 
 QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)

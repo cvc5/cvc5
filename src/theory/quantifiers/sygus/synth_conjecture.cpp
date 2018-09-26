@@ -23,6 +23,7 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
+#include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -338,7 +339,14 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
 
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
-  getModelValues(terms, enum_values);
+  bool fullModel = getModelValues(terms, enum_values);
+
+  // if the master requires a full model and the model is partial, we fail
+  if (!d_master->allowPartialModel() && !fullModel)
+  {
+    Trace("cegqi-check") << "...partial model, fail." << std::endl;
+    return;
+  }
 
   if (!constructed_cand)
   {
@@ -586,36 +594,54 @@ void SynthConjecture::preregisterConjecture(Node q)
   d_ceg_si->preregisterConjecture(q);
 }
 
-void SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
+bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
 {
+  bool ret = true;
   Trace("cegqi-engine") << "  * Value is : ";
   for (unsigned i = 0; i < n.size(); i++)
   {
     Node nv = getModelValue(n[i]);
     v.push_back(nv);
+    ret = ret && !nv.isNull();
     if (Trace.isOn("cegqi-engine"))
     {
-      TypeNode tn = nv.getType();
-      Trace("cegqi-engine") << n[i] << " -> ";
+      Node onv = nv.isNull() ? d_qe->getModel()->getValue(n[i]) : nv;
+      TypeNode tn = onv.getType();
       std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, nv);
-      Trace("cegqi-engine") << ss.str() << " ";
-      if (Trace.isOn("cegqi-engine-rr"))
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+      Trace("cegqi-engine") << n[i] << " -> ";
+      if (nv.isNull())
       {
-        Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
-        bv = Rewriter::rewrite(bv);
-        Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+        Trace("cegqi-engine") << "[EXC: " << ss.str() << "] ";
+      }
+      else
+      {
+        Trace("cegqi-engine") << ss.str() << " ";
+        if (Trace.isOn("cegqi-engine-rr"))
+        {
+          Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
+          bv = Rewriter::rewrite(bv);
+          Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+        }
       }
     }
-    Assert(!nv.isNull());
   }
   Trace("cegqi-engine") << std::endl;
+  return ret;
 }
 
 Node SynthConjecture::getModelValue(Node n)
 {
   Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
-  return d_qe->getModel()->getValue(n);
+  if (n.getAttribute(SygusSymBreakExcAttribute()))
+  {
+    // if the current model value of n was excluded by symmetry breaking, then
+    // it does not have a proper model value that we should consider, thus we
+    // return null.
+    return Node::null();
+  }
+  Node mv = d_qe->getModel()->getValue(n);
+  return mv;
 }
 
 void SynthConjecture::debugPrint(const char* c)
