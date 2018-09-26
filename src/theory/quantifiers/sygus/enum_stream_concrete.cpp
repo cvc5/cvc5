@@ -41,10 +41,6 @@ StreamPermutation::StreamPermutation(
   {
     d_perm_state_class.push_back(PermutationState(var_classes[i]));
   }
-  // initial value
-  d_last_value = value;
-  Node bultin_value = d_tds->sygusToBuiltin(value, value.getType());
-  d_perm_values.insert(d_tds->getExtRewriter()->extendedRewrite(bultin_value));
 }
 
 Node StreamPermutation::getNext()
@@ -56,6 +52,15 @@ Node StreamPermutation::getNext()
     Trace("synth-stream-concrete")
         << " ....streaming next permutation for value : " << ss.str()
         << " with " << d_perm_state_class.size() << " permutation classes\n";
+  }
+  // initial value
+  if (d_last_value.isNull())
+  {
+    d_last_value = value;
+    Node bultin_value = d_tds->sygusToBuiltin(value, value.getType());
+    d_perm_values.insert(
+        d_tds->getExtRewriter()->extendedRewrite(bultin_value));
+    return d_last_value;
   }
   unsigned n_classes = d_perm_state_class.size();
   Assert(n_classes > 0);
@@ -135,8 +140,6 @@ Node StreamPermutation::getNext()
   d_last_value = perm_value;
   return perm_value;
 }
-
-Node StreamPermutation::getLast() { return d_last_value; }
 
 StreamPermutation::PermutationState::PermutationState(
     const std::vector<Node>& vars)
@@ -228,7 +231,7 @@ Node StreamCombination::getNext()
         Trace("synth-stream-concrete")
             << " ..only comb is " << ss.str() << "\n";
       }
-      d_last = d_stream_permutations.getLast();
+      d_last = d_stream_permutations.getNext();
       return d_last;
     }
     else
@@ -237,8 +240,12 @@ Node StreamCombination::getNext()
       return Node::null();
     }
   }
-  // if not in intial case
-  if (!d_last.isNull())
+  // intial case
+  if (d_last.isNull())
+  {
+    d_last = d_stream_permutations.getNext();
+  }
+  else
   {
     bool new_comb = false;
     do
@@ -282,10 +289,6 @@ Node StreamCombination::getNext()
       }
     }
   }
-  else
-  {
-    d_last = d_stream_permutations.getLast();
-  }
   // building substitution
   std::vector<Node> sub;
   for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
@@ -315,7 +318,6 @@ Node StreamCombination::getNext()
     sub.insert(sub.end(), raw_sub.begin(), raw_sub.end());
     Trace("synth-stream-concrete") << "\n";
   }
-  // build substitution with last combination
   Assert(d_perm_vars.size() == sub.size());
   if (Trace.isOn("synth-stream-concrete-debug2"))
   {
@@ -409,9 +411,8 @@ bool StreamCombination::CombinationState::getNextCombination()
   return new_comb;
 }
 
-EnumStreamConcrete::EnumStreamConcrete(QuantifiersEngine* qe,
-                                       SynthConjecture* p)
-    : d_qe(qe), d_parent(p), d_tds(qe->getTermDatabaseSygus())
+EnumStreamConcrete::EnumStreamConcrete(quantifiers::TermDbSygus* tds)
+    : d_tds(tds)
 {
 }
 

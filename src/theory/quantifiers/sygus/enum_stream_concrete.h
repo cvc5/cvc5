@@ -59,8 +59,6 @@ class StreamPermutation
    * while if OP were "-" the only next value would be: (- x4 x2 x3 x1)
    */
   Node getNext();
-  /** retrieves last permutation */
-  Node getLast();
 
  private:
   /** sygus term database */
@@ -102,7 +100,7 @@ class StreamPermutation
     /** current index being permuted */
     unsigned d_curr_ind;
   };
-  /** permutation state of each variable class */
+  /** permutation state of each variable subclass */
   std::vector<PermutationState> d_perm_state_class;
   /** current variable subclass being permuted */
   unsigned d_curr_ind;
@@ -157,7 +155,11 @@ class StreamCombination
  private:
   /** sygus term database */
   TermDbSygus* d_tds;
-  /** last value generated after a combination */
+  /** last value generated after a combination
+   *
+   * If getNext() has been called, this is the return value of the most recent
+   * call to getNext(). Otherwise, this value is null.
+   */
   Node d_last;
   /** all variables being combined */
   std::vector<Node> d_all_vars;
@@ -165,7 +167,7 @@ class StreamCombination
    * combination cycle */
   std::vector<Node> d_perm_vars;
   /** maps variables to their respective constructors in all the enumerator
-   * sutypes */
+   * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
   /** generated combinations (for debugging) */
   std::unordered_set<Node, NodeHashFunction> d_comb_values;
@@ -243,7 +245,7 @@ class StreamCombination
 class EnumStreamConcrete
 {
  public:
-  EnumStreamConcrete(QuantifiersEngine* qe, SynthConjecture* p);
+  EnumStreamConcrete(quantifiers::TermDbSygus* tds);
   ~EnumStreamConcrete() {}
   /** initializes class with the given enumerator
    *
@@ -266,10 +268,6 @@ class EnumStreamConcrete
   Node getNext();
 
  private:
-  /** reference to quantifier engine */
-  QuantifiersEngine* d_qe;
-  /** reference to the parent conjecture */
-  SynthConjecture* d_parent;
   /** sygus term database of d_qe */
   quantifiers::TermDbSygus* d_tds;
   /** enumerator we are concretizing values for */
@@ -279,7 +277,7 @@ class EnumStreamConcrete
   /** partition of variables per subclasses */
   std::vector<std::vector<Node>> d_var_classes;
   /** maps variables to their respective constructors in all the enumerator
-   * sutypes */
+   * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
   /** list of registered abstract values */
   std::vector<Node> d_abs_values;
