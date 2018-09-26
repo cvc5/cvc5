@@ -58,6 +58,17 @@ void toInternalClause(SatClause& clause,
   Assert(clause.size() == internal_clause.size());
 }
 
+SatLiteral toSatLiteral(CMSat::Lit lit)
+{
+  if (lit == CMSat::lit_Undef)
+  {
+    return undefSatLiteral;
+  }
+
+  return SatLiteral(lit.var(), lit.sign());
+}
+}  // namespace
+
 }  // helper functions
 
 CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
@@ -176,7 +187,8 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
-SatValue CryptoMinisatSolver::simp(){
+SatValue CryptoMinisatSolver::simplify()
+{
   return toSatLiteralValue(d_solver->simplify());
 }
   
@@ -203,15 +215,6 @@ std::vector<SatLiteral> CryptoMinisatSolver::getTopLevelUnits(){
     satLits.push_back(toSatLiteral(lit));
   }
   return satLits;
-}
-
-SatLiteral CryptoMinisatSolver::toSatLiteral(CMSat::Lit lit) {
-  if (lit == CMSat::lit_Undef) {
-    return undefSatLiteral;
-  }
-
-  return SatLiteral(lit.var(),
-                    lit.sign());
 }
 
 // Satistics for CryptoMinisatSolver

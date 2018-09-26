@@ -83,11 +83,8 @@ public:
   };
 
   /** Simplify the formula **/
-  virtual SatValue simp(){
-    return SAT_VALUE_UNKNOWN;
-  };
+  virtual SatValue simplify() { return SAT_VALUE_UNKNOWN; };
 
-  
   /** Interrupt the solver */
   virtual void interrupt() = 0;
 

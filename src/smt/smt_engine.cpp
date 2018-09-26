@@ -2195,7 +2195,7 @@ void SmtEngine::setDefaults() {
     {
       throw OptionException(std::string(
           "Cannot use MipLibTrick when using cryptominisat instead of circuit"
-          "propagators. Try turn off --skeletonPreprocessing"));
+          "propagators. Try turn off --skeleton-preprocessing"));
     }
     else if (options::skeletonPreprocessing.wasSetByUser()){
           setOption("skeleton-preprocessing", false);
@@ -2667,7 +2667,7 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("nl-ext-purify",
                                            std::move(nlExtPurify));
   d_preprocessingPassRegistry.registerPass("non-clausal-simp",
-                                            std::move(nonClausalSimp));
+                                           std::move(nonClausalSimp));
   d_preprocessingPassRegistry.registerPass("miplib-trick",
                                            std::move(mipLibTrick));
   d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
@@ -2909,9 +2909,9 @@ bool SmtEnginePrivate::simplifyAssertions()
             d_preprocessingPassRegistry.getPass("non-clausal-simp")
                 ->apply(&d_assertions);
         if (res == PreprocessingPassResult::CONFLICT)
-          {
-            return false;
-          }
+        {
+          return false;
+        }
       }
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
@@ -2975,13 +2975,13 @@ bool SmtEnginePrivate::simplifyAssertions()
         && options::simplificationMode() != SIMPLIFICATION_MODE_NONE
         && !options::unsatCores() && !options::fewerPreprocessingHoles())
     {
-        PreprocessingPassResult res =
-            d_preprocessingPassRegistry.getPass("non-clausal-simp")
-                ->apply(&d_assertions);
-        if (res == PreprocessingPassResult::CONFLICT)
-        {
-          return false;
-        }
+      PreprocessingPassResult res =
+          d_preprocessingPassRegistry.getPass("non-clausal-simp")
+              ->apply(&d_assertions);
+      if (res == PreprocessingPassResult::CONFLICT)
+      {
+	return false;
+      }
     }
 
     dumpAssertions("post-repeatsimp", d_assertions);
