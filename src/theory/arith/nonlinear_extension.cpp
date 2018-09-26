@@ -4887,8 +4887,8 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
-  Assert( c.isConst() );
-  if (k == EXPONENTIAL && c.getConst<Rational>().sgn()==1)
+  Assert(c.isConst());
+  if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
     NodeManager* nm = NodeManager::currentNM();
     Node tft = nm->mkNode(k, d_zero);
