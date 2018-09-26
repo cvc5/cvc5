@@ -41,16 +41,17 @@ class IteToBvite : public PreprocessingPass
   struct Statistics
   {
     IntStat d_numIteToBvite;
+    IntStat d_numTermsLowered;
+    IntStat d_numTermsForcedLowered;
     Statistics();
     ~Statistics();
   };
 
-  Node newLowerIte(TNode a);
-  Node lowerIte(TNode term);
-  Node lowerBool(TNode boolTerm);
-  bool easyToLower(TNode boolTerm);
+  Node lowerAssertion(TNode a);
   Node fromCache(TNode n);
+  bool needToRebuild(TNode n);
   Statistics d_statistics;
+
   std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
 };  // class IteToBvite
 
