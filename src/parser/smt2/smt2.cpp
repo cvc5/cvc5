@@ -1238,13 +1238,14 @@ const void Smt2::getSygusInvVars(FunctionType t,
                                  std::vector<Expr>& primed_vars)
 {
   std::vector<Type> argTypes = t.getArgTypes();
+  ExprManager* em = getExprManager();
   for (const Type& ti : argTypes)
   {
-    vars.push_back(mkBoundVar(ti));
+    vars.push_back(em->mkBoundVar(ti));
     d_sygusVars.push_back(vars.back());
     std::stringstream ss;
     ss << vars.back() << "'";
-    primed_vars.push_back(mkBoundVar(ss.str(), ti));
+    primed_vars.push_back(em->mkBoundVar(ss.str(), ti));
     d_sygusVars.push_back(primed_vars.back());
 #ifdef CVC4_ASSERTIONS
     bool find_new_declared_var = false;
