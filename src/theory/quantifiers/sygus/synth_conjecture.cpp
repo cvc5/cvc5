@@ -543,7 +543,7 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
     if (d_ce_sk_var_mvs.empty())
     {
       std::vector<Node> model_values;
-      for( const Node& v : d_ce_sk_vars )
+      for (const Node& v : d_ce_sk_vars)
       {
         Node mv = getModelValue(v);
         Trace("cegqi-refine") << "  " << v << " -> " << mv << std::endl;
@@ -600,7 +600,8 @@ void SynthConjecture::preregisterConjecture(Node q)
   d_ceg_si->preregisterConjecture(q);
 }
 
-bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v)
+bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
+                                          std::vector<Node>& v)
 {
   bool ret = true;
   Trace("cegqi-engine") << "  * Value is : ";
@@ -646,11 +647,11 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // return null.
     return Node::null();
   }
-  if( d_tds->isPassiveEnumerator(e) )
+  if (d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
   }
-  Assert( false );
+  Assert(false);
   // TODO
   return getModelValue(e);
 }
