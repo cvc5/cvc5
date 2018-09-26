@@ -84,8 +84,6 @@ libcvc4_add_sources(
   preprocessing/passes/rewrite.h
   preprocessing/passes/sep_skolem_emp.cpp
   preprocessing/passes/sep_skolem_emp.h
-  preprocessing/passes/skeleton_preprocessing.cpp
-  preprocessing/passes/skeleton_preprocessing.h
   preprocessing/passes/sort_infer.cpp
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp

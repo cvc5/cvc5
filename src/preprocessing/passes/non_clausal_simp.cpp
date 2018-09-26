@@ -16,12 +16,17 @@
 
 #include "preprocessing/passes/non_clausal_simp.h"
 
+#include <vector>
+
 #include "context/cdo.h"
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
+#include "prop/registrar.h"
+#include "prop/cnf_stream.h"
+#include "prop/sat_solver_factory.h"
+#include "proof/proof_manager.h"
 
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -58,6 +63,96 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   d_preprocContext->spendResource(options::preprocessStep());
 
+  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
+  std::vector<Node> learned_literals;
+  
+  if (options::skeletonPreprocessing()){
+
+  // Convert the original formula into a boolean formula and solve it                                                                                                                                       
+  // with cryptominisat                                                                                                                                                                                     
+  SatSolver* d_satSolver = SatSolverFactory::createCryptoMinisat(smtStatisticsRegistry(), "non_clausal_simp_solver");
+  CVC4::prop::NullRegistrar d_registrar;
+  context::Context d_context;
+  CVC4::prop::TseitinCnfStream d_cnfStream (d_satSolver, &d_registrar,
+                                            &d_context, true,
+                                            "toCNF-skeleton-preprocessing");
+
+  Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
+
+  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
+              == (*assertionsToPreprocess)[i]);
+       // Don't reprocess substitutions                                                                                                                                                                     
+       if (substs_index > 0 && i == substs_index)
+       {
+         continue;
+       }
+       Trace("skeleton-preprocessing")
+           << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
+       d_cnfStream.convertAndAssert((*assertionsToPreprocess)[i], false, false,
+                                    RULE_GIVEN);
+  }
+
+
+
+  SatValue result = d_satSolver->solve();
+
+  if (result==SAT_VALUE_FALSE){
+    // If in conflict, just return false                                                                                                                                                                    
+    Trace("skeleton-preprocessing")
+        << "conflict in non-clausal propagation" << std::endl;
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    assertionsToPreprocess->clear();
+    Node n = NodeManager::currentNM()->mkConst<bool>(false);
+    assertionsToPreprocess->push_back(n);
+    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+    delete d_satSolver;
+    return PreprocessingPassResult::CONFLICT;
+  }
+
+  std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
+
+  std::vector<TNode> learned_literals;
+
+    for (size_t i = 0; i < topLevelUnits.size(); i++){
+    SatLiteral lit = topLevelUnits[i];
+    if (d_cnfStream.getNodeCache().find(lit)
+        != d_cnfStream.getNodeCache().end()) {
+      // if the literal is in the getNodeCache                                                                                                                                                              
+      Node learnedLiteral = Rewriter::rewrite(d_cnfStream.getNode(lit));
+      if (learnedLiteral.isConst())
+      {
+        if (learnedLiteral.getConst<bool>())
+        {
+          // If the learned literal simplifies to true, it's redundant                                                                                                                                      
+          continue;
+        }
+        else
+        {
+          // If the learned literal simplifies to false, we're in conflict                                                                                                                                  
+          Trace("skeleton-preprocessing")
+              << "conflict with " << learned_literals[i] << std::endl;
+          Assert(!options::unsatCores());
+          assertionsToPreprocess->clear();
+          Node n = NodeManager::currentNM()->mkConst<bool>(false);
+          assertionsToPreprocess->push_back(n);
+          PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+          delete d_satSolver;
+          return PreprocessingPassResult::CONFLICT;
+	}
+      }
+      learned_literals.push_back(learnedLiteral);
+    }
+  }
+    delete d_satSolver;
+  
+    
+  }
+  else
+    {
+				       
   theory::booleans::CircuitPropagator* propagator =
       d_preprocContext->getCircuitPropagator();
 
@@ -76,7 +171,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
-  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
@@ -108,17 +202,22 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
     return PreprocessingPassResult::CONFLICT;
   }
 
-  Trace("non-clausal-simplify")
-      << "Iterate through " << propagator->getLearnedLiterals().size()
+  learned_literals = propagator->getLearnedLiterals();
+      propagator->setNeedsFinish(true);
+    }
+
+
+    Trace("non-clausal-simplify")
+      << "Iterate through " << learned_literals.size()
       << " learned literals." << std::endl;
-  // No conflict, go through the literals and solve them
+  // No conflict, go through the literals and solve them                                                                                                                                                    
   SubstitutionMap& top_level_substs =
       d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
   SubstitutionMap::iterator pos;
   size_t j = 0;
-  std::vector<Node>& learned_literals = propagator->getLearnedLiterals();
+
   for (size_t i = 0, size = learned_literals.size(); i < size; ++i)
   {
     // Simplify the literal we learned wrt previous substitutions
@@ -166,7 +265,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
     }
@@ -209,7 +307,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Node n = NodeManager::currentNM()->mkConst<bool>(false);
         assertionsToPreprocess->push_back(n);
         PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-        propagator->setNeedsFinish(true);
         return PreprocessingPassResult::CONFLICT;
       }
       default:
@@ -448,7 +545,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         Rewriter::rewrite(Node(learnedBuilder)));
   }
 
-  propagator->setNeedsFinish(true);
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
 
