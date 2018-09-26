@@ -21,6 +21,7 @@
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -44,10 +45,13 @@ class IteToBvite : public PreprocessingPass
     ~Statistics();
   };
 
+  Node newLowerIte(TNode a);
   Node lowerIte(TNode term);
   Node lowerBool(TNode boolTerm);
   bool easyToLower(TNode boolTerm);
+  Node fromCache(TNode n);
   Statistics d_statistics;
+  std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
 };  // class IteToBvite
 
 }  // namespace passes
