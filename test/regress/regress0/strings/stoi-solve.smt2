@@ -4,4 +4,3 @@
 (declare-fun x () String)
 (assert (= (str.to.int x) 12345)) 
 (check-sat)
-(get-model)

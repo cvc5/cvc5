@@ -3852,25 +3852,41 @@ void TheoryStrings::sendInternalInference(std::vector< Node >& exp, Node conc, c
     }
     return;
   }
-  if( conc.getKind()==EQUAL )
+  Node lit = conc.getKind()==NOT ? conc[0] : conc;
+  bool pol = conc.getKind()!=NOT;
+  if( lit.getKind()==EQUAL )
   {
     for( unsigned i=0; i<2; i++ )
     {
-      if( !conc[i].isConst() && !hasTerm( conc[i] ) )
+      if( !lit[i].isConst() && !hasTerm( lit[i] ) )
       {
         // introduces a new non-constant term, do not infer
         return;
       }
     }
     // does it already hold?
-    if( areEqual( conc[0], conc[1] ) )
+    if( pol ? areEqual( lit[0], lit[1] ) : areDisequal( lit[0], lit[1] ) )
     {
       return;
     }
   }
-  else if( conc.isConst() && !hasTerm( conc ) )
+  else if( lit.isConst() )
+  {
+    if( lit.getConst<bool>() )
+    {
+      Assert( pol );
+      // trivially holds
+      return;
+    }
+  }
+  else if( !hasTerm( lit ) )
   {
     // introduces a new non-constant term, do not infer
+    return;
+  }
+  else if( areEqual( lit, pol ? d_true : d_false ) ) 
+  {
+    // already holds 
     return;
   }
   sendInference( exp, conc, c );
