@@ -2980,7 +2980,7 @@ bool SmtEnginePrivate::simplifyAssertions()
               ->apply(&d_assertions);
       if (res == PreprocessingPassResult::CONFLICT)
       {
-	return false;
+        return false;
       }
     }
 
