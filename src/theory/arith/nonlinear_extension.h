@@ -667,9 +667,9 @@ class NonlinearExtension {
    *
    * This computes polynomial approximations P_l+[x], P_l-[x], P_u+[x], P_u-[x]
    * that are sound (lower, upper) bounds for <k>( c ). Notice that these
-   * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ), we
-   * return the P_u+[x] from the function above for the minimum degree d' >= d
-   * such that (1-x^{2*d'+1}/(2*d'+1)!) is positive.
+   * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
+   * c>0, we return the P_u+[x] from the function above for the minimum degree
+   * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
    */
   void getPolynomialApproximationBoundForArg(Kind k,
                                              Node c,

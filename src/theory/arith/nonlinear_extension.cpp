@@ -4887,7 +4887,8 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
     Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
-  if (k == EXPONENTIAL)
+  Assert( c.isConst() );
+  if (k == EXPONENTIAL && c.getConst<Rational>().sgn()==1)
   {
     NodeManager* nm = NodeManager::currentNM();
     Node tft = nm->mkNode(k, d_zero);
@@ -4898,9 +4899,9 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
     do
     {
       success = true;
-      // check that 1-c^{n+1}/(n+1) > 0
       unsigned n = 2 * ds;
       std::pair<Node, Node> taylor = getTaylor(tft, n);
+      // check that 1-c^{n+1}/(n+1) > 0
       Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
       rus = Rewriter::rewrite(rus);
