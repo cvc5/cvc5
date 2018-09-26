@@ -66,7 +66,7 @@ SatLiteral toSatLiteral(CMSat::Lit lit)
   }
 
   return SatLiteral(lit.var(), lit.sign());
-}  // namespace
+}
 
 }  // helper functions
 
