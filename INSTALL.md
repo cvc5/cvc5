@@ -45,7 +45,7 @@ We recommend using a GCC version > 4.5.1.
 
 ## Optional Dependencies
 
-### SymFPU (Support for the Theory of Floating Points)
+### SymFPU (Support for the Theory of Floating Point Numbers)
 
 [SymFPU](https://github.com/martin-cs/symfpu/tree/CVC4)
 is an implementation of SMT-LIB/IEEE-754 floating-point operations in terms
@@ -62,7 +62,7 @@ problems with eager bit-blasting. This dependency may improve performance.
 It can be installed using the `contrib/get-cadical script`.  
 Configure CVC4 with `configure.sh --cadical` to build with this dependency.
 
-### CryptoMiniSat (optional SAT solver)
+### CryptoMiniSat (Optional SAT solver)
 
 [CryptoMinisat](https://github.com/msoos/cryptominisat)
 is a SAT solver that can be used for solving bit-vector problems with eager
@@ -75,7 +75,7 @@ dependency.
 
 [LFSC](https://github.com/CVC4/LFSC) is required to check proofs internally
 with --check-proofs. It can be installed using the `contrib/get-lfsc` script.  
-Configure CVC4 with `configure.sh --proofs` to build with this dependency.
+Configure CVC4 with `configure.sh --lfsc` to build with this dependency.
 
 ### SWIG >= 3.0.x (Simplified Wrapper and Interface Generator)
 
@@ -289,16 +289,15 @@ in level `N` in `test/regress/regressN/<subdir>`) as test target name.
     ctest -R regress                      # run all regression tests
     ctest -R regress0                     # run all regression tests in level 0
     ctest -R regress[0-1]                 # run all regression tests in level 0 and 1
-    ctest -R regress0/bug288b             # run all tests that match '*bug288b*'
+    ctest -R regress0/bug288b             # run all tests that match '*regress0/bug288b*'
                                           # > runs regress0/bug288b
 ### Custom Targets
 
-All custom test targets build and run a preconfigured set of tests and or
-examples.
+All custom test targets build and run a preconfigured set of tests.
 
 - `make check [-jN] [ARGS=-jN]`  
   The default build-and-test target for CVC4, builds and runs all examples,
-  all system and unit tests, and regression test from levels 0 and 1.
+  all system and unit tests, and regression tests from levels 0 and 1.
 
 - `make systemtests [-jN] [ARGS=-jN]`  
   Build and run all system tests.
