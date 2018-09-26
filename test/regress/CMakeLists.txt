@@ -2074,10 +2074,16 @@ set(regression_disabled_tests
 get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
+add_custom_target(build-regress DEPENDS cvc4-bin)
+add_dependencies(check build-regress)
+if(ENABLE_COVERAGE)
+  add_dependencies(coverage build-regress)
+endif()
+
 add_custom_target(regress
   COMMAND
     ctest --output-on-failure -L "regress[0-1]" -j${CTEST_NTHREADS} $(ARGS)
-  DEPENDS cvc4-bin)
+  DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
   add_test(${file}
