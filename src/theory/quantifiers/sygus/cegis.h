@@ -142,18 +142,24 @@ class Cegis : public SygusModule
    * useful e.g. for boolean connectives
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values);
+                     const std::vector<Node>& candidate_values,
+                     bool doGen);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
    *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
-   * for previous refinements (d_refinement_lemmas).
+   * for previous refinements (d_refinement_lemmas). 
+   * 
+   * Returns true if any such lemma exists. If doGen is false, then the
+   * lemmas are not generated.
    */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+  bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
+                               std::vector<Node>& lems,
+                               bool doGen
+                              );
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
