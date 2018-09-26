@@ -525,7 +525,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
                                              bool isVarAgnostic)
 {
   // Compute the tuple of expressions we hash the predicate for.
-  
+
   // The hash value in d_simple_sb_pred for the given options
   unsigned optHashVal = usingSymCons ? 1 : 0;
   if (isVarAgnostic && depth == 0)
@@ -1347,7 +1347,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     Trace("sygus-sb") << "...size lemma : " << slem << std::endl;
     lemmas.push_back(slem);
   }
-  if( d_tds->isVariableAgnosticEnumerator(e) )
+  if (d_tds->isVariableAgnosticEnumerator(e))
   {
     // if it is variable agnostic, enforce top-level constraint that says no
     // variables occur pre-traversal at top-level
@@ -1366,11 +1366,12 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
     }
     if (!constraints.empty())
     {
-      Node preNoVar =
-          constraints.size() == 1 ? constraints[0] : nm->mkNode(AND, constraints);
+      Node preNoVar = constraints.size() == 1 ? constraints[0]
+                                              : nm->mkNode(AND, constraints);
       Node preNoVarProc = eliminateTraversalPredicates(preNoVar);
       Trace("sygus-sb") << "...variable order : " << preNoVarProc << std::endl;
-      Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc << std::endl;
+      Trace("sygus-sb-tp") << "...variable order : " << preNoVarProc
+                           << std::endl;
       lemmas.push_back(preNoVarProc);
     }
   }
