@@ -654,17 +654,17 @@ class NonlinearExtension {
    * of <k>( 0 ) for degree 2*d where k is SINE or EXPONENTIAL.
    * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
    * for positive/negative (+/-) values of the argument of <k>( 0 ).
-   * 
+   *
    * Notice that for certain bounds (e.g. upper bounds for exponential), the
    * Taylor approximation for a fixed degree are only sound up to a given
-   * upper bound on the argument. To obtain sound lower/upper bounds for a 
+   * upper bound on the argument. To obtain sound lower/upper bounds for a
    * given <k>( c ), use the function below.
    */
   void getPolynomialApproximationBounds(Kind k,
                                         unsigned d,
                                         std::vector<Node>& pbounds);
   /** polynomial approximation bounds
-   * 
+   *
    * This computes polynomial approximations P_l+[x], P_l-[x], P_u+[x], P_u-[x]
    * that are sound (lower, upper) bounds for <k>( c ). Notice that these
    * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ), we
