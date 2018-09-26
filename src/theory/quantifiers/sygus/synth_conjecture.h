@@ -116,10 +116,14 @@ class SynthConjecture
    * Get model values for terms n, store in vector v. This method returns true
    * if and only if all values added to v are non-null.
    */
-  bool getModelValues(std::vector<Node>& n, std::vector<Node>& v);
+  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v);
   /**
    * Get model value for term n. If n has a value that was excluded by
    * datatypes sygus symmetry breaking, this method returns null.
+   */
+  Node getEnumeratedValue(Node n);
+  /**
+   * Get model value for term n.
    */
   Node getModelValue(Node n);
 
