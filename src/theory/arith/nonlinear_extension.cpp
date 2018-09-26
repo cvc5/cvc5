@@ -4914,6 +4914,7 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(Kind k, Node c,
     }while( !success );
     if( ds>d )
     {
+      Trace("nl-ext-exp-taylor") << "*** Increase Taylor bound to " << ds << " > " << d << " for (" << k << " " << c << ")" << std::endl;
       // must use sound upper bound
       std::vector< Node > pboundss;
       getPolynomialApproximationBounds( k, ds, pboundss );
