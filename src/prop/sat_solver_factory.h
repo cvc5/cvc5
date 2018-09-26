@@ -25,7 +25,6 @@
 #include "context/context.h"
 #include "prop/sat_solver.h"
 #include "util/statistics_registry.h"
-#include "prop/cryptominisat.h"
 
 namespace CVC4 {
 namespace prop {
