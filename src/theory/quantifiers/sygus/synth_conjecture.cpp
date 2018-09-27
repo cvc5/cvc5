@@ -639,7 +639,6 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
 
 Node SynthConjecture::getEnumeratedValue(Node e)
 {
-  Assert(d_tds->isEnumerator(e));
   if (e.getAttribute(SygusSymBreakExcAttribute()))
   {
     // if the current model value of e was excluded by symmetry breaking, then
