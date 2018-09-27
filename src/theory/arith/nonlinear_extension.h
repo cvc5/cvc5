@@ -656,7 +656,7 @@ class NonlinearExtension {
    * for positive/negative (+/-) values of the argument of <k>( 0 ).
    *
    * Notice that for certain bounds (e.g. upper bounds for exponential), the
-   * Taylor approximation for a fixed degree are only sound up to a given
+   * Taylor approximation for a fixed degree is only sound up to a given
    * upper bound on the argument. To obtain sound lower/upper bounds for a
    * given <k>( c ), use the function below.
    */
