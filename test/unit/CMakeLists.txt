@@ -1,3 +1,6 @@
+# Note: We use our custom CxxTest finder here to specify custom directories and
+# fail if it is not found in the specified directory (similar to the other
+# custom finder modules).
 set(CxxTest_HOME ${CXXTEST_DIR})
 find_package(CxxTest REQUIRED)
 
