@@ -196,7 +196,19 @@ class SynthConjecture
    * d_evg[e].addValue(v) for some v, and d_evg[e].getNext() has not yet
    * returned null.
    */
-  std::map<Node, bool> d_ev_curr_active_gen;
+  std::map<Node, Node> d_ev_curr_active_gen;
+  /** the current waiting value of each actively-generated enumerator, if any
+   * 
+   * This caches values are actively generated and that we have not yet
+   * passed to a call to SygusModule::constructCandidates. An example of when
+   * this may occur is when there are two actively-generated enumerators e1 and
+   * e2. Say on some iteration we actively-generate v1 for e1, the value
+   * of e2 was excluded by symmetry breaking, and say the current master sygus
+   * module does not handle partial models. Hence, we abort the current check.
+   * We remember that the value of e1 was v1 by storing it here, so that on
+   * a future check when v2 has a proper value, it is returned.
+   */
+  std::map<Node, Node> d_ev_active_gen_waiting;
   //------------------------end enumerators
 
   /** list of constants for quantified formula

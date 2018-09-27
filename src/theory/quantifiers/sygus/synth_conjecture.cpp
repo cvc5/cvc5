@@ -338,19 +338,22 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
     }
   }
 
-  // get the model value of the relevant terms from the master module
-  std::vector<Node> enum_values;
-  bool fullModel = getEnumeratedValues(terms, enum_values);
-
-  // if the master requires a full model and the model is partial, we fail
-  if (!d_master->allowPartialModel() && !fullModel)
-  {
-    Trace("cegqi-check") << "...partial model, fail." << std::endl;
-    return;
-  }
-
   if (!constructed_cand)
   {
+    // get the model value of the relevant terms from the master module
+    std::vector<Node> enum_values;
+    bool fullModel = getEnumeratedValues(terms, enum_values);
+
+    // if the master requires a full model and the model is partial, we fail
+    if (!d_master->allowPartialModel() && !fullModel)
+    {
+      // we retain the values in d_ev_active_gen_waiting
+      Trace("cegqi-check") << "...partial model, fail." << std::endl;
+      return;
+    }
+    // the waiting values are passed to the module below, clear
+    d_ev_active_gen_waiting.clear();
+      
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
         terms, enum_values, d_candidates, candidate_values, lems);
@@ -653,43 +656,58 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   Assert(false);
   // management of actively generated enumerators goes here
 
-  // initialize the
+  // initialize the enumerated value generator for e
   std::map<Node, std::unique_ptr<EnumValGenerator> >::iterator iteg =
       d_evg.find(e);
   if (iteg == d_evg.end())
   {
     d_evg[e]->initialize(e);
-    d_ev_curr_active_gen[e] = false;
+    d_ev_curr_active_gen[e] = Node::null();
     iteg = d_evg.find(e);
   }
-  if (d_ev_curr_active_gen[e])
+  // if we have a waiting value, return it
+  std::map< Node, Node >::iterator itw = d_ev_active_gen_waiting.find(e);
+  if( itw!=d_ev_active_gen_waiting.end() )
   {
-    Node v = d_evg[e]->getNext();
-    if (v.isNull())
-    {
-      NodeManager* nm = NodeManager::currentNM();
-      d_ev_curr_active_gen[e] = false;
-      // must block e = v
-      Node lem = d_tds->getExplain()->getExplanationForEquality(e, v).negate();
-      Node g = d_tds->getActiveGuardForEnumerator(e);
-      if (!g.isNull())
-      {
-        lem = nm->mkNode(OR, g.negate(), lem);
-      }
-      else
-      {
-        Assert(false);
-      }
-      Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
-                              "exclude current solution : "
-                           << lem << std::endl;
-      d_qe->getOutputChannel().lemma(lem);
-    }
-    return v;
+    return itw->second;
   }
-  Node v = getModelValue(e);
-  d_ev_curr_active_gen[e] = true;
-  d_evg[e]->addValue(v);
+  // Check if there is an (abstract) value absE we were actively generating values based on.
+  Node absE = d_ev_curr_active_gen[e];
+  if (absE.isNull())
+  {
+    // None currently exist. The next abstract value is the model value for e.
+    absE = getModelValue(e);
+    d_ev_curr_active_gen[e] = absE;
+    d_evg[e]->addValue(absE);
+  }
+  
+  Node v = d_evg[e]->getNext();
+  if (v.isNull())
+  {
+    // No more concrete values generated from absE.
+    NodeManager* nm = NodeManager::currentNM();
+    d_ev_curr_active_gen[e] = Node::null();
+    // We must block e = absE.
+    Node lem = d_tds->getExplain()->getExplanationForEquality(e, absE).negate();
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    if (!g.isNull())
+    {
+      lem = nm->mkNode(OR, g.negate(), lem);
+    }
+    else
+    {
+      Assert(false);
+    }
+    Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
+                            "exclude current solution : "
+                          << lem << std::endl;
+    d_qe->getOutputChannel().lemma(lem);
+  }
+  else
+  {
+    // We are waiting to send e -> v to the module that requested it.
+    d_ev_active_gen_waiting[e] = v;
+  }
   return v;
 }
 
@@ -762,28 +780,35 @@ void SynthConjecture::printAndContinueStream()
   d_ce_sk_vars.clear();
   d_ce_sk_var_mvs.clear();
   // However, we need to exclude the current solution using an explicit
-  // blocking clause, so that we proceed to the next solution.
+  // blocking clause, so that we proceed to the next solution. We do this only
+  // for passively-generated enumerators (TermDbSygus::isPassiveEnumerator).
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
   std::vector<Node> exp;
   for (const Node& cprog : terms)
   {
-    Node sol = cprog;
-    if (!d_cinfo[cprog].d_inst.empty())
+    Assert( d_tds->isEnumerator(cprog) );
+    if( d_tds->isPassiveEnumerator(cprog) )
     {
-      sol = d_cinfo[cprog].d_inst.back();
-      // add to explanation of exclusion
-      d_tds->getExplain()->getExplanationForEquality(cprog, sol, exp);
+      Node sol = cprog;
+      if (!d_cinfo[cprog].d_inst.empty())
+      {
+        sol = d_cinfo[cprog].d_inst.back();
+        // add to explanation of exclusion
+        d_tds->getExplain()->getExplanationForEquality(cprog, sol, exp);
+      }
     }
   }
-  Assert(!exp.empty());
-  Node exc_lem = exp.size() == 1
-                     ? exp[0]
-                     : NodeManager::currentNM()->mkNode(kind::AND, exp);
-  exc_lem = exc_lem.negate();
-  Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
-                       << exc_lem << std::endl;
-  d_qe->getOutputChannel().lemma(exc_lem);
+  if(!exp.empty())
+  {
+    Node exc_lem = exp.size() == 1
+                      ? exp[0]
+                      : NodeManager::currentNM()->mkNode(kind::AND, exp);
+    exc_lem = exc_lem.negate();
+    Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
+                        << exc_lem << std::endl;
+    d_qe->getOutputChannel().lemma(exc_lem);
+  }
 }
 
 void SynthConjecture::printSynthSolution(std::ostream& out,
