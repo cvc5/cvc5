@@ -103,14 +103,15 @@ class TermDbSygus {
    * enumerators, it is the responsibility of the user of that enumerator (say
    * a SygusModule) to block the current model value of it before asking for
    * another value. By default, the Cegis module uses passively-generated
-   * enumerators.
+   * enumerators and "conjecture-specific refinement" to rule out models
+   * for passively-generated enumerators.
    *
    * On the other hand, an "actively-generated" enumerator is one for which the
    * terms it enumerates are not necessarily a subset of the model values the
    * enumerator takes. Actively-generated enumerators are centrally managed by
    * SynthConjecture. The user of actively-generated enumerators are prohibited
-   * from influencing its model value. For example, "conjecture-specific
-   * refinement" in Cegis is not applied to actively-generated enumerators.
+   * from influencing its model value. For example, conjecture-specific
+   * refinement in Cegis is not applied to actively-generated enumerators.
    */
   bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
