@@ -59,9 +59,10 @@ class StreamPermutation
    */
   Node getNext();
 
-  /** all variables of value */
+  /** variables occurring in value */
   std::vector<Node> d_vars;
-  std::vector<std::vector<Node>> d_var_classes;
+  /** maps subclass ids to subset of d_vars with that subclass id */
+  std::map<unsigned, std::vector<Node>> d_var_classes;
 
 private:
   /** whether first query */
@@ -260,8 +261,8 @@ class EnumStreamConcrete
    * value, this method returns Node::null()
    */
   Node getNext();
-  /** partition of variables per subclasses */
-  std::vector<std::vector<Node>> d_var_classes;
+  /** maps subclass ids to subset of d_vars with that subclass id */
+  std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to their respective constructors in all the enumerator
    * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
@@ -269,21 +270,19 @@ class EnumStreamConcrete
   std::map<Node, Node> d_cons_var;
   /** partitions variable set according to different subclasses */
   void splitVarClasses(const std::vector<Node>& vars,
-                       std::vector<std::vector<Node>>& var_classes);
+                       std::map<unsigned, std::vector<Node>>& var_classes);
   /** sygus term database of current quantifiers engine */
   quantifiers::TermDbSygus* d_tds;
-
- private:
   /** enumerator we are concretizing values for */
   Node d_enum;
+
+ private:
   /** last registered abstract value */
   Node d_abs_value;
   /** variables from enumerator's type */
   std::vector<Node> d_vars;
   /** combination util for registered value */
   std::unique_ptr<StreamCombination> d_stream_combination;
-  /** maps variables to ids of their respective subclasses */
-  std::map<Node, unsigned> d_var_class;
 };
 
 }  // namespace quantifiers
