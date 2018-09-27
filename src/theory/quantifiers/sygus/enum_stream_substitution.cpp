@@ -1,18 +1,19 @@
 /*********************                                                        */
-/*! \file enum_stream_concrete.cpp
+/*! \file enum_stream_substitution.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Haniel Barbosa
+ **   Haniel Barbosa, Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief class for streaming concrete values from enumerated abstract ones
+ ** \brief class for streaming concrete values (through substitutions) from
+ ** enumerated abstract ones
  **/
 
-#include "theory/quantifiers/sygus/enum_stream_concrete.h"
+#include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
@@ -27,7 +28,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-StreamPermutation::StreamPermutation(Node value, quantifiers::TermDbSygus* tds)
+EnumStreamPermutation::EnumStreamPermutation(Node value,
+                                             quantifiers::TermDbSygus* tds)
     : d_tds(tds)
 {
   d_value = value;
@@ -87,7 +89,7 @@ StreamPermutation::StreamPermutation(Node value, quantifiers::TermDbSygus* tds)
   Trace("synth-stream-concrete") << "\n";
 }
 
-Node StreamPermutation::getNext()
+Node EnumStreamPermutation::getNext()
 {
   if (Trace.isOn("synth-stream-concrete"))
   {
@@ -196,9 +198,12 @@ Node StreamPermutation::getNext()
   return perm_value;
 }
 
-const std::vector<Node>& StreamPermutation::getVars() const { return d_vars; }
+const std::vector<Node>& EnumStreamPermutation::getVars() const
+{
+  return d_vars;
+}
 
-unsigned StreamPermutation::getVarClassSize(unsigned id) const
+unsigned EnumStreamPermutation::getVarClassSize(unsigned id) const
 {
   std::map<unsigned, std::vector<Node>>::const_iterator it =
       d_var_classes.find(id);
@@ -209,7 +214,7 @@ unsigned StreamPermutation::getVarClassSize(unsigned id) const
   return it->second.size();
 }
 
-void StreamPermutation::collectVars(
+void EnumStreamPermutation::collectVars(
     Node n,
     std::vector<Node>& vars,
     std::unordered_set<Node, NodeHashFunction>& visited)
@@ -237,7 +242,7 @@ void StreamPermutation::collectVars(
   }
 }
 
-StreamPermutation::PermutationState::PermutationState(
+EnumStreamPermutation::PermutationState::PermutationState(
     const std::vector<Node>& vars)
 {
   d_vars = vars;
@@ -249,14 +254,15 @@ StreamPermutation::PermutationState::PermutationState(
   std::iota(d_last_perm.begin(), d_last_perm.end(), 0);
 }
 
-void StreamPermutation::PermutationState::reset()
+void EnumStreamPermutation::PermutationState::reset()
 {
   d_curr_ind = 0;
   std::fill(d_seq.begin(), d_seq.end(), 0);
   std::iota(d_last_perm.begin(), d_last_perm.end(), 0);
 }
 
-void StreamPermutation::PermutationState::getLastPerm(std::vector<Node>& vars)
+void EnumStreamPermutation::PermutationState::getLastPerm(
+    std::vector<Node>& vars)
 {
   for (unsigned i = 0, size = d_last_perm.size(); i < size; ++i)
   {
@@ -271,7 +277,7 @@ void StreamPermutation::PermutationState::getLastPerm(std::vector<Node>& vars)
   }
 }
 
-bool StreamPermutation::PermutationState::getNextPermutation()
+bool EnumStreamPermutation::PermutationState::getNextPermutation()
 {
   // exhausted permutations
   if (d_curr_ind == d_vars.size())
@@ -300,7 +306,8 @@ bool StreamPermutation::PermutationState::getNextPermutation()
   return true;
 }
 
-StreamCombination::StreamCombination(Node value, quantifiers::TermDbSygus* tds)
+EnumStreamSubstitution::EnumStreamSubstitution(Node value,
+                                               quantifiers::TermDbSygus* tds)
     : d_tds(tds), d_stream_permutations(value, tds)
 {
   if (Trace.isOn("synth-stream-concrete"))
@@ -367,7 +374,7 @@ StreamCombination::StreamCombination(Node value, quantifiers::TermDbSygus* tds)
   Trace("synth-stream-concrete") << "\n";
 }
 
-Node StreamCombination::getNext()
+Node EnumStreamSubstitution::getNext()
 {
   const std::vector<Node>& perm_vars = d_stream_permutations.getVars();
   Trace("synth-stream-concrete")
@@ -500,7 +507,7 @@ Node StreamCombination::getNext()
   return comb_value;
 }
 
-StreamCombination::CombinationState::CombinationState(
+EnumStreamSubstitution::CombinationState::CombinationState(
     unsigned n, unsigned k, const std::vector<Node>& vars)
     : d_n(n), d_k(k)
 {
@@ -510,12 +517,13 @@ StreamCombination::CombinationState::CombinationState(
   d_vars = vars;
 }
 
-void StreamCombination::CombinationState::reset()
+void EnumStreamSubstitution::CombinationState::reset()
 {
   std::iota(d_last_comb.begin(), d_last_comb.end(), 0);
 }
 
-void StreamCombination::CombinationState::getLastComb(std::vector<Node>& vars)
+void EnumStreamSubstitution::CombinationState::getLastComb(
+    std::vector<Node>& vars)
 {
   for (unsigned i = 0, size = d_last_comb.size(); i < size; ++i)
   {
@@ -530,7 +538,7 @@ void StreamCombination::CombinationState::getLastComb(std::vector<Node>& vars)
   }
 }
 
-bool StreamCombination::CombinationState::getNextCombination()
+bool EnumStreamSubstitution::CombinationState::getNextCombination()
 {
   // find what to increment
   bool new_comb = false;
