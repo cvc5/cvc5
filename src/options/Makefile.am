@@ -73,6 +73,8 @@ liboptions_la_SOURCES = \
 	argument_extender_implementation.h \
 	argument_extender.h \
 	base_handlers.h \
+	bool_to_bv_mode.cpp \
+	bool_to_bv_mode.h \
 	bv_bitblast_mode.cpp \
 	bv_bitblast_mode.h \
 	datatypes_modes.h \

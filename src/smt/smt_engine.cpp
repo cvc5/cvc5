@@ -1368,17 +1368,17 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector())
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
         throw OptionException(
-            "bool-to-bv not supported with unsat cores/proofs");
+            "bool-to-bv != off not supported with unsat cores/proofs");
       }
       Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
                   "cores/proofs"
                << endl;
-      options::boolToBitvector.set(false);
+      setOption("boolToBitvector", SExpr("off"));
     }
 
     if (options::iteToBvite())
@@ -1451,22 +1451,16 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if(options::boolToBitvector.wasSetByUser()) {
-      throw OptionException(
-          "bool-to-bv not supported with CBQI BV for quantified logics");
-    }
-    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
-             << endl;
-    options::boolToBitvector.set(false);
-
-    if (options::iteToBvite.wasSetByUser())
+    if(options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
-      throw OptionException(
-          "ite-to-bvite not supported with CBQI BV for quantified logics");
+      if(options::boolToBitvector.wasSetByUser()) {
+        throw OptionException(
+                              "bool-to-bv != off not supported with CBQI BV for quantified logics");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+               << endl;
+      setOption("boolToBitvector", SExpr("off"));
     }
-    Notice() << "SmtEngine: turning off ite-to-bvite to support CBQI BV"
-             << endl;
-    options::iteToBvite.set(false);
   }
 
   // cases where we need produce models
@@ -2603,8 +2597,6 @@ void SmtEnginePrivate::finishInit()
       new BvIntroPow2(d_preprocessingPassContext.get()));
   std::unique_ptr<BVToBool> bvToBool(
       new BVToBool(d_preprocessingPassContext.get()));
-  std::unique_ptr<IteToBvite> iteToBvite(
-      new IteToBvite(d_preprocessingPassContext.get()));
   std::unique_ptr<ExtRewPre> extRewPre(
       new ExtRewPre(d_preprocessingPassContext.get()));
   std::unique_ptr<GlobalNegate> globalNegate(
@@ -2651,8 +2643,6 @@ void SmtEnginePrivate::finishInit()
   d_preprocessingPassRegistry.registerPass("apply-to-const",
                                            std::move(applyToConst));
   d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
-  d_preprocessingPassRegistry.registerPass("ite-to-bvite",
-                                           std::move(iteToBvite));
   d_preprocessingPassRegistry.registerPass("bv-abstraction",
                                            std::move(bvAbstract));
   d_preprocessingPassRegistry.registerPass("bv-ackermann",
