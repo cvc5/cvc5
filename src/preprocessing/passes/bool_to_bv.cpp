@@ -39,8 +39,10 @@ PreprocessingPassResult BoolToBV::applyInternal(
 
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    assertionsToPreprocess->replace(i,
-        Rewriter::rewrite(lowerAssertion(assertionsToPreprocess->operator[](i))));
+    assertionsToPreprocess->replace(
+        i,
+        Rewriter::rewrite(
+            lowerAssertion(assertionsToPreprocess->operator[](i))));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
@@ -49,9 +51,9 @@ PreprocessingPassResult BoolToBV::applyInternal(
 Node BoolToBV::fromCache(TNode n) const
 {
   if (d_lowerCache.find(n) != d_lowerCache.end())
-    {
-      return d_lowerCache.find(n)->second;
-    }
+  {
+    return d_lowerCache.find(n)->second;
+  }
   return n;
 }
 
@@ -68,7 +70,7 @@ bool BoolToBV::needToRebuild(TNode n) const
   return false;
 }
 
-Node BoolToBV::lowerAssertion(const TNode & a)
+Node BoolToBV::lowerAssertion(const TNode& a)
 {
   bool optionITE = options::boolToBitvector() == BOOL_TO_BV_ITE;
   NodeManager* nm = NodeManager::currentNM();
@@ -79,13 +81,13 @@ Node BoolToBV::lowerAssertion(const TNode & a)
   // for all mode, unused
   std::unordered_set<TNode, TNodeHashFunction> ite_cond;
 
-  while(!terms.empty())
+  while (!terms.empty())
   {
     TNode n = terms.back();
     terms.pop_back();
     Kind k = n.getKind();
     Debug("bool-to-bv") << "BoolToBV::lowerAssertion Post-traversal with " << n
-                          << " and visited = " << visited.count(n) << std::endl;
+                        << " and visited = " << visited.count(n) << std::endl;
 
     // Mark as visited
     /* Optimization: if it's a leaf, don't need to wait to do the work */
@@ -98,7 +100,7 @@ Node BoolToBV::lowerAssertion(const TNode & a)
         terms.push_back(nn);
       }
 
-      if(optionITE)
+      if (optionITE)
       {
         // check for ite-conditions
         if (k == kind::ITE)
@@ -114,12 +116,13 @@ Node BoolToBV::lowerAssertion(const TNode & a)
           }
         }
       }
-
     }
     /* Optimization for ite mode */
     else if (optionITE && (ite_cond.count(n) == 0) && !needToRebuild(n))
     {
-      Debug("bool-to-bv") << "BoolToBV::lowerAssertion Skipping because don't need to rebuild: " << n << std::endl;
+      Debug("bool-to-bv")
+          << "BoolToBV::lowerAssertion Skipping because don't need to rebuild: "
+          << n << std::endl;
       // in ite mode, if you've already visited the node but it's not
       // in an ite condition and doesn't need to be rebuilt, then
       // don't need to do anything
@@ -130,14 +133,20 @@ Node BoolToBV::lowerAssertion(const TNode & a)
       TypeNode t = n.getType();
       if ((t.isBitVector() || t.isBoolean()) && (n.getNumChildren() == 0))
       {
-        if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && (k == kind::CONST_BOOLEAN))
+        if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
+            && (k == kind::CONST_BOOLEAN))
         {
-          d_lowerCache[n] = nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+          d_lowerCache[n] = nm->mkNode(
+              kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
           ++(d_statistics.d_numTermsForcedLowered);
         }
-        // if it's already a bit-vector with no children, we don't need to do anything
-        // and for option=ite, give up instead of forcing a bool to be a bit-vector
-        Debug("bool-to-bv") << "BoolToBV::lowerAssertion Skipping or giving up on: " << n << std::endl;
+        // if it's already a bit-vector with no children, we don't need to do
+        // anything
+        // and for option=ite, give up instead of forcing a bool to be a
+        // bit-vector
+        Debug("bool-to-bv")
+            << "BoolToBV::lowerAssertion Skipping or giving up on: " << n
+            << std::endl;
       }
       else
       {
@@ -157,7 +166,7 @@ Node BoolToBV::lowerAssertion(const TNode & a)
   }
 }
 
-void BoolToBV::lowerNode(const TNode & n)
+void BoolToBV::lowerNode(const TNode& n)
 {
   // this should be guaranteed by usage in lowerAssertion
   Assert(n.getNumChildren() > 0);
@@ -181,7 +190,7 @@ void BoolToBV::lowerNode(const TNode & n)
 
   Kind k = n.getKind();
   Kind new_kind = k;
-  switch(k)
+  switch (k)
   {
     case kind::EQUAL: new_kind = kind::BITVECTOR_COMP; break;
     case kind::AND: new_kind = kind::BITVECTOR_AND; break;
@@ -222,23 +231,23 @@ void BoolToBV::lowerNode(const TNode & n)
   }
   else
   {
-    for (const Node &nn : n)
+    for (const Node& nn : n)
     {
       builder << fromCache(nn);
     }
   }
 
-  Debug("bool-to-bv") << "BoolToBV::lowerAssertion " << n
-                      << "=>\n" << builder
-                      << std::endl;
+  Debug("bool-to-bv") << "BoolToBV::lowerAssertion " << n << "=>\n"
+                      << builder << std::endl;
 
   d_lowerCache[n] = builder;
 }
 
 BoolToBV::Statistics::Statistics()
-  : d_numIteToBvite("preprocessing::passes::BoolToBV::NumIteToBvite", 0),
-    d_numTermsLowered("preprocessing::passes:BoolToBV::NumTermsLowered", 0),
-    d_numTermsForcedLowered("preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
+    : d_numIteToBvite("preprocessing::passes::BoolToBV::NumIteToBvite", 0),
+      d_numTermsLowered("preprocessing::passes:BoolToBV::NumTermsLowered", 0),
+      d_numTermsForcedLowered(
+          "preprocessing::passes::BoolToBV::NumTermsForcedLowered", 0)
 {
   smtStatisticsRegistry()->registerStat(&d_numIteToBvite);
   if (options::boolToBitvector() == BOOL_TO_BV_ALL)

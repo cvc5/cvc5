@@ -1203,7 +1203,8 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
-const std::string OptionsHandler::s_boolToBVModeHelp = "\
+const std::string OptionsHandler::s_boolToBVModeHelp =
+    "\
 BoolToBV pass modes supported by the --bool-to-bv option:\n\
 \n\
 off (default)\n\
@@ -1217,7 +1218,7 @@ all\n\
 ";
 
 preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
-              std::string option, std::string optarg)
+    std::string option, std::string optarg)
 {
   if (optarg == "off")
   {
@@ -1238,8 +1239,9 @@ preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
   }
   else
   {
-    throw OptionException(std::string("unknown option for --bool-to-bv: `") +
-                          optarg + "'. Try --bool-to-bv=help");
+    throw OptionException(std::string("unknown option for --bool-to-bv: `")
+                          + optarg
+                          + "'. Try --bool-to-bv=help");
   }
 }
 

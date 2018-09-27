@@ -1437,11 +1437,13 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if(options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
-      if(options::boolToBitvector.wasSetByUser()) {
+      if (options::boolToBitvector.wasSetByUser())
+      {
         throw OptionException(
-                              "bool-to-bv != off not supported with CBQI BV for quantified logics");
+            "bool-to-bv != off not supported with CBQI BV for quantified "
+            "logics");
       }
       Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
                << endl;
