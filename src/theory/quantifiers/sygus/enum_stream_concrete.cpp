@@ -37,21 +37,25 @@ StreamPermutation::StreamPermutation(Node value, EnumStreamConcrete* esc)
   std::unordered_set<Node, NodeHashFunction> visited;
   collectVars(value, d_vars, visited);
   // partition permutation variables
-  d_esc->splitVarClasses(d_vars, d_var_classes);
   Trace("synth-stream-concrete") << " ..permutting vars :";
-  for (unsigned i = 0, size = d_var_classes.size(); i < size; ++i)
+  if (!d_vars.empty())
   {
-    d_perm_state_class.push_back(PermutationState(d_var_classes[i]));
-    if (Trace.isOn("synth-stream-concrete"))
+    d_esc->splitVarClasses(d_vars, d_var_classes);
+    for (unsigned i = 0, size = d_var_classes.size(); i < size; ++i)
     {
-      Trace("synth-stream-concrete") << " [";
-      for (const Node& var : d_var_classes[i])
+      d_perm_state_class.push_back(PermutationState(d_var_classes[i]));
+      if (Trace.isOn("synth-stream-concrete"))
       {
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, var);
-        Trace("synth-stream-concrete") << " " << ss.str();
+        Trace("synth-stream-concrete") << " [";
+        for (const Node& var : d_var_classes[i])
+        {
+          std::stringstream ss;
+          Printer::getPrinter(options::outputLanguage())
+              ->toStreamSygus(ss, var);
+          Trace("synth-stream-concrete") << " " << ss.str();
+        }
+        Trace("synth-stream-concrete") << " ]";
       }
-      Trace("synth-stream-concrete") << " ]";
     }
   }
   Trace("synth-stream-concrete") << "\n";
@@ -110,36 +114,48 @@ Node StreamPermutation::getNext()
     std::vector<Node> sub;
     for (unsigned i = 0, size = d_perm_state_class.size(); i < size; ++i)
     {
-      sub.insert(sub.end(),
-                 d_perm_state_class[i].d_last_perm.begin(),
-                 d_perm_state_class[i].d_last_perm.end());
-    }
-    if (Trace.isOn("synth-stream-concrete-debug2"))
-    {
-      Trace("synth-stream-concrete-debug2") << "  ......sub is :";
-      for (unsigned i = 0, size = d_vars.size(); i < size; ++i)
+      Trace("synth-stream-concrete") << " ..perm for class " << i << " is";
+      std::vector<Node> raw_sub;
+      d_perm_state_class[i].getLastPerm(raw_sub);
+      // build proper substitution based on variables types and constructors
+      unsigned curr_size = sub.size();
+      for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
       {
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, d_vars[i]);
-        Trace("synth-stream-concrete-debug2") << " " << ss.str();
-        ss.str("");
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, sub[i]);
-        Trace("synth-stream-concrete-debug2") << " -> " << ss.str() << "; ";
+        TypeNode perm_var_tn = d_vars[j + curr_size].getType();
+        if (perm_var_tn == raw_sub[j].getType())
+        {
+          continue;
+        }
+        // variables in value are constructor nodes
+        Assert(d_esc->d_cons_var.find(raw_sub[j]) != d_esc->d_cons_var.end());
+        Node cons_sub_var = d_esc->d_cons_var[raw_sub[j]];
+        Assert(d_esc->d_var_cons.find(cons_sub_var) != d_esc->d_var_cons.end());
+        Assert(!d_esc->d_var_cons[cons_sub_var].empty());
+        for (const Node& cons : d_esc->d_var_cons[cons_sub_var])
+        {
+          if (cons.getType() == perm_var_tn)
+          {
+            Trace("synth-stream-concrete-debug2")
+                << "\n ....{ replacing " << raw_sub[j] << " ["
+                << raw_sub[j].getType() << "] by " << cons << " ["
+                << cons.getType() << "] }";
+            raw_sub[j] = cons;
+            break;
+          }
+        }
       }
-      Trace("synth-stream-concrete-debug2") << "\n";
+      sub.insert(sub.end(), raw_sub.begin(), raw_sub.end());
+      Trace("synth-stream-concrete") << "\n";
     }
+    Assert(d_vars.size() == sub.size());
     perm_value = d_value.substitute(
         d_vars.begin(), d_vars.end(), sub.begin(), sub.end());
     bultin_perm_value =
         d_esc->d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
-        << " ......perm is " << bultin_perm_value;
-
+        << " ......perm builtin is " << bultin_perm_value;
     bultin_perm_value =
         d_esc->d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
-
     Trace("synth-stream-concrete-debug")
         << " and rewrites to " << bultin_perm_value << "\n";
     // if permuted value is equivalent modulo rewriting to a previous one, look
@@ -189,19 +205,34 @@ StreamPermutation::PermutationState::PermutationState(
     const std::vector<Node>& vars)
 {
   d_vars = vars;
+  d_curr_ind = 0;
   d_seq.resize(vars.size());
   std::fill(d_seq.begin(), d_seq.end(), 0);
-  d_curr_ind = 0;
-  d_last_perm = d_vars;
+  // initialize variable indices
+  d_last_perm.resize(vars.size());
+  std::iota(d_last_perm.begin(), d_last_perm.end(), 0);
 }
 
 void StreamPermutation::PermutationState::reset()
 {
-  d_seq.clear();
-  d_seq.resize(d_vars.size());
-  std::fill(d_seq.begin(), d_seq.end(), 0);
   d_curr_ind = 0;
-  d_last_perm = d_vars;
+  std::fill(d_seq.begin(), d_seq.end(), 0);
+  std::iota(d_last_perm.begin(), d_last_perm.end(), 0);
+}
+
+void StreamPermutation::PermutationState::getLastPerm(std::vector<Node>& vars)
+{
+  for (unsigned i = 0, size = d_last_perm.size(); i < size; ++i)
+  {
+    if (Trace.isOn("synth-stream-concrete"))
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())
+          ->toStreamSygus(ss, d_vars[d_last_perm[i]]);
+      Trace("synth-stream-concrete") << " " << ss.str();
+    }
+    vars.push_back(d_vars[d_last_perm[i]]);
+  }
 }
 
 bool StreamPermutation::PermutationState::getNextPermutation()
@@ -333,12 +364,17 @@ Node StreamCombination::getNext()
     Trace("synth-stream-concrete") << " ..comb for class " << i << " is";
     std::vector<Node> raw_sub;
     d_comb_state_class[i].getLastComb(raw_sub);
-    unsigned curr_size = sub.size();
     // build proper substitution based on variables types and constructors
+    unsigned curr_size = sub.size();
     for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
     {
       TypeNode perm_var_tn =
           d_stream_permutations.d_vars[j + curr_size].getType();
+      if (perm_var_tn == raw_sub[j].getType())
+      {
+        continue;
+      }
+      Assert(d_esc->d_var_cons.find(raw_sub[j]) != d_esc->d_var_cons.end());
       Assert(!d_esc->d_var_cons[raw_sub[j]].empty());
       for (const Node& cons : d_esc->d_var_cons[raw_sub[j]])
       {
@@ -523,6 +559,7 @@ void EnumStreamConcrete::initialize(Node e)
         if (dt[i].getNumArgs() == 0 && Node::fromExpr(dt[i].getSygusOp()) == v)
         {
           cons.push_back(nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor()));
+          d_cons_var[cons.back()] = v;
         }
       }
     }

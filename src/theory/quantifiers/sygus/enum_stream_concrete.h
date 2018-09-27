@@ -89,17 +89,19 @@ private:
      * returns true if one exists, false otherwise
      *
      * when a new permutation is generated the the new variable arrangement is
-     * stored in d_last_perm
+     * stored in d_last_perm (in terms of the index of d_vars)
      */
     bool getNextPermutation();
     /** resets permutation state to initial variable ordering */
     void reset();
+    void getLastPerm(std::vector<Node>& vars);
+   private:
     /** variables being permuted */
     std::vector<Node> d_vars;
-    /** last computed permutation of variables */
-    std::vector<Node> d_last_perm;
 
-   private:
+    /** last computed permutation of variables */
+    std::vector<unsigned> d_last_perm;
+
     /** auxiliary position list for generating permutations */
     std::vector<unsigned> d_seq;
     /** current index being permuted */
@@ -263,6 +265,8 @@ class EnumStreamConcrete
   /** maps variables to their respective constructors in all the enumerator
    * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
+  /** reverse map of the above */
+  std::map<Node, Node> d_cons_var;
   /** partitions variable set according to different subclasses */
   void splitVarClasses(const std::vector<Node>& vars,
                        std::vector<std::vector<Node>>& var_classes);
