@@ -58,14 +58,6 @@ class NonClausalSimp : public PreprocessingPass
   std::pair<bool, std::vector<Node>> preprocessByCircuitPropagator(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
-  /** Solve the boolean skeleton */
-  SatValue solveByCryptominisat(CVC4::prop::TseitinCnfStream* d_cnfStream,
-                                AssertionPipeline* assertionsToPreprocess,
-                                unsigned substs_index);
-
-  bool solveByCircuitPropagator(theory::booleans::CircuitPropagator* propagator,
-                                AssertionPipeline* assertionsToPreprocess,
-                                unsigned substs_index);
 };
 
 }  // namespace passes
