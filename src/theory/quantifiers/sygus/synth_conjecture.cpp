@@ -707,6 +707,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   {
     // We are waiting to send e -> v to the module that requested it.
     d_ev_active_gen_waiting[e] = v;
+    Trace("sygus-active-gen") << "Active-gen : " << absE << " -> " << v << std::endl;
   }
   return v;
 }

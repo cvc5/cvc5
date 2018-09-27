@@ -534,8 +534,6 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/cegis_unif.h \
 	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv.h \
-	theory/quantifiers/sygus/enum_stream_concrete.cpp \
-	theory/quantifiers/sygus/enum_stream_concrete.h \
 	theory/quantifiers/sygus/sygus_pbe.cpp \
 	theory/quantifiers/sygus/sygus_pbe.h \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
