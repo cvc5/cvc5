@@ -315,7 +315,7 @@ void Cegis::addRefinementLemma(Node lem)
   // rewrite with extended rewriter
   slem = d_tds->getExtRewriter()->extendedRewrite(slem);
   // collect all variables in slem
-  //expr::getSymbols(slem,d_refinement_lemma_vars);
+  expr::getSymbols(slem,d_refinement_lemma_vars);
   std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
