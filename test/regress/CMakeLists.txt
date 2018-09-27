@@ -1166,6 +1166,7 @@ set(regress_1_tests
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
+  regress1/nl/exp-approx.smt2
   regress1/nl/exp-4.5-lt.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
