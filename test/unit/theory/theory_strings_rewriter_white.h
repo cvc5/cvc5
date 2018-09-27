@@ -661,6 +661,120 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     sameNormalForm(p_xxa, f);
   }
 
+  void testRewriteEqualityExt()
+  {
+    TypeNode strType = d_nm->stringType();
+    TypeNode intType = d_nm->integerType();
+
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node b = d_nm->mkConst(::CVC4::String("B"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node xxa = d_nm->mkNode(kind::STRING_CONCAT, x, x, a);
+    Node f = d_nm->mkConst(false);
+    Node n = d_nm->mkVar("n", intType);
+    Node zero = d_nm->mkConst(Rational(0));
+    Node one = d_nm->mkConst(Rational(1));
+    Node three = d_nm->mkConst(Rational(3));
+
+    // Same normal form for:
+    //
+    // (= "" (str.replace "" x "B"))
+    //
+    // (not (= x ""))
+    Node empty_repl = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, empty, x, b));
+    Node empty_x = d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, x, empty));
+    sameNormalForm(empty_repl, empty_x);
+
+    // Same normal form for:
+    //
+    // (= "" (str.replace x y (str.++ x x "A")))
+    //
+    // (and (= x "") (not (= y "")))
+    Node empty_repl_xaa = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, x, y, xxa));
+    Node empty_xy = d_nm->mkNode(
+        kind::AND,
+        d_nm->mkNode(kind::EQUAL, x, empty),
+        d_nm->mkNode(kind::NOT, d_nm->mkNode(kind::EQUAL, y, empty)));
+    sameNormalForm(empty_repl_xaa, empty_xy);
+
+    // (= "" (str.replace (str.++ x x "A") x y)) ---> false
+    Node empty_repl_xxaxy = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, xxa, x, y));
+    Node eq_xxa_repl = d_nm->mkNode(
+        kind::EQUAL, xxa, d_nm->mkNode(kind::STRING_STRREPL, empty, y, x));
+    sameNormalForm(empty_repl_xxaxy, f);
+
+    // Same normal form for:
+    //
+    // (= "" (str.replace "A" x y))
+    //
+    // (= "A" (str.replace "" y x))
+    Node empty_repl_axy = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, a, x, y));
+    Node eq_a_repl = d_nm->mkNode(
+        kind::EQUAL, a, d_nm->mkNode(kind::STRING_STRREPL, empty, y, x));
+    sameNormalForm(empty_repl_axy, eq_a_repl);
+
+    // Same normal form for:
+    //
+    // (= "" (str.replace x "A" ""))
+    //
+    // (str.prefix x "A")
+    Node empty_repl_a = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_STRREPL, x, a, empty));
+    Node prefix_a = d_nm->mkNode(kind::STRING_PREFIX, x, a);
+    sameNormalForm(empty_repl_a, prefix_a);
+
+    // Same normal form for:
+    //
+    // (= "" (str.substr x 1 2))
+    //
+    // (<= (str.len x) 1)
+    Node empty_substr = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_SUBSTR, x, one, three));
+    Node leq_len_x =
+        d_nm->mkNode(kind::LEQ, d_nm->mkNode(kind::STRING_LENGTH, x), one);
+    sameNormalForm(empty_substr, leq_len_x);
+
+    // Different normal form for:
+    //
+    // (= "" (str.substr x 0 n))
+    //
+    // (<= n 0)
+    Node empty_substr_x = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_SUBSTR, x, zero, n));
+    Node leq_n = d_nm->mkNode(kind::LEQ, n, zero);
+    differentNormalForms(empty_substr_x, leq_n);
+
+    // Same normal form for:
+    //
+    // (= "" (str.substr "A" 0 n))
+    //
+    // (<= n 0)
+    Node empty_substr_a = d_nm->mkNode(
+        kind::EQUAL, empty, d_nm->mkNode(kind::STRING_SUBSTR, a, zero, n));
+    sameNormalForm(empty_substr_a, leq_n);
+
+    // Same normal form for:
+    //
+    // (= (str.++ x x a) (str.replace y (str.++ x x a) y))
+    //
+    // (= (str.++ x x a) y)
+    Node eq_xxa_repl_y = d_nm->mkNode(
+        kind::EQUAL, xxa, d_nm->mkNode(kind::STRING_STRREPL, y, xxa, y));
+    Node eq_xxa_y = d_nm->mkNode(kind::EQUAL, xxa, y);
+    sameNormalForm(eq_xxa_repl_y, eq_xxa_y);
+
+    // (= (str.++ x x a) (str.replace (str.++ x x a) "A" "B")) ---> false
+    Node eq_xxa_repl_xxa = d_nm->mkNode(
+        kind::EQUAL, xxa, d_nm->mkNode(kind::STRING_STRREPL, xxa, a, b));
+    sameNormalForm(eq_xxa_repl_xxa, f);
+  }
+
  private:
   ExprManager* d_em;
   SmtEngine* d_smt;
