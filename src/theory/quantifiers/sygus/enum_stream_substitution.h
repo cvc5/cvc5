@@ -245,6 +245,7 @@ class EnumStreamSubstitution
     void getLastComb(std::vector<Node>& vars);
     /** retrieve subclass id */
     const unsigned getSubclassId() const;
+
    private:
     /** subclass id of variables being combined */
     unsigned d_subclass_id;
