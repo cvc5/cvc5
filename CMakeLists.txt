@@ -271,8 +271,7 @@ if(ENABLE_COVERAGE)
   setup_target_for_coverage_lcov(
     NAME coverage
     EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example" --output-on-failure $(ARGS)
-    DEPENDENCIES cvc4-bin)
+      ctest -j${CTEST_NTHREADS} -LE "example" --output-on-failure $(ARGS))
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
