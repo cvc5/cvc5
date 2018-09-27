@@ -24,6 +24,8 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class EnumStreamConcrete;
+
 /** Streamer of different values according to variable permutations
  *
  * Generates a new value (modulo rewriting) when queried in which its variables
@@ -37,9 +39,7 @@ class StreamPermutation
    * for each subset of the variables in value (according to the subclasses
    * defined in the partition var_classes), a permutation utility is initialized
    */
-  StreamPermutation(Node value,
-                    const std::vector<std::vector<Node>>& perm_var_classes,
-                    EnumStreamConcrete* esc);
+  StreamPermutation(Node value, EnumStreamConcrete* esc);
   ~StreamPermutation() {}
   /** computes next permutation, if any, of value
    *
@@ -59,17 +59,23 @@ class StreamPermutation
    */
   Node getNext();
 
- private:
-  /** parent streaming utility */
-  EnumStreamConcrete* d_ecs;
-  /** value to which we are generating permutations */
-  Node d_value;
-  /** last value generated */
-  Node d_last_value;
   /** all variables of value */
   std::vector<Node> d_vars;
+  std::vector<std::vector<Node>> d_var_classes;
+
+private:
+  /** whether first query */
+  bool d_first;
+  /** parent streaming utility */
+  EnumStreamConcrete* d_esc;
+  /** value to which we are generating permutations */
+  Node d_value;
   /** generated permutations (modulo rewriting) */
   std::unordered_set<Node, NodeHashFunction> d_perm_values;
+  /** retrieves variables occurring in value */
+  void collectVars(Node n,
+                   std::vector<Node>& vars,
+                   std::unordered_set<Node, NodeHashFunction>& visited);
   /** Utility for stepwise application of Heap's algorithm for permutation
    *
    * see https://en.wikipedia.org/wiki/Heap%27s_algorithm
@@ -148,16 +154,13 @@ class StreamCombination
 
  private:
   /** parent streaming utility */
-  EnumStreamConcrete* d_ecs;
+  EnumStreamConcrete* d_esc;
   /** last value generated after a combination
    *
    * If getNext() has been called, this is the return value of the most recent
    * call to getNext(). Otherwise, this value is null.
    */
   Node d_last;
-  /** variables ocurring in the value and that are permuted after each
-   * combination cycle */
-  std::vector<Node> d_perm_vars;
   /** generated combinations (for debugging) */
   std::unordered_set<Node, NodeHashFunction> d_comb_values;
   /** permutation utility */
@@ -196,6 +199,7 @@ class StreamCombination
   /** current class being combined */
   unsigned d_curr_ind;
 };
+
 
 /** Streamer of concrete values for enumerator
  *
@@ -259,6 +263,9 @@ class EnumStreamConcrete
   /** maps variables to their respective constructors in all the enumerator
    * subfield types */
   std::map<Node, std::vector<Node>> d_var_cons;
+  /** partitions variable set according to different subclasses */
+  void splitVarClasses(const std::vector<Node>& vars,
+                       std::vector<std::vector<Node>>& var_classes);
   /** sygus term database of current quantifiers engine */
   quantifiers::TermDbSygus* d_tds;
 
@@ -270,16 +277,9 @@ class EnumStreamConcrete
   /** variables from enumerator's type */
   std::vector<Node> d_vars;
   /** combination util for registered value */
-  StreamCombination d_stream_combination;
+  std::unique_ptr<StreamCombination> d_stream_combination;
   /** maps variables to ids of their respective subclasses */
   std::map<Node, unsigned> d_var_class;
-  /** retrieves variables occurring in value */
-  void collectVars(Node n,
-                   std::vector<Node>& vars,
-                   std::unordered_set<Node, NodeHashFunction>& visited);
-  /** partitions variable set according to different subclasses */
-  void splitVarClasses(const std::vector<Node>& vars,
-                       std::vector<std::vector<Node>>& var_classes);
 };
 
 }  // namespace quantifiers
