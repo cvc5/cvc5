@@ -46,11 +46,23 @@ class BoolToBV : public PreprocessingPass
     ~Statistics();
   };
 
-  Node lowerAssertion(TNode a);
-  Node fromCache(TNode n);
-  bool needToRebuild(TNode n);
+  /* Takes an assertion and tries to create more bit-vector structure */
+  Node lowerAssertion(const TNode & a);
+
+  /* Tries to lower one node to a width-one bitvector */
+  void lowerNode(const TNode & n);
+
+  /* Returns cached node if it exists, otherwise returns the node */
+  Node fromCache(TNode n) const;
+
+  /** Checks if any of the nodes children were rebuilt,
+   *  in which case n needs to be rebuilt as well
+   */
+  bool needToRebuild(TNode n) const;
+
   Statistics d_statistics;
 
+  /* Keeps track of lowered nodes */
   std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
 };  // class BoolToBV
 
