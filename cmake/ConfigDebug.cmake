@@ -19,9 +19,8 @@ cvc4_set_option(ENABLE_PROOFS ON)
 cvc4_set_option(ENABLE_TRACING ON)
 # enable_dumping=yes
 if(ENABLE_PORTFOLIO)
-  if(ENABLE_DUMPING)
-    message(FATAL_ERROR "Dumping not supported with a portfolio build.")
-  else()
+  # Only print warning if dumping was not explicitely disabled by the user.
+  if(${ENABLE_DUMPING} STREQUAL "IGNORE")
     message(WARNING
       "Disabling dumping support, not supported with a portfolio build.")
   endif()
