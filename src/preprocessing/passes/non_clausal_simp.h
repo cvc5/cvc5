@@ -52,10 +52,10 @@ class NonClausalSimp : public PreprocessingPass
 
   /** Preprocess the boolean skeleton,
   which calls solveByCryptominisat or solveByCircuitPropagator */
-  std::tuple<bool, std::vector<Node>> preprocessByCryptominisat(
+  std::pair<bool, std::vector<Node>> preprocessByCryptominisat(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
-  std::tuple<bool, std::vector<Node>> preprocessByCircuitPropagator(
+  std::pair<bool, std::vector<Node>> preprocessByCircuitPropagator(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
   /** Solve the boolean skeleton */

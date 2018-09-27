@@ -81,7 +81,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   d_preprocContext->spendResource(options::preprocessStep());
   unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
-  std::tuple<bool, std::vector<Node>> resultAndLearnedLiterals;
+  std::pair<bool, std::vector<Node>> resultAndLearnedLiterals;
+  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+    {
+      Trace("non-clausal-simplify") << "Assertion #" << i << " : "
+				    << (*assertionsToPreprocess)[i] << std::endl;
+    }
+
   if (options::skeletonPreprocessing()){
     // solve the boolean skeleton using cryptominisat
     resultAndLearnedLiterals =
@@ -95,12 +101,12 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
         preprocessByCircuitPropagator(assertionsToPreprocess, substs_index);
   }
 
-  if (!std::get<0>(resultAndLearnedLiterals))
+  if (!resultAndLearnedLiterals.first)
   {
     handleConflictCase(assertionsToPreprocess);
     return PreprocessingPassResult::CONFLICT;
   }
-  std::vector<Node> learned_literals = std::get<1>(resultAndLearnedLiterals);
+  std::vector<Node> learned_literals = resultAndLearnedLiterals.second;
 
   Trace("non-clausal-simplify") << "Iterate through " << learned_literals.size()
                                 << " learned literals." << std::endl;
@@ -446,12 +452,6 @@ SatValue NonClausalSimp::solveByCryptominisat(
     AssertionPipeline* assertionsToPreprocess,
     unsigned substs_index)
 {
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                  << (*assertionsToPreprocess)[i] << std::endl;
-  }
-
   Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
   SatSolver* d_satSolver = d_cnfStream->getSatSolver();
   { // for timing
@@ -475,7 +475,7 @@ SatValue NonClausalSimp::solveByCryptominisat(
   return d_satSolver->solve();
 }
 
-std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
+std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
     AssertionPipeline* assertionsToPreprocess, unsigned substs_index)
 {
   std::unique_ptr<SatSolver> d_satSolver(SatSolverFactory::createCryptoMinisat(
@@ -492,7 +492,7 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
       == SAT_VALUE_FALSE)
   {
     // If in conflict, just return false
-    return std::make_tuple(false, learned_literals);
+    return std::make_pair(false, learned_literals);
   }
 
   std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
@@ -503,7 +503,7 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
         != d_cnfStream.getNodeCache().end())
     {
       // if the literal is in the getNodeCache
-      Node learnedLiteral = Rewriter::rewrite(d_cnfStream.getNode(lit));
+      Node learnedLiteral = d_cnfStream.getNode(lit); 
       if (learnedLiteral.isConst())
       {
         if (learnedLiteral.getConst<bool>())
@@ -514,13 +514,13 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
         else
         {
           // If the learned literal simplifies to false, we're in conflict
-          return std::make_tuple(false, learned_literals);
+          return std::make_pair(false, learned_literals);
         }
       }
       learned_literals.push_back(learnedLiteral);
     }
   }
-  return std::make_tuple(true, learned_literals);
+  return std::make_pair(true, learned_literals);
 }
 
 bool NonClausalSimp::solveByCircuitPropagator(
@@ -528,12 +528,6 @@ bool NonClausalSimp::solveByCircuitPropagator(
     AssertionPipeline* assertionsToPreprocess,
     unsigned substs_index)
 {
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-                                  << (*assertionsToPreprocess)[i] << std::endl;
-  }
-
   if (propagator->getNeedsFinish())
   {
     propagator->finish();
@@ -567,7 +561,7 @@ bool NonClausalSimp::solveByCircuitPropagator(
   return propagator->propagate();
 }
 
-std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCircuitPropagator(
+std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCircuitPropagator(
     AssertionPipeline* assertionsToPreprocess, unsigned substs_index)
 {
   theory::booleans::CircuitPropagator* propagator =
@@ -577,13 +571,12 @@ std::tuple<bool, std::vector<Node>> NonClausalSimp::preprocessByCircuitPropagato
           propagator, assertionsToPreprocess, substs_index))
   {
     // If in conflict, just return false
-    handleConflictCase(assertionsToPreprocess);
     propagator->setNeedsFinish(true);
-    return std::make_tuple(false, learned_literals);
+    return std::make_pair(false, learned_literals);
   }
   learned_literals = propagator->getLearnedLiterals();
   propagator->setNeedsFinish(true);
-  return std::make_tuple(true, learned_literals);
+  return std::make_pair(true, learned_literals);
 }
 
 /* -------------------------------------------------------------------------- */
