@@ -116,10 +116,9 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     // if it is relevant to refinement
     if( d_refinement_lemma_vars.find(v)!=d_refinement_lemma_vars.end() )
     {
-      Assert( d_tds->isEnumerator(v) );
       if( !d_tds->isPassiveEnumerator(v) )
       {
-        //doGen = false;
+        doGen = false;
         break;
       }
     }
