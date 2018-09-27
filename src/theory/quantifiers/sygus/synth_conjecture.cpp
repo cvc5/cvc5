@@ -41,6 +41,7 @@ namespace quantifiers {
 
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
+      d_tds(qe->getTermDatabaseSygus()),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -339,7 +340,7 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
 
   // get the model value of the relevant terms from the master module
   std::vector<Node> enum_values;
-  bool fullModel = getModelValues(terms, enum_values);
+  bool fullModel = getEnumeratedValues(terms, enum_values);
 
   // if the master requires a full model and the model is partial, we fail
   if (!d_master->allowPartialModel() && !fullModel)
@@ -450,7 +451,7 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
   std::map<Node, Node> visited_n;
-  lem = d_qe->getTermDatabaseSygus()->getEagerUnfold(lem, visited_n);
+  lem = d_tds->getEagerUnfold(lem, visited_n);
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
@@ -542,7 +543,12 @@ void SynthConjecture::doRefine(std::vector<Node>& lems)
     if (d_ce_sk_var_mvs.empty())
     {
       std::vector<Node> model_values;
-      getModelValues(d_ce_sk_vars, model_values);
+      for (const Node& v : d_ce_sk_vars)
+      {
+        Node mv = getModelValue(v);
+        Trace("cegqi-refine") << "  " << v << " -> " << mv << std::endl;
+        model_values.push_back(mv);
+      }
       sk_subs.insert(sk_subs.end(), model_values.begin(), model_values.end());
     }
     else
@@ -594,13 +600,14 @@ void SynthConjecture::preregisterConjecture(Node q)
   d_ceg_si->preregisterConjecture(q);
 }
 
-bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
+bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
+                                          std::vector<Node>& v)
 {
   bool ret = true;
   Trace("cegqi-engine") << "  * Value is : ";
   for (unsigned i = 0; i < n.size(); i++)
   {
-    Node nv = getModelValue(n[i]);
+    Node nv = getEnumeratedValue(n[i]);
     v.push_back(nv);
     ret = ret && !nv.isNull();
     if (Trace.isOn("cegqi-engine"))
@@ -619,7 +626,7 @@ bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
         Trace("cegqi-engine") << ss.str() << " ";
         if (Trace.isOn("cegqi-engine-rr"))
         {
-          Node bv = d_qe->getTermDatabaseSygus()->sygusToBuiltin(nv, tn);
+          Node bv = d_tds->sygusToBuiltin(nv, tn);
           bv = Rewriter::rewrite(bv);
           Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
         }
@@ -630,18 +637,29 @@ bool SynthConjecture::getModelValues(std::vector<Node>& n, std::vector<Node>& v)
   return ret;
 }
 
-Node SynthConjecture::getModelValue(Node n)
+Node SynthConjecture::getEnumeratedValue(Node e)
 {
-  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
-  if (n.getAttribute(SygusSymBreakExcAttribute()))
+  Assert(d_tds->isEnumerator(e));
+  if (e.getAttribute(SygusSymBreakExcAttribute()))
   {
-    // if the current model value of n was excluded by symmetry breaking, then
+    // if the current model value of e was excluded by symmetry breaking, then
     // it does not have a proper model value that we should consider, thus we
     // return null.
     return Node::null();
   }
-  Node mv = d_qe->getModel()->getValue(n);
-  return mv;
+  if (d_tds->isPassiveEnumerator(e))
+  {
+    return getModelValue(e);
+  }
+  Assert(false);
+  // management of actively generated enumerators goes here
+  return getModelValue(e);
+}
+
+Node SynthConjecture::getModelValue(Node n)
+{
+  Trace("cegqi-mv") << "getModelValue for : " << n << std::endl;
+  return d_qe->getModel()->getValue(n);
 }
 
 void SynthConjecture::debugPrint(const char* c)
@@ -718,8 +736,7 @@ void SynthConjecture::printAndContinueStream()
     {
       sol = d_cinfo[cprog].d_inst.back();
       // add to explanation of exclusion
-      d_qe->getTermDatabaseSygus()->getExplain()->getExplanationForEquality(
-          cprog, sol, exp);
+      d_tds->getExplain()->getExplanationForEquality(cprog, sol, exp);
     }
   }
   Assert(!exp.empty());
@@ -817,7 +834,6 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
                                         bool singleInvocation)
 {
   NodeManager* nm = NodeManager::currentNM();
-  TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
   std::vector<Node> sols;
   std::vector<int> statuses;
   if (!getSynthSolutionsInternal(sols, statuses, singleInvocation))
@@ -833,7 +849,7 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
     if (status != 0)
     {
       // convert sygus to builtin here
-      bsol = sygusDb->sygusToBuiltin(sol, sol.getType());
+      bsol = d_tds->sygusToBuiltin(sol, sol.getType());
     }
     // convert to lambda
     TypeNode tn = d_embed_quant[0][i].getType();
@@ -894,8 +910,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
           {
             TNode templa = d_ceg_si->getTemplateArg(sf);
             // make the builtin version of the full solution
-            TermDbSygus* sygusDb = d_qe->getTermDatabaseSygus();
-            sol = sygusDb->sygusToBuiltin(sol, sol.getType());
+            sol = d_tds->sygusToBuiltin(sol, sol.getType());
             Trace("cegqi-inv") << "Builtin version of solution is : " << sol
                                << ", type : " << sol.getType() << std::endl;
             TNode tsol = sol;
