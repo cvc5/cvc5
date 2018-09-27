@@ -499,26 +499,24 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
   for (size_t i = 0; i < topLevelUnits.size(); i++)
   {
     SatLiteral lit = topLevelUnits[i];
-    if (d_cnfStream.getNodeCache().find(lit)
-        != d_cnfStream.getNodeCache().end())
+    Assert(d_cnfStream.getNodeCache().find(lit)
+           != d_cnfStream.getNodeCache().end());
+    // if the literal is in the getNodeCache
+    Node learnedLiteral = d_cnfStream.getNode(lit);
+    if (learnedLiteral.isConst())
     {
-      // if the literal is in the getNodeCache
-      Node learnedLiteral = d_cnfStream.getNode(lit); 
-      if (learnedLiteral.isConst())
+      if (learnedLiteral.getConst<bool>())
       {
-        if (learnedLiteral.getConst<bool>())
-        {
-          // If the learned literal simplifies to true, it's redundant
-          continue;
-        }
-        else
-        {
-          // If the learned literal simplifies to false, we're in conflict
-          return std::make_pair(false, learned_literals);
-        }
+        // If the learned literal simplifies to true, it's redundant
+        continue;
+      }
+      else
+      {
+        // If the learned literal simplifies to false, we're in conflict
+        return std::make_pair(false, learned_literals);
+      }
       }
       learned_literals.push_back(learnedLiteral);
-    }
   }
   return std::make_pair(true, learned_literals);
 }
