@@ -84,7 +84,6 @@
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
-#include "preprocessing/passes/ite_to_bvite.h"
 #include "preprocessing/passes/miplib_trick.h"
 #include "preprocessing/passes/nl_ext_purify.h"
 #include "preprocessing/passes/non_clausal_simp.h"
@@ -1379,19 +1378,6 @@ void SmtEngine::setDefaults() {
                   "cores/proofs"
                << endl;
       setOption("boolToBitvector", SExpr("off"));
-    }
-
-    if (options::iteToBvite())
-    {
-      if (options::iteToBvite.wasSetByUser())
-      {
-        throw OptionException(
-            "ite-to-bvite not supported with unsat cores/proofs");
-      }
-      Notice() << "SmtEngine: turning off ite-to-bvite to support unsat "
-                  "cores/proofs"
-               << endl;
-      options::iteToBvite.set(false);
     }
 
     if (options::bvIntroducePow2())
@@ -3286,10 +3272,6 @@ void SmtEnginePrivate::processAssertions() {
   }
   if(options::sepPreSkolemEmp()) {
     d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
-  }
-  if (options::iteToBvite())
-  {
-    d_preprocessingPassRegistry.getPass("ite-to-bvite")->apply(&d_assertions);
   }
 
   if( d_smt.d_logic.isQuantified() ){

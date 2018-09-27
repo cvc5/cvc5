@@ -123,14 +123,6 @@ header = "options/bv_options.h"
   help       = "lift equivalence with one-bit bitvectors to be boolean operations"
 
 [[option]]
-  name       = "iteToBvite"
-  category   = "regular"
-  long       = "ite-to-bvite"
-  type       = "bool"
-  default    = "false"
-  help       = "convert ITEs to BITVECTOR_ITEs when it's convenient (less aggressive than bool-to-bv)"
-
-[[option]]
   name       = "bitvectorDivByZeroConst"
   category   = "regular"
   long       = "bv-div-zero-const"
