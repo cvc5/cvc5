@@ -10,16 +10,18 @@ set(java_test_src_files
   LinearArith.java
 )
 
-add_jar(cvc4javatests
+add_jar(build-javatests
   SOURCES ${java_test_src_files}
   INCLUDE_JARS
     ${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar
     ${JUnit_JAR}
+  OUTPUT_NAME javatests
 )
-add_dependencies(cvc4javatests cvc4jar)
+add_dependencies(build-javatests cvc4jar)
+add_dependencies(check build-javatests)
 
 # Add java tests to ctest
-set(classpath "${CMAKE_CURRENT_BINARY_DIR}/cvc4javatests.jar")
+set(classpath "${CMAKE_CURRENT_BINARY_DIR}/javatests.jar")
 set(classpath "${classpath}:${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar")
 set(classpath "${classpath}:${JUnit_JAR}:${JUnit_JAR_DEPS}")
 
