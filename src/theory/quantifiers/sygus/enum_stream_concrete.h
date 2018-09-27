@@ -29,15 +29,15 @@ class EnumStreamConcrete;
 /** Streamer of different values according to variable permutations
  *
  * Generates a new value (modulo rewriting) when queried in which its variables
- * are permuted.
+ * are permuted (see EnumStreamConcrete for more details).
  */
 class StreamPermutation
 {
  public:
   /** initializes utility
    *
-   * for each subset of the variables in value (according to the subclasses
-   * defined in the partition var_classes), a permutation utility is initialized
+   * for each subset of the variables in value (according to their
+   * subclasses_classes), a permutation utility is initialized
    */
   StreamPermutation(Node value, EnumStreamConcrete* esc);
   ~StreamPermutation() {}
@@ -56,6 +56,12 @@ class StreamPermutation
    * Moreover, new values are only considered if they are unique modulo
    * rewriting. If for example OP were "+", then no next value would exist,
    * while if OP were "-" the only next value would be: (- x4 x2 x3 x1)
+   *
+   * Since the same variable can occur in different subfield types (and
+   * therefore their datatype equivalents would have different types) a map from
+   * variables to sets of constructors (see EnumStreamConcrete::var_cons) is
+   * used to build substitutions in a proper way when generating different
+   * combinations.
    */
   Node getNext();
 
@@ -90,20 +96,22 @@ class StreamPermutation
      * returns true if one exists, false otherwise
      *
      * when a new permutation is generated the the new variable arrangement is
-     * stored in d_last_perm (in terms of the index of d_vars)
+     * stored in d_last_perm (in terms of d_vars' indices)
      */
     bool getNextPermutation();
     /** resets permutation state to initial variable ordering */
     void reset();
+    /** retrieves last variable permutation
+     *
+     * vars is populated with the new variable arrangement
+     */
     void getLastPerm(std::vector<Node>& vars);
 
    private:
     /** variables being permuted */
     std::vector<Node> d_vars;
-
     /** last computed permutation of variables */
     std::vector<unsigned> d_last_perm;
-
     /** auxiliary position list for generating permutations */
     std::vector<unsigned> d_seq;
     /** current index being permuted */
@@ -116,7 +124,7 @@ class StreamPermutation
 };
 
 /** Streamer of different values according to variable combinations and
- * permutations
+ * permutations (see EnumStreamConcrete for more details).
  *
  * Generates a new value when queried in which a new ordered combination of
  * variables is used. When all combinations are exhausted, a new base value is
@@ -129,12 +137,25 @@ class StreamCombination
   /** initializes utility
    *
    * the combinations are generated from a initial set of variables (the union
-   * of d_vars_classes in the parent EnumStreamConcrete) from which we choose a
-   * subset of variables in the same quantity as those occurring in the given
-   * value.
+   * of d_var_classes in the parent EnumStreamConcrete). For each variable
+   * subclass of this initial set, a subset is chosen with as many variables as
+   * in the same variable subclass of value's variables.
    *
    * The combinations are performed modulo subclasses. For each subclass of the
    * given variables, a combination utility is initialized.
+   *
+   * For example, if the initial variable set is partioned into
+   *
+   * {1 -> {x1, x4}, 2 -> {x2, x3, x6}, 3 -> {x5}}
+   *
+   * and value's variables into
+   *
+   * {1 -> {x1, x4}, 2 -> {x2}, 3 -> {}}
+   *
+   * then the combination utilities are initialized such that for class 1 all
+   * ordered subsets with two variables are chosen; for class 2 all ordered
+   * subsets with one variable; and for class 3 no combination can be chosen.
+   *
    */
   StreamCombination(Node value, EnumStreamConcrete* esc);
   ~StreamCombination() {}
@@ -142,17 +163,13 @@ class StreamCombination
    *
    * a "next" combination is determined by having at least one new combination
    * in one of the variable subclasses in the initial set of variables. If no
-   * new combination exist, the cycle restarts with a new base value generated
+   * new combination exists, the cycle restarts with a new base value generated
    * by StreamPermutation::getNext() (see above).
    *
    * This layered approach (of deriving all combinations for each permutation)
-   * allows the generation of ordered combinations. See the example in
-   * EnumStreamConcrete for further details.
-   *
-   * Since the same variable can occur in different subfield types (and
-   * therefore their datatype equivalents would have different types) a map from
-   * variable to set of constructors (var_cons) is used to build substitutions
-   * in a proper way when generating different combinations.
+   * allows to consider only ordered combinations to generate all possible
+   * variations of the base value. See the example in EnumStreamConcrete for
+   * further details.
    */
   Node getNext();
 
@@ -245,19 +262,19 @@ class EnumStreamConcrete
   /** initializes class with the given enumerator
    *
    * during initialization builds a map from the variables of the enumerator's
-   * type to their (type) subclasses
+   * type to their (type) subclasses, as well as for all constructors used for
+   * that variable in the enumerator's subfiled types
    */
   void initialize(Node e);
   /** registers abstract value v
    *
-   * during registration collects variables occurring in value and sets up
-   * utilities for streaming combinations and permutations for building concrete
-   * values
+   * initializes utility to stream all possible concretizations of value v
+   * (through ordered combinations of permutations)
    */
   void registerAbstractValue(Node v);
   /** generates next concrete value
    *
-   * if no more combinations / permutations exist from the last registered
+   * if no more combinations / permutations exist from the registered
    * value, this method returns Node::null()
    */
   Node getNext();
