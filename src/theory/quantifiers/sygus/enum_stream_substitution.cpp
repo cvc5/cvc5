@@ -28,10 +28,21 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-EnumStreamPermutation::EnumStreamPermutation(Node value,
-                                             quantifiers::TermDbSygus* tds)
+EnumStreamPermutation::EnumStreamPermutation(quantifiers::TermDbSygus* tds)
     : d_tds(tds)
 {
+}
+
+void EnumStreamPermutation::reset(Node value)
+{
+  // clean state
+  d_vars.clear();
+  d_var_classes.clear();
+  d_var_cons.clear();
+  d_cons_var.clear();
+  d_first = true;
+  d_perm_state_class.clear();
+  d_perm_values.clear();
   d_value = value;
   // get variables in value's type
   TypeNode tn = value.getType();
@@ -62,7 +73,6 @@ EnumStreamPermutation::EnumStreamPermutation(Node value,
   std::unordered_set<Node, NodeHashFunction> visited;
   collectVars(value, d_vars, visited);
   // partition permutation variables
-  d_first = true;
   d_curr_ind = 0;
   Trace("synth-stream-concrete") << " ..permutting vars :";
   for (const Node& cons_var : d_vars)
@@ -313,19 +323,15 @@ bool EnumStreamPermutation::PermutationState::getNextPermutation()
   return true;
 }
 
-EnumStreamSubstitution::EnumStreamSubstitution(Node value,
-                                               quantifiers::TermDbSygus* tds)
-    : d_tds(tds), d_stream_permutations(value, tds)
+EnumStreamSubstitution::EnumStreamSubstitution(quantifiers::TermDbSygus* tds)
+    : d_tds(tds), d_stream_permutations(tds)
 {
-  if (Trace.isOn("synth-stream-concrete"))
-  {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, value);
-    Trace("synth-stream-concrete")
-        << " * Streaming concrete: registering value " << ss.str() << "\n";
-  }
+}
+
+void EnumStreamSubstitution::initialize(TypeNode tn)
+{
+  d_tn = tn;
   // get variables in value's type
-  TypeNode tn = value.getType();
   Node var_list = Node::fromExpr(tn.getDatatype().getSygusVarList());
   // get subtypes in value's type
   NodeManager* nm = NodeManager::currentNM();
@@ -351,16 +357,29 @@ EnumStreamSubstitution::EnumStreamSubstitution(Node value,
     d_var_cons[v] = cons;
   }
   // split initial variables into classes
-  std::map<unsigned, std::vector<Node>> var_classes;
   for (const Node& var : vars)
   {
     Assert(d_tds->getSubclassForVar(tn, var) > 0);
-    var_classes[d_tds->getSubclassForVar(tn, var)].push_back(var);
+    d_var_classes[d_tds->getSubclassForVar(tn, var)].push_back(var);
   }
-  // initialize combination utils per class
-  Trace("synth-stream-concrete") << " ..combining vars :";
+}
+
+void EnumStreamSubstitution::resetValue(Node value)
+{
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, value);
+    Trace("synth-stream-concrete")
+        << " * Streaming concrete: registering value " << ss.str() << "\n";
+  }
+  // reset permutation util
+  d_stream_permutations.reset(value);
+  // reset combination utils
   d_curr_ind = 0;
-  for (const std::pair<unsigned, std::vector<Node>>& p : var_classes)
+  d_comb_state_class.clear();
+  Trace("synth-stream-concrete") << " ..combining vars  :";
+  for (const std::pair<unsigned, std::vector<Node>>& p : d_var_classes)
   {
     // ignore classes without variables being permuted
     unsigned perm_var_class_sz = d_stream_permutations.getVarClassSize(p.first);
@@ -373,7 +392,7 @@ EnumStreamSubstitution::EnumStreamSubstitution(Node value,
     if (Trace.isOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete")
-          << " " << p.first << " -> [" << perm_var_class_sz << " from";
+        << " " << p.first << " -> " << perm_var_class_sz << " from [ ";
       for (const Node& var : p.second)
       {
         std::stringstream ss;
