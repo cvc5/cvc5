@@ -35,6 +35,19 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+/** A base class for enumerated value generators */
+class EnumValGenerator
+{
+public:
+  virtual ~EnumValGenerator(){}
+  /** initialize this class with enumerator e */
+  virtual void initialize(Node e) = 0;
+  /** get that value v was enumerated */
+  virtual void addValue(Node v) = 0;
+  /** get the next value enumerated by this class */
+  virtual Node getNext() = 0;
+};
+  
 /** a synthesis conjecture
  * This class implements approaches for a synthesis conecjture, given by data
  * member d_quant.
@@ -113,16 +126,6 @@ class SynthConjecture
   /** has a conjecture been assigned to this class */
   bool isAssigned() { return !d_embed_quant.isNull(); }
   /**
-   * Get model values for terms n, store in vector v. This method returns true
-   * if and only if all values added to v are non-null.
-   */
-  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v);
-  /**
-   * Get model value for term n. If n has a value that was excluded by
-   * datatypes sygus symmetry breaking, this method returns null.
-   */
-  Node getEnumeratedValue(Node n);
-  /**
    * Get model value for term n.
    */
   Node getModelValue(Node n);
@@ -174,6 +177,28 @@ class SynthConjecture
   SygusModule* d_master;
   //------------------------end modules
 
+  //------------------------enumerators
+  /**
+   * Get model values for terms n, store in vector v. This method returns true
+   * if and only if all values added to v are non-null.
+   */
+  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v);
+  /**
+   * Get model value for term n. If n has a value that was excluded by
+   * datatypes sygus symmetry breaking, this method returns null.
+   */
+  Node getEnumeratedValue(Node n);
+  /** enumerator generators for each actively-generated enumerator */
+  std::map< Node, std::unique_ptr<EnumValGenerator> > d_evg;
+  /** 
+   * Map from enumerators to whether they are currently being
+   * "actively-generated". That is, we are in a state where we have called
+   * d_evg[e].addValue(v) for some v, and d_evg[e].getNext() has not yet
+   * returned null.
+   */
+  std::map< Node, bool > d_ev_curr_active_gen;
+  //------------------------end enumerators
+  
   /** list of constants for quantified formula
    * The outer Skolems for the negation of d_embed_quant.
    */
