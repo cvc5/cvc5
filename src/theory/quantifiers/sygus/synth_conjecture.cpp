@@ -31,6 +31,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -661,6 +662,8 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       d_evg.find(e);
   if (iteg == d_evg.end())
   {
+    d_evg[e].reset(new EnumStreamConcrete(d_tds));
+    Trace("sygus-active-gen") << "Active-gen: initialize for " << e << std::endl;
     d_evg[e]->initialize(e);
     d_ev_curr_active_gen[e] = Node::null();
     iteg = d_evg.find(e);
@@ -669,6 +672,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   std::map< Node, Node >::iterator itw = d_ev_active_gen_waiting.find(e);
   if( itw!=d_ev_active_gen_waiting.end() )
   {
+    Trace("sygus-active-gen-debug") << "Active-gen: return waiting " << itw->second << std::endl;
     return itw->second;
   }
   // Check if there is an (abstract) value absE we were actively generating values based on.
@@ -677,6 +681,14 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   {
     // None currently exist. The next abstract value is the model value for e.
     absE = getModelValue(e);
+    if( Trace.isOn("sygus-active-gen") )
+    {
+      Trace("sygus-active-gen") << "Active-gen: new abstract value : ";
+      TermDbSygus::toStreamSygus("sygus-active-gen",e);
+      Trace("sygus-active-gen") << " -> ";
+      TermDbSygus::toStreamSygus("sygus-active-gen",absE);
+      Trace("sygus-active-gen") << std::endl;
+    }
     d_ev_curr_active_gen[e] = absE;
     d_evg[e]->addValue(absE);
   }
@@ -701,13 +713,21 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                           << lem << std::endl;
+    Trace("sygus-active-gen-debug") << "Active-gen: block " << absE << std::endl;
     d_qe->getOutputChannel().lemma(lem);
   }
   else
   {
     // We are waiting to send e -> v to the module that requested it.
     d_ev_active_gen_waiting[e] = v;
-    Trace("sygus-active-gen") << "Active-gen : " << absE << " -> " << v << std::endl;
+    if( Trace.isOn("sygus-active-gen") )
+    {
+      Trace("sygus-active-gen") << "Active-gen : " << e << " : ";
+      TermDbSygus::toStreamSygus("sygus-active-gen",absE);
+      Trace("sygus-active-gen") << " -> ";
+      TermDbSygus::toStreamSygus("sygus-active-gen",v);
+      Trace("sygus-active-gen") << std::endl;
+    }
   }
   return v;
 }
