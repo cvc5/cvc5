@@ -260,13 +260,14 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
       if (options::sygusUnifCondIndependent() && !unif_enums[1][e].empty())
       {
         Node eu = unif_enums[1][e][0];
-        Assert( d_tds->isEnumerator(eu) );
-        if( d_tds->isPassiveEnumerator(eu) )
+        Assert(d_tds->isEnumerator(eu));
+        if (d_tds->isPassiveEnumerator(eu))
         {
           Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
-          Node exp_exc = d_tds->getExplain()
-                            ->getExplanationForEquality(eu, unif_values[1][e][0])
-                            .negate();
+          Node exp_exc =
+              d_tds->getExplain()
+                  ->getExplanationForEquality(eu, unif_values[1][e][0])
+                  .negate();
           lems.push_back(nm->mkNode(OR, g.negate(), exp_exc));
         }
       }

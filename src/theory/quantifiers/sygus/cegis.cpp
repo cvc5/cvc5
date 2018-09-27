@@ -13,13 +13,13 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -111,24 +111,26 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
   // "actively generated" (see TermDbSygs::isPassiveEnumerator), since its
   // model values are themselves interpreted as classes of solutions.
   bool doGen = true;
-  for( const Node& v : candidates )
+  for (const Node& v : candidates)
   {
     // if it is relevant to refinement
-    if( d_refinement_lemma_vars.find(v)!=d_refinement_lemma_vars.end() )
+    if (d_refinement_lemma_vars.find(v) != d_refinement_lemma_vars.end())
     {
-      if( !d_tds->isPassiveEnumerator(v) )
+      if (!d_tds->isPassiveEnumerator(v))
       {
         doGen = false;
         break;
       }
     }
-  }  
+  }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
   if (options::sygusRefEval())
   {
-    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation" << (doGen ? " with conjecture-specific refinement" : "") << "..."
-                          << std::endl;
+    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
+                          << (doGen ? " with conjecture-specific refinement"
+                                    : "")
+                          << "..." << std::endl;
     // see if any refinement lemma is refuted by evaluation
     std::vector<Node> cre_lems;
     bool ret =
@@ -314,7 +316,7 @@ void Cegis::addRefinementLemma(Node lem)
   // rewrite with extended rewriter
   slem = d_tds->getExtRewriter()->extendedRewrite(slem);
   // collect all variables in slem
-  expr::getSymbols(slem,d_refinement_lemma_vars);
+  expr::getSymbols(slem, d_refinement_lemma_vars);
   std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
@@ -442,14 +444,11 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 bool Cegis::usingRepairConst() { return true; }
-
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
                                     std::vector<Node>& lems,
-                                    bool doGen
-                                   )
+                                    bool doGen)
 {
-  
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
                            << d_refinement_lemma_conj.size()
@@ -526,8 +525,8 @@ bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         }
         if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
         {
-          Trace("sygus-cref-eval")
-              << "...produced lemma : " << cre_lem << std::endl;
+          Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
+                                   << std::endl;
           lems.push_back(cre_lem);
         }
       }
