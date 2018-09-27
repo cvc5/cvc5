@@ -155,7 +155,8 @@ set(regress_0_tests
   regress0/bug605.cvc
   regress0/bug639.smt2
   regress0/buggy-ite.smt2
-  regress0/bv/bool-to-bv.smt2
+  regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
   regress0/bv/bug440.smt

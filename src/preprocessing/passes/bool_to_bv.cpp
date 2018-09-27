@@ -131,8 +131,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
       TypeNode t = n.getType();
       if ((t.isBitVector() || t.isBoolean()) && (n.getNumChildren() == 0))
       {
-        if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
-            && (k == kind::CONST_BOOLEAN))
+        if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && t.isBoolean())
         {
           d_lowerCache[n] = nm->mkNode(
               kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
