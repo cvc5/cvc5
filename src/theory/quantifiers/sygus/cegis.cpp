@@ -67,8 +67,19 @@ bool Cegis::processInitialize(Node n,
                               std::vector<Node>& lemmas)
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
+  unsigned csize = candidates.size();
+  // We only can use actively-generated enumerators if there is only one
+  // function-to-synthesize. Otherwise, we would have to generate a "product" of
+  // two enumerators. That is, given a conjecture with two
+  // functions-to-synthesize with enumerators e_f and e_g, if:
+  // e_f -> t1, ..., tn
+  // e_g -> s1, ..., sm
+  // This module would expect constructCandidates calls (e_f,e_g) -> (ti, sj)
+  // for each i,j. We do not do this and revert to the default behavior of
+  // this module instead.
+  bool isVarAgnostic = options::sygusEnumVarAgnostic() && csize==1;
   // initialize an enumerator for each candidate
-  for (unsigned i = 0; i < candidates.size(); i++)
+  for (unsigned i = 0; i < csize; i++)
   {
     Trace("cegis") << "...register enumerator " << candidates[i];
     bool do_repair_const = false;
@@ -86,7 +97,7 @@ bool Cegis::processInitialize(Node n,
     }
     Trace("cegis") << std::endl;
     d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, false, do_repair_const);
+        candidates[i], candidates[i], d_parent, false, do_repair_const, isVarAgnostic);
   }
   return true;
 }
