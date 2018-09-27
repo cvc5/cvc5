@@ -77,11 +77,10 @@ class EnumStreamPermutation
   std::vector<Node> d_vars;
   /** maps subclass ids to subset of d_vars with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
-  /** maps variables to their respective constructors in all the value's type
-   * subfield types */
-  std::map<Node, std::vector<Node>> d_var_cons;
-  /** reverse map of the above */
-  std::map<Node, Node> d_cons_var;
+  /** maps variables to subfield types with constructors for
+   * the that variable, which are themselves associated with the respective
+   * constructors */
+  std::map<Node, std::map<TypeNode, Node>> d_var_tn_cons;
   /** whether first query */
   bool d_first;
   /** value to which we are generating permutations */
@@ -115,6 +114,8 @@ class EnumStreamPermutation
      * vars is populated with the new variable arrangement
      */
     void getLastPerm(std::vector<Node>& vars);
+    /** retrieve variables being permuted */
+    const std::vector<Node>& getVars() const;
 
    private:
     /** variables being permuted */
@@ -219,9 +220,10 @@ class EnumStreamSubstitution
   TypeNode d_tn;
   /** maps subclass ids to d_tn's variables with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
-  /** maps variables to their respective constructors in all the value's type
-   * subfield types */
-  std::map<Node, std::vector<Node>> d_var_cons;
+  /** maps variables to subfield types with constructors for
+   * the that variable, which are themselves associated with the respective
+   * constructors */
+  std::map<Node, std::map<TypeNode, Node>> d_var_tn_cons;
   /** last value generated after a combination
    *
    * If getNext() has been called, this is the return value of the most recent
