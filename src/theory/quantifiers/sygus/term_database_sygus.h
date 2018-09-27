@@ -102,7 +102,8 @@ class TermDbSygus {
    * are obtained by looking at its model value only. For passively-generated
    * enumerators, it is the responsibility of the user of that enumerator (say
    * a SygusModule) to block the current model value of it before asking for
-   * another value.
+   * another value. By default, the Cegis module uses passively-generated
+   * enumerators.
    *
    * On the other hand, an "actively-generated" enumerator is one for which the
    * terms it enumerates are not necessarily a subset of the model values the
