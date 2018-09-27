@@ -40,9 +40,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i,
-        Rewriter::rewrite(
-            lowerAssertion(assertionsToPreprocess->operator[](i))));
+        i, Rewriter::rewrite(lowerAssertion((*assertionsToPreprocess)[i])));
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
