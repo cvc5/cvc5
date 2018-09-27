@@ -104,6 +104,8 @@ class Cegis : public SygusModule
   /** substitution entailed by d_refinement_lemma_unit */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
+  /** all variables appearing in refinement lemmas */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -142,8 +144,7 @@ class Cegis : public SygusModule
    * useful e.g. for boolean connectives
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values,
-                     bool doGen);
+                     const std::vector<Node>& candidate_values);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas

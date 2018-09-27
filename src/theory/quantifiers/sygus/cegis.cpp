@@ -19,6 +19,7 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -98,14 +99,36 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 }
 
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
-                          const std::vector<Node>& candidate_values,
-                          bool doGen)
+                          const std::vector<Node>& candidate_values)
 {
+  // First, decide if this call will apply "conjecture-specific refinement".
+  // In other words, in some settings, the following method will identify and
+  // block a class of solutions {candidates -> S} that generalizes the current
+  // one (given by {candidates -> candidate_values}), such that for each
+  // candidate_values' in S, we have that {candidates -> candidate_values'} is
+  // also not a solution for the given conjecture. We may not
+  // apply this form of refinement if any (relevant) enumerator in candidates is
+  // "actively generated" (see TermDbSygs::isPassiveEnumerator), since its
+  // model values are themselves interpreted as classes of solutions.
+  bool doGen = true;
+  for( const Node& v : candidates )
+  {
+    // if it is relevant to refinement
+    if( d_refinement_lemma_vars.find(v)!=d_refinement_lemma_vars.end() )
+    {
+      Assert( d_tds->isEnumerator(v) );
+      if( !d_tds->isPassiveEnumerator(v) )
+      {
+        doGen = false;
+        break;
+      }
+    }
+  }  
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
   if (options::sygusRefEval())
   {
-    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation..."
+    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation" << (doGen ? " with conjecture-specific refinement" : "") << "..."
                           << std::endl;
     // see if any refinement lemma is refuted by evaluation
     std::vector<Node> cre_lems;
@@ -232,11 +255,9 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
       return false;
     }
   }
-  // Is every enumerator in enums a passive one? If so, we can do conjecture.
-  bool allPassive = true;
 
   // evaluate on refinement lemmas
-  bool addedEvalLemmas = addEvalLemmas(enums, enum_values, allPassive);
+  bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
 
   // try to construct candidates
   if (!processConstructCandidates(enums,
@@ -293,6 +314,8 @@ void Cegis::addRefinementLemma(Node lem)
   }
   // rewrite with extended rewriter
   slem = d_tds->getExtRewriter()->extendedRewrite(slem);
+  // collect all variables in slem
+  expr::getSymbols(slem,d_refinement_lemma_vars);
   std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
@@ -424,8 +447,10 @@ bool Cegis::usingRepairConst() { return true; }
 bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
                                     std::vector<Node>& lems,
-                                    bool doGen)
+                                    bool doGen
+                                   )
 {
+  
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
                            << d_refinement_lemma_conj.size()
