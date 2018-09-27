@@ -64,7 +64,7 @@ class StreamPermutation
   /** maps subclass ids to subset of d_vars with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
 
-private:
+ private:
   /** whether first query */
   bool d_first;
   /** parent streaming utility */
@@ -96,6 +96,7 @@ private:
     /** resets permutation state to initial variable ordering */
     void reset();
     void getLastPerm(std::vector<Node>& vars);
+
    private:
     /** variables being permuted */
     std::vector<Node> d_vars;
@@ -202,7 +203,6 @@ class StreamCombination
   /** current class being combined */
   unsigned d_curr_ind;
 };
-
 
 /** Streamer of concrete values for enumerator
  *
