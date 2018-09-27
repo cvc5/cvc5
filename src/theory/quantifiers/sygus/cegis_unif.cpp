@@ -86,6 +86,7 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   // Non-unif candidate are themselves the enumerators
   enums.insert(
       enums.end(), d_non_unif_candidates.begin(), d_non_unif_candidates.end());
+  Valuation& valuation = d_qe->getValuation();
   for (const Node& c : d_unif_candidates)
   {
     // Collect heads of candidates
@@ -94,6 +95,31 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
       Trace("cegis-unif-enum-debug")
           << "......cand " << c << " with enum hd " << hd << "\n";
       enums.push_back(hd);
+    }
+    // get unification enumerators
+    for (const Node& e : d_cand_to_strat_pt[c])
+    {
+      for (unsigned index = 0; index < 2; index++)
+      {
+        std::vector<Node> uenums;
+        // get the current unification enumerators
+        d_u_enum_manager.getEnumeratorsForStrategyPt(e, uenums, index);
+        if (index == 1 && options::sygusUnifCondIndependent())
+        {
+          Assert(uenums.size() == 1);
+          Node eu = uenums[0];
+          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
+          // If active guard for this enumerator is not true, there are no more
+          // values for it, and hence we ignore it
+          Node gstatus = valuation.getSatValue(g);
+          if (gstatus.isNull() || !gstatus.getConst<bool>())
+          {
+            continue;
+          }
+        }
+        // get the model value of each enumerator
+        enums.insert(enums.end(), uenums.begin(), uenums.end());
+      }
     }
   }
 }
@@ -118,10 +144,15 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     // if we didn't satisfy the specification, there is no way to repair
     return false;
   }
+  // build model value map
+  std::map<Node, Node> mvMap;
+  for (unsigned i = 0, size = enums.size(); i < size; i++)
+  {
+    mvMap[enums[i]] = enum_values[i];
+  }
   // the unification enumerators (return values, conditions) and their model
   // values
   NodeManager* nm = NodeManager::currentNM();
-  Valuation& valuation = d_qe->getValuation();
   bool addedUnifEnumSymBreakLemma = false;
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
   std::map<Node, std::vector<Node>> unif_enums[2];
@@ -143,11 +174,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         {
           Assert(unif_enums[index][e].size() == 1);
           Node eu = unif_enums[index][e][0];
-          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
-          // If active guard for this enumerator is not true, there are no more
-          // values for it, and hence we ignore it
-          Node gstatus = valuation.getSatValue(g);
-          if (gstatus.isNull() || !gstatus.getConst<bool>())
+          if (mvMap.find(eu) == mvMap.end())
           {
             Trace("cegis") << "    " << eu << " -> N/A\n";
             unif_enums[index][e].clear();
@@ -157,7 +184,8 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
         // get the model value of each enumerator
         for (const Node& eu : unif_enums[index][e])
         {
-          Node m_eu = d_parent->getModelValue(eu);
+          Assert(mvMap.find(eu) != mvMap.end());
+          Node m_eu = mvMap[eu];
           if (Trace.isOn("cegis"))
           {
             Trace("cegis") << "    " << eu << " -> ";
@@ -165,13 +193,6 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
             Printer::getPrinter(options::outputLanguage())
                 ->toStreamSygus(ss, m_eu);
             Trace("cegis") << ss.str() << std::endl;
-          }
-          if (m_eu.isNull())
-          {
-            // A condition enumerator was excluded by symmetry breaking, fail.
-            // TODO (#2498): either move conditions to getTermList or handle
-            // partial models in this module.
-            return false;
           }
           unif_values[index][e].push_back(m_eu);
         }
