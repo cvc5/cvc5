@@ -200,6 +200,13 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
+      // if cegisunif then ignore return value / condition enumerators here
+      if (options::sygusUnif()
+          && d_refinement_lemma_vars.find(enums[i])
+                 == d_refinement_lemma_vars.end())
+      {
+        continue;
+      }
       bool isUnit = false;
       for (const Node& hd_unit : d_rl_eval_hds)
       {
