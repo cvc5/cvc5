@@ -566,7 +566,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   // if we are using a single independent enumerator for conditions, then we
   // allocate an active guard, and are eligible to use variable-agnostic
   // enumeration.
-  if( options::sygusUnifCondIndependent() && index == 1 )
+  if (options::sygusUnifCondIndependent() && index == 1)
   {
     mkActiveGuard = true;
     isVarAgnostic = options::sygusEnumVarAgnostic();

@@ -78,7 +78,7 @@ bool Cegis::processInitialize(Node n,
   // This module would expect constructCandidates calls (e_f,e_g) -> (ti, sj)
   // for each i,j. We do not do this and revert to the default behavior of
   // this module instead.
-  bool isVarAgnostic = options::sygusEnumVarAgnostic() && csize==1;
+  bool isVarAgnostic = options::sygusEnumVarAgnostic() && csize == 1;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < csize; i++)
   {
@@ -98,8 +98,12 @@ bool Cegis::processInitialize(Node n,
     }
     Trace("cegis") << std::endl;
     // variable agnostic enumerators require an active guard
-    d_tds->registerEnumerator(
-        candidates[i], candidates[i], d_parent, isVarAgnostic, do_repair_const, isVarAgnostic);
+    d_tds->registerEnumerator(candidates[i],
+                              candidates[i],
+                              d_parent,
+                              isVarAgnostic,
+                              do_repair_const,
+                              isVarAgnostic);
   }
   return true;
 }

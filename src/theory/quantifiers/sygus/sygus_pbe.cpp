@@ -203,7 +203,7 @@ bool SygusPbe::initialize(Node n,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true,false,isVarAgnostic);
+      d_tds->registerEnumerator(e, c, d_parent, true, false, isVarAgnostic);
       Node g = d_tds->getActiveGuardForEnumerator(e);
       d_enum_to_active_guard[e] = g;
       d_enum_to_candidate[e] = c;

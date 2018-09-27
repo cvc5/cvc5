@@ -652,39 +652,37 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   }
   Assert(false);
   // management of actively generated enumerators goes here
-  
-  // initialize the 
-  std::map< Node, std::unique_ptr<EnumValGenerator> >::iterator iteg = d_evg.find(e);
-  if( iteg==d_evg.end() )
+
+  // initialize the
+  std::map<Node, std::unique_ptr<EnumValGenerator> >::iterator iteg =
+      d_evg.find(e);
+  if (iteg == d_evg.end())
   {
-    
     d_evg[e]->initialize(e);
     d_ev_curr_active_gen[e] = false;
     iteg = d_evg.find(e);
   }
-  if( d_ev_curr_active_gen[e] )
+  if (d_ev_curr_active_gen[e])
   {
     Node v = d_evg[e]->getNext();
-    if( v.isNull() )
+    if (v.isNull())
     {
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       d_ev_curr_active_gen[e] = false;
       // must block e = v
-      Node lem =
-          d_tds->getExplain()
-              ->getExplanationForEquality(e, v)
-              .negate();
+      Node lem = d_tds->getExplain()->getExplanationForEquality(e, v).negate();
       Node g = d_tds->getActiveGuardForEnumerator(e);
-      if( !g.isNull() )
+      if (!g.isNull())
       {
-        lem = nm->mkNode( OR, g.negate(), lem );
+        lem = nm->mkNode(OR, g.negate(), lem);
       }
       else
       {
-        Assert( false );
+        Assert(false);
       }
-      Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator exclude current solution : "
-                        << lem << std::endl;
+      Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
+                              "exclude current solution : "
+                           << lem << std::endl;
       d_qe->getOutputChannel().lemma(lem);
     }
     return v;
