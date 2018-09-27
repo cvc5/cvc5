@@ -652,7 +652,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     return getModelValue(e);
   }
   Assert(false);
-  // TODO
+  // management of actively generated enumerators goes here
   return getModelValue(e);
 }
 
