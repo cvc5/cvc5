@@ -626,6 +626,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
+  regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
   regress0/quantifiers/qbv-simp.smt2
   regress0/quantifiers/qbv-test-invert-bvadd-neq.smt2
@@ -825,6 +826,7 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
+  regress0/sygus/inv-different-var-order.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-syntax-test-bool.sy
@@ -2074,10 +2076,16 @@ set(regression_disabled_tests
 get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
+add_custom_target(build-regress DEPENDS cvc4-bin)
+add_dependencies(check build-regress)
+if(ENABLE_COVERAGE)
+  add_dependencies(coverage build-regress)
+endif()
+
 add_custom_target(regress
   COMMAND
     ctest --output-on-failure -L "regress[0-1]" -j${CTEST_NTHREADS} $(ARGS)
-  DEPENDS cvc4-bin)
+  DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
   add_test(${file}
