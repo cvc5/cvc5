@@ -109,12 +109,11 @@ Node EnumStreamPermutation::getNext()
     return d_value;
   }
   unsigned n_classes = d_perm_state_class.size();
-  Assert(n_classes > 0);
   Node perm_value, bultin_perm_value;
   do
   {
     bool new_perm = false;
-    do
+    while (!new_perm && d_curr_ind < n_classes)
     {
       if (d_perm_state_class[d_curr_ind].getNextPermutation())
       {
@@ -130,7 +129,7 @@ Node EnumStreamPermutation::getNext()
         d_perm_state_class[d_curr_ind].reset();
         d_curr_ind++;
       }
-    } while (!new_perm && d_curr_ind < n_classes);
+    }
     // no new permutation
     if (!new_perm)
     {
@@ -201,6 +200,14 @@ Node EnumStreamPermutation::getNext()
 const std::vector<Node>& EnumStreamPermutation::getVars() const
 {
   return d_vars;
+}
+
+const std::vector<Node>& EnumStreamPermutation::getVarsClass(unsigned id) const
+{
+  std::map<unsigned, std::vector<Node>>::const_iterator it =
+      d_var_classes.find(id);
+  Assert(it != d_var_classes.end());
+  return it->second;
 }
 
 unsigned EnumStreamPermutation::getVarClassSize(unsigned id) const
@@ -355,9 +362,14 @@ EnumStreamSubstitution::EnumStreamSubstitution(Node value,
   d_curr_ind = 0;
   for (const std::pair<unsigned, std::vector<Node>>& p : var_classes)
   {
+    // ignore classes without variables being permuted
     unsigned perm_var_class_sz = d_stream_permutations.getVarClassSize(p.first);
-    d_comb_state_class.push_back(
-        CombinationState(p.second.size(), perm_var_class_sz, p.second));
+    if (perm_var_class_sz == 0)
+    {
+      continue;
+    }
+    d_comb_state_class.push_back(CombinationState(
+        p.second.size(), perm_var_class_sz, p.first, p.second));
     if (Trace.isOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete")
@@ -376,32 +388,8 @@ EnumStreamSubstitution::EnumStreamSubstitution(Node value,
 
 Node EnumStreamSubstitution::getNext()
 {
-  const std::vector<Node>& perm_vars = d_stream_permutations.getVars();
-  Trace("synth-stream-concrete")
-      << " ..streaming next combination of " << perm_vars.size() << " vars\n";
+  Trace("synth-stream-concrete") << " ..streaming next combination\n";
   unsigned n_classes = d_comb_state_class.size();
-  // if no variables
-  if (perm_vars.size() == 0)
-  {
-    if (d_last.isNull())
-    {
-      d_last = d_stream_permutations.getNext();
-      if (Trace.isOn("synth-stream-concrete"))
-      {
-        std::stringstream ss;
-        Printer::getPrinter(options::outputLanguage())
-            ->toStreamSygus(ss, d_last);
-        Trace("synth-stream-concrete")
-            << " ..only comb is " << ss.str() << "\n";
-      }
-      return d_last;
-    }
-    else
-    {
-      Trace("synth-stream-concrete") << " ..no new comb, return null\n";
-      return Node::null();
-    }
-  }
   // intial case
   if (d_last.isNull())
   {
@@ -410,7 +398,7 @@ Node EnumStreamSubstitution::getNext()
   else
   {
     bool new_comb = false;
-    do
+    while (!new_comb && d_curr_ind < n_classes)
     {
       if (d_comb_state_class[d_curr_ind].getNextCombination())
       {
@@ -426,7 +414,7 @@ Node EnumStreamSubstitution::getNext()
         d_comb_state_class[d_curr_ind].reset();
         d_curr_ind++;
       }
-    } while (!new_comb && d_curr_ind < n_classes);
+    }
     // no new combination
     if (!new_comb)
     {
@@ -452,23 +440,34 @@ Node EnumStreamSubstitution::getNext()
     }
   }
   // building substitution
-  std::vector<Node> sub;
+  std::vector<Node> domain_sub, range_sub;
   for (unsigned i = 0, size = d_comb_state_class.size(); i < size; ++i)
   {
-    Trace("synth-stream-concrete") << " ..comb for class " << i << " is";
+    Trace("synth-stream-concrete")
+        << " ..comb for class " << d_comb_state_class[i].getSubclassId()
+        << " is";
     std::vector<Node> raw_sub;
     d_comb_state_class[i].getLastComb(raw_sub);
+    // retrieve variables for substitution domain
+    const std::vector<Node>& domain_sub_class =
+        d_stream_permutations.getVarsClass(
+            d_comb_state_class[i].getSubclassId());
+    Assert(domain_sub_class.size() == raw_sub.size());
     // build proper substitution based on variables types and constructors
-    unsigned curr_size = sub.size();
     for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
     {
-      TypeNode perm_var_tn = perm_vars[j + curr_size].getType();
+      TypeNode perm_var_tn = domain_sub_class[j].getType();
       if (perm_var_tn == raw_sub[j].getType())
       {
         continue;
       }
       Assert(d_var_cons.find(raw_sub[j]) != d_var_cons.end());
       Assert(!d_var_cons[raw_sub[j]].empty());
+      Trace("synth-stream-concrete-debug2")
+          << "\n ...match types " << perm_var_tn << " and "
+          << raw_sub[j].getType() << " by checkings var->cons " << raw_sub[j]
+          << " -> " << d_var_cons[raw_sub[j]];
+      bool can_match = false;
       for (const Node& cons : d_var_cons[raw_sub[j]])
       {
         if (cons.getType() == perm_var_tn)
@@ -478,16 +477,33 @@ Node EnumStreamSubstitution::getNext()
               << raw_sub[j].getType() << "] by " << cons << " ["
               << cons.getType() << "] }";
           raw_sub[j] = cons;
+          can_match = true;
           break;
         }
       }
+      AlwaysAssert(can_match);
+      if (Trace.isOn("synth-stream-concrete-debug"))
+      {
+        std::stringstream ss, ss1;
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss, domain_sub_class[j]);
+        Printer::getPrinter(options::outputLanguage())
+            ->toStreamSygus(ss1, raw_sub[j]);
+        Trace("synth-stream-concrete-debug") << "\n ....sub " << ss.str();
+        Trace("synth-stream-concrete-debug2")
+            << " [" << domain_sub_class[j].getType() << "]";
+        Trace("synth-stream-concrete-debug") << " -> " << ss1.str();
+        Trace("synth-stream-concrete-debug2")
+            << " [" << raw_sub[j].getType() << "]";
+      }
     }
-    sub.insert(sub.end(), raw_sub.begin(), raw_sub.end());
+    domain_sub.insert(
+        domain_sub.end(), domain_sub_class.begin(), domain_sub_class.end());
+    range_sub.insert(range_sub.end(), raw_sub.begin(), raw_sub.end());
     Trace("synth-stream-concrete") << "\n";
   }
-  Assert(perm_vars.size() == sub.size());
   Node comb_value = d_last.substitute(
-      perm_vars.begin(), perm_vars.end(), sub.begin(), sub.end());
+      domain_sub.begin(), domain_sub.end(), range_sub.begin(), range_sub.end());
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
@@ -508,13 +524,20 @@ Node EnumStreamSubstitution::getNext()
 }
 
 EnumStreamSubstitution::CombinationState::CombinationState(
-    unsigned n, unsigned k, const std::vector<Node>& vars)
+    unsigned n, unsigned k, unsigned subclass_id, const std::vector<Node>& vars)
     : d_n(n), d_k(k)
 {
+  Assert(!vars.empty());
   Assert(k <= n);
   d_last_comb.resize(k);
   std::iota(d_last_comb.begin(), d_last_comb.end(), 0);
   d_vars = vars;
+  d_subclass_id = subclass_id;
+}
+
+const unsigned EnumStreamSubstitution::CombinationState::getSubclassId() const
+{
+  return d_subclass_id;
 }
 
 void EnumStreamSubstitution::CombinationState::reset()

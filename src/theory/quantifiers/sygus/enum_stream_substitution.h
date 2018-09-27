@@ -64,6 +64,8 @@ class EnumStreamPermutation
   Node getNext();
   /** retrieve variables being permuted */
   const std::vector<Node>& getVars() const;
+  /** retrieve variables in class with given id */
+  const std::vector<Node>& getVarsClass(unsigned id) const;
   /** retrieve number of variables being permuted from subclass with given id */
   unsigned getVarClassSize(unsigned id) const;
 
@@ -225,7 +227,10 @@ class EnumStreamSubstitution
   class CombinationState
   {
    public:
-    CombinationState(unsigned n, unsigned k, const std::vector<Node>& vars);
+    CombinationState(unsigned n,
+                     unsigned k,
+                     unsigned subclass_id,
+                     const std::vector<Node>& vars);
     /** computes next combination
      *
      * returns true if one exists, false otherwise
@@ -238,8 +243,11 @@ class EnumStreamSubstitution
      * variables in new combination are stored in argument vars
      */
     void getLastComb(std::vector<Node>& vars);
-
+    /** retrieve subclass id */
+    const unsigned getSubclassId() const;
    private:
+    /** subclass id of variables being combined */
+    unsigned d_subclass_id;
     /** number of variables */
     unsigned d_n;
     /** size of subset */
@@ -249,7 +257,7 @@ class EnumStreamSubstitution
     /** variables from which combination is extracted */
     std::vector<Node> d_vars;
   };
-  /** combination state */
+  /** combination state for each variable subclass */
   std::vector<CombinationState> d_comb_state_class;
   /** current class being combined */
   unsigned d_curr_ind;
