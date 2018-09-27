@@ -154,7 +154,7 @@ class Cegis : public SygusModule
    * for previous refinements (d_refinement_lemmas).
    *
    * Returns true if any such lemma exists. If doGen is false, then the
-   * lemmas are not generated.
+   * lemmas are not generated or added to lems.
    */
   bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,

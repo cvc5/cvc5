@@ -96,9 +96,20 @@ class TermDbSygus {
   bool usingSymbolicConsForEnumerator(Node e) const;
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
-  /** is this a "passive" enumerator?
+  /** is this a "passively-generated" enumerator?
    *
-   * A passive enumerator is one for which its TODO
+   * A "passively-generated" enumerator is one for which the terms it enumerates
+   * are obtained by looking at its model value only. For passively-generated
+   * enumerators, it is the responsibility of the user of that enumerator (say
+   * a SygusModule) to block the current model value of it before asking for
+   * another value.
+   *
+   * On the other hand, an "actively-generated" enumerator is one for which the
+   * terms it enumerates are not necessarily a subset of the model values the
+   * enumerator takes. Actively-generated enumerators are centrally managed by
+   * SynthConjecture. The user of actively-generated enumerators are prohibited
+   * from influencing its model value. For example, "conjecture-specific
+   * refinement" in Cegis is not applied to actively-generated enumerators.
    */
   bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
