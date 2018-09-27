@@ -10,8 +10,15 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # Add target 'units', builds and runs
 # > unit tests
 
+add_custom_target(build-units)
+add_dependencies(check build-units)
+if(ENABLE_COVERAGE)
+  add_dependencies(coverage build-units)
+endif()
+
 add_custom_target(units
-  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS))
+  COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
+  DEPENDS build-units)
 
 set(CVC4_CXXTEST_FLAGS_BLACK
   -D__BUILDING_CVC4LIB_UNIT_TEST -D__BUILDING_CVC4PARSERLIB_UNIT_TEST
@@ -49,7 +56,7 @@ macro(cvc4_add_unit_test is_white name output_dir)
   # Disable the Wsuggest-override warnings for the unit tests. CxxTest generates
   # code that does not properly add the override keyword to runTest().
   target_compile_options(${name} PRIVATE -Wno-suggest-override)
-  add_dependencies(units ${name})
+  add_dependencies(build-units ${name})
   # Generate into bin/test/unit/<output_dir>.
   set(test_bin_dir ${CMAKE_BINARY_DIR}/bin/test/unit/${output_dir})
   set_target_properties(${name}
@@ -65,9 +72,6 @@ macro(cvc4_add_unit_test is_white name output_dir)
   endif()
   add_test(${test_name} ${test_bin_dir}/${name})
   set_tests_properties(${test_name} PROPERTIES LABELS "unit")
-  if(ENABLE_COVERAGE)
-    add_dependencies(coverage ${name})
-  endif()
 endmacro()
 
 macro(cvc4_add_unit_test_black name output_dir)
