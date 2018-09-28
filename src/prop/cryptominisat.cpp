@@ -210,7 +210,7 @@ unsigned CryptoMinisatSolver::getAssertionLevel() const {
 std::vector<SatLiteral> CryptoMinisatSolver::getTopLevelUnits(){
   std::vector<SatLiteral> satLits;
   for (const auto& lit : d_solver->get_zero_assigned_lits()){
-    if (lit.var() != d_false || lit.var() != d_true)
+    if (lit.var() != d_false && lit.var() != d_true)
     {
       // Filtering out d_true and d_false
       satLits.push_back(toSatLiteral(lit));
