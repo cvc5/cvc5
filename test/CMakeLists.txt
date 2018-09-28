@@ -20,10 +20,10 @@ add_custom_target(check
 add_subdirectory(regress)
 add_subdirectory(system EXCLUDE_FROM_ALL)
 
-if(BUILD_BINDINGS_JAVA)
-  add_subdirectory(java)
-endif()
-
 if(ENABLE_UNIT_TESTING)
   add_subdirectory(unit EXCLUDE_FROM_ALL)
+
+  if(BUILD_BINDINGS_JAVA)
+    add_subdirectory(java)
+  endif()
 endif()
