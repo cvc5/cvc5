@@ -650,11 +650,10 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // return null.
     return Node::null();
   }
-  if (d_tds->isPassiveEnumerator(e))
+  if (!d_tds->isEnumerator(e) || d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
   }
-  Assert(false);
   // management of actively generated enumerators goes here
 
   // initialize the enumerated value generator for e
@@ -667,6 +666,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     d_evg[e]->initialize(e);
     d_ev_curr_active_gen[e] = Node::null();
     iteg = d_evg.find(e);
+    Trace("sygus-active-gen-debug") << "...finish" << std::endl;
   }
   // if we have a waiting value, return it
   std::map< Node, Node >::iterator itw = d_ev_active_gen_waiting.find(e);
