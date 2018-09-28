@@ -435,11 +435,7 @@ Node EnumStreamSubstitution::getNext()
     if (!new_comb)
     {
       Trace("synth-stream-concrete")
-          << " ..no new comb, get next permutation\n";
-#ifdef CVC4_ASSERTIONS
-      Trace("synth-stream-concrete")
-          << " ....total combs until here : " << d_comb_values.size() << "\n";
-#endif
+          << " ..no new comb, get next permutation\n ....total combs until here : " << d_comb_values.size() << "\n";
       d_last = d_stream_permutations.getNext();
       // exhausted permutations
       if (d_last.isNull())
@@ -489,6 +485,32 @@ Node EnumStreamSubstitution::getNext()
   }
   Node comb_value = d_last.substitute(
       domain_sub.begin(), domain_sub.end(), range_sub.begin(), range_sub.end());
+  // the new combination value should be fresh, modulo rewriting, by
+  // construction (unless it's equiv to a constant, e.g. true / false)
+  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
+      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, comb_value);
+    Trace("synth-stream-concrete")
+        << " ....register new comb value " << ss.str()
+        << " with rewritten form " << builtin_comb_value
+        << (builtin_comb_value.isConst() ? " (isConst)" : "") << "\n";
+  }
+  if (!builtin_comb_value.isConst()
+      && !d_comb_values.insert(builtin_comb_value).second)
+  {
+    std::stringstream ss, ss1;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, comb_value);
+    Trace("synth-stream-concrete")
+        << " ..term " << ss.str() << " is REDUNDANT with " << builtin_comb_value
+        << "\n ..excluding all other concretizations (had "
+        << d_comb_values.size() << " already)\n\n";
+    return Node::null();
+  }
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
@@ -497,14 +519,6 @@ Node EnumStreamSubstitution::getNext()
     Trace("synth-stream-concrete")
         << " ..return new comb " << ss.str() << "\n\n";
   }
-#ifdef CVC4_ASSERTIONS
-  // the new combination value should be fresh, modulo rewriting, by
-  // construction (unless it's equiv to a constant, e.g. true / false)
-  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
-      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
-  Assert(builtin_comb_value.isConst()
-         || d_comb_values.insert(builtin_comb_value).second);
-#endif
   return comb_value;
 }
 

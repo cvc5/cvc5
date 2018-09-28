@@ -228,7 +228,7 @@ class EnumStreamSubstitution
    * call to getNext(). Otherwise, this value is null.
    */
   Node d_last;
-  /** generated combinations (for debugging) */
+  /** generated combinations */
   std::unordered_set<Node, NodeHashFunction> d_comb_values;
   /** permutation utility */
   EnumStreamPermutation d_stream_permutations;
