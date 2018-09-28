@@ -700,16 +700,26 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     NodeManager* nm = NodeManager::currentNM();
     d_ev_curr_active_gen[e] = Node::null();
     // We must block e = absE.
-    Node lem = d_tds->getExplain()->getExplanationForEquality(e, absE).negate();
+    std::vector< Node > exp;
+    d_tds->getExplain()->getExplanationForEquality(e, absE,exp);
+    for( unsigned i=0, size = exp.size(); i<size; i++ )
+    {
+      exp[i] = exp[i].negate();
+    }
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      //lem = nm->mkNode(OR, g.negate(), lem);
+      if( d_ev_active_gen_first_val.find(e)==d_ev_active_gen_first_val.end() )
+      {
+        exp.push_back(g.negate());
+        d_ev_active_gen_first_val[e] = absE;
+      }
     }
     else
     {
       Assert(false);
     }
+    Node lem = exp.size()==1 ? exp[0] : nm->mkNode( OR, exp );
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                           << lem << std::endl;

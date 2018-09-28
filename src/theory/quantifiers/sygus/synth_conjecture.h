@@ -209,6 +209,7 @@ class SynthConjecture
    * a future check when v2 has a proper value, it is returned.
    */
   std::map<Node, Node> d_ev_active_gen_waiting;
+  std::map<Node, Node> d_ev_active_gen_first_val;
   //------------------------end enumerators
 
   /** list of constants for quantified formula
