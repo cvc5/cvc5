@@ -488,14 +488,6 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
           return returnRewrite(node, ret, "str-emp-repl-emp");
         }
 
-        // (= "" (str.replace "A" x y)) ---> (= "A" (str.replace "" y x))
-        if (checkEntailNonEmpty(ne[0]))
-        {
-          Node ret = nm->mkNode(
-              EQUAL, ne[0], nm->mkNode(STRING_STRREPL, empty, ne[2], ne[1]));
-          return returnRewrite(node, ret, "str-emp-repl-emp");
-        }
-
         // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
         Node one = nm->mkConst(Rational(1));
         Node ylen = nm->mkNode(STRING_LENGTH, ne[1]);
@@ -533,6 +525,14 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
     {
       Node repl = node[i];
       Node x = node[1 - i];
+
+      // (= "A" (str.replace "" x y)) ---> (= "" (str.replace "A" y x))
+      if (checkEntailNonEmpty(x) && repl[0] == empty)
+      {
+        Node ret = nm->mkNode(
+            EQUAL, empty, nm->mkNode(STRING_STRREPL, x, repl[2], repl[1]));
+        return returnRewrite(node, ret, "str-eq-repl-emp");
+      }
 
       // (= x (str.replace y x y)) ---> (= x y)
       if (repl[0] == repl[2] && x == repl[1])
@@ -2415,13 +2415,16 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     {
       for (const Node& c : cmp_conr)
       {
-        if (c[0] == empty)
+        if (c.getKind() == kind::EQUAL)
         {
-          emptyNodes.insert(c[1]);
-        }
-        else if (c[1] == empty)
-        {
-          emptyNodes.insert(c[0]);
+          if (c[0] == empty)
+          {
+            emptyNodes.insert(c[1]);
+          }
+          else if (c[1] == empty)
+          {
+            emptyNodes.insert(c[0]);
+          }
         }
       }
     }
@@ -4169,6 +4172,10 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
       if (cret.getKind() == EQUAL)
       {
         creter = rewriteEqualityExt(cret);
+      }
+      else if (cret.getKind() == NOT && cret[0].getKind() == EQUAL)
+      {
+        creter = nm->mkNode(NOT, rewriteEqualityExt(cret[0]));
       }
       childChanged = childChanged || cret != creter;
       children.push_back(creter);
