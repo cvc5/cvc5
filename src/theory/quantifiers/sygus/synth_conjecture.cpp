@@ -33,8 +33,6 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
-#define ONLY_VAR_ORDERED
-
 using namespace CVC4::kind;
 using namespace std;
 
@@ -695,17 +693,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     d_ev_curr_active_gen[e] = absE;
     iteg->second->addValue(absE);
   }
-#ifdef ONLY_VAR_ORDERED  
-  Node v;
-  do
-  {
-    v = iteg->second->getNext();
-  }while( !v.isNull() );
-  d_ev_curr_active_gen[e] = Node::null();
-  return absE;
-#else
   Node v = iteg->second->getNext();
-#endif
   if (v.isNull())
   {
     // No more concrete values generated from absE.
@@ -716,7 +704,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
     {
-      lem = nm->mkNode(OR, g.negate(), lem);
+      //lem = nm->mkNode(OR, g.negate(), lem);
     }
     else
     {
@@ -741,6 +729,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       Trace("sygus-active-gen") << std::endl;
     }
   }
+
   return v;
 }
 
@@ -821,11 +810,7 @@ void SynthConjecture::printAndContinueStream()
   for (const Node& cprog : terms)
   {
     Assert( d_tds->isEnumerator(cprog) );
-#ifdef ONLY_VAR_ORDERED
-    if (true)
-#else
     if( d_tds->isPassiveEnumerator(cprog) )
-#endif
     {
       Node sol = cprog;
       if (!d_cinfo[cprog].d_inst.empty())
