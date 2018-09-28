@@ -693,18 +693,18 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       Trace("sygus-active-gen") << std::endl;
     }
     d_ev_curr_active_gen[e] = absE;
-    d_evg[e]->addValue(absE);
+    iteg->second->addValue(absE);
   }
 #ifdef ONLY_VAR_ORDERED  
   Node v;
   do
   {
-    v = d_evg[e]->getNext();
+    v = iteg->second->getNext();
   }while( !v.isNull() );
   d_ev_curr_active_gen[e] = Node::null();
   return absE;
 #else
-  Node v = d_evg[e]->getNext();
+  Node v = iteg->second->getNext();
 #endif
   if (v.isNull())
   {
