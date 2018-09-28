@@ -85,7 +85,13 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   if (!noconflict)
   {
-    handleConflictCase(assertionsToPreprocess);
+    Trace("non-clausal-simplify")
+        << "conflict in non-clausal propagation" << std::endl;
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    assertionsToPreprocess->clear();
+    Node n = NodeManager::currentNM()->mkConst<bool>(false);
+    assertionsToPreprocess->push_back(n);
+    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
     return PreprocessingPassResult::CONFLICT;
   }
 
