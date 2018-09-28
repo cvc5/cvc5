@@ -646,6 +646,16 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
   return false;
 }
 
+bool TermDbSygus::isPassiveEnumerator(Node e) const
+{
+  if (isVariableAgnosticEnumerator(e))
+  {
+    return false;
+  }
+  // other criteria go here
+  return true;
+}
+
 void TermDbSygus::getEnumerators(std::vector<Node>& mts)
 {
   for (std::map<Node, SynthConjecture*>::iterator itm =

@@ -90,6 +90,7 @@ set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(ANTLR_DIR         "" CACHE STRING "Set ANTLR3 install directory")
 set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
 set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
+set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
@@ -271,8 +272,7 @@ if(ENABLE_COVERAGE)
   setup_target_for_coverage_lcov(
     NAME coverage
     EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example" --output-on-failure $(ARGS)
-    DEPENDENCIES cvc4-bin)
+      ctest -j${CTEST_NTHREADS} -LE "example" --output-on-failure $(ARGS))
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -329,10 +329,6 @@ endif()
 
 if(ENABLE_TRACING)
   add_definitions(-DCVC4_TRACING)
-endif()
-
-if(ENABLE_UNIT_TESTING)
-  find_package(CxxTest REQUIRED)
 endif()
 
 if(ENABLE_STATISTICS)

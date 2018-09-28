@@ -635,6 +635,7 @@ REG0_TESTS = \
 	regress0/quantifiers/nested-inf.smt2 \
 	regress0/quantifiers/partial-trigger.smt2 \
 	regress0/quantifiers/pure_dt_cbqi.smt2 \
+	regress0/quantifiers/qarray-sel-over-store.smt2 \
 	regress0/quantifiers/qbv-inequality2.smt2 \
 	regress0/quantifiers/qbv-simp.smt2 \
 	regress0/quantifiers/qbv-test-invert-bvadd-neq.smt2 \
@@ -806,6 +807,7 @@ REG0_TESTS = \
 	regress0/strings/code-sat-neg-one.smt2 \
 	regress0/strings/escchar.smt2 \
 	regress0/strings/escchar_25.smt2 \
+	regress0/strings/hconst-092618.smt2 \
 	regress0/strings/idof-rewrites.smt2 \
 	regress0/strings/idof-sem.smt2 \
 	regress0/strings/ilc-like.smt2 \
@@ -839,6 +841,7 @@ REG0_TESTS = \
 	regress0/sygus/const-var-test.sy \
 	regress0/sygus/dt-no-syntax.sy \
 	regress0/sygus/hd-05-d1-prog-nogrammar.sy \
+	regress0/sygus/inv-different-var-order.sy \
 	regress0/sygus/let-ringer.sy \
 	regress0/sygus/let-simp.sy \
 	regress0/sygus/no-syntax-test-bool.sy \
@@ -1162,6 +1165,7 @@ REG1_TESTS = \
 	regress1/nl/div-mod-partial.smt2 \
 	regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2 \
 	regress1/nl/exp-4.5-lt.smt2 \
+	regress1/nl/exp-approx.smt2 \
 	regress1/nl/exp1-lb.smt2 \
 	regress1/nl/exp_monotone.smt2 \
 	regress1/nl/factor_agg_s.smt2 \

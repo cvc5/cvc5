@@ -398,7 +398,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
       unsigned hchar = 0;
       String lhss = node[i].getConst<String>();
       std::vector<unsigned> vec = lhss.getVec();
-      if (vec.size() > 1)
+      if (vec.size() >= 1)
       {
         hchar = vec[0];
         for (unsigned j = 1, size = vec.size(); j < size; j++)
