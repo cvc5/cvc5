@@ -40,7 +40,7 @@ class NonClausalSimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_numConstantProps;
-    TimerStat d_addingAssertions;
+    TimerStat d_cnfTranslateTime;
     Statistics();
     ~Statistics();
   };
@@ -50,14 +50,39 @@ class NonClausalSimp : public PreprocessingPass
   /** Learned literals */
   std::vector<Node> d_nonClausalLearnedLiterals;
 
-  /** Preprocess the boolean skeleton,
-  which calls solveByCryptominisat or solveByCircuitPropagator */
-  std::pair<bool, std::vector<Node>> preprocessByCryptominisat(
+  /** Preprocess the boolean skeleton using CryptoMinisat
+      Args:
+      - assertionsToPreprocess: Top level assertions
+      - substs_index: the substitution index in the current context
+      Return:
+      whether the boolean skeleton is not satisfiable and the
+      learned unit clauses
+   */
+  std::pair<bool, std::vector<Node>> preprocessByCryptoMinisat(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
+  /** Preprocess the boolean skeleton using CryptoMinisat
+      Args:
+      - assertionsToPreprocess: Top level assertions
+      - substs_index: the substitution index in the current context
+      Return:
+      whether the boolean skeleton is not satisfiable and the
+      learned unit clauses
+   */
   std::pair<bool, std::vector<Node>> preprocessByCircuitPropagator(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
+  /** Handle the case that a conflict in the boolean skeleton is detected */
+  inline void handleConflictCase(AssertionPipeline* assertionsToPreprocess)
+  {
+    Trace("non-clausal-simplify")
+        << "conflict in non-clausal propagation" << std::endl;
+    Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
+    assertionsToPreprocess->clear();
+    Node n = NodeManager::currentNM()->mkConst<bool>(false);
+    assertionsToPreprocess->push_back(n);
+    PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
+  }
 };
 
 }  // namespace passes

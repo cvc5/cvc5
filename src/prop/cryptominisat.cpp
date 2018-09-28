@@ -205,13 +205,16 @@ SatValue CryptoMinisatSolver::modelValue(SatLiteral l){
 
 unsigned CryptoMinisatSolver::getAssertionLevel() const {
   Unreachable("No interface to get assertion level in Cryptominisat");
-  return -1;
 }
 
 std::vector<SatLiteral> CryptoMinisatSolver::getTopLevelUnits(){
   std::vector<SatLiteral> satLits;
   for (const auto& lit : d_solver->get_zero_assigned_lits()){
-    satLits.push_back(toSatLiteral(lit));
+    if (lit.var() != d_false || lit.var() != d_true)
+    {
+      // Filtering out d_true and d_false
+      satLits.push_back(toSatLiteral(lit));
+    }
   }
   return satLits;
 }

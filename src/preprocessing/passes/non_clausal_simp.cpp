@@ -18,35 +18,21 @@
 
 #include <vector>
 
+#include "base/map_util.h"
 #include "context/cdo.h"
 #include "options/proof_options.h"
+#include "proof/proof_manager.h"
+#include "prop/cnf_stream.h"
+#include "prop/registrar.h"
+#include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
-#include "prop/registrar.h"
-#include "prop/cnf_stream.h"
-#include "prop/sat_solver_factory.h"
-#include "proof/proof_manager.h"
-
 
 using namespace CVC4;
 using namespace CVC4::theory;
 
 namespace CVC4 {
 namespace preprocessing {
-
-namespace {
-void handleConflictCase(AssertionPipeline* assertionsToPreprocess)
-{
-  Trace("non-clausal-simplify")
-      << "conflict in non-clausal propagation" << std::endl;
-  Assert(!options::unsatCores() && !options::fewerPreprocessingHoles());
-  assertionsToPreprocess->clear();
-  Node n = NodeManager::currentNM()->mkConst<bool>(false);
-  assertionsToPreprocess->push_back(n);
-  PROOF(ProofManager::currentPM()->addDependence(n, Node::null()));
-}
-}  // namespace
-
 namespace passes {
 
 /* -------------------------------------------------------------------------- */
@@ -54,17 +40,17 @@ namespace passes {
 NonClausalSimp::Statistics::Statistics()
     : d_numConstantProps(
           "preprocessing::passes::NonClausalSimp::NumConstantProps", 0),
-      d_addingAssertions(
-          "preprocessing::passes::NonClausalSimp::TimeAddingAssertions")
+      d_cnfTranslateTime(
+          "preprocessing::passes::NonClausalSimp::CnfTranslateTime")
 {
   smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-  smtStatisticsRegistry()->registerStat(&d_addingAssertions);
+  smtStatisticsRegistry()->registerStat(&d_cnfTranslateTime);
 }
 
 NonClausalSimp::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-  smtStatisticsRegistry()->unregisterStat(&d_addingAssertions);
+  smtStatisticsRegistry()->unregisterStat(&d_cnfTranslateTime);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -81,32 +67,27 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   d_preprocContext->spendResource(options::preprocessStep());
   unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
-  std::pair<bool, std::vector<Node>> resultAndLearnedLiterals;
-  for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
-    {
-      Trace("non-clausal-simplify") << "Assertion #" << i << " : "
-				    << (*assertionsToPreprocess)[i] << std::endl;
-    }
+  bool noconflict;
+  std::vector<Node> learned_literals;
 
   if (options::skeletonPreprocessing()){
     // solve the boolean skeleton using cryptominisat
-    resultAndLearnedLiterals =
-        preprocessByCryptominisat(assertionsToPreprocess, substs_index);
+    std::tie(noconflict, learned_literals) =
+        preprocessByCryptoMinisat(assertionsToPreprocess, substs_index);
   }
   else
   {
     // default
     // solve the boolean skeleton using circuit propagator
-    resultAndLearnedLiterals =
+    std::tie(noconflict, learned_literals) =
         preprocessByCircuitPropagator(assertionsToPreprocess, substs_index);
   }
 
-  if (!resultAndLearnedLiterals.first)
+  if (!noconflict)
   {
     handleConflictCase(assertionsToPreprocess);
     return PreprocessingPassResult::CONFLICT;
   }
-  std::vector<Node> learned_literals = resultAndLearnedLiterals.second;
 
   Trace("non-clausal-simplify") << "Iterate through " << learned_literals.size()
                                 << " learned literals." << std::endl;
@@ -447,22 +428,22 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
 
-std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
+std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
     AssertionPipeline* assertionsToPreprocess, unsigned substs_index)
 {
-  std::unique_ptr<SatSolver> d_satSolver(SatSolverFactory::createCryptoMinisat(
+  std::unique_ptr<SatSolver> satSolver(SatSolverFactory::createCryptoMinisat(
       smtStatisticsRegistry(), "non_clausal_simp_solver"));
-  CVC4::prop::NullRegistrar d_registrar;
-  context::Context d_context;
-  CVC4::prop::TseitinCnfStream d_cnfStream(d_satSolver.get(),
-                                           &d_registrar,
-                                           &d_context,
-                                           true,
-                                           "toCNF-skeleton-preprocessing");
+  CVC4::prop::NullRegistrar registrar;
+  context::Context context;
+  CVC4::prop::TseitinCnfStream cnfStream(satSolver.get(),
+                                         &registrar,
+                                         &context,
+                                         true,
+                                         "toCNF-skeleton-preprocessing");
   std::vector<Node> learned_literals;
   Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
   {  // for timing
-    TimerStat::CodeTimer timer(d_statistics.d_addingAssertions);
+    TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
@@ -474,25 +455,26 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptominisat(
       }
       Trace("skeleton-preprocessing")
           << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-      d_cnfStream.convertAndAssert(
+      cnfStream.convertAndAssert(
           (*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
     }
   } // end timing
   Trace("non-clausal-simplify") << "solving" << std::endl;
-  if (d_satSolver->solve() == SAT_VALUE_FALSE)
+  if (satSolver->solve() == SAT_VALUE_FALSE)
   {
     // If in conflict, just return false
     return std::make_pair(false, learned_literals);
   }
 
-  std::vector<SatLiteral> topLevelUnits = d_satSolver->getTopLevelUnits();
-  // we start from index 2 because the first two top level units much be True
-  // and Not False
-  for (size_t i = 2; i < topLevelUnits.size(); i++)
+  std::vector<SatLiteral> topLevelUnits = satSolver->getTopLevelUnits();
+  for (size_t i = 0; i < topLevelUnits.size(); i++)
   {
     SatLiteral lit = topLevelUnits[i];
-    Node learnedLiteral = d_cnfStream.getNode(lit);
-    learned_literals.push_back(learnedLiteral);
+    if (const TNode* learnedLiteral = FindOrNull(cnfStream.getNodeCache(), lit))
+    {
+      // If the learned literal is not created internally by cryptominisat
+      learned_literals.push_back(*learnedLiteral);
+    }
   }
   return std::make_pair(true, learned_literals);
 }
@@ -514,7 +496,7 @@ NonClausalSimp::preprocessByCircuitPropagator(
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   {  // for timing
-    TimerStat::CodeTimer timer(d_statistics.d_addingAssertions);
+    TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
       Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
