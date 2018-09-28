@@ -435,7 +435,9 @@ Node EnumStreamSubstitution::getNext()
     if (!new_comb)
     {
       Trace("synth-stream-concrete")
-          << " ..no new comb, get next permutation\n ....total combs until here : " << d_comb_values.size() << "\n";
+          << " ..no new comb, get next permutation\n ....total combs until "
+             "here : "
+          << d_comb_values.size() << "\n";
       d_last = d_stream_permutations.getNext();
       // exhausted permutations
       if (d_last.isNull())
