@@ -37,7 +37,8 @@ PreprocessingPassResult BoolToBV::applyInternal(
   NodeManager::currentResourceManager()->spendResource(
       options::preprocessStep());
 
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  unsigned size = assertionsToPreprocess->size();
+  for (unsigned i = 0; i < size; ++i)
   {
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(lowerAssertion((*assertionsToPreprocess)[i])));
