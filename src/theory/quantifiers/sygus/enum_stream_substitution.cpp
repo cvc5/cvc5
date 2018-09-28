@@ -370,6 +370,8 @@ void EnumStreamSubstitution::resetValue(Node value)
     Trace("synth-stream-concrete")
         << " * Streaming concrete: registering value " << ss.str() << "\n";
   }
+  d_last = Node::null();
+  d_value = value;
   // reset permutation util
   d_stream_permutations.reset(value);
   // reset combination utils
@@ -404,7 +406,14 @@ void EnumStreamSubstitution::resetValue(Node value)
 
 Node EnumStreamSubstitution::getNext()
 {
-  Trace("synth-stream-concrete") << " ..streaming next combination\n";
+  if (Trace.isOn("synth-stream-concrete"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, d_value);
+    Trace("synth-stream-concrete")
+      << " ..streaming next combination of " << ss.str() << "\n";
+  }
   unsigned n_classes = d_comb_state_class.size();
   // intial case
   if (d_last.isNull())
@@ -452,6 +461,14 @@ Node EnumStreamSubstitution::getNext()
         d_comb_state_class[i].reset();
       }
     }
+  }
+  if (Trace.isOn("synth-stream-concrete-debug"))
+  {
+    std::stringstream ss;
+    Printer::getPrinter(options::outputLanguage())
+        ->toStreamSygus(ss, d_last);
+    Trace("synth-stream-concrete-debug")
+      << " ..using base perm " << ss.str() << "\n";
   }
   // building substitution
   std::vector<Node> domain_sub, range_sub;

@@ -71,8 +71,6 @@ class EnumStreamPermutation
  private:
   /** sygus term database of current quantifiers engine */
   quantifiers::TermDbSygus* d_tds;
-  /** variables occurring in value */
-  std::vector<Node> d_vars;
   /** maps subclass ids to subset of d_vars with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to subfield types with constructors for
@@ -216,6 +214,8 @@ class EnumStreamSubstitution
   quantifiers::TermDbSygus* d_tds;
   /** type this utility has been initialized for */
   TypeNode d_tn;
+  /** current value */
+  Node d_value;
   /** maps subclass ids to d_tn's variables with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to subfield types with constructors for
