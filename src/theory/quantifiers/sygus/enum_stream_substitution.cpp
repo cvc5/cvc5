@@ -36,7 +36,6 @@ EnumStreamPermutation::EnumStreamPermutation(quantifiers::TermDbSygus* tds)
 void EnumStreamPermutation::reset(Node value)
 {
   // clean state
-  d_vars.clear();
   d_var_classes.clear();
   d_var_tn_cons.clear();
   d_first = true;
@@ -70,13 +69,14 @@ void EnumStreamPermutation::reset(Node value)
     }
   }
   // collect variables occurring in value
+  std::vector<Node> vars;
   std::unordered_set<Node, NodeHashFunction> visited;
-  collectVars(value, d_vars, visited);
+  collectVars(value, vars, visited);
   // partition permutation variables
   d_curr_ind = 0;
   Trace("synth-stream-concrete") << " ..permutting vars :";
   std::unordered_set<Node, NodeHashFunction> seen_vars;
-  for (const Node& v_cons : d_vars)
+  for (const Node& v_cons : vars)
   {
     Assert(cons_var.find(v_cons) != cons_var.end());
     Node var = cons_var[v_cons];
@@ -202,11 +202,6 @@ Node EnumStreamPermutation::getNext()
         << " ....return new perm " << ss.str() << "\n";
   }
   return perm_value;
-}
-
-const std::vector<Node>& EnumStreamPermutation::getVars() const
-{
-  return d_vars;
 }
 
 const std::vector<Node>& EnumStreamPermutation::getVarsClass(unsigned id) const

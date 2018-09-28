@@ -63,8 +63,6 @@ class EnumStreamPermutation
    * substitutions in a proper way when generating different combinations.
    */
   Node getNext();
-  /** retrieve variables being permuted */
-  const std::vector<Node>& getVars() const;
   /** retrieve variables in class with given id */
   const std::vector<Node>& getVarsClass(unsigned id) const;
   /** retrieve number of variables being permuted from subclass with given id */
