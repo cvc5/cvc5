@@ -129,7 +129,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
     else
     {
       TypeNode t = n.getType();
-      if ((t.isBitVector() || t.isBoolean()) && (n.getNumChildren() == 0))
+      if (n.getNumChildren() == 0)
       {
         if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && t.isBoolean())
         {
@@ -141,6 +141,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
         // anything
         // and for option=ite, give up instead of forcing a bool to be a
         // bit-vector
+        // and if it's another type, then can't change it to bitvector
         Debug("bool-to-bv")
             << "BoolToBV::lowerAssertion Skipping or giving up on: " << n
             << std::endl;
@@ -179,8 +180,12 @@ void BoolToBV::lowerNode(const TNode& n)
 
   if (!all_bv)
   {
-    // option 'ite' can fail but option 'all' should never fail
-    Assert(options::boolToBitvector() == BOOL_TO_BV_ITE);
+    // invariant
+    // either one of the children is not a bit-vector or bool
+    //   i.e. something that can't be 'forced' to a bitvector
+    // or it's in 'ite' mode which will give up on bools that
+    //   can't be converted easily
+
     Debug("bool-to-bv") << "Failed to push to bv: " << n << std::endl;
     return;
   }
