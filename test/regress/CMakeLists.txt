@@ -797,6 +797,7 @@ set(regress_0_tests
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
+  regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
@@ -1165,6 +1166,7 @@ set(regress_1_tests
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
+  regress1/nl/exp-approx.smt2
   regress1/nl/exp-4.5-lt.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
