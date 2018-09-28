@@ -165,16 +165,17 @@ Node EnumStreamPermutation::getNext()
       // build proper substitution based on variables types and constructors
       for (unsigned j = 0, size_j = raw_sub.size(); j < size_j; ++j)
       {
-        for (std::pair<const TypeNode, Node>& p : d_var_tn_cons[domain_sub_class[j]])
+        for (std::pair<const TypeNode, Node>& p :
+             d_var_tn_cons[domain_sub_class[j]])
         {
           // get constructor of type p.first from variable being permuted
           domain_sub.push_back(p.second);
           // get constructor of type p.first from variable to be permuted for
           range_sub.push_back(d_var_tn_cons[raw_sub[j]][p.first]);
-            Trace("synth-stream-concrete-debug2")
-                << "\n ....{ adding " << domain_sub.back() << " ["
-                << domain_sub.back().getType() << "] -> " << range_sub.back() << " ["
-                << range_sub.back().getType() << "] }";
+          Trace("synth-stream-concrete-debug2")
+              << "\n ....{ adding " << domain_sub.back() << " ["
+              << domain_sub.back().getType() << "] -> " << range_sub.back()
+              << " [" << range_sub.back().getType() << "] }";
         }
       }
       Trace("synth-stream-concrete") << "\n";
@@ -270,7 +271,8 @@ void EnumStreamPermutation::PermutationState::reset()
   std::iota(d_last_perm.begin(), d_last_perm.end(), 0);
 }
 
-const std::vector<Node>& EnumStreamPermutation::PermutationState::getVars() const
+const std::vector<Node>& EnumStreamPermutation::PermutationState::getVars()
+    const
 {
   return d_vars;
 }
@@ -345,7 +347,8 @@ void EnumStreamSubstitution::initialize(TypeNode tn)
       {
         if (dt[i].getNumArgs() == 0 && Node::fromExpr(dt[i].getSygusOp()) == v)
         {
-          d_var_tn_cons[v][stn] = nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
+          d_var_tn_cons[v][stn] =
+              nm->mkNode(APPLY_CONSTRUCTOR, dt[i].getConstructor());
         }
       }
     }
@@ -386,7 +389,7 @@ void EnumStreamSubstitution::resetValue(Node value)
     if (Trace.isOn("synth-stream-concrete"))
     {
       Trace("synth-stream-concrete")
-        << " " << p.first << " -> " << perm_var_class_sz << " from [ ";
+          << " " << p.first << " -> " << perm_var_class_sz << " from [ ";
       for (const Node& var : p.second)
       {
         std::stringstream ss;
