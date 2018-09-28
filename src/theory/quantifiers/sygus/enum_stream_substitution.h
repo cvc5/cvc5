@@ -277,7 +277,7 @@ class EnumStreamSubstitution
 class EnumStreamConcrete : public EnumValGenerator
 {
  public:
-  EnumStreamConcrete(quantifiers::TermDbSygus* tds) : d_ess(tds){}
+  EnumStreamConcrete(quantifiers::TermDbSygus* tds) : d_ess(d_tds){}
   /** initialize this class with enumerator e */
   void initialize(Node e) override
   {
@@ -294,6 +294,8 @@ class EnumStreamConcrete : public EnumValGenerator
     return d_ess.getNext();
   }
  private:
+  /** sygus term database of current quantifiers engine */
+  quantifiers::TermDbSygus* d_tds;
   /** stream substitution utility */
   EnumStreamSubstitution d_ess;
 };

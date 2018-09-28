@@ -33,6 +33,8 @@
 #include "theory/theory_engine.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
+#define ONLY_VAR_ORDERED
+
 using namespace CVC4::kind;
 using namespace std;
 
@@ -650,6 +652,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // return null.
     return Node::null();
   }
+  
   if (!d_tds->isEnumerator(e) || d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
@@ -692,8 +695,17 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     d_ev_curr_active_gen[e] = absE;
     d_evg[e]->addValue(absE);
   }
-  
+#ifdef ONLY_VAR_ORDERED  
+  Node v;
+  do
+  {
+    v = d_evg[e]->getNext();
+  }while( !v.isNull() );
+  d_ev_curr_active_gen[e] = Node::null();
+  return absE;
+#else
   Node v = d_evg[e]->getNext();
+#endif
   if (v.isNull())
   {
     // No more concrete values generated from absE.
@@ -809,7 +821,11 @@ void SynthConjecture::printAndContinueStream()
   for (const Node& cprog : terms)
   {
     Assert( d_tds->isEnumerator(cprog) );
+#ifdef ONLY_VAR_ORDERED
+    if (true)
+#else
     if( d_tds->isPassiveEnumerator(cprog) )
+#endif
     {
       Node sol = cprog;
       if (!d_cinfo[cprog].d_inst.empty())
