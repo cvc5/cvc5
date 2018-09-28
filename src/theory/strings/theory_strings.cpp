@@ -1664,7 +1664,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   // add original to explanation
   if( n.getType().isBoolean() )
   {
-    // if Boolean, its easy
+    // if Boolean, it's easy
     in.d_exp.push_back(in.d_const.getConst<bool>() ? n : n.negate());
   }
   else
@@ -1812,7 +1812,7 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     return;
   }
   
-  // If its not a predicate, see if we can solve the equality n = c, where c
+  // If it's not a predicate, see if we can solve the equality n = c, where c
   // is the constant that extended term n is equal to.
   Node inferEq = nr.eqNode(in.d_const);
   Node inferEqr = Rewriter::rewrite(inferEq);
@@ -3853,8 +3853,8 @@ void TheoryStrings::sendInternalInference(std::vector< Node >& exp, Node conc, c
     }
     return;
   }
-  Node lit = conc.getKind()==NOT ? conc[0] : conc;
   bool pol = conc.getKind()!=NOT;
+  Node lit = pol ? conc : conc[0];
   if( lit.getKind()==EQUAL )
   {
     for( unsigned i=0; i<2; i++ )
