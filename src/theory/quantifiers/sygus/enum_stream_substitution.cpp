@@ -409,10 +409,9 @@ Node EnumStreamSubstitution::getNext()
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())
-        ->toStreamSygus(ss, d_value);
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, d_value);
     Trace("synth-stream-concrete")
-      << " ..streaming next combination of " << ss.str() << "\n";
+        << " ..streaming next combination of " << ss.str() << "\n";
   }
   unsigned n_classes = d_comb_state_class.size();
   // intial case
@@ -465,10 +464,9 @@ Node EnumStreamSubstitution::getNext()
   if (Trace.isOn("synth-stream-concrete-debug"))
   {
     std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())
-        ->toStreamSygus(ss, d_last);
+    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, d_last);
     Trace("synth-stream-concrete-debug")
-      << " ..using base perm " << ss.str() << "\n";
+        << " ..using base perm " << ss.str() << "\n";
   }
   // building substitution
   std::vector<Node> domain_sub, range_sub;
