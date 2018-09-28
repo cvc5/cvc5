@@ -321,7 +321,7 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL);
-  if( node[0].getType().isInteger() )
+  if (node[0].getType().isInteger())
   {
     return rewriteArithEqualityExt(node);
   }
@@ -334,8 +334,8 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 
 Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
 {
-  Assert( node.getKind()==EQUAL && node[0].getType().isString() );
-  
+  Assert(node.getKind() == EQUAL && node[0].getType().isString());
+
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> c[2];
   Node new_ret;
@@ -494,7 +494,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   {
     // there is no use if node[1-i] is not concat, as this will only flip
     // the equality or do nothing.
-    if( node[1-i].getKind()==STRING_CONCAT )
+    if (node[1 - i].getKind() == STRING_CONCAT)
     {
       new_ret = inferEqsFromContains(node[i], node[1 - i]);
       if (!new_ret.isNull())
@@ -506,36 +506,35 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
   return node;
 }
 
-
 Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
 {
-  Assert( node.getKind()==EQUAL && node[0].getType().isInteger() );
-  
+  Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
+
   NodeManager* nm = NodeManager::currentNM();
-  
+
   // cases where we can solve the equality
-  for( unsigned i=0; i<2; i++ )
+  for (unsigned i = 0; i < 2; i++)
   {
-    if( node[i].isConst() )
+    if (node[i].isConst())
     {
-      Node on = node[1-i];
+      Node on = node[1 - i];
       Kind onk = on.getKind();
-      if( onk==STRING_STOI )
+      if (onk == STRING_STOI)
       {
         Rational r = node[i].getConst<Rational>();
         int sgn = r.sgn();
         Node onEq;
         std::stringstream ss;
-        if( sgn>=0 )
+        if (sgn >= 0)
         {
           ss << r.getNumerator();
         }
         Node new_ret = on[0].eqNode(nm->mkConst(String(ss.str())));
-        return returnRewrite(node,new_ret,"stoi-solve");
+        return returnRewrite(node, new_ret, "stoi-solve");
       }
     }
   }
-  
+
   return node;
 }
 

@@ -145,7 +145,7 @@ class TheoryStringsRewriter {
    * two terms s = t, given by node, where s and t are terms in the signature
    * of the theory of strings. Notice that s and t may be of string type or
    * of Int type.
-   * 
+   *
    * Specifically, this function performs rewrites whose conclusion is not
    * necessarily one of { s = t, t = s, true, false }.
    */

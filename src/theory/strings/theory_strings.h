@@ -580,7 +580,7 @@ private:
   void doPendingFacts();
   void doPendingLemmas();
   bool hasProcessed();
-  /** 
+  /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
    * must be the case that areEqual( a, b ) holds in this context.
    */
@@ -609,7 +609,7 @@ private:
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
   /** send internal inferences
-   * 
+   *
    * This is called when we have inferred exp => conc, where exp is a set
    * of equalities and disequalities that hold in the current equality engine.
    * This method adds equalities and disequalities ~( s = t ) via
@@ -617,12 +617,12 @@ private:
    * that already occur in the equality engine, and ~( s = t ) is a consequence
    * of conc. This function can be seen as a "conservative" version of
    * sendInference below in that it does not introduce any new non-constant
-   * terms to the state. 
-   * 
+   * terms to the state.
+   *
    * The argument c is a string identifying the reason for the interference.
    * This string is used for debugging purposes.
    */
-  void sendInternalInference(std::vector< Node >& exp, Node conc, const char * c);
+  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
   // send lemma
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
