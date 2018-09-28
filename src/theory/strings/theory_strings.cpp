@@ -1822,11 +1822,11 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     // try to use the extended rewriter for equalities
     inferEqrr = TheoryStringsRewriter::rewriteEqualityExt(inferEqr);
   }
-  if( inferEqr!=inferEqr )
+  if( inferEqrr!=inferEqr )
   {
-    inferEqr = Rewriter::rewrite( inferEqr );
-    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqr << std::endl;
-    sendInternalInference(in.d_exp, inferEqr, "EXTF_equality_rew");
+    inferEqrr = Rewriter::rewrite( inferEqrr );
+    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq << " ...reduces to " << inferEqrr << std::endl;
+    sendInternalInference(in.d_exp, inferEqrr, "EXTF_equality_rew");
   }
 }
 
