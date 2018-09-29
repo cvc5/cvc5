@@ -291,7 +291,16 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
       return;
     }
   }
+  do
+  {
+    doCheckNext(lems);
+    Trace("cegqi-check-debug") << "...finished " << lems.empty() << " " << !needsRefinement() << " " << !d_qe->getTheoryEngine()->needCheck() << std::endl;
+  }
+  while(lems.empty() && !needsRefinement() && !d_qe->getTheoryEngine()->needCheck());
+}
 
+void SynthConjecture::doCheckNext(std::vector<Node>& lems)
+{
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);

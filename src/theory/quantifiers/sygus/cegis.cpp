@@ -115,7 +115,9 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 }
 
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
-                          const std::vector<Node>& candidate_values)
+                          const std::vector<Node>& candidate_values,
+                          std::vector< Node >& lems
+                         )
 {
   // First, decide if this call will apply "conjecture-specific refinement".
   // In other words, in some settings, the following method will identify and
@@ -160,13 +162,14 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
     if (!cre_lems.empty())
     {
-      for (const Node& lem : cre_lems)
+      lems.insert(lems.end(),cre_lems.begin(),cre_lems.end() );
+      addedEvalLemmas = true;
+      if( Trace.isOn("cegqi-lemma") )
       {
-        if (d_qe->addLemma(lem))
+        for (const Node& lem : cre_lems)
         {
-          Trace("cegqi-lemma")
-              << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
-          addedEvalLemmas = true;
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
         }
       }
       /* we could, but do not return here. experimentally, it is better to
@@ -194,12 +197,9 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     {
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
-      if (d_qe->addLemma(lem))
-      {
+      lems.push_back(lem);
         Trace("cegqi-lemma")
             << "Cegqi::Lemma : evaluation unfold : " << lem << std::endl;
-        addedEvalLemmas = true;
-      }
     }
   }
   return addedEvalLemmas;
@@ -274,7 +274,7 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
   }
 
   // evaluate on refinement lemmas
-  bool addedEvalLemmas = addEvalLemmas(enums, enum_values);
+  bool addedEvalLemmas = addEvalLemmas(enums, enum_values, lems);
 
   // try to construct candidates
   if (!processConstructCandidates(enums,

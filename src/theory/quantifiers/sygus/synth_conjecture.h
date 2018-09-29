@@ -275,6 +275,17 @@ class SynthConjecture
       d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
     }
   }
+  /**
+   * This performs the next check of the syntax-guided enumerative check
+   * (see doCheck above).
+   * 
+   * Notice that one call to doCheck may correspond to multiple calls to
+   * doCheckNext. For example, if we are using an actively-generated enumerator,
+   * one enumerated (abstract) term may correspond to multiple concrete
+   * terms t1, ..., tn to check, where we make up to n calls to doCheckNext when
+   * each of t1, ..., tn fail to satisfy the current refinement lemmas.
+   */
+  void doCheckNext(std::vector<Node>& lems);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
