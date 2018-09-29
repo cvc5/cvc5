@@ -216,6 +216,7 @@ class EnumStreamSubstitution
   quantifiers::TermDbSygus* d_tds;
   /** type this utility has been initialized for */
   TypeNode d_tn;
+  Node d_value;
   /** maps subclass ids to d_tn's variables with that subclass id */
   std::map<unsigned, std::vector<Node>> d_var_classes;
   /** maps variables to subfield types with constructors for
