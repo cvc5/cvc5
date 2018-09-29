@@ -322,18 +322,18 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
             << "  ...FAILED to add candidate!" << std::endl;
       }
     }
-    if (addedLemma || d_quantEngine->getTheoryEngine()->needCheck())
+    if (addedLemma)
     {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
     }
     else
     {
-      //if (conj->needsRefinement())
-      //{
+      if (conj->needsRefinement())
+      {
         // immediately go to refine candidate
         checkConjecture(conj);
         return;
-      //}
+      }
     }
   }
   else
