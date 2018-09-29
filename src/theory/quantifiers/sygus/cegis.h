@@ -145,11 +145,11 @@ class Cegis : public SygusModule
    * getRefinementEvalLemmas below. The second is "evaluation unfolding",
    * which eagerly unfolds applications of evaluation functions (see
    * sygus_eval_unfold.h for details).
-   * 
+   *
    * If this method returns true, then { candidates -> candidate_values }
    * is not ready to be tried as a candidate solution. If this method returns
-   * true, it may add lemmas to lems. 
-   * 
+   * true, it may add lemmas to lems.
+   *
    * Notice that this method may return true without adding any lemmas to
    * lems, in the case that terms from candidates are "actively-generated
    * enumerators", since the model values of such terms are managed
@@ -157,7 +157,7 @@ class Cegis : public SygusModule
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values,
-                          std::vector< Node >& lems);
+                     std::vector<Node>& lems);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
@@ -166,7 +166,7 @@ class Cegis : public SygusModule
    * whether the current solution, given by { candidates -> candidate_values },
    * satisfies all current refinement lemmas. If it does not, it may add
    * blocking lemmas L to lems which exclude the current solution.
-   * 
+   *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).

@@ -198,7 +198,7 @@ class SynthConjecture
    */
   std::map<Node, Node> d_ev_curr_active_gen;
   /** the current waiting value of each actively-generated enumerator, if any
-   * 
+   *
    * This caches values are actively generated and that we have not yet
    * passed to a call to SygusModule::constructCandidates. An example of when
    * this may occur is when there are two actively-generated enumerators e1 and
@@ -278,7 +278,7 @@ class SynthConjecture
   /**
    * This performs the next check of the syntax-guided enumerative check
    * (see doCheck above).
-   * 
+   *
    * Notice that one call to doCheck may correspond to multiple calls to
    * doCheckNext. For example, if we are using an actively-generated enumerator,
    * one enumerated (abstract) term may correspond to multiple concrete
