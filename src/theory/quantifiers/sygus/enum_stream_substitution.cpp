@@ -597,6 +597,21 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
   return new_comb;
 }
 
+void EnumStreamConcrete::initialize(Node e)
+{
+  d_ess.initialize(e.getType());
+}
+
+void EnumStreamConcrete::addValue(Node v)
+{
+  d_ess.resetValue(v);
+}
+
+Node EnumStreamConcrete::getNext()
+{
+  return d_ess.getNext();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
