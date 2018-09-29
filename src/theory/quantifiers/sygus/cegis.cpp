@@ -71,7 +71,7 @@ bool Cegis::processInitialize(Node n,
   unsigned csize = candidates.size();
   // We only can use actively-generated enumerators if there is only one
   // function-to-synthesize. Otherwise, we would have to generate a "product" of
-  // two enumerators. That is, given a conjecture with two
+  // two actively-generated enumerators. That is, given a conjecture with two
   // functions-to-synthesize with enumerators e_f and e_g, if:
   // e_f -> t1, ..., tn
   // e_g -> s1, ..., sm
@@ -116,7 +116,8 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                           const std::vector<Node>& candidate_values,
-                          std::vector<Node>& lems)
+                          std::vector< Node >& lems
+                         )
 {
   // First, decide if this call will apply "conjecture-specific refinement".
   // In other words, in some settings, the following method will identify and
@@ -161,14 +162,14 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
     }
     if (!cre_lems.empty())
     {
-      lems.insert(lems.end(), cre_lems.begin(), cre_lems.end());
+      lems.insert(lems.end(),cre_lems.begin(),cre_lems.end() );
       addedEvalLemmas = true;
-      if (Trace.isOn("cegqi-lemma"))
+      if( Trace.isOn("cegqi-lemma") )
       {
         for (const Node& lem : cre_lems)
         {
-          Trace("cegqi-lemma") << "Cegqi::Lemma : ref evaluation : " << lem
-                               << std::endl;
+            Trace("cegqi-lemma")
+                << "Cegqi::Lemma : ref evaluation : " << lem << std::endl;
         }
       }
       /* we could, but do not return here. experimentally, it is better to
@@ -197,8 +198,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
       lems.push_back(lem);
-      Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
-                           << std::endl;
+        Trace("cegqi-lemma")
+            << "Cegqi::Lemma : evaluation unfold : " << lem << std::endl;
     }
   }
   return addedEvalLemmas;
