@@ -293,6 +293,7 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   }
   do
   {
+    Trace("cegqi-check-debug") << "doCheckNext..." << std::endl;
     doCheckNext(lems);
     Trace("cegqi-check-debug")
         << "...finished " << lems.empty() << " " << !needsRefinement() << " "
