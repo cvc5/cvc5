@@ -482,7 +482,10 @@ void TermDbSygus::registerEnumerator(Node e,
   NodeManager* nm = NodeManager::currentNM();
   if( mkActiveGuard ){
     // make the guard
-    d_enum_to_active_guard[e] = nm->mkSkolem("eG", nm->booleanType());
+    Node ag = nm->mkSkolem("eG", nm->booleanType());
+    // must ensure it is a literal immediately here
+    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    d_enum_to_active_guard[e] = ag;
   }
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
@@ -641,6 +644,16 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
     return itus->second;
   }
   return false;
+}
+
+bool TermDbSygus::isPassiveEnumerator(Node e) const
+{
+  if (isVariableAgnosticEnumerator(e))
+  {
+    return false;
+  }
+  // other criteria go here
+  return true;
 }
 
 void TermDbSygus::getEnumerators(std::vector<Node>& mts)

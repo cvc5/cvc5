@@ -104,6 +104,8 @@ class Cegis : public SygusModule
   /** substitution entailed by d_refinement_lemma_unit */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
+  /** all variables appearing in refinement lemmas */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -150,10 +152,14 @@ class Cegis : public SygusModule
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
+   *
+   * Returns true if any such lemma exists. If doGen is false, then the
+   * lemmas are not generated or added to lems.
    */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+  bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
+                               std::vector<Node>& lems,
+                               bool doGen);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis

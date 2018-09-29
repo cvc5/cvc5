@@ -724,31 +724,39 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
         PARSER_STATE->parseError("Bad syntax for inv-constraint: expected 4 "
                                  "arguments.");
       }
-      //get primed variables
-      std::vector< Expr > primed[2];
-      std::vector< Expr > all;
-      for( unsigned i=0; i<2; i++ ){
-        PARSER_STATE->getSygusPrimedVars( primed[i], i==1 );
-        all.insert( all.end(), primed[i].begin(), primed[i].end() );
-      }
-      //make relevant terms
-      for( unsigned i=0; i<4; i++ ){
+      // get variables (regular and their respective primed versions)
+      std::vector<Expr> vars, primed_vars;
+      PARSER_STATE->getSygusInvVars(terms[0].getType(), vars, primed_vars);
+      // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
+      for (unsigned i = 0; i < 4; ++i)
+      {
         Expr op = terms[i];
-        Debug("parser-sygus") << "Make inv-constraint term #" << i << " : " << op  << "..." << std::endl;
-        std::vector< Expr > children;
-        children.push_back( op );
-        if( i==2 ){
-          children.insert( children.end(), all.begin(), all.end() );
-        }else{
-          children.insert( children.end(), primed[0].begin(), primed[0].end() );
+        Debug("parser-sygus")
+            << "Make inv-constraint term #" << i << " : " << op << " with type "
+            << op.getType() << "..." << std::endl;
+        std::vector<Expr> children;
+        children.push_back(op);
+        // transition relation applied over both variable lists
+        if (i == 2)
+        {
+          children.insert(children.end(), vars.begin(), vars.end());
+          children.insert(
+              children.end(), primed_vars.begin(), primed_vars.end());
         }
-        terms[i] = EXPR_MANAGER->mkExpr( i==0 ? kind::APPLY_UF : kind::APPLY,children);
-        if( i==0 ){
-          std::vector< Expr > children2;
-          children2.push_back( op );
-          children2.insert(children2.end(), primed[1].begin(),
-                           primed[1].end());
-          terms.push_back( EXPR_MANAGER->mkExpr(kind::APPLY_UF,children2) );
+        else
+        {
+          children.insert(children.end(), vars.begin(), vars.end());
+        }
+        terms[i] = EXPR_MANAGER->mkExpr(i == 0 ? kind::APPLY_UF : kind::APPLY,
+                                        children);
+        // make application of Inv on primed variables
+        if (i == 0)
+        {
+          children.clear();
+          children.push_back(op);
+          children.insert(
+              children.end(), primed_vars.begin(), primed_vars.end());
+          terms.push_back(EXPR_MANAGER->mkExpr(kind::APPLY_UF, children));
         }
       }
       //make constraints
