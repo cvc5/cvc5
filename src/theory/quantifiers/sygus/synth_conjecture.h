@@ -35,10 +35,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * A base class for generating values for actively-generated enumerators.
  * At a high level, the job of this class is to accept a stream of "abstract
- * values" a1, ..., an, ..., and generate a (possibly larger) stream of 
+ * values" a1, ..., an, ..., and generate a (possibly larger) stream of
  * "concrete values" c11, ..., c1{m_1}, ..., cn1, ... cn{m_n}, ....
  */
 class EnumValGenerator
