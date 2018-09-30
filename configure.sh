@@ -50,7 +50,6 @@ The following options configure parameterized features.
 Optional Packages:
 The following flags enable optional packages (disable with --no-<option name>).
   --cln                    use CLN instead of GMP
-  --gmp                    use GMP instead of CLN
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
@@ -66,7 +65,7 @@ Optional Path to Optional Packages:
   --antlr-dir=PATH         path to ANTLR C headers and libraries
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
-  --cxxtest-dir=DIR        path to CxxTest installation
+  --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
   --lfsc-dir=PATH          path to top level of LFSC source tree
@@ -140,6 +139,7 @@ abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
+cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
 lfsc_dir=default
@@ -289,6 +289,9 @@ do
     --cryptominisat-dir) die "missing argument to $1 (try -h)" ;;
     --cryptominisat-dir=*) cryptominisat_dir=${1##*=} ;;
 
+    --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
+    --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
+
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
 
@@ -396,6 +399,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
+[ "$cxxtest_dir" != default ] \
+  && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$gmp_dir" != default ] \

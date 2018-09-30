@@ -90,6 +90,7 @@ set(ABC_DIR           "" CACHE STRING "Set ABC install directory")
 set(ANTLR_DIR         "" CACHE STRING "Set ANTLR3 install directory")
 set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
 set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
+set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
@@ -217,6 +218,24 @@ endif()
 enable_testing()
 
 #-----------------------------------------------------------------------------#
+# Check GCC version.
+#
+# GCC version 4.5.1 builds MiniSat incorrectly with -O2, which results in
+# incorrect answers.
+
+if("${CMAKE_CXX_COMPILER_ID}" STREQUAL "GNU")
+  execute_process(
+    COMMAND ${CMAKE_CXX_COMPILER} -dumpversion
+    OUTPUT_VARIABLE GCC_VERSION
+    OUTPUT_STRIP_TRAILING_WHITESPACE)
+  if(GCC_VERSION VERSION_EQUAL "4.5.1")
+    message(FATAL_ERROR
+      "GCC 4.5.1's optimizer is known to build MiniSat incorrectly "
+      "(and by extension CVC4).")
+  endif()
+endif()
+
+#-----------------------------------------------------------------------------#
 # Check options, find packages and configure build.
 
 if(USE_PYTHON2)
@@ -250,10 +269,15 @@ if(ENABLE_COVERAGE)
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
   add_definitions(-DCVC4_COVERAGE)
+  # Note: The ctest command returns a non-zero exit code if tests fail or run
+  # into a timeout. As a consequence, the coverage report is not generated. To
+  # prevent this we always return with exit code 0 after the ctest command has
+  # finished.
   setup_target_for_coverage_lcov(
     NAME coverage
-    EXECUTABLE ctest -j${CTEST_NTHREADS} $(ARGS)
-    DEPENDENCIES cvc4-bin)
+    EXECUTABLE
+      ctest -j${CTEST_NTHREADS} -LE "example"
+        --output-on-failure $(ARGS) || exit 0)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
@@ -310,10 +334,6 @@ endif()
 
 if(ENABLE_TRACING)
   add_definitions(-DCVC4_TRACING)
-endif()
-
-if(ENABLE_UNIT_TESTING)
-  find_package(CxxTest REQUIRED)
 endif()
 
 if(ENABLE_STATISTICS)

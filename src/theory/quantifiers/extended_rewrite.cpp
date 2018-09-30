@@ -787,8 +787,8 @@ Node ExtendedRewriter::extendedRewriteBcp(
 
           // also, treat it as clause if possible
           if (cln.getNumChildren() > 0
-              & (bcp_kinds.empty()
-                 || bcp_kinds.find(cln.getKind()) != bcp_kinds.end()))
+              && (bcp_kinds.empty()
+                  || bcp_kinds.find(cln.getKind()) != bcp_kinds.end()))
           {
             if (std::find(clauses.begin(), clauses.end(), cn) == clauses.end()
                 && prop_clauses.find(cn) == prop_clauses.end())
@@ -1671,6 +1671,11 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   Node new_ret;
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << ret << std::endl;
+
+  if (ret.getKind() == EQUAL)
+  {
+    new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
+  }
 
   return new_ret;
 }
