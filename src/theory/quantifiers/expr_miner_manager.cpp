@@ -14,6 +14,8 @@
 
 #include "theory/quantifiers/expr_miner_manager.h"
 
+#include "options/quantifiers_options.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
