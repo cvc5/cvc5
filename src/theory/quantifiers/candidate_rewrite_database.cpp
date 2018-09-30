@@ -281,6 +281,10 @@ bool CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
   bool rew_print = false;
   return addTerm(sol, rec, out, rew_print);
 }
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+{
+  return addTerm(sol, false, out);
+}
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
 
