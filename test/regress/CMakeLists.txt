@@ -811,6 +811,7 @@ set(regress_0_tests
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
+  regress0/strings/stoi-solve.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
