@@ -22,7 +22,6 @@
 #include "smt/smt_engine_scope.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_red.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -551,7 +550,7 @@ TypeNode SygusGrammarNorm::normalizeSygusType(TypeNode tn, Node sygus_vars)
   Assert(d_dt_all.size() == d_unres_t_all.size());
   std::vector<DatatypeType> types =
       NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
-          d_dt_all, d_unres_t_all);
+          d_dt_all, d_unres_t_all, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert(types.size() == d_dt_all.size());
   /* Clear accumulators */
   d_dt_all.clear();

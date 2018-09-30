@@ -183,15 +183,6 @@ header = "options/strings_options.h"
   help       = "use model guessing to avoid string extended function reductions"
 
 [[option]]
-  name       = "stringUfReduct"
-  category   = "regular"
-  long       = "strings-uf-reduct"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use uninterpreted functions when applying extended function reductions"
-
-[[option]]
   name       = "stringBinaryCsp"
   category   = "regular"
   long       = "strings-binary-csp"
@@ -208,6 +199,22 @@ header = "options/strings_options.h"
   default    = "false"
   read_only  = true
   help       = "do length propagation based on constant splits"
+
+[[option]]
+  name       = "regExpElim"
+  category   = "regular"
+  long       = "re-elim"
+  type       = "bool"
+  default    = "false"
+  help       = "elimination techniques for regular expressions"
+
+[[option]]
+  name       = "regExpElimAgg"
+  category   = "regular"
+  long       = "re-elim-agg"
+  type       = "bool"
+  default    = "false"
+  help       = "aggressive elimination techniques for regular expressions"
 
 [[option]]
   name       = "stringFlatForms"

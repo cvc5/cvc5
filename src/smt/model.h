@@ -38,14 +38,14 @@ class Model {
   /** the input name (file name, etc.) this model is associated to */
   std::string d_inputName;
 
-protected:
+ protected:
   /** The SmtEngine we're associated with */
   SmtEngine& d_smt;
 
   /** construct the base class; users cannot do this, only CVC4 internals */
   Model();
 
-public:
+ public:
   /** virtual destructor */
   virtual ~Model() { }
   /** get number of commands to report */
@@ -58,9 +58,28 @@ public:
   const SmtEngine* getSmtEngine() const { return &d_smt; }
   /** get the input name (file name, etc.) this model is associated to */
   std::string getInputName() const { return d_inputName; }
-public:
-  /** Check whether this expr is a don't-care in the model */
-  virtual bool isDontCare(Expr expr) const { return false; }
+  //--------------------------- model cores
+  /** set using model core
+   *
+   * This sets that this model is minimized to be a "model core" for some
+   * formula (typically the input formula).
+   *
+   * For example, given formula ( a>5 OR b>5 ) AND f( c ) = 0,
+   * a model for this formula is: a -> 6, b -> 0, c -> 0, f -> lambda x. 0.
+   * A "model core" is a subset of this model that suffices to show the
+   * above formula is true, for example { a -> 6, f -> lambda x. 0 } is a
+   * model core for this formula.
+   */
+  virtual void setUsingModelCore() = 0;
+  /** record model core symbol
+   *
+   * This marks that sym is a "model core symbol". In other words, its value is
+   * critical to the satisfiability of the formula this model is for.
+   */
+  virtual void recordModelCoreSymbol(Expr sym) = 0;
+  /** Check whether this expr is in the model core */
+  virtual bool isModelCoreSymbol(Expr expr) const = 0;
+  //--------------------------- end model cores
   /** get value for expression */
   virtual Expr getValue(Expr expr) const = 0;
   /** get cardinality for sort */

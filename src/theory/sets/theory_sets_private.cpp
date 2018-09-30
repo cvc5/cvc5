@@ -37,25 +37,28 @@ namespace sets {
 
 TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
                                      context::Context* c,
-                                     context::UserContext* u):
-  d_rels(NULL),
-  d_members(c),
-  d_deq(c),
-  d_deq_processed(u),
-  d_keep(c),
-  d_proxy(u),
-  d_proxy_to_term(u),
-  d_lemmas_produced(u),
-  d_card_processed(u),
-  d_var_elim(u),
-  d_external(external),
-  d_notify(*this),
-  d_equalityEngine(d_notify, c, "theory::sets::ee", true),
-  d_conflict(c)
+                                     context::UserContext* u)
+    : d_members(c),
+      d_deq(c),
+      d_deq_processed(u),
+      d_keep(c),
+      d_sentLemma(false),
+      d_addedFact(false),
+      d_full_check_incomplete(false),
+      d_proxy(u),
+      d_proxy_to_term(u),
+      d_lemmas_produced(u),
+      d_card_enabled(false),
+      d_card_processed(u),
+      d_var_elim(u),
+      d_external(external),
+      d_notify(*this),
+      d_equalityEngine(d_notify, c, "theory::sets::ee", true),
+      d_conflict(c),
+      d_rels(
+          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
+      d_rels_enabled(false)
 {
-
-  d_rels = new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external);
-
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
@@ -68,21 +71,14 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
   d_equalityEngine.addFunctionKind(kind::MEMBER);
   d_equalityEngine.addFunctionKind(kind::SUBSET);
 
-  // If cardinality is on.
   d_equalityEngine.addFunctionKind(kind::CARD);
-
-  d_card_enabled = false;
-  d_rels_enabled = false;
-
-}/* TheorySetsPrivate::TheorySetsPrivate() */
+}
 
 TheorySetsPrivate::~TheorySetsPrivate(){
-  delete d_rels;
   for (std::pair<const Node, EqcInfo*>& current_pair : d_eqc_info) {
     delete current_pair.second;
   }
-}/* TheorySetsPrivate::~TheorySetsPrivate() */
-
+}
 
 void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
   if( t.getKind()==kind::SINGLETON || t.getKind()==kind::EMPTYSET ){

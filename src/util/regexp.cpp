@@ -442,10 +442,8 @@ bool String::isDigit(unsigned character)
   return c >= '0' && c <= '9';
 }
 
-size_t String::maxSize()
-{
-  return std::numeric_limits<size_t>::max();
-}
+size_t String::maxSize() { return std::numeric_limits<uint32_t>::max(); }
+
 Rational String::toNumber() const
 {
   // when smt2 standard for strings is set, this may change, based on the

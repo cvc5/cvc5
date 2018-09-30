@@ -426,6 +426,7 @@ int InstMatchGenerator::getNextMatch(Node f,
   Node t = d_curr_first_candidate;
   do{
     Trace("matching-debug2") << "Matching candidate : " << t << std::endl;
+    Assert(!qe->inConflict());
     //if t not null, try to fit it into match m
     if( !t.isNull() ){
       if( d_curr_exclude_match.find( t )==d_curr_exclude_match.end() ){
@@ -439,7 +440,7 @@ int InstMatchGenerator::getNextMatch(Node f,
       }
       //get the next candidate term t
       if( success<0 ){
-        t = d_cg->getNextCandidate();
+        t = qe->inConflict() ? Node::null() : d_cg->getNextCandidate();
       }else{
         d_curr_first_candidate = d_cg->getNextCandidate();
       }
@@ -627,7 +628,8 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
     // score is lexographic ( bound vars, shared vars )
     int score_max_1 = -1;
     int score_max_2 = -1;
-    int score_index = -1;
+    unsigned score_index = 0;
+    bool set_score_index = false;
     for( unsigned i=0; i<pats.size(); i++ ){
       Node p = pats[i];
       if( std::find( pats_ordered.begin(), pats_ordered.end(), p )==pats_ordered.end() ){
@@ -641,13 +643,17 @@ InstMatchGeneratorMultiLinear::InstMatchGeneratorMultiLinear( Node q, std::vecto
             score_2++;
           }
         }
-        if( score_index==-1 || score_1>score_max_1 || ( score_1==score_max_1 && score_2>score_max_2 ) ){
+        if (!set_score_index || score_1 > score_max_1
+            || (score_1 == score_max_1 && score_2 > score_max_2))
+        {
           score_index = i;
+          set_score_index = true;
           score_max_1 = score_1;
           score_max_2 = score_2;
         }
       }
     }
+    Assert(set_score_index);
     //update the variable bounds
     Node mp = pats[score_index];
     for( unsigned i=0; i<var_contains[mp].size(); i++ ){
@@ -1024,10 +1030,11 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
     if( d_pol ){
       tat = qe->getTermDatabase()->getTermArgTrie( d_eqc, d_op );
     }else{
-      Node r = qe->getEqualityQuery()->getRepresentative( d_eqc );
       //iterate over all classes except r
       tat = qe->getTermDatabase()->getTermArgTrie( Node::null(), d_op );
-      if( tat ){
+      if (tat && !qe->inConflict())
+      {
+        Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
         for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
           if( it->first!=r ){
             InstMatch m( q );
@@ -1037,12 +1044,13 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
             }
           }
         }
-        tat = NULL;
       }
+      tat = nullptr;
     }
   }
   Debug("simple-trigger-debug") << "Adding instantiations based on " << tat << " from " << d_op << " " << d_eqc << std::endl;
-  if( tat ){
+  if (tat && !qe->inConflict())
+  {
     InstMatch m( q );
     addInstantiations( m, qe, addedLemmas, 0, tat );
   }

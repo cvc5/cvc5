@@ -27,7 +27,7 @@ namespace theory {
 namespace quantifiers {
 
 class TermDbSygus;
-class CegConjecture;
+class SynthConjecture;
 
 /* SygusInvarianceTest
 *
@@ -97,7 +97,10 @@ class SygusInvarianceTest
 class EvalSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  EvalSygusInvarianceTest() : d_kind(kind::UNDEFINED_KIND) {}
+  EvalSygusInvarianceTest()
+      : d_kind(kind::UNDEFINED_KIND), d_is_conjunctive(false)
+  {
+  }
 
   /** initialize this invariance test
    *
@@ -178,7 +181,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
    * are checking for invariance
    */
   void init(
-      TermDbSygus* tds, TypeNode tn, CegConjecture* aconj, Node e, Node bvr);
+      TermDbSygus* tds, TypeNode tn, SynthConjecture* aconj, Node e, Node bvr);
 
  protected:
   /** checks whether the analog of nvn still rewrites to d_bvr */
@@ -186,7 +189,7 @@ class EquivSygusInvarianceTest : public SygusInvarianceTest
 
  private:
   /** the conjecture associated with the enumerator d_enum */
-  CegConjecture* d_conj;
+  SynthConjecture* d_conj;
   /** the enumerator associated with the term for which this test is for */
   Node d_enum;
   /** the RHS of the evaluation */

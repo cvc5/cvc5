@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Replacement for clock_gettime() for systems without it (like Mac OS X)
+ ** \brief Replacement for clock_gettime() for systems without it (Windows)
  **
- ** Replacement for clock_gettime() for systems without it (like Mac OS X).
+ ** Replacement for clock_gettime() for systems without it (Windows).
  **/
 
 #include "cvc4_private_library.h"

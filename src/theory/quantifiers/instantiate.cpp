@@ -17,7 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
@@ -245,10 +245,10 @@ bool Instantiate::addInstantiation(
   Node orig_body = body;
   if (options::cbqiNestedQE())
   {
-    InstStrategyCbqi* icbqi = d_qe->getInstStrategyCbqi();
-    if (icbqi)
+    InstStrategyCegqi* icegqi = d_qe->getInstStrategyCegqi();
+    if (icegqi)
     {
-      body = icbqi->doNestedQE(q, terms, body, doVts);
+      body = icegqi->doNestedQE(q, terms, body, doVts);
     }
   }
   body = quantifiers::QuantifiersRewriter::preprocess(body, true);
@@ -491,7 +491,7 @@ bool Instantiate::removeInstantiationInternal(Node q, std::vector<Node>& terms)
 
 Node Instantiate::getTermForType(TypeNode tn)
 {
-  if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+  if (tn.isClosedEnumerable())
   {
     return d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
   }

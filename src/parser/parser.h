@@ -634,17 +634,17 @@ public:
   /** make higher-order apply
    *
    * This returns the left-associative curried application of (function) expr to
-   * the arguments in args, starting at index startIndex.
+   * the arguments in args.
    *
    * For example, mkHoApply( f, { a, b }, 0 ) returns
    *  (HO_APPLY (HO_APPLY f a) b)
    *
    * If args is non-empty, the expected type of expr is (-> T0 ... Tn T), where
-   *    args[i-startIndex].getType() = Ti
-   * for each i where startIndex <= i < args.size(). If expr is not of this
+   *    args[i].getType() = Ti
+   * for each i where 0 <= i < args.size(). If expr is not of this
    * type, the expression returned by this method will not be well typed.
    */
-  Expr mkHoApply(Expr expr, std::vector<Expr>& args, unsigned startIndex = 0);
+  Expr mkHoApply(Expr expr, std::vector<Expr>& args);
 
   /**
    * Add an operator to the current legal set.

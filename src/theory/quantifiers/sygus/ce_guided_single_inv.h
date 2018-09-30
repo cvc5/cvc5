@@ -20,7 +20,7 @@
 #include "context/cdlist.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"
 #include "theory/quantifiers/inst_match_trie.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/single_inv_partition.h"
 #include "theory/quantifiers_engine.h"
 
@@ -28,18 +28,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
-class CegConjectureSingleInv;
-class CegEntailmentInfer;
+class SynthConjecture;
+class CegSingleInv;
 
 class CegqiOutputSingleInv : public CegqiOutput {
-public:
-  CegqiOutputSingleInv( CegConjectureSingleInv * out ) : d_out( out ){}
-  virtual ~CegqiOutputSingleInv() {}
-  CegConjectureSingleInv * d_out;
-  bool doAddInstantiation(std::vector<Node>& subs) override;
-  bool isEligibleForInstantiation(Node n) override;
-  bool addLemma(Node lem) override;
+ public:
+ CegqiOutputSingleInv(CegSingleInv* out) : d_out(out) {}
+ virtual ~CegqiOutputSingleInv() {}
+ CegSingleInv* d_out;
+ bool doAddInstantiation(std::vector<Node>& subs) override;
+ bool isEligibleForInstantiation(Node n) override;
+ bool addLemma(Node lem) override;
 };
 
 class DetTrace {
@@ -123,7 +122,8 @@ private:
 // (2) inferring whether the conjecture corresponds to a deterministic transistion system (by utility d_ti).
 // For these techniques, we may generate a template (d_templ) which specifies a restricted
 // solution space. We may in turn embed this template as a SyGuS grammar.
-class CegConjectureSingleInv {
+class CegSingleInv
+{
  private:
   friend class CegqiOutputSingleInv;
   //presolve
@@ -138,18 +138,20 @@ class CegConjectureSingleInv {
                          unsigned index, std::map<Node, Node>& weak_imp);
   Node postProcessSolution(Node n);
  private:
+  /** pointer to the quantifiers engine */
   QuantifiersEngine* d_qe;
-  CegConjecture* d_parent;
+  /** the parent of this class */
+  SynthConjecture* d_parent;
   // single invocation inference utility
   SingleInvocationPartition* d_sip;
   // transition inference module for each function to synthesize
   std::map< Node, TransitionInference > d_ti;
   // solution reconstruction
-  CegConjectureSingleInvSol* d_sol;
+  CegSingleInvSol* d_sol;
   // the instantiator's output channel
   CegqiOutputSingleInv* d_cosi;
   // the instantiator
-  CegInstantiator* d_cinst;
+  std::unique_ptr<CegInstantiator> d_cinst;
 
   // list of skolems for each argument of programs
   std::vector<Node> d_single_inv_arg_sk;
@@ -188,7 +190,6 @@ class CegConjectureSingleInv {
   bool d_single_invocation;
   // single invocation portion of quantified formula
   Node d_single_inv;
-  Node d_si_guard;
   // transition relation version per program
   std::map< Node, Node > d_trans_pre;
   std::map< Node, Node > d_trans_post;
@@ -198,16 +199,22 @@ class CegConjectureSingleInv {
   std::map< Node, Node > d_templ_arg;
   
  public:
-  CegConjectureSingleInv( QuantifiersEngine * qe, CegConjecture * p );
-  ~CegConjectureSingleInv();
+  CegSingleInv(QuantifiersEngine* qe, SynthConjecture* p);
+  ~CegSingleInv();
 
   // get simplified conjecture
   Node getSimplifiedConjecture() { return d_simp_quant; }
-  // get single invocation guard
-  Node getGuard() { return d_si_guard; }
  public:
-  //get the single invocation lemma(s)
-  void getInitialSingleInvLemma( std::vector< Node >& lems );
+  /** get the single invocation lemma(s)
+   *
+   * This adds lemmas to lem that initializes this class for doing
+   * counterexample-guided instantiation for the synthesis conjecture. These
+   * lemmas correspond to the negation of the body of the (anti-skolemized)
+   * form of the conjecture for fresh skolems.
+   *
+   * Argument g is guard, for which all the above lemmas are guarded.
+   */
+  void getInitialSingleInvLemma(Node g, std::vector<Node>& lems);
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
   /** finish initialize

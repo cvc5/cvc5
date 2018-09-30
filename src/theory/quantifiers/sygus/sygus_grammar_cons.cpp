@@ -20,9 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -33,7 +33,7 @@ namespace theory {
 namespace quantifiers {
 
 CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
-                                             CegConjecture* p)
+                                             SynthConjecture* p)
     : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
 {
 }
@@ -95,10 +95,11 @@ Node CegGrammarConstructor::process(Node q,
 {
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
-  Trace("cegqi") << "CegConjecture : convert to deep embedding..." << std::endl;
+  Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
+                 << std::endl;
   std::map< TypeNode, std::vector< Node > > extra_cons;
   if( options::sygusAddConstGrammar() ){
-    Trace("cegqi") << "CegConjecture : collect constants..." << std::endl;
+    Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
   std::map<TypeNode, std::vector<Node>> exc_cons;
@@ -843,7 +844,9 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert( !datatypes.empty() );
-  std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
+  std::vector<DatatypeType> types =
+      NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
+          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Assert( types.size()==datatypes.size() );
   return TypeNode::fromType( types[0] );
 }
@@ -882,7 +885,9 @@ TypeNode CegGrammarConstructor::mkSygusTemplateTypeRec( Node templ, Node templ_a
     // we have a single sygus constructor that encodes the template
     datatypes.back().addSygusConstructor( op.toExpr(), cname, argTypes );
     datatypes.back().setSygus( templ.getType().toType(), bvl.toExpr(), true, true );
-    std::vector<DatatypeType> types = NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(datatypes, unres);
+    std::vector<DatatypeType> types =
+        NodeManager::currentNM()->toExprManager()->mkMutualDatatypeTypes(
+            datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     Assert( types.size()==1 );
     return TypeNode::fromType( types[0] );
   }

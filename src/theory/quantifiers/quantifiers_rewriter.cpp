@@ -517,6 +517,7 @@ Node QuantifiersRewriter::computeProcessTerms( Node body, std::vector< Node >& n
 Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                                 std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                                 std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith ) {
+  NodeManager* nm = NodeManager::currentNM();
   Trace("quantifiers-rewrite-term-debug2") << "computeProcessTerms " << body << " " << hasPol << " " << pol << std::endl;
   Node ret;
   std::map< Node, Node >::iterator iti = cache.find( body );
@@ -666,19 +667,28 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
           }
         }
       }
-    /* ITE lifting
-    if( ret.getKind()==ITE ){
-      TypeNode ite_t = ret[1].getType();
-      if( !ite_t.isBoolean() ){
-        ite_t = TypeNode::leastCommonTypeNode( ite_t, ret[2].getType() );
-        Node ite_v = NodeManager::currentNM()->mkBoundVar(ite_t);
-        new_vars.push_back( ite_v );
-        Node cond = NodeManager::currentNM()->mkNode(kind::ITE, ret[0], ite_v.eqNode( ret[1] ), ite_v.eqNode( ret[2] ) );
-        new_conds.push_back( cond.negate() );
-        ret = ite_v;
+    }
+    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
+    {
+      Node st = ret[0];
+      Node index = ret[1];
+      std::vector<Node> iconds;
+      std::vector<Node> elements;
+      while (st.getKind() == STORE)
+      {
+        iconds.push_back(index.eqNode(st[1]));
+        elements.push_back(st[2]);
+        st = st[0];
       }
-      */
-    }else if( elimExtArith ){
+      ret = nm->mkNode(SELECT, st, index);
+      // conditions
+      for (int i = (iconds.size() - 1); i >= 0; i--)
+      {
+        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
+      }
+    }
+    else if( elimExtArith )
+    {
       if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
         Node num = ret[0];
         Node den = ret[1];
@@ -727,36 +737,15 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
   }
 }
 
-
-bool QuantifiersRewriter::isConditionalVariableElim( Node n, int pol ){
-  if( n.getKind()==NOT ){
-    return isConditionalVariableElim( n[0], -pol );
-  }else if( ( n.getKind()==AND && pol>=0 ) || ( n.getKind()==OR && pol<=0 ) ){
-    pol = n.getKind()==AND ? 1 : -1;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( isConditionalVariableElim( n[i], pol ) ){
-        return true;
-      }
-    }
-  }else if( n.getKind()==EQUAL ){
-    for (unsigned i = 0; i < 2; i++)
-    {
-      if (n[i].getKind() == BOUND_VARIABLE)
-      {
-        if (!expr::hasSubterm(n[1 - i], n[i]))
-        {
-          return true;
-        }
-      }
-    }
-  }else if( n.getKind()==BOUND_VARIABLE ){
-    return true;
-  }
-  return false;
-}
-
-Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
-  if( options::iteDtTesterSplitQuant() && body.getKind()==ITE ){
+Node QuantifiersRewriter::computeCondSplit(Node body,
+                                           const std::vector<Node>& args,
+                                           QAttributes& qa)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Kind bk = body.getKind();
+  if (options::iteDtTesterSplitQuant() && bk == ITE
+      && body[0].getKind() == APPLY_TESTER)
+  {
     Trace("quantifiers-rewrite-ite-debug") << "DTT split : " << body << std::endl;
     std::map< Node, Node > pcons;
     std::map< Node, std::map< int, Node > > ncons;
@@ -768,119 +757,131 @@ Node QuantifiersRewriter::computeCondSplit( Node body, QAttributes& qa ){
       for( unsigned i=0; i<conj.size(); i++ ){
         Trace("quantifiers-rewrite-ite") << "   " << conj[i] << std::endl;
       }
-      return NodeManager::currentNM()->mkNode( AND, conj );
+      return nm->mkNode(AND, conj);
     }
   }
-  if( options::condVarSplitQuant() ){
-    if( body.getKind()==ITE || ( body.getKind()==EQUAL && body[0].getType().isBoolean() && options::condVarSplitQuantAgg() ) ){
-      Assert( !qa.isFunDef() );
-      Trace("quantifiers-rewrite-debug") << "Conditional var elim split " << body << "?" << std::endl;
-      bool do_split = false;
-      unsigned index_max = body.getKind()==ITE ? 0 : 1;
-      for( unsigned index=0; index<=index_max; index++ ){
-        if( isConditionalVariableElim( body[index] ) ){
-          do_split = true;
-          break;
-        }
+  if (!options::condVarSplitQuant())
+  {
+    return body;
+  }
+  Trace("cond-var-split-debug")
+      << "Conditional var elim split " << body << "?" << std::endl;
+
+  if (bk == ITE
+      || (bk == EQUAL && body[0].getType().isBoolean()
+          && options::condVarSplitQuantAgg()))
+  {
+    Assert(!qa.isFunDef());
+    bool do_split = false;
+    unsigned index_max = bk == ITE ? 0 : 1;
+    std::vector<Node> tmpArgs = args;
+    for (unsigned index = 0; index <= index_max; index++)
+    {
+      if (hasVarElim(body[index], true, tmpArgs)
+          || hasVarElim(body[index], false, tmpArgs))
+      {
+        do_split = true;
+        break;
       }
-      if( do_split ){
-        Node pos;
-        Node neg;
-        if( body.getKind()==ITE ){
-          pos = NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] );
-          neg = NodeManager::currentNM()->mkNode( OR, body[0], body[2] );
-        }else{
-          pos = NodeManager::currentNM()->mkNode( OR, body[0].negate(), body[1] );
-          neg = NodeManager::currentNM()->mkNode( OR, body[0], body[1].negate() );
-        }
-        Trace("quantifiers-rewrite-debug") << "*** Split (conditional variable eq) " << body << " into : " << std::endl;
-        Trace("quantifiers-rewrite-debug") << "   " << pos << std::endl;
-        Trace("quantifiers-rewrite-debug") << "   " << neg << std::endl;
-        return NodeManager::currentNM()->mkNode( AND, pos, neg );
+    }
+    if (do_split)
+    {
+      Node pos;
+      Node neg;
+      if (bk == ITE)
+      {
+        pos = nm->mkNode(OR, body[0].negate(), body[1]);
+        neg = nm->mkNode(OR, body[0], body[2]);
       }
-    }else if( body.getKind()==OR && options::condVarSplitQuantAgg() ){
-      std::vector< Node > bchildren;
-      std::vector< Node > nchildren;
-      for( unsigned i=0; i<body.getNumChildren(); i++ ){
-        bool split = false;
-        if( nchildren.empty() ){
-          if( body[i].getKind()==AND ){
-            std::vector< Node > children;
-            for( unsigned j=0; j<body[i].getNumChildren(); j++ ){
-              if( ( body[i][j].getKind()==NOT && body[i][j][0].getKind()==EQUAL && isConditionalVariableElim( body[i][j][0] ) ) ||
-                  body[i][j].getKind()==BOUND_VARIABLE ){
-                nchildren.push_back( body[i][j] );
-              }else{
-                children.push_back( body[i][j] );
-              }
+      else
+      {
+        pos = nm->mkNode(OR, body[0].negate(), body[1]);
+        neg = nm->mkNode(OR, body[0], body[1].negate());
+      }
+      Trace("cond-var-split-debug") << "*** Split (conditional variable eq) "
+                                    << body << " into : " << std::endl;
+      Trace("cond-var-split-debug") << "   " << pos << std::endl;
+      Trace("cond-var-split-debug") << "   " << neg << std::endl;
+      return nm->mkNode(AND, pos, neg);
+    }
+  }
+
+  if (bk == OR)
+  {
+    unsigned size = body.getNumChildren();
+    bool do_split = false;
+    unsigned split_index = 0;
+    for (unsigned i = 0; i < size; i++)
+    {
+      // check if this child is a (conditional) variable elimination
+      Node b = body[i];
+      if (b.getKind() == AND)
+      {
+        std::vector<Node> vars;
+        std::vector<Node> subs;
+        std::vector<Node> tmpArgs = args;
+        for (unsigned j = 0, bsize = b.getNumChildren(); j < bsize; j++)
+        {
+          if (getVarElimLit(b[j], false, tmpArgs, vars, subs))
+          {
+            Trace("cond-var-split-debug") << "Variable elimination in child #"
+                                          << j << " under " << i << std::endl;
+            // Figure out if we should split
+            // Currently we split if the aggressive option is set, or
+            // if the top-level OR is binary.
+            if (options::condVarSplitQuantAgg() || size == 2)
+            {
+              do_split = true;
             }
-            if( !nchildren.empty() ){
-              if( !children.empty() ){
-                nchildren.push_back( children.size()==1 ? children[0] : NodeManager::currentNM()->mkNode( AND, children ) );
-              }
-              split = true;
+            // other splitting criteria go here
+
+            if (do_split)
+            {
+              split_index = i;
+              break;
             }
+            vars.clear();
+            subs.clear();
+            tmpArgs = args;
           }
         }
-        if( !split ){
-          bchildren.push_back( body[i] );
-        }
       }
-      if( !nchildren.empty() ){
-        Trace("quantifiers-rewrite-debug") << "*** Split (conditional variable eq) " << body << " into : " << std::endl;
-        for( unsigned i=0; i<nchildren.size(); i++ ){
-          bchildren.push_back( nchildren[i] );
-          nchildren[i] = NodeManager::currentNM()->mkNode( OR, bchildren );
-          Trace("quantifiers-rewrite-debug") << "   " << nchildren[i] << std::endl;
-          bchildren.pop_back();
-        }
-        return NodeManager::currentNM()->mkNode( AND, nchildren );
+      if (do_split)
+      {
+        break;
       }
     }
+    if (do_split)
+    {
+      std::vector<Node> children;
+      for (TNode bc : body)
+      {
+        children.push_back(bc);
+      }
+      std::vector<Node> split_children;
+      for (TNode bci : body[split_index])
+      {
+        children[split_index] = bci;
+        split_children.push_back(nm->mkNode(OR, children));
+      }
+      // split the AND child, for example:
+      //  ( x!=a ^ P(x) ) V Q(x) ---> ( x!=a V Q(x) ) ^ ( P(x) V Q(x) )
+      return nm->mkNode(AND, split_children);
+    }
   }
+
   return body;
 }
 
-bool QuantifiersRewriter::isVariableElim(Node v, Node s)
+bool QuantifiersRewriter::isVarElim(Node v, Node s)
 {
+  Assert(v.getKind() == BOUND_VARIABLE);
   return !expr::hasSubterm(s, v) && s.getType().isSubtypeOf(v.getType());
 }
 
-void QuantifiersRewriter::isVariableBoundElig( Node n, std::map< Node, int >& exclude, std::map< Node, std::map< int, bool > >& visited, bool hasPol, bool pol, 
-                                               std::map< Node, bool >& elig_vars  ) {
-  int vindex = hasPol ? ( pol ? 1 : -1 ) : 0;
-  if( visited[n].find( vindex )==visited[n].end() ){
-    visited[n][vindex] = true;
-    if( elig_vars.find( n )!=elig_vars.end() ){
-      //variable contained in a place apart from bounds, no longer eligible for elimination
-      elig_vars.erase( n );
-      Trace("var-elim-ineq-debug") << "...found occurrence of " << n << ", mark ineligible" << std::endl;
-    }else{
-      if( hasPol ){
-        std::map< Node, int >::iterator itx = exclude.find( n );
-        if( itx!=exclude.end() && itx->second==vindex ){
-          //already processed this literal
-          return;
-        }
-      }
-      for( unsigned j=0; j<n.getNumChildren(); j++ ){
-        bool newHasPol;
-        bool newPol;
-        QuantPhaseReq::getPolarity( n, j, hasPol, pol, newHasPol, newPol );
-        isVariableBoundElig( n[j], exclude, visited, newHasPol, newPol, elig_vars );
-        if( elig_vars.empty() ){
-          break;
-        }
-      }
-    }
-  }else{
-    //already visited
-  }
-}
-
-Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
-                                                   std::vector<Node>& args,
-                                                   Node& var)
+Node QuantifiersRewriter::getVarElimLitBv(Node lit,
+                                          std::vector<Node>& args,
+                                          Node& var)
 {
   if (Trace.isOn("quant-velim-bv"))
   {
@@ -914,7 +915,7 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
         // if this is a proper variable elimination, that is, var = slv where
         // var is not in the free variables of slv, then we can return this
         // as the variable elimination for lit.
-        if (isVariableElim(var, slv))
+        if (isVarElim(var, slv))
         {
           return slv;
         }
@@ -929,17 +930,58 @@ Node QuantifiersRewriter::computeVariableElimLitBv(Node lit,
   return Node::null();
 }
 
-bool QuantifiersRewriter::computeVariableElimLit(
-    Node lit,
-    bool pol,
-    std::vector<Node>& args,
-    std::vector<Node>& vars,
-    std::vector<Node>& subs,
-    std::map<Node, std::map<bool, std::map<Node, bool> > >& num_bounds)
+bool QuantifiersRewriter::getVarElimLit(Node lit,
+                                        bool pol,
+                                        std::vector<Node>& args,
+                                        std::vector<Node>& vars,
+                                        std::vector<Node>& subs)
 {
+  if (lit.getKind() == NOT)
+  {
+    return getVarElimLit(lit[0], !pol, args, vars, subs);
+  }
+  NodeManager* nm = NodeManager::currentNM();
   Trace("var-elim-quant-debug")
       << "Eliminate : " << lit << ", pol = " << pol << "?" << std::endl;
-  if (lit.getKind() == EQUAL && options::varElimQuant())
+  if (lit.getKind() == APPLY_TESTER && pol && lit[0].getKind() == BOUND_VARIABLE
+      && options::dtVarExpandQuant())
+  {
+    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
+                         << std::endl;
+    std::vector<Node>::iterator ita =
+        std::find(args.begin(), args.end(), lit[0]);
+    if (ita != args.end())
+    {
+      vars.push_back(lit[0]);
+      Expr testerExpr = lit.getOperator().toExpr();
+      int index = Datatype::indexOf(testerExpr);
+      const Datatype& dt = Datatype::datatypeOf(testerExpr);
+      const DatatypeConstructor& c = dt[index];
+      std::vector<Node> newChildren;
+      newChildren.push_back(Node::fromExpr(c.getConstructor()));
+      std::vector<Node> newVars;
+      for (unsigned j = 0, nargs = c.getNumArgs(); j < nargs; j++)
+      {
+        TypeNode tn = TypeNode::fromType(c[j].getRangeType());
+        Node v = nm->mkBoundVar(tn);
+        newChildren.push_back(v);
+        newVars.push_back(v);
+      }
+      subs.push_back(nm->mkNode(APPLY_CONSTRUCTOR, newChildren));
+      Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/"
+                           << vars[0] << std::endl;
+      args.erase(ita);
+      args.insert(args.end(), newVars.begin(), newVars.end());
+      return true;
+    }
+  }
+  // all eliminations below guarded by varElimQuant()
+  if (!options::varElimQuant())
+  {
+    return false;
+  }
+
+  if (lit.getKind() == EQUAL)
   {
     if (pol || lit[0].getType().isBoolean())
     {
@@ -956,7 +998,7 @@ bool QuantifiersRewriter::computeVariableElimLit(
             std::find(args.begin(), args.end(), v_slv);
         if (ita != args.end())
         {
-          if (isVariableElim(v_slv, lit[1 - i]))
+          if (isVarElim(v_slv, lit[1 - i]))
           {
             Node slv = lit[1 - i];
             if (!tpol)
@@ -975,31 +1017,9 @@ bool QuantifiersRewriter::computeVariableElimLit(
         }
       }
     }
-  }else if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ){
-    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit << std::endl;
-    std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit[0] );
-    if( ita!=args.end() ){
-      vars.push_back( lit[0] );
-      Expr testerExpr = lit.getOperator().toExpr();
-      int index = Datatype::indexOf( testerExpr );
-      const Datatype& dt = Datatype::datatypeOf(testerExpr);
-      const DatatypeConstructor& c = dt[index];
-      std::vector< Node > newChildren;
-      newChildren.push_back( Node::fromExpr( c.getConstructor() ) );
-      std::vector< Node > newVars;
-      for( unsigned j=0; j<c.getNumArgs(); j++ ){
-        TypeNode tn = TypeNode::fromType( c[j].getRangeType() );
-        Node v = NodeManager::currentNM()->mkBoundVar( tn );
-        newChildren.push_back( v );
-        newVars.push_back( v );
-      }
-      subs.push_back( NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, newChildren ) );
-      Trace("var-elim-dt") << "...apply substitution " << subs[0] << "/" << vars[0] << std::endl;
-      args.erase( ita );
-      args.insert( args.end(), newVars.begin(), newVars.end() );
-      return true;
-    }
-  }else if( lit.getKind()==BOUND_VARIABLE && options::varElimQuant() ){
+  }
+  if (lit.getKind() == BOUND_VARIABLE)
+  {
     std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), lit );
     if( ita!=args.end() ){
       Trace("var-elim-bool") << "Variable eliminate : " << lit << std::endl;
@@ -1009,9 +1029,9 @@ bool QuantifiersRewriter::computeVariableElimLit(
       return true;
     }
   }
-  if( ( lit.getKind()==EQUAL && lit[0].getType().isReal() && pol && options::varElimQuant() ) || 
-      ( ( lit.getKind()==GEQ || lit.getKind()==GT ) && options::varIneqElimQuant() ) ){
-    //for arithmetic, solve the (in)equality
+  if (lit.getKind() == EQUAL && lit[0].getType().isReal() && pol)
+  {
+    // for arithmetic, solve the equality
     std::map< Node, Node > msum;
     if (ArithMSum::getMonomialSumLit(lit, msum))
     {
@@ -1019,58 +1039,29 @@ bool QuantifiersRewriter::computeVariableElimLit(
         if( !itm->first.isNull() ){
           std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), itm->first );
           if( ita!=args.end() ){
-            if( lit.getKind()==EQUAL ){
-              Assert( pol );
-              Node veq_c;
-              Node val;
-              int ires =
-                  ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
-              if( ires!=0 && veq_c.isNull() && isVariableElim( itm->first, val ) ){
-                Trace("var-elim-quant") << "Variable eliminate based on solved equality : " << itm->first << " -> " << val << std::endl;
-                vars.push_back( itm->first );
-                subs.push_back( val );
-                args.erase( ita );
-                return true;
-              }
-            }else{
-              Assert( lit.getKind()==GEQ || lit.getKind()==GT );
-              //store that this literal is upper/lower bound for itm->first
-              Node veq_c;
-              Node val;
-              int ires = ArithMSum::isolate(
-                  itm->first, msum, veq_c, val, lit.getKind());
-              if( ires!=0 && veq_c.isNull() ){
-                bool is_upper = pol!=( ires==1 );
-                Trace("var-elim-ineq-debug") << lit << " is a " << ( is_upper ? "upper" : "lower" ) << " bound for " << itm->first << std::endl;
-                Trace("var-elim-ineq-debug") << "  pol/ires = " << pol << " " << ires << std::endl;
-                num_bounds[itm->first][is_upper][lit] = pol;
-              }else{
-                Trace("var-elim-ineq-debug") << "...ineligible " << itm->first << " since it cannot be solved for (" << ires << ", " << veq_c << ")." << std::endl;
-                num_bounds[itm->first][true].clear();
-                num_bounds[itm->first][false].clear();
-              }
-            }
-          }else{
-            if( lit.getKind()==GEQ || lit.getKind()==GT ){
-              //compute variables in itm->first, these are not eligible for elimination
-              std::vector< Node > bvs;
-              TermUtil::getBoundVars( itm->first, bvs );
-              for( unsigned j=0; j<bvs.size(); j++ ){
-                Trace("var-elim-ineq-debug") << "...ineligible " << bvs[j] << " since it is contained in monomial." << std::endl;
-                num_bounds[bvs[j]][true].clear();
-                num_bounds[bvs[j]][false].clear();
-              }
+            Assert(pol);
+            Node veq_c;
+            Node val;
+            int ires = ArithMSum::isolate(itm->first, msum, veq_c, val, EQUAL);
+            if (ires != 0 && veq_c.isNull() && isVarElim(itm->first, val))
+            {
+              Trace("var-elim-quant")
+                  << "Variable eliminate based on solved equality : "
+                  << itm->first << " -> " << val << std::endl;
+              vars.push_back(itm->first);
+              subs.push_back(val);
+              args.erase(ita);
+              return true;
             }
           }
         }
       }
     }
   }
-  else if (lit.getKind() == EQUAL && lit[0].getType().isBitVector() && pol
-           && options::varElimQuant())
+  if (lit.getKind() == EQUAL && lit[0].getType().isBitVector() && pol)
   {
     Node var;
-    Node slv = computeVariableElimLitBv(lit, args, var);
+    Node slv = getVarElimLitBv(lit, args, var);
     if (!slv.isNull())
     {
       Assert(!var.isNull());
@@ -1088,92 +1079,282 @@ bool QuantifiersRewriter::computeVariableElimLit(
       return true;
     }
   }
-
   return false;
 }
 
-Node QuantifiersRewriter::computeVarElimination2( Node body, std::vector< Node >& args, QAttributes& qa ){
-  Trace("var-elim-quant-debug") << "Compute var elimination for " << body << std::endl;
-  std::map< Node, std::map< bool, std::map< Node, bool > > > num_bounds;
-  QuantPhaseReq qpr( body );
+bool QuantifiersRewriter::getVarElim(Node n,
+                                     bool pol,
+                                     std::vector<Node>& args,
+                                     std::vector<Node>& vars,
+                                     std::vector<Node>& subs)
+{
+  Kind nk = n.getKind();
+  if (nk == NOT)
+  {
+    return getVarElim(n[0], !pol, args, vars, subs);
+  }
+  else if ((nk == AND && pol) || (nk == OR && !pol))
+  {
+    for (const Node& cn : n)
+    {
+      if (getVarElim(cn, pol, args, vars, subs))
+      {
+        return true;
+      }
+    }
+    return false;
+  }
+  return getVarElimLit(n, pol, args, vars, subs);
+}
+
+bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args)
+{
   std::vector< Node > vars;
   std::vector< Node > subs;
-  for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
-    Trace("var-elim-quant-debug") << "   phase req : " << it->first << " -> " << ( it->second ? "true" : "false" ) << std::endl;
-    if( computeVariableElimLit( it->first, it->second, args, vars, subs, num_bounds ) ){
-      break;
+  return getVarElim(n, pol, args, vars, subs);
+}
+
+bool QuantifiersRewriter::getVarElimIneq(Node body,
+                                         std::vector<Node>& args,
+                                         std::vector<Node>& bounds,
+                                         std::vector<Node>& subs,
+                                         QAttributes& qa)
+{
+  // elimination based on inequalities
+  std::map<Node, std::map<bool, std::map<Node, bool> > > num_bounds;
+  QuantPhaseReq qpr(body);
+  for (const std::pair<const Node, bool>& pr : qpr.d_phase_reqs)
+  {
+    // an inequality that is entailed with a given polarity
+    Node lit = pr.first;
+    if (lit.getKind() != GEQ)
+    {
+      continue;
     }
-  }
-  
-  if( !vars.empty() ){
-    Trace("var-elim-quant-debug") << "VE " << vars.size() << "/" << args.size() << std::endl;
-    //remake with eliminated nodes
-    body = body.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    body = Rewriter::rewrite( body );
-    if( !qa.d_ipl.isNull() ){
-      qa.d_ipl = qa.d_ipl.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+    bool pol = pr.second;
+    Trace("var-elim-quant-debug") << "Process inequality bounds : " << lit
+                                  << ", pol = " << pol << "..." << std::endl;
+    // solve the inequality
+    std::map<Node, Node> msum;
+    if (!ArithMSum::getMonomialSumLit(lit, msum))
+    {
+      // not an inequality, cannot use
+      continue;
     }
-    Trace("var-elim-quant") << "Return " << body << std::endl;
-  }else{
-    //collect all variables that have only upper/lower bounds
-    std::map< Node, bool > elig_vars;
-    for( std::map< Node, std::map< bool, std::map< Node, bool > > >::iterator it = num_bounds.begin(); it != num_bounds.end(); ++it ){
-      if( it->second.find( true )==it->second.end() ){
-        Trace("var-elim-ineq-debug") << "Variable " << it->first << " has only lower bounds." << std::endl;
-        elig_vars[it->first] = false;
-      }else if( it->second.find( false )==it->second.end() ){
-        Trace("var-elim-ineq-debug") << "Variable " << it->first << " has only upper bounds." << std::endl;
-        elig_vars[it->first] = true;
-      }
-    }
-    if( !elig_vars.empty() ){
-      std::vector< Node > inactive_vars;
-      std::map< Node, std::map< int, bool > > visited;
-      std::map< Node, int > exclude;
-      for( std::map< Node, bool >::iterator it = qpr.d_phase_reqs.begin(); it != qpr.d_phase_reqs.end(); ++it ){
-        if( it->first.getKind()==GEQ || it->first.getKind()==GT ){
-          exclude[ it->first ] = it->second ? -1 : 1;
-          Trace("var-elim-ineq-debug") << "...exclude " << it->first << " at polarity " << exclude[ it->first ] << std::endl;
-        }
-      }
-      //traverse the body, invalidate variables if they occur in places other than the bounds they occur in
-      isVariableBoundElig( body, exclude, visited, true, true, elig_vars );
-      
-      if( !elig_vars.empty() ){
-        if( !qa.d_ipl.isNull() ){
-          isVariableBoundElig( qa.d_ipl, exclude, visited, false, true, elig_vars );
-        }
-        for( std::map< Node, bool >::iterator itev = elig_vars.begin(); itev != elig_vars.end(); ++itev ){
-          Node v = itev->first;
-          Trace("var-elim-ineq-debug") << v << " is eligible for elimination." << std::endl;
-          //do substitution corresponding to infinite projection, all literals involving unbounded variable go to true/false
-          std::vector< Node > terms;
-          std::vector< Node > subs;
-          for( std::map< Node, bool >::iterator itb = num_bounds[v][elig_vars[v]].begin(); itb != num_bounds[v][elig_vars[v]].end(); ++itb ){
-            Trace("var-elim-ineq-debug") << "  subs : " << itb->first << " -> " << itb->second << std::endl;
-            terms.push_back( itb->first );
-            subs.push_back( NodeManager::currentNM()->mkConst( itb->second ) );
+    for (const std::pair<const Node, Node>& m : msum)
+    {
+      if (!m.first.isNull())
+      {
+        std::vector<Node>::iterator ita =
+            std::find(args.begin(), args.end(), m.first);
+        if (ita != args.end())
+        {
+          // store that this literal is upper/lower bound for itm->first
+          Node veq_c;
+          Node val;
+          int ires =
+              ArithMSum::isolate(m.first, msum, veq_c, val, lit.getKind());
+          if (ires != 0 && veq_c.isNull())
+          {
+            bool is_upper = pol != (ires == 1);
+            Trace("var-elim-ineq-debug")
+                << lit << " is a " << (is_upper ? "upper" : "lower")
+                << " bound for " << m.first << std::endl;
+            Trace("var-elim-ineq-debug")
+                << "  pol/ires = " << pol << " " << ires << std::endl;
+            num_bounds[m.first][is_upper][lit] = pol;
           }
-          body = body.substitute( terms.begin(), terms.end(), subs.begin(), subs.end() );
-          Trace("var-elim-ineq-debug") << "Return " << body << std::endl;
-          //eliminate from args
-          std::vector< Node >::iterator ita = std::find( args.begin(), args.end(), v );
-          Assert( ita!=args.end() );
-          args.erase( ita );
+          else
+          {
+            Trace("var-elim-ineq-debug")
+                << "...ineligible " << m.first
+                << " since it cannot be solved for (" << ires << ", " << veq_c
+                << ")." << std::endl;
+            num_bounds[m.first][true].clear();
+            num_bounds[m.first][false].clear();
+          }
         }
-      } 
+        else
+        {
+          // compute variables in itm->first, these are not eligible for
+          // elimination
+          std::vector<Node> bvs;
+          TermUtil::getBoundVars(m.first, bvs);
+          for (TNode v : bvs)
+          {
+            Trace("var-elim-ineq-debug")
+                << "...ineligible " << v
+                << " since it is contained in monomial." << std::endl;
+            num_bounds[v][true].clear();
+            num_bounds[v][false].clear();
+          }
+        }
+      }
     }
   }
-  return body;
+
+  // collect all variables that have only upper/lower bounds
+  std::map<Node, bool> elig_vars;
+  for (const std::pair<const Node, std::map<bool, std::map<Node, bool> > >& nb :
+       num_bounds)
+  {
+    if (nb.second.find(true) == nb.second.end())
+    {
+      Trace("var-elim-ineq-debug")
+          << "Variable " << nb.first << " has only lower bounds." << std::endl;
+      elig_vars[nb.first] = false;
+    }
+    else if (nb.second.find(false) == nb.second.end())
+    {
+      Trace("var-elim-ineq-debug")
+          << "Variable " << nb.first << " has only upper bounds." << std::endl;
+      elig_vars[nb.first] = true;
+    }
+  }
+  if (elig_vars.empty())
+  {
+    return false;
+  }
+  std::vector<Node> inactive_vars;
+  std::map<Node, std::map<int, bool> > visited;
+  std::map<Node, int> exclude;
+  for (const std::pair<Node, bool>& pr : qpr.d_phase_reqs)
+  {
+    if (pr.first.getKind() == GEQ)
+    {
+      exclude[pr.first] = pr.second ? -1 : 1;
+      Trace("var-elim-ineq-debug")
+          << "...exclude " << pr.first << " at polarity " << exclude[pr.first]
+          << std::endl;
+    }
+  }
+  // traverse the body, invalidate variables if they occur in places other than
+  // the bounds they occur in
+  std::unordered_map<TNode, std::unordered_set<int>, TNodeHashFunction>
+      evisited;
+  std::vector<TNode> evisit;
+  std::vector<int> evisit_pol;
+  TNode ecur;
+  int ecur_pol;
+  evisit.push_back(body);
+  evisit_pol.push_back(1);
+  if (!qa.d_ipl.isNull())
+  {
+    // do not eliminate variables that occur in the annotation
+    evisit.push_back(qa.d_ipl);
+    evisit_pol.push_back(0);
+  }
+  do
+  {
+    ecur = evisit.back();
+    evisit.pop_back();
+    ecur_pol = evisit_pol.back();
+    evisit_pol.pop_back();
+    std::unordered_set<int>& epp = evisited[ecur];
+    if (epp.find(ecur_pol) == epp.end())
+    {
+      epp.insert(ecur_pol);
+      if (elig_vars.find(ecur) != elig_vars.end())
+      {
+        // variable contained in a place apart from bounds, no longer eligible
+        // for elimination
+        elig_vars.erase(ecur);
+        Trace("var-elim-ineq-debug") << "...found occurrence of " << ecur
+                                     << ", mark ineligible" << std::endl;
+      }
+      else
+      {
+        bool rec = true;
+        bool pol = ecur_pol >= 0;
+        bool hasPol = ecur_pol != 0;
+        if (hasPol)
+        {
+          std::map<Node, int>::iterator itx = exclude.find(ecur);
+          if (itx != exclude.end() && itx->second == ecur_pol)
+          {
+            // already processed this literal as a bound
+            rec = false;
+          }
+        }
+        if (rec)
+        {
+          for (unsigned j = 0, size = ecur.getNumChildren(); j < size; j++)
+          {
+            bool newHasPol;
+            bool newPol;
+            QuantPhaseReq::getPolarity(ecur, j, hasPol, pol, newHasPol, newPol);
+            evisit.push_back(ecur[j]);
+            evisit_pol.push_back(newHasPol ? (newPol ? 1 : -1) : 0);
+          }
+        }
+      }
+    }
+  } while (!evisit.empty() && !elig_vars.empty());
+
+  bool ret = false;
+  for (const std::pair<Node, bool>& ev : elig_vars)
+  {
+    Node v = ev.first;
+    Trace("var-elim-ineq-debug")
+        << v << " is eligible for elimination." << std::endl;
+    // do substitution corresponding to infinite projection, all literals
+    // involving unbounded variable go to true/false
+    for (const std::pair<const Node, bool>& nb : num_bounds[v][elig_vars[v]])
+    {
+      Trace("var-elim-ineq-debug")
+          << "  subs : " << nb.first << " -> " << nb.second << std::endl;
+      bounds.push_back(nb.first);
+      subs.push_back(NodeManager::currentNM()->mkConst(nb.second));
+    }
+    // eliminate from args
+    std::vector<Node>::iterator ita = std::find(args.begin(), args.end(), v);
+    Assert(ita != args.end());
+    args.erase(ita);
+    ret = true;
+  }
+  return ret;
 }
 
 Node QuantifiersRewriter::computeVarElimination( Node body, std::vector< Node >& args, QAttributes& qa ){
-  if( options::varElimQuant() || options::dtVarExpandQuant() ){
-    Node prev;
-    do{
-      prev = body;
-      body = computeVarElimination2( body, args, qa );
-    }while( prev!=body && !args.empty() );
+  if (!options::varElimQuant() && !options::dtVarExpandQuant()
+      && !options::varIneqElimQuant())
+  {
+    return body;
+  }
+  Node prev;
+  while (prev != body && !args.empty())
+  {
+    prev = body;
+
+    std::vector<Node> vars;
+    std::vector<Node> subs;
+    // standard variable elimination
+    if (options::varElimQuant())
+    {
+      getVarElim(body, false, args, vars, subs);
+    }
+    // variable elimination based on one-direction inequalities
+    if (vars.empty() && options::varIneqElimQuant())
+    {
+      getVarElimIneq(body, args, vars, subs, qa);
+    }
+    // if we eliminated a variable, update body and reprocess
+    if (!vars.empty())
+    {
+      Trace("var-elim-quant-debug")
+          << "VE " << vars.size() << "/" << args.size() << std::endl;
+      Assert(vars.size() == subs.size());
+      // remake with eliminated nodes
+      body =
+          body.substitute(vars.begin(), vars.end(), subs.begin(), subs.end());
+      body = Rewriter::rewrite(body);
+      if (!qa.d_ipl.isNull())
+      {
+        qa.d_ipl = qa.d_ipl.substitute(
+            vars.begin(), vars.end(), subs.begin(), subs.end());
+      }
+      Trace("var-elim-quant") << "Return " << body << std::endl;
+    }
   }
   return body;
 }
@@ -1717,7 +1898,7 @@ Node QuantifiersRewriter::computeOperation( Node f, int computeOption, QAttribut
       n = NodeManager::currentNM()->mkNode( OR, new_conds );
     }
   }else if( computeOption==COMPUTE_COND_SPLIT ){
-    n = computeCondSplit( n, qa );
+    n = computeCondSplit(n, args, qa);
   }else if( computeOption==COMPUTE_PRENEX ){
     if( options::prenexQuant()==PRENEX_QUANT_DISJ_NORMAL || options::prenexQuant()==PRENEX_QUANT_NORMAL ){
       //will rewrite at preprocess time

@@ -124,9 +124,6 @@ class CDOhash_map : public ContextObj {
 
   CDHashMap<Key, Data, HashFcn>* d_map;
 
-  /** never put this cdhashmapelement on the trash */
-  bool d_noTrash;
-
   // Doubly-linked list for keeping track of elements in order of insertion
   CDOhash_map* d_prev;
   CDOhash_map* d_next;
@@ -162,13 +159,10 @@ class CDOhash_map : public ContextObj {
         }
         d_next->d_prev = d_prev;
         d_prev->d_next = d_next;
-        if(d_noTrash) {
-          Debug("gc") << "CDHashMap<> no-trash " << this << std::endl;
-        } else {
-          Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
-          //this->deleteSelf();
-          enqueueToGarbageCollect();
-        }
+
+        Debug("gc") << "CDHashMap<> trash push_back " << this << std::endl;
+        // this->deleteSelf();
+        enqueueToGarbageCollect();
       } else {
         mutable_data() = p->get();
       }
@@ -197,16 +191,9 @@ class CDOhash_map : public ContextObj {
               CDHashMap<Key, Data, HashFcn>* map,
               const Key& key,
               const Data& data,
-              bool atLevelZero = false,
-              bool allocatedInCMM = false)
-      : ContextObj(allocatedInCMM, context),
-        d_value(key, data),
-        d_map(NULL),
-        d_noTrash(allocatedInCMM)
+              bool atLevelZero = false)
+      : ContextObj(false, context), d_value(key, data), d_map(NULL)
   {
-    // untested, probably unsafe.
-    Assert(!(atLevelZero && allocatedInCMM));
-
     if(atLevelZero) {
       // "Initializing" map insertion: this entry will never be
       // removed from the map, it's inserted at level 0 as an
@@ -219,13 +206,6 @@ class CDOhash_map : public ContextObj {
       // initialize d_map in the constructor init list above, because
       // we want the restore of d_map to NULL to signal us to remove
       // the element from the map.
-
-      if(allocatedInCMM) {
-        // Force a save/restore point, even though the object is
-        // allocated here.  This is so that we can detect when the
-        // object falls out of the map (otherwise we wouldn't get it).
-        makeSaveRestorePoint();
-      }
 
       set(data);
     }
@@ -328,9 +308,7 @@ public:
       // mark it as being a destruction (short-circuit restore())
       Element* element = key_element_pair.second;
       element->d_map = nullptr;
-      if (!element->d_noTrash) {
-        element->deleteSelf();
-      }
+      element->deleteSelf();
     }
     d_map.clear();
     d_first = nullptr;

@@ -13,10 +13,11 @@
  **/
 
 #include "theory/quantifiers/sygus/cegis.h"
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/theory_engine.h"
 
@@ -28,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-Cegis::Cegis(QuantifiersEngine* qe, CegConjecture* p)
+Cegis::Cegis(QuantifiersEngine* qe, SynthConjecture* p)
     : SygusModule(qe, p), d_eval_unfold(nullptr), d_using_gr_repair(false)
 {
   if (options::sygusEvalUnfold())
@@ -100,15 +101,47 @@ void Cegis::getTermList(const std::vector<Node>& candidates,
 bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
                           const std::vector<Node>& candidate_values)
 {
+  // First, decide if this call will apply "conjecture-specific refinement".
+  // In other words, in some settings, the following method will identify and
+  // block a class of solutions {candidates -> S} that generalizes the current
+  // one (given by {candidates -> candidate_values}), such that for each
+  // candidate_values' in S, we have that {candidates -> candidate_values'} is
+  // also not a solution for the given conjecture. We may not
+  // apply this form of refinement if any (relevant) enumerator in candidates is
+  // "actively generated" (see TermDbSygs::isPassiveEnumerator), since its
+  // model values are themselves interpreted as classes of solutions.
+  bool doGen = true;
+  for (const Node& v : candidates)
+  {
+    // if it is relevant to refinement
+    if (d_refinement_lemma_vars.find(v) != d_refinement_lemma_vars.end())
+    {
+      if (!d_tds->isPassiveEnumerator(v))
+      {
+        doGen = false;
+        break;
+      }
+    }
+  }
   NodeManager* nm = NodeManager::currentNM();
   bool addedEvalLemmas = false;
   if (options::sygusRefEval())
   {
-    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation..."
-                          << std::endl;
+    Trace("cegqi-engine") << "  *** Do refinement lemma evaluation"
+                          << (doGen ? " with conjecture-specific refinement"
+                                    : "")
+                          << "..." << std::endl;
     // see if any refinement lemma is refuted by evaluation
     std::vector<Node> cre_lems;
-    getRefinementEvalLemmas(candidates, candidate_values, cre_lems);
+    bool ret =
+        getRefinementEvalLemmas(candidates, candidate_values, cre_lems, doGen);
+    if (ret && !doGen)
+    {
+      Trace("cegqi-engine") << "...(actively enumerated) candidate failed "
+                               "refinement lemma evaluation."
+                            << std::endl;
+      return true;
+    }
     if (!cre_lems.empty())
     {
       for (const Node& lem : cre_lems)
@@ -124,7 +157,8 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
          add the lemmas below as well, in parallel. */
     }
   }
-  if (d_eval_unfold != nullptr)
+  // we only do evaluation unfolding for passive enumerators
+  if (doGen && d_eval_unfold != nullptr)
   {
     Trace("cegqi-engine") << "  *** Do evaluation unfolding..." << std::endl;
     std::vector<Node> eager_terms, eager_vals, eager_exps;
@@ -166,7 +200,17 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
-      Trace("cegis") << "    " << enums[i] << " -> ";
+      bool isUnit = false;
+      for (const Node& hd_unit : d_rl_eval_hds)
+      {
+        if (enums[i] == hd_unit[0])
+        {
+          isUnit = true;
+          break;
+        }
+      }
+      Trace("cegis") << "    " << enums[i]
+                     << (options::sygusUnif() && isUnit ? "*" : "") << " -> ";
       std::stringstream ss;
       Printer::getPrinter(options::outputLanguage())
           ->toStreamSygus(ss, enum_values[i]);
@@ -271,6 +315,8 @@ void Cegis::addRefinementLemma(Node lem)
   }
   // rewrite with extended rewriter
   slem = d_tds->getExtRewriter()->extendedRewrite(slem);
+  // collect all variables in slem
+  expr::getSymbols(slem, d_refinement_lemma_vars);
   std::vector<Node> waiting;
   waiting.push_back(lem);
   unsigned wcounter = 0;
@@ -398,10 +444,10 @@ void Cegis::registerRefinementLemma(const std::vector<Node>& vars,
 }
 
 bool Cegis::usingRepairConst() { return true; }
-
-void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
+bool Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
                                     const std::vector<Node>& ms,
-                                    std::vector<Node>& lems)
+                                    std::vector<Node>& lems,
+                                    bool doGen)
 {
   Trace("sygus-cref-eval") << "Cref eval : conjecture has "
                            << d_refinement_lemma_unit.size() << " unit and "
@@ -414,6 +460,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
 
   Node nfalse = nm->mkConst(false);
   Node neg_guard = d_parent->getGuard().negate();
+  bool ret = false;
   for (unsigned r = 0; r < 2; r++)
   {
     std::unordered_set<Node, NodeHashFunction>& rlemmas =
@@ -437,6 +484,12 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
           << "...after unfolding is : " << lemcsu << std::endl;
       if (lemcsu.isConst() && !lemcsu.getConst<bool>())
       {
+        if (!doGen)
+        {
+          // we are not generating the lemmas, instead just return
+          return true;
+        }
+        ret = true;
         std::vector<Node> msu;
         std::vector<Node> mexp;
         msu.insert(msu.end(), ms.begin(), ms.end());
@@ -470,13 +523,12 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
         {
           cre_lem = neg_guard;
         }
-      }
-      if (!cre_lem.isNull()
-          && std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
-      {
-        Trace("sygus-cref-eval")
-            << "...produced lemma : " << cre_lem << std::endl;
-        lems.push_back(cre_lem);
+        if (std::find(lems.begin(), lems.end(), cre_lem) == lems.end())
+        {
+          Trace("sygus-cref-eval") << "...produced lemma : " << cre_lem
+                                   << std::endl;
+          lems.push_back(cre_lem);
+        }
       }
     }
     if (!lems.empty())
@@ -484,6 +536,7 @@ void Cegis::getRefinementEvalLemmas(const std::vector<Node>& vs,
       break;
     }
   }
+  return ret;
 }
 
 bool Cegis::sampleAddRefinementLemma(const std::vector<Node>& candidates,

@@ -562,7 +562,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
+  Assert(d_tds->isEnumerator(e));
+  bool isPassive = d_tds->isPassiveEnumerator(e);
+  if (isPassive
+      && getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -707,16 +710,20 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     }
   }
 
-  // exclude this value on subsequent iterations
-  if (exp_exc.isNull())
+  if (isPassive)
   {
-    // if we did not already explain why this should be excluded, use default
-    exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
+    // exclude this value on subsequent iterations
+    if (exp_exc.isNull())
+    {
+      Trace("sygus-sui-enum-lemma") << "Use basic exclusion." << std::endl;
+      // if we did not already explain why this should be excluded, use default
+      exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
+    }
+    exp_exc = exp_exc.negate();
+    Trace("sygus-sui-enum-lemma")
+        << "SygusUnifIo : enumeration exclude lemma : " << exp_exc << std::endl;
+    lemmas.push_back(exp_exc);
   }
-  exp_exc = exp_exc.negate();
-  Trace("sygus-sui-enum-lemma")
-      << "SygusUnifIo : enumeration exclude lemma : " << exp_exc << std::endl;
-  lemmas.push_back(exp_exc);
 }
 
 bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
@@ -1177,7 +1184,8 @@ Node SygusUnifIo::constructSol(
 
       // for ITE
       Node split_cond_enum;
-      int split_cond_res_index = -1;
+      unsigned split_cond_res_index = 0;
+      CVC4_UNUSED bool set_split_cond_res_index = false;
 
       for (unsigned sc = 0, size = etis->d_cenum.size(); sc < size; sc++)
       {
@@ -1204,9 +1212,8 @@ Node SygusUnifIo::constructSol(
           if (strat == strat_ITE && sc > 0)
           {
             EnumCache& ecache_cond = d_ecache[split_cond_enum];
-            Assert(split_cond_res_index >= 0);
-            Assert(split_cond_res_index
-                   < (int)ecache_cond.d_enum_vals_res.size());
+            Assert(set_split_cond_res_index);
+            Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
             prev = x.d_vals;
             bool ret = x.updateContext(
                 this,
@@ -1361,10 +1368,10 @@ Node SygusUnifIo::constructSol(
               Assert(ecache_child.d_enum_val_to_index.find(rec_c)
                      != ecache_child.d_enum_val_to_index.end());
               split_cond_res_index = ecache_child.d_enum_val_to_index[rec_c];
+              set_split_cond_res_index = true;
               split_cond_enum = ce;
-              Assert(split_cond_res_index >= 0);
               Assert(split_cond_res_index
-                     < (int)ecache_child.d_enum_vals_res.size());
+                     < ecache_child.d_enum_vals_res.size());
             }
           }
           else

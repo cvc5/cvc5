@@ -97,7 +97,8 @@ public:
     }
   }
 
-  void setUp() {
+  void setUp() override
+  {
     d_em = new ExprManager();
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
@@ -125,7 +126,8 @@ public:
 
   }
 
-  void tearDown() {
+  void tearDown() override
+  {
     delete d_intType;
     delete d_realType;
     delete d_booleanType;

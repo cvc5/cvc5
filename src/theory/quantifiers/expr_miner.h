@@ -1,0 +1,101 @@
+/*********************                                                        */
+/*! \file expr_miner.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief expr_miner
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+#define __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H
+
+#include <map>
+#include <memory>
+#include <vector>
+#include "expr/expr_manager.h"
+#include "expr/node.h"
+#include "smt/smt_engine.h"
+#include "theory/quantifiers/sygus_sampler.h"
+
+namespace CVC4 {
+namespace theory {
+namespace quantifiers {
+
+/** Expression miner
+ *
+ * This is a virtual base class for modules that "mines" certain information
+ * from (enumerated) expressions. This includes:
+ * - candidate rewrite rules (--sygus-rr-synth)
+ */
+class ExprMiner
+{
+ public:
+  ExprMiner() : d_sampler(nullptr) {}
+  virtual ~ExprMiner() {}
+  /** initialize
+   *
+   * This initializes this expression miner. The argument vars indicates the
+   * free variables of terms that will be added to this class. The argument
+   * sampler gives an (optional) pointer to a sampler, which is used to
+   * sample tuples of valuations of these variables.
+   */
+  virtual void initialize(const std::vector<Node>& vars,
+                          SygusSampler* ss = nullptr);
+  /** add term
+   *
+   * This registers term n with this expression miner. The output stream out
+   * is provided as an argument for the purposes of outputting the result of
+   * the expression mining done by this class. For example, candidate-rewrite
+   * output is printed on out by the candidate rewrite generator miner.
+   */
+  virtual bool addTerm(Node n, std::ostream& out) = 0;
+
+ protected:
+  /** the set of variables used by this class */
+  std::vector<Node> d_vars;
+  /** pointer to the sygus sampler object we are using */
+  SygusSampler* d_sampler;
+  /**
+   * Maps to skolems for each free variable that appears in a check. This is
+   * used during initializeChecker so that query (which may contain free
+   * variables) is converted to a formula without free variables.
+   */
+  std::map<Node, Node> d_fv_to_skolem;
+  /** convert */
+  Node convertToSkolem(Node n);
+  /** initialize checker
+   *
+   * This function initializes the smt engine smte to check the satisfiability
+   * of the argument "query", which is a formula whose free variables (of
+   * kind BOUND_VARIABLE) are a subset of d_vars.
+   *
+   * The arguments em and varMap are used for supporting cases where we
+   * want smte to use a different expression manager instead of the current
+   * expression manager. The motivation for this so that different options can
+   * be set for the subcall.
+   *
+   * We update the flag needExport to true if smte is using the expression
+   * manager em. In this case, subsequent expressions extracted from smte
+   * (for instance, model values) must be exported to the current expression
+   * manager.
+   */
+  void initializeChecker(std::unique_ptr<SmtEngine>& smte,
+                         ExprManager& em,
+                         ExprManagerMapCollection& varMap,
+                         Node query,
+                         bool& needExport);
+};
+
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
+
+#endif /* __CVC4__THEORY__QUANTIFIERS__EXPRESSION_MINER_H */

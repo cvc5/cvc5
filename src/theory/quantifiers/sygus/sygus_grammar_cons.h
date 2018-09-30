@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
 /** utility for constructing datatypes that correspond to syntactic restrictions,
 * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
@@ -32,7 +32,7 @@ class CegConjecture;
 class CegGrammarConstructor
 {
 public:
- CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
+ CegGrammarConstructor(QuantifiersEngine* qe, SynthConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
   *
@@ -114,11 +114,9 @@ public:
   /** parent conjecture
   * This contains global information about the synthesis conjecture.
   */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
-  /** does the syntax allow ITE expressions? */
-  bool d_has_ite;
   /** collect terms */
   void collectTerms( Node n, std::map< TypeNode, std::vector< Node > >& consts );
   /** convert node n based on deep embedding (Section 4 of Reynolds et al CAV 2015) */
