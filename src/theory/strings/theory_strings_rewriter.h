@@ -98,6 +98,19 @@ class TheoryStringsRewriter {
    * a is in rewritten form.
    */
   static bool checkEntailArithInternal(Node a);
+  /** rewrite string equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two strings s = t, given by node. It is called by rewriteEqualityExt.
+   */
+  static Node rewriteStrEqualityExt(Node node);
+  /** rewrite arithmetic equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two arithmetic string terms s = t, given by node. t is called by
+   * rewriteEqualityExt.
+   */
+  static Node rewriteArithEqualityExt(Node node);
   /**
    * Called when node rewrites to ret.
    *
@@ -129,9 +142,12 @@ class TheoryStringsRewriter {
   /** rewrite equality extended
    *
    * This method returns a formula that is equivalent to the equality between
-   * two strings s = t, given by node. Specifically, this function performs
-   * rewrites whose conclusion is not necessarily one of
-   * { s = t, t = s, true, false }.
+   * two terms s = t, given by node, where s and t are terms in the signature
+   * of the theory of strings. Notice that s and t may be of string type or
+   * of Int type.
+   *
+   * Specifically, this function performs rewrites whose conclusion is not
+   * necessarily one of { s = t, t = s, true, false }.
    */
   static Node rewriteEqualityExt(Node node);
   /** rewrite concat

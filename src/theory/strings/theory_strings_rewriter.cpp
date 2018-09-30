@@ -321,10 +321,21 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL);
-  if (!node[0].getType().isString())
+  if (node[0].getType().isInteger())
   {
-    return node;
+    return rewriteArithEqualityExt(node);
   }
+  if (node[0].getType().isString())
+  {
+    return rewriteStrEqualityExt(node);
+  }
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isString());
+
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> c[2];
   Node new_ret;
@@ -570,6 +581,38 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
       if (!new_ret.isNull())
       {
         return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
+      }
+    }
+  }
+
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  // cases where we can solve the equality
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (node[i].isConst())
+    {
+      Node on = node[1 - i];
+      Kind onk = on.getKind();
+      if (onk == STRING_STOI)
+      {
+        Rational r = node[i].getConst<Rational>();
+        int sgn = r.sgn();
+        Node onEq;
+        std::stringstream ss;
+        if (sgn >= 0)
+        {
+          ss << r.getNumerator();
+        }
+        Node new_ret = on[0].eqNode(nm->mkConst(String(ss.str())));
+        return returnRewrite(node, new_ret, "stoi-solve");
       }
     }
   }
