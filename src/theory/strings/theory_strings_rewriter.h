@@ -495,7 +495,9 @@ class TheoryStringsRewriter {
    * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
    * consider (recursively) the approximations for len( substr( x, 0, n ) ).
    */
-  static void getArithApproximations(Node a, std::vector< Node >& approx, bool isOverApprox=false);
+  static void getArithApproximations(Node a,
+                                     std::vector<Node>& approx,
+                                     bool isOverApprox = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
