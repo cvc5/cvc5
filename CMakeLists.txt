@@ -269,10 +269,15 @@ if(ENABLE_COVERAGE)
   include(CodeCoverage)
   APPEND_COVERAGE_COMPILER_FLAGS()
   add_definitions(-DCVC4_COVERAGE)
+  # Note: The ctest command returns a non-zero exit code if tests fail or run
+  # into a timeout. As a consequence, the coverage report is not generated. To
+  # prevent this we always return with exit code 0 after the ctest command has
+  # finished.
   setup_target_for_coverage_lcov(
     NAME coverage
     EXECUTABLE
-      ctest -j${CTEST_NTHREADS} -LE "example" --output-on-failure $(ARGS))
+      ctest -j${CTEST_NTHREADS} -LE "example"
+        --output-on-failure $(ARGS) || exit 0)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
