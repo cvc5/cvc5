@@ -792,7 +792,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out,
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
-        is_unique_term = d_exprm[prog].addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
+        is_unique_term = d_exprm[prog].addTerm(sol, out, rew_print);
         if (rew_print)
         {
           ++(cei->d_statistics.d_candidate_rewrites_print);

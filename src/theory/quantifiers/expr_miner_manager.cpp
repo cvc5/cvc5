@@ -82,7 +82,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
                                      std::ostream& out,
                                      bool& rew_print)
 {
-  return d_crd.addTerm(sol, out, rew_print);
+  return d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
 }
 
 bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
