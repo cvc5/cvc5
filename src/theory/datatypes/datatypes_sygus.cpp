@@ -538,7 +538,8 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     // enumerator is only specific to variable agnostic symmetry breaking
     e = Node::null();
   }
-  std::map< unsigned, Node >& ssbCache = d_simple_sb_pred[e][tn][tindex][optHashVal];
+  std::map<unsigned, Node>& ssbCache =
+      d_simple_sb_pred[e][tn][tindex][optHashVal];
   std::map<unsigned, Node>::iterator it = ssbCache.find(depth);
   if (it != ssbCache.end())
   {

@@ -161,8 +161,8 @@ private:
   std::map< Node, std::map< int, Node > > d_inst_map;
   //---------------------------------labels
   /** labels for each equivalence class
-   * 
-   * For each eqc r, d_labels[r] is testers that hold for this equivalence 
+   *
+   * For each eqc r, d_labels[r] is testers that hold for this equivalence
    * class, either:
    * a list of equations of the form
    *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ), each of
@@ -172,9 +172,9 @@ private:
    *   NOT is_[constructor_1]( t1 )...NOT is_[constructor_n]( tn ) followed by
    *   is_[constructor_(n+1)]( t{n+1} ), each of which is a unique tester.
    * In both cases, t1, ..., tn, t{n+1} are terms in the equivalence class of r.
-   * 
+   *
    * We store this list in a context-dependent way, using the four data
-   * structures below. The three vectors d_labels_data, d_labels_args, and 
+   * structures below. The three vectors d_labels_data, d_labels_args, and
    * d_labels_tindex store the tester applications, their arguments and the
    * tester index of the application. The map d_labels stores the number of
    * values in these vectors that is valid in the current context (this is an
@@ -185,9 +185,9 @@ private:
   /** the tester applications */
   std::map< Node, std::vector< Node > > d_labels_data;
   /** the argument of each node in d_labels_data */
-  std::map< Node, std::vector< Node > > d_labels_args;
+  std::map<Node, std::vector<Node> > d_labels_args;
   /** the tester index of each node in d_labels_data */
-  std::map< Node, std::vector< unsigned > > d_labels_tindex;
+  std::map<Node, std::vector<unsigned> > d_labels_tindex;
   //---------------------------------end labels
   /** selector apps for eqch equivalence class */
   NodeUIntMap d_selector_apps;
@@ -317,7 +317,7 @@ private:
 
  private:
   /** add tester to equivalence class info */
-  void addTester( unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg );
+  void addTester(unsigned ttindex, Node t, EqcInfo* eqc, Node n, Node t_arg);
   /** add selector to equivalence class info */
   void addSelector( Node s, EqcInfo* eqc, Node n, bool assertFacts = true );
   /** add constructor */
