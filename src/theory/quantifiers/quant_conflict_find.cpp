@@ -1194,16 +1194,17 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     d_qni_gterm_rep[it->first] = p->getRepresentative( it->second );
   }
   if( d_type==typ_ground ){
-    //int e = p->evaluate( d_n );
-    //if( e==1 ){
+    // int e = p->evaluate( d_n );
+    // if( e==1 ){
     //  d_ground_eval[0] = p->d_true;
     //}else if( e==-1 ){
     //  d_ground_eval[0] = p->d_false;
     //}
-    //modified
+    // modified
     TermDb* tdb = p->getTermDatabase();
     QuantifiersEngine* qe = p->getQuantifiersEngine();
-    for( unsigned i=0; i<2; i++ ){
+    for (unsigned i = 0; i < 2; i++)
+    {
       if (tdb->isEntailed(d_n, i == 0))
       {
         d_ground_eval[0] = i==0 ? p->d_true : p->d_false;
@@ -1220,7 +1221,7 @@ bool MatchGen::reset_round(QuantConflictFind* p)
     {
       if (!expr::hasBoundVar(d_n[i]))
       {
-        TNode t = tdb->getEntailedTerm(d_n[i]);        
+        TNode t = tdb->getEntailedTerm(d_n[i]);
         if (qe->inConflict())
         {
           return false;

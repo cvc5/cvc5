@@ -2378,8 +2378,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    context::Context context;
-    AssertionPipeline apipe(&context);
+    AssertionPipeline apipe;
     apipe.push_back(a);
     passes::BVGauss bgauss(nullptr);
     std::unordered_map<Node, Node, NodeHashFunction> res;
@@ -2461,8 +2460,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
 
     Node a = d_nm->mkNode(kind::AND, d_nm->mkNode(kind::AND, eq1, eq2), eq3);
 
-    context::Context context;
-    AssertionPipeline apipe(&context);
+    AssertionPipeline apipe;
     apipe.push_back(a);
     apipe.push_back(eq4);
     apipe.push_back(eq5);
@@ -2513,8 +2511,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
             d_p),
         d_nine);
 
-    context::Context context;
-    AssertionPipeline apipe(&context);
+    AssertionPipeline apipe;
     apipe.push_back(eq1);
     apipe.push_back(eq2);
     passes::BVGauss bgauss(nullptr);

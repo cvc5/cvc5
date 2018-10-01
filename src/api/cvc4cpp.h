@@ -25,6 +25,7 @@
 #include <memory>
 #include <set>
 #include <string>
+#include <sstream>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -43,6 +44,21 @@ class Random;
 class Result;
 
 namespace api {
+
+/* -------------------------------------------------------------------------- */
+/* Exception                                                                  */
+/* -------------------------------------------------------------------------- */
+
+class CVC4_PUBLIC CVC4ApiException : public std::exception
+{
+ public:
+  CVC4ApiException(const std::string& str) : d_msg(str) {}
+  CVC4ApiException(const std::stringstream& stream) :d_msg(stream.str()) {}
+  std::string getMessage() const { return d_msg; }
+  const char* what() const noexcept override { return d_msg.c_str(); }
+ private:
+  std::string d_msg;
+};
 
 /* -------------------------------------------------------------------------- */
 /* Result                                                                     */
@@ -2412,6 +2428,10 @@ class CVC4_PUBLIC Solver
   std::vector<Type> sortVectorToTypes(const std::vector<Sort>& vector) const;
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
+  /* Helper to check for API misuse in mkTerm functions. */
+  void checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const;
+  /* Helper to check for API misuse in mkOpTerm functions. */
+  void checkMkTerm(Kind kind, uint32_t nchildren) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

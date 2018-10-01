@@ -61,6 +61,8 @@ libcvc4_la_SOURCES = \
 	decision/decision_strategy.h \
 	decision/justification_heuristic.cpp \
 	decision/justification_heuristic.h \
+	preprocessing/assertion_pipeline.cpp \
+	preprocessing/assertion_pipeline.h \
 	preprocessing/passes/apply_substs.cpp \
 	preprocessing/passes/apply_substs.h \
 	preprocessing/passes/apply_to_const.cpp \
@@ -97,10 +99,10 @@ libcvc4_la_SOURCES = \
 	preprocessing/passes/pseudo_boolean_processor.h \
 	preprocessing/passes/miplib_trick.cpp \
 	preprocessing/passes/miplib_trick.h \
-	preprocessing/passes/quantifiers_preprocess.cpp \
-	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/quantifier_macros.cpp \
 	preprocessing/passes/quantifier_macros.h \
+	preprocessing/passes/quantifiers_preprocess.cpp \
+	preprocessing/passes/quantifiers_preprocess.h \
 	preprocessing/passes/real_to_int.cpp \
 	preprocessing/passes/real_to_int.h \
 	preprocessing/passes/rewrite.cpp \
@@ -448,8 +450,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.h \
-	theory/quantifiers/cegqi/inst_strategy_cbqi.cpp \
-	theory/quantifiers/cegqi/inst_strategy_cbqi.h \
+	theory/quantifiers/cegqi/inst_strategy_cegqi.cpp \
+	theory/quantifiers/cegqi/inst_strategy_cegqi.h \
 	theory/quantifiers/conjecture_generator.cpp \
 	theory/quantifiers/conjecture_generator.h \
 	theory/quantifiers/dynamic_rewrite.cpp \
@@ -470,6 +472,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/equality_query.h \
 	theory/quantifiers/equality_infer.cpp \
 	theory/quantifiers/equality_infer.h \
+	theory/quantifiers/expr_miner.cpp \
+	theory/quantifiers/expr_miner.h \
+	theory/quantifiers/expr_miner_manager.cpp \
+	theory/quantifiers/expr_miner_manager.h \
 	theory/quantifiers/extended_rewrite.cpp \
 	theory/quantifiers/extended_rewrite.h \
 	theory/quantifiers/first_order_model.cpp \
@@ -526,12 +532,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/cegis.h \
 	theory/quantifiers/sygus/cegis_unif.cpp \
 	theory/quantifiers/sygus/cegis_unif.h \
-	theory/quantifiers/sygus/ce_guided_conjecture.cpp \
-	theory/quantifiers/sygus/ce_guided_conjecture.h \
-	theory/quantifiers/sygus/ce_guided_instantiation.cpp \
-	theory/quantifiers/sygus/ce_guided_instantiation.h \
 	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv.h \
+	theory/quantifiers/sygus/enum_stream_substitution.cpp \
+	theory/quantifiers/sygus/enum_stream_substitution.h \
 	theory/quantifiers/sygus/sygus_pbe.cpp \
 	theory/quantifiers/sygus/sygus_pbe.h \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \
@@ -562,6 +566,10 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/sygus_unif_rl.h \
 	theory/quantifiers/sygus/sygus_unif_strat.cpp \
 	theory/quantifiers/sygus/sygus_unif_strat.h \
+	theory/quantifiers/sygus/synth_conjecture.cpp \
+	theory/quantifiers/sygus/synth_conjecture.h \
+	theory/quantifiers/sygus/synth_engine.cpp \
+	theory/quantifiers/sygus/synth_engine.h \
 	theory/quantifiers/sygus/term_database_sygus.cpp \
 	theory/quantifiers/sygus/term_database_sygus.h \
 	theory/quantifiers/sygus_sampler.cpp \
@@ -598,6 +606,8 @@ libcvc4_la_SOURCES = \
 	theory/strings/regexp_elim.h \
 	theory/strings/regexp_operation.cpp \
 	theory/strings/regexp_operation.h \
+	theory/strings/skolem_cache.cpp \
+	theory/strings/skolem_cache.h \
 	theory/strings/theory_strings.cpp \
 	theory/strings/theory_strings.h \
 	theory/strings/theory_strings_preprocess.cpp \

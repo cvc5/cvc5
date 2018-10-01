@@ -635,6 +635,7 @@ REG0_TESTS = \
 	regress0/quantifiers/nested-inf.smt2 \
 	regress0/quantifiers/partial-trigger.smt2 \
 	regress0/quantifiers/pure_dt_cbqi.smt2 \
+	regress0/quantifiers/qarray-sel-over-store.smt2 \
 	regress0/quantifiers/qbv-inequality2.smt2 \
 	regress0/quantifiers/qbv-simp.smt2 \
 	regress0/quantifiers/qbv-test-invert-bvadd-neq.smt2 \
@@ -806,6 +807,7 @@ REG0_TESTS = \
 	regress0/strings/code-sat-neg-one.smt2 \
 	regress0/strings/escchar.smt2 \
 	regress0/strings/escchar_25.smt2 \
+	regress0/strings/hconst-092618.smt2 \
 	regress0/strings/idof-rewrites.smt2 \
 	regress0/strings/idof-sem.smt2 \
 	regress0/strings/ilc-like.smt2 \
@@ -820,6 +822,7 @@ REG0_TESTS = \
 	regress0/strings/rewrites-re-concat.smt2 \
 	regress0/strings/rewrites-v2.smt2 \
 	regress0/strings/std2.6.1.smt2 \
+	regress0/strings/stoi-solve.smt2 \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \
@@ -838,6 +841,7 @@ REG0_TESTS = \
 	regress0/sygus/const-var-test.sy \
 	regress0/sygus/dt-no-syntax.sy \
 	regress0/sygus/hd-05-d1-prog-nogrammar.sy \
+	regress0/sygus/inv-different-var-order.sy \
 	regress0/sygus/let-ringer.sy \
 	regress0/sygus/let-simp.sy \
 	regress0/sygus/no-syntax-test-bool.sy \
@@ -1161,6 +1165,7 @@ REG1_TESTS = \
 	regress1/nl/div-mod-partial.smt2 \
 	regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2 \
 	regress1/nl/exp-4.5-lt.smt2 \
+	regress1/nl/exp-approx.smt2 \
 	regress1/nl/exp1-lb.smt2 \
 	regress1/nl/exp_monotone.smt2 \
 	regress1/nl/factor_agg_s.smt2 \
@@ -1493,6 +1498,7 @@ REG1_TESTS = \
 	regress1/strings/issue1105.smt2 \
 	regress1/strings/issue1684-regex.smt2 \
 	regress1/strings/issue2060.smt2 \
+	regress1/strings/issue2429-code.smt2 \
 	regress1/strings/kaluza-fl.smt2 \
 	regress1/strings/loop002.smt2 \
 	regress1/strings/loop003.smt2 \
@@ -1617,6 +1623,10 @@ REG1_TESTS = \
 	regress1/sygus/unbdd_inv_gen_ex7.sy \
 	regress1/sygus/unbdd_inv_gen_winf1.sy \
 	regress1/sygus/univ_2-long-repeat.sy \
+	regress1/sym/qf-function.smt2 \
+	regress1/sym/q-constant.smt2 \
+	regress1/sym/q-function.smt2 \
+	regress1/sym/sb-wrong.smt2 \
 	regress1/sym/sym1.smt2 \
 	regress1/sym/sym2.smt2 \
 	regress1/sym/sym3.smt2 \
@@ -1624,6 +1634,7 @@ REG1_TESTS = \
 	regress1/sym/sym5.smt2 \
 	regress1/sym/sym6.smt2 \
 	regress1/sym/sym7-uf.smt2 \
+	regress1/sym/sym-setAB.smt2 \
 	regress1/test12.cvc \
 	regress1/trim.cvc \
 	regress1/uf2.smt2 \
@@ -1722,6 +1733,7 @@ REG3_TESTS = \
 	regress3/hole9.cvc \
 	regress3/incorrect1.smt \
 	regress3/incorrect2.smt \
+	regress3/issue2429.smt2 \
 	regress3/pp-regfile.smt \
 	regress3/qwh.35.405.shuffled-as.sat03-1651.smt
 

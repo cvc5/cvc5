@@ -16,50 +16,11 @@
 
 #include "preprocessing/preprocessing_pass.h"
 
-#include "expr/node_manager.h"
-#include "proof/proof.h"
 #include "smt/dump.h"
 #include "smt/smt_statistics_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {
-
-AssertionPipeline::AssertionPipeline(context::Context* context)
-    : d_substitutionsIndex(context, 0),
-      d_topLevelSubstitutions(context),
-      d_realAssertionsEnd(0)
-{
-}
-
-void AssertionPipeline::replace(size_t i, Node n) {
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]););
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i,
-                                Node n,
-                                const std::vector<Node>& addnDeps)
-{
-  PROOF(ProofManager::currentPM()->addDependence(n, d_nodes[i]);
-        for (const auto& addnDep
-             : addnDeps) {
-          ProofManager::currentPM()->addDependence(n, addnDep);
-        });
-  d_nodes[i] = n;
-}
-
-void AssertionPipeline::replace(size_t i, const std::vector<Node>& ns)
-{
-  PROOF(
-      for (const auto& n
-           : ns) { ProofManager::currentPM()->addDependence(n, d_nodes[i]); });
-  d_nodes[i] = NodeManager::currentNM()->mkConst<bool>(true);
-
-  for (const auto& n : ns)
-  {
-    d_nodes.push_back(n);
-  }
-}
 
 PreprocessingPassResult PreprocessingPass::apply(
     AssertionPipeline* assertionsToPreprocess) {

@@ -22,7 +22,6 @@
  *      Author: dejan
  */
 
-#include <boost/uuid/sha1.hpp>
 #include <fstream>
 #include <iostream>
 #include <sstream>
