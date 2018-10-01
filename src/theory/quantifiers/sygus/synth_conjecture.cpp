@@ -356,7 +356,38 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     // get the model value of the relevant terms from the master module
     std::vector<Node> enum_values;
     bool fullModel = getEnumeratedValues(terms, enum_values);
-
+    
+    // debug print
+    Assert( terms.size()==enum_values.size());
+    if( Trace.isOn("cegqi-engine") )
+    {
+      Trace("cegqi-engine") << "  * Value is : ";
+      for (unsigned i = 0, size = terms.size(); i < size; i++)
+      {
+        Node nv = enum_values[i];
+        Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
+        TypeNode tn = onv.getType();
+        std::stringstream ss;
+        Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
+        Trace("cegqi-engine") << terms[i] << " -> ";
+        if (nv.isNull())
+        {
+          Trace("cegqi-engine") << "[EXC: " << ss.str() << "] ";
+        }
+        else
+        {
+          Trace("cegqi-engine") << ss.str() << " ";
+          if (Trace.isOn("cegqi-engine-rr"))
+          {
+            Node bv = d_tds->sygusToBuiltin(nv, tn);
+            bv = Rewriter::rewrite(bv);
+            Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
+          }
+        }
+      }
+      Trace("cegqi-engine") << std::endl;
+    }
+    
     // if the master requires a full model and the model is partial, we fail
     if (!d_master->allowPartialModel() && !fullModel)
     {
@@ -620,36 +651,12 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
                                           std::vector<Node>& v)
 {
   bool ret = true;
-  Trace("cegqi-engine") << "  * Value is : ";
   for (unsigned i = 0; i < n.size(); i++)
   {
     Node nv = getEnumeratedValue(n[i]);
     v.push_back(nv);
     ret = ret && !nv.isNull();
-    if (Trace.isOn("cegqi-engine"))
-    {
-      Node onv = nv.isNull() ? d_qe->getModel()->getValue(n[i]) : nv;
-      TypeNode tn = onv.getType();
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, onv);
-      Trace("cegqi-engine") << n[i] << " -> ";
-      if (nv.isNull())
-      {
-        Trace("cegqi-engine") << "[EXC: " << ss.str() << "] ";
-      }
-      else
-      {
-        Trace("cegqi-engine") << ss.str() << " ";
-        if (Trace.isOn("cegqi-engine-rr"))
-        {
-          Node bv = d_tds->sygusToBuiltin(nv, tn);
-          bv = Rewriter::rewrite(bv);
-          Trace("cegqi-engine-rr") << " -> " << bv << std::endl;
-        }
-      }
-    }
   }
-  Trace("cegqi-engine") << std::endl;
   return ret;
 }
 
