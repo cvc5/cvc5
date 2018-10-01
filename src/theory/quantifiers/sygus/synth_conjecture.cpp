@@ -357,6 +357,16 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     std::vector<Node> enum_values;
     bool fullModel = getEnumeratedValues(terms, enum_values);
 
+    // if the master requires a full model and the model is partial, we fail
+    if (!d_master->allowPartialModel() && !fullModel)
+    {
+      // we retain the values in d_ev_active_gen_waiting
+      Trace("cegqi-check") << "...partial model, fail." << std::endl;
+      return;
+    }
+    // the waiting values are passed to the module below, clear
+    d_ev_active_gen_waiting.clear();
+    
     // debug print
     Assert(terms.size() == enum_values.size());
     if (Trace.isOn("cegqi-engine"))
@@ -387,16 +397,6 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
       }
       Trace("cegqi-engine") << std::endl;
     }
-
-    // if the master requires a full model and the model is partial, we fail
-    if (!d_master->allowPartialModel() && !fullModel)
-    {
-      // we retain the values in d_ev_active_gen_waiting
-      Trace("cegqi-check") << "...partial model, fail." << std::endl;
-      return;
-    }
-    // the waiting values are passed to the module below, clear
-    d_ev_active_gen_waiting.clear();
 
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
