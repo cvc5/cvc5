@@ -281,7 +281,9 @@ if(ENABLE_COVERAGE)
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $(ARGS) || exit 0)
+        --output-on-failure $(ARGS) || exit 0
+    DEPENDS
+      build-tests)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
