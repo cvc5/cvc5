@@ -2974,8 +2974,6 @@ void SmtEnginePrivate::processAssertions() {
 
   PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
 
-  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
-
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
 
