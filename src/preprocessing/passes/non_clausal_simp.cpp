@@ -21,6 +21,7 @@
 #include "base/map_util.h"
 #include "context/cdo.h"
 #include "options/proof_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "proof/proof_manager.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
@@ -530,6 +531,8 @@ NonClausalSimp::preprocessByCircuitPropagator(
   propagator->setNeedsFinish(true);
   return std::make_pair(true, learned_literals);
 }
+  
+static RegisterPass<NonClausalSimp> X("non-clausal-simp");
 
 /* -------------------------------------------------------------------------- */
 

@@ -21,11 +21,11 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "theory/rewriter.h"
-#include "theory/theory.h"
-
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/node_visitor.h"
+#include "theory/rewriter.h"
+#include "theory/theory.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -303,6 +303,8 @@ BVToBool::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numAtomsLifted);
   smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLifted);
 }
+
+static RegisterPass<BVToBool> X("bv-to-bool");
 
 }  // passes
 }  // Preprocessing

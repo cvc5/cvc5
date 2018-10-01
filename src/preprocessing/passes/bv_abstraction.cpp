@@ -26,6 +26,7 @@
 #include <vector>
 
 #include "options/bv_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
 
@@ -59,6 +60,8 @@ PreprocessingPassResult BvAbstraction::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<BvAbstraction> X("bv-abstraction");
 
 }  // namespace passes
 }  // namespace preprocessing

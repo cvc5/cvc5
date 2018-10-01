@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/extended_rewriter_pass.h"
 
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/quantifiers/extended_rewrite.h"
 
 namespace CVC4 {
@@ -36,6 +37,8 @@ PreprocessingPassResult ExtRewPre::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<ExtRewPre> X("ext-rew-pre");
 
 }  // namespace passes
 }  // namespace preprocessing
