@@ -14,10 +14,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > unit tests
 
 add_custom_target(build-units)
-add_dependencies(check build-units)
-if(ENABLE_COVERAGE)
-  add_dependencies(coverage build-units)
-endif()
+add_dependencies(build-tests build-units)
 
 add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
