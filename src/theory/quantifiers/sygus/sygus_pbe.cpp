@@ -358,6 +358,12 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
   Assert(isPbe());
   Assert(!e.isNull());
+  if( !d_tds->isPassiveEnumerator(e) )
+  {
+    // we cannot apply conjecture-specific symmetry breaking on enumerators that
+    // are not passive
+    return Node::null();
+  }
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
