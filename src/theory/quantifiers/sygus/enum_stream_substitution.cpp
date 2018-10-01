@@ -29,10 +29,8 @@ namespace theory {
 namespace quantifiers {
 
 EnumStreamPermutation::EnumStreamPermutation(quantifiers::TermDbSygus* tds)
-    : d_tds(tds)
+    : d_tds(tds), d_first(true), d_curr_ind(0)
 {
-  d_first = true;
-  d_curr_ind = 0;
 }
 
 void EnumStreamPermutation::reset(Node value)
@@ -325,9 +323,8 @@ bool EnumStreamPermutation::PermutationState::getNextPermutation()
 }
 
 EnumStreamSubstitution::EnumStreamSubstitution(quantifiers::TermDbSygus* tds)
-    : d_tds(tds), d_stream_permutations(tds)
+    : d_tds(tds), d_stream_permutations(tds), d_curr_ind(0)
 {
-  d_curr_ind = 0;
 }
 
 void EnumStreamSubstitution::initialize(TypeNode tn)
