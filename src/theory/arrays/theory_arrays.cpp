@@ -56,21 +56,30 @@ const bool d_solveWrite2 = false;
   //bool d_lazyRIntro1 = true;
   //bool d_eagerIndexSplitting = false;
 
-TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
-                           OutputChannel& out, Valuation valuation,
-                           const LogicInfo& logicInfo, std::string name)
+TheoryArrays::TheoryArrays(context::Context* c,
+                           context::UserContext* u,
+                           OutputChannel& out,
+                           Valuation valuation,
+                           const LogicInfo& logicInfo,
+                           std::string name)
     : Theory(THEORY_ARRAYS, c, u, out, valuation, logicInfo, name),
       d_numRow(name + "theory::arrays::number of Row lemmas", 0),
       d_numExt(name + "theory::arrays::number of Ext lemmas", 0),
       d_numProp(name + "theory::arrays::number of propagations", 0),
       d_numExplain(name + "theory::arrays::number of explanations", 0),
-      d_numNonLinear(name + "theory::arrays::number of calls to setNonLinear", 0),
-      d_numSharedArrayVarSplits(name + "theory::arrays::number of shared array var splits", 0),
-      d_numGetModelValSplits(name + "theory::arrays::number of getModelVal splits", 0),
-      d_numGetModelValConflicts(name + "theory::arrays::number of getModelVal conflicts", 0),
-      d_numSetModelValSplits(name + "theory::arrays::number of setModelVal splits", 0),
-      d_numSetModelValConflicts(name + "theory::arrays::number of setModelVal conflicts", 0),
-      d_ppEqualityEngine(u, name + "theory::arrays::pp" , true),
+      d_numNonLinear(name + "theory::arrays::number of calls to setNonLinear",
+                     0),
+      d_numSharedArrayVarSplits(
+          name + "theory::arrays::number of shared array var splits", 0),
+      d_numGetModelValSplits(
+          name + "theory::arrays::number of getModelVal splits", 0),
+      d_numGetModelValConflicts(
+          name + "theory::arrays::number of getModelVal conflicts", 0),
+      d_numSetModelValSplits(
+          name + "theory::arrays::number of setModelVal splits", 0),
+      d_numSetModelValConflicts(
+          name + "theory::arrays::number of setModelVal conflicts", 0),
+      d_ppEqualityEngine(u, name + "theory::arrays::pp", true),
       d_ppFacts(u),
       //      d_ppCache(u),
       d_literalsToPropagate(c),
@@ -102,7 +111,8 @@ TheoryArrays::TheoryArrays(context::Context* c, context::UserContext* u,
       d_readTableContext(new context::Context()),
       d_arrayMerges(c),
       d_inCheckModel(false),
-      d_proofReconstruction(&d_equalityEngine)
+      d_proofReconstruction(&d_equalityEngine),
+      d_dstrat(new TheoryArraysDecisionStrategy(this))
 {
   smtStatisticsRegistry()->registerStat(&d_numRow);
   smtStatisticsRegistry()->registerStat(&d_numExt);
@@ -170,7 +180,6 @@ TheoryArrays::~TheoryArrays() {
 void TheoryArrays::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
-
 
 /////////////////////////////////////////////////////////////////////////////
 // PREPROCESSING
@@ -1243,6 +1252,9 @@ bool TheoryArrays::collectModelInfo(TheoryModel* m)
 void TheoryArrays::presolve()
 {
   Trace("arrays")<<"Presolving \n";
+  // add the decision strategy
+  getDecisionManager()->registerStrategy(DecisionManager::STRAT_ARRAYS,
+                                         d_dstrat.get());
 }
 
 
@@ -2133,16 +2145,14 @@ void TheoryArrays::queueRowLemma(RowLemmaType lem)
   }
 }
 
-
-Node TheoryArrays::getNextDecisionRequest( unsigned& priority ) {
+Node TheoryArrays::getNextDecisionRequest()
+{
   if(! d_decisionRequests.empty()) {
     Node n = d_decisionRequests.front();
     d_decisionRequests.pop();
-    priority = 2;
     return n;
-  } else {
-    return Node::null();
   }
+  return Node::null();
 }
 
 
@@ -2266,6 +2276,21 @@ void TheoryArrays::conflict(TNode a, TNode b) {
   }
 
   d_conflict = true;
+}
+
+TheoryArrays::TheoryArraysDecisionStrategy::TheoryArraysDecisionStrategy(
+    TheoryArrays* ta)
+    : d_ta(ta)
+{
+}
+void TheoryArrays::TheoryArraysDecisionStrategy::initialize() {}
+Node TheoryArrays::TheoryArraysDecisionStrategy::getNextDecisionRequest()
+{
+  return d_ta->getNextDecisionRequest();
+}
+std::string TheoryArrays::TheoryArraysDecisionStrategy::identify() const
+{
+  return std::string("th_arrays_dec");
 }
 
 }/* CVC4::theory::arrays namespace */

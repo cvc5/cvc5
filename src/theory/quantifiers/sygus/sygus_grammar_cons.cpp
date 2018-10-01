@@ -20,9 +20,9 @@
 #include "options/quantifiers_options.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_grammar_norm.h"
 #include "theory/quantifiers/sygus/sygus_process_conj.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -33,7 +33,7 @@ namespace theory {
 namespace quantifiers {
 
 CegGrammarConstructor::CegGrammarConstructor(QuantifiersEngine* qe,
-                                             CegConjecture* p)
+                                             SynthConjecture* p)
     : d_qe(qe), d_parent(p), d_is_syntax_restricted(false)
 {
 }
@@ -95,10 +95,11 @@ Node CegGrammarConstructor::process(Node q,
 {
   // convert to deep embedding and finalize single invocation here
   // now, construct the grammar
-  Trace("cegqi") << "CegConjecture : convert to deep embedding..." << std::endl;
+  Trace("cegqi") << "SynthConjecture : convert to deep embedding..."
+                 << std::endl;
   std::map< TypeNode, std::vector< Node > > extra_cons;
   if( options::sygusAddConstGrammar() ){
-    Trace("cegqi") << "CegConjecture : collect constants..." << std::endl;
+    Trace("cegqi") << "SynthConjecture : collect constants..." << std::endl;
     collectTerms( q[1], extra_cons );
   }
   std::map<TypeNode, std::vector<Node>> exc_cons;

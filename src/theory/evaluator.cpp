@@ -355,7 +355,7 @@ EvalResult Evaluator::evalInternal(TNode n,
           const String& x = results[currNode[1]].d_str;
           Integer i = results[currNode[2]].d_rat.getNumerator();
 
-          if (i.strictlyNegative() || i >= s_len)
+          if (i.strictlyNegative())
           {
             results[currNode] = EvalResult(Rational(-1));
           }

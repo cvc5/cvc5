@@ -18,7 +18,7 @@ function webget {
   if which wget &>/dev/null; then
     wget -c -O "$2" "$1"
   elif which curl &>/dev/null; then
-    curl "$1" >"$2"
+    curl -L "$1" >"$2"
   else
     echo "Can't figure out how to download from web.  Please install wget or curl." >&2
     exit 1

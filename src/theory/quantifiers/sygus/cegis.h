@@ -41,7 +41,7 @@ namespace quantifiers {
 class Cegis : public SygusModule
 {
  public:
-  Cegis(QuantifiersEngine* qe, CegConjecture* p);
+  Cegis(QuantifiersEngine* qe, SynthConjecture* p);
   ~Cegis() override {}
   /** initialize */
   virtual bool initialize(Node n,
@@ -69,11 +69,11 @@ class Cegis : public SygusModule
  protected:
   /** the evaluation unfold utility of d_tds */
   SygusEvalUnfold* d_eval_unfold;
-  /** If CegConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
+  /** If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is y. */
   std::vector<Node> d_base_vars;
   /**
-   * If CegConjecture::d_base_inst is exists y. P( d, y ), then this is the
-   * formula P( CegConjecture::d_candidates, y ).
+   * If SynthConjecture::d_base_inst is exists y. P( d, y ), then this is the
+   * formula P( SynthConjecture::d_candidates, y ).
    */
   Node d_base_body;
   //----------------------------------cegis-implementation-specific
@@ -104,6 +104,8 @@ class Cegis : public SygusModule
   /** substitution entailed by d_refinement_lemma_unit */
   std::vector<Node> d_rl_eval_hds;
   std::vector<Node> d_rl_vals;
+  /** all variables appearing in refinement lemmas */
+  std::unordered_set<Node, NodeHashFunction> d_refinement_lemma_vars;
   /** adds lem as a refinement lemma */
   void addRefinementLemma(Node lem);
   /** add refinement lemma conjunct
@@ -150,10 +152,14 @@ class Cegis : public SygusModule
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas
    * for previous refinements (d_refinement_lemmas).
+   *
+   * Returns true if any such lemma exists. If doGen is false, then the
+   * lemmas are not generated or added to lems.
    */
-  void getRefinementEvalLemmas(const std::vector<Node>& vs,
+  bool getRefinementEvalLemmas(const std::vector<Node>& vs,
                                const std::vector<Node>& ms,
-                               std::vector<Node>& lems);
+                               std::vector<Node>& lems,
+                               bool doGen);
   /** sampler object for the option cegisSample()
    *
    * This samples points of the type of the inner variables of the synthesis
