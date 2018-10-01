@@ -556,22 +556,40 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       << "Simple symmetry breaking for " << dt.getName() << ", constructor "
       << dt[tindex].getName() << ", at depth " << depth << std::endl;
 
-  // if we are the "any constant" constructor, we do no symmetry breaking
-  // only do simple symmetry breaking up to depth 2
+  // get the sygus operator
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());
-  if (sop.getAttribute(SygusAnyConstAttribute()) || depth > 2)
-  {
-    d_simple_sb_pred[e][tn][tindex][optHashVal][depth] = Node::null();
-    return Node::null();
-  }
+  // get the kind of the constructor operator
+  Kind nk = d_tds->getConsNumKind(tn, tindex);
+  // is this the any-constant constructor?
+  bool isAnyConstant = sop.getAttribute(SygusAnyConstAttribute());
+
   // conjunctive conclusion of lemma
   std::vector<Node> sbp_conj;
 
+  // the number of (sygus) arguments
+  // Notice if this is an any-constant constructor, its child is not a
+  // sygus child, hence we set to 0 here.
+  unsigned dt_index_nargs = isAnyConstant ? 0 : dt[tindex].getNumArgs();
+
+  // builtin type
+  TypeNode tnb = TypeNode::fromType(dt.getSygusType());
+  // get children
+  std::vector<Node> children;
+  for (unsigned j = 0; j < dt_index_nargs; j++)
+  {
+    Node sel = nm->mkNode(
+        APPLY_SELECTOR_TOTAL,
+        Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), j)),
+        n);
+    Assert(sel.getType().isDatatype());
+    children.push_back(sel);
+  }
+  
   if (depth == 0)
   {
     Trace("sygus-sb-simple-debug") << "  Size..." << std::endl;
     // fairness
-    if (options::sygusFair() == SYGUS_FAIR_DT_SIZE)
+    if (options::sygusFair() == SYGUS_FAIR_DT_SIZE && !isAnyConstant)
     {
       Node szl = nm->mkNode(DT_SIZE, n);
       Node szr =
@@ -579,48 +597,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       szr = Rewriter::rewrite(szr);
       sbp_conj.push_back(szl.eqNode(szr));
     }
-  }
-
-  // symmetry breaking
-  Kind nk = d_tds->getConsNumKind(tn, tindex);
-  if (options::sygusSymBreak())
-  {
-    // the number of (sygus) arguments
-    unsigned dt_index_nargs = dt[tindex].getNumArgs();
-
-    // builtin type
-    TypeNode tnb = TypeNode::fromType(dt.getSygusType());
-    // get children
-    std::vector<Node> children;
-    for (unsigned j = 0; j < dt_index_nargs; j++)
-    {
-      Node sel = nm->mkNode(
-          APPLY_SELECTOR_TOTAL,
-          Node::fromExpr(dt[tindex].getSelectorInternal(tn.toType(), j)),
-          n);
-      Assert(sel.getType().isDatatype());
-      children.push_back(sel);
-    }
-
-    // direct solving for children
-    //   for instance, we may want to insist that the LHS of MINUS is 0
-    Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
-    std::map<unsigned, unsigned> children_solved;
-    for (unsigned j = 0; j < dt_index_nargs; j++)
-    {
-      int i = d_ssb.solveForArgument(tn, tindex, j);
-      if (i >= 0)
-      {
-        children_solved[j] = i;
-        TypeNode ctn = children[j].getType();
-        const Datatype& cdt =
-            static_cast<DatatypeType>(ctn.toType()).getDatatype();
-        Assert(i < static_cast<int>(cdt.getNumConstructors()));
-        sbp_conj.push_back(DatatypesRewriter::mkTester(children[j], i, cdt));
-      }
-    }
-
-    if (isVarAgnostic && depth == 0)
+    if (isVarAgnostic)
     {
       // Enforce symmetry breaking lemma template for each x_i:
       // template z.
@@ -695,6 +672,36 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
         sbp_conj.push_back(finish.eqNode(prev));
       }
     }
+  }
+  
+  // if we are the "any constant" constructor, we do no symmetry breaking
+  // only do simple symmetry breaking up to depth 2
+  bool doSymBreak = options::sygusSymBreak();
+  if (isAnyConstant || depth > 2)
+  {
+    doSymBreak = false;
+  }
+  // symmetry breaking
+  if (doSymBreak)
+  {
+    // direct solving for children
+    //   for instance, we may want to insist that the LHS of MINUS is 0
+    Trace("sygus-sb-simple-debug") << "  Solve children..." << std::endl;
+    std::map<unsigned, unsigned> children_solved;
+    for (unsigned j = 0; j < dt_index_nargs; j++)
+    {
+      int i = d_ssb.solveForArgument(tn, tindex, j);
+      if (i >= 0)
+      {
+        children_solved[j] = i;
+        TypeNode ctn = children[j].getType();
+        const Datatype& cdt =
+            static_cast<DatatypeType>(ctn.toType()).getDatatype();
+        Assert(i < static_cast<int>(cdt.getNumConstructors()));
+        sbp_conj.push_back(DatatypesRewriter::mkTester(children[j], i, cdt));
+      }
+    }
+
     // depth 1 symmetry breaking : talks about direct children
     if (depth == 1)
     {
