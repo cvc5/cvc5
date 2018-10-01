@@ -20,6 +20,7 @@
 
 #include "options/quantifiers_modes.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "proof/proof_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
@@ -544,6 +545,8 @@ void QuantifierMacros::addMacro( Node op, Node n, std::vector< Node >& opc ) {
     }
   }
 }
+
+static RegisterPass<QuantifierMacros> X("quantifier-macros");
 
 }  // passes
 }  // preprocessing
