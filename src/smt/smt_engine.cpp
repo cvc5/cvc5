@@ -2742,8 +2742,6 @@ static void dumpAssertions(const char* key,
 // returns false if simplification led to "false"
 bool SmtEnginePrivate::simplifyAssertions()
 {
-  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
-
   spendResource(options::preprocessStep());
   Assert(d_smt.d_pendingPops == 0);
   try {
@@ -2971,8 +2969,6 @@ void SmtEnginePrivate::processAssertions() {
   Assert(d_smt.d_pendingPops == 0);
   SubstitutionMap& top_level_substs =
       d_preprocessingPassContext->getTopLevelSubstitutions();
-
-  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
