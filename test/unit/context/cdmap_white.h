@@ -38,12 +38,12 @@ class CDMapWhite : public CxxTest::TestSuite {
 
     TS_ASSERT_THROWS_NOTHING(map.makeCurrent());
 
-    TS_ASSERT_THROWS(map.update(), UnreachableCodeException);
+    TS_ASSERT_THROWS(map.update(), UnreachableCodeException&);
 
-    TS_ASSERT_THROWS(map.save(d_context->getCMM()), UnreachableCodeException);
-    TS_ASSERT_THROWS(map.restore(&map), UnreachableCodeException);
+    TS_ASSERT_THROWS(map.save(d_context->getCMM()), UnreachableCodeException&);
+    TS_ASSERT_THROWS(map.restore(&map), UnreachableCodeException&);
 
     d_context->push();
-    TS_ASSERT_THROWS(map.makeCurrent(), UnreachableCodeException);
+    TS_ASSERT_THROWS(map.makeCurrent(), UnreachableCodeException&);
   }
 };

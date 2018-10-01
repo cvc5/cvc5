@@ -70,7 +70,7 @@ private:
     {
       delete d_exprManager;
     }
-    catch (Exception e)
+    catch (Exception& e)
     {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
@@ -118,12 +118,14 @@ private:
 
   void testMkAssociativeTooFew() {
     std::vector<Expr> vars = mkVars(d_exprManager->booleanType(), 1);
-    TS_ASSERT_THROWS( d_exprManager->mkAssociative(AND,vars), IllegalArgumentException);
+    TS_ASSERT_THROWS(d_exprManager->mkAssociative(AND, vars),
+                     IllegalArgumentException&);
   }
 
   void testMkAssociativeBadKind() {
     std::vector<Expr> vars = mkVars(d_exprManager->integerType(), 10);
-    TS_ASSERT_THROWS( d_exprManager->mkAssociative(LEQ,vars), IllegalArgumentException);
+    TS_ASSERT_THROWS(d_exprManager->mkAssociative(LEQ, vars),
+                     IllegalArgumentException&);
   }
 
 };
