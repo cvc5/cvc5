@@ -2087,7 +2087,7 @@ endif()
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-4]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -L "regress[0-1]" -j${CTEST_NTHREADS} $(ARGS)
   DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
