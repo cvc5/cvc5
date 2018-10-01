@@ -24,6 +24,7 @@
 #include "preprocessing/passes/bv_ackermann.h"
 
 #include "options/bv_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/bv/theory_bv_utils.h"
 
 using namespace CVC4;
@@ -212,6 +213,8 @@ PreprocessingPassResult BVAckermann::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<BVAckermann> X("bv-ackermann");
 
 /* -------------------------------------------------------------------------- */
 

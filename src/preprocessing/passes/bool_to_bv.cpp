@@ -20,6 +20,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -208,6 +209,8 @@ BoolToBV::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numAtomsLowered);
   smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLowered);
 }
+
+static RegisterPass<BoolToBV> X("bool-to-bv");
 
 }  // namespace passes
 }  // namespace preprocessing
