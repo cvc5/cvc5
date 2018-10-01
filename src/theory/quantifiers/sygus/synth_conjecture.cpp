@@ -366,7 +366,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     }
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
-    
+
     // debug print
     Assert(terms.size() == enum_values.size());
     if (Trace.isOn("cegqi-engine"))
