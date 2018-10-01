@@ -102,7 +102,10 @@ public:
   
   virtual void setProofLog( BitVectorProof * bvp ) {}
 
-  /** Get the top level unit clauses of a formula **/
+  /** Get all the top level unit clauses of a formula,
+   except the boolean variable clauses (i.e. "true" (and
+   possibly "~false")) introduced internally to the sat
+   solver **/
   virtual std::vector<SatLiteral> getTopLevelUnits()
   {
     return std::vector<SatLiteral>();

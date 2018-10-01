@@ -2204,6 +2204,12 @@ void SmtEngine::setDefaults() {
           setOption("miplib-trick", false);
     }
   }
+  if (options::skeletonPreprocessing() && !Configuration::isBuiltWithCryptominisat()){
+    throw OptionException(std::string(
+        "Cryptominisat is not installed but is required by"
+        " --skeleton-preprocessing. Try install Cryptominisat by"
+        "./contrib/get-cryptominisat or turn off --skeleton-preprocessing"));
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)

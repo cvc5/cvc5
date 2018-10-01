@@ -447,7 +447,7 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
                                          true,
                                          "toCNF-skeleton-preprocessing");
   std::vector<Node> learned_literals;
-  Trace("skeleton-preprocessing") << "asserting to sat solver" << std::endl;
+  Trace("non-clausal-simplify") << "asserting to sat solver" << std::endl;
   {  // for timing
     TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
@@ -459,7 +459,7 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
       {
         continue;
       }
-      Trace("skeleton-preprocessing")
+      Trace("non-clausal-simplify")
           << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
       cnfStream.convertAndAssert(
           (*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
