@@ -584,7 +584,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
     Assert(sel.getType().isDatatype());
     children.push_back(sel);
   }
-  
+
   if (depth == 0)
   {
     Trace("sygus-sb-simple-debug") << "  Size..." << std::endl;
@@ -673,7 +673,7 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       }
     }
   }
-  
+
   // if we are the "any constant" constructor, we do no symmetry breaking
   // only do simple symmetry breaking up to depth 2
   bool doSymBreak = options::sygusSymBreak();

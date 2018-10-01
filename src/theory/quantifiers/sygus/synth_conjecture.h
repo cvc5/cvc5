@@ -215,7 +215,7 @@ class SynthConjecture
    */
   std::map<Node, Node> d_ev_active_gen_waiting;
   /** the first value enumerated for each actively-generated enumerator
-   * 
+   *
    * This is to implement an optimization that only guards the blocking lemma
    * for the first value of an actively-generated enumerator.
    */

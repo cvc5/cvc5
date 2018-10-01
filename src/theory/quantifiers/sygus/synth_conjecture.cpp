@@ -356,10 +356,10 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     // get the model value of the relevant terms from the master module
     std::vector<Node> enum_values;
     bool fullModel = getEnumeratedValues(terms, enum_values);
-    
+
     // debug print
-    Assert( terms.size()==enum_values.size());
-    if( Trace.isOn("cegqi-engine") )
+    Assert(terms.size() == enum_values.size());
+    if (Trace.isOn("cegqi-engine"))
     {
       Trace("cegqi-engine") << "  * Value is : ";
       for (unsigned i = 0, size = terms.size(); i < size; i++)
@@ -387,7 +387,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
       }
       Trace("cegqi-engine") << std::endl;
     }
-    
+
     // if the master requires a full model and the model is partial, we fail
     if (!d_master->allowPartialModel() && !fullModel)
     {
@@ -682,8 +682,8 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   if (iteg == d_evg.end())
   {
     d_evg[e].reset(new EnumStreamConcrete(d_tds));
-    Trace("sygus-active-gen") << "Active-gen: initialize for " << e
-                              << std::endl;
+    Trace("sygus-active-gen")
+        << "Active-gen: initialize for " << e << std::endl;
     d_evg[e]->initialize(e);
     d_ev_curr_active_gen[e] = Node::null();
     iteg = d_evg.find(e);
@@ -693,8 +693,8 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   std::map<Node, Node>::iterator itw = d_ev_active_gen_waiting.find(e);
   if (itw != d_ev_active_gen_waiting.end())
   {
-    Trace("sygus-active-gen-debug") << "Active-gen: return waiting "
-                                    << itw->second << std::endl;
+    Trace("sygus-active-gen-debug")
+        << "Active-gen: return waiting " << itw->second << std::endl;
     return itw->second;
   }
   // Check if there is an (abstract) value absE we were actively generating
@@ -745,8 +745,8 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                          << lem << std::endl;
-    Trace("sygus-active-gen-debug") << "Active-gen: block " << absE
-                                    << std::endl;
+    Trace("sygus-active-gen-debug")
+        << "Active-gen: block " << absE << std::endl;
     d_qe->getOutputChannel().lemma(lem);
   }
   else
@@ -856,8 +856,9 @@ void SynthConjecture::printAndContinueStream()
   }
   if (!exp.empty())
   {
-    Node exc_lem = exp.size() == 1 ? exp[0] : NodeManager::currentNM()->mkNode(
-                                                  kind::AND, exp);
+    Node exc_lem = exp.size() == 1
+                       ? exp[0]
+                       : NodeManager::currentNM()->mkNode(kind::AND, exp);
     exc_lem = exc_lem.negate();
     Trace("cegqi-lemma") << "Cegqi::Lemma : stream exclude current solution : "
                          << exc_lem << std::endl;
