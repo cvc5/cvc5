@@ -1374,7 +1374,7 @@ void SmtEngine::setDefaults() {
         throw OptionException(
             "bool-to-bv != off not supported with unsat cores/proofs");
       }
-      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
                << endl;
       setOption("boolToBitvector", SExpr("off"));
@@ -1608,6 +1608,19 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+      && !d_logic.isTheoryEnabled(THEORY_BV))
+  {
+    if (options::boolToBitvector.wasSetByUser())
+    {
+      throw OptionException(
+          "bool-to-bv=all not supported for non-bitvector logics.");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
+             << d_logic.getLogicString() << std::endl;
+    setOption("boolToBitvector", SExpr("off"));
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
