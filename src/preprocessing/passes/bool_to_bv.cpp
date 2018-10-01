@@ -129,28 +129,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
     }
     else
     {
-      TypeNode t = n.getType();
-      if (n.getNumChildren() == 0)
-      {
-        if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && t.isBoolean())
-        {
-          d_lowerCache[n] = nm->mkNode(
-              kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
-          ++(d_statistics.d_numTermsForcedLowered);
-        }
-        // if it's already a bit-vector with no children, we don't need to do
-        // anything
-        // and for option=ite, give up instead of forcing a bool to be a
-        // bit-vector
-        // and if it's another type, then can't change it to bitvector
-        Debug("bool-to-bv")
-            << "BoolToBV::lowerAssertion Skipping or giving up on: " << n
-            << std::endl;
-      }
-      else
-      {
-        lowerNode(n);
-      }
+      lowerNode(n);
     }
   }
 
@@ -167,11 +146,7 @@ Node BoolToBV::lowerAssertion(const TNode& a)
 
 void BoolToBV::lowerNode(const TNode& n)
 {
-  // this should be guaranteed by usage in lowerAssertion
-  Assert(n.getNumChildren() > 0);
-
   NodeManager* nm = NodeManager::currentNM();
-
   bool all_bv = true;
   // check if it was able to convert all children to bitvectors
   for (const Node& nn : n)
@@ -179,8 +154,17 @@ void BoolToBV::lowerNode(const TNode& n)
     all_bv = all_bv && fromCache(nn).getType().isBitVector();
   }
 
-  if (!all_bv)
+  if (!all_bv || (n.getNumChildren() == 0))
   {
+    if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
+        && n.getType().isBoolean())
+    {
+      d_lowerCache[n] =
+          nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+      ++(d_statistics.d_numTermsForcedLowered);
+      return;
+    }
+
     // invariant
     // either one of the children is not a bit-vector or bool
     //   i.e. something that can't be 'forced' to a bitvector
