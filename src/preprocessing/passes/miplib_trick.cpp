@@ -19,6 +19,7 @@
 
 #include "expr/node_self_iterator.h"
 #include "options/arith_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/boolean_simplification.h"
 #include "theory/booleans/circuit_propagator.h"
@@ -658,6 +659,8 @@ MipLibTrick::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
 }
+
+static RegisterPass<MipLibTrick> X("miplib-trick");
 
 }  // namespace passes
 }  // namespace preprocessing

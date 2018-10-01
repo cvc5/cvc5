@@ -18,6 +18,7 @@
 #include "preprocessing/passes/pseudo_boolean_processor.h"
 
 #include "base/output.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/arith/arith_utilities.h"
 #include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
@@ -412,6 +413,8 @@ void PseudoBooleanProcessor::clear()
   d_pos.clear();
   d_neg.clear();
 }
+
+static RegisterPass<PseudoBooleanProcessor> X("pseudo-boolean-processor");
 
 }  // namespace passes
 }  // namespace preprocessing

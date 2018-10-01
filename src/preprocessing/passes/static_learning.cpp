@@ -18,6 +18,7 @@
 #include <string>
 
 #include "expr/node.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -49,6 +50,8 @@ PreprocessingPassResult StaticLearning::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<StaticLearning> X("static-learning");
 
 }  // namespace passes
 }  // namespace preprocessing
