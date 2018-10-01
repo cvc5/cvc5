@@ -153,7 +153,9 @@ class Cegis : public SygusModule
    * Notice that this method may return true without adding any lemmas to
    * lems, in the case that terms from candidates are "actively-generated
    * enumerators", since the model values of such terms are managed
-   * explicitly within getEnumeratedValue.
+   * explicitly within getEnumeratedValue. In this case, the owner of the
+   * actively-generated enumerators (e.g. SynthConjecture) is responsible for
+   * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
                      const std::vector<Node>& candidate_values,

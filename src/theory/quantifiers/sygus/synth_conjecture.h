@@ -199,12 +199,13 @@ class SynthConjecture
    * Map from enumerators to whether they are currently being
    * "actively-generated". That is, we are in a state where we have called
    * d_evg[e].addValue(v) for some v, and d_evg[e].getNext() has not yet
-   * returned null.
+   * returned null. The range of this map stores the abstract value that
+   * we are currently generating values from.
    */
   std::map<Node, Node> d_ev_curr_active_gen;
   /** the current waiting value of each actively-generated enumerator, if any
    *
-   * This caches values are actively generated and that we have not yet
+   * This caches values that are actively generated and that we have not yet
    * passed to a call to SygusModule::constructCandidates. An example of when
    * this may occur is when there are two actively-generated enumerators e1 and
    * e2. Say on some iteration we actively-generate v1 for e1, the value
