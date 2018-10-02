@@ -371,8 +371,13 @@ private:
    * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
    * by a selector chain), instead of the concrete value 5.
    */
-  Node registerSearchValue(
-      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas, bool isVarAgnostic, bool doSym);
+  Node registerSearchValue(Node a,
+                           Node n,
+                           Node nv,
+                           unsigned d,
+                           std::vector<Node>& lemmas,
+                           bool isVarAgnostic,
+                           bool doSym);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of

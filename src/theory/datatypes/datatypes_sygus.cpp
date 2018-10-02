@@ -954,8 +954,13 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
   }
 }
 
-Node SygusSymBreakNew::registerSearchValue(
-    Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas, bool isVarAgnostic, bool doSym)
+Node SygusSymBreakNew::registerSearchValue(Node a,
+                                           Node n,
+                                           Node nv,
+                                           unsigned d,
+                                           std::vector<Node>& lemmas,
+                                           bool isVarAgnostic,
+                                           bool doSym)
 {
   Assert(n.getType().isComparableTo(nv.getType()));
   TypeNode tn = n.getType();
@@ -986,7 +991,13 @@ Node SygusSymBreakNew::registerSearchValue(
           APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
           n);
-      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas, isVarAgnostic, doSym && ( !isVarAgnostic || i==0));
+      Node nvc = registerSearchValue(a,
+                                     sel,
+                                     nv[i],
+                                     d + 1,
+                                     lemmas,
+                                     isVarAgnostic,
+                                     doSym && (!isVarAgnostic || i == 0));
       if (nvc.isNull())
       {
         return Node::null();
@@ -1000,7 +1011,7 @@ Node SygusSymBreakNew::registerSearchValue(
       nv = nm->mkNode(APPLY_CONSTRUCTOR, rcons_children);
     }
   }
-  if( !doSym )
+  if (!doSym)
   {
     return nv;
   }
@@ -1583,17 +1594,19 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
                                                                      prog_sz.eqNode( progv_sz ) );
             Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
-            lemmas.push_back( szlem );                                                     
+            lemmas.push_back( szlem );
             isExc = true;
           }
         }
         
-        // register the search value ( prog -> progv ), this may invoke symmetry breaking 
-        if( !isExc && options::sygusSymBreakDynamic() ){
+        // register the search value ( prog -> progv ), this may invoke symmetry breaking
+        if (!isExc && options::sygusSymBreakDynamic())
+        {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
-          Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas, isVarAgnostic, true);
+          Node rsv = registerSearchValue(
+              prog, prog, progv, 0, lemmas, isVarAgnostic, true);
           if (rsv.isNull())
           {
             isExc = true;
@@ -1617,8 +1630,9 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
     registerSizeTerm( mts[i], lemmas );
   }
   Trace("sygus-sb") << " SygusSymBreakNew::check: finished." << std::endl;
-  
-  if( Trace.isOn("cegqi-engine") && !d_szinfo.empty() ){
+
+  if (Trace.isOn("cegqi-engine") && !d_szinfo.empty())
+  {
     if (lemmas.empty())
     {
       Trace("cegqi-engine") << "*** Sygus : passed datatypes check. term size(s) : ";
