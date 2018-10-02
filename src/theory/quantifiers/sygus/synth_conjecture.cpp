@@ -295,11 +295,13 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
   do
   {
     Trace("cegqi-check-debug") << "doCheckNext..." << std::endl;
-    checkSuccess =doCheckNext(lems);
+    checkSuccess = doCheckNext(lems);
     Trace("cegqi-check-debug")
         << "...finished " << lems.empty() << " " << !needsRefinement() << " "
-        << !d_qe->getTheoryEngine()->needCheck() << " " << checkSuccess << std::endl;
-  } while (lems.empty() && !needsRefinement() && !d_qe->getTheoryEngine()->needCheck() && checkSuccess);
+        << !d_qe->getTheoryEngine()->needCheck() << " " << checkSuccess
+        << std::endl;
+  } while (lems.empty() && !needsRefinement()
+           && !d_qe->getTheoryEngine()->needCheck() && checkSuccess);
 }
 
 bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
@@ -374,7 +376,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
       Node nv = enum_values[i];
-      if( !nv.isNull() )
+      if (!nv.isNull())
       {
         emptyModel = false;
       }
@@ -402,7 +404,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
       }
     }
     Trace("cegqi-engine") << std::endl;
-    if( emptyModel )
+    if (emptyModel)
     {
       Trace("cegqi-check") << "...empty model, fail." << std::endl;
       return false;
