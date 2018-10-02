@@ -757,8 +757,12 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     Trace("cegqi-lemma") << "Cegqi::Lemma : actively-generated enumerator "
                             "exclude current solution : "
                          << lem << std::endl;
-    Trace("sygus-active-gen-debug")
-        << "Active-gen: block " << absE << std::endl;
+    if( Trace.isOn("sygus-active-gen-debug") )
+    {
+      Trace("sygus-active-gen-debug") << "Active-gen: block ";
+      TermDbSygus::toStreamSygus("sygus-active-gen-debug", absE);
+      Trace("sygus-active-gen-debug") << std::endl;
+    }
     d_qe->getOutputChannel().lemma(lem);
   }
   else
