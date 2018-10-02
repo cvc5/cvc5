@@ -8,10 +8,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > system tests
 
 add_custom_target(build-systemtests)
-add_dependencies(check build-systemtests)
-if(ENABLE_COVERAGE)
-  add_dependencies(coverage build-systemtests)
-endif()
+add_dependencies(build-tests build-systemtests)
 
 add_custom_target(systemtests
   COMMAND ctest --output-on-failure -L "system" -j${CTEST_NTHREADS} $(ARGS)

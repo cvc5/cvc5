@@ -27,6 +27,10 @@ set(CMAKE_MODULE_PATH ${PROJECT_SOURCE_DIR}/cmake)
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_CXX_STANDARD 11)
 
+# Generate compile_commands.json, which can be used for various code completion
+# plugins.
+set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
+
 #-----------------------------------------------------------------------------#
 
 include(Helpers)
@@ -192,6 +196,9 @@ endif()
 # Never build unit tests as static binaries, otherwise we'll end up with
 # ~300MB per unit test.
 if(ENABLE_UNIT_TESTING)
+  if(NOT ENABLE_SHARED)
+    message(WARNING "Disabling static build since unit testing is enabled.")
+  endif()
   set(ENABLE_SHARED ON)
 endif()
 
@@ -277,7 +284,9 @@ if(ENABLE_COVERAGE)
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
-        --output-on-failure $(ARGS) || exit 0)
+        --output-on-failure $(ARGS) || exit 0
+    DEPENDS
+      build-tests)
 endif()
 
 if(ENABLE_DEBUG_CONTEXT_MM)
