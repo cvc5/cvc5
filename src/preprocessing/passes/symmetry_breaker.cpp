@@ -13,9 +13,7 @@
  **/
 
 #include "preprocessing/passes/symmetry_breaker.h"
-
 #include "preprocessing/passes/symmetry_detect.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -176,8 +174,6 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-static RegisterPass<SymBreakerPass> X("sym-break");
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -16,7 +16,6 @@
 
 #include "preprocessing/passes/rewrite.h"
 
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -39,8 +38,6 @@ PreprocessingPassResult Rewrite::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-static RegisterPass<Rewrite> X("rewrite");
 
 }  // namespace passes
 }  // namespace preprocessing

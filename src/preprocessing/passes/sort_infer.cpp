@@ -16,9 +16,7 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
-#include "theory/sort_inference.h"
 
 using namespace std;
 
@@ -26,25 +24,24 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sort-inference")
+SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext,
+                                     SortInference* si)
+    : PreprocessingPass(preprocContext, "sort-inference"), d_si(si)
 {
 }
 
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
-
   if (options::sortInference())
   {
-    si->initialize(assertionsToPreprocess->ref());
+    d_si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;
     std::map<Node, std::map<TypeNode, Node> > visited;
     for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; i++)
     {
       Node prev = (*assertionsToPreprocess)[i];
-      Node next = si->simplify(prev, model_replace_f, visited);
+      Node next = d_si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
         next = theory::Rewriter::rewrite(next);
@@ -56,7 +53,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       }
     }
     std::vector<Node> newAsserts;
-    si->getNewAssertions(newAsserts);
+    d_si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
       Node nar = theory::Rewriter::rewrite(na);
@@ -78,12 +75,10 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   // using this option
   if (options::ufssFairnessMonotone())
   {
-    si->computeMonotonicity(assertionsToPreprocess->ref());
+    d_si->computeMonotonicity(assertionsToPreprocess->ref());
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-static RegisterPass<SortInferencePass> X("sort-inference");
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -18,7 +18,6 @@
 
 #include "preprocessing/passes/bv_eager_atoms.h"
 
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/theory_model.h"
 
 namespace CVC4 {
@@ -42,8 +41,6 @@ PreprocessingPassResult BvEagerAtoms::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-static RegisterPass<BvEagerAtoms> X("bv-eager-atoms");
 
 }  // namespace passes
 }  // namespace preprocessing
