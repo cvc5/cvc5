@@ -18,7 +18,6 @@
 #include "preprocessing/passes/apply_substs.h"
 
 #include "context/cdo.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 #include "theory/substitutions.h"
 
@@ -68,8 +67,6 @@ PreprocessingPassResult ApplySubsts::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-static RegisterPass<ApplySubsts> X("apply-substs");
 
 }  // namespace passes
 }  // namespace preprocessing

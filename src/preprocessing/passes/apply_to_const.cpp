@@ -16,7 +16,6 @@
 
 #include "preprocessing/passes/apply_to_const.h"
 
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -104,7 +103,6 @@ PreprocessingPassResult ApplyToConst::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<ApplyToConst> X("apply-to-const");
 
 }  // namespace passes
 }  // namespace preprocessing

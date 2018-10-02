@@ -59,11 +59,11 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT( ! te.isFinished() );
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(true));
     TS_ASSERT( ! te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT( te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT( te.isFinished() );
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
     TS_ASSERT( te.isFinished() );
   }
 
@@ -161,9 +161,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("green")));
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("blue")));
     TS_ASSERT_EQUALS(*++te, d_nm->mkNode(APPLY_CONSTRUCTOR, DatatypeType(datatype.toType()).getDatatype().getConstructor("violet")));
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
   void testDatatypesInfinite1() {
@@ -267,9 +267,9 @@ class TypeEnumeratorWhite : public CxxTest::TestSuite {
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(BitVector(3u, 5u)));
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(BitVector(3u, 6u)));
     TS_ASSERT_EQUALS(*++te, d_nm->mkConst(BitVector(3u, 7u)));
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
-    TS_ASSERT_THROWS(*++te, NoMoreValuesException);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
+    TS_ASSERT_THROWS(*++te, NoMoreValuesException&);
   }
 
 };/* class TypeEnumeratorWhite */

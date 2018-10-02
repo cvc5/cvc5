@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "options/proof_options.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
@@ -257,7 +256,6 @@ PreprocessingPassResult ITESimp::applyInternal(
               : PreprocessingPassResult::CONFLICT;
 }
 
-static RegisterPass<ITESimp> X("ite-simp");
 
 /* -------------------------------------------------------------------------- */
 

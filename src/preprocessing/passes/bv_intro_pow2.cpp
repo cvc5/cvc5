@@ -20,7 +20,6 @@
 
 #include <unordered_map>
 
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/rewriter.h"
 
@@ -99,7 +98,6 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<BvIntroPow2> X("bv-intro-pow2");
 
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
