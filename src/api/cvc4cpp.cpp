@@ -641,9 +641,13 @@ class CVC4ApiExceptionStream
   CVC4_API_CHECK(cond) << "Invalid kind '" << kindToString(kind)    \
                        << "', expected " << expected_kind_str;
 
-#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg, expected_arg_str)           \
-  CVC4_API_CHECK(cond) << "Invalid argument '" << arg << "' for '" << #arg \
-                       << "', expected " << expected_arg_str;
+#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
+  CVC4_PREDICT_FALSE(cond)                                          \
+  ? (void)0                                                         \
+  : OstreamVoider()                                                 \
+          & CVC4ApiExceptionStream().ostream()                      \
+                << "Invalid argument '" << arg << "' for '" << #arg \
+                << "', expected "
 
 #define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg, expected_arg_str) \
   CVC4_API_CHECK(cond) << "Invalid size of argument '" << #arg        \
@@ -932,7 +936,7 @@ uint32_t Sort::getFPSignificandSize() const
 
 std::vector<Sort> Sort::getDatatypeParamSorts() const
 {
-  CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
   std::vector<CVC4::Type> types =
       static_cast<DatatypeType*>(d_type.get())->getParamTypes();
   return typeVectorToSorts(types);
@@ -1677,32 +1681,31 @@ Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(size > 0, size, "size > 0");
+  CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
   return d_exprMgr->mkBitVectorType(size);
+}
+
+Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
+  CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
+  return d_exprMgr->mkFloatingPointType(exp, sig);
 }
 
 Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(
-      dtypedecl.getNumConstructors() > 0,
-      dtypedecl,
-      "a datatype declaration with at least one constructor");
+  CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
+      << "a datatype declaration with at least one constructor";
   return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
 }
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(
-      domain.isFirstClass(),
-      domain,
-      "first-class sort as domain sort for function sort");
-  CVC4_API_ARG_CHECK_EXPECTED(
-      codomain.isFirstClass(),
-      codomain,
-      "first-class sort as codomain sort for function sort");
-  CVC4_API_ARG_CHECK_EXPECTED(!codomain.isFunction(),
-                              codomain,
-                              " codomain sort that is not a function sort");
+  CVC4_API_ARG_CHECK_EXPECTED(domain.isFirstClass(), domain)
+      << "first-class sort as domain sort for function sort";
+  CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
+      << "first-class sort as codomain sort for function sort";
+  Assert(!codomain.isFunction()); /* A a function sort is not first-class. */
   return d_exprMgr->mkFunctionType(*domain.d_type, *codomain.d_type);
 }
 
@@ -1718,13 +1721,9 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
         sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
         << "first-class sort as parameter sort for function sort";
   }
-  CVC4_API_ARG_CHECK_EXPECTED(
-      codomain.isFirstClass(),
-      codomain,
-      "first-class sort as codomain sort for function sort");
-  CVC4_API_ARG_CHECK_EXPECTED(!codomain.isFunction(),
-                              codomain,
-                              " codomain sort that is not a function sort");
+  CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
+      << "first-class sort as codomain sort for function sort";
+  Assert(!codomain.isFunction()); /* A a function sort is not first-class. */
   std::vector<Type> argTypes = sortVectorToTypes(sorts);
   return d_exprMgr->mkFunctionType(argTypes, *codomain.d_type);
 }
@@ -1769,6 +1768,12 @@ Sort Solver::mkSetSort(Sort elemSort) const
 Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 {
   return d_exprMgr->mkSort(symbol);
+}
+
+Sort Solver::mkSortConstructorSort(const std::string& symbol,
+                                   size_t arity) const
+{
+  return d_exprMgr->mkSortConstructor(symbol, arity);
 }
 
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
@@ -2120,9 +2125,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
   CVC4_API_KIND_CHECK_EXPECTED(
       kind == CONST_FLOATINGPOINT, kind, "CONST_FLOATINGPOINT");
   CVC4_API_ARG_CHECK_EXPECTED(
-      arg3.getSort().isBitVector() && arg3.d_expr->isConst(),
-      arg3,
-      "bit-vector constant");
+      arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
+      << "bit-vector constant";
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
@@ -2183,12 +2187,11 @@ void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
   const CVC4::Kind int_kind = extToIntKind(kind);
   const CVC4::Kind int_op_kind =
       NodeManager::operatorToKind(opTerm.d_expr->getNode());
-  CVC4_API_ARG_CHECK_EXPECTED(
-      int_kind == kind::BUILTIN
-          || CVC4::kind::metaKindOf(int_op_kind)
-                 == kind::metakind::PARAMETERIZED,
-      opTerm,
-      "This term constructor is for parameterized kinds only");
+  CVC4_API_ARG_CHECK_EXPECTED(int_kind == kind::BUILTIN
+                                  || CVC4::kind::metaKindOf(int_op_kind)
+                                         == kind::metakind::PARAMETERIZED,
+                              opTerm)
+      << "This term constructor is for parameterized kinds only";
   if (nchildren)
   {
     uint32_t min_arity = ExprManager::minArity(int_op_kind);
@@ -2513,10 +2516,6 @@ Sort Solver::declareDatatype(
  */
 Term Solver::declareFun(const std::string& symbol, Sort sort) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(
-      sort.isFirstClass(), sort, "first-class sort as function codomain sort");
-  CVC4_API_ARG_CHECK_EXPECTED(
-      !sort.isFunction(), sort, "codomain sort that is not a function sort");
   Type type = *sort.d_type;
   return d_exprMgr->mkVar(symbol, type);
 }
@@ -2534,10 +2533,9 @@ Term Solver::declareFun(const std::string& symbol,
         sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
         << "first-class sort as parameter sort for function sort";
   }
-  CVC4_API_ARG_CHECK_EXPECTED(
-      sort.isFirstClass(), sort, "first-class sort as function codomain sort");
-  CVC4_API_ARG_CHECK_EXPECTED(
-      !sort.isFunction(), sort, "codomain sort that is not a function sort");
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as function codomain sort";
+  Assert(!sort.isFunction()); /* A a function sort is not first-class. */
   Type type = *sort.d_type;
   if (!sorts.empty())
   {
@@ -2571,10 +2569,8 @@ Term Solver::defineFun(const std::string& symbol,
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
   // CHECK: not recursive
-  CVC4_API_ARG_CHECK_EXPECTED(
-      sort.isFirstClass(),
-      sort,
-      "first-class sort as codomain sort for function sort");
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as codomain sort for function sort";
   // CHECK:
   // for v in bound_vars: is bound var
   std::vector<Type> domain_types;
@@ -2586,6 +2582,9 @@ Term Solver::defineFun(const std::string& symbol,
         << "first-class sort of parameter of defined function";
     domain_types.push_back(t);
   }
+  CVC4_API_CHECK(sort == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '" << sort
+      << "'";
   Type type = *sort.d_type;
   if (!domain_types.empty())
   {
@@ -2606,7 +2605,7 @@ Term Solver::defineFun(Term fun,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun, "function");
+  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
   std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
   size_t size = bound_vars.size();
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(
@@ -2647,10 +2646,9 @@ Term Solver::defineFunRec(const std::string& symbol,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  CVC4_API_ARG_CHECK_EXPECTED(
-      sort.isFirstClass(), sort, "first-class sort as function codomain sort");
-  CVC4_API_ARG_CHECK_EXPECTED(
-      !sort.isFunction(), sort, "codomain sort that is not a function sort");
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as function codomain sort";
+  Assert(!sort.isFunction()); /* A a function sort is not first-class. */
   // CHECK:
   // for v in bound_vars: is bound var
   std::vector<Type> domain_types;
@@ -2662,6 +2660,9 @@ Term Solver::defineFunRec(const std::string& symbol,
         << "first-class sort of parameter of defined function";
     domain_types.push_back(t);
   }
+  CVC4_API_CHECK(sort == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '" << sort
+      << "'";
   Type type = *sort.d_type;
   if (!domain_types.empty())
   {
@@ -2683,7 +2684,7 @@ Term Solver::defineFunRec(Term fun,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun, "function");
+  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
   std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
   size_t size = bound_vars.size();
   CVC4_API_ARG_SIZE_CHECK_EXPECTED(
@@ -2733,7 +2734,7 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     const std::vector<Term>& bvars = bound_vars[j];
     const Term& term = terms[j];
 
-    CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun, "function");
+    CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     size_t size = bvars.size();
     CVC4_API_ARG_SIZE_CHECK_EXPECTED(

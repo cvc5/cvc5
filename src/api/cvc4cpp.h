@@ -1579,6 +1579,13 @@ class CVC4_PUBLIC Solver
   Sort mkBitVectorSort(uint32_t size) const;
 
   /**
+   * Create a floating-point sort.
+   * @param exp the bit-width of the exponent of the floating-point sort.
+   * @param sig the bit-width of the significand of the floating-point sort.
+   */
+  Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
+
+  /**
    * Create a datatype sort.
    * @param dtypedecl the datatype declaration from which the sort is created
    * @return the datatype sort
@@ -1636,6 +1643,14 @@ class CVC4_PUBLIC Solver
    * @return the uninterpreted sort
    */
   Sort mkUninterpretedSort(const std::string& symbol) const;
+
+  /**
+   * Create a sort constructor sort.
+   * @param symbol the symbol of the sort
+   * @param arity the arity of the sort
+   * @return the sort constructor sort
+   */
+  Sort mkSortConstructorSort(const std::string& symbol, size_t arity) const;
 
   /**
    * Create a tuple sort.
