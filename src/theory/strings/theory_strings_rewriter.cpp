@@ -4391,10 +4391,10 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
   Assert(ret.isNull() || ret.isConst());
   Assert(!isLower
          || (ret.isNull() || ret.getConst<Rational>().sgn() < 0)
-                != checkEntailArith(a, false));
+         || !checkEntailArith(a, false));
   Assert(!isLower
          || (ret.isNull() || ret.getConst<Rational>().sgn() <= 0)
-                != checkEntailArith(a, true));
+         || !checkEntailArith(a, true));
   return ret;
 }
 
