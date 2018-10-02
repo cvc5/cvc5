@@ -986,7 +986,7 @@ Node SygusSymBreakNew::registerSearchValue(
           APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
           n);
-      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas, isVarAgnostic, doSym && i==0);
+      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas, isVarAgnostic, doSym && ( !isVarAgnostic || i==0));
       if (nvc.isNull())
       {
         return Node::null();
