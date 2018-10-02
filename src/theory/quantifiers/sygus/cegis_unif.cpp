@@ -287,10 +287,10 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   std::map<Node, std::vector<Node>> unif_cvalues;
   if (!satisfiedRl)
   {
-    // if condition values are being indepedently and actively generated, they
-    // should be communicated to the decision tree strategies indepedently of
-    // the evaluation heads valuation satisfying the refinement lemmas
-    if (options::sygusUnifCondIndependent() && options::sygusEnumVarAgnostic())
+    // if condition values are being indepedently enumerated, they should be
+    // communicated to the decision tree strategies indepedently of the
+    // evaluation heads valuation satisfying the refinement lemmas
+    if (options::sygusUnifCondIndependent())
     {
       setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems);
       setConditions(unif_cenums, unif_cvalues, lems);
@@ -303,7 +303,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   if (setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems))
   {
     // as with !satisfiedRl, communicate condition values to solution utility
-    if (options::sygusUnifCondIndependent() && options::sygusEnumVarAgnostic())
+    if (options::sygusUnifCondIndependent())
     {
       setConditions(unif_cenums, unif_cvalues, lems);
     }
