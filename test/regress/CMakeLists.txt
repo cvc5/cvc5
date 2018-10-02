@@ -811,6 +811,7 @@ set(regress_0_tests
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
+  regress0/strings/stoi-solve.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
@@ -2079,10 +2080,7 @@ get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
 add_custom_target(build-regress DEPENDS cvc4-bin)
-add_dependencies(check build-regress)
-if(ENABLE_COVERAGE)
-  add_dependencies(coverage build-regress)
-endif()
+add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND

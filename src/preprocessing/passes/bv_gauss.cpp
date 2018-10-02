@@ -18,9 +18,10 @@
 #include "preprocessing/passes/bv_gauss.h"
 
 #include "expr/node.h"
-#include "theory/rewriter.h"
-#include "theory/bv/theory_bv_utils.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/bv/theory_bv_rewrite_rules_normalization.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 #include <unordered_map>
@@ -817,6 +818,8 @@ PreprocessingPassResult BVGauss::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<BVGauss> X("bv-gauss");
 
 }  // namespace passes
 }  // namespace preprocessing

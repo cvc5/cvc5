@@ -17,6 +17,7 @@
 
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 
@@ -153,6 +154,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("synth-rr-pass") << "...finished " << std::endl;
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<SynthRewRulesPass> X("synth-rr");
 
 }  // namespace passes
 }  // namespace preprocessing
