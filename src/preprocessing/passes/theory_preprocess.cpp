@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/theory_preprocess.h"
 
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 #include "theory/theory_engine.h"
 
@@ -43,6 +44,8 @@ PreprocessingPassResult TheoryPreprocess::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<TheoryPreprocess> X("theory-preprocess");
 
 }  // namespace passes
 }  // namespace preprocessing

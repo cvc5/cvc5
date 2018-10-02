@@ -18,6 +18,7 @@
 
 #include "preprocessing/passes/unconstrained_simplifier.h"
 
+#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/logic_info.h"
 #include "theory/rewriter.h"
@@ -841,6 +842,8 @@ PreprocessingPassResult UnconstrainedSimplifier::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
+static RegisterPass<UnconstrainedSimplifier> X("unconstrained-simplifier");
 
 }  // namespace passes
 }  // namespace preprocessing
