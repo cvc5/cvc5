@@ -306,7 +306,7 @@ All custom test targets build and run a preconfigured set of tests.
   Build and run all unit tests.
 
 - `make regress [-jN] [ARGS=-jN]`  
-  Build and run all regression tests.
+  Build and run regression tests from levels 0 and 1.
 
 - `make runexamples [-jN] [ARGS=-jN]`  
   Build and run all examples.
