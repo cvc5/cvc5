@@ -637,9 +637,12 @@ class CVC4ApiExceptionStream
   CVC4_API_CHECK(isDefinedKind(kind)) \
       << "Invalid kind '" << kindToString(kind) << "'";
 
-#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind, expected_kind_str) \
-  CVC4_API_CHECK(cond) << "Invalid kind '" << kindToString(kind)    \
-                       << "', expected " << expected_kind_str;
+#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind) \
+  CVC4_PREDICT_FALSE(cond)                       \
+  ? (void)0                                      \
+  : OstreamVoider()                              \
+          & CVC4ApiExceptionStream().ostream()   \
+                << "Invalid kind '" << kindToString(kind) << "', expected "
 
 #define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
   CVC4_PREDICT_FALSE(cond)                                          \
@@ -649,9 +652,12 @@ class CVC4ApiExceptionStream
                 << "Invalid argument '" << arg << "' for '" << #arg \
                 << "', expected "
 
-#define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg, expected_arg_str) \
-  CVC4_API_CHECK(cond) << "Invalid size of argument '" << #arg        \
-                       << "', expected " << expected_arg_str;
+#define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
+  CVC4_PREDICT_FALSE(cond)                          \
+  ? (void)0                                         \
+  : OstreamVoider()                                 \
+          & CVC4ApiExceptionStream().ostream()      \
+                << "Invalid size of argument '" << #arg << "', expected "
 
 #define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)         \
   CVC4_PREDICT_FALSE(cond)                                                 \
@@ -1711,10 +1717,8 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 
 Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 {
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-      sorts.size() >= 1,
-      sorts,
-      "at least one parameter sort for function sort");
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
+      << "at least one parameter sort for function sort";
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
@@ -1735,10 +1739,8 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-      sorts.size() >= 1,
-      sorts,
-      "at least one parameter sort for predicate sort");
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
+      << "at least one parameter sort for predicate sort";
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
@@ -1970,42 +1972,41 @@ Term Solver::mkConst(RoundingMode rm) const
 
 Term Solver::mkConst(Kind kind, Sort arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET, kind, "EMPTY_SET");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET, kind) << "EMPTY_SET";
   return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
 }
 
 Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == UNINTERPRETED_CONSTANT, kind, "UNINTERPRETED_CONSTANT");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == UNINTERPRETED_CONSTANT, kind)
+      << "UNINTERPRETED_CONSTANT";
   return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
 }
 
 Term Solver::mkConst(Kind kind, bool arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind, "CONST_BOOLEAN");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind) << "CONST_BOOLEAN";
   return d_exprMgr->mkConst<bool>(arg);
 }
 
 Term Solver::mkConst(Kind kind, const char* arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind, "CONST_STRING");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind, "CONST_STRING");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-          || kind == CONST_BITVECTOR,
-      kind,
-      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -2019,11 +2020,10 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-          || kind == CONST_BITVECTOR,
-      kind,
-      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -2037,11 +2037,10 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-          || kind == CONST_BITVECTOR,
-      kind,
-      "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -2056,8 +2055,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind,
-                               "ABSTRACT_VALUE or CONST_RATIONAL");
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -2068,8 +2067,8 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind,
-                               "ABSTRACT_VALUE or CONST_RATIONAL");
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -2080,8 +2079,8 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind,
-                               "ABSTRACT_VALUE or CONST_RATIONAL");
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -2091,39 +2090,43 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind, "CONST_RATIONAL");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == CONST_BITVECTOR, kind, "CONST_BITVECTOR");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+      << "CONST_BITVECTOR";
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == CONST_FLOATINGPOINT, kind, "CONST_FLOATINGPOINT");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
+      << "CONST_FLOATINGPOINT";
   CVC4_API_ARG_CHECK_EXPECTED(
       arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
       << "bit-vector constant";
@@ -2161,22 +2164,19 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
   const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
   CVC4_API_KIND_CHECK_EXPECTED(
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
-      kind,
-      "Only operator-style terms are created with mkTerm(), "
-      "to create variables and constants see mkVar(), mkBoundVar(), "
-      "and mkConst().");
+      kind)
+      << "Only operator-style terms are created with mkTerm(), "
+         "to create variables and constants see mkVar(), mkBoundVar(), "
+         "and mkConst().";
   if (nchildren)
   {
     const uint32_t n =
         nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
-    CVC4_API_KIND_CHECK_EXPECTED(
-        n >= minArity(kind) && n <= maxArity(kind),
-        kind,
-        "Terms with kind " << kindToString(kind) << " must have at least "
-                           << minArity(kind) << " children and at most "
-                           << maxArity(kind)
-                           << " children (the one under construction has " << n
-                           << ")");
+    CVC4_API_KIND_CHECK_EXPECTED(n >= minArity(kind) && n <= maxArity(kind),
+                                 kind)
+        << "Terms with kind " << kindToString(kind) << " must have at least "
+        << minArity(kind) << " children and at most " << maxArity(kind)
+        << " children (the one under construction has " << n << ")";
   }
 }
 
@@ -2197,21 +2197,18 @@ void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
     uint32_t min_arity = ExprManager::minArity(int_op_kind);
     uint32_t max_arity = ExprManager::maxArity(int_op_kind);
     CVC4_API_KIND_CHECK_EXPECTED(
-        nchildren >= min_arity && nchildren <= max_arity,
-        kind,
-        "Terms with kind " << kindToString(kind) << " must have at least "
-                           << min_arity << " children and at most " << max_arity
-                           << " children (the one under construction has "
-                           << nchildren << ")");
+        nchildren >= min_arity && nchildren <= max_arity, kind)
+        << "Terms with kind " << kindToString(kind) << " must have at least "
+        << min_arity << " children and at most " << max_arity
+        << " children (the one under construction has " << nchildren << ")";
   }
 }
 
 Term Solver::mkTerm(Kind kind) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA,
-      kind,
-      "PI or REGEXP_EMPTY or REGEXP_SIGMA");
+      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
     CVC4::Kind k = extToIntKind(kind);
@@ -2224,8 +2221,8 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == SEP_NIL || kind == UNIVERSE_SET, kind, "SEP_NIL or UNIVERSE_SET");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL || kind == UNIVERSE_SET, kind)
+      << "SEP_NIL or UNIVERSE_SET";
   return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
 }
 
@@ -2309,14 +2306,14 @@ std::vector<Expr> Solver::termVectorToExprs(
 
 OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind, "CHAIN_OP");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
   return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == RECORD_UPDATE_OP, kind, "RECORD_UPDATE_OP");
+  CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
+      << "RECORD_UPDATE_OP";
   return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
 }
 
@@ -2361,8 +2358,8 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
       res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
       break;
     default:
-      CVC4_API_KIND_CHECK_EXPECTED(
-          false, kind, "operator kind with uint32_t argument");
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with uint32_t argument";
   }
   Assert(!res.isNull());
   return res;
@@ -2400,8 +2397,8 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
       res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
       break;
     default:
-      CVC4_API_KIND_CHECK_EXPECTED(
-          false, kind, "operator kind with two uint32_t arguments");
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with two uint32_t arguments";
   }
   Assert(!res.isNull());
   return res;
@@ -2608,8 +2605,8 @@ Term Solver::defineFun(Term fun,
   CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
   std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
   size_t size = bound_vars.size();
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-      size == domain_sorts.size(), bound_vars, domain_sorts.size());
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+      << "'" << domain_sorts.size() << "'";
   for (size_t i = 0; i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
@@ -2687,8 +2684,8 @@ Term Solver::defineFunRec(Term fun,
   CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
   std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
   size_t size = bound_vars.size();
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-      size == domain_sorts.size(), bound_vars, domain_sorts.size());
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+      << "'" << domain_sorts.size() << "'";
   for (size_t i = 0; i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
@@ -2726,8 +2723,8 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
   size_t funs_size = funs.size();
-  CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-      funs_size == bound_vars.size(), bound_vars, funs_size);
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(funs_size == bound_vars.size(), bound_vars)
+      << "'" << funs_size << "'";
   for (size_t j = 0; j < funs_size; ++j)
   {
     const Term& fun = funs[j];
@@ -2737,8 +2734,8 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
     CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
     std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
     size_t size = bvars.size();
-    CVC4_API_ARG_SIZE_CHECK_EXPECTED(
-        size == domain_sorts.size(), bvars, domain_sorts.size());
+    CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bvars)
+        << "'" << domain_sorts.size() << "'";
     for (size_t i = 0; i < size; ++i)
     {
       CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
