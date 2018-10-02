@@ -252,8 +252,17 @@ public:
     // Mode of operation:
     //
     int       verbosity;
+#if BRANCHING_HEURISTIC == CHB || BRANCHING_HEURISTIC == LRB
+    double step_size;
+    double step_size_dec;
+    double min_step_size;
+#endif
+#if BRANCHING_HEURISTIC == VSIDS
     double    var_decay;
+#endif
+#if !LBD_BASED_CLAUSE_DELETION
     double    clause_decay;
+#endif
     double    random_var_freq;
     double    random_seed;
     bool      luby_restart;
@@ -276,7 +285,26 @@ public:
     uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts, resources_consumed;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
-protected:
+    uint64_t lbd_calls;
+    vec<uint64_t> lbd_seen;
+    vec<uint64_t> picked;
+    vec<uint64_t> conflicted;
+#if ALMOST_CONFLICT
+    vec<uint64_t> almost_conflicted;
+#endif
+#if ANTI_EXPLORATION
+    vec<uint64_t> canceled;
+#endif
+#if BRANCHING_HEURISTIC == CHB
+    vec<uint64_t> last_conflict;
+    int action;
+    double reward_multiplier;
+#endif
+
+    vec<long double> total_actual_rewards;
+    vec<int> total_actual_count;
+
+   protected:
 
     // Helper structures:
     //
@@ -327,7 +355,9 @@ protected:
     bool                ok;                 // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
     vec<CRef>           clauses_persistent; // List of problem clauses.
     vec<CRef>           clauses_removable;  // List of learnt clauses.
+#if !LBD_BASED_CLAUSE_DELETION
     double              cla_inc;            // Amount to bump next clause with.
+#endif
     vec<double>         activity;           // A heuristic measurement of the activity of a variable.
     double              var_inc;            // Amount to bump next variable with.
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
@@ -400,6 +430,23 @@ protected:
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
     bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - true if p is redundant
+
+    template <class V>
+    int lbd(const V& clause)
+    {
+      lbd_calls++;
+      int lbd = 0;
+      for (int i = 0; i < clause.size(); i++)
+      {
+        int l = level(var(clause[i]));
+        if (lbd_seen[l] != lbd_calls)
+        {
+          lbd++;
+          lbd_seen[l] = lbd_calls;
+        }
+      }
+      return lbd;
+    }
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
@@ -408,11 +455,15 @@ protected:
 
     // Maintaining Variable/Clause activity:
     //
+#if BRANCHING_HEURISTIC == VSIDS
     void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
     void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
     void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
+#endif
+#if !LBD_BASED_CLAUSE_DELETION
     void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
     void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
+#endif
 
     // Operations on clauses:
     //
@@ -482,6 +533,7 @@ inline void Solver::insertVarOrder(Var x) {
     assert(x < vardata.size());
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
 
+#if BRANCHING_HEURISTIC == VSIDS
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
 inline void Solver::varBumpActivity(Var v, double inc) {
@@ -494,7 +546,8 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
         order_heap.decrease(v); }
-
+#endif
+#if !LBD_BASED_CLAUSE_DELETION
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
         if ( (c.activity() += cla_inc) > 1e20 ) {
@@ -502,6 +555,7 @@ inline void Solver::claBumpActivity (Clause& c) {
             for (int i = 0; i < clauses_removable.size(); i++)
                 ca[clauses_removable[i]].activity() *= 1e-20;
             cla_inc *= 1e-20; } }
+#endif
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf){

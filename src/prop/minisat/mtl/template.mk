@@ -19,7 +19,7 @@ RCOBJS     = $(addsuffix r,  $(COBJS))
 
 
 CXX       ?= g++
-CFLAGS    ?= -Wall -Wno-parentheses
+CFLAGS    ?= -Wall -Wno-parentheses $(CMD_CFLAGS)
 LFLAGS    ?= -Wall
 
 COPTIMIZE ?= -O3
@@ -68,7 +68,7 @@ lib$(LIB)_release.a:	$(filter-out */Main.or, $(RCOBJS))
 
 ## Build rule
 %.o %.op %.od %.or:	%.cc
-	@echo Compiling: $(subst $(MROOT)/,,$@)
+	@echo Compiling: $(subst $(MROOT)/,,$@) $(CFLAGS)
 	@$(CXX) $(CFLAGS) -c -o $@ $<
 
 ## Linking rules (standard/profile/debug/release)
