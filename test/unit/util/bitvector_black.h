@@ -93,8 +93,8 @@ public:
     BitVector b = one.concat(zero);
     TS_ASSERT_EQUALS(b.toString(), "00010000");
     TS_ASSERT_EQUALS(b.extract(7, 4), one);
-    TS_ASSERT_THROWS(b.extract(4, 7), IllegalArgumentException);
-    TS_ASSERT_THROWS(b.extract(8, 3), IllegalArgumentException);
+    TS_ASSERT_THROWS(b.extract(4, 7), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.extract(8, 3), IllegalArgumentException&);
     TS_ASSERT_EQUALS(b.concat(BitVector()), b);
   }
 
@@ -116,10 +116,10 @@ public:
     TS_ASSERT(negOne.signedLessThanEq(negOne));
 
     BitVector b = negOne.concat(negOne);
-    TS_ASSERT_THROWS(b.unsignedLessThan(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.unsignedLessThanEq(b), IllegalArgumentException);
-    TS_ASSERT_THROWS(b.signedLessThan(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.signedLessThanEq(b), IllegalArgumentException);
+    TS_ASSERT_THROWS(b.unsignedLessThan(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.unsignedLessThanEq(b), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.signedLessThan(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.signedLessThanEq(b), IllegalArgumentException&);
   }
 
   void testBitwiseOps()
@@ -145,10 +145,10 @@ public:
     TS_ASSERT_EQUALS(negOne.unsignedRemTotal(two), one);
 
     BitVector b = negOne.concat(negOne);
-    TS_ASSERT_THROWS(b + negOne, IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne * b, IllegalArgumentException);
-    TS_ASSERT_THROWS(b.unsignedDivTotal(negOne), IllegalArgumentException);
-    TS_ASSERT_THROWS(negOne.unsignedRemTotal(b), IllegalArgumentException);
+    TS_ASSERT_THROWS(b + negOne, IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne * b, IllegalArgumentException&);
+    TS_ASSERT_THROWS(b.unsignedDivTotal(negOne), IllegalArgumentException&);
+    TS_ASSERT_THROWS(negOne.unsignedRemTotal(b), IllegalArgumentException&);
   }
 
   void testExtendOps()
