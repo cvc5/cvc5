@@ -288,7 +288,8 @@ class SynthConjecture
   }
   /**
    * This performs the next check of the syntax-guided enumerative check
-   * (see doCheck above).
+   * (see doCheck above). The method returns true if a new solution was
+   * considered.
    *
    * Notice that one call to doCheck may correspond to multiple calls to
    * doCheckNext. For example, if we are using an actively-generated enumerator,
@@ -296,7 +297,7 @@ class SynthConjecture
    * terms t1, ..., tn to check, where we make up to n calls to doCheckNext when
    * each of t1, ..., tn fail to satisfy the current refinement lemmas.
    */
-  void doCheckNext(std::vector<Node>& lems);
+  bool doCheckNext(std::vector<Node>& lems);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all

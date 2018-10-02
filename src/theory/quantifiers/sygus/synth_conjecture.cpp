@@ -291,18 +291,18 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
       return;
     }
   }
+  bool checkSuccess = false;
   do
   {
     Trace("cegqi-check-debug") << "doCheckNext..." << std::endl;
-    doCheckNext(lems);
+    checkSuccess =doCheckNext(lems);
     Trace("cegqi-check-debug")
         << "...finished " << lems.empty() << " " << !needsRefinement() << " "
-        << !d_qe->getTheoryEngine()->needCheck() << std::endl;
-  } while (lems.empty() && !needsRefinement()
-           && !d_qe->getTheoryEngine()->needCheck());
+        << !d_qe->getTheoryEngine()->needCheck() << " " << checkSuccess << std::endl;
+  } while (lems.empty() && !needsRefinement() && !d_qe->getTheoryEngine()->needCheck() && checkSuccess);
 }
 
-void SynthConjecture::doCheckNext(std::vector<Node>& lems)
+bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
 {
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
@@ -362,19 +362,24 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     {
       // we retain the values in d_ev_active_gen_waiting
       Trace("cegqi-check") << "...partial model, fail." << std::endl;
-      return;
+      return false;
     }
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
 
     // debug print
     Assert(terms.size() == enum_values.size());
-    if (Trace.isOn("cegqi-engine"))
+    bool emptyModel = true;
+    Trace("cegqi-engine") << "  * Value is : ";
+    for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
-      Trace("cegqi-engine") << "  * Value is : ";
-      for (unsigned i = 0, size = terms.size(); i < size; i++)
+      Node nv = enum_values[i];
+      if( !nv.isNull() )
       {
-        Node nv = enum_values[i];
+        emptyModel = false;
+      }
+      if (Trace.isOn("cegqi-engine"))
+      {
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
@@ -395,9 +400,13 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
           }
         }
       }
-      Trace("cegqi-engine") << std::endl;
     }
-
+    Trace("cegqi-engine") << std::endl;
+    if( emptyModel )
+    {
+      Trace("cegqi-check") << "...empty model, fail." << std::endl;
+      return false;
+    }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
         terms, enum_values, d_candidates, candidate_values, lems);
@@ -443,7 +452,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
       lem = getStreamGuardedLemma(lem);
       lems.push_back(lem);
       recordInstantiation(candidate_values);
-      return;
+      return true;
     }
     Assert(!d_set_ce_sk_vars);
   }
@@ -451,7 +460,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
   {
     if (!constructed_cand)
     {
-      return;
+      return true;
     }
   }
 
@@ -491,7 +500,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
   if (lem.isNull())
   {
     // no lemma to check
-    return;
+    return true;
   }
 
   lem = Rewriter::rewrite(lem);
@@ -546,7 +555,7 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         Assert(squery.isConst() && squery.getConst<bool>());
 #endif
-        return;
+        return true;
       }
       else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
@@ -566,10 +575,11 @@ void SynthConjecture::doCheckNext(std::vector<Node>& lems)
     // if we were successful, we immediately print the current solution.
     // this saves us from introducing a verification lemma and a new guard.
     printAndContinueStream();
-    return;
+    return true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
+  return true;
 }
 
 void SynthConjecture::doRefine(std::vector<Node>& lems)

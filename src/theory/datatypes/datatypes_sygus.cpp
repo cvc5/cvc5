@@ -1134,11 +1134,19 @@ Node SygusSymBreakNew::registerSearchValue(
         Node bad_val_o = d_cache[a].d_search_val[tn][bad_val_bvr];
         Assert( d_cache[a].d_search_val_sz[tn].find( bad_val_bvr )!=d_cache[a].d_search_val_sz[tn].end() );
         unsigned prev_sz = d_cache[a].d_search_val_sz[tn][bad_val_bvr];
-        if( prev_sz>sz ){
+        bool doFlip = (prev_sz>sz);
+        if( doFlip ){
           //swap : the excluded value is the previous
           d_cache[a].d_search_val_sz[tn][bad_val_bvr] = sz;
           bad_val = d_cache[a].d_search_val[tn][bad_val_bvr];
           bad_val_o = nv;
+          if( Trace.isOn("sygus-sb-exc") ){
+            Trace("sygus-sb-exc") << "Flip : exclude ";
+            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc",bad_val);
+            Trace("sygus-sb-exc") << " instead of ";
+            quantifiers::TermDbSygus::toStreamSygus("sygus-sb-exc",bad_val_o);
+            Trace("sygus-sb-exc") << ", since its size is " << sz << " < " << prev_sz << std::endl;
+          }
           sz = prev_sz;
         }
         if( Trace.isOn("sygus-sb-exc") ){
@@ -1161,7 +1169,14 @@ Node SygusSymBreakNew::registerSearchValue(
             a, bad_val, eset, bad_val_o, var_count, lemmas);
 
         // other generalization criteria go here
-        return Node::null();
+        
+        // If the exclusion was flipped, we are excluding a previous value
+        // instead of the current one. Hence, the current value is a legal
+        // value that we will consider.
+        if( !doFlip )
+        {
+          return Node::null();
+        }
       }
     }
   }
@@ -1603,6 +1618,14 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         Trace("cegqi-engine") << s->d_curr_search_size << " ";
       }
       Trace("cegqi-engine") << std::endl;
+    }
+    else
+    {
+      Trace("cegqi-engine") << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
+      for( const Node& lem : lemmas )
+      {
+        Trace("cegqi-engine") << "  " << lem << std::endl;
+      }
     }
   }
 }
