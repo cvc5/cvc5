@@ -560,13 +560,26 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
 
   int numChildren = node.getNumChildren();
   SatValue desiredValInverted = invertValue(desiredVal);
-  for(int i = 0; i < numChildren; ++i) {
+  std::vector<TNode> nodes;
+  for (int i = 0; i < numChildren; ++i)
+  {
     TNode curNode = getChildByWeight(node, i, desiredVal);
-    if ( tryGetSatValue(curNode) != desiredValInverted ) {
-      SearchResult ret = findSplitterRec(curNode, desiredVal);
-      if(ret != DONT_KNOW) {
-        return ret;
-      }
+    SatValue s = tryGetSatValue(curNode);
+    if (s == desiredVal && checkJustified(curNode))
+    {
+      return NO_SPLITTER;
+    }
+    if (s != desiredValInverted)
+    {
+      nodes.push_back(curNode);
+    }
+  }
+  for (const auto &curNode : nodes)
+  {
+    SearchResult ret = findSplitterRec(curNode, desiredVal);
+    if (ret != DONT_KNOW)
+    {
+      return ret;
     }
   }
   Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
