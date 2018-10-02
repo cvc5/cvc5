@@ -164,9 +164,9 @@ class CDMapBlack : public CxxTest::TestSuite {
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
         TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 317),
-                         AssertionException);
+                         AssertionException&);
         TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 472),
-                         AssertionException);
+                         AssertionException&);
         map.insert(23, 472);
 
         TS_ASSERT(
@@ -178,7 +178,7 @@ class CDMapBlack : public CxxTest::TestSuite {
             ElementsAre(map, {{1, 2}, {3, 4}, {5, 6}, {9, 8}, {23, 472}}));
 
           TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
-                           AssertionException);
+                           AssertionException&);
           map.insert(23, 1024);
 
           TS_ASSERT(
@@ -194,7 +194,8 @@ class CDMapBlack : public CxxTest::TestSuite {
       TS_ASSERT(
           ElementsAre(map, {{3, 4}, {5, 6}, {9, 8}, {23, 317}}));
 
-      TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException);
+      TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0),
+                       AssertionException&);
       map.insert(23, 477);
 
       TS_ASSERT(
@@ -202,7 +203,7 @@ class CDMapBlack : public CxxTest::TestSuite {
       d_context->pop();
     }
 
-    TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException);
+    TS_ASSERT_THROWS(map.insertAtContextLevelZero(23, 0), AssertionException&);
 
     TS_ASSERT(
         ElementsAre(map, {{3, 4}, {23, 317}}));
