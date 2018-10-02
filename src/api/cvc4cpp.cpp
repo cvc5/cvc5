@@ -1711,7 +1711,7 @@ Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
       << "first-class sort as domain sort for function sort";
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
       << "first-class sort as codomain sort for function sort";
-  Assert(!codomain.isFunction()); /* A a function sort is not first-class. */
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
   return d_exprMgr->mkFunctionType(*domain.d_type, *codomain.d_type);
 }
 
@@ -1727,7 +1727,7 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
   }
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
       << "first-class sort as codomain sort for function sort";
-  Assert(!codomain.isFunction()); /* A a function sort is not first-class. */
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
   std::vector<Type> argTypes = sortVectorToTypes(sorts);
   return d_exprMgr->mkFunctionType(argTypes, *codomain.d_type);
 }
@@ -2532,7 +2532,7 @@ Term Solver::declareFun(const std::string& symbol,
   }
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
-  Assert(!sort.isFunction()); /* A a function sort is not first-class. */
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   Type type = *sort.d_type;
   if (!sorts.empty())
   {
@@ -2645,7 +2645,7 @@ Term Solver::defineFunRec(const std::string& symbol,
   // == NodeManager::fromExprManager(expr.getExprManager())
   CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
       << "first-class sort as function codomain sort";
-  Assert(!sort.isFunction()); /* A a function sort is not first-class. */
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   // CHECK:
   // for v in bound_vars: is bound var
   std::vector<Type> domain_types;
