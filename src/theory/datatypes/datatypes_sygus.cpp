@@ -1563,8 +1563,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         Trace("dt-sygus") << ss.str() << std::endl;
       }
       // first check that the value progv for prog is what we expected
+      bool isExc = true;
       if (checkValue(prog, progv, 0, lemmas))
       {
+        isExc = false;
         //debugging : ensure fairness was properly handled
         if( options::sygusFair()==SYGUS_FAIR_DT_SIZE ){  
           Node prog_sz = NodeManager::currentNM()->mkNode( kind::DT_SIZE, prog );
@@ -1578,19 +1580,18 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
                                                                      prog_sz.eqNode( progv_sz ) );
             Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
             lemmas.push_back( szlem );                                                     
-            return;
+            isExc = true;
           }
         }
         
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
-        if( options::sygusSymBreakDynamic() ){
+        if( !isExc && options::sygusSymBreakDynamic() ){
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
           Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
-          SygusSymBreakExcAttribute ssbea;
-          prog.setAttribute(ssbea, rsv.isNull());
           if (rsv.isNull())
           {
+            isExc = true;
             Trace("sygus-sb") << "  SygusSymBreakNew::check: ...added new symmetry breaking lemma for " << prog << "." << std::endl;
           }
           else
@@ -1599,6 +1600,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           }
         }
       }
+      SygusSymBreakExcAttribute ssbea;
+      prog.setAttribute(ssbea, isExc);
     }
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
