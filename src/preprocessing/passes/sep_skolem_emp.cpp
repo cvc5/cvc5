@@ -20,7 +20,6 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -120,7 +119,6 @@ PreprocessingPassResult SepSkolemEmp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<SepSkolemEmp> X("sep-skolem-emp");
 
 }  // namespace passes
 }  // namespace preprocessing
