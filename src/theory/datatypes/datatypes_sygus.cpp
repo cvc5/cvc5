@@ -955,7 +955,7 @@ void SygusSymBreakNew::registerSearchTerm( TypeNode tn, unsigned d, Node n, bool
 }
 
 Node SygusSymBreakNew::registerSearchValue(
-    Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas)
+    Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas, bool isVarAgnostic, bool doSym)
 {
   Assert(n.getType().isComparableTo(nv.getType()));
   TypeNode tn = n.getType();
@@ -986,7 +986,7 @@ Node SygusSymBreakNew::registerSearchValue(
           APPLY_SELECTOR_TOTAL,
           Node::fromExpr(dt[cindex].getSelectorInternal(tn.toType(), i)),
           n);
-      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas);
+      Node nvc = registerSearchValue(a, sel, nv[i], d + 1, lemmas, isVarAgnostic, doSym && i==0);
       if (nvc.isNull())
       {
         return Node::null();
@@ -999,6 +999,10 @@ Node SygusSymBreakNew::registerSearchValue(
     {
       nv = nm->mkNode(APPLY_CONSTRUCTOR, rcons_children);
     }
+  }
+  if( !doSym )
+  {
+    return nv;
   }
   Trace("sygus-sb-debug2") << "Registering search value " << n << " -> " << nv << std::endl;
   std::map<TypeNode, int> var_count;
@@ -1586,9 +1590,10 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         
         // register the search value ( prog -> progv ), this may invoke symmetry breaking 
         if( !isExc && options::sygusSymBreakDynamic() ){
+          bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);
           // check that it is unique up to theory-specific rewriting and
           // conjecture-specific symmetry breaking.
-          Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas);
+          Node rsv = registerSearchValue(prog, prog, progv, 0, lemmas, isVarAgnostic, true);
           if (rsv.isNull())
           {
             isExc = true;

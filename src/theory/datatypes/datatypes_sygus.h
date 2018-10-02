@@ -372,7 +372,7 @@ private:
    * by a selector chain), instead of the concrete value 5.
    */
   Node registerSearchValue(
-      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas);
+      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas, bool isVarAgnostic, bool doSym);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
