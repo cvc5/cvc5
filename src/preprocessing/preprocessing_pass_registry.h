@@ -12,8 +12,7 @@
  ** \brief The preprocessing pass registry
  **
  ** This file defines the classes PreprocessingPassRegistry, which keeps track
- ** of the available preprocessing passes, and RegisterPass, which registers a
- ** preprocessing pass with the registry.
+ ** of the available preprocessing passes.
  **/
 #include "cvc4_private.h"
 
@@ -80,6 +79,12 @@ class PreprocessingPassRegistry {
 
  private:
   /**
+   * Private constructor for the preprocessing pass registry. The
+   * registry is a singleton and no other instance should be created.
+   */
+  PreprocessingPassRegistry();
+
+  /**
    * Map of available preprocessing passes, mapping from preprocessing pass
    * name to a function that constructs a corresponding instance.
    */
@@ -88,42 +93,6 @@ class PreprocessingPassRegistry {
       std::function<PreprocessingPass*(PreprocessingPassContext*)> >
       d_ppInfo;
 };  // class PreprocessingPassRegistry
-
-/**
- * Class used to register a preprocessing pass. In the source file of a given
- * pass, create a static instance of this class, e.g.:
- *
- * static RegisterPass<MyPass> X("my-pass");
- *
- * where `MyPass` is the class of your pass and "my-pass" is its name. This
- * registers the pass with the `PreprocessingPassRegistry`.
- */
-template <class T>
-class RegisterPass
-{
- public:
-  /**
-   * Creates a new preprocessing pass registration.
-   *
-   * @param name The name that should be associated with the preprocessing pass
-   */
-  RegisterPass(const std::string& name)
-  {
-    PreprocessingPassRegistry::getInstance().registerPassInfo(name, callCtor);
-  }
-
-  /**
-   * This method is used by the `PreprocessingPassRegistry` to create a new
-   * instance of the preprocessing pass T.
-   *
-   * @param ppCtx The preprocessing pass context passed to the constructor of
-   *              the preprocessing pass
-   */
-  static PreprocessingPass* callCtor(PreprocessingPassContext* ppCtx)
-  {
-    return new T(ppCtx);
-  }
-};  // class RegisterPass
 
 }  // namespace preprocessing
 }  // namespace CVC4
