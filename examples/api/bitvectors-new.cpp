@@ -55,9 +55,6 @@ int main()
   Term a = slv.mkVar("a", bitvector32);
   Term b = slv.mkVar("b", bitvector32);
 
-  Sort funsort = slv.mkFunctionSort(bitvector32, bitvector32);
-  Term c = slv.declareFun("c", {bitvector32, funsort}, bitvector32);
-
   // First encode the assumption that x must be equal to a or b
   Term x_eq_a = slv.mkTerm(EQUAL, x, a);
   Term x_eq_b = slv.mkTerm(EQUAL, x, b);
