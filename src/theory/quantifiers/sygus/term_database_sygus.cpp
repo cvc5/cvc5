@@ -589,6 +589,25 @@ void TermDbSygus::registerEnumerator(Node e,
         d_var_subclass_list[et][sc].push_back(v);
       }
     }
+    // If no subclass has more than one variable, do not use variable agnostic
+    // enumeration
+    bool useVarAgnostic = false;
+    for (std::pair<const unsigned, std::vector<Node> >& p :
+         d_var_subclass_list[et])
+    {
+      if (p.second.size() > 1)
+      {
+        useVarAgnostic = true;
+      }
+    }
+    if (!useVarAgnostic)
+    {
+      Trace("sygus-db")
+          << "...disabling variable agnostic for " << e
+          << " since it has no subclass with more than one variable."
+          << std::endl;
+      d_enum_var_agnostic[e] = false;
+    }
   }
 }
 
