@@ -1942,8 +1942,7 @@ void SmtEngine::setDefaults() {
       options::cbqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE()
-        || options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+    if (options::cbqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
