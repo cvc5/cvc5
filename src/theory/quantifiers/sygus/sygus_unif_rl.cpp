@@ -563,6 +563,17 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
   // add conditions
   d_conds.clear();
   d_conds.insert(d_conds.end(), d_cond_mvs.begin(), d_cond_mvs.end());
+  // shuffle conditions before bulding DT
+  //
+  // this does not impact whether it's possible to build a solution, but it does
+  // impact the potential size of the resulting solution (can make it smaller,
+  // bigger, or have no impact) and which conditions will be present in the DT,
+  // which influences the "quality" of the solution for cases not covered in the
+  // current data points
+  if (options::sygusUnifShuffleCond())
+  {
+    std::random_shuffle(d_conds.begin(), d_conds.end());
+  }
   unsigned num_conds = d_conds.size();
   for (unsigned i = 0; i < num_conds; ++i)
   {
