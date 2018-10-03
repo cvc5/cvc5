@@ -576,13 +576,17 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
     }
   }
   for (const auto &curNode : nodes)
-  {
-    SearchResult ret = findSplitterRec(curNode, desiredVal);
-    if (ret != DONT_KNOW)
     {
-      return ret;
+      SearchResult ret = findSplitterRec(curNode, desiredVal);
+      if (ret == NO_SPLITTER && checkJustified(curNode))
+      {
+        setJustified(node);
+      }
+      if (ret != DONT_KNOW)
+      {
+        return ret;
+      }
     }
-  }
   Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
   return DONT_KNOW;
 }
