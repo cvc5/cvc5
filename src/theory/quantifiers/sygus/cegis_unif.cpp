@@ -124,7 +124,7 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool CegisUnif::setEnumValues(const std::vector<Node>& enums,
+bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
                               const std::vector<Node>& enum_values,
                               std::map<Node, std::vector<Node>>& unif_cenums,
                               std::map<Node, std::vector<Node>>& unif_cvalues,
@@ -233,7 +233,7 @@ bool CegisUnif::setEnumValues(const std::vector<Node>& enums,
       }
     }
   }
-  return addedUnifEnumSymBreakLemma;
+  return !addedUnifEnumSymBreakLemma;
 }
 
 void CegisUnif::setConditions(
@@ -295,7 +295,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   // we only proceed to solution building if we are not introducing symmetry
   // breaking lemmas between return values and if we have not previously
   // introduced return values refinement lemmas
-  if (setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems)
+  if (!getEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems)
       || !satisfiedRl)
   {
     // if condition values are being indepedently enumerated, they should be

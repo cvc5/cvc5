@@ -283,10 +283,10 @@ class CegisUnif : public Cegis
    * This function also generates inter-enumerator symmetry breaking for return
    * values, such that their model values are ordered by size
    *
-   * returns true if symmetry breaking lemmas were generated for the return
+   * returns true if no symmetry breaking lemmas were generated for the return
    * value enumerators, false otherwise
    */
-  bool setEnumValues(const std::vector<Node>& enums,
+  bool getEnumValues(const std::vector<Node>& enums,
                      const std::vector<Node>& enum_values,
                      std::map<Node, std::vector<Node>>& unif_cenums,
                      std::map<Node, std::vector<Node>>& unif_cvalues,
