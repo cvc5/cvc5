@@ -236,9 +236,10 @@ bool CegisUnif::setEnumValues(const std::vector<Node>& enums,
   return addedUnifEnumSymBreakLemma;
 }
 
-void CegisUnif::setConditions(std::map<Node, std::vector<Node>>& unif_cenums,
-                              std::map<Node, std::vector<Node>>& unif_cvalues,
-                              std::vector<Node>& lems)
+void CegisUnif::setConditions(
+    const std::map<Node, std::vector<Node>>& unif_cenums,
+    const std::map<Node, std::vector<Node>>& unif_cvalues,
+    std::vector<Node>& lems)
 {
   Node cost_lit = d_u_enum_manager.getAssertedLiteral();
   NodeManager* nm = NodeManager::currentNM();
@@ -249,18 +250,22 @@ void CegisUnif::setConditions(std::map<Node, std::vector<Node>>& unif_cenums,
     {
       Assert(unif_cenums.find(e) != unif_cenums.end());
       Assert(unif_cvalues.find(e) != unif_cvalues.end());
-      d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e], unif_cvalues[e]);
+      std::map<Node, std::vector<Node>>::const_iterator itc =  unif_cenums.find(e);
+      std::map<Node, std::vector<Node>>::const_iterator itv =  unif_cvalues.find(e);
+      d_sygus_unif.setConditions(e, cost_lit, itc->second, itv->second);
+      // d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e], unif_cvalues[e]);
       // if condition enumerator had value and it is being passively generated,
       // exclude this value
-      if (options::sygusUnifCondIndependent() && !unif_cenums[e].empty())
+      if (options::sygusUnifCondIndependent() && !itc->second.empty())
       {
-        Node eu = unif_cenums[e][0];
+        Node eu = itc->second[0];
         Assert(d_tds->isEnumerator(eu));
+        Assert(!itv->second.empty());
         if (d_tds->isPassiveEnumerator(eu))
         {
           Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
           Node exp_exc = d_tds->getExplain()
-                             ->getExplanationForEquality(eu, unif_cvalues[e][0])
+                             ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
           lems.push_back(nm->mkNode(OR, g.negate(), exp_exc));
         }
@@ -302,7 +307,7 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   }
   if (setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems))
   {
-    // as with !satisfiedRl, communicate condition values to solution utility
+    // as with !satisfiedRl, communicate condition values tonst  solution utility
     if (options::sygusUnifCondIndependent())
     {
       setConditions(unif_cenums, unif_cvalues, lems);

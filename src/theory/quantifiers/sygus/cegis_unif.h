@@ -289,7 +289,7 @@ class CegisUnif : public Cegis
   bool setEnumValues(const std::vector<Node>& enums,
                      const std::vector<Node>& enum_values,
                      std::map<Node, std::vector<Node>>& unif_cenums,
-                     std::map<Node, std::vector<Node>>& unif_values,
+                     std::map<Node, std::vector<Node>>& unif_cvalues,
                      std::vector<Node>& lems);
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
