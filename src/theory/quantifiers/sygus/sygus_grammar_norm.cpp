@@ -177,7 +177,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
     exp_sop_n = Rewriter::rewrite(exp_sop_n);
     Trace("sygus-grammar-normalize-debug")
         << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
-    // eliminate all total operators from it
+    // eliminate all partial operators from it
     exp_sop_n = eliminatePartialOperators(exp_sop_n);
     Trace("sygus-grammar-normalize-debug")
         << ".....operator (eliminate partial operators) is " << exp_sop_n
