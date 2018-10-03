@@ -1718,6 +1718,7 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/mpg_guard1-dd.sy
+  regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/process-10-vars-2fun.sy
