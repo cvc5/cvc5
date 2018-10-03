@@ -164,7 +164,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // if it is strict, it corresponds to a substr case.
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _) --->
-        //        ... ^ "B" = substr( x, len( x ) - 2, 1 )  ^ ...
+        //        ... ^ "B" = substr( x, len( x ) - 3, 1 )  ^ ...
         Node sc = sep_children.back();
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
         Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
