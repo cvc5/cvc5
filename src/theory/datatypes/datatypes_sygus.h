@@ -370,7 +370,7 @@ private:
    * not "some constant". Thus, we should consider the subterm
    * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
    * by a selector chain), instead of the concrete value 5.
-   * 
+   *
    * The flag isVarAgnostic is whether "a" is a variable agnostic enumerator. If
    * this is the case, we restrict symmetry breaking to subterms of n on its
    * leftmost subchain. For example, consider the grammar:
@@ -382,7 +382,7 @@ private:
    * latter two terms are not leftmost subterms in this value. If we did on the
    * other hand register y+x, we would be prevented from solutions like x+y = 0
    * later, since x+y is equivalent to (the already registered value) y+x.
-   * 
+   *
    * If doSym is false, we are not performing symmetry breaking on n. This flag
    * is set to false on branches of n that are not leftmost.
    */

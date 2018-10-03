@@ -1594,12 +1594,13 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             Node szlem = NodeManager::currentNM()->mkNode( kind::OR, prog.eqNode( progv ).negate(),
                                                                      prog_sz.eqNode( progv_sz ) );
             Trace("sygus-sb-warn") << "SygusSymBreak : WARNING : adding size correction : " << szlem << std::endl;
-            lemmas.push_back( szlem );
+            lemmas.push_back(szlem);
             isExc = true;
           }
         }
-        
-        // register the search value ( prog -> progv ), this may invoke symmetry breaking
+
+        // register the search value ( prog -> progv ), this may invoke symmetry
+        // breaking
         if (!isExc && options::sygusSymBreakDynamic())
         {
           bool isVarAgnostic = d_tds->isVariableAgnosticEnumerator(prog);

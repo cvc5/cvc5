@@ -207,12 +207,12 @@ class SygusGrammarNorm
      */
     void addConsInfo(SygusGrammarNorm* sygus_norm,
                      const DatatypeConstructor& cons);
-    /** 
+    /**
      * Returns the total version of Kind k if it is a partial operator, or
-     * otherwise k itself. 
+     * otherwise k itself.
      */
     static Kind getEliminateKind(Kind k);
-    /** 
+    /**
      * Returns a version of n where all partial functions such as bvudiv
      * have been replaced by their total versions like bvudiv_total.
      */
