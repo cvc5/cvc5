@@ -124,39 +124,23 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   }
 }
 
-bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
-                                           const std::vector<Node>& enum_values,
-                                           const std::vector<Node>& candidates,
-                                           std::vector<Node>& candidate_values,
-                                           bool satisfiedRl,
-                                           std::vector<Node>& lems)
+bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
+                              const std::vector<Node>& enum_values,
+                              std::map<Node, std::vector<Node>>& unif_cenums,
+                              std::map<Node, std::vector<Node>>& unif_cvalues,
+                              std::vector<Node>& lems)
 {
-  if (d_unif_candidates.empty())
-  {
-    Assert(d_non_unif_candidates.size() == candidates.size());
-    return Cegis::processConstructCandidates(
-        enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
-  }
-  if (!satisfiedRl)
-  {
-    Trace("cegis-unif")
-        << "..added refinement lemmas\n---CegisUnif Engine---\n";
-    // if we didn't satisfy the specification, there is no way to repair
-    return false;
-  }
+  NodeManager* nm = NodeManager::currentNM();
+  Node cost_lit = d_u_enum_manager.getAssertedLiteral();
+  std::map<Node, std::vector<Node>> unif_renums, unif_rvalues;
   // build model value map
   std::map<Node, Node> mvMap;
   for (unsigned i = 0, size = enums.size(); i < size; i++)
   {
     mvMap[enums[i]] = enum_values[i];
   }
-  // the unification enumerators (return values, conditions) and their model
-  // values
-  NodeManager* nm = NodeManager::currentNM();
   bool addedUnifEnumSymBreakLemma = false;
-  Node cost_lit = d_u_enum_manager.getAssertedLiteral();
-  std::map<Node, std::vector<Node>> unif_enums[2];
-  std::map<Node, std::vector<Node>> unif_values[2];
+  // populate maps between unification enumerators and their model values
   for (const Node& c : d_unif_candidates)
   {
     // for each decision tree strategy allocated for c (these are referenced
@@ -165,24 +149,28 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     {
       for (unsigned index = 0; index < 2; index++)
       {
+        std::vector<Node> es, vs;
         Trace("cegis") << "  " << (index == 0 ? "Return values" : "Conditions")
                        << " for " << e << ":\n";
         // get the current unification enumerators
-        d_u_enum_manager.getEnumeratorsForStrategyPt(
-            e, unif_enums[index][e], index);
-        if (index == 1 && options::sygusUnifCondIndependent())
+        d_u_enum_manager.getEnumeratorsForStrategyPt(e, es, index);
+        // set enums for condition enumerators
+        if (index == 1)
         {
-          Assert(unif_enums[index][e].size() == 1);
-          Node eu = unif_enums[index][e][0];
-          if (mvMap.find(eu) == mvMap.end())
+          if (options::sygusUnifCondIndependent())
           {
-            Trace("cegis") << "    " << eu << " -> N/A\n";
-            unif_enums[index][e].clear();
-            continue;
+            Assert(es.size() == 1);
+            // whether valueus exhausted
+            if (mvMap.find(es[0]) == mvMap.end())
+            {
+              Trace("cegis") << "    " << es[0] << " -> N/A\n";
+              es.clear();
+            }
           }
+          unif_cenums[e] = es;
         }
         // get the model value of each enumerator
-        for (const Node& eu : unif_enums[index][e])
+        for (const Node& eu : es)
         {
           Assert(mvMap.find(eu) != mvMap.end());
           Node m_eu = mvMap[eu];
@@ -194,14 +182,19 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
                 ->toStreamSygus(ss, m_eu);
             Trace("cegis") << ss.str() << std::endl;
           }
-          unif_values[index][e].push_back(m_eu);
+          vs.push_back(m_eu);
+        }
+        // set values for condition enumerators of e
+        if (index == 1)
+        {
+          unif_cvalues[e] = vs;
         }
         // inter-enumerator symmetry breaking for return values
-        if (index == 0)
+        else
         {
           // given a pool of unification enumerators eu_1, ..., eu_n,
-          // CegisUnifEnumDecisionStrategy insists that size(eu_1) <= ... <= size(eu_n).
-          // We additionally insist that M(eu_i) < M(eu_{i+1}) when
+          // CegisUnifEnumDecisionStrategy insists that size(eu_1) <= ... <=
+          // size(eu_n). We additionally insist that M(eu_i) < M(eu_{i+1}) when
           // size(eu_i) = size(eu_{i+1}), where < is pointer comparison.
           // We enforce this below by adding symmetry breaking lemmas of the
           // form ~( eu_i = M(eu_i) ^ eu_{i+1} = M(eu_{i+1} ) )
@@ -209,11 +202,10 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
           // we only do this for return value enumerators, since condition
           // enumerators cannot be ordered (their order is based on the
           // seperation resolution scheme during model construction).
-          for (unsigned j = 1, nenum = unif_values[index][e].size(); j < nenum;
-               j++)
+          for (unsigned j = 1, nenum = vs.size(); j < nenum; j++)
           {
-            Node prev_val = unif_values[index][e][j - 1];
-            Node curr_val = unif_values[index][e][j];
+            Node prev_val = vs[j - 1];
+            Node curr_val = vs[j];
             // compare the node values
             if (curr_val < prev_val)
             {
@@ -223,12 +215,10 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
               Assert(prev_size <= curr_size);
               if (curr_size == prev_size)
               {
-                Node slem = nm->mkNode(AND,
-                                       unif_enums[index][e][j - 1].eqNode(
-                                           unif_values[index][e][j - 1]),
-                                       unif_enums[index][e][j].eqNode(
-                                           unif_values[index][e][j]))
-                                .negate();
+                Node slem =
+                    nm->mkNode(
+                          AND, es[j - 1].eqNode(vs[j - 1]), es[j].eqNode(vs[j]))
+                        .negate();
                 Trace("cegis-unif")
                     << "CegisUnif::lemma, inter-unif-enumerator "
                        "symmetry breaking lemma : "
@@ -243,36 +233,86 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
       }
     }
   }
-  if (addedUnifEnumSymBreakLemma)
-  {
-    Trace("cegis-unif") << "..added unif enum symmetry breaking "
-                           "lemma\n---CegisUnif Engine---\n";
-    return false;
-  }
+  return !addedUnifEnumSymBreakLemma;
+}
+
+void CegisUnif::setConditions(
+    const std::map<Node, std::vector<Node>>& unif_cenums,
+    const std::map<Node, std::vector<Node>>& unif_cvalues,
+    std::vector<Node>& lems)
+{
+  Node cost_lit = d_u_enum_manager.getAssertedLiteral();
+  NodeManager* nm = NodeManager::currentNM();
   // set the conditions
   for (const Node& c : d_unif_candidates)
   {
     for (const Node& e : d_cand_to_strat_pt[c])
     {
-      d_sygus_unif.setConditions(
-          e, cost_lit, unif_enums[1][e], unif_values[1][e]);
-      // if condition enumerator had value, exclude this value
-      if (options::sygusUnifCondIndependent() && !unif_enums[1][e].empty())
+      Assert(unif_cenums.find(e) != unif_cenums.end());
+      Assert(unif_cvalues.find(e) != unif_cvalues.end());
+      std::map<Node, std::vector<Node>>::const_iterator itc =
+          unif_cenums.find(e);
+      std::map<Node, std::vector<Node>>::const_iterator itv =
+          unif_cvalues.find(e);
+      d_sygus_unif.setConditions(e, cost_lit, itc->second, itv->second);
+      // d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e],
+      // unif_cvalues[e]); if condition enumerator had value and it is being
+      // passively generated, exclude this value
+      if (options::sygusUnifCondIndependent() && !itc->second.empty())
       {
-        Node eu = unif_enums[1][e][0];
+        Node eu = itc->second[0];
         Assert(d_tds->isEnumerator(eu));
+        Assert(!itv->second.empty());
         if (d_tds->isPassiveEnumerator(eu))
         {
           Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
-          Node exp_exc =
-              d_tds->getExplain()
-                  ->getExplanationForEquality(eu, unif_values[1][e][0])
-                  .negate();
+          Node exp_exc = d_tds->getExplain()
+                             ->getExplanationForEquality(eu, itv->second[0])
+                             .negate();
           lems.push_back(nm->mkNode(OR, g.negate(), exp_exc));
         }
       }
     }
   }
+}
+
+bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
+                                           const std::vector<Node>& enum_values,
+                                           const std::vector<Node>& candidates,
+                                           std::vector<Node>& candidate_values,
+                                           bool satisfiedRl,
+                                           std::vector<Node>& lems)
+{
+  if (d_unif_candidates.empty())
+  {
+    Assert(d_non_unif_candidates.size() == candidates.size());
+    return Cegis::processConstructCandidates(
+        enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
+  }
+  // the unification enumerators for conditions and their model values
+  std::map<Node, std::vector<Node>> unif_cenums;
+  std::map<Node, std::vector<Node>> unif_cvalues;
+  // we only proceed to solution building if we are not introducing symmetry
+  // breaking lemmas between return values and if we have not previously
+  // introduced return values refinement lemmas
+  if (!getEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems)
+      || !satisfiedRl)
+  {
+    // if condition values are being indepedently enumerated, they should be
+    // communicated to the decision tree strategies indepedently of we
+    // proceeding to attempt solution building
+    if (options::sygusUnifCondIndependent())
+    {
+      setConditions(unif_cenums, unif_cvalues, lems);
+    }
+    Trace("cegis-unif") << (!satisfiedRl
+                                ? "..added refinement lemmas"
+                                : "..added unif enum symmetry breaking")
+                        << "\n---CegisUnif Engine---\n";
+    // if we didn't satisfy the specification, there is no way to repair
+    return false;
+  }
+  setConditions(unif_cenums, unif_cvalues, lems);
   // build solutions (for unif candidates a divide-and-conquer approach is used)
   std::vector<Node> sols;
   std::vector<Node> lemmas;
@@ -501,9 +541,8 @@ void CegisUnifEnumDecisionStrategy::initialize(
   }
 }
 
-void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(Node e,
-                                                       std::vector<Node>& es,
-                                                       unsigned index) const
+void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(
+    Node e, std::vector<Node>& es, unsigned index) const
 {
   // the number of active enumerators is related to the current cost value
   unsigned num_enums = 0;
@@ -533,8 +572,8 @@ Node CegisUnifEnumDecisionStrategy::getActiveGuardForEnumerator(Node e)
 }
 
 void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
-                                           StrategyPtInfo& si,
-                                           unsigned index)
+                                                    StrategyPtInfo& si,
+                                                    unsigned index)
 {
   NodeManager* nm = NodeManager::currentNM();
   // instantiate template for removing redundant operators
@@ -577,7 +616,8 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
       e, si.d_pt, d_parent, mkActiveGuard, false, isVarAgnostic);
 }
 
-void CegisUnifEnumDecisionStrategy::registerEvalPts(const std::vector<Node>& eis, Node e)
+void CegisUnifEnumDecisionStrategy::registerEvalPts(
+    const std::vector<Node>& eis, Node e)
 {
   // candidates of the same type are managed
   std::map<Node, StrategyPtInfo>::iterator it = d_ce_info.find(e);
@@ -597,11 +637,10 @@ void CegisUnifEnumDecisionStrategy::registerEvalPts(const std::vector<Node>& eis
   }
 }
 
-
 void CegisUnifEnumDecisionStrategy::registerEvalPtAtSize(Node e,
-                                                Node ei,
-                                                Node guq_lit,
-                                                unsigned n)
+                                                         Node ei,
+                                                         Node guq_lit,
+                                                         unsigned n)
 {
   // must be equal to one of the first n enums
   std::map<Node, StrategyPtInfo>::iterator itc = d_ce_info.find(e);
