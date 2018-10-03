@@ -520,6 +520,7 @@ set(regress_0_tests
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
+  regress0/parser/to_fp.smt2
   regress0/precedence/and-not.cvc
   regress0/precedence/and-xor.cvc
   regress0/precedence/bool-cmp.cvc
@@ -1717,6 +1718,7 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/mpg_guard1-dd.sy
+  regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/process-10-vars-2fun.sy
@@ -2090,9 +2092,12 @@ add_custom_target(regress
 macro(cvc4_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
+    --cmake
     ${RUN_REGRESSION_ARGS}
     ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
+  set_tests_properties(${file} PROPERTIES
+    LABELS "regress${level}"
+    SKIP_RETURN_CODE 77)
 endmacro()
 
 foreach(file ${regress_0_tests})

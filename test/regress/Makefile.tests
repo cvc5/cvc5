@@ -528,6 +528,7 @@ REG0_TESTS = \
 	regress0/parser/shadow_fun_symbol_nirat.smt2 \
 	regress0/parser/strings20.smt2 \
 	regress0/parser/strings25.smt2 \
+	regress0/parser/to_fp.smt2 \
 	regress0/precedence/and-not.cvc \
 	regress0/precedence/and-xor.cvc \
 	regress0/precedence/bool-cmp.cvc \
@@ -1710,6 +1711,7 @@ REG2_TESTS = \
 	regress2/sygus/lustre-real.sy \
 	regress2/sygus/max2-univ.sy \
 	regress2/sygus/mpg_guard1-dd.sy \
+	regress2/sygus/multi-udiv.sy \
 	regress2/sygus/nia-max-square.sy \
 	regress2/sygus/no-syntax-test-no-si.sy \
 	regress2/sygus/process-10-vars-2fun.sy \

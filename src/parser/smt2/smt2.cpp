@@ -188,6 +188,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
   addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_GENERIC);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
