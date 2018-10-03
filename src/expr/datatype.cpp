@@ -1236,7 +1236,8 @@ bool DatatypeConstructorArg::isUnresolvedSelf() const
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
-std::ostream& operator<<(std::ostream& os, const Datatype& dt) { 
+std::ostream& operator<<(std::ostream& os, const Datatype& dt)
+{
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
   dt.toStream(os);
@@ -1246,9 +1247,11 @@ std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
 void Datatype::toStream(std::ostream& out) const
 {
   out << "DATATYPE " << getName();
-  if(isParametric()) {
+  if (isParametric())
+  {
     out << '[';
-    for(size_t i = 0; i < getNumParameters(); ++i) {
+    for (size_t i = 0; i < getNumParameters(); ++i)
+    {
       if(i > 0) {
         out << ',';
       }
@@ -1304,15 +1307,20 @@ std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
 void DatatypeConstructorArg::toStream(std::ostream& out) const
 {
   out << getName() << ": ";
-  
+
   Type t;
-  if(isResolved()) {
+  if (isResolved())
+  {
     t = getRangeType();
-  } else if(d_selector.isNull()) {
+  }
+  else if (d_selector.isNull())
+  {
     string typeName = d_name.substr(d_name.find('\0') + 1);
     out << (typeName == "") ? "[self]" : typeName;
     return;
-  } else {
+  }
+  else
+  {
     t = d_selector.getType();
   }
   out << t;

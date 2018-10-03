@@ -157,7 +157,7 @@ class CVC4_PUBLIC DatatypeConstructorArg {
 
   /** prints this datatype constructor argument to stream */
   void toStream(std::ostream& out) const;
-  
+
  private:
   /** the name of this selector */
   std::string d_name;
@@ -449,10 +449,10 @@ class CVC4_PUBLIC DatatypeConstructor {
    * Get the list of arguments to this constructor.
    */
   const std::vector<DatatypeConstructorArg>* getArgs() const;
-  
+
   /** prints this datatype constructor to stream */
   void toStream(std::ostream& out) const;
-  
+
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -937,6 +937,7 @@ public:
 
   /** prints this datatype to stream */
   void toStream(std::ostream& out) const;
+
  private:
   /** name of this datatype */
   std::string d_name;
