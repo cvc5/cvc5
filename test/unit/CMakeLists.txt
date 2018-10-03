@@ -1,3 +1,9 @@
+# Note: We use our custom CxxTest finder here to specify custom directories and
+# fail if it is not found in the specified directory (similar to the other
+# custom finder modules).
+set(CxxTest_HOME ${CXXTEST_DIR})
+find_package(CxxTest REQUIRED)
+
 include_directories(.)
 include_directories(${PROJECT_SOURCE_DIR}/src)
 include_directories(${PROJECT_SOURCE_DIR}/src/include)
@@ -8,10 +14,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > unit tests
 
 add_custom_target(build-units)
-add_dependencies(check build-units)
-if(ENABLE_COVERAGE)
-  add_dependencies(coverage build-units)
-endif()
+add_dependencies(build-tests build-units)
 
 add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
@@ -33,9 +36,9 @@ macro(cvc4_add_unit_test is_white name output_dir)
       OUTPUT  ${test_src}
       DEPENDS ${test_header}
       COMMAND
-        ${CXXTEST_TESTGEN_INTERPRETER}
-          ${CXXTEST_TESTGEN_EXECUTABLE}
-          ${CXXTEST_TESTGEN_ARGS} -o ${test_src} ${test_header}
+        ${CxxTest_TESTGEN_INTERPRETER}
+          ${CxxTest_TESTGEN_EXECUTABLE}
+          ${CxxTest_TESTGEN_ARGS} -o ${test_src} ${test_header}
   )
   set_source_files_properties(${test_src} PROPERTIES GENERATED true)
   # The build target is created without the path prefix (not supported),

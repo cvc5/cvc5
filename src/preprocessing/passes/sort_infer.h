@@ -18,11 +18,10 @@
 #include <map>
 #include <string>
 #include <vector>
-#include "expr/node.h"
 
+#include "expr/node.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
-#include "theory/sort_inference.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -36,19 +35,11 @@ namespace passes {
 class SortInferencePass : public PreprocessingPass
 {
  public:
-  SortInferencePass(PreprocessingPassContext* preprocContext,
-                    SortInference* si);
+  SortInferencePass(PreprocessingPassContext* preprocContext);
 
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-
- private:
-  /**
-   * Pointer to the sort inference module. This should be the sort inference
-   * belonging to the theory engine of the current SMT engine.
-   */
-  SortInference* d_si;
 };
 
 }  // namespace passes

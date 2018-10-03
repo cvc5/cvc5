@@ -13,6 +13,7 @@
  **/
 
 #include "preprocessing/passes/symmetry_detect.h"
+
 #include "expr/node_algorithm.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/term_util.h"

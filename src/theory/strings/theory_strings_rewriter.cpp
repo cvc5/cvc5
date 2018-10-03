@@ -321,10 +321,21 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
 Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL);
-  if (!node[0].getType().isString())
+  if (node[0].getType().isInteger())
   {
-    return node;
+    return rewriteArithEqualityExt(node);
   }
+  if (node[0].getType().isString())
+  {
+    return rewriteStrEqualityExt(node);
+  }
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isString());
+
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> c[2];
   Node new_ret;
@@ -469,7 +480,90 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
     }
   }
 
-  Assert(node.getKind() == EQUAL);
+  // ------- rewrites for (= "" _)
+  Node empty = nm->mkConst(::CVC4::String(""));
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (node[i] == empty)
+    {
+      Node ne = node[1 - i];
+      if (ne.getKind() == STRING_STRREPL)
+      {
+        // (= "" (str.replace x y "A")) ---> (and (= x "") (not (= y "")))
+        if (checkEntailNonEmpty(ne[2]))
+        {
+          Node ret =
+              nm->mkNode(AND,
+                         nm->mkNode(EQUAL, ne[0], empty),
+                         nm->mkNode(NOT, nm->mkNode(EQUAL, ne[1], empty)));
+          return returnRewrite(node, ret, "str-emp-repl-emp");
+        }
+
+        // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
+        Node one = nm->mkConst(Rational(1));
+        Node ylen = nm->mkNode(STRING_LENGTH, ne[1]);
+        if (checkEntailArithEq(ylen, one) && ne[2] == empty)
+        {
+          Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
+          return returnRewrite(node, ret, "str-emp-repl-emp");
+        }
+      }
+      else if (ne.getKind() == STRING_SUBSTR)
+      {
+        Node zero = nm->mkConst(Rational(0));
+
+        // (= "" (str.substr x n m)) ---> (<= (str.len x) n) if n >= 0 and m > 0
+        if (checkEntailArith(ne[1], false) && checkEntailArith(ne[2], true))
+        {
+          Node ret = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, ne[0]), ne[1]);
+          return returnRewrite(node, ret, "str-emp-substr-leq-len");
+        }
+
+        // (= "" (str.substr "A" 0 z)) ---> (<= z 0)
+        if (checkEntailNonEmpty(ne[0]) && ne[1] == zero)
+        {
+          Node ret = nm->mkNode(LEQ, ne[2], zero);
+          return returnRewrite(node, ret, "str-emp-substr-leq-z");
+        }
+      }
+    }
+  }
+
+  // ------- rewrites for (= (str.replace _ _ _) _)
+  for (size_t i = 0; i < 2; i++)
+  {
+    if (node[i].getKind() == STRING_STRREPL)
+    {
+      Node repl = node[i];
+      Node x = node[1 - i];
+
+      // (= "A" (str.replace "" x y)) ---> (= "" (str.replace "A" y x))
+      if (checkEntailNonEmpty(x) && repl[0] == empty)
+      {
+        Node ret = nm->mkNode(
+            EQUAL, empty, nm->mkNode(STRING_STRREPL, x, repl[2], repl[1]));
+        return returnRewrite(node, ret, "str-eq-repl-emp");
+      }
+
+      // (= x (str.replace y x y)) ---> (= x y)
+      if (repl[0] == repl[2] && x == repl[1])
+      {
+        Node ret = nm->mkNode(EQUAL, x, repl[0]);
+        return returnRewrite(node, ret, "str-eq-repl-to-eq");
+      }
+
+      // (= x (str.replace x "A" "B")) ---> (not (str.contains x "A"))
+      if (x == repl[0])
+      {
+        Node eq = Rewriter::rewrite(nm->mkNode(EQUAL, repl[1], repl[2]));
+        if (eq.isConst() && !eq.getConst<bool>())
+        {
+          Node ret = nm->mkNode(NOT, nm->mkNode(STRING_STRCTN, x, repl[1]));
+          return returnRewrite(node, ret, "str-eq-repl-not-ctn");
+        }
+      }
+    }
+  }
 
   // Try to rewrite (= x y) into a conjunction of equalities based on length
   // entailment.
@@ -481,12 +575,48 @@ Node TheoryStringsRewriter::rewriteEqualityExt(Node node)
   //   (<= (str.len x) (str.++ y1' ... ym'))
   for (unsigned i = 0; i < 2; i++)
   {
-    new_ret = inferEqsFromContains(node[i], node[1 - i]);
-    if (!new_ret.isNull())
+    if (node[1 - i].getKind() == STRING_CONCAT)
     {
-      return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
+      new_ret = inferEqsFromContains(node[i], node[1 - i]);
+      if (!new_ret.isNull())
+      {
+        return returnRewrite(node, new_ret, "str-eq-conj-len-entail");
+      }
     }
   }
+
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
+{
+  Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
+
+  NodeManager* nm = NodeManager::currentNM();
+
+  // cases where we can solve the equality
+  for (unsigned i = 0; i < 2; i++)
+  {
+    if (node[i].isConst())
+    {
+      Node on = node[1 - i];
+      Kind onk = on.getKind();
+      if (onk == STRING_STOI)
+      {
+        Rational r = node[i].getConst<Rational>();
+        int sgn = r.sgn();
+        Node onEq;
+        std::stringstream ss;
+        if (sgn >= 0)
+        {
+          ss << r.getNumerator();
+        }
+        Node new_ret = on[0].eqNode(nm->mkConst(String(ss.str())));
+        return returnRewrite(node, new_ret, "stoi-solve");
+      }
+    }
+  }
+
   return node;
 }
 
@@ -2328,13 +2458,16 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     {
       for (const Node& c : cmp_conr)
       {
-        if (c[0] == empty)
+        if (c.getKind() == kind::EQUAL)
         {
-          emptyNodes.insert(c[1]);
-        }
-        else if (c[1] == empty)
-        {
-          emptyNodes.insert(c[0]);
+          if (c[0] == empty)
+          {
+            emptyNodes.insert(c[1]);
+          }
+          else if (c[1] == empty)
+          {
+            emptyNodes.insert(c[0]);
+          }
         }
       }
     }
@@ -4064,6 +4197,9 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
 {
   Trace("strings-rewrite") << "Rewrite " << node << " to " << ret << " by " << c
                            << "." << std::endl;
+
+  NodeManager* nm = NodeManager::currentNM();
+
   // standard post-processing
   // We rewrite (string) equalities immediately here. This allows us to forego
   // the standard invariant on equality rewrites (that s=t must rewrite to one
@@ -4080,13 +4216,21 @@ Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
       {
         creter = rewriteEqualityExt(cret);
       }
+      else if (cret.getKind() == NOT && cret[0].getKind() == EQUAL)
+      {
+        creter = nm->mkNode(NOT, rewriteEqualityExt(cret[0]));
+      }
       childChanged = childChanged || cret != creter;
       children.push_back(creter);
     }
     if (childChanged)
     {
-      ret = NodeManager::currentNM()->mkNode(retk, children);
+      ret = nm->mkNode(retk, children);
     }
+  }
+  else if (retk == NOT && ret[0].getKind() == EQUAL)
+  {
+    ret = nm->mkNode(NOT, rewriteEqualityExt(ret[0]));
   }
   else if (retk == EQUAL && node.getKind() != EQUAL)
   {
