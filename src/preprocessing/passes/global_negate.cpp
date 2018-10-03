@@ -17,7 +17,6 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 
 using namespace std;
@@ -120,7 +119,6 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<GlobalNegate> X("global-negate");
 
 }  // namespace passes
 }  // namespace preprocessing
