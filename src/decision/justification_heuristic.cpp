@@ -567,6 +567,7 @@ JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
     SatValue s = tryGetSatValue(curNode);
     if (s == desiredVal && checkJustified(curNode))
     {
+      setJustified(node);
       return NO_SPLITTER;
     }
     if (s != desiredValInverted)
