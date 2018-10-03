@@ -151,18 +151,13 @@ class CVC4_PUBLIC DatatypeConstructorArg {
   Type getRangeType() const;
 
   /**
-   * Get the name of the type of this constructor argument
-   * (Datatype field).  Can be used for not-yet-resolved Datatypes
-   * (in which case the name of the unresolved type, or "[self]"
-   * for a self-referential type is returned).
-   */
-  std::string getTypeName() const;
-
-  /**
    * Returns true iff this constructor argument has been resolved.
    */
   bool isResolved() const;
 
+  /** prints this datatype constructor argument to stream */
+  void toStream(std::ostream& out) const;
+  
  private:
   /** the name of this selector */
   std::string d_name;
@@ -454,7 +449,10 @@ class CVC4_PUBLIC DatatypeConstructor {
    * Get the list of arguments to this constructor.
    */
   const std::vector<DatatypeConstructorArg>* getArgs() const;
-
+  
+  /** prints this datatype constructor to stream */
+  void toStream(std::ostream& out) const;
+  
  private:
   /** the name of the constructor */
   std::string d_name;
@@ -937,6 +935,8 @@ public:
    */
   const std::vector<DatatypeConstructor>* getConstructors() const;
 
+  /** prints this datatype to stream */
+  void toStream(std::ostream& out) const;
  private:
   /** name of this datatype */
   std::string d_name;
