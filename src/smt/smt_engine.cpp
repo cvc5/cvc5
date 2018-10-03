@@ -1897,13 +1897,11 @@ void SmtEngine::setDefaults() {
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
   if (d_logic.isQuantified()
-      && ((options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL
-           && (d_logic.isTheoryEnabled(THEORY_ARITH)
+      && (d_logic.isTheoryEnabled(THEORY_ARITH)
                || d_logic.isTheoryEnabled(THEORY_DATATYPES)
                || d_logic.isTheoryEnabled(THEORY_BV)
-               || d_logic.isTheoryEnabled(THEORY_FP)))
-          || d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV)
-          || options::cbqiAll()))
+               || d_logic.isTheoryEnabled(THEORY_FP))
+          || options::cbqiAll())
   {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
