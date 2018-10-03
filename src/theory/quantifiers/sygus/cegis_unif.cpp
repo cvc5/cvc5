@@ -250,12 +250,14 @@ void CegisUnif::setConditions(
     {
       Assert(unif_cenums.find(e) != unif_cenums.end());
       Assert(unif_cvalues.find(e) != unif_cvalues.end());
-      std::map<Node, std::vector<Node>>::const_iterator itc =  unif_cenums.find(e);
-      std::map<Node, std::vector<Node>>::const_iterator itv =  unif_cvalues.find(e);
+      std::map<Node, std::vector<Node>>::const_iterator itc =
+          unif_cenums.find(e);
+      std::map<Node, std::vector<Node>>::const_iterator itv =
+          unif_cvalues.find(e);
       d_sygus_unif.setConditions(e, cost_lit, itc->second, itv->second);
-      // d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e], unif_cvalues[e]);
-      // if condition enumerator had value and it is being passively generated,
-      // exclude this value
+      // d_sygus_unif.setConditions(e, cost_lit, unif_cenums[e],
+      // unif_cvalues[e]); if condition enumerator had value and it is being
+      // passively generated, exclude this value
       if (options::sygusUnifCondIndependent() && !itc->second.empty())
       {
         Node eu = itc->second[0];
