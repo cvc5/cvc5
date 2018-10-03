@@ -520,6 +520,7 @@ set(regress_0_tests
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
+  regress0/parser/to_fp.smt2
   regress0/precedence/and-not.cvc
   regress0/precedence/and-xor.cvc
   regress0/precedence/bool-cmp.cvc
