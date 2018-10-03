@@ -164,13 +164,24 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // if it is strict, it corresponds to a substr case.
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _) --->
-        //        ... ^ "B" = substr( x, len( x ) - 2, 1 )
+        //        ... ^ "B" = substr( x, len( x ) - 2, 1 )  ^ ...
         Node sc = sep_children.back();
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
         Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
         Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
         conj.push_back(scc);
-        // we also must ensure that we fit
+        // We also must ensure that we fit. This constraint is necessary in
+        // addition to the constraint above. Take this example:
+        //     x in (re.++ "A" _ (re.* _) "B" _) --->
+        //       substr( x, 0, 1 ) = "A" ^             // find "A"
+        //       indexof( x, "B", 2 ) != -1 ^          // find "B" >=1 after "A"
+        //       substr( x, len(x)-2, 1 ) = "B" ^      // "B" is at end - 2.
+        //       indexof( x, "B", 2 ) <= len( x ) - 2
+        // The last constaint ensures that the second and third constraints
+        // may refer to the same "B". If it were not for the last constraint, it
+        // would have been the case than "ABB" would be a model for x, where
+        // the second constraint refers to the third position, and the third
+        // constraint refers to the first position.
         Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
                               nm->mkNode(MINUS, prev_end, lenSc),
                               loc);
