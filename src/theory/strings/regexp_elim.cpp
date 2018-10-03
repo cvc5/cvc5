@@ -181,7 +181,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // may refer to the same "B". If it were not for the last constraint, it
         // would have been the case than "ABB" would be a model for x, where
         // the second constraint refers to the third position, and the third
-        // constraint refers to the first position.
+        // constraint refers to the second position.
         Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
                               nm->mkNode(MINUS, prev_end, lenSc),
                               loc);
