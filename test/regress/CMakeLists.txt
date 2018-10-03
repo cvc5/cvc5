@@ -2090,9 +2090,12 @@ add_custom_target(regress
 macro(cvc4_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
+    --cmake
     ${RUN_REGRESSION_ARGS}
     ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
+  set_tests_properties(${file} PROPERTIES
+    LABELS "regress${level}"
+    SKIP_RETURN_CODE 77)
 endmacro()
 
 foreach(file ${regress_0_tests})
