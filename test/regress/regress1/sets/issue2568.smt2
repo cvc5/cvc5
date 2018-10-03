@@ -1,4 +1,4 @@
-; COMMAND-LINE: --lang=smt2.5
+; COMMAND-LINE: --lang=smt2.5 --incremental
 ; EXPECT: sat
 ; EXPECT: sat
 (set-logic ALL)
