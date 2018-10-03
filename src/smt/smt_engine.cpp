@@ -1634,6 +1634,8 @@ void SmtEngine::setDefaults() {
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
+      // sygus uses internal
+      is_sygus ? decision::DECISION_STRATEGY_INTERNAL :
       // ALL
       d_logic.hasEverything() ? decision::DECISION_STRATEGY_JUSTIFICATION :
       ( // QF_BV
