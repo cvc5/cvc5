@@ -531,8 +531,6 @@ NonClausalSimp::preprocessByCircuitPropagator(
   propagator->setNeedsFinish(true);
   return std::make_pair(true, learned_literals);
 }
-  
-static RegisterPass<NonClausalSimp> X("non-clausal-simp");
 
 /* -------------------------------------------------------------------------- */
 
