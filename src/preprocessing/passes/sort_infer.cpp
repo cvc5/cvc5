@@ -16,7 +16,6 @@
 
 #include "options/smt_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
 
@@ -83,7 +82,6 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<SortInferencePass> X("sort-inference");
 
 }  // namespace passes
 }  // namespace preprocessing

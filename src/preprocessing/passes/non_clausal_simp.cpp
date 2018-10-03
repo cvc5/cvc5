@@ -20,7 +20,6 @@
 
 #include "context/cdo.h"
 #include "options/proof_options.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
 
@@ -453,7 +452,6 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
 
-static RegisterPass<NonClausalSimp> X("non-clausal-simp");
 
 /* -------------------------------------------------------------------------- */
 
