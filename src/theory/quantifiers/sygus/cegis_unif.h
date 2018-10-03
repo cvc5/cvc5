@@ -268,13 +268,20 @@ class CegisUnif : public Cegis
    * it, set in d_sygus_unif the condition values (unif_cvalues) for respective
    * condition enumerators (unif_cenums)
    */
-  void setConditions(std::map<Node, std::vector<Node>>& unif_cenums,
-                     std::map<Node, std::vector<Node>>& unif_cvalues,
+  void setConditions(const std::map<Node, std::vector<Node>>& unif_cenums,
+                     const std::map<Node, std::vector<Node>>& unif_cvalues,
                      std::vector<Node>& lems);
   /** set values of condition enumerators based on current enumerator assignment
    *
-   * This function also takes generates inter-enumerator symmetry breaking for
-   * return values, such that their model values are ordered by size
+   * enums and enum_values are the enumerators registered in getTermList and
+   * their values retrieved by the parent SynthConjecture module, respectively.
+   *
+   * unif_cenums and unif_cvalues associate the conditional enumerators of each
+   * strategy point of each unification candidate with their respective model
+   * values
+   *
+   * This function also generates inter-enumerator symmetry breaking for return
+   * values, such that their model values are ordered by size
    *
    * returns true if symmetry breaking lemmas were generated for the return
    * value enumerators, false otherwise
