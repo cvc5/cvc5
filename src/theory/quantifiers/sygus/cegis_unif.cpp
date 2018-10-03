@@ -290,30 +290,24 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
   // the unification enumerators for conditions and their model values
   std::map<Node, std::vector<Node>> unif_cenums;
   std::map<Node, std::vector<Node>> unif_cvalues;
-  if (!satisfiedRl)
+  // we only proceed to solution building if we are not introducing symmetry
+  // breaking lemmas between return values and if we have not previously
+  // introduced return values refinement lemmas
+  if (setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems)
+      || !satisfiedRl)
   {
     // if condition values are being indepedently enumerated, they should be
-    // communicated to the decision tree strategies indepedently of the
-    // evaluation heads valuation satisfying the refinement lemmas
+    // communicated to the decision tree strategies indepedently of we
+    // proceeding to attempt solution building
     if (options::sygusUnifCondIndependent())
     {
-      setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems);
       setConditions(unif_cenums, unif_cvalues, lems);
     }
-    Trace("cegis-unif")
-        << "..added refinement lemmas\n---CegisUnif Engine---\n";
+    Trace("cegis-unif") << (!satisfiedRl
+                                ? "..added refinement lemmas"
+                                : "..added unif enum symmetry breaking")
+                        << "\n---CegisUnif Engine---\n";
     // if we didn't satisfy the specification, there is no way to repair
-    return false;
-  }
-  if (setEnumValues(enums, enum_values, unif_cenums, unif_cvalues, lems))
-  {
-    // as with !satisfiedRl, communicate condition values tonst  solution utility
-    if (options::sygusUnifCondIndependent())
-    {
-      setConditions(unif_cenums, unif_cvalues, lems);
-    }
-    Trace("cegis-unif") << "..added unif enum symmetry breaking "
-                           "lemma\n---CegisUnif Engine---\n";
     return false;
   }
   setConditions(unif_cenums, unif_cvalues, lems);
