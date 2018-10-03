@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-repair-const
+; COMMAND-LINE: --sygus-out=status
 (set-logic BV)
 
 (synth-fun max2 ((x (BitVec 32))(y (BitVec 32))) (BitVec 32)

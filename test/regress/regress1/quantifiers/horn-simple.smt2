@@ -1,4 +1,4 @@
-; COMMAND-LINE: --sygus-unif --sygus-infer --no-check-models
+; COMMAND-LINE: --sygus-unif --sygus-infer
 ; EXPECT: sat
 (set-logic UFLIA)
 (set-info :status sat)
