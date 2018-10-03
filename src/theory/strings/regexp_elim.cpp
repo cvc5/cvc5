@@ -158,20 +158,22 @@ Node RegExpElimination::eliminateConcat(Node atom)
       // constraint, so it is not necessary to add.
       // Below, we may write "A" for (str.to.re "A") and _ for re.allchar:
       Node cEnd = nm->mkConst(Rational(gap_minsize_end));
-      if( gap_exact_end )
+      if (gap_exact_end)
       {
-        Assert( !sep_children.empty() );
+        Assert(!sep_children.empty());
         // if it is strict, it corresponds to a substr case.
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _) --->
         //        ... ^ "B" = substr( x, len( x ) - 2, 1 )
         Node sc = sep_children.back();
-        Node lenSc = nm->mkNode( STRING_LENGTH, sc );
-        Node loc = nm->mkNode( MINUS, lenx, nm->mkNode( PLUS, lenSc, cEnd ) );
-        Node scc = sc.eqNode( nm->mkNode(STRING_SUBSTR, x, loc, lenSc ) );
+        Node lenSc = nm->mkNode(STRING_LENGTH, sc);
+        Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
+        Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
         conj.push_back(scc);
         // we also must ensure that we fit
-        Node fit = nm->mkNode(gap_exact[sep_children.size()-1] ? EQUAL : LEQ,nm->mkNode(MINUS,prev_end,lenSc),loc);
+        Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
+                              nm->mkNode(MINUS, prev_end, lenSc),
+                              loc);
         conj.push_back(fit);
       }
       else if (gap_minsize_end > 0)
@@ -181,10 +183,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _ (re.* _)) --->
         //        ... ^ indexof( x, "B", 1 ) <= len( x ) - 2
-        Node fit = nm->mkNode(
-            LEQ,
-            nm->mkNode(PLUS, prev_end, cEnd),
-            lenx);
+        Node fit = nm->mkNode(LEQ, nm->mkNode(PLUS, prev_end, cEnd), lenx);
         conj.push_back(fit);
       }
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
