@@ -333,16 +333,16 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
         Assert(d_repair_index < d_cinfo[cprog].d_inst.size());
         fail_cvs.push_back(d_cinfo[cprog].d_inst[d_repair_index]);
       }
-      if (Trace.isOn("cegqi-check"))
+      if (Trace.isOn("cegqi-engine"))
       {
-        Trace("cegqi-check") << "CegConjuncture : repair previous solution ";
+        Trace("cegqi-engine") << "CegConjuncture : repair previous solution ";
         for (const Node& fc : fail_cvs)
         {
           std::stringstream ss;
           Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, fc);
-          Trace("cegqi-check") << ss.str() << " ";
+          Trace("cegqi-engine") << ss.str() << " ";
         }
-        Trace("cegqi-check") << std::endl;
+        Trace("cegqi-engine") << std::endl;
       }
       d_repair_index++;
       if (d_sygus_rconst->repairSolution(
@@ -363,7 +363,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     if (!d_master->allowPartialModel() && !fullModel)
     {
       // we retain the values in d_ev_active_gen_waiting
-      Trace("cegqi-check") << "...partial model, fail." << std::endl;
+      Trace("cegqi-engine") << "...partial model, fail." << std::endl;
       return false;
     }
     // the waiting values are passed to the module below, clear
@@ -406,7 +406,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     Trace("cegqi-engine") << std::endl;
     if (emptyModel)
     {
-      Trace("cegqi-check") << "...empty model, fail." << std::endl;
+      Trace("cegqi-engine") << "...empty model, fail." << std::endl;
       return false;
     }
     Assert(candidate_values.empty());

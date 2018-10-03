@@ -1650,7 +1650,7 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           << "*** Sygus : produced symmetry breaking lemmas" << std::endl;
       for (const Node& lem : lemmas)
       {
-        Trace("cegqi-engine") << "  " << lem << std::endl;
+        Trace("cegqi-engine-debug") << "  " << lem << std::endl;
       }
     }
   }
