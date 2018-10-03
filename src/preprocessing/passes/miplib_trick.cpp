@@ -659,6 +659,7 @@ MipLibTrick::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

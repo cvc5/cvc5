@@ -13,6 +13,7 @@
  **/
 
 #include "preprocessing/passes/symmetry_breaker.h"
+
 #include "preprocessing/passes/symmetry_detect.h"
 
 using namespace std;
@@ -174,6 +175,7 @@ PreprocessingPassResult SymBreakerPass::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -69,6 +69,10 @@ class TermDbSygus {
    * (see d_enum_to_active_guard),
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
+   * isVarAgnostic : if this flag is true, the enumerator will only generate
+   * values whose variables are in canonical order (for example, only x1-x2
+   * and not x2-x1 will be generated, assuming x1 and x2 are in the same
+   * "subclass", see getSubclassForVar).
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction
@@ -78,7 +82,8 @@ class TermDbSygus {
                           Node f,
                           SynthConjecture* conj,
                           bool mkActiveGuard = false,
-                          bool useSymbolicCons = false);
+                          bool useSymbolicCons = false,
+                          bool isVarAgnostic = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -89,6 +94,26 @@ class TermDbSygus {
   Node getActiveGuardForEnumerator(Node e) const;
   /** are we using symbolic constructors for enumerator e? */
   bool usingSymbolicConsForEnumerator(Node e) const;
+  /** is this enumerator agnostic to variables? */
+  bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this a "passively-generated" enumerator?
+   *
+   * A "passively-generated" enumerator is one for which the terms it enumerates
+   * are obtained by looking at its model value only. For passively-generated
+   * enumerators, it is the responsibility of the user of that enumerator (say
+   * a SygusModule) to block the current model value of it before asking for
+   * another value. By default, the Cegis module uses passively-generated
+   * enumerators and "conjecture-specific refinement" to rule out models
+   * for passively-generated enumerators.
+   *
+   * On the other hand, an "actively-generated" enumerator is one for which the
+   * terms it enumerates are not necessarily a subset of the model values the
+   * enumerator takes. Actively-generated enumerators are centrally managed by
+   * SynthConjecture. The user of actively-generated enumerators are prohibited
+   * from influencing its model value. For example, conjecture-specific
+   * refinement in Cegis is not applied to actively-generated enumerators.
+   */
+  bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -273,6 +298,8 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** enumerators to whether they are variable agnostic */
+  std::map<Node, bool> d_enum_var_agnostic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
@@ -345,6 +372,17 @@ class TermDbSygus {
    * for this type.
    */
   std::map<TypeNode, bool> d_has_subterm_sym_cons;
+  /**
+   * Map from sygus types and bound variables to their type subclass id. Note
+   * type class identifiers are computed for each type of registered sygus
+   * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
+   */
+  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
+  /** the list of variables with given subclass */
+  std::map<TypeNode, std::map<unsigned, std::vector<Node> > >
+      d_var_subclass_list;
+  /** the index of each variable in the above list */
+  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_list_index;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
@@ -390,6 +428,45 @@ class TermDbSygus {
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;
+  //--------------------------------- variable subclasses
+  /** Get subclass id for variable
+   *
+   * This returns the "subclass" identifier for variable v in sygus
+   * type tn. A subclass identifier groups variables based on the sygus
+   * types they occur in:
+   *   A -> A + B | C + C | x | y | z | w | u
+   *   B -> y | z
+   *   C -> u
+   * The variables in this grammar can be grouped according to the sygus types
+   * they appear in:
+   *   { x,w } occur in A
+   *   { y,z } occur in A,B
+   *   { u } occurs in A,C
+   * We say that e.g. x, w are in the same subclass.
+   *
+   * If this method returns 0, then v is not a variable in sygus type tn.
+   * Otherwise, this method returns a positive value n, such that
+   * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
+   * same subclass.
+   *
+   * The type tn should be the type of an enumerator registered to this
+   * database, where notice that we do not compute this information for the
+   * subfield types of the enumerator.
+   */
+  unsigned getSubclassForVar(TypeNode tn, Node v) const;
+  /**
+   * Get the number of variable in the subclass with identifier sc for type tn.
+   */
+  unsigned getNumSubclassVars(TypeNode tn, unsigned sc) const;
+  /** Get the i^th variable in the subclass with identifier sc for type tn */
+  Node getVarSubclassIndex(TypeNode tn, unsigned sc, unsigned i) const;
+  /**
+   * Get the a variable's index in its subclass list. This method returns true
+   * iff variable v has been assigned a subclass in tn. It updates index to
+   * be v's index iff the method returns true.
+   */
+  bool getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const;
+  //--------------------------------- end variable subclasses
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind

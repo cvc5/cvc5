@@ -98,12 +98,29 @@ class TheoryStringsRewriter {
    * a is in rewritten form.
    */
   static bool checkEntailArithInternal(Node a);
-  /** return rewrite
+  /** rewrite string equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two strings s = t, given by node. It is called by rewriteEqualityExt.
+   */
+  static Node rewriteStrEqualityExt(Node node);
+  /** rewrite arithmetic equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two arithmetic string terms s = t, given by node. t is called by
+   * rewriteEqualityExt.
+   */
+  static Node rewriteArithEqualityExt(Node node);
+  /**
    * Called when node rewrites to ret.
-   * The string c indicates the justification
-   * for the rewrite, which is printed by this
-   * function for debugging.
-   * This function returns ret.
+   *
+   * The string c indicates the justification for the rewrite, which is printed
+   * by this function for debugging.
+   *
+   * If node is not an equality and ret is an equality, this method applies
+   * an additional rewrite step (rewriteEqualityExt) that performs
+   * additional rewrites on ret, after which we return the result of this call.
+   * Otherwise, this method simply returns ret.
    */
   static Node returnRewrite(Node node, Node ret, const char* c);
 
@@ -118,9 +135,21 @@ class TheoryStringsRewriter {
   /** rewrite equality
    *
    * This method returns a formula that is equivalent to the equality between
-   * two strings, given by node.
+   * two strings s = t, given by node. The result of rewrite is one of
+   * { s = t, t = s, true, false }.
    */
   static Node rewriteEquality(Node node);
+  /** rewrite equality extended
+   *
+   * This method returns a formula that is equivalent to the equality between
+   * two terms s = t, given by node, where s and t are terms in the signature
+   * of the theory of strings. Notice that s and t may be of string type or
+   * of Int type.
+   *
+   * Specifically, this function performs rewrites whose conclusion is not
+   * necessarily one of { s = t, t = s, true, false }.
+   */
+  static Node rewriteEqualityExt(Node node);
   /** rewrite concat
   * This is the entry point for post-rewriting terms node of the form
   *   str.++( t1, .., tn )
@@ -534,6 +563,42 @@ class TheoryStringsRewriter {
    * because the function could not compute a simpler
    */
   static Node getStringOrEmpty(Node n);
+
+  /**
+   * Given an inequality y1 + ... + yn >= x, removes operands yi s.t. the
+   * original inequality still holds. Returns true if the original inequality
+   * holds and false otherwise. The list of ys is modified to contain a subset
+   * of the original ys.
+   *
+   * Example:
+   *
+   * inferZerosInSumGeq( (str.len x), [ (str.len x), (str.len y), 1 ], [] )
+   * --> returns true with ys = [ (str.len x) ] and zeroYs = [ (str.len y), 1 ]
+   *     (can be used to rewrite the inequality to false)
+   *
+   * inferZerosInSumGeq( (str.len x), [ (str.len y) ], [] )
+   * --> returns false because it is not possible to show
+   *     str.len(y) >= str.len(x)
+   */
+  static bool inferZerosInSumGeq(Node x,
+                                 std::vector<Node>& ys,
+                                 std::vector<Node>& zeroYs);
+
+  /**
+   * Infers a conjunction of equalities that correspond to (str.contains x y)
+   * if it can show that the length of y is greater or equal to the length of
+   * x. If y is a concatentation, we get x = y1 ++ ... ++ yn, the conjunction
+   * is of the form:
+   *
+   * (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
+   *
+   * where each yi'' are yi that must be empty for (= x y) to hold and yi' are
+   * yi that the function could not infer anything about.  Returns a null node
+   * if the function cannot infer that str.len(y) >= str.len(x). Returns (= x
+   * y) if the function can infer that str.len(y) >= str.len(x) but cannot
+   * infer that any of the yi must be empty.
+   */
+  static Node inferEqsFromContains(Node x, Node y);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

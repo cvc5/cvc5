@@ -68,17 +68,16 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusInvVars, d_sygusConstraints,
+  std::vector<Expr> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
       d_sygusFunSymbols;
-  std::map< Expr, bool > d_sygusVarPrimed;
 
-protected:
- Smt2(api::Solver* solver,
-      Input* input,
-      bool strictMode = false,
-      bool parseOnly = false);
+ protected:
+  Smt2(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
+       bool parseOnly = false);
 
-public:
+ public:
   /**
    * Add theory symbols to the parser state.
    *
@@ -228,7 +227,9 @@ public:
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
-  Expr mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
+  void mkSygusVar(const std::string& name,
+                  const Type& type,
+                  bool isPrimed = false);
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
@@ -287,7 +288,14 @@ public:
   const std::vector<Expr>& getSygusVars() {
     return d_sygusVars;
   }
-  const void getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed );
+  /** retrieves the invariant variables (both regular and primed)
+   *
+   * To ensure that the variable list represent the correct argument type order
+   * the type  of the invariant predicate is used during the variable retrieval
+   */
+  const void getSygusInvVars(FunctionType t,
+                             std::vector<Expr>& vars,
+                             std::vector<Expr>& primed_vars);
 
   const void addSygusFunSymbol( Type t, Expr synth_fun );
   const std::vector<Expr>& getSygusFunSymbols() {

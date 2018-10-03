@@ -179,6 +179,7 @@ bool SygusPbe::initialize(Node n,
       return false;
     }
   }
+  bool isVarAgnostic = options::sygusEnumVarAgnostic();
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());
@@ -202,7 +203,7 @@ bool SygusPbe::initialize(Node n,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true);
+      d_tds->registerEnumerator(e, c, d_parent, true, false, isVarAgnostic);
       Node g = d_tds->getActiveGuardForEnumerator(e);
       d_enum_to_active_guard[e] = g;
       d_enum_to_candidate[e] = c;
@@ -357,6 +358,12 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
   Assert(isPbe());
   Assert(!e.isNull());
+  if (!d_tds->isPassiveEnumerator(e))
+  {
+    // we cannot apply conjecture-specific symmetry breaking on enumerators that
+    // are not passive
+    return Node::null();
+  }
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
@@ -415,6 +422,8 @@ void SygusPbe::getTermList(const std::vector<Node>& candidates,
   }
 }
 
+bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
+
 bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
                                    const std::vector<Node>& enum_values,
                                    const std::vector<Node>& candidates,
@@ -431,10 +440,18 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Trace("sygus-pbe-enum") << "  " << enums[i] << " -> ";
       TermDbSygus::toStreamSygus("sygus-pbe-enum", enum_values[i]);
       Trace("sygus-pbe-enum") << std::endl;
-      unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
-      szs.push_back(sz);
-      if( i==0 || sz<min_term_size ){
-        min_term_size = sz;
+      if (!enum_values[i].isNull())
+      {
+        unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
+        szs.push_back(sz);
+        if (i == 0 || sz < min_term_size)
+        {
+          min_term_size = sz;
+        }
+      }
+      else
+      {
+        szs.push_back(0);
       }
     }
     // Assume two enumerators of types T1 and T2.
@@ -448,11 +465,14 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      Assert(szs[i] >= min_term_size);
-      int diff = szs[i] - min_term_size;
-      if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+      if (!enum_values[i].isNull())
       {
-        enum_consider.push_back( i );
+        Assert(szs[i] >= min_term_size);
+        int diff = szs[i] - min_term_size;
+        if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+        {
+          enum_consider.push_back(i);
+        }
       }
     }
 
@@ -468,14 +488,17 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
-      // the lemmas must be guarded by the active guard of the enumerator
-      Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-      Node g = d_enum_to_active_guard[e];
-      for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+      if (!enum_lems.empty())
       {
-        enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        // the lemmas must be guarded by the active guard of the enumerator
+        Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
+        Node g = d_enum_to_active_guard[e];
+        for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+        {
+          enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        }
+        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
-      lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){
