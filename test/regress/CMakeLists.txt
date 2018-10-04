@@ -1466,6 +1466,7 @@ set(regress_1_tests
   regress1/sets/fuzz15201.smt2
   regress1/sets/fuzz31811.smt2
   regress1/sets/insert_invariant_37_2.smt2
+  regress1/sets/issue2568.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1719,6 +1720,7 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/mpg_guard1-dd.sy
+  regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/process-10-vars-2fun.sy
