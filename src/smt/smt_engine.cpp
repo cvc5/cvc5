@@ -1798,7 +1798,7 @@ void SmtEngine::setDefaults() {
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if( is_sygus )
+  if (is_sygus)
   {
     if (!options::ceGuidedInst.wasSetByUser())
     {
@@ -1844,7 +1844,8 @@ void SmtEngine::setDefaults() {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify() || options::synthRrPrep())
+    if (options::sygusRewSynth() || options::sygusRewVerify()
+        || options::synthRrPrep())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
