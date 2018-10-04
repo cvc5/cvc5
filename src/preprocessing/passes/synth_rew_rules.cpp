@@ -47,7 +47,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                          << std::endl;
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
 
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
 
@@ -82,7 +82,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         visited[cur] = false;
         Kind k = cur.getKind();
         bool isQuant = k == kind::FORALL || k == kind::EXISTS
-                        || k == kind::LAMBDA || k == kind::CHOICE;
+                       || k == kind::LAMBDA || k == kind::CHOICE;
         // we recurse on this node if it is not a quantified formula
         if (!isQuant)
         {
@@ -124,14 +124,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // these terms. We start by constructing a fixed number of variables per
   // type.
   unsigned nvars = 3;
-  std::map< TypeNode, std::vector< Node > > tvars;
-  std::vector< Node > allVars;
-  for( const Node& n : terms )
+  std::map<TypeNode, std::vector<Node> > tvars;
+  std::vector<Node> allVars;
+  for (const Node& n : terms)
   {
     TypeNode tn = n.getType();
-    if( tvars.find(tn)==tvars.end() )
+    if (tvars.find(tn) == tvars.end())
     {
-      for( unsigned i=0; i<nvars; i++ )
+      for (unsigned i = 0; i < nvars; i++)
       {
         Node v = nm->mkBoundVar(tn);
         tvars[tn].push_back(v);
@@ -139,26 +139,27 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
     }
   }
-  Trace("synth-rr-pass") << "Initialize the candidate rewrite database generator..." << std::endl;
+  Trace("synth-rr-pass")
+      << "Initialize the candidate rewrite database generator..." << std::endl;
   unsigned nsamples = options::sygusSamples();
   std::unique_ptr<theory::quantifiers::CandidateRewriteDatabaseGen> crdg;
-  crdg.reset(new theory::quantifiers::CandidateRewriteDatabaseGen(allVars, nsamples));
+  crdg.reset(
+      new theory::quantifiers::CandidateRewriteDatabaseGen(allVars, nsamples));
 
-  
   // now, we increment skeleton sizes until a fixed point is reached
   bool success = false;
   unsigned skSize = 0;
-  std::vector< Node > termsNext;
+  std::vector<Node> termsNext;
   do
   {
     success = false;
-    std::unordered_set< Node, NodeHashFunction > cacheGenTerms;
-    if( skSize==0 )
+    std::unordered_set<Node, NodeHashFunction> cacheGenTerms;
+    if (skSize == 0)
     {
       // optimization: just take the variables directly
-      for( const Node& v : allVars )
+      for (const Node& v : allVars)
       {
-        if( crdg->addTerm(v, *nodeManagerOptions.getOut()) )
+        if (crdg->addTerm(v, *nodeManagerOptions.getOut()))
         {
           success = true;
         }
@@ -166,35 +167,34 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     }
     else
     {
-      for( const Node& t : terms )
+      for (const Node& t : terms)
       {
-        std::unordered_set< Node, NodeHashFunction > genTerms;
-        if( getTermSkeletons(t,skSize,tvars,cacheGenTerms,genTerms) )
+        std::unordered_set<Node, NodeHashFunction> genTerms;
+        if (getTermSkeletons(t, skSize, tvars, cacheGenTerms, genTerms))
         {
           // Only if term skeletons were possible to generate do we keep t
           // for the next round. This ensures we do not keep retrying to
           // generate skeletons from terms whose size is less than skSize.
           termsNext.push_back(t);
         }
-        for( const Node& cgt : genTerms )
+        for (const Node& cgt : genTerms)
         {
-          if( crdg->addTerm(cgt, *nodeManagerOptions.getOut()) )
+          if (crdg->addTerm(cgt, *nodeManagerOptions.getOut()))
           {
             success = true;
           }
           cacheGenTerms.insert(cgt);
         }
       }
-    }    
-    if( success )
+    }
+    if (success)
     {
       skSize++;
       terms.clear();
-      terms.insert(terms.end(),termsNext.begin(),termsNext.end());
+      terms.insert(terms.end(), termsNext.begin(), termsNext.end());
       termsNext.clear();
     }
-  }while( success );
-  
+  } while (success);
 
   /*
   bool ret = crdg->addTerm(cur, *nodeManagerOptions.getOut());
@@ -202,16 +202,17 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // if we want only rewrites of minimal size terms, we would set
   // childrenValid to false if ret is false here.
   */
-  
-  
+
   Trace("synth-rr-pass") << "...finished " << std::endl;
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-bool SynthRewRulesPass::getTermSkeletons( Node t, unsigned tsize, const std::map< TypeNode, std::vector< Node > >& tvars, 
-      const std::unordered_set< Node, NodeHashFunction >& cacheGenTerms,
-      std::unordered_set< Node, NodeHashFunction >& genTerms
-      )
+bool SynthRewRulesPass::getTermSkeletons(
+    Node t,
+    unsigned tsize,
+    const std::map<TypeNode, std::vector<Node> >& tvars,
+    const std::unordered_set<Node, NodeHashFunction>& cacheGenTerms,
+    std::unordered_set<Node, NodeHashFunction>& genTerms)
 {
   return false;
 }

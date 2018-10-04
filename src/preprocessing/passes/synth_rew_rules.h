@@ -39,13 +39,15 @@ class SynthRewRulesPass : public PreprocessingPass
  protected:
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-  /** get term skeletons 
-   * 
+  /** get term skeletons
+   *
    */
-  bool getTermSkeletons( Node t, unsigned tsize, const std::map< TypeNode, std::vector< Node > >& tvars, 
-        const std::unordered_set< Node, NodeHashFunction >& cacheGenTerms,
-        std::unordered_set< Node, NodeHashFunction >& genTerms
-        );
+  bool getTermSkeletons(
+      Node t,
+      unsigned tsize,
+      const std::map<TypeNode, std::vector<Node> >& tvars,
+      const std::unordered_set<Node, NodeHashFunction>& cacheGenTerms,
+      std::unordered_set<Node, NodeHashFunction>& genTerms);
 };
 
 }  // namespace passes
