@@ -2091,14 +2091,27 @@ add_custom_target(regress
   DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
-  add_test(${file}
-    ${run_regress_script}
-    --cmake
-    ${RUN_REGRESSION_ARGS}
-    ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES
-    LABELS "regress${level}"
-    SKIP_RETURN_CODE 77)
+  # After CMake 3.9.0, skipped tests do not count as a failure anymore:
+  # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
+  # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
+  # skipped tests as such.
+  if(${CMAKE_VERSION} VERSION_LESS "3.9.0")
+    add_test(${file}
+      ${run_regress_script}
+      ${RUN_REGRESSION_ARGS}
+      ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    set_tests_properties(${file} PROPERTIES
+      LABELS "regress${level}")
+  else()
+    add_test(${file}
+      ${run_regress_script}
+      --use-skip-return-code
+      ${RUN_REGRESSION_ARGS}
+      ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
+    set_tests_properties(${file} PROPERTIES
+      LABELS "regress${level}"
+      SKIP_RETURN_CODE 77)
+  endif()
 endmacro()
 
 foreach(file ${regress_0_tests})
