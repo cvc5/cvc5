@@ -2,8 +2,8 @@
 """
 Usage:
 
-    run_regression.py [--enable-proof] [--with-lfsc] [--dump] [--cmake]
-        [wrapper] cvc4-binary
+    run_regression.py [--enable-proof] [--with-lfsc] [--dump]
+        [--use-skip-return-code] [wrapper] cvc4-binary
         [benchmark.cvc | benchmark.smt | benchmark.smt2 | benchmark.p]
 
 Runs benchmark and checks for correct exit status and output.
@@ -127,14 +127,14 @@ def run_benchmark(dump, wrapper, scrubber, error_scrubber, cvc4_binary,
     return (output.strip(), error.strip(), exit_status)
 
 
-def run_regression(unsat_cores, proofs, dump, cmake, wrapper, cvc4_binary,
-                   benchmark_path, timeout):
+def run_regression(unsat_cores, proofs, dump, use_skip_return_code, wrapper,
+                   cvc4_binary, benchmark_path, timeout):
     """Determines the expected output for a benchmark, runs CVC4 on it and then
     checks whether the output corresponds to the expected output. Optionally
     uses a wrapper `wrapper`, tests unsat cores (if unsat_cores is true),
     checks proofs (if proofs is true), or dumps a benchmark and uses that as
-    the input (if dump is true). `cmake` enables/disables CMake-specific
-    behavior."""
+    the input (if dump is true). `use_skip_return_code` enables/disables
+    returning 77 when a test is skipped."""
 
     if not os.access(cvc4_binary, os.X_OK):
         sys.exit(
@@ -234,7 +234,7 @@ def run_regression(unsat_cores, proofs, dump, cmake, wrapper, cvc4_binary,
         print(
             '1..0 # Skipped regression: unsat cores not supported without proof support'
         )
-        return (EXIT_SKIP if cmake else EXIT_OK)
+        return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     for req_feature in requires:
         if req_feature.startswith("no-"):
@@ -242,11 +242,11 @@ def run_regression(unsat_cores, proofs, dump, cmake, wrapper, cvc4_binary,
             if inv_feature in cvc4_features:
                 print('1..0 # Skipped regression: not valid with {}'.format(
                     inv_feature))
-                return (EXIT_SKIP if cmake else EXIT_OK)
+                return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
         elif req_feature not in cvc4_features:
             print('1..0 # Skipped regression: {} not supported'.format(
                 req_feature))
-            return (EXIT_SKIP if cmake else EXIT_OK)
+            return (EXIT_SKIP if use_skip_return_code else EXIT_OK)
 
     if not command_lines:
         command_lines.append('')
@@ -353,7 +353,7 @@ def main():
     parser.add_argument('--enable-proof', action='store_true')
     parser.add_argument('--with-lfsc', action='store_true')
     parser.add_argument('--dump', action='store_true')
-    parser.add_argument('--cmake', action='store_true')
+    parser.add_argument('--use-skip-return-code', action='store_true')
     parser.add_argument('wrapper', nargs='*')
     parser.add_argument('cvc4_binary')
     parser.add_argument('benchmark')
@@ -367,8 +367,8 @@ def main():
     timeout = float(os.getenv('TEST_TIMEOUT', 600.0))
 
     return run_regression(args.enable_proof, args.with_lfsc, args.dump,
-                          args.cmake, wrapper, cvc4_binary, args.benchmark,
-                          timeout)
+                          args.use_skip_return_code, wrapper, cvc4_binary,
+                          args.benchmark, timeout)
 
 
 if __name__ == "__main__":
