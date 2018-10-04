@@ -572,7 +572,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
   // current data points
   if (options::sygusUnifShuffleCond())
   {
-    std::random_shuffle(d_conds.begin(), d_conds.end());
+    std::shuffle(d_conds.begin(), d_conds.end(), d_rng);
   }
   unsigned num_conds = d_conds.size();
   for (unsigned i = 0; i < num_conds; ++i)
