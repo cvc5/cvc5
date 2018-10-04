@@ -4389,12 +4389,13 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
       << "Constant " << (isLower ? "lower" : "upper") << " bound for " << a
       << " is " << ret << std::endl;
   Assert(ret.isNull() || ret.isConst());
+  // entailment check should be at least as powerful as computing a lower bound
   Assert(!isLower
-         || (ret.isNull() || ret.getConst<Rational>().sgn() < 0)
-         || !checkEntailArith(a, false));
+         || ret.isNull() || ret.getConst<Rational>().sgn() < 0
+         || checkEntailArith(a, false));
   Assert(!isLower
-         || (ret.isNull() || ret.getConst<Rational>().sgn() <= 0)
-         || !checkEntailArith(a, true));
+         || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
+         || checkEntailArith(a, true));
   return ret;
 }
 
