@@ -2101,12 +2101,12 @@ macro(cvc4_add_regression_test level file)
   # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
   # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
   # skipped tests as such.
-  if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
+  if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
     set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
   endif()
 endmacro()
 
-if(${CMAKE_VERSION} VERSION_GREATER_EQUAL "3.9.0")
+if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
   # For CMake 3.9.0 and newer, we want the regression script to return 77 for
   # skipped tests, such that we can mark them as skipped. See the
   # `cvc4_add_regression_test` macro for more details.
