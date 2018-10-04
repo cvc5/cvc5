@@ -197,16 +197,16 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           // We must have a good name for these variables, these are
           // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
           std::stringstream ssv;
-          if( varCounter<26 )
+          if (varCounter < 26)
           {
-            ssv << String::convertUnsignedIntToChar(varCounter+32);
+            ssv << String::convertUnsignedIntToChar(varCounter + 32);
           }
           else
           {
-            ssv << "x" << (varCounter-26);
+            ssv << "x" << (varCounter - 26);
           }
           varCounter++;
-          Node v = nm->mkBoundVar(ssv.str(),tn);
+          Node v = nm->mkBoundVar(ssv.str(), tn);
           tvars[tn].push_back(v);
           allVars.push_back(v);
           allVarTypes.push_back(tn);
