@@ -90,9 +90,9 @@ private:
     NodeBuilder<> def;
     TS_ASSERT_EQUALS(def.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(def.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(def.begin(), AssertionException);
-    TS_ASSERT_THROWS(def.end(), AssertionException);
+    TS_ASSERT_THROWS(def.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(def.begin(), AssertionException&);
+    TS_ASSERT_THROWS(def.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(specKind);
@@ -104,9 +104,9 @@ private:
     NodeBuilder<> from_nm(d_nm);
     TS_ASSERT_EQUALS(from_nm.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(from_nm.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(from_nm.begin(), AssertionException);
-    TS_ASSERT_THROWS(from_nm.end(), AssertionException);
+    TS_ASSERT_THROWS(from_nm.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(from_nm.begin(), AssertionException&);
+    TS_ASSERT_THROWS(from_nm.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> from_nm_kind(d_nm, specKind);
@@ -120,9 +120,9 @@ private:
     NodeBuilder<K> ws;
     TS_ASSERT_EQUALS(ws.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(ws.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(ws.begin(), AssertionException);
-    TS_ASSERT_THROWS(ws.end(), AssertionException);
+    TS_ASSERT_THROWS(ws.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(ws.begin(), AssertionException&);
+    TS_ASSERT_THROWS(ws.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_kind(specKind);
@@ -134,9 +134,9 @@ private:
     NodeBuilder<K> ws_from_nm(d_nm);
     TS_ASSERT_EQUALS(ws_from_nm.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(ws_from_nm.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(ws_from_nm.begin(), AssertionException);
-    TS_ASSERT_THROWS(ws_from_nm.end(), AssertionException);
+    TS_ASSERT_THROWS(ws_from_nm.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(ws_from_nm.begin(), AssertionException&);
+    TS_ASSERT_THROWS(ws_from_nm.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> ws_from_nm_kind(d_nm, specKind);
@@ -158,33 +158,33 @@ private:
     NodeBuilder<> copy(def);
     TS_ASSERT_EQUALS(copy.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(copy.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(copy.begin(), AssertionException);
-    TS_ASSERT_THROWS(copy.end(), AssertionException);
+    TS_ASSERT_THROWS(copy.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(copy.begin(), AssertionException&);
+    TS_ASSERT_THROWS(copy.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K> cp_ws(ws);
     TS_ASSERT_EQUALS(cp_ws.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_ws.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(cp_ws.begin(), AssertionException);
-    TS_ASSERT_THROWS(cp_ws.end(), AssertionException);
+    TS_ASSERT_THROWS(cp_ws.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(cp_ws.begin(), AssertionException&);
+    TS_ASSERT_THROWS(cp_ws.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K-10> cp_from_larger(ws);
     TS_ASSERT_EQUALS(cp_from_larger.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_from_larger.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(cp_from_larger.begin(), AssertionException);
-    TS_ASSERT_THROWS(cp_from_larger.end(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_larger.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(cp_from_larger.begin(), AssertionException&);
+    TS_ASSERT_THROWS(cp_from_larger.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<K+10> cp_from_smaller(ws);
     TS_ASSERT_EQUALS(cp_from_smaller.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(cp_from_smaller.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(cp_from_smaller.begin(), AssertionException);
-    TS_ASSERT_THROWS(cp_from_smaller.end(), AssertionException);
+    TS_ASSERT_THROWS(cp_from_smaller.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(cp_from_smaller.begin(), AssertionException&);
+    TS_ASSERT_THROWS(cp_from_smaller.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -282,7 +282,7 @@ private:
     Node n = noKind;
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(noKind.getKind(), AssertionException);
+    TS_ASSERT_THROWS(noKind.getKind(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> spec(PLUS);
@@ -297,7 +297,7 @@ private:
 
     NodeBuilder<> nb;
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
     nb << PLUS << x << x;
 
@@ -309,7 +309,7 @@ private:
     Node n = nb;// avoid warning on clear()
     nb.clear();
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
     nb.clear(PLUS);
     TS_ASSERT_EQUALS(nb.getNumChildren(), 0u);
@@ -321,9 +321,9 @@ private:
     TS_ASSERT_EQUALS(nb.getNumChildren(), 6u);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( nb << PLUS, AssertionException );
+    TS_ASSERT_THROWS(nb << PLUS, AssertionException&);
     n = nb;
-    TS_ASSERT_THROWS( nb.getNumChildren(), AssertionException );
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -342,7 +342,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS(arr[-1], AssertionException&);
-    TS_ASSERT_THROWS(arr[0], AssertionException);
+    TS_ASSERT_THROWS(arr[0], AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     arr << i_0;
@@ -375,7 +375,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     Node n = arr;
-    TS_ASSERT_THROWS(arr[0], AssertionException);
+    TS_ASSERT_THROWS(arr[0], AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -385,9 +385,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException);
-    TS_ASSERT_THROWS(nb.end(), AssertionException);
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
+    TS_ASSERT_THROWS(nb.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
@@ -402,9 +402,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException);
-    TS_ASSERT_THROWS(nb.end(), AssertionException);
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
+    TS_ASSERT_THROWS(nb.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     nb << specKind;
@@ -427,9 +427,9 @@ private:
 
     TS_ASSERT_EQUALS(nb.getKind(), UNDEFINED_KIND);
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException);
-    TS_ASSERT_THROWS(nb.begin(), AssertionException);
-    TS_ASSERT_THROWS(nb.end(), AssertionException);
+    TS_ASSERT_THROWS(nb.getNumChildren(), AssertionException&);
+    TS_ASSERT_THROWS(nb.begin(), AssertionException&);
+    TS_ASSERT_THROWS(nb.end(), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -438,7 +438,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     NodeBuilder<> spec(specKind);
-    TS_ASSERT_THROWS( spec << PLUS, AssertionException );
+    TS_ASSERT_THROWS(spec << PLUS, AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> noSpec;
@@ -457,12 +457,12 @@ private:
     nb.clear(PLUS);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(n = nb, AssertionException);
+    TS_ASSERT_THROWS(n = nb, AssertionException&);
     nb.clear(PLUS);
 #endif /* CVC4_ASSERTIONS */
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS( nb << PLUS, AssertionException );
+    TS_ASSERT_THROWS(nb << PLUS, AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testRef;
@@ -470,7 +470,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     NodeBuilder<> testTwo;
-    TS_ASSERT_THROWS(testTwo << specKind << PLUS, AssertionException);
+    TS_ASSERT_THROWS(testTwo << specKind << PLUS, AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> testMixOrder1;
@@ -494,7 +494,7 @@ private:
 
 #ifdef CVC4_ASSERTIONS
     Node n = nb;
-    TS_ASSERT_THROWS(nb << n, AssertionException);
+    TS_ASSERT_THROWS(nb << n, AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> overflow(specKind);
@@ -527,7 +527,7 @@ private:
     Node q = d_nm->mkNode(AND, x, z, d_nm->mkNode(NOT, y));
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(d_nm->mkNode(XOR, y, x, x), AssertionException);
+    TS_ASSERT_THROWS(d_nm->mkNode(XOR, y, x, x), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     NodeBuilder<> b(specKind);
@@ -588,7 +588,7 @@ private:
     TS_ASSERT_EQUALS(nexplicit.getNumChildren(), K);
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(Node blah = implicit, AssertionException);
+    TS_ASSERT_THROWS(Node blah = implicit, AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 

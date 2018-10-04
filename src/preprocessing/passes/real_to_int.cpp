@@ -18,7 +18,6 @@
 
 #include <string>
 
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
@@ -198,7 +197,6 @@ PreprocessingPassResult RealToInt::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<RealToInt> X("real-to-int");
 
 }  // namespace passes
 }  // namespace preprocessing

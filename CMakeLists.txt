@@ -196,6 +196,9 @@ endif()
 # Never build unit tests as static binaries, otherwise we'll end up with
 # ~300MB per unit test.
 if(ENABLE_UNIT_TESTING)
+  if(NOT ENABLE_SHARED)
+    message(WARNING "Disabling static build since unit testing is enabled.")
+  endif()
   set(ENABLE_SHARED ON)
 endif()
 

@@ -20,7 +20,6 @@
 #include "preprocessing/passes/quantifiers_preprocess.h"
 
 #include "base/output.h"
-#include "preprocessing/preprocessing_pass_registry.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/rewriter.h"
 
@@ -53,7 +52,6 @@ PreprocessingPassResult QuantifiersPreprocess::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-static RegisterPass<QuantifiersPreprocess> X("quantifiers-preprocess");
 
 }  // namespace passes
 }  // namespace preprocessing
