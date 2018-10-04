@@ -18,11 +18,11 @@
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
+#include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_util.h"
-#include "printer/sygus_print_callback.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -180,7 +180,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node n = terms[i];
     Node cn = tcanon.getCanonicalTerm(n);
     term_to_cterm[n] = cn;
-    Trace("synth-rr-prep-debug") << "Canon : " << n << " -> " << cn << std::endl;
+    Trace("synth-rr-prep-debug")
+        << "Canon : " << n << " -> " << cn << std::endl;
     std::map<Node, Node>::iterator itc = cterm_to_term.find(cn);
     if (itc == cterm_to_term.end())
     {
@@ -214,22 +215,22 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<Datatype> datatypes;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
-  std::map< Node, std::string > tnames;
-  for (unsigned i=0, ncterms = cterms.size(); i<ncterms; i++ )
+  std::map<Node, std::string> tnames;
+  for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
     Node ct = cterms[i];
     std::stringstream ss;
     ss << "T" << i;
     std::string tname = ss.str();
     tnames[ct] = tname;
-    TypeNode tnu = nm->mkSort(tname,ExprManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
     unres.insert(tnu.toType());
   }
   Trace("synth-rr-prep") << "...finished." << std::endl;
 
   Trace("synth-rr-prep") << "Construct datatypes..." << std::endl;
-  for (unsigned i=0, ncterms = cterms.size(); i<ncterms; i++ )
+  for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
   {
     Node ct = cterms[i];
     Node t = cterm_to_term[ct];
@@ -306,9 +307,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       std::stringstream ssc;
       ssc << "Ctl_" << i;
       // the no-op should not be printed, hence we pass an empty callback
-      dttl.addSygusConstructor(lambdaOp, ssc.str(), argList, printer::SygusEmptyPrintCallback::getEmptyPC());
-      Trace("synth-rr-prep-debug") << "Grammar for subterm " << n << " is: " << std::endl;
-      Trace("synth-rr-prep-debug") << subtermTypes[n].getDatatype() << std::endl;
+      dttl.addSygusConstructor(lambdaOp,
+                               ssc.str(),
+                               argList,
+                               printer::SygusEmptyPrintCallback::getEmptyPC());
+      Trace("synth-rr-prep-debug")
+          << "Grammar for subterm " << n << " is: " << std::endl;
+      Trace("synth-rr-prep-debug")
+          << subtermTypes[n].getDatatype() << std::endl;
     }
     // set that this is a sygus datatype
     dttl.setSygus(t.toType(), sygusVarListE, false, false);
@@ -335,7 +341,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
     theory::SygusSynthGrammarAttribute ssg;
     TypeNode ft = nm->mkFunctionType(allVarTypes, ttp.first);
-    Node sfun = nm->mkBoundVar("f",ft);
+    Node sfun = nm->mkBoundVar("f", ft);
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
