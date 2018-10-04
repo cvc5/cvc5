@@ -1844,8 +1844,13 @@ void SmtEngine::setDefaults() {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::synthRrPrep())
+    if( options::synthRrPrep() )
+    {
+      // if we are using synthesis rewrite rules from input, we use
+      // sygusRewSynth after preprocessing.
+      options::sygusRewSynth.set(true);
+    }
+    if (options::sygusRewSynth() || options::sygusRewVerify())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);

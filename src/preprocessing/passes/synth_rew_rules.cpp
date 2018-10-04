@@ -22,6 +22,7 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_util.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -47,7 +48,7 @@ SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SynthRewRulesPass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  Trace("synth-rr-pass") << "Synthesize rewrite rules from assertions..."
+  Trace("synth-rr-prep") << "Synthesize rewrite rules from assertions..."
                          << std::endl;
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
 
@@ -66,9 +67,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // all variables
   std::vector<Node> vars;
   TNode cur;
-  Trace("synth-rr-pass") << "Collect terms in assertions..." << std::endl;
+  Trace("synth-rr-prep") << "Collect terms in assertions..." << std::endl;
   for (const Node& a : assertions)
   {
+    Trace("synth-rr-prep-debug") << "Assertion : " << a << std::endl;
     visit.push_back(a);
     do
     {
@@ -78,12 +80,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       // if already processed, ignore
       if (cur.getAttribute(SynthRrComputedAttribute()))
       {
-        Trace("synth-rr-pass-debug")
+        Trace("synth-rr-prep-debug")
             << "...already processed " << cur << std::endl;
       }
       else if (it == visited.end())
       {
-        Trace("synth-rr-pass-debug") << "...preprocess " << cur << std::endl;
+        Trace("synth-rr-prep-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
         Kind k = cur.getKind();
         bool isQuant = k == FORALL || k == EXISTS || k == LAMBDA || k == CHOICE;
@@ -99,7 +101,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
       else if (!it->second)
       {
-        Trace("synth-rr-pass-debug") << "...postprocess " << cur << std::endl;
+        Trace("synth-rr-prep-debug") << "...postprocess " << cur << std::endl;
         // check if all of the children are valid
         // this ensures we do not register terms that have e.g. quantified
         // formulas as subterms
@@ -114,11 +116,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         }
         if (childrenValid)
         {
-          Trace("synth-rr-pass-debug") << "...children are valid" << std::endl;
+          Trace("synth-rr-prep-debug") << "...children are valid" << std::endl;
           // for now, ignore Boolean terms
           if (!cur.getType().isBoolean())
           {
-            Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
+            Trace("synth-rr-prep-debug") << "Add term " << cur << std::endl;
             terms.push_back(cur);
             if (cur.isVar())
             {
@@ -132,9 +134,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
     } while (!visit.empty());
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
-  Trace("synth-rr-pass") << "Convert subterms to free variable form..."
+  Trace("synth-rr-prep") << "Convert subterms to free variable form..."
                          << std::endl;
   // Replace all free variables with bound variables. This ensures that
   // we can perform term canonization on subterms.
@@ -153,9 +155,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           vars.begin(), vars.end(), vsubs.begin(), vsubs.end());
     }
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
-  Trace("synth-rr-pass") << "Process " << terms.size() << " subterms..."
+  Trace("synth-rr-prep") << "Process " << terms.size() << " subterms..."
                          << std::endl;
   // We've collected all terms in the input. We will produce skeletons from
   // these terms. We start by constructing a fixed number of variables per
@@ -178,10 +180,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node n = terms[i];
     Node cn = tcanon.getCanonicalTerm(n);
     term_to_cterm[n] = cn;
+    Trace("synth-rr-prep-debug") << "Canon : " << n << " -> " << cn << std::endl;
     std::map<Node, Node>::iterator itc = cterm_to_term.find(cn);
     if (itc == cterm_to_term.end())
     {
       cterm_to_term[cn] = n;
+      cterms.push_back(cn);
       // register type information
       TypeNode tn = n.getType();
       if (tvars.find(tn) == tvars.end())
@@ -197,35 +201,39 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       t_cterms[tn].push_back(cn);
     }
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
   // the sygus variable list
   Node sygusVarList = nm->mkNode(BOUND_VAR_LIST, allVars);
   Expr sygusVarListE = sygusVarList.toExpr();
-  Trace("synth-rr-pass") << "Have " << cterms.size() << " canonical subterms."
+  Trace("synth-rr-prep") << "Have " << cterms.size() << " canonical subterms."
                          << std::endl;
 
-  Trace("synth-rr-pass") << "Construct unresolved types..." << std::endl;
+  Trace("synth-rr-prep") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
   std::set<Type> unres;
   std::vector<Datatype> datatypes;
   // make unresolved types for each canonical term
   std::map<Node, TypeNode> cterm_to_utype;
-  for (const Node& ct : cterms)
+  std::map< Node, std::string > tnames;
+  for (unsigned i=0, ncterms = cterms.size(); i<ncterms; i++ )
   {
-    TypeNode tnu = nm->mkSort(ExprManager::SORT_FLAG_PLACEHOLDER);
+    Node ct = cterms[i];
+    std::stringstream ss;
+    ss << "T" << i;
+    std::string tname = ss.str();
+    tnames[ct] = tname;
+    TypeNode tnu = nm->mkSort(tname,ExprManager::SORT_FLAG_PLACEHOLDER);
     cterm_to_utype[ct] = tnu;
     unres.insert(tnu.toType());
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
-  Trace("synth-rr-pass") << "Construct datatypes..." << std::endl;
-  unsigned typeCounter = 0;
-  for (const Node& ct : cterms)
+  Trace("synth-rr-prep") << "Construct datatypes..." << std::endl;
+  for (unsigned i=0, ncterms = cterms.size(); i<ncterms; i++ )
   {
+    Node ct = cterms[i];
     Node t = cterm_to_term[ct];
-    std::stringstream ss;
-    ss << "T" << typeCounter;
-    Datatype dt(ss.str());
+    Datatype dt(tnames[ct]);
 
     // add the variables for the type
     TypeNode ctt = ct.getType();
@@ -234,7 +242,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     for (const Node& v : tvars[ctt])
     {
       std::stringstream ssc;
-      ssc << "C_" << typeCounter << "_" << v;
+      ssc << "C_" << i << "_" << v;
       dt.addSygusConstructor(v.toExpr(), ssc.str(), argList);
     }
     // add the constructor for the operator if it is not a variable
@@ -253,20 +261,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argList.push_back(cterm_to_utype[ctc].toType());
       }
       std::stringstream ssc;
-      ssc << "C_" << typeCounter << "_op";
+      ssc << "C_" << i << "_" << op;
       dt.addSygusConstructor(op.toExpr(), ssc.str(), argList);
     }
     dt.setSygus(ctt.toType(), sygusVarListE, false, false);
     datatypes.push_back(dt);
-    typeCounter++;
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
-  Trace("synth-rr-pass") << "Make mutual datatype types for subterms..."
+  Trace("synth-rr-prep") << "Make mutual datatype types for subterms..."
                          << std::endl;
   std::vector<DatatypeType> types = nm->toExprManager()->mkMutualDatatypeTypes(
       datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
   Assert(types.size() == unres.size());
   std::map<Node, DatatypeType> subtermTypes;
   for (unsigned i = 0, ncterms = cterms.size(); i < ncterms; i++)
@@ -274,7 +281,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     subtermTypes[cterms[i]] = types[i];
   }
 
-  Trace("synth-rr-pass") << "Construct the top-level types..." << std::endl;
+  Trace("synth-rr-prep") << "Construct the top-level types..." << std::endl;
   // we now are ready to create the "top-level" types
   std::map<TypeNode, TypeNode> tlGrammarTypes;
   for (std::pair<const TypeNode, std::vector<Node> >& tcp : t_cterms)
@@ -287,7 +294,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // the operator of each constructor is a no-op
     Expr lambdaOp =
         nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv).toExpr();
-    Trace("synth-rr-pass") << "  We have " << tcp.second.size()
+    Trace("synth-rr-prep") << "  We have " << tcp.second.size()
                            << " subterms of type " << t << std::endl;
     for (unsigned i = 0, size = tcp.second.size(); i < size; i++)
     {
@@ -298,18 +305,23 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       argList.push_back(subtermTypes[n]);
       std::stringstream ssc;
       ssc << "Ctl_" << i;
-      dttl.addSygusConstructor(lambdaOp, ssc.str(), argList);
+      // the no-op should not be printed, hence we pass an empty callback
+      dttl.addSygusConstructor(lambdaOp, ssc.str(), argList, printer::SygusEmptyPrintCallback::getEmptyPC());
+      Trace("synth-rr-prep-debug") << "Grammar for subterm " << n << " is: " << std::endl;
+      Trace("synth-rr-prep-debug") << subtermTypes[n].getDatatype() << std::endl;
     }
     // set that this is a sygus datatype
     dttl.setSygus(t.toType(), sygusVarListE, false, false);
     DatatypeType tlt = nm->toExprManager()->mkDatatypeType(
         dttl, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     tlGrammarTypes[t] = TypeNode::fromType(tlt);
+    Trace("synth-rr-prep") << "Grammar is: " << std::endl;
+    Trace("synth-rr-prep") << tlt.getDatatype() << std::endl;
   }
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
   // sygus attribute to mark the conjecture as a sygus conjecture
-  Trace("synth-rr-pass") << "Make sygus conjecture..." << std::endl;
+  Trace("synth-rr-prep") << "Make sygus conjecture..." << std::endl;
   Node iaVar = nm->mkSkolem("sygus", nm->booleanType());
   // the attribute to mark the conjecture as being a sygus conjecture
   theory::SygusAttribute ca;
@@ -323,7 +335,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
     theory::SygusSynthGrammarAttribute ssg;
     TypeNode ft = nm->mkFunctionType(allVarTypes, ttp.first);
-    Node sfun = nm->mkBoundVar(ft);
+    Node sfun = nm->mkBoundVar("f",ft);
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
@@ -331,12 +343,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   }
   Node fvarBvl = nm->mkNode(BOUND_VAR_LIST, synthFuns);
 
-  Node trueNode = nm->mkConst(true);
-  Node body = trueNode;
+  Node body = nm->mkConst(false);
   body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
-  Trace("synth-rr-pass") << "got : " << body << std::endl;
-  Trace("synth-rr-pass") << "...finished." << std::endl;
+  Trace("synth-rr-prep") << "got : " << body << std::endl;
+  Trace("synth-rr-prep") << "...finished." << std::endl;
 
+  Node trueNode = nm->mkConst(true);
   for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     if (i == 0)
