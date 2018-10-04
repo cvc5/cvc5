@@ -3720,12 +3720,12 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   Assert(Rewriter::rewrite(ar) == ar);
   NodeManager* nm = NodeManager::currentNM();
   std::map<Node, Node> msum;
-  Trace("strings-ent-approx-debug") << "Setup arithmetic approximations for "
-                                    << ar << std::endl;
+  Trace("strings-ent-approx-debug")
+      << "Setup arithmetic approximations for " << ar << std::endl;
   if (!ArithMSum::getMonomialSum(ar, msum))
   {
-    Trace("strings-ent-approx-debug") << "...failed to get monomial sum!"
-                                      << std::endl;
+    Trace("strings-ent-approx-debug")
+        << "...failed to get monomial sum!" << std::endl;
     return false;
   }
   // for each monomial v*c, mApprox[v] a list of
@@ -3744,8 +3744,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   {
     Node v = m.first;
     Node c = m.second;
-    Trace("strings-ent-approx-debug") << "Get approximations " << v << "..."
-                                      << std::endl;
+    Trace("strings-ent-approx-debug")
+        << "Get approximations " << v << "..." << std::endl;
     if (v.isNull())
     {
       Node mn = c.isNull() ? nm->mkConst(Rational(1)) : c;
@@ -3772,8 +3772,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
           getArithApproximations(curr, currApprox, isOverApprox);
           if (currApprox.empty())
           {
-            Trace("strings-ent-approx-debug") << "...approximation: " << curr
-                                              << std::endl;
+            Trace("strings-ent-approx-debug")
+                << "...approximation: " << curr << std::endl;
             // no approximations, thus curr is a possibility
             approx.push_back(curr);
           }
@@ -3820,9 +3820,9 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
                  ? nm->mkConst(Rational(0))
                  : (aarSum.size() == 1 ? aarSum[0] : nm->mkNode(PLUS, aarSum));
   aar = Rewriter::rewrite(aar);
-  Trace("strings-ent-approx-debug") << "...processed fixed sum " << aar
-                                    << " with " << mApprox.size()
-                                    << " approximated monomials." << std::endl;
+  Trace("strings-ent-approx-debug")
+      << "...processed fixed sum " << aar << " with " << mApprox.size()
+      << " approximated monomials." << std::endl;
   // if we have a choice of how to approximate
   if (!mApprox.empty())
   {
@@ -3848,8 +3848,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
         {
           Trace("strings-ent-approx") << c << " * ";
         }
-        Trace("strings-ent-approx") << a.second << " ...from " << a.first
-                                    << std::endl;
+        Trace("strings-ent-approx")
+            << a.second << " ...from " << a.first << std::endl;
       }
       Trace("strings-ent-approx") << std::endl;
     }
@@ -3931,8 +3931,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
           break;
         }
       }
-      Trace("strings-ent-approx") << "- Decide " << v << " = " << vapprox
-                                  << std::endl;
+      Trace("strings-ent-approx")
+          << "- Decide " << v << " = " << vapprox << std::endl;
       // we incorporate v approximated by vapprox into the overall approximation
       // for ar
       Assert(!v.isNull() && !vapprox.isNull());
@@ -3945,8 +3945,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
       if (!ArithMSum::getMonomialSum(aar, msumAar))
       {
         Assert(false);
-        Trace("strings-ent-approx") << "...failed to get monomial sum!"
-                                    << std::endl;
+        Trace("strings-ent-approx")
+            << "...failed to get monomial sum!" << std::endl;
         return false;
       }
       // we have processed the approximation for v
@@ -3956,8 +3956,8 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   }
   if (aar == ar)
   {
-    Trace("strings-ent-approx-debug") << "...approximation had no effect"
-                                      << std::endl;
+    Trace("strings-ent-approx-debug")
+        << "...approximation had no effect" << std::endl;
     // this should never happen, but we avoid the infinite loop for sanity here
     Assert(false);
     return false;
@@ -3972,9 +3972,9 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
   // steps.
   if (checkEntailArith(aar))
   {
-    Trace("strings-ent-approx") << "*** StrArithApprox: showed " << ar
-                                << " >= 0 using under-approximation!"
-                                << std::endl;
+    Trace("strings-ent-approx")
+        << "*** StrArithApprox: showed " << ar
+        << " >= 0 using under-approximation!" << std::endl;
     Trace("strings-ent-approx")
         << "*** StrArithApprox: under-approximation was " << aar << std::endl;
     return true;
@@ -3990,8 +3990,8 @@ void TheoryStringsRewriter::getArithApproximations(Node a,
   // We do not handle PLUS here since this leads to exponential behavior.
   // Instead, this is managed, e.g. during checkEntailArithApprox, where
   // PLUS terms are expanded "on-demand" during the reasoning.
-  Trace("strings-ent-approx-debug") << "Get arith approximations " << a
-                                    << std::endl;
+  Trace("strings-ent-approx-debug")
+      << "Get arith approximations " << a << std::endl;
   Kind ak = a.getKind();
   if (ak == MULT)
   {
@@ -4390,11 +4390,9 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
       << " is " << ret << std::endl;
   Assert(ret.isNull() || ret.isConst());
   // entailment check should be at least as powerful as computing a lower bound
-  Assert(!isLower
-         || ret.isNull() || ret.getConst<Rational>().sgn() < 0
+  Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() < 0
          || checkEntailArith(a, false));
-  Assert(!isLower
-         || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
+  Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
          || checkEntailArith(a, true));
   return ret;
 }
