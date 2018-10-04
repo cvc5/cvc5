@@ -1236,108 +1236,94 @@ bool DatatypeConstructorArg::isUnresolvedSelf() const
   return d_selector.isNull() && d_name.size() == d_name.find('\0') + 1;
 }
 
-static const int s_printDatatypeNamesOnly = std::ios_base::xalloc();
-
-std::string DatatypeConstructorArg::getTypeName() const {
-  Type t;
-  if(isResolved()) {
-    t = SelectorType(d_selector.getType()).getRangeType();
-  } else {
-    if(d_selector.isNull()) {
-      string typeName = d_name.substr(d_name.find('\0') + 1);
-      return (typeName == "") ? "[self]" : typeName;
-    } else {
-      t = d_selector.getType();
-    }
-  }
-
-  // Unfortunately, in the case of complex selector types, we can
-  // enter nontrivial recursion here.  Make sure that doesn't happen.
-  stringstream ss;
-  ss << language::SetLanguage(language::output::LANG_CVC4);
-  ss.iword(s_printDatatypeNamesOnly) = 1;
-  t.toStream(ss);
-  return ss.str();
-}
-
-std::ostream& operator<<(std::ostream& os, const Datatype& dt) {
-  // These datatype things are recursive!  Be very careful not to
-  // print an infinite chain of them.
-  long& printNameOnly = os.iword(s_printDatatypeNamesOnly);
-  Debug("datatypes-output") << "printNameOnly is " << printNameOnly << std::endl;
-  if(printNameOnly) {
-    return os << dt.getName();
-  }
-
-  class Scope {
-    long& d_ref;
-    long d_oldValue;
-  public:
-    Scope(long& ref, long value) : d_ref(ref), d_oldValue(ref) { d_ref = value; }
-    ~Scope() { d_ref = d_oldValue; }
-  } scope(printNameOnly, 1);
-  // when scope is destructed, the value pops back
-
-  Debug("datatypes-output") << "printNameOnly is now " << printNameOnly << std::endl;
-
+std::ostream& operator<<(std::ostream& os, const Datatype& dt)
+{
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  dt.toStream(os);
+  return os;
+}
 
-  os << "DATATYPE " << dt.getName();
-  if(dt.isParametric()) {
-    os << '[';
-    for(size_t i = 0; i < dt.getNumParameters(); ++i) {
+void Datatype::toStream(std::ostream& out) const
+{
+  out << "DATATYPE " << getName();
+  if (isParametric())
+  {
+    out << '[';
+    for (size_t i = 0; i < getNumParameters(); ++i)
+    {
       if(i > 0) {
-        os << ',';
+        out << ',';
       }
-      os << dt.getParameter(i);
+      out << getParameter(i);
     }
-    os << ']';
+    out << ']';
   }
-  os << " =" << endl;
-  Datatype::const_iterator i = dt.begin(), i_end = dt.end();
+  out << " =" << endl;
+  Datatype::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "  ";
+    out << "  ";
     do {
-      os << *i << endl;
+      out << *i << endl;
       if(++i != i_end) {
-        os << "| ";
+        out << "| ";
       }
     } while(i != i_end);
   }
-  os << "END;" << endl;
-
-  return os;
+  out << "END;" << endl;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructor& ctor) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
+  ctor.toStream(os);
+  return os;
+}
 
-  os << ctor.getName();
+void DatatypeConstructor::toStream(std::ostream& out) const
+{
+  out << getName();
 
-  DatatypeConstructor::const_iterator i = ctor.begin(), i_end = ctor.end();
+  DatatypeConstructor::const_iterator i = begin(), i_end = end();
   if(i != i_end) {
-    os << "(";
+    out << "(";
     do {
-      os << *i;
+      out << *i;
       if(++i != i_end) {
-        os << ", ";
+        out << ", ";
       }
     } while(i != i_end);
-    os << ")";
+    out << ")";
   }
-
-  return os;
 }
 
 std::ostream& operator<<(std::ostream& os, const DatatypeConstructorArg& arg) {
   // can only output datatypes in the CVC4 native language
   language::SetLanguage::Scope ls(os, language::output::LANG_CVC4);
-
-  os << arg.getName() << ": " << arg.getTypeName();
-
+  arg.toStream(os);
   return os;
+}
+
+void DatatypeConstructorArg::toStream(std::ostream& out) const
+{
+  out << getName() << ": ";
+
+  Type t;
+  if (isResolved())
+  {
+    t = getRangeType();
+  }
+  else if (d_selector.isNull())
+  {
+    string typeName = d_name.substr(d_name.find('\0') + 1);
+    out << (typeName == "") ? "[self]" : typeName;
+    return;
+  }
+  else
+  {
+    t = d_selector.getType();
+  }
+  out << t;
 }
 
 DatatypeIndexConstant::DatatypeIndexConstant(unsigned index) : d_index(index) {}
