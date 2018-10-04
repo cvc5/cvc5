@@ -43,14 +43,25 @@
 #  define CVC4_MEMORY_LIMITING_DISABLED 1
 #  define CVC4_MEMORY_LIMITING_DISABLED_REASON "setrlimit() is broken on Mac."
 #else /* __APPLE__ */
+// Clang test
 #  if defined(__has_feature)
 #    if __has_feature(address_sanitizer)
-// Tests cannot expect bad_alloc to be thrown due to limit memory using
-// setrlimit when ASAN is enable. ASAN instead aborts on mmap failures.
-#      define CVC4_MEMORY_LIMITING_DISABLED 1
-#      define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
+#      define _IS_ASAN_BUILD
 #    endif /* __has_feature(address_sanitizer) */
 #  endif /* defined(__has_feature) */
+
+// GCC test
+#  if defined(__SANITIZE_ADDRESS__)
+#    define _IS_ASAN_BUILD
+#  endif /* defined(__SANITIZE_ADDRESS__) */
+
+// Tests cannot expect bad_alloc to be thrown due to limit memory using
+// setrlimit when ASAN is enable. ASAN instead aborts on mmap failures.
+#  if defined(_IS_ASAN_BUILD)
+#    define CVC4_MEMORY_LIMITING_DISABLED 1
+#    define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
+#    undef _IS_ASAN_BUILD
+#  endif /* defined(_IS_ASAN_BUILD) */
 #endif
 
 

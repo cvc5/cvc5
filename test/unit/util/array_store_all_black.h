@@ -67,7 +67,7 @@ class ArrayStoreAllBlack : public CxxTest::TestSuite {
     TS_ASSERT_THROWS(
         ArrayStoreAll(d_em->mkArrayType(d_em->integerType(), d_em->mkSort("U")),
                       d_em->mkConst(Rational(9, 2))),
-        IllegalArgumentException);
+        IllegalArgumentException&);
   }
 
   void testConstError() {

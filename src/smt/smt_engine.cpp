@@ -70,37 +70,6 @@
 #include "options/strings_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/passes/apply_substs.h"
-#include "preprocessing/passes/apply_to_const.h"
-#include "preprocessing/passes/bool_to_bv.h"
-#include "preprocessing/passes/bv_abstraction.h"
-#include "preprocessing/passes/bv_ackermann.h"
-#include "preprocessing/passes/bv_eager_atoms.h"
-#include "preprocessing/passes/bv_gauss.h"
-#include "preprocessing/passes/bv_intro_pow2.h"
-#include "preprocessing/passes/bv_to_bool.h"
-#include "preprocessing/passes/extended_rewriter_pass.h"
-#include "preprocessing/passes/global_negate.h"
-#include "preprocessing/passes/int_to_bv.h"
-#include "preprocessing/passes/ite_removal.h"
-#include "preprocessing/passes/ite_simp.h"
-#include "preprocessing/passes/miplib_trick.h"
-#include "preprocessing/passes/nl_ext_purify.h"
-#include "preprocessing/passes/non_clausal_simp.h"
-#include "preprocessing/passes/pseudo_boolean_processor.h"
-#include "preprocessing/passes/quantifier_macros.h"
-#include "preprocessing/passes/quantifiers_preprocess.h"
-#include "preprocessing/passes/real_to_int.h"
-#include "preprocessing/passes/rewrite.h"
-#include "preprocessing/passes/sep_skolem_emp.h"
-#include "preprocessing/passes/sort_infer.h"
-#include "preprocessing/passes/static_learning.h"
-#include "preprocessing/passes/sygus_inference.h"
-#include "preprocessing/passes/symmetry_breaker.h"
-#include "preprocessing/passes/symmetry_detect.h"
-#include "preprocessing/passes/synth_rew_rules.h"
-#include "preprocessing/passes/theory_preprocess.h"
-#include "preprocessing/passes/unconstrained_simplifier.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -127,7 +96,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
 #include "theory/sort_inference.h"
@@ -145,7 +114,6 @@ using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
 using namespace CVC4::preprocessing;
-using namespace CVC4::preprocessing::passes;
 using namespace CVC4::prop;
 using namespace CVC4::context;
 using namespace CVC4::theory;
@@ -201,8 +169,6 @@ public:
 struct SmtEngineStatistics {
   /** time spent in definition-expansion */
   TimerStat d_definitionExpansionTime;
-  /** time spent in non-clausal simplification */
-  TimerStat d_nonclausalSimplificationTime;
   /** number of constant propagations found during nonclausal simp */
   IntStat d_numConstantProps;
   /** time spent converting to CNF */
@@ -231,7 +197,6 @@ struct SmtEngineStatistics {
 
   SmtEngineStatistics() :
     d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-    d_nonclausalSimplificationTime("smt::SmtEngine::nonclausalSimplificationTime"),
     d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
     d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
     d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
@@ -246,7 +211,6 @@ struct SmtEngineStatistics {
     d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
  {
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->registerStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
@@ -263,7 +227,6 @@ struct SmtEngineStatistics {
 
   ~SmtEngineStatistics() {
     smtStatisticsRegistry()->unregisterStat(&d_definitionExpansionTime);
-    smtStatisticsRegistry()->unregisterStat(&d_nonclausalSimplificationTime);
     smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
@@ -536,7 +499,12 @@ class SmtEnginePrivate : public NodeManagerListener {
 
  private:
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
-  PreprocessingPassRegistry d_preprocessingPassRegistry;
+
+  /**
+   * Map of preprocessing pass instances, mapping from names to preprocessing
+   * pass instance
+   */
+  std::unordered_map<std::string, std::unique_ptr<PreprocessingPass>> d_passes;
 
   /**
    * Helper function to fix up assertion list to restore invariants needed after
@@ -568,7 +536,7 @@ class SmtEnginePrivate : public NodeManagerListener {
         d_managedReplayLog(),
         d_listenerRegistrations(new ListenerRegistrationList()),
         d_propagator(true, true),
-        d_assertions(d_smt.d_userContext),
+        d_assertions(),
         d_assertionsProcessed(smt.d_userContext, false),
         d_fakeContext(),
         d_abstractValueMap(&d_fakeContext),
@@ -644,10 +612,7 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_smt.d_nodeManager->unsubscribeEvents(this);
   }
 
-  void unregisterPreprocessingPasses()
-  {
-    d_preprocessingPassRegistry.unregisterPasses();
-  }
+  void cleanupPreprocessingPasses() { d_passes.clear(); }
 
   ResourceManager* getResourceManager() { return d_resourceManager; }
   void spendResource(unsigned amount)
@@ -715,7 +680,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   Node applySubstitutions(TNode node)
   {
     return Rewriter::rewrite(
-        d_assertions.getTopLevelSubstitutions().apply(node));
+        d_preprocessingPassContext->getTopLevelSubstitutions().apply(node));
   }
 
   /**
@@ -1060,7 +1025,7 @@ SmtEngine::~SmtEngine()
     d_fmfRecFunctionsDefined->deleteSelf();
 
     //destroy all passes before destroying things that they refer to
-    d_private->unregisterPreprocessingPasses();
+    d_private->cleanupPreprocessingPasses();
 
     delete d_theoryEngine;
     d_theoryEngine = NULL;
@@ -2564,121 +2529,19 @@ bool SmtEngine::isDefinedFunction( Expr func ){
 
 void SmtEnginePrivate::finishInit()
 {
+  PreprocessingPassRegistry& ppReg = PreprocessingPassRegistry::getInstance();
   d_preprocessingPassContext.reset(new PreprocessingPassContext(
       &d_smt, d_resourceManager, &d_iteRemover, &d_propagator));
-  // TODO: register passes here (this will likely change when we add support for
-  // actually assembling preprocessing pipelines).
-  std::unique_ptr<ApplySubsts> applySubsts(
-      new ApplySubsts(d_preprocessingPassContext.get()));
-  std::unique_ptr<ApplyToConst> applyToConst(
-      new ApplyToConst(d_preprocessingPassContext.get()));
-  std::unique_ptr<BoolToBV> boolToBv(
-      new BoolToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<BvAbstraction> bvAbstract(
-      new BvAbstraction(d_preprocessingPassContext.get()));
-  std::unique_ptr<BvEagerAtoms> bvEagerAtoms(
-      new BvEagerAtoms(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVAckermann> bvAckermann(
-      new BVAckermann(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVGauss> bvGauss(
-      new BVGauss(d_preprocessingPassContext.get()));
-  std::unique_ptr<BvIntroPow2> bvIntroPow2(
-      new BvIntroPow2(d_preprocessingPassContext.get()));
-  std::unique_ptr<BVToBool> bvToBool(
-      new BVToBool(d_preprocessingPassContext.get()));
-  std::unique_ptr<ExtRewPre> extRewPre(
-      new ExtRewPre(d_preprocessingPassContext.get()));
-  std::unique_ptr<GlobalNegate> globalNegate(
-      new GlobalNegate(d_preprocessingPassContext.get()));
-  std::unique_ptr<IntToBV> intToBV(
-      new IntToBV(d_preprocessingPassContext.get()));
-  std::unique_ptr<ITESimp> iteSimp(
-      new ITESimp(d_preprocessingPassContext.get()));
-  std::unique_ptr<NlExtPurify> nlExtPurify(
-      new NlExtPurify(d_preprocessingPassContext.get()));
-  std::unique_ptr<NonClausalSimp> nonClausalSimp(
-      new NonClausalSimp(d_preprocessingPassContext.get()));
-  std::unique_ptr<MipLibTrick> mipLibTrick(
-      new MipLibTrick(d_preprocessingPassContext.get()));
-  std::unique_ptr<QuantifiersPreprocess> quantifiersPreprocess(
-      new QuantifiersPreprocess(d_preprocessingPassContext.get()));
-  std::unique_ptr<PseudoBooleanProcessor> pbProc(
-      new PseudoBooleanProcessor(d_preprocessingPassContext.get()));
-  std::unique_ptr<IteRemoval> iteRemoval(
-      new IteRemoval(d_preprocessingPassContext.get()));
-  std::unique_ptr<RealToInt> realToInt(
-      new RealToInt(d_preprocessingPassContext.get()));
-  std::unique_ptr<Rewrite> rewrite(
-      new Rewrite(d_preprocessingPassContext.get()));
-  std::unique_ptr<SortInferencePass> sortInfer(
-      new SortInferencePass(d_preprocessingPassContext.get(),
-                            d_smt.d_theoryEngine->getSortInference()));
-  std::unique_ptr<StaticLearning> staticLearning(
-      new StaticLearning(d_preprocessingPassContext.get()));
-  std::unique_ptr<SygusInference> sygusInfer(
-      new SygusInference(d_preprocessingPassContext.get()));
-  std::unique_ptr<SymBreakerPass> sbProc(
-      new SymBreakerPass(d_preprocessingPassContext.get()));
-  std::unique_ptr<SynthRewRulesPass> srrProc(
-      new SynthRewRulesPass(d_preprocessingPassContext.get()));
-  std::unique_ptr<SepSkolemEmp> sepSkolemEmp(
-      new SepSkolemEmp(d_preprocessingPassContext.get()));
-  std::unique_ptr<TheoryPreprocess> theoryPreprocess(
-      new TheoryPreprocess(d_preprocessingPassContext.get()));
-  std::unique_ptr<UnconstrainedSimplifier> unconstrainedSimplifier(
-      new UnconstrainedSimplifier(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("apply-substs",
-                                           std::move(applySubsts));
-  d_preprocessingPassRegistry.registerPass("apply-to-const",
-                                           std::move(applyToConst));
-  d_preprocessingPassRegistry.registerPass("bool-to-bv", std::move(boolToBv));
-  d_preprocessingPassRegistry.registerPass("bv-abstraction",
-                                           std::move(bvAbstract));
-  d_preprocessingPassRegistry.registerPass("bv-ackermann",
-                                           std::move(bvAckermann));
-  d_preprocessingPassRegistry.registerPass("bv-eager-atoms",
-                                           std::move(bvEagerAtoms));
-  std::unique_ptr<QuantifierMacros> quantifierMacros(
-      new QuantifierMacros(d_preprocessingPassContext.get()));
-  d_preprocessingPassRegistry.registerPass("bv-gauss", std::move(bvGauss));
-  d_preprocessingPassRegistry.registerPass("bv-intro-pow2",
-                                           std::move(bvIntroPow2));
-  d_preprocessingPassRegistry.registerPass("bv-to-bool", std::move(bvToBool));
-  d_preprocessingPassRegistry.registerPass("ext-rew-pre", std::move(extRewPre));
-  d_preprocessingPassRegistry.registerPass("global-negate",
-                                           std::move(globalNegate));
-  d_preprocessingPassRegistry.registerPass("int-to-bv", std::move(intToBV));
-  d_preprocessingPassRegistry.registerPass("ite-removal",
-                                           std::move(iteRemoval));
-  d_preprocessingPassRegistry.registerPass("ite-simp", std::move(iteSimp));
-  d_preprocessingPassRegistry.registerPass("nl-ext-purify",
-                                           std::move(nlExtPurify));
-  d_preprocessingPassRegistry.registerPass("non-clausal-simp",
-                                           std::move(nonClausalSimp));
-  d_preprocessingPassRegistry.registerPass("miplib-trick",
-                                           std::move(mipLibTrick));
-  d_preprocessingPassRegistry.registerPass("quantifiers-preprocess",
-                                           std::move(quantifiersPreprocess));
-  d_preprocessingPassRegistry.registerPass("pseudo-boolean-processor",
-                                           std::move(pbProc));
-  d_preprocessingPassRegistry.registerPass("real-to-int", std::move(realToInt));
-  d_preprocessingPassRegistry.registerPass("rewrite", std::move(rewrite));
-  d_preprocessingPassRegistry.registerPass("sep-skolem-emp",
-                                           std::move(sepSkolemEmp));
-  d_preprocessingPassRegistry.registerPass("sort-inference",
-                                           std::move(sortInfer));
-  d_preprocessingPassRegistry.registerPass("static-learning",
-                                           std::move(staticLearning));
-  d_preprocessingPassRegistry.registerPass("sygus-infer",
-                                           std::move(sygusInfer));
-  d_preprocessingPassRegistry.registerPass("sym-break", std::move(sbProc));
-  d_preprocessingPassRegistry.registerPass("synth-rr", std::move(srrProc));
-  d_preprocessingPassRegistry.registerPass("theory-preprocess",
-                                           std::move(theoryPreprocess));
-  d_preprocessingPassRegistry.registerPass("quantifier-macros",
-                                           std::move(quantifierMacros));
-  d_preprocessingPassRegistry.registerPass("unconstrained-simplifier",
-                                           std::move(unconstrainedSimplifier));
+
+  // TODO: this will likely change when we add support for actually assembling
+  // preprocessing pipelines. For now, we just create an instance of each
+  // available preprocessing pass.
+  std::vector<std::string> passNames = ppReg.getAvailablePasses();
+  for (const std::string& passName : passNames)
+  {
+    d_passes[passName].reset(
+        ppReg.createPass(d_preprocessingPassContext.get(), passName));
+  }
 }
 
 Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
@@ -2893,8 +2756,7 @@ bool SmtEnginePrivate::simplifyAssertions()
       {
         // Perform non-clausal simplification
         PreprocessingPassResult res =
-            d_preprocessingPassRegistry.getPass("non-clausal-simp")
-                ->apply(&d_assertions);
+            d_passes["non-clausal-simp"]->apply(&d_assertions);
         if (res == PreprocessingPassResult::CONFLICT)
         {
           return false;
@@ -2914,15 +2776,13 @@ bool SmtEnginePrivate::simplifyAssertions()
           // re-simplification, which we don't expect to be useful anyway)
           d_assertions.getRealAssertionsEnd() == d_assertions.size())
       {
-        d_preprocessingPassRegistry.getPass("miplib-trick")
-            ->apply(&d_assertions);
+        d_passes["miplib-trick"]->apply(&d_assertions);
       } else {
         Trace("simplify") << "SmtEnginePrivate::simplify(): "
                           << "skipping miplib pseudobooleans pass (either incrementalSolving is on, or miplib pbs are turned off)..." << endl;
       }
     }
 
-    Trace("smt") << "POST nonClausalSimplify" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // before ppRewrite check if only core theory for BV theory
@@ -2931,16 +2791,14 @@ bool SmtEnginePrivate::simplifyAssertions()
     // Theory preprocessing
     if (d_smt.d_earlyTheoryPP)
     {
-      d_preprocessingPassRegistry.getPass("theory-preprocess")
-          ->apply(&d_assertions);
+      d_passes["theory-preprocess"]->apply(&d_assertions);
     }
 
     // ITE simplification
     if (options::doITESimp()
         && (d_simplifyAssertionsDepth <= 1 || options::doITESimpOnRepeat()))
     {
-      PreprocessingPassResult res =
-          d_preprocessingPassRegistry.getPass("ite-simp")->apply(&d_assertions);
+      PreprocessingPassResult res = d_passes["ite-simp"]->apply(&d_assertions);
       if (res == PreprocessingPassResult::CONFLICT)
       {
         Chat() << "...ITE simplification found unsat..." << endl;
@@ -2948,14 +2806,11 @@ bool SmtEnginePrivate::simplifyAssertions()
       }
     }
 
-    dumpAssertions("post-itesimp", d_assertions);
-    Trace("smt") << "POST iteSimp" << endl;
     Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
     // Unconstrained simplification
     if(options::unconstrainedSimp()) {
-      d_preprocessingPassRegistry.getPass("unconstrained-simplifier")
-          ->apply(&d_assertions);
+      d_passes["unconstrained-simplifier"]->apply(&d_assertions);
     }
 
     if (options::repeatSimp()
@@ -2963,8 +2818,7 @@ bool SmtEnginePrivate::simplifyAssertions()
         && !options::unsatCores() && !options::fewerPreprocessingHoles())
     {
       PreprocessingPassResult res =
-          d_preprocessingPassRegistry.getPass("non-clausal-simp")
-              ->apply(&d_assertions);
+          d_passes["non-clausal-simp"]->apply(&d_assertions);
       if (res == PreprocessingPassResult::CONFLICT)
       {
         return false;
@@ -3114,7 +2968,8 @@ void SmtEnginePrivate::processAssertions() {
   spendResource(options::preprocessStep());
   Assert(d_smt.d_fullyInited);
   Assert(d_smt.d_pendingPops == 0);
-  SubstitutionMap& top_level_substs = d_assertions.getTopLevelSubstitutions();
+  SubstitutionMap& top_level_substs =
+      d_preprocessingPassContext->getTopLevelSubstitutions();
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
@@ -3131,7 +2986,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::bvGaussElim())
   {
-    d_preprocessingPassRegistry.getPass("bv-gauss")->apply(&d_assertions);
+    d_passes["bv-gauss"]->apply(&d_assertions);
   }
 
   if (d_assertionsProcessed && options::incrementalSolving()) {
@@ -3139,7 +2994,7 @@ void SmtEnginePrivate::processAssertions() {
     // proper data structure.
 
     // Placeholder for storing substitutions
-    d_assertions.getSubstitutionsIndex() = d_assertions.size();
+    d_preprocessingPassContext->setSubstitutionsIndex(d_assertions.size());
     d_assertions.push_back(NodeManager::currentNM()->mkConst<bool>(true));
   }
 
@@ -3179,28 +3034,30 @@ void SmtEnginePrivate::processAssertions() {
   if (options::globalNegate())
   {
     // global negation of the formula
-    d_preprocessingPassRegistry.getPass("global-negate")->apply(&d_assertions);
+    d_passes["global-negate"]->apply(&d_assertions);
     d_smt.d_globalNegation = !d_smt.d_globalNegation;
   }
 
   if( options::nlExtPurify() ){
-    d_preprocessingPassRegistry.getPass("nl-ext-purify")->apply(&d_assertions);
+    d_passes["nl-ext-purify"]->apply(&d_assertions);
   }
 
   if( options::ceGuidedInst() ){
     //register sygus conjecture pre-rewrite (motivated by solution reconstruction)
     for (unsigned i = 0; i < d_assertions.size(); ++ i) {
-      d_smt.d_theoryEngine->getQuantifiersEngine()->getCegInstantiation()->preregisterAssertion( d_assertions[i] );
+      d_smt.d_theoryEngine->getQuantifiersEngine()
+          ->getSynthEngine()
+          ->preregisterAssertion(d_assertions[i]);
     }
   }
 
   if (options::solveRealAsInt()) {
-    d_preprocessingPassRegistry.getPass("real-to-int")->apply(&d_assertions);
+    d_passes["real-to-int"]->apply(&d_assertions);
   }
 
   if (options::solveIntAsBV() > 0)
   {
-    d_preprocessingPassRegistry.getPass("int-to-bv")->apply(&d_assertions);
+    d_passes["int-to-bv"]->apply(&d_assertions);
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER &&
@@ -3215,12 +3072,12 @@ void SmtEnginePrivate::processAssertions() {
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
       && !options::incrementalSolving())
   {
-    d_preprocessingPassRegistry.getPass("bv-ackermann")->apply(&d_assertions);
+    d_passes["bv-ackermann"]->apply(&d_assertions);
   }
 
   if (options::bvAbstraction() && !options::incrementalSolving())
   {
-    d_preprocessingPassRegistry.getPass("bv-abstraction")->apply(&d_assertions);
+    d_passes["bv-abstraction"]->apply(&d_assertions);
   }
 
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
@@ -3229,30 +3086,29 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::extRewPrep())
   {
-    d_preprocessingPassRegistry.getPass("ext-rew-pre")->apply(&d_assertions);
+    d_passes["ext-rew-pre"]->apply(&d_assertions);
   }
 
   // Unconstrained simplification
   if(options::unconstrainedSimp()) {
-    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
-    d_preprocessingPassRegistry.getPass("unconstrained-simplifier")
-        ->apply(&d_assertions);
+    d_passes["rewrite"]->apply(&d_assertions);
+    d_passes["unconstrained-simplifier"]->apply(&d_assertions);
   }
 
   if(options::bvIntroducePow2())
   {
-    d_preprocessingPassRegistry.getPass("bv-intro-pow2")->apply(&d_assertions);
+    d_passes["bv-intro-pow2"]->apply(&d_assertions);
   }
 
   if (options::unsatCores())
   {
     // special rewriting pass for unsat cores, since many of the passes below
     // are skipped
-    d_preprocessingPassRegistry.getPass("rewrite")->apply(&d_assertions);
+    d_passes["rewrite"]->apply(&d_assertions);
   }
   else
   {
-    d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+    d_passes["apply-substs"]->apply(&d_assertions);
   }
 
   // Assertions ARE guaranteed to be rewritten by this point
@@ -3266,29 +3122,23 @@ void SmtEnginePrivate::processAssertions() {
   // Lift bit-vectors of size 1 to bool
   if (options::bitvectorToBool())
   {
-    d_preprocessingPassRegistry.getPass("bv-to-bool")->apply(&d_assertions);
+    d_passes["bv-to-bool"]->apply(&d_assertions);
   }
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector())
   {
-    d_preprocessingPassRegistry.getPass("bool-to-bv")->apply(&d_assertions);
+    d_passes["bool-to-bv"]->apply(&d_assertions);
   }
   if(options::sepPreSkolemEmp()) {
-    d_preprocessingPassRegistry.getPass("sep-skolem-emp")->apply(&d_assertions);
+    d_passes["sep-skolem-emp"]->apply(&d_assertions);
   }
 
   if( d_smt.d_logic.isQuantified() ){
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-quant-preprocess" << endl;
-
-    dumpAssertions("pre-skolem-quant", d_assertions);
     //remove rewrite rules, apply pre-skolemization to existential quantifiers
-    d_preprocessingPassRegistry.getPass("quantifiers-preprocess")
-        ->apply(&d_assertions);
-    dumpAssertions("post-skolem-quant", d_assertions);
+    d_passes["quantifiers-preprocess"]->apply(&d_assertions);
     if( options::macrosQuant() ){
       //quantifiers macro expansion
-      d_preprocessingPassRegistry.getPass("quantifier-macros")
-          ->apply(&d_assertions);
+      d_passes["quantifier-macros"]->apply(&d_assertions);
     }
 
     //fmf-fun : assume admissible functions, applying preprocessing reduction to FMF
@@ -3322,24 +3172,22 @@ void SmtEnginePrivate::processAssertions() {
     }
     if (options::sygusInference())
     {
-      d_preprocessingPassRegistry.getPass("sygus-infer")->apply(&d_assertions);
+      d_passes["sygus-infer"]->apply(&d_assertions);
     }
-    Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-quant-preprocess" << endl;
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
-    d_preprocessingPassRegistry.getPass("sort-inference")->apply(&d_assertions);
+    d_passes["sort-inference"]->apply(&d_assertions);
   }
 
   if( options::pbRewrites() ){
-    d_preprocessingPassRegistry.getPass("pseudo-boolean-processor")
-        ->apply(&d_assertions);
+    d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
   if (options::synthRrPrep())
   {
     // do candidate rewrite rule synthesis
-    d_preprocessingPassRegistry.getPass("synth-rr")->apply(&d_assertions);
+    d_passes["synth-rr"]->apply(&d_assertions);
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -3355,22 +3203,21 @@ void SmtEnginePrivate::processAssertions() {
   if (options::symmetryBreakerExp() && !options::incrementalSolving())
   {
     // apply symmetry breaking if not in incremental mode
-    d_preprocessingPassRegistry.getPass("sym-break")->apply(&d_assertions);
+    d_passes["sym-break"]->apply(&d_assertions);
   }
 
   if(options::doStaticLearning()) {
-    d_preprocessingPassRegistry.getPass("static-learning")
-        ->apply(&d_assertions);
+    d_passes["static-learning"]->apply(&d_assertions);
   }
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
   {
     d_smt.d_stats->d_numAssertionsPre += d_assertions.size();
-    d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
+    d_passes["ite-removal"]->apply(&d_assertions);
     // This is needed because when solving incrementally, removeITEs may introduce
     // skolems that were solved for earlier and thus appear in the substitution
     // map.
-    d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+    d_passes["apply-substs"]->apply(&d_assertions);
     d_smt.d_stats->d_numAssertionsPost += d_assertions.size();
   }
 
@@ -3440,8 +3287,8 @@ void SmtEnginePrivate::processAssertions() {
       }
       // TODO(b/1256): For some reason this is needed for some benchmarks, such as
       // QF_AUFBV/dwp_formulas/try5_small_difret_functions_dwp_tac.re_node_set_remove_at.il.dwp.smt2
-      d_preprocessingPassRegistry.getPass("ite-removal")->apply(&d_assertions);
-      d_preprocessingPassRegistry.getPass("apply-substs")->apply(&d_assertions);
+      d_passes["ite-removal"]->apply(&d_assertions);
+      d_passes["apply-substs"]->apply(&d_assertions);
       //      Assert(iteRewriteAssertionsEnd == d_assertions.size());
     }
     Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : post-repeat-simplify" << endl;
@@ -3450,7 +3297,7 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::rewriteApplyToConst())
   {
-    d_preprocessingPassRegistry.getPass("apply-to-const")->apply(&d_assertions);
+    d_passes["apply-to-const"]->apply(&d_assertions);
   }
 
   // begin: INVARIANT to maintain: no reordering of assertions or
@@ -3464,12 +3311,11 @@ void SmtEnginePrivate::processAssertions() {
   Debug("smt") << "SmtEnginePrivate::processAssertions() POST SIMPLIFICATION" << endl;
   Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
 
-  d_preprocessingPassRegistry.getPass("theory-preprocess")
-      ->apply(&d_assertions);
+  d_passes["theory-preprocess"]->apply(&d_assertions);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
   {
-    d_preprocessingPassRegistry.getPass("bv-eager-atoms")->apply(&d_assertions);
+    d_passes["bv-eager-atoms"]->apply(&d_assertions);
   }
 
   //notify theory engine new preprocessed assertions
@@ -3479,9 +3325,7 @@ void SmtEnginePrivate::processAssertions() {
   if(noConflict) {
     Chat() << "pushing to decision engine..." << endl;
     Assert(iteRewriteAssertionsEnd == d_assertions.size());
-    d_smt.d_decisionEngine->addAssertions(d_assertions.ref(),
-                                          d_assertions.getRealAssertionsEnd(),
-                                          getIteSkolemMap());
+    d_smt.d_decisionEngine->addAssertions(d_assertions);
   }
 
   // end: INVARIANT to maintain: no reordering of assertions or

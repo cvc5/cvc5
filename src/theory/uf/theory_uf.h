@@ -301,7 +301,6 @@ private:
   void computeCareGraph() override;
 
   void propagate(Effort effort) override;
-  Node getNextDecisionRequest(unsigned& priority) override;
 
   EqualityStatus getEqualityStatus(TNode a, TNode b) override;
 

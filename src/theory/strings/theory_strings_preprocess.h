@@ -20,36 +20,65 @@
 #define __CVC4__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
-#include "util/hash.h"
-#include "theory/theory.h"
-#include "theory/rewriter.h"
 #include "context/cdhashmap.h"
+#include "theory/rewriter.h"
+#include "theory/strings/skolem_cache.h"
+#include "theory/theory.h"
+#include "util/hash.h"
 
 namespace CVC4 {
 namespace theory {
 namespace strings {
 
+/** Strings preprocessor
+ *
+ * This class is responsible for extended function reductions. It is used as
+ * a preprocessor when --no-strings-lazy-pp is enabled. By default, it is
+ * used for reducing extended functions on-demand during the "extended function
+ * reductions" inference schema of TheoryStrings.
+ */
 class StringsPreprocess {
-  //Constants
-  Node d_zero;
-  Node d_one;
-  Node d_empty_str;
-  //mapping from kinds to UF
-  std::map< Kind, std::map< unsigned, Node > > d_uf;
-  //get UF for node
-  Node getUfForNode( Kind k, Node n, unsigned id = 0 );
-  Node getUfAppForNode( Kind k, Node n, unsigned id = 0 );
-  //recursive simplify
-  Node simplifyRec( Node t, std::vector< Node > &new_nodes, std::map< Node, Node >& visited );
 public:
-  StringsPreprocess( context::UserContext* u );
-  ~StringsPreprocess();
-  //returns a node that is equivalent to t under assumptions in new_nodes
-  Node simplify( Node t, std::vector< Node > &new_nodes );
-  //process assertion: guarentees to remove all extf
-  Node processAssertion( Node n, std::vector< Node > &new_nodes );
-  //proces assertions: guarentees to remove all extf, rewrite in place
-  void processAssertions( std::vector< Node > &vec_node );
+ StringsPreprocess(SkolemCache *sc, context::UserContext *u);
+ ~StringsPreprocess();
+ /**
+  * Returns a node t' such that
+  *   (exists k) new_nodes => t = t'
+  * is valid, where k are the free skolems introduced when constructing
+  * new_nodes.
+  */
+ Node simplify(Node t, std::vector<Node> &new_nodes);
+ /**
+  * Applies simplifyRec on t until a fixed point is reached, and returns
+  * the resulting term t', which is such that
+  *   (exists k) new_nodes => t = t'
+  * is valid, where k are the free skolems introduced when constructing
+  * new_nodes.
+  */
+ Node processAssertion(Node t, std::vector<Node> &new_nodes);
+ /**
+  * Replaces all formulas t in vec_node with an equivalent formula t' that
+  * contains no free instances of extended functions (that is, extended
+  * functions may only appear beneath quantifiers). This applies simplifyRec
+  * on each assertion in vec_node until a fixed point is reached.
+  */
+ void processAssertions(std::vector<Node> &vec_node);
+
+private:
+ /** commonly used constants */
+ Node d_zero;
+ Node d_one;
+ Node d_empty_str;
+ /** pointer to the skolem cache used by this class */
+ SkolemCache *d_sc;
+ /**
+  * Applies simplify to all top-level extended function subterms of t. New
+  * assertions created in this reduction are added to new_nodes. The argument
+  * visited stores a cache of previous results.
+  */
+ Node simplifyRec(Node t,
+                  std::vector<Node> &new_nodes,
+                  std::map<Node, Node> &visited);
 };
 
 }/* CVC4::theory::strings namespace */

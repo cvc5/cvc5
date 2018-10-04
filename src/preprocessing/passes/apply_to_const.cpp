@@ -103,6 +103,7 @@ PreprocessingPassResult ApplyToConst::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

@@ -18,7 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/datatypes/datatypes_rewriter.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 
 #include <math.h>
@@ -29,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnifRl::SygusUnifRl(CegConjecture* p) : d_parent(p) {}
+SygusUnifRl::SygusUnifRl(SynthConjecture* p) : d_parent(p) {}
 SygusUnifRl::~SygusUnifRl() {}
 void SygusUnifRl::initializeCandidate(
     QuantifiersEngine* qe,

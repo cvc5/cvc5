@@ -424,6 +424,16 @@ fi
 AM_CONDITIONAL([CVC4_CLN_IMP], [test $cvc4_cln_or_gmp = cln])
 AM_CONDITIONAL([CVC4_GMP_IMP], [test $cvc4_cln_or_gmp = gmp])
 
+# Dumping cannot be used in a portfolio build. Disable dumping by default when
+# a portfolio build has been requested, throw an error if dumping has been
+# explicitly requested with a portfolio build.
+if test "$with_portfolio" = yes; then
+  if test "$enable_dumping" = yes; then
+    AC_MSG_ERROR([Dumping is not supported with a portfolio build])
+  fi
+  enable_dumping=no
+fi
+
 # construct the build string
 AC_MSG_CHECKING([for appropriate build string])
 if test -z "$ac_confdir"; then
