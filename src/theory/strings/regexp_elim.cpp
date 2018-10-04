@@ -193,7 +193,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // we just need to ensure that the next occurrence fits.
         // For example:
         //     x in (re.++ "A" (re.* _) "B" _ _ (re.* _)) --->
-        //        ... ^ indexof( x, "B", 1 ) <= len( x ) - 2
+        //        ... ^ indexof( x, "B", 1 ) + 2 <= len( x )
         Node fit = nm->mkNode(LEQ, nm->mkNode(PLUS, prev_end, cEnd), lenx);
         conj.push_back(fit);
       }
