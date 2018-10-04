@@ -169,7 +169,7 @@ bool hasFreeVar(TNode n)
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
-  getSymbols(n, syms);
+  getSymbols(n, syms, visited);
 }
 
 void getSymbols(TNode n,

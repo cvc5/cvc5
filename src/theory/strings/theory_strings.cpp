@@ -1659,12 +1659,30 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
     return;
   }
   NodeManager* nm = NodeManager::currentNM();
-
-  Node exp = n.eqNode(in.d_const);
-  exp = Rewriter::rewrite(exp);
+  Trace("strings-extf-infer") << "checkExtfInference: " << n << " : " << nr
+                              << " == " << in.d_const << std::endl;
 
   // add original to explanation
-  in.d_exp.push_back(exp);
+  if (n.getType().isBoolean())
+  {
+    // if Boolean, it's easy
+    in.d_exp.push_back(in.d_const.getConst<bool>() ? n : n.negate());
+  }
+  else
+  {
+    // otherwise, must explain via base node
+    Node r = getRepresentative(n);
+    // we have that:
+    //   d_eqc_to_const_exp[r] => d_eqc_to_const_base[r] = in.d_const
+    // thus:
+    //   n = d_eqc_to_const_base[r] ^ d_eqc_to_const_exp[r] => n = in.d_const
+    Assert(d_eqc_to_const_base.find(r) != d_eqc_to_const_base.end());
+    addToExplanation(n, d_eqc_to_const_base[r], in.d_exp);
+    Assert(d_eqc_to_const_exp.find(r) != d_eqc_to_const_exp.end());
+    in.d_exp.insert(in.d_exp.end(),
+                    d_eqc_to_const_exp[r].begin(),
+                    d_eqc_to_const_exp[r].end());
+  }
 
   // d_extf_infer_cache stores whether we have made the inferences associated
   // with a node n,
@@ -1793,6 +1811,25 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
         getExtTheory()->markReduced(n);
       }
     }
+    return;
+  }
+
+  // If it's not a predicate, see if we can solve the equality n = c, where c
+  // is the constant that extended term n is equal to.
+  Node inferEq = nr.eqNode(in.d_const);
+  Node inferEqr = Rewriter::rewrite(inferEq);
+  Node inferEqrr = inferEqr;
+  if (inferEqr.getKind() == EQUAL)
+  {
+    // try to use the extended rewriter for equalities
+    inferEqrr = TheoryStringsRewriter::rewriteEqualityExt(inferEqr);
+  }
+  if (inferEqrr != inferEqr)
+  {
+    inferEqrr = Rewriter::rewrite(inferEqrr);
+    Trace("strings-extf-infer") << "checkExtfInference: " << inferEq
+                                << " ...reduces to " << inferEqrr << std::endl;
+    sendInternalInference(in.d_exp, inferEqrr, "EXTF_equality_rew");
   }
 }
 
@@ -3807,6 +3844,58 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
   }
+}
+
+void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
+                                          Node conc,
+                                          const char* c)
+{
+  if (conc.getKind() == AND)
+  {
+    for (const Node& cc : conc)
+    {
+      sendInternalInference(exp, cc, c);
+    }
+    return;
+  }
+  bool pol = conc.getKind() != NOT;
+  Node lit = pol ? conc : conc[0];
+  if (lit.getKind() == EQUAL)
+  {
+    for (unsigned i = 0; i < 2; i++)
+    {
+      if (!lit[i].isConst() && !hasTerm(lit[i]))
+      {
+        // introduces a new non-constant term, do not infer
+        return;
+      }
+    }
+    // does it already hold?
+    if (pol ? areEqual(lit[0], lit[1]) : areDisequal(lit[0], lit[1]))
+    {
+      return;
+    }
+  }
+  else if (lit.isConst())
+  {
+    if (lit.getConst<bool>())
+    {
+      Assert(pol);
+      // trivially holds
+      return;
+    }
+  }
+  else if (!hasTerm(lit))
+  {
+    // introduces a new non-constant term, do not infer
+    return;
+  }
+  else if (areEqual(lit, pol ? d_true : d_false))
+  {
+    // already holds
+    return;
+  }
+  sendInference(exp, conc, c);
 }
 
 void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {

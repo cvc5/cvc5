@@ -16,6 +16,7 @@
  **/
 
 #include "preprocessing/passes/ite_removal.h"
+
 #include "theory/rewriter.h"
 
 namespace CVC4 {
@@ -43,6 +44,7 @@ PreprocessingPassResult IteRemoval::applyInternal(AssertionPipeline* assertions)
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -2247,7 +2247,7 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
 }
   
 void TheorySetsPrivate::presolve() {
-
+  d_op_list.clear();
 }
 
 /**************************** eq::NotifyClass *****************************/

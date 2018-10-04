@@ -16,12 +16,12 @@
 
 #include "preprocessing/passes/non_clausal_simp.h"
 
+#include <vector>
+
 #include "context/cdo.h"
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
-
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -451,6 +451,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   propagator->setNeedsFinish(true);
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
+
 
 /* -------------------------------------------------------------------------- */
 
