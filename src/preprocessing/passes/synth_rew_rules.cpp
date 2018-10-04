@@ -20,6 +20,8 @@
 #include "printer/printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/term_canonize.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/term_util.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -158,6 +160,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // type.
   unsigned nvars = 3;
   std::map<TypeNode, std::vector<Node> > tvars;
+  std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
   // We also map terms to a canonical (ordered) form. This ensures that
   // we don't generate distinct grammar types for distinct alpha-equivalent
@@ -186,6 +189,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           Node v = nm->mkBoundVar(tn);
           tvars[tn].push_back(v);
           allVars.push_back(v);
+          allVarTypes.push_back(tn);
         }
       }
       t_cterms[tn].push_back(cn);
@@ -193,7 +197,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   }
   Trace("synth-rr-pass") << "...finished." << std::endl;
   // the sygus variable list
-  Expr sygusVarList = nm->mkNode( BOUND_VAR_LIST, allVars ).toExpr();
+  Node sygusVarList = nm->mkNode( BOUND_VAR_LIST, allVars );
+  Expr sygusVarListE = sygusVarList.toExpr();
   Trace("synth-rr-pass") << "Have " << cterms.size() << " canonical subterms." << std::endl;
 
   Trace("synth-rr-pass") << "Construct unresolved types..." << std::endl;
@@ -248,7 +253,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       ssc << "C_" << typeCounter << "_op";
       dt.addSygusConstructor(op.toExpr(),ssc.str(),argList);
     }
-    dt.setSygus(ctt.toType(), sygusVarList, false, false);
+    dt.setSygus(ctt.toType(), sygusVarListE, false, false);
     datatypes.push_back(dt);
     typeCounter++;
   }
@@ -290,10 +295,53 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       ssc << "Ctl_" << i;
       dttl.addSygusConstructor(lambdaOp,ssc.str(),argList);
     }
+    // set that this is a sygus datatype
+    dttl.setSygus(t.toType(), sygusVarListE, false, false);
     DatatypeType tlt = nm->toExprManager()->mkDatatypeType(dttl, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
     tlGrammarTypes[t] = TypeNode::fromType( tlt );
+    
   }
   Trace("synth-rr-pass") << "...finished." << std::endl;
+  
+  // sygus attribute to mark the conjecture as a sygus conjecture
+  Trace("synth-rr-pass") << "Make sygus conjecture..." << std::endl;
+  Node iaVar = nm->mkSkolem("sygus", nm->booleanType());
+  // the attribute to mark the conjecture as being a sygus conjecture
+  theory::SygusAttribute ca;
+  iaVar.setAttribute(ca, true);
+  Node instAttr = nm->mkNode(INST_ATTRIBUTE, iaVar);
+  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
+  // we are "synthesizing" functions for each type of subterm
+  std::vector< Node > synthFuns;
+  for( std::pair< const TypeNode, TypeNode > ttp : tlGrammarTypes )
+  {
+    Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
+    theory::SygusSynthGrammarAttribute ssg;
+    TypeNode ft = nm->mkFunctionType(allVarTypes,ttp.first);
+    Node sfun = nm->mkBoundVar(ft);
+    // this marks that the grammar used for solutions for sfun is the type of gvar, which is the sygus datatype type constructed above.
+    sfun.setAttribute(ssg,gvar);
+    synthFuns.push_back(sfun);
+  }
+  Node fvarBvl = nm->mkNode(BOUND_VAR_LIST,synthFuns);
+  
+  Node trueNode = nm->mkConst(true);
+  Node body = trueNode;
+  body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
+  Trace("synth-rr-pass") << "got : " << body << std::endl;
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  
+  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    if (i == 0)
+    {
+      assertionsToPreprocess->replace(i, body);
+    }
+    else
+    {
+      assertionsToPreprocess->replace(i, trueNode);
+    }
+  }
   
   return PreprocessingPassResult::NO_CONFLICT;
 }

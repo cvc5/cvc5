@@ -1115,10 +1115,6 @@ void SmtEngine::setDefaults() {
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
     is_sygus = true;
-    if (!options::ceGuidedInst.wasSetByUser())
-    {
-      options::ceGuidedInst.set(true);
-    }
     // must use Ferrante/Rackoff for real arithmetic
     if (!options::cbqiMidpoint.wasSetByUser())
     {
@@ -1212,7 +1208,7 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference())
+  if (options::sygusInference() || options::synthRrPrep())
   {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(THEORY_DATATYPES);
@@ -1802,12 +1798,15 @@ void SmtEngine::setDefaults() {
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if (options::sygusInference())
+  if( is_sygus )
   {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
     }
+  }
+  if (options::sygusInference())
+  {
     // optimization: apply preskolemization, makes it succeed more often
     if (!options::preSkolemQuant.wasSetByUser())
     {
@@ -1845,7 +1844,7 @@ void SmtEngine::setDefaults() {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify())
+    if (options::sygusRewSynth() || options::sygusRewVerify() || options::synthRrPrep())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
