@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
+#include "proof/resolution_bitvector_proof.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
@@ -76,7 +77,7 @@ class TLazyBitblaster : public TBitblaster<Node>
    * constants to equivalence classes that don't already have them
    */
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setProofLog(ResolutionBitVectorProof* bvp);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -125,6 +126,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   };
 
   TheoryBV* d_bv;
+  ResolutionBitVectorProof* d_bvp;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;

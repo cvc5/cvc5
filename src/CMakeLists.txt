@@ -142,6 +142,8 @@ libcvc4_add_sources(
   proof/proof_output_channel.h
   proof/proof_utils.cpp
   proof/proof_utils.h
+  proof/resolution_bitvector_proof.cpp
+  proof/resolution_bitvector_proof.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/simplify_boolean_node.cpp

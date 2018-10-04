@@ -986,12 +986,12 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
   return changed;
 }
 
-void TheoryBV::setProofLog( BitVectorProof * bvp ) {
+void TheoryBV::setResolutionProofLog( ResolutionBitVectorProof * rbvp ) {
   if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
-    d_eagerSolver->setProofLog( bvp );
+    d_eagerSolver->setResolutionProofLog( rbvp );
   }else{
     for( unsigned i=0; i< d_subtheories.size(); i++ ){
-      d_subtheories[i]->setProofLog( bvp );
+      d_subtheories[i]->setProofLog( rbvp );
     }
   }
 }

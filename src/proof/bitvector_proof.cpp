@@ -2,101 +2,86 @@
 /*! \file bitvector_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Paul Meng
+ **   Liana Hadarean, Guy Katz, Paul Meng, Alex Ozdemir
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** [[ Add lengthier description here ]]
-
- ** \todo document this file
-
+ ** Contains implementions (e.g. code for printing bitblasting bindings that is
+ ** common to all kinds of bitvector proofs.
 **/
 
-#include "proof/bitvector_proof.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
-#include "proof/array_proof.h"
-#include "proof/clause_id.h"
-#include "proof/lfsc_proof_printer.h"
+#include "proof/bitvector_proof.h"
 #include "proof/proof_output_channel.h"
-#include "proof/proof_utils.h"
-#include "proof/sat_proof_implementation.h"
-#include "prop/bvminisat/bvminisat.h"
+#include "proof/theory_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
-#include "theory/bv/theory_bv_rewrite_rules.h"
-
-using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 
 namespace CVC4 {
-
-BitVectorProofSuper::BitVectorProofSuper(theory::bv::TheoryBV* bv,
-                               TheoryProofEngine* proofEngine)
-  : TheoryProof(bv, proofEngine),
-      d_declarations(),
-      d_useConstantLetification(false),
-      d_bitblaster(nullptr),
-      d_seenBBTerms(),
-      d_bbTerms(),
-      d_bbAtoms()
-{
-  // Nothing left
-}
-
-
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
-    : BitVectorProofSuper(bv, proofEngine),
-      d_resolutionProof(NULL),
-      d_cnfProof(NULL),
-      d_isAssumptionConflict(false)
-      {}
+    : TheoryProof(bv, proofEngine),
+      d_declarations(),
+      d_seenBBTerms(),
+      d_bbTerms(),
+      d_bbAtoms(),
+      d_bitblaster(nullptr),
+      d_useConstantLetification(false) {}
 
-void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
-  Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new BVSatProof(solver, &d_fakeContext, "bb", true);
+std::string BitVectorProof::getBBTermName(Expr expr) {
+  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
+  std::ostringstream os;
+  os << "bt"<< expr.getId();
+  return os.str();
 }
 
-theory::TheoryId BitVectorProof::getTheoryId() { return theory::THEORY_BV; }
-void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
-                                  context::Context* cnf) {
-  Assert (d_resolutionProof != NULL);
-  Assert (d_cnfProof == NULL);
-  d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
+void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerAtomBB( " << atom << ", " << atom_bb << " )" << std::endl;
 
-  // true and false have to be setup in a special way
-  Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
-  Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
+  Expr def = atom.iffExpr(atom_bb);
+  d_bbAtoms.insert(std::make_pair(atom, def));
+  registerTerm(atom);
 
-  d_cnfProof->pushCurrentAssertion(true_node);
-  d_cnfProof->pushCurrentDefinition(true_node);
-  d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
-  d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
-
-  d_cnfProof->pushCurrentAssertion(false_node);
-  d_cnfProof->pushCurrentDefinition(false_node);
-  d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
-  d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
+  // Register the atom's terms for bitblasting
+  registerTermBB(atom[0]);
+  registerTermBB(atom[1]);
 }
 
-void BitVectorProof::setBitblaster(bv::TBitblaster<Node>* bb) {
-  Assert (d_bitblaster == NULL);
-  d_bitblaster = bb;
-}
+void BitVectorProof::registerTerm(Expr term) {
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerTerm( " << term << " )" << std::endl;
 
-BVSatProof* BitVectorProof::getSatProof() {
-  Assert (d_resolutionProof != NULL);
-  return d_resolutionProof;
+  if (options::lfscLetification() && term.isConst()) {
+    if (d_constantLetMap.find(term) == d_constantLetMap.end()) {
+      std::ostringstream name;
+      name << "letBvc" << d_constantLetMap.size();
+      d_constantLetMap[term] = name.str();
+    }
+  }
+
+  d_usedBB.insert(term);
+
+  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) &&
+      !term.isConst()) {
+    d_declarations.insert(term);
+  }
+
+  Debug("pf::bv") << "Going to register children: " << std::endl;
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+    Debug("pf::bv") << "\t" << term[i] << std::endl;
+  }
+
+  // don't care about parametric operators for bv?
+  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
+     d_proofEngine->registerTerm(term[i]);
+  }
 }
 
 void BitVectorProof::registerTermBB(Expr term) {
-  Debug("pf::bv") << "BitVectorProof::registerTermBB( " << term << " )" << std::endl;
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerTermBB( " << term << " )" << std::endl;
 
   if (d_seenBBTerms.find(term) != d_seenBBTerms.end())
     return;
@@ -115,194 +100,12 @@ void BitVectorProof::registerTermBB(Expr term) {
   }
 }
 
-void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
-  Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom << ", " << atom_bb << " )" << std::endl;
 
-  Expr def = atom.iffExpr(atom_bb);
-  d_bbAtoms.insert(std::make_pair(atom, def));
-  registerTerm(atom);
+void BitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProof::printOwnedTerm( " << term << " ), theory is: "
+                  << theory::Theory::theoryOf(term) << std::endl;
 
-  // Register the atom's terms for bitblasting
-  registerTermBB(atom[0]);
-  registerTermBB(atom[1]);
-}
-
-void BitVectorProof::registerTerm(Expr term) {
-  Debug("pf::bv") << "BitVectorProof::registerTerm( " << term << " )" << std::endl;
-
-  if (options::lfscLetification() && term.isConst()) {
-    if (d_constantLetMap.find(term) == d_constantLetMap.end()) {
-      std::ostringstream name;
-      name << "letBvc" << d_constantLetMap.size();
-      d_constantLetMap[term] = name.str();
-    }
-  }
-
-  d_usedBB.insert(term);
-
-  if (Theory::isLeafOf(term, theory::THEORY_BV) &&
-      !term.isConst()) {
-    d_declarations.insert(term);
-  }
-
-  Debug("pf::bv") << "Going to register children: " << std::endl;
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-    Debug("pf::bv") << "\t" << term[i] << std::endl;
-  }
-
-  // don't care about parametric operators for bv?
-  for (unsigned i = 0; i < term.getNumChildren(); ++i) {
-     d_proofEngine->registerTerm(term[i]);
-  }
-}
-
-std::string BitVectorProofSuper::getBBTermName(Expr expr) {
-  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
-  std::ostringstream os;
-  os << "bt"<< expr.getId();
-  return os.str();
-}
-
-void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TCRef cr) {
-  d_resolutionProof->startResChain(cr);
-}
-
-void BitVectorProof::startBVConflict(CVC4::BVMinisat::Solver::TLit lit) {
-  d_resolutionProof->startResChain(lit);
-}
-
-void BitVectorProof::endBVConflict(const CVC4::BVMinisat::Solver::TLitVec& confl) {
-  Debug("pf::bv") << "BitVectorProof::endBVConflict called" << std::endl;
-
-  std::vector<Expr> expr_confl;
-  for (int i = 0; i < confl.size(); ++i) {
-    prop::SatLiteral lit = prop::BVMinisatSatSolver::toSatLiteral(confl[i]);
-    Expr atom = d_cnfProof->getAtom(lit.getSatVariable()).toExpr();
-    Expr expr_lit = lit.isNegated() ? atom.notExpr() : atom;
-    expr_confl.push_back(expr_lit);
-  }
-
-  Expr conflict = utils::mkSortedExpr(kind::OR, expr_confl);
-  Debug("pf::bv") << "Make conflict for " << conflict << std::endl;
-
-  if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
-    Debug("pf::bv") << "Abort...already conflict for " << conflict << std::endl;
-    // This can only happen when we have eager explanations in the bv solver
-    // if we don't get to propagate p before ~p is already asserted
-    d_resolutionProof->cancelResChain();
-    return;
-  }
-
-  // we don't need to check for uniqueness in the sat solver then
-  ClauseId clause_id = d_resolutionProof->registerAssumptionConflict(confl);
-  d_bbConflictMap[conflict] = clause_id;
-  d_resolutionProof->endResChain(clause_id);
-  Debug("pf::bv") << "BitVectorProof::endBVConflict id" <<clause_id<< " => " << conflict << "\n";
-  d_isAssumptionConflict = false;
-}
-
-void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
-
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
-    Debug("pf::bv") << "Construct full proof." << std::endl;
-    d_resolutionProof->constructProof();
-    return;
-  }
-
-  for (unsigned i = 0; i < conflicts.size(); ++i) {
-    Expr confl = conflicts[i];
-    Debug("pf::bv") << "Finalize conflict #" << i << ": " << confl << std::endl;
-
-    // Special case: if the conflict has a (true) or a (not false) in it, it is trivial...
-    bool ignoreConflict = false;
-    if ((confl.isConst() && confl.getConst<bool>()) ||
-        (confl.getKind() == kind::NOT && confl[0].isConst() && !confl[0].getConst<bool>())) {
-      ignoreConflict = true;
-    } else if (confl.getKind() == kind::OR) {
-      for (unsigned k = 0; k < confl.getNumChildren(); ++k) {
-        if ((confl[k].isConst() && confl[k].getConst<bool>()) ||
-            (confl[k].getKind() == kind::NOT && confl[k][0].isConst() && !confl[k][0].getConst<bool>())) {
-          ignoreConflict = true;
-        }
-      }
-    }
-    if (ignoreConflict) {
-      Debug("pf::bv") << "Ignoring conflict due to (true) or (not false)" << std::endl;
-      continue;
-    }
-
-    if (d_bbConflictMap.find(confl) != d_bbConflictMap.end()) {
-      ClauseId id = d_bbConflictMap[confl];
-      d_resolutionProof->collectClauses(id);
-    } else {
-      // There is no exact match for our conflict, but maybe it is a subset of another conflict
-      ExprToClauseId::const_iterator it;
-      bool matchFound = false;
-      for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
-        Expr possibleMatch = it->first;
-        if (possibleMatch.getKind() != kind::OR) {
-          // This is a single-node conflict. If this node is in the conflict we're trying to prove,
-          // we have a match.
-          for (unsigned k = 0; k < confl.getNumChildren(); ++k) {
-            if (confl[k] == possibleMatch) {
-              matchFound = true;
-              d_resolutionProof->collectClauses(it->second);
-              break;
-            }
-          }
-        } else {
-          if (possibleMatch.getNumChildren() > confl.getNumChildren())
-            continue;
-
-          unsigned k = 0;
-          bool matching = true;
-          for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
-            // j is the index in possibleMatch
-            // k is the index in confl
-            while (k < confl.getNumChildren() && confl[k] != possibleMatch[j]) {
-              ++k;
-            }
-            if (k == confl.getNumChildren()) {
-              // We couldn't find a match for possibleMatch[j], so not a match
-              matching = false;
-              break;
-            }
-          }
-
-          if (matching) {
-            Debug("pf::bv") << "Collecting info from a sub-conflict" << std::endl;
-            d_resolutionProof->collectClauses(it->second);
-            matchFound = true;
-            break;
-          }
-        }
-      }
-
-      if (!matchFound) {
-        Debug("pf::bv") << "Do not collect clauses for " << confl << std::endl
-                        << "Dumping existing conflicts:" << std::endl;
-
-        i = 0;
-        for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
-          ++i;
-          Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
-        }
-
-        Unreachable();
-      }
-    }
-  }
-}
-
-/**
- * Start LFSCBitVectorProof
- */
-
-void BitVectorProofSuper::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProofSuper::printOwnedTerm( " << term << " ), theory is: "
-                  << Theory::theoryOf(term) << std::endl;
-
-  Assert (Theory::theoryOf(term) == THEORY_BV);
+  Assert (theory::Theory::theoryOf(term) == theory::THEORY_BV);
 
   // peel off eager bit-blasting trick
   if (term.getKind() == kind::BITVECTOR_EAGER_ATOM) {
@@ -393,12 +196,12 @@ void BitVectorProofSuper::printOwnedTerm(Expr term, std::ostream& os, const Proo
   }
 }
 
-void BitVectorProofSuper::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
 
-  Debug("pf::bv") << "BitVectorProofSuper::printBitOf( " << term << " ), "
+  Debug("pf::bv") << "BitVectorProof::printBitOf( " << term << " ), "
                   << "bit = " << bit
                   << ", var = " << var << std::endl;
 
@@ -407,7 +210,7 @@ void BitVectorProofSuper::printBitOf(Expr term, std::ostream& os, const ProofLet
   os << " " << bit << ")";
 }
 
-void BitVectorProofSuper::printConstant(Expr term, std::ostream& os) {
+void BitVectorProof::printConstant(Expr term, std::ostream& os) {
   Assert (term.isConst());
   os << "(a_bv " << utils::getSize(term) << " ";
 
@@ -426,7 +229,7 @@ void BitVectorProofSuper::printConstant(Expr term, std::ostream& os) {
   }
 }
 
-void BitVectorProofSuper::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
   std::string op = utils::toLFSCKindTerm(term);
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
@@ -444,7 +247,7 @@ void BitVectorProofSuper::printOperatorNary(Expr term, std::ostream& os, const P
   }
 }
 
-void BitVectorProofSuper::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os << " ";
@@ -452,7 +255,7 @@ void BitVectorProofSuper::printOperatorUnary(Expr term, std::ostream& os, const 
   os <<")";
 }
 
-void BitVectorProofSuper::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
@@ -462,7 +265,7 @@ void BitVectorProofSuper::printPredicate(Expr term, std::ostream& os, const Proo
   os <<")";
 }
 
-void BitVectorProofSuper::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os <<" ";
@@ -490,185 +293,18 @@ void BitVectorProofSuper::printOperatorParametric(Expr term, std::ostream& os, c
   os <<")";
 }
 
-void BitVectorProofSuper::printOwnedSort(Type type, std::ostream& os) {
-  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProofSuper::printOwnedSort( " << type << " )" << std::endl;
+void BitVectorProof::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProof::printOwnedSort( " << type << " )" << std::endl;
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec " << width << ")";
 }
 
-void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
-  Debug("pf::bv") << "(pf::bv) LFSCBitVectorProof::printTheoryLemmaProof called" << std::endl;
-  Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
-  Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
-
-  if (d_bbConflictMap.find(conflict) != d_bbConflictMap.end()) {
-    std::ostringstream lemma_paren;
-    for (unsigned i = 0; i < lemma.size(); ++i) {
-      Expr lit = lemma[i];
-
-      if (lit.getKind() == kind::NOT) {
-        os << "(intro_assump_t _ _ _ ";
-      } else {
-        os << "(intro_assump_f _ _ _ ";
-      }
-      lemma_paren <<")";
-      // print corresponding literal in main sat solver
-      ProofManager* pm = ProofManager::currentPM();
-      CnfProof* cnf = pm->getCnfProof();
-      prop::SatLiteral main_lit = cnf->getLiteral(lit);
-      os << pm->getLitName(main_lit);
-      os <<" ";
-      // print corresponding literal in bv sat solver
-      prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
-      os << pm->getAtomName(bb_var, "bb");
-      os <<"(\\ unit"<<bb_var<<"\n";
-      lemma_paren <<")";
-    }
-    Expr lem = utils::mkOr(lemma);
-    Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
-    ClauseId lemma_id = d_bbConflictMap[lem];
-    proof::LFSCProofPrinter::printAssumptionsResolution(
-        d_resolutionProof, lemma_id, os, lemma_paren);
-    os <<lemma_paren.str();
-  } else {
-
-    Debug("pf::bv") << "Found a non-recorded conflict. Looking for a matching sub-conflict..."
-                    << std::endl;
-
-    bool matching;
-
-    ExprToClauseId::const_iterator it;
-    unsigned i = 0;
-    for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
-      // Our conflict is sorted, and the records are also sorted.
-      ++i;
-      Expr possibleMatch = it->first;
-
-      if (possibleMatch.getKind() != kind::OR) {
-        // This is a single-node conflict. If this node is in the conflict we're trying to prove,
-        // we have a match.
-        matching = false;
-
-        for (unsigned k = 0; k < conflict.getNumChildren(); ++k) {
-          if (conflict[k] == possibleMatch) {
-            matching = true;
-            break;
-          }
-        }
-      } else {
-        if (possibleMatch.getNumChildren() > conflict.getNumChildren())
-          continue;
-
-        unsigned k = 0;
-
-        matching = true;
-        for (unsigned j = 0; j < possibleMatch.getNumChildren(); ++j) {
-          // j is the index in possibleMatch
-          // k is the index in conflict
-          while (k < conflict.getNumChildren() && conflict[k] != possibleMatch[j]) {
-            ++k;
-          }
-          if (k == conflict.getNumChildren()) {
-            // We couldn't find a match for possibleMatch[j], so not a match
-            matching = false;
-            break;
-          }
-        }
-      }
-
-      if (matching) {
-        Debug("pf::bv") << "Found a match with conflict #" << i << ": " << std::endl << possibleMatch << std::endl;
-        // The rest is just a copy of the usual handling, if a precise match is found.
-        // We only use the literals that appear in the matching conflict, though, and not in the
-        // original lemma - as these may not have even been bit blasted!
-        std::ostringstream lemma_paren;
-
-        if (possibleMatch.getKind() == kind::OR) {
-          for (unsigned i = 0; i < possibleMatch.getNumChildren(); ++i) {
-            Expr lit = possibleMatch[i];
-
-            if (lit.getKind() == kind::NOT) {
-              os << "(intro_assump_t _ _ _ ";
-            } else {
-              os << "(intro_assump_f _ _ _ ";
-            }
-            lemma_paren <<")";
-            // print corresponding literal in main sat solver
-            ProofManager* pm = ProofManager::currentPM();
-            CnfProof* cnf = pm->getCnfProof();
-            prop::SatLiteral main_lit = cnf->getLiteral(lit);
-            os << pm->getLitName(main_lit);
-            os <<" ";
-            // print corresponding literal in bv sat solver
-            prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
-            os << pm->getAtomName(bb_var, "bb");
-            os <<"(\\ unit"<<bb_var<<"\n";
-            lemma_paren <<")";
-          }
-        } else {
-          // The conflict only consists of one node, either positive or negative.
-          Expr lit = possibleMatch;
-          if (lit.getKind() == kind::NOT) {
-            os << "(intro_assump_t _ _ _ ";
-          } else {
-            os << "(intro_assump_f _ _ _ ";
-          }
-          lemma_paren <<")";
-          // print corresponding literal in main sat solver
-          ProofManager* pm = ProofManager::currentPM();
-          CnfProof* cnf = pm->getCnfProof();
-          prop::SatLiteral main_lit = cnf->getLiteral(lit);
-          os << pm->getLitName(main_lit);
-          os <<" ";
-          // print corresponding literal in bv sat solver
-          prop::SatVariable bb_var = d_cnfProof->getLiteral(lit).getSatVariable();
-          os << pm->getAtomName(bb_var, "bb");
-          os <<"(\\ unit"<<bb_var<<"\n";
-          lemma_paren <<")";
-        }
-
-        ClauseId lemma_id = it->second;
-        proof::LFSCProofPrinter::printAssumptionsResolution(
-            d_resolutionProof, lemma_id, os, lemma_paren);
-        os <<lemma_paren.str();
-
-        return;
-      }
-    }
-
-    // We failed to find a matching sub conflict. The last hope is that the
-    // conflict has a FALSE assertion in it; this can happen in some corner cases,
-    // where the FALSE is the result of a rewrite.
-
-    for (unsigned i = 0; i < lemma.size(); ++i) {
-      if (lemma[i].getKind() == kind::NOT && lemma[i][0] == utils::mkFalse()) {
-        Debug("pf::bv") << "Lemma has a (not false) literal" << std::endl;
-        os << "(clausify_false ";
-        os << ProofManager::getLitName(lemma[i]);
-        os << ")";
-        return;
-      }
-    }
-
-    Debug("pf::bv") << "Failed to find a matching sub-conflict..." << std::endl
-                    << "Dumping existing conflicts:" << std::endl;
-
-    i = 0;
-    for (it = d_bbConflictMap.begin(); it != d_bbConflictMap.end(); ++it) {
-      ++i;
-      Debug("pf::bv") << "\tConflict #" << i << ": " << it->first << std::endl;
-    }
-
-    Unreachable();
-  }
-}
-
-void BitVectorProofSuper::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
 
-void BitVectorProofSuper::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
@@ -684,7 +320,7 @@ void BitVectorProofSuper::printTermDeclarations(std::ostream& os, std::ostream& 
   }
 }
 
-void BitVectorProofSuper::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   if (options::lfscLetification()) {
     os << std::endl << ";; BV const letification\n" << std::endl;
     std::map<Expr,std::string>::const_iterator it;
@@ -707,7 +343,7 @@ void BitVectorProofSuper::printDeferredDeclarations(std::ostream& os, std::ostre
   }
 }
 
-void BitVectorProofSuper::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
+void BitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -733,13 +369,13 @@ void BitVectorProofSuper::printAliasingDeclarations(std::ostream& os, std::ostre
   os << "\n";
 }
 
-void BitVectorProofSuper::printTermBitblasting(Expr term, std::ostream& os) {
+void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated
   Assert (term.getType().isBitVector());
   Kind kind = term.getKind();
 
-  if (Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst()) {
+  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst()) {
     // A term is a leaf if it has no children, or if it belongs to another theory
     os << "(bv_bbl_var " << utils::getSize(term) << " " << d_exprToVariableName[term];
     os << " _)";
@@ -871,11 +507,11 @@ void BitVectorProofSuper::printTermBitblasting(Expr term, std::ostream& os) {
   }
 
   default:
-    Unreachable("BitVectorProofSuper Unknown operator");
+    Unreachable("BitVectorProof Unknown operator");
   }
 }
 
-void BitVectorProofSuper::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
+void BitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
   Kind kind = atom.getKind();
   switch(kind) {
   case kind::BITVECTOR_ULT :
@@ -902,11 +538,11 @@ void BitVectorProofSuper::printAtomBitblasting(Expr atom, std::ostream& os, bool
     return;
   }
   default:
-    Unreachable("BitVectorProofSuper Unknown atom kind");
+    Unreachable("BitVectorProof Unknown atom kind");
   }
 }
 
-void BitVectorProofSuper::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
+void BitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
   Assert(atom.getKind() == kind::EQUAL);
 
   os << "(bv_bbl_=_false";
@@ -920,10 +556,10 @@ void BitVectorProofSuper::printAtomBitblastingToFalse(Expr atom, std::ostream& o
   os << ")";
 }
 
-void BitVectorProofSuper::printBitblasting(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
   // bit-blast terms
   {
-    Debug("pf::bv") << "BitVectorProofSuper::printBitblasting: the bitblasted terms are: " << std::endl;
+    Debug("pf::bv") << "BitVectorProof::printBitblasting: the bitblasted terms are: " << std::endl;
     std::vector<Expr>::const_iterator it = d_bbTerms.begin();
     std::vector<Expr>::const_iterator end = d_bbTerms.end();
 
@@ -1012,52 +648,11 @@ void BitVectorProofSuper::printBitblasting(std::ostream& os, std::ostream& paren
   }
 }
 
-void LFSCBitVectorProof::calculateAtomsInBitblastingProof() {
-  // Collect the input clauses used
-  IdToSatClause used_lemmas;
-  IdToSatClause used_inputs;
-  d_resolutionProof->collectClausesUsed(used_inputs, used_lemmas);
-  d_cnfProof->collectAtomsForClauses(used_inputs, d_atomsInBitblastingProof);
-  Assert(used_lemmas.empty());
-}
-
-const std::set<Node>* BitVectorProofSuper::getAtomsInBitblastingProof() {
+const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof() {
   return &d_atomsInBitblastingProof;
 }
 
-void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
-                                              std::ostream& paren,
-                                              ProofLetMap& letMap) {
-  // print mapping between theory atoms and internal SAT variables
-  os << std::endl << ";; BB atom mapping\n" << std::endl;
-
-  std::set<Node>::iterator atomIt;
-  Debug("pf::bv") << std::endl << "BV Dumping atoms from inputs: " << std::endl << std::endl;
-  for (atomIt = d_atomsInBitblastingProof.begin(); atomIt != d_atomsInBitblastingProof.end(); ++atomIt) {
-    Debug("pf::bv") << "\tAtom: " << *atomIt << std::endl;
-  }
-  Debug("pf::bv") << std::endl;
-
-  // first print bit-blasting
-  printBitblasting(os, paren);
-
-  // print CNF conversion proof for bit-blasted facts
-  IdToSatClause used_lemmas;
-  IdToSatClause used_inputs;
-  d_resolutionProof->collectClausesUsed(used_inputs, used_lemmas);
-
-  d_cnfProof->printAtomMapping(d_atomsInBitblastingProof, os, paren, letMap);
-  os << std::endl << ";; Bit-blasting definitional clauses \n" << std::endl;
-  for (IdToSatClause::iterator it = used_inputs.begin();
-       it != used_inputs.end(); ++it) {
-    d_cnfProof->printCnfProofForClause(it->first, it->second, os, paren);
-  }
-
-  os << std::endl << " ;; Bit-blasting learned clauses \n" << std::endl;
-  proof::LFSCProofPrinter::printResolutions(d_resolutionProof, os, paren);
-}
-
-std::string BitVectorProofSuper::assignAlias(Expr expr) {
+std::string BitVectorProof::assignAlias(Expr expr) {
   Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
 
   std::stringstream ss;
@@ -1067,11 +662,11 @@ std::string BitVectorProofSuper::assignAlias(Expr expr) {
   return ss.str();
 }
 
-bool BitVectorProofSuper::hasAlias(Expr expr) {
+bool BitVectorProof::hasAlias(Expr expr) {
   return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
-void BitVectorProofSuper::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
+void BitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Assert (c1.isConst());
   Assert (c2.isConst());
   Assert (utils::getSize(c1) == utils::getSize(c2));
@@ -1101,7 +696,7 @@ void BitVectorProofSuper::printConstantDisequalityProof(std::ostream& os, Expr c
   os << ")";
 }
 
-void BitVectorProofSuper::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
+void BitVectorProof::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
   ProofLetMap emptyMap;
   os << "(rr_bv_default ";
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
@@ -1110,4 +705,4 @@ void BitVectorProofSuper::printRewriteProof(std::ostream& os, const Node &n1, co
   os << ")";
 }
 
-} /* namespace CVC4 */
+}

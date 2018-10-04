@@ -59,8 +59,6 @@ class TBitblaster
   TermDefMap d_termCache;
   ModelCache d_modelCache;
 
-  BitVectorProof* d_bvp;
-
   void initAtomBBStrategies();
   void initTermBBStrategies();
 
@@ -172,7 +170,7 @@ void TBitblaster<T>::initTermBBStrategies()
 }
 
 template <class T>
-TBitblaster<T>::TBitblaster() : d_termCache(), d_modelCache(), d_bvp(NULL)
+TBitblaster<T>::TBitblaster() : d_termCache(), d_modelCache()
 {
   initAtomBBStrategies();
   initTermBBStrategies();

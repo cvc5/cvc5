@@ -27,7 +27,7 @@
 #include "theory/bv/theory_bv.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "proof/bitvector_proof.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/proof_manager.h"
 #include "theory/bv/theory_bv_utils.h"
 
@@ -65,6 +65,7 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
       d_bv(bv),
+      d_bvp(nullptr),
       d_ctx(c),
       d_nullRegistrar(new prop::NullRegistrar()),
       d_nullContext(new context::Context()),
@@ -566,7 +567,7 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void TLazyBitblaster::setProofLog( BitVectorProof * bvp ){
+void TLazyBitblaster::setProofLog( ResolutionBitVectorProof * bvp ){
   d_bvp = bvp;
   d_satSolver->setProofLog( bvp );
   bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());

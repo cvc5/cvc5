@@ -22,7 +22,7 @@
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
-#include "proof/bitvector_proof.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
@@ -77,8 +77,10 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        BitVectorProof * bvp = new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
-        d_theoryProofTable[id] = bvp;
+        ResolutionBitVectorProof * rbvp =
+          new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
+        d_theoryProofTable[id] = rbvp;
+        // TODO(aozdemir) add a DRAT proof to the table.
         return;
       }
 
@@ -102,9 +104,8 @@ void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
     theory::TheoryId id = th->getId();
     if (id == theory::THEORY_BV) {
       Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
-
-      BitVectorProof *bvp = (BitVectorProof *)d_theoryProofTable[id];
-      ((theory::bv::TheoryBV*)th)->setProofLog( bvp );
+      ResolutionBitVectorProof *bvp = (ResolutionBitVectorProof *)d_theoryProofTable[id];
+      ((theory::bv::TheoryBV*)th)->setResolutionProofLog( bvp );
       return;
     }
   }
@@ -529,7 +530,7 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
     }
   }
 
-  BitVectorProof* bv = ProofManager::getBitVectorProof();
+  ResolutionBitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
   //  bv->printResolutionProof(os, paren, letMap);
 }
