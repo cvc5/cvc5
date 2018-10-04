@@ -533,16 +533,6 @@ public:
   /** if theories want to do something with model after building, do it here */
   virtual void postProcessModel( TheoryModel* m ){ }
   /**
-   * Return a decision request, if the theory has one, or the NULL node
-   * otherwise.
-   * If returning non-null node, should set priority to
-   *                        0 if decision is necessary for model-soundness,
-   *                        1 if decision is necessary for completeness,
-   *                        >1 otherwise.
-   */
-  virtual Node getNextDecisionRequest( unsigned& priority ) { return Node(); }
-
-  /**
    * Statically learn from assertion "in," which has been asserted
    * true at the top level.  The theory should only add (via
    * ::operator<< or ::append()) to the "learned" builder---it should
