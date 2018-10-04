@@ -19,8 +19,10 @@
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/term_canonize.h"
 
 using namespace std;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace preprocessing {
@@ -61,7 +63,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // Get all usable terms from the input. A term is usable if it does not
   // contain a quantified subterm
   std::vector<Node> terms;
+  // all variables
+  std::vector< Node > vars;
   TNode cur;
+  Trace("synth-rr-pass") << "Collect terms in assertions..." << std::endl;
   for (const Node& a : assertions)
   {
     visit.push_back(a);
@@ -81,8 +86,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         Trace("synth-rr-pass-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
         Kind k = cur.getKind();
-        bool isQuant = k == kind::FORALL || k == kind::EXISTS
-                       || k == kind::LAMBDA || k == kind::CHOICE;
+        bool isQuant = k == FORALL || k == EXISTS
+                       || k == LAMBDA || k == CHOICE;
         // we recurse on this node if it is not a quantified formula
         if (!isQuant)
         {
@@ -113,6 +118,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           Trace("synth-rr-pass-debug") << "...children are valid" << std::endl;
           Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
           terms.push_back(cur);
+          if( cur.isVar() )
+          {
+            vars.push_back(cur);
+          }
           // mark as processed
           cur.setAttribute(srrca, true);
         }
@@ -120,101 +129,139 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
     } while (!visit.empty());
   }
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  
+  Trace("synth-rr-pass") << "Convert subterms to free variable form..." << std::endl;
+  // Replace all free variables with bound variables. This ensures that
+  // we can perform term canonization on subterms.
+  std::vector< Node > vsubs;
+  for( const Node& v : vars )
+  {
+    TypeNode tnv = v.getType();
+    Node vs = nm->mkBoundVar(tnv);
+    vsubs.push_back(vs);
+  }
+  if( !vars.empty() )
+  {
+    for (unsigned i=0, nterms = terms.size(); i<nterms; i++ )
+    {
+      terms[i] = terms[i].substitute(vars.begin(),vars.end(),vsubs.begin(),vsubs.end());
+    }
+  }
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  
+  Trace("synth-rr-pass") << "Process " << terms.size() << " subterms..." << std::endl;
   // We've collected all terms in the input. We will produce skeletons from
   // these terms. We start by constructing a fixed number of variables per
   // type.
   unsigned nvars = 3;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<Node> allVars;
-  for (const Node& n : terms)
+  // We also map terms to a canonical (ordered) form. This ensures that
+  // we don't generate distinct grammar types for distinct alpha-equivalent
+  // terms, which would produce grammars of identical shape.
+  std::map< Node, Node > term_to_cterm;
+  std::map< Node, Node > cterm_to_term;
+  // canonical terms for each type
+  std::map< TypeNode, std::vector< Node > > t_cterms;
+  theory::quantifiers::TermCanonize tcanon;
+  for (unsigned i=0, nterms = terms.size(); i<nterms; i++ )
   {
-    TypeNode tn = n.getType();
-    if (tvars.find(tn) == tvars.end())
+    Node n = terms[i];
+    Node cn = tcanon.getCanonicalTerm(n);
+    term_to_cterm[n] = cn;
+    std::map< Node, Node >::iterator itc = cterm_to_term.find(cn);
+    if( itc==cterm_to_term.end() )
     {
-      for (unsigned i = 0; i < nvars; i++)
+      cterm_to_term[cn] = n;
+      // register type information
+      TypeNode tn = n.getType();
+      if (tvars.find(tn) == tvars.end())
       {
-        Node v = nm->mkBoundVar(tn);
-        tvars[tn].push_back(v);
-        allVars.push_back(v);
+        for (unsigned i = 0; i < nvars; i++)
+        {
+          Node v = nm->mkBoundVar(tn);
+          tvars[tn].push_back(v);
+          allVars.push_back(v);
+        }
       }
+      t_cterms[tn].push_back(cn);
     }
   }
-  Trace("synth-rr-pass")
-      << "Initialize the candidate rewrite database generator..." << std::endl;
-  unsigned nsamples = options::sygusSamples();
-  std::unique_ptr<theory::quantifiers::CandidateRewriteDatabaseGen> crdg;
-  crdg.reset(
-      new theory::quantifiers::CandidateRewriteDatabaseGen(allVars, nsamples));
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  // the sygus variable list
+  Expr sygusVarList = nm->mkNode( BOUND_VAR_LIST, allVars ).toExpr();
+  Trace("synth-rr-pass") << "Have " << cterm_to_term.size() << " canonical subterms." << std::endl;
 
-  // now, we increment skeleton sizes until a fixed point is reached
-  bool success = false;
-  unsigned skSize = 0;
-  std::vector<Node> termsNext;
-  do
+  Trace("synth-rr-pass") << "Construct unresolved types..." << std::endl;
+  // each canonical subterm corresponds to a grammar type
+  std::set<Type> unres;
+  std::vector< Datatype > datatypes;
+  // make unresolved types for each canonical term
+  std::map< Node, TypeNode > cterm_to_utype;
+  for( std::pair< const Node, Node >& ctp : cterm_to_term )
   {
-    success = false;
-    std::unordered_set<Node, NodeHashFunction> cacheGenTerms;
-    if (skSize == 0)
-    {
-      // optimization: just take the variables directly
-      for (const Node& v : allVars)
-      {
-        if (crdg->addTerm(v, *nodeManagerOptions.getOut()))
-        {
-          success = true;
-        }
-      }
-    }
-    else
-    {
-      for (const Node& t : terms)
-      {
-        std::unordered_set<Node, NodeHashFunction> genTerms;
-        if (getTermSkeletons(t, skSize, tvars, cacheGenTerms, genTerms))
-        {
-          // Only if term skeletons were possible to generate do we keep t
-          // for the next round. This ensures we do not keep retrying to
-          // generate skeletons from terms whose size is less than skSize.
-          termsNext.push_back(t);
-        }
-        for (const Node& cgt : genTerms)
-        {
-          if (crdg->addTerm(cgt, *nodeManagerOptions.getOut()))
-          {
-            success = true;
-          }
-          cacheGenTerms.insert(cgt);
-        }
-      }
-    }
-    if (success)
-    {
-      skSize++;
-      terms.clear();
-      terms.insert(terms.end(), termsNext.begin(), termsNext.end());
-      termsNext.clear();
-    }
-  } while (success);
+    TypeNode tnu = nm->mkSort(ExprManager::SORT_FLAG_PLACEHOLDER);
+    cterm_to_utype[ctp.first] = tnu;
+    unres.insert(tnu.toType());
+  }
+  Trace("synth-rr-pass") << "...finished." << std::endl;
 
-  /*
-  bool ret = crdg->addTerm(cur, *nodeManagerOptions.getOut());
-  Trace("synth-rr-pass-debug") << "...return " << ret << std::endl;
-  // if we want only rewrites of minimal size terms, we would set
-  // childrenValid to false if ret is false here.
-  */
-
+  Trace("synth-rr-pass") << "Construct datatypes..." << std::endl;
+  unsigned typeCounter = 0;
+  for( std::pair< const Node, Node >& ctp : cterm_to_term )
+  {
+    Node ct = ctp.first;
+    Node t = ctp.second;
+    std::stringstream ss;
+    ss << "T" << typeCounter;
+    Datatype dt(ss.str());
+    
+    // add the variables for the type
+    TypeNode ctt = ct.getType();
+    Assert( tvars.find(ctt)!=tvars.end() );
+    std::vector<Type> argList;
+    for( const Node& v : tvars[ctt] )
+    {
+      std::stringstream ssc;
+      ssc << "C_" << typeCounter << "_" << v;
+      dt.addSygusConstructor(v.toExpr(),ssc.str(),argList);
+    }
+    // add the constructor for the operator if it is not a variable
+    if( ct.getKind()!=BOUND_VARIABLE )
+    {
+      Assert( !ct.isVar() );
+      Node op = ct.hasOperator() ? ct.getOperator() : ct;
+      // iterate over the original term
+      for( const Node& tc : t )
+      {
+        // map its arguments back to canonical
+        Assert( term_to_cterm.find(tc)!=term_to_cterm.end() );
+        Node ctc = term_to_cterm[tc];
+        Assert( cterm_to_utype.find(ctc)!=cterm_to_utype.end() );
+        // get the type
+        argList.push_back( cterm_to_utype[ctc].toType() );
+      }
+      std::stringstream ssc;
+      ssc << "C_" << typeCounter << "_op";
+      dt.addSygusConstructor(op.toExpr(),ssc.str(),argList);
+    }
+    dt.setSygus(ctt.toType(), sygusVarList, false, false);
+    datatypes.push_back(dt);
+    typeCounter++;
+  }
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  
+  Trace("synth-rr-pass") << "Make mutual datatype types for subterms..." << std::endl;
+  std::vector<DatatypeType> types =
+      nm->toExprManager()->mkMutualDatatypeTypes(
+          datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+      
+  // we now are ready to create the "top-level" types
+  
   Trace("synth-rr-pass") << "...finished " << std::endl;
   return PreprocessingPassResult::NO_CONFLICT;
-}
-
-bool SynthRewRulesPass::getTermSkeletons(
-    Node t,
-    unsigned tsize,
-    const std::map<TypeNode, std::vector<Node> >& tvars,
-    const std::unordered_set<Node, NodeHashFunction>& cacheGenTerms,
-    std::unordered_set<Node, NodeHashFunction>& genTerms)
-{
-  return false;
 }
 
 }  // namespace passes
