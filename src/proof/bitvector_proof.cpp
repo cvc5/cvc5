@@ -34,18 +34,27 @@ using namespace CVC4::theory::bv;
 
 namespace CVC4 {
 
-BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
+BitVectorProofSuper::BitVectorProofSuper(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
-    : TheoryProof(bv, proofEngine),
+  : TheoryProof(bv, proofEngine),
       d_declarations(),
+      d_useConstantLetification(false),
+      d_bitblaster(nullptr),
       d_seenBBTerms(),
       d_bbTerms(),
-      d_bbAtoms(),
+      d_bbAtoms()
+{
+  // Nothing left
+}
+
+
+BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
+                               TheoryProofEngine* proofEngine)
+    : BitVectorProofSuper(bv, proofEngine),
       d_resolutionProof(NULL),
       d_cnfProof(NULL),
-      d_isAssumptionConflict(false),
-      d_bitblaster(NULL),
-      d_useConstantLetification(false) {}
+      d_isAssumptionConflict(false)
+      {}
 
 void BitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
@@ -147,7 +156,7 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 }
 
-std::string BitVectorProof::getBBTermName(Expr expr) {
+std::string BitVectorProofSuper::getBBTermName(Expr expr) {
   Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
   std::ostringstream os;
   os << "bt"<< expr.getId();
@@ -285,8 +294,12 @@ void BitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts) {
   }
 }
 
-void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedTerm( " << term << " ), theory is: "
+/**
+ * Start LFSCBitVectorProof
+ */
+
+void BitVectorProofSuper::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
+  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProofSuper::printOwnedTerm( " << term << " ), theory is: "
                   << Theory::theoryOf(term) << std::endl;
 
   Assert (Theory::theoryOf(term) == THEORY_BV);
@@ -380,12 +393,12 @@ void LFSCBitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const Proof
   }
 }
 
-void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProofSuper::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
   Assert (term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
 
-  Debug("pf::bv") << "LFSCBitVectorProof::printBitOf( " << term << " ), "
+  Debug("pf::bv") << "BitVectorProofSuper::printBitOf( " << term << " ), "
                   << "bit = " << bit
                   << ", var = " << var << std::endl;
 
@@ -394,7 +407,7 @@ void LFSCBitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetM
   os << " " << bit << ")";
 }
 
-void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
+void BitVectorProofSuper::printConstant(Expr term, std::ostream& os) {
   Assert (term.isConst());
   os << "(a_bv " << utils::getSize(term) << " ";
 
@@ -413,7 +426,7 @@ void LFSCBitVectorProof::printConstant(Expr term, std::ostream& os) {
   }
 }
 
-void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProofSuper::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
   std::string op = utils::toLFSCKindTerm(term);
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
@@ -431,7 +444,7 @@ void LFSCBitVectorProof::printOperatorNary(Expr term, std::ostream& os, const Pr
   }
 }
 
-void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProofSuper::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os << " ";
@@ -439,7 +452,7 @@ void LFSCBitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const P
   os <<")";
 }
 
-void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProofSuper::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
@@ -449,7 +462,7 @@ void LFSCBitVectorProof::printPredicate(Expr term, std::ostream& os, const Proof
   os <<")";
 }
 
-void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProofSuper::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os <<" ";
@@ -477,8 +490,8 @@ void LFSCBitVectorProof::printOperatorParametric(Expr term, std::ostream& os, co
   os <<")";
 }
 
-void LFSCBitVectorProof::printOwnedSort(Type type, std::ostream& os) {
-  Debug("pf::bv") << std::endl << "(pf::bv) LFSCBitVectorProof::printOwnedSort( " << type << " )" << std::endl;
+void BitVectorProofSuper::printOwnedSort(Type type, std::ostream& os) {
+  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProofSuper::printOwnedSort( " << type << " )" << std::endl;
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec " << width << ")";
@@ -651,11 +664,11 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
   }
 }
 
-void LFSCBitVectorProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProofSuper::printSortDeclarations(std::ostream& os, std::ostream& paren) {
   // Nothing to do here at this point.
 }
 
-void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProofSuper::printTermDeclarations(std::ostream& os, std::ostream& paren) {
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
@@ -671,7 +684,7 @@ void LFSCBitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& p
   }
 }
 
-void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProofSuper::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
   if (options::lfscLetification()) {
     os << std::endl << ";; BV const letification\n" << std::endl;
     std::map<Expr,std::string>::const_iterator it;
@@ -694,7 +707,7 @@ void LFSCBitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostrea
   }
 }
 
-void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
+void BitVectorProofSuper::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -720,7 +733,7 @@ void LFSCBitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostrea
   os << "\n";
 }
 
-void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
+void BitVectorProofSuper::printTermBitblasting(Expr term, std::ostream& os) {
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated
   Assert (term.getType().isBitVector());
@@ -858,11 +871,11 @@ void LFSCBitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
   }
 
   default:
-    Unreachable("LFSCBitVectorProof Unknown operator");
+    Unreachable("BitVectorProofSuper Unknown operator");
   }
 }
 
-void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
+void BitVectorProofSuper::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
   Kind kind = atom.getKind();
   switch(kind) {
   case kind::BITVECTOR_ULT :
@@ -889,11 +902,11 @@ void LFSCBitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool 
     return;
   }
   default:
-    Unreachable("LFSCBitVectorProof Unknown atom kind");
+    Unreachable("BitVectorProofSuper Unknown atom kind");
   }
 }
 
-void LFSCBitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
+void BitVectorProofSuper::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
   Assert(atom.getKind() == kind::EQUAL);
 
   os << "(bv_bbl_=_false";
@@ -907,10 +920,10 @@ void LFSCBitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os
   os << ")";
 }
 
-void LFSCBitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
+void BitVectorProofSuper::printBitblasting(std::ostream& os, std::ostream& paren) {
   // bit-blast terms
   {
-    Debug("pf::bv") << "LFSCBitVectorProof::printBitblasting: the bitblasted terms are: " << std::endl;
+    Debug("pf::bv") << "BitVectorProofSuper::printBitblasting: the bitblasted terms are: " << std::endl;
     std::vector<Expr>::const_iterator it = d_bbTerms.begin();
     std::vector<Expr>::const_iterator end = d_bbTerms.end();
 
@@ -1008,7 +1021,7 @@ void LFSCBitVectorProof::calculateAtomsInBitblastingProof() {
   Assert(used_lemmas.empty());
 }
 
-const std::set<Node>* LFSCBitVectorProof::getAtomsInBitblastingProof() {
+const std::set<Node>* BitVectorProofSuper::getAtomsInBitblastingProof() {
   return &d_atomsInBitblastingProof;
 }
 
@@ -1044,7 +1057,7 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   proof::LFSCProofPrinter::printResolutions(d_resolutionProof, os, paren);
 }
 
-std::string LFSCBitVectorProof::assignAlias(Expr expr) {
+std::string BitVectorProofSuper::assignAlias(Expr expr) {
   Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
 
   std::stringstream ss;
@@ -1054,11 +1067,11 @@ std::string LFSCBitVectorProof::assignAlias(Expr expr) {
   return ss.str();
 }
 
-bool LFSCBitVectorProof::hasAlias(Expr expr) {
+bool BitVectorProofSuper::hasAlias(Expr expr) {
   return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
-void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
+void BitVectorProofSuper::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
   Assert (c1.isConst());
   Assert (c2.isConst());
   Assert (utils::getSize(c1) == utils::getSize(c2));
@@ -1088,7 +1101,7 @@ void LFSCBitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1
   os << ")";
 }
 
-void LFSCBitVectorProof::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
+void BitVectorProofSuper::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
   ProofLetMap emptyMap;
   os << "(rr_bv_default ";
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);

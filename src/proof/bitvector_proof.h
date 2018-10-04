@@ -58,9 +58,20 @@ typedef std::unordered_map<Expr, unsigned, ExprHashFunction> ExprToId;
 typedef std::unordered_map<Expr, Expr, ExprHashFunction> ExprToExpr;
 typedef std::unordered_map<Expr, std::string, ExprHashFunction> ExprToString;
 
-class BitVectorProof : public TheoryProof {
+class BitVectorProofSuper : public TheoryProof {
 protected:
+  BitVectorProofSuper(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
+
   ExprSet d_declarations;
+
+  std::map<Expr,std::string> d_constantLetMap;
+  bool d_useConstantLetification;
+
+  ExprToClauseId d_bbConflictMap;
+
+  std::string getBBTermName(Expr expr);
+
+  theory::bv::TBitblaster<Node>* d_bitblaster;
 
   ExprSet d_usedBB; // terms and formulas that are actually relevant to the proof
 
@@ -68,18 +79,66 @@ protected:
   std::vector<Expr> d_bbTerms; // order of bit-blasting
   ExprToExpr d_bbAtoms; // atoms that need to be bit-blasted
 
+  void printBitblasting(std::ostream& os, std::ostream& paren);
+
+  std::set<Node> d_atomsInBitblastingProof;
+
+public:
+  void printOwnedTerm(Expr term,
+                      std::ostream& os,
+                      const ProofLetMap& map) override;
+  virtual void calculateAtomsInBitblastingProof() = 0;
+  const std::set<Node>* getAtomsInBitblastingProof();
+private:
+  ExprToString d_exprToVariableName;
+
+  ExprToString d_assignedAliases;
+  std::map<std::string, std::string> d_aliasToBindDeclaration;
+  std::string assignAlias(Expr expr);
+  bool hasAlias(Expr expr);
+
+
+  void printConstant(Expr term, std::ostream& os);
+  void printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printPredicate(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map);
+  void printBitOf(Expr term, std::ostream& os, const ProofLetMap& map);
+
+  void printOwnedSort(Type type, std::ostream& os) override;
+  void printTermBitblasting(Expr term, std::ostream& os);
+  void printAtomBitblasting(Expr term, std::ostream& os, bool swap);
+  void printAtomBitblastingToFalse(Expr term, std::ostream& os);
+
+  void printSortDeclarations(std::ostream& os, std::ostream& paren) override;
+  void printTermDeclarations(std::ostream& os, std::ostream& paren) override;
+  void printDeferredDeclarations(std::ostream& os,
+                                 std::ostream& paren) override;
+  void printAliasingDeclarations(std::ostream& os,
+                                 std::ostream& paren,
+                                 const ProofLetMap& globalLetMap) override;
+
+  void printConstantDisequalityProof(std::ostream& os,
+                                     Expr c1,
+                                     Expr c2,
+                                     const ProofLetMap& globalLetMap) override;
+  void printRewriteProof(std::ostream& os,
+                         const Node& n1,
+                         const Node& n2) override;
+};
+
+class BitVectorProof : public BitVectorProofSuper {
+
+protected:
+
+
   // map from Expr representing normalized lemma to ClauseId in SAT solver
-  ExprToClauseId d_bbConflictMap;
   BVSatProof* d_resolutionProof;
 
   CnfProof* d_cnfProof;
 
   bool d_isAssumptionConflict;
-  theory::bv::TBitblaster<Node>* d_bitblaster;
-  std::string getBBTermName(Expr expr);
 
-  std::map<Expr,std::string> d_constantLetMap;
-  bool d_useConstantLetification;
   theory::TheoryId getTheoryId() override;
   context::Context d_fakeContext;
 public:
@@ -109,68 +168,23 @@ public:
 
   void registerTerm(Expr term) override;
 
-  virtual void printTermBitblasting(Expr term, std::ostream& os) = 0;
-  virtual void printAtomBitblasting(Expr term, std::ostream& os, bool swap) = 0;
-  virtual void printAtomBitblastingToFalse(Expr term, std::ostream& os) = 0;
-
-  virtual void printBitblasting(std::ostream& os, std::ostream& paren) = 0;
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
-  virtual const std::set<Node>* getAtomsInBitblastingProof() = 0;
-  virtual void calculateAtomsInBitblastingProof() = 0;
 };
 
 class LFSCBitVectorProof: public BitVectorProof {
-
-  void printConstant(Expr term, std::ostream& os);
-  void printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map);
-  void printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map);
-  void printPredicate(Expr term, std::ostream& os, const ProofLetMap& map);
-  void printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map);
-  void printBitOf(Expr term, std::ostream& os, const ProofLetMap& map);
-
-  ExprToString d_exprToVariableName;
-  ExprToString d_assignedAliases;
-  std::map<std::string, std::string> d_aliasToBindDeclaration;
-  std::string assignAlias(Expr expr);
-  bool hasAlias(Expr expr);
-
-  std::set<Node> d_atomsInBitblastingProof;
 
 public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
     :BitVectorProof(bv, proofEngine)
   {}
-  void printOwnedTerm(Expr term,
-                      std::ostream& os,
-                      const ProofLetMap& map) override;
-  void printOwnedSort(Type type, std::ostream& os) override;
-  void printTermBitblasting(Expr term, std::ostream& os) override;
-  void printAtomBitblasting(Expr term, std::ostream& os, bool swap) override;
-  void printAtomBitblastingToFalse(Expr term, std::ostream& os) override;
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
                              std::ostream& paren,
                              const ProofLetMap& map) override;
-  void printSortDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printTermDeclarations(std::ostream& os, std::ostream& paren) override;
-  void printDeferredDeclarations(std::ostream& os,
-                                 std::ostream& paren) override;
-  void printAliasingDeclarations(std::ostream& os,
-                                 std::ostream& paren,
-                                 const ProofLetMap& globalLetMap) override;
-  void printBitblasting(std::ostream& os, std::ostream& paren) override;
   void printResolutionProof(std::ostream& os,
                             std::ostream& paren,
                             ProofLetMap& letMap) override;
   void calculateAtomsInBitblastingProof() override;
-  const std::set<Node>* getAtomsInBitblastingProof() override;
-  void printConstantDisequalityProof(std::ostream& os,
-                                     Expr c1,
-                                     Expr c2,
-                                     const ProofLetMap& globalLetMap) override;
-  void printRewriteProof(std::ostream& os,
-                         const Node& n1,
-                         const Node& n2) override;
 };
 
 }/* CVC4 namespace */
