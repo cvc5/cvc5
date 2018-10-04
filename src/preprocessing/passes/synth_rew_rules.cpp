@@ -175,6 +175,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // canonical terms for each type
   std::map<TypeNode, std::vector<Node> > t_cterms;
   theory::quantifiers::TermCanonize tcanon;
+  unsigned varCounter = 0;
   for (unsigned i = 0, nterms = terms.size(); i < nterms; i++)
   {
     Node n = terms[i];
@@ -193,7 +194,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       {
         for (unsigned i = 0; i < nvars; i++)
         {
-          Node v = nm->mkBoundVar(tn);
+          // We must have a good name for these variables, these are
+          // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
+          std::stringstream ssv;
+          if( varCounter<26 )
+          {
+            ssv << String::convertUnsignedIntToChar(varCounter+32);
+          }
+          else
+          {
+            ssv << "x" << (varCounter-26);
+          }
+          varCounter++;
+          Node v = nm->mkBoundVar(ssv.str(),tn);
           tvars[tn].push_back(v);
           allVars.push_back(v);
           allVarTypes.push_back(tn);
@@ -336,12 +349,17 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
   // we are "synthesizing" functions for each type of subterm
   std::vector<Node> synthFuns;
+  unsigned fCounter = 1;
   for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
   {
     Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
     theory::SygusSynthGrammarAttribute ssg;
     TypeNode ft = nm->mkFunctionType(allVarTypes, ttp.first);
-    Node sfun = nm->mkBoundVar("f", ft);
+    // likewise, it is helpful if these have good names, we choose f1, f2, ...
+    std::stringstream ssf;
+    ssf << "f" << fCounter;
+    fCounter++;
+    Node sfun = nm->mkBoundVar(ssf.str(), ft);
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
