@@ -51,8 +51,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   NodeManager* nm = NodeManager::currentNM();
 
-  Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-
   // attribute to mark processed terms
   SynthRrComputedAttribute srrca;
 
@@ -116,11 +114,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         if (childrenValid)
         {
           Trace("synth-rr-pass-debug") << "...children are valid" << std::endl;
-          Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
-          terms.push_back(cur);
-          if( cur.isVar() )
+          // for now, ignore Boolean terms
+          if( !cur.getType().isBoolean() )
           {
-            vars.push_back(cur);
+            Trace("synth-rr-pass-debug") << "Add term " << cur << std::endl;
+            terms.push_back(cur);
+            if( cur.isVar() )
+            {
+              vars.push_back(cur);
+            }
           }
           // mark as processed
           cur.setAttribute(srrca, true);
@@ -162,6 +164,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // terms, which would produce grammars of identical shape.
   std::map< Node, Node > term_to_cterm;
   std::map< Node, Node > cterm_to_term;
+  std::vector< Node > cterms;
   // canonical terms for each type
   std::map< TypeNode, std::vector< Node > > t_cterms;
   theory::quantifiers::TermCanonize tcanon;
@@ -191,7 +194,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("synth-rr-pass") << "...finished." << std::endl;
   // the sygus variable list
   Expr sygusVarList = nm->mkNode( BOUND_VAR_LIST, allVars ).toExpr();
-  Trace("synth-rr-pass") << "Have " << cterm_to_term.size() << " canonical subterms." << std::endl;
+  Trace("synth-rr-pass") << "Have " << cterms.size() << " canonical subterms." << std::endl;
 
   Trace("synth-rr-pass") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
@@ -199,20 +202,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector< Datatype > datatypes;
   // make unresolved types for each canonical term
   std::map< Node, TypeNode > cterm_to_utype;
-  for( std::pair< const Node, Node >& ctp : cterm_to_term )
+  for( const Node& ct : cterms )
   {
     TypeNode tnu = nm->mkSort(ExprManager::SORT_FLAG_PLACEHOLDER);
-    cterm_to_utype[ctp.first] = tnu;
+    cterm_to_utype[ct] = tnu;
     unres.insert(tnu.toType());
   }
   Trace("synth-rr-pass") << "...finished." << std::endl;
 
   Trace("synth-rr-pass") << "Construct datatypes..." << std::endl;
   unsigned typeCounter = 0;
-  for( std::pair< const Node, Node >& ctp : cterm_to_term )
+  for( const Node& ct : cterms )
   {
-    Node ct = ctp.first;
-    Node t = ctp.second;
+    Node t = cterm_to_term[ct];
     std::stringstream ss;
     ss << "T" << typeCounter;
     Datatype dt(ss.str());
@@ -257,10 +259,42 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       nm->toExprManager()->mkMutualDatatypeTypes(
           datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("synth-rr-pass") << "...finished." << std::endl;
-      
-  // we now are ready to create the "top-level" types
+  Assert( types.size()==unres.size() );
+  std::map< Node, DatatypeType > subtermTypes;
+  for( unsigned i=0, ncterms = cterms.size(); i<ncterms; i++ )
+  {
+    subtermTypes[cterms[i]] = types[i];
+  }
   
-  Trace("synth-rr-pass") << "...finished " << std::endl;
+  Trace("synth-rr-pass") << "Construct the top-level types..." << std::endl;
+  // we now are ready to create the "top-level" types
+  std::map< TypeNode, TypeNode > tlGrammarTypes;
+  for(std::pair< const TypeNode, std::vector< Node > >& tcp : t_cterms )
+  {
+    TypeNode t = tcp.first;
+    std::stringstream ss;
+    ss << "T_" << t;
+    Datatype dttl(ss.str());
+    Node tbv = nm->mkBoundVar(t);
+    // the operator of each constructor is a no-op
+    Expr lambdaOp = nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST,tbv), tbv).toExpr();
+    Trace("synth-rr-pass") << "  We have " << tcp.second.size() << " subterms of type " << t << std::endl;
+    for( unsigned i=0, size = tcp.second.size(); i<size; i++ )
+    {
+      Node n = tcp.second[i];
+      // add constructor that encodes abstractions of this subterm
+      std::vector<Type> argList;
+      Assert( subtermTypes.find(n)!=subtermTypes.end());
+      argList.push_back(subtermTypes[n]);
+      std::stringstream ssc;
+      ssc << "Ctl_" << i;
+      dttl.addSygusConstructor(lambdaOp,ssc.str(),argList);
+    }
+    DatatypeType tlt = nm->toExprManager()->mkDatatypeType(dttl, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
+    tlGrammarTypes[t] = TypeNode::fromType( tlt );
+  }
+  Trace("synth-rr-pass") << "...finished." << std::endl;
+  
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
