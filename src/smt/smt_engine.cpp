@@ -1208,7 +1208,7 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference() || options::synthRrPrep())
+  if (options::sygusInference() || options::sygusRewSynthInput())
   {
     d_logic = d_logic.getUnlockedCopy();
     d_logic.enableTheory(THEORY_DATATYPES);
@@ -1844,11 +1844,17 @@ void SmtEngine::setDefaults() {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
     }
-    if( options::synthRrPrep() )
+    if( options::sygusRewSynthInput() )
     {
       // if we are using synthesis rewrite rules from input, we use
       // sygusRewSynth after preprocessing.
       options::sygusRewSynth.set(true);
+      // we should not use the extended rewriter, since we are interested
+      // in rewrites that are not in the main rewriter 
+      if( !options::sygusExtRew.wasSetByUser() )
+      {
+        options::sygusExtRew.set(false);
+      }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify())
     {
@@ -3188,7 +3194,7 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
-  if (options::synthRrPrep())
+  if (options::sygusRewSynthInput())
   {
     // do candidate rewrite rule synthesis
     d_passes["synth-rr"]->apply(&d_assertions);

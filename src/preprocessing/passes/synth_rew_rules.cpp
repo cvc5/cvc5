@@ -162,7 +162,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // We've collected all terms in the input. We will produce skeletons from
   // these terms. We start by constructing a fixed number of variables per
   // type.
-  unsigned nvars = 3;
+  unsigned nvars = options::sygusRewSynthInputNVars();
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
