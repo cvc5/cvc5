@@ -465,6 +465,39 @@ class TheoryStringsRewriter {
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+  /** check arithmetic entailment with approximations
+   *
+   * Returns true if it is always the case that a >= 0. We expect that a is in
+   * rewritten form.
+   *
+   * This function uses "approximation" techniques that under-approximate
+   * the value of a for the purposes of showing the entailment holds. For
+   * example, given:
+   *   len( x ) - len( substr( y, 0, len( x ) ) )
+   * Since we know that len( substr( y, 0, len( x ) ) ) <= len( x ), the above
+   * term can be under-approximated as len( x ) - len( x ) = 0, which is >= 0,
+   * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
+   * holds.
+   */
+  static bool checkEntailArithApprox(Node a);
+  /** Get arithmetic approximations
+   *
+   * This gets the (set of) arithmetic approximations for term a and stores
+   * them in approx. If isOverApprox is true, these are over-approximations
+   * for the value of a, otherwise, they are underapproximations. For example,
+   * an over-approximation for len( substr( y, n, m ) ) is m; an
+   * under-approximation for indexof( x, y, n ) is -1.
+   *
+   * Notice that this function is not generally recursive (although it may make
+   * a small bounded of recursive calls). Instead, it returns the shape
+   * of the approximations for a. For example, an under-approximation
+   * for the term len( replace( substr( x, 0, n ), y, z ) ) returned by this
+   * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
+   * consider (recursively) the approximations for len( substr( x, 0, n ) ).
+   */
+  static void getArithApproximations(Node a,
+                                     std::vector<Node>& approx,
+                                     bool isOverApprox = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or

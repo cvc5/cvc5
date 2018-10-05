@@ -253,7 +253,7 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
-  PRECONDITION((v & v - 1) == 0 && v != 0);  // Exactly one bit set
+  PRECONDITION((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
   PRECONDITION(checkNodeType(*this));
 }
 #else

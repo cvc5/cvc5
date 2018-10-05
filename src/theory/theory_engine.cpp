@@ -767,28 +767,9 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   }
 }
 
-Node TheoryEngine::getNextDecisionRequest() {
-  unsigned min_priority = 0;
-  Node dec = d_decManager->getNextDecisionRequest(min_priority);
-
-  // Definition of the statement that is to be run by every theory
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasGetNextDecisionRequest && d_logicInfo.isTheoryEnabled(THEORY)) { \
-    unsigned priority; \
-    Node n = theoryOf(THEORY)->getNextDecisionRequest( priority ); \
-    if(! n.isNull() && ( dec.isNull() || priority<min_priority ) ) { \
-      dec = n; \
-      min_priority = priority; \
-    } \
-  }
-
-  // Request decision from each theory using the statement above
-  CVC4_FOR_EACH_THEORY;
-
-  return dec;
+Node TheoryEngine::getNextDecisionRequest()
+{
+  return d_decManager->getNextDecisionRequest();
 }
 
 bool TheoryEngine::properConflict(TNode conflict) const {

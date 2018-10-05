@@ -804,7 +804,7 @@ void TransitionInference::process( Node n ) {
   }
   for( unsigned i=0; i<n_check.size(); i++ ){
     Node nn = n_check[i];
-    std::map< Node, bool > visited;
+    std::map<bool, std::map<Node, bool> > visited;
     std::map< bool, Node > terms;
     std::vector< Node > disjuncts;
     Trace("cegqi-inv") << "TransitionInference : Process disjunct : " << nn << std::endl;
@@ -949,10 +949,16 @@ void TransitionInference::getNormalizedSubstitution(
   }
 }
 
-bool TransitionInference::processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, 
-                                           std::map< Node, bool >& visited, bool topLevel ) {
-  if( visited.find( n )==visited.end() ){
-    visited[n] = true;
+bool TransitionInference::processDisjunct(
+    Node n,
+    std::map<bool, Node>& terms,
+    std::vector<Node>& disjuncts,
+    std::map<bool, std::map<Node, bool> >& visited,
+    bool topLevel)
+{
+  if (visited[topLevel].find(n) == visited[topLevel].end())
+  {
+    visited[topLevel][n] = true;
     bool childTopLevel = n.getKind()==OR && topLevel;
     //if another part mentions UF or a free variable, then fail
     bool lit_pol = n.getKind()!=NOT;
