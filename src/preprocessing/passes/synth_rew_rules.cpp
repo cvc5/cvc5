@@ -194,7 +194,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       cterms.push_back(cn);
       // register type information
       TypeNode tn = n.getType();
-      if (tvars.find(tn) == tvars.end())
+      if (tvars.find(tn) == tvars.end() && ( options::sygusRewSynthInputUseBool() || !tn.isBoolean() ) )
       {
         for (unsigned i = 0; i < nvars; i++)
         {

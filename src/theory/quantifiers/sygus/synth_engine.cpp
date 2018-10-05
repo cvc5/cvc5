@@ -234,7 +234,7 @@ bool SynthEngine::assignConjecture(Node q)
 void SynthEngine::registerQuantifier(Node q)
 {
   if (d_quantEngine->getOwner(q) == this)
-  {  // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
+  {
     if (!d_conj->isAssigned())
     {
       Trace("cegqi") << "Register conjecture : " << q << std::endl;
