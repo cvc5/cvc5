@@ -59,7 +59,7 @@ public:
 };
 
 class TransitionInference {
-private:
+ private:
   bool processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, std::map< bool, std::map< Node, bool > >& visited, bool topLevel );
   void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
   bool d_complete;
