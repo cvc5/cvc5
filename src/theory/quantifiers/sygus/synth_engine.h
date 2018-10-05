@@ -31,14 +31,15 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  private:
-  /** the quantified formula stating the synthesis conjecture */
-  SynthConjecture* d_conj;
-  /** last instantiation by single invocation module? */
-  bool d_last_inst_si;
-  /** the conjecture we are waiting to assign */
-  Node d_waiting_conj;
-
- private:
+  /** the conjecture(s) we are waiting to assign */
+  std::vector< Node > d_waiting_conj;
+  /** The synthesis conjectures that this class is managing. */
+  std::vector<std::unique_ptr<SynthConjecture> > d_conjs;
+  /** 
+   * The first conjecture in the above vector, or NULL if the above vector is
+   * empty. 
+   */
+  SynthConjecture * d_conj;
   /** assign quantified formula q as the conjecture
    *
    * This method returns true if q was successfully assigned as the synthesis
@@ -56,7 +57,6 @@ class SynthEngine : public QuantifiersModule
   SynthEngine(QuantifiersEngine* qe, context::Context* c);
   ~SynthEngine();
 
- public:
   bool needsCheck(Theory::Effort e) override;
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */

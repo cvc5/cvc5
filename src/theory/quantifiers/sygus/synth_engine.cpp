@@ -35,7 +35,6 @@ SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
   d_conj = new SynthConjecture(qe);
-  d_last_inst_si = false;
 }
 
 SynthEngine::~SynthEngine() { delete d_conj; }
@@ -47,26 +46,24 @@ bool SynthEngine::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
 {
-  return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
+  return QEFFORT_MODEL;
 }
 
 void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
-  unsigned echeck =
-      d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
-  if (quant_e != echeck)
+  if (quant_e != QEFFORT_MODEL)
   {
     return;
   }
 
   // if we are waiting to assign the conjecture, do it now
-  if (!d_waiting_conj.isNull())
+  while (!d_waiting_conj.empty())
   {
-    Node q = d_waiting_conj;
+    Node q = d_waiting_conj.back();
+    d_waiting_conj.pop_back();
     Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q
                           << std::endl;
-    d_waiting_conj = Node::null();
     if (!d_conj->isAssigned())
     {
       assignConjecture(q);
@@ -240,7 +237,7 @@ void SynthEngine::registerQuantifier(Node q)
       Trace("cegqi") << "Register conjecture : " << q << std::endl;
       if (options::sygusQePreproc())
       {
-        d_waiting_conj = q;
+        d_waiting_conj.push_back( q );
       }
       else
       {
@@ -278,7 +275,6 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
       conj->doSingleInvCheck(clems);
       if (!clems.empty())
       {
-        d_last_inst_si = true;
         for (const Node& lem : clems)
         {
           Trace("cegqi-lemma")
@@ -307,7 +303,6 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      d_last_inst_si = false;
       Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
                            << std::endl;
       if (d_quantEngine->addLemma(lem))
@@ -370,7 +365,7 @@ void SynthEngine::printSynthSolution(std::ostream& out)
 {
   if (d_conj->isAssigned())
   {
-    d_conj->printSynthSolution(out, d_last_inst_si);
+    d_conj->printSynthSolution(out);
   }
   else
   {
@@ -382,7 +377,7 @@ void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   if (d_conj->isAssigned())
   {
-    d_conj->getSynthSolutions(sol_map, d_last_inst_si);
+    d_conj->getSynthSolutions(sol_map);
   }
 }
 
