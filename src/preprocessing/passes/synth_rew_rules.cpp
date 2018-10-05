@@ -121,15 +121,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         if (childrenValid)
         {
           Trace("synth-rr-prep-debug") << "...children are valid" << std::endl;
-          // for now, ignore Boolean terms
-          if (!cur.getType().isBoolean())
+          Trace("synth-rr-prep-debug") << "Add term " << cur << std::endl;
+          terms.push_back(cur);
+          if (cur.isVar())
           {
-            Trace("synth-rr-prep-debug") << "Add term " << cur << std::endl;
-            terms.push_back(cur);
-            if (cur.isVar())
-            {
-              vars.push_back(cur);
-            }
+            vars.push_back(cur);
           }
           // mark as processed
           cur.setAttribute(srrca, true);
