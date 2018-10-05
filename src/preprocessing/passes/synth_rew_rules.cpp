@@ -51,7 +51,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("synth-rr-prep") << "Synthesize rewrite rules from assertions..."
                          << std::endl;
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
-
+  if( assertions.empty() )
+  {
+    return PreprocessingPassResult::NO_CONFLICT;
+  }
+  
   NodeManager* nm = NodeManager::currentNM();
 
   // attribute to mark processed terms
@@ -348,12 +352,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, iaVar);
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
   // we are "synthesizing" functions for each type of subterm
-  std::vector<Node> synthFuns;
+  std::vector<Node> synthConj;
   unsigned fCounter = 1;
+  theory::SygusSynthGrammarAttribute ssg;
   for (std::pair<const TypeNode, TypeNode> ttp : tlGrammarTypes)
   {
     Node gvar = nm->mkBoundVar("sfproxy", ttp.second);
-    theory::SygusSynthGrammarAttribute ssg;
     TypeNode ft = nm->mkFunctionType(allVarTypes, ttp.first);
     // likewise, it is helpful if these have good names, we choose f1, f2, ...
     std::stringstream ssf;
@@ -363,26 +367,22 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // this marks that the grammar used for solutions for sfun is the type of
     // gvar, which is the sygus datatype type constructed above.
     sfun.setAttribute(ssg, gvar);
-    synthFuns.push_back(sfun);
-  }
-  Node fvarBvl = nm->mkNode(BOUND_VAR_LIST, synthFuns);
+    Node fvarBvl = nm->mkNode(BOUND_VAR_LIST, sfun);
 
-  Node body = nm->mkConst(false);
-  body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
-  Trace("synth-rr-prep") << "got : " << body << std::endl;
+    Node body = nm->mkConst(false);
+    body = nm->mkNode(FORALL, fvarBvl, body, instAttrList);
+    synthConj.push_back(body);
+  }
+  Node trueNode = nm->mkConst(true);
+  Node res = synthConj.empty() ? trueNode : ( synthConj.size()==1 ? synthConj[0] : nm->mkNode( AND, synthConj ) );
+  
+  Trace("synth-rr-prep") << "got : " << res << std::endl;
   Trace("synth-rr-prep") << "...finished." << std::endl;
 
-  Node trueNode = nm->mkConst(true);
-  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
+  assertionsToPreprocess->replace(0, res);
+  for (unsigned i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    if (i == 0)
-    {
-      assertionsToPreprocess->replace(i, body);
-    }
-    else
-    {
-      assertionsToPreprocess->replace(i, trueNode);
-    }
+    assertionsToPreprocess->replace(i, trueNode);
   }
 
   return PreprocessingPassResult::NO_CONFLICT;
