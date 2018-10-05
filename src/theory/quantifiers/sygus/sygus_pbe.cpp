@@ -364,12 +364,12 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     // are not passive
     return Node::null();
   }
-  e = d_tds->getSynthFunForEnumerator(e);
+  Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
+  std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    unsigned nex = d_examples[e].size();
-    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, e, bvr, this, 0, nex);
+    unsigned nex = d_examples[ee].size();
+    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, ee, bvr, this, 0, nex);
     Assert(ret.getType() == bvr.getType());
     return ret;
   }

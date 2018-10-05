@@ -1630,35 +1630,40 @@ void SmtEngine::setDefaults() {
   // Set decision mode based on logic (if not set by user)
   if(!options::decisionMode.wasSetByUser()) {
     decision::DecisionMode decMode =
-      // ALL
-      d_logic.hasEverything() ? decision::DECISION_STRATEGY_JUSTIFICATION :
-      ( // QF_BV
-        (not d_logic.isQuantified() &&
-          d_logic.isPure(THEORY_BV)
-          ) ||
-        // QF_AUFBV or QF_ABV or QF_UFBV
-        (not d_logic.isQuantified() &&
-         (d_logic.isTheoryEnabled(THEORY_ARRAYS) ||
-          d_logic.isTheoryEnabled(THEORY_UF)) &&
-         d_logic.isTheoryEnabled(THEORY_BV)
-         ) ||
-        // QF_AUFLIA (and may be ends up enabling QF_AUFLRA?)
-        (not d_logic.isQuantified() &&
-         d_logic.isTheoryEnabled(THEORY_ARRAYS) &&
-         d_logic.isTheoryEnabled(THEORY_UF) &&
-         d_logic.isTheoryEnabled(THEORY_ARITH)
-         ) ||
-        // QF_LRA
-        (not d_logic.isQuantified() &&
-         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
-         ) ||
-        // Quantifiers
-        d_logic.isQuantified() ||
-        // Strings
-        d_logic.isTheoryEnabled(THEORY_STRINGS)
-        ? decision::DECISION_STRATEGY_JUSTIFICATION
-        : decision::DECISION_STRATEGY_INTERNAL
-      );
+        // sygus uses internal
+        is_sygus ? decision::DECISION_STRATEGY_INTERNAL :
+                 // ALL
+            d_logic.hasEverything()
+                ? decision::DECISION_STRATEGY_JUSTIFICATION
+                : (  // QF_BV
+                      (not d_logic.isQuantified() && d_logic.isPure(THEORY_BV))
+                              ||
+                              // QF_AUFBV or QF_ABV or QF_UFBV
+                              (not d_logic.isQuantified()
+                               && (d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                                   || d_logic.isTheoryEnabled(THEORY_UF))
+                               && d_logic.isTheoryEnabled(THEORY_BV))
+                              ||
+                              // QF_AUFLIA (and may be ends up enabling
+                              // QF_AUFLRA?)
+                              (not d_logic.isQuantified()
+                               && d_logic.isTheoryEnabled(THEORY_ARRAYS)
+                               && d_logic.isTheoryEnabled(THEORY_UF)
+                               && d_logic.isTheoryEnabled(THEORY_ARITH))
+                              ||
+                              // QF_LRA
+                              (not d_logic.isQuantified()
+                               && d_logic.isPure(THEORY_ARITH)
+                               && d_logic.isLinear()
+                               && !d_logic.isDifferenceLogic()
+                               && !d_logic.areIntegersUsed())
+                              ||
+                              // Quantifiers
+                              d_logic.isQuantified() ||
+                              // Strings
+                              d_logic.isTheoryEnabled(THEORY_STRINGS)
+                          ? decision::DECISION_STRATEGY_JUSTIFICATION
+                          : decision::DECISION_STRATEGY_INTERNAL);
 
     bool stoponly =
       // ALL
@@ -1906,13 +1911,11 @@ void SmtEngine::setDefaults() {
   //counterexample-guided instantiation for non-sygus
   // enable if any possible quantifiers with arithmetic, datatypes or bitvectors
   if (d_logic.isQuantified()
-      && ((options::decisionMode() != decision::DECISION_STRATEGY_INTERNAL
-           && (d_logic.isTheoryEnabled(THEORY_ARITH)
-               || d_logic.isTheoryEnabled(THEORY_DATATYPES)
-               || d_logic.isTheoryEnabled(THEORY_BV)
-               || d_logic.isTheoryEnabled(THEORY_FP)))
-          || d_logic.isPure(THEORY_ARITH) || d_logic.isPure(THEORY_BV)
-          || options::cbqiAll()))
+          && (d_logic.isTheoryEnabled(THEORY_ARITH)
+              || d_logic.isTheoryEnabled(THEORY_DATATYPES)
+              || d_logic.isTheoryEnabled(THEORY_BV)
+              || d_logic.isTheoryEnabled(THEORY_FP))
+      || options::cbqiAll())
   {
     if( !options::cbqi.wasSetByUser() ){
       options::cbqi.set( true );
@@ -1953,8 +1956,7 @@ void SmtEngine::setDefaults() {
       options::cbqiNestedQE.set(false);
     }
     // prenexing
-    if (options::cbqiNestedQE()
-        || options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+    if (options::cbqiNestedQE())
     {
       // only complete with prenex = disj_normal or normal
       if (options::prenexQuant() <= quantifiers::PRENEX_QUANT_DISJ_NORMAL)
