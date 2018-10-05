@@ -64,7 +64,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, d_tds, false);
+  d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
   ExprMiner::initialize(vars, ss);
 }
 
