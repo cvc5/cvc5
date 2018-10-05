@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status --decision=justification
 ( set-logic LIA )
 ( synth-fun findIdx  (         ( y1  Int )  ( y2  Int )  ( y3  Int )  ( y4  Int )  ( y5  Int )  ( k1  Int ) )  Int (
   (Start  Int (    NT1
