@@ -81,6 +81,7 @@ macro(cvc4_add_unit_test_white name output_dir)
   cvc4_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
+add_subdirectory(api)
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)

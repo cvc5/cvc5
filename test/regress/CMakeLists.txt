@@ -1520,6 +1520,7 @@ set(regress_1_tests
   regress1/strings/norn-ab.smt2
   regress1/strings/norn-nel-bug-052116.smt2
   regress1/strings/norn-simp-rew-sat.smt2
+  regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
@@ -2093,13 +2094,25 @@ add_custom_target(regress
 macro(cvc4_add_regression_test level file)
   add_test(${file}
     ${run_regress_script}
-    --cmake
     ${RUN_REGRESSION_ARGS}
     ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
-  set_tests_properties(${file} PROPERTIES
-    LABELS "regress${level}"
-    SKIP_RETURN_CODE 77)
+  set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
+
+  # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
+  # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
+  # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
+  # skipped tests as such.
+  if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
+    set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  endif()
 endmacro()
+
+if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
+  # For CMake 3.9.0 and newer, we want the regression script to return 77 for
+  # skipped tests, such that we can mark them as skipped. See the
+  # `cvc4_add_regression_test` macro for more details.
+  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
+endif()
 
 foreach(file ${regress_0_tests})
   cvc4_add_regression_test(0 ${file})
