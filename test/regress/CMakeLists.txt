@@ -1585,6 +1585,7 @@ set(regress_1_tests
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
   regress1/sygus/inv-example.sy
+  regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
