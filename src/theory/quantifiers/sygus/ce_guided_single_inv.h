@@ -58,9 +58,47 @@ public:
   void print( const char* c );
 };
 
+/**
+ * This class is used for inferring that an arbitrary synthesis conjecture
+ * corresponds to an invariant synthesis problem for some predicate (d_func).
+ *
+ * The invariant-to-synthesize can either be explicitly given, via a call
+ * to initialize( f, vars ), or otherwise inferred if this method is not called.
+ */
 class TransitionInference {
-private:
-  bool processDisjunct( Node n, std::map< bool, Node >& terms, std::vector< Node >& disjuncts, std::map< Node, bool >& visited, bool topLevel );
+ private:
+  /** process disjunct
+   *
+   * The purpose of this function is to infer pre/post/transition conditions
+   * for a (possibly unknown) invariant-to-synthesis, given a conjunct from
+   * an arbitrary synthesis conjecture.
+   *
+   * Assume our negated synthesis conjecture is of the form:
+   *    forall f. exists x. (and (or F11 ... F1{m_1}) ... (or Fn1 ... Fn{m_n}))
+   * This method is called on each (or Fi1 ... Fi{m_i}), where topLevel is true
+   * for each of Fi1...F1{m_i} and false otherwise. It adds each of Fi1..Fi{m_i}
+   * to disjuncts.
+   *
+   * If this method returns true, then (1) all applications of free function
+   * symbols have operator d_func. Note this function may set d_func to a
+   * function symbol in n if d_func was null prior to this call. In other words,
+   * this method may infer the subject of the invariant synthesis problem;
+   * (2) all occurrences of d_func are "top-level", that is, each Fij may be
+   * of the form (not) <d_func>( tj ), but otherwise d_func does not occur in
+   * (or Fi1 ... Fi{m_i}); (3) there exists at most one occurrence of
+   * <d_func>( tj ), and (not <d_func>( tk )).
+   *
+   * If the above conditions are met, then terms[true] is set to <d_func>( tj )
+   * if Fij is <d_func>( tj ) for some j, and likewise terms[false]
+   * is set to <d_func>( tk ) if Fik is (not <d_func>( tk )) for some k.
+   *
+   * The argument visited caches the results of this function for (topLevel, n).
+   */
+  bool processDisjunct(Node n,
+                       std::map<bool, Node>& terms,
+                       std::vector<Node>& disjuncts,
+                       std::map<bool, std::map<Node, bool> >& visited,
+                       bool topLevel);
   void getConstantSubstitution( std::vector< Node >& vars, std::vector< Node >& disjuncts, std::vector< Node >& const_var, std::vector< Node >& const_subs, bool reqPol );
   bool d_complete;
   /** get normalized substitution
@@ -89,6 +127,10 @@ private:
   TransitionInference() : d_complete( false ) {}
   std::vector< Node > d_vars;
   std::vector< Node > d_prime_vars;
+  /**
+   * The function (predicate) that is the subject of the invariant synthesis
+   * problem we are inferring.
+   */
   Node d_func;
   
   class Component {
