@@ -63,7 +63,7 @@ public:
  * corresponds to an invariant synthesis problem for some predicate (d_func).
  *
  * The invariant-to-synthesize can either be explicitly given, via a call
- * to initialize( f, ... ), or otherwise inferred if this method is not called.
+ * to initialize( f, vars ), or otherwise inferred if this method is not called.
  */
 class TransitionInference {
  private:
