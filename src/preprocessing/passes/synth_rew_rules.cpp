@@ -163,6 +163,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // these terms. We start by constructing a fixed number of variables per
   // type.
   unsigned nvars = options::sygusRewSynthInputNVars();
+  // must have at least one variable
+  nvars = nvars<1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
@@ -190,9 +192,12 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       cterms.push_back(cn);
       // register type information
       TypeNode tn = n.getType();
-      if (tvars.find(tn) == tvars.end() && ( options::sygusRewSynthInputUseBool() || !tn.isBoolean() ) )
+      if (tvars.find(tn) == tvars.end() )
       {
-        for (unsigned i = 0; i < nvars; i++)
+        // Only make one Boolean variable unless option is set. This ensures
+        // we do not compute purely Boolean rewrites by default.
+        unsigned useNVars = ( options::sygusRewSynthInputUseBool() || !tn.isBoolean() ) ?  nvars : 1;
+        for (unsigned i = 0; i < useNVars; i++)
         {
           // We must have a good name for these variables, these are
           // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
