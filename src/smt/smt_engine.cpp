@@ -2155,6 +2155,31 @@ void SmtEngine::setDefaults() {
         << endl;
     options::bvLazyRewriteExtf.set(false);
   }
+
+
+  if (options::skeletonPreprocessing()
+      &&  options::arithMLTrick())
+  {
+    if (options::skeletonPreprocessing.wasSetByUser()
+        && options::arithMLTrick.wasSetByUser())
+    {
+      throw OptionException(std::string(
+          "Cannot use MipLibTrick when using cryptominisat instead of circuit"
+          "propagators. Try turn off --skeleton-preprocessing"));
+    }
+    else if (options::skeletonPreprocessing.wasSetByUser()){
+          setOption("skeleton-preprocessing", false);
+    }
+    else if (options::arithMLTrick.wasSetByUser()){
+          setOption("miplib-trick", false);
+    }
+  }
+  if (options::skeletonPreprocessing() && !Configuration::isBuiltWithCryptominisat()){
+    throw OptionException(std::string(
+        "Cryptominisat is not installed but is required by"
+        " --skeleton-preprocessing. Try install Cryptominisat by"
+        "./contrib/get-cryptominisat or turn off --skeleton-preprocessing"));
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
@@ -2764,8 +2789,11 @@ bool SmtEnginePrivate::simplifyAssertions()
 
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
-      if (  // check that option is on
-          options::arithMLTrick() &&
+      if (
+          // Not using cryptominisat to preprocess
+          !options::skeletonPreprocessing() &&
+          // check that option is on
+            options::arithMLTrick() &&
           // miplib rewrites aren't safe in incremental mode
           !options::incrementalSolving() &&
           // only useful in arith

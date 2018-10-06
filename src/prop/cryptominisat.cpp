@@ -58,6 +58,16 @@ void toInternalClause(SatClause& clause,
   Assert(clause.size() == internal_clause.size());
 }
 
+SatLiteral toSatLiteral(CMSat::Lit lit)
+{
+  if (lit == CMSat::lit_Undef)
+  {
+    return undefSatLiteral;
+  }
+
+  return SatLiteral(lit.var(), lit.sign());
+}
+
 }  // helper functions
 
 CryptoMinisatSolver::CryptoMinisatSolver(StatisticsRegistry* registry,
@@ -176,6 +186,11 @@ SatValue CryptoMinisatSolver::solve(const std::vector<SatLiteral>& assumptions)
   return toSatLiteralValue(d_solver->solve(&assumpts));
 }
 
+SatValue CryptoMinisatSolver::simplify()
+{
+  return toSatLiteralValue(d_solver->simplify());
+}
+  
 SatValue CryptoMinisatSolver::value(SatLiteral l){
   const std::vector<CMSat::lbool> model = d_solver->get_model();
   CMSatVar var = l.getSatVariable();
@@ -190,7 +205,18 @@ SatValue CryptoMinisatSolver::modelValue(SatLiteral l){
 
 unsigned CryptoMinisatSolver::getAssertionLevel() const {
   Unreachable("No interface to get assertion level in Cryptominisat");
-  return -1; 
+}
+
+std::vector<SatLiteral> CryptoMinisatSolver::getTopLevelUnits(){
+  std::vector<SatLiteral> satLits;
+  for (const auto& lit : d_solver->get_zero_assigned_lits()){
+    if (lit.var() != d_false && lit.var() != d_true)
+    {
+      // Filtering out d_true and d_false
+      satLits.push_back(toSatLiteral(lit));
+    }
+  }
+  return satLits;
 }
 
 // Satistics for CryptoMinisatSolver

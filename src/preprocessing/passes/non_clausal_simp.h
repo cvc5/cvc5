@@ -40,6 +40,7 @@ class NonClausalSimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_numConstantProps;
+    TimerStat d_cnfTranslateTime;
     Statistics();
     ~Statistics();
   };
@@ -48,6 +49,29 @@ class NonClausalSimp : public PreprocessingPass
 
   /** Learned literals */
   std::vector<Node> d_nonClausalLearnedLiterals;
+
+
+  /**
+   * Preprocess the boolean skeleton using CryptoMinisat.
+   * @param assertionsToPreprocess top level assertions
+   * @param substs_index  the substitution index in the current context
+   * @return whether the boolean skeleton is not satisfiable and the
+   *   learned unit clauses
+   */
+std::pair<bool, std::vector<Node>> preprocessByCryptoMinisat(
+      AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
+
+
+  /**
+   * Preprocess the boolean skeleton using Circuit Propagator.
+   * @param assertionsToPreprocess top level assertions
+   * @param substs_index  the substitution index in the current context
+   * @return whether the boolean skeleton is not satisfiable and the
+   *   learned unit clauses
+   */
+  std::pair<bool, std::vector<Node>> preprocessByCircuitPropagator(
+      AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
+
 };
 
 }  // namespace passes
