@@ -82,3 +82,24 @@ header = "options/prop_options.h"
   default    = "false"
   read_only  = true
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"
+
+[[option]]
+  name       = "lrb"
+  category   = "regular"
+  long       = "learned-rate-based"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use learning-rate-based branching heuristics instead of vsids"
+
+
+[[option]]
+  name       = "lbd"
+  category   = "regular"
+  long       = "literal-block-distance"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use literal-block-distance based aggressive conflict clauses deletion"
+
+
