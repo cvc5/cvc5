@@ -94,7 +94,7 @@ class SynthConjecture
   /**
    * Prints the synthesis solution to output stream out. This invokes solution
    * reconstruction if the conjecture is single invocation. Otherwise, it
-   * returns the enumer
+   * returns the solution found by sygus enumeration.
    */
   void printSynthSolution(std::ostream& out);
   /** get synth solutions
