@@ -843,7 +843,7 @@ void SynthConjecture::printAndContinueStream()
   // get the current output stream
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-  printSynthSolution(*nodeManagerOptions.getOut(), false);
+  printSynthSolution(*nodeManagerOptions.getOut());
 
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
@@ -882,14 +882,13 @@ void SynthConjecture::printAndContinueStream()
   }
 }
 
-void SynthConjecture::printSynthSolution(std::ostream& out,
-                                         bool singleInvocation)
+void SynthConjecture::printSynthSolution(std::ostream& out)
 {
   Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
   std::vector<int> statuses;
-  if (!getSynthSolutionsInternal(sols, statuses, singleInvocation))
+  if (!getSynthSolutionsInternal(sols, statuses))
   {
     return;
   }
@@ -963,13 +962,12 @@ void SynthConjecture::printSynthSolution(std::ostream& out,
   }
 }
 
-void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
-                                        bool singleInvocation)
+void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sols;
   std::vector<int> statuses;
-  if (!getSynthSolutionsInternal(sols, statuses, singleInvocation))
+  if (!getSynthSolutionsInternal(sols, statuses))
   {
     return;
   }
@@ -1000,8 +998,7 @@ void SynthConjecture::getSynthSolutions(std::map<Node, Node>& sol_map,
 }
 
 bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
-                                                std::vector<int>& statuses,
-                                                bool singleInvocation)
+                                                std::vector<int>& statuses)
 {
   for (unsigned i = 0, size = d_embed_quant[0].getNumChildren(); i < size; i++)
   {
@@ -1012,7 +1009,7 @@ bool SynthConjecture::getSynthSolutionsInternal(std::vector<Node>& sols,
     // get the solution
     Node sol;
     int status = -1;
-    if (singleInvocation)
+    if (isSingleInvocation())
     {
       Assert(d_ceg_si != NULL);
       sol = d_ceg_si->getSolution(i, tn, status, true);
