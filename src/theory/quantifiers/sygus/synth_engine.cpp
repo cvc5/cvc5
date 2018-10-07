@@ -34,10 +34,11 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
-  d_conj = new SynthConjecture(qe);
+  d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conj = d_conjs.back().get();
 }
 
-SynthEngine::~SynthEngine() { delete d_conj; }
+SynthEngine::~SynthEngine() {}
 
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
@@ -58,51 +59,58 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   }
 
   // if we are waiting to assign the conjecture, do it now
+  bool assigned = !d_waiting_conj.empty();
   while (!d_waiting_conj.empty())
   {
     Node q = d_waiting_conj.back();
     d_waiting_conj.pop_back();
     Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q
                           << std::endl;
-    if (!d_conj->isAssigned())
-    {
-      assignConjecture(q);
-      // assign conjecture always uses the output channel, we return and
-      // re-check here.
-      return;
-    }
+    assignConjecture(q);
+  }
+  if( assigned )
+  {
+    // assign conjecture always uses the output channel, we return and
+    // re-check here.
+    return;
   }
 
   Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---"
                         << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
-  bool active = false;
-  bool value;
-  if (d_quantEngine->getValuation().hasSatValue(d_conj->getConjecture(), value))
+  Valuation& valuation = d_quantEngine->getValuation();
+  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
   {
-    active = value;
-  }
-  else
-  {
+    SynthConjecture * sc = d_conjs[i].get();
+    bool active = false;
+    bool value;
+    if (valuation.hasSatValue(sc->getConjecture(), value))
+    {
+      active = value;
+    }
+    else
+    {
+      Trace("cegqi-engine-debug")
+          << "...no value for quantified formula." << std::endl;
+    }
     Trace("cegqi-engine-debug")
-        << "...no value for quantified formula." << std::endl;
-  }
-  Trace("cegqi-engine-debug")
-      << "Current conjecture status : active : " << active << std::endl;
-  if (active && d_conj->needsCheck())
-  {
-    checkConjecture(d_conj);
+        << "Current conjecture status : active : " << active << std::endl;
+    if (active && sc->needsCheck())
+    {
+      checkConjecture(sc);
+    }
   }
   Trace("cegqi-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
-bool SynthEngine::assignConjecture(Node q)
+void SynthEngine::assignConjecture(Node q)
 {
-  if (d_conj->isAssigned())
+  if( d_conjs.back()->isAssigned() )
   {
-    return false;
+    d_conjs.push_back( std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine) ));
   }
+  SynthConjecture * sc = d_conjs.back().get();
   Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
@@ -221,33 +229,25 @@ bool SynthEngine::assignConjecture(Node q)
                            << std::endl;
       d_quantEngine->getOutputChannel().lemma(lem);
       // we've reduced the original to a preprocessed version, return
-      return false;
+      return;
     }
   }
-  d_conj->assign(q);
-  return true;
+  sc->assign(q);
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
   if (d_quantEngine->getOwner(q) == this)
   {
-    if (!d_conj->isAssigned())
+    Trace("cegqi") << "Register conjecture : " << q << std::endl;
+    if (options::sygusQePreproc())
     {
-      Trace("cegqi") << "Register conjecture : " << q << std::endl;
-      if (options::sygusQePreproc())
-      {
-        d_waiting_conj.push_back( q );
-      }
-      else
-      {
-        // assign it now
-        assignConjecture(q);
-      }
+      d_waiting_conj.push_back( q );
     }
     else
     {
-      Assert(d_conj->getEmbeddedConjecture() == q);
+      // assign it now
+      assignConjecture(q);
     }
   }
   else
@@ -363,21 +363,24 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
 
 void SynthEngine::printSynthSolution(std::ostream& out)
 {
-  if (d_conj->isAssigned())
+  Assert( !d_conjs.empty() );
+  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
   {
-    d_conj->printSynthSolution(out);
-  }
-  else
-  {
-    Assert(false);
+    if( d_conjs[i]->isAssigned() )
+    {
+      d_conjs[i]->printSynthSolution(out);
+    }
   }
 }
 
 void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  if (d_conj->isAssigned())
+  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
   {
-    d_conj->getSynthSolutions(sol_map);
+    if( d_conjs[i]->isAssigned() )
+    {
+      d_conjs[i]->getSynthSolutions(sol_map);
+    }
   }
 }
 

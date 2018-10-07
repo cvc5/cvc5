@@ -49,7 +49,7 @@ class SynthEngine : public QuantifiersModule
    * q <=> r). An example of this is the quantifier elimination step
    * option::sygusQePreproc().
    */
-  bool assignConjecture(Node q);
+  void assignConjecture(Node q);
   /** check conjecture */
   void checkConjecture(SynthConjecture* conj);
 
