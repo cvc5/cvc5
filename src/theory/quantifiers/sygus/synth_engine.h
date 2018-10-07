@@ -32,14 +32,14 @@ class SynthEngine : public QuantifiersModule
 
  private:
   /** the conjecture(s) we are waiting to assign */
-  std::vector< Node > d_waiting_conj;
+  std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */
   std::vector<std::unique_ptr<SynthConjecture> > d_conjs;
-  /** 
+  /**
    * The first conjecture in the above vector, or NULL if the above vector is
-   * empty. 
+   * empty.
    */
-  SynthConjecture * d_conj;
+  SynthConjecture* d_conj;
   /** assign quantified formula q as the conjecture
    *
    * This method returns true if q was successfully assigned as the synthesis

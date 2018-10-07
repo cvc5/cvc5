@@ -51,11 +51,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("synth-rr-prep") << "Synthesize rewrite rules from assertions..."
                          << std::endl;
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
-  if( assertions.empty() )
+  if (assertions.empty())
   {
     return PreprocessingPassResult::NO_CONFLICT;
   }
-  
+
   NodeManager* nm = NodeManager::currentNM();
 
   // attribute to mark processed terms
@@ -84,8 +84,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       // if already processed, ignore
       if (cur.getAttribute(SynthRrComputedAttribute()))
       {
-        Trace("synth-rr-prep-debug")
-            << "...already processed " << cur << std::endl;
+        Trace("synth-rr-prep-debug") << "...already processed " << cur
+                                     << std::endl;
       }
       else if (it == visited.end())
       {
@@ -164,7 +164,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // type.
   unsigned nvars = options::sygusRewSynthInputNVars();
   // must have at least one variable
-  nvars = nvars<1 ? 1 : nvars;
+  nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
@@ -183,8 +183,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node n = terms[i];
     Node cn = tcanon.getCanonicalTerm(n);
     term_to_cterm[n] = cn;
-    Trace("synth-rr-prep-debug")
-        << "Canon : " << n << " -> " << cn << std::endl;
+    Trace("synth-rr-prep-debug") << "Canon : " << n << " -> " << cn
+                                 << std::endl;
     std::map<Node, Node>::iterator itc = cterm_to_term.find(cn);
     if (itc == cterm_to_term.end())
     {
@@ -192,11 +192,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       cterms.push_back(cn);
       // register type information
       TypeNode tn = n.getType();
-      if (tvars.find(tn) == tvars.end() )
+      if (tvars.find(tn) == tvars.end())
       {
         // Only make one Boolean variable unless option is set. This ensures
         // we do not compute purely Boolean rewrites by default.
-        unsigned useNVars = ( options::sygusRewSynthInputUseBool() || !tn.isBoolean() ) ?  nvars : 1;
+        unsigned useNVars =
+            (options::sygusRewSynthInputUseBool() || !tn.isBoolean()) ? nvars
+                                                                      : 1;
         for (unsigned i = 0; i < useNVars; i++)
         {
           // We must have a good name for these variables, these are
@@ -329,10 +331,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                                ssc.str(),
                                argList,
                                printer::SygusEmptyPrintCallback::getEmptyPC());
-      Trace("synth-rr-prep-debug")
-          << "Grammar for subterm " << n << " is: " << std::endl;
-      Trace("synth-rr-prep-debug")
-          << subtermTypes[n].getDatatype() << std::endl;
+      Trace("synth-rr-prep-debug") << "Grammar for subterm " << n
+                                   << " is: " << std::endl;
+      Trace("synth-rr-prep-debug") << subtermTypes[n].getDatatype()
+                                   << std::endl;
     }
     // set that this is a sygus datatype
     dttl.setSygus(t.toType(), sygusVarListE, false, false);
@@ -375,8 +377,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     synthConj.push_back(body);
   }
   Node trueNode = nm->mkConst(true);
-  Node res = synthConj.empty() ? trueNode : ( synthConj.size()==1 ? synthConj[0] : nm->mkNode( AND, synthConj ) );
-  
+  Node res =
+      synthConj.empty()
+          ? trueNode
+          : (synthConj.size() == 1 ? synthConj[0] : nm->mkNode(AND, synthConj));
+
   Trace("synth-rr-prep") << "got : " << res << std::endl;
   Trace("synth-rr-prep") << "...finished." << std::endl;
 

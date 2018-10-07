@@ -134,7 +134,7 @@ Node CegGrammarConstructor::process(Node q,
     Node sfvl;
     if (preGrammarType.isDatatype() && preGrammarType.getDatatype().isSygus())
     {
-      sfvl = Node::fromExpr( preGrammarType.getDatatype().getSygusVarList() );
+      sfvl = Node::fromExpr(preGrammarType.getDatatype().getSygusVarList());
       tn = preGrammarType;
     }else{
       sfvl = getSygusVarList(sf);
@@ -154,7 +154,8 @@ Node CegGrammarConstructor::process(Node q,
           preGrammarType, sfvl, ss.str(), extra_cons, exc_cons, term_irlv);
     }
     // sfvl may be null for constant synthesis functions
-    Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
+    Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
+                         << sfvl << std::endl;
 
     // normalize type
     SygusGrammarNorm sygus_norm(d_qe);

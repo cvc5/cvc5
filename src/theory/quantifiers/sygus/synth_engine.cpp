@@ -34,12 +34,12 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
-  d_conjs.push_back(std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conjs.push_back(
+      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
   d_conj = d_conjs.back().get();
 }
 
 SynthEngine::~SynthEngine() {}
-
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
@@ -68,7 +68,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
                           << std::endl;
     assignConjecture(q);
   }
-  if( assigned )
+  if (assigned)
   {
     // assign conjecture always uses the output channel, we return and
     // re-check here.
@@ -79,9 +79,9 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
                         << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
   Valuation& valuation = d_quantEngine->getValuation();
-  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    SynthConjecture * sc = d_conjs[i].get();
+    SynthConjecture* sc = d_conjs[i].get();
     bool active = false;
     bool value;
     if (valuation.hasSatValue(sc->getConjecture(), value))
@@ -90,8 +90,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
     else
     {
-      Trace("cegqi-engine-debug")
-          << "...no value for quantified formula." << std::endl;
+      Trace("cegqi-engine-debug") << "...no value for quantified formula."
+                                  << std::endl;
     }
     Trace("cegqi-engine-debug")
         << "Current conjecture status : active : " << active << std::endl;
@@ -106,11 +106,12 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 
 void SynthEngine::assignConjecture(Node q)
 {
-  if( d_conjs.back()->isAssigned() )
+  if (d_conjs.back()->isAssigned())
   {
-    d_conjs.push_back( std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine) ));
+    d_conjs.push_back(
+        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
   }
-  SynthConjecture * sc = d_conjs.back().get();
+  SynthConjecture* sc = d_conjs.back().get();
   Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
@@ -242,7 +243,7 @@ void SynthEngine::registerQuantifier(Node q)
     Trace("cegqi") << "Register conjecture : " << q << std::endl;
     if (options::sygusQePreproc())
     {
-      d_waiting_conj.push_back( q );
+      d_waiting_conj.push_back(q);
     }
     else
     {
@@ -363,10 +364,10 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
 
 void SynthEngine::printSynthSolution(std::ostream& out)
 {
-  Assert( !d_conjs.empty() );
-  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
+  Assert(!d_conjs.empty());
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    if( d_conjs[i]->isAssigned() )
+    if (d_conjs[i]->isAssigned())
     {
       d_conjs[i]->printSynthSolution(out);
     }
@@ -375,9 +376,9 @@ void SynthEngine::printSynthSolution(std::ostream& out)
 
 void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  for( unsigned i=0, size = d_conjs.size(); i<size; i++ )
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    if( d_conjs[i]->isAssigned() )
+    if (d_conjs[i]->isAssigned())
     {
       d_conjs[i]->getSynthSolutions(sol_map);
     }
