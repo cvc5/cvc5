@@ -106,12 +106,6 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 
 void SynthEngine::assignConjecture(Node q)
 {
-  if (d_conjs.back()->isAssigned())
-  {
-    d_conjs.push_back(
-        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
-  }
-  SynthConjecture* sc = d_conjs.back().get();
   Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
@@ -233,7 +227,13 @@ void SynthEngine::assignConjecture(Node q)
       return;
     }
   }
-  sc->assign(q);
+  // allocate a new synthesis conjecture if not assigned
+  if (d_conjs.back()->isAssigned())
+  {
+    d_conjs.push_back(
+        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  }
+  d_conjs.back()->assign(q);
 }
 
 void SynthEngine::registerQuantifier(Node q)

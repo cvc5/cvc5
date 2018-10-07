@@ -31,23 +31,23 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  private:
-  /** the conjecture(s) we are waiting to assign */
+  /** the conjecture formula(s) we are waiting to assign */
   std::vector<Node> d_waiting_conj;
   /** The synthesis conjectures that this class is managing. */
   std::vector<std::unique_ptr<SynthConjecture> > d_conjs;
   /**
-   * The first conjecture in the above vector, or NULL if the above vector is
-   * empty.
+   * The first conjecture in the above vector. We track this conjecture
+   * so that a synthesis conjecture can be preregistered during a call to
+   * preregisterAssertion.
    */
   SynthConjecture* d_conj;
-  /** assign quantified formula q as the conjecture
+  /** assign quantified formula q as a conjecture
    *
-   * This method returns true if q was successfully assigned as the synthesis
-   * conjecture considered by this class. This method may return false, for
-   * instance, if this class determines that it would rather rewrite q to
-   * an equivalent form r (in which case this method returns the lemma
-   * q <=> r). An example of this is the quantifier elimination step
-   * option::sygusQePreproc().
+   * This method either assigns q to a synthesis conjecture object in d_conjs,
+   * or otherwise reduces q to an equivalent form. This method does the latter
+   * if this class determines that it would rather rewrite q to an equivalent
+   * form r (in which case this method returns the lemma q <=> r). An example of
+   * this is the quantifier elimination step option::sygusQePreproc().
    */
   void assignConjecture(Node q);
   /** check conjecture */
