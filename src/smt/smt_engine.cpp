@@ -1211,6 +1211,8 @@ void SmtEngine::setDefaults() {
   if (options::sygusInference() || options::sygusRewSynthInput())
   {
     d_logic = d_logic.getUnlockedCopy();
+    // sygus requires arithmetic, datatypes and quantifiers
+    d_logic.enableTheory(THEORY_ARITH);
     d_logic.enableTheory(THEORY_DATATYPES);
     d_logic.enableTheory(THEORY_QUANTIFIERS);
     d_logic.lock();

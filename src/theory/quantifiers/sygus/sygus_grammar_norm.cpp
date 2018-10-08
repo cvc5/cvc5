@@ -158,12 +158,16 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Node sygus_op = Node::fromExpr(cons.getSygusOp());
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
-  Node exp_sop_n = Node::fromExpr(
-      smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
-  // if it is a builtin operator, convert to total version if necessary
-  if (exp_sop_n.getKind() == kind::BUILTIN)
+  Node exp_sop_n = sygus_op;
+  if( !sygus_op.isConst() )
   {
-    Kind ok = NodeManager::operatorToKind(sygus_op);
+    exp_sop_n = Node::fromExpr(
+            smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
+  }
+  Kind ok = NodeManager::operatorToKind(exp_sop_n);
+  // if it is a builtin operator, convert to total version if necessary
+  if (ok != UNDEFINED_KIND)
+  {
     Kind nk = getEliminateKind(ok);
     if (nk != ok)
     {
