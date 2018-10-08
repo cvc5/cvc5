@@ -266,9 +266,9 @@ void TheoryStrings::addSharedTerm(TNode t) {
   Debug("strings") << "TheoryStrings::addSharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
-  if( options::stringExp() )
+  if (options::stringExp())
   {
-    getExtTheory()->registerTermRec( t );
+    getExtTheory()->registerTermRec(t);
   }
   Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
 }
