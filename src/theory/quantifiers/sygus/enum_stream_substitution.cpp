@@ -191,9 +191,10 @@ Node EnumStreamPermutation::getNext()
     {
       bultin_perm_value =
           d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
-    }
     Trace("synth-stream-concrete-debug")
-        << " and rewrites to " << bultin_perm_value << "\n";
+        << " and rewrites to " << bultin_perm_value;
+    }
+    Trace("synth-stream-concrete-debug") << "\n";
     // if permuted value is equivalent modulo rewriting to a previous one, look
     // for another
   } while (!d_perm_values.insert(bultin_perm_value).second);
