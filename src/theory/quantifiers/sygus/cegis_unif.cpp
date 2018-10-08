@@ -104,19 +104,6 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
         std::vector<Node> uenums;
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(e, uenums, index);
-        if (index == 1 && options::sygusUnifCondIndependent())
-        {
-          Assert(uenums.size() == 1);
-          Node eu = uenums[0];
-          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
-          // If active guard for this enumerator is not true, there are no more
-          // values for it, and hence we ignore it
-          Node gstatus = valuation.getSatValue(g);
-          if (gstatus.isNull() || !gstatus.getConst<bool>())
-          {
-            continue;
-          }
-        }
         // get the model value of each enumerator
         enums.insert(enums.end(), uenums.begin(), uenums.end());
       }
@@ -264,7 +251,7 @@ void CegisUnif::setConditions(
         Assert(!itv->second.empty());
         if (d_tds->isPassiveEnumerator(eu))
         {
-          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
+          Node g = d_tds->getActiveGuardForEnumerator(eu);
           Node exp_exc = d_tds->getExplain()
                              ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
@@ -563,7 +550,6 @@ void CegisUnifEnumDecisionStrategy::initialize(
     {
       Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
-      d_enum_to_active_guard[ceu] = d_tds->getActiveGuardForEnumerator(ceu);
     }
   }
 }
@@ -590,12 +576,6 @@ void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(
               itc->second.d_enums[index].begin(),
               itc->second.d_enums[index].begin() + num_enums);
   }
-}
-
-Node CegisUnifEnumDecisionStrategy::getActiveGuardForEnumerator(Node e)
-{
-  Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-  return d_enum_to_active_guard[e];
 }
 
 void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,

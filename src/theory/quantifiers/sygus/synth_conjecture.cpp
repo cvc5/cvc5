@@ -662,10 +662,24 @@ void SynthConjecture::preregisterConjecture(Node q)
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
                                           std::vector<Node>& v)
 {
+  std::vector< Node > ncheck = n;
+  n.clear();
   bool ret = true;
-  for (unsigned i = 0; i < n.size(); i++)
+  for (unsigned i = 0; i < ncheck.size(); i++)
   {
-    Node nv = getEnumeratedValue(n[i]);
+    Node e = ncheck[i];
+    // if it is not active, we return null
+    Node g = d_tds->getActiveGuardForEnumerator(e);
+    if (!g.isNull())
+    {
+      Node gstatus = d_qe->getValuation().getSatValue(g);
+      if (gstatus.isNull() || !gstatus.getConst<bool>())
+      {
+        continue;
+      }
+    }
+    Node nv = getEnumeratedValue(e);
+    n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
   }
@@ -681,11 +695,12 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // return null.
     return Node::null();
   }
-
+  
   if (!d_tds->isEnumerator(e) || d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
   }
+  
   // management of actively generated enumerators goes here
 
   // initialize the enumerated value generator for e
