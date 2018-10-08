@@ -266,6 +266,10 @@ void TheoryStrings::addSharedTerm(TNode t) {
   Debug("strings") << "TheoryStrings::addSharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
+  if( options::stringExp() )
+  {
+    getExtTheory()->registerTermRec( t );
+  }
   Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
 }
 
@@ -850,11 +854,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
-          if( options::stringExp() ){
-            //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
-            //  but we need to record them so they are treated properly
-            getExtTheory()->registerTermRec( n );
-          }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
         if (n.hasOperator() && kindToTheoryId(k) == THEORY_STRINGS
