@@ -509,8 +509,11 @@ Node EnumStreamSubstitution::getNext()
       domain_sub.begin(), domain_sub.end(), range_sub.begin(), range_sub.end());
   // the new combination value should be fresh, modulo rewriting, by
   // construction (unless it's equiv to a constant, e.g. true / false)
-  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
-      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
+  Node builtin_comb_value = d_tds->sygusToBuiltin(comb_value, comb_value.getType());
+  if (options::sygusSymBreakDynamic())
+  {
+    builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(builtin_comb_value);
+  }
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
