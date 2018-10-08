@@ -306,7 +306,7 @@ bool BvInstantiator::processAssertions(CegInstantiator* ci,
   // this helps robustness, since picking the same literal every time may
   // lead to a stream of value instantiations, whereas with randomization
   // we may find an invertible literal that leads to a useful instantiation.
-  std::random_shuffle(iti->second.begin(), iti->second.end());
+  std::shuffle(iti->second.begin(), iti->second.end(), Random::getRandom());
 
   if (Trace.isOn("cegqi-bv"))
   {
