@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -187,7 +188,7 @@ Node EnumStreamPermutation::getNext()
     bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm builtin is " << bultin_perm_value;
-    if (options::options::sygusSymBreakDynamic())
+    if (options::sygusSymBreakDynamic())
     {
       bultin_perm_value =
           d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
