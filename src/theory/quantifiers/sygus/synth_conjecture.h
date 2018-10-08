@@ -182,7 +182,7 @@ class SynthConjecture
   /**
    * Get model values for terms n, store in vector v. This method returns true
    * if and only if all values added to v are non-null.
-   * 
+   *
    * It removes terms from n that correspond to "inactive" enumerators, that
    * is, enumerators whose values have been exhausted.
    */

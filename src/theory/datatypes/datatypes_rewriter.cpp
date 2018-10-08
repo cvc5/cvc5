@@ -244,8 +244,8 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
     Trace("dt-sygus-util") << "...return (builtin) " << ret << std::endl;
     return ret;
   }
-  Kind ok = NodeManager::operatorToKind( op );
-  if( ok != UNDEFINED_KIND)
+  Kind ok = NodeManager::operatorToKind(op);
+  if (ok != UNDEFINED_KIND)
   {
     ret = NodeManager::currentNM()->mkNode(ok, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;

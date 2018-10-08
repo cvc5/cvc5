@@ -401,7 +401,7 @@ void SygusPbe::getTermList(const std::vector<Node>& candidates,
         d_candidate_to_enum.find(v);
     if (it != d_candidate_to_enum.end())
     {
-      terms.insert(terms.end(),it->second.begin(),it->second.end());
+      terms.insert(terms.end(), it->second.begin(), it->second.end());
     }
   }
 }
@@ -476,7 +476,7 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       {
         // the lemmas must be guarded by the active guard of the enumerator
         Node g = d_tds->getActiveGuardForEnumerator(e);
-        Assert( !g.isNull() );
+        Assert(!g.isNull());
         for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
         {
           enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);

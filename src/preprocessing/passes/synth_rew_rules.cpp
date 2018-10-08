@@ -84,8 +84,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       // if already processed, ignore
       if (cur.getAttribute(SynthRrComputedAttribute()))
       {
-        Trace("synth-rr-prep-debug") << "...already processed " << cur
-                                     << std::endl;
+        Trace("synth-rr-prep-debug")
+            << "...already processed " << cur << std::endl;
       }
       else if (it == visited.end())
       {
@@ -183,8 +183,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node n = terms[i];
     Node cn = tcanon.getCanonicalTerm(n);
     term_to_cterm[n] = cn;
-    Trace("synth-rr-prep-debug") << "Canon : " << n << " -> " << cn
-                                 << std::endl;
+    Trace("synth-rr-prep-debug")
+        << "Canon : " << n << " -> " << cn << std::endl;
     std::map<Node, Node>::iterator itc = cterm_to_term.find(cn);
     if (itc == cterm_to_term.end())
     {
@@ -331,10 +331,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                                ssc.str(),
                                argList,
                                printer::SygusEmptyPrintCallback::getEmptyPC());
-      Trace("synth-rr-prep-debug") << "Grammar for subterm " << n
-                                   << " is: " << std::endl;
-      Trace("synth-rr-prep-debug") << subtermTypes[n].getDatatype()
-                                   << std::endl;
+      Trace("synth-rr-prep-debug")
+          << "Grammar for subterm " << n << " is: " << std::endl;
+      Trace("synth-rr-prep-debug")
+          << subtermTypes[n].getDatatype() << std::endl;
     }
     // set that this is a sygus datatype
     dttl.setSygus(t.toType(), sygusVarListE, false, false);

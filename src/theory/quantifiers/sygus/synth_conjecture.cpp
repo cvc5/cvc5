@@ -662,7 +662,7 @@ void SynthConjecture::preregisterConjecture(Node q)
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
                                           std::vector<Node>& v)
 {
-  std::vector< Node > ncheck = n;
+  std::vector<Node> ncheck = n;
   n.clear();
   bool ret = true;
   for (unsigned i = 0; i < ncheck.size(); i++)
@@ -695,12 +695,12 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // return null.
     return Node::null();
   }
-  
+
   if (!d_tds->isEnumerator(e) || d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
   }
-  
+
   // management of actively generated enumerators goes here
 
   // initialize the enumerated value generator for e

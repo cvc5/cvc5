@@ -91,7 +91,7 @@ class SygusModule
    * In particular, notice that terms do not include inactive enumerators,
    * thus if inactive enumerators were added to getTermList, then the terms
    * list passed to this call will be a (strict) subset of that list.
-   * 
+   *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions
    * to the synthesis conjecture in question. This candidate { v } will then be

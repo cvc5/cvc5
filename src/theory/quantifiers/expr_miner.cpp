@@ -97,9 +97,10 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     catch (const CVC4::ExportUnsupportedException& e)
     {
       std::stringstream msg;
-      msg << "Unable to export " << squery << " but exporting expressions is "
-                                              "required for an expression "
-                                              "miner check.";
+      msg << "Unable to export " << squery
+          << " but exporting expressions is "
+             "required for an expression "
+             "miner check.";
       throw OptionException(msg.str());
     }
     needExport = true;

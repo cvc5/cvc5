@@ -90,8 +90,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
     else
     {
-      Trace("cegqi-engine-debug") << "...no value for quantified formula."
-                                  << std::endl;
+      Trace("cegqi-engine-debug")
+          << "...no value for quantified formula." << std::endl;
     }
     Trace("cegqi-engine-debug")
         << "Current conjecture status : active : " << active << std::endl;

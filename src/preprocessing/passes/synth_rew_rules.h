@@ -26,7 +26,7 @@ namespace passes {
 /**
  * This class rewrites the input assertions into a sygus conjecture over a
  * grammar whose terms are "abstractions" of the subterms of
- * assertionsToPreprocess. In detail, assume our input was 
+ * assertionsToPreprocess. In detail, assume our input was
  *    bvadd( bvshlr( bvadd( a, 4 ), 1 ), b ) = 1
  * This class constructs this grammar:
  *    A -> T1 | T2 | T3 | T4 | Tv
@@ -39,7 +39,7 @@ namespace passes {
  * Notice that this grammar generates all subterms of the input where leaves
  * are replaced by the variables x and/or y (the number of variables allocated
  * by this class is configurable via sygus-rr-synth-input-nvars).
- * 
+ *
  * It then rewrites the input into the negated sygus conjecture
  *   forall x : ( BV_n x BV_n ) -> BV_n. false
  * where x has the sygus grammar restriction A from above. This conjecture can

@@ -159,10 +159,10 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
   Node exp_sop_n = sygus_op;
-  if( !sygus_op.isConst() )
+  if (!sygus_op.isConst())
   {
     exp_sop_n = Node::fromExpr(
-            smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
+        smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
   }
   Kind ok = NodeManager::operatorToKind(exp_sop_n);
   // if it is a builtin operator, convert to total version if necessary
