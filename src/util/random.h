@@ -26,7 +26,7 @@ namespace CVC4 {
 class Random
 {
  public:
-  typedef uint64_t result_type;
+  using result_type = uint64_t;
 
   /** Constructor. */
   Random(uint64_t seed);
