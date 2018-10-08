@@ -187,8 +187,11 @@ Node EnumStreamPermutation::getNext()
     bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm builtin is " << bultin_perm_value;
-    bultin_perm_value =
-        d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
+    if( options::options::sygusSymBreakDynamic() )
+    {
+      bultin_perm_value =
+          d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
+    }
     Trace("synth-stream-concrete-debug")
         << " and rewrites to " << bultin_perm_value << "\n";
     // if permuted value is equivalent modulo rewriting to a previous one, look
