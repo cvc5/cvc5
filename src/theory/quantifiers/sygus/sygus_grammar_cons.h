@@ -108,11 +108,12 @@ public:
    * functions-to-synthesize of sygus conjecture q.
    */
   static bool hasSyntaxRestrictions(Node q);
-  /** 
+  /**
    * Make the builtin constants for type type that should be included in a sygus
    * grammar, add them to vector ops.
    */
   static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;

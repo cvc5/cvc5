@@ -20,8 +20,8 @@
 #include "printer/printer.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_util.h"
 
@@ -57,7 +57,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<Node> terms;
   // all variables
   std::vector<Node> vars;
-  
+
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
   unsigned nvars = options::sygusRewSynthInputNVars();
@@ -68,8 +68,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<Node> allVars;
   unsigned varCounter = 0;
   // standard constants for each type
-  std::map< TypeNode, std::vector< Node > > consts;
-            
+  std::map<TypeNode, std::vector<Node> > consts;
+
   TNode cur;
   Trace("synth-rr-prep") << "Collect terms in assertions..." << std::endl;
   for (const Node& a : assertions)
@@ -128,12 +128,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             // Only make one Boolean variable unless option is set. This ensures
             // we do not compute purely Boolean rewrites by default.
             unsigned useNVars =
-                (options::sygusRewSynthInputUseBool() || !tn.isBoolean()) ? nvars
-                                                                          : 1;
+                (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
+                    ? nvars
+                    : 1;
             for (unsigned i = 0; i < useNVars; i++)
             {
               // We must have a good name for these variables, these are
-              // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
+              // the ones output in rewrite rules. We choose
+              // a,b,c,...,y,z,x1,x2,...
               std::stringstream ssv;
               if (varCounter < 26)
               {
@@ -150,8 +152,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
               allVarTypes.push_back(tn);
             }
             // also add the standard constants for this type
-            theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(tn,consts[tn]);
-            visit.insert(visit.end(),consts[tn].begin(),consts[tn].end());
+            theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(
+                tn, consts[tn]);
+            visit.insert(visit.end(), consts[tn].begin(), consts[tn].end());
           }
         }
         visited[cur] = childrenValid;
@@ -186,7 +189,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // We've collected all terms in the input. We construct a sygus grammar in
   // following which generates terms that correspond to abstractions of the
   // terms in the input.
-                         
+
   // We also map terms to a canonical (ordered) form. This ensures that
   // we don't generate distinct grammar types for distinct alpha-equivalent
   // terms, which would produce grammars of identical shape.
@@ -276,13 +279,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         do_chain = theory::quantifiers::TermUtil::isAssoc(k)
                    && theory::quantifiers::TermUtil::isComm(k);
         // eliminate duplicate child types
-        std::vector< Type > argListTmp = argList;
+        std::vector<Type> argListTmp = argList;
         argList.clear();
-        std::map< Type, bool > hasArgType;
-        for(unsigned j = 0, size = argListTmp.size(); j < size; j++)
+        std::map<Type, bool> hasArgType;
+        for (unsigned j = 0, size = argListTmp.size(); j < size; j++)
         {
           Type t = argListTmp[j];
-          if( hasArgType.find(t)==hasArgType.end() )
+          if (hasArgType.find(t) == hasArgType.end())
           {
             hasArgType[t] = true;
             argList.push_back(t);
