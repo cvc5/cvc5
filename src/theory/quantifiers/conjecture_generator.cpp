@@ -23,6 +23,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "util/random.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -773,7 +774,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             d_tge.d_var_id[ it->first ] = it->second;
             d_tge.d_var_limit[ it->first ] = it->second;
           }
-          std::random_shuffle( rt_types.begin(), rt_types.end() );
+          std::shuffle(rt_types.begin(), rt_types.end(), Random::getRandom());
           std::map< TypeNode, std::vector< Node > > conj_rhs;
           for( unsigned i=0; i<rt_types.size(); i++ ){
 
@@ -1812,11 +1813,17 @@ void TermGenEnv::collectSignatureInformation() {
     }
   }
   //shuffle functions
-  for( std::map< TypeNode, std::vector< TNode > >::iterator it = d_typ_tg_funcs.begin(); it != d_typ_tg_funcs.end(); ++it ){
-    std::random_shuffle( it->second.begin(), it->second.end() );
-    if( it->first.isNull() ){
+  for (std::map<TypeNode, std::vector<TNode> >::iterator it =
+           d_typ_tg_funcs.begin();
+       it != d_typ_tg_funcs.end();
+       ++it)
+  {
+    std::shuffle(it->second.begin(), it->second.end(), Random::getRandom());
+    if (it->first.isNull())
+    {
       Trace("sg-gen-tg-debug") << "In this order : ";
-      for( unsigned i=0; i<it->second.size(); i++ ){
+      for (unsigned i = 0; i < it->second.size(); i++)
+      {
         Trace("sg-gen-tg-debug") << it->second[i] << " ";
       }
       Trace("sg-gen-tg-debug") << std::endl;

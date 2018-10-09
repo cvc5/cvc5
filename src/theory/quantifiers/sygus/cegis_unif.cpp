@@ -86,7 +86,6 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   // Non-unif candidate are themselves the enumerators
   enums.insert(
       enums.end(), d_non_unif_candidates.begin(), d_non_unif_candidates.end());
-  Valuation& valuation = d_qe->getValuation();
   for (const Node& c : d_unif_candidates)
   {
     // Collect heads of candidates
