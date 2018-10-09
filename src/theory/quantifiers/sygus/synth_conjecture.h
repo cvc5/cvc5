@@ -344,11 +344,13 @@ class SynthConjecture
   /**
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
-   * output channel.
+   * output channel, which we refer to as a "stream exclusion lemma".
    */
   void printAndContinueStream();
   /**
-   * Whether we have guarded a stream exclusion lemma.
+   * Whether we have guarded a stream exclusion lemma when using sygusStream.
+   * This is an optimization that allows us to guard only the first stream
+   * exclusion lemma.
    */
   bool d_guarded_stream_exc;
   //-------------------------------- end sygus stream

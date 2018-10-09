@@ -653,7 +653,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   std::vector<Node> ncheck = n;
   n.clear();
   bool ret = true;
-  for (unsigned i = 0; i < ncheck.size(); i++)
+  for (unsigned i = 0, size = ncheck.size(); i < size; i++)
   {
     Node e = ncheck[i];
     // if it is not active, we return null
