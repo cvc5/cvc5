@@ -608,19 +608,19 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   // register the enumerator
   si.d_enums[index].push_back(e);
   bool mkActiveGuard = false;
-  bool isVarAgnostic = false;
+  bool isActiveGen = false;
   // if we are using a single independent enumerator for conditions, then we
   // allocate an active guard, and are eligible to use variable-agnostic
   // enumeration.
   if (options::sygusUnifCondIndependent() && index == 1)
   {
     mkActiveGuard = true;
-    isVarAgnostic = options::sygusEnumVarAgnostic();
+    isActiveGen = options::sygusEnumActiveGen();
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
   d_tds->registerEnumerator(
-      e, si.d_pt, d_parent, mkActiveGuard, false, isVarAgnostic);
+      e, si.d_pt, d_parent, mkActiveGuard, false, isActiveGen);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(

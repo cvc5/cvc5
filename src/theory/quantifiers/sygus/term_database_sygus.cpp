@@ -468,7 +468,7 @@ void TermDbSygus::registerEnumerator(Node e,
                                      SynthConjecture* conj,
                                      bool mkActiveGuard,
                                      bool useSymbolicCons,
-                                     bool isVarAgnostic)
+                                     bool isActiveGen)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -566,7 +566,8 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  d_enum_var_agnostic[e] = isVarAgnostic;
+  d_enum_active_gen[e] = isActiveGen;
+  bool isVarAgnostic = isActiveGen && options::sygusEnumVarAgnostic();
   if (isVarAgnostic)
   {
     // if not done so already, compute type class identifiers for each variable
@@ -669,11 +670,11 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
 
 bool TermDbSygus::isPassiveEnumerator(Node e) const
 {
-  if (isVariableAgnosticEnumerator(e))
+  std::map<Node, bool>::const_iterator itus = d_enum_active_gen.find(e);
+  if (itus != d_enum_active_gen.end())
   {
-    return false;
+    return !itus->second;
   }
-  // other criteria go here
   return true;
 }
 

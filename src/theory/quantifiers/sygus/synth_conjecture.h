@@ -83,9 +83,19 @@ class SynthConjecture
    */
   void doSingleInvCheck(std::vector<Node>& lems);
   /** do syntax-guided enumerative check
+   * 
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
+   * 
+   * The method returns true if this conjecture is finished trying solutions
+   * for the given call to SynthEngine::check.
+   *
+   * Notice that we make multiple calls to doCheck on one call to
+   * SynthEngine::check. For example, if we are using an  actively-generated 
+   * enumerator, one enumerated (abstract) term may correspond to multiple
+   * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
+   * when each of t1, ..., tn fail to satisfy the current refinement lemmas.
    */
-  void doCheck(std::vector<Node>& lems);
+  bool doCheck(std::vector<Node>& lems);
   /** do refinement
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
    */
@@ -285,18 +295,6 @@ class SynthConjecture
       d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
     }
   }
-  /**
-   * This performs the next check of the syntax-guided enumerative check
-   * (see doCheck above). The method returns true if a new solution was
-   * considered.
-   *
-   * Notice that one call to doCheck may correspond to multiple calls to
-   * doCheckNext. For example, if we are using an actively-generated enumerator,
-   * one enumerated (abstract) term may correspond to multiple concrete
-   * terms t1, ..., tn to check, where we make up to n calls to doCheckNext when
-   * each of t1, ..., tn fail to satisfy the current refinement lemmas.
-   */
-  bool doCheckNext(std::vector<Node>& lems);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
@@ -349,6 +347,10 @@ class SynthConjecture
    * output channel.
    */
   void printAndContinueStream();
+  /** 
+   * Whether we have guarded a stream exclusion lemma.
+   */
+  bool d_guarded_stream_exc;
   //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *

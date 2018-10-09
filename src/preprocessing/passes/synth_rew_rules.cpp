@@ -293,6 +293,27 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         Node tbv = nm->mkBoundVar(ctt);
         Expr lambdaOp =
             nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv).toExpr();
+        std::vector<Type> argListc;
+#if 1
+        for( unsigned j=0, size=argList.size(); j<size; j++ )
+        {
+          argListc.clear();
+          argListc.push_back(argList[j]);
+          std::stringstream sscs;
+          sscs << "C_factor_" << i << "_" << j;
+          // ID function is not printed and does not count towards weight
+          datatypes[i].addSygusConstructor(lambdaOp, sscs.str(), argListc,
+                              printer::SygusEmptyPrintCallback::getEmptyPC(),0);
+        }
+        // recursive apply
+        Type recType = cterm_to_utype[ct].toType();
+        argListc.clear();
+        argListc.push_back(recType);
+        argListc.push_back(recType);
+        std::stringstream ssc;
+        ssc << "C_" << i << "_rec_" << op;
+        datatypes[i].addSygusConstructor(op.toExpr(),ssc.str(),argListc);
+#else
         std::vector<Type> unresc;
         std::vector<Datatype> datatypesc;
         for( unsigned j=0, size=argList.size(); j<size; j++ )
@@ -306,7 +327,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           datatypesc.push_back(Datatype(tname));
           datatypesc.back().setSygus(ctt.toType(), sygusVarListE, false, false);
         }
-        std::vector<Type> argListc;
         argListc.push_back(unresc[0]);
         std::stringstream ssc;
         ssc << "C_chain_" << i;
@@ -351,6 +371,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           }
         }
         datatypes.insert(datatypes.end(),datatypesc.begin(),datatypesc.end());
+#endif
       }
       else
       {

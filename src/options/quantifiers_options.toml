@@ -1032,6 +1032,14 @@ header = "options/quantifiers_options.h"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
 
 [[option]]
+  name       = "sygusEnumActiveGen"
+  category   = "regular"
+  long       = "sygus-active-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "when possible, use actively-generated enumerators"
+
+[[option]]
   name       = "sygusEnumVarAgnostic"
   category   = "regular"
   long       = "sygus-var-agnostic"

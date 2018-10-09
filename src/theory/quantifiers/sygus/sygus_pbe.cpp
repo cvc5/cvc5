@@ -179,7 +179,7 @@ bool SygusPbe::initialize(Node n,
       return false;
     }
   }
-  bool isVarAgnostic = options::sygusEnumVarAgnostic();
+  bool isActiveGen = options::sygusEnumActiveGen();
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());
@@ -203,7 +203,7 @@ bool SygusPbe::initialize(Node n,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true, false, isVarAgnostic);
+      d_tds->registerEnumerator(e, c, d_parent, true, false, isActiveGen);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it

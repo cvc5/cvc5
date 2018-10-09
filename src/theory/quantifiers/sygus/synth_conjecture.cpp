@@ -53,7 +53,8 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
       d_master(nullptr),
       d_set_ce_sk_vars(false),
       d_repair_index(0),
-      d_refine_count(0)
+      d_refine_count(0),
+      d_guarded_stream_exc(false)
 {
   if (options::sygusSymBreakPbe() || options::sygusUnifPbe())
   {
@@ -273,7 +274,7 @@ void SynthConjecture::doSingleInvCheck(std::vector<Node>& lems)
 }
 
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
-void SynthConjecture::doCheck(std::vector<Node>& lems)
+bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
 
@@ -288,24 +289,10 @@ void SynthConjecture::doCheck(std::vector<Node>& lems)
       // we have a new guard, print and continue the stream
       printAndContinueStream();
       d_current_stream_guard = currGuard;
-      return;
+      return true;
     }
   }
-  bool checkSuccess = false;
-  do
-  {
-    Trace("cegqi-check-debug") << "doCheckNext..." << std::endl;
-    checkSuccess = doCheckNext(lems);
-    Trace("cegqi-check-debug")
-        << "...finished " << lems.empty() << " " << !needsRefinement() << " "
-        << !d_qe->getTheoryEngine()->needCheck() << " " << checkSuccess
-        << std::endl;
-  } while (lems.empty() && !needsRefinement()
-           && !d_qe->getTheoryEngine()->needCheck() && checkSuccess);
-}
 
-bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
-{
   // get the list of terms that the master strategy is interested in
   std::vector<Node> terms;
   d_master->getTermList(d_candidates, terms);
@@ -364,7 +351,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     {
       // we retain the values in d_ev_active_gen_waiting
       Trace("cegqi-engine") << "...partial model, fail." << std::endl;
-      return false;
+      return true;
     }
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
@@ -407,7 +394,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     if (emptyModel)
     {
       Trace("cegqi-engine") << "...empty model, fail." << std::endl;
-      return false;
+      return true;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -462,7 +449,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
   {
     if (!constructed_cand)
     {
-      return true;
+      return false;
     }
   }
 
@@ -502,7 +489,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
   if (lem.isNull())
   {
     // no lemma to check
-    return true;
+    return false;
   }
 
   lem = Rewriter::rewrite(lem);
@@ -557,7 +544,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
         Trace("cegqi-debug") << "...rewrites to : " << squery << std::endl;
         Assert(squery.isConst() && squery.getConst<bool>());
 #endif
-        return true;
+        return false;
       }
       else if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
       {
@@ -577,7 +564,7 @@ bool SynthConjecture::doCheckNext(std::vector<Node>& lems)
     // if we were successful, we immediately print the current solution.
     // this saves us from introducing a verification lemma and a new guard.
     printAndContinueStream();
-    return true;
+    return false;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
@@ -686,6 +673,42 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
+
+class EnumValGeneratorBasic : public EnumValGenerator
+{
+ public:
+   EnumValGeneratorBasic(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_te(tn){}
+   ~EnumValGeneratorBasic(){}
+  void initialize(Node e) override
+  {
+
+  }
+  void addValue(Node v) override
+  {
+    // ignored
+  }
+  Node getNext() override
+  {
+    if( d_te.isFinished() )
+    {
+      return Node::null();
+    }
+    Node next = *d_te;
+    ++d_te;
+    Node nextb = d_tds->sygusToBuiltin(next);
+    if( d_cache.find(nextb)==d_cache.end() )
+    {
+      d_cache.insert(nextb);
+      return next;
+    }
+    return getNext();
+  }
+private:
+  TermDbSygus * d_tds;
+  TypeEnumerator d_te;
+  std::unordered_set< Node, NodeHashFunction > d_cache;
+};
+
 Node SynthConjecture::getEnumeratedValue(Node e)
 {
   if (e.getAttribute(SygusSymBreakExcAttribute()))
@@ -708,7 +731,14 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       d_evg.find(e);
   if (iteg == d_evg.end())
   {
-    d_evg[e].reset(new EnumStreamConcrete(d_tds));
+    if( options::sygusEnumVarAgnostic() )
+    {
+      d_evg[e].reset(new EnumStreamConcrete(d_tds));
+    }
+    else
+    {
+      d_evg[e].reset(new EnumValGeneratorBasic(d_tds,e.getType()));
+    }
     Trace("sygus-active-gen")
         << "Active-gen: initialize for " << e << std::endl;
     d_evg[e]->initialize(e);
@@ -887,6 +917,11 @@ void SynthConjecture::printAndContinueStream()
   }
   if (!exp.empty())
   {
+    //if( !d_guarded_stream_exc )
+    //{
+      d_guarded_stream_exc = true;
+      exp.push_back(d_feasible_guard);
+    //}
     Node exc_lem = exp.size() == 1
                        ? exp[0]
                        : NodeManager::currentNM()->mkNode(kind::AND, exp);
