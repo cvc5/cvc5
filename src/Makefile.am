@@ -446,6 +446,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/cegqi/ceg_arith_instantiator.h \
 	theory/quantifiers/cegqi/ceg_bv_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_bv_instantiator.h \
+	theory/quantifiers/cegqi/ceg_bv_instantiator_utils.cpp \
+	theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
