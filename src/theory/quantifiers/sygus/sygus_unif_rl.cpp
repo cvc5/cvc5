@@ -20,6 +20,7 @@
 #include "theory/datatypes/datatypes_rewriter.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "util/random.h"
 
 #include <math.h>
 
@@ -572,7 +573,7 @@ Node SygusUnifRl::DecisionTreeInfo::buildSolAllCond(Node cons,
   // current data points
   if (options::sygusUnifShuffleCond())
   {
-    std::shuffle(d_conds.begin(), d_conds.end(), d_rng);
+    std::shuffle(d_conds.begin(), d_conds.end(), Random::getRandom());
   }
   unsigned num_conds = d_conds.size();
   for (unsigned i = 0; i < num_conds; ++i)

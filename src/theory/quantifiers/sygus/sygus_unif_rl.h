@@ -18,7 +18,6 @@
 #define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_RL_H
 
 #include <map>
-#include <random>
 #include "options/main_options.h"
 #include "theory/quantifiers/sygus/sygus_unif.h"
 
@@ -196,10 +195,7 @@ class SygusUnifRl : public SygusUnif
   {
    public:
     DecisionTreeInfo()
-        : d_unif(nullptr),
-          d_strategy(nullptr),
-          d_strategy_index(0),
-          d_rng(options::seed())
+        : d_unif(nullptr), d_strategy(nullptr), d_strategy_index(0)
     {
     }
     ~DecisionTreeInfo() {}
@@ -387,8 +383,6 @@ class SygusUnifRl : public SygusUnif
      * enumerated condiotion values
      */
     PointSeparator d_pt_sep;
-    /** random number generator */
-    std::default_random_engine d_rng;
   };
   /** maps strategy points in the strategy tree to the above data */
   std::map<Node, DecisionTreeInfo> d_stratpt_to_dt;
