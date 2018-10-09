@@ -424,6 +424,8 @@ libcvc4_add_sources(
   theory/quantifiers/anti_skolem.h
   theory/quantifiers/bv_inverter.cpp
   theory/quantifiers/bv_inverter.h
+  theory/quantifiers/bv_inverter_utils.cpp
+  theory/quantifiers/bv_inverter_utils.h
   theory/quantifiers/candidate_rewrite_database.cpp
   theory/quantifiers/candidate_rewrite_database.h
   theory/quantifiers/candidate_rewrite_filter.cpp
