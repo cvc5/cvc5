@@ -253,7 +253,8 @@ bool SynthConjecture::needsCheck()
     }
     else
     {
-      Trace("cegqi-engine-debug") << "Feasible guard " << d_feasible_guard << " assigned true." << std::endl;
+      Trace("cegqi-engine-debug") << "Feasible guard " << d_feasible_guard
+                                  << " assigned true." << std::endl;
     }
   }
   else
@@ -930,7 +931,7 @@ void SynthConjecture::printAndContinueStream()
   }
   if (!exp.empty())
   {
-    if( !d_guarded_stream_exc )
+    if (!d_guarded_stream_exc)
     {
       d_guarded_stream_exc = true;
       exp.push_back(d_feasible_guard);
