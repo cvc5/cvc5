@@ -15,7 +15,6 @@
 #include "theory/quantifiers/bv_inverter_utils.h"
 #include "theory/bv/theory_bv_utils.h"
 
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -135,23 +134,17 @@ Node getICBvSltSgt(bool pol, Kind k, Node x, Node t)
   return ic;
 }
 
-Node getICBvMult(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t)
+Node getICBvMult(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_MULT);
-  Assert (litk == EQUAL
-       || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-       || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  Assert (w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
 
   if (litk == EQUAL)
   {
@@ -196,7 +189,7 @@ Node getICBvMult(bool pol,
        * where
        * z = 0 with getSize(z) = w  */
       Node z = bv::utils::mkZero(w);
-      scl =  nm->mkNode(DISTINCT, t, z);
+      scl = nm->mkNode(DISTINCT, t, z);
     }
     else
     {
@@ -257,7 +250,8 @@ Node getICBvMult(bool pol,
        * with invertibility condition (synthesized):
        * (bvslt t (bvsub t (bvor (bvor s t) (bvneg s))))  */
       Node o = nm->mkNode(BITVECTOR_OR,
-          nm->mkNode(BITVECTOR_OR, s, t), nm->mkNode(BITVECTOR_NEG, s));
+                          nm->mkNode(BITVECTOR_OR, s, t),
+                          nm->mkNode(BITVECTOR_NEG, s));
       Node sub = nm->mkNode(BITVECTOR_SUB, t, o);
       scl = nm->mkNode(BITVECTOR_SLT, t, sub);
     }
@@ -275,29 +269,23 @@ Node getICBvMult(bool pol,
   }
 
   Node scr =
-    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
+      nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node ic = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
   return ic;
 }
 
-Node getICBvUrem(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t)
+Node getICBvUrem(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_UREM_TOTAL);
-  Assert (litk == EQUAL
-       || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-       || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   unsigned w = bv::utils::getSize(s);
-  Assert (w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
 
   if (litk == EQUAL)
   {
@@ -319,9 +307,8 @@ Node getICBvUrem(bool pol,
          * where
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(w);
-        scl = nm->mkNode(OR,
-            s.eqNode(bv::utils::mkOne(w)).notNode(),
-            t.eqNode(z).notNode());
+        scl = nm->mkNode(
+            OR, s.eqNode(bv::utils::mkOne(w)).notNode(), t.eqNode(z).notNode());
       }
     }
     else
@@ -495,10 +482,13 @@ Node getICBvUrem(bool pol,
          * where
          * z = 0 with getSize(z) = w  */
         Node i1 = nm->mkNode(IMPLIES,
-            nm->mkNode(BITVECTOR_SGE, s, z), nm->mkNode(BITVECTOR_SGE, s, t));
-        Node i2 = nm->mkNode(IMPLIES,
+                             nm->mkNode(BITVECTOR_SGE, s, z),
+                             nm->mkNode(BITVECTOR_SGE, s, t));
+        Node i2 = nm->mkNode(
+            IMPLIES,
             nm->mkNode(AND,
-              nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGE, t, z)),
+                       nm->mkNode(BITVECTOR_SLT, s, z),
+                       nm->mkNode(BITVECTOR_SGE, t, z)),
             nm->mkNode(BITVECTOR_UGT, nm->mkNode(BITVECTOR_SUB, s, t), t));
         scl = nm->mkNode(AND, i1, i2);
       }
@@ -527,12 +517,13 @@ Node getICBvUrem(bool pol,
         Node max = bv::utils::mkMaxSigned(w);
         Node nt = nm->mkNode(BITVECTOR_NOT, nm->mkNode(BITVECTOR_NEG, s));
         Node i1 = nm->mkNode(IMPLIES,
-            nm->mkNode(BITVECTOR_SGT, s, z), nm->mkNode(BITVECTOR_SLT, t, nt));
-        Node i2 = nm->mkNode(IMPLIES,
-            nm->mkNode(BITVECTOR_SLE, s, z), t.eqNode(max).notNode());
+                             nm->mkNode(BITVECTOR_SGT, s, z),
+                             nm->mkNode(BITVECTOR_SLT, t, nt));
+        Node i2 = nm->mkNode(
+            IMPLIES, nm->mkNode(BITVECTOR_SLE, s, z), t.eqNode(max).notNode());
         Node a1 = nm->mkNode(AND, i1, i2);
-        Node a2 = nm->mkNode(OR,
-            t.eqNode(z).notNode(), s.eqNode(bv::utils::mkOne(w)).notNode());
+        Node a2 = nm->mkNode(
+            OR, t.eqNode(z).notNode(), s.eqNode(bv::utils::mkOne(w)).notNode());
         scl = nm->mkNode(AND, a1, a2);
       }
       else
@@ -561,11 +552,13 @@ Node getICBvUrem(bool pol,
          * z = 0 with getSize(z) = w  */
         Node z = bv::utils::mkZero(w);
         Node i1 = nm->mkNode(IMPLIES,
-            nm->mkNode(BITVECTOR_SGE, s, z), nm->mkNode(BITVECTOR_SGT, s, t));
-        Node shr = nm->mkNode(BITVECTOR_LSHR,
-            bv::utils::mkDec(s), bv::utils::mkOne(w));
+                             nm->mkNode(BITVECTOR_SGE, s, z),
+                             nm->mkNode(BITVECTOR_SGT, s, t));
+        Node shr = nm->mkNode(
+            BITVECTOR_LSHR, bv::utils::mkDec(s), bv::utils::mkOne(w));
         Node i2 = nm->mkNode(IMPLIES,
-            nm->mkNode(BITVECTOR_SLT, s, z), nm->mkNode(BITVECTOR_SGT, shr, t));
+                             nm->mkNode(BITVECTOR_SLT, s, z),
+                             nm->mkNode(BITVECTOR_SGT, shr, t));
         scl = nm->mkNode(AND, i1, i2);
       }
       else
@@ -584,28 +577,22 @@ Node getICBvUrem(bool pol,
   }
 
   Node scr =
-    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
+      nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node ic = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
   return ic;
 }
 
-Node getICBvUdiv(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t)
+Node getICBvUdiv(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_UDIV_TOTAL);
-  Assert(litk == EQUAL
-      || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-      || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
-  Assert (w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node scl;
   Node z = bv::utils::mkZero(w);
 
@@ -784,8 +771,10 @@ Node getICBvUdiv(bool pol,
          * (bvult z (bvor (bvnot s) t))
          * where
          * z = 0 with getSize(z) = w  */
-        scl = nm->mkNode(BITVECTOR_ULT,
-            z, nm->mkNode(BITVECTOR_OR, nm->mkNode(BITVECTOR_NOT, s), t));
+        scl = nm->mkNode(
+            BITVECTOR_ULT,
+            z,
+            nm->mkNode(BITVECTOR_OR, nm->mkNode(BITVECTOR_NOT, s), t));
       }
     }
   }
@@ -964,27 +953,22 @@ Node getICBvUdiv(bool pol,
   }
 
   Node scr =
-    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
+      nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node ic = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
   return ic;
 }
 
-Node getICBvAndOr(bool pol,
-                         Kind litk,
-                         Kind k,
-                         unsigned idx,
-                         Node x,
-                         Node s,
-                         Node t)
+Node getICBvAndOr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
-  Assert (k == BITVECTOR_AND || k == BITVECTOR_OR);
-  Assert (litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-          || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(k == BITVECTOR_AND || k == BITVECTOR_OR);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   unsigned w = bv::utils::getSize(s);
-  Assert (w == bv::utils::getSize(t));
+  Assert(w == bv::utils::getSize(t));
   Node scl;
 
   if (litk == EQUAL)
@@ -1127,8 +1111,8 @@ Node getICBvAndOr(bool pol,
       if (k == BITVECTOR_AND)
       {
         /* x & s >= t
-         * with invertibility condition (case = combined with synthesized bvsgt):
-         * (or
+         * with invertibility condition (case = combined with synthesized
+         * bvsgt): (or
          *  (= (bvand s t) t)
          *  (bvslt t (bvand (bvsub t s) s)))  */
         Node sc_sgt = nm->mkNode(
@@ -1197,7 +1181,7 @@ Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
 {
   unsigned w;
   NodeBuilder<> nb(OR);
-  NodeManager *nm;
+  NodeManager* nm;
 
   nm = NodeManager::currentNM();
 
@@ -1210,20 +1194,13 @@ Node defaultShiftIC(Kind litk, Kind shk, Node s, Node t)
     Node sw = bv::utils::mkConst(w, i);
     nb << nm->mkNode(litk, nm->mkNode(shk, s, sw), t);
   }
-  if (nb.getNumChildren() == 1)
-    return nb[0];
+  if (nb.getNumChildren() == 1) return nb[0];
   return nb.constructNode();
 }
-}
+}  // namespace
 
-
-Node getICBvLshr(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t)
+Node getICBvLshr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_LSHR);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
@@ -1258,9 +1235,8 @@ Node getICBvLshr(bool pol,
          * where
          * z = 0 with getSize(z) = w
          * and w = getSize(s) = getSize(t)  */
-        scl = nm->mkNode(OR,
-            t.eqNode(z).notNode(),
-            nm->mkNode(BITVECTOR_ULT, s, ww));
+        scl = nm->mkNode(
+            OR, t.eqNode(z).notNode(), nm->mkNode(BITVECTOR_ULT, s, ww));
       }
     }
     else
@@ -1480,19 +1456,14 @@ Node getICBvLshr(bool pol,
     }
   }
   Node scr =
-    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
+      nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node ic = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
   return ic;
 }
 
-Node getICBvAshr(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t)
+Node getICBvAshr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_ASHR);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
@@ -1558,7 +1529,8 @@ Node getICBvAshr(bool pol,
          * where
          * z = 0 with getSize(z) = w
          * and ones = ~0 with getSize(ones) = w  */
-        scl = nm->mkNode(AND,
+        scl = nm->mkNode(
+            AND,
             nm->mkNode(OR, t.eqNode(z).notNode(), s.eqNode(z).notNode()),
             nm->mkNode(OR, t.eqNode(n).notNode(), s.eqNode(n).notNode()));
       }
@@ -1767,13 +1739,8 @@ Node getICBvAshr(bool pol,
   return ic;
 }
 
-Node getICBvShl(bool pol,
-                       Kind litk,
-                       Kind k,
-                       unsigned idx,
-                       Node x,
-                       Node s,
-                       Node t)
+Node getICBvShl(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t)
 {
   Assert(k == BITVECTOR_SHL);
   Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
@@ -1808,9 +1775,8 @@ Node getICBvShl(bool pol,
          * with
          * w = getSize(s) = getSize(t)
          * and z = 0 with getSize(z) = w  */
-        scl = nm->mkNode(OR,
-            t.eqNode(z).notNode(),
-            nm->mkNode(BITVECTOR_ULT, s, ww));
+        scl = nm->mkNode(
+            OR, t.eqNode(z).notNode(), nm->mkNode(BITVECTOR_ULT, s, ww));
       }
     }
     else
@@ -2017,22 +1983,16 @@ Node getICBvShl(bool pol,
     }
   }
   Node scr =
-    nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
+      nm->mkNode(litk, idx == 0 ? nm->mkNode(k, x, s) : nm->mkNode(k, s, x), t);
   Node ic = nm->mkNode(IMPLIES, scl, pol ? scr : scr.notNode());
   Trace("bv-invert") << "Add SC_" << k << "(" << x << "): " << ic << std::endl;
   return ic;
 }
 
-Node getICBvConcat(bool pol,
-                          Kind litk,
-                          unsigned idx,
-                          Node x,
-                          Node sv_t,
-                          Node t)
+Node getICBvConcat(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 {
-  Assert(litk == EQUAL
-      || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-      || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   Kind k = sv_t.getKind();
   Assert(k == BITVECTOR_CONCAT);
@@ -2053,24 +2013,30 @@ Node getICBvConcat(bool pol,
     }
     else
     {
-      for (unsigned i = 0; i < idx; ++i) { nbs1 << sv_t[i]; }
+      for (unsigned i = 0; i < idx; ++i)
+      {
+        nbs1 << sv_t[i];
+      }
       s1 = nbs1.constructNode();
     }
     w1 = bv::utils::getSize(s1);
     t1 = bv::utils::mkExtract(t, w - 1, w - w1);
   }
 
-  tx = bv::utils::mkExtract(t, w - w1 - 1 , w - w1 - wx);
+  tx = bv::utils::mkExtract(t, w - w1 - 1, w - w1 - wx);
 
-  if (idx != nchildren-1)
+  if (idx != nchildren - 1)
   {
-    if (idx == nchildren-2)
+    if (idx == nchildren - 2)
     {
-      s2 = sv_t[nchildren-1];
+      s2 = sv_t[nchildren - 1];
     }
     else
     {
-      for (unsigned i = idx+1; i < nchildren; ++i) { nbs2 << sv_t[i]; }
+      for (unsigned i = idx + 1; i < nchildren; ++i)
+      {
+        nbs2 << sv_t[i];
+      }
       s2 = nbs2.constructNode();
     }
     w2 = bv::utils::getSize(s2);
@@ -2474,21 +2440,15 @@ Node getICBvConcat(bool pol,
   return ic;
 }
 
-Node getICBvSext(bool pol,
-                        Kind litk,
-                        unsigned idx,
-                        Node x,
-                        Node sv_t,
-                        Node t)
+Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t)
 {
-  Assert(litk == EQUAL
-      || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
-      || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
+  Assert(litk == EQUAL || litk == BITVECTOR_ULT || litk == BITVECTOR_SLT
+         || litk == BITVECTOR_UGT || litk == BITVECTOR_SGT);
 
   NodeManager* nm = NodeManager::currentNM();
   Node scl;
   Assert(idx == 0);
-  (void) idx;
+  (void)idx;
   unsigned ws = bv::utils::getSignExtendAmount(sv_t);
   unsigned w = bv::utils::getSize(t);
 

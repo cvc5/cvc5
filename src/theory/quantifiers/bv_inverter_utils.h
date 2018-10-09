@@ -12,7 +12,6 @@
  ** \brief inverse rules for bit-vector operators
  **/
 
-
 #include "cvc4_private.h"
 
 #ifndef __CVC4__BV_INVERTER_UTILS_H
@@ -32,87 +31,42 @@ Node getICBvUltUgt(bool pol, Kind k, Node x, Node t);
 Node getICBvSltSgt(bool pol, Kind k, Node x, Node t);
 
 /* Get invertibility condition for BITVECTOR_MUL. */
-Node getICBvMult(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t);
+Node getICBvMult(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_UREM. */
-Node getICBvUrem(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t);
+Node getICBvUrem(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_UDIV. */
-Node getICBvUdiv(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t);
+Node getICBvUdiv(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_AND and BITVECTOR_OR. */
-Node getICBvAndOr(bool pol,
-                         Kind litk,
-                         Kind k,
-                         unsigned idx,
-                         Node x,
-                         Node s,
-                         Node t);
+Node getICBvAndOr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_LSHR. */
-Node getICBvLshr(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t);
+Node getICBvLshr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_ASHR. */
-Node getICBvAshr(bool pol,
-                        Kind litk,
-                        Kind k,
-                        unsigned idx,
-                        Node x,
-                        Node s,
-                        Node t);
+Node getICBvAshr(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_SHL. */
-Node getICBvShl(bool pol,
-                       Kind litk,
-                       Kind k,
-                       unsigned idx,
-                       Node x,
-                       Node s,
-                       Node t);
+Node getICBvShl(
+    bool pol, Kind litk, Kind k, unsigned idx, Node x, Node s, Node t);
 
 /* Get invertibility condition for BITVECTOR_CONCAT. */
-Node getICBvConcat(bool pol,
-                          Kind litk,
-                          unsigned idx,
-                          Node x,
-                          Node sv_t,
-                          Node t);
+Node getICBvConcat(
+    bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t);
 
 /* Get invertibility condition for BITVECTOR_SEXT. */
-Node getICBvSext(bool pol,
-                        Kind litk,
-                        unsigned idx,
-                        Node x,
-                        Node sv_t,
-                        Node t);
+Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t);
 
 #endif
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
-

@@ -17,11 +17,10 @@
 #include <algorithm>
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/term_util.h"
-#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/quantifiers/bv_inverter_utils.h"
-
+#include "theory/quantifiers/term_util.h"
+#include "theory/rewriter.h"
 
 using namespace CVC4::kind;
 
@@ -56,9 +55,9 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
   Node new_cond = Rewriter::rewrite(cond);
   if (new_cond != cond)
   {
-    Trace("cegqi-bv-skvinv-debug") << "Condition " << cond
-                                   << " was rewritten to " << new_cond
-                                   << std::endl;
+    Trace("cegqi-bv-skvinv-debug")
+        << "Condition " << cond << " was rewritten to " << new_cond
+        << std::endl;
   }
   // optimization : if condition is ( x = solve_var ) should just return
   // solve_var and not introduce a Skolem this can happen when we ask for
@@ -71,9 +70,9 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
       if (new_cond[i] == solve_var)
       {
         c = new_cond[1 - i];
-        Trace("cegqi-bv-skvinv") << "SKVINV : " << c
-                                 << " is trivially associated with conditon "
-                                 << new_cond << std::endl;
+        Trace("cegqi-bv-skvinv")
+            << "SKVINV : " << c << " is trivially associated with conditon "
+            << new_cond << std::endl;
         break;
       }
     }
@@ -106,25 +105,13 @@ Node BvInverter::getInversionNode(Node cond, TypeNode tn, BvInverterQuery* m)
 
 static bool isInvertible(Kind k, unsigned index)
 {
-  return  k == NOT
-      ||  k == EQUAL
-      ||  k == BITVECTOR_ULT
-      ||  k == BITVECTOR_SLT
-      ||  k == BITVECTOR_COMP
-      ||  k == BITVECTOR_NOT
-      ||  k == BITVECTOR_NEG
-      ||  k == BITVECTOR_CONCAT
-      ||  k == BITVECTOR_SIGN_EXTEND
-      ||  k == BITVECTOR_PLUS
-      ||  k == BITVECTOR_MULT
-      ||  k == BITVECTOR_UREM_TOTAL
-      ||  k == BITVECTOR_UDIV_TOTAL
-      ||  k == BITVECTOR_AND
-      ||  k == BITVECTOR_OR
-      ||  k == BITVECTOR_XOR
-      || k == BITVECTOR_LSHR
-      || k == BITVECTOR_ASHR
-      || k == BITVECTOR_SHL;
+  return k == NOT || k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT
+         || k == BITVECTOR_COMP || k == BITVECTOR_NOT || k == BITVECTOR_NEG
+         || k == BITVECTOR_CONCAT || k == BITVECTOR_SIGN_EXTEND
+         || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
+         || k == BITVECTOR_UREM_TOTAL || k == BITVECTOR_UDIV_TOTAL
+         || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
+         || k == BITVECTOR_LSHR || k == BITVECTOR_ASHR || k == BITVECTOR_SHL;
 }
 
 Node BvInverter::getPathToPv(
@@ -244,7 +231,7 @@ Node BvInverter::solveBvLit(Node sv,
   litk = k = lit.getKind();
 
   /* Note: option --bool-to-bv is currently disabled when CBQI BV
-   *       is enabled and the logic is quantified. 
+   *       is enabled and the logic is quantified.
    *       We currently do not support Boolean operators
    *       that are interpreted as bit-vector operators of width 1.  */
 
@@ -261,12 +248,10 @@ Node BvInverter::solveBvLit(Node sv,
     litk = k = lit.getKind();
   }
 
-  Assert(k == EQUAL
-      || k == BITVECTOR_ULT
-      || k == BITVECTOR_SLT);
+  Assert(k == EQUAL || k == BITVECTOR_ULT || k == BITVECTOR_SLT);
 
   Node sv_t = lit[index];
-  Node t = lit[1-index];
+  Node t = lit[1 - index];
   if (litk == BITVECTOR_ULT && index == 1)
   {
     litk = BITVECTOR_UGT;
@@ -308,8 +293,8 @@ Node BvInverter::solveBvLit(Node sv,
     {
       t = nm->mkNode(BITVECTOR_XOR, t, s);
     }
-    else if (litk == EQUAL && k == BITVECTOR_MULT
-             && s.isConst() && bv::utils::getBit(s, 0))
+    else if (litk == EQUAL && k == BITVECTOR_MULT && s.isConst()
+             && bv::utils::getBit(s, 0))
     {
       unsigned w = bv::utils::getSize(s);
       Integer s_val = s.getConst<BitVector>().toInteger();
@@ -368,8 +353,14 @@ Node BvInverter::solveBvLit(Node sv,
         NodeBuilder<> nb(BITVECTOR_CONCAT);
         for (unsigned i = 0; i < nchildren; i++)
         {
-          if (i < index) { upper -= bv::utils::getSize(sv_t[i]); }
-          else if (i > index) { lower += bv::utils::getSize(sv_t[i]); }
+          if (i < index)
+          {
+            upper -= bv::utils::getSize(sv_t[i]);
+          }
+          else if (i > index)
+          {
+            lower += bv::utils::getSize(sv_t[i]);
+          }
         }
         t = bv::utils::mkExtract(t, upper, lower);
       }
@@ -392,7 +383,7 @@ Node BvInverter::solveBvLit(Node sv,
     }
     else if (pol == false)
     {
-      Assert (litk == EQUAL);
+      Assert(litk == EQUAL);
       ic = nm->mkNode(DISTINCT, x, t);
       Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                          << std::endl;
@@ -414,7 +405,10 @@ Node BvInverter::solveBvLit(Node sv,
       pol = true;
       /* t = fresh skolem constant */
       t = getInversionNode(ic, solve_tn, m);
-      if (t.isNull()) { return t; }
+      if (t.isNull())
+      {
+        return t;
+      }
     }
 
     sv_t = sv_t[index];
@@ -435,7 +429,7 @@ Node BvInverter::solveBvLit(Node sv,
   }
   else if (pol == false)
   {
-    Assert (litk == EQUAL);
+    Assert(litk == EQUAL);
     ic = nm->mkNode(DISTINCT, x, t);
     Trace("bv-invert") << "Add SC_" << litk << "(" << x << "): " << ic
                        << std::endl;
