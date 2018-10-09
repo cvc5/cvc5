@@ -65,8 +65,8 @@ Node getICBvConcat(
 /* Get invertibility condition for BITVECTOR_SEXT. */
 Node getICBvSext(bool pol, Kind litk, unsigned idx, Node x, Node sv_t, Node t);
 
-#endif
 }  // namespace utils
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
+#endif
