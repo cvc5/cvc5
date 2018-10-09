@@ -179,7 +179,7 @@ bool SygusPbe::initialize(Node n,
       return false;
     }
   }
-  bool isVarAgnostic = options::sygusEnumVarAgnostic();
+  bool isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());
@@ -203,9 +203,7 @@ bool SygusPbe::initialize(Node n,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true, false, isVarAgnostic);
-      Node g = d_tds->getActiveGuardForEnumerator(e);
-      d_enum_to_active_guard[e] = g;
+      d_tds->registerEnumerator(e, c, d_parent, true, false, isActiveGen);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
@@ -397,27 +395,13 @@ Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
 void SygusPbe::getTermList(const std::vector<Node>& candidates,
                            std::vector<Node>& terms)
 {
-  Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
     std::map<Node, std::vector<Node> >::iterator it =
         d_candidate_to_enum.find(v);
     if (it != d_candidate_to_enum.end())
     {
-      for (unsigned j = 0; j < it->second.size(); j++)
-      {
-        Node e = it->second[j];
-        Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-        Node g = d_enum_to_active_guard[e];
-        // Get whether the active guard for this enumerator is true,
-        // if so, then there may exist more values for it, and hence we add it
-        // to terms.
-        Node gstatus = valuation.getSatValue(g);
-        if (!gstatus.isNull() && gstatus.getConst<bool>())
-        {
-          terms.push_back(e);
-        }
-      }
+      terms.insert(terms.end(), it->second.begin(), it->second.end());
     }
   }
 }
@@ -491,8 +475,8 @@ bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
       if (!enum_lems.empty())
       {
         // the lemmas must be guarded by the active guard of the enumerator
-        Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-        Node g = d_enum_to_active_guard[e];
+        Node g = d_tds->getActiveGuardForEnumerator(e);
+        Assert(!g.isNull());
         for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
         {
           enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);

@@ -80,6 +80,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
                         << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
   Valuation& valuation = d_quantEngine->getValuation();
+  std::vector<SynthConjecture*> activeCheckConj;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     SynthConjecture* sc = d_conjs[i].get();
@@ -98,9 +99,30 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
         << "Current conjecture status : active : " << active << std::endl;
     if (active && sc->needsCheck())
     {
-      checkConjecture(sc);
+      activeCheckConj.push_back(sc);
     }
   }
+  std::vector<SynthConjecture*> acnext;
+  do
+  {
+    Trace("cegqi-engine-debug") << "Checking " << activeCheckConj.size()
+                                << " active conjectures..." << std::endl;
+    for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
+    {
+      SynthConjecture* sc = activeCheckConj[i];
+      if (!checkConjecture(sc))
+      {
+        if (!sc->needsRefinement())
+        {
+          acnext.push_back(sc);
+        }
+      }
+    }
+    activeCheckConj.clear();
+    activeCheckConj = acnext;
+    acnext.clear();
+  } while (!activeCheckConj.empty()
+           && !d_quantEngine->getTheoryEngine()->needCheck());
   Trace("cegqi-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
@@ -258,7 +280,7 @@ void SynthEngine::registerQuantifier(Node q)
   }
 }
 
-void SynthEngine::checkConjecture(SynthConjecture* conj)
+bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
@@ -296,12 +318,12 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
             << "  ...FAILED to add cbqi instantiation for single invocation!"
             << std::endl;
       }
-      return;
+      return true;
     }
 
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;
-    conj->doCheck(cclems);
+    bool ret = conj->doCheck(cclems);
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
@@ -322,16 +344,17 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
     if (addedLemma)
     {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
+      return true;
     }
     else
     {
       if (conj->needsRefinement())
       {
         // immediately go to refine candidate
-        checkConjecture(conj);
-        return;
+        return checkConjecture(conj);
       }
     }
+    return ret;
   }
   else
   {
@@ -361,6 +384,7 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
       Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
     }
   }
+  return true;
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)
