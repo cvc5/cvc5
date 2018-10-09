@@ -179,7 +179,7 @@ bool SygusPbe::initialize(Node n,
       return false;
     }
   }
-  bool isActiveGen = options::sygusActiveGenMode()!=SYGUS_ACTIVE_GEN_NONE;
+  bool isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());

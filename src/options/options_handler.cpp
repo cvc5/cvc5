@@ -525,7 +525,8 @@ post \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_sygusActiveGenHelp = "\
+const std::string OptionsHandler::s_sygusActiveGenHelp =
+    "\
 Modes for actively-generated sygus enumerators, supported by --sygus-active-gen:\n\
 \n\
 none  \n\
@@ -968,20 +969,29 @@ OptionsHandler::stringToSygusInvTemplMode(std::string option,
 
 theory::quantifiers::SygusActiveGenMode
 OptionsHandler::stringToSygusActiveGenMode(std::string option,
-                                          std::string optarg)
+                                           std::string optarg)
 {
-  if(optarg == "none" ) {
+  if (optarg == "none")
+  {
     return theory::quantifiers::SYGUS_ACTIVE_GEN_NONE;
-  } else if(optarg == "basic") {
+  }
+  else if (optarg == "basic")
+  {
     return theory::quantifiers::SYGUS_ACTIVE_GEN_BASIC;
-  } else if(optarg == "var-agnostic") {
+  }
+  else if (optarg == "var-agnostic")
+  {
     return theory::quantifiers::SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
-  } else if(optarg ==  "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_sygusActiveGenHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --sygus-inv-templ: `") +
-                          optarg + "'.  Try --sygus-inv-templ help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-inv-templ: `")
+                          + optarg + "'.  Try --sygus-inv-templ help.");
   }
 }
 

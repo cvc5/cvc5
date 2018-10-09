@@ -262,7 +262,8 @@ enum SygusInvTemplMode {
   SYGUS_INV_TEMPL_MODE_POST,
 };
 
-enum SygusActiveGenMode {
+enum SygusActiveGenMode
+{
   /** do not use actively-generated enumerators */
   SYGUS_ACTIVE_GEN_NONE,
   /** use basic actively-generated enumerators */

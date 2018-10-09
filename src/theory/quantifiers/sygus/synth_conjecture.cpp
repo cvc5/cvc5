@@ -673,7 +673,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
-/** A basic sygus value generator 
+/** A basic sygus value generator
  *
  * This class is a "naive" term generator for sygus conjectures, which invokes
  * the type enumerator to generate a stream of (all) sygus terms of a given
@@ -688,9 +688,9 @@ class EnumValGeneratorBasic : public EnumValGenerator
   void initialize(Node e) override {}
   /** initialize (do nothing) */
   void addValue(Node v) override {}
-  /** 
+  /**
    * Get next returns the next (T-rewriter-unique) value based on the type
-   * enumerator. 
+   * enumerator.
    */
   Node getNext() override
   {
@@ -702,7 +702,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
     ++d_te;
     Node nextb = d_tds->sygusToBuiltin(next);
     if (options::sygusSymBreakDynamic())
-    { 
+    {
       nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
     }
     if (d_cache.find(nextb) == d_cache.end())
@@ -712,6 +712,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
     }
     return getNext();
   }
+
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;

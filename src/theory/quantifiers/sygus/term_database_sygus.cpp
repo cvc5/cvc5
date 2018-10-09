@@ -567,7 +567,9 @@ void TermDbSygus::registerEnumerator(Node e,
   Trace("sygus-db") << "  ...finished" << std::endl;
 
   d_enum_active_gen[e] = isActiveGen;
-  bool isVarAgnostic = isActiveGen && options::sygusActiveGenMode()==SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  bool isVarAgnostic =
+      isActiveGen
+      && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
