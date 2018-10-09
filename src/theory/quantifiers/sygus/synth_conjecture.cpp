@@ -663,6 +663,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
       Node gstatus = d_qe->getValuation().getSatValue(g);
       if (gstatus.isNull() || !gstatus.getConst<bool>())
       {
+        Trace("cegqi-engine") << "Enumerator " << e << " is inactive." << std::endl;
         continue;
       }
     }
@@ -725,15 +726,18 @@ class EnumValGeneratorBasic : public EnumValGenerator
 
 Node SynthConjecture::getEnumeratedValue(Node e)
 {
-  if (!e.getAttribute(SygusSymBreakOkAttribute()))
+  bool isEnum = d_tds->isEnumerator(e);
+
+  if (isEnum && !e.getAttribute(SygusSymBreakOkAttribute()))
   {
     // if the current model value of e was not registered by the datatypes
     // sygus solver, or was excluded by symmetry breaking, then it does not
     // have a proper model value that we should consider, thus we return null.
+    Trace("cegqi-engine") << "Enumerator " << e << " does not have proper model value." << std::endl;
     return Node::null();
   }
 
-  if (!d_tds->isEnumerator(e) || d_tds->isPassiveEnumerator(e))
+  if (!isEnum || d_tds->isPassiveEnumerator(e))
   {
     return getModelValue(e);
   }

@@ -3,7 +3,7 @@
 ; EXPECT: (error "Maximum term size (0) for enumerative SyGuS exceeded.")
 ; EXIT: 1
 
-; COMMAND-LINE: --sygus-stream --sygus-abort-size=0
+; COMMAND-LINE: --sygus-stream --sygus-abort-size=0 --sygus-active-gen=var-agnostic
 
 (set-logic LIA)
 
