@@ -994,7 +994,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
   category   = "regular"
-  long       = "sygus-unif-cond-indpendent-no-repeat-sol"
+  long       = "sygus-unif-cond-independent-no-repeat-sol"
   type       = "bool"
   default    = "true"
   help       = "Do not try repeated solutions when using independent synthesis of conditions in unification-based function synthesis"
