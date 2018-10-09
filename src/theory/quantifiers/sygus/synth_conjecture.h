@@ -83,14 +83,14 @@ class SynthConjecture
    */
   void doSingleInvCheck(std::vector<Node>& lems);
   /** do syntax-guided enumerative check
-   * 
+   *
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
-   * 
+   *
    * The method returns true if this conjecture is finished trying solutions
    * for the given call to SynthEngine::check.
    *
    * Notice that we make multiple calls to doCheck on one call to
-   * SynthEngine::check. For example, if we are using an  actively-generated 
+   * SynthEngine::check. For example, if we are using an  actively-generated
    * enumerator, one enumerated (abstract) term may correspond to multiple
    * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
    * when each of t1, ..., tn fail to satisfy the current refinement lemmas.
@@ -347,7 +347,7 @@ class SynthConjecture
    * output channel.
    */
   void printAndContinueStream();
-  /** 
+  /**
    * Whether we have guarded a stream exclusion lemma.
    */
   bool d_guarded_stream_exc;

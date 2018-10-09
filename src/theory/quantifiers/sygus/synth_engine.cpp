@@ -79,7 +79,7 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
                         << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
   Valuation& valuation = d_quantEngine->getValuation();
-  std::vector< SynthConjecture * > activeCheckConj;
+  std::vector<SynthConjecture*> activeCheckConj;
   for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
     SynthConjecture* sc = d_conjs[i].get();
@@ -101,14 +101,15 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
       activeCheckConj.push_back(sc);
     }
   }
-  std::vector< SynthConjecture * > acnext;
+  std::vector<SynthConjecture*> acnext;
   do
   {
-    Trace("cegqi-engine-debug") << "Checking " << activeCheckConj.size() << " active conjectures..." << std::endl;
-    for( unsigned i=0, size=activeCheckConj.size(); i<size; i++ )
+    Trace("cegqi-engine-debug") << "Checking " << activeCheckConj.size()
+                                << " active conjectures..." << std::endl;
+    for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
     {
-      SynthConjecture * sc = activeCheckConj[i];
-      if( !checkConjecture(sc) )
+      SynthConjecture* sc = activeCheckConj[i];
+      if (!checkConjecture(sc))
       {
         if (!sc->needsRefinement())
         {
@@ -119,8 +120,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     activeCheckConj.clear();
     activeCheckConj = acnext;
     acnext.clear();
-  }
-  while( !activeCheckConj.empty() && !d_quantEngine->getTheoryEngine()->needCheck());
+  } while (!activeCheckConj.empty()
+           && !d_quantEngine->getTheoryEngine()->needCheck());
   Trace("cegqi-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }

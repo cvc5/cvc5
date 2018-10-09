@@ -676,19 +676,16 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
 class EnumValGeneratorBasic : public EnumValGenerator
 {
  public:
-   EnumValGeneratorBasic(TermDbSygus * tds, TypeNode tn) : d_tds(tds), d_te(tn){}
-   ~EnumValGeneratorBasic(){}
-  void initialize(Node e) override
-  {
-
-  }
+  EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_te(tn) {}
+  ~EnumValGeneratorBasic() {}
+  void initialize(Node e) override {}
   void addValue(Node v) override
   {
     // ignored
   }
   Node getNext() override
   {
-    if( d_te.isFinished() )
+    if (d_te.isFinished())
     {
       return Node::null();
     }
@@ -696,17 +693,18 @@ class EnumValGeneratorBasic : public EnumValGenerator
     ++d_te;
     Node nextb = d_tds->sygusToBuiltin(next);
     nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
-    if( d_cache.find(nextb)==d_cache.end() )
+    if (d_cache.find(nextb) == d_cache.end())
     {
       d_cache.insert(nextb);
       return next;
     }
     return getNext();
   }
-private:
-  TermDbSygus * d_tds;
+
+ private:
+  TermDbSygus* d_tds;
   TypeEnumerator d_te;
-  std::unordered_set< Node, NodeHashFunction > d_cache;
+  std::unordered_set<Node, NodeHashFunction> d_cache;
 };
 
 Node SynthConjecture::getEnumeratedValue(Node e)
@@ -731,13 +729,13 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       d_evg.find(e);
   if (iteg == d_evg.end())
   {
-    if( options::sygusEnumVarAgnostic() )
+    if (options::sygusEnumVarAgnostic())
     {
       d_evg[e].reset(new EnumStreamConcrete(d_tds));
     }
     else
     {
-      d_evg[e].reset(new EnumValGeneratorBasic(d_tds,e.getType()));
+      d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
     }
     Trace("sygus-active-gen")
         << "Active-gen: initialize for " << e << std::endl;
@@ -917,10 +915,10 @@ void SynthConjecture::printAndContinueStream()
   }
   if (!exp.empty())
   {
-    //if( !d_guarded_stream_exc )
+    // if( !d_guarded_stream_exc )
     //{
-      d_guarded_stream_exc = true;
-      exp.push_back(d_feasible_guard);
+    d_guarded_stream_exc = true;
+    exp.push_back(d_feasible_guard);
     //}
     Node exc_lem = exp.size() == 1
                        ? exp[0]

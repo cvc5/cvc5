@@ -51,7 +51,7 @@ class SynthEngine : public QuantifiersModule
    */
   void assignConjecture(Node q);
   /** check conjecture
-   * 
+   *
    * This method returns true if the conjecture is finished processing solutions
    * for this call to SynthEngine::check().
    */

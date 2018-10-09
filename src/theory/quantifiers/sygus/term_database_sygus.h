@@ -69,7 +69,7 @@ class TermDbSygus {
    * (see d_enum_to_active_guard),
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
-   * isActiveGen : if this flag is true, the enumerator will be 
+   * isActiveGen : if this flag is true, the enumerator will be
    * actively-generated.
    *
    * Notice that enumerator e may not be one-to-one with f in

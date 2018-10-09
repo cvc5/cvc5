@@ -281,12 +281,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       }
       // check if we should chain
       bool do_chain = false;
-      if( argList.size()>2 )
+      if (argList.size() > 2)
       {
-        Kind k = NodeManager::operatorToKind( op );
-        do_chain = theory::quantifiers::TermUtil::isAssoc(k) && theory::quantifiers::TermUtil::isComm(k);
+        Kind k = NodeManager::operatorToKind(op);
+        do_chain = theory::quantifiers::TermUtil::isAssoc(k)
+                   && theory::quantifiers::TermUtil::isComm(k);
       }
-      if( do_chain )
+      if (do_chain)
       {
         // we make one type per child
         // the operator of each constructor is a no-op
@@ -295,15 +296,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv).toExpr();
         std::vector<Type> argListc;
 #if 1
-        for( unsigned j=0, size=argList.size(); j<size; j++ )
+        for (unsigned j = 0, size = argList.size(); j < size; j++)
         {
           argListc.clear();
           argListc.push_back(argList[j]);
           std::stringstream sscs;
           sscs << "C_factor_" << i << "_" << j;
           // ID function is not printed and does not count towards weight
-          datatypes[i].addSygusConstructor(lambdaOp, sscs.str(), argListc,
-                              printer::SygusEmptyPrintCallback::getEmptyPC(),0);
+          datatypes[i].addSygusConstructor(
+              lambdaOp,
+              sscs.str(),
+              argListc,
+              printer::SygusEmptyPrintCallback::getEmptyPC(),
+              0);
         }
         // recursive apply
         Type recType = cterm_to_utype[ct].toType();
@@ -312,11 +317,11 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argListc.push_back(recType);
         std::stringstream ssc;
         ssc << "C_" << i << "_rec_" << op;
-        datatypes[i].addSygusConstructor(op.toExpr(),ssc.str(),argListc);
+        datatypes[i].addSygusConstructor(op.toExpr(), ssc.str(), argListc);
 #else
         std::vector<Type> unresc;
         std::vector<Datatype> datatypesc;
-        for( unsigned j=0, size=argList.size(); j<size; j++ )
+        for (unsigned j = 0, size = argList.size(); j < size; j++)
         {
           std::stringstream ss;
           ss << "Tch" << i << "_" << j;
@@ -330,11 +335,15 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         argListc.push_back(unresc[0]);
         std::stringstream ssc;
         ssc << "C_chain_" << i;
-        datatypes[i].addSygusConstructor(lambdaOp, ssc.str(), argListc,
-                               printer::SygusEmptyPrintCallback::getEmptyPC(),0);
-        for( unsigned j=0, size=argList.size(); j<size; j++ )
+        datatypes[i].addSygusConstructor(
+            lambdaOp,
+            ssc.str(),
+            argListc,
+            printer::SygusEmptyPrintCallback::getEmptyPC(),
+            0);
+        for (unsigned j = 0, size = argList.size(); j < size; j++)
         {
-          if( j+1==size )
+          if (j + 1 == size)
           {
             // this must be the last factor
             argListc.clear();
@@ -342,35 +351,45 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             std::stringstream ssc1;
             ssc1 << "C_end_" << i << "_" << j;
             // ID function is not printed and does not count towards weight
-            datatypesc[j].addSygusConstructor(lambdaOp, ssc1.str(), argListc,
-                               printer::SygusEmptyPrintCallback::getEmptyPC(),0);
+            datatypesc[j].addSygusConstructor(
+                lambdaOp,
+                ssc1.str(),
+                argListc,
+                printer::SygusEmptyPrintCallback::getEmptyPC(),
+                0);
           }
           else
           {
             // chained instance
             argListc.clear();
             argListc.push_back(argList[j]);
-            argListc.push_back(unresc[j+1]);
+            argListc.push_back(unresc[j + 1]);
             std::stringstream ssch;
             ssch << "C_add_" << i << "_" << j;
-            datatypesc[j].addSygusConstructor(op.toExpr(), ssch.str(), argListc);
+            datatypesc[j].addSygusConstructor(
+                op.toExpr(), ssch.str(), argListc);
             // last factor
             argListc.clear();
             argListc.push_back(argList[j]);
             std::stringstream ssce;
             ssce << "C_end_" << i << "_" << j;
-            datatypesc[j].addSygusConstructor(op.toExpr(), ssce.str(), argListc);
+            datatypesc[j].addSygusConstructor(
+                op.toExpr(), ssce.str(), argListc);
             // skip, reference next
             argListc.clear();
-            argListc.push_back(unresc[j+1]);
+            argListc.push_back(unresc[j + 1]);
             std::stringstream sscs;
             sscs << "C_skip_" << i << "_" << j;
             // ID function is not printed and does not count towards weight
-            datatypesc[j].addSygusConstructor(lambdaOp, sscs.str(), argListc,
-                               printer::SygusEmptyPrintCallback::getEmptyPC(),0);
+            datatypesc[j].addSygusConstructor(
+                lambdaOp,
+                sscs.str(),
+                argListc,
+                printer::SygusEmptyPrintCallback::getEmptyPC(),
+                0);
           }
         }
-        datatypes.insert(datatypes.end(),datatypesc.begin(),datatypesc.end());
+        datatypes.insert(datatypes.end(), datatypesc.begin(), datatypesc.end());
 #endif
       }
       else
