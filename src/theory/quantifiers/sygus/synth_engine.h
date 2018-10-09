@@ -82,7 +82,14 @@ class SynthEngine : public QuantifiersModule
    * SynthConjecture::getSynthSolutions.
    */
   void getSynthSolutions(std::map<Node, Node>& sol_map);
-  /** preregister assertion (before rewrite) */
+  /** preregister assertion (before rewrite)
+   *
+   * The purpose of this method is to inform the solution reconstruction
+   * techniques within the single invocation module that n is an original
+   * assertion, prior to rewriting. This is used as a heuristic to remember
+   * terms that are likely to help when trying to reconstruct a solution
+   * that fits a given input syntax.
+   */
   void preregisterAssertion(Node n);
 
  public:

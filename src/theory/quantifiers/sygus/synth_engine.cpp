@@ -70,8 +70,9 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
   }
   if (assigned)
   {
-    // assign conjecture always uses the output channel, we return and
-    // re-check here.
+    // assign conjecture always uses the output channel, either by reducing a
+    // quantified formula to another, or adding initial lemmas during
+    // SynthConjecture::assign. Thus, we return here and re-check.
     return;
   }
 
@@ -91,8 +92,8 @@ void SynthEngine::check(Theory::Effort e, QEffort quant_e)
     }
     else
     {
-      Trace("cegqi-engine-debug")
-          << "...no value for quantified formula." << std::endl;
+      Trace("cegqi-engine-debug") << "...no value for quantified formula."
+                                  << std::endl;
     }
     Trace("cegqi-engine-debug")
         << "Current conjecture status : active : " << active << std::endl;
