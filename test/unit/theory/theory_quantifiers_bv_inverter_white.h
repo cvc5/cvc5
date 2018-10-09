@@ -26,6 +26,7 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::theory;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::quantifiers::utils;
 using namespace CVC4::smt;
 
 class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
@@ -140,7 +141,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
       sk = d_nm->mkSkolem("sk", s2.getType());
       t = d_nm->mkVar("t", d_nm->mkBitVectorType(8));
       sv_t = d_nm->mkNode(BITVECTOR_CONCAT, x, s2);
-      sc = getScBvConcat(pol, litk, 0, sk, sv_t, t);
+      sc = getICBvConcat(pol, litk, 0, sk, sv_t, t);
     }
     else if (idx == 1)
     {
@@ -149,7 +150,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
       sk = d_nm->mkSkolem("sk", s1.getType());
       t = d_nm->mkVar("t", d_nm->mkBitVectorType(8));
       sv_t = d_nm->mkNode(BITVECTOR_CONCAT, s1, x);
-      sc = getScBvConcat(pol, litk, 1, sk, sv_t, t);
+      sc = getICBvConcat(pol, litk, 1, sk, sv_t, t);
     }
     else
     {
@@ -160,7 +161,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
       sk = d_nm->mkSkolem("sk", s1.getType());
       t = d_nm->mkVar("t", d_nm->mkBitVectorType(12));
       sv_t = d_nm->mkNode(BITVECTOR_CONCAT, s1, x, s2);
-      sc = getScBvConcat(pol, litk, 1, sk, sv_t, t);
+      sc = getICBvConcat(pol, litk, 1, sk, sv_t, t);
     }
 
     TS_ASSERT(!sc.isNull());
@@ -198,7 +199,7 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
     Node t = d_nm->mkVar("t", d_nm->mkBitVectorType(w));
     Node sv_t = bv::utils::mkSignExtend(x, ws);
-    Node sc = getScBvSext(pol, litk, 0, sk, sv_t, t);
+    Node sc = getICBvSext(pol, litk, 0, sk, sv_t, t);
 
     TS_ASSERT(!sc.isNull());
     Kind ksc = sc.getKind();
@@ -256,42 +257,42 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvUltTrue()
   {
-    runTestPred(true, BITVECTOR_ULT, d_x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, d_x, getICBvUltUgt);
   }
 
   void testGetScBvUltFalse()
   {
-    runTestPred(false, BITVECTOR_ULT, d_x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, d_x, getICBvUltUgt);
   }
 
   void testGetScBvUgtTrue()
   {
-    runTestPred(true, BITVECTOR_UGT, d_x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, d_x, getICBvUltUgt);
   }
 
   void testGetScBvUgtFalse()
   {
-    runTestPred(false, BITVECTOR_UGT, d_x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, d_x, getICBvUltUgt);
   }
 
   void testGetScBvSltTrue()
   {
-    runTestPred(true, BITVECTOR_SLT, d_x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, d_x, getICBvSltSgt);
   }
 
   void testGetScBvSltFalse()
   {
-    runTestPred(false, BITVECTOR_SLT, d_x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, d_x, getICBvSltSgt);
   }
 
   void testGetScBvSgtTrue()
   {
-    runTestPred(true, BITVECTOR_SGT, d_x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, d_x, getICBvSltSgt);
   }
 
   void testGetScBvSgtFalse()
   {
-    runTestPred(false, BITVECTOR_SGT, d_x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, d_x, getICBvSltSgt);
   }
 
   /* Equality and Disequality ----------------------------------------------  */
@@ -300,175 +301,175 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
 
   void testGetScBvMultEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, EQUAL, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, EQUAL, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(false, EQUAL, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(false, EQUAL, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   /* Urem */
 
   void testGetScBvUremEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, EQUAL, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(false, EQUAL, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   /* Udiv */
   void testGetScBvUdivEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(false, EQUAL, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   /* And */
 
   void testGetScBvAndEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, EQUAL, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, EQUAL, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(false, EQUAL, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(false, EQUAL, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   /* Or */
 
   void testGetScBvOrEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, EQUAL, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, EQUAL, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(false, EQUAL, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(false, EQUAL, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   /* Lshr */
 
   void testGetScBvLshrEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, EQUAL, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, EQUAL, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(false, EQUAL, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(false, EQUAL, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   /* Ashr */
 
   void testGetScBvAshrEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, EQUAL, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, EQUAL, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(false, EQUAL, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(false, EQUAL, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   /* Shl */
 
   void testGetScBvShlEqTrue0()
   {
-    runTest(true, EQUAL, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, EQUAL, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlEqTrue1()
   {
-    runTest(true, EQUAL, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, EQUAL, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlEqFalse0()
   {
-    runTest(false, EQUAL, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(false, EQUAL, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlEqFalse1()
   {
-    runTest(false, EQUAL, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(false, EQUAL, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   /* Concat */
@@ -522,97 +523,97 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvNotUltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotUgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNotSltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNotSgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NOT, d_x);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   /* Neg */
@@ -620,97 +621,97 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvNegUltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegUgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvNegSltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvNegSgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_NEG, d_x);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   /* Add */
@@ -718,753 +719,753 @@ class TheoryQuantifiersBvInverter : public CxxTest::TestSuite
   void testGetScBvPlusUltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(true, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(false, BITVECTOR_ULT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_ULT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(true, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(true, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusUgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(false, BITVECTOR_UGT, x, getScBvUltUgt);
+    runTestPred(false, BITVECTOR_UGT, x, getICBvUltUgt);
   }
 
   void testGetScBvPlusSltTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSltTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(true, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSltFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSltFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(false, BITVECTOR_SLT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SLT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSgtTrue0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSgtTrue1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(true, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(true, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSgtFalse0()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_x, d_s);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   void testGetScBvPlusSgtFalse1()
   {
     Node x = d_nm->mkNode(BITVECTOR_PLUS, d_s, d_x);
-    runTestPred(false, BITVECTOR_SGT, x, getScBvSltSgt);
+    runTestPred(false, BITVECTOR_SGT, x, getICBvSltSgt);
   }
 
   /* Mult */
 
   void testGetScBvMultUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   void testGetScBvMultSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 0, getScBvMult);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 0, getICBvMult);
   }
 
   void testGetScBvMultSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 1, getScBvMult);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_MULT, 1, getICBvMult);
   }
 
   /* Urem */
 
   void testGetScBvUremUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   void testGetScBvUremSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getScBvUrem);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 0, getICBvUrem);
   }
 
   void testGetScBvUremSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getScBvUrem);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UREM_TOTAL, 1, getICBvUrem);
   }
 
   /* Udiv */
 
   void testGetScBvUdivUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   void testGetScBvUdivSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getScBvUdiv);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 0, getICBvUdiv);
   }
 
   void testGetScBvUdivSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getScBvUdiv);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_UDIV_TOTAL, 1, getICBvUdiv);
   }
 
   /* And */
 
   void testGetScBvAndUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   void testGetScBvAndSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 0, getICBvAndOr);
   }
 
   void testGetScBvAndSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_AND, 1, getICBvAndOr);
   }
 
   /* Or */
 
   void testGetScBvOrUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   void testGetScBvOrSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 0, getScBvAndOr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 0, getICBvAndOr);
   }
 
   void testGetScBvOrSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 1, getScBvAndOr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_OR, 1, getICBvAndOr);
   }
 
   /* Lshr */
 
   void testGetScBvLshrUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   void testGetScBvLshrSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getScBvLshr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 0, getICBvLshr);
   }
 
   void testGetScBvLshrSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getScBvLshr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_LSHR, 1, getICBvLshr);
   }
 
   /* Ashr */
 
   void testGetScBvAshrUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   void testGetScBvAshrSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getScBvAshr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 0, getICBvAshr);
   }
 
   void testGetScBvAshrSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getScBvAshr);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_ASHR, 1, getICBvAshr);
   }
 
   /* Shl */
 
   void testGetScBvShlUltTrue0()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlUltTrue1()
   {
-    runTest(true, BITVECTOR_ULT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, BITVECTOR_ULT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlUltFalse0()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlUltFalse1()
   {
-    runTest(false, BITVECTOR_ULT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(false, BITVECTOR_ULT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlUgtTrue0()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlUgtTrue1()
   {
-    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, BITVECTOR_UGT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlUgtFalse0()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlUgtFalse1()
   {
-    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(false, BITVECTOR_UGT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlSltTrue0()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlSltTrue1()
   {
-    runTest(true, BITVECTOR_SLT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, BITVECTOR_SLT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlSltFalse0()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlSltFalse1()
   {
-    runTest(false, BITVECTOR_SLT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(false, BITVECTOR_SLT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlSgtTrue0()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlSgtTrue1()
   {
-    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(true, BITVECTOR_SGT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   void testGetScBvShlSgtFalse0()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 0, getScBvShl);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 0, getICBvShl);
   }
 
   void testGetScBvShlSgtFalse1()
   {
-    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 1, getScBvShl);
+    runTest(false, BITVECTOR_SGT, BITVECTOR_SHL, 1, getICBvShl);
   }
 
   /* Concat */
