@@ -17,6 +17,7 @@
 
 #include <string>
 
+#include "base/map_util.h"
 #include "expr/node.h"
 #include "options/bv_options.h"
 #include "smt/smt_statistics_registry.h"
@@ -61,7 +62,7 @@ bool BoolToBV::needToRebuild(TNode n) const
   // check if any children were rebuilt
   for (const Node& nn : n)
   {
-    if (d_lowerCache.count(nn))
+    if (ContainsKey(d_lowerCache, nn))
     {
       return true;
     }
@@ -73,31 +74,28 @@ Node BoolToBV::lowerAssertion(const TNode& a)
 {
   bool optionITE = options::boolToBitvector() == BOOL_TO_BV_ITE;
   NodeManager* nm = NodeManager::currentNM();
-  std::vector<TNode> terms;
-  terms.push_back(a);
+  std::vector<TNode> visit;
+  visit.push_back(a);
   std::unordered_set<TNode, TNodeHashFunction> visited;
   // for ite mode, keeps track of whether you're in an ite condition
   // for all mode, unused
   std::unordered_set<TNode, TNodeHashFunction> ite_cond;
 
-  while (!terms.empty())
+  while (!visit.empty())
   {
-    TNode n = terms.back();
-    terms.pop_back();
+    TNode n = visit.back();
+    visit.pop_back();
     Kind k = n.getKind();
     Debug("bool-to-bv") << "BoolToBV::lowerAssertion Post-traversal with " << n
-                        << " and visited = " << visited.count(n) << std::endl;
+                        << " and visited = " << ContainsKey(visited, n) << std::endl;
 
     // Mark as visited
     /* Optimization: if it's a leaf, don't need to wait to do the work */
-    if ((visited.count(n) == 0) && (n.getNumChildren() > 0))
+    if (!ContainsKey(visited, n) && (n.getNumChildren() > 0))
     {
       visited.insert(n);
-      terms.push_back(n);
-      for (const Node& nn : n)
-      {
-        terms.push_back(nn);
-      }
+      visit.push_back(n);
+      visit.insert(visit.end(), n.begin(), n.end());
 
       if (optionITE)
       {
@@ -106,18 +104,15 @@ Node BoolToBV::lowerAssertion(const TNode& a)
         {
           ite_cond.insert(n[0]);
         }
-        else if (ite_cond.count(n))
+        else if (ContainsKey(ite_cond, n))
         {
           // being part of an ite condition is inherited from the parent
-          for (const Node& nn : n)
-          {
-            ite_cond.insert(nn);
-          }
+          ite_cond.insert(n.begin(), n.end());
         }
       }
     }
     /* Optimization for ite mode */
-    else if (optionITE && (ite_cond.count(n) == 0) && !needToRebuild(n))
+    else if (optionITE && !ContainsKey(ite_cond, n) && !needToRebuild(n))
     {
       Debug("bool-to-bv")
           << "BoolToBV::lowerAssertion Skipping because don't need to rebuild: "
@@ -152,6 +147,10 @@ void BoolToBV::lowerNode(const TNode& n)
   for (const Node& nn : n)
   {
     all_bv = all_bv && fromCache(nn).getType().isBitVector();
+    if (!all_bv)
+    {
+      break;
+    }
   }
 
   if (!all_bv || (n.getNumChildren() == 0))
@@ -227,7 +226,7 @@ void BoolToBV::lowerNode(const TNode& n)
   Debug("bool-to-bv") << "BoolToBV::lowerAssertion " << n << "=>\n"
                       << builder << std::endl;
 
-  d_lowerCache[n] = builder;
+  d_lowerCache[n] = builder.constructNode();
 }
 
 BoolToBV::Statistics::Statistics()
