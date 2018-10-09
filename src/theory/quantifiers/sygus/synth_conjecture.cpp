@@ -241,10 +241,6 @@ bool SynthConjecture::isSingleInvocation() const
 
 bool SynthConjecture::needsCheck()
 {
-  if (isSingleInvocation() && !d_ceg_si->needsCheck())
-  {
-    return false;
-  }
   bool value;
   Assert(!d_feasible_guard.isNull());
   // non or fully single invocation : look at guard only
@@ -254,6 +250,10 @@ bool SynthConjecture::needsCheck()
     {
       Trace("cegqi-engine-debug") << "Conjecture is infeasible." << std::endl;
       return false;
+    }
+    else
+    {
+      Trace("cegqi-engine-debug") << "Feasible guard " << d_feasible_guard << " assigned true." << std::endl;
     }
   }
   else
@@ -724,11 +724,11 @@ class EnumValGeneratorBasic : public EnumValGenerator
 
 Node SynthConjecture::getEnumeratedValue(Node e)
 {
-  if (e.getAttribute(SygusSymBreakExcAttribute()))
+  if (!e.getAttribute(SygusSymBreakOkAttribute()))
   {
-    // if the current model value of e was excluded by symmetry breaking, then
-    // it does not have a proper model value that we should consider, thus we
-    // return null.
+    // if the current model value of e was not registered by the datatypes
+    // sygus solver, or was excluded by symmetry breaking, then it does not
+    // have a proper model value that we should consider, thus we return null.
     return Node::null();
   }
 
@@ -930,11 +930,11 @@ void SynthConjecture::printAndContinueStream()
   }
   if (!exp.empty())
   {
-    // if( !d_guarded_stream_exc )
-    //{
-    d_guarded_stream_exc = true;
-    exp.push_back(d_feasible_guard);
-    //}
+    if( !d_guarded_stream_exc )
+    {
+      d_guarded_stream_exc = true;
+      exp.push_back(d_feasible_guard);
+    }
     Node exc_lem = exp.size() == 1
                        ? exp[0]
                        : NodeManager::currentNM()->mkNode(kind::AND, exp);
