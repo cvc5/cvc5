@@ -1727,7 +1727,6 @@ set(regress_2_tests
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy
-  regress2/sygus/sixfuncs.sy
   regress2/sygus/three.sy
   regress2/sygus/vcb.sy
   regress2/typed_v1l50016-simp.cvc
@@ -1752,6 +1751,7 @@ set(regress_3_tests
   regress3/issue2429.smt2
   regress3/pp-regfile.smt
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
+  regress3/sixfuncs.sy
 )
 
 #-----------------------------------------------------------------------------#
