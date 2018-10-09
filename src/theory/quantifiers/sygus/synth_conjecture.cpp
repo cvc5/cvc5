@@ -673,16 +673,25 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
   return ret;
 }
 
+/** A basic sygus value generator 
+ *
+ * This class is a "naive" term generator for sygus conjectures, which invokes
+ * the type enumerator to generate a stream of (all) sygus terms of a given
+ * type.
+ */
 class EnumValGeneratorBasic : public EnumValGenerator
 {
  public:
   EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_te(tn) {}
   ~EnumValGeneratorBasic() {}
+  /** initialize (do nothing) */
   void initialize(Node e) override {}
-  void addValue(Node v) override
-  {
-    // ignored
-  }
+  /** initialize (do nothing) */
+  void addValue(Node v) override {}
+  /** 
+   * Get next returns the next (T-rewriter-unique) value based on the type
+   * enumerator. 
+   */
   Node getNext() override
   {
     if (d_te.isFinished())
@@ -692,7 +701,10 @@ class EnumValGeneratorBasic : public EnumValGenerator
     Node next = *d_te;
     ++d_te;
     Node nextb = d_tds->sygusToBuiltin(next);
-    nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+    if (options::sygusSymBreakDynamic())
+    { 
+      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+    }
     if (d_cache.find(nextb) == d_cache.end())
     {
       d_cache.insert(nextb);
@@ -700,10 +712,12 @@ class EnumValGeneratorBasic : public EnumValGenerator
     }
     return getNext();
   }
-
  private:
+  /** pointer to term database sygus */
   TermDbSygus* d_tds;
+  /** the type enumerator */
   TypeEnumerator d_te;
+  /** cache of (enumerated) builtin values we have enumerated so far */
   std::unordered_set<Node, NodeHashFunction> d_cache;
 };
 
@@ -729,7 +743,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
       d_evg.find(e);
   if (iteg == d_evg.end())
   {
-    if (options::sygusEnumVarAgnostic())
+    if (d_tds->isVariableAgnosticEnumerator(e))
     {
       d_evg[e].reset(new EnumStreamConcrete(d_tds));
     }

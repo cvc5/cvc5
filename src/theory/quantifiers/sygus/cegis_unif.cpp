@@ -615,7 +615,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   if (options::sygusUnifCondIndependent() && index == 1)
   {
     mkActiveGuard = true;
-    isActiveGen = options::sygusEnumActiveGen();
+    isActiveGen = options::sygusActiveGenMode()!=SYGUS_ACTIVE_GEN_NONE;
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
