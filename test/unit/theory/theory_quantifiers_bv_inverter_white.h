@@ -14,12 +14,13 @@
  ** Unit tests for BV inverter.
  **/
 
-#include "theory/quantifiers/bv_inverter.cpp"
 
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "theory/bv/theory_bv_utils.h"
+#include "theory/quantifiers/bv_inverter_utils.h"
 #include "util/result.h"
 
 using namespace CVC4;
