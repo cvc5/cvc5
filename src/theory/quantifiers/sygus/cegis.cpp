@@ -215,21 +215,9 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
-      bool isUnit = false;
-      for (const Node& hd_unit : d_rl_eval_hds)
-      {
-        if (enums[i] == hd_unit[0])
-        {
-          isUnit = true;
-          break;
-        }
-      }
-      Trace("cegis") << "    " << enums[i]
-                     << (options::sygusUnif() && isUnit ? "*" : "") << " -> ";
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())
-          ->toStreamSygus(ss, enum_values[i]);
-      Trace("cegis") << ss.str() << std::endl;
+      Trace("cegis") << "    " << enums[i] << " -> ";
+      TermDbSygus::toStreamSygus("cegis", enum_values[i]);
+      Trace("cegis") << "\n";
     }
   }
   // if we are using grammar-based repair

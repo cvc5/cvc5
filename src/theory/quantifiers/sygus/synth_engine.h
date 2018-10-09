@@ -31,24 +31,25 @@ class SynthEngine : public QuantifiersModule
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
 
  private:
-  /** the quantified formula stating the synthesis conjecture */
-  SynthConjecture* d_conj;
-  /** last instantiation by single invocation module? */
-  bool d_last_inst_si;
-  /** the conjecture we are waiting to assign */
-  Node d_waiting_conj;
-
- private:
-  /** assign quantified formula q as the conjecture
-   *
-   * This method returns true if q was successfully assigned as the synthesis
-   * conjecture considered by this class. This method may return false, for
-   * instance, if this class determines that it would rather rewrite q to
-   * an equivalent form r (in which case this method returns the lemma
-   * q <=> r). An example of this is the quantifier elimination step
-   * option::sygusQePreproc().
+  /** the conjecture formula(s) we are waiting to assign */
+  std::vector<Node> d_waiting_conj;
+  /** The synthesis conjectures that this class is managing. */
+  std::vector<std::unique_ptr<SynthConjecture> > d_conjs;
+  /**
+   * The first conjecture in the above vector. We track this conjecture
+   * so that a synthesis conjecture can be preregistered during a call to
+   * preregisterAssertion.
    */
-  bool assignConjecture(Node q);
+  SynthConjecture* d_conj;
+  /** assign quantified formula q as a conjecture
+   *
+   * This method either assigns q to a synthesis conjecture object in d_conjs,
+   * or otherwise reduces q to an equivalent form. This method does the latter
+   * if this class determines that it would rather rewrite q to an equivalent
+   * form r (in which case this method returns the lemma q <=> r). An example of
+   * this is the quantifier elimination step option::sygusQePreproc().
+   */
+  void assignConjecture(Node q);
   /** check conjecture */
   void checkConjecture(SynthConjecture* conj);
 
@@ -56,7 +57,6 @@ class SynthEngine : public QuantifiersModule
   SynthEngine(QuantifiersEngine* qe, context::Context* c);
   ~SynthEngine();
 
- public:
   bool needsCheck(Theory::Effort e) override;
   QEffort needsModel(Theory::Effort e) override;
   /* Call during quantifier engine's check */
@@ -78,7 +78,14 @@ class SynthEngine : public QuantifiersModule
    * SynthConjecture::getSynthSolutions.
    */
   void getSynthSolutions(std::map<Node, Node>& sol_map);
-  /** preregister assertion (before rewrite) */
+  /** preregister assertion (before rewrite)
+   *
+   * The purpose of this method is to inform the solution reconstruction
+   * techniques within the single invocation module that n is an original
+   * assertion, prior to rewriting. This is used as a heuristic to remember
+   * terms that are likely to help when trying to reconstruct a solution
+   * that fits a given input syntax.
+   */
   void preregisterAssertion(Node n);
 
  public:

@@ -150,8 +150,9 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
       for (unsigned index = 0; index < 2; index++)
       {
         std::vector<Node> es, vs;
-        Trace("cegis") << "  " << (index == 0 ? "Return values" : "Conditions")
-                       << " for " << e << ":\n";
+        Trace("cegis-unif")
+            << "  " << (index == 0 ? "Return values" : "Conditions") << " for "
+            << e << ":\n";
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(e, es, index);
         // set enums for condition enumerators
@@ -163,7 +164,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
             // whether valueus exhausted
             if (mvMap.find(es[0]) == mvMap.end())
             {
-              Trace("cegis") << "    " << es[0] << " -> N/A\n";
+              Trace("cegis-unif") << "    " << es[0] << " -> N/A\n";
               es.clear();
             }
           }
@@ -174,13 +175,11 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
         {
           Assert(mvMap.find(eu) != mvMap.end());
           Node m_eu = mvMap[eu];
-          if (Trace.isOn("cegis"))
+          if (Trace.isOn("cegis-unif"))
           {
-            Trace("cegis") << "    " << eu << " -> ";
-            std::stringstream ss;
-            Printer::getPrinter(options::outputLanguage())
-                ->toStreamSygus(ss, m_eu);
-            Trace("cegis") << ss.str() << std::endl;
+            Trace("cegis-unif") << "    " << eu << " -> ";
+            TermDbSygus::toStreamSygus("cegis-unif", m_eu);
+            Trace("cegis-unif") << "\n";
           }
           vs.push_back(m_eu);
         }
@@ -288,6 +287,34 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     Assert(d_non_unif_candidates.size() == candidates.size());
     return Cegis::processConstructCandidates(
         enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
+  }
+  if (Trace.isOn("cegis-unif"))
+  {
+    for (const Node& c : d_unif_candidates)
+    {
+      // Collect heads of candidates
+      Trace("cegis-unif") << "  Evaluation heads for " << c << " :\n";
+      for (const Node& hd : d_sygus_unif.getEvalPointHeads(c))
+      {
+        bool isUnit = false;
+        // d_rl_eval_hds accumulates eval apps, so need to look at operators
+        for (const Node& hd_unit : d_rl_eval_hds)
+        {
+          if (hd == hd_unit[0])
+          {
+            isUnit = true;
+            break;
+          }
+        }
+        Trace("cegis-unif") << "    " << hd << (isUnit ? "*" : "") << " -> ";
+        Assert(std::find(enums.begin(), enums.end(), hd) != enums.end());
+        unsigned i = std::distance(enums.begin(),
+                                   std::find(enums.begin(), enums.end(), hd));
+        Assert(i >= 0 && i < enum_values.size());
+        TermDbSygus::toStreamSygus("cegis-unif", enum_values[i]);
+        Trace("cegis-unif") << "\n";
+      }
+    }
   }
   // the unification enumerators for conditions and their model values
   std::map<Node, std::vector<Node>> unif_cenums;
