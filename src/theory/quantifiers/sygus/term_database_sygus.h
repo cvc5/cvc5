@@ -70,7 +70,7 @@ class TermDbSygus {
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
    * isActiveGen : if this flag is true, the enumerator will be
-   * actively-generated.
+   * actively-generated based on the mode specified by --sygus-active-gen.
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction
