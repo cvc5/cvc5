@@ -20,6 +20,7 @@
 #include "printer/printer.h"
 #include "printer/sygus_print_callback.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
+#include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_util.h"
@@ -30,17 +31,6 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
-
-// Attribute for whether we have computed rewrite rules for a given term.
-// Notice that this currently must be a global attribute, since if
-// we've computed rewrites for a term, we should not compute rewrites for the
-// same term in a subcall to another SmtEngine (for instance, when using
-// "exact" equivalence checking).
-struct SynthRrComputedAttributeId
-{
-};
-typedef expr::Attribute<SynthRrComputedAttributeId, bool>
-    SynthRrComputedAttribute;
 
 SynthRewRulesPass::SynthRewRulesPass(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "synth-rr"){};
@@ -58,9 +48,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   NodeManager* nm = NodeManager::currentNM();
 
-  // attribute to mark processed terms
-  SynthRrComputedAttribute srrca;
-
   // initialize the candidate rewrite
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
@@ -70,6 +57,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<Node> terms;
   // all variables
   std::vector<Node> vars;
+  
+  // We will generate a fixed number of variables per type. These are the
+  // variables that appear as free variables in the rewrites we generate.
+  unsigned nvars = options::sygusRewSynthInputNVars();
+  // must have at least one variable per type
+  nvars = nvars < 1 ? 1 : nvars;
+  std::map<TypeNode, std::vector<Node> > tvars;
+  std::vector<TypeNode> allVarTypes;
+  std::vector<Node> allVars;
+  unsigned varCounter = 0;
+  // standard constants for each type
+  std::map< TypeNode, std::vector< Node > > consts;
+            
   TNode cur;
   Trace("synth-rr-prep") << "Collect terms in assertions..." << std::endl;
   for (const Node& a : assertions)
@@ -81,13 +81,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       cur = visit.back();
       visit.pop_back();
       it = visited.find(cur);
-      // if already processed, ignore
-      if (cur.getAttribute(SynthRrComputedAttribute()))
-      {
-        Trace("synth-rr-prep-debug")
-            << "...already processed " << cur << std::endl;
-      }
-      else if (it == visited.end())
+      if (it == visited.end())
       {
         Trace("synth-rr-prep-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
@@ -127,8 +121,38 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           {
             vars.push_back(cur);
           }
-          // mark as processed
-          cur.setAttribute(srrca, true);
+          // register type information
+          TypeNode tn = cur.getType();
+          if (tvars.find(tn) == tvars.end())
+          {
+            // Only make one Boolean variable unless option is set. This ensures
+            // we do not compute purely Boolean rewrites by default.
+            unsigned useNVars =
+                (options::sygusRewSynthInputUseBool() || !tn.isBoolean()) ? nvars
+                                                                          : 1;
+            for (unsigned i = 0; i < useNVars; i++)
+            {
+              // We must have a good name for these variables, these are
+              // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
+              std::stringstream ssv;
+              if (varCounter < 26)
+              {
+                ssv << String::convertUnsignedIntToChar(varCounter + 32);
+              }
+              else
+              {
+                ssv << "x" << (varCounter - 26);
+              }
+              varCounter++;
+              Node v = nm->mkBoundVar(ssv.str(), tn);
+              tvars[tn].push_back(v);
+              allVars.push_back(v);
+              allVarTypes.push_back(tn);
+            }
+            // also add the standard constants for this type
+            theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(tn,consts[tn]);
+            visit.insert(visit.end(),consts[tn].begin(),consts[tn].end());
+          }
         }
         visited[cur] = childrenValid;
       }
@@ -159,15 +183,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
 
   Trace("synth-rr-prep") << "Process " << terms.size() << " subterms..."
                          << std::endl;
-  // We've collected all terms in the input. We will produce skeletons from
-  // these terms. We start by constructing a fixed number of variables per
-  // type.
-  unsigned nvars = options::sygusRewSynthInputNVars();
-  // must have at least one variable
-  nvars = nvars < 1 ? 1 : nvars;
-  std::map<TypeNode, std::vector<Node> > tvars;
-  std::vector<TypeNode> allVarTypes;
-  std::vector<Node> allVars;
+  // We've collected all terms in the input. We construct a sygus grammar in
+  // following which generates terms that correspond to abstractions of the
+  // terms in the input.
+                         
   // We also map terms to a canonical (ordered) form. This ensures that
   // we don't generate distinct grammar types for distinct alpha-equivalent
   // terms, which would produce grammars of identical shape.
@@ -177,7 +196,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // canonical terms for each type
   std::map<TypeNode, std::vector<Node> > t_cterms;
   theory::quantifiers::TermCanonize tcanon;
-  unsigned varCounter = 0;
   for (unsigned i = 0, nterms = terms.size(); i < nterms; i++)
   {
     Node n = terms[i];
@@ -190,36 +208,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     {
       cterm_to_term[cn] = n;
       cterms.push_back(cn);
-      // register type information
-      TypeNode tn = n.getType();
-      if (tvars.find(tn) == tvars.end())
-      {
-        // Only make one Boolean variable unless option is set. This ensures
-        // we do not compute purely Boolean rewrites by default.
-        unsigned useNVars =
-            (options::sygusRewSynthInputUseBool() || !tn.isBoolean()) ? nvars
-                                                                      : 1;
-        for (unsigned i = 0; i < useNVars; i++)
-        {
-          // We must have a good name for these variables, these are
-          // the ones output in rewrite rules. We choose a,b,c,...,y,z,x1,x2,...
-          std::stringstream ssv;
-          if (varCounter < 26)
-          {
-            ssv << String::convertUnsignedIntToChar(varCounter + 32);
-          }
-          else
-          {
-            ssv << "x" << (varCounter - 26);
-          }
-          varCounter++;
-          Node v = nm->mkBoundVar(ssv.str(), tn);
-          tvars[tn].push_back(v);
-          allVars.push_back(v);
-          allVarTypes.push_back(tn);
-        }
-      }
-      t_cterms[tn].push_back(cn);
+      t_cterms[cn.getType()].push_back(cn);
     }
   }
   Trace("synth-rr-prep") << "...finished." << std::endl;
@@ -286,6 +275,19 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         Kind k = NodeManager::operatorToKind(op);
         do_chain = theory::quantifiers::TermUtil::isAssoc(k)
                    && theory::quantifiers::TermUtil::isComm(k);
+        // eliminate duplicate child types
+        std::vector< Type > argListTmp = argList;
+        argList.clear();
+        std::map< Type, bool > hasArgType;
+        for(unsigned j = 0, size = argListTmp.size(); j < size; j++)
+        {
+          Type t = argListTmp[j];
+          if( hasArgType.find(t)==hasArgType.end() )
+          {
+            hasArgType[t] = true;
+            argList.push_back(t);
+          }
+        }
       }
       if (do_chain)
       {
