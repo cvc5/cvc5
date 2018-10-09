@@ -92,12 +92,11 @@ class SynthConjecture
   void doRefine(std::vector<Node>& lems);
   //-------------------------------end for counterexample-guided check/refine
   /**
-   * prints the synthesis solution to output stream out.
-   *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
+   * Prints the synthesis solution to output stream out. This invokes solution
+   * reconstruction if the conjecture is single invocation. Otherwise, it
+   * returns the enumer
    */
-  void printSynthSolution(std::ostream& out, bool singleInvocation);
+  void printSynthSolution(std::ostream& out);
   /** get synth solutions
    *
    * This returns a map from function-to-synthesize variables to their
@@ -105,11 +104,8 @@ class SynthConjecture
    * conjecture exists f. forall x. f( x )>x, this function may return the map
    * containing the entry:
    *   f -> (lambda x. x+1)
-   *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
   /**
    * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.
@@ -309,16 +305,15 @@ class SynthConjecture
    * We store builtin versions under some conditions (such as when the sygus
    * grammar is being ignored).
    *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
+   * This consults the single invocation module to get synthesis solutions if
+   * isSingleInvocation() returns true.
    *
    * For example, for conjecture exists fg. forall x. f(x)>g(x), this function
    * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status,
-                                 bool singleInvocation);
+                                 std::vector<int>& status);
   //-------------------------------- sygus stream
   /** current stream guard */
   Node d_current_stream_guard;
