@@ -544,10 +544,12 @@ namespace {
 
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
 
+#ifdef CVC4_ASSERTIONS
 bool isDefinedIntKind(CVC4::Kind k)
 {
   return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
 }
+#endif
 
 Kind intToExtKind(CVC4::Kind k)
 {
