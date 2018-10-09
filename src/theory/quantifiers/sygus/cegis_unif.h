@@ -47,6 +47,10 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
+  // Do not hide the zero-argument version of initialize() inherited from the
+  // base class
+  using DecisionStrategy::initialize;
+
   CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
