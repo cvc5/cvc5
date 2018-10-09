@@ -71,6 +71,10 @@ class TermDbSygus {
    * constructors like the "any constant" variable.
    * isActiveGen : if this flag is true, the enumerator will be
    * actively-generated based on the mode specified by --sygus-active-gen.
+   * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
+   * only generate values whose variables are in canonical order (only x1-x2
+   * and not x2-x1 will be generated, assuming x1 and x2 are in the same
+   * "subclass", see getSubclassForVar).
    *
    * Notice that enumerator e may not be one-to-one with f in
    * synthesis-through-unification approaches (e.g. decision tree construction

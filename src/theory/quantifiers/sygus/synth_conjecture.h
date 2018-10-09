@@ -90,10 +90,10 @@ class SynthConjecture
    * for the given call to SynthEngine::check.
    *
    * Notice that we make multiple calls to doCheck on one call to
-   * SynthEngine::check. For example, if we are using an  actively-generated
+   * SynthEngine::check. For example, if we are using an actively-generated
    * enumerator, one enumerated (abstract) term may correspond to multiple
    * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
-   * when each of t1, ..., tn fail to satisfy the current refinement lemmas.
+   * when each of t1, ..., tn fails to satisfy the current refinement lemmas.
    */
   bool doCheck(std::vector<Node>& lems);
   /** do refinement
