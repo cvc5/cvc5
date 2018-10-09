@@ -1131,6 +1131,12 @@ void SmtEngine::setDefaults() {
         options::cbqi.set(true);
       }
     }
+    if (options::sygusUnifBooleanHeuristicDt()
+        && !options::sygusUnifCondIndependent())
+    {
+      Notice() << "SmtEngine: turning on sygus-unif-cond-independent\n";
+      setOption("sygus-unif-cond-independent", SExpr("true"));
+    }
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
