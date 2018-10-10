@@ -198,6 +198,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
       lems.push_back(lem);
+      addedEvalLemmas = true;
       Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
                            << std::endl;
     }
