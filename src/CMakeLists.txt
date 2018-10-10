@@ -424,6 +424,8 @@ libcvc4_add_sources(
   theory/quantifiers/anti_skolem.h
   theory/quantifiers/bv_inverter.cpp
   theory/quantifiers/bv_inverter.h
+  theory/quantifiers/bv_inverter_utils.cpp
+  theory/quantifiers/bv_inverter_utils.h
   theory/quantifiers/candidate_rewrite_database.cpp
   theory/quantifiers/candidate_rewrite_database.h
   theory/quantifiers/candidate_rewrite_filter.cpp
@@ -432,6 +434,8 @@ libcvc4_add_sources(
   theory/quantifiers/cegqi/ceg_arith_instantiator.h
   theory/quantifiers/cegqi/ceg_bv_instantiator.cpp
   theory/quantifiers/cegqi/ceg_bv_instantiator.h
+  theory/quantifiers/cegqi/ceg_bv_instantiator_utils.cpp
+  theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h
   theory/quantifiers/cegqi/ceg_dt_instantiator.cpp
   theory/quantifiers/cegqi/ceg_dt_instantiator.h
   theory/quantifiers/cegqi/ceg_epr_instantiator.cpp

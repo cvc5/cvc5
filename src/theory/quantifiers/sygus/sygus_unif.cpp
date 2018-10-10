@@ -79,7 +79,7 @@ Node SygusUnif::constructBestStringToConcat(
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
-  std::random_shuffle(strs_tmp.begin(), strs_tmp.end());
+  std::shuffle(strs_tmp.begin(), strs_tmp.end(), Random::getRandom());
   // prefer one that has incremented by more than 0
   for (const Node& ns : strs_tmp)
   {

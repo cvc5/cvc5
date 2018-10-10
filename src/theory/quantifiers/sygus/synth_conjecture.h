@@ -83,21 +83,30 @@ class SynthConjecture
    */
   void doSingleInvCheck(std::vector<Node>& lems);
   /** do syntax-guided enumerative check
+   *
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.
+   *
+   * The method returns true if this conjecture is finished trying solutions
+   * for the given call to SynthEngine::check.
+   *
+   * Notice that we make multiple calls to doCheck on one call to
+   * SynthEngine::check. For example, if we are using an actively-generated
+   * enumerator, one enumerated (abstract) term may correspond to multiple
+   * concrete terms t1, ..., tn to check, where we make up to n calls to doCheck
+   * when each of t1, ..., tn fails to satisfy the current refinement lemmas.
    */
-  void doCheck(std::vector<Node>& lems);
+  bool doCheck(std::vector<Node>& lems);
   /** do refinement
    * This is step 2(b) of Figure 3 of Reynolds et al CAV 2015.
    */
   void doRefine(std::vector<Node>& lems);
   //-------------------------------end for counterexample-guided check/refine
   /**
-   * prints the synthesis solution to output stream out.
-   *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
+   * Prints the synthesis solution to output stream out. This invokes solution
+   * reconstruction if the conjecture is single invocation. Otherwise, it
+   * returns the solution found by sygus enumeration.
    */
-  void printSynthSolution(std::ostream& out, bool singleInvocation);
+  void printSynthSolution(std::ostream& out);
   /** get synth solutions
    *
    * This returns a map from function-to-synthesize variables to their
@@ -105,11 +114,8 @@ class SynthConjecture
    * conjecture exists f. forall x. f( x )>x, this function may return the map
    * containing the entry:
    *   f -> (lambda x. x+1)
-   *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
    */
-  void getSynthSolutions(std::map<Node, Node>& sol_map, bool singleInvocation);
+  void getSynthSolutions(std::map<Node, Node>& sol_map);
   /**
    * The feasible guard whose semantics are "this conjecture is feasiable".
    * This is "G" in Figure 3 of Reynolds et al CAV 2015.
@@ -186,6 +192,9 @@ class SynthConjecture
   /**
    * Get model values for terms n, store in vector v. This method returns true
    * if and only if all values added to v are non-null.
+   *
+   * It removes terms from n that correspond to "inactive" enumerators, that
+   * is, enumerators whose values have been exhausted.
    */
   bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v);
   /**
@@ -286,18 +295,6 @@ class SynthConjecture
       d_cinfo[d_candidates[i]].d_inst.push_back(vs[i]);
     }
   }
-  /**
-   * This performs the next check of the syntax-guided enumerative check
-   * (see doCheck above). The method returns true if a new solution was
-   * considered.
-   *
-   * Notice that one call to doCheck may correspond to multiple calls to
-   * doCheckNext. For example, if we are using an actively-generated enumerator,
-   * one enumerated (abstract) term may correspond to multiple concrete
-   * terms t1, ..., tn to check, where we make up to n calls to doCheckNext when
-   * each of t1, ..., tn fail to satisfy the current refinement lemmas.
-   */
-  bool doCheckNext(std::vector<Node>& lems);
   /** get synth solutions internal
    *
    * This function constructs the body of solutions for all
@@ -309,16 +306,15 @@ class SynthConjecture
    * We store builtin versions under some conditions (such as when the sygus
    * grammar is being ignored).
    *
-   * singleInvocation : set to true if we should consult the single invocation
-   * module to get synthesis solutions.
+   * This consults the single invocation module to get synthesis solutions if
+   * isSingleInvocation() returns true.
    *
    * For example, for conjecture exists fg. forall x. f(x)>g(x), this function
    * may set ( sols, status ) to ( { x+1, d_x() }, { 1, 0 } ), where d_x() is
    * the sygus datatype constructor corresponding to variable x.
    */
   bool getSynthSolutionsInternal(std::vector<Node>& sols,
-                                 std::vector<int>& status,
-                                 bool singleInvocation);
+                                 std::vector<int>& status);
   //-------------------------------- sygus stream
   /** current stream guard */
   Node d_current_stream_guard;
@@ -348,9 +344,15 @@ class SynthConjecture
   /**
    * Prints the current synthesis solution to the output stream indicated by
    * the Options object, send a lemma blocking the current solution to the
-   * output channel.
+   * output channel, which we refer to as a "stream exclusion lemma".
    */
   void printAndContinueStream();
+  /**
+   * Whether we have guarded a stream exclusion lemma when using sygusStream.
+   * This is an optimization that allows us to guard only the first stream
+   * exclusion lemma.
+   */
+  bool d_guarded_stream_exc;
   //-------------------------------- end sygus stream
   /** expression miner managers for each function-to-synthesize
    *
