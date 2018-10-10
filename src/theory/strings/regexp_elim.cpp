@@ -104,18 +104,20 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // prev_end stores the current (symbolic) index in x that we are
     // searching.
     Node prev_end = d_zero;
+    std::vector< Node > prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
     bool gap_exact_end = gap_exact.back();
     std::vector<Node> non_greedy_find_vars;
     for (unsigned i = 0, size = sep_children.size(); i < size; i++)
     {
-      Node sc = sep_children[i];
       if (gap_minsize[i] > 0)
       {
         // the gap to this child is at least gap_minsize[i]
         prev_end =
             nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
       }
+      prev_ends.push_back(prev_end);
+      Node sc = sep_children[i];
       Node lensc = nm->mkNode(STRING_LENGTH, sc);
       if (gap_exact[i])
       {
@@ -169,7 +171,6 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
         Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
         Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
-        conj.push_back(scc);
         // We also must ensure that we fit. This constraint is necessary in
         // addition to the constraint above. Take this example:
         //     x in (re.++ "A" _ (re.* _) "B" _) --->
@@ -182,9 +183,28 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // would have been the case than "ABB" would be a model for x, where
         // the second constraint refers to the third position, and the third
         // constraint refers to the second position.
-        Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
-                              nm->mkNode(MINUS, prev_end, lenSc),
-                              loc);
+        Node fit;
+        if( !gap_exact[sep_children.size() - 1] )
+        {
+          // with respect to the above example, this is an optimization
+          // that simplifies the constraints above. For that example, we 
+          // produce:
+          //     x in (re.++ "A" _ (re.* _) "B" _) --->
+          //       substr( x, 0, 1 ) = "A" ^          // find "A"
+          //       substr( x, len(x)-2, 1 ) = "B" ^   // "B" is at end - 2
+          //       2 <= len( x ) - 2
+          // The intuition is that above, there are two constraints that insist
+          // that "B" is found, whereas we only need one. The last constraint
+          // above says that the "B" we find at end-2 can be found >=1 after
+          // "A".
+          conj.pop_back();
+          fit = nm->mkNode( LEQ, prev_ends.back(), loc );
+        }
+        else
+        {
+          fit = nm->mkNode( EQUAL, nm->mkNode(MINUS, prev_end, lenSc), loc );
+        }
+        conj.push_back(scc);
         conj.push_back(fit);
       }
       else if (gap_minsize_end > 0)
