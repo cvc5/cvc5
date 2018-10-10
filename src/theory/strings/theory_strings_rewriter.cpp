@@ -521,7 +521,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
 
         if (checkEntailArith(ne[1], false) && checkEntailArith(ne[2], true))
         {
-          // (= "" (str.substr x 0 m)) ---> "" if m > 0
+          // (= "" (str.substr x 0 m)) ---> (= "" x) if m > 0
           if (ne[1] == zero)
           {
             Node ret = nm->mkNode(EQUAL, ne[0], empty);
