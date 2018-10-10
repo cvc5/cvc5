@@ -160,7 +160,7 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
       << ".....operator is " << sygus_op << std::endl;
   Node exp_sop_n = sygus_op;
   // Only expand definitions if the operator is not constant. This check is
-  // required to ensure we don't try to expand, e.g. bitvector extract
+  // required to ensure we don't try to expand e.g. bitvector extract
   // operators, whose type is undefined.
   if (!sygus_op.isConst())
   {

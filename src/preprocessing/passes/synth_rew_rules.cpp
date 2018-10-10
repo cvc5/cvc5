@@ -304,7 +304,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         // so for instance, t1+t2+t3, we generate the grammar:
         // T_{t1+t2+t3} -> 
         //   +( T_{t1+t2+t3}, T_{t1+t2+t3} ) | T_{t1} | T_{t2} | T_{t3}
-        // where we write T_t to denote "the type that abstracts term t.
+        // where we write T_t to denote "the type that abstracts term t".
         // Notice this construction allows to abstract subsets of the factors
         // of t1+t2+t3. This is particularly helpful for terms t1+...+tn for
         // large n, where we would like to consider binary applications of +.
