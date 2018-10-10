@@ -367,7 +367,7 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
     ops.push_back(nm->mkConst(true));
     ops.push_back(nm->mkConst(false));
   }
-  else if( type.isString() )
+  else if (type.isString())
   {
     ops.push_back(nm->mkConst(String("")));
   }

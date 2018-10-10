@@ -39,7 +39,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   Trace("srs-input") << "Synthesize rewrite rules from assertions..."
-                         << std::endl;
+                     << std::endl;
   std::vector<Node>& assertions = assertionsToPreprocess->ref();
   if (assertions.empty())
   {
@@ -164,7 +164,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "...finished." << std::endl;
 
   Trace("srs-input") << "Convert subterms to free variable form..."
-                         << std::endl;
+                     << std::endl;
   // Replace all free variables with bound variables. This ensures that
   // we can perform term canonization on subterms.
   std::vector<Node> vsubs;
@@ -185,7 +185,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "...finished." << std::endl;
 
   Trace("srs-input") << "Process " << terms.size() << " subterms..."
-                         << std::endl;
+                     << std::endl;
   // We've collected all terms in the input. We construct a sygus grammar in
   // following which generates terms that correspond to abstractions of the
   // terms in the input.
@@ -204,8 +204,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Node n = terms[i];
     Node cn = tcanon.getCanonicalTerm(n);
     term_to_cterm[n] = cn;
-    Trace("srs-input-debug")
-        << "Canon : " << n << " -> " << cn << std::endl;
+    Trace("srs-input-debug") << "Canon : " << n << " -> " << cn << std::endl;
     std::map<Node, Node>::iterator itc = cterm_to_term.find(cn);
     if (itc == cterm_to_term.end())
     {
@@ -219,7 +218,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Node sygusVarList = nm->mkNode(BOUND_VAR_LIST, allVars);
   Expr sygusVarListE = sygusVarList.toExpr();
   Trace("srs-input") << "Have " << cterms.size() << " canonical subterms."
-                         << std::endl;
+                     << std::endl;
 
   Trace("srs-input") << "Construct unresolved types..." << std::endl;
   // each canonical subterm corresponds to a grammar type
@@ -302,7 +301,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         std::vector<Type> argListc;
         // the following construction admits any number of repeated factors,
         // so for instance, t1+t2+t3, we generate the grammar:
-        // T_{t1+t2+t3} -> 
+        // T_{t1+t2+t3} ->
         //   +( T_{t1+t2+t3}, T_{t1+t2+t3} ) | T_{t1} | T_{t2} | T_{t3}
         // where we write T_t to denote "the type that abstracts term t".
         // Notice this construction allows to abstract subsets of the factors
@@ -343,7 +342,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   Trace("srs-input") << "...finished." << std::endl;
 
   Trace("srs-input") << "Make mutual datatype types for subterms..."
-                         << std::endl;
+                     << std::endl;
   std::vector<DatatypeType> types = nm->toExprManager()->mkMutualDatatypeTypes(
       datatypes, unres, ExprManager::DATATYPE_FLAG_PLACEHOLDER);
   Trace("srs-input") << "...finished." << std::endl;
@@ -368,7 +367,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     Expr lambdaOp =
         nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv).toExpr();
     Trace("srs-input") << "  We have " << tcp.second.size()
-                           << " subterms of type " << t << std::endl;
+                       << " subterms of type " << t << std::endl;
     for (unsigned i = 0, size = tcp.second.size(); i < size; i++)
     {
       Node n = tcp.second[i];
@@ -383,12 +382,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
                                ssc.str(),
                                argList,
                                printer::SygusEmptyPrintCallback::getEmptyPC(),
-                               0
-                              );
+                               0);
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
-      Trace("srs-input-debug")
-          << subtermTypes[n].getDatatype() << std::endl;
+      Trace("srs-input-debug") << subtermTypes[n].getDatatype() << std::endl;
     }
     // set that this is a sygus datatype
     dttl.setSygus(t.toType(), sygusVarListE, false, false);
