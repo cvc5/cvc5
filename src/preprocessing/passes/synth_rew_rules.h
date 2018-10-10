@@ -45,6 +45,11 @@ namespace passes {
  * do not necessarily match any in the input. For example, the above grammar
  * admits bvlshr( x, x ), which is not matchable with a subterm of the input.
  *
+ * Notice that Booleans are treated specially unless the option
+ * --sygus-rr-synth-input-bool is enabled, since we do not by default want to
+ * generate purely propositional rewrites. In particular, we allocate only
+ * one Boolean variable (to ensure that no sygus type is non-empty).
+ *
  * It then rewrites the input into the negated sygus conjecture
  *   forall x : ( BV_n x BV_n ) -> BV_n. false
  * where x has the sygus grammar restriction A from above. This conjecture can

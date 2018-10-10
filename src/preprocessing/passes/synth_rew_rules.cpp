@@ -61,13 +61,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
   unsigned nvars = options::sygusRewSynthInputNVars();
-  // must have at least one variable per type (e.g. true, false for Bool)
+  // must have at least one variable per type
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
   unsigned varCounter = 0;
-  // standard constants for each type
+  // standard constants for each type (e.g. true, false for Bool)
   std::map<TypeNode, std::vector<Node> > consts;
 
   TNode cur;
