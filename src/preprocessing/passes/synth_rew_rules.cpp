@@ -382,7 +382,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       dttl.addSygusConstructor(lambdaOp,
                                ssc.str(),
                                argList,
-                               printer::SygusEmptyPrintCallback::getEmptyPC());
+                               printer::SygusEmptyPrintCallback::getEmptyPC(),
+                               0
+                              );
       Trace("srs-input-debug")
           << "Grammar for subterm " << n << " is: " << std::endl;
       Trace("srs-input-debug")

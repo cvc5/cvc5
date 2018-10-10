@@ -159,11 +159,15 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
   Node exp_sop_n = sygus_op;
+  // Only expand definitions if the operator is not constant. This check is
+  // required to ensure we don't try to expand, e.g. bitvector extract
+  // operators, whose type is undefined.
   if (!sygus_op.isConst())
   {
     exp_sop_n = Node::fromExpr(
         smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
   }
+  // get the kind for the operator.
   Kind ok = NodeManager::operatorToKind(exp_sop_n);
   // if it is a builtin operator, convert to total version if necessary
   if (ok != UNDEFINED_KIND)
