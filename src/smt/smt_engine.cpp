@@ -1854,8 +1854,9 @@ void SmtEngine::setDefaults() {
     }
     if (options::sygusRewSynthInput())
     {
-      // if we are using synthesis rewrite rules from input, we use
-      // sygusRewSynth after preprocessing.
+      // If we are using synthesis rewrite rules from input, we use
+      // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
+      // details on this technique.
       options::sygusRewSynth.set(true);
       // we should not use the extended rewriter, since we are interested
       // in rewrites that are not in the main rewriter

@@ -39,7 +39,9 @@ namespace passes {
  * Notice that this grammar generates all subterms of the input where leaves
  * are replaced by the variables x and/or y. The number of variable constructors
  * (x and y in this example) used in this construction is configurable via
- * sygus-rr-synth-input-nvars.
+ * sygus-rr-synth-input-nvars. The default for this value is 3, the
+ * justification is that this covers most of the interesting rewrites while
+ * not being too inefficient.
  *
  * Also notice that currently, this grammar construction admits terms that
  * do not necessarily match any in the input. For example, the above grammar
