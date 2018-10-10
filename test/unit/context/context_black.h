@@ -215,6 +215,13 @@ private:
     // ContextObj allocated primordially "in the top scope" (first arg
     // to ctor is "true"), doesn't get updated if you immediately call
     // makeCurrent().
+    //
+    // Note that this unit test is quite tricky because we are destroying `x`
+    // at level 0 even though it was created and associated with level 1, which
+    // is not something that we normally want to be doing. Usually, you'd want
+    // to allocate `x` in context memory where it gets cleaned up automatically
+    // when we pop below level 1 instead of it being destroyed when the
+    // variable's scope ends.
 
     MyContextNotifyObj n(d_context, true);
 

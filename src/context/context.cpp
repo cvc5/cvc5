@@ -242,6 +242,23 @@ void ContextObj::destroy()
   Debug("context") << "before destroy " << this << " (level " << getLevel()
                    << "):" << std::endl << *getContext() << std::endl;
 
+  // Under rare circumstances, we could be trying to destroy an object that is
+  // invalid. In that case, the prev()/next() pointers are stale and must not
+  // be used. Since invalid objects have no old versions to restore and remove
+  // anyway, we skip the rest of this function. An example for how this can
+  // occur is the unit test `testTopScopeContextObj()` in context_black.h: A
+  // context object is created at level 1 (by setting `allocatedInCMM` to true
+  // when calling the ContextObj constructor) and kept on the stack, we pop
+  // down to level 0 (the object keeps level 1 because it does not exist below
+  // that level), and at the end of the function the object is destroyed.
+  if (getLevel() > getContext()->getLevel())
+  {
+    Assert(d_pContextObjRestore == NULL);
+    Debug("context") << "skipping destroy because object already invalid"
+                     << std::endl;
+    return;
+  }
+
   for(;;) {
     // If valgrind reports invalid writes on the next few lines,
     // here's a hint: make sure all classes derived from ContextObj in
