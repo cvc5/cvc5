@@ -209,6 +209,7 @@ ContextObj* ContextObj::restoreAndContinue()
 
     Debug("context") << "NULL restore object! " << this << std::endl;
     pContextObjNext = d_pContextObjNext;
+    d_pScope = nullptr;
 
     // Nothing else to do
   } else {
@@ -237,11 +238,6 @@ ContextObj* ContextObj::restoreAndContinue()
 
 void ContextObj::destroy()
 {
-  /* Context can be big and complicated, so we only want to process this output
-   * if we're really going to use it. (Same goes below.) */
-  Debug("context") << "before destroy " << this << " (level " << getLevel()
-                   << "):" << std::endl << *getContext() << std::endl;
-
   // Under rare circumstances, we could be trying to destroy an object that is
   // invalid. In that case, the prev()/next() pointers are stale and must not
   // be used. Since invalid objects have no old versions to restore and remove
@@ -251,13 +247,18 @@ void ContextObj::destroy()
   // when calling the ContextObj constructor) and kept on the stack, we pop
   // down to level 0 (the object keeps level 1 because it does not exist below
   // that level), and at the end of the function the object is destroyed.
-  if (getLevel() > getContext()->getLevel())
+  if (d_pScope == nullptr)
   {
     Assert(d_pContextObjRestore == NULL);
     Debug("context") << "skipping destroy because object already invalid"
                      << std::endl;
     return;
   }
+
+  /* Context can be big and complicated, so we only want to process this output
+   * if we're really going to use it. (Same goes below.) */
+  Debug("context") << "before destroy " << this << " (level " << getLevel()
+                   << "):" << std::endl << *getContext() << std::endl;
 
   for(;;) {
     // If valgrind reports invalid writes on the next few lines,
