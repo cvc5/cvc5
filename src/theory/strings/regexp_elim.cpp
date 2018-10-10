@@ -105,7 +105,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // searching.
     Node prev_end = d_zero;
     // the symbolic index we start searching, for each child in sep_children.
-    std::vector< Node > prev_ends;
+    std::vector<Node> prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
     bool gap_exact_end = gap_exact.back();
     std::vector<Node> non_greedy_find_vars;
@@ -196,7 +196,9 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // above says that the "B" we find at end-2 can be found >=1 after
         // the "A".
         conj.pop_back();
-        Node fit = nm->mkNode( gap_exact[sep_children.size() - 1] ? EQUAL : LEQ, prev_ends.back(), loc );
+        Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
+                              prev_ends.back(),
+                              loc);
 
         conj.push_back(scc);
         conj.push_back(fit);
