@@ -47,10 +47,6 @@ namespace quantifiers {
 class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  // Do not hide the zero-argument version of initialize() inherited from the
-  // base class
-  using DecisionStrategy::initialize;
-
   CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
   /** Make the n^th literal of this strategy (G_uq_n).
    *
@@ -75,6 +71,13 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   void initialize(const std::vector<Node>& es,
                   const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
+
+  /*
+   * Do not hide the zero-argument version of initialize() inherited from the
+   * base class
+   */
+  using DecisionStrategy::initialize;
+
   /** get the current set of enumerators for strategy point e
    *
    * Index 0 adds the set of return value enumerators to es, index 1 adds the

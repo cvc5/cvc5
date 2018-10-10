@@ -728,10 +728,6 @@ private:
   class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    // Do not hide the zero-argument version of initialize() inherited from the
-    // base class
-    using DecisionStrategyFmf::initialize;
-
     StringSumLengthDecisionStrategy(context::Context* c,
                                     context::UserContext* u,
                                     Valuation valuation);
@@ -743,6 +739,12 @@ private:
     bool isInitialized();
     /** initialize */
     void initialize(const std::vector<Node>& vars);
+
+    /*
+     * Do not hide the zero-argument version of initialize() inherited from the
+     * base class
+     */
+    using DecisionStrategyFmf::initialize;
 
    private:
     /**
