@@ -273,14 +273,14 @@ void Smt2Printer::toStream(std::ostream& out,
     case kind::EMPTYSET:
       out << "(as emptyset " << n.getConst<EmptySet>().getType() << ")";
       break;
-    case kind::BITVECTOR_EXTRACT_OP: {
+    case kind::BITVECTOR_EXTRACT_OP:
+    {
       BitVectorExtract p = n.getConst<BitVectorExtract>();
       out << "(_ extract " << p.high << ' ' << p.low << ")";
       break;
     }
     case kind::BITVECTOR_REPEAT_OP:
-      out << "(_ repeat "
-          << n.getConst<BitVectorRepeat>().repeatAmount << ")";
+      out << "(_ repeat " << n.getConst<BitVectorRepeat>().repeatAmount << ")";
       break;
     case kind::BITVECTOR_ZERO_EXTEND_OP:
       out << "(_ zero_extend "
@@ -299,50 +299,53 @@ void Smt2Printer::toStream(std::ostream& out,
           << n.getConst<BitVectorRotateRight>().rotateRightAmount << ")";
       break;
     case kind::INT_TO_BITVECTOR_OP:
-      out << "(_ int2bv "
-          << n.getConst<IntToBitVector>().size << ")";
+      out << "(_ int2bv " << n.getConst<IntToBitVector>().size << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
-      //out << "to_fp_bv "
+      // out << "to_fp_bv "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPIEEEBitVector>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand() << ")";
+          << n.getConst<FloatingPointToFPIEEEBitVector>().t.significand()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
-      //out << "to_fp_fp "
+      // out << "to_fp_fp "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPFloatingPoint>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPFloatingPoint>().t.significand() << ")";
+          << n.getConst<FloatingPointToFPFloatingPoint>().t.significand()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_REAL_OP:
-      //out << "to_fp_real "
-      out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPReal>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
+      // out << "to_fp_real "
+      out << "(_ to_fp " << n.getConst<FloatingPointToFPReal>().t.exponent()
+          << ' ' << n.getConst<FloatingPointToFPReal>().t.significand() << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
-      //out << "to_fp_signed "
+      // out << "to_fp_signed "
       out << "(_ to_fp "
           << n.getConst<FloatingPointToFPSignedBitVector>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPSignedBitVector>().t.significand() << ")";
+          << n.getConst<FloatingPointToFPSignedBitVector>().t.significand()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
       out << "(_ to_fp_unsigned "
-          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.significand() << ")";
+          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.exponent()
+          << ' '
+          << n.getConst<FloatingPointToFPUnsignedBitVector>().t.significand()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_FP_GENERIC_OP:
-      out << "(_ to_fp "
-          << n.getConst<FloatingPointToFPGeneric>().t.exponent() << ' '
-          << n.getConst<FloatingPointToFPGeneric>().t.significand() << ")";
+      out << "(_ to_fp " << n.getConst<FloatingPointToFPGeneric>().t.exponent()
+          << ' ' << n.getConst<FloatingPointToFPGeneric>().t.significand()
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_OP:
-      out << "(_ fp.to_ubv "
-          << n.getConst<FloatingPointToUBV>().bvs.size << ")";
+      out << "(_ fp.to_ubv " << n.getConst<FloatingPointToUBV>().bvs.size
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_SBV_OP:
-      out << "(_ fp.to_sbv "
-          << n.getConst<FloatingPointToSBV>().bvs.size << ")";
+      out << "(_ fp.to_sbv " << n.getConst<FloatingPointToSBV>().bvs.size
+          << ")";
       break;
     case kind::FLOATINGPOINT_TO_UBV_TOTAL_OP:
       out << "(_ fp.to_ubv_total "
