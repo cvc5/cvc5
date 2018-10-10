@@ -44,7 +44,9 @@ namespace passes {
  *   forall x : ( BV_n x BV_n ) -> BV_n. false
  * where x has the sygus grammar restriction A from above. This conjecture can
  * then be processed using --sygus-rr-synth in the standard way, which will
- * cause candidate rewrites to be printed on the output stream.
+ * cause candidate rewrites to be printed on the output stream. If multiple
+ * types are present, then we generate a conjunction of multiple synthesis
+ * conjectures, which we enumerate terms for in parallel.
  */
 class SynthRewRulesPass : public PreprocessingPass
 {

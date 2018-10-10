@@ -55,13 +55,13 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // Get all usable terms from the input. A term is usable if it does not
   // contain a quantified subterm
   std::vector<Node> terms;
-  // all variables
+  // all variables (free constants) appearing in the input
   std::vector<Node> vars;
 
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
   unsigned nvars = options::sygusRewSynthInputNVars();
-  // must have at least one variable per type
+  // must have at least one variable per type (e.g. true, false for Bool)
   nvars = nvars < 1 ? 1 : nvars;
   std::map<TypeNode, std::vector<Node> > tvars;
   std::vector<TypeNode> allVarTypes;
@@ -190,7 +190,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // following which generates terms that correspond to abstractions of the
   // terms in the input.
 
-  // We also map terms to a canonical (ordered) form. This ensures that
+  // We map terms to a canonical (ordered variable) form. This ensures that
   // we don't generate distinct grammar types for distinct alpha-equivalent
   // terms, which would produce grammars of identical shape.
   std::map<Node, Node> term_to_cterm;
@@ -300,7 +300,14 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         Expr lambdaOp =
             nm->mkNode(LAMBDA, nm->mkNode(BOUND_VAR_LIST, tbv), tbv).toExpr();
         std::vector<Type> argListc;
-#if 1
+        // the following construction admits any number of repeated factors,
+        // so for instance, t1+t2+t3, we generate the grammar:
+        // T_{t1+t2+t3} -> 
+        //   +( T_{t1+t2+t3}, T_{t1+t2+t3} ) | T_{t1} | T_{t2} | T_{t3}
+        // where we write T_t to denote "the type that abstracts term t.
+        // Notice this construction allows to abstract subsets of the factors
+        // of t1+t2+t3. This is particularly helpful for terms t1+...+tn for
+        // large n, where we would like to consider binary applications of +.
         for (unsigned j = 0, size = argList.size(); j < size; j++)
         {
           argListc.clear();
@@ -323,79 +330,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         std::stringstream ssc;
         ssc << "C_" << i << "_rec_" << op;
         datatypes[i].addSygusConstructor(op.toExpr(), ssc.str(), argListc);
-#else
-        std::vector<Type> unresc;
-        std::vector<Datatype> datatypesc;
-        for (unsigned j = 0, size = argList.size(); j < size; j++)
-        {
-          std::stringstream ss;
-          ss << "Tch" << i << "_" << j;
-          std::string tname = ss.str();
-          TypeNode tnu = nm->mkSort(tname, ExprManager::SORT_FLAG_PLACEHOLDER);
-          unres.insert(tnu.toType());
-          unresc.push_back(tnu.toType());
-          datatypesc.push_back(Datatype(tname));
-          datatypesc.back().setSygus(ctt.toType(), sygusVarListE, false, false);
-        }
-        argListc.push_back(unresc[0]);
-        std::stringstream ssc;
-        ssc << "C_chain_" << i;
-        datatypes[i].addSygusConstructor(
-            lambdaOp,
-            ssc.str(),
-            argListc,
-            printer::SygusEmptyPrintCallback::getEmptyPC(),
-            0);
-        for (unsigned j = 0, size = argList.size(); j < size; j++)
-        {
-          if (j + 1 == size)
-          {
-            // this must be the last factor
-            argListc.clear();
-            argListc.push_back(argList[j]);
-            std::stringstream ssc1;
-            ssc1 << "C_end_" << i << "_" << j;
-            // ID function is not printed and does not count towards weight
-            datatypesc[j].addSygusConstructor(
-                lambdaOp,
-                ssc1.str(),
-                argListc,
-                printer::SygusEmptyPrintCallback::getEmptyPC(),
-                0);
-          }
-          else
-          {
-            // chained instance
-            argListc.clear();
-            argListc.push_back(argList[j]);
-            argListc.push_back(unresc[j + 1]);
-            std::stringstream ssch;
-            ssch << "C_add_" << i << "_" << j;
-            datatypesc[j].addSygusConstructor(
-                op.toExpr(), ssch.str(), argListc);
-            // last factor
-            argListc.clear();
-            argListc.push_back(argList[j]);
-            std::stringstream ssce;
-            ssce << "C_end_" << i << "_" << j;
-            datatypesc[j].addSygusConstructor(
-                op.toExpr(), ssce.str(), argListc);
-            // skip, reference next
-            argListc.clear();
-            argListc.push_back(unresc[j + 1]);
-            std::stringstream sscs;
-            sscs << "C_skip_" << i << "_" << j;
-            // ID function is not printed and does not count towards weight
-            datatypesc[j].addSygusConstructor(
-                lambdaOp,
-                sscs.str(),
-                argListc,
-                printer::SygusEmptyPrintCallback::getEmptyPC(),
-                0);
-          }
-        }
-        datatypes.insert(datatypes.end(), datatypesc.begin(), datatypesc.end());
-#endif
       }
       else
       {
