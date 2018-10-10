@@ -85,17 +85,26 @@ Node BoolToBV::lowerAssertion(const TNode& a)
   {
     TNode n = visit.back();
     visit.pop_back();
+
+    int numChildren = n.getNumChildren();
     Kind k = n.getKind();
     Debug("bool-to-bv") << "BoolToBV::lowerAssertion Post-traversal with " << n
-                        << " and visited = " << ContainsKey(visited, n) << std::endl;
+                        << " and visited = " << ContainsKey(visited, n)
+                        << std::endl;
 
     // Mark as visited
     /* Optimization: if it's a leaf, don't need to wait to do the work */
-    if (!ContainsKey(visited, n) && (n.getNumChildren() > 0))
+    if (!ContainsKey(visited, n) && (numChildren > 0))
     {
       visited.insert(n);
       visit.push_back(n);
-      visit.insert(visit.end(), n.begin(), n.end());
+
+      // insert children in reverse order so that they're processed in order
+      //     important for rewriting which sorts by node id
+      for (int i = numChildren - 1; i >= 0; --i)
+      {
+        visit.push_back(n[i]);
+      }
 
       if (optionITE)
       {
