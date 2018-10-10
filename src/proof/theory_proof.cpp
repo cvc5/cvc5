@@ -77,10 +77,9 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        ResolutionBitVectorProof * rbvp =
+        ResolutionBitVectorProof * bvp =
           new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
-        d_theoryProofTable[id] = rbvp;
-        // TODO(aozdemir) add a DRAT proof to the table.
+        d_theoryProofTable[id] = bvp;
         return;
       }
 

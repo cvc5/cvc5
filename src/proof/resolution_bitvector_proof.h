@@ -50,19 +50,6 @@ template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
 
 class ResolutionBitVectorProof : public BitVectorProof {
-
-protected:
-
-
-  // map from Expr representing normalized lemma to ClauseId in SAT solver
-  BVSatProof* d_resolutionProof;
-
-  CnfProof* d_cnfProof;
-
-  bool d_isAssumptionConflict;
-
-  theory::TheoryId getTheoryId() override;
-  context::Context d_fakeContext;
 public:
   ResolutionBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
@@ -71,22 +58,27 @@ public:
   void setBitblaster(theory::bv::TBitblaster<Node>* bb);
 
   BVSatProof* getSatProof();
-  CnfProof* getCnfProof() {return d_cnfProof; }
+  CnfProof* getCnfProof() { return d_cnfProof; }
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(CVC4::BVMinisat::Solver::TCRef cr);
   void startBVConflict(CVC4::BVMinisat::Solver::TLit lit);
-  /**
-   * All the
-   *
-   * @param confl an inconsistent set of bv literals
-   */
   void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
+
   void markAssumptionConflict() { d_isAssumptionConflict = true; }
   bool isAssumptionConflict() { return d_isAssumptionConflict; }
 
-
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
+
+protected:
+  BVSatProof* d_resolutionProof;
+
+  CnfProof* d_cnfProof;
+
+  bool d_isAssumptionConflict;
+
+  theory::TheoryId getTheoryId() override;
+  context::Context d_fakeContext;
 };
 
 class LFSCBitVectorProof: public ResolutionBitVectorProof {
