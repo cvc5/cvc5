@@ -187,9 +187,8 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node fit;
         if( !gap_exact[sep_children.size() - 1] )
         {
-          // with respect to the above example, this is an optimization
-          // that simplifies the constraints above. For that example, we 
-          // produce:
+          // With respect to the above example, this is an optimization. For
+          // that example, we produce:
           //     x in (re.++ "A" _ (re.* _) "B" _) --->
           //       substr( x, 0, 1 ) = "A" ^          // find "A"
           //       substr( x, len(x)-2, 1 ) = "B" ^   // "B" is at end - 2
@@ -197,7 +196,8 @@ Node RegExpElimination::eliminateConcat(Node atom)
           // The intuition is that above, there are two constraints that insist
           // that "B" is found, whereas we only need one. The last constraint
           // above says that the "B" we find at end-2 can be found >=1 after
-          // the "A".
+          // the "A". Notice we only need two constraints if both the last
+          // gap and second-to-last gaps are exact.
           conj.pop_back();
           fit = nm->mkNode( LEQ, prev_ends.back(), loc );
         }
