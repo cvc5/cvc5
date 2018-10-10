@@ -104,6 +104,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // prev_end stores the current (symbolic) index in x that we are
     // searching.
     Node prev_end = d_zero;
+    // the symbolic index we start searching, for each child in sep_children.
     std::vector< Node > prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
     bool gap_exact_end = gap_exact.back();
@@ -196,7 +197,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
           // The intuition is that above, there are two constraints that insist
           // that "B" is found, whereas we only need one. The last constraint
           // above says that the "B" we find at end-2 can be found >=1 after
-          // "A".
+          // the "A".
           conj.pop_back();
           fit = nm->mkNode( LEQ, prev_ends.back(), loc );
         }
