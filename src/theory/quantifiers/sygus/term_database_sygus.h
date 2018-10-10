@@ -69,8 +69,10 @@ class TermDbSygus {
    * (see d_enum_to_active_guard),
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
-   * isVarAgnostic : if this flag is true, the enumerator will only generate
-   * values whose variables are in canonical order (for example, only x1-x2
+   * isActiveGen : if this flag is true, the enumerator will be
+   * actively-generated based on the mode specified by --sygus-active-gen.
+   * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
+   * only generate values whose variables are in canonical order (only x1-x2
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
    *
@@ -83,7 +85,7 @@ class TermDbSygus {
                           SynthConjecture* conj,
                           bool mkActiveGuard = false,
                           bool useSymbolicCons = false,
-                          bool isVarAgnostic = false);
+                          bool isActiveGen = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -298,6 +300,8 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** enumerators to whether they are actively-generated */
+  std::map<Node, bool> d_enum_active_gen;
   /** enumerators to whether they are variable agnostic */
   std::map<Node, bool> d_enum_var_agnostic;
   //------------------------------end enumerators

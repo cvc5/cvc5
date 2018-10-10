@@ -78,7 +78,8 @@ bool Cegis::processInitialize(Node n,
   // This module would expect constructCandidates calls (e_f,e_g) -> (ti, sj)
   // for each i,j. We do not do this and revert to the default behavior of
   // this module instead.
-  bool isVarAgnostic = options::sygusEnumVarAgnostic() && csize == 1;
+  bool isActiveGen =
+      options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE && csize == 1;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < csize; i++)
   {
@@ -101,9 +102,9 @@ bool Cegis::processInitialize(Node n,
     d_tds->registerEnumerator(candidates[i],
                               candidates[i],
                               d_parent,
-                              isVarAgnostic,
+                              isActiveGen,
                               do_repair_const,
-                              isVarAgnostic);
+                              isActiveGen);
   }
   return true;
 }

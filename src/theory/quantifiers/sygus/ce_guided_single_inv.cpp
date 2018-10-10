@@ -661,8 +661,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
   }
 }
 
-bool CegSingleInv::needsCheck() { return true; }
-
 void CegSingleInv::preregisterConjecture(Node q) { d_orig_conjecture = q; }
 
 bool DetTrace::DetTraceTrie::add( Node loc, std::vector< Node >& val, unsigned index ){
