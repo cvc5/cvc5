@@ -849,6 +849,13 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_proofManager = new ProofManager(d_userContext);
 #endif
 
+  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
+  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
+  d_modelCommands = new(true) smt::CommandList(d_userContext);
+}
+
+void SmtEngine::finishInit() {
+  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
   d_theoryEngine = new TheoryEngine(d_context,
@@ -867,19 +874,12 @@ SmtEngine::SmtEngine(ExprManager* em)
   }
 
   d_private->addUseTheoryListListener(d_theoryEngine);
-
+  
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_userContext->push();
   d_context->push();
-
-  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
-  d_modelCommands = new(true) smt::CommandList(d_userContext);
-}
-
-void SmtEngine::finishInit() {
-  Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
+  
   // ensure that our heuristics are properly set up
   setDefaults();
 
@@ -4451,6 +4451,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
@@ -4466,6 +4467,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
@@ -4476,6 +4478,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   map<Node, Node> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   d_theoryEngine->getSynthSolutions(sol_mapn);
@@ -4488,6 +4491,7 @@ void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
@@ -4815,6 +4819,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){
     node_values.push_back( expr_values[i].getNode() );
