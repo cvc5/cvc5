@@ -2493,7 +2493,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
     // Collect the equalities of the form (= x "") (sorted)
     std::set<TNode> emptyNodes;
-    bool allEqs = true;
+    bool allEmptyEqs = true;
     if (cmp_conr.getKind() == kind::EQUAL)
     {
       if (cmp_conr[0] == empty)
@@ -2503,6 +2503,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       else if (cmp_conr[1] == empty)
       {
         emptyNodes.insert(cmp_conr[0]);
+      }
+      else
+      {
+        allEmptyEqs = false;
       }
     }
     else
@@ -2522,7 +2526,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         }
         else
         {
-          allEqs = false;
+          allEmptyEqs = false;
         }
       }
     }
@@ -2541,7 +2545,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       //
       // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
       // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
-      if (node[0] == empty && allEqs)
+      if (node[0] == empty && allEmptyEqs)
       {
         std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
         Node nn1 = mkConcat(STRING_CONCAT, emptyNodesList);
