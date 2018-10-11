@@ -1780,11 +1780,12 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           conc = Rewriter::rewrite(conc);
           conc = conc.negate();
           bool do_infer = false;
-          bool pol = conc.getKind()!=NOT;
+          bool pol = conc.getKind() != NOT;
           Node lit = pol ? conc : conc[0];
           if (conc.getKind() == EQUAL)
           {
-            do_infer = pol ? !areEqual(conc[0], conc[1]) : !areDisequal(conc[0], conc[1]);
+            do_infer = pol ? !areEqual(conc[0], conc[1])
+                           : !areDisequal(conc[0], conc[1]);
           }
           else
           {
