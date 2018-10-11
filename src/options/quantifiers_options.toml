@@ -994,7 +994,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
   category   = "regular"
-  long       = "sygus-unif-cond-indpendent-no-repeat-sol"
+  long       = "sygus-unif-cond-independent-no-repeat-sol"
   type       = "bool"
   default    = "true"
   help       = "Do not try repeated solutions when using independent synthesis of conditions in unification-based function synthesis"
@@ -1315,6 +1315,30 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
+
+[[option]]
+  name       = "sygusRewSynthInput"
+  category   = "regular"
+  long       = "sygus-rr-synth-input"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize rewrite rules based on the input formula"
+
+[[option]]
+  name       = "sygusRewSynthInputNVars"
+  category   = "regular"
+  long       = "sygus-rr-synth-input-nvars=N"
+  type       = "int"
+  default    = "3"
+  help       = "the maximum number of variables per type that appear in rewrites from sygus-rr-synth-input"
+
+[[option]]
+  name       = "sygusRewSynthInputUseBool"
+  category   = "regular"
+  long       = "sygus-rr-synth-input-use-bool"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize Boolean rewrite rules based on the input formula"
 
 [[option]]
   name       = "sygusExprMinerCheckTimeout"

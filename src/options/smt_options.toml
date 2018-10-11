@@ -296,22 +296,6 @@ header = "options/smt_options.h"
   help       = "use aggressive extended rewriter as a preprocessing pass"
 
 [[option]]
-  name       = "synthRrPrep"
-  category   = "regular"
-  long       = "synth-rr-prep"
-  type       = "bool"
-  default    = "false"
-  help       = "synthesize and output rewrite rules during preprocessing"
-
-[[option]]
-  name       = "synthRrPrepExtRew"
-  category   = "regular"
-  long       = "synth-rr-prep-ext-rew"
-  type       = "bool"
-  default    = "false"
-  help       = "use the extended rewriter for synthRrPrep"
-
-[[option]]
   name       = "simplifyWithCareEnabled"
   category   = "regular"
   long       = "simp-with-care"
