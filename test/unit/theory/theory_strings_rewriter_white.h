@@ -152,7 +152,9 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     Node empty = d_nm->mkConst(::CVC4::String(""));
     Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node b = d_nm->mkConst(::CVC4::String("B"));
     Node abcd = d_nm->mkConst(::CVC4::String("ABCD"));
+    Node zero = d_nm->mkConst(Rational(0));
     Node two = d_nm->mkConst(Rational(2));
     Node three = d_nm->mkConst(Rational(3));
 
@@ -198,6 +200,26 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         kind::STRING_SUBSTR, abcd, d_nm->mkNode(kind::PLUS, x, two), x);
     res = TheoryStringsRewriter::rewriteSubstr(n);
     TS_ASSERT_EQUALS(res, n);
+
+    // (str.substr (str.substr s x x) x x) -> ""
+    n = d_nm->mkNode(
+        kind::STRING_SUBSTR, d_nm->mkNode(kind::STRING_SUBSTR, s, x, x), x, x);
+    sameNormalForm(n, empty);
+
+    // Same normal form for:
+    //
+    // (str.substr (str.replace "" s "B") x x)
+    //
+    // (str.replace "" s (str.substr "B" x x)))
+    Node lhs = d_nm->mkNode(kind::STRING_SUBSTR,
+                            d_nm->mkNode(kind::STRING_STRREPL, empty, s, b),
+                            x,
+                            x);
+    Node rhs = d_nm->mkNode(kind::STRING_STRREPL,
+                            empty,
+                            s,
+                            d_nm->mkNode(kind::STRING_SUBSTR, b, x, x));
+    sameNormalForm(lhs, rhs);
   }
 
   void testRewriteConcat()
@@ -297,6 +319,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
   void testRewriteIndexOf()
   {
+    TypeNode intType = d_nm->integerType();
     TypeNode strType = d_nm->stringType();
 
     Node a = d_nm->mkConst(::CVC4::String("A"));
@@ -305,17 +328,20 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
-    Node one = d_nm->mkConst(Rational(2));
+    Node negOne = d_nm->mkConst(Rational(-1));
+    Node one = d_nm->mkConst(Rational(1));
+    Node two = d_nm->mkConst(Rational(2));
     Node three = d_nm->mkConst(Rational(3));
+    Node i = d_nm->mkVar("i", intType);
 
     // Same normal form for:
     //
     // (str.to.int (str.indexof "A" x 1))
     //
     // (str.to.int (str.indexof "B" x 1))
-    Node a_idof_x = d_nm->mkNode(kind::STRING_STRIDOF, a, x, one);
+    Node a_idof_x = d_nm->mkNode(kind::STRING_STRIDOF, a, x, two);
     Node itos_a_idof_x = d_nm->mkNode(kind::STRING_ITOS, a_idof_x);
-    Node b_idof_x = d_nm->mkNode(kind::STRING_STRIDOF, b, x, one);
+    Node b_idof_x = d_nm->mkNode(kind::STRING_STRIDOF, b, x, two);
     Node itos_b_idof_x = d_nm->mkNode(kind::STRING_ITOS, b_idof_x);
     sameNormalForm(itos_a_idof_x, itos_b_idof_x);
 
@@ -333,6 +359,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                                   y,
                                   three);
     sameNormalForm(idof_abcd, idof_aaad);
+
+    // (str.indexof (str.substr x 1 i) "A" i) ---> -1
+    Node idof_substr =
+        d_nm->mkNode(kind::STRING_STRIDOF,
+                     d_nm->mkNode(kind::STRING_SUBSTR, x, one, i),
+                     a,
+                     i);
+    sameNormalForm(idof_substr, negOne);
   }
 
   void testRewriteReplace()

@@ -95,8 +95,6 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
    * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
-  /** Retrieves active guard for enumerator */
-  Node getActiveGuardForEnumerator(Node e);
 
  private:
   /** reference to quantifier engine */
@@ -109,9 +107,6 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   bool d_initialized;
   /** null node */
   Node d_null;
-  /** map from condition enumerators to active guards (in case they are
-   * enumerated indepedently of the return values) */
-  std::map<Node, Node> d_enum_to_active_guard;
   /** information per initialized type */
   class StrategyPtInfo
   {

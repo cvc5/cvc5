@@ -691,8 +691,8 @@ public:
    * constructors.
    */
   void addSygusConstructor(Expr op,
-                           std::string& cname,
-                           std::vector<Type>& cargs,
+                           const std::string& cname,
+                           const std::vector<Type>& cargs,
                            std::shared_ptr<SygusPrintCallback> spc = nullptr,
                            int weight = -1);
 
