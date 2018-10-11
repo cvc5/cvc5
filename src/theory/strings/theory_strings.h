@@ -740,6 +740,12 @@ private:
     /** initialize */
     void initialize(const std::vector<Node>& vars);
 
+    /*
+     * Do not hide the zero-argument version of initialize() inherited from the
+     * base class
+     */
+    using DecisionStrategyFmf::initialize;
+
    private:
     /**
      * User-context-dependent node corresponding to the sum of the lengths of

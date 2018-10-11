@@ -1115,22 +1115,6 @@ void SmtEngine::setDefaults() {
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
     is_sygus = true;
-    if (!options::ceGuidedInst.wasSetByUser())
-    {
-      options::ceGuidedInst.set(true);
-    }
-    // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
-    {
-      options::cbqiMidpoint.set(true);
-    }
-    if (options::sygusRepairConst())
-    {
-      if (!options::cbqi.wasSetByUser())
-      {
-        options::cbqi.set(true);
-      }
-    }
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
@@ -1212,10 +1196,13 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference())
+  if (options::sygusInference() || options::sygusRewSynthInput())
   {
     d_logic = d_logic.getUnlockedCopy();
+    // sygus requires arithmetic, datatypes and quantifiers
+    d_logic.enableTheory(THEORY_ARITH);
     d_logic.enableTheory(THEORY_DATATYPES);
+    d_logic.enableTheory(THEORY_QUANTIFIERS);
     d_logic.lock();
     // since we are trying to recast as sygus, we assume the input is sygus
     is_sygus = true;
@@ -1807,12 +1794,37 @@ void SmtEngine::setDefaults() {
 
   //apply counterexample guided instantiation options
   // if we are attempting to rewrite everything to SyGuS, use ceGuidedInst
-  if (options::sygusInference())
+  if (is_sygus)
   {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
     }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
+    }
+    if (options::sygusRepairConst())
+    {
+      if (!options::cbqi.wasSetByUser())
+      {
+        options::cbqi.set(true);
+      }
+    }
+    // setting unif requirements
+    if (options::sygusUnifBooleanHeuristicDt()
+        && !options::sygusUnifCondIndependent())
+    {
+      options::sygusUnifCondIndependent.set(true);
+    }
+    if (options::sygusUnifCondIndependent() && !options::sygusUnif())
+    {
+      options::sygusUnif.set(true);
+    }
+  }
+  if (options::sygusInference())
+  {
     // optimization: apply preskolemization, makes it succeed more often
     if (!options::preSkolemQuant.wasSetByUser())
     {
@@ -1849,6 +1861,19 @@ void SmtEngine::setDefaults() {
     {
       options::sygusRewSynth.set(true);
       options::sygusRewVerify.set(true);
+    }
+    if (options::sygusRewSynthInput())
+    {
+      // If we are using synthesis rewrite rules from input, we use
+      // sygusRewSynth after preprocessing. See passes/synth_rew_rules.h for
+      // details on this technique.
+      options::sygusRewSynth.set(true);
+      // we should not use the extended rewriter, since we are interested
+      // in rewrites that are not in the main rewriter
+      if (!options::sygusExtRew.wasSetByUser())
+      {
+        options::sygusExtRew.set(false);
+      }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify())
     {
@@ -3185,7 +3210,7 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
-  if (options::synthRrPrep())
+  if (options::sygusRewSynthInput())
   {
     // do candidate rewrite rule synthesis
     d_passes["synth-rr"]->apply(&d_assertions);
