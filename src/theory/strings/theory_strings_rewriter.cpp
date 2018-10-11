@@ -2545,8 +2545,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       {
         std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
         Node nn1 = mkConcat(STRING_CONCAT, emptyNodesList);
-        Node res = nm->mkNode(kind::STRING_STRREPL, node[0], nn1, nn2);
-        return returnRewrite(node, res, "rpl-emp-cnts-substs");
+        if (nn1 != node[1] || nn2 != node[2])
+        {
+          Node res = nm->mkNode(kind::STRING_STRREPL, node[0], nn1, nn2);
+          return returnRewrite(node, res, "rpl-emp-cnts-substs");
+        }
       }
 
       if (nn2 != node[2])
