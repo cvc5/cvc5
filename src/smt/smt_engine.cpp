@@ -849,12 +849,13 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_proofManager = new ProofManager(d_userContext);
 #endif
 
-  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
-  d_modelCommands = new(true) smt::CommandList(d_userContext);
+  d_definedFunctions = new (true) DefinedFunctionMap(d_userContext);
+  d_fmfRecFunctionsDefined = new (true) NodeList(d_userContext);
+  d_modelCommands = new (true) smt::CommandList(d_userContext);
 }
 
-void SmtEngine::finishInit() {
+void SmtEngine::finishInit()
+{
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
   // We have mutual dependency here, so we add the prop engine to the theory
   // engine later (it is non-essential there)
@@ -874,12 +875,12 @@ void SmtEngine::finishInit() {
   }
 
   d_private->addUseTheoryListListener(d_theoryEngine);
-  
+
   // global push/pop around everything, to ensure proper destruction
   // of context-dependent data structures
   d_userContext->push();
   d_context->push();
-  
+
   // ensure that our heuristics are properly set up
   setDefaults();
 
