@@ -30,7 +30,8 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
       d_bbTerms(),
       d_bbAtoms(),
       d_bitblaster(nullptr),
-      d_useConstantLetification(false) {}
+      d_useConstantLetification(false),
+      d_cnfProof(nullptr) {}
 
 std::string BitVectorProof::getBBTermName(Expr expr) {
   Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
@@ -78,6 +79,17 @@ void BitVectorProof::registerTerm(Expr term) {
   for (unsigned i = 0; i < term.getNumChildren(); ++i) {
      d_proofEngine->registerTerm(term[i]);
   }
+}
+
+void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
+                                  context::Context* cnf) {
+  Assert (d_cnfProof == nullptr);
+  d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
+}
+
+void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb) {
+  Assert (d_bitblaster == NULL);
+  d_bitblaster = bb;
 }
 
 void BitVectorProof::registerTermBB(Expr term) {

@@ -41,7 +41,6 @@ template <class T> class TBitblaster;
 } /* namespace CVC4::theory::bv */
 } /* namespace CVC4::theory */
 
-class CnfProof;
 } /* namespace CVC4 */
 
 namespace CVC4 {
@@ -54,11 +53,9 @@ public:
   ResolutionBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
   void initSatProof(CVC4::BVMinisat::Solver* solver);
-  void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
-  void setBitblaster(theory::bv::TBitblaster<Node>* bb);
 
   BVSatProof* getSatProof();
-  CnfProof* getCnfProof() { return d_cnfProof; }
+
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(CVC4::BVMinisat::Solver::TCRef cr);
@@ -70,10 +67,10 @@ public:
 
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
 
+  void initCnfProof(prop::CnfStream* cnfStream, context::Context* cnf) override;
+
 protected:
   BVSatProof* d_resolutionProof;
-
-  CnfProof* d_cnfProof;
 
   bool d_isAssumptionConflict;
 

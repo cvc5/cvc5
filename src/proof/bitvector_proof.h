@@ -26,6 +26,7 @@
 #include <unordered_set>
 #include <vector>
 #include "expr/expr.h"
+#include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
@@ -64,6 +65,8 @@ protected:
 
   void printBitblasting(std::ostream& os, std::ostream& paren);
 
+  CnfProof* d_cnfProof;
+
 public:
   void printOwnedTerm(Expr term,
                       std::ostream& os,
@@ -74,6 +77,13 @@ public:
   void registerAtomBB(Expr atom, Expr atom_bb);
 
   void registerTerm(Expr term) override;
+
+  virtual void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
+  void registerTrueUnit(prop::CnfStream* cnfStream, context::Context* ctx);
+  void registerFalseUnit(prop::CnfStream* cnfStream, context::Context* ctx);
+  CnfProof* getCnfProof() {return d_cnfProof; }
+
+  void setBitblaster(theory::bv::TBitblaster<Node>* bb);
 
 private:
   ExprToString d_exprToVariableName;

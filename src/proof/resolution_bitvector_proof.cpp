@@ -39,7 +39,6 @@ ResolutionBitVectorProof::ResolutionBitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
     : BitVectorProof(bv, proofEngine),
       d_resolutionProof(NULL),
-      d_cnfProof(NULL),
       d_isAssumptionConflict(false)
       {}
 
@@ -49,11 +48,11 @@ void ResolutionBitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
 }
 
 theory::TheoryId ResolutionBitVectorProof::getTheoryId() { return theory::THEORY_BV; }
+
 void ResolutionBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                   context::Context* cnf) {
   Assert (d_resolutionProof != NULL);
-  Assert (d_cnfProof == NULL);
-  d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
+  BitVectorProof::initCnfProof(cnfStream, cnf);
 
   // true and false have to be setup in a special way
   Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
@@ -70,11 +69,6 @@ void ResolutionBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
   d_cnfProof->popCurrentAssertion();
   d_cnfProof->popCurrentDefinition();
-}
-
-void ResolutionBitVectorProof::setBitblaster(bv::TBitblaster<Node>* bb) {
-  Assert (d_bitblaster == NULL);
-  d_bitblaster = bb;
 }
 
 BVSatProof* ResolutionBitVectorProof::getSatProof() {
