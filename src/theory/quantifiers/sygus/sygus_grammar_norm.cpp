@@ -164,7 +164,8 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
     // If it is a builtin operator, convert to total version if necessary.
     // First, get the kind for the operator.
     Kind ok = NodeManager::operatorToKind(exp_sop_n);
-    Trace("sygus-grammar-normalize-debug") << "...builtin kind is " << ok << std::endl;
+    Trace("sygus-grammar-normalize-debug")
+        << "...builtin kind is " << ok << std::endl;
     Kind nk = getEliminateKind(ok);
     if (nk != ok)
     {
