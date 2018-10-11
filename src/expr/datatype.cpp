@@ -173,8 +173,8 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::addSygusConstructor(Expr op,
-                                   std::string& cname,
-                                   std::vector<Type>& cargs,
+                                   const std::string& cname,
+                                   const std::vector<Type>& cargs,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
