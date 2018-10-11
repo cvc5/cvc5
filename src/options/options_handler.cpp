@@ -87,7 +87,7 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
   } catch (ModalException&){
     std::stringstream ss;
     ss << "cannot change option `" << option
-       << "' after final initialization (i.e., after logic has been set)";
+       << "' after final initialization";
     throw ModalException(ss.str());
   }
 }
