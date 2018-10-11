@@ -1316,7 +1316,7 @@ void DatatypeConstructorArg::toStream(std::ostream& out) const
   else if (d_selector.isNull())
   {
     string typeName = d_name.substr(d_name.find('\0') + 1);
-    out << (typeName == "") ? "[self]" : typeName;
+    out << ((typeName == "") ? "[self]" : typeName);
     return;
   }
   else
