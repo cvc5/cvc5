@@ -1782,14 +1782,14 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           bool do_infer = false;
           bool pol = conc.getKind() != NOT;
           Node lit = pol ? conc : conc[0];
-          if (conc.getKind() == EQUAL)
+          if (lit.getKind() == EQUAL)
           {
-            do_infer = pol ? !areEqual(conc[0], conc[1])
-                           : !areDisequal(conc[0], conc[1]);
+            do_infer = pol ? !areEqual(lit[0], lit[1])
+                           : !areDisequal(lit[0], lit[1]);
           }
           else
           {
-            do_infer = !areEqual(conc, pol ? d_true : d_false);
+            do_infer = !areEqual(lit, pol ? d_true : d_false);
           }
           if (do_infer)
           {
