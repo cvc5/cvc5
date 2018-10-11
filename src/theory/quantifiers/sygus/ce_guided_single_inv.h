@@ -275,8 +275,6 @@ class CegSingleInv
                             bool rconsSygus = true );
   // is single invocation
   bool isSingleInvocation() const { return !d_single_inv.isNull(); }
-  //needs check
-  bool needsCheck();
   /** preregister conjecture */
   void preregisterConjecture( Node q );
 

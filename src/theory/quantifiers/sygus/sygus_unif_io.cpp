@@ -1143,7 +1143,8 @@ Node SygusUnifIo::constructSol(
   // try a random strategy
   if (snode.d_strats.size() > 1)
   {
-    std::random_shuffle(snode.d_strats.begin(), snode.d_strats.end());
+    std::shuffle(
+        snode.d_strats.begin(), snode.d_strats.end(), Random::getRandom());
   }
   // ITE always first if we have not yet solved
   // the reasoning is that splitting on conditions only subdivides the problem

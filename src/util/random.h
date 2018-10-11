@@ -26,29 +26,40 @@ namespace CVC4 {
 class Random
 {
  public:
-  Random(uint64_t seed) { setSeed(seed); }
+  using result_type = uint64_t;
 
-  /* Get current RNG (singleton).  */
+  /** Constructor. */
+  Random(uint64_t seed);
+
+  /** Get current RNG (singleton).  */
   static Random& getRandom()
   {
     static thread_local Random s_current(0);
     return s_current;
   }
 
-  /* Set seed of Random.  */
-  void setSeed(uint64_t seed)
-  {
-    d_seed = seed == 0 ? ~seed : seed;
-    d_state = d_seed;
-  }
+  /** Get the minimum number that can be picked. */
+  static uint64_t min() { return 0u; }
 
-  /* Next random uint64_t number. */
+  /** Get the maximum number that can be picked. */
+  static uint64_t max() { return UINT64_MAX; }
+
+  /** Set seed of Random.  */
+  void setSeed(uint64_t seed);
+
+  /** Operator overload to pick random uin64_t number (see rand()). */
+  uint64_t operator()();
+
+  /** Next random uint64_t number. */
   uint64_t rand();
-  /* Pick random uint64_t number between from and to (inclusive). */
+
+  /** Pick random uint64_t number between from and to (inclusive). */
   uint64_t pick(uint64_t from, uint64_t to);
-  /* Pick random double number between from and to (inclusive). */
+
+  /** Pick random double number between from and to (inclusive). */
   double pickDouble(double from, double to);
-  /* Pick with given probability (yes / no). */
+
+  /** Pick with given probability (yes / no). */
   bool pickWithProb(double probability);
 
  private:

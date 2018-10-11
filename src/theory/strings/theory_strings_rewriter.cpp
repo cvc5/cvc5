@@ -1610,6 +1610,33 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     return returnRewrite(node, ret, "ss-len-non-pos");
   }
 
+  if (node[0].getKind() == STRING_SUBSTR)
+  {
+    // (str.substr (str.substr x a b) c d) ---> "" if c >= b
+    //
+    // Note that this rewrite can be generalized to:
+    //
+    // (str.substr x a b) ---> "" if a >= (str.len x)
+    //
+    // This can be done when we generalize our entailment methods to
+    // accept an optional context. Then we could conjecture that
+    // (str.substr x a b) rewrites to "" and do a case analysis:
+    //
+    // - a < 0 or b < 0 (the result is trivially empty in these cases)
+    // - a >= (str.len x) assuming that { a >= 0, b >= 0 }
+    //
+    // For example, for (str.substr (str.substr x a a) a a), we could
+    // then deduce that under those assumptions, "a" is an
+    // over-approximation of the length of (str.substr x a a), which
+    // then allows us to reason that the result of the whole term must
+    // be empty.
+    if (checkEntailArith(node[1], node[0][2]))
+    {
+      Node ret = nm->mkConst(::CVC4::String(""));
+      return returnRewrite(node, ret, "ss-start-geq-len");
+    }
+  }
+
   std::vector<Node> n1;
   getConcat(node[0], n1);
 
@@ -1672,6 +1699,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         Node ret = nm->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
+      }
+
+      // (str.substr s x x) ---> "" if (str.len s) <= 1
+      Node one = nm->mkConst(CVC4::Rational(1));
+      if (node[1] == node[2] && checkEntailArith(one, tot_len))
+      {
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-len-one-z-z");
       }
     }
     if (!curr.isNull())
