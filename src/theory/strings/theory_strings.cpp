@@ -1778,18 +1778,20 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           Node conc =
               nm->mkNode(STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1]);
           conc = Rewriter::rewrite(conc);
+          conc = conc.negate();
           bool do_infer = false;
+          bool pol = conc.getKind()!=NOT;
+          Node lit = pol ? conc : conc[0];
           if (conc.getKind() == EQUAL)
           {
-            do_infer = !areDisequal(conc[0], conc[1]);
+            do_infer = pol ? !areEqual(conc[0], conc[1]) : !areDisequal(conc[0], conc[1]);
           }
           else
           {
-            do_infer = !areEqual(conc, d_false);
+            do_infer = !areEqual(conc, pol ? d_true : d_false);
           }
           if (do_infer)
           {
-            conc = conc.negate();
             std::vector<Node> exp_c;
             exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
             Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];
