@@ -74,7 +74,7 @@ public:
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module);
   uint64_t computeAtomWeight(TNode atom);
-  void setProofLog(ResolutionBitVectorProof* bvp) override;
+  void setProofLog(proof::ResolutionBitVectorProof* bvp) override;
 };
 
 } /* namespace CVC4::theory::bv */

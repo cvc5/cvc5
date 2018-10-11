@@ -16,12 +16,13 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__RESOLUTION__BITVECTOR__PROOF_H
-#define __CVC4__RESOLUTION__BITVECTOR__PROOF_H
+#ifndef __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H
+#define __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H
 
 #include <iostream>
 #include <sstream>
 
+#include "context/context.h"
 #include "expr/expr.h"
 #include "proof/bitvector_proof.h"
 #include "proof/theory_proof.h"
@@ -48,14 +49,33 @@ namespace CVC4 {
 template <class Solver> class TSatProof;
 typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
 
+namespace proof {
+
+/**
+ * Represents a bitvector proof which is backed by
+ * (a) bitblasting and
+ * (b) a resolution unsat proof.
+ *
+ * Contains tools for constructing BV conflicts
+ */
 class ResolutionBitVectorProof : public BitVectorProof {
 public:
   ResolutionBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
 
+  /**
+   * Create an (internal) SAT proof object
+   * Must be invoked before manipulating BV conflicts,
+   * or initializing a BNF proof
+   */
   void initSatProof(CVC4::BVMinisat::Solver* solver);
 
   BVSatProof* getSatProof();
 
+  /**
+   * Kind of a mess.
+   * In eager mode this must be invoked before printing a proof of the empty clause.
+   * In lazy mode the behavior is ???
+   */
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
   void startBVConflict(CVC4::BVMinisat::Solver::TCRef cr);
@@ -63,14 +83,16 @@ public:
   void endBVConflict(const BVMinisat::Solver::TLitVec& confl);
 
   void markAssumptionConflict() { d_isAssumptionConflict = true; }
-  bool isAssumptionConflict() { return d_isAssumptionConflict; }
+  bool isAssumptionConflict() const { return d_isAssumptionConflict; }
 
   virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
 
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* cnf) override;
 
 protected:
-  BVSatProof* d_resolutionProof;
+  // The CNF formula that results from bit-blasting will need a proof.
+  // This is that proof.
+  std::unique_ptr<BVSatProof> d_resolutionProof;
 
   bool d_isAssumptionConflict;
 
@@ -94,6 +116,8 @@ public:
   void calculateAtomsInBitblastingProof() override;
 };
 
+}/* proof namespace */
+
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RESOLUTION__BITVECTOR__PROOF_H */
+#endif /* __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */

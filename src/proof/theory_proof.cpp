@@ -46,6 +46,9 @@
 
 namespace CVC4 {
 
+using proof::LFSCBitVectorProof;
+using proof::ResolutionBitVectorProof;
+
 unsigned CVC4::ProofLetCount::counter = 0;
 static unsigned LET_COUNT = 1;
 
@@ -77,8 +80,8 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        ResolutionBitVectorProof * bvp =
-          new LFSCBitVectorProof((theory::bv::TheoryBV*)th, this);
+        auto bv_theory = static_cast<theory::bv::TheoryBV*>(th);
+        ResolutionBitVectorProof * bvp = new LFSCBitVectorProof(bv_theory, this);
         d_theoryProofTable[id] = bvp;
         return;
       }

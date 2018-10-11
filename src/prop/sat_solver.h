@@ -31,8 +31,10 @@
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
+
+namespace proof {
 class ResolutionBitVectorProof;
+}
 
 namespace prop {
 
@@ -97,7 +99,7 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
   
-  virtual void setProofLog( ResolutionBitVectorProof * bvp ) {}
+  virtual void setProofLog( proof::ResolutionBitVectorProof * bvp ) {}
   
 };/* class SatSolver */
 

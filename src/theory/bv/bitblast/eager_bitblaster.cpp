@@ -269,7 +269,7 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void EagerBitblaster::setResolutionProofLog(ResolutionBitVectorProof* bvp) {
+void EagerBitblaster::setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) {
   THEORY_PROOF(
     d_bvp = bvp;
     d_satSolver->setProofLog(bvp);

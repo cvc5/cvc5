@@ -2,7 +2,7 @@
 /*! \file bitvector_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Paul Meng, Alex Ozdemir
+ **   Liana Hadarean, Guy Katz, Paul Meng
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -31,7 +31,7 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
       d_bbAtoms(),
       d_bitblaster(nullptr),
       d_useConstantLetification(false),
-      d_cnfProof(nullptr) {}
+      d_cnfProof() {}
 
 std::string BitVectorProof::getBBTermName(Expr expr) {
   Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
@@ -84,7 +84,7 @@ void BitVectorProof::registerTerm(Expr term) {
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                   context::Context* cnf) {
   Assert (d_cnfProof == nullptr);
-  d_cnfProof = new LFSCCnfProof(cnfStream, cnf, "bb");
+  d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 }
 
 void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb) {

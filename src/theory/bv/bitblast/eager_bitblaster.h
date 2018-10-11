@@ -54,7 +54,7 @@ class EagerBitblaster : public TBitblaster<Node>
   bool solve();
   bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(ResolutionBitVectorProof* bvp);
+  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
  private:
   context::Context* d_context;

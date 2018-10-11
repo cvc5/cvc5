@@ -35,16 +35,18 @@ using namespace CVC4::theory::bv;
 
 namespace CVC4 {
 
+namespace proof {
+
 ResolutionBitVectorProof::ResolutionBitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
     : BitVectorProof(bv, proofEngine),
-      d_resolutionProof(NULL),
+      d_resolutionProof(),
       d_isAssumptionConflict(false)
       {}
 
 void ResolutionBitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver) {
   Assert (d_resolutionProof == NULL);
-  d_resolutionProof = new BVSatProof(solver, &d_fakeContext, "bb", true);
+  d_resolutionProof.reset(new BVSatProof(solver, &d_fakeContext, "bb", true));
 }
 
 theory::TheoryId ResolutionBitVectorProof::getTheoryId() { return theory::THEORY_BV; }
@@ -73,7 +75,7 @@ void ResolutionBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
 
 BVSatProof* ResolutionBitVectorProof::getSatProof() {
   Assert (d_resolutionProof != NULL);
-  return d_resolutionProof;
+  return d_resolutionProof.get();
 }
 
 
@@ -240,7 +242,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
     Assert (d_bbConflictMap.find(lem) != d_bbConflictMap.end());
     ClauseId lemma_id = d_bbConflictMap[lem];
     proof::LFSCProofPrinter::printAssumptionsResolution(
-        d_resolutionProof, lemma_id, os, lemma_paren);
+        d_resolutionProof.get(), lemma_id, os, lemma_paren);
     os <<lemma_paren.str();
   } else {
 
@@ -341,7 +343,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::os
 
         ClauseId lemma_id = it->second;
         proof::LFSCProofPrinter::printAssumptionsResolution(
-            d_resolutionProof, lemma_id, os, lemma_paren);
+            d_resolutionProof.get(), lemma_id, os, lemma_paren);
         os <<lemma_paren.str();
 
         return;
@@ -413,8 +415,9 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   }
 
   os << std::endl << " ;; Bit-blasting learned clauses \n" << std::endl;
-  proof::LFSCProofPrinter::printResolutions(d_resolutionProof, os, paren);
+  proof::LFSCProofPrinter::printResolutions(d_resolutionProof.get(), os, paren);
 }
 
+} /* namespace proof */
 
 } /* namespace CVC4 */

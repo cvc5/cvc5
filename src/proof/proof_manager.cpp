@@ -116,10 +116,10 @@ UFProof* ProofManager::getUfProof() {
   return (UFProof*)pf;
 }
 
-ResolutionBitVectorProof* ProofManager::getBitVectorProof() {
+proof::ResolutionBitVectorProof* ProofManager::getBitVectorProof() {
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
-  return (ResolutionBitVectorProof*)pf;
+  return static_cast<proof::ResolutionBitVectorProof*>(pf);
 }
 
 ArrayProof* ProofManager::getArrayProof() {

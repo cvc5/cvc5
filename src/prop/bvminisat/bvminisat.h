@@ -117,7 +117,7 @@ public:
 
   void popAssumption() override;
 
-  void setProofLog(ResolutionBitVectorProof* bvp) override;
+  void setProofLog(proof::ResolutionBitVectorProof* bvp) override;
 
  private:
   /* Disable the default constructor. */

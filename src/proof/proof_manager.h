@@ -69,7 +69,10 @@ class TheoryProof;
 class UFProof;
 class ArithProof;
 class ArrayProof;
+
+namespace proof {
 class ResolutionBitVectorProof;
+}
 
 template <class Solver> class LFSCSatProof;
 typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
@@ -188,7 +191,7 @@ public:
   static TheoryProofEngine* getTheoryProofEngine();
   static TheoryProof* getTheoryProof( theory::TheoryId id );
   static UFProof* getUfProof();
-  static ResolutionBitVectorProof* getBitVectorProof();
+  static proof::ResolutionBitVectorProof* getBitVectorProof();
   static ArrayProof* getArrayProof();
   static ArithProof* getArithProof();
 

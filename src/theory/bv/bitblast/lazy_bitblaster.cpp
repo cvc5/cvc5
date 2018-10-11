@@ -567,7 +567,7 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void TLazyBitblaster::setProofLog( ResolutionBitVectorProof * bvp ){
+void TLazyBitblaster::setProofLog( proof::ResolutionBitVectorProof * bvp ){
   d_bvp = bvp;
   d_satSolver->setProofLog( bvp );
   bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());

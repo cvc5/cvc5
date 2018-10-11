@@ -39,7 +39,9 @@ namespace BVMinisat {
 class Solver;
 }
 
+namespace proof {
 class ResolutionBitVectorProof;
+}
 
 namespace BVMinisat {
 
@@ -213,7 +215,7 @@ public:
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
     
-    void setProofLog( CVC4::ResolutionBitVectorProof * bvp );
+    void setProofLog( CVC4::proof::ResolutionBitVectorProof * bvp );
 
 protected:
 
@@ -292,7 +294,7 @@ protected:
     bool                asynch_interrupt;
     
     //proof log
-    CVC4::ResolutionBitVectorProof * d_bvp;
+    CVC4::proof::ResolutionBitVectorProof * d_bvp;
 
     // Main internal methods:
     //
