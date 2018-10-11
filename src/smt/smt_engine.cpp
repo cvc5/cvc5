@@ -1115,18 +1115,6 @@ void SmtEngine::setDefaults() {
   if (options::inputLanguage() == language::input::LANG_SYGUS)
   {
     is_sygus = true;
-    // must use Ferrante/Rackoff for real arithmetic
-    if (!options::cbqiMidpoint.wasSetByUser())
-    {
-      options::cbqiMidpoint.set(true);
-    }
-    if (options::sygusRepairConst())
-    {
-      if (!options::cbqi.wasSetByUser())
-      {
-        options::cbqi.set(true);
-      }
-    }
   }
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
@@ -1811,6 +1799,28 @@ void SmtEngine::setDefaults() {
     if (!options::ceGuidedInst.wasSetByUser())
     {
       options::ceGuidedInst.set(true);
+    }
+    // must use Ferrante/Rackoff for real arithmetic
+    if (!options::cbqiMidpoint.wasSetByUser())
+    {
+      options::cbqiMidpoint.set(true);
+    }
+    if (options::sygusRepairConst())
+    {
+      if (!options::cbqi.wasSetByUser())
+      {
+        options::cbqi.set(true);
+      }
+    }
+    // setting unif requirements
+    if (options::sygusUnifBooleanHeuristicDt()
+        && !options::sygusUnifCondIndependent())
+    {
+      options::sygusUnifCondIndependent.set(true);
+    }
+    if (options::sygusUnifCondIndependent() && !options::sygusUnif())
+    {
+      options::sygusUnif.set(true);
     }
   }
   if (options::sygusInference())
