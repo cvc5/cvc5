@@ -1033,7 +1033,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
     Node bv = d_tds->sygusToBuiltin(cnv, tn);
     Trace("sygus-sb-debug") << "  ......builtin is " << bv << std::endl;
     Node bvr = d_tds->getExtRewriter()->extendedRewrite(bv);
-    Trace("sygus-sb-debug") << "  ......rewrites to " << bvr << std::endl;
+    Trace("sygus-sb-debug") << "  ......search value rewrites to " << bvr << std::endl;
     Trace("dt-sygus") << "  * DT builtin : " << n << " -> " << bvr << std::endl;
     unsigned sz = d_tds->getSygusTermSize( nv );      
     if( d_tds->involvesDivByZero( bvr ) ){
@@ -1619,8 +1619,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
           }
         }
       }
-      SygusSymBreakExcAttribute ssbea;
-      prog.setAttribute(ssbea, isExc);
+      SygusSymBreakOkAttribute ssbo;
+      prog.setAttribute(ssbo, !isExc);
     }
   }
   //register any measured terms that we haven't encountered yet (should only be invoked on first call to check

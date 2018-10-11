@@ -23,6 +23,16 @@
 
 namespace CVC4 {
 
+Random::Random(uint64_t seed) { setSeed(seed); }
+
+void Random::setSeed(uint64_t seed)
+{
+  d_seed = seed == 0 ? ~seed : seed;
+  d_state = d_seed;
+}
+
+uint64_t Random::operator()() { return rand(); }
+
 uint64_t Random::rand()
 {
   /* xorshift* generator (see S. Vigna, An experimental exploration of

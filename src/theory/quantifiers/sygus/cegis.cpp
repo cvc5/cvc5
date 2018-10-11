@@ -78,7 +78,8 @@ bool Cegis::processInitialize(Node n,
   // This module would expect constructCandidates calls (e_f,e_g) -> (ti, sj)
   // for each i,j. We do not do this and revert to the default behavior of
   // this module instead.
-  bool isVarAgnostic = options::sygusEnumVarAgnostic() && csize == 1;
+  bool isActiveGen =
+      options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE && csize == 1;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < csize; i++)
   {
@@ -101,9 +102,9 @@ bool Cegis::processInitialize(Node n,
     d_tds->registerEnumerator(candidates[i],
                               candidates[i],
                               d_parent,
-                              isVarAgnostic,
+                              isActiveGen,
                               do_repair_const,
-                              isVarAgnostic);
+                              isActiveGen);
   }
   return true;
 }
@@ -197,6 +198,7 @@ bool Cegis::addEvalLemmas(const std::vector<Node>& candidates,
       Node lem = nm->mkNode(
           OR, eager_exps[i].negate(), eager_terms[i].eqNode(eager_vals[i]));
       lems.push_back(lem);
+      addedEvalLemmas = true;
       Trace("cegqi-lemma") << "Cegqi::Lemma : evaluation unfold : " << lem
                            << std::endl;
     }
@@ -215,21 +217,9 @@ bool Cegis::constructCandidates(const std::vector<Node>& enums,
     Trace("cegis") << "  Enumerators :\n";
     for (unsigned i = 0, size = enums.size(); i < size; ++i)
     {
-      bool isUnit = false;
-      for (const Node& hd_unit : d_rl_eval_hds)
-      {
-        if (enums[i] == hd_unit[0])
-        {
-          isUnit = true;
-          break;
-        }
-      }
-      Trace("cegis") << "    " << enums[i]
-                     << (options::sygusUnif() && isUnit ? "*" : "") << " -> ";
-      std::stringstream ss;
-      Printer::getPrinter(options::outputLanguage())
-          ->toStreamSygus(ss, enum_values[i]);
-      Trace("cegis") << ss.str() << std::endl;
+      Trace("cegis") << "    " << enums[i] << " -> ";
+      TermDbSygus::toStreamSygus("cegis", enum_values[i]);
+      Trace("cegis") << "\n";
     }
   }
   // if we are using grammar-based repair

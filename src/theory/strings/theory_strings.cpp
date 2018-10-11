@@ -266,6 +266,10 @@ void TheoryStrings::addSharedTerm(TNode t) {
   Debug("strings") << "TheoryStrings::addSharedTerm(): "
                      << t << " " << t.getType().isBoolean() << endl;
   d_equalityEngine.addTriggerTerm(t, THEORY_STRINGS);
+  if (options::stringExp())
+  {
+    getExtTheory()->registerTermRec(t);
+  }
   Debug("strings") << "TheoryStrings::addSharedTerm() finished" << std::endl;
 }
 
@@ -850,11 +854,6 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         } else {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
-          if( options::stringExp() ){
-            //collect extended functions here: some may not be asserted to strings (such as those with return type Int),
-            //  but we need to record them so they are treated properly
-            getExtTheory()->registerTermRec( n );
-          }
         }
         //concat terms do not contribute to theory combination?  TODO: verify
         if (n.hasOperator() && kindToTheoryId(k) == THEORY_STRINGS
@@ -1213,7 +1212,9 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
     //getExtTheory()->registerTerm( atom );
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
-  //collect extended function terms in the atom
+  // Collect extended function terms in the atom. Notice that we must register
+  // all extended functions occurring in assertions and shared terms. We
+  // make a similar call to registerTermRec in addSharedTerm.
   getExtTheory()->registerTermRec( atom );
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
@@ -1777,18 +1778,21 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
           Node conc =
               nm->mkNode(STRING_STRCTN, pol ? nr[1] : onr, pol ? onr : nr[1]);
           conc = Rewriter::rewrite(conc);
+          conc = conc.negate();
           bool do_infer = false;
-          if (conc.getKind() == EQUAL)
+          bool pol = conc.getKind() != NOT;
+          Node lit = pol ? conc : conc[0];
+          if (lit.getKind() == EQUAL)
           {
-            do_infer = !areDisequal(conc[0], conc[1]);
+            do_infer = pol ? !areEqual(lit[0], lit[1])
+                           : !areDisequal(lit[0], lit[1]);
           }
           else
           {
-            do_infer = !areEqual(conc, d_false);
+            do_infer = !areEqual(lit, pol ? d_true : d_false);
           }
           if (do_infer)
           {
-            conc = conc.negate();
             std::vector<Node> exp_c;
             exp_c.insert(exp_c.end(), in.d_exp.begin(), in.d_exp.end());
             Node ofrom = d_extf_info_tmp[nr[0]].d_ctn_from[opol][i];

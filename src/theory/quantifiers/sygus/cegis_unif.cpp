@@ -86,7 +86,6 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
   // Non-unif candidate are themselves the enumerators
   enums.insert(
       enums.end(), d_non_unif_candidates.begin(), d_non_unif_candidates.end());
-  Valuation& valuation = d_qe->getValuation();
   for (const Node& c : d_unif_candidates)
   {
     // Collect heads of candidates
@@ -104,19 +103,6 @@ void CegisUnif::getTermList(const std::vector<Node>& candidates,
         std::vector<Node> uenums;
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(e, uenums, index);
-        if (index == 1 && options::sygusUnifCondIndependent())
-        {
-          Assert(uenums.size() == 1);
-          Node eu = uenums[0];
-          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
-          // If active guard for this enumerator is not true, there are no more
-          // values for it, and hence we ignore it
-          Node gstatus = valuation.getSatValue(g);
-          if (gstatus.isNull() || !gstatus.getConst<bool>())
-          {
-            continue;
-          }
-        }
         // get the model value of each enumerator
         enums.insert(enums.end(), uenums.begin(), uenums.end());
       }
@@ -150,8 +136,9 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
       for (unsigned index = 0; index < 2; index++)
       {
         std::vector<Node> es, vs;
-        Trace("cegis") << "  " << (index == 0 ? "Return values" : "Conditions")
-                       << " for " << e << ":\n";
+        Trace("cegis-unif")
+            << "  " << (index == 0 ? "Return values" : "Conditions") << " for "
+            << e << ":\n";
         // get the current unification enumerators
         d_u_enum_manager.getEnumeratorsForStrategyPt(e, es, index);
         // set enums for condition enumerators
@@ -163,7 +150,7 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
             // whether valueus exhausted
             if (mvMap.find(es[0]) == mvMap.end())
             {
-              Trace("cegis") << "    " << es[0] << " -> N/A\n";
+              Trace("cegis-unif") << "    " << es[0] << " -> N/A\n";
               es.clear();
             }
           }
@@ -174,13 +161,11 @@ bool CegisUnif::getEnumValues(const std::vector<Node>& enums,
         {
           Assert(mvMap.find(eu) != mvMap.end());
           Node m_eu = mvMap[eu];
-          if (Trace.isOn("cegis"))
+          if (Trace.isOn("cegis-unif"))
           {
-            Trace("cegis") << "    " << eu << " -> ";
-            std::stringstream ss;
-            Printer::getPrinter(options::outputLanguage())
-                ->toStreamSygus(ss, m_eu);
-            Trace("cegis") << ss.str() << std::endl;
+            Trace("cegis-unif") << "    " << eu << " -> ";
+            TermDbSygus::toStreamSygus("cegis-unif", m_eu);
+            Trace("cegis-unif") << "\n";
           }
           vs.push_back(m_eu);
         }
@@ -265,7 +250,7 @@ void CegisUnif::setConditions(
         Assert(!itv->second.empty());
         if (d_tds->isPassiveEnumerator(eu))
         {
-          Node g = d_u_enum_manager.getActiveGuardForEnumerator(eu);
+          Node g = d_tds->getActiveGuardForEnumerator(eu);
           Node exp_exc = d_tds->getExplain()
                              ->getExplanationForEquality(eu, itv->second[0])
                              .negate();
@@ -288,6 +273,34 @@ bool CegisUnif::processConstructCandidates(const std::vector<Node>& enums,
     Assert(d_non_unif_candidates.size() == candidates.size());
     return Cegis::processConstructCandidates(
         enums, enum_values, candidates, candidate_values, satisfiedRl, lems);
+  }
+  if (Trace.isOn("cegis-unif"))
+  {
+    for (const Node& c : d_unif_candidates)
+    {
+      // Collect heads of candidates
+      Trace("cegis-unif") << "  Evaluation heads for " << c << " :\n";
+      for (const Node& hd : d_sygus_unif.getEvalPointHeads(c))
+      {
+        bool isUnit = false;
+        // d_rl_eval_hds accumulates eval apps, so need to look at operators
+        for (const Node& hd_unit : d_rl_eval_hds)
+        {
+          if (hd == hd_unit[0])
+          {
+            isUnit = true;
+            break;
+          }
+        }
+        Trace("cegis-unif") << "    " << hd << (isUnit ? "*" : "") << " -> ";
+        Assert(std::find(enums.begin(), enums.end(), hd) != enums.end());
+        unsigned i = std::distance(enums.begin(),
+                                   std::find(enums.begin(), enums.end(), hd));
+        Assert(i >= 0 && i < enum_values.size());
+        TermDbSygus::toStreamSygus("cegis-unif", enum_values[i]);
+        Trace("cegis-unif") << "\n";
+      }
+    }
   }
   // the unification enumerators for conditions and their model values
   std::map<Node, std::vector<Node>> unif_cenums;
@@ -536,7 +549,6 @@ void CegisUnifEnumDecisionStrategy::initialize(
     {
       Node ceu = nm->mkSkolem("cu", ci.second.d_ce_type);
       setUpEnumerator(ceu, ci.second, 1);
-      d_enum_to_active_guard[ceu] = d_tds->getActiveGuardForEnumerator(ceu);
     }
   }
 }
@@ -563,12 +575,6 @@ void CegisUnifEnumDecisionStrategy::getEnumeratorsForStrategyPt(
               itc->second.d_enums[index].begin(),
               itc->second.d_enums[index].begin() + num_enums);
   }
-}
-
-Node CegisUnifEnumDecisionStrategy::getActiveGuardForEnumerator(Node e)
-{
-  Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-  return d_enum_to_active_guard[e];
 }
 
 void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
@@ -601,19 +607,19 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   // register the enumerator
   si.d_enums[index].push_back(e);
   bool mkActiveGuard = false;
-  bool isVarAgnostic = false;
+  bool isActiveGen = false;
   // if we are using a single independent enumerator for conditions, then we
   // allocate an active guard, and are eligible to use variable-agnostic
   // enumeration.
   if (options::sygusUnifCondIndependent() && index == 1)
   {
     mkActiveGuard = true;
-    isVarAgnostic = options::sygusEnumVarAgnostic();
+    isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
   d_tds->registerEnumerator(
-      e, si.d_pt, d_parent, mkActiveGuard, false, isVarAgnostic);
+      e, si.d_pt, d_parent, mkActiveGuard, false, isActiveGen);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(
