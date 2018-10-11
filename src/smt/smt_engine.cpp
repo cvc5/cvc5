@@ -1816,11 +1816,11 @@ void SmtEngine::setDefaults() {
     if (options::sygusUnifBooleanHeuristicDt()
         && !options::sygusUnifCondIndependent())
     {
-      setOption("sygus-unif-cond-independent", SExpr("true"));
+      options::sygusUnifCondIndependent.set(true);
     }
     if (options::sygusUnifCondIndependent() && !options::sygusUnif())
     {
-      setOption("sygus-unif", SExpr("true"));
+      options::sygusUnif.set(true);
     }
   }
   if (options::sygusInference())
