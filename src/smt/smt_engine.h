@@ -445,31 +445,6 @@ class CVC4_PUBLIC SmtEngine {
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
 
-  /*------------------- sygus utils ------------------*/
-  /**
-   * sygus variables declared (from "declare-var" and "declare-fun" commands)
-   *
-   * The SyGuS semantics for declared variables is that they are implicitly
-   * universally quantified in the constraints.
-   */
-  std::vector<Node> d_sygusVars;
-  /** types of sygus primed variables (for debugging) */
-  std::vector<Type> d_sygusPrimedVarTypes;
-  /** sygus constraints */
-  std::vector<Node> d_sygusConstraints;
-  /** functions-to-synthesize */
-  std::vector<Node> d_sygusFunSymbols;
-  /** maps functions-to-synthesize to their respective input variables lists */
-  std::map<Node, std::vector<Node>> d_sygusFunVars;
-  /** maps functions-to-synthesize to their respective syntactic restrictions
-   *
-   * If function has syntactic restrictinos, these are encoded as a SyGuS datatype
-   * type
-   */
-  std::map<Node, TypeNode> d_sygusFunSyntax;
-
-  /*------------------- end of sygus utils ------------------*/
-
  public:
 
   /**
