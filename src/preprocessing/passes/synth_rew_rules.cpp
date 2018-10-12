@@ -60,7 +60,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   // does the input contain a Boolean variable?
   bool hasBoolVar = false;
   // the types of subterms of our input
-  std::map<TypeNode, bool > typesFound;
+  std::map<TypeNode, bool> typesFound;
   // standard constants for each type (e.g. true, false for Bool)
   std::map<TypeNode, std::vector<Node> > consts;
 
@@ -114,7 +114,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
           if (cur.isVar())
           {
             vars.push_back(cur);
-            if( tn.isBoolean() )
+            if (tn.isBoolean())
             {
               hasBoolVar = true;
             }
@@ -135,7 +135,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     } while (!visit.empty());
   }
   Trace("srs-input") << "...finished." << std::endl;
-  
+
   Trace("srs-input") << "Make synth variables for types..." << std::endl;
   // We will generate a fixed number of variables per type. These are the
   // variables that appear as free variables in the rewrites we generate.
@@ -146,7 +146,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<TypeNode> allVarTypes;
   std::vector<Node> allVars;
   unsigned varCounter = 0;
-  for( std::pair<const TypeNode, bool > tfp : typesFound )
+  for (std::pair<const TypeNode, bool> tfp : typesFound)
   {
     TypeNode tn = tfp.first;
     // If we are not interested in purely propositional rewrites, we only
@@ -157,7 +157,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     unsigned useNVars =
         (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
             ? nvars
-            : ( hasBoolVar ? 1 : 0 );
+            : (hasBoolVar ? 1 : 0);
     for (unsigned i = 0; i < useNVars; i++)
     {
       // We must have a good name for these variables, these are
@@ -180,7 +180,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     }
   }
   Trace("srs-input") << "...finished." << std::endl;
-  
+
   Trace("srs-input") << "Convert subterms to free variable form..."
                      << std::endl;
   // Replace all free variables with bound variables. This ensures that
@@ -270,7 +270,8 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     // we add variable constructors if we are not Boolean, we are interested
     // in purely propositional rewrites (via the option), or this term is
     // a Boolean variable.
-    if( !ctt.isBoolean() || options::sygusRewSynthInputUseBool() || ct.getKind()==BOUND_VARIABLE )
+    if (!ctt.isBoolean() || options::sygusRewSynthInputUseBool()
+        || ct.getKind() == BOUND_VARIABLE)
     {
       for (const Node& v : tvars[ctt])
       {
@@ -361,7 +362,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         datatypes[i].addSygusConstructor(op.toExpr(), ssc.str(), argList);
       }
     }
-    Assert( datatypes[i].getNumConstructors()>0 );
+    Assert(datatypes[i].getNumConstructors() > 0);
     datatypes[i].setSygus(ctt.toType(), sygusVarListE, false, false);
   }
   Trace("srs-input") << "...finished." << std::endl;
