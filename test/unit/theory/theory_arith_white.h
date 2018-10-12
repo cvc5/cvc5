@@ -108,7 +108,7 @@ public:
     d_scope = new SmtScope(d_smt);
     d_outputChannel.clear();
     d_logicInfo.lock();
-    
+
     // must initialize theory engine here
     d_smt->finalOptionsAreSet();
 
