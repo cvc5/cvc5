@@ -273,8 +273,6 @@ private:
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
 
-  const void addSygusFunSymbol( Type t, Expr synth_fun );
-
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.
