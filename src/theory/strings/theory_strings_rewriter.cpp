@@ -3482,7 +3482,7 @@ bool TheoryStringsRewriter::componentContainsBase(
         if (n1.getKind() == STRING_STRREPL)
         {
           // (str.contains (str.replace x y z) w) ---> true
-          // if `(str.contains x w) --> true and (str.contains z w) ---> true
+          // if (str.contains x w) --> true and (str.contains z w) ---> true
           Node xCtnW = Rewriter::rewrite(nm->mkNode(STRING_STRCTN, n1[0], n2));
           if (xCtnW.isConst() && xCtnW.getConst<bool>())
           {

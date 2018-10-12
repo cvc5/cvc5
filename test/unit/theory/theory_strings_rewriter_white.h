@@ -673,7 +673,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     sameNormalForm(ctn_repl, t);
 
     // (str.contains (str.++ z (str.replace (str.++ x y) z (str.++ y x))) x)
-    // ---> true
+    //   ---> true
     ctn_repl = d_nm->mkNode(
         kind::STRING_STRCTN,
         d_nm->mkNode(kind::STRING_CONCAT,
