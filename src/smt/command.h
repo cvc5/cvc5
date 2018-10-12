@@ -651,7 +651,8 @@ class CVC4_PUBLIC DeclarePrimedVarCommand : public DeclarationDefinitionCommand
   std::string getCommandName() const override;
 };
 
-class CVC4_PUBLIC DeclareSygusFunctionCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DeclareSygusFunctionCommand
+    : public DeclarationDefinitionCommand
 {
  protected:
   Expr d_func;
@@ -670,7 +671,6 @@ class CVC4_PUBLIC DeclareSygusFunctionCommand : public DeclarationDefinitionComm
   std::string getCommandName() const override;
 }; /* class DeclareFunctionCommand */
 
-
 class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
 {
  protected:
@@ -682,6 +682,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   Type d_sygusType;
   bool d_isInv;
   std::vector<Expr> d_vars;
+
  public:
   SynthFunCommand(const std::string& id,
                   Expr func,
@@ -741,7 +742,7 @@ class CVC4_PUBLIC InvConstraintCommand : public Command
 class CVC4_PUBLIC CheckSynthCommand : public Command
 {
  public:
-  CheckSynthCommand() {};
+  CheckSynthCommand(){};
 
   Result getResult() const;
 

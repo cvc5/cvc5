@@ -709,7 +709,7 @@ SynthFunCommand::SynthFunCommand(const std::string& id,
                                  Expr func,
                                  Type sygusType,
                                  bool isInv)
-  : SynthFunCommand(id, func, sygusType, isInv, {})
+    : SynthFunCommand(id, func, sygusType, isInv, {})
 {
 }
 
@@ -785,7 +785,7 @@ Command* ConstraintCommand::clone() const
 std::string ConstraintCommand::getCommandName() const { return "constraint"; }
 
 /* -------------------------------------------------------------------------- */
-/* class InvConstraintCommand                                                    */
+/* class InvConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
 InvConstraintCommand::InvConstraintCommand(
@@ -813,7 +813,7 @@ const std::vector<Expr>& InvConstraintCommand::getPlaceHolders() const
 }
 
 Command* InvConstraintCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
+                                        ExprManagerMapCollection& variableMap)
 {
   return new InvConstraintCommand(d_place_holders);
 }
@@ -823,7 +823,10 @@ Command* InvConstraintCommand::clone() const
   return new InvConstraintCommand(d_place_holders);
 }
 
-std::string InvConstraintCommand::getCommandName() const { return "inv-constraint"; }
+std::string InvConstraintCommand::getCommandName() const
+{
+  return "inv-constraint";
+}
 
 /* -------------------------------------------------------------------------- */
 /* class CheckSynthCommand                                                    */
@@ -888,10 +891,7 @@ Command* CheckSynthCommand::exportTo(ExprManager* exprManager,
   return new CheckSynthCommand();
 }
 
-Command* CheckSynthCommand::clone() const
-{
-  return new CheckSynthCommand();
-}
+Command* CheckSynthCommand::clone() const { return new CheckSynthCommand(); }
 
 std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }
 

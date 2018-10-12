@@ -515,8 +515,8 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::map<Node, std::vector<Node>> d_sygusFunVars;
   /** maps functions-to-synthesize to their respective syntactic restrictions
    *
-   * If function has syntactic restrictinos, these are encoded as a SyGuS datatype
-   * type
+   * If function has syntactic restrictinos, these are encoded as a SyGuS
+   * datatype type
    */
   std::map<Node, TypeNode> d_sygusFunSyntax;
 
@@ -3760,7 +3760,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
   Node fn = Node::fromExpr(func);
   d_private->d_sygusFunSymbols.push_back(fn);
   std::vector<Node> var_nodes;
-  for (const Expr& v: vars)
+  for (const Expr& v : vars)
   {
     var_nodes.push_back(Node::fromExpr(v));
   }
@@ -3810,8 +3810,10 @@ void SmtEngine::assertSygusInvConstraint(const std::vector<Expr>& place_holders)
     {
       if (t == ti)
       {
-        d_private->d_sygusPrimedVarTypes.erase(std::find(
-            d_private->d_sygusPrimedVarTypes.begin(), d_private->d_sygusPrimedVarTypes.end(), t));
+        d_private->d_sygusPrimedVarTypes.erase(
+            std::find(d_private->d_sygusPrimedVarTypes.begin(),
+                      d_private->d_sygusPrimedVarTypes.end(),
+                      t));
         find_new_declared_var = true;
         break;
       }
@@ -3872,7 +3874,8 @@ Result SmtEngine::checkSynth()
   SmtScope smts(this);
   // build synthesis conjecture from asserted constraints and declared
   // variables/functions
-  Node sygusVar = d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
+  Node sygusVar =
+      d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
   Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
   Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
   std::vector<Node> bodyv;
@@ -3908,7 +3911,8 @@ Result SmtEngine::checkSynth()
   for (const Node& synth_fun : d_private->d_sygusFunSymbols)
   {
     // associate var list with function-to-synthesize
-    Assert(d_private->d_sygusFunVars.find(synth_fun) != d_private->d_sygusFunVars.end());
+    Assert(d_private->d_sygusFunVars.find(synth_fun)
+           != d_private->d_sygusFunVars.end());
     const std::vector<Node>& vars = d_private->d_sygusFunVars[synth_fun];
     Node bvl;
     if (!vars.empty())

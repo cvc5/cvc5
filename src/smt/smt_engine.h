@@ -444,7 +444,6 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
-
  public:
 
   /**
