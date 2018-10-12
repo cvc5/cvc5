@@ -2191,7 +2191,7 @@ void SmtEngine::setDefaults() {
         && options::arithMLTrick.wasSetByUser())
     {
       throw OptionException(std::string(
-          "Cannot use MipLibTrick when using cryptominisat instead of circuit"
+          "Cannot use MipLibTrick when using CryptoMiniSat instead of circuit"
           "propagators. Try turn off --skeleton-preprocessing"));
     }
     else if (options::skeletonPreprocessing.wasSetByUser()){
@@ -2203,8 +2203,8 @@ void SmtEngine::setDefaults() {
   }
   if (options::skeletonPreprocessing() && !Configuration::isBuiltWithCryptominisat()){
     throw OptionException(std::string(
-        "Cryptominisat is not installed but is required by"
-        " --skeleton-preprocessing. Try install Cryptominisat by"
+        "CryptoMiniSat is not installed but is required by"
+        " --skeleton-preprocessing. Try install CryptoMiniSat by"
         "./contrib/get-cryptominisat or turn off --skeleton-preprocessing"));
   }
 }
@@ -2817,10 +2817,10 @@ bool SmtEnginePrivate::simplifyAssertions()
       // We piggy-back off of the BackEdgesMap in the CircuitPropagator to
       // do the miplib trick.
       if (
-          // Not using cryptominisat to preprocess
+          // Not using cryptominiSat to preprocess
           !options::skeletonPreprocessing() &&
           // check that option is on
-            options::arithMLTrick() &&
+          options::arithMLTrick() &&
           // miplib rewrites aren't safe in incremental mode
           !options::incrementalSolving() &&
           // only useful in arith

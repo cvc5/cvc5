@@ -41,17 +41,17 @@ namespace passes {
 NonClausalSimp::Statistics::Statistics()
     : d_numConstantProps(
           "preprocessing::passes::NonClausalSimp::NumConstantProps", 0),
-      d_cnfTranslateTime(
-          "preprocessing::passes::NonClausalSimp::CnfTranslateTime")
+      d_addAssertionTime(
+          "preprocessing::passes::NonClausalSimp::addAssertionTime")
 {
   smtStatisticsRegistry()->registerStat(&d_numConstantProps);
-  smtStatisticsRegistry()->registerStat(&d_cnfTranslateTime);
+  smtStatisticsRegistry()->registerStat(&d_addAssertionTime);
 }
 
 NonClausalSimp::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numConstantProps);
-  smtStatisticsRegistry()->unregisterStat(&d_cnfTranslateTime);
+  smtStatisticsRegistry()->unregisterStat(&d_addAssertionTime);
 }
 
 /* -------------------------------------------------------------------------- */
@@ -450,11 +450,11 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
   std::vector<Node> learned_literals;
   Trace("non-clausal-simplify") << "asserting to sat solver" << std::endl;
   {  // for timing
-    TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
+    TimerStat::CodeTimer timer(d_statistics.d_addAssertionTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      Node* assertion = (*assertionsToPreprocess)[i]
-      Assert(Rewriter::rewrite(assertion) == assertion);
+      Node assertion = (*assertionsToPreprocess)[i] Assert(
+          Rewriter::rewrite(assertion) == assertion);
       // Don't reprocess substitutions
       if (substs_index > 0 && i == substs_index)
       {
@@ -462,8 +462,7 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
       }
       Trace("non-clausal-simplify")
           << "asserting " << assertion << std::endl;
-      cnfStream.convertAndAssert(
-          (assertion, false, false, RULE_GIVEN);
+      cnfStream.convertAndAssert(assertion, false, false, RULE_GIVEN);
     }
   } // end timing
   Trace("non-clausal-simplify") << "solving" << std::endl;
@@ -474,9 +473,8 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
   }
 
   std::vector<SatLiteral> topLevelUnits = satSolver->getTopLevelUnits();
-  for (size_t i = 0; i < topLevelUnits.size(); i++)
+  for (const auto& lit : topLevelUnits)
   {
-    SatLiteral lit = topLevelUnits[i];
     if (const TNode* learnedLiteral = FindOrNull(cnfStream.getNodeCache(), lit))
     {
       // If the learned literal is not created internally by cryptominisat
@@ -503,21 +501,19 @@ NonClausalSimp::preprocessByCircuitPropagator(
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
   {  // for timing
-    TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
+    TimerStat::CodeTimer timer(d_statistics.d_addAssertionTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
-             == (*assertionsToPreprocess)[i]);
+      Node assertion = (*assertionsToPreprocess)[i];
+      Assert(Rewriter::rewrite(assertion) == assertion);
       // Don't reprocess substitutions
       if (substs_index > 0 && i == substs_index)
       {
         continue;
       }
-      Trace("non-clausal-simplify")
-          << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
-      Debug("cores") << "propagator->assertTrue: " << (*assertionsToPreprocess)[i]
-                     << std::endl;
-      propagator->assertTrue((*assertionsToPreprocess)[i]);
+      Trace("non-clausal-simplify") << "asserting " << assertion << std::endl;
+      Debug("cores") << "propagator->assertTrue: " << assertion << std::endl;
+      propagator->assertTrue(assertion);
     }
   }  // end timing
   Trace("non-clausal-simplify") << "propagating" << std::endl;

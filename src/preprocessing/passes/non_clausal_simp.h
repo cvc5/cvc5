@@ -40,7 +40,7 @@ class NonClausalSimp : public PreprocessingPass
   struct Statistics
   {
     IntStat d_numConstantProps;
-    TimerStat d_cnfTranslateTime;
+    TimerStat d_addAssertionTime;
     Statistics();
     ~Statistics();
   };
@@ -50,15 +50,14 @@ class NonClausalSimp : public PreprocessingPass
   /** Learned literals */
   std::vector<Node> d_nonClausalLearnedLiterals;
 
-
   /**
-   * Preprocess the boolean skeleton using CryptoMinisat.
+   * Preprocess the boolean skeleton using CryptoMiniSat.
    * @param assertionsToPreprocess top level assertions
    * @param substs_index  the substitution index in the current context
    * @return whether the boolean skeleton is not satisfiable and the
    *   learned unit clauses
    */
-std::pair<bool, std::vector<Node>> preprocessByCryptoMinisat(
+  std::pair<bool, std::vector<Node>> preprocessByCryptoMinisat(
       AssertionPipeline* assertionsToPreprocess, unsigned substs_index);
 
 
