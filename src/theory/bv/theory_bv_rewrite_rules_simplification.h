@@ -491,7 +491,8 @@ Node RewriteRule<AndOne>::apply(TNode node) {
 /**
  * AndConcatPullUp
  *
- * x_m & concat(0_n, z_[m-n]) --> concat(0_n, x[m-n-1:0] & z)
+ * Match:       x_m & concat(y_my, 0_n, z_mz)
+ * Rewrites to: concat(x[m-1:m-my] & y, 0_n, x[m-my-n-1:0] & z)
  */
 
 template <>
@@ -505,7 +506,14 @@ inline bool RewriteRule<AndConcatPullUp>::applies(TNode node)
   {
     if (c.getKind() == kind::BITVECTOR_CONCAT)
     {
-      n = c[0];
+      for (const TNode& cc : c)
+      {
+        if (cc.isConst())
+        {
+          n = cc;
+          break;
+        }
+      }
       break;
     }
   }
@@ -518,40 +526,77 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<AndConcatPullUp>(" << node << ")"
                       << std::endl;
-  uint32_t m, n;
+  uint32_t m, my, mz, n;
+  size_t nc;
   TNode concat;
-  Node x, z;
+  Node x, y, z, c;
   NodeBuilder<> xb(kind::BITVECTOR_AND);
+  NodeBuilder<> yb(kind::BITVECTOR_CONCAT);
   NodeBuilder<> zb(kind::BITVECTOR_CONCAT);
+  NodeBuilder<> res(kind::BITVECTOR_CONCAT);
+  NodeManager *nm = NodeManager::currentNM();
 
-  for (const TNode& c : node)
+  for (const TNode& child : node)
   {
-    if (concat.isNull() && c.getKind() == kind::BITVECTOR_CONCAT)
+    if (concat.isNull() && child.getKind() == kind::BITVECTOR_CONCAT)
     {
-      concat = c;
+      concat = child;
     }
     else
     {
-      xb << c;
+      xb << child;
     }
   }
   x = xb.getNumChildren() > 1 ? xb.constructNode() : xb[0];
-  Assert(utils::isZero(concat[0]));
 
-  m = utils::getSize(x);
-  n = utils::getSize(concat[0]);
-
-  for (size_t i = 1, nchildren = concat.getNumChildren(); i < nchildren; i++)
+  for (const TNode& child : concat)
   {
-    zb << concat[i];
+    if (c.isNull())
+    {
+      if (utils::isZero(child))
+      {
+        c = child;
+      }
+      else
+      {
+        yb << child;
+      }
+    }
+    else
+    {
+      zb << child;
+    }
   }
-  z = zb.getNumChildren() > 1 ? zb.constructNode() : zb[0];
-  Assert(utils::getSize(z) == m - n);
+  Assert(!c.isNull());
+  Assert(yb.getNumChildren() || zb.getNumChildren());
 
-  return utils::mkConcat(
-      concat[0],
-      NodeManager::currentNM()->mkNode(
-          kind::BITVECTOR_AND, utils::mkExtract(x, m - n - 1, 0), z));
+  if ((nc = yb.getNumChildren()) > 0)
+  {
+    y = nc > 1 ? yb.constructNode() : yb[0];
+  }
+  if ((nc = zb.getNumChildren()) > 0)
+  {
+    z = nc > 1 ? zb.constructNode() : zb[0];
+  }
+  m = utils::getSize(x);
+  n = utils::getSize(c);
+  my = y.isNull() ? 0 : utils::getSize(y);
+  mz = z.isNull() ? 0 : utils::getSize(z);
+  Assert(mz == m - my - n);
+  Assert(my || mz);
+
+  if (my)
+  {
+    res << nm->mkNode(
+        kind::BITVECTOR_AND, utils::mkExtract(x, m - 1, m - my), y);
+  }
+  res << c;
+  if (mz)
+  {
+    res << nm->mkNode(
+        kind::BITVECTOR_AND, utils::mkExtract(x, m - my - n - 1, 0), z);
+  }
+  return res;
 }
 
 /* -------------------------------------------------------------------------- */
