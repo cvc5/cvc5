@@ -242,12 +242,12 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   // whether we will keep this pair
   bool keep = true;
 
-  // ----- check ordering redundancy
-  if (options::sygusRewSynthFilterOrder())
+  // ----- check redundancy based on variables
+  if (options::sygusRewSynthFilterOrder() || options::sygusRewSynthFilterNonLinear())
   {
-    bool nor = d_ss->isOrdered(bn);
-    bool eqor = d_ss->isOrdered(beq_n);
-    Trace("cr-filter-debug") << "Ordered? : " << nor << " " << eqor
+    bool nor = d_ss->checkVariables(bn, options::sygusRewSynthFilterOrder(), options::sygusRewSynthFilterNonLinear() );
+    bool eqor = d_ss->checkVariables(beq_n, options::sygusRewSynthFilterOrder(), options::sygusRewSynthFilterNonLinear() );
+    Trace("cr-filter-debug") << "Variables ok? : " << nor << " " << eqor
                              << std::endl;
     if (eqor || nor)
     {
