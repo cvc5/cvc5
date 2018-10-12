@@ -453,8 +453,8 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
     TimerStat::CodeTimer timer(d_statistics.d_addAssertionTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      Node assertion = (*assertionsToPreprocess)[i] Assert(
-          Rewriter::rewrite(assertion) == assertion);
+      Node assertion = (*assertionsToPreprocess)[i];
+      Assert( Rewriter::rewrite(assertion) == assertion);
       // Don't reprocess substitutions
       if (substs_index > 0 && i == substs_index)
       {
