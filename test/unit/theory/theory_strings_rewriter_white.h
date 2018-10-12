@@ -89,6 +89,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node n = d_nm->mkVar("n", intType);
     Node one = d_nm->mkConst(Rational(1));
 
+    // (str.len (str.substr z n 1)) >= 1 ---> true
     Node substr_z = d_nm->mkNode(kind::STRING_LENGTH,
                                  d_nm->mkNode(kind::STRING_SUBSTR, z, n, one));
     TS_ASSERT(TheoryStringsRewriter::checkEntailArith(one, substr_z));
@@ -681,19 +682,31 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
         x);
     sameNormalForm(ctn_repl, t);
 
-    // (str.contains (str.replace x y x) y) ---> (str.contains x y)
+    // Same normal form for:
+    //
+    // (str.contains (str.replace x y x) y)
+    //
+    // (str.contains x y)
     Node lhs = d_nm->mkNode(
         kind::STRING_STRCTN, d_nm->mkNode(kind::STRING_STRREPL, x, y, x), y);
     Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, y);
     sameNormalForm(lhs, rhs);
 
-    // (str.contains (str.replace x y x) y) ---> (str.contains x y)
+    // Same normal form for:
+    //
+    // (str.contains (str.replace x y x) "B")
+    //
+    // (str.contains x "B")
     lhs = d_nm->mkNode(
         kind::STRING_STRCTN, d_nm->mkNode(kind::STRING_STRREPL, x, y, x), b);
     rhs = d_nm->mkNode(kind::STRING_STRCTN, x, b);
     sameNormalForm(lhs, rhs);
 
-    // (str.contains (str.replace x y x) y) ---> (str.contains x y)
+    // Same normal form for:
+    //
+    // (str.contains (str.replace x y x) (str.substr z n 1))
+    //
+    // (str.contains x (str.substr z n 1))
     Node substr_z = d_nm->mkNode(kind::STRING_SUBSTR, z, n, one);
     lhs = d_nm->mkNode(kind::STRING_STRCTN,
                        d_nm->mkNode(kind::STRING_STRREPL, x, y, x),
