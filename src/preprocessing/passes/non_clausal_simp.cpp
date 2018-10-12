@@ -453,17 +453,17 @@ std::pair<bool, std::vector<Node>> NonClausalSimp::preprocessByCryptoMinisat(
     TimerStat::CodeTimer timer(d_statistics.d_cnfTranslateTime);
     for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
     {
-      Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
-             == (*assertionsToPreprocess)[i]);
+      Node* assertion = (*assertionsToPreprocess)[i]
+      Assert(Rewriter::rewrite(assertion) == assertion);
       // Don't reprocess substitutions
       if (substs_index > 0 && i == substs_index)
       {
         continue;
       }
       Trace("non-clausal-simplify")
-          << "asserting " << (*assertionsToPreprocess)[i] << std::endl;
+          << "asserting " << assertion << std::endl;
       cnfStream.convertAndAssert(
-          (*assertionsToPreprocess)[i], false, false, RULE_GIVEN);
+          (assertion, false, false, RULE_GIVEN);
     }
   } // end timing
   Trace("non-clausal-simplify") << "solving" << std::endl;
