@@ -89,10 +89,13 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node n = d_nm->mkVar("n", intType);
     Node one = d_nm->mkConst(Rational(1));
 
-    // (str.len (str.substr z n 1)) >= 1 ---> true
+    // 1 >= (str.len (str.substr z n 1)) ---> true
     Node substr_z = d_nm->mkNode(kind::STRING_LENGTH,
                                  d_nm->mkNode(kind::STRING_SUBSTR, z, n, one));
     TS_ASSERT(TheoryStringsRewriter::checkEntailArith(one, substr_z));
+
+    // (str.len (str.substr z n 1)) >= 1 ---> false
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailArith(substr_z, one));
   }
 
   void testCheckEntailArithWithAssumption()
