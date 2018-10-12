@@ -381,6 +381,8 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
     Node z = d_nm->mkVar("z", strType);
+    Node zero = d_nm->mkConst(Rational(0));
+    Node one = d_nm->mkConst(Rational(1));
 
     // (str.replace (str.replace x "B" x) x "A") -->
     //   (str.replace (str.replace x "B" "A") x "A")
@@ -452,6 +454,32 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                              d_nm->mkNode(kind::STRING_STRREPL, y, x, a),
                              y);
     sameNormalForm(repl_repl, empty);
+
+    // (str.replace "" (str.replace x y x) x) ---> ""
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             empty,
+                             d_nm->mkNode(kind::STRING_STRREPL, x, y, x),
+                             x);
+    sameNormalForm(repl_repl, empty);
+
+    // (str.replace "" (str.substr x 0 1) x) ---> ""
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             empty,
+                             d_nm->mkNode(kind::STRING_SUBSTR, x, zero, one),
+                             x);
+    sameNormalForm(repl_repl, empty);
+
+    // Same normal form for:
+    //
+    // (str.replace "" (str.replace x y x) y)
+    //
+    // (str.replace "" x y)
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             empty,
+                             d_nm->mkNode(kind::STRING_STRREPL, x, y, x),
+                             y);
+    Node repl = d_nm->mkNode(kind::STRING_STRREPL, empty, x, y);
+    sameNormalForm(repl_repl, repl);
   }
 
   void testRewriteContains()
