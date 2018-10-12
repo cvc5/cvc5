@@ -19,17 +19,17 @@
 #include "theory/bv/bitblast/lazy_bitblaster.h"
 
 #include "options/bv_options.h"
+#include "proof/proof_manager.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/theory_bv.h"
+#include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
-#include "proof/resolution_bitvector_proof.h"
-#include "proof/proof_manager.h"
-#include "theory/bv/theory_bv_utils.h"
 
 namespace CVC4 {
 namespace theory {
@@ -567,7 +567,8 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void TLazyBitblaster::setProofLog( proof::ResolutionBitVectorProof * bvp ){
+void TLazyBitblaster::setProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   d_bvp = bvp;
   d_satSolver->setProofLog( bvp );
   bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());

@@ -104,7 +104,8 @@ void BVMinisatSatSolver::popAssumption() {
   d_minisat->popAssumption();
 }
 
-void BVMinisatSatSolver::setProofLog( proof::ResolutionBitVectorProof * bvp ) {
+void BVMinisatSatSolver::setProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   d_minisat->setProofLog( bvp );
 }
 

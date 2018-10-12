@@ -18,8 +18,8 @@
 #include "decision/decision_attributes.h"
 #include "options/bv_options.h"
 #include "options/decision_options.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "proof/proof_manager.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"
@@ -277,7 +277,8 @@ void BitblastSolver::setConflict(TNode conflict) {
   d_bv->setConflict(final_conflict);
 }
 
-void BitblastSolver::setProofLog( proof::ResolutionBitVectorProof * bvp ) {
+void BitblastSolver::setProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   d_bitblaster->setProofLog( bvp );
   bvp->setBitblaster(d_bitblaster.get());
 }

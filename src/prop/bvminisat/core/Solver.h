@@ -214,10 +214,10 @@ public:
     bool only_bcp;                      // solving mode in which only boolean constraint propagation is done
     void setOnlyBCP (bool val) { only_bcp = val;}
     void explain(Lit l, std::vector<Lit>& explanation);
-    
-    void setProofLog( CVC4::proof::ResolutionBitVectorProof * bvp );
 
-protected:
+    void setProofLog(CVC4::proof::ResolutionBitVectorProof* bvp);
+
+   protected:
 
     // has a clause been added
     bool                clause_added;
@@ -294,7 +294,7 @@ protected:
     bool                asynch_interrupt;
     
     //proof log
-    CVC4::proof::ResolutionBitVectorProof * d_bvp;
+    CVC4::proof::ResolutionBitVectorProof* d_bvp;
 
     // Main internal methods:
     //

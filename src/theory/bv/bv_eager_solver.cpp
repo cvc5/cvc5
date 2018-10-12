@@ -128,7 +128,8 @@ bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
   return d_bitblaster->collectModelInfo(m, fullModel);
 }
 
-void EagerBitblastSolver::setResolutionProofLog(proof::ResolutionBitVectorProof* bvp)
+void EagerBitblastSolver::setResolutionProofLog(
+    proof::ResolutionBitVectorProof* bvp)
 {
   d_bvp = bvp;
 }

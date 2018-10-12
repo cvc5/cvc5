@@ -28,26 +28,27 @@
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
 
-
 namespace CVC4 {
 
 namespace prop {
 class CnfStream;
-} /* namespace CVC4::prop */
+}  // namespace prop
 
 namespace theory {
 namespace bv {
 class TheoryBV;
-template <class T> class TBitblaster;
-} /* namespace CVC4::theory::bv */
-} /* namespace CVC4::theory */
+template <class T>
+class TBitblaster;
+}  // namespace bv
+}  // namespace theory
 
 } /* namespace CVC4 */
 
 namespace CVC4 {
 
-template <class Solver> class TSatProof;
-typedef TSatProof< CVC4::BVMinisat::Solver> BVSatProof;
+template <class Solver>
+class TSatProof;
+typedef TSatProof<CVC4::BVMinisat::Solver> BVSatProof;
 
 namespace proof {
 
@@ -58,9 +59,11 @@ namespace proof {
  *
  * Contains tools for constructing BV conflicts
  */
-class ResolutionBitVectorProof : public BitVectorProof {
-public:
-  ResolutionBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
+class ResolutionBitVectorProof : public BitVectorProof
+{
+ public:
+  ResolutionBitVectorProof(theory::bv::TheoryBV* bv,
+                           TheoryProofEngine* proofEngine);
 
   /**
    * Create an (internal) SAT proof object
@@ -73,8 +76,8 @@ public:
 
   /**
    * Kind of a mess.
-   * In eager mode this must be invoked before printing a proof of the empty clause.
-   * In lazy mode the behavior is ???
+   * In eager mode this must be invoked before printing a proof of the empty
+   * clause. In lazy mode the behavior is ???
    */
   void finalizeConflicts(std::vector<Expr>& conflicts);
 
@@ -85,11 +88,13 @@ public:
   void markAssumptionConflict() { d_isAssumptionConflict = true; }
   bool isAssumptionConflict() const { return d_isAssumptionConflict; }
 
-  virtual void printResolutionProof(std::ostream& os, std::ostream& paren, ProofLetMap& letMap) = 0;
+  virtual void printResolutionProof(std::ostream& os,
+                                    std::ostream& paren,
+                                    ProofLetMap& letMap) = 0;
 
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* cnf) override;
 
-protected:
+ protected:
   // The CNF formula that results from bit-blasting will need a proof.
   // This is that proof.
   std::unique_ptr<BVSatProof> d_resolutionProof;
@@ -100,12 +105,13 @@ protected:
   context::Context d_fakeContext;
 };
 
-class LFSCBitVectorProof: public ResolutionBitVectorProof {
-
-public:
+class LFSCBitVectorProof : public ResolutionBitVectorProof
+{
+ public:
   LFSCBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
-    :ResolutionBitVectorProof(bv, proofEngine)
-  {}
+      : ResolutionBitVectorProof(bv, proofEngine)
+  {
+  }
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
                              std::ostream& paren,
@@ -116,8 +122,8 @@ public:
   void calculateAtomsInBitblastingProof() override;
 };
 
-}/* proof namespace */
+}  // namespace proof
 
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */

@@ -104,9 +104,9 @@ public:
 
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 
-  void setResolutionProofLog( proof::ResolutionBitVectorProof * bvp );
+  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
-private:
+ private:
 
   class Statistics {
   public:

@@ -11,15 +11,14 @@
  **
  ** \brief Bitvector proof superclass
  **
- ** Contains code (e.g. proof printing code) which is common to all bitvector proofs.
+ ** Contains code (e.g. proof printing code) which is common to all bitvector
+ *proofs.
  **/
 
 #include "cvc4_private.h"
 
 #ifndef __CVC4__BITVECTOR__PROOF_H
 #define __CVC4__BITVECTOR__PROOF_H
-
-
 
 #include <set>
 #include <unordered_map>
@@ -58,18 +57,20 @@ typedef std::unordered_map<Expr, std::string, ExprHashFunction> ExprToString;
  * This class is responsible for 1 & 2. The proof of UNSAT is delegated to a
  * subclass.
  */
-class BitVectorProof : public TheoryProof {
-protected:
+class BitVectorProof : public TheoryProof
+{
+ protected:
   BitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine);
-  virtual ~BitVectorProof() {};
+  virtual ~BitVectorProof(){};
 
   // Set of BV variables in the input. (e.g. "a" in [ a = 000 ] ^ [ a == 001 ])
   ExprSet d_declarations;
 
-  ExprSet d_usedBB; // terms and formulas that are actually relevant to the proof
+  ExprSet
+      d_usedBB;  // terms and formulas that are actually relevant to the proof
 
-  ExprSet d_seenBBTerms; // terms that need to be bit-blasted
-  std::vector<Expr> d_bbTerms; // order of bit-blasting
+  ExprSet d_seenBBTerms;        // terms that need to be bit-blasted
+  std::vector<Expr> d_bbTerms;  // order of bit-blasting
 
   /** atoms that need to be bit-blasted,
    * BV-literals -> (BV-literals <=> bool formula)
@@ -90,7 +91,7 @@ protected:
   /** A mapping from constant BV terms to identifiers that will refer to them in
    * an LFSC proof, if constant-letification is enabled.
    */
-  std::map<Expr,std::string> d_constantLetMap;
+  std::map<Expr, std::string> d_constantLetMap;
 
   /** Should we introduced identifiers to refer to BV constant terms?  It may
    * reduce the textual size of a proof!
@@ -117,7 +118,7 @@ protected:
    */
   std::unique_ptr<CnfProof> d_cnfProof;
 
-public:
+ public:
   void printOwnedTerm(Expr term,
                       std::ostream& os,
                       const ProofLetMap& map) override;
@@ -136,27 +137,27 @@ public:
   void registerTermBB(Expr term);
 
   /**
-   * Informs the proof that the `atom` predicate was bitblasted into the `atom_bb`
-   * term.
+   * Informs the proof that the `atom` predicate was bitblasted into the
+   * `atom_bb` term.
    *
-   * The `atom` term must be a comparison of bitvectors, and the `atom_bb` term a
-   * boolean formula on bitof expressions
+   * The `atom` term must be a comparison of bitvectors, and the `atom_bb` term
+   * a boolean formula on bitof expressions
    */
   void registerAtomBB(Expr atom, Expr atom_bb);
 
   void registerTerm(Expr term) override;
 
   /**
-   * This must be done before registering any terms or atoms, since the CNF proof
-   * must reflect the result of bitblasting those
+   * This must be done before registering any terms or atoms, since the CNF
+   * proof must reflect the result of bitblasting those
    */
   virtual void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
 
-  CnfProof* getCnfProof() {return d_cnfProof.get(); }
+  CnfProof* getCnfProof() { return d_cnfProof.get(); }
 
   void setBitblaster(theory::bv::TBitblaster<Node>* bb);
 
-private:
+ private:
   ExprToString d_exprToVariableName;
 
   ExprToString d_assignedAliases;

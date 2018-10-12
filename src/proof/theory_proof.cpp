@@ -22,12 +22,12 @@
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
 #include "proof/proof_output_channel.h"
 #include "proof/proof_utils.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/simplify_boolean_node.h"
 #include "proof/uf_proof.h"
@@ -81,7 +81,7 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
 
       if (id == theory::THEORY_BV) {
         auto bv_theory = static_cast<theory::bv::TheoryBV*>(th);
-        ResolutionBitVectorProof * bvp = new LFSCBitVectorProof(bv_theory, this);
+        ResolutionBitVectorProof* bvp = new LFSCBitVectorProof(bv_theory, this);
         d_theoryProofTable[id] = bvp;
         return;
       }
@@ -106,8 +106,9 @@ void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
     theory::TheoryId id = th->getId();
     if (id == theory::THEORY_BV) {
       Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
-      ResolutionBitVectorProof *bvp = (ResolutionBitVectorProof *)d_theoryProofTable[id];
-      ((theory::bv::TheoryBV*)th)->setResolutionProofLog( bvp );
+      ResolutionBitVectorProof* bvp =
+          (ResolutionBitVectorProof*)d_theoryProofTable[id];
+      ((theory::bv::TheoryBV*)th)->setResolutionProofLog(bvp);
       return;
     }
   }

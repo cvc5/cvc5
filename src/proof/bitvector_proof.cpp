@@ -11,11 +11,11 @@
  **
  ** Contains implementions (e.g. code for printing bitblasting bindings that is
  ** common to all kinds of bitvector proofs.
-**/
+ **/
 
+#include "proof/bitvector_proof.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/proof_output_channel.h"
 #include "proof/theory_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
@@ -31,17 +31,22 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
       d_bbAtoms(),
       d_bitblaster(nullptr),
       d_useConstantLetification(false),
-      d_cnfProof() {}
+      d_cnfProof()
+{
+}
 
-std::string BitVectorProof::getBBTermName(Expr expr) {
-  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt" << expr.getId() << std::endl;
+std::string BitVectorProof::getBBTermName(Expr expr)
+{
+  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt"
+                  << expr.getId() << std::endl;
   std::ostringstream os;
-  os << "bt"<< expr.getId();
+  os << "bt" << expr.getId();
   return os.str();
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerAtomBB( " << atom << ", " << atom_bb << " )" << std::endl;
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerAtomBB( " << atom
+                  << ", " << atom_bb << " )" << std::endl;
 
   Expr def = atom.iffExpr(atom_bb);
   d_bbAtoms.insert(std::make_pair(atom, def));
@@ -53,7 +58,8 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
 }
 
 void BitVectorProof::registerTerm(Expr term) {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerTerm( " << term << " )" << std::endl;
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerTerm( " << term << " )"
+                  << std::endl;
 
   if (options::lfscLetification() && term.isConst()) {
     if (d_constantLetMap.find(term) == d_constantLetMap.end()) {
@@ -65,8 +71,8 @@ void BitVectorProof::registerTerm(Expr term) {
 
   d_usedBB.insert(term);
 
-  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) &&
-      !term.isConst()) {
+  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst())
+  {
     d_declarations.insert(term);
   }
 
@@ -82,42 +88,51 @@ void BitVectorProof::registerTerm(Expr term) {
 }
 
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
-                                  context::Context* cnf) {
-  Assert (d_cnfProof == nullptr);
+                                  context::Context* cnf)
+{
+  Assert(d_cnfProof == nullptr);
   d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 }
 
-void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb) {
-  Assert (d_bitblaster == NULL);
+void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb)
+{
+  Assert(d_bitblaster == NULL);
   d_bitblaster = bb;
 }
 
-void BitVectorProof::registerTermBB(Expr term) {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerTermBB( " << term << " )" << std::endl;
+void BitVectorProof::registerTermBB(Expr term)
+{
+  Debug("pf::bv") << "ResolutionBitVectorProof::registerTermBB( " << term
+                  << " )" << std::endl;
 
-  if (d_seenBBTerms.find(term) != d_seenBBTerms.end())
-    return;
+  if (d_seenBBTerms.find(term) != d_seenBBTerms.end()) return;
 
   d_seenBBTerms.insert(term);
   d_bbTerms.push_back(term);
 
-  // If this term gets used in the final proof, we will want to register it. However,
-  // we don't know this at this point; and when the theory proof engine sees it, if it belongs
-  // to another theory, it won't register it with this proof. So, we need to tell the
-  // engine to inform us.
+  // If this term gets used in the final proof, we will want to register it.
+  // However, we don't know this at this point; and when the theory proof engine
+  // sees it, if it belongs to another theory, it won't register it with this
+  // proof. So, we need to tell the engine to inform us.
 
-  if (theory::Theory::theoryOf(term) != theory::THEORY_BV) {
-    Debug("pf::bv") << "\tMarking term " << term << " for future BV registration" << std::endl;
+  if (theory::Theory::theoryOf(term) != theory::THEORY_BV)
+  {
+    Debug("pf::bv") << "\tMarking term " << term
+                    << " for future BV registration" << std::endl;
     d_proofEngine->markTermForFutureRegistration(term, theory::THEORY_BV);
   }
 }
 
+void BitVectorProof::printOwnedTerm(Expr term,
+                                    std::ostream& os,
+                                    const ProofLetMap& map)
+{
+  Debug("pf::bv") << std::endl
+                  << "(pf::bv) BitVectorProof::printOwnedTerm( " << term
+                  << " ), theory is: " << theory::Theory::theoryOf(term)
+                  << std::endl;
 
-void BitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetMap& map) {
-  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProof::printOwnedTerm( " << term << " ), theory is: "
-                  << theory::Theory::theoryOf(term) << std::endl;
-
-  Assert (theory::Theory::theoryOf(term) == theory::THEORY_BV);
+  Assert(theory::Theory::theoryOf(term) == theory::THEORY_BV);
 
   // peel off eager bit-blasting trick
   if (term.getKind() == kind::BITVECTOR_EAGER_ATOM) {
@@ -208,21 +223,24 @@ void BitVectorProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
   }
 }
 
-void BitVectorProof::printBitOf(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printBitOf(Expr term,
+                                std::ostream& os,
+                                const ProofLetMap& map)
+{
   Assert (term.getKind() == kind::BITVECTOR_BITOF);
   unsigned bit = term.getOperator().getConst<BitVectorBitOf>().bitIndex;
   Expr var = term[0];
 
   Debug("pf::bv") << "BitVectorProof::printBitOf( " << term << " ), "
-                  << "bit = " << bit
-                  << ", var = " << var << std::endl;
+                  << "bit = " << bit << ", var = " << var << std::endl;
 
   os << "(bitof ";
   os << d_exprToVariableName[var];
   os << " " << bit << ")";
 }
 
-void BitVectorProof::printConstant(Expr term, std::ostream& os) {
+void BitVectorProof::printConstant(Expr term, std::ostream& os)
+{
   Assert (term.isConst());
   os << "(a_bv " << utils::getSize(term) << " ";
 
@@ -241,7 +259,10 @@ void BitVectorProof::printConstant(Expr term, std::ostream& os) {
   }
 }
 
-void BitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorNary(Expr term,
+                                       std::ostream& os,
+                                       const ProofLetMap& map)
+{
   std::string op = utils::toLFSCKindTerm(term);
   std::ostringstream paren;
   std::string holes = term.getKind() == kind::BITVECTOR_CONCAT ? "_ _ " : "";
@@ -259,7 +280,10 @@ void BitVectorProof::printOperatorNary(Expr term, std::ostream& os, const ProofL
   }
 }
 
-void BitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorUnary(Expr term,
+                                        std::ostream& os,
+                                        const ProofLetMap& map)
+{
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os << " ";
@@ -267,7 +291,10 @@ void BitVectorProof::printOperatorUnary(Expr term, std::ostream& os, const Proof
   os <<")";
 }
 
-void BitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printPredicate(Expr term,
+                                    std::ostream& os,
+                                    const ProofLetMap& map)
+{
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term[0]) <<" ";
   os << " ";
@@ -277,7 +304,10 @@ void BitVectorProof::printPredicate(Expr term, std::ostream& os, const ProofLetM
   os <<")";
 }
 
-void BitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map) {
+void BitVectorProof::printOperatorParametric(Expr term,
+                                             std::ostream& os,
+                                             const ProofLetMap& map)
+{
   os <<"(";
   os << utils::toLFSCKindTerm(term) << " " << utils::getSize(term) <<" ";
   os <<" ";
@@ -305,18 +335,25 @@ void BitVectorProof::printOperatorParametric(Expr term, std::ostream& os, const 
   os <<")";
 }
 
-void BitVectorProof::printOwnedSort(Type type, std::ostream& os) {
-  Debug("pf::bv") << std::endl << "(pf::bv) BitVectorProof::printOwnedSort( " << type << " )" << std::endl;
+void BitVectorProof::printOwnedSort(Type type, std::ostream& os)
+{
+  Debug("pf::bv") << std::endl
+                  << "(pf::bv) BitVectorProof::printOwnedSort( " << type << " )"
+                  << std::endl;
   Assert (type.isBitVector());
   unsigned width = utils::getSize(type);
   os << "(BitVec " << width << ")";
 }
 
-void BitVectorProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printSortDeclarations(std::ostream& os,
+                                           std::ostream& paren)
+{
   // Nothing to do here at this point.
 }
 
-void BitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printTermDeclarations(std::ostream& os,
+                                           std::ostream& paren)
+{
   ExprSet::const_iterator it = d_declarations.begin();
   ExprSet::const_iterator end = d_declarations.end();
   for (; it != end; ++it) {
@@ -332,7 +369,9 @@ void BitVectorProof::printTermDeclarations(std::ostream& os, std::ostream& paren
   }
 }
 
-void BitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printDeferredDeclarations(std::ostream& os,
+                                               std::ostream& paren)
+{
   if (options::lfscLetification()) {
     os << std::endl << ";; BV const letification\n" << std::endl;
     std::map<Expr,std::string>::const_iterator it;
@@ -355,7 +394,10 @@ void BitVectorProof::printDeferredDeclarations(std::ostream& os, std::ostream& p
   }
 }
 
-void BitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& paren, const ProofLetMap &globalLetMap) {
+void BitVectorProof::printAliasingDeclarations(std::ostream& os,
+                                               std::ostream& paren,
+                                               const ProofLetMap& globalLetMap)
+{
   // Print "trust" statements to bind complex bv variables to their associated terms
 
   ExprToString::const_iterator it = d_assignedAliases.begin();
@@ -381,13 +423,15 @@ void BitVectorProof::printAliasingDeclarations(std::ostream& os, std::ostream& p
   os << "\n";
 }
 
-void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
+void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os)
+{
   // TODO: once we have the operator elimination rules remove those that we
   // eliminated
   Assert (term.getType().isBitVector());
   Kind kind = term.getKind();
 
-  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst()) {
+  if (theory::Theory::isLeafOf(term, theory::THEORY_BV) && !term.isConst())
+  {
     // A term is a leaf if it has no children, or if it belongs to another theory
     os << "(bv_bbl_var " << utils::getSize(term) << " " << d_exprToVariableName[term];
     os << " _)";
@@ -518,12 +562,14 @@ void BitVectorProof::printTermBitblasting(Expr term, std::ostream& os) {
     return;
   }
 
-  default:
-    Unreachable("BitVectorProof Unknown operator");
+  default: Unreachable("BitVectorProof Unknown operator");
   }
 }
 
-void BitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap) {
+void BitVectorProof::printAtomBitblasting(Expr atom,
+                                          std::ostream& os,
+                                          bool swap)
+{
   Kind kind = atom.getKind();
   switch(kind) {
   case kind::BITVECTOR_ULT :
@@ -549,12 +595,12 @@ void BitVectorProof::printAtomBitblasting(Expr atom, std::ostream& os, bool swap
 
     return;
   }
-  default:
-    Unreachable("BitVectorProof Unknown atom kind");
+  default: Unreachable("BitVectorProof Unknown atom kind");
   }
 }
 
-void BitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
+void BitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os)
+{
   Assert(atom.getKind() == kind::EQUAL);
 
   os << "(bv_bbl_=_false";
@@ -568,10 +614,13 @@ void BitVectorProof::printAtomBitblastingToFalse(Expr atom, std::ostream& os) {
   os << ")";
 }
 
-void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
+void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
+{
   // bit-blast terms
   {
-    Debug("pf::bv") << "BitVectorProof::printBitblasting: the bitblasted terms are: " << std::endl;
+    Debug("pf::bv")
+        << "BitVectorProof::printBitblasting: the bitblasted terms are: "
+        << std::endl;
     std::vector<Expr>::const_iterator it = d_bbTerms.begin();
     std::vector<Expr>::const_iterator end = d_bbTerms.end();
 
@@ -660,11 +709,13 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren) {
   }
 }
 
-const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof() {
+const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof()
+{
   return &d_atomsInBitblastingProof;
 }
 
-std::string BitVectorProof::assignAlias(Expr expr) {
+std::string BitVectorProof::assignAlias(Expr expr)
+{
   Assert(d_exprToVariableName.find(expr) == d_exprToVariableName.end());
 
   std::stringstream ss;
@@ -674,11 +725,14 @@ std::string BitVectorProof::assignAlias(Expr expr) {
   return ss.str();
 }
 
-bool BitVectorProof::hasAlias(Expr expr) {
+bool BitVectorProof::hasAlias(Expr expr)
+{
   return d_assignedAliases.find(expr) != d_assignedAliases.end();
 }
 
-void BitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Expr c2, const ProofLetMap &globalLetMap) {
+void BitVectorProof::printConstantDisequalityProof(
+    std::ostream& os, Expr c1, Expr c2, const ProofLetMap& globalLetMap)
+{
   Assert (c1.isConst());
   Assert (c2.isConst());
   Assert (utils::getSize(c1) == utils::getSize(c2));
@@ -708,7 +762,10 @@ void BitVectorProof::printConstantDisequalityProof(std::ostream& os, Expr c1, Ex
   os << ")";
 }
 
-void BitVectorProof::printRewriteProof(std::ostream& os, const Node &n1, const Node &n2) {
+void BitVectorProof::printRewriteProof(std::ostream& os,
+                                       const Node& n1,
+                                       const Node& n2)
+{
   ProofLetMap emptyMap;
   os << "(rr_bv_default ";
   d_proofEngine->printBoundTerm(n2.toExpr(), os, emptyMap);
@@ -717,4 +774,4 @@ void BitVectorProof::printRewriteProof(std::ostream& os, const Node &n1, const N
   os << ")";
 }
 
-}
+}  // namespace CVC4
