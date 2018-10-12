@@ -126,6 +126,9 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             // add the standard constants for this type
             theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(
                 tn, consts[tn]);
+            // We prepend them so that they come first in the grammar
+            // construction. The motivation is we'd prefer seeing e.g. "true"
+            // instead of (= x x) as a canonical term.
             terms.insert(terms.begin(), consts[tn].begin(), consts[tn].end());
           }
           terms.push_back(cur);
