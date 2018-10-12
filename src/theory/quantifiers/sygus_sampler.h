@@ -144,6 +144,19 @@ class SygusSampler : public LazyTrieEvaluator
    * y and y+x are not.
    */
   bool isOrdered(Node n);
+  /** is linear
+   *
+   * This returns whether n contains at most one occurrence of each free
+   * variable. For example, x, x+y are linear, but x+x, (x-y)+y, (x+0)+(x+0) are
+   * non-linear.
+   */
+  bool isLinear(Node n);
+  /** check variables
+   *
+   * This returns false if !isOrdered(n) and checkOrder is true or !isLinear(n)
+   * if checkLinear is true, or false otherwise.
+   */
+  bool checkVariables(Node n, bool checkOrder, bool checkLinear);
   /** contains free variables
    *
    * Returns true if the free variables of b are a subset of those in a, where

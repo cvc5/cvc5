@@ -1260,6 +1260,14 @@ header = "options/quantifiers_options.h"
   help       = "filter candidate rewrites based on congruence"
 
 [[option]]
+  name       = "sygusRewSynthFilterNonLinear"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "filter non-linear candidate rewrites"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
