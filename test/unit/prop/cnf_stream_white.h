@@ -136,6 +136,8 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
     d_scope = new SmtScope(d_smt);
 
+    // must initialize before getting the theory engine
+    d_smt->finalOptionsAreSet();
     d_theoryEngine = d_smt->d_theoryEngine;
 
     d_satSolver = new FakeSatSolver();

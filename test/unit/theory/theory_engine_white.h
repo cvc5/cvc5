@@ -251,6 +251,8 @@ public:
 
     d_nullChannel = new FakeOutputChannel();
 
+    // must initialize before getting the theory engine
+    d_smt->finalOptionsAreSet();
     d_theoryEngine = d_smt->d_theoryEngine;
     for(TheoryId id = THEORY_FIRST; id != THEORY_LAST; ++id) {
       delete d_theoryEngine->d_theoryOut[id];

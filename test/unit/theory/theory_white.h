@@ -166,6 +166,8 @@ class TheoryBlack : public CxxTest::TestSuite {
     d_logicInfo = new LogicInfo();
     d_logicInfo->lock();
 
+    // must initialize here
+    d_smt->finalOptionsAreSet();
     // guard against duplicate statistics assertion errors
     delete d_smt->d_theoryEngine->d_theoryTable[THEORY_BUILTIN];
     delete d_smt->d_theoryEngine->d_theoryOut[THEORY_BUILTIN];
