@@ -562,17 +562,278 @@ Command* QueryCommand::clone() const
 std::string QueryCommand::getCommandName() const { return "query"; }
 
 /* -------------------------------------------------------------------------- */
+/* class DeclareVarCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+DeclareVarCommand::DeclareVarCommand(const std::string& id, Expr var, Type t)
+    : DeclarationDefinitionCommand(id), d_var(var), d_type(t)
+{
+}
+
+Expr DeclareVarCommand::getVar() const { return d_var; }
+Type DeclareVarCommand::getType() const { return d_type; }
+
+void DeclareVarCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusVar(d_symbol, d_var, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclareVarCommand::exportTo(ExprManager* exprManager,
+                                     ExprManagerMapCollection& variableMap)
+{
+  return new DeclareVarCommand(d_symbol,
+                               d_var.exportTo(exprManager, variableMap),
+                               d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclareVarCommand::clone() const
+{
+  return new DeclareVarCommand(d_symbol, d_var, d_type);
+}
+
+std::string DeclareVarCommand::getCommandName() const { return "declare-var"; }
+
+/* -------------------------------------------------------------------------- */
+/* class DeclarePrimedVarCommand                                              */
+/* -------------------------------------------------------------------------- */
+
+DeclarePrimedVarCommand::DeclarePrimedVarCommand(const std::string& id, Type t)
+    : DeclarationDefinitionCommand(id), d_type(t)
+{
+}
+
+Type DeclarePrimedVarCommand::getType() const { return d_type; }
+
+void DeclarePrimedVarCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusPrimedVar(d_symbol, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclarePrimedVarCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  return new DeclarePrimedVarCommand(d_symbol,
+                                     d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclarePrimedVarCommand::clone() const
+{
+  return new DeclarePrimedVarCommand(d_symbol, d_type);
+}
+
+std::string DeclarePrimedVarCommand::getCommandName() const
+{
+  return "declare-primed-var";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class DeclareSygusFunctionCommand                                          */
+/* -------------------------------------------------------------------------- */
+
+DeclareSygusFunctionCommand::DeclareSygusFunctionCommand(const std::string& id,
+                                                         Expr func,
+                                                         Type t)
+    : DeclarationDefinitionCommand(id), d_func(func), d_type(t)
+{
+}
+
+Expr DeclareSygusFunctionCommand::getFunction() const { return d_func; }
+Type DeclareSygusFunctionCommand::getType() const { return d_type; }
+
+void DeclareSygusFunctionCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSygusFunctionVar(d_symbol, d_func, d_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* DeclareSygusFunctionCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  return new DeclareSygusFunctionCommand(
+      d_symbol,
+      d_func.exportTo(exprManager, variableMap),
+      d_type.exportTo(exprManager, variableMap));
+}
+
+Command* DeclareSygusFunctionCommand::clone() const
+{
+  return new DeclareSygusFunctionCommand(d_symbol, d_func, d_type);
+}
+
+std::string DeclareSygusFunctionCommand::getCommandName() const
+{
+  return "declare-fun";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class SynthFunCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+SynthFunCommand::SynthFunCommand(const std::string& id,
+                                 Expr func,
+                                 Type sygusType,
+                                 bool isInv,
+                                 const std::vector<Expr>& vars)
+    : DeclarationDefinitionCommand(id),
+      d_func(func),
+      d_sygusType(sygusType),
+      d_isInv(isInv),
+      d_vars(vars)
+{
+}
+
+SynthFunCommand::SynthFunCommand(const std::string& id,
+                                 Expr func,
+                                 Type sygusType,
+                                 bool isInv)
+  : SynthFunCommand(id, func, sygusType, isInv, {})
+{
+}
+
+Expr SynthFunCommand::getFunction() const { return d_func; }
+const std::vector<Expr>& SynthFunCommand::getVars() const { return d_vars; }
+Type SynthFunCommand::getSygusType() const { return d_sygusType; }
+bool SynthFunCommand::isInv() const { return d_isInv; }
+
+void SynthFunCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->declareSynthFun(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* SynthFunCommand::exportTo(ExprManager* exprManager,
+                                   ExprManagerMapCollection& variableMap)
+{
+  return new SynthFunCommand(d_symbol,
+                             d_func.exportTo(exprManager, variableMap),
+                             d_sygusType.exportTo(exprManager, variableMap),
+                             d_isInv);
+}
+
+Command* SynthFunCommand::clone() const
+{
+  return new SynthFunCommand(d_symbol, d_func, d_sygusType, d_isInv, d_vars);
+}
+
+std::string SynthFunCommand::getCommandName() const
+{
+  return d_isInv ? "synth-inv" : "synth-fun";
+}
+
+/* -------------------------------------------------------------------------- */
+/* class ConstraintCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+ConstraintCommand::ConstraintCommand(const Expr& e) : d_expr(e) {}
+
+void ConstraintCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->assertSygusConstraint(d_expr);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Expr ConstraintCommand::getExpr() const { return d_expr; }
+
+Command* ConstraintCommand::exportTo(ExprManager* exprManager,
+                                     ExprManagerMapCollection& variableMap)
+{
+  return new ConstraintCommand(d_expr.exportTo(exprManager, variableMap));
+}
+
+Command* ConstraintCommand::clone() const
+{
+  return new ConstraintCommand(d_expr);
+}
+
+std::string ConstraintCommand::getCommandName() const { return "constraint"; }
+
+/* -------------------------------------------------------------------------- */
+/* class InvConstraintCommand                                                    */
+/* -------------------------------------------------------------------------- */
+
+InvConstraintCommand::InvConstraintCommand(
+    const std::vector<Expr>& place_holders)
+    : d_place_holders(place_holders)
+{
+}
+
+void InvConstraintCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->assertSygusInvConstraint(d_place_holders);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+const std::vector<Expr>& InvConstraintCommand::getPlaceHolders() const
+{
+  return d_place_holders;
+}
+
+Command* InvConstraintCommand::exportTo(ExprManager* exprManager,
+                                     ExprManagerMapCollection& variableMap)
+{
+  return new InvConstraintCommand(d_place_holders);
+}
+
+Command* InvConstraintCommand::clone() const
+{
+  return new InvConstraintCommand(d_place_holders);
+}
+
+std::string InvConstraintCommand::getCommandName() const { return "inv-constraint"; }
+
+/* -------------------------------------------------------------------------- */
 /* class CheckSynthCommand                                                    */
 /* -------------------------------------------------------------------------- */
 
-CheckSynthCommand::CheckSynthCommand() : d_expr() {}
-CheckSynthCommand::CheckSynthCommand(const Expr& expr) : d_expr(expr) {}
-Expr CheckSynthCommand::getExpr() const { return d_expr; }
 void CheckSynthCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    d_result = smtEngine->checkSynth(d_expr);
+    d_result = smtEngine->checkSynth();
     d_commandStatus = CommandSuccess::instance();
     smt::SmtScope scope(smtEngine);
     d_solution.clear();
@@ -624,17 +885,12 @@ void CheckSynthCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* CheckSynthCommand::exportTo(ExprManager* exprManager,
                                      ExprManagerMapCollection& variableMap)
 {
-  CheckSynthCommand* c =
-      new CheckSynthCommand(d_expr.exportTo(exprManager, variableMap));
-  c->d_result = d_result;
-  return c;
+  return new CheckSynthCommand();
 }
 
 Command* CheckSynthCommand::clone() const
 {
-  CheckSynthCommand* c = new CheckSynthCommand(d_expr);
-  c->d_result = d_result;
-  return c;
+  return new CheckSynthCommand();
 }
 
 std::string CheckSynthCommand::getCommandName() const { return "check-synth"; }

@@ -444,6 +444,32 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
 
+
+  /*------------------- sygus utils ------------------*/
+  /**
+   * sygus variables declared (from "declare-var" and "declare-fun" commands)
+   *
+   * The SyGuS semantics for declared variables is that they are implicitly
+   * universally quantified in the constraints.
+   */
+  std::vector<Node> d_sygusVars;
+  /** types of sygus primed variables (for debugging) */
+  std::vector<Type> d_sygusPrimedVarTypes;
+  /** sygus constraints */
+  std::vector<Node> d_sygusConstraints;
+  /** functions-to-synthesize */
+  std::vector<Node> d_sygusFunSymbols;
+  /** maps functions-to-synthesize to their respective input variables lists */
+  std::map<Node, std::vector<Node>> d_sygusFunVars;
+  /** maps functions-to-synthesize to their respective syntactic restrictions
+   *
+   * If function has syntactic restrictinos, these are encoded as a SyGuS datatype
+   * type
+   */
+  std::map<Node, TypeNode> d_sygusFunSyntax;
+
+  /*------------------- end of sygus utils ------------------*/
+
  public:
 
   /**
@@ -608,11 +634,30 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::vector<Expr> getUnsatAssumptions(void);
 
+  /*------------------- sygus commands  ------------------*/
+
+  void declareSygusVar(const std::string& id, Expr var, Type type);
+  void declareSygusPrimedVar(const std::string& id, Type type);
+  void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
+  void declareSynthFun(const std::string& id,
+                       Expr func,
+                       Type type,
+                       bool isInv,
+                       const std::vector<Expr>& vars);
+  void assertSygusConstraint(Expr constraint);
+  /** retrieves the invariant variables (both regular and primed)
+   *
+   * To ensure that the variable list represent the correct argument type order
+   * the type  of the invariant predicate is used during the variable retrieval
+   */
+  void assertSygusInvConstraint(const std::vector<Expr>& place_holders);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
    */
-  Result checkSynth(const Expr& e) /* throw(Exception) */;
+  Result checkSynth() /* throw(Exception) */;
+
+  /*------------------- end of sygus commands-------------*/
 
   /**
    * Simplify a formula without doing "much" work.  Does not involve
