@@ -1548,6 +1548,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
+  regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
@@ -1710,6 +1711,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
   regress2/sygus/MPwL_d1s3.sy

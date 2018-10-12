@@ -489,6 +489,13 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
       Node ne = node[1 - i];
       if (ne.getKind() == STRING_STRREPL)
       {
+        // (= "" (str.replace x y x)) ---> (= x "")
+        if (ne[0] == ne[2])
+        {
+          Node ret = nm->mkNode(EQUAL, ne[0], empty);
+          return returnRewrite(node, ret, "str-emp-repl-x-y-x");
+        }
+
         // (= "" (str.replace x y "A")) ---> (and (= x "") (not (= y "")))
         if (checkEntailNonEmpty(ne[2]))
         {
@@ -512,9 +519,17 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
       {
         Node zero = nm->mkConst(Rational(0));
 
-        // (= "" (str.substr x n m)) ---> (<= (str.len x) n) if n >= 0 and m > 0
         if (checkEntailArith(ne[1], false) && checkEntailArith(ne[2], true))
         {
+          // (= "" (str.substr x 0 m)) ---> (= "" x) if m > 0
+          if (ne[1] == zero)
+          {
+            Node ret = nm->mkNode(EQUAL, ne[0], empty);
+            return returnRewrite(node, ret, "str-emp-substr-leq-len");
+          }
+
+          // (= "" (str.substr x n m)) ---> (<= (str.len x) n)
+          // if n >= 0 and m > 0
           Node ret = nm->mkNode(LEQ, nm->mkNode(STRING_LENGTH, ne[0]), ne[1]);
           return returnRewrite(node, ret, "str-emp-substr-leq-len");
         }
@@ -1610,6 +1625,33 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     return returnRewrite(node, ret, "ss-len-non-pos");
   }
 
+  if (node[0].getKind() == STRING_SUBSTR)
+  {
+    // (str.substr (str.substr x a b) c d) ---> "" if c >= b
+    //
+    // Note that this rewrite can be generalized to:
+    //
+    // (str.substr x a b) ---> "" if a >= (str.len x)
+    //
+    // This can be done when we generalize our entailment methods to
+    // accept an optional context. Then we could conjecture that
+    // (str.substr x a b) rewrites to "" and do a case analysis:
+    //
+    // - a < 0 or b < 0 (the result is trivially empty in these cases)
+    // - a >= (str.len x) assuming that { a >= 0, b >= 0 }
+    //
+    // For example, for (str.substr (str.substr x a a) a a), we could
+    // then deduce that under those assumptions, "a" is an
+    // over-approximation of the length of (str.substr x a a), which
+    // then allows us to reason that the result of the whole term must
+    // be empty.
+    if (checkEntailArith(node[1], node[0][2]))
+    {
+      Node ret = nm->mkConst(::CVC4::String(""));
+      return returnRewrite(node, ret, "ss-start-geq-len");
+    }
+  }
+
   std::vector<Node> n1;
   getConcat(node[0], n1);
 
@@ -1672,6 +1714,14 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         Node ret = nm->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
+      }
+
+      // (str.substr s x x) ---> "" if (str.len s) <= 1
+      Node one = nm->mkConst(CVC4::Rational(1));
+      if (node[1] == node[2] && checkEntailArith(one, tot_len))
+      {
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-len-one-z-z");
       }
     }
     if (!curr.isNull())
@@ -2441,8 +2491,9 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     //
     Node empty = nm->mkConst(::CVC4::String(""));
 
-    // Collect the equalities of the form (= x "")
+    // Collect the equalities of the form (= x "") (sorted)
     std::set<TNode> emptyNodes;
+    bool allEmptyEqs = true;
     if (cmp_conr.getKind() == kind::EQUAL)
     {
       if (cmp_conr[0] == empty)
@@ -2452,6 +2503,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       else if (cmp_conr[1] == empty)
       {
         emptyNodes.insert(cmp_conr[0]);
+      }
+      else
+      {
+        allEmptyEqs = false;
       }
     }
     else
@@ -2469,6 +2524,10 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
             emptyNodes.insert(c[0]);
           }
         }
+        else
+        {
+          allEmptyEqs = false;
+        }
       }
     }
 
@@ -2478,6 +2537,24 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       std::vector<TNode> substs(emptyNodes.size(), TNode(empty));
       Node nn2 = node[2].substitute(
           emptyNodes.begin(), emptyNodes.end(), substs.begin(), substs.end());
+
+      // If the contains rewrites to a conjunction of empty-string equalities
+      // and we are doing the replacement in an empty string, we can rewrite
+      // the string-to-replace with a concatenation of all the terms that must
+      // be empty:
+      //
+      // (str.replace "" y z) ---> (str.replace "" (str.++ y1 ... yn)  z)
+      // if (str.contains "" y) ---> (and (= y1 "") ... (= yn ""))
+      if (node[0] == empty && allEmptyEqs)
+      {
+        std::vector<Node> emptyNodesList(emptyNodes.begin(), emptyNodes.end());
+        Node nn1 = mkConcat(STRING_CONCAT, emptyNodesList);
+        if (nn1 != node[1] || nn2 != node[2])
+        {
+          Node res = nm->mkNode(kind::STRING_STRREPL, node[0], nn1, nn2);
+          return returnRewrite(node, res, "rpl-emp-cnts-substs");
+        }
+      }
 
       if (nn2 != node[2])
       {

@@ -158,12 +158,14 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   Node sygus_op = Node::fromExpr(cons.getSygusOp());
   Trace("sygus-grammar-normalize-debug")
       << ".....operator is " << sygus_op << std::endl;
-  Node exp_sop_n = Node::fromExpr(
-      smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
-  // if it is a builtin operator, convert to total version if necessary
-  if (exp_sop_n.getKind() == kind::BUILTIN)
+  Node exp_sop_n = sygus_op;
+  if (exp_sop_n.isConst())
   {
-    Kind ok = NodeManager::operatorToKind(sygus_op);
+    // If it is a builtin operator, convert to total version if necessary.
+    // First, get the kind for the operator.
+    Kind ok = NodeManager::operatorToKind(exp_sop_n);
+    Trace("sygus-grammar-normalize-debug")
+        << "...builtin kind is " << ok << std::endl;
     Kind nk = getEliminateKind(ok);
     if (nk != ok)
     {
@@ -174,6 +176,12 @@ void SygusGrammarNorm::TypeObject::addConsInfo(SygusGrammarNorm* sygus_norm,
   }
   else
   {
+    // Only expand definitions if the operator is not constant, since calling
+    // expandDefinitions on them should be a no-op. This check ensures we don't
+    // try to expand e.g. bitvector extract operators, whose type is undefined,
+    // and thus should not be passed to expandDefinitions.
+    exp_sop_n = Node::fromExpr(
+        smt::currentSmtEngine()->expandDefinitions(sygus_op.toExpr()));
     exp_sop_n = Rewriter::rewrite(exp_sop_n);
     Trace("sygus-grammar-normalize-debug")
         << ".....operator (post-rewrite) is " << exp_sop_n << std::endl;
