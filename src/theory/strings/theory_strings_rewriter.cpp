@@ -3908,34 +3908,41 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
       // monomials in approx_i itself.
       for (std::pair<const Node, std::vector<Node> >& nam : mApprox)
       {
+        Node cr = msum[nam.first];
         for (const Node& aa : nam.second)
         {
           unsigned helpsCancelCount = 0;
           unsigned addsObligationCount = 0;
           std::map<Node, Node>::iterator it;
+          // we are processing an approximation cr*( c1*t1 + ... + cn*tn )
           for (std::pair<const Node, Node>& aam : approxMsums[aa])
           {
-            // Say aar is of the form t + c1*v, and aam is the monomial c2*v
-            // where c2 != 0. We say aam:
-            // (1) helps cancel if c1 != 0 and c1>0 != c2>0
-            // (2) adds obligation if c1>=0 and c1+c2<0
-            Node v = aam.first;
-            Node c2 = aam.second;
-            int c2Sgn = c2.isNull() ? 1 : c2.getConst<Rational>().sgn();
-            it = msumAar.find(v);
+            // Say aar is of the form t + c*ti, and aam is the monomial ci*ti
+            // where ci != 0. We say aam:
+            // (1) helps cancel if c != 0 and c>0 != ci>0
+            // (2) adds obligation if c>=0 and c+ci<0
+            Node ti = aam.first;
+            Node ci = aam.second;
+            if( !cr.isNull() )
+            {
+              ci = ci.isNull() ? cr : Rewriter::rewrite(nm->mkNode( MULT, ci, cr ));
+            }
+            Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
+            int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
+            it = msumAar.find(ti);
             if (it != msumAar.end())
             {
-              Node c1 = it->second;
-              int c1Sgn = c1.isNull() ? 1 : c1.getConst<Rational>().sgn();
-              if (c1Sgn == 0)
+              Node c = it->second;
+              int cSgn = c.isNull() ? 1 : c.getConst<Rational>().sgn();
+              if (cSgn == 0)
               {
-                addsObligationCount += (c2Sgn == -1 ? 1 : 0);
+                addsObligationCount += (ciSgn == -1 ? 1 : 0);
               }
-              else if (c1Sgn != c2Sgn)
+              else if (cSgn != ciSgn)
               {
                 helpsCancelCount++;
-                Rational r1 = c1.isNull() ? one : c1.getConst<Rational>();
-                Rational r2 = c2.isNull() ? one : c2.getConst<Rational>();
+                Rational r1 = c.isNull() ? one : c.getConst<Rational>();
+                Rational r2 = ci.isNull() ? one : ci.getConst<Rational>();
                 Rational r12 = r1 + r2;
                 if (r12.sgn() == -1)
                 {
@@ -3945,7 +3952,7 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
             }
             else
             {
-              addsObligationCount += (c2Sgn == -1 ? 1 : 0);
+              addsObligationCount += (ciSgn == -1 ? 1 : 0);
             }
           }
           Trace("strings-ent-approx-debug")
