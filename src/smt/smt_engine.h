@@ -636,19 +636,39 @@ class CVC4_PUBLIC SmtEngine {
 
   /*------------------- sygus commands  ------------------*/
 
+  /** adds a variable declaration */
   void declareSygusVar(const std::string& id, Expr var, Type type);
+  /** stores information for debugging sygus invariants setup
+   *
+   * Since in SyGuS the commands "declare-primed-var" are not necessary for
+   * building invariant constraints, we only use them to check that the number
+   * of variables declared corresponds to the number of arguments of the
+   * invariant-to-synthesize.
+   */
   void declareSygusPrimedVar(const std::string& id, Type type);
+  /** adds a function variable declaration */
   void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
+  /** adds a function-to-synthesize declaration */
   void declareSynthFun(const std::string& id,
                        Expr func,
                        Type type,
                        bool isInv,
                        const std::vector<Expr>& vars);
+  /** adds a regular sygus constraint **/
   void assertSygusConstraint(Expr constraint);
-  /** retrieves the invariant variables (both regular and primed)
+  /** adds an invariant constraint
    *
-   * To ensure that the variable list represent the correct argument type order
-   * the type  of the invariant predicate is used during the variable retrieval
+   * Invariant constraints are not explicitly declared: they are given in terms
+   * of the invariant-to-synthesize, the pre condition, transition relation and
+   * post condition. The actual constraint is built based on the inputs of these
+   * place holders :
+   *
+   * PRE(x) -> INV(x)
+   * INV() ^ TRANS(x, x') -> INV(x')
+   * INV(x) -> POST(x)
+   *
+   * The regular and primed variables are retrieved from the declaration of the
+   * invariant-to-synthesize.
    */
   void assertSygusInvConstraint(const std::vector<Expr>& place_holders);
   /**
