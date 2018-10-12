@@ -68,23 +68,23 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   d_preprocContext->spendResource(options::preprocessStep());
   unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
-  bool noconflict;
+  bool ok;
   std::vector<Node> learned_literals;
 
   if (options::skeletonPreprocessing()){
     // solve the boolean skeleton using cryptominisat
-    std::tie(noconflict, learned_literals) =
+    std::tie(ok, learned_literals) =
         preprocessByCryptoMinisat(assertionsToPreprocess, substs_index);
   }
   else
   {
     // default
     // solve the boolean skeleton using circuit propagator
-    std::tie(noconflict, learned_literals) =
+    std::tie(ok, learned_literals) =
         preprocessByCircuitPropagator(assertionsToPreprocess, substs_index);
   }
 
-  if (!noconflict)
+  if (!ok)
   {
     Trace("non-clausal-simplify")
         << "conflict in non-clausal propagation" << std::endl;
