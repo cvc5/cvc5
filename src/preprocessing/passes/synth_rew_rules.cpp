@@ -57,16 +57,10 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
   std::vector<Node> terms;
   // all variables (free constants) appearing in the input
   std::vector<Node> vars;
-
-  // We will generate a fixed number of variables per type. These are the
-  // variables that appear as free variables in the rewrites we generate.
-  unsigned nvars = options::sygusRewSynthInputNVars();
-  // must have at least one variable per type
-  nvars = nvars < 1 ? 1 : nvars;
-  std::map<TypeNode, std::vector<Node> > tvars;
-  std::vector<TypeNode> allVarTypes;
-  std::vector<Node> allVars;
-  unsigned varCounter = 0;
+  // does the input contain a Boolean variable?
+  bool hasBoolVar = false;
+  // the types of subterms of our input
+  std::map<TypeNode, bool> typesFound;
   // standard constants for each type (e.g. true, false for Bool)
   std::map<TypeNode, std::vector<Node> > consts;
 
@@ -116,50 +110,77 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         {
           Trace("srs-input-debug") << "...children are valid" << std::endl;
           Trace("srs-input-debug") << "Add term " << cur << std::endl;
+          TypeNode tn = cur.getType();
           if (cur.isVar())
           {
             vars.push_back(cur);
+            if (tn.isBoolean())
+            {
+              hasBoolVar = true;
+            }
           }
           // register type information
-          TypeNode tn = cur.getType();
-          if (tvars.find(tn) == tvars.end())
+          if (typesFound.find(tn) == typesFound.end())
           {
-            // Only make one Boolean variable unless option is set. This ensures
-            // we do not compute purely Boolean rewrites by default.
-            unsigned useNVars =
-                (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
-                    ? nvars
-                    : 1;
-            for (unsigned i = 0; i < useNVars; i++)
-            {
-              // We must have a good name for these variables, these are
-              // the ones output in rewrite rules. We choose
-              // a,b,c,...,y,z,x1,x2,...
-              std::stringstream ssv;
-              if (varCounter < 26)
-              {
-                ssv << String::convertUnsignedIntToChar(varCounter + 32);
-              }
-              else
-              {
-                ssv << "x" << (varCounter - 26);
-              }
-              varCounter++;
-              Node v = nm->mkBoundVar(ssv.str(), tn);
-              tvars[tn].push_back(v);
-              allVars.push_back(v);
-              allVarTypes.push_back(tn);
-            }
-            // also add the standard constants for this type
+            typesFound[tn] = true;
+            // add the standard constants for this type
             theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(
                 tn, consts[tn]);
-            visit.insert(visit.end(), consts[tn].begin(), consts[tn].end());
+            // We prepend them so that they come first in the grammar
+            // construction. The motivation is we'd prefer seeing e.g. "true"
+            // instead of (= x x) as a canonical term.
+            terms.insert(terms.begin(), consts[tn].begin(), consts[tn].end());
           }
           terms.push_back(cur);
         }
         visited[cur] = childrenValid;
       }
     } while (!visit.empty());
+  }
+  Trace("srs-input") << "...finished." << std::endl;
+
+  Trace("srs-input") << "Make synth variables for types..." << std::endl;
+  // We will generate a fixed number of variables per type. These are the
+  // variables that appear as free variables in the rewrites we generate.
+  unsigned nvars = options::sygusRewSynthInputNVars();
+  // must have at least one variable per type
+  nvars = nvars < 1 ? 1 : nvars;
+  std::map<TypeNode, std::vector<Node> > tvars;
+  std::vector<TypeNode> allVarTypes;
+  std::vector<Node> allVars;
+  unsigned varCounter = 0;
+  for (std::pair<const TypeNode, bool> tfp : typesFound)
+  {
+    TypeNode tn = tfp.first;
+    // If we are not interested in purely propositional rewrites, we only
+    // need to make one Boolean variable if the input has a Boolean variable.
+    // This ensures that no type in our grammar has zero constructors. If
+    // our input does not contain a Boolean variable, we need not allocate any
+    // Boolean variables here.
+    unsigned useNVars =
+        (options::sygusRewSynthInputUseBool() || !tn.isBoolean())
+            ? nvars
+            : (hasBoolVar ? 1 : 0);
+    for (unsigned i = 0; i < useNVars; i++)
+    {
+      // We must have a good name for these variables, these are
+      // the ones output in rewrite rules. We choose
+      // a,b,c,...,y,z,x1,x2,...
+      std::stringstream ssv;
+      if (varCounter < 26)
+      {
+        ssv << String::convertUnsignedIntToChar(varCounter + 32);
+      }
+      else
+      {
+        ssv << "x" << (varCounter - 26);
+      }
+      varCounter++;
+      Node v = nm->mkBoundVar(ssv.str(), tn);
+      tvars[tn].push_back(v);
+      allVars.push_back(v);
+      allVarTypes.push_back(tn);
+    }
   }
   Trace("srs-input") << "...finished." << std::endl;
 
@@ -249,11 +270,18 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
     TypeNode ctt = ct.getType();
     Assert(tvars.find(ctt) != tvars.end());
     std::vector<Type> argList;
-    for (const Node& v : tvars[ctt])
+    // we add variable constructors if we are not Boolean, we are interested
+    // in purely propositional rewrites (via the option), or this term is
+    // a Boolean variable.
+    if (!ctt.isBoolean() || options::sygusRewSynthInputUseBool()
+        || ct.getKind() == BOUND_VARIABLE)
     {
-      std::stringstream ssc;
-      ssc << "C_" << i << "_" << v;
-      datatypes[i].addSygusConstructor(v.toExpr(), ssc.str(), argList);
+      for (const Node& v : tvars[ctt])
+      {
+        std::stringstream ssc;
+        ssc << "C_" << i << "_" << v;
+        datatypes[i].addSygusConstructor(v.toExpr(), ssc.str(), argList);
+      }
     }
     // add the constructor for the operator if it is not a variable
     if (ct.getKind() != BOUND_VARIABLE)
@@ -337,6 +365,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
         datatypes[i].addSygusConstructor(op.toExpr(), ssc.str(), argList);
       }
     }
+    Assert(datatypes[i].getNumConstructors() > 0);
     datatypes[i].setSygus(ctt.toType(), sygusVarListE, false, false);
   }
   Trace("srs-input") << "...finished." << std::endl;

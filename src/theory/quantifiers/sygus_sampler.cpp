@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -341,7 +342,11 @@ void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
   } while (!visit.empty());
 }
 
-bool SygusSampler::isOrdered(Node n)
+bool SygusSampler::isOrdered(Node n) { return checkVariables(n, true, false); }
+
+bool SygusSampler::isLinear(Node n) { return checkVariables(n, false, true); }
+
+bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
 {
   // compute free variables in n for each type
   std::map<unsigned, std::vector<Node> > fvs;
@@ -363,13 +368,23 @@ bool SygusSampler::isOrdered(Node n)
         std::map<Node, unsigned>::iterator itv = d_var_index.find(cur);
         if (itv != d_var_index.end())
         {
-          unsigned tnid = d_type_ids[cur];
-          // if this variable is out of order
-          if (itv->second != fvs[tnid].size())
+          if (checkOrder)
           {
-            return false;
+            unsigned tnid = d_type_ids[cur];
+            // if this variable is out of order
+            if (itv->second != fvs[tnid].size())
+            {
+              return false;
+            }
+            fvs[tnid].push_back(cur);
           }
-          fvs[tnid].push_back(cur);
+          if (checkLinear)
+          {
+            if (expr::hasSubtermMulti(n, cur))
+            {
+              return false;
+            }
+          }
         }
       }
       for (unsigned j = 0, nchildren = cur.getNumChildren(); j < nchildren; j++)
