@@ -126,7 +126,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
             // add the standard constants for this type
             theory::quantifiers::CegGrammarConstructor::mkSygusConstantsForType(
                 tn, consts[tn]);
-            visit.insert(visit.end(), consts[tn].begin(), consts[tn].end());
+            terms.insert(terms.begin(), consts[tn].begin(), consts[tn].end());
           }
           terms.push_back(cur);
         }
