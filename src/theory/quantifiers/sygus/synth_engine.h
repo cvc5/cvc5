@@ -50,8 +50,12 @@ class SynthEngine : public QuantifiersModule
    * this is the quantifier elimination step option::sygusQePreproc().
    */
   void assignConjecture(Node q);
-  /** check conjecture */
-  void checkConjecture(SynthConjecture* conj);
+  /** check conjecture
+   *
+   * This method returns true if the conjecture is finished processing solutions
+   * for this call to SynthEngine::check().
+   */
+  bool checkConjecture(SynthConjecture* conj);
 
  public:
   SynthEngine(QuantifiersEngine* qe, context::Context* c);
