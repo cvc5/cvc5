@@ -3923,9 +3923,10 @@ bool TheoryStringsRewriter::checkEntailArithApprox(Node ar)
             // (2) adds obligation if c>=0 and c+ci<0
             Node ti = aam.first;
             Node ci = aam.second;
-            if( !cr.isNull() )
+            if (!cr.isNull())
             {
-              ci = ci.isNull() ? cr : Rewriter::rewrite(nm->mkNode( MULT, ci, cr ));
+              ci = ci.isNull() ? cr
+                               : Rewriter::rewrite(nm->mkNode(MULT, ci, cr));
             }
             Trace("strings-ent-approx-debug") << ci << "*" << ti << " ";
             int ciSgn = ci.isNull() ? 1 : ci.getConst<Rational>().sgn();
