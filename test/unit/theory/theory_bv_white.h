@@ -58,8 +58,6 @@ public:
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
-
-    d_smt->finalOptionsAreSet();
   }
 
   void tearDown() override
@@ -72,6 +70,7 @@ public:
   void testBitblasterCore() {
     d_smt->setOption("bitblast", SExpr("eager"));
     d_smt->setOption("incremental", SExpr("false"));
+    d_smt->finalOptionsAreSet();
     EagerBitblaster* bb = new EagerBitblaster(
         dynamic_cast<TheoryBV*>(
             d_smt->d_theoryEngine->d_theoryTable[THEORY_BV]),
@@ -94,6 +93,7 @@ public:
 
   void testMkUmulo() {
     d_smt->setOption("incremental", SExpr("true"));
+    d_smt->finalOptionsAreSet();
     for (size_t w = 1; w < 16; ++w) {
       d_smt->push();
       Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(w));
