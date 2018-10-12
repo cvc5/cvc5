@@ -66,18 +66,20 @@ bool hasSubterm(TNode n, TNode t, bool strict)
 bool hasSubtermMulti(TNode n, TNode t)
 {
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
-  std::unordered_map< TNode, bool, TNodeHashFunction > contains;
+  std::unordered_map<TNode, bool, TNodeHashFunction> contains;
   std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
-      if( cur==t )
+    if (it == visited.end())
+    {
+      if (cur == t)
       {
         visited[cur] = true;
         contains[cur] = true;
@@ -86,18 +88,22 @@ bool hasSubtermMulti(TNode n, TNode t)
       {
         visited[cur] = false;
         visit.push_back(cur);
-        for( const Node& cc : cur ){
+        for (const Node& cc : cur)
+        {
           visit.push_back(cc);
         }
       }
-    }else if( !it->second ){
+    }
+    else if (!it->second)
+    {
       bool doesContain = false;
-      for (const Node& cn : cur) {
+      for (const Node& cn : cur)
+      {
         it = contains.find(cn);
         Assert(it != visited.end());
-        if( it->second )
+        if (it->second)
         {
-          if( doesContain )
+          if (doesContain)
           {
             // two children have t, return true
             return true;

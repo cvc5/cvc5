@@ -14,6 +14,7 @@
 
 #include "theory/quantifiers/sygus_sampler.h"
 
+#include "expr/node_algorithm.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -21,7 +22,6 @@
 #include "util/bitvector.h"
 #include "util/random.h"
 #include "util/sampler.h"
-#include "expr/node_algorithm.h"
 
 namespace CVC4 {
 namespace theory {
@@ -342,15 +342,9 @@ void SygusSampler::computeFreeVariables(Node n, std::vector<Node>& fvs)
   } while (!visit.empty());
 }
 
-bool SygusSampler::isOrdered(Node n)
-{
-  return checkVariables(n, true, false );
-}
+bool SygusSampler::isOrdered(Node n) { return checkVariables(n, true, false); }
 
-bool SygusSampler::isLinear(Node n)
-{
-  return checkVariables(n, false, true);
-}
+bool SygusSampler::isLinear(Node n) { return checkVariables(n, false, true); }
 
 bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
 {
@@ -374,7 +368,7 @@ bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
         std::map<Node, unsigned>::iterator itv = d_var_index.find(cur);
         if (itv != d_var_index.end())
         {
-          if( checkOrder )
+          if (checkOrder)
           {
             unsigned tnid = d_type_ids[cur];
             // if this variable is out of order
@@ -384,9 +378,9 @@ bool SygusSampler::checkVariables(Node n, bool checkOrder, bool checkLinear)
             }
             fvs[tnid].push_back(cur);
           }
-          if( checkLinear )
+          if (checkLinear)
           {
-            if( expr::hasSubtermMulti(n,cur) )
+            if (expr::hasSubtermMulti(n, cur))
             {
               return false;
             }
