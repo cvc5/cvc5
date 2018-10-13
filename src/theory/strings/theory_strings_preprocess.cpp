@@ -174,7 +174,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
-  } else if( t.getKind() == STRING_ITOS ) {
+  }
+  else if (t.getKind() == STRING_ITOS)
+  {
     // processing term:  int.to.str( n )
     Node n = t[0];
     Node itost = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
@@ -182,54 +184,56 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     Node nonneg = nm->mkNode(GEQ, t[0], d_zero);
 
-    Node lem = nm->mkNode(EQUAL, nonneg.negate(),
-      itost.eqNode(d_empty_str)
-      );
+    Node lem = nm->mkNode(EQUAL, nonneg.negate(), itost.eqNode(d_empty_str));
     new_nodes.push_back(lem);
 
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node u = nm->mkSkolem("U",
-                            nm->mkFunctionType(argTypes, nm->integerType()));
-    Node us = nm->mkSkolem("Us",
-                            nm->mkFunctionType(argTypes, nm->stringType()));
-    Node ud = nm->mkSkolem("Ud",
-                            nm->mkFunctionType(argTypes, nm->stringType()));
+    Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
+    Node us =
+        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
+    Node ud =
+        nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
     lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
     new_nodes.push_back( lem );
-    
+
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
-    new_nodes.push_back( lem );
-    
+    new_nodes.push_back(lem);
+
     lem = d_empty_str.eqNode(nm->mkNode(APPLY_UF, us, leni));
-    new_nodes.push_back( lem );
-    
+    new_nodes.push_back(lem);
+
     lem = itost.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
-    new_nodes.push_back( lem );
-    
+    new_nodes.push_back(lem);
+
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
-    Node g = nm->mkNode( AND, nm->mkNode( GEQ, x, d_zero ),nm->mkNode( LT, x, leni ) );
-    Node udx = nm->mkNode(APPLY_UF, ud, x );
+    Node g =
+        nm->mkNode(AND, nm->mkNode(GEQ, x, d_zero), nm->mkNode(LT, x, leni));
+    Node udx = nm->mkNode(APPLY_UF, ud, x);
     Node ux = nm->mkNode(APPLY_UF, u, x);
-    Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS,x,d_one));
-    Node c = nm->mkNode( MINUS, nm->mkNode( STRING_CODE, udx ), nm->mkConst(Rational(48)));
+    Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, d_one));
+    Node c = nm->mkNode(
+        MINUS, nm->mkNode(STRING_CODE, udx), nm->mkConst(Rational(48)));
     Node usx = nm->mkNode(APPLY_UF, us, x);
-    Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS,x,d_one));
-    
+    Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS, x, d_one));
+
     Node ten = nm->mkConst(Rational(10));
-    Node eqs = usx.eqNode( nm->mkNode( STRING_CONCAT, udx, usx1 ) );
-    Node eq = ux1.eqNode( nm->mkNode( PLUS, c, nm->mkNode( MULT, ten, ux ) ) );
-    Node cb = nm->mkNode( AND, nm->mkNode( GEQ, c, nm->mkNode( ITE, x.eqNode(d_zero), d_one, d_zero ) ), nm->mkNode( LT, c, ten));
-    
-    lem = nm->mkNode( OR, g.negate(), nm->mkNode( AND, eqs, eq, cb ) );
-    lem = nm->mkNode( FORALL, xbv, lem );
-    new_nodes.push_back( lem );
-    
+    Node eqs = usx.eqNode(nm->mkNode(STRING_CONCAT, udx, usx1));
+    Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
+    Node cb = nm->mkNode(
+        AND,
+        nm->mkNode(GEQ, c, nm->mkNode(ITE, x.eqNode(d_zero), d_one, d_zero)),
+        nm->mkNode(LT, c, ten));
+
+    lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eqs, eq, cb));
+    lem = nm->mkNode(FORALL, xbv, lem);
+    new_nodes.push_back(lem);
+
     // assert:
     //   (n>=0) <=> (itost != "") ^
-    //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^ 
+    //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^
     //   "" = Us( len( itost ) ) ^ itost = Us( 0 ) ^
     //   forall x. (x>=0 ^ x < str.len(itost)) =>
     //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
