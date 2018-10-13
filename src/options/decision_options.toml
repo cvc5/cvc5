@@ -16,7 +16,8 @@ header = "options/decision_options.h"
 [[option]]
   name       = "decisionStopOnly"
   category   = "undocumented"
-  type       = "bool"
+  type       = "int"
+  help       = "0: turned off, 1: vsids, 2: lrb"
 
 [[option]]
   name       = "decisionThreshold"

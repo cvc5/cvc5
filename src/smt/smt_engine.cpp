@@ -1674,7 +1674,7 @@ void SmtEngine::setDefaults() {
 
     Trace("smt") << "setting decision mode to " << decMode << endl;
     options::decisionMode.set(decMode);
-    options::decisionStopOnly.set(stoponly);
+    options::decisionStopOnly.set(stoponly ? 1 : 0);
   }
   if( options::incrementalSolving() ){
     //disable modes not supported by incremental
@@ -2917,7 +2917,7 @@ Result SmtEngine::check() {
         )){
       if (d_private->getIteSkolemMap().empty())
       {
-        options::decisionStopOnly.set(false);
+        options::decisionStopOnly.set(0);
         d_decisionEngine->clearStrategies();
         Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
       }
