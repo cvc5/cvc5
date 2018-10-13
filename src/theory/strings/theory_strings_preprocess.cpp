@@ -248,8 +248,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // The function U is an accumulator, where U( x ) is the value of
     // str.to.int( str.substr( int.to.str( n ), 0, x ) ). For example, for
     // n=345, we have that U(0), U(1), U(2), U(3) = 0, 3, 34, 345.
-    // Notice that ite( x=0, 49, 48 ) enforces that int.to.str( n ) has no
-    // leading zeroes.
+    // Above, we use str.code to map characters to their integer value, where
+    // note that str.code( "0" ) = 48. Further notice that ite( x=0, 49, 48 )
+    // enforces that int.to.str( n ) has no leading zeroes.
     retNode = itost;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
