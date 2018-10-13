@@ -856,7 +856,7 @@ SmtEngine::SmtEngine(ExprManager* em)
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
-
+  
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
     TheoryConstructor::addTheory(d_theoryEngine, id);
@@ -873,13 +873,15 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_userContext->push();
   d_context->push();
 
-  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
-  d_modelCommands = new(true) smt::CommandList(d_userContext);
+  d_definedFunctions = new (true) DefinedFunctionMap(d_userContext);
+  d_fmfRecFunctionsDefined = new (true) NodeList(d_userContext);
+  d_modelCommands = new (true) smt::CommandList(d_userContext);
 }
 
-void SmtEngine::finishInit() {
+void SmtEngine::finishInit()
+{
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
+
   // ensure that our heuristics are properly set up
   setDefaults();
 
@@ -3812,7 +3814,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getModel(true);
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -3899,7 +3901,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getModel();
+    TheoryModel* m = d_theoryEngine->getModel(true);
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -3997,7 +3999,7 @@ Model* SmtEngine::getModel() {
       "Cannot get model when produce-models options is off.";
     throw ModalException(msg);
   }
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getModel(true);
 
   if (options::produceModelCores())
   {
@@ -4022,7 +4024,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = getModel();
+  Model* m = d_theoryEngine->getModel(true);
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4115,7 +4117,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getModel(true);
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())
@@ -4451,6 +4453,7 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
@@ -4466,6 +4469,7 @@ void SmtEngine::printInstantiations( std::ostream& out ) {
 
 void SmtEngine::printSynthSolution( std::ostream& out ) {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if( d_theoryEngine ){
     d_theoryEngine->printSynthSolution( out );
   }else{
@@ -4476,6 +4480,7 @@ void SmtEngine::printSynthSolution( std::ostream& out ) {
 void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   map<Node, Node> sol_mapn;
   Assert(d_theoryEngine != nullptr);
   d_theoryEngine->getSynthSolutions(sol_mapn);
@@ -4488,6 +4493,7 @@ void SmtEngine::getSynthSolutions(std::map<Expr, Expr>& sol_map)
 Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   if(!d_logic.isPure(THEORY_ARITH) && strict){
     Warning() << "Unexpected logic for quantifier elimination " << d_logic << endl;
   }
@@ -4815,6 +4821,7 @@ void SmtEngine::setUserAttribute(const std::string& attr,
                                  const std::string& str_value)
 {
   SmtScope smts(this);
+  finalOptionsAreSet();
   std::vector<Node> node_values;
   for( unsigned i=0; i<expr_values.size(); i++ ){
     node_values.push_back( expr_values[i].getNode() );

@@ -301,6 +301,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_possiblePropagations(context),
       d_hasPropagated(context),
       d_inConflict(context, false),
+      d_inSatMode(false),
       d_hasShutDown(false),
       d_incomplete(context, false),
       d_propagationMap(context),
@@ -619,11 +620,7 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
-        if (options::produceModels() && !d_curr_model->isBuilt())
-        {
-          // must build model at this point
-          d_curr_model_builder->buildModel(d_curr_model);
-        }
+        d_inSatMode = true;
       }
     }
 
@@ -883,7 +880,12 @@ void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
 }
 
 /* get model */
-TheoryModel* TheoryEngine::getModel() {
+TheoryModel* TheoryEngine::getModel(bool ensureBuilt) {
+  if (ensureBuilt && d_inSatMode && options::produceModels() && !d_curr_model->isBuilt())
+  {
+    // must build model at this point
+    d_curr_model_builder->buildModel(d_curr_model);
+  }
   return d_curr_model;
 }
 
@@ -902,6 +904,7 @@ void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
+  d_inSatMode = false;
 
   try {
     // Definition of the statement that is to be run by every theory

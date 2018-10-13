@@ -275,6 +275,7 @@ void TheoryEngineModelBuilder::addToTypeList(
 
 bool TheoryEngineModelBuilder::buildModel(Model* m)
 {
+  Trace("ajr-temp") << "Build model" << std::endl;
   Trace("model-builder") << "TheoryEngineModelBuilder: buildModel" << std::endl;
   TheoryModel* tm = (TheoryModel*)m;
 

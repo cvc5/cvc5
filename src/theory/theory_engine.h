@@ -348,7 +348,12 @@ class TheoryEngine {
    * Are we in conflict.
    */
   context::CDO<bool> d_inConflict;
-
+  
+  /**
+   * Are we .
+   */
+  bool d_inSatMode;
+  
   /**
    * Called by the theories to notify of a conflict.
    */
@@ -735,7 +740,7 @@ public:
   /**
    * Get the current model
    */
-  theory::TheoryModel* getModel();
+  theory::TheoryModel* getModel(bool ensureBuilt=false);
 
   /** get synth solutions
    *
