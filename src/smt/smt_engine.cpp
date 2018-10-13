@@ -2183,7 +2183,6 @@ void SmtEngine::setDefaults() {
     options::bvLazyRewriteExtf.set(false);
   }
 
-
   if (options::skeletonPreprocessing()
       &&  options::arithMLTrick())
   {
@@ -2206,6 +2205,22 @@ void SmtEngine::setDefaults() {
         "CryptoMiniSat is not installed but is required by"
         " --skeleton-preprocessing. Try install CryptoMiniSat by"
         "./contrib/get-cryptominisat or turn off --skeleton-preprocessing"));
+  }
+  
+  if (!options::sygusExprMinerCheckUseExport())
+  {
+    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+    {
+      throw OptionException(
+          "--sygus-expr-miner-check-timeout=N requires "
+          "--sygus-expr-miner-check-use-export");
+    }
+    if (options::sygusRewSynthInput())
+    {
+      throw OptionException(
+          "--sygus-rr-synth-input requires "
+          "--sygus-expr-miner-check-use-export");
+    }
   }
 }
 
