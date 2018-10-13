@@ -26,8 +26,7 @@ namespace CVC4 {
 namespace decision {
 
 /** Enumeration of decision strategies */
-enum DecisionMode
-{
+enum DecisionMode {
 
   /**
    * Decision engine doesn't do anything. Use the VSIDS
@@ -51,7 +50,7 @@ enum DecisionMode
    */
   DECISION_STRATEGY_RELEVANCY
 
-}; /* enum DecisionMode */
+};/* enum DecisionMode */
 
 /** Enumeration of combining functions for computing internal weights */
 enum DecisionWeightInternal {
