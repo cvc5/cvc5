@@ -191,37 +191,61 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     argTypes.push_back(nm->integerType());
     Node u = nm->mkSkolem("U",
                             nm->mkFunctionType(argTypes, nm->integerType()));
+    Node us = nm->mkSkolem("Us",
+                            nm->mkFunctionType(argTypes, nm->stringType()));
+    Node ud = nm->mkSkolem("Ud",
+                            nm->mkFunctionType(argTypes, nm->stringType()));
 
-    lem = n.eqNode(nm->mkNode(APPLY_UF, u, nm->mkNode(STRING_LENGTH, itost)));
+    lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
     new_nodes.push_back( lem );
     
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
     new_nodes.push_back( lem );
     
+    lem = d_empty_str.eqNode(nm->mkNode(APPLY_UF, us, leni));
+    new_nodes.push_back( lem );
+    
+    lem = itost.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
+    new_nodes.push_back( lem );
+    
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g = nm->mkNode( AND, nm->mkNode( GEQ, x, d_zero ),nm->mkNode( LT, x, leni ) );
-    Node ufx = nm->mkNode(APPLY_UF, u, x);
-    Node ufx1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS,x,d_one));
-    Node c = nm->mkNode( MINUS, nm->mkNode( STRING_CODE, nm->mkNode( STRING_SUBSTR, itost, x, d_one ) ), nm->mkConst(Rational(48)));
+    Node udx = nm->mkNode(APPLY_UF, ud, x );
+    Node ux = nm->mkNode(APPLY_UF, u, x);
+    Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS,x,d_one));
+    Node c = nm->mkNode( MINUS, nm->mkNode( STRING_CODE, udx ), nm->mkConst(Rational(48)));
+    Node usx = nm->mkNode(APPLY_UF, us, x);
+    Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS,x,d_one));
     
     Node ten = nm->mkConst(Rational(10));
-    Node eq = ufx1.eqNode( nm->mkNode( PLUS, c, nm->mkNode( MULT, ten, ufx ) ) );
+    Node eqs = usx.eqNode( nm->mkNode( STRING_CONCAT, udx, usx1 ) );
+    Node eq = ux1.eqNode( nm->mkNode( PLUS, c, nm->mkNode( MULT, ten, ux ) ) );
     Node cb = nm->mkNode( AND, nm->mkNode( GEQ, c, nm->mkNode( ITE, x.eqNode(d_zero), d_one, d_zero ) ), nm->mkNode( LT, c, ten));
     
-    lem = nm->mkNode( OR, g.negate(), nm->mkNode( AND, eq, cb ) );
+    lem = nm->mkNode( OR, g.negate(), nm->mkNode( AND, eqs, eq, cb ) );
     lem = nm->mkNode( FORALL, xbv, lem );
     new_nodes.push_back( lem );
     
     // assert:
     //   (n>=0) <=> (itost != "") ^
     //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^ 
+    //   "" = Us( len( itost ) ) ^ itost = Us( 0 ) ^
     //   forall x. (x>=0 ^ x < str.len(itost)) =>
-    //     U( x+1 ) = (str.code( substr( itost, x, 1 ) )-48) + 10*U( x ) ^
-    //     ite( x=0, 49, 48 ) <= str.code( substr( itost, x, 1 ) ) < 58
+    //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
+    //     U( x+1 ) = (str.code( Ud( x ) )-48) + 10*U( x ) ^
+    //     ite( x=0, 49, 48 ) <= str.code( Ud( x ) ) < 58
     // thus:
     //   int.to.str( n ) = itost
 
+    // In the above encoding, we use Us/Ud to introduce a chain of strings
+    // that allow us to refer to each character substring of itost. Notice this
+    // is more efficient than using str.substr( itost, x, 1 ).
+    // The function U is an accumulator, where U( x ) is the value of
+    // str.to.int( str.substr( int.to.str( n ), 0, x ) ). For example, for
+    // n=345, we have that U(0), U(1), U(2), U(3) = 0, 3, 34, 345.
+    // Notice that ite( x=0, 49, 48 ) enforces that int.to.str( n ) has no
+    // leading zeroes.
     retNode = itost;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
