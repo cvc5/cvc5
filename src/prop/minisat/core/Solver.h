@@ -252,17 +252,8 @@ public:
     // Mode of operation:
     //
     int       verbosity;
-    // for LRB
-    double step_size;
-    double step_size_dec;
-    double min_step_size;
-    //
-    // for VSIDS
     double    var_decay;
-    //
-    // for built-in clause decay
     double    clause_decay;
-    //
     double    random_var_freq;
     double    random_seed;
     bool      luby_restart;
@@ -285,20 +276,7 @@ public:
     uint64_t solves, starts, decisions, rnd_decisions, propagations, conflicts, resources_consumed;
     uint64_t dec_vars, clauses_literals, learnts_literals, max_literals, tot_literals;
 
-    uint64_t lbd_calls;
-    vec<uint64_t> lbd_seen;
-    vec<uint64_t> picked;
-    vec<uint64_t> conflicted;
-    // Almost conflict
-    vec<uint64_t> almost_conflicted;
-    //
-    // Anti-exploration
-    vec<uint64_t> canceled;
-    //
-    vec<long double> total_actual_rewards;
-    vec<int> total_actual_count;
-
-   protected:
+protected:
 
     // Helper structures:
     //
@@ -349,9 +327,7 @@ public:
     bool                ok;                 // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
     vec<CRef>           clauses_persistent; // List of problem clauses.
     vec<CRef>           clauses_removable;  // List of learnt clauses.
-    // For built-in clause deletion strategy
     double              cla_inc;            // Amount to bump next clause with.
-    //
     vec<double>         activity;           // A heuristic measurement of the activity of a variable.
     double              var_inc;            // Amount to bump next variable with.
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
@@ -424,41 +400,19 @@ public:
     int      analyze          (CRef confl, vec<Lit>& out_learnt, int& out_btlevel);    // (bt = backtrack)
     void     analyzeFinal     (Lit p, vec<Lit>& out_conflict);                         // COULD THIS BE IMPLEMENTED BY THE ORDINARIY "analyze" BY SOME REASONABLE GENERALIZATION?
     bool     litRedundant     (Lit p, uint32_t abstract_levels);                       // (helper method for 'analyze()') - true if p is redundant
-
-    template <class V>
-    int lbd(const V& clause)
-    {
-      lbd_calls++;
-      int lbd = 0;
-      for (int i = 0; i < clause.size(); i++)
-      {
-        int l = level(var(clause[i]));
-        if (lbd_seen[l] != lbd_calls)
-        {
-          lbd++;
-          lbd_seen[l] = lbd_calls;
-        }
-      }
-      return lbd;
-    }
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
-    void     reduceDB_lbd     ();                                                      // Reduce the set of learnt clauses.
     void     removeSatisfied  (vec<CRef>& cs);                                         // Shrink 'cs' to contain only non-satisfied clauses.
     void     rebuildOrderHeap ();
 
     // Maintaining Variable/Clause activity:
     //
-    // for VSIDS
     void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
     void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
     void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
-    //
-    // for built-in clause deletion strategy
     void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
     void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
-    //
 
     // Operations on clauses:
     //
@@ -528,7 +482,6 @@ inline void Solver::insertVarOrder(Var x) {
     assert(x < vardata.size());
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
 
-// for VSIDS
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
 inline void Solver::varBumpActivity(Var v, double inc) {
@@ -541,8 +494,7 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
         order_heap.decrease(v); }
-//
-// for built-in clause deletion strategy
+
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
         if ( (c.activity() += cla_inc) > 1e20 ) {
@@ -550,7 +502,6 @@ inline void Solver::claBumpActivity (Clause& c) {
             for (int i = 0; i < clauses_removable.size(); i++)
                 ca[clauses_removable[i]].activity() *= 1e-20;
             cla_inc *= 1e-20; } }
-//
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf){
