@@ -256,11 +256,8 @@ public:
     double step_size;
     double step_size_dec;
     double min_step_size;
-    //
     // for VSIDS
     double    var_decay;
-    //
-    // for built-in clause decay
     double    clause_decay;
     //
     double    random_var_freq;
@@ -349,9 +346,7 @@ public:
     bool                ok;                 // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
     vec<CRef>           clauses_persistent; // List of problem clauses.
     vec<CRef>           clauses_removable;  // List of learnt clauses.
-    // For built-in clause deletion strategy
     double              cla_inc;            // Amount to bump next clause with.
-    //
     vec<double>         activity;           // A heuristic measurement of the activity of a variable.
     double              var_inc;            // Amount to bump next variable with.
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
@@ -444,7 +439,8 @@ public:
     lbool    search           (int nof_conflicts);                                     // Search for a given number of conflicts.
     lbool    solve_           ();                                                      // Main solve method (assumptions given in 'assumptions').
     void     reduceDB         ();                                                      // Reduce the set of learnt clauses.
-    void     reduceDB_lbd     ();                                                      // Reduce the set of learnt clauses.
+    void reduceDB_lbd();  // Reduce the set of learnt clauses based on literal
+                          // block distance
     void     removeSatisfied  (vec<CRef>& cs);                                         // Shrink 'cs' to contain only non-satisfied clauses.
     void     rebuildOrderHeap ();
 
@@ -454,8 +450,6 @@ public:
     void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
     void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
     void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
-    //
-    // for built-in clause deletion strategy
     void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
     void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
     //
@@ -528,7 +522,6 @@ inline void Solver::insertVarOrder(Var x) {
     assert(x < vardata.size());
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
 
-// for VSIDS
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
 inline void Solver::varBumpActivity(Var v, double inc) {
@@ -541,8 +534,6 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
         order_heap.decrease(v); }
-//
-// for built-in clause deletion strategy
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
         if ( (c.activity() += cla_inc) > 1e20 ) {
@@ -550,7 +541,6 @@ inline void Solver::claBumpActivity (Clause& c) {
             for (int i = 0; i < clauses_removable.size(); i++)
                 ca[clauses_removable[i]].activity() *= 1e-20;
             cla_inc *= 1e-20; } }
-//
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf){
