@@ -59,7 +59,7 @@ header = "options/decision_options.h"
 [[option]]
   name       = "almostConflict"
   category   = "undocumented"
-  long       = "rapid-deletion"
+  long       = "almost-conflict"
   type       = "bool"
   default    = "false"
   read_only  = true

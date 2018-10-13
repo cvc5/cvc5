@@ -1411,6 +1411,7 @@ decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
                                                             std::string optarg)
 {
   options::decisionStopOnly.set(false);
+  options::decisionStopOnly_lrb.set(false);
 
   if(optarg == "internal") {
     return decision::DECISION_STRATEGY_INTERNAL;
@@ -1419,10 +1420,11 @@ decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
   } else if(optarg == "justification-stoponly") {
     options::decisionStopOnly.set(true);
     return decision::DECISION_STRATEGY_JUSTIFICATION;
-  }
-  else if (optarg == "lrb")
-  {
+  } else if (optarg == "lrb") {
     return decision::DECISION_STRATEGY_LRB;
+  } else if (optarg == "justification-stoponly-lrb"){
+    options::decisionStopOnly.set(true);
+    return decision::DECISION_STRATEGY_JUSTIFICATION_LRB;
   }
   else if (optarg == "help")
   {

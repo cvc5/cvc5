@@ -41,6 +41,11 @@ enum DecisionMode
   DECISION_STRATEGY_JUSTIFICATION,
 
   /**
+   * Use the justification heuristic stop only for lrb
+   */
+  DECISION_STRATEGY_JUSTIFICATION_LRB,
+
+  /**
    * Decision engine doesn't do anything. Use learning-rate based
    * heuristics in the sat solver
    */

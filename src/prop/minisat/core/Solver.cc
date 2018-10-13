@@ -81,13 +81,15 @@ static DoubleOption opt_min_step_size(_cat,
                                       "Minimal step size",
                                       0.06,
                                       DoubleRange(0, false, 1, false));
-
+//
 // opt_var_decay is for VSIDS
 static DoubleOption opt_var_decay(_cat,
                                   "var-decay",
                                   "The variable activity decay factor",
                                   0.95,
                                   DoubleRange(0, false, 1, false));
+//
+// for built-in clause deletion strategy
 static DoubleOption opt_clause_decay(_cat,
                                      "cla-decay",
                                      "The clause activity decay factor",
@@ -1318,13 +1320,13 @@ struct reduceDB_lt {
   }
 };
 
-struct reduceDB_lt_lrb
+struct reduceDB_lt_lbd
 {
   ClauseAllocator& ca;
 
   vec<double>& activity;
 
-  reduceDB_lt_lrb(ClauseAllocator& ca_, vec<double>& activity_)
+  reduceDB_lt_lbd(ClauseAllocator& ca_, vec<double>& activity_)
       : ca(ca_), activity(activity_)
   {
   }
@@ -1334,49 +1336,41 @@ struct reduceDB_lt_lrb
     return ca[x].activity() > ca[y].activity();
   }
 };
+void Solver::reduceDB_lbd()
+{
+  int i, j;
+  sort(clauses_removable, reduceDB_lt_lbd(ca, activity));
+
+  for (i = j = 0; i < clauses_removable.size(); i++)
+    {
+      Clause& c = ca[clauses_removable[i]];
+      if (c.activity() > 2 && !locked(c) && i < clauses_removable.size() / 2)
+        removeClause(clauses_removable[i]);
+      else
+        clauses_removable[j++] = clauses_removable[i];
+    }
+  clauses_removable.shrink(i - j);
+  checkGarbage();
+}
+
 void Solver::reduceDB()
 {
   int i, j;
-  double extra_lim;
-  if (options::lbd())
-  {
-    sort(clauses_removable, reduceDB_lt_lrb(ca, activity));
-  }
-  else
-  {
-    extra_lim =
+  double extra_lim =
         cla_inc
         / clauses_removable.size();  // Remove any clause below this activity
-    sort(clauses_removable, reduceDB_lt(ca));
-  }
-
-    // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
-    // and clauses with activity smaller than 'extra_lim':
-    if (options::lbd())
+  sort(clauses_removable, reduceDB_lt(ca));
+  for (i = j = 0; i < clauses_removable.size(); i++)
     {
-      for (i = j = 0; i < clauses_removable.size(); i++)
-      {
-        Clause& c = ca[clauses_removable[i]];
-        if (c.activity() > 2 && !locked(c) && i < clauses_removable.size() / 2)
-          removeClause(clauses_removable[i]);
-        else
-          clauses_removable[j++] = clauses_removable[i];
-      }
+      Clause& c = ca[clauses_removable[i]];
+      if (c.size() > 2 && !locked(c)
+          && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
+        removeClause(clauses_removable[i]);
+      else
+        clauses_removable[j++] = clauses_removable[i];
     }
-    else
-    {
-      for (i = j = 0; i < clauses_removable.size(); i++)
-      {
-        Clause& c = ca[clauses_removable[i]];
-        if (c.size() > 2 && !locked(c)
-            && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
-          removeClause(clauses_removable[i]);
-        else
-          clauses_removable[j++] = clauses_removable[i];
-      }
-    }
-    clauses_removable.shrink(i - j);
-    checkGarbage();
+  clauses_removable.shrink(i - j);
+  checkGarbage();
 }
 
 void Solver::removeSatisfied(vec<CRef>& cs)
@@ -1598,7 +1592,12 @@ lbool Solver::search(int nof_conflicts)
 
             if (clauses_removable.size()-nAssigns() >= max_learnts) {
               // Reduce the set of learnt clauses:
-              reduceDB();
+              if (options::lbd()){
+                reduceDB_lbd();
+              }
+              else {
+                reduceDB();
+              }
               if (options::lbd())
               {
                 max_learnts += 500;
