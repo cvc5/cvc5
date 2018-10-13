@@ -249,9 +249,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // In the above encoding, we use Us/Ud to introduce a chain of strings
     // that allow us to refer to each character substring of itost. Notice this
     // is more efficient than using str.substr( itost, x, 1 ).
-    // The function U is an accumulator, where U( x ) is the value of
+    // The function U is an accumulator, where U( x ) for x>0 is the value of
     // str.to.int( str.substr( int.to.str( n ), 0, x ) ). For example, for
-    // n=345, we have that U(0), U(1), U(2), U(3) = 0, 3, 34, 345.
+    // n=345, we have that U(1), U(2), U(3) = 3, 34, 345.
     // Above, we use str.code to map characters to their integer value, where
     // note that str.code( "0" ) = 48. Further notice that ite( x=0, 49, 48 )
     // enforces that int.to.str( n ) has no leading zeroes.
