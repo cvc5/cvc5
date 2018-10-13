@@ -2140,6 +2140,16 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         return returnRewrite(node, ret, "ctn-repl-len-one-to-ctn");
       }
     }
+
+    // (str.contains (str.replace x y z) z) --->
+    //   (or (str.contains x y) (str.contains x z))
+    if (node[0][2] == node[1])
+    {
+      Node ret = nm->mkNode(OR,
+                            nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
+                            nm->mkNode(STRING_STRCTN, node[0][0], node[0][2]));
+      return returnRewrite(node, ret, "ctn-repl-to-ctn-disj");
+    }
   }
 
   if (node[1].getKind() == kind::STRING_STRREPL)
@@ -2439,6 +2449,31 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     {
       return returnRewrite(node, node[0], "rpl-rpl-len-id");
     }
+
+    // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
+    // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
+    if (checkEntailArith(nm->mkConst(Rational(1)), l0))
+    {
+      Node empty = nm->mkConst(String(""));
+      Node rn1 = Rewriter::rewrite(
+          rewriteEqualityExt(nm->mkNode(EQUAL, node[1], empty)));
+      if (rn1 != node[1])
+      {
+        std::vector<Node> emptyNodes;
+        bool allEmptyEqs;
+        std::tie(allEmptyEqs, emptyNodes) = collectEmptyEqs(rn1);
+
+        if (allEmptyEqs)
+        {
+          Node nn1 = mkConcat(STRING_CONCAT, emptyNodes);
+          if (node[1] != nn1)
+          {
+            Node ret = nm->mkNode(STRING_STRREPL, node[0], nn1, node[2]);
+            return returnRewrite(node, ret, "rpl-x-y-x-simp");
+          }
+        }
+      }
+    }
   }
 
   std::vector<Node> children1;
@@ -2511,45 +2546,9 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     //
     Node empty = nm->mkConst(::CVC4::String(""));
 
-    // Collect the equalities of the form (= x "") (sorted)
-    std::set<TNode> emptyNodes;
-    bool allEmptyEqs = true;
-    if (cmp_conr.getKind() == kind::EQUAL)
-    {
-      if (cmp_conr[0] == empty)
-      {
-        emptyNodes.insert(cmp_conr[1]);
-      }
-      else if (cmp_conr[1] == empty)
-      {
-        emptyNodes.insert(cmp_conr[0]);
-      }
-      else
-      {
-        allEmptyEqs = false;
-      }
-    }
-    else
-    {
-      for (const Node& c : cmp_conr)
-      {
-        if (c.getKind() == kind::EQUAL)
-        {
-          if (c[0] == empty)
-          {
-            emptyNodes.insert(c[1]);
-          }
-          else if (c[1] == empty)
-          {
-            emptyNodes.insert(c[0]);
-          }
-        }
-        else
-        {
-          allEmptyEqs = false;
-        }
-      }
-    }
+    std::vector<Node> emptyNodes;
+    bool allEmptyEqs;
+    std::tie(allEmptyEqs, emptyNodes) = collectEmptyEqs(cmp_conr);
 
     if (emptyNodes.size() > 0)
     {
@@ -2697,6 +2696,28 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
                                 z);
           return returnRewrite(node, ret, "repl-repl-short-circuit");
         }
+      }
+    }
+  }
+  else if (node[0].getKind() == STRING_SUBSTR)
+  {
+    // (str.replace (str.substr x 0 n) y z) ---> (str.substr (str.replace x y z)
+    // 0 n) if (str.len y) = 1 and (str.len z) = 1
+    Node zero = nm->mkConst(Rational(0));
+    Node one = nm->mkConst(Rational(1));
+    Node n1len = nm->mkNode(kind::STRING_LENGTH, node[1]);
+    Node n2len = nm->mkNode(kind::STRING_LENGTH, node[2]);
+    if (node[0][1] == zero)
+    {
+      if (checkEntailArith(one, n1len) && checkEntailArith(one, n2len)
+          && checkEntailNonEmpty(node[1]) && checkEntailNonEmpty(node[2]))
+      {
+        Node ret = nm->mkNode(
+            kind::STRING_SUBSTR,
+            nm->mkNode(kind::STRING_STRREPL, node[0][0], node[1], node[2]),
+            node[0][1],
+            node[0][2]);
+        return returnRewrite(node, ret, "repl-repl-short-circuit");
       }
     }
   }
@@ -4759,6 +4780,61 @@ Node TheoryStringsRewriter::inferEqsFromContains(Node x, Node y)
 
   // (and (= x (str.++ y1' ... ym')) (= y1'' "") ... (= yk'' ""))
   return nb.constructNode();
+}
+
+std::pair<bool, std::vector<Node> > TheoryStringsRewriter::collectEmptyEqs(
+    Node x)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node empty = nm->mkConst(::CVC4::String(""));
+
+  // Collect the equalities of the form (= x "") (sorted)
+  std::set<TNode> emptyNodes;
+  bool allEmptyEqs = true;
+  if (x.getKind() == kind::EQUAL)
+  {
+    if (x[0] == empty)
+    {
+      emptyNodes.insert(x[1]);
+    }
+    else if (x[1] == empty)
+    {
+      emptyNodes.insert(x[0]);
+    }
+    else
+    {
+      allEmptyEqs = false;
+    }
+  }
+  else
+  {
+    for (const Node& c : x)
+    {
+      if (c.getKind() == kind::EQUAL)
+      {
+        if (c[0] == empty)
+        {
+          emptyNodes.insert(c[1]);
+        }
+        else if (c[1] == empty)
+        {
+          emptyNodes.insert(c[0]);
+        }
+      }
+      else
+      {
+        allEmptyEqs = false;
+      }
+    }
+  }
+
+  if (emptyNodes.size() == 0)
+  {
+    allEmptyEqs = false;
+  }
+
+  return std::make_pair(
+      allEmptyEqs, std::vector<Node>(emptyNodes.begin(), emptyNodes.end()));
 }
 
 Node TheoryStringsRewriter::returnRewrite(Node node, Node ret, const char* c)
