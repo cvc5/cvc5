@@ -60,6 +60,9 @@ void DecisionEngine::init()
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
   }
+  if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
+  {
+  }
 }
 
 

@@ -26,11 +26,12 @@ namespace CVC4 {
 namespace decision {
 
 /** Enumeration of decision strategies */
-enum DecisionMode {
+enum DecisionMode
+{
 
   /**
-   * Decision engine doesn't do anything. Use sat solver's internal
-   * heuristics
+   * Decision engine doesn't do anything. Use the VSIDS
+   * heuristics in the sat solver
    */
   DECISION_STRATEGY_INTERNAL,
 
@@ -40,12 +41,17 @@ enum DecisionMode {
   DECISION_STRATEGY_JUSTIFICATION,
 
   /**
+   * Decision engine doesn't do anything. Use learning-rate based
+   * heuristics in the sat solver
+   */
+  DECISION_STRATEGY_LRB,
+
+  /**
    * Use may-relevancy.
    */
   DECISION_STRATEGY_RELEVANCY
 
-};/* enum DecisionMode */
-
+}; /* enum DecisionMode */
 
 /** Enumeration of combining functions for computing internal weights */
 enum DecisionWeightInternal {

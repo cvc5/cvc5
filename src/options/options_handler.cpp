@@ -1376,10 +1376,18 @@ decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
   } else if(optarg == "justification-stoponly") {
     options::decisionStopOnly.set(true);
     return decision::DECISION_STRATEGY_JUSTIFICATION;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "lrb")
+  {
+    return decision::DECISION_STRATEGY_LRB;
+  }
+  else if (optarg == "help")
+  {
     puts(s_decisionModeHelp.c_str());
     exit(1);
-  } else {
+  }
+  else
+  {
     throw OptionException(std::string("unknown option for --decision: `") +
                           optarg + "'.  Try --decision help.");
   }

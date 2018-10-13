@@ -29,6 +29,7 @@ std::ostream& operator<<(std::ostream& out, decision::DecisionMode mode) {
   case decision::DECISION_STRATEGY_JUSTIFICATION:
     out << "DECISION_STRATEGY_JUSTIFICATION";
     break;
+  case decision::DECISION_STRATEGY_LRB: out << "DECISION_STRATEGY_LRB";
   default:
     out << "DecisionMode:UNKNOWN![" << unsigned(mode) << "]";
   }
