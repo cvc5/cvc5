@@ -252,14 +252,12 @@ public:
     // Mode of operation:
     //
     int       verbosity;
-#if BRANCHING_HEURISTIC == CHB || BRANCHING_HEURISTIC == LRB
+    // for LRB
     double step_size;
     double step_size_dec;
     double min_step_size;
-#endif
-#if BRANCHING_HEURISTIC == VSIDS
+    // for VSIDS
     double    var_decay;
-#endif
 #if !LBD_BASED_CLAUSE_DELETION
     double    clause_decay;
 #endif
@@ -295,12 +293,6 @@ public:
 #if ANTI_EXPLORATION
     vec<uint64_t> canceled;
 #endif
-#if BRANCHING_HEURISTIC == CHB
-    vec<uint64_t> last_conflict;
-    int action;
-    double reward_multiplier;
-#endif
-
     vec<long double> total_actual_rewards;
     vec<int> total_actual_count;
 
@@ -455,11 +447,10 @@ public:
 
     // Maintaining Variable/Clause activity:
     //
-#if BRANCHING_HEURISTIC == VSIDS
+    // for VSIDS
     void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
     void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
     void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
-#endif
 #if !LBD_BASED_CLAUSE_DELETION
     void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
     void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
@@ -533,7 +524,6 @@ inline void Solver::insertVarOrder(Var x) {
     assert(x < vardata.size());
     if (!order_heap.inHeap(x) && decision[x]) order_heap.insert(x); }
 
-#if BRANCHING_HEURISTIC == VSIDS
 inline void Solver::varDecayActivity() { var_inc *= (1 / var_decay); }
 inline void Solver::varBumpActivity(Var v) { varBumpActivity(v, var_inc); }
 inline void Solver::varBumpActivity(Var v, double inc) {
@@ -546,7 +536,6 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
         order_heap.decrease(v); }
-#endif
 #if !LBD_BASED_CLAUSE_DELETION
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
