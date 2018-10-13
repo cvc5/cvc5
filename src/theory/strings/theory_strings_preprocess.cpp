@@ -182,11 +182,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node itost = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
     Node leni = nm->mkNode(STRING_LENGTH, itost);
 
-    Node nonneg = nm->mkNode(GEQ, t[0], d_zero);
-
-    Node lem = nm->mkNode(EQUAL, nonneg.negate(), itost.eqNode(d_empty_str));
-    new_nodes.push_back(lem);
-
+    std::vector< Node > conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
@@ -195,17 +191,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ud =
         nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
-    lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
-    new_nodes.push_back( lem );
+    Node lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
+    conc.push_back( lem );
 
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
-    new_nodes.push_back(lem);
+    conc.push_back(lem);
 
     lem = d_empty_str.eqNode(nm->mkNode(APPLY_UF, us, leni));
-    new_nodes.push_back(lem);
+    conc.push_back(lem);
 
     lem = itost.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
-    new_nodes.push_back(lem);
+    conc.push_back(lem);
 
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
@@ -229,16 +225,23 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eqs, eq, cb));
     lem = nm->mkNode(FORALL, xbv, lem);
-    new_nodes.push_back(lem);
+    conc.push_back(lem);
 
+    Node nonneg = nm->mkNode(GEQ, n, d_zero);
+    
+    lem = nm->mkNode( ITE, nonneg, nm->mkNode( AND, conc ), itost.eqNode(d_empty_str));
+    new_nodes.push_back(lem);
     // assert:
-    //   (n>=0) <=> (itost != "") ^
+    // IF n>=0
+    // THEN:
     //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^
     //   "" = Us( len( itost ) ) ^ itost = Us( 0 ) ^
     //   forall x. (x>=0 ^ x < str.len(itost)) =>
     //     Us( x ) = Ud( x ) ++ Us( x+1 ) ^
     //     U( x+1 ) = (str.code( Ud( x ) )-48) + 10*U( x ) ^
     //     ite( x=0, 49, 48 ) <= str.code( Ud( x ) ) < 58
+    // ELSE
+    //   itost = ""
     // thus:
     //   int.to.str( n ) = itost
 
