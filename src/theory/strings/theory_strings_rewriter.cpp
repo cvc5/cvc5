@@ -2108,8 +2108,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
     }
   }
-
-  if (node[0].getKind() == kind::STRING_SUBSTR)
+  else if (node[0].getKind() == kind::STRING_SUBSTR)
   {
     // (str.contains (str.substr x n (str.len y)) y) --->
     //   (= (str.substr x n (str.len y)) y)
@@ -2119,6 +2118,27 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     {
       Node ret = nm->mkNode(kind::EQUAL, node[0], node[1]);
       return returnRewrite(node, ret, "ctn-substr");
+    }
+  }
+  else if (node[0].getKind() == kind::STRING_STRREPL)
+  {
+    if (node[0][0] == node[0][2])
+    {
+      // (str.contains (str.replace x y x) y) ---> (str.contains x y)
+      if (node[0][1] == node[1])
+      {
+        Node ret = nm->mkNode(kind::STRING_STRCTN, node[0][0], node[1]);
+        return returnRewrite(node, ret, "ctn-repl-to-ctn");
+      }
+
+      // (str.contains (str.replace x y x) z) ---> (str.contains x z)
+      // if (str.len z) <= 1
+      Node one = nm->mkConst(Rational(1));
+      if (checkEntailArith(one, len_n2))
+      {
+        Node ret = nm->mkNode(kind::STRING_STRCTN, node[0][0], node[1]);
+        return returnRewrite(node, ret, "ctn-repl-len-one-to-ctn");
+      }
     }
   }
 
@@ -3344,6 +3364,9 @@ bool TheoryStringsRewriter::componentContainsBase(
 {
   Assert(n1rb.isNull());
   Assert(n1re.isNull());
+
+  NodeManager* nm = NodeManager::currentNM();
+
   if (n1 == n2)
   {
     return true;
@@ -3362,8 +3385,7 @@ bool TheoryStringsRewriter::componentContainsBase(
           {
             if (computeRemainder)
             {
-              n1rb = NodeManager::currentNM()->mkConst(
-                  ::CVC4::String(s.prefix(s.size() - t.size())));
+              n1rb = nm->mkConst(::CVC4::String(s.prefix(s.size() - t.size())));
             }
             return true;
           }
@@ -3374,8 +3396,7 @@ bool TheoryStringsRewriter::componentContainsBase(
           {
             if (computeRemainder)
             {
-              n1re = NodeManager::currentNM()->mkConst(
-                  ::CVC4::String(s.suffix(s.size() - t.size())));
+              n1re = nm->mkConst(::CVC4::String(s.suffix(s.size() - t.size())));
             }
             return true;
           }
@@ -3389,12 +3410,11 @@ bool TheoryStringsRewriter::componentContainsBase(
             {
               if (f > 0)
               {
-                n1rb = NodeManager::currentNM()->mkConst(
-                    ::CVC4::String(s.prefix(f)));
+                n1rb = nm->mkConst(::CVC4::String(s.prefix(f)));
               }
               if (s.size() > f + t.size())
               {
-                n1re = NodeManager::currentNM()->mkConst(
+                n1re = nm->mkConst(
                     ::CVC4::String(s.suffix(s.size() - (f + t.size()))));
               }
             }
@@ -3413,10 +3433,8 @@ bool TheoryStringsRewriter::componentContainsBase(
         {
           bool success = true;
           Node start_pos = n2[1];
-          Node end_pos =
-              NodeManager::currentNM()->mkNode(kind::PLUS, n2[1], n2[2]);
-          Node len_n2s =
-              NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, n2[0]);
+          Node end_pos = nm->mkNode(kind::PLUS, n2[1], n2[2]);
+          Node len_n2s = nm->mkNode(kind::STRING_LENGTH, n2[0]);
           if (dir == 1)
           {
             // To be a suffix, start + length must be greater than
@@ -3444,19 +3462,36 @@ bool TheoryStringsRewriter::componentContainsBase(
               }
               if (dir != 1)
               {
-                n1rb = NodeManager::currentNM()->mkNode(
-                    kind::STRING_SUBSTR,
-                    n2[0],
-                    NodeManager::currentNM()->mkConst(Rational(0)),
-                    start_pos);
+                n1rb = nm->mkNode(kind::STRING_SUBSTR,
+                                  n2[0],
+                                  nm->mkConst(Rational(0)),
+                                  start_pos);
               }
               if (dir != -1)
               {
-                n1re = NodeManager::currentNM()->mkNode(
-                    kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
+                n1re = nm->mkNode(kind::STRING_SUBSTR, n2[0], end_pos, len_n2s);
               }
             }
             return true;
+          }
+        }
+      }
+
+      if (!computeRemainder && dir == 0)
+      {
+        if (n1.getKind() == STRING_STRREPL)
+        {
+          // (str.contains (str.replace x y z) w) ---> true
+          // if (str.contains x w) --> true and (str.contains z w) ---> true
+          Node xCtnW = Rewriter::rewrite(nm->mkNode(STRING_STRCTN, n1[0], n2));
+          if (xCtnW.isConst() && xCtnW.getConst<bool>())
+          {
+            Node zCtnW =
+                Rewriter::rewrite(nm->mkNode(STRING_STRCTN, n1[2], n2));
+            if (zCtnW.isConst() && zCtnW.getConst<bool>())
+            {
+              return true;
+            }
           }
         }
       }
