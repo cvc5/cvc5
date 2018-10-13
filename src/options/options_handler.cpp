@@ -1430,9 +1430,7 @@ decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
   {
     puts(s_decisionModeHelp.c_str());
     exit(1);
-  }
-  else
-  {
+  } else {
     throw OptionException(std::string("unknown option for --decision: `") +
                           optarg + "'.  Try --decision help.");
   }

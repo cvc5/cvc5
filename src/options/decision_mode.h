@@ -52,6 +52,7 @@ enum DecisionMode {
 
 };/* enum DecisionMode */
 
+
 /** Enumeration of combining functions for computing internal weights */
 enum DecisionWeightInternal {
   DECISION_WEIGHT_INTERNAL_OFF,
