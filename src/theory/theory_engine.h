@@ -350,7 +350,7 @@ class TheoryEngine {
   context::CDO<bool> d_inConflict;
   
   /**
-   * Are we .
+   * Are we in "SAT mode"? (in this state, the user can query for the model)
    */
   bool d_inSatMode;
   
