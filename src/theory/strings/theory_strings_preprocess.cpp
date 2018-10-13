@@ -201,16 +201,17 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     Node ufP = nm->mkSkolem("ufP",
-              nm->mkFunctionType(
-                argTypes, nm->integerType()),
-              "uf type conv P");
+                            nm->mkFunctionType(argTypes, nm->integerType()),
+                            "uf type conv P");
     Node ufM = nm->mkSkolem("ufM",
-              nm->mkFunctionType(
-                argTypes, nm->integerType()),
-              "uf type conv M");
-    Node itosPre = nm->mkSkolem("itos_pre",nm->mkFunctionType(argTypes,nm->stringType()));
-    Node itosDigit = nm->mkSkolem("itos_digit",nm->mkFunctionType(argTypes,nm->stringType()));
-    Node itosPost = nm->mkSkolem("itos_post",nm->mkFunctionType(argTypes,nm->stringType()));
+                            nm->mkFunctionType(argTypes, nm->integerType()),
+                            "uf type conv M");
+    Node itosPre = nm->mkSkolem("itos_pre",
+                                nm->mkFunctionType(argTypes, nm->stringType()));
+    Node itosDigit = nm->mkSkolem(
+        "itos_digit", nm->mkFunctionType(argTypes, nm->stringType()));
+    Node itosPost = nm->mkSkolem(
+        "itos_post", nm->mkFunctionType(argTypes, nm->stringType()));
 
     lem = num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero));
     new_nodes.push_back( lem );
@@ -233,14 +234,15 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node cc3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
     Node cc4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
 
-    Node b21 = nm->mkNode(APPLY_UF,itosPre,b1);
-    Node b2d = nm->mkNode(APPLY_UF,itosDigit,b1);
-    Node b22 = nm->mkNode(APPLY_UF,itosPost,b1);
+    Node b21 = nm->mkNode(APPLY_UF, itosPre, b1);
+    Node b2d = nm->mkNode(APPLY_UF, itosDigit, b1);
+    Node b22 = nm->mkNode(APPLY_UF, itosPost, b1);
 
     Node c21 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, b21).eqNode(
           NodeManager::currentNM()->mkNode(kind::MINUS, lenp, NodeManager::currentNM()->mkNode(kind::PLUS, b1, one) ));
-    Node c22 = pret.eqNode( nm->mkNode(STRING_CONCAT, b21, b2d, b22) );
-    Node c2d = nm->mkNode( STRING_CODE, b2d ).eqNode( nm->mkNode( PLUS, ufMx, nm->mkConst(Rational(48))));
+    Node c22 = pret.eqNode(nm->mkNode(STRING_CONCAT, b21, b2d, b22));
+    Node c2d = nm->mkNode(STRING_CODE, b2d)
+                   .eqNode(nm->mkNode(PLUS, ufMx, nm->mkConst(Rational(48))));
     Node cc5 = nm->mkNode(AND, c21, c22, c2d);
     std::vector< Node > svec;
     svec.push_back(cc1);svec.push_back(cc2);
