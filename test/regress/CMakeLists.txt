@@ -1168,8 +1168,8 @@ set(regress_1_tests
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
-  regress1/nl/exp-approx.smt2
   regress1/nl/exp-4.5-lt.smt2
+  regress1/nl/exp-approx.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
@@ -1409,10 +1409,10 @@ set(regress_1_tests
   regress1/rewriterules/length_gen_040_lemma_trigger.smt2
   regress1/rewriterules/reachability_back_to_the_future.smt2
   regress1/rewriterules/read5.smt2
-	regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
+  regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/regex.sy
   regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
@@ -1661,7 +1661,6 @@ set(regress_1_tests
 # Regression level 2 tests
 
 set(regress_2_tests
-	regress2/rr-verify/fp-arith.sy
   regress2/DTP_k2_n35_c175_s15.smt2
   regress2/FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2
   regress2/GEO123+1.minimized.smt2
@@ -1708,6 +1707,7 @@ set(regress_2_tests
   regress2/quantifiers/mutualrec2.cvc
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
+  regress2/rr-verify/fp-arith.sy
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmu-dis-0707-3.smt2
   regress2/strings/cmu-disagree-0707-dd.smt2
