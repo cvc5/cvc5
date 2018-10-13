@@ -16,6 +16,7 @@
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
 
 #include "options/base_options.h"
+#include "options/datatypes_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -187,10 +188,14 @@ Node EnumStreamPermutation::getNext()
     bultin_perm_value = d_tds->sygusToBuiltin(perm_value, perm_value.getType());
     Trace("synth-stream-concrete-debug")
         << " ......perm builtin is " << bultin_perm_value;
-    bultin_perm_value =
-        d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
-    Trace("synth-stream-concrete-debug")
-        << " and rewrites to " << bultin_perm_value << "\n";
+    if (options::sygusSymBreakDynamic())
+    {
+      bultin_perm_value =
+          d_tds->getExtRewriter()->extendedRewrite(bultin_perm_value);
+      Trace("synth-stream-concrete-debug")
+          << " and rewrites to " << bultin_perm_value;
+    }
+    Trace("synth-stream-concrete-debug") << "\n";
     // if permuted value is equivalent modulo rewriting to a previous one, look
     // for another
   } while (!d_perm_values.insert(bultin_perm_value).second);
@@ -504,8 +509,13 @@ Node EnumStreamSubstitution::getNext()
       domain_sub.begin(), domain_sub.end(), range_sub.begin(), range_sub.end());
   // the new combination value should be fresh, modulo rewriting, by
   // construction (unless it's equiv to a constant, e.g. true / false)
-  Node builtin_comb_value = d_tds->getExtRewriter()->extendedRewrite(
-      d_tds->sygusToBuiltin(comb_value, comb_value.getType()));
+  Node builtin_comb_value =
+      d_tds->sygusToBuiltin(comb_value, comb_value.getType());
+  if (options::sygusSymBreakDynamic())
+  {
+    builtin_comb_value =
+        d_tds->getExtRewriter()->extendedRewrite(builtin_comb_value);
+  }
   if (Trace.isOn("synth-stream-concrete"))
   {
     std::stringstream ss;
@@ -597,6 +607,9 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
   return new_comb;
 }
 
+void EnumStreamConcrete::initialize(Node e) { d_ess.initialize(e.getType()); }
+void EnumStreamConcrete::addValue(Node v) { d_ess.resetValue(v); }
+Node EnumStreamConcrete::getNext() { return d_ess.getNext(); }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
