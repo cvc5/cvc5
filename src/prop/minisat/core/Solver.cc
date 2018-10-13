@@ -26,6 +26,8 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include <unordered_set>
 
 #include "base/output.h"
+#include "options/decision_mode.h"
+#include "options/decision_options.h"
 #include "options/main_options.h"
 #include "options/prop_options.h"
 #include "options/smt_options.h"
@@ -63,8 +65,36 @@ bool assertionLevelOnly()
 
 static const char* _cat = "CORE";
 
-static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
-static DoubleOption  opt_clause_decay      (_cat, "cla-decay",   "The clause activity decay factor",              0.999,    DoubleRange(0, false, 1, false));
+// opt_step_size, opt_step_size_dec, opt_min_step_size  are for LRB
+static DoubleOption opt_step_size(_cat,
+                                  "step-size",
+                                  "Initial step size",
+                                  0.40,
+                                  DoubleRange(0, false, 1, false));
+static DoubleOption opt_step_size_dec(_cat,
+                                      "step-size-dec",
+                                      "Step size decrement",
+                                      0.000001,
+                                      DoubleRange(0, false, 1, false));
+static DoubleOption opt_min_step_size(_cat,
+                                      "min-step-size",
+                                      "Minimal step size",
+                                      0.06,
+                                      DoubleRange(0, false, 1, false));
+//
+// opt_var_decay is for VSIDS
+static DoubleOption opt_var_decay(_cat,
+                                  "var-decay",
+                                  "The variable activity decay factor",
+                                  0.95,
+                                  DoubleRange(0, false, 1, false));
+//
+// for built-in clause deletion strategy
+static DoubleOption opt_clause_decay(_cat,
+                                     "cla-decay",
+                                     "The clause activity decay factor",
+                                     0.999,
+                                     DoubleRange(0, false, 1, false));
 static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
 static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 2, IntRange(0, 2));
@@ -97,58 +127,82 @@ public:
 //=================================================================================================
 // Constructor/Destructor:
 
-Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, bool enable_incremental) :
-    proxy(proxy)
-  , context(context)
-  , assertionLevel(0)
-  , enable_incremental(enable_incremental)
-  , minisat_busy(false)
-    // Parameters (user settable):
-    //
-  , verbosity        (0)
-  , var_decay        (opt_var_decay)
-  , clause_decay     (opt_clause_decay)
-  , random_var_freq  (opt_random_var_freq)
-  , random_seed      (opt_random_seed)
-  , luby_restart     (opt_luby_restart)
-  , ccmin_mode       (opt_ccmin_mode)
-  , phase_saving     (opt_phase_saving)
-  , rnd_pol          (false)
-  , rnd_init_act     (opt_rnd_init_act)
-  , garbage_frac     (opt_garbage_frac)
-  , restart_first    (opt_restart_first)
-  , restart_inc      (opt_restart_inc)
+Solver::Solver(CVC4::prop::TheoryProxy* proxy,
+               CVC4::context::Context* context,
+               bool enable_incremental)
+    : proxy(proxy),
+      context(context),
+      assertionLevel(0),
+      enable_incremental(enable_incremental),
+      minisat_busy(false)
+      // Parameters (user settable):
+      //
+      ,
+      verbosity(0),
+      step_size(opt_step_size),
+      step_size_dec(opt_step_size_dec),
+      min_step_size(opt_min_step_size),
+      var_decay(opt_var_decay),
+      clause_decay(opt_clause_decay),
+      random_var_freq(opt_random_var_freq),
+      random_seed(opt_random_seed),
+      luby_restart(opt_luby_restart),
+      ccmin_mode(opt_ccmin_mode),
+      phase_saving(opt_phase_saving),
+      rnd_pol(false),
+      rnd_init_act(opt_rnd_init_act),
+      garbage_frac(opt_garbage_frac),
+      restart_first(opt_restart_first),
+      restart_inc(opt_restart_inc)
 
-    // Parameters (the rest):
-    //
-  , learntsize_factor(1), learntsize_inc(1.5)
+      // Parameters (the rest):
+      //
+      ,
+      learntsize_factor(1),
+      learntsize_inc(1.5)
 
-    // Parameters (experimental):
-    //
-  , learntsize_adjust_start_confl (100)
-  , learntsize_adjust_inc         (1.5)
+      // Parameters (experimental):
+      //
+      ,
+      learntsize_adjust_start_confl(100),
+      learntsize_adjust_inc(1.5)
 
-    // Statistics: (formerly in 'SolverStats')
-    //
-  , solves(0), starts(0), decisions(0), rnd_decisions(0), propagations(0), conflicts(0), resources_consumed(0)
-  , dec_vars(0), clauses_literals(0), learnts_literals(0), max_literals(0), tot_literals(0)
+      // Statistics: (formerly in 'SolverStats')
+      //
+      ,
+      solves(0),
+      starts(0),
+      decisions(0),
+      rnd_decisions(0),
+      propagations(0),
+      conflicts(0),
+      resources_consumed(0),
+      dec_vars(0),
+      clauses_literals(0),
+      learnts_literals(0),
+      max_literals(0),
+      tot_literals(0)
 
-  , ok                 (true)
-  , cla_inc            (1)
-  , var_inc            (1)
-  , watches            (WatcherDeleted(ca))
-  , qhead              (0)
-  , simpDB_assigns     (-1)
-  , simpDB_props       (0)
-  , order_heap         (VarOrderLt(activity))
-  , progress_estimate  (0)
-  , remove_satisfied   (!enable_incremental)
+      ,
+      lbd_calls(0),
+      ok(true),
+      cla_inc(1),
+      // for VSIDS
+      var_inc(1),
+      watches(WatcherDeleted(ca)),
+      qhead(0),
+      simpDB_assigns(-1),
+      simpDB_props(0),
+      order_heap(VarOrderLt(activity)),
+      progress_estimate(0),
+      remove_satisfied(!enable_incremental)
 
-    // Resource constraints:
-    //
-  , conflict_budget    (-1)
-  , propagation_budget (-1)
-  , asynch_interrupt   (false)
+      // Resource constraints:
+      //
+      ,
+      conflict_budget(-1),
+      propagation_budget(-1),
+      asynch_interrupt(false)
 {
   PROOF(ProofManager::currentPM()->initSatProof(this);)
 
@@ -195,6 +249,19 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
     trail    .capacity(v+1);
     theory   .push(isTheoryAtom);
 
+    lbd_seen.push(0);
+    picked.push(0);
+    conflicted.push(0);
+    if (options::almostConflict())
+    {
+      almost_conflicted.push(0);
+    }
+    if (options::antiExploration())
+    {
+      canceled.push(0);
+    }
+    total_actual_rewards.push(0);
+    total_actual_count.push(0);
     setDecisionVar(v, dvar);
 
     // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
@@ -555,15 +622,47 @@ void Solver::cancelUntil(int level) {
             proxy->dumpStatePop();
           }
         }
+
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
             Var      x  = var(trail[c]);
-            assigns [x] = l_Undef;
-            vardata[x].trail_index = -1;
-            if ((phase_saving > 1 ||
-                 ((phase_saving == 1) && c > trail_lim.last())
-                 ) && ((polarity[x] & 0x2) == 0)) {
-              polarity[x] = sign(trail[c]);
+            uint64_t age = conflicts - picked[x];
+            if (age > 0)
+            {
+              double reward = ((double)conflicted[x]) / ((double)age);
+              if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
+              {
+                double adjusted_reward;
+                if (options::almostConflict())
+                {
+                  adjusted_reward =
+                      ((double)(conflicted[x] + almost_conflicted[x]))
+                      / ((double)age);
+                }
+                else
+                {
+                  adjusted_reward = reward;
+                }
+                double old_activity = activity[x];
+                activity[x] = step_size * adjusted_reward
+                              + ((1 - step_size) * old_activity);
+                if (order_heap.inHeap(x))
+                {
+                  if (activity[x] > old_activity)
+                    order_heap.decrease(x);
+                  else
+                    order_heap.increase(x);
+                }
+              }
+              total_actual_rewards[x] += reward;
+              total_actual_count[x]++;
             }
+            if (options::antiExploration())
+            {
+              canceled[x] = conflicts;
+            }
+            assigns[x] = l_Undef;
+            if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
+              polarity[x] = sign(trail[c]);
             insertVarOrder(x);
         }
         qhead = trail_lim[level];
@@ -650,7 +749,24 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-            next = order_heap.removeMin();
+          if (options::antiExploration())
+          {
+            next = order_heap[0];
+            uint64_t age = conflicts - canceled[next];
+            while (age > 0)
+            {
+              double decay = pow(0.95, age);
+              activity[next] *= decay;
+              if (order_heap.inHeap(next))
+              {
+                order_heap.increase(next);
+              }
+              canceled[next] = conflicts;
+              next = order_heap[0];
+              age = conflicts - canceled[next];
+            }
+          }
+          next = order_heap.removeMin();
         }
 
         if(!decision[next]) continue;
@@ -719,7 +835,14 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Clause& c = ca[confl];
           max_resolution_level = std::max(max_resolution_level, c.level());
 
-          if (c.removable()) claBumpActivity(c);
+          if (options::lbd())
+          {
+            if (c.removable() && c.activity() > 2) c.activity() = lbd(c);
+          }
+          else
+          {
+            if (c.removable()) claBumpActivity(c);
+          }
         }
 
         for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
@@ -730,7 +853,11 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
           if (!seen[var(q)] && level(var(q)) > 0)
           {
-            varBumpActivity(var(q));
+            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+            {
+              varBumpActivity(var(q));
+            }
+            conflicted[var(q)]++;
             seen[var(q)] = 1;
             if (level(var(q)) >= decisionLevel())
               pathC++;
@@ -833,6 +960,29 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         out_btlevel       = level(var(p));
     }
 
+    if (options::almostConflict())
+    {
+      seen[var(p)] = true;
+      for (int i = out_learnt.size() - 1; i >= 0; i--)
+      {
+        Var v = var(out_learnt[i]);
+        CRef rea = reason(v);
+        if (rea != CRef_Undef)
+        {
+          Clause& reaC = ca[rea];
+          for (int i = 0; i < reaC.size(); i++)
+          {
+            Lit l = reaC[i];
+            if (!seen[var(l)])
+            {
+              seen[var(l)] = true;
+              almost_conflicted[var(l)]++;
+              analyze_toclear.push(l);
+            }
+          }
+        }
+      }
+    }
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
 
     // Return the maximal resolution level
@@ -920,6 +1070,25 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     Debug("minisat") << "unchecked enqueue of " << p << " (" << trail_index(var(p)) << ") trail size is " << trail.size() << " cap is " << trail.capacity() << std::endl;
     assert(value(p) == l_Undef);
     assert(var(p) < nVars());
+    picked[var(p)] = conflicts;
+    if (options::antiExploration())
+    {
+      uint64_t age = conflicts - canceled[var(p)];
+      if (age > 0)
+      {
+        double decay = pow(0.95, age);
+        activity[var(p)] *= decay;
+        if (order_heap.inHeap(var(p)))
+        {
+          order_heap.increase(var(p));
+        }
+      }
+    }
+    conflicted[var(p)] = 0;
+    if (options::almostConflict())
+    {
+      almost_conflicted[var(p)] = 0;
+    }
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = VarData(from, decisionLevel(), assertionLevel, intro_level(var(p)), trail.size());
     trail.push_(p);
@@ -1129,6 +1298,7 @@ CRef Solver::propagateBool()
     return confl;
 }
 
+int min(int a, int b) { return a < b ? a : b; }
 
 /*_________________________________________________________________________________________________
 |
@@ -1139,30 +1309,69 @@ CRef Solver::propagateBool()
 |    clauses are clauses that are reason to some assignment. Binary clauses are never removed.
 |________________________________________________________________________________________________@*/
 struct reduceDB_lt {
-    ClauseAllocator& ca;
-    reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-    bool operator () (CRef x, CRef y) {
-        return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); }
-};
-void Solver::reduceDB()
-{
-    int     i, j;
-    double  extra_lim = cla_inc / clauses_removable.size();    // Remove any clause below this activity
+  ClauseAllocator& ca;
 
-    sort(clauses_removable, reduceDB_lt(ca));
-    // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
-    // and clauses with activity smaller than 'extra_lim':
-    for (i = j = 0; i < clauses_removable.size(); i++){
-        Clause& c = ca[clauses_removable[i]];
-        if (c.size() > 2 && !locked(c) && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
-            removeClause(clauses_removable[i]);
-        else
-            clauses_removable[j++] = clauses_removable[i];
+  reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
+
+  bool operator()(CRef x, CRef y)
+  {
+    return ca[x].size() > 2
+           && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity());
+  }
+};
+
+struct reduceDB_lt_lbd
+{
+  ClauseAllocator& ca;
+
+  vec<double>& activity;
+
+  reduceDB_lt_lbd(ClauseAllocator& ca_, vec<double>& activity_)
+      : ca(ca_), activity(activity_)
+  {
+  }
+
+  bool operator()(CRef x, CRef y)
+  {
+    return ca[x].activity() > ca[y].activity();
+  }
+};
+void Solver::reduceDB_lbd()
+{
+  int i, j;
+  sort(clauses_removable, reduceDB_lt_lbd(ca, activity));
+
+  for (i = j = 0; i < clauses_removable.size(); i++)
+    {
+      Clause& c = ca[clauses_removable[i]];
+      if (c.activity() > 2 && !locked(c) && i < clauses_removable.size() / 2)
+        removeClause(clauses_removable[i]);
+      else
+        clauses_removable[j++] = clauses_removable[i];
     }
-    clauses_removable.shrink(i - j);
-    checkGarbage();
+  clauses_removable.shrink(i - j);
+  checkGarbage();
 }
 
+void Solver::reduceDB()
+{
+  int i, j;
+  double extra_lim =
+        cla_inc
+        / clauses_removable.size();  // Remove any clause below this activity
+  sort(clauses_removable, reduceDB_lt(ca));
+  for (i = j = 0; i < clauses_removable.size(); i++)
+    {
+      Clause& c = ca[clauses_removable[i]];
+      if (c.size() > 2 && !locked(c)
+          && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
+        removeClause(clauses_removable[i]);
+      else
+        clauses_removable[j++] = clauses_removable[i];
+    }
+  clauses_removable.shrink(i - j);
+  checkGarbage();
+}
 
 void Solver::removeSatisfied(vec<CRef>& cs)
 {
@@ -1266,16 +1475,17 @@ lbool Solver::search(int nof_conflicts)
         // Propagate and call the theory solvers
         CRef confl = propagate(check_type);
         Assert(lemmas.size() == 0);
-
         if (confl != CRef_Undef) {
 
             conflicts++; conflictC++;
-
+            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
+            {
+              if (step_size > min_step_size) step_size -= step_size_dec;
+            }
             if (decisionLevel() == 0) {
                 PROOF( ProofManager::getSatProof()->finalizeProof(confl); )
                 return l_False;
             }
-
             // Analyze the conflict
             learnt_clause.clear();
             int max_level = analyze(confl, learnt_clause, backtrack_level);
@@ -1294,7 +1504,15 @@ lbool Solver::search(int nof_conflicts)
                            true);
               clauses_removable.push(cr);
               attachClause(cr);
-              claBumpActivity(ca[cr]);
+              if (options::lbd())
+              {
+                Clause& clause = ca[cr];
+                clause.activity() = lbd(clause);
+              }
+              else
+              {
+                claBumpActivity(ca[cr]);
+              }
               uncheckedEnqueue(learnt_clause[0], cr);
               PROOF(ClauseId id =
                         ProofManager::getSatProof()->registerClause(cr, LEARNT);
@@ -1306,15 +1524,21 @@ lbool Solver::search(int nof_conflicts)
                         ProofManager::getSatProof()
                             ->endResChain(id););
             }
-
-            varDecayActivity();
-            claDecayActivity();
-
+            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+            {
+              varDecayActivity();
+            }
+            if (!options::lbd())
+            {
+              claDecayActivity();
+            }
             if (--learntsize_adjust_cnt == 0){
-                learntsize_adjust_confl *= learntsize_adjust_inc;
-                learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
-                max_learnts             *= learntsize_inc;
-
+              learntsize_adjust_confl *= learntsize_adjust_inc;
+              learntsize_adjust_cnt = (int)learntsize_adjust_confl;
+              if (!options::lbd())
+              {
+                max_learnts *= learntsize_inc;
+              }
                 if (verbosity >= 1)
                     printf("| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
                            (int)conflicts,
@@ -1367,8 +1591,17 @@ lbool Solver::search(int nof_conflicts)
             }
 
             if (clauses_removable.size()-nAssigns() >= max_learnts) {
-                // Reduce the set of learnt clauses:
+              // Reduce the set of learnt clauses:
+              if (options::lbd()){
+                reduceDB_lbd();
+              }
+              else {
                 reduceDB();
+              }
+              if (options::lbd())
+              {
+                max_learnts += 500;
+              }
             }
 
             Lit next = lit_Undef;
@@ -1472,16 +1705,34 @@ lbool Solver::solve_()
 
     solves++;
 
-    max_learnts               = nClauses() * learntsize_factor;
+    if (options::lbd())
+    {
+      max_learnts = 2000;
+    }
+    else
+    {
+      max_learnts = nClauses() * learntsize_factor;
+    }
     learntsize_adjust_confl   = learntsize_adjust_start_confl;
     learntsize_adjust_cnt     = (int)learntsize_adjust_confl;
     lbool   status            = l_Undef;
 
     if (verbosity >= 1){
-        printf("============================[ Search Statistics ]==============================\n");
-        printf("| Conflicts |          ORIGINAL         |          LEARNT          | Progress |\n");
-        printf("|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |\n");
-        printf("===============================================================================\n");
+      printf("LBD Based Clause Deletion : %d\n", options::lbd());
+      printf("Almost Conflict : %d\n", options::almostConflict());
+      printf("Anti Exploration : %d\n", options::antiExploration());
+      printf(
+          "============================[ Search Statistics "
+          "]==============================\n");
+      printf(
+          "| Conflicts |          ORIGINAL         |          LEARNT          "
+          "| Progress |\n");
+      printf(
+          "|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl "
+          "|          |\n");
+      printf(
+          "===================================================================="
+          "===========\n");
     }
 
     // Search:
