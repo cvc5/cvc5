@@ -816,6 +816,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_logic(),
       d_originalOptions(),
       d_pendingPops(0),
+      d_needsResetTrail(false),
       d_fullyInited(false),
       d_problemExtended(false),
       d_queryMade(false),
@@ -3590,7 +3591,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       }
     }
 
-    d_propEngine->resetTrail();
+    d_needsResetTrail = true;
 
     // Pop the context
     if (didInternalPush)
@@ -4719,9 +4720,16 @@ void SmtEngine::internalPop(bool immediate) {
 }
 
 void SmtEngine::doPendingPops() {
+  Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
+  if( d_needsResetTrail )
+  {
+    d_propEngine->resetTrail();
+    d_needsResetTrail = false;
+  }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
+    Trace("smt") << "SmtEngine::pop()" << std::endl;
     d_propEngine->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();

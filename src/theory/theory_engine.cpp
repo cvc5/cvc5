@@ -849,6 +849,7 @@ bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
       }
     }
   }
+  Trace("model-builder") << "  CollectModelInfo boolean variables" << std::endl;
   // Get the Boolean variables
   vector<TNode> boolVars;
   d_propEngine->getBooleanVariables(boolVars);
@@ -859,6 +860,7 @@ bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
     hasValue = d_propEngine->hasValue(var, value);
     // TODO: Assert that hasValue is true?
     if (!hasValue) {
+      Trace("model-builder-assertions") << "    has no value : " << var << std::endl;
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
