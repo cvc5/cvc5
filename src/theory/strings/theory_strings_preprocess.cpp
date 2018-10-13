@@ -174,92 +174,55 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, indexof( x, y, n ) = skk.
     retNode = skk;
-  } else if( t.getKind() == kind::STRING_ITOS ) {
-    //Node num = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::ITE,
-    //        NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero),
-    //        t[0], NodeManager::currentNM()->mkNode(kind::UMINUS, t[0])));
-    Node num = t[0];
-    Node pret = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
-    Node lenp = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, pret);
+  } else if( t.getKind() == STRING_ITOS ) {
+    // processing term:  int.to.str( n )
+    Node n = t[0];
+    Node itost = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
+    Node leni = nm->mkNode(STRING_LENGTH, itost);
 
-    Node nonneg = NodeManager::currentNM()->mkNode(kind::GEQ, t[0], d_zero);
+    Node nonneg = nm->mkNode(GEQ, t[0], d_zero);
 
-    Node lem = NodeManager::currentNM()->mkNode(kind::EQUAL, nonneg.negate(),
-      pret.eqNode(NodeManager::currentNM()->mkConst( ::CVC4::String("") ))//lenp.eqNode(d_zero)
+    Node lem = nm->mkNode(EQUAL, nonneg.negate(),
+      itost.eqNode(d_empty_str)
       );
     new_nodes.push_back(lem);
 
-    //non-neg
-    Node b1 = NodeManager::currentNM()->mkBoundVar(NodeManager::currentNM()->integerType());
-    Node b1v = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, b1);
-    Node g1 = NodeManager::currentNM()->mkNode( kind::AND, NodeManager::currentNM()->mkNode( kind::GEQ, b1, d_zero ),
-                                                           NodeManager::currentNM()->mkNode( kind::GT, lenp, b1 ) );
-    Node one = NodeManager::currentNM()->mkConst( ::CVC4::Rational(1) );
-    Node nine = NodeManager::currentNM()->mkConst( ::CVC4::Rational(9) );
-    Node ten = NodeManager::currentNM()->mkConst( ::CVC4::Rational(10) );
-
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
-    Node ufP = nm->mkSkolem("ufP",
-                            nm->mkFunctionType(argTypes, nm->integerType()),
-                            "uf type conv P");
-    Node ufM = nm->mkSkolem("ufM",
-                            nm->mkFunctionType(argTypes, nm->integerType()),
-                            "uf type conv M");
-    Node itosPre = nm->mkSkolem("itos_pre",
-                                nm->mkFunctionType(argTypes, nm->stringType()));
-    Node itosDigit = nm->mkSkolem(
-        "itos_digit", nm->mkFunctionType(argTypes, nm->stringType()));
-    Node itosPost = nm->mkSkolem(
-        "itos_post", nm->mkFunctionType(argTypes, nm->stringType()));
+    Node u = nm->mkSkolem("U",
+                            nm->mkFunctionType(argTypes, nm->integerType()));
 
-    lem = num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero));
+    lem = n.eqNode(nm->mkNode(APPLY_UF, u, nm->mkNode(STRING_LENGTH, itost)));
     new_nodes.push_back( lem );
+    
+    lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
+    new_nodes.push_back( lem );
+    
+    Node x = nm->mkBoundVar(nm->integerType());
+    Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
+    Node g = nm->mkNode( AND, nm->mkNode( GEQ, x, d_zero ),nm->mkNode( LT, x, leni ) );
+    Node ufx = nm->mkNode(APPLY_UF, u, x);
+    Node ufx1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS,x,d_one));
+    Node c = nm->mkNode( MINUS, nm->mkNode( STRING_CODE, nm->mkNode( STRING_SUBSTR, itost, x, d_one ) ), nm->mkConst(Rational(48)));
+    
+    Node ten = nm->mkConst(Rational(10));
+    Node eq = ufx1.eqNode( nm->mkNode( PLUS, c, nm->mkNode( MULT, ten, ufx ) ) );
+    Node cb = nm->mkNode( AND, nm->mkNode( GEQ, c, nm->mkNode( ITE, x.eqNode(d_zero), d_one, d_zero ) ), nm->mkNode( LT, c, ten));
+    
+    lem = nm->mkNode( OR, g.negate(), nm->mkNode( AND, eq, cb ) );
+    lem = nm->mkNode( FORALL, xbv, lem );
+    new_nodes.push_back( lem );
+    
+    // assert:
+    //   (n>=0) <=> (itost != "") ^
+    //   n = U( len( itost ) ) ^ U( 0 ) = 0 ^ 
+    //   forall x. (x>=0 ^ x < str.len(itost)) =>
+    //     U( x+1 ) = (str.code( substr( itost, x, 1 ) )-48) + 10*U( x ) ^
+    //     ite( x=0, 49, 48 ) <= str.code( substr( itost, x, 1 ) ) < 58
+    // thus:
+    //   int.to.str( n ) = itost
 
-    Node ufx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, b1);
-    Node ufx1 = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, NodeManager::currentNM()->mkNode(kind::MINUS,b1,one));
-    Node ufMx = NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, b1);
-    Node b1gtz = NodeManager::currentNM()->mkNode(kind::GT, b1, d_zero);
-    Node cc1 = ufx1.eqNode( NodeManager::currentNM()->mkNode(kind::PLUS,
-            NodeManager::currentNM()->mkNode(kind::MULT, ufx, ten),
-            NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufM, NodeManager::currentNM()->mkNode(kind::MINUS,b1,one)) ));
-    cc1 = NodeManager::currentNM()->mkNode(kind::IMPLIES, b1gtz, cc1);
-    Node lstx = lenp.eqNode(NodeManager::currentNM()->mkNode(kind::PLUS, b1, one));
-    Node cc2 = ufx.eqNode(ufMx);
-    cc2 = NodeManager::currentNM()->mkNode(kind::IMPLIES, lstx, cc2);
-    // leading zero
-    Node cl = NodeManager::currentNM()->mkNode(kind::AND, lstx, d_zero.eqNode(b1).negate());
-    Node cc21 = NodeManager::currentNM()->mkNode(kind::IMPLIES, cl, NodeManager::currentNM()->mkNode(kind::GT, ufMx, d_zero));
-    //cc3
-    Node cc3 = NodeManager::currentNM()->mkNode(kind::GEQ, ufMx, d_zero);
-    Node cc4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
-
-    Node b21 = nm->mkNode(APPLY_UF, itosPre, b1);
-    Node b2d = nm->mkNode(APPLY_UF, itosDigit, b1);
-    Node b22 = nm->mkNode(APPLY_UF, itosPost, b1);
-
-    Node c21 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, b21).eqNode(
-          NodeManager::currentNM()->mkNode(kind::MINUS, lenp, NodeManager::currentNM()->mkNode(kind::PLUS, b1, one) ));
-    Node c22 = pret.eqNode(nm->mkNode(STRING_CONCAT, b21, b2d, b22));
-    Node c2d = nm->mkNode(STRING_CODE, b2d)
-                   .eqNode(nm->mkNode(PLUS, ufMx, nm->mkConst(Rational(48))));
-    Node cc5 = nm->mkNode(AND, c21, c22, c2d);
-    std::vector< Node > svec;
-    svec.push_back(cc1);svec.push_back(cc2);
-    svec.push_back(cc21);
-    svec.push_back(cc3);svec.push_back(cc4);svec.push_back(cc5);
-    Node conc = NodeManager::currentNM()->mkNode(kind::AND, svec);
-    conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, g1, conc );
-    conc = NodeManager::currentNM()->mkNode( kind::FORALL, b1v, conc );
-    conc = NodeManager::currentNM()->mkNode( kind::IMPLIES, nonneg, conc );
-    new_nodes.push_back( conc );
-
-    /*conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::IMPLIES,
-            NodeManager::currentNM()->mkNode(kind::LT, t[0], d_zero),
-            t.eqNode(NodeManager::currentNM()->mkNode(kind::STRING_CONCAT,
-              NodeManager::currentNM()->mkConst(::CVC4::String("-")), pret))));
-    new_nodes.push_back( conc );*/
-    retNode = pret;
+    retNode = itost;
   } else if( t.getKind() == kind::STRING_STOI ) {
     Node str = t[0];
     Node pret = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
