@@ -55,3 +55,35 @@ header = "options/decision_options.h"
   handler    = "stringToDecisionWeightInternal"
   read_only  = true
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
+
+[[option]]
+  name       = "almostConflict"
+  category   = "undocumented"
+  long       = "rapid-deletion"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "LRB-only: take into account variables that appears on the reason side near
+                the learnt clause, that is, variables that just missed the mark for the
+                learning rate calculation"
+
+[[option]]
+  name       = "antiExploration"
+  category   = "undocumented"
+  long       = "anti-exploration"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "LRB-only: favor variables that has been picked before (enforce locality)"
+
+
+[[option]]
+  name       = "lbd"
+  category   = "undocumented"
+  long       = "literal-block-distance"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use literal-block-distance based aggressive conflict clauses deletion"
+
+

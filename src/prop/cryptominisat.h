@@ -72,10 +72,6 @@ public:
 
   unsigned getAssertionLevel() const override;
 
-  std::vector<SatLiteral> getTopLevelUnits() override;
-
-  SatValue simplify() override;
-
   class Statistics {
   public:
     StatisticsRegistry* d_registry;

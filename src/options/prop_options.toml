@@ -82,12 +82,3 @@ header = "options/prop_options.h"
   default    = "false"
   read_only  = true
   help       = "instead of solving minisat dumps the asserted clauses in Dimacs format"
-
-[[option]]
-  name       = "lbd"
-  category   = "regular"
-  long       = "literal-block-distance"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "use literal-block-distance based aggressive conflict clauses deletion"
