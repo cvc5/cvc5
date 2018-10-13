@@ -182,7 +182,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node itost = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "itost");
     Node leni = nm->mkNode(STRING_LENGTH, itost);
 
-    std::vector< Node > conc;
+    std::vector<Node> conc;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
     Node u = nm->mkSkolem("U", nm->mkFunctionType(argTypes, nm->integerType()));
@@ -192,7 +192,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
     Node lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
-    conc.push_back( lem );
+    conc.push_back(lem);
 
     lem = d_zero.eqNode(nm->mkNode(APPLY_UF, u, d_zero));
     conc.push_back(lem);
@@ -228,8 +228,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     conc.push_back(lem);
 
     Node nonneg = nm->mkNode(GEQ, n, d_zero);
-    
-    lem = nm->mkNode( ITE, nonneg, nm->mkNode( AND, conc ), itost.eqNode(d_empty_str));
+
+    lem = nm->mkNode(
+        ITE, nonneg, nm->mkNode(AND, conc), itost.eqNode(d_empty_str));
     new_nodes.push_back(lem);
     // assert:
     // IF n>=0
