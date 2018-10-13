@@ -190,7 +190,7 @@ SatValue CryptoMinisatSolver::modelValue(SatLiteral l){
 
 unsigned CryptoMinisatSolver::getAssertionLevel() const {
   Unreachable("No interface to get assertion level in Cryptominisat");
-  return -1;
+  return -1; 
 }
 
 // Satistics for CryptoMinisatSolver

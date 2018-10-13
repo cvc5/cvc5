@@ -98,7 +98,7 @@ public:
   virtual bool ok() const = 0;
   
   virtual void setProofLog( BitVectorProof * bvp ) {}
-
+  
 };/* class SatSolver */
 
 

@@ -57,25 +57,6 @@ header = "options/decision_options.h"
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
 
 [[option]]
-  name       = "almostConflict"
-  category   = "undocumented"
-  long       = "almost-conflict"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "LRB-only: take into account variables that appears on the reason side of the implication graph"
-
-[[option]]
-  name       = "antiExploration"
-  category   = "undocumented"
-  long       = "anti-exploration"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "LRB-only: favor variables that has been picked before (enforce locality)"
-
-
-[[option]]
   name       = "lbd"
   category   = "undocumented"
   long       = "literal-block-distance"
