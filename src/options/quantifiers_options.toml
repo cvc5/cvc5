@@ -1355,6 +1355,14 @@ header = "options/quantifiers_options.h"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
+[[option]]
+  name       = "sygusExprMinerCheckUseExport"
+  category   = "expert"
+  long       = "sygus-expr-miner-check-use-export"
+  type       = "bool"
+  default    = "true"
+  help       = "export expressions to a different ExprManager with different options for satisfiability checks in expression miners"
+
 # CEGQI applied to general quantified formulas
 
 [[option]]

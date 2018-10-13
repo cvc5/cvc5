@@ -1168,8 +1168,8 @@ set(regress_1_tests
   regress1/nl/dist-big.smt2
   regress1/nl/div-mod-partial.smt2
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
-  regress1/nl/exp-approx.smt2
   regress1/nl/exp-4.5-lt.smt2
+  regress1/nl/exp-approx.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
@@ -1412,6 +1412,8 @@ set(regress_1_tests
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
+  regress1/rr-verify/fp-arith.sy
+  regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/regex.sy
   regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
