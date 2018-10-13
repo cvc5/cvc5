@@ -31,7 +31,7 @@ enum DecisionMode
 
   /**
    * Decision engine doesn't do anything. Use the VSIDS
-   * heuristics in the sat solver
+   * branching heuristics in the sat solver
    */
   DECISION_STRATEGY_INTERNAL,
 
@@ -39,11 +39,6 @@ enum DecisionMode
    * Use the justification heuristic
    */
   DECISION_STRATEGY_JUSTIFICATION,
-
-  /**
-   * Use the justification heuristic stop only for lrb
-   */
-  DECISION_STRATEGY_JUSTIFICATION_LRB,
 
   /**
    * Decision engine doesn't do anything. Use learning-rate based
