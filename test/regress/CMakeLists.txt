@@ -1409,6 +1409,7 @@ set(regress_1_tests
   regress1/rewriterules/length_gen_040_lemma_trigger.smt2
   regress1/rewriterules/reachability_back_to_the_future.smt2
   regress1/rewriterules/read5.smt2
+	regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
@@ -1660,6 +1661,7 @@ set(regress_1_tests
 # Regression level 2 tests
 
 set(regress_2_tests
+	regress2/rr-verify/fp-arith.sy
   regress2/DTP_k2_n35_c175_s15.smt2
   regress2/FIREFLY_3_e2_2236_e7_3681.ec.minimized.smt2
   regress2/GEO123+1.minimized.smt2

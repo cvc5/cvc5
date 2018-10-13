@@ -77,8 +77,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   // check is ground.
   Node squery = convertToSkolem(query);
   NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusExprMinerCheckTimeout.wasSetByUser()
-      || options::sygusRewSynthInput())
+  if (options::sygusExprMinerCheckUseExport())
   {
     // To support a separate timeout for the subsolver, we need to create
     // a separate ExprManager with its own options. This requires that
