@@ -88,13 +88,11 @@ static DoubleOption opt_var_decay(_cat,
                                   "The variable activity decay factor",
                                   0.95,
                                   DoubleRange(0, false, 1, false));
-#if !LBD_BASED_CLAUSE_DELETION
 static DoubleOption opt_clause_decay(_cat,
                                      "cla-decay",
                                      "The clause activity decay factor",
                                      0.999,
                                      DoubleRange(0, false, 1, false));
-#endif
 static DoubleOption  opt_random_var_freq   (_cat, "rnd-freq",    "The frequency with which the decision heuristic tries to choose a random variable", 0, DoubleRange(0, true, 1, true));
 static DoubleOption  opt_random_seed       (_cat, "rnd-seed",    "Used by the random variable selection",         91648253, DoubleRange(0, false, HUGE_VAL, false));
 static IntOption     opt_ccmin_mode        (_cat, "ccmin-mode",  "Controls conflict clause minimization (0=none, 1=basic, 2=deep)", 2, IntRange(0, 2));
@@ -138,20 +136,12 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       // Parameters (user settable):
       //
       ,
-      verbosity(0)
-      // for LRB
-      ,
+      verbosity(0),
       step_size(opt_step_size),
       step_size_dec(opt_step_size_dec),
-      min_step_size(opt_min_step_size)
-      // for VSIDS
-      ,
-      var_decay(opt_var_decay)
-#if !LBD_BASED_CLAUSE_DELETION
-      ,
-      clause_decay(opt_clause_decay)
-#endif
-      ,
+      min_step_size(opt_min_step_size),
+      var_decay(opt_var_decay),
+      clause_decay(opt_clause_decay),
       random_var_freq(opt_random_var_freq),
       random_seed(opt_random_seed),
       luby_restart(opt_luby_restart),
@@ -193,12 +183,8 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
 
       ,
       lbd_calls(0),
-      ok(true)
-#if !LBD_BASED_CLAUSE_DELETION
-      ,
-      cla_inc(1)
-#endif
-      ,
+      ok(true),
+      cla_inc(1),
       // for VSIDS
       var_inc(1),
       watches(WatcherDeleted(ca)),
@@ -264,12 +250,14 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
     lbd_seen.push(0);
     picked.push(0);
     conflicted.push(0);
-#if ALMOST_CONFLICT
-    almost_conflicted.push(0);
-#endif
-#if ANTI_EXPLORATION
-    canceled.push(0);
-#endif
+    if (options::almostConflict())
+    {
+      almost_conflicted.push(0);
+    }
+    if (options::antiExploration())
+    {
+      canceled.push(0);
+    }
     total_actual_rewards.push(0);
     total_actual_count.push(0);
     setDecisionVar(v, dvar);
@@ -641,13 +629,17 @@ void Solver::cancelUntil(int level) {
               double reward = ((double)conflicted[x]) / ((double)age);
               if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
               {
-#if ALMOST_CONFLICT
-                double adjusted_reward =
-                    ((double)(conflicted[x] + almost_conflicted[x]))
-                    / ((double)age);
-#else
-                double adjusted_reward = reward;
-#endif
+                double adjusted_reward;
+                if (options::almostConflict())
+                {
+                  adjusted_reward =
+                      ((double)(conflicted[x] + almost_conflicted[x]))
+                      / ((double)age);
+                }
+                else
+                {
+                  adjusted_reward = reward;
+                }
                 double old_activity = activity[x];
                 activity[x] = step_size * adjusted_reward
                               + ((1 - step_size) * old_activity);
@@ -662,9 +654,10 @@ void Solver::cancelUntil(int level) {
               total_actual_rewards[x] += reward;
               total_actual_count[x]++;
             }
-#if ANTI_EXPLORATION
-            canceled[x] = conflicts;
-#endif
+            if (options::antiExploration())
+            {
+              canceled[x] = conflicts;
+            }
             assigns[x] = l_Undef;
             if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
               polarity[x] = sign(trail[c]);
@@ -754,22 +747,23 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-#if ANTI_EXPLORATION
-          next = order_heap[0];
-          uint64_t age = conflicts - canceled[next];
-          while (age > 0)
+          if (options::antiExploration())
           {
-            double decay = pow(0.95, age);
-            activity[next] *= decay;
-            if (order_heap.inHeap(next))
-            {
-              order_heap.increase(next);
-            }
-            canceled[next] = conflicts;
             next = order_heap[0];
-            age = conflicts - canceled[next];
+            uint64_t age = conflicts - canceled[next];
+            while (age > 0)
+            {
+              double decay = pow(0.95, age);
+              activity[next] *= decay;
+              if (order_heap.inHeap(next))
+              {
+                order_heap.increase(next);
+              }
+              canceled[next] = conflicts;
+              next = order_heap[0];
+              age = conflicts - canceled[next];
+            }
           }
-#endif
           next = order_heap.removeMin();
         }
 
@@ -839,11 +833,14 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Clause& c = ca[confl];
           max_resolution_level = std::max(max_resolution_level, c.level());
 
-#if LBD_BASED_CLAUSE_DELETION
-          if (c.removable() && c.activity() > 2) c.activity() = lbd(c);
-#else
-          if (c.removable()) claBumpActivity(c);
-#endif
+          if (options::lbd())
+          {
+            if (c.removable() && c.activity() > 2) c.activity() = lbd(c);
+          }
+          else
+          {
+            if (c.removable()) claBumpActivity(c);
+          }
         }
 
         for (int j = (p == lit_Undef) ? 0 : 1, size = ca[confl].size();
@@ -961,28 +958,29 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         out_btlevel       = level(var(p));
     }
 
-#if ALMOST_CONFLICT
-    seen[var(p)] = true;
-    for (int i = out_learnt.size() - 1; i >= 0; i--)
+    if (options::almostConflict())
     {
-      Var v = var(out_learnt[i]);
-      CRef rea = reason(v);
-      if (rea != CRef_Undef)
+      seen[var(p)] = true;
+      for (int i = out_learnt.size() - 1; i >= 0; i--)
       {
-        Clause& reaC = ca[rea];
-        for (int i = 0; i < reaC.size(); i++)
+        Var v = var(out_learnt[i]);
+        CRef rea = reason(v);
+        if (rea != CRef_Undef)
         {
-          Lit l = reaC[i];
-          if (!seen[var(l)])
+          Clause& reaC = ca[rea];
+          for (int i = 0; i < reaC.size(); i++)
           {
-            seen[var(l)] = true;
-            almost_conflicted[var(l)]++;
-            analyze_toclear.push(l);
+            Lit l = reaC[i];
+            if (!seen[var(l)])
+            {
+              seen[var(l)] = true;
+              almost_conflicted[var(l)]++;
+              analyze_toclear.push(l);
+            }
           }
         }
       }
     }
-#endif
     for (int j = 0; j < analyze_toclear.size(); j++) seen[var(analyze_toclear[j])] = 0;    // ('seen[]' is now cleared)
 
     // Return the maximal resolution level
@@ -1071,22 +1069,24 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assert(value(p) == l_Undef);
     assert(var(p) < nVars());
     picked[var(p)] = conflicts;
-#if ANTI_EXPLORATION
-    uint64_t age = conflicts - canceled[var(p)];
-    if (age > 0)
+    if (options::antiExploration())
     {
-      double decay = pow(0.95, age);
-      activity[var(p)] *= decay;
-      if (order_heap.inHeap(var(p)))
+      uint64_t age = conflicts - canceled[var(p)];
+      if (age > 0)
       {
-        order_heap.increase(var(p));
+        double decay = pow(0.95, age);
+        activity[var(p)] *= decay;
+        if (order_heap.inHeap(var(p)))
+        {
+          order_heap.increase(var(p));
+        }
       }
     }
-#endif
     conflicted[var(p)] = 0;
-#if ALMOST_CONFLICT
-    almost_conflicted[var(p)] = 0;
-#endif
+    if (options::almostConflict())
+    {
+      almost_conflicted[var(p)] = 0;
+    }
     assigns[var(p)] = lbool(!sign(p));
     vardata[var(p)] = VarData(from, decisionLevel(), assertionLevel, intro_level(var(p)), trail.size());
     trail.push_(p);
@@ -1307,61 +1307,77 @@ int min(int a, int b) { return a < b ? a : b; }
 |    clauses are clauses that are reason to some assignment. Binary clauses are never removed.
 |________________________________________________________________________________________________@*/
 struct reduceDB_lt {
-    ClauseAllocator& ca;
-#if LBD_BASED_CLAUSE_DELETION
-    vec<double>& activity;
-    reduceDB_lt(ClauseAllocator& ca_, vec<double>& activity_)
-        : ca(ca_), activity(activity_)
-    {
-    }
-#else
-    reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-#endif
-    bool operator()(CRef x, CRef y)
-    {
-#if LBD_BASED_CLAUSE_DELETION
-      return ca[x].activity() > ca[y].activity();
-    }
-#else
-      return ca[x].size() > 2
-             && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity());
-    }
-#endif
+  ClauseAllocator& ca;
+
+  reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
+
+  bool operator()(CRef x, CRef y)
+  {
+    return ca[x].size() > 2
+           && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity());
+  }
+};
+
+struct reduceDB_lt_lrb
+{
+  ClauseAllocator& ca;
+
+  vec<double>& activity;
+
+  reduceDB_lt_lrb(ClauseAllocator& ca_, vec<double>& activity_)
+      : ca(ca_), activity(activity_)
+  {
+  }
+
+  bool operator()(CRef x, CRef y)
+  {
+    return ca[x].activity() > ca[y].activity();
+  }
 };
 void Solver::reduceDB()
 {
-    int     i, j;
-
-#if LBD_BASED_CLAUSE_DELETION
-    sort(clauses_removable, reduceDB_lt(ca, activity));
-#else
-    double extra_lim =
+  int i, j;
+  double extra_lim;
+  if (options::lbd())
+  {
+    sort(clauses_removable, reduceDB_lt_lrb(ca, activity));
+  }
+  else
+  {
+    extra_lim =
         cla_inc
         / clauses_removable.size();  // Remove any clause below this activity
     sort(clauses_removable, reduceDB_lt(ca));
-#endif
+  }
 
     // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
     // and clauses with activity smaller than 'extra_lim':
-#if LBD_BASED_CLAUSE_DELETION
-    for (i = j = 0; i < clauses_removable.size(); i++){
-      Clause& c = ca[clauses_removable[i]];
-      if (c.activity() > 2 && !locked(c) && i < clauses_removable.size() / 2)
-#else
-    for (i = j = 0; i < clauses_removable.size(); i++)
+    if (options::lbd())
     {
-      Clause& c = ca[clauses_removable[i]];
-      if (c.size() > 2 && !locked(c)
-          && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
-#endif
-        removeClause(clauses_removable[i]);
-      else
-        clauses_removable[j++] = clauses_removable[i];
+      for (i = j = 0; i < clauses_removable.size(); i++)
+      {
+        Clause& c = ca[clauses_removable[i]];
+        if (c.activity() > 2 && !locked(c) && i < clauses_removable.size() / 2)
+          removeClause(clauses_removable[i]);
+        else
+          clauses_removable[j++] = clauses_removable[i];
+      }
+    }
+    else
+    {
+      for (i = j = 0; i < clauses_removable.size(); i++)
+      {
+        Clause& c = ca[clauses_removable[i]];
+        if (c.size() > 2 && !locked(c)
+            && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
+          removeClause(clauses_removable[i]);
+        else
+          clauses_removable[j++] = clauses_removable[i];
+      }
     }
     clauses_removable.shrink(i - j);
     checkGarbage();
 }
-
 
 void Solver::removeSatisfied(vec<CRef>& cs)
 {
@@ -1494,12 +1510,15 @@ lbool Solver::search(int nof_conflicts)
                            true);
               clauses_removable.push(cr);
               attachClause(cr);
-#if LBD_BASED_CLAUSE_DELETION
-              Clause& clause = ca[cr];
-              clause.activity() = lbd(clause);
-#else
-              claBumpActivity(ca[cr]);
-#endif
+              if (options::lbd())
+              {
+                Clause& clause = ca[cr];
+                clause.activity() = lbd(clause);
+              }
+              else
+              {
+                claBumpActivity(ca[cr]);
+              }
               uncheckedEnqueue(learnt_clause[0], cr);
               PROOF(ClauseId id =
                         ProofManager::getSatProof()->registerClause(cr, LEARNT);
@@ -1515,16 +1534,17 @@ lbool Solver::search(int nof_conflicts)
             {
               varDecayActivity();
             }
-#if !LBD_BASED_CLAUSE_DELETION
-            claDecayActivity();
-#endif
-
+            if (!options::lbd())
+            {
+              claDecayActivity();
+            }
             if (--learntsize_adjust_cnt == 0){
-                learntsize_adjust_confl *= learntsize_adjust_inc;
-                learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
-#if !RAPID_DELETION
-                max_learnts             *= learntsize_inc;
-#endif
+              learntsize_adjust_confl *= learntsize_adjust_inc;
+              learntsize_adjust_cnt = (int)learntsize_adjust_confl;
+              if (!options::lbd())
+              {
+                max_learnts *= learntsize_inc;
+              }
                 if (verbosity >= 1)
                     printf("| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
                            (int)conflicts,
@@ -1577,11 +1597,12 @@ lbool Solver::search(int nof_conflicts)
             }
 
             if (clauses_removable.size()-nAssigns() >= max_learnts) {
-                // Reduce the set of learnt clauses:
-                reduceDB();
-#if RAPID_DELETION
+              // Reduce the set of learnt clauses:
+              reduceDB();
+              if (options::lbd())
+              {
                 max_learnts += 500;
-#endif
+              }
             }
 
             Lit next = lit_Undef;
@@ -1685,20 +1706,22 @@ lbool Solver::solve_()
 
     solves++;
 
-#if RAPID_DELETION
-    max_learnts = 2000;
-#else
-    max_learnts               = nClauses() * learntsize_factor;
-#endif
+    if (options::lbd())
+    {
+      max_learnts = 2000;
+    }
+    else
+    {
+      max_learnts = nClauses() * learntsize_factor;
+    }
     learntsize_adjust_confl   = learntsize_adjust_start_confl;
     learntsize_adjust_cnt     = (int)learntsize_adjust_confl;
     lbool   status            = l_Undef;
 
     if (verbosity >= 1){
-      printf("LBD Based Clause Deletion : %d\n", LBD_BASED_CLAUSE_DELETION);
-      printf("Rapid Deletion : %d\n", RAPID_DELETION);
-      printf("Almost Conflict : %d\n", ALMOST_CONFLICT);
-      printf("Anti Exploration : %d\n", ANTI_EXPLORATION);
+      printf("LBD Based Clause Deletion : %d\n", options::lbd());
+      printf("Almost Conflict : %d\n", options::almostConflict());
+      printf("Anti Exploration : %d\n", options::antiExploration());
       printf(
           "============================[ Search Statistics "
           "]==============================\n");

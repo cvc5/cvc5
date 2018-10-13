@@ -63,9 +63,7 @@ header = "options/decision_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "LRB-only: take into account variables that appears on the reason side near
-                the learnt clause, that is, variables that just missed the mark for the
-                learning rate calculation"
+  help       = "LRB-only: take into account variables that appears on the reason side of the implication graph"
 
 [[option]]
   name       = "antiExploration"
@@ -85,5 +83,3 @@ header = "options/decision_options.h"
   default    = "false"
   read_only  = true
   help       = "use literal-block-distance based aggressive conflict clauses deletion"
-
-

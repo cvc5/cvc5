@@ -258,9 +258,7 @@ public:
     double min_step_size;
     // for VSIDS
     double    var_decay;
-#if !LBD_BASED_CLAUSE_DELETION
     double    clause_decay;
-#endif
     double    random_var_freq;
     double    random_seed;
     bool      luby_restart;
@@ -287,12 +285,8 @@ public:
     vec<uint64_t> lbd_seen;
     vec<uint64_t> picked;
     vec<uint64_t> conflicted;
-#if ALMOST_CONFLICT
     vec<uint64_t> almost_conflicted;
-#endif
-#if ANTI_EXPLORATION
     vec<uint64_t> canceled;
-#endif
     vec<long double> total_actual_rewards;
     vec<int> total_actual_count;
 
@@ -347,9 +341,7 @@ public:
     bool                ok;                 // If FALSE, the constraints are already unsatisfiable. No part of the solver state may be used!
     vec<CRef>           clauses_persistent; // List of problem clauses.
     vec<CRef>           clauses_removable;  // List of learnt clauses.
-#if !LBD_BASED_CLAUSE_DELETION
     double              cla_inc;            // Amount to bump next clause with.
-#endif
     vec<double>         activity;           // A heuristic measurement of the activity of a variable.
     double              var_inc;            // Amount to bump next variable with.
     OccLists<Lit, vec<Watcher>, WatcherDeleted>
@@ -451,10 +443,8 @@ public:
     void     varDecayActivity ();                      // Decay all variables with the specified factor. Implemented by increasing the 'bump' value instead.
     void     varBumpActivity  (Var v, double inc);     // Increase a variable with the current 'bump' value.
     void     varBumpActivity  (Var v);                 // Increase a variable with the current 'bump' value.
-#if !LBD_BASED_CLAUSE_DELETION
     void     claDecayActivity ();                      // Decay all clauses with the specified factor. Implemented by increasing the 'bump' value instead.
     void     claBumpActivity  (Clause& c);             // Increase a clause with the current 'bump' value.
-#endif
 
     // Operations on clauses:
     //
@@ -536,7 +526,6 @@ inline void Solver::varBumpActivity(Var v, double inc) {
     // Update order_heap with respect to new activity:
     if (order_heap.inHeap(v))
         order_heap.decrease(v); }
-#if !LBD_BASED_CLAUSE_DELETION
 inline void Solver::claDecayActivity() { cla_inc *= (1 / clause_decay); }
 inline void Solver::claBumpActivity (Clause& c) {
         if ( (c.activity() += cla_inc) > 1e20 ) {
@@ -544,7 +533,6 @@ inline void Solver::claBumpActivity (Clause& c) {
             for (int i = 0; i < clauses_removable.size(); i++)
                 ca[clauses_removable[i]].activity() *= 1e-20;
             cla_inc *= 1e-20; } }
-#endif
 
 inline void Solver::checkGarbage(void){ return checkGarbage(garbage_frac); }
 inline void Solver::checkGarbage(double gf){
