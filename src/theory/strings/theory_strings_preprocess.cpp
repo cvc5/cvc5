@@ -209,6 +209,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                 argTypes, nm->integerType()),
               "uf type conv M");
     Node itosPre = nm->mkSkolem("itos_pre",nm->mkFunctionType(argTypes,nm->stringType()));
+    Node itosDigit = nm->mkSkolem("itos_digit",nm->mkFunctionType(argTypes,nm->stringType()));
     Node itosPost = nm->mkSkolem("itos_post",nm->mkFunctionType(argTypes,nm->stringType()));
 
     lem = num.eqNode(NodeManager::currentNM()->mkNode(kind::APPLY_UF, ufP, d_zero));
@@ -233,32 +234,14 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node cc4 = NodeManager::currentNM()->mkNode(kind::GEQ, nine, ufMx);
 
     Node b21 = nm->mkNode(APPLY_UF,itosPre,b1);
+    Node b2d = nm->mkNode(APPLY_UF,itosDigit,b1);
     Node b22 = nm->mkNode(APPLY_UF,itosPost,b1);
 
     Node c21 = NodeManager::currentNM()->mkNode(kind::STRING_LENGTH, b21).eqNode(
           NodeManager::currentNM()->mkNode(kind::MINUS, lenp, NodeManager::currentNM()->mkNode(kind::PLUS, b1, one) ));
-    Node ch =
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(0))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("0")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(1))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("1")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(2))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("2")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(3))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("3")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(4))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("4")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(5))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("5")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(6))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("6")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(7))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("7")),
-      NodeManager::currentNM()->mkNode(kind::ITE, ufMx.eqNode(NodeManager::currentNM()->mkConst(::CVC4::Rational(8))),
-      NodeManager::currentNM()->mkConst(::CVC4::String("8")),
-      NodeManager::currentNM()->mkConst(::CVC4::String("9")))))))))));
-    Node c22 = pret.eqNode( NodeManager::currentNM()->mkNode(kind::STRING_CONCAT, b21, ch, b22) );
-    Node cc5 = NodeManager::currentNM()->mkNode(kind::AND, c21, c22);
+    Node c22 = pret.eqNode( nm->mkNode(STRING_CONCAT, b21, b2d, b22) );
+    Node c2d = nm->mkNode( STRING_CODE, b2d ).eqNode( nm->mkNode( PLUS, ufMx, nm->mkConst(Rational(48))));
+    Node cc5 = nm->mkNode(AND, c21, c22, c2d);
     std::vector< Node > svec;
     svec.push_back(cc1);svec.push_back(cc2);
     svec.push_back(cc21);
