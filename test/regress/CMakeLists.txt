@@ -1412,6 +1412,7 @@ set(regress_1_tests
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
+  regress1/rr-verify/fp-arith.sy
   regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/regex.sy
   regress1/rr-verify/string-term.sy
@@ -1707,7 +1708,6 @@ set(regress_2_tests
   regress2/quantifiers/mutualrec2.cvc
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
-  regress2/rr-verify/fp-arith.sy
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmu-dis-0707-3.smt2
   regress2/strings/cmu-disagree-0707-dd.smt2
