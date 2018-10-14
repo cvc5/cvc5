@@ -151,6 +151,8 @@ Node BoolToBV::lowerAssertion(const TNode& a)
 void BoolToBV::lowerNode(const TNode& n)
 {
   NodeManager* nm = NodeManager::currentNM();
+  Kind k = n.getKind();
+
   bool all_bv = true;
   // check if it was able to convert all children to bitvectors
   for (const Node& nn : n)
@@ -167,8 +169,16 @@ void BoolToBV::lowerNode(const TNode& n)
     if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
         && n.getType().isBoolean())
     {
-      d_lowerCache[n] =
+      if (k == kind::CONST_BOOLEAN)
+        {
+          d_lowerCache[n] =
+            (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1);
+        }
+      else
+      {
+        d_lowerCache[n] =
           nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+      }
       ++(d_statistics.d_numTermsForcedLowered);
       return;
     }
@@ -183,7 +193,6 @@ void BoolToBV::lowerNode(const TNode& n)
     return;
   }
 
-  Kind k = n.getKind();
   Kind new_kind = k;
   switch (k)
   {
