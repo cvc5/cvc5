@@ -16,7 +16,8 @@ header = "options/decision_options.h"
 [[option]]
   name       = "decisionStopOnly"
   category   = "undocumented"
-  type       = "bool"
+  type       = "int"
+  help       = "0: turned off, 1: vsids, 2: lrb"
 
 [[option]]
   name       = "decisionThreshold"
@@ -55,3 +56,13 @@ header = "options/decision_options.h"
   handler    = "stringToDecisionWeightInternal"
   read_only  = true
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
+
+[[option]]
+  name       = "lbd"
+  category   = "undocumented"
+  long       = "literal-block-distance"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "use literal-block-distance based aggressive conflict clauses deletion"
+  

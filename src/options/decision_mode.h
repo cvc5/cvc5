@@ -29,8 +29,8 @@ namespace decision {
 enum DecisionMode {
 
   /**
-   * Decision engine doesn't do anything. Use sat solver's internal
-   * heuristics
+   * Decision engine doesn't do anything. Use the VSIDS
+   * branching heuristics in the sat solver
    */
   DECISION_STRATEGY_INTERNAL,
 
@@ -38,6 +38,12 @@ enum DecisionMode {
    * Use the justification heuristic
    */
   DECISION_STRATEGY_JUSTIFICATION,
+
+  /**
+   * Decision engine doesn't do anything. Use learning-rate based
+   * heuristics in the sat solver
+   */
+  DECISION_STRATEGY_LRB,
 
   /**
    * Use may-relevancy.
