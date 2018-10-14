@@ -189,7 +189,7 @@ void BoolToBV::lowerNode(const TNode& n)
     // or it's in 'ite' mode which will give up on bools that
     //   can't be converted easily
 
-    Debug("bool-to-bv") << "Failed to push to bv: " << n << std::endl;
+    Debug("bool-to-bv") << "BoolToBV::lowerNode skipping: " << n << std::endl;
     return;
   }
 
