@@ -146,7 +146,6 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
   , lbd_calls(0)
   , ok                 (true)
   , cla_inc            (1)
-  // for VSIDS
   , var_inc            (1)
   , watches            (WatcherDeleted(ca))
   , qhead              (0)
@@ -158,9 +157,9 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy, CVC4::context::Context* context, 
 
     // Resource constraints:
     //
-  , conflict_budget(-1)
-  , propagation_budget(-1)
-  , asynch_interrupt(false)
+  , conflict_budget    (-1)
+  , propagation_budget (-1)
+  , asynch_interrupt   (false)
 {
   PROOF(ProofManager::currentPM()->initSatProof(this);)
 
@@ -1263,29 +1262,28 @@ int min(int a, int b) { return a < b ? a : b; }
 |    clauses are clauses that are reason to some assignment. Binary clauses are never removed.
 |________________________________________________________________________________________________@*/
 struct reduceDB_lt {
-  ClauseAllocator& ca;
-  reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-  bool operator()(CRef x, CRef y) {
-    return ca[x].size() > 2
-           && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); }
+    ClauseAllocator& ca;
+    reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
+    bool operator()(CRef x, CRef y) {
+        return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); }
 };
 void Solver::reduceDB()
 {
-  int     i, j;
-  double  extra_lim = cla_inc / clauses_removable.size();    // Remove any clause below this activity
+    int     i, j;
+    double  extra_lim = cla_inc / clauses_removable.size();    // Remove any clause below this activity
 
-  sort(clauses_removable, reduceDB_lt(ca));
-  // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
-  // and clauses with activity smaller than 'extra_lim':
-  for (i = j = 0; i < clauses_removable.size(); i++){
-    Clause& c = ca[clauses_removable[i]];
-    if (c.size() > 2 && !locked(c) && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
-      removeClause(clauses_removable[i]);
-    else
-      clauses_removable[j++] = clauses_removable[i];
-  }
-  clauses_removable.shrink(i - j);
-  checkGarbage();
+    sort(clauses_removable, reduceDB_lt(ca));
+    // Don't delete binary or locked clauses. From the rest, delete clauses from the first half
+    // and clauses with activity smaller than 'extra_lim':
+    for (i = j = 0; i < clauses_removable.size(); i++){
+        Clause& c = ca[clauses_removable[i]];
+        if (c.size() > 2 && !locked(c) && (i < clauses_removable.size() / 2 || c.activity() < extra_lim))
+            removeClause(clauses_removable[i]);
+        else
+            clauses_removable[j++] = clauses_removable[i];
+    }
+    clauses_removable.shrink(i - j);
+    checkGarbage();
 }
 
 struct reduceDB_lt_lbd
@@ -1480,11 +1478,11 @@ lbool Solver::search(int nof_conflicts)
               claDecayActivity();
             }
             if (--learntsize_adjust_cnt == 0){
-              learntsize_adjust_confl *= learntsize_adjust_inc;
-              learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
+              learntsize_adjust_confl   *= learntsize_adjust_inc;
+              learntsize_adjust_cnt      = (int)learntsize_adjust_confl;
               if (!options::lbd())
               {
-                max_learnts           *= learntsize_inc;
+                max_learnts             *= learntsize_inc;
               }
                 if (verbosity >= 1)
                     printf("| %9d | %7d %8d %8d | %8d %8d %6.0f | %6.3f %% |\n",
@@ -1651,22 +1649,22 @@ lbool Solver::solve_()
 
     if (options::lbd())
     {
-      max_learnts               = 2000;
+    max_learnts               = 2000;
     }
     else
     {
-      max_learnts               = nClauses() * learntsize_factor;
+    max_learnts               = nClauses() * learntsize_factor;
     }
     learntsize_adjust_confl   = learntsize_adjust_start_confl;
     learntsize_adjust_cnt     = (int)learntsize_adjust_confl;
     lbool   status            = l_Undef;
 
     if (verbosity >= 1){
-      printf("LBD Based Clause Deletion : %d\n", options::lbd());
-      printf("============================[ Search Statistics ]==============================\n");
-      printf("| Conflicts |          ORIGINAL         |          LEARNT          | Progress |\n");
-      printf("|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |\n");
-      printf("===============================================================================\n");
+        printf("LBD Based Clause Deletion : %d\n", options::lbd());
+        printf("============================[ Search Statistics ]==============================\n");
+        printf("| Conflicts |          ORIGINAL         |          LEARNT          | Progress |\n");
+        printf("|           |    Vars  Clauses Literals |    Limit  Clauses Lit/Cl |          |\n");
+        printf("===============================================================================\n");
     }
 
     // Search:
