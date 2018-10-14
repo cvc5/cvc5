@@ -135,12 +135,8 @@ void MinisatSatSolver::setupOptions() {
   }
 
   // Give access to all possible options in the sat solver
-#if BRANCHING_HEURISTIC == VSIDS
   d_minisat->var_decay = options::satVarDecay();
-#endif
-#if !LBD_BASED_CLAUSE_DELETION
   d_minisat->clause_decay = options::satClauseDecay();
-#endif
   d_minisat->restart_first = options::satRestartFirst();
   d_minisat->restart_inc = options::satRestartInc();
 }
