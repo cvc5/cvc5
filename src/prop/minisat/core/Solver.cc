@@ -697,25 +697,25 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-              || options::decisionStopOnly() == 2)
-          {
-            next = order_heap[0];
-            uint64_t age = conflicts - canceled[next];
-            while (age > 0)
+            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+                || options::decisionStopOnly() == 2)
             {
-              double decay = pow(0.95, age);
-              activity[next] *= decay;
-              if (order_heap.inHeap(next))
-              {
-                order_heap.increase(next);
-              }
-              canceled[next] = conflicts;
               next = order_heap[0];
-              age = conflicts - canceled[next];
+              uint64_t age = conflicts - canceled[next];
+              while (age > 0)
+              {
+                double decay = pow(0.95, age);
+                activity[next] *= decay;
+                if (order_heap.inHeap(next))
+                {
+                  order_heap.increase(next);
+                }
+                canceled[next] = conflicts;
+                next = order_heap[0];
+                age = conflicts - canceled[next];
+              }
             }
-          }
-          next = order_heap.removeMin();
+            next = order_heap.removeMin();
         }
 
         if(!decision[next]) continue;
@@ -1264,7 +1264,7 @@ int min(int a, int b) { return a < b ? a : b; }
 struct reduceDB_lt {
     ClauseAllocator& ca;
     reduceDB_lt(ClauseAllocator& ca_) : ca(ca_) {}
-    bool operator()(CRef x, CRef y) {
+    bool operator () (CRef x, CRef y) {
         return ca[x].size() > 2 && (ca[y].size() == 2 || ca[x].activity() < ca[y].activity()); }
 };
 void Solver::reduceDB()
@@ -1293,7 +1293,7 @@ struct reduceDB_lt_lbd
   reduceDB_lt_lbd(ClauseAllocator& ca_, vec<double>& activity_)
       : ca(ca_), activity(activity_) {}
 
-  bool operator()(CRef x, CRef y) {
+  bool operator () (CRef x, CRef y) {
     return ca[x].activity() > ca[y].activity();}
 };
 void Solver::reduceDB_lbd()
@@ -1420,6 +1420,7 @@ lbool Solver::search(int nof_conflicts)
         if (confl != CRef_Undef) {
 
             conflicts++; conflictC++;
+
             if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
                 || options::decisionStopOnly() == 2)
             {
@@ -1478,8 +1479,8 @@ lbool Solver::search(int nof_conflicts)
               claDecayActivity();
             }
             if (--learntsize_adjust_cnt == 0){
-              learntsize_adjust_confl   *= learntsize_adjust_inc;
-              learntsize_adjust_cnt      = (int)learntsize_adjust_confl;
+                learntsize_adjust_confl *= learntsize_adjust_inc;
+                learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
               if (!options::lbd())
               {
                 max_learnts             *= learntsize_inc;
@@ -1536,14 +1537,14 @@ lbool Solver::search(int nof_conflicts)
             }
 
             if (clauses_removable.size()-nAssigns() >= max_learnts) {
-              // Reduce the set of learnt clauses:
-              if (options::lbd()){
-                reduceDB_lbd();
-                max_learnts += 500;
-              }
-              else {
-                reduceDB();
-              }
+                // Reduce the set of learnt clauses:
+                if (options::lbd()){
+                    reduceDB_lbd();
+                    max_learnts += 500;
+                }
+                else {
+                    reduceDB();
+                }
             }
 
             Lit next = lit_Undef;
