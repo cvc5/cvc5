@@ -52,7 +52,7 @@ namespace Minisat {
 typedef int Var;
 #define var_Undef (-1)
 
-typedef float Act;
+
 
 struct Lit {
     int     x;
@@ -194,13 +194,7 @@ class Clause {
         unsigned reloced   : 1;
         unsigned size      : 27;
         unsigned level     : 32; }                            header;
-    union
-    {
-      Lit lit;
-      Act act;
-      uint32_t abs;
-      CRef rel;
-    } data[0];
+    union { Lit lit; float act; uint32_t abs; CRef rel; } data[0];
 
     friend class ClauseAllocator;
 
@@ -253,11 +247,7 @@ public:
     Lit          operator [] (int i) const   { return data[i].lit; }
     operator const Lit* (void) const         { return (Lit*)data; }
 
-    Act& activity()
-    {
-      assert(header.has_extra);
-      return data[header.size].act;
-    }
+    float&       activity()                  { assert(header.has_extra); return data[header.size].act; }
     uint32_t     abstraction () const        { assert(header.has_extra); return data[header.size].abs; }
 
     Lit          subsumes    (const Clause& other) const;
