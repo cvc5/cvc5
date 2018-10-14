@@ -252,12 +252,10 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
     lbd_seen.push(0);
     picked.push(0);
     conflicted.push(0);
-    if (options::almostConflict())
+    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+        || options::decisionStopOnly() == 2)
     {
       almost_conflicted.push(0);
-    }
-    if (options::antiExploration())
-    {
       canceled.push(0);
     }
     total_actual_rewards.push(0);
@@ -629,19 +627,12 @@ void Solver::cancelUntil(int level) {
             if (age > 0)
             {
               double reward = ((double)conflicted[x]) / ((double)age);
-              if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
+              if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+                  || options::decisionStopOnly() == 2)
               {
-                double adjusted_reward;
-                if (options::almostConflict())
-                {
-                  adjusted_reward =
-                      ((double)(conflicted[x] + almost_conflicted[x]))
-                      / ((double)age);
-                }
-                else
-                {
-                  adjusted_reward = reward;
-                }
+                double adjusted_reward =
+                    ((double)(conflicted[x] + almost_conflicted[x]))
+                    / ((double)age);
                 double old_activity = activity[x];
                 activity[x] = step_size * adjusted_reward
                               + ((1 - step_size) * old_activity);
@@ -656,7 +647,8 @@ void Solver::cancelUntil(int level) {
               total_actual_rewards[x] += reward;
               total_actual_count[x]++;
             }
-            if (options::antiExploration())
+            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+                || options::decisionStopOnly() == 2)
             {
               canceled[x] = conflicts;
             }
@@ -749,7 +741,8 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-          if (options::antiExploration())
+          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+              || options::decisionStopOnly() == 2)
           {
             next = order_heap[0];
             uint64_t age = conflicts - canceled[next];
@@ -853,7 +846,8 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
           if (!seen[var(q)] && level(var(q)) > 0)
           {
-            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL
+                || options::decisionStopOnly() == 1)
             {
               varBumpActivity(var(q));
             }
@@ -960,7 +954,8 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         out_btlevel       = level(var(p));
     }
 
-    if (options::almostConflict())
+    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+        || options::decisionStopOnly() == 2)
     {
       seen[var(p)] = true;
       for (int i = out_learnt.size() - 1; i >= 0; i--)
@@ -1071,7 +1066,8 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assert(value(p) == l_Undef);
     assert(var(p) < nVars());
     picked[var(p)] = conflicts;
-    if (options::antiExploration())
+    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+        || options::decisionStopOnly() == 2)
     {
       uint64_t age = conflicts - canceled[var(p)];
       if (age > 0)
@@ -1085,7 +1081,8 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
       }
     }
     conflicted[var(p)] = 0;
-    if (options::almostConflict())
+    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+        || options::decisionStopOnly() == 2)
     {
       almost_conflicted[var(p)] = 0;
     }
@@ -1478,7 +1475,8 @@ lbool Solver::search(int nof_conflicts)
         if (confl != CRef_Undef) {
 
             conflicts++; conflictC++;
-            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
+            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+                || options::decisionStopOnly() == 2)
             {
               if (step_size > min_step_size) step_size -= step_size_dec;
             }
@@ -1524,7 +1522,8 @@ lbool Solver::search(int nof_conflicts)
                         ProofManager::getSatProof()
                             ->endResChain(id););
             }
-            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL)
+            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL
+                || options::decisionStopOnly() == 1)
             {
               varDecayActivity();
             }
@@ -1594,13 +1593,10 @@ lbool Solver::search(int nof_conflicts)
               // Reduce the set of learnt clauses:
               if (options::lbd()){
                 reduceDB_lbd();
+                max_learnts += 500;
               }
               else {
                 reduceDB();
-              }
-              if (options::lbd())
-              {
-                max_learnts += 500;
               }
             }
 
@@ -1719,8 +1715,6 @@ lbool Solver::solve_()
 
     if (verbosity >= 1){
       printf("LBD Based Clause Deletion : %d\n", options::lbd());
-      printf("Almost Conflict : %d\n", options::almostConflict());
-      printf("Anti Exploration : %d\n", options::antiExploration());
       printf(
           "============================[ Search Statistics "
           "]==============================\n");
