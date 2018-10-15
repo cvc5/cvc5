@@ -173,10 +173,12 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node abcd = d_nm->mkConst(::CVC4::String("ABCD"));
     Node zero = d_nm->mkConst(Rational(0));
+    Node one = d_nm->mkConst(Rational(1));
     Node two = d_nm->mkConst(Rational(2));
     Node three = d_nm->mkConst(Rational(3));
 
     Node s = d_nm->mkVar("s", strType);
+    Node s2 = d_nm->mkVar("s2", strType);
     Node x = d_nm->mkVar("x", intType);
     Node y = d_nm->mkVar("y", intType);
 
@@ -238,6 +240,42 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                             s,
                             d_nm->mkNode(kind::STRING_SUBSTR, b, x, x));
     sameNormalForm(lhs, rhs);
+
+    // Same normal form:
+    //
+    // (str.substr (str.replace s "A" "B") 0 x)
+    //
+    // (str.replace (str.substr s 0 x) "A" "B")
+    Node substr_repl = d_nm->mkNode(kind::STRING_SUBSTR,
+                                    d_nm->mkNode(kind::STRING_STRREPL, s, a, b),
+                                    zero,
+                                    x);
+    Node repl_substr =
+        d_nm->mkNode(kind::STRING_STRREPL,
+                     d_nm->mkNode(kind::STRING_SUBSTR, s, zero, x),
+                     a,
+                     b);
+    sameNormalForm(substr_repl, repl_substr);
+
+    // Same normal form:
+    //
+    // (str.substr (str.replace s (str.substr (str.++ s2 "A") 0 1) "B") 0 x)
+    //
+    // (str.replace (str.substr s 0 x) (str.substr (str.++ s2 "A") 0 1) "B")
+    Node substr_y = d_nm->mkNode(kind::STRING_SUBSTR,
+                                 d_nm->mkNode(kind::STRING_CONCAT, s2, a),
+                                 zero,
+                                 one);
+    substr_repl =
+        d_nm->mkNode(kind::STRING_SUBSTR,
+                     d_nm->mkNode(kind::STRING_STRREPL, s, substr_y, b),
+                     zero,
+                     x);
+    repl_substr = d_nm->mkNode(kind::STRING_STRREPL,
+                               d_nm->mkNode(kind::STRING_SUBSTR, s, zero, x),
+                               substr_y,
+                               b);
+    sameNormalForm(substr_repl, repl_substr);
   }
 
   void testRewriteConcat()
@@ -512,42 +550,6 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                              b);
     repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
     sameNormalForm(repl_repl, repl);
-
-    // Same normal form:
-    //
-    // (str.substr (str.replace x "A" "B") 0 n)
-    //
-    // (str.replace (str.substr x 0 n) "A" "B")
-    Node substr_repl = d_nm->mkNode(kind::STRING_SUBSTR,
-                                    d_nm->mkNode(kind::STRING_STRREPL, x, a, b),
-                                    zero,
-                                    n);
-    Node repl_substr =
-        d_nm->mkNode(kind::STRING_STRREPL,
-                     d_nm->mkNode(kind::STRING_SUBSTR, x, zero, n),
-                     a,
-                     b);
-    sameNormalForm(substr_repl, repl_substr);
-
-    // Same normal form:
-    //
-    // (str.substr (str.replace x (str.substr (str.++ y "A") 0 1) "B") 0 n)
-    //
-    // (str.replace (str.substr x 0 n) (str.substr (str.++ y "A") 0 1) "B")
-    Node substr_y = d_nm->mkNode(kind::STRING_SUBSTR,
-                                 d_nm->mkNode(kind::STRING_CONCAT, y, a),
-                                 zero,
-                                 one);
-    substr_repl =
-        d_nm->mkNode(kind::STRING_SUBSTR,
-                     d_nm->mkNode(kind::STRING_STRREPL, x, substr_y, b),
-                     zero,
-                     n);
-    repl_substr = d_nm->mkNode(kind::STRING_STRREPL,
-                               d_nm->mkNode(kind::STRING_SUBSTR, x, zero, n),
-                               substr_y,
-                               b);
-    sameNormalForm(substr_repl, repl_substr);
   }
 
   void testRewriteContains()

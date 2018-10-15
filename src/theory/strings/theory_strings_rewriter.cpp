@@ -1651,6 +1651,28 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       return returnRewrite(node, ret, "ss-start-geq-len");
     }
   }
+  else if (node[0].getKind() == STRING_STRREPL)
+  {
+    // (str.substr (str.replace x y z) 0 n)
+    // 	 ---> (str.replace (str.substr x 0 n) y z)
+    // if (str.len y) = 1 and (str.len z) = 1
+    if (node[1] == zero)
+    {
+      Node one = nm->mkConst(Rational(1));
+      Node n1len = nm->mkNode(kind::STRING_LENGTH, node[0][1]);
+      Node n2len = nm->mkNode(kind::STRING_LENGTH, node[0][2]);
+      if (checkEntailArith(one, n1len) && checkEntailArith(one, n2len)
+          && checkEntailNonEmpty(node[0][1]) && checkEntailNonEmpty(node[0][2]))
+      {
+        Node ret = nm->mkNode(
+            kind::STRING_STRREPL,
+            nm->mkNode(kind::STRING_SUBSTR, node[0][0], node[1], node[2]),
+            node[0][1],
+            node[0][2]);
+        return returnRewrite(node, ret, "substr-repl-swap");
+      }
+    }
+  }
 
   std::vector<Node> n1;
   getConcat(node[0], n1);
@@ -2696,28 +2718,6 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
                                 z);
           return returnRewrite(node, ret, "repl-repl-short-circuit");
         }
-      }
-    }
-  }
-  else if (node[0].getKind() == STRING_SUBSTR)
-  {
-    // (str.replace (str.substr x 0 n) y z) ---> (str.substr (str.replace x y z)
-    // 0 n) if (str.len y) = 1 and (str.len z) = 1
-    Node zero = nm->mkConst(Rational(0));
-    Node one = nm->mkConst(Rational(1));
-    Node n1len = nm->mkNode(kind::STRING_LENGTH, node[1]);
-    Node n2len = nm->mkNode(kind::STRING_LENGTH, node[2]);
-    if (node[0][1] == zero)
-    {
-      if (checkEntailArith(one, n1len) && checkEntailArith(one, n2len)
-          && checkEntailNonEmpty(node[1]) && checkEntailNonEmpty(node[2]))
-      {
-        Node ret = nm->mkNode(
-            kind::STRING_SUBSTR,
-            nm->mkNode(kind::STRING_STRREPL, node[0][0], node[1], node[2]),
-            node[0][1],
-            node[0][2]);
-        return returnRewrite(node, ret, "repl-repl-short-circuit");
       }
     }
   }
