@@ -164,9 +164,9 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
   //--------------------------for checkExtfReductions
-  /** do reduction 
-   * 
-   * 
+  /** do reduction
+   *
+   *
    */
   bool doReduction(int effort, Node n, bool& isCd);
   //--------------------------end for checkExtfReductions
