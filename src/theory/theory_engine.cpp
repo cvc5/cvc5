@@ -881,15 +881,22 @@ void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
   }
 }
 
-/* get model */
-TheoryModel* TheoryEngine::getModel(bool ensureBuilt) {
-  if (ensureBuilt && d_inSatMode && options::produceModels() && !d_curr_model->isBuilt())
+TheoryModel* TheoryEngine::getModel() {
+  return d_curr_model;
+}
+
+TheoryModel* TheoryEngine::getBuiltModel() {
+  if (!d_curr_model->isBuilt())
   {
+    // If this method was called, we should be in SAT mode, and produceModels
+    // should be true.
+    AlwaysAssert(d_inSatMode && options::produceModels());
     // must build model at this point
     d_curr_model_builder->buildModel(d_curr_model);
   }
   return d_curr_model;
 }
+
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {

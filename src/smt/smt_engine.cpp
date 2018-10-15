@@ -3801,7 +3801,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getModel(true);
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -3888,7 +3888,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getModel(true);
+    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -3985,7 +3985,7 @@ Model* SmtEngine::getModel() {
       "Cannot get model when produce-models options is off.";
     throw ModalException(msg);
   }
-  TheoryModel* m = d_theoryEngine->getModel(true);
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
 
   if (options::produceModelCores())
   {
@@ -4010,7 +4010,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = d_theoryEngine->getModel(true);
+  Model* m = d_theoryEngine->getBuiltModel();
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4103,7 +4103,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getModel(true);
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())

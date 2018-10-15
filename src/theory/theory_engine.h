@@ -350,7 +350,9 @@ class TheoryEngine {
   context::CDO<bool> d_inConflict;
   
   /**
-   * Are we in "SAT mode"? (in this state, the user can query for the model)
+   * Are we in "SAT mode"? In this state, the user can query for the model.
+   * This corresponds to the state in Figure 4.1, page 52 of the SMT-LIB
+   * standard, version 2.6.
    */
   bool d_inSatMode;
   
@@ -738,9 +740,18 @@ public:
   void postProcessModel( theory::TheoryModel* m );
 
   /**
-   * Get the current model
+   * Get the pointer to the model object used by this theory engine.
    */
-  theory::TheoryModel* getModel(bool ensureBuilt=false);
+  theory::TheoryModel* getModel();
+  /**
+   * Get the current model for the current set of assertions. This method
+   * should only be called immediately after a satisfiable or unknown
+   * response to a check-sat call, and only if produceModels is true.
+   * 
+   * If the model is not already built, this will cause this theory engine
+   * to build to the model.
+   */
+  theory::TheoryModel* getBuiltModel();
 
   /** get synth solutions
    *
