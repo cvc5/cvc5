@@ -620,6 +620,9 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
+        // Instead of building the model eagerly, we instead mark that we
+        // are in "SAT mode". We build the model later only if the user asks
+        // for it (via getBuiltModel).
         d_inSatMode = true;
       }
     }
