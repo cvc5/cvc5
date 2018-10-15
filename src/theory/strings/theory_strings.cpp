@@ -453,9 +453,9 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Node s = n[1];
           //positive contains reduces to a equality
           Node sk1 = d_sk_cache.mkSkolemCached(
-              x, s, SkolemCache::SK_ID_CTN_PRE, "sc1");
+              x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
           Node sk2 = d_sk_cache.mkSkolemCached(
-              x, s, SkolemCache::SK_ID_CTN_POST, "sc2");
+              x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
           Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
           std::vector< Node > exp_vec;
           exp_vec.push_back( n );
