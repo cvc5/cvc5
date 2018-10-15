@@ -120,6 +120,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
                          x,
                          n,
                          nm->mkNode(MINUS, nm->mkNode(STRING_LENGTH, x), n));
+    // must rewrite before looking into cache
+    st = Rewriter::rewrite(st);
     Node io2 =
         d_sc->mkSkolemCached(st, y, SkolemCache::SK_FIRST_CTN_PRE, "iopre");
     Node io4 =
