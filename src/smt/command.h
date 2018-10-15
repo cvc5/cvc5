@@ -615,14 +615,14 @@ class CVC4_PUBLIC QueryCommand : public Command
 
 /* ------------------- sygus commands  ------------------ */
 
-class CVC4_PUBLIC DeclareVarCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
 {
  protected:
   Expr d_var;
   Type d_type;
 
  public:
-  DeclareVarCommand(const std::string& id, Expr var, Type type);
+  DeclareSygusVarCommand(const std::string& id, Expr var, Type type);
   Expr getVar() const;
   Type getType() const;
 
@@ -634,13 +634,13 @@ class CVC4_PUBLIC DeclareVarCommand : public DeclarationDefinitionCommand
   std::string getCommandName() const override;
 };
 
-class CVC4_PUBLIC DeclarePrimedVarCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DeclareSygusPrimedVarCommand : public DeclarationDefinitionCommand
 {
  protected:
   Type d_type;
 
  public:
-  DeclarePrimedVarCommand(const std::string& id, Type type);
+  DeclareSygusPrimedVarCommand(const std::string& id, Type type);
   Type getType() const;
 
   /** default interface */
@@ -703,13 +703,13 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   std::string getCommandName() const override;
 }; /* class DeclareFunctionCommand */
 
-class CVC4_PUBLIC ConstraintCommand : public Command
+class CVC4_PUBLIC SygusConstraintCommand : public Command
 {
  protected:
   Expr d_expr;
 
  public:
-  ConstraintCommand(const Expr& e);
+  SygusConstraintCommand(const Expr& e);
 
   Expr getExpr() const;
 
@@ -721,13 +721,13 @@ class CVC4_PUBLIC ConstraintCommand : public Command
   std::string getCommandName() const override;
 };
 
-class CVC4_PUBLIC InvConstraintCommand : public Command
+class CVC4_PUBLIC SygusInvConstraintCommand : public Command
 {
  protected:
   std::vector<Expr> d_place_holders;
 
  public:
-  InvConstraintCommand(const std::vector<Expr>& place_holders);
+  SygusInvConstraintCommand(const std::vector<Expr>& place_holders);
 
   const std::vector<Expr>& getPlaceHolders() const;
 

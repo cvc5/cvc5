@@ -617,7 +617,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     sortSymbol[t,CHECK_DECLARED]
     {
       Expr var = PARSER_STATE->mkBoundVar(name, t);
-      cmd->reset(new DeclareVarCommand(name, var, t));
+      cmd->reset(new DeclareSygusVarCommand(name, var, t));
     }
   | /* declare-primed-var */
     DECLARE_PRIMED_VAR_TOK { PARSER_STATE->checkThatLogicIsSet(); }
@@ -627,7 +627,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     {
       // spurious command, we do not need to create a variable. We only keep
       // track of the command for sanity checking / dumping
-      cmd->reset(new DeclarePrimedVarCommand(name, t));
+      cmd->reset(new DeclareSygusPrimedVarCommand(name, t));
     }
 
   | /* synth-fun */
@@ -690,7 +690,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
     }
     term[expr, expr2]
     { Debug("parser-sygus") << "...read constraint " << expr << std::endl;
-      cmd->reset(new ConstraintCommand(expr));
+      cmd->reset(new SygusConstraintCommand(expr));
     }
   | INV_CONSTRAINT_TOK {
       PARSER_STATE->checkThatLogicIsSet();
@@ -713,7 +713,7 @@ sygusCommand [std::unique_ptr<CVC4::Command>* cmd]
                                  "arguments.");
       }
 
-      cmd->reset(new InvConstraintCommand(terms));
+      cmd->reset(new SygusInvConstraintCommand(terms));
     }
   | /* check-synth */
     CHECK_SYNTH_TOK
