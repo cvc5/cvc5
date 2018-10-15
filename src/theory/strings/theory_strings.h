@@ -166,7 +166,12 @@ class TheoryStrings : public Theory {
   //--------------------------for checkExtfReductions
   /** do reduction
    *
-   *
+   * This is called when an extended function application n is not able to be
+   * simplified by context-depdendent simplification, and we are resorting to
+   * expanding n to its full semantics via a reduction. This method returns
+   * true if it successfully reduced n by some reduction and sets isCd to
+   * true if the reduction was (SAT)-context-dependent, and false otherwise.
+   * The argument effort has the same meaning as in checkExtfReductions.
    */
   bool doReduction(int effort, Node n, bool& isCd);
   //--------------------------end for checkExtfReductions
