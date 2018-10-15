@@ -634,7 +634,8 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   std::string getCommandName() const override;
 };
 
-class CVC4_PUBLIC DeclareSygusPrimedVarCommand : public DeclarationDefinitionCommand
+class CVC4_PUBLIC DeclareSygusPrimedVarCommand
+    : public DeclarationDefinitionCommand
 {
  protected:
   Type d_type;

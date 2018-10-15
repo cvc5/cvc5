@@ -562,10 +562,12 @@ Command* QueryCommand::clone() const
 std::string QueryCommand::getCommandName() const { return "query"; }
 
 /* -------------------------------------------------------------------------- */
-/* class DeclareSygusVarCommand                                                    */
+/* class DeclareSygusVarCommand */
 /* -------------------------------------------------------------------------- */
 
-DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id, Expr var, Type t)
+DeclareSygusVarCommand::DeclareSygusVarCommand(const std::string& id,
+                                               Expr var,
+                                               Type t)
     : DeclarationDefinitionCommand(id), d_var(var), d_type(t)
 {
 }
@@ -587,11 +589,11 @@ void DeclareSygusVarCommand::invoke(SmtEngine* smtEngine)
 }
 
 Command* DeclareSygusVarCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
+                                          ExprManagerMapCollection& variableMap)
 {
   return new DeclareSygusVarCommand(d_symbol,
-                               d_var.exportTo(exprManager, variableMap),
-                               d_type.exportTo(exprManager, variableMap));
+                                    d_var.exportTo(exprManager, variableMap),
+                                    d_type.exportTo(exprManager, variableMap));
 }
 
 Command* DeclareSygusVarCommand::clone() const
@@ -599,13 +601,17 @@ Command* DeclareSygusVarCommand::clone() const
   return new DeclareSygusVarCommand(d_symbol, d_var, d_type);
 }
 
-std::string DeclareSygusVarCommand::getCommandName() const { return "declare-var"; }
+std::string DeclareSygusVarCommand::getCommandName() const
+{
+  return "declare-var";
+}
 
 /* -------------------------------------------------------------------------- */
-/* class DeclareSygusPrimedVarCommand                                              */
+/* class DeclareSygusPrimedVarCommand */
 /* -------------------------------------------------------------------------- */
 
-DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(const std::string& id, Type t)
+DeclareSygusPrimedVarCommand::DeclareSygusPrimedVarCommand(
+    const std::string& id, Type t)
     : DeclarationDefinitionCommand(id), d_type(t)
 {
 }
@@ -628,8 +634,8 @@ void DeclareSygusPrimedVarCommand::invoke(SmtEngine* smtEngine)
 Command* DeclareSygusPrimedVarCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
-  return new DeclareSygusPrimedVarCommand(d_symbol,
-                                     d_type.exportTo(exprManager, variableMap));
+  return new DeclareSygusPrimedVarCommand(
+      d_symbol, d_type.exportTo(exprManager, variableMap));
 }
 
 Command* DeclareSygusPrimedVarCommand::clone() const
@@ -751,7 +757,7 @@ std::string SynthFunCommand::getCommandName() const
 }
 
 /* -------------------------------------------------------------------------- */
-/* class SygusConstraintCommand                                                    */
+/* class SygusConstraintCommand */
 /* -------------------------------------------------------------------------- */
 
 SygusConstraintCommand::SygusConstraintCommand(const Expr& e) : d_expr(e) {}
@@ -772,7 +778,7 @@ void SygusConstraintCommand::invoke(SmtEngine* smtEngine)
 Expr SygusConstraintCommand::getExpr() const { return d_expr; }
 
 Command* SygusConstraintCommand::exportTo(ExprManager* exprManager,
-                                     ExprManagerMapCollection& variableMap)
+                                          ExprManagerMapCollection& variableMap)
 {
   return new SygusConstraintCommand(d_expr.exportTo(exprManager, variableMap));
 }
@@ -782,7 +788,10 @@ Command* SygusConstraintCommand::clone() const
   return new SygusConstraintCommand(d_expr);
 }
 
-std::string SygusConstraintCommand::getCommandName() const { return "constraint"; }
+std::string SygusConstraintCommand::getCommandName() const
+{
+  return "constraint";
+}
 
 /* -------------------------------------------------------------------------- */
 /* class SygusInvConstraintCommand */
@@ -812,8 +821,8 @@ const std::vector<Expr>& SygusInvConstraintCommand::getPlaceHolders() const
   return d_place_holders;
 }
 
-Command* SygusInvConstraintCommand::exportTo(ExprManager* exprManager,
-                                        ExprManagerMapCollection& variableMap)
+Command* SygusInvConstraintCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
   return new SygusInvConstraintCommand(d_place_holders);
 }
