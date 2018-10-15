@@ -873,9 +873,9 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_userContext->push();
   d_context->push();
 
-  d_definedFunctions = new (true) DefinedFunctionMap(d_userContext);
-  d_fmfRecFunctionsDefined = new (true) NodeList(d_userContext);
-  d_modelCommands = new (true) smt::CommandList(d_userContext);
+  d_definedFunctions = new(true) DefinedFunctionMap(d_userContext);
+  d_fmfRecFunctionsDefined = new(true) NodeList(d_userContext);
+  d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
 
 void SmtEngine::finishInit()
@@ -973,14 +973,7 @@ void SmtEngine::shutdown() {
   while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
     internalPop(true);
   }
-
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_propEngine->resetTrail();
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
+  
   if(d_propEngine != NULL) {
     d_propEngine->shutdown();
   }
@@ -3482,12 +3475,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                            "(try --incremental)");
     }
 
-    // check to see if a postsolve() is pending
-    if(d_needPostsolve) {
-      d_propEngine->resetTrail();
-      d_theoryEngine->postsolve();
-      d_needPostsolve = false;
-    }
     // Note that a query has been made
     d_queryMade = true;
     // reset global negation
@@ -3952,7 +3939,6 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   if(/* userVisible && */
      (!d_fullyInited || options::produceModels()) &&
      (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    doPendingPops();
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
       d_modelGlobalCommands.push_back(c.clone());
     } else {
@@ -4633,12 +4619,6 @@ void SmtEngine::push()
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_propEngine->resetTrail();
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
 
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
@@ -4663,13 +4643,6 @@ void SmtEngine::pop() {
   }
   if(d_userLevels.size() == 0) {
     throw ModalException("Cannot pop beyond the first user frame");
-  }
-
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_propEngine->resetTrail();
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
   }
 
   // The problem isn't really "extended" yet, but this disallows
@@ -4723,6 +4696,11 @@ void SmtEngine::internalPop(bool immediate) {
 void SmtEngine::doPendingPops() {
   Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
+  // check to see if a postsolve() is pending
+  if(d_needPostsolve) 
+  {
+    d_propEngine->resetTrail();
+  }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     Trace("smt") << "SmtEngine::pop()" << std::endl;
@@ -4730,6 +4708,11 @@ void SmtEngine::doPendingPops() {
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
     --d_pendingPops;
+  }
+  if( d_needPostsolve )
+  {
+    d_theoryEngine->postsolve();
+    d_needPostsolve = false;
   }
 }
 
