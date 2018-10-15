@@ -878,10 +878,8 @@ SmtEngine::SmtEngine(ExprManager* em)
   d_modelCommands = new(true) smt::CommandList(d_userContext);
 }
 
-void SmtEngine::finishInit()
-{
+void SmtEngine::finishInit() {
   Trace("smt-debug") << "SmtEngine::finishInit" << std::endl;
-
   // ensure that our heuristics are properly set up
   setDefaults();
 
