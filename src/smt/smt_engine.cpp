@@ -816,7 +816,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_logic(),
       d_originalOptions(),
       d_pendingPops(0),
-      d_needsResetTrail(false),
       d_fullyInited(false),
       d_problemExtended(false),
       d_queryMade(false),
@@ -977,6 +976,7 @@ void SmtEngine::shutdown() {
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
+    d_propEngine->resetTrail();
     d_theoryEngine->postsolve();
     d_needPostsolve = false;
   }
@@ -3484,6 +3484,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // check to see if a postsolve() is pending
     if(d_needPostsolve) {
+      d_propEngine->resetTrail();
       d_theoryEngine->postsolve();
       d_needPostsolve = false;
     }
@@ -3590,8 +3591,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         Dump("benchmark") << CheckSatAssumingCommand(d_assumptions);
       }
     }
-
-    d_needsResetTrail = true;
 
     // Pop the context
     if (didInternalPush)
@@ -4636,6 +4635,7 @@ void SmtEngine::push()
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
+    d_propEngine->resetTrail();
     d_theoryEngine->postsolve();
     d_needPostsolve = false;
   }
@@ -4667,6 +4667,7 @@ void SmtEngine::pop() {
 
   // check to see if a postsolve() is pending
   if(d_needPostsolve) {
+    d_propEngine->resetTrail();
     d_theoryEngine->postsolve();
     d_needPostsolve = false;
   }
@@ -4722,11 +4723,6 @@ void SmtEngine::internalPop(bool immediate) {
 void SmtEngine::doPendingPops() {
   Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
-  if( d_needsResetTrail )
-  {
-    d_propEngine->resetTrail();
-    d_needsResetTrail = false;
-  }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     Trace("smt") << "SmtEngine::pop()" << std::endl;

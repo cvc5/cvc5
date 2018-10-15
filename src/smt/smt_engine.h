@@ -213,9 +213,6 @@ class CVC4_PUBLIC SmtEngine {
    * Number of internal pops that have been deferred.
    */
   unsigned d_pendingPops;
-  
-  /** whether we need to call d_propEngine->resetTrail */
-  bool d_needsResetTrail;
 
   /**
    * Whether or not this SmtEngine is fully initialized (post-construction).
