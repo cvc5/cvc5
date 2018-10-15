@@ -3748,7 +3748,7 @@ void SmtEngine::declareSygusFunctionVar(const std::string& id,
                                         Type type)
 {
   d_private->d_sygusVars.push_back(Node::fromExpr(var));
-  Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+  Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
 }
 
 void SmtEngine::declareSynthFun(const std::string& id,
