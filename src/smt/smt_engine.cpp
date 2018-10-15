@@ -2198,6 +2198,17 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-use-export");
     }
   }
+
+  if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+      || options::decisionStopOnly() == 2)
+  {
+    // turn on literal-block-distance based conflict clause removal
+    // by default for learning-rate based heuristics
+    if (!options::lbd.wasSetByUser())
+    {
+      setOption("lbd", true);
+    }
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
