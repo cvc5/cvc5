@@ -280,19 +280,23 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node stoit = nm->mkSkolem("stoit", nm->integerType(), "created for stoi");
     Node lens = nm->mkNode(STRING_LENGTH, s);
 
-    std::vector< Node > conc1;
+    std::vector<Node> conc1;
     Node lem = stoit.eqNode(d_neg_one);
     conc1.push_back(lem);
-    
+
     Node sEmpty = s.eqNode(d_empty_str);
-    Node k = nm->mkSkolem("k",nm->integerType());
-    Node kc1 = nm->mkNode( GEQ, k, d_zero );
-    Node kc2 = nm->mkNode( LT, k, lens );
-    Node codeSk = nm->mkNode(MINUS, nm->mkNode(STRING_CODE,nm->mkNode(STRING_SUBSTR,s,k,d_one)), nm->mkConst(Rational(48)));
+    Node k = nm->mkSkolem("k", nm->integerType());
+    Node kc1 = nm->mkNode(GEQ, k, d_zero);
+    Node kc2 = nm->mkNode(LT, k, lens);
+    Node codeSk = nm->mkNode(
+        MINUS,
+        nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, s, k, d_one)),
+        nm->mkConst(Rational(48)));
     Node ten = nm->mkConst(Rational(10));
-    Node kc3 = nm->mkNode( OR, nm->mkNode( LT, codeSk, d_zero), nm->mkNode( GEQ, codeSk,ten));
-    conc1.push_back(nm->mkNode(OR,sEmpty,nm->mkNode(AND, kc1, kc2, kc3) ));
-    
+    Node kc3 = nm->mkNode(
+        OR, nm->mkNode(LT, codeSk, d_zero), nm->mkNode(GEQ, codeSk, ten));
+    conc1.push_back(nm->mkNode(OR, sEmpty, nm->mkNode(AND, kc1, kc2, kc3)));
+
     std::vector<Node> conc2;
     std::vector< TypeNode > argTypes;
     argTypes.push_back(nm->integerType());
@@ -313,7 +317,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     lem = s.eqNode(nm->mkNode(APPLY_UF, us, d_zero));
     conc2.push_back(lem);
-    
+
     Node x = nm->mkBoundVar(nm->integerType());
     Node xbv = nm->mkNode(BOUND_VAR_LIST, x);
     Node g =
@@ -328,25 +332,22 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     Node eqs = usx.eqNode(nm->mkNode(STRING_CONCAT, udx, usx1));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
-    Node cb = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, c, d_zero),
-        nm->mkNode(LT, c, ten));
+    Node cb =
+        nm->mkNode(AND, nm->mkNode(GEQ, c, d_zero), nm->mkNode(LT, c, ten));
 
     lem = nm->mkNode(OR, g.negate(), nm->mkNode(AND, eqs, eq, cb));
     lem = nm->mkNode(FORALL, xbv, lem);
     conc2.push_back(lem);
 
     Node sneg = nm->mkNode(LT, stoit, d_zero);
-    lem = nm->mkNode(
-        ITE, sneg, nm->mkNode(AND, conc1), nm->mkNode(AND, conc2));
+    lem = nm->mkNode(ITE, sneg, nm->mkNode(AND, conc1), nm->mkNode(AND, conc2));
     new_nodes.push_back(lem);
-    
+
     // assert:
     // IF stoit < 0
-    // THEN: 
+    // THEN:
     //   stoit = -1 ^
-    //   ( s = "" OR 
+    //   ( s = "" OR
     //     ( k>=0 ^ k<len( s ) ^ ( str.code( str.substr( s, k, 1 ) ) < 48 OR
     //                             str.code( str.substr( s, k, 1 ) ) >= 58 )))
     // ELSE:
@@ -357,7 +358,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     //     U( x+1 ) = ( str.code( Ud( x ) ) - 48 ) + 10*U( x )
     //     48 <= str.code( Ud( x ) ) < 58
     // Thus, str.to.int( s ) = stoit
-    
+
     retNode = stoit;
   }
   else if (t.getKind() == kind::STRING_STRREPL)
