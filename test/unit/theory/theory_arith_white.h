@@ -109,7 +109,9 @@ public:
     d_outputChannel.clear();
     d_logicInfo.lock();
 
-    // must initialize theory engine here
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
 
     // guard against duplicate statistics assertion errors

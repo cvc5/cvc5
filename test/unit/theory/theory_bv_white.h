@@ -70,6 +70,9 @@ public:
   void testBitblasterCore() {
     d_smt->setOption("bitblast", SExpr("eager"));
     d_smt->setOption("incremental", SExpr("false"));
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
     d_smt->finalOptionsAreSet();
     EagerBitblaster* bb = new EagerBitblaster(
         dynamic_cast<TheoryBV*>(
@@ -93,7 +96,6 @@ public:
 
   void testMkUmulo() {
     d_smt->setOption("incremental", SExpr("true"));
-    d_smt->finalOptionsAreSet();
     for (size_t w = 1; w < 16; ++w) {
       d_smt->push();
       Node x = d_nm->mkVar("x", d_nm->mkBitVectorType(w));
