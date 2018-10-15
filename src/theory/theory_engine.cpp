@@ -917,7 +917,6 @@ void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 bool TheoryEngine::presolve() {
   // Reset the interrupt flag
   d_interrupted = false;
-  d_inSatMode = false;
 
   try {
     // Definition of the statement that is to be run by every theory
@@ -945,7 +944,8 @@ void TheoryEngine::postsolve() {
   // Reset the decision manager. This clears its decision strategies, which are
   // user-context-dependent.
   d_decManager->reset();
-
+  // not longer in SAT mode
+  d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
   bool CVC4_UNUSED wasInConflict = d_inConflict;
