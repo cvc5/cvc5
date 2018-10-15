@@ -3771,7 +3771,7 @@ void SmtEngine::declareSynthFun(const std::string& id,
   {
     d_private->d_sygusFunSyntax[fn] = TypeNode::fromType(sygusType);
   }
-  Trace("smt") << "SmtEngine::declareSythFun: " << func << "\n";
+  Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
 }
 
 void SmtEngine::assertSygusConstraint(Expr constraint)
