@@ -163,7 +163,13 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+  //--------------------------for checkExtfReductions
+  /** do reduction 
+   * 
+   * 
+   */
+  bool doReduction(int effort, Node n, bool& isCd);
+  //--------------------------end for checkExtfReductions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {

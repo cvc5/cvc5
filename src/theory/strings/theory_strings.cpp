@@ -395,7 +395,7 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
   return true;
 }
 
-int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
+bool TheoryStrings::doReduction( int effort, Node n, bool& isCd ) {
   //determine the effort level to process the extf at
   // 0 - at assertion time, 1+ - after no other reduction is applicable
   Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
@@ -419,14 +419,20 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           Node lens = getLength( s, lexp );
           if( areEqual( lenx, lens ) ){
             Trace("strings-extf-debug") << "  resolve extf : " << n << " based on equal lengths disequality." << std::endl;
-            //we can reduce to disequality when lengths are equal
+            Trace("strings-extf-debug") << "Lengths : " << lenx << " " << lens << std::endl;
+            // We can reduce negative contains to a disequality when lengths are equal.
+            // In other words, len( x ) = len( s ) implies 
+            //   ~contains( x, s ) reduces to x != s.
             if( !areDisequal( x, s ) ){
+              // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
               lexp.push_back( lenx.eqNode(lens) );
               lexp.push_back( n.negate() );
               Node xneqs = x.eqNode(s).negate();
               sendInference( lexp, xneqs, "NEG-CTN-EQL", true );
             }
-            return 1;
+            // this depends on the current assertions, so we set that this inference is context-dependent.
+            isCd = true;
+            return true;
           }else{
             r_effort = 2;
           }
@@ -462,7 +468,8 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           sendInference( d_empty_vec, exp_vec, eq, "POS-CTN", true );
           //we've reduced this n
           Trace("strings-extf-debug") << "  resolve extf : " << n << " based on positive contain reduction." << std::endl;
-          return 1;
+          isCd = false;
+          return true;
         }
         else if (k != kind::STRING_CODE)
         {
@@ -482,14 +489,15 @@ int TheoryStrings::getReduction( int effort, Node n, Node& nr ) {
           sendInference( d_empty_vec, nnlem, "Reduction", true );
           //we've reduced this n
           Trace("strings-extf-debug") << "  resolve extf : " << n << " based on reduction." << std::endl;
-          return 1;
+          isCd = false;
+          return true;
         }
       }else{
-        return 1;
+        return true;
       }
     }
   }
-  return 0;
+  return false;
 }
 
 /////////////////////////////////////////////////////////////////////////////
@@ -968,10 +976,9 @@ bool TheoryStrings::needsCheckLastEffort() {
 }
 
 void TheoryStrings::checkExtfReductions( int effort ) {
-  //standardize this?
-  //std::vector< Node > nred;
-  //getExtTheory()->doReductions( effort, nred, false );
-
+  // Notice we don't make a standard call to ExtTheory::doReductions here,
+  // since certain optimizations like context-dependent reductions and
+  // stratifying effort levels are done in doReduction below.
   std::vector< Node > extf = getExtTheory()->getActive();
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
@@ -979,11 +986,11 @@ void TheoryStrings::checkExtfReductions( int effort ) {
     Node n = extf[i];
     Trace("strings-process") << "  check " << n << ", active in model="
                              << d_extf_info_tmp[n].d_model_active << std::endl;
-    Node nr;
-    int ret = getReduction( effort, n, nr );
-    Assert( nr.isNull() );
-    if( ret!=0 ){
-      getExtTheory()->markReduced( extf[i], false );
+    // whether the reduction was context-dependent
+    bool isCd = false;
+    bool ret = doReduction( effort, n, isCd );
+    if( ret ){
+      getExtTheory()->markReduced( extf[i], isCd );
       if (hasProcessed())
       {
         return;
