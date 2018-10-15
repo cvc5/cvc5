@@ -831,6 +831,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
   Result d_result;
   /** string stream that stores the output of the solution */
   std::stringstream d_solution;
+
  public:
   CheckSynthCommand(){};
   /** returns the result of the check-synth call */
@@ -853,7 +854,6 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
-
 };
 
 /* ------------------- sygus commands  ------------------ */
