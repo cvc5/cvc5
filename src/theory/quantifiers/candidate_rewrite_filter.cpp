@@ -247,8 +247,8 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   {
     bool nor = d_ss->isOrdered(bn);
     bool eqor = d_ss->isOrdered(beq_n);
-    Trace("cr-filter-debug") << "Ordered? : " << nor << " " << eqor
-                             << std::endl;
+    Trace("cr-filter-debug")
+        << "Ordered? : " << nor << " " << eqor << std::endl;
     if (eqor || nor)
     {
       // if only one is ordered, then we require that the ordered one's

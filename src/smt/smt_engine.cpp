@@ -856,7 +856,7 @@ SmtEngine::SmtEngine(ExprManager* em)
                                     d_private->d_iteRemover,
                                     const_cast<const LogicInfo&>(d_logic),
                                     d_channels);
-  
+
   // Add the theories
   for(TheoryId id = theory::THEORY_FIRST; id < theory::THEORY_LAST; ++id) {
     TheoryConstructor::addTheory(d_theoryEngine, id);
@@ -973,7 +973,7 @@ void SmtEngine::shutdown() {
   while(options::incrementalSolving() && d_userContext->getLevel() > 1) {
     internalPop(true);
   }
-  
+
   if(d_propEngine != NULL) {
     d_propEngine->shutdown();
   }
@@ -4694,7 +4694,7 @@ void SmtEngine::doPendingPops() {
   Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
   // check to see if a postsolve() is pending
-  if(d_needPostsolve) 
+  if (d_needPostsolve)
   {
     d_propEngine->resetTrail();
   }
@@ -4706,7 +4706,7 @@ void SmtEngine::doPendingPops() {
     d_userContext->pop();
     --d_pendingPops;
   }
-  if( d_needPostsolve )
+  if (d_needPostsolve)
   {
     d_theoryEngine->postsolve();
     d_needPostsolve = false;

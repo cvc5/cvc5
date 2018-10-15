@@ -860,7 +860,8 @@ bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
     hasValue = d_propEngine->hasValue(var, value);
     // TODO: Assert that hasValue is true?
     if (!hasValue) {
-      Trace("model-builder-assertions") << "    has no value : " << var << std::endl;
+      Trace("model-builder-assertions")
+          << "    has no value : " << var << std::endl;
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
@@ -885,7 +886,8 @@ TheoryModel* TheoryEngine::getModel() {
   return d_curr_model;
 }
 
-TheoryModel* TheoryEngine::getBuiltModel() {
+TheoryModel* TheoryEngine::getBuiltModel()
+{
   if (!d_curr_model->isBuilt())
   {
     // If this method was called, we should be in SAT mode, and produceModels
@@ -896,7 +898,6 @@ TheoryModel* TheoryEngine::getBuiltModel() {
   }
   return d_curr_model;
 }
-
 
 void TheoryEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
