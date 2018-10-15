@@ -66,9 +66,21 @@ bool assertionLevelOnly()
 static const char* _cat = "CORE";
 
 // opt_step_size, opt_step_size_dec, opt_min_step_size  are for LRB
-static DoubleOption opt_step_size          (_cat, "step-size",   "Initial step size",                             0.40,     DoubleRange(0, false, 1, false));
-static DoubleOption opt_step_size_dec      (_cat, "step-size-dec", "Step size decrement",                         0.000001, DoubleRange(0, false, 1, false));
-static DoubleOption opt_min_step_size      (_cat, "min-step-size", "Minimal step size",                           0.06,     DoubleRange(0, false, 1, false));
+static DoubleOption opt_step_size(_cat,
+                                  "step-size",
+                                  "Initial step size",
+                                  0.40,
+                                  DoubleRange(0, false, 1, false));
+static DoubleOption opt_step_size_dec(_cat,
+                                      "step-size-dec",
+                                      "Step size decrement",
+                                      0.000001,
+                                      DoubleRange(0, false, 1, false));
+static DoubleOption opt_min_step_size(_cat,
+                                      "min-step-size",
+                                      "Minimal step size",
+                                      0.06,
+                                      DoubleRange(0, false, 1, false));
 //
 // opt_var_decay is for VSIDS
 static DoubleOption  opt_var_decay         (_cat, "var-decay",   "The variable activity decay factor",            0.95,     DoubleRange(0, false, 1, false));
@@ -578,35 +590,35 @@ void Solver::cancelUntil(int level) {
           }
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
-            Var      x  = var(trail[c]);
-            uint64_t age = conflicts - picked[x];
-            if (age > 0)
-            {
-              double reward = ((double)conflicted[x]) / ((double)age);
-              if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-                  || options::decisionStopOnly() == 2)
-              {
-                double adjusted_reward =
-                    ((double)(conflicted[x] + almost_conflicted[x]))
-                    / ((double)age);
-                double old_activity = activity[x];
-                activity[x] = step_size * adjusted_reward
-                              + ((1 - step_size) * old_activity);
-                if (order_heap.inHeap(x))
-                {
-                  if (activity[x] > old_activity)
-                    order_heap.decrease(x);
-                  else
-                    order_heap.increase(x);
-                }
-              }
-              total_actual_rewards[x] += reward;
-              total_actual_count[x]++;
-            }
+          Var x = var(trail[c]);
+          uint64_t age = conflicts - picked[x];
+          if (age > 0)
+          {
+            double reward = ((double)conflicted[x]) / ((double)age);
             if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
                 || options::decisionStopOnly() == 2)
             {
-              canceled[x] = conflicts;
+              double adjusted_reward =
+                  ((double)(conflicted[x] + almost_conflicted[x]))
+                  / ((double)age);
+              double old_activity = activity[x];
+              activity[x] = step_size * adjusted_reward
+                            + ((1 - step_size) * old_activity);
+              if (order_heap.inHeap(x))
+              {
+                if (activity[x] > old_activity)
+                  order_heap.decrease(x);
+                else
+                  order_heap.increase(x);
+              }
+            }
+            total_actual_rewards[x] += reward;
+            total_actual_count[x]++;
+          }
+          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+              || options::decisionStopOnly() == 2)
+          {
+            canceled[x] = conflicts;
             }
             assigns[x] = l_Undef;
             if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
@@ -697,24 +709,24 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-                || options::decisionStopOnly() == 2)
+          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
+              || options::decisionStopOnly() == 2)
+          {
+            next = order_heap[0];
+            uint64_t age = conflicts - canceled[next];
+            while (age > 0)
             {
-              next = order_heap[0];
-              uint64_t age = conflicts - canceled[next];
-              while (age > 0)
+              double decay = pow(0.95, age);
+              activity[next] *= decay;
+              if (order_heap.inHeap(next))
               {
-                double decay = pow(0.95, age);
-                activity[next] *= decay;
-                if (order_heap.inHeap(next))
-                {
-                  order_heap.increase(next);
-                }
-                canceled[next] = conflicts;
-                next = order_heap[0];
-                age = conflicts - canceled[next];
+                order_heap.increase(next);
               }
+              canceled[next] = conflicts;
+              next = order_heap[0];
+              age = conflicts - canceled[next];
             }
+          }
             next = order_heap.removeMin();
         }
 
