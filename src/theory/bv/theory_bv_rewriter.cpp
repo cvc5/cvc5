@@ -295,7 +295,9 @@ RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite) {
     < RewriteRule<FlattenAssocCommut>, // flatten the expression 
       RewriteRule<XorSimplify>,        // simplify duplicates and constants
       RewriteRule<XorZero>,            // checks if the constant part is zero and eliminates it
-      RewriteRule<BitwiseSlicing>
+      RewriteRule<BitwiseSlicing>,
+      RewriteRule<XorAnd>,
+      RewriteRule<XorOr>
       >::apply(node);
 
   if (!prerewrite) {

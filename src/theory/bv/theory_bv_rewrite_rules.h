@@ -124,6 +124,8 @@ enum RewriteRuleId
   XorDuplicate,
   XorOne,
   XorZero,
+  XorAnd,
+  XorOr,
   BitwiseNotAnd,
   BitwiseNotOr,
   XorNot,

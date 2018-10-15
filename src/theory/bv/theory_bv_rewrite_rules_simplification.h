@@ -622,6 +622,172 @@ inline Node RewriteRule<XorZero>::apply(TNode node)
   return res;
 }
 
+/* XorAnd
+ *
+ * x ^ (y & x)  ==> ~y & x
+ * x ^ (y & ~x) ==>  y | x
+ *
+ * Note: This rule can be used for the BV and Bool case.
+ */
+template<> inline
+bool RewriteRule<XorAnd>::applies(TNode node)
+{
+  if (node.getKind() != kind::BITVECTOR_XOR || node.getNumChildren() != 2)
+  {
+    return false;
+  }
+
+  TNode x, t;
+  if (node[0].getKind() == kind::BITVECTOR_AND)
+  {
+    x = node[1];
+    t = node[0];
+  }
+  else if (node[1].getKind() == kind::BITVECTOR_AND)
+  {
+    x = node[0];
+    t = node[1];
+  }
+  else
+  {
+    return false;
+  }
+
+  for (const TNode n : t)
+  {
+    if (n == x || (n.getKind() == kind::BITVECTOR_NOT && n[0] == x))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<> inline
+Node RewriteRule<XorAnd>::apply(TNode node)
+{
+  TNode x, t;
+  if (node[0].getKind() == kind::BITVECTOR_AND)
+  {
+    x = node[1];
+    t = node[0];
+  }
+  else
+  {
+    Assert (node[1].getKind() == kind::BITVECTOR_AND);
+    x = node[0];
+    t = node[1];
+  }
+
+  bool is_inv = false;
+  NodeBuilder<> nb(kind::BITVECTOR_AND);
+  for (const TNode n : t)
+  {
+    if (n.getKind() == kind::BITVECTOR_NOT && n[0] == x)
+    {
+      is_inv = true;
+    }
+    else if (n != x)
+    {
+      nb << n;
+    }
+  }
+  Assert(nb.getNumChildren() > 0);
+
+  Node y = nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (is_inv)
+  {
+    return nm->mkNode(kind::BITVECTOR_OR, x, y);
+  }
+  return nm->mkNode(kind::BITVECTOR_AND, x, nm->mkNode(kind::BITVECTOR_NOT, y));
+}
+
+/* XorOr
+ *
+ * x ^ (y | x)  ==>  y & ~x
+ * x ^ (y | ~x) ==>  ~y | ~x
+ *
+ * Note: This rule can be used for the BV and Bool case.
+ */
+template<> inline
+bool RewriteRule<XorOr>::applies(TNode node)
+{
+  if (node.getKind() != kind::BITVECTOR_XOR || node.getNumChildren() != 2)
+  {
+    return false;
+  }
+
+  TNode x, t;
+  if (node[0].getKind() == kind::BITVECTOR_OR)
+  {
+    x = node[1];
+    t = node[0];
+  }
+  else if (node[1].getKind() == kind::BITVECTOR_OR)
+  {
+    x = node[0];
+    t = node[1];
+  }
+  else
+  {
+    return false;
+  }
+
+  for (const TNode n : t)
+  {
+    if (n == x || (n.getKind() == kind::BITVECTOR_NOT && n[0] == x))
+    {
+      return true;
+    }
+  }
+  return false;
+}
+
+template<> inline
+Node RewriteRule<XorOr>::apply(TNode node)
+{
+  TNode x, t;
+  if (node[0].getKind() == kind::BITVECTOR_OR)
+  {
+    x = node[1];
+    t = node[0];
+  }
+  else
+  {
+    Assert(node[1].getKind() == kind::BITVECTOR_OR);
+    x = node[0];
+    t = node[1];
+  }
+
+  bool is_inv = false;
+  NodeBuilder<> nb(kind::BITVECTOR_OR);
+  for (const TNode n : t)
+  {
+    if (n.getKind() == kind::BITVECTOR_NOT && n[0] == x)
+    {
+      is_inv = true;
+    }
+    else if (n != x)
+    {
+      nb << n;
+    }
+  }
+  Assert(nb.getNumChildren() > 0);
+
+  Node y = nb.getNumChildren() == 1 ? nb[0] : nb.constructNode();
+
+  NodeManager* nm = NodeManager::currentNM();
+  if (is_inv)
+  {
+    return nm->mkNode(kind::BITVECTOR_OR,
+                      nm->mkNode(kind::BITVECTOR_NOT, x),
+                      nm->mkNode(kind::BITVECTOR_NOT, y));
+  }
+  return nm->mkNode(kind::BITVECTOR_AND, nm->mkNode(kind::BITVECTOR_NOT, x), y);
+}
+
 /**
  * BitwiseNotAnd
  *
