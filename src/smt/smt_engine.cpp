@@ -4453,7 +4453,6 @@ const Proof& SmtEngine::getProof()
 
 void SmtEngine::printInstantiations( std::ostream& out ) {
   SmtScope smts(this);
-  finalOptionsAreSet();
   if( options::instFormatMode()==INST_FORMAT_MODE_SZS ){
     out << "% SZS output start Proof for " << d_filename.c_str() << std::endl;
   }
@@ -4714,7 +4713,6 @@ void SmtEngine::doPendingPops() {
   }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
-    Trace("smt") << "SmtEngine::pop()" << std::endl;
     d_propEngine->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
