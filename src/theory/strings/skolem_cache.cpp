@@ -24,8 +24,8 @@ SkolemCache::SkolemCache() {}
 
 Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
 {
-  a = Rewriter::rewrite(a);
-  b = Rewriter::rewrite(b);
+  a = a.isNull() ? a : Rewriter::rewrite(a);
+  b = b.isNull() ? b : Rewriter::rewrite(b);
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
