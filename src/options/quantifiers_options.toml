@@ -1260,6 +1260,14 @@ header = "options/quantifiers_options.h"
   help       = "filter candidate rewrites based on congruence"
 
 [[option]]
+  name       = "sygusRewSynthFilterNonLinear"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "filter non-linear candidate rewrites"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
@@ -1346,6 +1354,14 @@ header = "options/quantifiers_options.h"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
+
+[[option]]
+  name       = "sygusExprMinerCheckUseExport"
+  category   = "expert"
+  long       = "sygus-expr-miner-check-use-export"
+  type       = "bool"
+  default    = "true"
+  help       = "export expressions to a different ExprManager with different options for satisfiability checks in expression miners"
 
 # CEGQI applied to general quantified formulas
 

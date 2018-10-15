@@ -2183,6 +2183,22 @@ void SmtEngine::setDefaults() {
         << endl;
     options::bvLazyRewriteExtf.set(false);
   }
+
+  if (!options::sygusExprMinerCheckUseExport())
+  {
+    if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+    {
+      throw OptionException(
+          "--sygus-expr-miner-check-timeout=N requires "
+          "--sygus-expr-miner-check-use-export");
+    }
+    if (options::sygusRewSynthInput())
+    {
+      throw OptionException(
+          "--sygus-rr-synth-input requires "
+          "--sygus-expr-miner-check-use-export");
+    }
+  }
 }
 
 void SmtEngine::setProblemExtended(bool value)
