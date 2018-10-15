@@ -983,7 +983,7 @@ void TheoryStrings::checkExtfReductions( int effort ) {
     int ret = getReduction( effort, n, nr );
     Assert( nr.isNull() );
     if( ret!=0 ){
-      getExtTheory()->markReduced( extf[i] );
+      getExtTheory()->markReduced( extf[i], false );
       if (hasProcessed())
       {
         return;
