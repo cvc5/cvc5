@@ -111,7 +111,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = d_crd.addTerm(sol, out, rew_print);
   if (ret && d_doQueryGen)
   {
-    // always use the builtin version
+    // use the builtin version if d_use_sygus_type is true
     Node solb = sol;
     if (d_use_sygus_type)
     {

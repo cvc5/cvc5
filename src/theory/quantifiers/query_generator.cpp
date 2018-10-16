@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of query_generator
+ ** \brief Implementation of a class for mining interesting satisfiability
+ ** queries from a stream of generated expressions.
  **/
 
 #include "theory/quantifiers/query_generator.h"
@@ -27,17 +28,17 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-QueryGenerator::QueryGenerator() : d_query_count(0) {}
+QueryGenerator::QueryGenerator() : d_queryCount(0) {}
 void QueryGenerator::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   Assert(ss != nullptr);
-  d_query_count = 0;
+  d_queryCount = 0;
   ExprMiner::initialize(vars, ss);
 }
 
 void QueryGenerator::setThreshold(unsigned deqThresh)
 {
-  d_deq_thresh = deqThresh;
+  d_deqThresh = deqThresh;
 }
 
 bool QueryGenerator::addTerm(Node n, std::ostream& out)
@@ -56,7 +57,8 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
 
   // the queries we generate on this round
   std::vector<Node> queries;
-  // the points each query in the above vector is true
+  // For each query in the above vector, this stores the indices of the points
+  // for which that query evaluated to true on.
   std::vector<std::vector<unsigned>> queriesPtTrue;
   // the sample point indices for which the above queries are true
   std::unordered_set<unsigned> indices;
@@ -71,7 +73,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     {
       Node v = d_sampler->evaluate(nn, index);
       ev_to_pt[v].push_back(index);
-      if (ev_to_pt[v].size() == d_deq_thresh + 1)
+      if (ev_to_pt[v].size() == d_deqThresh + 1)
       {
         threshCount++;
       }
@@ -81,7 +83,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     {
       for (const std::pair<Node, std::vector<unsigned>>& etp : ev_to_pt)
       {
-        if (etp.second.size() < d_deq_thresh)
+        if (etp.second.size() < d_deqThresh)
         {
           for (const unsigned& i : etp.second)
           {
@@ -109,7 +111,6 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   }
   Trace("sygus-qgen-debug") << "query: Check " << queries.size()
                             << " queries..." << std::endl;
-  LogicInfo linfo = smt::currentSmtEngine()->getLogicInfo();
   // literal queries
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
@@ -123,8 +124,8 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
     // add information
     for (unsigned& ti : tIndices)
     {
-      d_pt_to_queries[ti].push_back(qy);
-      d_qys_to_points[qy].push_back(ti);
+      d_ptToQueries[ti].push_back(qy);
+      d_qysToPoints[qy].push_back(ti);
       indices.insert(ti);
     }
   }
@@ -132,11 +133,11 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   NodeManager* nm = NodeManager::currentNM();
   for (const unsigned& i : indices)
   {
-    std::vector<Node>& qsi = d_pt_to_queries[i];
+    std::vector<Node>& qsi = d_ptToQueries[i];
     if (qsi.size() > 1)
     {
       // take two random queries
-      std::random_shuffle(qsi.begin(), qsi.end());
+      std::shuffle(qsi.begin(), qsi.end(), Random::getRandom());
       Node qy = nm->mkNode(AND, qsi[0], qsi[1]);
       checkQuery(qy, i);
     }
@@ -156,7 +157,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     unsigned nvars = d_vars.size();
     AlwaysAssert(pt.size() == d_vars.size());
     std::stringstream fname;
-    fname << "query" << d_query_count << ".smt2";
+    fname << "query" << d_queryCount << ".smt2";
     std::ofstream fs(fname.str(), std::ofstream::out);
     fs << "(set-logic ALL)" << std::endl;
     for (unsigned i = 0; i < 2; i++)
@@ -211,7 +212,7 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     }
   }
 
-  d_query_count++;
+  d_queryCount++;
 }
 
 void QueryGenerator::findQueries(
@@ -219,8 +220,14 @@ void QueryGenerator::findQueries(
     std::vector<Node>& queries,
     std::vector<std::vector<unsigned>>& queriesPtTrue)
 {
+  // At a high level, this method traverses the LazyTrie for the type of n
+  // and tries to find paths to leafs that contain terms n' such that n = n'
+  // or n != n' is an interesting query, i.e. satisfied for a small number of
+  // points.
   TypeNode tn = n.getType();
-  LazyTrie* lt = &d_qgt_trie[tn];
+  LazyTrie* lt = &d_qgtTrie[tn];
+  // These vectors are the set of indices of sample points for which the current
+  // node we are considering are { equal, disequal } from n.
   std::vector<unsigned> eqIndex[2];
   Trace("sygus-qgen-debug") << "Compute queries for " << n << "...\n";
 
@@ -230,10 +237,18 @@ void QueryGenerator::findQueries(
   bool exact = true;
   bool pushEq[2] = {false, false};
   bool pre = true;
+  // The following parallel vectors describe the state of the locations in the
+  // trie we are currently visiting.
+  // Reference to the location in the trie
   std::vector<LazyTrie*> visitTr;
+  // The index of the sample point we are testing
   std::vector<unsigned> currIndex;
+  // Whether the path to this location exactly matches the evaluation of n
   std::vector<bool> currExact;
+  // Whether we are adding to the points that are { equal, disequal } by
+  // traversing to this location.
   std::vector<bool> pushIndex[2];
+  // Whether we are in a pre-traversal for this location.
   std::vector<bool> preVisit;
   visitTr.push_back(lt);
   currIndex.push_back(0);
@@ -257,6 +272,7 @@ void QueryGenerator::findQueries(
       currIndex.pop_back();
       currExact.pop_back();
       preVisit.pop_back();
+      // clean up the indices of points that are { equal, disequal }
       for (unsigned r = 0; r < 2; r++)
       {
         if (pushEq[r])
@@ -269,6 +285,7 @@ void QueryGenerator::findQueries(
     else
     {
       preVisit[preVisit.size() - 1] = false;
+      // add to the indices of points that are { equal, disequal }
       for (unsigned r = 0; r < 2; r++)
       {
         if (pushEq[r])
@@ -276,8 +293,8 @@ void QueryGenerator::findQueries(
           eqIndex[r].push_back(index - 1);
         }
       }
-      int eqAllow = d_deq_thresh - eqIndex[0].size();
-      int deqAllow = d_deq_thresh - eqIndex[1].size();
+      int eqAllow = d_deqThresh - eqIndex[0].size();
+      int deqAllow = d_deqThresh - eqIndex[1].size();
       Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
                                 << ntotal << ", deq/eq allow = " << deqAllow
                                 << "/" << eqAllow << ", exact = " << exact
@@ -292,7 +309,8 @@ void QueryGenerator::findQueries(
         else
         {
           Node nAlmostEq = lt->d_lazy_child;
-          // if made it here,
+          // if made it here, we still should have either a equality or
+          // a disequality that is allowed.
           Assert(deqAllow >= 0 || eqAllow >= 0);
           Node query = n.eqNode(nAlmostEq);
           std::vector<unsigned> tIndices;
@@ -307,7 +325,7 @@ void QueryGenerator::findQueries(
             tIndices.insert(
                 tIndices.end(), eqIndex[1].begin(), eqIndex[1].end());
           }
-          AlwaysAssert(tIndices.size() <= d_deq_thresh);
+          AlwaysAssert(tIndices.size() <= d_deqThresh);
           if (!tIndices.empty())
           {
             queries.push_back(query);

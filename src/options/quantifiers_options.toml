@@ -1359,7 +1359,7 @@ header = "options/quantifiers_options.h"
   name       = "sygusQueryGenThresh"
   category   = "regular"
   long       = "sygus-query-gen-thresh=N"
-  type       = "int"
+  type       = "unsigned"
   default    = "5"
   help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
 
@@ -1377,7 +1377,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-query-gen-dump-files"
   type       = "bool"
   default    = "false"
-  help       = "dump external files with --sygus-query-gen"
+  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
 
 # CEGQI applied to general quantified formulas
