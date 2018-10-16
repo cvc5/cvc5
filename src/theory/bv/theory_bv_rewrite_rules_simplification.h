@@ -499,6 +499,11 @@ Node RewriteRule<AndOne>::apply(TNode node) {
  *                     0_[n-1],
  *                     x[m-my-n:m-my-n],
  *                     x[m-my-n-1:0] & z)
+ *
+ * Match:       x_m & concat(y_my, ~0_n, z_mz)
+ * Rewrites to: concat(x[m-1:m-my] & y,
+ *                     x[m-my-1:m-my-n],
+ *                     x[m-my-n-1:0] & z)
  */
 
 template <>
@@ -524,7 +529,7 @@ inline bool RewriteRule<AndConcatPullUp>::applies(TNode node)
     }
   }
   if (n.isNull()) return false;
-  return utils::isZero(n) || utils::isOne(n);
+  return utils::isZero(n) || utils::isOne(n) || utils::isOnes(n);
 }
 
 template <>
@@ -556,7 +561,7 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
   }
   x = xb.getNumChildren() > 1 ? xb.constructNode() : xb[0];
 
-  is_const = -1;
+  is_const = -2;
   for (const TNode& child : concat)
   {
     if (c.isNull())
@@ -569,6 +574,11 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
       else if (utils::isOne(child))
       {
         is_const = 1;
+        c = child;
+      }
+      else if (utils::isOnes(child))
+      {
+        is_const = -1;
         c = child;
       }
       else
@@ -608,11 +618,15 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
   {
     res << c;
   }
-  else
+  else if (is_const == 1)
   {
-    Assert(is_const == 1);
     if (n > 1) res << utils::mkZero(n-1);
     res << utils::mkExtract(x, m-my-n, m-my-n);
+  }
+  else
+  {
+    Assert(is_const == -1);
+    res << utils::mkExtract(x, m-my-1, m-my-n);
   }
   if (mz)
   {
