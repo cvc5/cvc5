@@ -515,7 +515,7 @@ class SmtEnginePrivate : public NodeManagerListener {
   std::map<Node, std::vector<Node>> d_sygusFunVars;
   /** maps functions-to-synthesize to their respective syntactic restrictions
    *
-   * If function has syntactic restrictinos, these are encoded as a SyGuS
+   * If function has syntactic restrictions, these are encoded as a SyGuS
    * datatype type
    */
   std::map<Node, TypeNode> d_sygusFunSyntax;
