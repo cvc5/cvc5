@@ -710,7 +710,7 @@ target_compile_definitions(cvc4
     -D__STDC_FORMAT_MACROS
 )
 # Add libcvc4 dependencies for generated sources.
-add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
+add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)

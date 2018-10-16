@@ -984,6 +984,14 @@ header = "options/quantifiers_options.h"
   help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
 
 [[option]]
+  name       = "sygusUnifShuffleCond"
+  category   = "regular"
+  long       = "sygus-unif-shuffle-cond"
+  type       = "bool"
+  default    = "false"
+  help       = "Shuffle condition pool when building solutions (may change solutions sizes)"
+
+[[option]]
   name       = "sygusUnifBooleanHeuristicDt"
   category   = "regular"
   long       = "sygus-unif-boolean-heuristic-dt"
@@ -1260,6 +1268,14 @@ header = "options/quantifiers_options.h"
   help       = "filter candidate rewrites based on congruence"
 
 [[option]]
+  name       = "sygusRewSynthFilterNonLinear"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "filter non-linear candidate rewrites"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
@@ -1379,6 +1395,13 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
+[[option]]
+  name       = "sygusExprMinerCheckUseExport"
+  category   = "expert"
+  long       = "sygus-expr-miner-check-use-export"
+  type       = "bool"
+  default    = "true"
+  help       = "export expressions to a different ExprManager with different options for satisfiability checks in expression miners"
 
 # CEGQI applied to general quantified formulas
 
