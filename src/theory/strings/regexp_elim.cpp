@@ -104,18 +104,21 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // prev_end stores the current (symbolic) index in x that we are
     // searching.
     Node prev_end = d_zero;
+    // the symbolic index we start searching, for each child in sep_children.
+    std::vector<Node> prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
     bool gap_exact_end = gap_exact.back();
     std::vector<Node> non_greedy_find_vars;
     for (unsigned i = 0, size = sep_children.size(); i < size; i++)
     {
-      Node sc = sep_children[i];
       if (gap_minsize[i] > 0)
       {
         // the gap to this child is at least gap_minsize[i]
         prev_end =
             nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
       }
+      prev_ends.push_back(prev_end);
+      Node sc = sep_children[i];
       Node lensc = nm->mkNode(STRING_LENGTH, sc);
       if (gap_exact[i])
       {
@@ -156,12 +159,58 @@ Node RegExpElimination::eliminateConcat(Node atom)
       // Notice that if the last gap is not exact and its minsize is zero,
       // then the last indexof/substr constraint entails the following
       // constraint, so it is not necessary to add.
-      if (gap_minsize_end > 0 || gap_exact_end)
+      // Below, we may write "A" for (str.to.re "A") and _ for re.allchar:
+      Node cEnd = nm->mkConst(Rational(gap_minsize_end));
+      if (gap_exact_end)
       {
-        Node fit = nm->mkNode(
-            gap_exact_end ? EQUAL : LEQ,
-            nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize_end))),
-            lenx);
+        Assert(!sep_children.empty());
+        // if it is strict, it corresponds to a substr case.
+        // For example:
+        //     x in (re.++ "A" (re.* _) "B" _ _) --->
+        //        ... ^ "B" = substr( x, len( x ) - 3, 1 )  ^ ...
+        Node sc = sep_children.back();
+        Node lenSc = nm->mkNode(STRING_LENGTH, sc);
+        Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
+        Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
+        // We also must ensure that we fit. This constraint is necessary in
+        // addition to the constraint above. Take this example:
+        //     x in (re.++ "A" _ (re.* _) "B" _) --->
+        //       substr( x, 0, 1 ) = "A" ^             // find "A"
+        //       indexof( x, "B", 2 ) != -1 ^          // find "B" >=1 after "A"
+        //       substr( x, len(x)-2, 1 ) = "B" ^      // "B" is at end - 2.
+        //       indexof( x, "B", 2 ) <= len( x ) - 2
+        // The last constaint ensures that the second and third constraints
+        // may refer to the same "B". If it were not for the last constraint, it
+        // would have been the case than "ABB" would be a model for x, where
+        // the second constraint refers to the third position, and the third
+        // constraint refers to the second position.
+        //
+        // With respect to the above example, the following is an optimization.
+        // For that example, we instead produce:
+        //     x in (re.++ "A" _ (re.* _) "B" _) --->
+        //       substr( x, 0, 1 ) = "A" ^          // find "A"
+        //       substr( x, len(x)-2, 1 ) = "B" ^   // "B" is at end - 2
+        //       2 <= len( x ) - 2
+        // The intuition is that above, there are two constraints that insist
+        // that "B" is found, whereas we only need one. The last constraint
+        // above says that the "B" we find at end-2 can be found >=1 after
+        // the "A".
+        conj.pop_back();
+        Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
+                              prev_ends.back(),
+                              loc);
+
+        conj.push_back(scc);
+        conj.push_back(fit);
+      }
+      else if (gap_minsize_end > 0)
+      {
+        // if it is non-strict, we are in a "greedy find" situtation where
+        // we just need to ensure that the next occurrence fits.
+        // For example:
+        //     x in (re.++ "A" (re.* _) "B" _ _ (re.* _)) --->
+        //        ... ^ indexof( x, "B", 1 ) + 2 <= len( x )
+        Node fit = nm->mkNode(LEQ, nm->mkNode(PLUS, prev_end, cEnd), lenx);
         conj.push_back(fit);
       }
       Node res = conj.size() == 1 ? conj[0] : nm->mkNode(AND, conj);
@@ -180,7 +229,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, non_greedy_find_vars);
         res = nm->mkNode(EXISTS, bvl, body);
       }
-      // e.g., writing "A" for (str.to.re "A") and _ for re.allchar:
+      // Examples of this elimination:
       //   x in (re.++ "A" (re.* _) "B" (re.* _)) --->
       //     substr(x,0,1)="A" ^ indexof(x,"B",1)!=-1
       //   x in (re.++ (re.* _) "A" _ _ _ (re.* _) "B" _ _ (re.* _)) --->

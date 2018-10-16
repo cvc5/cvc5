@@ -436,6 +436,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/anti_skolem.h \
 	theory/quantifiers/bv_inverter.cpp \
 	theory/quantifiers/bv_inverter.h \
+	theory/quantifiers/bv_inverter_utils.cpp \
+	theory/quantifiers/bv_inverter_utils.h \
 	theory/quantifiers/candidate_rewrite_database.cpp \
 	theory/quantifiers/candidate_rewrite_database.h \
 	theory/quantifiers/candidate_rewrite_filter.cpp \
@@ -446,6 +448,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/cegqi/ceg_arith_instantiator.h \
 	theory/quantifiers/cegqi/ceg_bv_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_bv_instantiator.h \
+	theory/quantifiers/cegqi/ceg_bv_instantiator_utils.cpp \
+	theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.cpp \
 	theory/quantifiers/cegqi/ceg_dt_instantiator.h \
 	theory/quantifiers/cegqi/ceg_epr_instantiator.cpp \
@@ -534,6 +538,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/sygus/cegis_unif.h \
 	theory/quantifiers/sygus/ce_guided_single_inv.cpp \
 	theory/quantifiers/sygus/ce_guided_single_inv.h \
+	theory/quantifiers/sygus/enum_stream_substitution.cpp \
+	theory/quantifiers/sygus/enum_stream_substitution.h \
 	theory/quantifiers/sygus/sygus_pbe.cpp \
 	theory/quantifiers/sygus/sygus_pbe.h \
 	theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp \

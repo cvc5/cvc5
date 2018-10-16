@@ -13,7 +13,9 @@
  **/
 
 #include "preprocessing/passes/global_negate.h"
+
 #include <vector>
+
 #include "expr/node.h"
 #include "theory/rewriter.h"
 
@@ -116,6 +118,7 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

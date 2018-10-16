@@ -521,6 +521,7 @@ set(regress_0_tests
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
   regress0/parser/strings25.smt2
+  regress0/parser/to_fp.smt2
   regress0/precedence/and-not.cvc
   regress0/precedence/and-xor.cvc
   regress0/precedence/bool-cmp.cvc
@@ -627,6 +628,7 @@ set(regress_0_tests
   regress0/quantifiers/nested-inf.smt2
   regress0/quantifiers/partial-trigger.smt2
   regress0/quantifiers/pure_dt_cbqi.smt2
+  regress0/quantifiers/qarray-sel-over-store.smt2
   regress0/quantifiers/qbv-inequality2.smt2
   regress0/quantifiers/qbv-simp.smt2
   regress0/quantifiers/qbv-test-invert-bvadd-neq.smt2
@@ -797,6 +799,7 @@ set(regress_0_tests
   regress0/strings/code-sat-neg-one.smt2
   regress0/strings/escchar.smt2
   regress0/strings/escchar_25.smt2
+  regress0/strings/hconst-092618.smt2
   regress0/strings/idof-rewrites.smt2
   regress0/strings/idof-sem.smt2
   regress0/strings/ilc-like.smt2
@@ -810,6 +813,7 @@ set(regress_0_tests
   regress0/strings/repl-rewrites2.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
+  regress0/strings/stoi-solve.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
@@ -826,6 +830,7 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
+  regress0/sygus/inv-different-var-order.sy
   regress0/sygus/let-ringer.sy
   regress0/sygus/let-simp.sy
   regress0/sygus/no-syntax-test-bool.sy
@@ -1165,6 +1170,7 @@ set(regress_1_tests
   regress1/nl/div-mod-partial.smt2
   regress1/nl/dumortier_llibre_artes_ex_5_13.transcendental.k2.smt2
   regress1/nl/exp-4.5-lt.smt2
+  regress1/nl/exp-approx.smt2
   regress1/nl/exp1-lb.smt2
   regress1/nl/exp_monotone.smt2
   regress1/nl/factor_agg_s.smt2
@@ -1407,6 +1413,8 @@ set(regress_1_tests
   regress1/rr-verify/bool-crci.sy
   regress1/rr-verify/bv-term-32.sy
   regress1/rr-verify/bv-term.sy
+  regress1/rr-verify/fp-arith.sy
+  regress1/rr-verify/fp-bool.sy
   regress1/rr-verify/regex.sy
   regress1/rr-verify/string-term.sy
   regress1/sep/chain-int.smt2
@@ -1461,6 +1469,7 @@ set(regress_1_tests
   regress1/sets/fuzz15201.smt2
   regress1/sets/fuzz31811.smt2
   regress1/sets/insert_invariant_37_2.smt2
+  regress1/sets/issue2568.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1514,6 +1523,7 @@ set(regress_1_tests
   regress1/strings/norn-ab.smt2
   regress1/strings/norn-nel-bug-052116.smt2
   regress1/strings/norn-simp-rew-sat.smt2
+  regress1/strings/nt6-dd.smt2
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
@@ -1541,6 +1551,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
+  regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
@@ -1578,6 +1589,7 @@ set(regress_1_tests
   regress1/sygus/icfp_28_10.sy
   regress1/sygus/icfp_easy-ite.sy
   regress1/sygus/inv-example.sy
+  regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
@@ -1702,6 +1714,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
   regress2/sygus/MPwL_d1s3.sy
@@ -1713,12 +1726,12 @@ set(regress_2_tests
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
   regress2/sygus/mpg_guard1-dd.sy
+  regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy
-  regress2/sygus/sixfuncs.sy
   regress2/sygus/three.sy
   regress2/sygus/vcb.sy
   regress2/typed_v1l50016-simp.cvc
@@ -1743,6 +1756,7 @@ set(regress_3_tests
   regress3/issue2429.smt2
   regress3/pp-regfile.smt
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
+  regress3/sixfuncs.sy
 )
 
 #-----------------------------------------------------------------------------#
@@ -2075,10 +2089,13 @@ set(regression_disabled_tests
 get_target_property(path_to_cvc4 cvc4-bin RUNTIME_OUTPUT_DIRECTORY)
 set(run_regress_script ${CMAKE_CURRENT_LIST_DIR}/run_regression.py)
 
+add_custom_target(build-regress DEPENDS cvc4-bin)
+add_dependencies(build-tests build-regress)
+
 add_custom_target(regress
   COMMAND
     ctest --output-on-failure -L "regress[0-1]" -j${CTEST_NTHREADS} $(ARGS)
-  DEPENDS cvc4-bin)
+  DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
   add_test(${file}
@@ -2086,7 +2103,22 @@ macro(cvc4_add_regression_test level file)
     ${RUN_REGRESSION_ARGS}
     ${path_to_cvc4}/cvc4 ${CMAKE_CURRENT_LIST_DIR}/${file})
   set_tests_properties(${file} PROPERTIES LABELS "regress${level}")
+
+  # For CMake 3.9.0 and newer, skipped tests do not count as a failure anymore:
+  # https://cmake.org/cmake/help/latest/release/3.9.html#other-changes
+  # This means that for newer versions, we can use the SKIP_RETURN_CODE to mark
+  # skipped tests as such.
+  if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
+    set_tests_properties(${file} PROPERTIES SKIP_RETURN_CODE 77)
+  endif()
 endmacro()
+
+if(NOT ${CMAKE_VERSION} VERSION_LESS "3.9.0")
+  # For CMake 3.9.0 and newer, we want the regression script to return 77 for
+  # skipped tests, such that we can mark them as skipped. See the
+  # `cvc4_add_regression_test` macro for more details.
+  set(RUN_REGRESSION_ARGS ${RUN_REGRESSION_ARGS} --use-skip-return-code)
+endif()
 
 foreach(file ${regress_0_tests})
   cvc4_add_regression_test(0 ${file})

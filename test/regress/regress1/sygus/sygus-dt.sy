@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --decision=justification
 
 (set-logic LIA)
 

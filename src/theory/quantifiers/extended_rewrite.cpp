@@ -1672,6 +1672,11 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   Trace("q-ext-rewrite-debug")
       << "Extended rewrite strings : " << ret << std::endl;
 
+  if (ret.getKind() == EQUAL)
+  {
+    new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
+  }
+
   return new_ret;
 }
 

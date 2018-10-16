@@ -279,6 +279,7 @@ BoolToBV::Statistics::~Statistics()
   }
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

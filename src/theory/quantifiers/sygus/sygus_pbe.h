@@ -230,8 +230,6 @@ class SygusPbe : public SygusModule
   std::map<Node, std::vector<Node> > d_candidate_to_enum;
   /** reverse map of above */
   std::map<Node, Node> d_enum_to_candidate;
-  /** map from enumerators to active guards */
-  std::map<Node, Node> d_enum_to_active_guard;
   /** for each candidate variable (function-to-synthesize), input of I/O
    * examples */
   std::map<Node, std::vector<std::vector<Node> > > d_examples;

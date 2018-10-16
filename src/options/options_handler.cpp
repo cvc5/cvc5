@@ -86,8 +86,7 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
     d_options->d_beforeSearchListeners.notify();
   } catch (ModalException&){
     std::stringstream ss;
-    ss << "cannot change option `" << option
-       << "' after final initialization (i.e., after logic has been set)";
+    ss << "cannot change option `" << option << "' after final initialization";
     throw ModalException(ss.str());
   }
 }
@@ -525,6 +524,21 @@ post \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusActiveGenHelp =
+    "\
+Modes for actively-generated sygus enumerators, supported by --sygus-active-gen:\n\
+\n\
+none  \n\
++ Do not use actively-generated sygus enumerators.\n\
+\n\
+basic  \n\
++ Use basic type enumerator as sygus enumerator.\n\
+\n\
+var-agnostic \n\
++ Use sygus solver to enumerate terms that are agnostic to variables. \n\
+\n\
+";
+
 const std::string OptionsHandler::s_macrosQuantHelp = "\
 Modes for quantifiers macro expansion, supported by --macros-quant-mode:\n\
 \n\
@@ -949,6 +963,34 @@ OptionsHandler::stringToSygusInvTemplMode(std::string option,
   } else {
     throw OptionException(std::string("unknown option for --sygus-inv-templ: `") +
                           optarg + "'.  Try --sygus-inv-templ help.");
+  }
+}
+
+theory::quantifiers::SygusActiveGenMode
+OptionsHandler::stringToSygusActiveGenMode(std::string option,
+                                           std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_NONE;
+  }
+  else if (optarg == "basic")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_BASIC;
+  }
+  else if (optarg == "var-agnostic")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_sygusActiveGenHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-inv-templ: `")
+                          + optarg + "'.  Try --sygus-inv-templ help.");
   }
 }
 
