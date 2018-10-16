@@ -109,8 +109,8 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
   {
     return true;
   }
-  Trace("sygus-qgen-debug") << "query: Check " << queries.size()
-                            << " queries..." << std::endl;
+  Trace("sygus-qgen-debug")
+      << "query: Check " << queries.size() << " queries..." << std::endl;
   // literal queries
   for (unsigned i = 0, nqueries = queries.size(); i < nqueries; i++)
   {
@@ -295,10 +295,10 @@ void QueryGenerator::findQueries(
       }
       int eqAllow = d_deqThresh - eqIndex[0].size();
       int deqAllow = d_deqThresh - eqIndex[1].size();
-      Trace("sygus-qgen-debug") << "Find queries " << n << " " << index << "/"
-                                << ntotal << ", deq/eq allow = " << deqAllow
-                                << "/" << eqAllow << ", exact = " << exact
-                                << std::endl;
+      Trace("sygus-qgen-debug")
+          << "Find queries " << n << " " << index << "/" << ntotal
+          << ", deq/eq allow = " << deqAllow << "/" << eqAllow
+          << ", exact = " << exact << std::endl;
       if (index == ntotal)
       {
         if (exact)
