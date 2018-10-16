@@ -635,7 +635,7 @@ class CVC4_PUBLIC SmtEngine {
    * Invariant constraints are not explicitly declared: they are given in terms
    * of the invariant-to-synthesize, the pre condition, transition relation and
    * post condition. The actual constraint is built based on the inputs of these
-   * place holders :
+   * place holder predicates :
    *
    * PRE(x) -> INV(x)
    * INV() ^ TRANS(x, x') -> INV(x')
@@ -644,7 +644,7 @@ class CVC4_PUBLIC SmtEngine {
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(const std::vector<Expr>& place_holders);
+  void assertSygusInvConstraint(const std::vector<Expr>& predicates);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.

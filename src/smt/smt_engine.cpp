@@ -3781,19 +3781,19 @@ void SmtEngine::assertSygusConstraint(Expr constraint)
   Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
 }
 
-void SmtEngine::assertSygusInvConstraint(const std::vector<Expr>& place_holders)
+void SmtEngine::assertSygusInvConstraint(const std::vector<Expr>& predicates)
 {
   SmtScope smts(this);
   // build invariant constraint
 
   // get variables (regular and their respective primed versions)
   std::vector<Node> terms, vars, primed_vars;
-  for (const Expr& e : place_holders)
+  for (const Expr& e : predicates)
   {
     terms.push_back(Node::fromExpr(e));
   }
   // variables are built based on the invariant type
-  FunctionType t = static_cast<FunctionType>(place_holders[0].getType());
+  FunctionType t = static_cast<FunctionType>(predicates[0].getType());
   std::vector<Type> argTypes = t.getArgTypes();
   for (const Type& ti : argTypes)
   {

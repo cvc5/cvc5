@@ -798,8 +798,8 @@ std::string SygusConstraintCommand::getCommandName() const
 /* -------------------------------------------------------------------------- */
 
 SygusInvConstraintCommand::SygusInvConstraintCommand(
-    const std::vector<Expr>& place_holders)
-    : d_place_holders(place_holders)
+    const std::vector<Expr>& predicates)
+    : d_predicates(predicates)
 {
 }
 
@@ -807,7 +807,7 @@ void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->assertSygusInvConstraint(d_place_holders);
+    smtEngine->assertSygusInvConstraint(d_predicates);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
@@ -816,20 +816,20 @@ void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-const std::vector<Expr>& SygusInvConstraintCommand::getPlaceHolders() const
+const std::vector<Expr>& SygusInvConstraintCommand::getPredicates() const
 {
-  return d_place_holders;
+  return d_predicates;
 }
 
 Command* SygusInvConstraintCommand::exportTo(
     ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
-  return new SygusInvConstraintCommand(d_place_holders);
+  return new SygusInvConstraintCommand(d_predicates);
 }
 
 Command* SygusInvConstraintCommand::clone() const
 {
-  return new SygusInvConstraintCommand(d_place_holders);
+  return new SygusInvConstraintCommand(d_predicates);
 }
 
 std::string SygusInvConstraintCommand::getCommandName() const
