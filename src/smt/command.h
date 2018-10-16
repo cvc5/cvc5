@@ -800,6 +800,10 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
 {
  public:
   SygusInvConstraintCommand(const std::vector<Expr>& predicates);
+  SygusInvConstraintCommand(const Expr& inv,
+                            const Expr& pre,
+                            const Expr& trans,
+                            const Expr& post);
   /** returns the place holder predicates */
   const std::vector<Expr>& getPredicates() const;
   /** invokes this command

@@ -644,7 +644,10 @@ class CVC4_PUBLIC SmtEngine {
    * The regular and primed variables are retrieved from the declaration of the
    * invariant-to-synthesize.
    */
-  void assertSygusInvConstraint(const std::vector<Expr>& predicates);
+  void assertSygusInvConstraint(const Expr& inv,
+                                const Expr& pre,
+                                const Expr& trans,
+                                const Expr& post);
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.

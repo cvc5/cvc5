@@ -803,11 +803,20 @@ SygusInvConstraintCommand::SygusInvConstraintCommand(
 {
 }
 
+SygusInvConstraintCommand::SygusInvConstraintCommand(const Expr& inv,
+                                                     const Expr& pre,
+                                                     const Expr& trans,
+                                                     const Expr& post)
+    : SygusInvConstraintCommand(std::vector<Expr>{inv, pre, trans, post})
+{
+}
+
 void SygusInvConstraintCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    smtEngine->assertSygusInvConstraint(d_predicates);
+    smtEngine->assertSygusInvConstraint(
+        d_predicates[0], d_predicates[1], d_predicates[2], d_predicates[3]);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (exception& e)
