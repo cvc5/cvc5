@@ -326,8 +326,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, d_one));
     Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
-    Node c = nm->mkNode(
-        MINUS, nm->mkNode(STRING_CODE, udx), c0);
+    Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, udx), c0);
     Node usx = nm->mkNode(APPLY_UF, us, x);
     Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS, x, d_one));
 
