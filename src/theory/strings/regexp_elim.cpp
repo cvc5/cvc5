@@ -245,6 +245,43 @@ Node RegExpElimination::eliminateConcat(Node atom)
       return returnElim(atom, res, "concat-with-gaps");
     }
   }
+  
+  // if it is a concat with a fixed length
+  bool hasFixedLength = true;
+  std::vector< Node > childLengths;
+  for (const Node& c : children)
+  {
+    Node fl = TheoryStringsRewriter::getFixedLengthForRegexp( c );
+    if( fl.isNull() )
+    {
+      hasFixedLength = false;
+      break;
+    }
+    childLengths.push_back( fl );
+  }
+  if( hasFixedLength )
+  {
+    Assert( re.getNumChildren()==children.size() );
+    Node sum = nm->mkNode( PLUS, childLengths );
+    std::vector< Node > conc;
+    conc.push_back( lenx.eqNode(sum) );
+    Node currEnd = d_zero;
+    for( unsigned i=0, size = childLengths.size(); i<size; i++ )
+    {
+      Node curr = nm->mkNode( STRING_SUBSTR, x, currEnd, childLengths[i] );
+      Node currMem = nm->mkNode( STRING_IN_REGEXP, curr, re[0] );
+      conc.push_back(currMem);
+      currEnd = nm->mkNode( PLUS, currEnd, childLengths[i] );
+      currEnd = Rewriter::rewrite(currEnd);
+    }
+    Node res = nm->mkNode( AND, conc );
+    // for example:
+    //   x in re.++(re.union(re.range("A", "J"), re.range("N", "Z")), "AB") -->
+    //   len( x ) = 3 ^
+    //   substr(x,0,1) in re.union(re.range("A", "J"), re.range("N", "Z")) ^
+    //   substr(x,1,2) in "AB"
+    return returnElim(atom, res, "concat-fixed-len");
+  }
 
   if (!options::regExpElimAgg())
   {
