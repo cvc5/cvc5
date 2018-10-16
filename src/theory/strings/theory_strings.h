@@ -289,9 +289,8 @@ private:
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   NodeSet d_length_lemma_terms_cache;
-  // preprocess cache
+  /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
-  NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   NodeSet d_extf_infer_cache_u;

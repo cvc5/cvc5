@@ -113,7 +113,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_registered_terms_cache(u),
       d_length_lemma_terms_cache(u),
       d_preproc(&d_sk_cache, u),
-      d_preproc_cache(u),
       d_extf_infer_cache(c),
       d_extf_infer_cache_u(u),
       d_ee_disequalities(c),
@@ -397,110 +396,103 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
 
 bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
 {
+  Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
+  if( !d_extf_info_tmp[n].d_model_active ){
+    // n is not active in the model, no need to reduce
+    return false;
+  }
   //determine the effort level to process the extf at
   // 0 - at assertion time, 1+ - after no other reduction is applicable
-  Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
-  if( d_extf_info_tmp[n].d_model_active ){
-    int r_effort = -1;
-    // polarity : 1 true, -1 false, 0 neither
-    int pol = 0;
-    if (n.getType().isBoolean() && !d_extf_info_tmp[n].d_const.isNull())
-    {
-      pol = d_extf_info_tmp[n].d_const.getConst<bool>() ? 1 : -1;
-    }
-    if( n.getKind()==kind::STRING_STRCTN ){
-      if( pol==1 ){
-        r_effort = 1;
-      }else if( pol==-1 ){
-        if( effort==2 ){
-          Node x = n[0];
-          Node s = n[1];
-          std::vector< Node > lexp;
-          Node lenx = getLength( x, lexp );
-          Node lens = getLength( s, lexp );
-          if( areEqual( lenx, lens ) ){
-            Trace("strings-extf-debug") << "  resolve extf : " << n << " based on equal lengths disequality." << std::endl;
-            Trace("strings-extf-debug")
-                << "Lengths : " << lenx << " " << lens << std::endl;
-            // We can reduce negative contains to a disequality when lengths are
-            // equal. In other words, len( x ) = len( s ) implies
-            //   ~contains( x, s ) reduces to x != s.
-            if( !areDisequal( x, s ) ){
-              // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
-              lexp.push_back( lenx.eqNode(lens) );
-              lexp.push_back( n.negate() );
-              Node xneqs = x.eqNode(s).negate();
-              sendInference( lexp, xneqs, "NEG-CTN-EQL", true );
-            }
-            // this depends on the current assertions, so we set that this
-            // inference is context-dependent.
-            isCd = true;
-            return true;
-          }else{
-            r_effort = 2;
+  int r_effort = -1;
+  // polarity : 1 true, -1 false, 0 neither
+  int pol = 0;
+  Kind k = n.getKind();
+  if (n.getType().isBoolean() && !d_extf_info_tmp[n].d_const.isNull())
+  {
+    pol = d_extf_info_tmp[n].d_const.getConst<bool>() ? 1 : -1;
+  }
+  if( k==STRING_STRCTN ){
+    if( pol==1 ){
+      r_effort = 1;
+    }else if( pol==-1 ){
+      if( effort==2 ){
+        Node x = n[0];
+        Node s = n[1];
+        std::vector< Node > lexp;
+        Node lenx = getLength( x, lexp );
+        Node lens = getLength( s, lexp );
+        if( areEqual( lenx, lens ) ){
+          Trace("strings-extf-debug") << "  resolve extf : " << n << " based on equal lengths disequality." << std::endl;
+          // We can reduce negative contains to a disequality when lengths are
+          // equal. In other words, len( x ) = len( s ) implies
+          //   ~contains( x, s ) reduces to x != s.
+          if( !areDisequal( x, s ) ){
+            // len( x ) = len( s ) ^ ~contains( x, s ) => x != s
+            lexp.push_back( lenx.eqNode(lens) );
+            lexp.push_back( n.negate() );
+            Node xneqs = x.eqNode(s).negate();
+            sendInference( lexp, xneqs, "NEG-CTN-EQL", true );
           }
-        }
-      }
-    }else{
-      if( options::stringLazyPreproc() ){
-        if( n.getKind()==kind::STRING_SUBSTR ){
-          r_effort = 1;
-        }else if( n.getKind()!=kind::STRING_IN_REGEXP ){
+          // this depends on the current assertions, so we set that this
+          // inference is context-dependent.
+          isCd = true;
+          return true;
+        }else{
           r_effort = 2;
         }
       }
     }
-    if( effort==r_effort ){
-      Node c_n = pol==-1 ? n.negate() : n;
-      if( d_preproc_cache.find( c_n )==d_preproc_cache.end() ){
-        d_preproc_cache[ c_n ] = true;
-        Trace("strings-process-debug") << "Process reduction for " << n << ", pol = " << pol << std::endl;
-        Kind k = n.getKind();
-        if (k == kind::STRING_STRCTN && pol == 1)
-        {
-          Node x = n[0];
-          Node s = n[1];
-          //positive contains reduces to a equality
-          Node sk1 = d_sk_cache.mkSkolemCached(
-              x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
-          Node sk2 = d_sk_cache.mkSkolemCached(
-              x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
-          Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
-          std::vector< Node > exp_vec;
-          exp_vec.push_back( n );
-          sendInference( d_empty_vec, exp_vec, eq, "POS-CTN", true );
-          //we've reduced this n
-          Trace("strings-extf-debug") << "  resolve extf : " << n << " based on positive contain reduction." << std::endl;
-          isCd = false;
-          return true;
-        }
-        else if (k != kind::STRING_CODE)
-        {
-          Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
-                 || k == STRING_ITOS
-                 || k == STRING_STOI
-                 || k == STRING_STRREPL
-                 || k == STRING_LEQ);
-          std::vector< Node > new_nodes;
-          Node res = d_preproc.simplify( n, new_nodes );
-          Assert( res!=n );
-          new_nodes.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, res, n ) );
-          Node nnlem = new_nodes.size()==1 ? new_nodes[0] : NodeManager::currentNM()->mkNode( kind::AND, new_nodes );
-          nnlem = Rewriter::rewrite( nnlem );
-          Trace("strings-red-lemma") << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
-          Trace("strings-red-lemma") << "...from " << n << std::endl;
-          sendInference( d_empty_vec, nnlem, "Reduction", true );
-          //we've reduced this n
-          Trace("strings-extf-debug") << "  resolve extf : " << n << " based on reduction." << std::endl;
-          isCd = false;
-          return true;
-        }
-      }else{
-        return true;
+  }else{
+    if( options::stringLazyPreproc() ){
+      if( k==STRING_SUBSTR ){
+        r_effort = 1;
+      }else if( k!=STRING_IN_REGEXP ){
+        r_effort = 2;
       }
     }
   }
-  return false;
+  if( effort!=r_effort ){
+    // not the right effort level to reduce
+    return false;
+  }
+  Node c_n = pol==-1 ? n.negate() : n;
+  Trace("strings-process-debug") << "Process reduction for " << n << ", pol = " << pol << std::endl;
+  if (k == STRING_STRCTN && pol == 1)
+  {
+    Node x = n[0];
+    Node s = n[1];
+    //positive contains reduces to a equality
+    Node sk1 = d_sk_cache.mkSkolemCached(
+        x, s, SkolemCache::SK_FIRST_CTN_PRE, "sc1");
+    Node sk2 = d_sk_cache.mkSkolemCached(
+        x, s, SkolemCache::SK_FIRST_CTN_POST, "sc2");
+    Node eq = Rewriter::rewrite( x.eqNode( mkConcat( sk1, s, sk2 ) ) );
+    std::vector< Node > exp_vec;
+    exp_vec.push_back( n );
+    sendInference( d_empty_vec, exp_vec, eq, "POS-CTN", true );
+    Trace("strings-extf-debug") << "  resolve extf : " << n << " based on positive contain reduction." << std::endl;
+  }
+  else if (k != kind::STRING_CODE)
+  {
+    NodeManager * nm = NodeManager::currentNM();
+    Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
+            || k == STRING_ITOS
+            || k == STRING_STOI
+            || k == STRING_STRREPL
+            || k == STRING_LEQ);
+    std::vector< Node > new_nodes;
+    Node res = d_preproc.simplify( n, new_nodes );
+    Assert( res!=n );
+    new_nodes.push_back( res.eqNode( n ) );
+    Node nnlem = new_nodes.size()==1 ? new_nodes[0] : nm->mkNode( AND, new_nodes );
+    nnlem = Rewriter::rewrite( nnlem );
+    Trace("strings-red-lemma") << "Reduction_" << effort << " lemma : " << nnlem << std::endl;
+    Trace("strings-red-lemma") << "...from " << n << std::endl;
+    sendInference( d_empty_vec, nnlem, "Reduction", true );
+    Trace("strings-extf-debug") << "  resolve extf : " << n << " based on reduction." << std::endl;
+  }
+  isCd = false;
+  return true;
 }
 
 /////////////////////////////////////////////////////////////////////////////
