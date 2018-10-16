@@ -65,10 +65,6 @@ class SkolemCache
     //    exists k. len( k )>0 ^ ( a ++ k = b OR a = b ++ k )
     SK_ID_V_SPT,
     SK_ID_V_SPT_REV,
-    // contains( a, b ) =>
-    //    exists k_pre, k_post. a = k_pre ++ b ++ k_post
-    SK_ID_CTN_PRE,
-    SK_ID_CTN_POST,
     // a != ""  ^ b = "c" ^ a ++ a' != b ++ b' =>
     //    exists k, k_rem.
     //         len( k ) = 1 ^
@@ -85,6 +81,15 @@ class SkolemCache
     // contains( a, b ) =>
     //    exists k_pre, k_post. a = k_pre ++ b ++ k_post ^
     //                          ~contains(k_pre ++ substr( b, 0, len(b)-1 ), b)
+    //
+    // As an optimization, these skolems are reused for positive occurrences of
+    // contains, where they have the semantics:
+    //
+    //   contains( a, b ) =>
+    //      exists k_pre, k_post. a = k_pre ++ b ++ k_post
+    //
+    // We reuse them since it is sound to consider w.l.o.g. the first occurrence
+    // of b in a as the witness for contains( a, b ).
     SK_FIRST_CTN_PRE,
     SK_FIRST_CTN_POST,
     // For integer b,
