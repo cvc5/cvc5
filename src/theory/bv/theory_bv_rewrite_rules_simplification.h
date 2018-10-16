@@ -493,6 +493,12 @@ Node RewriteRule<AndOne>::apply(TNode node) {
  *
  * Match:       x_m & concat(y_my, 0_n, z_mz)
  * Rewrites to: concat(x[m-1:m-my] & y, 0_n, x[m-my-n-1:0] & z)
+ *
+ * Match:       x_m & concat(y_my, 1_n, z_mz)
+ * Rewrites to: concat(x[m-1:m-my] & y,
+ *                     0_[n-1],
+ *                     x[m-my-n:m-my-n],
+ *                     x[m-my-n-1:0] & z)
  */
 
 template <>
@@ -518,7 +524,7 @@ inline bool RewriteRule<AndConcatPullUp>::applies(TNode node)
     }
   }
   if (n.isNull()) return false;
-  return utils::isZero(n);
+  return utils::isZero(n) || utils::isOne(n);
 }
 
 template <>
@@ -526,6 +532,7 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<AndConcatPullUp>(" << node << ")"
                       << std::endl;
+  int32_t is_const;
   uint32_t m, my, mz, n;
   size_t nc;
   TNode concat;
@@ -549,12 +556,19 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
   }
   x = xb.getNumChildren() > 1 ? xb.constructNode() : xb[0];
 
+  is_const = -1;
   for (const TNode& child : concat)
   {
     if (c.isNull())
     {
       if (utils::isZero(child))
       {
+        is_const = 0;
+        c = child;
+      }
+      else if (utils::isOne(child))
+      {
+        is_const = 1;
         c = child;
       }
       else
@@ -590,7 +604,16 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
     res << nm->mkNode(
         kind::BITVECTOR_AND, utils::mkExtract(x, m - 1, m - my), y);
   }
-  res << c;
+  if (is_const == 0)
+  {
+    res << c;
+  }
+  else
+  {
+    Assert(is_const == 1);
+    if (n > 1) res << utils::mkZero(n-1);
+    res << utils::mkExtract(x, m-my-n, m-my-n);
+  }
   if (mz)
   {
     res << nm->mkNode(
