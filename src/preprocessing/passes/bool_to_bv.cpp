@@ -170,27 +170,32 @@ void BoolToBV::lowerNode(const TNode& n)
         && n.getType().isBoolean())
     {
       if (k == kind::CONST_BOOLEAN)
-        {
-          d_lowerCache[n] =
-            (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1);
-        }
+      {
+        d_lowerCache[n] = (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
+                                                     : bv::utils::mkZero(1);
+      }
       else
       {
         d_lowerCache[n] =
-          nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+            nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
       }
+
+      Debug("bool-to-bv") << "BoolToBV::lowerNode " << n << " =>\n"
+                          << fromCache(n) << std::endl;
       ++(d_statistics.d_numTermsForcedLowered);
       return;
     }
+    else
+    {
+      // invariant
+      // either one of the children is not a bit-vector or bool
+      //   i.e. something that can't be 'forced' to a bitvector
+      // or it's in 'ite' mode which will give up on bools that
+      //   can't be converted easily
 
-    // invariant
-    // either one of the children is not a bit-vector or bool
-    //   i.e. something that can't be 'forced' to a bitvector
-    // or it's in 'ite' mode which will give up on bools that
-    //   can't be converted easily
-
-    Debug("bool-to-bv") << "BoolToBV::lowerNode skipping: " << n << std::endl;
-    return;
+      Debug("bool-to-bv") << "BoolToBV::lowerNode skipping: " << n << std::endl;
+      return;
+    }
   }
 
   Kind new_kind = k;
@@ -241,7 +246,7 @@ void BoolToBV::lowerNode(const TNode& n)
     }
   }
 
-  Debug("bool-to-bv") << "BoolToBV::lowerAssertion " << n << "=>\n"
+  Debug("bool-to-bv") << "BoolToBV::lowerNode " << n << " =>\n"
                       << builder << std::endl;
 
   d_lowerCache[n] = builder.constructNode();
