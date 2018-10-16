@@ -637,6 +637,7 @@ class CVC4_PUBLIC DeclareSygusVarCommand : public DeclarationDefinitionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the declared variable */
   Expr d_var;
@@ -670,6 +671,7 @@ class CVC4_PUBLIC DeclareSygusPrimedVarCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the type of the declared primed variable */
   Type d_type;
@@ -698,6 +700,7 @@ class CVC4_PUBLIC DeclareSygusFunctionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the declared function variable */
   Expr d_func;
@@ -741,6 +744,7 @@ class CVC4_PUBLIC SynthFunCommand : public DeclarationDefinitionCommand
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the function-to-synthesize */
   Expr d_func;
@@ -776,6 +780,7 @@ class CVC4_PUBLIC SygusConstraintCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the declared constraint */
   Expr d_expr;
@@ -811,6 +816,7 @@ class CVC4_PUBLIC SygusInvConstraintCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** the place holder predicates with which to build the actual constraint
    * (i.e. the invariant, precondition, transition relation and postcondition)
@@ -843,6 +849,7 @@ class CVC4_PUBLIC CheckSynthCommand : public Command
   Command* clone() const override;
   /** returns this command's name */
   std::string getCommandName() const override;
+
  protected:
   /** result of the check-synth call */
   Result d_result;
