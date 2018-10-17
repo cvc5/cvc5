@@ -625,7 +625,7 @@ void TheoryEngine::check(Theory::Effort effort) {
         // are in "SAT mode". We build the model later only if the user asks
         // for it via getBuiltModel.
         d_inSatMode = true;
-        if( d_eager_model_building && !d_curr_model->isBuilt() )
+        if (d_eager_model_building && !d_curr_model->isBuilt())
         {
           d_curr_model_builder->buildModel(d_curr_model);
         }
