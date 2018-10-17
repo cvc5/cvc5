@@ -4002,6 +4002,11 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getBuiltModel();
 
+  // Since model m is being returned to the user, we must ensure that this
+  // model object remains valid with future check-sat calls. Hence, we set
+  // the theory engine into "eager model building" mode. TODO #2648: revisit.
+  d_theoryEngine->setEagerModelBuilding();
+
   if (options::produceModelCores())
   {
     // If we enabled model cores, we compute a model core for m based on our
