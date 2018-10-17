@@ -297,6 +297,7 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
       d_aloc_curr_model_builder(false),
+      d_eager_model_building(false),
       d_ppCache(),
       d_possiblePropagations(context),
       d_hasPropagated(context),
@@ -620,10 +621,14 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
-        // Instead of building the model eagerly, we instead mark that we
+        // If d_eager_model_building is false, then we only mark that we
         // are in "SAT mode". We build the model later only if the user asks
         // for it via getBuiltModel.
         d_inSatMode = true;
+        if( d_eager_model_building && !d_curr_model->isBuilt() )
+        {
+          d_curr_model_builder->buildModel(d_curr_model);
+        }
       }
     }
 

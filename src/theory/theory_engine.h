@@ -214,6 +214,8 @@ class TheoryEngine {
    */
   theory::TheoryEngineModelBuilder* d_curr_model_builder;
   bool d_aloc_curr_model_builder;
+  /** are we in eager model building mode? (see setEagerModelBuilding). */
+  bool d_eager_model_building;
 
   typedef std::unordered_map<Node, Node, NodeHashFunction> NodeMap;
   typedef std::unordered_map<TNode, Node, TNodeHashFunction> TNodeMap;
@@ -752,6 +754,16 @@ public:
    * to build to the model.
    */
   theory::TheoryModel* getBuiltModel();
+  /** set eager model building
+   *
+   * If this method is called, then this TheoryEngine will henceforth build
+   * its model immediately after everything satisfiability check that results
+   * in a satisfiable or unknown result. The motivation for this mode is to
+   * accomodate API users that get the model object from the TheoryEngine,
+   * where we want to ensure that this model is always valid.
+   * TODO (#2648): revisit this.
+   */
+  void setEagerModelBuilding() { d_eager_model_building = true; }
 
   /** get synth solutions
    *
