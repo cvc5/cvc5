@@ -23,13 +23,36 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-SubstitutionMinimize::SubstitutionMinimize() {}
+SubstitutionMinimize::SubstitutionMinimize() {
+  d_true = NodeManager::currentNM()->mkConst(true);  
+}
 
 bool SubstitutionMinimize::find(Node n,
                                 Node target,
                                 const std::vector<Node>& vars,
                                 const std::vector<Node>& subs,
                                 std::vector<Node>& reqVars)
+{
+  std::vector<Node> impliedVars;
+  return findInternal( n, target, vars, subs, reqVars, impliedVars, false );
+}
+
+bool SubstitutionMinimize::findWithImplied(Node t,
+                  const std::vector<Node>& vars,
+                  const std::vector<Node>& subs,
+                  std::vector<Node>& reqVars,
+                  std::vector<Node>& impliedVars);
+{
+  return findInternal( n, d_true, vars, subs, reqVars, impliedVars, true );
+}
+
+bool SubstitutionMinimize::findInternal(Node n,
+                                Node target,
+                                const std::vector<Node>& vars,
+                                const std::vector<Node>& subs,
+                                std::vector<Node>& reqVars,
+                  std::vector<Node>& impliedVars,
+                  bool computeImplied )
 {
   Trace("subs-min") << "Substitution minimize : " << std::endl;
   Trace("subs-min") << "  substitution : " << vars << " -> " << subs
