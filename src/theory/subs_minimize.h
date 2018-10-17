@@ -76,10 +76,10 @@ class SubstitutionMinimize
  private:
   /** Common helper function for the above functions. */
   static bool findInternal(Node t,
-                                          Node target,
-                                          const std::vector<Node>& vars,
-                                          const std::vector<Node>& subs,
-                                          std::vector<Node>& reqVars);
+                           Node target,
+                           const std::vector<Node>& vars,
+                           const std::vector<Node>& subs,
+                           std::vector<Node>& reqVars);
   /** is singular arg
    *
    * Returns true if

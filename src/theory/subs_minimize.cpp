@@ -14,9 +14,9 @@
 
 #include "theory/subs_minimize.h"
 
+#include "expr/node_algorithm.h"
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
-#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -24,9 +24,7 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 
-SubstitutionMinimize::SubstitutionMinimize()
-{
-}
+SubstitutionMinimize::SubstitutionMinimize() {}
 
 bool SubstitutionMinimize::find(Node t,
                                 Node target,
@@ -43,22 +41,22 @@ bool SubstitutionMinimize::findWithImplied(Node t,
                                            std::vector<Node>& reqVars,
                                            std::vector<Node>& impliedVars)
 {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node truen = nm->mkConst(true);
-  if( !findInternal(t, truen, vars, subs, reqVars) )
+  if (!findInternal(t, truen, vars, subs, reqVars))
   {
     return false;
   }
-  if( reqVars.empty() )
+  if (reqVars.empty())
   {
     return true;
   }
-  
+
   // map from conjuncts of t to whether they may be used to show an implied var
-  std::vector< Node > tconj;
-  if( t.getKind()==AND )
+  std::vector<Node> tconj;
+  if (t.getKind() == AND)
   {
-    for( const Node& tc : t )
+    for (const Node& tc : t)
     {
       tconj.push_back(tc);
     }
@@ -68,52 +66,54 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     tconj.push_back(t);
   }
   // map from conjuncts to their free symbols
-  std::map< Node, std::unordered_set< Node, NodeHashFunction > > tcFv;
-  
-  std::unordered_set< Node, NodeHashFunction > reqSet;
-  std::vector< Node > reqSubs;
-  std::map< Node, unsigned > reqVarToIndex;
-  for( const Node& v : reqVars )
+  std::map<Node, std::unordered_set<Node, NodeHashFunction> > tcFv;
+
+  std::unordered_set<Node, NodeHashFunction> reqSet;
+  std::vector<Node> reqSubs;
+  std::map<Node, unsigned> reqVarToIndex;
+  for (const Node& v : reqVars)
   {
     reqVarToIndex[v] = reqSubs.size();
     const std::vector<Node>::const_iterator& it =
         std::find(vars.begin(), vars.end(), v);
     Assert(it != vars.end());
-      ptrdiff_t pos = std::distance(vars.begin(), it);
-      reqSubs.push_back( subs[pos] );
+    ptrdiff_t pos = std::distance(vars.begin(), it);
+    reqSubs.push_back(subs[pos]);
   }
-  
-  for( const Node& v : vars )
+
+  for (const Node& v : vars)
   {
-    if( reqVarToIndex.find(v)==reqVarToIndex.end() )
+    if (reqVarToIndex.find(v) == reqVarToIndex.end())
     {
       // not a required variable, nothing to do
       continue;
     }
     unsigned vindex = reqVarToIndex[v];
     Node prev = reqSubs[vindex];
-    // make identity substitution 
+    // make identity substitution
     reqSubs[vindex] = v;
     bool madeImplied = false;
     // it is a required variable, can we make an implied variable?
-    for( const Node& tc : tconj )
+    for (const Node& tc : tconj)
     {
       // ensure we've computed its free symbols
-      std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator itf = tcFv.find( tc );
-      if( itf==tcFv.end() )
+      std::map<Node, std::unordered_set<Node, NodeHashFunction> >::iterator
+          itf = tcFv.find(tc);
+      if (itf == tcFv.end())
       {
-        expr::getSymbols(tc,tcFv[tc]);
-        itf = tcFv.find( tc );
+        expr::getSymbols(tc, tcFv[tc]);
+        itf = tcFv.find(tc);
       }
       // only have a chance if contains v
-      if( itf->second.find(v)==itf->second.end() )
+      if (itf->second.find(v) == itf->second.end())
       {
         continue;
       }
       // try the current substitution
-      Node tcs = tc.substitute(reqVars.begin(),reqVars.end(),reqSubs.begin(),reqSubs.end());
+      Node tcs = tc.substitute(
+          reqVars.begin(), reqVars.end(), reqSubs.begin(), reqSubs.end());
     }
-    if( !madeImplied )
+    if (!madeImplied)
     {
       // revert the substitution
       reqSubs[vindex] = prev;
@@ -123,8 +123,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
       impliedVars.push_back(v);
     }
   }
-  
-  
+
   return true;
 }
 
