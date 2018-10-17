@@ -495,6 +495,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
         << std::endl;
     Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
                                << " => " << eq << std::endl;
+    // context-dependent because it depends on the polarity of n itself
     isCd = true;
   }
   else if (k != kind::STRING_CODE)
