@@ -493,8 +493,8 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
     Trace("strings-extf-debug")
         << "  resolve extf : " << n << " based on positive contain reduction."
         << std::endl;
-    Trace("strings-red-lemma")
-        << "Reduction (positive contains) lemma : " << n << " => " << eq << std::endl;
+    Trace("strings-red-lemma") << "Reduction (positive contains) lemma : " << n
+                               << " => " << eq << std::endl;
     isCd = true;
   }
   else if (k != kind::STRING_CODE)
@@ -1004,7 +1004,7 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   Trace("strings-process") << "  checking " << extf.size() << " active extf"
                            << std::endl;
   for( unsigned i=0; i<extf.size(); i++ ){
-    Assert( !d_conflict );
+    Assert(!d_conflict);
     Node n = extf[i];
     Trace("strings-process") << "  check " << n << ", active in model="
                              << d_extf_info_tmp[n].d_model_active << std::endl;
