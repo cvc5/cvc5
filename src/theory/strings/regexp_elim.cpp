@@ -100,7 +100,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     Node currEnd = d_zero;
     for (unsigned i = 0, size = childLengths.size(); i < size; i++)
     {
-      if (hasPivotIndex && i == hasPivotIndex)
+      if (hasPivotIndex && i == pivotIndex)
       {
         Node ppSum = childLengthsPostPivot.size() == 1
                          ? childLengthsPostPivot[0]
@@ -110,7 +110,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       else
       {
         Node curr = nm->mkNode(STRING_SUBSTR, x, currEnd, childLengths[i]);
-        Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[0]);
+        Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
         conc.push_back(currMem);
         currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
         currEnd = Rewriter::rewrite(currEnd);
