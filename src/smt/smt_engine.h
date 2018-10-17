@@ -610,7 +610,11 @@ class CVC4_PUBLIC SmtEngine {
 
   /*------------------- sygus commands  ------------------*/
 
-  /** adds a variable declaration */
+  /** adds a variable declaration
+   *
+   * Declared SyGuS variables may be used in SyGuS constraints, in which they
+   * are assumed to be universally quantified.
+   */
   void declareSygusVar(const std::string& id, Expr var, Type type);
   /** stores information for debugging sygus invariants setup
    *
@@ -620,15 +624,34 @@ class CVC4_PUBLIC SmtEngine {
    * invariant-to-synthesize.
    */
   void declareSygusPrimedVar(const std::string& id, Type type);
-  /** adds a function variable declaration */
+  /** adds a function variable declaration
+   *
+   * Is SyGuS semantics declared functions are treated in the same manner as
+   * declared variables, i.e. as universally quantified (function) variables
+   * which can occur in the SyGuS constraints that compose the conjecture to
+   * which a function is being synthesized.
+   */
   void declareSygusFunctionVar(const std::string& id, Expr var, Type type);
-  /** adds a function-to-synthesize declaration */
+  /** adds a function-to-synthesize declaration
+   *
+   * The given type may not correspond to the actual function type but to a
+   * datatype encoding the syntax restrictions for the
+   * function-to-synthesize. In this case this information is stored to be used
+   * during solving.
+   *
+   * vars contains the arguments of the function-to-synthesize. These variables
+   * are also stored to be used during solving.
+   *
+   * isInv determines whether the function-to-synthesize is actually an
+   * invariant. This information is necessary if we are dumping a command
+   * corresponding to this declaration, so that it can be properly printed.
+   */
   void declareSynthFun(const std::string& id,
                        Expr func,
                        Type type,
                        bool isInv,
                        const std::vector<Expr>& vars);
-  /** adds a regular sygus constraint **/
+  /** adds a regular sygus constraint */
   void assertSygusConstraint(Expr constraint);
   /** adds an invariant constraint
    *
@@ -651,6 +674,16 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Assert a synthesis conjecture to the current context and call
    * check().  Returns sat, unsat, or unknown result.
+   *
+   * The actual synthesis conjecture is built based on the previously
+   * communicated information to this module (universal variables, defined
+   * functions, functions-to-synthesize, and which constraints compose it). The
+   * built conjecture is a higher-order formula of the form
+   *
+   * exists f1...fn . forall v1...vm . F
+   *
+   * in which f1...fn are the functions-to-synthesize, v1...vm are the declared
+   * universal variables and F is the set of declared constraints.
    */
   Result checkSynth() /* throw(Exception) */;
 
