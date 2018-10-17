@@ -235,6 +235,8 @@ void BoolToBV::lowerNode(const TNode& n)
   // special case IMPLIES because needs to be rewritten
   if (k == kind::IMPLIES)
   {
+    // it's empirically better to encode as -(p & -q) instead of (-p | q)
+    // based on QF_BV SMT-LIB benchmarks
     builder << nm->mkNode(kind::BITVECTOR_AND,
                           fromCache(n[0]),
                           nm->mkNode(kind::BITVECTOR_NOT, fromCache(n[1])));
