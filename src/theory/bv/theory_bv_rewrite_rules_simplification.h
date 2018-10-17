@@ -489,7 +489,7 @@ Node RewriteRule<AndOne>::apply(TNode node) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * AndOrConcatPullUp
+ * AndOrXorConcatPullUp
  *
  * And:
  * ----------------------------------------------------------------
@@ -524,13 +524,32 @@ Node RewriteRule<AndOne>::apply(TNode node) {
  *   Rewrites to: concat(x[m-1:m-my] | y,
  *                       ~0_n,
  *                       x[mz-1:0] | z)
+ *
+ * Xor:
+ * ----------------------------------------------------------------
+ *   Match:       x_m ^ concat(y_my, 0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] ^ y,
+ *                       x[m-my-1:mz],
+ *                       x[mz-1:0] ^ z)
+ *
+ *   Match:       x_m ^ concat(y_my, 1_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] ^ y,
+ *                       x[m-my-1:mz+1],
+ *                       ~x[mz:mz],
+ *                       x[mz-1:0] ^ z)
+ *
+ *   Match:       x_m ^ concat(y_my, ~0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] ^ y,
+ *                       ~[m-my-1:mz],
+ *                       x[mz-1:0] ^ z)
  */
 
 template <>
-inline bool RewriteRule<AndOrConcatPullUp>::applies(TNode node)
+inline bool RewriteRule<AndOrXorConcatPullUp>::applies(TNode node)
 {
   if (node.getKind() != kind::BITVECTOR_AND
-      && node.getKind() != kind::BITVECTOR_OR)
+      && node.getKind() != kind::BITVECTOR_OR
+      && node.getKind() != kind::BITVECTOR_XOR)
   {
     return false;
   }
@@ -557,9 +576,9 @@ inline bool RewriteRule<AndOrConcatPullUp>::applies(TNode node)
 }
 
 template <>
-inline Node RewriteRule<AndOrConcatPullUp>::apply(TNode node)
+inline Node RewriteRule<AndOrXorConcatPullUp>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<AndOrConcatPullUp>(" << node << ")"
+  Debug("bv-rewrite") << "RewriteRule<AndOrXorConcatPullUp>(" << node << ")"
                       << std::endl;
   int32_t is_const;
   uint32_t m, my, mz, n;
@@ -646,7 +665,7 @@ inline Node RewriteRule<AndOrConcatPullUp>::apply(TNode node)
     }
     else
     {
-      Assert(kind == kind::BITVECTOR_OR);
+      Assert(kind == kind::BITVECTOR_OR || kind == kind::BITVECTOR_XOR);
       res << utils::mkExtract(x, m - my - 1, mz);
     }
   }
@@ -657,11 +676,16 @@ inline Node RewriteRule<AndOrConcatPullUp>::apply(TNode node)
       if (n > 1) res << utils::mkZero(n - 1);
       res << utils::mkExtract(x, mz, mz);
     }
-    else
+    else if (kind == kind::BITVECTOR_OR)
     {
-      Assert(kind == kind::BITVECTOR_OR);
       if (n > 1) res << utils::mkExtract(x, m - my - 1, mz + 1);
       res << utils::mkOne(1);
+    }
+    else
+    {
+      Assert(kind == kind::BITVECTOR_XOR);
+      if (n > 1) res << utils::mkExtract(x, m - my - 1, mz + 1);
+      res << nm->mkNode(kind::BITVECTOR_NOT, utils::mkExtract(x, mz, mz));
     }
   }
   else
@@ -671,10 +695,15 @@ inline Node RewriteRule<AndOrConcatPullUp>::apply(TNode node)
     {
       res << utils::mkExtract(x, m - my - 1, mz);
     }
+    else if (kind == kind::BITVECTOR_OR)
+    {
+      res << c;
+    }
     else
     {
-      Assert(kind == kind::BITVECTOR_OR);
-      res << c;
+      Assert(kind == kind::BITVECTOR_XOR);
+      res << nm->mkNode(kind::BITVECTOR_NOT,
+                        utils::mkExtract(x, m - my - 1, mz));
     }
   }
   if (mz)
