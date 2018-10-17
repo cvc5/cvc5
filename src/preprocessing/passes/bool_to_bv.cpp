@@ -206,7 +206,7 @@ void BoolToBV::lowerNode(const TNode& n)
     case kind::OR: new_kind = kind::BITVECTOR_OR; break;
     case kind::NOT: new_kind = kind::BITVECTOR_NOT; break;
     case kind::XOR: new_kind = kind::BITVECTOR_XOR; break;
-    case kind::IMPLIES: new_kind = kind::BITVECTOR_OR; break;
+    case kind::IMPLIES: new_kind = kind::BITVECTOR_NOT; break;
     case kind::ITE: new_kind = kind::BITVECTOR_ITE; break;
     case kind::BITVECTOR_ULT: new_kind = kind::BITVECTOR_ULTBV; break;
     case kind::BITVECTOR_SLT: new_kind = kind::BITVECTOR_SLTBV; break;
@@ -235,8 +235,9 @@ void BoolToBV::lowerNode(const TNode& n)
   // special case IMPLIES because needs to be rewritten
   if (k == kind::IMPLIES)
   {
-    builder << nm->mkNode(kind::BITVECTOR_NOT, fromCache(n[0]));
-    builder << fromCache(n[1]);
+    builder << nm->mkNode(kind::BITVECTOR_AND,
+                          fromCache(n[0]),
+                          nm->mkNode(kind::BITVECTOR_NOT, fromCache(n[1])));
   }
   else
   {
