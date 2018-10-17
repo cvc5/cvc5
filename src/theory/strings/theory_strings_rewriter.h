@@ -566,8 +566,8 @@ class TheoryStringsRewriter {
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
-  /** get length for regular expression 
-   * 
+  /** get length for regular expression
+   *
    * Given regular expression n, if this method returns a non-null value c, then
    * x in n entails len( x ) = c.
    */

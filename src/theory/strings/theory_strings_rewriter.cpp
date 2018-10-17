@@ -4540,52 +4540,52 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
 
 Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
 {
-  NodeManager * nm = NodeManager::currentNM();
-  if( n.getKind()==STRING_TO_REGEXP )
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == STRING_TO_REGEXP)
   {
-    Node ret = nm->mkNode( STRING_LENGTH, n[0] );
+    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
     ret = Rewriter::rewrite(ret);
-    if( ret.isConst() )
+    if (ret.isConst())
     {
       return ret;
     }
   }
-  else if( n.getKind()==REGEXP_SIGMA || n.getKind()==REGEXP_RANGE )
+  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
   {
     return nm->mkConst(Rational(1));
   }
-  else if( n.getKind()==REGEXP_UNION || n.getKind()==REGEXP_INTER )
+  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
   {
     Node ret;
-    for( const Node& nc : n )
+    for (const Node& nc : n)
     {
-      Node flc = getFixedLengthForRegexp( nc );
-      if( flc.isNull() || ( !ret.isNull() && ret!=flc ) )
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull() || (!ret.isNull() && ret != flc))
       {
         return Node::null();
       }
-      else if( ret.isNull() )
+      else if (ret.isNull())
       {
         // first time
         ret = flc;
       }
     }
-    return ret;    
+    return ret;
   }
-  else if( n.getKind()==REGEXP_CONCAT )
+  else if (n.getKind() == REGEXP_CONCAT)
   {
-    std::vector< Node > children;
-    for( const Node& nc : n )
+    std::vector<Node> children;
+    for (const Node& nc : n)
     {
-      Node flc = getFixedLengthForRegexp( nc );
-      if( flc.isNull() )
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull())
       {
         return flc;
       }
-      children.push_back( flc );
+      children.push_back(flc);
     }
-    Node ret = nm->mkNode( PLUS, children );
-    ret = Rewriter::rewrite( ret );
+    Node ret = nm->mkNode(PLUS, children);
+    ret = Rewriter::rewrite(ret);
     return ret;
   }
   return Node::null();
