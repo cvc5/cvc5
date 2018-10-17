@@ -18,6 +18,9 @@
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
+#include <utility>
+#include <vector>
+
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 #include "expr/attribute.h"
@@ -632,6 +635,26 @@ class TheoryStringsRewriter {
    * infer that any of the yi must be empty.
    */
   static Node inferEqsFromContains(Node x, Node y);
+
+  /**
+   * Collects equal-to-empty nodes from a conjunction or a single
+   * node. Returns a list of nodes that are compared to empty nodes
+   * and a boolean that indicates whether all nodes in the
+   * conjunction were a comparison with the empty node. The nodes in
+   * the list are sorted and duplicates removed.
+   *
+   * Examples:
+   *
+   * collectEmptyEqs( (= "" x) ) = { true, [x] }
+   * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+   * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+   *
+   * @param x The conjunction of equalities or a single equality
+   * @return A pair of a boolean that indicates whether the
+   * conjunction consists only of comparisons to the empty string
+   * and the list of nodes that are compared to the empty string
+   */
+  static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */
