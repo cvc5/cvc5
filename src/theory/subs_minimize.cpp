@@ -16,6 +16,7 @@
 
 #include "theory/bv/theory_bv_utils.h"
 #include "theory/rewriter.h"
+#include "expr/node_algorithm.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -25,43 +26,119 @@ namespace theory {
 
 SubstitutionMinimize::SubstitutionMinimize()
 {
-  d_true = NodeManager::currentNM()->mkConst(true);
 }
 
-bool SubstitutionMinimize::find(Node n,
+bool SubstitutionMinimize::find(Node t,
                                 Node target,
                                 const std::vector<Node>& vars,
                                 const std::vector<Node>& subs,
                                 std::vector<Node>& reqVars)
 {
-  std::vector<Node> impliedVars;
-  return findInternal(n, target, vars, subs, reqVars, impliedVars, false);
+  return findInternal(t, target, vars, subs, reqVars);
 }
 
 bool SubstitutionMinimize::findWithImplied(Node t,
                                            const std::vector<Node>& vars,
                                            const std::vector<Node>& subs,
                                            std::vector<Node>& reqVars,
-                                           std::vector<Node>& impliedVars);
+                                           std::vector<Node>& impliedVars)
 {
-  return findInternal(n, d_true, vars, subs, reqVars, impliedVars, true);
+  NodeManager * nm = NodeManager::currentNM();
+  Node truen = nm->mkConst(true);
+  if( !findInternal(t, truen, vars, subs, reqVars) )
+  {
+    return false;
+  }
+  if( reqVars.empty() )
+  {
+    return true;
+  }
+  
+  // map from conjuncts of t to whether they may be used to show an implied var
+  std::vector< Node > tconj;
+  if( t.getKind()==AND )
+  {
+    for( const Node& tc : t )
+    {
+      tconj.push_back(tc);
+    }
+  }
+  else
+  {
+    tconj.push_back(t);
+  }
+  // map from conjuncts to their free symbols
+  std::map< Node, std::unordered_set< Node, NodeHashFunction > > tcFv;
+  
+  std::unordered_set< Node, NodeHashFunction > reqSet;
+  std::vector< Node > reqSubs;
+  std::map< Node, unsigned > reqVarToIndex;
+  for( const Node& v : reqVars )
+  {
+    reqVarToIndex[v] = reqSubs.size();
+    const std::vector<Node>::const_iterator& it =
+        std::find(vars.begin(), vars.end(), v);
+    Assert(it != vars.end());
+      ptrdiff_t pos = std::distance(vars.begin(), it);
+      reqSubs.push_back( subs[pos] );
+  }
+  
+  for( const Node& v : vars )
+  {
+    if( reqVarToIndex.find(v)==reqVarToIndex.end() )
+    {
+      // not a required variable, nothing to do
+      continue;
+    }
+    unsigned vindex = reqVarToIndex[v];
+    Node prev = reqSubs[vindex];
+    // make identity substitution 
+    reqSubs[vindex] = v;
+    bool madeImplied = false;
+    // it is a required variable, can we make an implied variable?
+    for( const Node& tc : tconj )
+    {
+      // ensure we've computed its free symbols
+      std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator itf = tcFv.find( tc );
+      if( itf==tcFv.end() )
+      {
+        expr::getSymbols(tc,tcFv[tc]);
+        itf = tcFv.find( tc );
+      }
+      // only have a chance if contains v
+      if( itf->second.find(v)==itf->second.end() )
+      {
+        continue;
+      }
+      // try the current substitution
+      Node tcs = tc.substitute(reqVars.begin(),reqVars.end(),reqSubs.begin(),reqSubs.end());
+    }
+    if( !madeImplied )
+    {
+      // revert the substitution
+      reqSubs[vindex] = prev;
+    }
+    else
+    {
+      impliedVars.push_back(v);
+    }
+  }
+  
+  
+  return true;
 }
 
 bool SubstitutionMinimize::findInternal(Node n,
                                         Node target,
                                         const std::vector<Node>& vars,
                                         const std::vector<Node>& subs,
-                                        std::vector<Node>& reqVars,
-                                        std::vector<Node>& impliedVars,
-                                        bool computeImplied)
+                                        std::vector<Node>& reqVars)
 {
   Trace("subs-min") << "Substitution minimize : " << std::endl;
   Trace("subs-min") << "  substitution : " << vars << " -> " << subs
                     << std::endl;
   Trace("subs-min") << "  node : " << n << std::endl;
   Trace("subs-min") << "  target : " << target << std::endl;
-
-  std::map<Node, std::unordered_set<Node, NodeHashFunction> > fvDepend;
 
   Trace("subs-min") << "--- Compute values for subterms..." << std::endl;
   // the value of each subterm in n under the substitution
@@ -148,8 +225,6 @@ bool SubstitutionMinimize::findInternal(Node n,
   Trace("subs-min") << "--- Compute relevant variables..." << std::endl;
   std::unordered_set<Node, NodeHashFunction> rlvFv;
   // only variables that occur in assertions are relevant
-  std::map<Node, unsigned> iteBranch;
-  std::map<Node, std::vector<unsigned> > justifyArgs;
 
   visit.push_back(n);
   std::unordered_set<TNode, TNodeHashFunction> visited;

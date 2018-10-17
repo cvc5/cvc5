@@ -74,19 +74,12 @@ class SubstitutionMinimize
                               std::vector<Node>& impliedVars);
 
  private:
-  /** true node */
-  Node d_true;
-  /**
-   * Helper function for the above functions. The argument computeImplied is
-   * whether we are constructing impliedVars.
-   */
-  bool SubstitutionMinimize::findInternal(Node n,
+  /** Common helper function for the above functions. */
+  static bool findInternal(Node t,
                                           Node target,
                                           const std::vector<Node>& vars,
                                           const std::vector<Node>& subs,
-                                          std::vector<Node>& reqVars,
-                                          std::vector<Node>& impliedVars,
-                                          bool computeImplied);
+                                          std::vector<Node>& reqVars);
   /** is singular arg
    *
    * Returns true if
