@@ -489,27 +489,51 @@ Node RewriteRule<AndOne>::apply(TNode node) {
 /* -------------------------------------------------------------------------- */
 
 /**
- * AndConcatPullUp
+ * AndOrConcatPullUp
  *
- * Match:       x_m & concat(y_my, 0_n, z_mz)
- * Rewrites to: concat(x[m-1:m-my] & y, 0_n, x[m-my-n-1:0] & z)
+ * And:
+ * ----------------------------------------------------------------
+ *   Match:       x_m & concat(y_my, 0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] & y, 0_n, x[mz-1:0] & z)
  *
- * Match:       x_m & concat(y_my, 1_n, z_mz)
- * Rewrites to: concat(x[m-1:m-my] & y,
- *                     0_[n-1],
- *                     x[m-my-n:m-my-n],
- *                     x[m-my-n-1:0] & z)
+ *   Match:       x_m & concat(y_my, 1_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] & y,
+ *                       0_[n-1],
+ *                       x[mz:mz],
+ *                       x[mz-1:0] & z)
  *
- * Match:       x_m & concat(y_my, ~0_n, z_mz)
- * Rewrites to: concat(x[m-1:m-my] & y,
- *                     x[m-my-1:m-my-n],
- *                     x[m-my-n-1:0] & z)
+ *   Match:       x_m & concat(y_my, ~0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] & y,
+ *                     x[m-my-1:mz],
+ *                     x[mz-1:0] & z)
+ *
+ * Or:
+ * ----------------------------------------------------------------
+ *   Match:       x_m | concat(y_my, 0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] | y,
+ *                       x[m-my-1:mz],
+ *                       x[mz-1:0] | z)
+ *
+ *   Match:       x_m | concat(y_my, 1_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] | y,
+ *                       x[m-my-1:mz+1],
+ *                       1_1,
+ *                       x[mz-1:0] | z)
+ *
+ *   Match:       x_m | concat(y_my, ~0_n, z_mz)
+ *   Rewrites to: concat(x[m-1:m-my] | y,
+ *                       ~0_n,
+ *                       x[mz-1:0] | z)
  */
 
 template <>
-inline bool RewriteRule<AndConcatPullUp>::applies(TNode node)
+inline bool RewriteRule<AndOrConcatPullUp>::applies(TNode node)
 {
-  if (node.getKind() != kind::BITVECTOR_AND) return false;
+  if (node.getKind() != kind::BITVECTOR_AND
+      && node.getKind() != kind::BITVECTOR_OR)
+  {
+    return false;
+  }
 
   TNode n;
 
@@ -533,20 +557,21 @@ inline bool RewriteRule<AndConcatPullUp>::applies(TNode node)
 }
 
 template <>
-inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
+inline Node RewriteRule<AndOrConcatPullUp>::apply(TNode node)
 {
-  Debug("bv-rewrite") << "RewriteRule<AndConcatPullUp>(" << node << ")"
+  Debug("bv-rewrite") << "RewriteRule<AndOrConcatPullUp>(" << node << ")"
                       << std::endl;
   int32_t is_const;
   uint32_t m, my, mz, n;
   size_t nc;
+  Kind kind = node.getKind();
   TNode concat;
   Node x, y, z, c;
-  NodeBuilder<> xb(kind::BITVECTOR_AND);
+  NodeBuilder<> xb(kind);
   NodeBuilder<> yb(kind::BITVECTOR_CONCAT);
   NodeBuilder<> zb(kind::BITVECTOR_CONCAT);
   NodeBuilder<> res(kind::BITVECTOR_CONCAT);
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
 
   for (const TNode& child : node)
   {
@@ -611,27 +636,50 @@ inline Node RewriteRule<AndConcatPullUp>::apply(TNode node)
 
   if (my)
   {
-    res << nm->mkNode(
-        kind::BITVECTOR_AND, utils::mkExtract(x, m - 1, m - my), y);
+    res << nm->mkNode(kind, utils::mkExtract(x, m - 1, m - my), y);
   }
   if (is_const == 0)
   {
-    res << c;
+    if (kind == kind::BITVECTOR_AND)
+    {
+      res << c;
+    }
+    else
+    {
+      Assert(kind == kind::BITVECTOR_OR);
+      res << utils::mkExtract(x, m - my - 1, mz);
+    }
   }
   else if (is_const == 1)
   {
-    if (n > 1) res << utils::mkZero(n-1);
-    res << utils::mkExtract(x, m-my-n, m-my-n);
+    if (kind == kind::BITVECTOR_AND)
+    {
+      if (n > 1) res << utils::mkZero(n - 1);
+      res << utils::mkExtract(x, mz, mz);
+    }
+    else
+    {
+      Assert(kind == kind::BITVECTOR_OR);
+      if (n > 1) res << utils::mkExtract(x, m - my - 1, mz + 1);
+      res << utils::mkOne(1);
+    }
   }
   else
   {
     Assert(is_const == -1);
-    res << utils::mkExtract(x, m-my-1, m-my-n);
+    if (kind == kind::BITVECTOR_AND)
+    {
+      res << utils::mkExtract(x, m - my - 1, mz);
+    }
+    else
+    {
+      Assert(kind == kind::BITVECTOR_OR);
+      res << c;
+    }
   }
   if (mz)
   {
-    res << nm->mkNode(
-        kind::BITVECTOR_AND, utils::mkExtract(x, m - my - n - 1, 0), z);
+    res << nm->mkNode(kind, utils::mkExtract(x, mz - 1, 0), z);
   }
   return res;
 }

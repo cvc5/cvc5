@@ -253,8 +253,7 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
   resultNode =
       LinearRewriteStrategy<RewriteRule<FlattenAssocCommutNoDuplicates>,
                             RewriteRule<AndSimplify>,
-                            RewriteRule<AndConcatPullUp>>::apply(node);
-
+                            RewriteRule<AndOrConcatPullUp>>::apply(node);
   if (!prerewrite)
   {
     resultNode =
@@ -269,24 +268,26 @@ RewriteResponse TheoryBVRewriter::RewriteAnd(TNode node, bool prerewrite)
   return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
-RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite){
+RewriteResponse TheoryBVRewriter::RewriteOr(TNode node, bool prerewrite)
+{
   Node resultNode = node;
-  resultNode = LinearRewriteStrategy
-    < RewriteRule<FlattenAssocCommutNoDuplicates>,
-      RewriteRule<OrSimplify>
-      >::apply(node);
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<FlattenAssocCommutNoDuplicates>,
+                            RewriteRule<OrSimplify>,
+                            RewriteRule<AndOrConcatPullUp>>::apply(node);
 
-  if (!prerewrite) {
-    resultNode = LinearRewriteStrategy
-      < RewriteRule<BitwiseSlicing>
-        >::apply(resultNode);
-    
-    if (resultNode.getKind() != node.getKind()) {
-      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode); 
+  if (!prerewrite)
+  {
+    resultNode =
+        LinearRewriteStrategy<RewriteRule<BitwiseSlicing>>::apply(resultNode);
+
+    if (resultNode.getKind() != node.getKind())
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, resultNode);
     }
   }
-  
-  return RewriteResponse(REWRITE_DONE, resultNode); 
+
+  return RewriteResponse(REWRITE_DONE, resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteXor(TNode node, bool prerewrite) {
