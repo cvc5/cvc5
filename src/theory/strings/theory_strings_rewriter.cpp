@@ -2884,6 +2884,12 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
           nm->mkNode(STRING_CONCAT,
                      nm->mkNode(STRING_STRREPL, lastLhs, node[1], node[2]),
                      rem);
+      // for example:
+      //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
+      // Since we know that the first occurrence of "A" cannot be in the
+      // second occurrence of x. Notice this is specific to single characters
+      // due to complications with finds that span multiple components for
+      // non-characters.
       return returnRewrite(node, ret, "repl-char-ncontrib-find");
     }
   }
