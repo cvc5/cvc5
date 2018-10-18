@@ -288,10 +288,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node k = nm->mkSkolem("k", nm->integerType());
     Node kc1 = nm->mkNode(GEQ, k, d_zero);
     Node kc2 = nm->mkNode(LT, k, lens);
+    Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
     Node codeSk = nm->mkNode(
         MINUS,
         nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, s, k, d_one)),
-        nm->mkConst(Rational(48)));
+        c0);
     Node ten = nm->mkConst(Rational(10));
     Node kc3 = nm->mkNode(
         OR, nm->mkNode(LT, codeSk, d_zero), nm->mkNode(GEQ, codeSk, ten));
@@ -325,7 +326,6 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node udx = nm->mkNode(APPLY_UF, ud, x);
     Node ux = nm->mkNode(APPLY_UF, u, x);
     Node ux1 = nm->mkNode(APPLY_UF, u, nm->mkNode(PLUS, x, d_one));
-    Node c0 = nm->mkNode(STRING_CODE, nm->mkConst(String("0")));
     Node c = nm->mkNode(MINUS, nm->mkNode(STRING_CODE, udx), c0);
     Node usx = nm->mkNode(APPLY_UF, us, x);
     Node usx1 = nm->mkNode(APPLY_UF, us, nm->mkNode(PLUS, x, d_one));
