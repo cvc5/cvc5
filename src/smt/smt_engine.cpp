@@ -639,9 +639,9 @@ class SmtEnginePrivate : public NodeManagerListener {
     {
       // Registering the option listeners can lead to OptionExceptions, e.g.
       // when the user chooses a dump tag that does not exist. In that case, we
-      // have to make sure that we delete existing our listener registrations
-      // and that we unsubscribe from NodeManager events, otherwise we will
-      // have errors in the deconstructors of the NodeManager (because the
+      // have to make sure that we delete existing listener registrations and
+      // that we unsubscribe from NodeManager events. Otherwise we will have
+      // errors in the deconstructors of the NodeManager (because the
       // NodeManager tries to notify an SmtEnginePrivate that does not exist)
       // and the ListenerCollection (because not all registrations have been
       // removed before calling the deconstructor).
