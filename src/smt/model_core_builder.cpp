@@ -89,6 +89,7 @@ bool ModelCoreBuilder::setModelCore(const std::vector<Expr>& assertions,
   }
   else
   {
+    Unreachable("Unknown model cores mode");
   }
   Assert(minimized,
          "cannot compute model core, since model does not satisfy input!");
