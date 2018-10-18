@@ -2876,9 +2876,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     }
     if (!lastLhs.isNull())
     {
-      std::vector<Node> remc;
-      remc.insert(
-          remc.end(), children0.begin() + lastCheckIndex, children0.end());
+      std::vector<Node> remc(children0.begin() + lastCheckIndex, children0.end());
       Node rem = mkConcat(STRING_CONCAT, remc);
       Node ret =
           nm->mkNode(STRING_CONCAT,
