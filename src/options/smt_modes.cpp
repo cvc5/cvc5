@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file simplification_mode.cpp
+/*! \file smt_modes.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King
@@ -15,7 +15,7 @@
  ** \todo document this file
  **/
 
-#include "options/simplification_mode.h"
+#include "options/smt_modes.h"
 
 #include <iostream>
 

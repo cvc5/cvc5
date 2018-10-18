@@ -1,4 +1,4 @@
-; COMMAND-LINE: --produce-model-cores
+; COMMAND-LINE: --produce-models --model-cores=simple
 ; EXPECT: sat
 (set-logic QF_UFLIA)
 (declare-fun x () Int)
