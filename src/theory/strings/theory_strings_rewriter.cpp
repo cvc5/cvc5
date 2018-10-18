@@ -2847,23 +2847,24 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   }
   // miniscope based on components that do not contribute to contains
   // for example,
-  //   str.replace( x ++ y ++ x ++ y, "A", z ) --> 
+  //   str.replace( x ++ y ++ x ++ y, "A", z ) -->
   //   str.replace( x ++ y, "A", z ) ++ x ++ y
   // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
-  if( node[1].isConst() && node[1].getConst<String>().size()==1 )
+  if (node[1].isConst() && node[1].getConst<String>().size() == 1)
   {
     Node lastLhs;
     unsigned lastCheckIndex = 0;
-    for( unsigned i=1, iend = children0.size(); i<iend; i++ )
+    for (unsigned i = 1, iend = children0.size(); i < iend; i++)
     {
-      unsigned checkIndex = children0.size()-i;
-      std::vector< Node > checkLhs;
-      checkLhs.insert(checkLhs.end(),children0.begin(),children0.begin()+checkIndex);
-      Node lhs = mkConcat(STRING_CONCAT,checkLhs);
+      unsigned checkIndex = children0.size() - i;
+      std::vector<Node> checkLhs;
+      checkLhs.insert(
+          checkLhs.end(), children0.begin(), children0.begin() + checkIndex);
+      Node lhs = mkConcat(STRING_CONCAT, checkLhs);
       Node rhs = children0[checkIndex];
-      Node ctn = nm->mkNode(STRING_STRCTN,lhs,rhs);
+      Node ctn = nm->mkNode(STRING_STRCTN, lhs, rhs);
       ctn = Rewriter::rewrite(ctn);
-      if( ctn.isConst() && ctn.getConst<bool>() )
+      if (ctn.isConst() && ctn.getConst<bool>())
       {
         lastLhs = lhs;
         lastCheckIndex = checkIndex;
@@ -2873,16 +2874,19 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         break;
       }
     }
-    if( !lastLhs.isNull() )
+    if (!lastLhs.isNull())
     {
-      std::vector< Node > remc;
-      remc.insert(remc.end(),children0.begin()+lastCheckIndex,children0.end());
-      Node rem = mkConcat(STRING_CONCAT,remc);
-      Node ret = nm->mkNode( STRING_CONCAT, nm->mkNode( STRING_STRREPL, lastLhs, node[1], node[2] ), rem );
+      std::vector<Node> remc;
+      remc.insert(
+          remc.end(), children0.begin() + lastCheckIndex, children0.end());
+      Node rem = mkConcat(STRING_CONCAT, remc);
+      Node ret =
+          nm->mkNode(STRING_CONCAT,
+                     nm->mkNode(STRING_STRREPL, lastLhs, node[1], node[2]),
+                     rem);
       return returnRewrite(node, ret, "repl-char-ncontrib-find");
     }
   }
-  
 
   // TODO (#1180) incorporate these?
   // contains( t, s ) =>
