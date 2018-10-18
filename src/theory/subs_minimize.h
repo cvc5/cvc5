@@ -56,7 +56,7 @@ class SubstitutionMinimize
    * If t { vars -> subs } rewrites to true, this method returns true,
    * vars[i_1], ..., vars[i_n] are added to reqVars, and
    * vars[i_{n+1}], ..., vars[i_{n+m}] are added to impliedVars such that
-   * i_1...i_{n+m} are distinct, and:
+   * i_1...i_{n+m} are distinct, i_{n+1} < ... < i_{n+m}, and:
    *
    * (1) t { vars[i_1]->subs[i_1], ..., vars[i_{n+k}]->subs[i_{n+k}] } implies
    * vars[i_{n+k+1}] = subs[i_{n+k+1}] for k = 0, ..., m-1.
