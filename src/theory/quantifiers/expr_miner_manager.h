@@ -20,6 +20,7 @@
 #include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/extended_rewrite.h"
+#include "theory/quantifiers/query_generator.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 
@@ -67,6 +68,8 @@ class ExpressionMinerManager
                        bool useSygusType);
   /** enable rewrite rule synthesis (--sygus-rr-synth) */
   void enableRewriteRuleSynth();
+  /** enable query generation (--sygus-query-gen) */
+  void enableQueryGeneration(unsigned deqThresh);
   /** add term
    *
    * Expression miners may print information on the output stream out, for
@@ -84,6 +87,8 @@ class ExpressionMinerManager
  private:
   /** whether we are doing rewrite synthesis */
   bool d_doRewSynth;
+  /** whether we are doing query generation */
+  bool d_doQueryGen;
   /** the sygus function passed to initializeSygus, if any */
   Node d_sygus_fun;
   /** whether we are using sygus types */
@@ -94,6 +99,8 @@ class ExpressionMinerManager
   TermDbSygus* d_tds;
   /** candidate rewrite database */
   CandidateRewriteDatabase d_crd;
+  /** query generator */
+  QueryGenerator d_qg;
   /** sygus sampler object */
   SygusSampler d_sampler;
   /** extended rewriter object */

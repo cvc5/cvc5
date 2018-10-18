@@ -981,7 +981,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && options::sygusRewSynth())
+      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
       {
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);
@@ -992,6 +992,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           if (options::sygusRewSynth())
           {
             d_exprm[prog].enableRewriteRuleSynth();
+          }
+          if (options::sygusQueryGen())
+          {
+            d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
           its = d_exprm.find(prog);
         }

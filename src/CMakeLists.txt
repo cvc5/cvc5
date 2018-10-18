@@ -512,6 +512,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
+  theory/quantifiers/query_generator.cpp
+  theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
   theory/quantifiers/rewrite_engine.cpp
@@ -708,7 +710,7 @@ target_compile_definitions(cvc4
     -D__STDC_FORMAT_MACROS
 )
 # Add libcvc4 dependencies for generated sources.
-add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
+add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)
