@@ -25,7 +25,8 @@
 namespace CVC4 {
 
 /** Enumeration of simplification modes (when to simplify). */
-enum SimplificationMode{
+enum SimplificationMode
+{
   /** Simplify the assertions all together once a check is requested */
   SIMPLIFICATION_MODE_BATCH,
   /** Don't do simplification */
@@ -36,7 +37,8 @@ std::ostream& operator<<(std::ostream& out,
                          SimplificationMode mode) CVC4_PUBLIC;
 
 /** Enumeration of model core modes. */
-enum ModelCoresMode{
+enum ModelCoresMode
+{
   /** Do not compute model cores */
   MODEL_CORES_NONE,
   /**
