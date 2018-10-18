@@ -85,7 +85,7 @@ bool QueryGenerator::addTerm(Node n, std::ostream& out)
       {
         if (etp.second.size() < d_deqThresh)
         {
-          indices.insert(etp.second.begin(),etp.second.end());
+          indices.insert(etp.second.begin(), etp.second.end());
           Node qy = nn;
           Assert(etp.first.isConst());
           if (!etp.first.getConst<bool>())
