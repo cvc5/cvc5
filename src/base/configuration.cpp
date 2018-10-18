@@ -82,6 +82,8 @@ bool Configuration::isProfilingBuild() {
   return IS_PROFILING_BUILD;
 }
 
+bool Configuration::isAsanBuild() { return IS_ASAN_BUILD; }
+
 bool Configuration::isCompetitionBuild() {
   return IS_COMPETITION_BUILD;
 }
