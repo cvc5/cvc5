@@ -1209,7 +1209,7 @@ void SmtEngine::setDefaults() {
     is_sygus = true;
   }
 
-  if ((options::checkModels() || options::checkSynthSol())
+  if ((options::checkModels() || options::checkSynthSol() || options::modelCoresMode()!=MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
