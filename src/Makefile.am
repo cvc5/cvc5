@@ -524,6 +524,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/quantifiers_attributes.h \
 	theory/quantifiers/quantifiers_rewriter.cpp \
 	theory/quantifiers/quantifiers_rewriter.h \
+	theory/quantifiers/query_generator.cpp \
+	theory/quantifiers/query_generator.h \
 	theory/quantifiers/relevant_domain.cpp \
 	theory/quantifiers/relevant_domain.h \
 	theory/quantifiers/rewrite_engine.cpp \
