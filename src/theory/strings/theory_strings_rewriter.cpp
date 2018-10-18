@@ -2852,26 +2852,33 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
   if( node[1].isConst() && node[1].getConst<String>().size()==1 )
   {
-    Node lhs;
-    Node rhs;
+    Node lastLhs;
+    unsigned lastCheckIndex = 0;
     for( unsigned i=1, iend = children0.size()-1; i<iend; i++ )
     {
       unsigned checkIndex = children0.size()-i;
       std::vector< Node > checkLhs;
-      checkLhs.insert(checkLhs.end(),children0.begin(),children0.begin()+(checkIndex-1));
-      Node lhsC = mkConcat(STRING_CONCAT,checkLhs);
-      Node rhsC = children0[checkIndex];
-      Node ctn = nm->mkNode(STRING_STRCN,lhsC,rhsC);
+      checkLhs.insert(checkLhs.end(),children0.begin(),children0.begin()+checkIndex);
+      Node lhs = mkConcat(STRING_CONCAT,checkLhs);
+      Node rhs = children0[checkIndex];
+      Node ctn = nm->mkNode(STRING_STRCTN,lhs,rhs);
       ctn = Rewriter::rewrite(ctn);
       if( ctn.isConst() && ctn.getConst<bool>() )
       {
-        lhs = lhsC;
-        rhs = rhsC;
+        lastLhs = lhs;
+        lastCheckIndex = checkIndex;
+      }
+      else
+      {
+        break;
       }
     }
-    if( !lhs.isNull() )
+    if( !lastLhs.isNull() )
     {
-      Node ret = nm->mkNode( STRING_CONCAT, nm->mkNode( STRING_STRREPL, lhs, node[1], node[2] ), rhs );
+      std::vector< Node > remc;
+      remc.insert(remc.end(),children0.begin()+lastCheckIndex,children0.end());
+      Node rem = mkConcat(STRING_CONCAT,remc);
+      Node ret = nm->mkNode( STRING_CONCAT, nm->mkNode( STRING_STRREPL, lastLhs, node[1], node[2] ), rem );
       return returnRewrite(node, ret, "repl-char-ncontrib-find");
     }
   }
