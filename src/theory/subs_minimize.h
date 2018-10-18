@@ -66,7 +66,7 @@ class SubstitutionMinimize
    * rewrites to true.
    *
    * For example, given (x>0 ^ x = y ^ y = z){ x -> 1, y -> 1, z -> 1, w -> 0 },
-   * this method adds { x } to reqVars, and { y, z } to impliedVars.
+   * this method may add { x } to reqVars, and { y, z } to impliedVars.
    *
    * Notice that the order of variables in vars matters. By the semantics above,
    * variables that appear earlier in the variable list vars are more likely
