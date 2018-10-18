@@ -80,6 +80,43 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     TS_ASSERT_DIFFERS(res_t1, res_t2);
   }
 
+  void testCheckEntailLengthOne()
+  {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node abcd = d_nm->mkConst(::CVC4::String("ABCD"));
+    Node aaad = d_nm->mkConst(::CVC4::String("AAAD"));
+    Node b = d_nm->mkConst(::CVC4::String("B"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node negOne = d_nm->mkConst(Rational(-1));
+    Node zero = d_nm->mkConst(Rational(0));
+    Node one = d_nm->mkConst(Rational(1));
+    Node two = d_nm->mkConst(Rational(2));
+    Node three = d_nm->mkConst(Rational(3));
+    Node i = d_nm->mkVar("i", intType);
+
+    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(a));
+    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(a, true));
+
+    Node substr = d_nm->mkNode(kind::STRING_SUBSTR, x, zero, one);
+    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+
+    substr = d_nm->mkNode(kind::STRING_SUBSTR,
+                          d_nm->mkNode(kind::STRING_CONCAT, a, x),
+                          zero,
+                          one);
+    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+
+    substr = d_nm->mkNode(kind::STRING_SUBSTR, x, zero, two);
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr));
+    TS_ASSERT(!TheoryStringsRewriter::checkEntailLengthOne(substr, true));
+  }
+
   void testCheckEntailArith()
   {
     TypeNode intType = d_nm->integerType();
