@@ -2854,7 +2854,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   {
     Node lastLhs;
     unsigned lastCheckIndex = 0;
-    for( unsigned i=1, iend = children0.size()-1; i<iend; i++ )
+    for( unsigned i=1, iend = children0.size(); i<iend; i++ )
     {
       unsigned checkIndex = children0.size()-i;
       std::vector< Node > checkLhs;
