@@ -68,17 +68,16 @@ private:
   std::unordered_map<std::string, Kind> operatorKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
-  std::vector<Expr> d_sygusVars, d_sygusInvVars, d_sygusConstraints,
+  std::vector<Expr> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
       d_sygusFunSymbols;
-  std::map< Expr, bool > d_sygusVarPrimed;
 
-protected:
- Smt2(api::Solver* solver,
-      Input* input,
-      bool strictMode = false,
-      bool parseOnly = false);
+ protected:
+  Smt2(api::Solver* solver,
+       Input* input,
+       bool strictMode = false,
+       bool parseOnly = false);
 
-public:
+ public:
   /**
    * Add theory symbols to the parser state.
    *
@@ -228,7 +227,9 @@ public:
     return getExprManager()->mkConst(AbstractValue(Integer(name.substr(1))));
   }
 
-  Expr mkSygusVar(const std::string& name, const Type& type, bool isPrimed = false);
+  void mkSygusVar(const std::string& name,
+                  const Type& type,
+                  bool isPrimed = false);
 
   void mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops );
 
@@ -271,28 +272,6 @@ public:
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
-
-  void addSygusConstraint(Expr constraint) {
-    d_sygusConstraints.push_back(constraint);
-  }
-
-  Expr getSygusConstraints() {
-    switch(d_sygusConstraints.size()) {
-    case 0: return getExprManager()->mkConst(bool(true));
-    case 1: return d_sygusConstraints[0];
-    default: return getExprManager()->mkExpr(kind::AND, d_sygusConstraints);
-    }
-  }
-
-  const std::vector<Expr>& getSygusVars() {
-    return d_sygusVars;
-  }
-  const void getSygusPrimedVars( std::vector<Expr>& vars, bool isPrimed );
-
-  const void addSygusFunSymbol( Type t, Expr synth_fun );
-  const std::vector<Expr>& getSygusFunSymbols() {
-    return d_sygusFunSymbols;
-  }
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the

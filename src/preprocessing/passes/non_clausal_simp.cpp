@@ -16,12 +16,12 @@
 
 #include "preprocessing/passes/non_clausal_simp.h"
 
+#include <vector>
+
 #include "context/cdo.h"
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/theory_model.h"
-
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -76,8 +76,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
 
   // Assert all the assertions to the propagator
   Trace("non-clausal-simplify") << "asserting to propagator" << std::endl;
-  context::CDO<unsigned>& substs_index =
-      assertionsToPreprocess->getSubstitutionsIndex();
+  unsigned substs_index = d_preprocContext->getSubstitutionsIndex();
   for (size_t i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     Assert(Rewriter::rewrite((*assertionsToPreprocess)[i])
@@ -114,7 +113,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
       << " learned literals." << std::endl;
   // No conflict, go through the literals and solve them
   SubstitutionMap& top_level_substs =
-      assertionsToPreprocess->getTopLevelSubstitutions();
+      d_preprocContext->getTopLevelSubstitutions();
   SubstitutionMap constantPropagations(d_preprocContext->getUserContext());
   SubstitutionMap newSubstitutions(d_preprocContext->getUserContext());
   SubstitutionMap::iterator pos;
@@ -452,6 +451,7 @@ PreprocessingPassResult NonClausalSimp::applyInternal(
   propagator->setNeedsFinish(true);
   return PreprocessingPassResult::NO_CONFLICT;
 }  // namespace passes
+
 
 /* -------------------------------------------------------------------------- */
 

@@ -562,7 +562,10 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 
   // is it excluded for domain-specific reason?
   std::vector<Node> exp_exc_vec;
-  if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
+  Assert(d_tds->isEnumerator(e));
+  bool isPassive = d_tds->isPassiveEnumerator(e);
+  if (isPassive
+      && getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
     Assert(!exp_exc_vec.empty());
     exp_exc = exp_exc_vec.size() == 1
@@ -707,16 +710,20 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
     }
   }
 
-  // exclude this value on subsequent iterations
-  if (exp_exc.isNull())
+  if (isPassive)
   {
-    // if we did not already explain why this should be excluded, use default
-    exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
+    // exclude this value on subsequent iterations
+    if (exp_exc.isNull())
+    {
+      Trace("sygus-sui-enum-lemma") << "Use basic exclusion." << std::endl;
+      // if we did not already explain why this should be excluded, use default
+      exp_exc = d_tds->getExplain()->getExplanationForEquality(e, v);
+    }
+    exp_exc = exp_exc.negate();
+    Trace("sygus-sui-enum-lemma")
+        << "SygusUnifIo : enumeration exclude lemma : " << exp_exc << std::endl;
+    lemmas.push_back(exp_exc);
   }
-  exp_exc = exp_exc.negate();
-  Trace("sygus-sui-enum-lemma")
-      << "SygusUnifIo : enumeration exclude lemma : " << exp_exc << std::endl;
-  lemmas.push_back(exp_exc);
 }
 
 bool SygusUnifIo::constructSolution(std::vector<Node>& sols,
@@ -1136,7 +1143,8 @@ Node SygusUnifIo::constructSol(
   // try a random strategy
   if (snode.d_strats.size() > 1)
   {
-    std::random_shuffle(snode.d_strats.begin(), snode.d_strats.end());
+    std::shuffle(
+        snode.d_strats.begin(), snode.d_strats.end(), Random::getRandom());
   }
   // ITE always first if we have not yet solved
   // the reasoning is that splitting on conditions only subdivides the problem

@@ -22,8 +22,10 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -161,7 +163,18 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+  //--------------------------for checkExtfReductions
+  /** do reduction
+   *
+   * This is called when an extended function application n is not able to be
+   * simplified by context-depdendent simplification, and we are resorting to
+   * expanding n to its full semantics via a reduction. This method returns
+   * true if it successfully reduced n by some reduction and sets isCd to
+   * true if the reduction was (SAT)-context-dependent, and false otherwise.
+   * The argument effort has the same meaning as in checkExtfReductions.
+   */
+  bool doReduction(int effort, Node n, bool& isCd);
+  //--------------------------end for checkExtfReductions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -276,10 +289,8 @@ private:
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   NodeSet d_length_lemma_terms_cache;
-  NodeSet d_skolem_ne_reg_cache;
-  // preprocess cache
+  /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
-  NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   NodeSet d_extf_infer_cache_u;
@@ -288,6 +299,25 @@ private:
   NodeList d_ee_disequalities;
 private:
   NodeSet d_congruent;
+  /**
+   * The following three vectors are used for tracking constants that each
+   * equivalence class is entailed to be equal to.
+   * - The map d_eqc_to_const maps (representatives) r of equivalence classes to
+   * the constant that that equivalence class is entailed to be equal to,
+   * - The term d_eqc_to_const_base[r] is the term in the equivalence class r
+   * that is entailed to be equal to the constant d_eqc_to_const[r],
+   * - The term d_eqc_to_const_exp[r] is the explanation of why
+   * d_eqc_to_const_base[r] is equal to d_eqc_to_const[r].
+   *
+   * For example, consider the equivalence class { r, x++"a"++y, x++z }, and
+   * assume x = "" and y = "bb" in the current context. We have that
+   *   d_eqc_to_const[r] = "abb",
+   *   d_eqc_to_const_base[r] = x++"a"++y
+   *   d_eqc_to_const_exp[r] = ( x = "" AND y = "bb" )
+   *
+   * This information is computed during checkInit and is used during various
+   * inference schemas for deriving inferences.
+   */
   std::map< Node, Node > d_eqc_to_const;
   std::map< Node, Node > d_eqc_to_const_base;
   std::map< Node, Node > d_eqc_to_const_exp;
@@ -374,43 +404,106 @@ private:
     //all variables in this term
     std::vector< Node > d_vars;
   };
-  // non-static information about extf
-  class ExtfInfoTmp {
-  public:
-    void init(){
-      d_pol = 0;
-      d_model_active = true;
-    }
-    // list of terms that something (does not) contain and their explanation
-    std::map< bool, std::vector< Node > > d_ctn;
-    std::map< bool, std::vector< Node > > d_ctn_from;
-    //polarity
-    int d_pol;
-    //explanation
-    std::vector< Node > d_exp;
-    //false if it is reduced in the model
-    bool d_model_active;
+
+ private:
+  /** Length status, used for the registerLength function below */
+  enum LengthStatus
+  {
+    LENGTH_SPLIT,
+    LENGTH_ONE,
+    LENGTH_GEQ_ONE
   };
-  std::map< Node, ExtfInfoTmp > d_extf_info_tmp;
-private:
-  class InferInfo {
-  public:
+  /** register length
+   *
+   * This method is called on non-constant string terms n. It sends a lemma
+   * on the output channel that ensures that the length n satisfies its assigned
+   * status (given by argument s).
+   *
+   * If the status is LENGTH_ONE, we send the lemma len( n ) = 1.
+   *
+   * If the status is LENGTH_GEQ, we send a lemma n != "" ^ len( n ) > 0.
+   *
+   * If the status is LENGTH_SPLIT, we send a send a lemma of the form:
+   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
+   * This method also ensures that, when applicable, the left branch is taken
+   * first via calls to requirePhase.
+   */
+  void registerLength(Node n, LengthStatus s);
+
+  //------------------------- candidate inferences
+  class InferInfo
+  {
+   public:
     unsigned d_i;
     unsigned d_j;
     bool d_rev;
-    std::vector< Node > d_ant;
-    std::vector< Node > d_antn;
-    std::map< int, std::vector< Node > > d_new_skolem;
+    std::vector<Node> d_ant;
+    std::vector<Node> d_antn;
+    std::map<LengthStatus, std::vector<Node> > d_new_skolem;
     Node d_conc;
     Inference d_id;
-    std::map< Node, bool > d_pending_phase;
+    std::map<Node, bool> d_pending_phase;
     unsigned d_index;
     Node d_nf_pair[2];
     bool sendAsLemma();
   };
+  //------------------------- end candidate inferences
+  /** cache of all skolems */
+  SkolemCache d_sk_cache;
+
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  void checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int effort );
   Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+
+  //--------------------------for checkExtfEval
+  /**
+   * Non-static information about an extended function t. This information is
+   * constructed and used during the check extended function evaluation
+   * inference schema.
+   *
+   * In the following, we refer to the "context-dependent simplified form"
+   * of a term t to be the result of rewriting t * sigma, where sigma is a
+   * derivable substitution in the current context. For example, the
+   * context-depdendent simplified form of contains( x++y, "a" ) given
+   * sigma = { x -> "" } is contains(y,"a").
+   */
+  class ExtfInfoTmp
+  {
+   public:
+    ExtfInfoTmp() : d_model_active(true) {}
+    /**
+     * If s is in d_ctn[true] (resp. d_ctn[false]), then contains( t, s )
+     * (resp. ~contains( t, s )) holds in the current context. The vector
+     * d_ctn_from is the explanation for why this holds. For example,
+     * if d_ctn[false][i] is "A", then d_ctn_from[false][i] might be
+     * t = x ++ y AND x = "" AND y = "B".
+     */
+    std::map<bool, std::vector<Node> > d_ctn;
+    std::map<bool, std::vector<Node> > d_ctn_from;
+    /**
+     * The constant that t is entailed to be equal to, or null if none exist.
+     */
+    Node d_const;
+    /**
+     * The explanation for why t is equal to its context-dependent simplified
+     * form.
+     */
+    std::vector<Node> d_exp;
+    /** This flag is false if t is reduced in the model. */
+    bool d_model_active;
+  };
+  /** map extended functions to the above information */
+  std::map<Node, ExtfInfoTmp> d_extf_info_tmp;
+  /** check extended function inferences
+   *
+   * This function makes additional inferences for n that do not contribute
+   * to its reduction, but may help show a refutation.
+   *
+   * This function is called when the context-depdendent simplified form of
+   * n is nr. The argument "in" is the information object for n. The argument
+   * "effort" has the same meaning as the effort argument of checkExtfEval.
+   */
+  void checkExtfInference(Node n, Node nr, ExtfInfoTmp& in, int effort);
+  //--------------------------end for checkExtfEval
 
   //--------------------------for checkFlatForm
   /**
@@ -497,7 +590,12 @@ private:
   void doPendingFacts();
   void doPendingLemmas();
   bool hasProcessed();
+  /**
+   * Adds equality a = b to the vector exp if a and b are distinct terms. It
+   * must be the case that areEqual( a, b ) holds in this context.
+   */
   void addToExplanation(Node a, Node b, std::vector<Node>& exp);
+  /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
@@ -519,6 +617,22 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  //-------------------------------------send inferences
+  /** send internal inferences
+   *
+   * This is called when we have inferred exp => conc, where exp is a set
+   * of equalities and disequalities that hold in the current equality engine.
+   * This method adds equalities and disequalities ~( s = t ) via
+   * sendInference such that both s and t are either constants or terms
+   * that already occur in the equality engine, and ~( s = t ) is a consequence
+   * of conc. This function can be seen as a "conservative" version of
+   * sendInference below in that it does not introduce any new non-constant
+   * terms to the state.
+   *
+   * The argument c is a string identifying the reason for the interference.
+   * This string is used for debugging purposes.
+   */
+  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
   // send lemma
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
@@ -532,48 +646,14 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  /** send length lemma
-   *
-   * This method is called on non-constant string terms n. It sends a lemma
-   * on the output channel that ensures that len( n ) >= 0. In particular, the
-   * this lemma is typically of the form:
-   *   ( n = "" ^ len( n ) = 0 ) OR len( n ) > 0
-   * This method also ensures that, when applicable, the left branch is taken
-   * first via calls to requirePhase.
-   */
-  void sendLengthLemma(Node n);
+  //-------------------------------------end send inferences
+
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
   inline Node mkConcat(Node n1, Node n2, Node n3);
   inline Node mkConcat(const std::vector<Node>& c);
   inline Node mkLength(Node n);
-  // mkSkolem
-  enum
-  {
-    sk_id_c_spt,
-    sk_id_vc_spt,
-    sk_id_vc_bin_spt,
-    sk_id_v_spt,
-    sk_id_c_spt_rev,
-    sk_id_vc_spt_rev,
-    sk_id_vc_bin_spt_rev,
-    sk_id_v_spt_rev,
-    sk_id_ctn_pre,
-    sk_id_ctn_post,
-    sk_id_dc_spt,
-    sk_id_dc_spt_rem,
-    sk_id_deq_x,
-    sk_id_deq_y,
-    sk_id_deq_z,
-  };
-  std::map<Node, std::map<Node, std::map<int, Node> > > d_skolem_cache;
-  /** the set of all skolems we have generated */
-  std::unordered_set<Node, NodeHashFunction> d_all_skolems;
-  Node mkSkolemCached(
-      Node a, Node b, int id, const char* c, int isLenSplit = 0);
-  inline Node mkSkolemS(const char* c, int isLenSplit = 0);
-  void registerNonEmptySkolem(Node sk);
-  // inline Node mkSkolemI(const char * c);
+
   /** mkExplain **/
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
@@ -582,8 +662,18 @@ private:
   /** get concat vector */
   void getConcatVec(Node n, std::vector<Node>& c);
 
-  // get equivalence classes
+  /** get equivalence classes
+   *
+   * This adds the representative of all equivalence classes to eqcs
+   */
   void getEquivalenceClasses(std::vector<Node>& eqcs);
+  /** get relevant equivalence classes
+   *
+   * This adds the representative of all equivalence classes that contain at
+   * least one term in termSet.
+   */
+  void getRelevantEquivalenceClasses(std::vector<Node>& eqcs,
+                                     std::set<Node>& termSet);
 
   // separate into collections with equal length
   void separateByLength(std::vector<Node>& n,
@@ -637,10 +727,46 @@ private:
   context::CDO< Node > d_input_var_lsum;
   context::CDHashMap< int, Node > d_cardinality_lits;
   context::CDO< int > d_curr_cardinality;
+  /** String sum of lengths decision strategy
+   *
+   * This decision strategy enforces that len(x_1) + ... + len(x_k) <= n
+   * for a minimal natural number n, where x_1, ..., x_n is the list of
+   * input variables of the problem of type String.
+   *
+   * This decision strategy is enabled by option::stringsFmf().
+   */
+  class StringSumLengthDecisionStrategy : public DecisionStrategyFmf
+  {
+   public:
+    StringSumLengthDecisionStrategy(context::Context* c,
+                                    context::UserContext* u,
+                                    Valuation valuation);
+    /** make literal */
+    Node mkLiteral(unsigned i) override;
+    /** identify */
+    std::string identify() const override;
+    /** is initialized */
+    bool isInitialized();
+    /** initialize */
+    void initialize(const std::vector<Node>& vars);
+
+    /*
+     * Do not hide the zero-argument version of initialize() inherited from the
+     * base class
+     */
+    using DecisionStrategyFmf::initialize;
+
+   private:
+    /**
+     * User-context-dependent node corresponding to the sum of the lengths of
+     * input variables of type string
+     */
+    context::CDO<Node> d_input_var_lsum;
+  };
+  /** an instance of the above class */
+  std::unique_ptr<StringSumLengthDecisionStrategy> d_sslds;
 
  public:
-  //for finite model finding
-  Node getNextDecisionRequest(unsigned& priority) override;
   // ppRewrite
   Node ppRewrite(TNode atom) override;
 
@@ -652,7 +778,6 @@ private:
     IntStat d_eq_splits;
     IntStat d_deq_splits;
     IntStat d_loop_lemmas;
-    IntStat d_new_skolems;
     Statistics();
     ~Statistics();
   };/* class TheoryStrings::Statistics */

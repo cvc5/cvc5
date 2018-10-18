@@ -317,8 +317,10 @@ class NonlinearExtension {
    * Adds the model substitution v -> s. This applies the substitution
    * { v -> s } to each term in d_check_model_subs and adds v,s to
    * d_check_model_vars and d_check_model_subs respectively.
+   * If this method returns false, then the substitution v -> s is inconsistent
+   * with the current substitution and bounds.
    */
-  void addCheckModelSubstitution(TNode v, TNode s);
+  bool addCheckModelSubstitution(TNode v, TNode s);
   /** lower and upper bounds for check model
    *
    * For each term t in the domain of this map, if this stores the pair
@@ -335,9 +337,11 @@ class NonlinearExtension {
   /** add check model bound
    *
    * Adds the bound x -> < l, u > to the map above, and records the
-   * approximation ( x, l <= x <= u ) in the model.
+   * approximation ( x, l <= x <= u ) in the model. This method returns false
+   * if the bound is inconsistent with the current model substitution or
+   * bounds.
    */
-  void addCheckModelBound(TNode v, TNode l, TNode u);
+  bool addCheckModelBound(TNode v, TNode l, TNode u);
   /**
    * The map from literals that our model construction solved, to the variable
    * that was solved for. Examples of such literals are:
@@ -580,19 +584,13 @@ class NonlinearExtension {
   std::map<Node, std::map<Node, std::map<Node, Node> > > d_ci_exp;
   std::map<Node, std::map<Node, std::map<Node, bool> > > d_ci_max;
 
-  /** transcendental function representative map
-   *
-   * For each transcendental function n = tf( x ),
-   * this stores ( n.getKind(), r ) -> n
-   * where r is the current representative of x
-   * in the equality engine assoiated with this class.
-   */
-  std::map<Kind, std::map<Node, Node> > d_tf_rep_map;
+  /** A list of all functions for each kind in { EXPONENTIAL, SINE, POW, PI } */
+  std::map<Kind, std::vector<Node> > d_f_map;
 
   // factor skolems
   std::map< Node, Node > d_factor_skolem;
   Node getFactorSkolem( Node n, std::vector< Node >& lemmas );
-  
+
   // tangent plane bounds
   std::map< Node, std::map< Node, Node > > d_tangent_val_bound[4];
 
@@ -651,15 +649,32 @@ class NonlinearExtension {
   unsigned d_taylor_degree;
   /** polynomial approximation bounds
    *
-   * This adds P_l+, P_l-, P_u+, P_u- to pbounds, where these are polynomial
-   * approximations of the Taylor series of <k>( 0 ) for degree 2*d where
-   * k is SINE or EXPONENTIAL.
+   * This adds P_l+[x], P_l-[x], P_u+[x], P_u-[x] to pbounds, where x is
+   * d_taylor_real_fv. These are polynomial approximations of the Taylor series
+   * of <k>( 0 ) for degree 2*d where k is SINE or EXPONENTIAL.
    * These correspond to P_l and P_u from Figure 3 of Cimatti et al., CADE 2017,
    * for positive/negative (+/-) values of the argument of <k>( 0 ).
+   *
+   * Notice that for certain bounds (e.g. upper bounds for exponential), the
+   * Taylor approximation for a fixed degree is only sound up to a given
+   * upper bound on the argument. To obtain sound lower/upper bounds for a
+   * given <k>( c ), use the function below.
    */
   void getPolynomialApproximationBounds(Kind k,
                                         unsigned d,
                                         std::vector<Node>& pbounds);
+  /** polynomial approximation bounds
+   *
+   * This computes polynomial approximations P_l+[x], P_l-[x], P_u+[x], P_u-[x]
+   * that are sound (lower, upper) bounds for <k>( c ). Notice that these
+   * polynomials may depend on c. In particular, for P_u+[x] for <k>( c ) where
+   * c>0, we return the P_u+[x] from the function above for the minimum degree
+   * d' >= d such that (1-c^{2*d'+1}/(2*d'+1)!) is positive.
+   */
+  void getPolynomialApproximationBoundForArg(Kind k,
+                                             Node c,
+                                             unsigned d,
+                                             std::vector<Node>& pbounds);
   /** cache of the above function */
   std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
   /** get transcendental function model bounds

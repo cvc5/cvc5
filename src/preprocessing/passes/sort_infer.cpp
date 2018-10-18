@@ -17,6 +17,7 @@
 #include "options/smt_options.h"
 #include "options/uf_options.h"
 #include "theory/rewriter.h"
+#include "theory/sort_inference.h"
 
 using namespace std;
 
@@ -24,24 +25,25 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
-SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext,
-                                     SortInference* si)
-    : PreprocessingPass(preprocContext, "sort-inference"), d_si(si)
+SortInferencePass::SortInferencePass(PreprocessingPassContext* preprocContext)
+    : PreprocessingPass(preprocContext, "sort-inference")
 {
 }
 
 PreprocessingPassResult SortInferencePass::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
+  SortInference* si = d_preprocContext->getTheoryEngine()->getSortInference();
+
   if (options::sortInference())
   {
-    d_si->initialize(assertionsToPreprocess->ref());
+    si->initialize(assertionsToPreprocess->ref());
     std::map<Node, Node> model_replace_f;
     std::map<Node, std::map<TypeNode, Node> > visited;
     for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; i++)
     {
       Node prev = (*assertionsToPreprocess)[i];
-      Node next = d_si->simplify(prev, model_replace_f, visited);
+      Node next = si->simplify(prev, model_replace_f, visited);
       if (next != prev)
       {
         next = theory::Rewriter::rewrite(next);
@@ -53,7 +55,7 @@ PreprocessingPassResult SortInferencePass::applyInternal(
       }
     }
     std::vector<Node> newAsserts;
-    d_si->getNewAssertions(newAsserts);
+    si->getNewAssertions(newAsserts);
     for (const Node& na : newAsserts)
     {
       Node nar = theory::Rewriter::rewrite(na);
@@ -75,10 +77,11 @@ PreprocessingPassResult SortInferencePass::applyInternal(
   // using this option
   if (options::ufssFairnessMonotone())
   {
-    d_si->computeMonotonicity(assertionsToPreprocess->ref());
+    si->computeMonotonicity(assertionsToPreprocess->ref());
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

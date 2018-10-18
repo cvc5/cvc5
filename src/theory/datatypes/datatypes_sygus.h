@@ -30,8 +30,8 @@
 #include "expr/datatype.h"
 #include "expr/node.h"
 #include "theory/datatypes/sygus_simple_sym.h"
-#include "theory/quantifiers/sygus/ce_guided_conjecture.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers/term_database.h"
 
@@ -51,6 +51,18 @@ class TheoryDatatypes;
  * Some of these techniques are described in these papers:
  * "Refutation-Based Synthesis in SMT", Reynolds et al 2017.
  * "Sygus Techniques in the Core of an SMT Solver", Reynolds et al 2017.
+ *
+ * This class enforces two decisions stragies via calls to registerStrategy
+ * of the owning theory's DecisionManager:
+ * (1) Positive decisions on the active guards G of enumerators e registered
+ * to this class. These assert "there are more values to enumerate for e".
+ * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
+ * where n is a non-negative integer. This asserts "the measure of terms
+ * we are enumerating for enumerators whose measure term m is at most n",
+ * where measure is commonly term size, but can also be height.
+ *
+ * We prioritize decisions of form (1) before (2). Both kinds of decision are
+ * critical for solution completeness, which is enforced by DecisionManager.
  */
 class SygusSymBreakNew
 {
@@ -95,24 +107,6 @@ class SygusSymBreakNew
    * all preregistered enumerators.
    */
   void check(std::vector<Node>& lemmas);
-  /** get next decision request
-   *
-   * This function has the same interface as Theory::getNextDecisionRequest.
-   *
-   * The decisions returned by this method are of one of two forms:
-   * (1) Positive decisions on the active guards G of enumerators e registered
-   * to this class. These assert "there are more values to enumerate for e".
-   * (2) Positive bounds (DT_SYGUS_BOUND m n) for "measure terms" m (see below),
-   * where n is a non-negative integer. This asserts "the measure of terms
-   * we are enumerating for enumerators whose measure term m is at most n",
-   * where measure is commonly term size, but can also be height.
-   *
-   * We prioritize decisions of form (1) before (2). For both decisions,
-   * we set the priority argument to "1", indicating that the decision is
-   * critical for solution completeness.
-   */
-  Node getNextDecisionRequest(unsigned& priority, std::vector<Node>& lemmas);
-
  private:
   /** Pointer to the datatype theory that owns this class. */
   TheoryDatatypes* d_td;
@@ -158,7 +152,7 @@ class SygusSymBreakNew
   /**
    * Map from anchors to the conjecture they are associated with.
    */
-  std::map<Node, quantifiers::CegConjecture*> d_anchor_to_conj;
+  std::map<Node, quantifiers::SynthConjecture*> d_anchor_to_conj;
   /**
    * Map from terms (selector chains) to their depth. The depth of a selector
    * chain S1( ... Sn( x ) ... ) is:
@@ -213,6 +207,82 @@ private:
   };
   /** An instance of the above cache, for each anchor */
   std::map< Node, SearchCache > d_cache;
+  //-----------------------------------traversal predicates
+  /** pre/post traversal predicates for each type, variable
+   *
+   * This stores predicates (pre, post) whose semantics correspond to whether
+   * a variable has occurred by a (pre, post) traversal of a symbolic term,
+   * where index = 0 corresponds to pre, index = 1 corresponds to post. For
+   * details, see getTraversalPredicate below.
+   */
+  std::map<TypeNode, std::map<Node, Node>> d_traversal_pred[2];
+  /** traversal applications to Boolean variables
+   *
+   * This maps each application of a traversal predicate pre_x( t ) or
+   * post_x( t ) to a fresh Boolean variable.
+   */
+  std::map<Node, Node> d_traversal_bool;
+  /** get traversal predicate
+   *
+   * Get the predicates (pre, post) whose semantics correspond to whether
+   * a variable has occurred by this point in a (pre, post) traversal of a term.
+   * The type of getTraversalPredicate(tn, n, _) is tn -> Bool.
+   *
+   * For example, consider the term:
+   *   f( x_1, g( x_2, x_3 ) )
+   * and a left-to-right, depth-first traversal of this term. Let e be
+   * a variable of the same type as this term. We say that for the above term:
+   *   pre_{x_1} is false for e, e.1 and true for e.2, e.2.1, e.2.2
+   *   pre_{x_2} is false for e, e.1, e.2, e.2.1, and true for e.2.2
+   *   pre_{x_3} is false for e, e.1, e.2, e.2.1, e.2.2
+   *   post_{x_1} is true for e.1, e.2.1, e.2.2, e.2, e
+   *   post_{x_2} is false for e.1 and true for e.2.1, e.2.2, e.2, e
+   *   post_{x_3} is false for e.1, e.2.1 and true for e.2.2, e.2, e
+   *
+   * We enforce a symmetry breaking scheme for each enumerator e that is
+   * "variable-agnostic" (see argument isVarAgnostic in registerEnumerator)
+   * that ensures the variables are ordered. This scheme makes use of these
+   * predicates, described in the following:
+   *
+   * Let x_1, ..., x_m be variables that occur in the same subclass in the type
+   * of e (see TermDbSygus::getSubclassForVar).
+   * For i = 1, ..., m:
+   *   // each variable does not occur initially in a traversal of e
+   *   ~pre_{x_i}( e ) AND
+   *   // for each subterm of e
+   *   template z.
+   *     // if this is variable x_i, then x_{i-1} must have already occurred
+   *     is-x_i( z ) => pre_{x_{i-1}}( z ) AND
+   *     for args a = 1...n
+   *       // pre-definition for each argument of this term
+   *       pre_{x_i}( z.a ) = a=0 ? pre_{x_i}( z ) : post_{x_i}( z.{a-1} ) AND
+   *     // post-definition for this term
+   *     post_{x_i}( z ) = post_{x_i}( z.n ) OR is-x_i( z )
+   *
+   * For clarity, above we have written pre and post as first-order predicates.
+   * However, applications of pre/post should be seen as indexed Boolean
+   * variables. The reason for this is pre and post cannot be given a consistent
+   * semantics. For example, consider term f( x_1, x_1 ) and enumerator variable
+   * e of the same type over which we are encoding a traversal. We have that
+   * pre_{x_1}( e.1 ) is false and pre_{x_1}( e.2 ) is true, although the model
+   * values for e.1 and e.2 are equal. Instead, pre_{x_1}( e.1 ) should be seen
+   * as a Boolean variable V_pre_{x_1,e.1} indexed by x_1 and e.1. and likewise
+   * for e.2. We convert all applications of pre/post to Boolean variables in
+   * the method eliminateTraversalPredicates below. Nevertheless, it is
+   * important that applications pre and post are encoded as APPLY_UF
+   * applications so that they behave as expected under substitutions. For
+   * example, pre_{x_1}( z.1 ) { z -> e.2 } results in pre_{x_1}( e.2.1 ), which
+   * after eliminateTraversalPredicates is V_pre_{x_1, e.2.1}.
+   */
+  Node getTraversalPredicate(TypeNode tn, Node n, bool isPre);
+  /** eliminate traversal predicates
+   *
+   * This replaces all applications of traversal predicates P( x ) in n with
+   * unique Boolean variables, given by d_traversal_bool[ P( x ) ], and
+   * returns the result.
+   */
+  Node eliminateTraversalPredicates(Node n);
+  //-----------------------------------end traversal predicates
   /** a sygus sampler object for each (anchor, sygus type) pair
    *
    * This is used for the sygusRewVerify() option to verify the correctness of
@@ -235,7 +305,7 @@ private:
    * (2) static symmetry breaking clauses for subterms of n (those added to
    * lemmas on getSimpleSymBreakPred, see function below),
    * (3) conjecture-specific symmetry breaking lemmas, see
-   * CegConjecture::getSymmetryBreakingPredicate,
+   * SynthConjecture::getSymmetryBreakingPredicate,
    * (4) fairness conflicts if sygusFair() is SYGUS_FAIR_DIRECT, e.g.:
    *    size( d ) <= 1 V ~is-C1( d ) V ~is-C2( d.1 )
    * where C1 and C2 are non-nullary constructors.
@@ -300,9 +370,29 @@ private:
    * not "some constant". Thus, we should consider the subterm
    * C_{any_constant}( 5 ) above to be an unconstrained variable (as represented
    * by a selector chain), instead of the concrete value 5.
+   *
+   * The flag isVarAgnostic is whether "a" is a variable agnostic enumerator. If
+   * this is the case, we restrict symmetry breaking to subterms of n on its
+   * leftmost subchain. For example, consider the grammar:
+   *   A -> B=B
+   *   B -> B+B | x | y | 0
+   * Say we are registering the search value x = y+x. Notice that this value is
+   * ordered. If a were a variable-agnostic enumerator of type A in this
+   * case, we would only register x = y+x and x, and not y+x or y, since the
+   * latter two terms are not leftmost subterms in this value. If we did on the
+   * other hand register y+x, we would be prevented from solutions like x+y = 0
+   * later, since x+y is equivalent to (the already registered value) y+x.
+   *
+   * If doSym is false, we are not performing symmetry breaking on n. This flag
+   * is set to false on branches of n that are not leftmost.
    */
-  Node registerSearchValue(
-      Node a, Node n, Node nv, unsigned d, std::vector<Node>& lemmas);
+  Node registerSearchValue(Node a,
+                           Node n,
+                           Node nv,
+                           unsigned d,
+                           std::vector<Node>& lemmas,
+                           bool isVarAgnostic,
+                           bool doSym);
   /** Register symmetry breaking lemma
    *
    * This function adds the symmetry breaking lemma template lem for terms of
@@ -402,15 +492,23 @@ private:
    * where t is a search term, see registerSearchTerm for definition of search
    * term.
    *
-   * usingSymCons is whether we are using symbolic constructors for subterms in
-   * the type tn. This may affect the form of the predicate we construct.
+   * usingSymCons: whether we are using symbolic constructors for subterms in
+   * the type tn,
+   * isVarAgnostic: whether the terms we are enumerating are agnostic to
+   * variables.
+   *
+   * The latter two options may affect the form of the predicate we construct.
    */
-  Node getSimpleSymBreakPred(TypeNode tn,
+  Node getSimpleSymBreakPred(Node e,
+                             TypeNode tn,
                              int tindex,
                              unsigned depth,
-                             bool usingSymCons);
+                             bool usingSymCons,
+                             bool isVarAgnostic);
   /** Cache of the above function */
-  std::map<TypeNode, std::map<int, std::map<bool, std::map<unsigned, Node>>>>
+  std::map<Node,
+           std::map<TypeNode,
+                    std::map<int, std::map<bool, std::map<unsigned, Node>>>>>
       d_simple_sb_pred;
   /**
    * For each search term, this stores the maximum depth for which we have added
@@ -453,14 +551,17 @@ private:
    * decision strategy decides on literals of the form (DT_SYGUS_BOUND m n).
    *
    * After determining the measure term m for e, if applicable, we initialize
-   * SearchSizeInfo for m below. This may result in lemmas
+   * SygusSizeDecisionStrategy for m below. This may result in lemmas
    */
   void registerSizeTerm(Node e, std::vector<Node>& lemmas);
-  /** information for each measure term allocated by this class */
-  class SearchSizeInfo
+  /** A decision strategy for each measure term allocated by this class */
+  class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
    public:
-    SearchSizeInfo( Node t, context::Context* c ) : d_this( t ), d_curr_search_size(0), d_curr_lit( c, 0 ) {}
+    SygusSizeDecisionStrategy(Node t, context::Context* c, Valuation valuation)
+        : DecisionStrategyFmf(c, valuation), d_this(t), d_curr_search_size(0)
+    {
+    }
     /** the measure term */
     Node d_this;
     /**
@@ -512,28 +613,13 @@ private:
      */
     Node getOrMkActiveMeasureValue(std::vector<Node>& lemmas,
                                    bool mkNew = false);
-    /**
-     * The current search size literal for this measure term. This corresponds
-     * to the minimial n such that (DT_SYGUS_BOUND d_this n) is asserted in
-     * this SAT context.
-     */
-    context::CDO< unsigned > d_curr_lit;
-    /**
-     * Map from integers n to the fairness literal, for each n such that this
-     * literal has been allocated (by getFairnessLiteral below).
-     */
-    std::map< unsigned, Node > d_lits;
-    /**
-     * Returns the s^th fairness literal for this measure term. This adds a
-     * split on this literal to lemmas.
-     */
-    Node getFairnessLiteral( unsigned s, TheoryDatatypes * d, std::vector< Node >& lemmas );
-    /** get the current fairness literal */
-    Node getCurrentFairnessLiteral( TheoryDatatypes * d, std::vector< Node >& lemmas ) { 
-      return getFairnessLiteral( d_curr_lit.get(), d, lemmas ); 
+    /** Returns the s^th fairness literal for this measure term. */
+    Node mkLiteral(unsigned s) override;
+    /** identify */
+    std::string identify() const override
+    {
+      return std::string("sygus_enum_size");
     }
-    /** increment current term size */
-    void incrementCurrentLiteral() { d_curr_lit.set( d_curr_lit.get() + 1 ); }
 
    private:
     /** the measure value */
@@ -542,11 +628,13 @@ private:
     Node d_measure_value_active;
   };
   /** the above information for each registered measure term */
-  std::map< Node, SearchSizeInfo * > d_szinfo;
+  std::map<Node, std::unique_ptr<SygusSizeDecisionStrategy>> d_szinfo;
   /** map from enumerators (anchors) to their associated measure term */
   std::map< Node, Node > d_anchor_to_measure_term;
   /** map from enumerators (anchors) to their active guard*/
   std::map< Node, Node > d_anchor_to_active_guard;
+  /** map from enumerators (anchors) to a decision stratregy for that guard */
+  std::map<Node, std::unique_ptr<DecisionStrategy>> d_anchor_to_ag_strategy;
   /** generic measure term
    *
    * This is a global term that is used as the measure term for all sygus
@@ -571,7 +659,7 @@ private:
    * incrementSearchSize so far is at least s.
    */
   void notifySearchSize( Node m, unsigned s, Node exp, std::vector< Node >& lemmas );
-  /** Allocates a SearchSizeInfo object in d_szinfo. */
+  /** Allocates a SygusSizeDecisionStrategy object in d_szinfo. */
   void registerMeasureTerm( Node m );
   /**
    * Return the current search size for arbitrary term n. This is the current
@@ -595,7 +683,7 @@ private:
    */
   Node getCurrentTemplate( Node n, std::map< TypeNode, int >& var_count );
   //----------------------end search size information
-  /** check testers
+  /** check value
    *
    * This is called when we have a model assignment vn for n, where n is
    * a selector chain applied to an enumerator (a search term). This function
@@ -618,7 +706,7 @@ private:
    * method should not ever add anything to lemmas. However, due to its
    * importance, we check this regardless.
    */
-  bool checkTesters(Node n, Node vn, int ind, std::vector<Node>& lemmas);
+  bool checkValue(Node n, Node vn, int ind, std::vector<Node>& lemmas);
   /**
    * Get the current SAT status of the guard g.
    * In particular, this returns 1 if g is asserted true, -1 if it is asserted

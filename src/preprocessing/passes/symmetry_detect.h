@@ -21,6 +21,7 @@
 #include <string>
 #include <vector>
 #include "expr/node.h"
+#include "theory/quantifiers/term_canonize.h"
 
 namespace CVC4 {
 namespace preprocessing {
@@ -65,10 +66,18 @@ class Partition
    * { w-> { x, y } }
    */
   std::map<Node, std::vector<Node> > d_subvar_to_vars;
-  /** sorts the ranges of d_subvar_to_vars. */
+  /** Add variable v to d_subvar_to_vars[sv]. */
+  void addVariable(Node sv, Node v);
+  /** Remove variable sv from the domain of d_subvar_to_vars. */
+  void removeVariable(Node sv);
+  /** Sorts the ranges of d_subvar_to_vars. */
   void normalize();
   /** Print a partition */
   static void printPartition(const char* c, Partition p);
+  /** get variables */
+  void getVariables(std::vector<Node>& vars);
+  /** get substitution */
+  void getSubstitution(std::vector<Node>& vars, std::vector<Node>& subs);
 };
 
 /** partition merger
@@ -128,7 +137,8 @@ class PartitionMerger
    */
   bool merge(std::vector<Partition>& partitions,
              unsigned base_index,
-             std::unordered_set<unsigned>& active_indices);
+             std::unordered_set<unsigned>& active_indices,
+             std::vector<unsigned>& merged_indices);
 
  private:
   /** the kind of the node we are consdiering */
@@ -176,49 +186,16 @@ class PartitionMerger
                    std::vector<Partition>& partitions,
                    std::unordered_set<unsigned>& active_indices);
 };
+
 /**
- * We build the partition trie indexed by
- * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. The leaves of a
- * partition trie is the new regions of a partition
+ * This is the class to detect symmetries between variables or terms relative
+ * to a set of input assertions.
  */
-class PartitionTrie
-{
- public:
-  /** Variables at the leave */
-  std::vector<Node> d_variables;
-
-  /** The mapping from a node to its children */
-  std::map<Node, PartitionTrie> d_children;
-
-  /** Add variable v to the trie, indexed by
-   * parts[0].var_to_subvar[v]....parts[n].var_to_subvar[v]. */
-  Node addNode(Node v, std::vector<Partition>& parts);
-
-  /** Get all the new regions of a partition and store in part
-   *
-   * This constructs a new partition, part, where each set in this partition
-   * corresponds to one leaf in the PartitionTrie pt.
-   * var_to_svar: map from variables to symmetry variables to use in part.
-   */
-  void getNewPartition(Partition& part,
-                       PartitionTrie& pt,
-                       std::map<Node, Node>& var_to_svar);
-};
-
-/**
- * This is the class to detect symmetries from input based on terms equality.
- * */
 class SymmetryDetect
 {
  public:
-  /**
-   * Constructor
-   * */
-  SymmetryDetect()
-  {
-    d_trueNode = NodeManager::currentNM()->mkConst<bool>(true);
-    d_falseNode = NodeManager::currentNM()->mkConst<bool>(false);
-  }
+  /** constructor */
+  SymmetryDetect();
 
   /**
    * Destructor
@@ -226,11 +203,22 @@ class SymmetryDetect
   ~SymmetryDetect() {}
 
   /** Get the final partition after symmetry detection.
-   *  If a vector in parts contains two variables x and y,
+   *
+   *  If a vector in sterms contains two variables x and y,
    *  then assertions and assertions { x -> y, y -> x } are
    *  equisatisfiable.
    * */
-  void getPartition(std::vector<std::vector<Node> >& parts, const std::vector<Node>& assertions);
+  void compute(std::vector<std::vector<Node> >& part,
+               const std::vector<Node>& assertions);
+
+  /** Get the final partition after symmetry detection.
+   *
+   *  If a vector in sterms contains two terms t and s,
+   *  then assertions and assertions { t -> s, s -> t } are
+   *  equisatisfiable.
+   * */
+  void computeTerms(std::vector<std::vector<Node> >& sterms,
+                    const std::vector<Node>& assertions);
 
  private:
   /** (canonical) symmetry breaking variables for each type */
@@ -252,6 +240,9 @@ class SymmetryDetect
   /** True and false constant nodes */
   Node d_trueNode;
   Node d_falseNode;
+
+  /** term canonizer (for quantified formulas) */
+  theory::quantifiers::TermCanonize d_tcanon;
 
   /** Cache for partitions */
   std::map<Node, Partition> d_term_partition;
@@ -275,6 +266,22 @@ class SymmetryDetect
    * */
   void collectChildren(Node node, std::vector<Node>& children);
 
+  /** Compute alpha equivalent terms
+   *
+   * This is used for determining pairs of terms in sterms that are
+   * alpha-equivalent. In detail, this constructs sterm_to_indices such that if
+   * sterm_to_indices[t] contains an index i, then there exists a k such that
+   * indices[k] = i and sterms[k] is alpha-equivalent to t, and sterm_to_indices
+   * contains indices[k] for each k=1,...,indicies.size()-1. For example,
+   * computeAlphaEqTerms( { 0, 3, 7 }, { Q(a), forall x. P(x), forall y. P(y) }
+   * may construct sterm_to_indices such that
+   *   sterm_to_indices[Q(a)] -> { 0 }
+   *   sterm_to_indices[forall x. P(x)] -> { 3, 7 }
+   */
+  void computeAlphaEqTerms(
+      const std::vector<unsigned>& indices,
+      const std::vector<Node>& sterms,
+      std::map<Node, std::vector<unsigned> >& sterm_to_indices);
   /** process partitions
    *
    * This method is called when we have detected symmetries for the children
@@ -295,7 +302,9 @@ class SymmetryDetect
   void processPartitions(Kind k,
                          std::vector<Partition>& partitions,
                          const std::vector<unsigned>& indices,
-                         std::unordered_set<unsigned>& active_indices);
+                         std::unordered_set<unsigned>& active_indices,
+                         std::vector<Node>& fixedSVar,
+                         std::vector<Node>& fixedVar);
   /** merge partitions
    *
    * This method merges groups of partitions occurring in indices using the
@@ -307,7 +316,21 @@ class SymmetryDetect
                        std::vector<Partition>& partitions,
                        const std::vector<unsigned>& indices,
                        std::unordered_set<unsigned>& active_indices);
+  //-------------------for symmetry breaking terms
+  /** symmetry breaking id counter */
+  unsigned d_tsym_id_counter;
+  /** list of term symmetries */
+  std::map<unsigned, std::vector<Node> > d_tsyms;
+  /** list of term symmetries */
+  std::map<unsigned, std::vector<Node> > d_tsym_to_vars;
+  /** variables to ids */
+  std::map<Node, std::vector<unsigned> > d_var_to_tsym_ids;
+  /** store term symmetry */
+  void storeTermSymmetry(const std::vector<Node>& symTerms,
+                         const std::vector<Node>& vars);
+  //-------------------end for symmetry breaking terms
 };
+
 }  // namespace symbreak
 }  // namespace passes
 }  // namespace preprocessing

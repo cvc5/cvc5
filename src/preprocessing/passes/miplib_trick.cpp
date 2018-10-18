@@ -188,7 +188,7 @@ PreprocessingPassResult MipLibTrick::applyInternal(
       propagator->getBackEdges();
   unordered_set<unsigned long> removeAssertions;
   SubstitutionMap& top_level_substs =
-      assertionsToPreprocess->getTopLevelSubstitutions();
+      d_preprocContext->getTopLevelSubstitutions();
 
   NodeManager* nm = NodeManager::currentNM();
   Node zero = nm->mkConst(Rational(0)), one = nm->mkConst(Rational(1));
@@ -658,6 +658,7 @@ MipLibTrick::Statistics::~Statistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_numMiplibAssertionsRemoved);
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

@@ -16,11 +16,8 @@
 
 #include <iostream>
 
-#ifdef CVC4_MAKE_EXAMPLES
-#include "smt/smt_engine.h" // for use with make examples
-#else
-#include <cvc4/cvc4.h>      // To follow the wiki
-#endif /* CVC4_MAKE_EXAMPLES */
+//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+#include "smt/smt_engine.h"
 
 using namespace CVC4;
 int main() {

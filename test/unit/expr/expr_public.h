@@ -80,7 +80,7 @@ private:
       r1 = new Expr(d_em->mkConst(Rational(1, 5)));
       r2 = new Expr(d_em->mkConst(Rational("0")));
     }
-    catch (Exception e)
+    catch (Exception& e)
     {
       cerr << "Exception during setUp():" << endl << e;
       throw;
@@ -106,7 +106,9 @@ private:
       delete a_bool;
 
       delete d_em;
-    } catch(Exception e) {
+    }
+    catch (Exception& e)
+    {
       cerr << "Exception during tearDown():" << endl << e;
       throw;
     }
@@ -265,13 +267,13 @@ private:
     TS_ASSERT(d_apply_fun_bool->hasOperator());
     TS_ASSERT(!null->hasOperator());
 
-    TS_ASSERT_THROWS(a_bool->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b_bool->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a_bool->getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b_bool->getOperator(), IllegalArgumentException&);
     TS_ASSERT(c_bool_and->getOperator() == *and_op);
-    TS_ASSERT_THROWS(plus_op->getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(and_op->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(plus_op->getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(and_op->getOperator(), IllegalArgumentException&);
     TS_ASSERT(d_apply_fun_bool->getOperator() == *fun_op);
-    TS_ASSERT_THROWS(null->getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(null->getOperator(), IllegalArgumentException&);
   }
 
   void testGetType() {
@@ -281,11 +283,11 @@ private:
     TS_ASSERT(a_bool->getType(true) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(false) == d_em->booleanType());
     TS_ASSERT(b_bool->getType(true) == d_em->booleanType());
-    TS_ASSERT_THROWS(d_em->mkExpr(MULT,*a_bool,*b_bool).getType(true),
-                     TypeCheckingException);
-// These need better support for operators
-//    TS_ASSERT(and_op->getType().isNull());
-//    TS_ASSERT(plus_op->getType().isNull());
+    TS_ASSERT_THROWS(d_em->mkExpr(MULT, *a_bool, *b_bool).getType(true),
+                     TypeCheckingException&);
+    // These need better support for operators
+    //    TS_ASSERT(and_op->getType().isNull());
+    //    TS_ASSERT(plus_op->getType().isNull());
     TS_ASSERT(d_apply_fun_bool->getType() == d_em->booleanType());
     TS_ASSERT(i1->getType().isInteger());
     TS_ASSERT(i2->getType().isInteger());
@@ -426,25 +428,26 @@ private:
     /* template <class T>
        const T& getConst() const; */
 
-    TS_ASSERT_THROWS(a_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(c_bool_and->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(a_bool->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(b_bool->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(c_bool_and->getConst<Kind>(), IllegalArgumentException&);
     TS_ASSERT(and_op->getConst<Kind>() == AND);
-    TS_ASSERT_THROWS(and_op->getConst<Rational>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(and_op->getConst<Rational>(), IllegalArgumentException&);
     TS_ASSERT(plus_op->getConst<Kind>() == PLUS);
-    TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(plus_op->getConst<Rational>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(d_apply_fun_bool->getConst<Kind>(),
+                     IllegalArgumentException&);
+    TS_ASSERT_THROWS(null->getConst<Kind>(), IllegalArgumentException&);
 
     TS_ASSERT(i1->getConst<Rational>() == 0);
     TS_ASSERT(i2->getConst<Rational>() == 23);
     TS_ASSERT(r1->getConst<Rational>() == Rational(1, 5));
     TS_ASSERT(r2->getConst<Rational>() == Rational("0"));
 
-    TS_ASSERT_THROWS(i1->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(i2->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(r1->getConst<Kind>(), IllegalArgumentException);
-    TS_ASSERT_THROWS(r2->getConst<Kind>(), IllegalArgumentException);
+    TS_ASSERT_THROWS(i1->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(i2->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(r1->getConst<Kind>(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(r2->getConst<Kind>(), IllegalArgumentException&);
   }
 
   void testGetExprManager() {
