@@ -37,9 +37,9 @@ class SubstitutionMinimize
   /** find
    *
    * If t { vars -> subs } rewrites to target, this method returns true, and
-   * vars[i1], ..., vars[in] are added to reqVars, such that
-   * t { vars[i_1] -> subs[i_1], ..., vars[i_n] -> subs[i_n] } also rewrites to
-   * target.
+   * vars[i_1], ..., vars[i_n] are added to reqVars, such that i_1, ..., i_n are
+   * distinct, and t { vars[i_1] -> subs[i_1], ..., vars[i_n] -> subs[i_n] }
+   * rewrites to target.
    *
    * If t { vars -> subs } does not rewrite to target, this method returns
    * false.
@@ -54,15 +54,16 @@ class SubstitutionMinimize
    * This method should be called on a formula t.
    *
    * If t { vars -> subs } rewrites to true, this method returns true,
-   * vars[i1], ..., vars[in] are added to reqVars, and
-   * vars[i{n+1}], ..., vars[i{n+m}] are added to impliedVars such that
-   * i1...i{n+m} are distinct, and:
+   * vars[i_1], ..., vars[i_n] are added to reqVars, and
+   * vars[i_{n+1}], ..., vars[i_{n+m}] are added to impliedVars such that:
    *
-   * t { vars[i1]->subs[i1], ..., vars[i{n+k}]->subs[i{n+k}] }
-   *   implies
-   * vars[i{n+k+1}] = subs[i{n+k+1}]
+   * (1) i_1...i_{n+m} are distinct
    *
-   * for k = 0, ..., m-1.
+   * (2) t { vars[i_1]->subs[i_1], ..., vars[i_{n+k}]->subs[i_{n+k}] } implies
+   * vars[i_{n+k+1}] = subs[i_{n+k+1}] for k = 0, ..., m-1, and
+   *
+   * (3) t { vars[i_1] -> subs[i_1], ..., vars[i_{n+m}] -> subs[i_{n+m}] }
+   * rewrites to true.
    *
    * For example, given (x>0 ^ x = y ^ y = z){ x -> 1, y -> 1, z -> 1, w -> 0 },
    * this method adds { x } to reqVars, and { y, z } to impliedVars.
