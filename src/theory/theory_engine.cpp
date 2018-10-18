@@ -949,7 +949,7 @@ void TheoryEngine::postsolve() {
   // Reset the decision manager. This clears its decision strategies, which are
   // user-context-dependent.
   d_decManager->reset();
-  // not longer in SAT mode
+  // no longer in SAT mode
   d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
