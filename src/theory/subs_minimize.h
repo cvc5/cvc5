@@ -55,14 +55,13 @@ class SubstitutionMinimize
    *
    * If t { vars -> subs } rewrites to true, this method returns true,
    * vars[i_1], ..., vars[i_n] are added to reqVars, and
-   * vars[i_{n+1}], ..., vars[i_{n+m}] are added to impliedVars such that:
+   * vars[i_{n+1}], ..., vars[i_{n+m}] are added to impliedVars such that
+   * i_1...i_{n+m} are distinct, and:
    *
-   * (1) i_1...i_{n+m} are distinct
+   * (1) t { vars[i_1]->subs[i_1], ..., vars[i_{n+k}]->subs[i_{n+k}] } implies
+   * vars[i_{n+k+1}] = subs[i_{n+k+1}] for k = 0, ..., m-1.
    *
-   * (2) t { vars[i_1]->subs[i_1], ..., vars[i_{n+k}]->subs[i_{n+k}] } implies
-   * vars[i_{n+k+1}] = subs[i_{n+k+1}] for k = 0, ..., m-1, and
-   *
-   * (3) t { vars[i_1] -> subs[i_1], ..., vars[i_{n+m}] -> subs[i_{n+m}] }
+   * (2) t { vars[i_1] -> subs[i_1], ..., vars[i_{n+m}] -> subs[i_{n+m}] }
    * rewrites to true.
    *
    * For example, given (x>0 ^ x = y ^ y = z){ x -> 1, y -> 1, z -> 1, w -> 0 },
