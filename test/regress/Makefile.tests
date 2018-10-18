@@ -1532,6 +1532,7 @@ REG1_TESTS = \
 	regress1/strings/repl-empty-sem.smt2 \
 	regress1/strings/repl-soundness-sem.smt2 \
 	regress1/strings/rew-020618.smt2 \
+	regress1/strings/stoi-400million.smt2 \
 	regress1/strings/str-code-sat.smt2 \
 	regress1/strings/str-code-unsat-2.smt2 \
 	regress1/strings/str-code-unsat-3.smt2 \
