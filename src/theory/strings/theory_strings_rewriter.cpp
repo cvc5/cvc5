@@ -2845,6 +2845,53 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       }
     }
   }
+  // miniscope based on components that do not contribute to contains
+  // for example,
+  //   str.replace( x ++ y ++ x ++ y, "A", z ) -->
+  //   str.replace( x ++ y, "A", z ) ++ x ++ y
+  // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
+  if (node[1].isConst() && node[1].getConst<String>().size() == 1)
+  {
+    Node lastLhs;
+    unsigned lastCheckIndex = 0;
+    for (unsigned i = 1, iend = children0.size(); i < iend; i++)
+    {
+      unsigned checkIndex = children0.size() - i;
+      std::vector<Node> checkLhs;
+      checkLhs.insert(
+          checkLhs.end(), children0.begin(), children0.begin() + checkIndex);
+      Node lhs = mkConcat(STRING_CONCAT, checkLhs);
+      Node rhs = children0[checkIndex];
+      Node ctn = nm->mkNode(STRING_STRCTN, lhs, rhs);
+      ctn = Rewriter::rewrite(ctn);
+      if (ctn.isConst() && ctn.getConst<bool>())
+      {
+        lastLhs = lhs;
+        lastCheckIndex = checkIndex;
+      }
+      else
+      {
+        break;
+      }
+    }
+    if (!lastLhs.isNull())
+    {
+      std::vector<Node> remc(children0.begin() + lastCheckIndex,
+                             children0.end());
+      Node rem = mkConcat(STRING_CONCAT, remc);
+      Node ret =
+          nm->mkNode(STRING_CONCAT,
+                     nm->mkNode(STRING_STRREPL, lastLhs, node[1], node[2]),
+                     rem);
+      // for example:
+      //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
+      // Since we know that the first occurrence of "A" cannot be in the
+      // second occurrence of x. Notice this is specific to single characters
+      // due to complications with finds that span multiple components for
+      // non-characters.
+      return returnRewrite(node, ret, "repl-char-ncontrib-find");
+    }
+  }
 
   // TODO (#1180) incorporate these?
   // contains( t, s ) =>
@@ -4536,6 +4583,59 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
   Assert(!isLower || ret.isNull() || ret.getConst<Rational>().sgn() <= 0
          || checkEntailArith(a, true));
   return ret;
+}
+
+Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == STRING_TO_REGEXP)
+  {
+    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
+    ret = Rewriter::rewrite(ret);
+    if (ret.isConst())
+    {
+      return ret;
+    }
+  }
+  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
+  {
+    return nm->mkConst(Rational(1));
+  }
+  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
+  {
+    Node ret;
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull() || (!ret.isNull() && ret != flc))
+      {
+        return Node::null();
+      }
+      else if (ret.isNull())
+      {
+        // first time
+        ret = flc;
+      }
+    }
+    return ret;
+  }
+  else if (n.getKind() == REGEXP_CONCAT)
+  {
+    NodeBuilder<> nb(PLUS);
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull())
+      {
+        return flc;
+      }
+      nb << flc;
+    }
+    Node ret = nb.constructNode();
+    ret = Rewriter::rewrite(ret);
+    return ret;
+  }
+  return Node::null();
 }
 
 bool TheoryStringsRewriter::checkEntailArithInternal(Node a)

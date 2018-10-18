@@ -807,6 +807,7 @@ set(regress_0_tests
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
+  regress0/strings/ncontrib-rewrites.smt2
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/repl-rewrites2.smt2
@@ -1535,6 +1536,7 @@ set(regress_1_tests
   regress1/strings/repl-empty-sem.smt2
   regress1/strings/repl-soundness-sem.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/stoi-400million.smt2
   regress1/strings/str-code-sat.smt2
   regress1/strings/str-code-unsat-2.smt2
   regress1/strings/str-code-unsat-3.smt2
@@ -1713,6 +1715,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
