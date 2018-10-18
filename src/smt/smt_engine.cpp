@@ -1876,7 +1876,8 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
-    if (options::sygusRewSynth() || options::sygusRewVerify())
+    if (options::sygusRewSynth() || options::sygusRewVerify()
+        || options::sygusQueryGen())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);

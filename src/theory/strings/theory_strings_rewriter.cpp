@@ -4576,6 +4576,59 @@ Node TheoryStringsRewriter::getConstantArithBound(Node a, bool isLower)
   return ret;
 }
 
+Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  if (n.getKind() == STRING_TO_REGEXP)
+  {
+    Node ret = nm->mkNode(STRING_LENGTH, n[0]);
+    ret = Rewriter::rewrite(ret);
+    if (ret.isConst())
+    {
+      return ret;
+    }
+  }
+  else if (n.getKind() == REGEXP_SIGMA || n.getKind() == REGEXP_RANGE)
+  {
+    return nm->mkConst(Rational(1));
+  }
+  else if (n.getKind() == REGEXP_UNION || n.getKind() == REGEXP_INTER)
+  {
+    Node ret;
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull() || (!ret.isNull() && ret != flc))
+      {
+        return Node::null();
+      }
+      else if (ret.isNull())
+      {
+        // first time
+        ret = flc;
+      }
+    }
+    return ret;
+  }
+  else if (n.getKind() == REGEXP_CONCAT)
+  {
+    NodeBuilder<> nb(PLUS);
+    for (const Node& nc : n)
+    {
+      Node flc = getFixedLengthForRegexp(nc);
+      if (flc.isNull())
+      {
+        return flc;
+      }
+      nb << flc;
+    }
+    Node ret = nb.constructNode();
+    ret = Rewriter::rewrite(ret);
+    return ret;
+  }
+  return Node::null();
+}
+
 bool TheoryStringsRewriter::checkEntailArithInternal(Node a)
 {
   Assert(Rewriter::rewrite(a) == a);
