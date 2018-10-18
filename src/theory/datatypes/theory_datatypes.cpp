@@ -453,6 +453,8 @@ bool TheoryDatatypes::doSendLemma( Node lem ) {
     d_addedLemma = true;
     return true;
   }else{
+    Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : duplicate : "
+                           << lem << std::endl;
     return false;
   }
 }
@@ -2236,17 +2238,6 @@ std::pair<bool, Node> TheoryDatatypes::entailmentCheck(TNode lit, const Entailme
 
   }
   return make_pair(false, Node::null());
-}
-
-Node TheoryDatatypes::getNextDecisionRequest( unsigned& priority ) {
-  if( d_sygus_sym_break ){
-    std::vector< Node > lemmas;
-    Node ret = d_sygus_sym_break->getNextDecisionRequest( priority, lemmas );
-    doSendLemmas( lemmas );
-    return ret;
-  }else{
-    return Node::null();
-  }
 }
 
 } /* namepsace CVC4::theory::datatypes */

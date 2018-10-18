@@ -26,9 +26,9 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** Cegis Unif Enumeration Manager
+/** Cegis Unif Enumerators Decision Strategy
  *
- * This class enforces a decision heuristic that limits the number of
+ * This class enforces a decision strategy that limits the number of
  * unique values given to the set of heads of evaluation points and conditions
  * enumerators for these points, which are variables of sygus datatype type that
  * are introduced by CegisUnif.
@@ -42,12 +42,24 @@ namespace quantifiers {
  * To enforce this, we introduce sygus enumerator(s) of the same type as the
  * heads of evaluation points and condition enumerators registered to this class
  * and add lemmas that enforce that these terms are equal to at least one
- * enumerator (see registerEvalPtAtValue).
+ * enumerator (see registerEvalPtAtSize).
  */
-class CegisUnifEnumManager
+class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
 {
  public:
-  CegisUnifEnumManager(QuantifiersEngine* qe, CegConjecture* parent);
+  CegisUnifEnumDecisionStrategy(QuantifiersEngine* qe, SynthConjecture* parent);
+  /** Make the n^th literal of this strategy (G_uq_n).
+   *
+   * This call may add new lemmas of the form described above
+   * registerEvalPtAtValue on the output channel of d_qe.
+   */
+  Node mkLiteral(unsigned n) override;
+  /** identify */
+  std::string identify() const override
+  {
+    return std::string("cegis_unif_num_enums");
+  }
+
   /** initialize candidates
    *
    * Notify this class that it will be managing enumerators for the vector
@@ -59,6 +71,13 @@ class CegisUnifEnumManager
   void initialize(const std::vector<Node>& es,
                   const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
+
+  /*
+   * Do not hide the zero-argument version of initialize() inherited from the
+   * base class
+   */
+  using DecisionStrategy::initialize;
+
   /** get the current set of enumerators for strategy point e
    *
    * Index 0 adds the set of return value enumerators to es, index 1 adds the
@@ -73,26 +92,9 @@ class CegisUnifEnumManager
    * for strategy point e, where e was passed to initialize in the vector es.
    *
    * This may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
+   * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
-  /** get next decision request
-   *
-   * This function has the same contract as Theory::getNextDecisionRequest.
-   *
-   * If no guard G_uq_* is asserted positively, then this method returns the
-   * minimal G_uq_i that is not asserted negatively. It allocates this guard
-   * if necessary.
-   *
-   * This call may add new lemmas of the form described above
-   * registerEvalPtAtValue on the output channel of d_qe.
-   */
-  Node getNextDecisionRequest(unsigned& priority);
-  /**
-   * Get the "current" literal G_uq_n, where n is the minimal n such that G_uq_n
-   * is not asserted negatively in the current SAT context.
-   */
-  Node getCurrentLiteral() const;
 
  private:
   /** reference to quantifier engine */
@@ -100,7 +102,7 @@ class CegisUnifEnumManager
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
   /** reference to the parent conjecture */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
   /** whether this module has been initialized */
   bool d_initialized;
   /** null node */
@@ -138,10 +140,6 @@ class CegisUnifEnumManager
   };
   /** map strategy points to the above info */
   std::map<Node, StrategyPtInfo> d_ce_info;
-  /** literals of the form G_uq_n for each n */
-  std::map<unsigned, Node> d_guq_lit;
-  /** Have we returned a decision in the current SAT context? */
-  context::CDO<bool> d_ret_dec;
   /** the "virtual" enumerator
    *
    * This enumerator is used for enforcing fairness. In particular, we relate
@@ -160,15 +158,15 @@ class CegisUnifEnumManager
    *   (0,8), ..., (0,15), (1,8), ..., (1,15), ...              [size 3]
    */
   Node d_virtual_enum;
-  /**
-   * The minimal n such that G_uq_n is not asserted negatively in the
-   * current SAT context.
+  /** Registers an enumerator and adds symmetry breaking lemmas
+   *
+   * The symmetry breaking lemmas are generated according to the stored
+   * information from the enumerator's respective strategy point and whether it
+   * is a condition or return value enumerator. For the latter we add symmetry
+   * breaking lemmas that force enumerators to consider values in an increasing
+   * order of size.
    */
-  context::CDO<unsigned> d_curr_guq_val;
-  /** increment the number of enumerators */
-  void incrementNumEnumerators();
-  /** get literal G_uq_n */
-  Node getLiteral(unsigned n) const;
+  void setUpEnumerator(Node e, StrategyPtInfo& si, unsigned index);
   /** register evaluation point at size
    *
    * This sends a lemma of the form:
@@ -199,7 +197,7 @@ class CegisUnifEnumManager
 class CegisUnif : public Cegis
 {
  public:
-  CegisUnif(QuantifiersEngine* qe, CegConjecture* p);
+  CegisUnif(QuantifiersEngine* qe, SynthConjecture* p);
   ~CegisUnif() override;
   /** Retrieves enumerators for constructing solutions
    *
@@ -228,12 +226,10 @@ class CegisUnif : public Cegis
    * example would actually correspond to
    *   eval(d, 0) != c1 v eval(d, c1) != c2 v eval(d, c2) > 1
    * in which d is the deep embedding of the function-to-synthesize f
-  */
+   */
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
-  /** get next decision request */
-  Node getNextDecisionRequest(unsigned& priority) override;
 
  private:
   /** do cegis-implementation-specific initialization for this class */
@@ -268,13 +264,42 @@ class CegisUnif : public Cegis
                                   std::vector<Node>& candidate_values,
                                   bool satisfiedRl,
                                   std::vector<Node>& lems) override;
+  /** communicate condition values to solution building utility
+   *
+   * for each unification candidate and for each strategy point associated with
+   * it, set in d_sygus_unif the condition values (unif_cvalues) for respective
+   * condition enumerators (unif_cenums)
+   */
+  void setConditions(const std::map<Node, std::vector<Node>>& unif_cenums,
+                     const std::map<Node, std::vector<Node>>& unif_cvalues,
+                     std::vector<Node>& lems);
+  /** set values of condition enumerators based on current enumerator assignment
+   *
+   * enums and enum_values are the enumerators registered in getTermList and
+   * their values retrieved by the parent SynthConjecture module, respectively.
+   *
+   * unif_cenums and unif_cvalues associate the conditional enumerators of each
+   * strategy point of each unification candidate with their respective model
+   * values
+   *
+   * This function also generates inter-enumerator symmetry breaking for return
+   * values, such that their model values are ordered by size
+   *
+   * returns true if no symmetry breaking lemmas were generated for the return
+   * value enumerators, false otherwise
+   */
+  bool getEnumValues(const std::vector<Node>& enums,
+                     const std::vector<Node>& enum_values,
+                     std::map<Node, std::vector<Node>>& unif_cenums,
+                     std::map<Node, std::vector<Node>>& unif_cvalues,
+                     std::vector<Node>& lems);
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.
    */
   SygusUnifRl d_sygus_unif;
   /** enumerator manager utility */
-  CegisUnifEnumManager d_u_enum_manager;
+  CegisUnifEnumDecisionStrategy d_u_enum_manager;
   /* The null node */
   Node d_null;
   /** the unification candidates */

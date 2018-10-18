@@ -17,9 +17,12 @@
 #include "api/cvc4cpp.h"
 
 #include "base/cvc4_assert.h"
+#include "base/cvc4_check.h"
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 #include "expr/kind.h"
+#include "expr/metakind.h"
+#include "expr/node_manager.h"
 #include "expr/type.h"
 #include "options/main_options.h"
 #include "options/options.h"
@@ -33,77 +36,6 @@
 
 namespace CVC4 {
 namespace api {
-
-/* -------------------------------------------------------------------------- */
-/* Result                                                                     */
-/* -------------------------------------------------------------------------- */
-
-Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
-
-bool Result::isSat(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::SAT;
-}
-
-bool Result::isUnsat(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::UNSAT;
-}
-
-bool Result::isSatUnknown(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_SAT
-         && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
-}
-
-bool Result::isValid(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALID;
-}
-
-bool Result::isInvalid(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::INVALID;
-}
-
-bool Result::isValidUnknown(void) const
-{
-  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
-         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
-}
-
-bool Result::operator==(const Result& r) const
-{
-  return *d_result == *r.d_result;
-}
-
-bool Result::operator!=(const Result& r) const
-{
-  return *d_result != *r.d_result;
-}
-
-std::string Result::getUnknownExplanation(void) const
-{
-  std::stringstream ss;
-  ss << d_result->whyUnknown();
-  return ss.str();
-}
-
-std::string Result::toString(void) const { return d_result->toString(); }
-
-// !!! This is only temporarily available until the parser is fully migrated
-// to the new API. !!!
-CVC4::Result Result::getResult(void) const { return *d_result; }
-
-std::ostream& operator<<(std::ostream& out, const Result& r)
-{
-  out << r.toString();
-  return out;
-}
 
 /* -------------------------------------------------------------------------- */
 /* Kind                                                                       */
@@ -609,7 +541,15 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
     };
 
 namespace {
+
 bool isDefinedKind(Kind k) { return k > UNDEFINED_KIND && k < LAST_KIND; }
+
+#ifdef CVC4_ASSERTIONS
+bool isDefinedIntKind(CVC4::Kind k)
+{
+  return k != CVC4::Kind::UNDEFINED_KIND && k != CVC4::Kind::LAST_KIND;
+}
+#endif
 
 Kind intToExtKind(CVC4::Kind k)
 {
@@ -629,6 +569,20 @@ CVC4::Kind extToIntKind(Kind k)
     return CVC4::Kind::UNDEFINED_KIND;
   }
   return it->second;
+}
+
+uint32_t minArity(Kind k)
+{
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
+  return CVC4::ExprManager::minArity(extToIntKind(k));
+}
+
+uint32_t maxArity(Kind k)
+{
+  Assert(isDefinedKind(k));
+  Assert(isDefinedIntKind(extToIntKind(k)));
+  return CVC4::ExprManager::maxArity(extToIntKind(k));
 }
 }  // namespace
 
@@ -651,6 +605,143 @@ std::ostream& operator<<(std::ostream& out, Kind k)
 size_t KindHashFunction::operator()(Kind k) const { return k; }
 
 /* -------------------------------------------------------------------------- */
+/* API guard helpers                                                          */
+/* -------------------------------------------------------------------------- */
+
+namespace {
+
+class CVC4ApiExceptionStream
+{
+ public:
+  CVC4ApiExceptionStream() {}
+  /* Note: This needs to be explicitly set to 'noexcept(false)' since it is
+   * a destructor that throws an exception and in C++11 all destructors
+   * default to noexcept(true) (else this triggers a call to std::terminate). */
+  ~CVC4ApiExceptionStream() noexcept(false)
+  {
+    if (!std::uncaught_exception())
+    {
+      throw CVC4ApiException(d_stream.str());
+    }
+  }
+
+  std::ostream& ostream() { return d_stream; }
+
+ private:
+  std::stringstream d_stream;
+};
+
+#define CVC4_API_CHECK(cond) \
+  CVC4_PREDICT_FALSE(cond)   \
+  ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
+
+#define CVC4_API_KIND_CHECK(kind)     \
+  CVC4_API_CHECK(isDefinedKind(kind)) \
+      << "Invalid kind '" << kindToString(kind) << "'";
+
+#define CVC4_API_KIND_CHECK_EXPECTED(cond, kind) \
+  CVC4_PREDICT_FALSE(cond)                       \
+  ? (void)0                                      \
+  : OstreamVoider()                              \
+          & CVC4ApiExceptionStream().ostream()   \
+                << "Invalid kind '" << kindToString(kind) << "', expected "
+
+#define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
+  CVC4_PREDICT_FALSE(cond)                                          \
+  ? (void)0                                                         \
+  : OstreamVoider()                                                 \
+          & CVC4ApiExceptionStream().ostream()                      \
+                << "Invalid argument '" << arg << "' for '" << #arg \
+                << "', expected "
+
+#define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
+  CVC4_PREDICT_FALSE(cond)                          \
+  ? (void)0                                         \
+  : OstreamVoider()                                 \
+          & CVC4ApiExceptionStream().ostream()      \
+                << "Invalid size of argument '" << #arg << "', expected "
+
+#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)         \
+  CVC4_PREDICT_FALSE(cond)                                                 \
+  ? (void)0                                                                \
+  : OstreamVoider()                                                        \
+          & CVC4ApiExceptionStream().ostream()                             \
+                << "Invalid " << what << "'" << arg << "' at index" << idx \
+                << ", expected "
+}  // namespace
+
+/* -------------------------------------------------------------------------- */
+/* Result                                                                     */
+/* -------------------------------------------------------------------------- */
+
+Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
+
+bool Result::isSat(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::SAT;
+}
+
+bool Result::isUnsat(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::UNSAT;
+}
+
+bool Result::isSatUnknown(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_SAT
+         && d_result->isSat() == CVC4::Result::SAT_UNKNOWN;
+}
+
+bool Result::isValid(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::VALID;
+}
+
+bool Result::isInvalid(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::INVALID;
+}
+
+bool Result::isValidUnknown(void) const
+{
+  return d_result->getType() == CVC4::Result::TYPE_VALIDITY
+         && d_result->isValid() == CVC4::Result::VALIDITY_UNKNOWN;
+}
+
+bool Result::operator==(const Result& r) const
+{
+  return *d_result == *r.d_result;
+}
+
+bool Result::operator!=(const Result& r) const
+{
+  return *d_result != *r.d_result;
+}
+
+std::string Result::getUnknownExplanation(void) const
+{
+  std::stringstream ss;
+  ss << d_result->whyUnknown();
+  return ss.str();
+}
+
+std::string Result::toString(void) const { return d_result->toString(); }
+
+// !!! This is only temporarily available until the parser is fully migrated
+// to the new API. !!!
+CVC4::Result Result::getResult(void) const { return *d_result; }
+
+std::ostream& operator<<(std::ostream& out, const Result& r)
+{
+  out << r.toString();
+  return out;
+}
+
+/* -------------------------------------------------------------------------- */
 /* Sort                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -660,7 +751,6 @@ Sort::~Sort() {}
 
 Sort& Sort::operator=(const Sort& s)
 {
-  // CHECK: valid sort s?
   if (this != &s)
   {
     *d_type = *s.d_type;
@@ -668,130 +758,66 @@ Sort& Sort::operator=(const Sort& s)
   return *this;
 }
 
-bool Sort::operator==(const Sort& s) const
+bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
+
+bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
+
+bool Sort::isBoolean() const { return d_type->isBoolean(); }
+
+bool Sort::isInteger() const { return d_type->isInteger(); }
+
+bool Sort::isReal() const { return d_type->isReal(); }
+
+bool Sort::isString() const { return d_type->isString(); }
+
+bool Sort::isRegExp() const { return d_type->isRegExp(); }
+
+bool Sort::isRoundingMode() const { return d_type->isRoundingMode(); }
+
+bool Sort::isBitVector() const { return d_type->isBitVector(); }
+
+bool Sort::isFloatingPoint() const { return d_type->isFloatingPoint(); }
+
+bool Sort::isDatatype() const { return d_type->isDatatype(); }
+
+bool Sort::isParametricDatatype() const
 {
-  // CHECK: valid sort s?
-  return *d_type == *s.d_type;
+  if (!d_type->isDatatype()) return false;
+  DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
+  return type->isParametric();
 }
 
-bool Sort::operator!=(const Sort& s) const
-{
-  // CHECK: valid sort s?
-  return *d_type != *s.d_type;
-}
+bool Sort::isFunction() const { return d_type->isFunction(); }
 
-bool Sort::isBoolean() const
-{
-  // CHECK: valid sort s?
-  return d_type->isBoolean();
-}
+bool Sort::isPredicate() const { return d_type->isPredicate(); }
 
-bool Sort::isInteger() const
-{
-  // CHECK: valid sort s?
-  return d_type->isInteger();
-}
+bool Sort::isTuple() const { return d_type->isTuple(); }
 
-bool Sort::isReal() const
-{
-  // CHECK: valid sort s?
-  return d_type->isReal();
-}
+bool Sort::isRecord() const { return d_type->isRecord(); }
 
-bool Sort::isString() const
-{
-  // CHECK: valid sort s?
-  return d_type->isString();
-}
+bool Sort::isArray() const { return d_type->isArray(); }
 
-bool Sort::isRegExp() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRegExp();
-}
+bool Sort::isSet() const { return d_type->isSet(); }
 
-bool Sort::isRoundingMode() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRoundingMode();
-}
+bool Sort::isUninterpretedSort() const { return d_type->isSort(); }
 
-bool Sort::isBitVector() const
-{
-  // CHECK: valid sort s?
-  return d_type->isBitVector();
-}
+bool Sort::isSortConstructor() const { return d_type->isSortConstructor(); }
 
-bool Sort::isFloatingPoint() const
-{
-  // CHECK: valid sort s?
-  return d_type->isFloatingPoint();
-}
+bool Sort::isFirstClass() const { return d_type->isFirstClass(); }
 
-bool Sort::isDatatype() const
-{
-  // CHECK: valid sort s?
-  return d_type->isDatatype();
-}
-
-bool Sort::isFunction() const
-{
-  // CHECK: valid sort s?
-  return d_type->isFunction();
-}
-
-bool Sort::isPredicate() const
-{
-  // CHECK: valid sort s?
-  return d_type->isPredicate();
-}
-
-bool Sort::isTuple() const
-{
-  // CHECK: valid sort s?
-  return d_type->isTuple();
-}
-
-bool Sort::isRecord() const
-{
-  // CHECK: valid sort s?
-  return d_type->isRecord();
-}
-
-bool Sort::isArray() const
-{
-  // CHECK: valid sort s?
-  return d_type->isArray();
-}
-
-bool Sort::isSet() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSet();
-}
-
-bool Sort::isUninterpretedSort() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSort();
-}
-
-bool Sort::isSortConstructor() const
-{
-  // CHECK: valid sort s?
-  return d_type->isSortConstructor();
-}
+bool Sort::isFunctionLike() const { return d_type->isFunctionLike(); }
 
 Datatype Sort::getDatatype() const
 {
-  // CHECK: is this a datatype sort?
+  CVC4_API_CHECK(isDatatype()) << "Expected datatype sort.";
   DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
   return type->getDatatype();
 }
 
 Sort Sort::instantiate(const std::vector<Sort>& params) const
 {
-  // CHECK: Is this a datatype/sort constructor sort?
+  CVC4_API_CHECK(isParametricDatatype() || isSortConstructor())
+      << "Expected parametric datatype or sort constructor sort.";
   std::vector<Type> tparams;
   for (const Sort& s : params)
   {
@@ -799,7 +825,6 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   }
   if (d_type->isDatatype())
   {
-    // CHECK: is parametric?
     DatatypeType* type = static_cast<DatatypeType*>(d_type.get());
     return type->instantiate(tparams);
   }
@@ -807,15 +832,160 @@ Sort Sort::instantiate(const std::vector<Sort>& params) const
   return static_cast<SortConstructorType*>(d_type.get())->instantiate(tparams);
 }
 
-std::string Sort::toString() const
-{
-  // CHECK: valid sort s?
-  return d_type->toString();
-}
+std::string Sort::toString() const { return d_type->toString(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
 // to the new API. !!!
 CVC4::Type Sort::getType(void) const { return *d_type; }
+
+/* Function sort ------------------------------------------------------- */
+
+size_t Sort::getFunctionArity() const
+{
+  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  return static_cast<FunctionType*>(d_type.get())->getArity();
+}
+
+std::vector<Sort> Sort::getFunctionDomainSorts() const
+{
+  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  std::vector<CVC4::Type> types =
+      static_cast<FunctionType*>(d_type.get())->getArgTypes();
+  return typeVectorToSorts(types);
+}
+
+Sort Sort::getFunctionCodomainSort() const
+{
+  CVC4_API_CHECK(isFunction()) << "Not a function sort.";
+  return static_cast<FunctionType*>(d_type.get())->getRangeType();
+}
+
+/* Array sort ---------------------------------------------------------- */
+
+Sort Sort::getArrayIndexSort() const
+{
+  CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  return static_cast<ArrayType*>(d_type.get())->getIndexType();
+}
+
+Sort Sort::getArrayElementSort() const
+{
+  CVC4_API_CHECK(isArray()) << "Not an array sort.";
+  return static_cast<ArrayType*>(d_type.get())->getConstituentType();
+}
+
+/* Set sort ------------------------------------------------------------ */
+
+Sort Sort::getSetElementSort() const
+{
+  CVC4_API_CHECK(isSet()) << "Not a set sort.";
+  return static_cast<SetType*>(d_type.get())->getElementType();
+}
+
+/* Uninterpreted sort -------------------------------------------------- */
+
+std::string Sort::getUninterpretedSortName() const
+{
+  CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
+  return static_cast<SortType*>(d_type.get())->getName();
+}
+
+bool Sort::isUninterpretedSortParameterized() const
+{
+  CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
+  return static_cast<SortType*>(d_type.get())->isParameterized();
+}
+
+std::vector<Sort> Sort::getUninterpretedSortParamSorts() const
+{
+  CVC4_API_CHECK(isUninterpretedSort()) << "Not an uninterpreted sort.";
+  std::vector<CVC4::Type> types =
+      static_cast<SortType*>(d_type.get())->getParamTypes();
+  return typeVectorToSorts(types);
+}
+
+/* Sort constructor sort ----------------------------------------------- */
+
+std::string Sort::getSortConstructorName() const
+{
+  CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  return static_cast<SortConstructorType*>(d_type.get())->getName();
+}
+
+size_t Sort::getSortConstructorArity() const
+{
+  CVC4_API_CHECK(isSortConstructor()) << "Not a sort constructor sort.";
+  return static_cast<SortConstructorType*>(d_type.get())->getArity();
+}
+
+/* Bit-vector sort ----------------------------------------------------- */
+
+uint32_t Sort::getBVSize() const
+{
+  CVC4_API_CHECK(isBitVector()) << "Not a bit-vector sort.";
+  return static_cast<BitVectorType*>(d_type.get())->getSize();
+}
+
+/* Floating-point sort ------------------------------------------------- */
+
+uint32_t Sort::getFPExponentSize() const
+{
+  CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  return static_cast<FloatingPointType*>(d_type.get())->getExponentSize();
+}
+
+uint32_t Sort::getFPSignificandSize() const
+{
+  CVC4_API_CHECK(isFloatingPoint()) << "Not a floating-point sort.";
+  return static_cast<FloatingPointType*>(d_type.get())->getSignificandSize();
+}
+
+/* Datatype sort ------------------------------------------------------- */
+
+std::vector<Sort> Sort::getDatatypeParamSorts() const
+{
+  CVC4_API_CHECK(isParametricDatatype()) << "Not a parametric datatype sort.";
+  std::vector<CVC4::Type> types =
+      static_cast<DatatypeType*>(d_type.get())->getParamTypes();
+  return typeVectorToSorts(types);
+}
+
+size_t Sort::getDatatypeArity() const
+{
+  CVC4_API_CHECK(isDatatype()) << "Not a datatype sort.";
+  return static_cast<DatatypeType*>(d_type.get())->getArity();
+}
+
+/* Tuple sort ---------------------------------------------------------- */
+
+size_t Sort::getTupleLength() const
+{
+  CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
+  return static_cast<DatatypeType*>(d_type.get())->getTupleLength();
+}
+
+std::vector<Sort> Sort::getTupleSorts() const
+{
+  CVC4_API_CHECK(isTuple()) << "Not a tuple sort.";
+  std::vector<CVC4::Type> types =
+      static_cast<DatatypeType*>(d_type.get())->getTupleTypes();
+  return typeVectorToSorts(types);
+}
+
+/* --------------------------------------------------------------------- */
+
+std::vector<Sort> Sort::typeVectorToSorts(
+    const std::vector<CVC4::Type>& types) const
+{
+  std::vector<Sort> res;
+  for (const CVC4::Type& t : types)
+  {
+    res.push_back(Sort(t));
+  }
+  return res;
+}
+
+/* --------------------------------------------------------------------- */
 
 std::ostream& operator<<(std::ostream& out, const Sort& s)
 {
@@ -840,7 +1010,6 @@ Term::~Term() {}
 
 Term& Term::operator=(const Term& t)
 {
-  // CHECK: expr managers must match
   if (this != &t)
   {
     *d_expr = *t.d_expr;
@@ -848,17 +1017,9 @@ Term& Term::operator=(const Term& t)
   return *this;
 }
 
-bool Term::operator==(const Term& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr == *t.d_expr;
-}
+bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
-bool Term::operator!=(const Term& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr != *t.d_expr;
-}
+bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
 Kind Term::getKind() const { return intToExtKind(d_expr->getKind()); }
 
@@ -1021,7 +1182,6 @@ OpTerm::~OpTerm() {}
 
 OpTerm& OpTerm::operator=(const OpTerm& t)
 {
-  // CHECK: expr managers must match
   if (this != &t)
   {
     *d_expr = *t.d_expr;
@@ -1029,17 +1189,9 @@ OpTerm& OpTerm::operator=(const OpTerm& t)
   return *this;
 }
 
-bool OpTerm::operator==(const OpTerm& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr == *t.d_expr;
-}
+bool OpTerm::operator==(const OpTerm& t) const { return *d_expr == *t.d_expr; }
 
-bool OpTerm::operator!=(const OpTerm& t) const
-{
-  // CHECK: expr managers must match
-  return *d_expr != *t.d_expr;
-}
+bool OpTerm::operator!=(const OpTerm& t) const { return *d_expr != *t.d_expr; }
 
 Kind OpTerm::getKind() const { return intToExtKind(d_expr->getKind()); }
 
@@ -1170,6 +1322,13 @@ void DatatypeDecl::addConstructor(const DatatypeConstructorDecl& ctor)
 {
   d_dtype->addConstructor(*ctor.d_ctor);
 }
+
+size_t DatatypeDecl::getNumConstructors() const
+{
+  return d_dtype->getNumConstructors();
+}
+
+bool DatatypeDecl::isParametric() const { return d_dtype->isParametric(); }
 
 std::string DatatypeDecl::toString() const
 {
@@ -1375,6 +1534,13 @@ Term Datatype::getConstructorTerm(const std::string& name) const
   return d_dtype->getConstructor(name);
 }
 
+size_t Datatype::getNumConstructors() const
+{
+  return d_dtype->getNumConstructors();
+}
+
+bool Datatype::isParametric() const { return d_dtype->isParametric(); }
+
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);
@@ -1487,7 +1653,7 @@ size_t RoundingModeHashFunction::operator()(const RoundingMode& rm) const
 
 Solver::Solver(Options* opts)
 {
-  Options* o = opts == nullptr ?  new Options() : opts;
+  Options* o = opts == nullptr ? new Options() : opts;
   d_exprMgr.reset(new ExprManager(*o));
   d_smtEngine.reset(new SmtEngine(d_exprMgr.get()));
   d_rng.reset(new Random((*o)[options::seed]));
@@ -1518,60 +1684,54 @@ Sort Solver::getRoundingmodeSort(void) const
 
 Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 {
-  // CHECK: indexSort exists
-  // CHECK: elemSort exists
   return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
 }
 
 Sort Solver::mkBitVectorSort(uint32_t size) const
 {
-  // CHECK: size > 0
+  CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "size > 0";
   return d_exprMgr->mkBitVectorType(size);
+}
+
+Sort Solver::mkFloatingPointSort(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "exponent size > 0";
+  CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "significand size > 0";
+  return d_exprMgr->mkFloatingPointType(exp, sig);
 }
 
 Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 {
-  // CHECK: num constructors > 0
+  CVC4_API_ARG_CHECK_EXPECTED(dtypedecl.getNumConstructors() > 0, dtypedecl)
+      << "a datatype declaration with at least one constructor";
   return d_exprMgr->mkDatatypeType(*dtypedecl.d_dtype);
 }
 
-Sort Solver::mkFunctionSort(Sort domain, Sort range) const
+Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 {
-  // CHECK: domain exists
-  // CHECK: range exists
-  // CHECK:
-  // domain.isFirstClass()
-  // else "can not create function type for domain type that is not
-  //       first class"
-  // CHECK:
-  // range.isFirstClass()
-  // else "can not create function type for range type that is not
-  //       first class"
-  // CHECK:
-  // !range.isFunction()
-  // else "must flatten function types"
-  return d_exprMgr->mkFunctionType(*domain.d_type, *range.d_type);
+  CVC4_API_ARG_CHECK_EXPECTED(domain.isFirstClass(), domain)
+      << "first-class sort as domain sort for function sort";
+  CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
+      << "first-class sort as codomain sort for function sort";
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
+  return d_exprMgr->mkFunctionType(*domain.d_type, *codomain.d_type);
 }
 
-Sort Solver::mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const
+Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
 {
-  // CHECK: for all s in argSorts, s exists
-  // CHECK: range exists
-  // CHECK: argSorts.size() >= 1
-  // CHECK:
-  // for (unsigned i = 0; i < argSorts.size(); ++ i)
-  //   argSorts[i].isFirstClass()
-  // else "can not create function type for argument type that is not
-  //       first class"
-  // CHECK:
-  // range.isFirstClass()
-  // else "can not create function type for range type that is not
-  //       first class"
-  // CHECK:
-  // !range.isFunction()
-  // else "must flatten function types"
-  std::vector<Type> argTypes = sortVectorToTypes(argSorts);
-  return d_exprMgr->mkFunctionType(argTypes, *range.d_type);
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
+      << "at least one parameter sort for function sort";
+  for (size_t i = 0, size = sorts.size(); i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        << "first-class sort as parameter sort for function sort";
+  }
+  CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
+      << "first-class sort as codomain sort for function sort";
+  Assert(!codomain.isFunction()); /* A function sort is not first-class. */
+  std::vector<Type> argTypes = sortVectorToTypes(sorts);
+  return d_exprMgr->mkFunctionType(argTypes, *codomain.d_type);
 }
 
 Sort Solver::mkParamSort(const std::string& symbol) const
@@ -1581,13 +1741,14 @@ Sort Solver::mkParamSort(const std::string& symbol) const
 
 Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
 {
-  // CHECK: for all s in sorts, s exists
-  // CHECK: sorts.size() >= 1
-  // CHECK:
-  // for (unsigned i = 0; i < sorts.size(); ++ i)
-  //   sorts[i].isFirstClass()
-  // else "can not create predicate type for argument type that is not
-  //       first class"
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(sorts.size() >= 1, sorts)
+      << "at least one parameter sort for predicate sort";
+  for (size_t i = 0, size = sorts.size(); i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        << "first-class sort as parameter sort for predicate sort";
+  }
   std::vector<Type> types = sortVectorToTypes(sorts);
   return d_exprMgr->mkPredicateType(types);
 }
@@ -1613,13 +1774,20 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
   return d_exprMgr->mkSort(symbol);
 }
 
+Sort Solver::mkSortConstructorSort(const std::string& symbol,
+                                   size_t arity) const
+{
+  return d_exprMgr->mkSortConstructor(symbol, arity);
+}
+
 Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
-  // CHECK: for all s in sorts, s exists
-  // CHECK:
-  // for (unsigned i = 0; i < sorts.size(); ++ i)
-  //   !sorts[i].isFunctionLike()
-  // else "function-like types in tuples not allowed"
+  for (size_t i = 0, size = sorts.size(); i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
+        << "non-function-like sort as parameter sort for tuple sort";
+  }
   std::vector<Type> types = sortVectorToTypes(sorts);
   return d_exprMgr->mkTupleType(types);
 }
@@ -1801,63 +1969,46 @@ Term Solver::mkBitVector(std::string& s, uint32_t base) const
 
 Term Solver::mkConst(RoundingMode rm) const
 {
-  // CHECK: valid rm?
   return d_exprMgr->mkConst(s_rmodes.at(rm));
 }
 
 Term Solver::mkConst(Kind kind, Sort arg) const
 {
-  PrettyCheckArgument(kind == EMPTYSET,
-                      kind,
-                      "Invalid kind '%s', expected EMPTY_SET",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET, kind) << "EMPTY_SET";
   return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
 }
 
 Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
 {
-  PrettyCheckArgument(kind == UNINTERPRETED_CONSTANT,
-                      kind,
-                      "Invalid kind '%s', expected UNINTERPRETED_CONSTANT",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == UNINTERPRETED_CONSTANT, kind)
+      << "UNINTERPRETED_CONSTANT";
   return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
 }
 
 Term Solver::mkConst(Kind kind, bool arg) const
 {
-  PrettyCheckArgument(kind == CONST_BOOLEAN,
-                      kind,
-                      "Invalid kind '%s', expected CONST_BOOLEAN",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind) << "CONST_BOOLEAN";
   return d_exprMgr->mkConst<bool>(arg);
 }
 
 Term Solver::mkConst(Kind kind, const char* arg) const
 {
-  PrettyCheckArgument(kind == CONST_STRING,
-                      kind,
-                      "Invalid kind '%s', expected CONST_STRING",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg) const
 {
-  PrettyCheckArgument(kind == CONST_STRING,
-                      kind,
-                      "Invalid kind '%s', expected CONST_STRING",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
   return d_exprMgr->mkConst(CVC4::String(arg));
 }
 
 Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1871,12 +2022,10 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
@@ -1890,12 +2039,10 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  PrettyCheckArgument(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                          || kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected ABSTRACT_VALUE or "
-                      "CONST_RATIONAL or CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
+                                   || kind == CONST_BITVECTOR,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1909,11 +2056,9 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1923,11 +2068,9 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1937,11 +2080,9 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
-  PrettyCheckArgument(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-      kind,
-      "Invalid kind '%s', expected ABSTRACT_VALUE or CONST_RATIONAL",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
   if (kind == ABSTRACT_VALUE)
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
@@ -1951,56 +2092,46 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_RATIONAL,
-                      kind,
-                      "Invalid kind '%s', expected CONST_RATIONAL",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+      << "CONST_RATIONAL";
   return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
-  PrettyCheckArgument(kind == CONST_BITVECTOR,
-                      kind,
-                      "Invalid kind '%s', expected CONST_BITVECTOR",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+      << "CONST_BITVECTOR";
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
-  // CHECK: arg 3 is bit-vector constant
-  PrettyCheckArgument(kind == CONST_FLOATINGPOINT,
-                      kind,
-                      "Invalid kind '%s', expected CONST_FLOATINGPOINT",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
+      << "CONST_FLOATINGPOINT";
+  CVC4_API_ARG_CHECK_EXPECTED(
+      arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
+      << "bit-vector constant";
   return d_exprMgr->mkConst(
       CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
 }
@@ -2010,41 +2141,81 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 
 Term Solver::mkVar(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkVar(symbol, *sort.d_type);
 }
 
-Term Solver::mkVar(Sort sort) const
-{
-  // CHECK: sort exists?
-  return d_exprMgr->mkVar(*sort.d_type);
-}
+Term Solver::mkVar(Sort sort) const { return d_exprMgr->mkVar(*sort.d_type); }
 
 Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
 }
 
 Term Solver::mkBoundVar(Sort sort) const
 {
-  // CHECK: sort exists?
   return d_exprMgr->mkBoundVar(*sort.d_type);
 }
 
 /* Create terms                                                               */
 /* -------------------------------------------------------------------------- */
 
+void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
+{
+  CVC4_API_KIND_CHECK(kind);
+  Assert(isDefinedIntKind(extToIntKind(kind)));
+  const CVC4::kind::MetaKind mk = kind::metaKindOf(extToIntKind(kind));
+  CVC4_API_KIND_CHECK_EXPECTED(
+      mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
+      kind)
+      << "Only operator-style terms are created with mkTerm(), "
+         "to create variables and constants see mkVar(), mkBoundVar(), "
+         "and mkConst().";
+  if (nchildren)
+  {
+    const uint32_t n =
+        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
+    CVC4_API_KIND_CHECK_EXPECTED(n >= minArity(kind) && n <= maxArity(kind),
+                                 kind)
+        << "Terms with kind " << kindToString(kind) << " must have at least "
+        << minArity(kind) << " children and at most " << maxArity(kind)
+        << " children (the one under construction has " << n << ")";
+  }
+}
+
+void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
+{
+  const Kind kind = opTerm.getKind();
+  Assert(isDefinedIntKind(extToIntKind(kind)));
+  const CVC4::Kind int_kind = extToIntKind(kind);
+  const CVC4::Kind int_op_kind =
+      NodeManager::operatorToKind(opTerm.d_expr->getNode());
+  CVC4_API_ARG_CHECK_EXPECTED(int_kind == kind::BUILTIN
+                                  || CVC4::kind::metaKindOf(int_op_kind)
+                                         == kind::metakind::PARAMETERIZED,
+                              opTerm)
+      << "This term constructor is for parameterized kinds only";
+  if (nchildren)
+  {
+    uint32_t min_arity = ExprManager::minArity(int_op_kind);
+    uint32_t max_arity = ExprManager::maxArity(int_op_kind);
+    CVC4_API_KIND_CHECK_EXPECTED(
+        nchildren >= min_arity && nchildren <= max_arity, kind)
+        << "Terms with kind " << kindToString(kind) << " must have at least "
+        << min_arity << " children and at most " << max_arity
+        << " children (the one under construction has " << nchildren << ")";
+  }
+}
+
 Term Solver::mkTerm(Kind kind) const
 {
-  PrettyCheckArgument(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA,
-      kind,
-      "Invalid kind '%s', expected PI or REGEXP_EMPTY or REGEXP_SIGMA",
-      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(
+      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
   if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
   {
-    return d_exprMgr->mkExpr(extToIntKind(kind), std::vector<Expr>());
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    return d_exprMgr->mkExpr(k, std::vector<Expr>());
   }
   Assert(kind == PI);
   return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
@@ -2052,216 +2223,71 @@ Term Solver::mkTerm(Kind kind) const
 
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
-  PrettyCheckArgument(kind == SEP_NIL || kind == UNIVERSE_SET,
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL || kind == UNIVERSE_SET, kind)
+      << "SEP_NIL or UNIVERSE_SET";
   return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
 }
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  checkMkTerm(kind, 1);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkTerm(kind, 2);
   return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child3.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  checkMkTerm(kind, 3);
   std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  // CHECK:
-  // for c in children:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(c.getExprManager())
-  // CHECK:
-  // const Metakind mk = kind::metaKindOf(kind);
-  // mk != kind::metakind::PARAMETERIZED && mk != kind::metakind::OPERATOR
-  // else "Only operator-style expressions are made with mkExpr(); "
-  //      "to make variables and constants, see mkVar(), mkBoundVar(), "
-  //      "and mkConst()."
-  // CHECK:
-  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
-  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
-  // must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  checkMkTerm(kind, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   CVC4::Kind k = extToIntKind(kind);
+  Assert(isDefinedIntKind(k));
   return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
                                 : d_exprMgr->mkExpr(k, echildren);
 }
 
 Term Solver::mkTerm(OpTerm opTerm) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
+  checkMkOpTerm(opTerm, 0);
   return d_exprMgr->mkExpr(*opTerm.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 1 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 1);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 2 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 2);
   return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child1.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child2.getExprManager())
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(child3.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = 3 - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
-  // n < minArity(kind) || n > maxArity(kind)
-  // else "Exprs with kind %s must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, 3);
   return d_exprMgr->mkExpr(
       *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
 }
 
 Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
-  // CHECK:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(opExpr.getExprManager())
-  // for c in children:
-  // NodeManager::fromExprManager(d_exprMgr)
-  // == NodeManager::fromExprManager(c.getExprManager())
-  // CHECK:
-  // const Kind kind = NodeManager::opToKind(opExpr.getNode());
-  // opExpr.getKind() != kind::BUILTIN
-  // && kind::metaKindOf(kind) != kind::metakind::PARAMETERIZED
-  // else "This Expr constructor is for parameterized kinds only"
-  // CHECK:
-  // const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ?
-  // 1 : 0); n < minArity(kind) || n > maxArity(kind) else "Exprs with kind %s
-  // must have at least %u children and "
-  //      "at most %u children (the one under construction has %u)"
+  checkMkOpTerm(opTerm, children.size());
   std::vector<Expr> echildren = termVectorToExprs(children);
   return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
 }
@@ -2282,28 +2308,20 @@ std::vector<Expr> Solver::termVectorToExprs(
 
 OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 {
-  PrettyCheckArgument(kind == CHAIN_OP,
-                      kind,
-                      "Invalid kind '%s', expected CHAIN_OP",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
   return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
-  PrettyCheckArgument(kind == RECORD_UPDATE_OP,
-                      kind,
-                      "Invalid kind '%s', expected RECORD_UPDATE_OP",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
+      << "RECORD_UPDATE_OP";
   return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK(kind);
   OpTerm res;
   switch (kind)
   {
@@ -2342,18 +2360,16 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
       res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
       break;
     default:
-      // CHECK: kind valid?
-      Assert(!res.isNull());
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with uint32_t argument";
   }
+  Assert(!res.isNull());
   return res;
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
 {
-  PrettyCheckArgument(isDefinedKind(kind),
-                      kind,
-                      "Invalid kind '%s'",
-                      kindToString(kind).c_str());
+  CVC4_API_KIND_CHECK(kind);
   OpTerm res;
   switch (kind)
   {
@@ -2383,9 +2399,10 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
       res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
       break;
     default:
-      // CHECK: kind valid?
-      Assert(!res.isNull());
+      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+          << "operator kind with two uint32_t arguments";
   }
+  Assert(!res.isNull());
   return res;
 }
 
@@ -2475,7 +2492,6 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
  */
 Term Solver::declareConst(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists
   return d_exprMgr->mkVar(symbol, *sort.d_type);
 }
 
@@ -2499,17 +2515,7 @@ Sort Solver::declareDatatype(
  */
 Term Solver::declareFun(const std::string& symbol, Sort sort) const
 {
-  // CHECK: sort exists
-  // CHECK:
-  // sort.isFirstClass()
-  // else "can not create function type for range type that is not first class"
-  // CHECK:
-  // !sort.isFunction()
-  // else "must flatten function types"
   Type type = *sort.d_type;
-  // CHECK:
-  // !t.isFunction() || THEORY_UF not enabled
-  // else "Functions (of non-zero arity) cannot be declared in logic"
   return d_exprMgr->mkVar(symbol, type);
 }
 
@@ -2520,28 +2526,21 @@ Term Solver::declareFun(const std::string& symbol,
                         const std::vector<Sort>& sorts,
                         Sort sort) const
 {
-  // CHECK: for all s in sorts, s exists
-  // CHECK: sort exists
-  // CHECK:
-  // for (unsigned i = 0; i < sorts.size(); ++ i)
-  //   sorts[i].isFirstClass()
-  // else "can not create function type for argument type that is not
-  //       first class"
-  // CHECK:
-  // sort.isFirstClass()
-  // else "can not create function type for range type that is not first class"
-  // CHECK:
-  // !sort.isFunction()
-  // else "must flatten function types"
+  for (size_t i = 0, size = sorts.size(); i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
+        << "first-class sort as parameter sort for function sort";
+  }
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as function codomain sort";
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   Type type = *sort.d_type;
   if (!sorts.empty())
   {
     std::vector<Type> types = sortVectorToTypes(sorts);
     type = d_exprMgr->mkFunctionType(types, type);
   }
-  // CHECK:
-  // !t.isFunction() || THEORY_UF not enabled
-  // else "Functions (of non-zero arity) cannot be declared in logic"
   return d_exprMgr->mkVar(symbol, type);
 }
 
@@ -2550,10 +2549,6 @@ Term Solver::declareFun(const std::string& symbol,
  */
 Sort Solver::declareSort(const std::string& symbol, uint32_t arity) const
 {
-  // CHECK:
-  // - logic set?
-  // - !THEORY_UF && !THEORY_ARRAYS && !THEORY_DATATYPES && !THEORY_SETS
-  // else "Free sort symbols not allowed in logic"
   if (arity == 0) return d_exprMgr->mkSort(symbol);
   return d_exprMgr->mkSortConstructor(symbol, arity);
 }
@@ -2572,29 +2567,27 @@ Term Solver::defineFun(const std::string& symbol,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK: sort exists
   // CHECK: not recursive
-  // CHECK:
-  // sort.isFirstClass()
-  // else "can not create function type for range type that is not first class"
-  // !sort.isFunction()
-  // else "must flatten function types"
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as codomain sort for function sort";
   // CHECK:
   // for v in bound_vars: is bound var
-  std::vector<Type> types;
-  for (const Term& v : bound_vars)
+  std::vector<Type> domain_types;
+  for (size_t i = 0, size = bound_vars.size(); i < size; ++i)
   {
-    types.push_back(v.d_expr->getType());
+    CVC4::Type t = bound_vars[i].d_expr->getType();
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        t.isFirstClass(), "sort of parameter", bound_vars[i], i)
+        << "first-class sort of parameter of defined function";
+    domain_types.push_back(t);
   }
-  // CHECK:
-  // for (unsigned i = 0; i < types.size(); ++ i)
-  //   sorts[i].isFirstClass()
-  // else "can not create function type for argument type that is not
-  //       first class"
+  CVC4_API_CHECK(sort == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '" << sort
+      << "'";
   Type type = *sort.d_type;
-  if (!types.empty())
+  if (!domain_types.empty())
   {
-    type = d_exprMgr->mkFunctionType(types, type);
+    type = d_exprMgr->mkFunctionType(domain_types, type);
   }
   Expr fun = d_exprMgr->mkVar(symbol, type);
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
@@ -2611,9 +2604,25 @@ Term Solver::defineFun(Term fun,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK:
-  // - bound_vars matches sort of fun
-  // - expr matches sort of fun
+  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
+  std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+  size_t size = bound_vars.size();
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+      << "'" << domain_sorts.size() << "'";
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        domain_sorts[i] == bound_vars[i].getSort(),
+        "sort of parameter",
+        bound_vars[i],
+        i)
+        << "'" << domain_sorts[i] << "'";
+  }
+  Sort codomain = fun.getSort().getFunctionCodomainSort();
+  CVC4_API_CHECK(codomain == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '"
+      << codomain << "'";
+
   // CHECK: not recursive
   // CHECK:
   // for v in bound_vars: is bound var
@@ -2636,28 +2645,27 @@ Term Solver::defineFunRec(const std::string& symbol,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK: sort exists
-  // CHECK:
-  // sort.isFirstClass()
-  // else "can not create function type for range type that is not first class"
-  // !sort.isFunction()
-  // else "must flatten function types"
+  CVC4_API_ARG_CHECK_EXPECTED(sort.isFirstClass(), sort)
+      << "first-class sort as function codomain sort";
+  Assert(!sort.isFunction()); /* A function sort is not first-class. */
   // CHECK:
   // for v in bound_vars: is bound var
-  std::vector<Type> types;
-  for (const Term& v : bound_vars)
+  std::vector<Type> domain_types;
+  for (size_t i = 0, size = bound_vars.size(); i < size; ++i)
   {
-    types.push_back(v.d_expr->getType());
+    CVC4::Type t = bound_vars[i].d_expr->getType();
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        t.isFirstClass(), "sort of parameter", bound_vars[i], i)
+        << "first-class sort of parameter of defined function";
+    domain_types.push_back(t);
   }
-  // CHECK:
-  // for (unsigned i = 0; i < types.size(); ++ i)
-  //   sorts[i].isFirstClass()
-  // else "can not create function type for argument type that is not
-  //       first class"
+  CVC4_API_CHECK(sort == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '" << sort
+      << "'";
   Type type = *sort.d_type;
-  if (!types.empty())
+  if (!domain_types.empty())
   {
-    type = d_exprMgr->mkFunctionType(types, type);
+    type = d_exprMgr->mkFunctionType(domain_types, type);
   }
   Expr fun = d_exprMgr->mkVar(symbol, type);
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
@@ -2675,9 +2683,24 @@ Term Solver::defineFunRec(Term fun,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK:
-  // - bound_vars matches sort of fun
-  // - expr matches sort of fun
+  CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
+  std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+  size_t size = bound_vars.size();
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bound_vars)
+      << "'" << domain_sorts.size() << "'";
+  for (size_t i = 0; i < size; ++i)
+  {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        domain_sorts[i] == bound_vars[i].getSort(),
+        "sort of parameter",
+        bound_vars[i],
+        i)
+        << "'" << domain_sorts[i] << "'";
+  }
+  Sort codomain = fun.getSort().getFunctionCodomainSort();
+  CVC4_API_CHECK(codomain == term.getSort())
+      << "Invalid sort of function body '" << term << "', expected '"
+      << codomain << "'";
   // CHECK:
   // for v in bound_vars: is bound var
   std::vector<Expr> ebound_vars = termVectorToExprs(bound_vars);
@@ -2701,10 +2724,34 @@ void Solver::defineFunsRec(const std::vector<Term>& funs,
   // == NodeManager::fromExprManager(bv.getExprManager())
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  // CHECK:
-  // - bound_vars matches sort of funs
-  // - exprs matches sort of funs
-  // CHECK:
+  size_t funs_size = funs.size();
+  CVC4_API_ARG_SIZE_CHECK_EXPECTED(funs_size == bound_vars.size(), bound_vars)
+      << "'" << funs_size << "'";
+  for (size_t j = 0; j < funs_size; ++j)
+  {
+    const Term& fun = funs[j];
+    const std::vector<Term>& bvars = bound_vars[j];
+    const Term& term = terms[j];
+
+    CVC4_API_ARG_CHECK_EXPECTED(fun.getSort().isFunction(), fun) << "function";
+    std::vector<Sort> domain_sorts = fun.getSort().getFunctionDomainSorts();
+    size_t size = bvars.size();
+    CVC4_API_ARG_SIZE_CHECK_EXPECTED(size == domain_sorts.size(), bvars)
+        << "'" << domain_sorts.size() << "'";
+    for (size_t i = 0; i < size; ++i)
+    {
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          domain_sorts[i] == bvars[i].getSort(),
+          "sort of parameter",
+          bvars[i],
+          i)
+          << "'" << domain_sorts[i] << "' in parameter bound_vars[" << j << "]";
+    }
+    Sort codomain = fun.getSort().getFunctionCodomainSort();
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        codomain == term.getSort(), "sort of function body", term, j)
+        << "'" << codomain << "'";
+  }
   // CHECK:
   // for bv in bound_vars (for v in bv): is bound var
   std::vector<Expr> efuns = termVectorToExprs(funs);

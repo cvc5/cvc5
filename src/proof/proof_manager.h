@@ -72,7 +72,7 @@ class ArrayProof;
 class BitVectorProof;
 
 template <class Solver> class LFSCSatProof;
-typedef LFSCSatProof< CVC4::Minisat::Solver> LFSCCoreSatProof;
+typedef TSatProof<CVC4::Minisat::Solver> CoreSatProof;
 
 class LFSCCnfProof;
 class LFSCTheoryProofEngine;
@@ -239,6 +239,12 @@ public:
   // for SMT variable names that have spaces and other things
   static std::string sanitize(TNode var);
 
+  // wrap term with (p_app ... ) if the term is printed as a boolean, and print
+  // used for "trust" assertions
+  static void printTrustedTerm(Node term,
+                               std::ostream& os,
+                               ProofLetMap& globalLetMap);
+
   /** Add proof assertion - unlike addCoreAssertion this is post definition expansion **/
   void addAssertion(Expr formula);
 
@@ -299,7 +305,7 @@ class LFSCProof : public Proof
 {
  public:
   LFSCProof(SmtEngine* smtEngine,
-            LFSCCoreSatProof* sat,
+            CoreSatProof* sat,
             LFSCCnfProof* cnf,
             LFSCTheoryProofEngine* theory);
   ~LFSCProof() override {}
@@ -315,7 +321,7 @@ class LFSCProof : public Proof
 
   void checkUnrewrittenAssertion(const NodeSet& assertions) const;
 
-  LFSCCoreSatProof* d_satProof;
+  CoreSatProof* d_satProof;
   LFSCCnfProof* d_cnfProof;
   LFSCTheoryProofEngine* d_theoryProof;
   SmtEngine* d_smtEngine;

@@ -98,6 +98,7 @@ PreprocessingPassResult BvIntroPow2::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 

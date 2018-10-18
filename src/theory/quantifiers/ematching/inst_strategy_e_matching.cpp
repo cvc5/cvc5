@@ -19,6 +19,7 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "util/random.h"
 
 using namespace std;
 
@@ -453,10 +454,15 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
             return;
           }
         }
-        //if we are re-generating triggers, shuffle based on some method
-        if( d_made_multi_trigger[f] ){
-          std::random_shuffle( patTerms.begin(), patTerms.end() ); //shuffle randomly
-        }else{
+        // if we are re-generating triggers, shuffle based on some method
+        if (d_made_multi_trigger[f])
+        {
+          std::shuffle(patTerms.begin(),
+                       patTerms.end(),
+                       Random::getRandom());  // shuffle randomly
+        }
+        else
+        {
           d_made_multi_trigger[f] = true;
         }
         //will possibly want to get an old trigger

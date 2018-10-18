@@ -24,6 +24,7 @@
 #include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
+#include "proof/lfsc_proof_printer.h"
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "proof/theory_proof.h"
@@ -87,7 +88,7 @@ const Proof& ProofManager::getProof(SmtEngine* smt)
     Assert(currentPM()->d_format == LFSC);
     currentPM()->d_fullProof.reset(new LFSCProof(
         smt,
-        static_cast<LFSCCoreSatProof*>(getSatProof()),
+        static_cast<CoreSatProof*>(getSatProof()),
         static_cast<LFSCCnfProof*>(getCnfProof()),
         static_cast<LFSCTheoryProofEngine*>(getTheoryProofEngine())));
   }
@@ -141,18 +142,17 @@ SkolemizationManager* ProofManager::getSkolemizationManager() {
 void ProofManager::initSatProof(Minisat::Solver* solver) {
   Assert (currentPM()->d_satProof == NULL);
   Assert(currentPM()->d_format == LFSC);
-  currentPM()->d_satProof = new LFSCCoreSatProof(solver, d_context, "");
+  currentPM()->d_satProof = new CoreSatProof(solver, d_context, "");
 }
 
 void ProofManager::initCnfProof(prop::CnfStream* cnfStream,
                                 context::Context* ctx) {
   ProofManager* pm = currentPM();
+  Assert(pm->d_satProof != NULL);
   Assert (pm->d_cnfProof == NULL);
   Assert (pm->d_format == LFSC);
   CnfProof* cnf = new LFSCCnfProof(cnfStream, ctx, "");
   pm->d_cnfProof = cnf;
-  Assert(pm-> d_satProof != NULL);
-  pm->d_satProof->setCnfProof(cnf);
 
   // true and false have to be setup in a special way
   Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
@@ -541,16 +541,14 @@ void ProofManager::setLogic(const LogicInfo& logic) {
   d_logic = logic;
 }
 
-
-
 LFSCProof::LFSCProof(SmtEngine* smtEngine,
-                     LFSCCoreSatProof* sat,
+                     CoreSatProof* sat,
                      LFSCCnfProof* cnf,
                      LFSCTheoryProofEngine* theory)
-  : d_satProof(sat)
-  , d_cnfProof(cnf)
-  , d_theoryProof(theory)
-  , d_smtEngine(smtEngine)
+    : d_satProof(sat),
+      d_cnfProof(cnf),
+      d_theoryProof(theory),
+      d_smtEngine(smtEngine)
 {}
 
 void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
@@ -732,11 +730,12 @@ void LFSCProof::toStream(std::ostream& out) const
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    ProofManager::getBitVectorProof()->getSatProof()->printResolutionEmptyClause(out, paren);
+    proof::LFSCProofPrinter::printResolutionEmptyClause(
+        ProofManager::getBitVectorProof()->getSatProof(), out, paren);
   } else {
     // print actual resolution proof
-    d_satProof->printResolutions(out, paren);
-    d_satProof->printResolutionEmptyClause(out, paren);
+    proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);
+    proof::LFSCProofPrinter::printResolutionEmptyClause(d_satProof, out, paren);
   }
 
   out << paren.str();
@@ -809,8 +808,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
         ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(inputAssertion, os, globalLetMap);
         os << " ";
-        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-
+        ProofManager::currentPM()->printTrustedTerm(*it, os, globalLetMap);
         os << "))";
         os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
         paren << "))";
@@ -833,9 +831,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
       //TODO
       os << "(trust_f ";
-      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << "(p_app ";
-      ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << ")";
+      ProofManager::currentPM()->printTrustedTerm(*it, os, globalLetMap);
       os << ") ";
 
       os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
@@ -1064,5 +1060,13 @@ void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
 void ProofManager::ensureLiteral(Node node) {
   d_cnfProof->ensureLiteral(node);
 }
-
+void ProofManager::printTrustedTerm(Node term,
+                                    std::ostream& os,
+                                    ProofLetMap& globalLetMap)
+{
+  TheoryProofEngine* tpe = ProofManager::currentPM()->getTheoryProofEngine();
+  if (tpe->printsAsBool(term)) os << "(p_app ";
+  tpe->printTheoryTerm(term.toExpr(), os, globalLetMap);
+  if (tpe->printsAsBool(term)) os << ")";
+}
 } /* CVC4  namespace */

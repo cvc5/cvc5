@@ -24,7 +24,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
 
 /** utility for constructing datatypes that correspond to syntactic restrictions,
 * and applying the deep embedding from Section 4 of Reynolds et al CAV 2015.
@@ -32,7 +32,7 @@ class CegConjecture;
 class CegGrammarConstructor
 {
 public:
- CegGrammarConstructor(QuantifiersEngine* qe, CegConjecture* p);
+ CegGrammarConstructor(QuantifiersEngine* qe, SynthConjecture* p);
  ~CegGrammarConstructor() {}
  /** process
   *
@@ -108,13 +108,19 @@ public:
    * functions-to-synthesize of sygus conjecture q.
    */
   static bool hasSyntaxRestrictions(Node q);
+  /**
+   * Make the builtin constants for type "type" that should be included in a
+   * sygus grammar, add them to vector ops.
+   */
+  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
   /** parent conjecture
   * This contains global information about the synthesis conjecture.
   */
-  CegConjecture* d_parent;
+  SynthConjecture* d_parent;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
   /** collect terms */
@@ -124,8 +130,6 @@ public:
   //---------------- grammar construction
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
-  // make the builtin constants for type type that should be included in a sygus grammar
-  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   /** helper function for function mkSygusDefaultType

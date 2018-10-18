@@ -427,6 +427,7 @@ void ExtTheory::registerTermRec(Node n)
 // mark reduced
 void ExtTheory::markReduced(Node n, bool contextDepend)
 {
+  Trace("extt-debug") << "Mark reduced " << n << std::endl;
   registerTerm(n);
   Assert(d_ext_func_terms.find(n) != d_ext_func_terms.end());
   d_ext_func_terms[n] = false;

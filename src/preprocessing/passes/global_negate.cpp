@@ -13,7 +13,9 @@
  **/
 
 #include "preprocessing/passes/global_negate.h"
+
 #include <vector>
+
 #include "expr/node.h"
 #include "theory/rewriter.h"
 
@@ -103,13 +105,20 @@ PreprocessingPassResult GlobalNegate::applyInternal(
   NodeManager* nm = NodeManager::currentNM();
   Node simplifiedNode = simplify(assertionsToPreprocess->ref(), nm);
   Node trueNode = nm->mkConst(true);
-  for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
+  for (unsigned i = 0, size = assertionsToPreprocess->size(); i < size; ++i)
   {
-    assertionsToPreprocess->replace(i, trueNode);
+    if (i == 0)
+    {
+      assertionsToPreprocess->replace(i, simplifiedNode);
+    }
+    else
+    {
+      assertionsToPreprocess->replace(i, trueNode);
+    }
   }
-  assertionsToPreprocess->push_back(simplifiedNode);
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

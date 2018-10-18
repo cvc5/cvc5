@@ -22,7 +22,6 @@
  *      Author: dejan
  */
 
-#include <boost/uuid/sha1.hpp>
 #include <fstream>
 #include <iostream>
 #include <sstream>
@@ -100,6 +99,9 @@ int main(int argc, char* argv[]) {
 
     // Checksat command
     output << CheckSatCommand() << endl;
+
+    delete[] cvc4input1;
+    delete[] cvc4input2;
 
   } catch (CVC4::Exception& e) {
     cerr << e << endl;

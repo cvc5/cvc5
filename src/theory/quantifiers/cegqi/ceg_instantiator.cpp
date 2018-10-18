@@ -29,7 +29,6 @@
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
 
@@ -517,11 +516,8 @@ bool CegInstantiator::constructInstantiation(SolvedForm& sf, unsigned i)
     activateInstantiationVariable(pv, i);
 
     //get the instantiator object
-    Instantiator * vinst = NULL;
-    std::map< Node, Instantiator * >::iterator itin = d_instantiator.find( pv );
-    if( itin!=d_instantiator.end() ){
-      vinst = itin->second;
-    }
+    Assert(d_instantiator.find(pv) != d_instantiator.end());
+    Instantiator* vinst = d_instantiator[pv];
     Assert( vinst!=NULL );
     d_active_instantiators[pv] = vinst;
     vinst->reset(this, sf, pv, d_effort);
@@ -1648,7 +1644,7 @@ void CegInstantiator::registerCounterexampleLemma( std::vector< Node >& lems, st
 
 
 Instantiator::Instantiator( QuantifiersEngine * qe, TypeNode tn ) : d_type( tn ){
-  d_closed_enum_type = qe->getTermEnumeration()->isClosedEnumerableType(tn);
+  d_closed_enum_type = tn.isClosedEnumerable();
 }
 
 bool Instantiator::processEqualTerm(CegInstantiator* ci,

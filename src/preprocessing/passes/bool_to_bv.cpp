@@ -209,6 +209,7 @@ BoolToBV::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_numTermsForcedLowered);
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --cegqi-si=all --sygus-out=status
+; COMMAND-LINE: --cegqi-si=all --sygus-out=status --decision=justification
 (set-logic LIA)
 
 (synth-fun P ((x Int) (y Int)) Bool

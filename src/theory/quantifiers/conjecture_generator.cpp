@@ -15,13 +15,15 @@
 
 #include "theory/quantifiers/conjecture_generator.h"
 #include "options/quantifiers_options.h"
+#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/theory_engine.h"
+#include "util/random.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -92,6 +94,8 @@ ConjectureGenerator::ConjectureGenerator(QuantifiersEngine* qe,
       d_fullEffortCount(0),
       d_hasAddedLemma(false)
 {
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
   d_uequalityEngine.addFunctionKind( kind::APPLY_UF );
   d_uequalityEngine.addFunctionKind( kind::APPLY_CONSTRUCTOR );
 
@@ -302,7 +306,7 @@ TNode ConjectureGenerator::getUniversalRepresentative( TNode n, bool add ) {
 }
 
 Node ConjectureGenerator::getFreeVar( TypeNode tn, unsigned i ) {
-  return d_quantEngine->getTermUtil()->getCanonicalFreeVar( tn, i );
+  return d_quantEngine->getTermCanonize()->getCanonicalFreeVar(tn, i);
 }
 
 bool ConjectureGenerator::isHandledTerm( TNode n ){
@@ -378,11 +382,14 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
         Trace("sg-proc-debug") << "...eqc : " << r << std::endl;
         eqcs.push_back( r );
         if( r.getType().isBoolean() ){
-          if( areEqual( r, getTermUtil()->d_true ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_true;
+          if (areEqual(r, d_true))
+          {
+            d_ground_eqc_map[r] = d_true;
             d_bool_eqc[0] = r;
-          }else if( areEqual( r, getTermUtil()->d_false ) ){
-            d_ground_eqc_map[r] = getTermUtil()->d_false;
+          }
+          else if (areEqual(r, d_false))
+          {
+            d_ground_eqc_map[r] = d_false;
             d_bool_eqc[1] = r;
           }
         }
@@ -447,7 +454,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
           TNode r = eqcs[i];
           //print out members
           bool firstTime = true;
-          bool isFalse = areEqual( r, getTermUtil()->d_false );
+          bool isFalse = areEqual(r, d_false);
           eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
           while( !eqc_i.isFinished() ){
             TNode n = (*eqc_i);
@@ -531,7 +538,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
               if( d_tge.isRelevantTerm( eq ) ){
                 //make it canonical
                 Trace("sg-proc-debug") << "get canonical " << eq << std::endl;
-                eq = d_quantEngine->getTermUtil()->getCanonicalTerm( eq );
+                eq = d_quantEngine->getTermCanonize()->getCanonicalTerm(eq);
               }else{
                 eq = Node::null();
               }
@@ -678,7 +685,9 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
                 typ_to_subs_index[it->first] = sum;
                 sum += it->second;
                 for( unsigned i=0; i<it->second; i++ ){
-                  gsubs_vars.push_back( d_quantEngine->getTermUtil()->getCanonicalFreeVar( it->first, i ) );
+                  gsubs_vars.push_back(
+                      d_quantEngine->getTermCanonize()->getCanonicalFreeVar(
+                          it->first, i));
                 }
               }
             }
@@ -765,7 +774,7 @@ void ConjectureGenerator::check(Theory::Effort e, QEffort quant_e)
             d_tge.d_var_id[ it->first ] = it->second;
             d_tge.d_var_limit[ it->first ] = it->second;
           }
-          std::random_shuffle( rt_types.begin(), rt_types.end() );
+          std::shuffle(rt_types.begin(), rt_types.end(), Random::getRandom());
           std::map< TypeNode, std::vector< Node > > conj_rhs;
           for( unsigned i=0; i<rt_types.size(); i++ ){
 
@@ -1080,7 +1089,7 @@ void ConjectureGenerator::getEnumerateUfTerm( Node n, unsigned num, std::vector<
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       vec.push_back( 0 );
       TypeNode tn = n[i].getType();
-      if (te->isClosedEnumerableType(tn))
+      if (tn.isClosedEnumerable())
       {
         types.push_back( tn );
       }else{
@@ -1804,11 +1813,17 @@ void TermGenEnv::collectSignatureInformation() {
     }
   }
   //shuffle functions
-  for( std::map< TypeNode, std::vector< TNode > >::iterator it = d_typ_tg_funcs.begin(); it != d_typ_tg_funcs.end(); ++it ){
-    std::random_shuffle( it->second.begin(), it->second.end() );
-    if( it->first.isNull() ){
+  for (std::map<TypeNode, std::vector<TNode> >::iterator it =
+           d_typ_tg_funcs.begin();
+       it != d_typ_tg_funcs.end();
+       ++it)
+  {
+    std::shuffle(it->second.begin(), it->second.end(), Random::getRandom());
+    if (it->first.isNull())
+    {
       Trace("sg-gen-tg-debug") << "In this order : ";
-      for( unsigned i=0; i<it->second.size(); i++ ){
+      for (unsigned i = 0; i < it->second.size(); i++)
+      {
         Trace("sg-gen-tg-debug") << it->second[i] << " ";
       }
       Trace("sg-gen-tg-debug") << std::endl;

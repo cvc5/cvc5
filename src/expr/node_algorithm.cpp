@@ -63,6 +63,61 @@ bool hasSubterm(TNode n, TNode t, bool strict)
   return false;
 }
 
+bool hasSubtermMulti(TNode n, TNode t)
+{
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction> contains;
+  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      if (cur == t)
+      {
+        visited[cur] = true;
+        contains[cur] = true;
+      }
+      else
+      {
+        visited[cur] = false;
+        visit.push_back(cur);
+        for (const Node& cc : cur)
+        {
+          visit.push_back(cc);
+        }
+      }
+    }
+    else if (!it->second)
+    {
+      bool doesContain = false;
+      for (const Node& cn : cur)
+      {
+        it = contains.find(cn);
+        Assert(it != visited.end());
+        if (it->second)
+        {
+          if (doesContain)
+          {
+            // two children have t, return true
+            return true;
+          }
+          doesContain = true;
+        }
+      }
+      contains[cur] = doesContain;
+      visited[cur] = true;
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 struct HasBoundVarTag
 {
 };
@@ -164,6 +219,42 @@ bool hasFreeVar(TNode n)
     }
   } while (!visit.empty());
   return false;
+}
+
+void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  getSymbols(n, syms, visited);
+}
+
+void getSymbols(TNode n,
+                std::unordered_set<Node, NodeHashFunction>& syms,
+                std::unordered_set<TNode, TNodeHashFunction>& visited)
+{
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.isVar() && cur.getKind() != kind::BOUND_VARIABLE)
+      {
+        syms.insert(cur);
+      }
+      if (cur.hasOperator())
+      {
+        visit.push_back(cur.getOperator());
+      }
+      for (TNode cn : cur)
+      {
+        visit.push_back(cn);
+      }
+    }
+  } while (!visit.empty());
 }
 
 }  // namespace expr

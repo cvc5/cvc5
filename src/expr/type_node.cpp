@@ -20,6 +20,7 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
+#include "options/bv_options.h"
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
@@ -165,7 +166,64 @@ bool TypeNode::isInterpretedFinite()
   return getAttribute(IsInterpretedFiniteAttr());
 }
 
+/** Attribute true for types that are closed enumerable */
+struct IsClosedEnumerableTag
+{
+};
+struct IsClosedEnumerableComputedTag
+{
+};
+typedef expr::Attribute<IsClosedEnumerableTag, bool> IsClosedEnumerableAttr;
+typedef expr::Attribute<IsClosedEnumerableComputedTag, bool>
+    IsClosedEnumerableComputedAttr;
+
+bool TypeNode::isClosedEnumerable()
+{
+  // check it is already cached
+  if (!getAttribute(IsClosedEnumerableComputedAttr()))
+  {
+    bool ret = true;
+    if (isArray() || isSort() || isCodatatype() || isFunction())
+    {
+      ret = false;
+    }
+    else if (isSet())
+    {
+      ret = getSetElementType().isClosedEnumerable();
+    }
+    else if (isDatatype())
+    {
+      // avoid infinite loops: initially set to true
+      setAttribute(IsClosedEnumerableAttr(), ret);
+      setAttribute(IsClosedEnumerableComputedAttr(), true);
+      TypeNode tn = *this;
+      const Datatype& dt = getDatatype();
+      for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+      {
+        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+        {
+          TypeNode ctn = TypeNode::fromType(dt[i][j].getRangeType());
+          if (tn != ctn && !ctn.isClosedEnumerable())
+          {
+            ret = false;
+            break;
+          }
+        }
+        if (!ret)
+        {
+          break;
+        }
+      }
+    }
+    setAttribute(IsClosedEnumerableAttr(), ret);
+    setAttribute(IsClosedEnumerableComputedAttr(), true);
+    return ret;
+  }
+  return getAttribute(IsClosedEnumerableAttr());
+}
+
 bool TypeNode::isFirstClass() const {
+  (void)options::bitblastMode();
   return ( getKind() != kind::FUNCTION_TYPE || options::ufHo() ) && 
          getKind() != kind::CONSTRUCTOR_TYPE &&
          getKind() != kind::SELECTOR_TYPE &&

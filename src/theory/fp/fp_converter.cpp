@@ -253,7 +253,7 @@ symbolicRoundingMode::symbolicRoundingMode(const unsigned v)
     : nodeWrapper(NodeManager::currentNM()->mkConst(
           BitVector(SYMFPU_NUMBER_OF_ROUNDING_MODES, v)))
 {
-  PRECONDITION((v & v - 1) == 0 && v != 0);  // Exactly one bit set
+  PRECONDITION((v & (v - 1)) == 0 && v != 0);  // Exactly one bit set
   PRECONDITION(checkNodeType(*this));
 }
 #else
@@ -1128,12 +1128,6 @@ Node FpConverter::convert(TNode node)
                   Unreachable(
                       "Floating-point subtraction should be removed by the "
                       "rewriter.");
-                  f.insert(current,
-                           symfpu::add<traits>(fpt(current.getType()),
-                                               (*mode).second,
-                                               (*arg1).second,
-                                               (*arg2).second,
-                                               prop(false)));
                   break;
 
                 case kind::FLOATINGPOINT_MULT:
@@ -1728,8 +1722,6 @@ Node FpConverter::getValue(Valuation &val, TNode var)
 #else
   Unimplemented("Conversion is dependent on SymFPU");
 #endif
-
-  return Node::null();
 }
 
 }  // namespace fp

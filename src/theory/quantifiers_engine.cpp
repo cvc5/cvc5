@@ -22,7 +22,7 @@
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cbqi.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/conjecture_generator.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
 #include "theory/quantifiers/ematching/instantiation_engine.h"
@@ -47,9 +47,10 @@
 #include "theory/quantifiers/relevant_domain.h"
 #include "theory/quantifiers/rewrite_engine.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -81,6 +82,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
+      d_term_canon(new quantifiers::TermCanonize),
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
@@ -94,7 +96,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_qcf(nullptr),
       d_rr_engine(nullptr),
       d_sg_gen(nullptr),
-      d_ceg_inst(nullptr),
+      d_synth_e(nullptr),
       d_lte_part_inst(nullptr),
       d_fs(nullptr),
       d_i_cbqi(nullptr),
@@ -190,8 +192,8 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     }
   }
   if( options::ceGuidedInst() ){
-    d_ceg_inst.reset(new quantifiers::CegInstantiation(this, c));
-    d_modules.push_back(d_ceg_inst.get());
+    d_synth_e.reset(new quantifiers::SynthEngine(this, c));
+    d_modules.push_back(d_synth_e.get());
     //needsBuilder = true;
   }  
   //finite model finding
@@ -334,6 +336,10 @@ quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
 {
   return d_term_util.get();
 }
+quantifiers::TermCanonize* QuantifiersEngine::getTermCanonize() const
+{
+  return d_term_canon.get();
+}
 quantifiers::QuantAttributes* QuantifiersEngine::getQuantAttributes() const
 {
   return d_quant_attr.get();
@@ -367,15 +373,15 @@ quantifiers::RewriteEngine* QuantifiersEngine::getRewriteEngine() const
 {
   return d_rr_engine.get();
 }
-quantifiers::CegInstantiation* QuantifiersEngine::getCegInstantiation() const
+quantifiers::SynthEngine* QuantifiersEngine::getSynthEngine() const
 {
-  return d_ceg_inst.get();
+  return d_synth_e.get();
 }
 quantifiers::InstStrategyEnum* QuantifiersEngine::getInstStrategyEnum() const
 {
   return d_fs.get();
 }
-quantifiers::InstStrategyCbqi* QuantifiersEngine::getInstStrategyCbqi() const
+quantifiers::InstStrategyCegqi* QuantifiersEngine::getInstStrategyCegqi() const
 {
   return d_i_cbqi.get();
 }
@@ -929,19 +935,6 @@ void QuantifiersEngine::assertQuantifier( Node f, bool pol ){
   addTermToDatabase(d_term_util->getInstConstantBody(f), true);
 }
 
-Node QuantifiersEngine::getNextDecisionRequest( unsigned& priority ){
-  unsigned min_priority = 0;
-  Node dec;  
-  for( unsigned i=0; i<d_modules.size(); i++ ){
-    Node n = d_modules[i]->getNextDecisionRequest( priority );
-    if( !n.isNull() && ( dec.isNull() || priority<min_priority ) ){
-      dec = n;
-      min_priority = priority;
-    }
-  }
-  return dec;
-}
-
 void QuantifiersEngine::addTermToDatabase( Node n, bool withinQuant, bool withinInstClosure ){
   if( options::incrementalSolving() ){
     if( d_presolve_in.find( n )==d_presolve_in.end() ){
@@ -1154,8 +1147,9 @@ void QuantifiersEngine::printInstantiations( std::ostream& out ) {
 }
 
 void QuantifiersEngine::printSynthSolution( std::ostream& out ) {
-  if( d_ceg_inst ){
-    d_ceg_inst->printSynthSolution( out );
+  if (d_synth_e)
+  {
+    d_synth_e->printSynthSolution(out);
   }else{
     out << "Internal error : module for synth solution not found." << std::endl;
   }
@@ -1266,7 +1260,7 @@ Node QuantifiersEngine::getInternalRepresentative( Node a, Node q, int index ){
 
 void QuantifiersEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  d_ceg_inst->getSynthSolutions(sol_map);
+  d_synth_e->getSynthSolutions(sol_map);
 }
 
 void QuantifiersEngine::debugPrintEqualityEngine( const char * c ) {

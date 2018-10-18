@@ -316,6 +316,7 @@ bool SygusInference::solveSygus(std::vector<Node>& assertions,
   return true;
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

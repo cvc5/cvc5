@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
+SygusPbe::SygusPbe(QuantifiersEngine* qe, SynthConjecture* p)
     : SygusModule(qe, p)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -36,13 +36,15 @@ CegConjecturePbe::CegConjecturePbe(QuantifiersEngine* qe, CegConjecture* p)
   d_is_pbe = false;
 }
 
-CegConjecturePbe::~CegConjecturePbe() {
-
-}
+SygusPbe::~SygusPbe() {}
 
 //--------------------------------- collecting finite input/output domain information
 
-void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited, bool hasPol, bool pol ) {
+void SygusPbe::collectExamples(Node n,
+                               std::map<Node, bool>& visited,
+                               bool hasPol,
+                               bool pol)
+{
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     Node neval;
@@ -116,9 +118,9 @@ void CegConjecturePbe::collectExamples( Node n, std::map< Node, bool >& visited,
   }
 }
 
-bool CegConjecturePbe::initialize(Node n,
-                                  const std::vector<Node>& candidates,
-                                  std::vector<Node>& lemmas)
+bool SygusPbe::initialize(Node n,
+                          const std::vector<Node>& candidates,
+                          std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
 
@@ -177,6 +179,7 @@ bool CegConjecturePbe::initialize(Node n,
       return false;
     }
   }
+  bool isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());
@@ -200,9 +203,7 @@ bool CegConjecturePbe::initialize(Node n,
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true);
-      Node g = d_tds->getActiveGuardForEnumerator(e);
-      d_enum_to_active_guard[e] = g;
+      d_tds->registerEnumerator(e, c, d_parent, true, false, isActiveGen);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
@@ -248,9 +249,13 @@ bool CegConjecturePbe::initialize(Node n,
   return true;
 }
 
-Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
-                                              CegConjecturePbe* cpbe,
-                                              unsigned index, unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn,
+                                      Node e,
+                                      Node b,
+                                      SygusPbe* cpbe,
+                                      unsigned index,
+                                      unsigned ntotal)
+{
   if (index == ntotal) {
     // lazy child holds the leaf data
     if (d_lazy_child.isNull()) {
@@ -281,16 +286,20 @@ Node CegConjecturePbe::PbeTrie::addPbeExample(TypeNode etn, Node e, Node b,
   }
 }
 
-Node CegConjecturePbe::PbeTrie::addPbeExampleEval(TypeNode etn, Node e, Node b,
-                                                  std::vector<Node>& ex,
-                                                  CegConjecturePbe* cpbe,
-                                                  unsigned index,
-                                                  unsigned ntotal) {
+Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn,
+                                          Node e,
+                                          Node b,
+                                          std::vector<Node>& ex,
+                                          SygusPbe* cpbe,
+                                          unsigned index,
+                                          unsigned ntotal)
+{
   Node eb = cpbe->d_tds->evaluateBuiltin(etn, b, ex);
   return d_children[eb].addPbeExample(etn, e, b, cpbe, index + 1, ntotal);
 }
 
-bool CegConjecturePbe::hasExamples(Node e) {
+bool SygusPbe::hasExamples(Node e)
+{
   if (isPbe()) {
     e = d_tds->getSynthFunForEnumerator(e);
     Assert(!e.isNull());
@@ -302,7 +311,8 @@ bool CegConjecturePbe::hasExamples(Node e) {
   return false;
 }
 
-unsigned CegConjecturePbe::getNumExamples(Node e) {
+unsigned SygusPbe::getNumExamples(Node e)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -314,7 +324,8 @@ unsigned CegConjecturePbe::getNumExamples(Node e) {
   }
 }
 
-void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
+void SygusPbe::getExample(Node e, unsigned i, std::vector<Node>& ex)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<std::vector<Node> > >::iterator it =
@@ -327,7 +338,8 @@ void CegConjecturePbe::getExample(Node e, unsigned i, std::vector<Node>& ex) {
   }
 }
 
-Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
+Node SygusPbe::getExampleOut(Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, std::vector<Node> >::iterator it = d_examples_out.find(e);
@@ -340,23 +352,30 @@ Node CegConjecturePbe::getExampleOut(Node e, unsigned i) {
   }
 }
 
-Node CegConjecturePbe::addSearchVal(TypeNode tn, Node e, Node bvr) {
+Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
+{
   Assert(isPbe());
   Assert(!e.isNull());
-  e = d_tds->getSynthFunForEnumerator(e);
+  if (!d_tds->isPassiveEnumerator(e))
+  {
+    // we cannot apply conjecture-specific symmetry breaking on enumerators that
+    // are not passive
+    return Node::null();
+  }
+  Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
-  std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
+  std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    unsigned nex = d_examples[e].size();
-    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, e, bvr, this, 0, nex);
+    unsigned nex = d_examples[ee].size();
+    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, ee, bvr, this, 0, nex);
     Assert(ret.getType() == bvr.getType());
     return ret;
   }
   return Node::null();
 }
 
-Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
-                                       unsigned i) {
+Node SygusPbe::evaluateBuiltin(TypeNode tn, Node bn, Node e, unsigned i)
+{
   e = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(e);
@@ -373,39 +392,27 @@ Node CegConjecturePbe::evaluateBuiltin(TypeNode tn, Node bn, Node e,
 
 // ------------------------------------------- solution construction from enumeration
 
-void CegConjecturePbe::getTermList(const std::vector<Node>& candidates,
-                                   std::vector<Node>& terms)
+void SygusPbe::getTermList(const std::vector<Node>& candidates,
+                           std::vector<Node>& terms)
 {
-  Valuation& valuation = d_qe->getValuation();
   for( unsigned i=0; i<candidates.size(); i++ ){
     Node v = candidates[i];
     std::map<Node, std::vector<Node> >::iterator it =
         d_candidate_to_enum.find(v);
     if (it != d_candidate_to_enum.end())
     {
-      for (unsigned j = 0; j < it->second.size(); j++)
-      {
-        Node e = it->second[j];
-        Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-        Node g = d_enum_to_active_guard[e];
-        // Get whether the active guard for this enumerator is true,
-        // if so, then there may exist more values for it, and hence we add it
-        // to terms.
-        Node gstatus = valuation.getSatValue(g);
-        if (!gstatus.isNull() && gstatus.getConst<bool>())
-        {
-          terms.push_back(e);
-        }
-      }
+      terms.insert(terms.end(), it->second.begin(), it->second.end());
     }
   }
 }
 
-bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
-                                           const std::vector<Node>& enum_values,
-                                           const std::vector<Node>& candidates,
-                                           std::vector<Node>& candidate_values,
-                                           std::vector<Node>& lems)
+bool SygusPbe::allowPartialModel() { return !options::sygusPbeMultiFair(); }
+
+bool SygusPbe::constructCandidates(const std::vector<Node>& enums,
+                                   const std::vector<Node>& enum_values,
+                                   const std::vector<Node>& candidates,
+                                   std::vector<Node>& candidate_values,
+                                   std::vector<Node>& lems)
 {
   Assert( enums.size()==enum_values.size() );
   if( !enums.empty() ){
@@ -417,10 +424,18 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       Trace("sygus-pbe-enum") << "  " << enums[i] << " -> ";
       TermDbSygus::toStreamSygus("sygus-pbe-enum", enum_values[i]);
       Trace("sygus-pbe-enum") << std::endl;
-      unsigned sz = d_tds->getSygusTermSize( enum_values[i] );
-      szs.push_back(sz);
-      if( i==0 || sz<min_term_size ){
-        min_term_size = sz;
+      if (!enum_values[i].isNull())
+      {
+        unsigned sz = d_tds->getSygusTermSize(enum_values[i]);
+        szs.push_back(sz);
+        if (i == 0 || sz < min_term_size)
+        {
+          min_term_size = sz;
+        }
+      }
+      else
+      {
+        szs.push_back(0);
       }
     }
     // Assume two enumerators of types T1 and T2.
@@ -434,11 +449,14 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
     std::vector<unsigned> enum_consider;
     for (unsigned i = 0, esize = enums.size(); i < esize; i++)
     {
-      Assert(szs[i] >= min_term_size);
-      int diff = szs[i] - min_term_size;
-      if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+      if (!enum_values[i].isNull())
       {
-        enum_consider.push_back( i );
+        Assert(szs[i] >= min_term_size);
+        int diff = szs[i] - min_term_size;
+        if (!options::sygusPbeMultiFair() || diff <= diffAllow)
+        {
+          enum_consider.push_back(i);
+        }
       }
     }
 
@@ -454,14 +472,17 @@ bool CegConjecturePbe::constructCandidates(const std::vector<Node>& enums,
       Node c = d_enum_to_candidate[e];
       std::vector<Node> enum_lems;
       d_sygus_unif[c].notifyEnumeration(e, v, enum_lems);
-      // the lemmas must be guarded by the active guard of the enumerator
-      Assert(d_enum_to_active_guard.find(e) != d_enum_to_active_guard.end());
-      Node g = d_enum_to_active_guard[e];
-      for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+      if (!enum_lems.empty())
       {
-        enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        // the lemmas must be guarded by the active guard of the enumerator
+        Node g = d_tds->getActiveGuardForEnumerator(e);
+        Assert(!g.isNull());
+        for (unsigned j = 0, size = enum_lems.size(); j < size; j++)
+        {
+          enum_lems[j] = nm->mkNode(OR, g.negate(), enum_lems[j]);
+        }
+        lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
       }
-      lems.insert(lems.end(), enum_lems.begin(), enum_lems.end());
     }
   }
   for( unsigned i=0; i<candidates.size(); i++ ){

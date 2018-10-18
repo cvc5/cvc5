@@ -114,6 +114,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusActiveGenMode stringToSygusActiveGenMode(
+      std::string option, std::string optarg);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(
       std::string option, std::string optarg);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(
@@ -245,6 +247,7 @@ public:
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
   static const std::string s_sygusInvTemplHelp;
+  static const std::string s_sygusActiveGenHelp;
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;
   static const std::string s_triggerSelModeHelp;

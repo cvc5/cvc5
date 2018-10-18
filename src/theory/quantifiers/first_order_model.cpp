@@ -317,7 +317,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
   if (d_model_basis_term.find(tn) == d_model_basis_term.end())
   {
     Node mbt;
-    if (d_qe->getTermEnumeration()->isClosedEnumerableType(tn))
+    if (tn.isClosedEnumerable())
     {
       mbt = d_qe->getTermEnumeration()->getEnumerateTerm(tn, 0);
     }
