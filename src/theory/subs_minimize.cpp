@@ -85,7 +85,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     ptrdiff_t pos = std::distance(vars.begin(), it);
     reqSubs.push_back(subs[pos]);
   }
-
+  std::vector< Node > finalReqVars;
   for (const Node& v : vars)
   {
     if (reqVarToIndex.find(v) == reqVarToIndex.end())
@@ -152,12 +152,15 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     {
       // revert the substitution
       reqSubs[vindex] = prev;
+      finalReqVars.push_back(v);
     }
     else
     {
       impliedVars.push_back(v);
     }
   }
+  reqVars.clear();
+  reqVars.insert( reqVars.end(), finalReqVars.begin(), finalReqVars.end() );
 
   return true;
 }
