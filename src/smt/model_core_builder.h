@@ -33,17 +33,23 @@ class ModelCoreBuilder
  public:
   /** set model core
    *
-   * This function updates the model m so that it is a minimal "core" of
-   * substitutions that satisfy the formulas in assertions, interpreted
-   * conjunctively. This is specified via calls to
-   * Model::setUsingModelCore, Model::recordModelCoreSymbol,
-   * for details see smt/model.h.
+   * This function updates model m so that it has information regarding its
+   * "model core". A model core for m is a substitution of the form
+   *    { s1 -> m(s1), ..., sn -> m(sn) }
    *
-   * It returns true if m is a model for assertions. In this case, we set:
+   * The criteria for what consistutes a model core given by mode. For
+   * example, if mode is MODEL_CORES_SIMPLE, then a model core corresponds to a
+   * subset of assignments from the model that suffice to show that the set of
+   * assertions, interpreted conjunctively, evaluates to true under the
+   * substitution corresponding to the model core.
+   *
+   * The model core is recorded on the model object m via calls to
+   * m->setUsingModelCore, m->recordModelCoreSymbol, for details see
+   * smt/model.h. In particular, we call:
    *   m->usingModelCore();
    *   m->recordModelCoreSymbol(s1); ... m->recordModelCoreSymbol(sn);
-   * such that each formula in assertions under the substitution
-   * { s1 -> m(s1), ..., sn -> m(sn) } rewrites to true.
+   * such that { s1 -> m(s1), ..., sn -> m(sn) } is the model core computed
+   * by this class.
    *
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.

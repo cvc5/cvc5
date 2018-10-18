@@ -66,6 +66,11 @@ class SubstitutionMinimize
    *
    * For example, given (x>0 ^ x = y ^ y = z){ x -> 1, y -> 1, z -> 1, w -> 0 },
    * this method adds { x } to reqVars, and { y, z } to impliedVars.
+   *
+   * Notice that the order of variables in vars matters. By the semantics above,
+   * variables that appear earlier in the variable list vars are more likely
+   * to appear in reqVars, whereas those later in the vars are more likely to
+   * appear in impliedVars.
    */
   static bool findWithImplied(Node t,
                               const std::vector<Node>& vars,
