@@ -757,7 +757,7 @@ public:
   /** set eager model building
    *
    * If this method is called, then this TheoryEngine will henceforth build
-   * its model immediately after everything satisfiability check that results
+   * its model immediately after every satisfiability check that results
    * in a satisfiable or unknown result. The motivation for this mode is to
    * accomodate API users that get the model object from the TheoryEngine,
    * where we want to ensure that this model is always valid.
