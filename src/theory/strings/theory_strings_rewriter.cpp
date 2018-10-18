@@ -4574,7 +4574,7 @@ Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
   }
   else if (n.getKind() == REGEXP_CONCAT)
   {
-    std::vector<Node> children;
+    NodeBuilder<> nb(PLUS);
     for (const Node& nc : n)
     {
       Node flc = getFixedLengthForRegexp(nc);
@@ -4582,9 +4582,9 @@ Node TheoryStringsRewriter::getFixedLengthForRegexp(Node n)
       {
         return flc;
       }
-      children.push_back(flc);
+      nb << flc;
     }
-    Node ret = nm->mkNode(PLUS, children);
+    Node ret = nb.constructNode();
     ret = Rewriter::rewrite(ret);
     return ret;
   }
