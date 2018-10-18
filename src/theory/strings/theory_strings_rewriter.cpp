@@ -2845,6 +2845,37 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       }
     }
   }
+  // miniscope based on components that do not contribute to contains
+  // for example,
+  //   str.replace( x ++ y ++ x ++ y, "A", z ) --> 
+  //   str.replace( x ++ y, "A", z ) ++ x ++ y
+  // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
+  if( node[1].isConst() && node[1].getConst<String>().size()==1 )
+  {
+    Node lhs;
+    Node rhs;
+    for( unsigned i=1, iend = children0.size()-1; i<iend; i++ )
+    {
+      unsigned checkIndex = children0.size()-i;
+      std::vector< Node > checkLhs;
+      checkLhs.insert(checkLhs.end(),children0.begin(),children0.begin()+(checkIndex-1));
+      Node lhsC = mkConcat(STRING_CONCAT,checkLhs);
+      Node rhsC = children0[checkIndex];
+      Node ctn = nm->mkNode(STRING_STRCN,lhsC,rhsC);
+      ctn = Rewriter::rewrite(ctn);
+      if( ctn.isConst() && ctn.getConst<bool>() )
+      {
+        lhs = lhsC;
+        rhs = rhsC;
+      }
+    }
+    if( !lhs.isNull() )
+    {
+      Node ret = nm->mkNode( STRING_CONCAT, nm->mkNode( STRING_STRREPL, lhs, node[1], node[2] ), rhs );
+      return returnRewrite(node, ret, "repl-char-ncontrib-find");
+    }
+  }
+  
 
   // TODO (#1180) incorporate these?
   // contains( t, s ) =>
