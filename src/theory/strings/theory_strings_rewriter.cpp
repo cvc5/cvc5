@@ -2845,6 +2845,53 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       }
     }
   }
+  // miniscope based on components that do not contribute to contains
+  // for example,
+  //   str.replace( x ++ y ++ x ++ y, "A", z ) -->
+  //   str.replace( x ++ y, "A", z ) ++ x ++ y
+  // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
+  if (node[1].isConst() && node[1].getConst<String>().size() == 1)
+  {
+    Node lastLhs;
+    unsigned lastCheckIndex = 0;
+    for (unsigned i = 1, iend = children0.size(); i < iend; i++)
+    {
+      unsigned checkIndex = children0.size() - i;
+      std::vector<Node> checkLhs;
+      checkLhs.insert(
+          checkLhs.end(), children0.begin(), children0.begin() + checkIndex);
+      Node lhs = mkConcat(STRING_CONCAT, checkLhs);
+      Node rhs = children0[checkIndex];
+      Node ctn = nm->mkNode(STRING_STRCTN, lhs, rhs);
+      ctn = Rewriter::rewrite(ctn);
+      if (ctn.isConst() && ctn.getConst<bool>())
+      {
+        lastLhs = lhs;
+        lastCheckIndex = checkIndex;
+      }
+      else
+      {
+        break;
+      }
+    }
+    if (!lastLhs.isNull())
+    {
+      std::vector<Node> remc(children0.begin() + lastCheckIndex,
+                             children0.end());
+      Node rem = mkConcat(STRING_CONCAT, remc);
+      Node ret =
+          nm->mkNode(STRING_CONCAT,
+                     nm->mkNode(STRING_STRREPL, lastLhs, node[1], node[2]),
+                     rem);
+      // for example:
+      //   str.replace( x ++ x, "A", y ) ---> str.replace( x, "A", y ) ++ x
+      // Since we know that the first occurrence of "A" cannot be in the
+      // second occurrence of x. Notice this is specific to single characters
+      // due to complications with finds that span multiple components for
+      // non-characters.
+      return returnRewrite(node, ret, "repl-char-ncontrib-find");
+    }
+  }
 
   // TODO (#1180) incorporate these?
   // contains( t, s ) =>
