@@ -171,8 +171,7 @@ public:
   void notifyDumpMode(std::string option);
   SimplificationMode stringToSimplificationMode(std::string option,
                                                 std::string optarg);
-  ModelCoresMode stringToModelCoresMode(std::string option,
-                                                std::string optarg);
+  ModelCoresMode stringToModelCoresMode(std::string option, std::string optarg);
   SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
                                                     std::string optarg);
   void setProduceAssertions(std::string option, bool value);

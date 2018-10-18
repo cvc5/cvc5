@@ -1405,7 +1405,8 @@ void SmtEngine::setDefaults() {
 
   // cases where we need produce models
   if (!options::produceModels()
-      && (options::produceAssignments() || options::sygusRewSynthCheck() || is_sygus))
+      && (options::produceAssignments() || options::sygusRewSynthCheck()
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -4015,7 +4016,7 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getModel();
 
-  if (options::modelCoresMode()!=MODEL_CORES_NONE)
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility

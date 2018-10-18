@@ -32,25 +32,25 @@ typedef enum {
   SIMPLIFICATION_MODE_NONE
 } SimplificationMode;
 
-std::ostream& operator<<(std::ostream& out, SimplificationMode mode) CVC4_PUBLIC;
+std::ostream& operator<<(std::ostream& out,
+                         SimplificationMode mode) CVC4_PUBLIC;
 
 /** Enumeration of model core modes. */
 typedef enum {
   /** Do not compute model cores */
   MODEL_CORES_NONE,
-  /** 
+  /**
    * Compute "simple" model cores that exclude variables that do not
    * contribute to satisfying the input.
    */
   MODEL_CORES_SIMPLE,
-  /** 
+  /**
    * Compute model cores that also exclude variables whose variables are implied
-   * by others. 
+   * by others.
    */
   MODEL_CORES_NON_IMPLIED
 } ModelCoresMode;
 
-
-}/* CVC4 namespace */
+}  // namespace CVC4
 
 #endif /* __CVC4__SMT__MODES_H */

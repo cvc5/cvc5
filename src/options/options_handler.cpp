@@ -1470,7 +1470,8 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(
   }
 }
 
-const std::string OptionsHandler::s_modelCoresHelp = "\
+const std::string OptionsHandler::s_modelCoresHelp =
+    "\
 Model cores modes currently supported by the --simplification option:\n\
 \n\
 none (default) \n\
@@ -1487,21 +1488,30 @@ formula is satisfied by the given model\n\
 \n\
 ";
 
-ModelCoresMode OptionsHandler::stringToModelCoresMode(
-    std::string option, std::string optarg)
+ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
+                                                      std::string optarg)
 {
-  if(optarg == "none") {
+  if (optarg == "none")
+  {
     return MODEL_CORES_NONE;
-  } else if(optarg == "simple") {
+  }
+  else if (optarg == "simple")
+  {
     return MODEL_CORES_SIMPLE;
-  } else if(optarg == "non-implied") {
+  }
+  else if (optarg == "non-implied")
+  {
     return MODEL_CORES_NON_IMPLIED;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_modelCoresHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --model-cores: `") +
-                          optarg + "'.  Try --model-cores help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --model-cores: `")
+                          + optarg + "'.  Try --model-cores help.");
   }
 }
 

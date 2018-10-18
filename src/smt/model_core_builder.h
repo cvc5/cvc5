@@ -20,8 +20,8 @@
 #include <vector>
 
 #include "expr/expr.h"
-#include "smt/model.h"
 #include "options/smt_options.h"
+#include "smt/model.h"
 
 namespace CVC4 {
 
@@ -48,8 +48,9 @@ class ModelCoreBuilder
    * If m is not a model for assertions, this method returns false and m is
    * left unchanged.
    */
-  static bool setModelCore(const std::vector<Expr>& assertions, Model* m,
-                                    ModelCoresMode mode);
+  static bool setModelCore(const std::vector<Expr>& assertions,
+                           Model* m,
+                           ModelCoresMode mode);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4

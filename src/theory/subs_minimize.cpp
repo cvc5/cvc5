@@ -35,7 +35,7 @@ bool SubstitutionMinimize::find(Node t,
   return findInternal(t, target, vars, subs, reqVars);
 }
 
-void getConjuncts( Node n, std::vector< Node >& conj )
+void getConjuncts(Node n, std::vector<Node>& conj)
 {
   if (n.getKind() == AND)
   {
@@ -69,7 +69,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
 
   // map from conjuncts of t to whether they may be used to show an implied var
   std::vector<Node> tconj;
-  getConjuncts(t,tconj);
+  getConjuncts(t, tconj);
   // map from conjuncts to their free symbols
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > tcFv;
 
@@ -85,7 +85,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     ptrdiff_t pos = std::distance(vars.begin(), it);
     reqSubs.push_back(subs[pos]);
   }
-  std::vector< Node > finalReqVars;
+  std::vector<Node> finalReqVars;
   for (const Node& v : vars)
   {
     if (reqVarToIndex.find(v) == reqVarToIndex.end())
@@ -117,33 +117,33 @@ bool SubstitutionMinimize::findWithImplied(Node t,
       // try the current substitution
       Node tcs = tc.substitute(
           reqVars.begin(), reqVars.end(), reqSubs.begin(), reqSubs.end());
-      Node tcsr = Rewriter::rewrite( tcs );
-      std::vector< Node > tcsrConj;
-      getConjuncts(tcsr,tcsrConj);
-      for( const Node& tcc : tcsrConj )
+      Node tcsr = Rewriter::rewrite(tcs);
+      std::vector<Node> tcsrConj;
+      getConjuncts(tcsr, tcsrConj);
+      for (const Node& tcc : tcsrConj)
       {
-        if( tcc.getKind()==EQUAL )
+        if (tcc.getKind() == EQUAL)
         {
-          for( unsigned r=0; r<2; r++ )
+          for (unsigned r = 0; r < 2; r++)
           {
-            if( tcc[r]==v )
+            if (tcc[r] == v)
             {
-              Node res = tcc[1-r];
-              if( res.isConst() )
+              Node res = tcc[1 - r];
+              if (res.isConst())
               {
-                Assert( res==prev );
+                Assert(res == prev);
                 madeImplied = true;
                 break;
               }
             }
           }
         }
-        if( madeImplied )
+        if (madeImplied)
         {
           break;
         }
       }
-      if( madeImplied )
+      if (madeImplied)
       {
         break;
       }
@@ -160,7 +160,7 @@ bool SubstitutionMinimize::findWithImplied(Node t,
     }
   }
   reqVars.clear();
-  reqVars.insert( reqVars.end(), finalReqVars.begin(), finalReqVars.end() );
+  reqVars.insert(reqVars.end(), finalReqVars.begin(), finalReqVars.end());
 
   return true;
 }
