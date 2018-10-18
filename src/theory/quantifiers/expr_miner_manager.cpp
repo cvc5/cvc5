@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/expr_miner_manager.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -20,6 +21,7 @@ namespace quantifiers {
 
 ExpressionMinerManager::ExpressionMinerManager()
     : d_doRewSynth(false),
+      d_doQueryGen(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -32,6 +34,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
                                         bool unique_type_ids)
 {
   d_doRewSynth = false;
+  d_doQueryGen = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -46,6 +49,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
                                              bool useSygusType)
 {
   d_doRewSynth = false;
+  d_doQueryGen = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -78,11 +82,45 @@ void ExpressionMinerManager::enableRewriteRuleSynth()
   d_crd.setSilent(false);
 }
 
+void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
+{
+  if (d_doQueryGen)
+  {
+    // already enabled
+    return;
+  }
+  d_doQueryGen = true;
+  std::vector<Node> vars;
+  d_sampler.getVariables(vars);
+  // must also enable rewrite rule synthesis
+  if (!d_doRewSynth)
+  {
+    // initialize the candidate rewrite database, in silent mode
+    enableRewriteRuleSynth();
+    d_crd.setSilent(true);
+  }
+  // initialize the query generator
+  d_qg.initialize(vars, &d_sampler);
+  d_qg.setThreshold(deqThresh);
+}
+
 bool ExpressionMinerManager::addTerm(Node sol,
                                      std::ostream& out,
                                      bool& rew_print)
 {
-  return d_crd.addTerm(sol, out, rew_print);
+  bool ret = d_crd.addTerm(sol, out, rew_print);
+  if (ret && d_doQueryGen)
+  {
+    // use the builtin version if d_use_sygus_type is true
+    Node solb = sol;
+    if (d_use_sygus_type)
+    {
+      solb = d_tds->sygusToBuiltin(sol);
+    }
+    // a unique term, let's try the query generator
+    d_qg.addTerm(solb, out);
+  }
+  return ret;
 }
 
 bool ExpressionMinerManager::addTerm(Node sol, std::ostream& out)
