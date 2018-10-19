@@ -76,12 +76,8 @@ script:
    #       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    #   }
    makeCheck() {
-     cd build
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
-   }
-   makeExamples() {
-     cd build
-     make -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
+     ctest -j2 -R examples/ || error "RUNNING EXAMPLES FAILED"
    }
    #   addNewTheoryTest() {
    #       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
@@ -100,7 +96,7 @@ script:
    #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
    [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run configureCVC4
    #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
-   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run makeCheck && run makeExamples
+   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run makeCheck
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
