@@ -20,7 +20,6 @@
 #include "smt/smt_engine_scope.h"
 #include "util/random.h"
 
-using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -41,31 +40,45 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
     Assert(false);
     return true;
   }
-  if (n.isConst())
+  NodeManager* nm = NodeManager::currentNM();
+  Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
+  imp = Rewriter::rewrite(imp);
+  bool success = false;
+  if (imp.isConst())
   {
-    if (n.getConst<bool>())
+    if (!imp.getConst<bool>())
     {
+      // if the implication rewrites to false, we filter
+      Trace("sygus-sol-implied-filter") << "Filtered (by rewriting) : " << n << std::endl;
       return false;
     }
     else
     {
-      // could abort after printing here
+      // if the implication rewrites to true, it is trivial
+      success = true;
     }
   }
-  NodeManager* nm = NodeManager::currentNM();
-  Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
-  Trace("sygus-sol-implied") << "  implies: check " << imp << "..." << std::endl;
-  // make the satisfiability query
-  bool needExport = false;
-  ExprManagerMapCollection varMap;
-  ExprManager em(nm->getOptions());
-  std::unique_ptr<SmtEngine> queryChecker;
-  initializeChecker(queryChecker, em, varMap, imp, needExport);
-  Result r = queryChecker->checkSat();
-  Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+  if( !success )
+  {
+    Trace("sygus-sol-implied") << "  implies: check " << imp << "..." << std::endl;
+    // make the satisfiability query
+    bool needExport = false;
+    ExprManagerMapCollection varMap;
+    ExprManager em(nm->getOptions());
+    std::unique_ptr<SmtEngine> queryChecker;
+    initializeChecker(queryChecker, em, varMap, imp, needExport);
+    Result r = queryChecker->checkSat();
+    Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
+    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
+    {
+      success = true;
+    }
+  }
+  if( success )
   {
     d_conj = d_conj.isNull() ? n : nm->mkNode(AND, d_conj, n);
+    d_conj = Rewriter::rewrite(d_conj);
+    // note if d_conj is false, we could terminate here
     return true;
   }
   Trace("sygus-sol-implied-filter") << "Filtered : " << n << std::endl;
