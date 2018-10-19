@@ -48,7 +48,7 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
   }
   NodeManager* nm = NodeManager::currentNM();
   Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
-  Trace("sygus-cf-implied") << "  implies: check " << imp << "..." << std::endl;
+  Trace("sygus-sol-implied") << "  implies: check " << imp << "..." << std::endl;
   // make the satisfiability query
   bool needExport = false;
   ExprManagerMapCollection varMap;
@@ -56,13 +56,13 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
   std::unique_ptr<SmtEngine> queryChecker;
   initializeChecker(queryChecker, em, varMap, imp, needExport);
   Result r = queryChecker->checkSat();
-  Trace("sygus-cf-implied") << "  implies: ...got : " << r << std::endl;
+  Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
   if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
     d_conj = d_conj.isNull() ? n : nm->mkNode(AND, d_conj, n);
     return true;
   }
-  Trace("sygus-cf-implied-filter") << "Filtered : " << n << std::endl;
+  Trace("sygus-sol-implied-filter") << "Filtered : " << n << std::endl;
   return false;
 }
 
