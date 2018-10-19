@@ -1253,7 +1253,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceModelCores())
+       || options::modelCoresMode() != MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1450,7 +1450,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || options::produceModelCores() || is_sygus))
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -4281,12 +4281,12 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getModel();
 
-  if (options::produceModelCores())
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder::setModelCore(easserts, m);
+    ModelCoreBuilder::setModelCore(easserts, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;

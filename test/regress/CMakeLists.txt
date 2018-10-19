@@ -1184,6 +1184,7 @@ set(regress_1_tests
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
   regress1/nl/ones.smt2
+  regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
@@ -2097,7 +2098,7 @@ add_dependencies(build-tests build-regress)
 
 add_custom_target(regress
   COMMAND
-    ctest --output-on-failure -L "regress[0-1]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -L "regress[0-2]" -j${CTEST_NTHREADS} $(ARGS)
   DEPENDS build-regress)
 
 macro(cvc4_add_regression_test level file)
