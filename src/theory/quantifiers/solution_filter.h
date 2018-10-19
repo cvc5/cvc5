@@ -29,8 +29,10 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * Used to filter predicates that are collectively entailed by the previous
- * predicates in an expression stream.
+ * This class is used to filter solutions based on some criteria.
+ *
+ * Currently, it is used to filter predicate solutions that are collectively
+ * entailed by the previous predicate solutions.
  */
 class SolutionFilter : public ExprMiner
 {
@@ -49,7 +51,7 @@ class SolutionFilter : public ExprMiner
   bool addTerm(Node n, std::ostream& out) override;
 
  private:
-  /** conjunction of all (non-implied) terms registered to this generator */
+  /** conjunction of all (non-implied) terms registered to this class */
   Node d_conj;
 };
 

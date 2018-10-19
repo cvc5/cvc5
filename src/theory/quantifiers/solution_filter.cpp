@@ -35,6 +35,12 @@ void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 bool SolutionFilter::addTerm(Node n, std::ostream& out)
 {
+  if( !n.getType().isBoolean() )
+  {
+    // currently, should not register non-Boolean terms here
+    Assert(false);
+    return true;
+  }
   if (n.isConst())
   {
     if (n.getConst<bool>())
