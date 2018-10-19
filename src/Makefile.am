@@ -534,6 +534,8 @@ libcvc4_la_SOURCES = \
 	theory/quantifiers/single_inv_partition.h \
 	theory/quantifiers/skolemize.cpp \
 	theory/quantifiers/skolemize.h \
+	theory/quantifiers/solution_filter.cpp \
+	theory/quantifiers/solution_filter.h \
 	theory/quantifiers/sygus/cegis.cpp \
 	theory/quantifiers/sygus/cegis.h \
 	theory/quantifiers/sygus/cegis_unif.cpp \
