@@ -10,12 +10,12 @@ REG0_TESTS = \
 	regress0/arith/bug547.2.smt2 \
 	regress0/arith/bug569.smt2 \
 	regress0/arith/delta-minimized-row-vector-bug.smt \
+	regress0/arith/div-chainable.smt2 \
 	regress0/arith/div.01.smt2 \
 	regress0/arith/div.02.smt2 \
 	regress0/arith/div.04.smt2 \
 	regress0/arith/div.05.smt2 \
 	regress0/arith/div.07.smt2 \
-	regress0/arith/div-chainable.smt2 \
 	regress0/arith/fuzz_3-eq.smt \
 	regress0/arith/integers/arith-int-042.cvc \
 	regress0/arith/integers/arith-int-042.min.cvc \
@@ -343,6 +343,7 @@ REG0_TESTS = \
 	regress0/datatypes/cdt-non-canon-stream.smt2 \
 	regress0/datatypes/coda_simp_model.smt2 \
 	regress0/datatypes/conqueue-dt-enum-iloop.smt2 \
+	regress0/datatypes/data-nested-codata.smt2 \
 	regress0/datatypes/datatype.cvc \
 	regress0/datatypes/datatype0.cvc \
 	regress0/datatypes/datatype1.cvc \
@@ -350,7 +351,6 @@ REG0_TESTS = \
 	regress0/datatypes/datatype2.cvc \
 	regress0/datatypes/datatype3.cvc \
 	regress0/datatypes/datatype4.cvc \
-	regress0/datatypes/data-nested-codata.smt2 \
 	regress0/datatypes/dt-2.6.smt2 \
 	regress0/datatypes/dt-match-pat-param-2.6.smt2 \
 	regress0/datatypes/dt-param-2.6.smt2 \
@@ -441,8 +441,8 @@ REG0_TESTS = \
 	regress0/fmf/sort-infer-typed-082718.smt2 \
 	regress0/fmf/syn002-si-real-int.smt2 \
 	regress0/fmf/tail_rec.smt2 \
-	regress0/fp/simple.smt2 \
 	regress0/fp/ext-rew-test.smt2 \
+	regress0/fp/simple.smt2 \
 	regress0/fuzz_1.smt \
 	regress0/fuzz_3.smt \
 	regress0/get-value-incremental.smt2 \
@@ -520,6 +520,7 @@ REG0_TESTS = \
 	regress0/nl/subs0-unsat-confirm.smt2 \
 	regress0/nl/very-easy-sat.smt2 \
 	regress0/nl/very-simple-unsat.smt2 \
+	regress0/options/invalid_dump.smt2 \
 	regress0/parallel-let.smt2 \
 	regress0/parser/as.smt2 \
 	regress0/parser/constraint.smt2 \
@@ -827,10 +828,10 @@ REG0_TESTS = \
 	regress0/strings/str003.smt2 \
 	regress0/strings/str004.smt2 \
 	regress0/strings/str005.smt2 \
+	regress0/strings/str_unsound_ext_rew_eq.smt2 \
 	regress0/strings/strings-charat.cvc \
 	regress0/strings/strings-native-simple.cvc \
 	regress0/strings/strip-endpoint-itos.smt2 \
-	regress0/strings/str_unsound_ext_rew_eq.smt2 \
 	regress0/strings/substr-rewrites.smt2 \
 	regress0/strings/type001.smt2 \
 	regress0/strings/unsound-0908.smt2 \

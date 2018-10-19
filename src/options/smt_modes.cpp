@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file simplification_mode.h
+/*! \file smt_modes.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King
@@ -15,25 +15,22 @@
  ** \todo document this file
  **/
 
-#include "cvc4_public.h"
+#include "options/smt_modes.h"
 
-#ifndef __CVC4__SMT__SIMPLIFICATION_MODE_H
-#define __CVC4__SMT__SIMPLIFICATION_MODE_H
-
-#include <iosfwd>
+#include <iostream>
 
 namespace CVC4 {
 
-/** Enumeration of simplification modes (when to simplify). */
-typedef enum {
-  /** Simplify the assertions all together once a check is requested */
-  SIMPLIFICATION_MODE_BATCH,
-  /** Don't do simplification */
-  SIMPLIFICATION_MODE_NONE
-} SimplificationMode;
+std::ostream& operator<<(std::ostream& out, SimplificationMode mode)
+{
+  switch (mode)
+  {
+    case SIMPLIFICATION_MODE_BATCH: out << "SIMPLIFICATION_MODE_BATCH"; break;
+    case SIMPLIFICATION_MODE_NONE: out << "SIMPLIFICATION_MODE_NONE"; break;
+    default: out << "SimplificationMode:UNKNOWN![" << unsigned(mode) << "]";
+  }
 
-std::ostream& operator<<(std::ostream& out, SimplificationMode mode) CVC4_PUBLIC;
+  return out;
+}
 
-}/* CVC4 namespace */
-
-#endif /* __CVC4__SMT__SIMPLIFICATION_MODE_H */
+}  // namespace CVC4

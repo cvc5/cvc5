@@ -85,6 +85,7 @@ liboptions_la_SOURCES = \
 	language.h \
 	open_ostream.cpp \
 	open_ostream.h \
+	option_exception.cpp \
 	option_exception.h \
 	options.h \
 	options_handler.cpp \
@@ -96,8 +97,8 @@ liboptions_la_SOURCES = \
 	quantifiers_modes.h \
 	set_language.cpp \
 	set_language.h \
-	simplification_mode.cpp \
-	simplification_mode.h \
+	smt_modes.cpp \
+	smt_modes.h \
 	sygus_out_mode.h \
 	theoryof_mode.cpp \
 	theoryof_mode.h \
