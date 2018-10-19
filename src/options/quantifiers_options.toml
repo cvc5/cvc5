@@ -1094,7 +1094,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
   handler    = "stringToSygusInvTemplMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = true
   help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
 
 [[option]]

@@ -955,7 +955,7 @@ void SynthConjecture::printAndContinueStream()
 
 void SynthConjecture::printSynthSolution(std::ostream& out)
 {
-  Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
+  Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
   std::vector<int> statuses;
@@ -985,6 +985,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           && (options::sygusRewSynth() || options::sygusQueryGen()
               || options::sygusSolFilterImplied()))
       {
+        Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);
         if (its == d_exprm.end())
