@@ -981,9 +981,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0
-          && (options::sygusRewSynth() || options::sygusQueryGen()
-              || options::sygusSolFilterImplied()))
+      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
+                          || options::sygusSolFilterImplied()))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =

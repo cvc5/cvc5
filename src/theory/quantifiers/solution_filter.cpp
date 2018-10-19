@@ -34,7 +34,7 @@ void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 bool SolutionFilter::addTerm(Node n, std::ostream& out)
 {
-  if( !n.getType().isBoolean() )
+  if (!n.getType().isBoolean())
   {
     // currently, should not register non-Boolean terms here
     Assert(false);
@@ -49,7 +49,8 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
     if (!imp.getConst<bool>())
     {
       // if the implication rewrites to false, we filter
-      Trace("sygus-sol-implied-filter") << "Filtered (by rewriting) : " << n << std::endl;
+      Trace("sygus-sol-implied-filter") << "Filtered (by rewriting) : " << n
+                                        << std::endl;
       return false;
     }
     else
@@ -58,9 +59,10 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
       success = true;
     }
   }
-  if( !success )
+  if (!success)
   {
-    Trace("sygus-sol-implied") << "  implies: check " << imp << "..." << std::endl;
+    Trace("sygus-sol-implied") << "  implies: check " << imp << "..."
+                               << std::endl;
     // make the satisfiability query
     bool needExport = false;
     ExprManagerMapCollection varMap;
@@ -74,7 +76,7 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
       success = true;
     }
   }
-  if( success )
+  if (success)
   {
     d_conj = d_conj.isNull() ? n : nm->mkNode(AND, d_conj, n);
     d_conj = Rewriter::rewrite(d_conj);
