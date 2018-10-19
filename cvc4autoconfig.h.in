@@ -17,7 +17,7 @@
 #define CVC4_RELEASE_STRING "@CVC4_RELEASE_STRING@"
 
 /* Full name of this package. */
-#define PACKAGE_NAME "@PACKAGE_NAME@"
+#define CVC4_PACKAGE_NAME "@CVC4_PACKAGE_NAME@"
 
 /* Define to 1 if CVC4 is built with (optional) GPLed library dependencies. */
 #cmakedefine01 CVC4_GPL_DEPS
