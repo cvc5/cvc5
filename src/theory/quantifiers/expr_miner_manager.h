@@ -71,7 +71,7 @@ class ExpressionMinerManager
   void enableRewriteRuleSynth();
   /** enable query generation (--sygus-query-gen) */
   void enableQueryGeneration(unsigned deqThresh);
-  /** filter implied solutions (--sygus-filter-implied) */
+  /** filter implied solutions (--sygus-sol-filter-implied) */
   void enableFilterImpliedSolutions();
   /** add term
    *

@@ -1396,6 +1396,14 @@ header = "options/quantifiers_options.h"
   help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
 [[option]]
+  name       = "sygusSolFilterImplied"
+  category   = "regular"
+  long       = "sygus-sol-filter-implied"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
+[[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
   long       = "sygus-expr-miner-check-use-export"

@@ -27,7 +27,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilter::SolutionFilter() : d_queryCount(0) {}
+SolutionFilter::SolutionFilter() {}
 
 void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {

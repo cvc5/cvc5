@@ -997,6 +997,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
+          if (options::sygusSolFilterImplied())
+          {
+            d_exprm[prog].enableFilterImpliedSolutions();
+          }
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
