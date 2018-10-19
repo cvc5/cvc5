@@ -77,7 +77,7 @@ script:
    #   }
    makeCheck() {
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
-     ctest -j2 -R examples/ || error "RUNNING EXAMPLES FAILED"
+     ctest -j2 -L example || error "RUNNING EXAMPLES FAILED"
    }
    #   addNewTheoryTest() {
    #       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
