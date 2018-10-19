@@ -47,9 +47,9 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
       // could abort after printing here
     }
   }
+  NodeManager* nm = NodeManager::currentNM();
   Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
   Trace("sygus-cf-implied") << "  implies: check " << imp << "..." << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
   // make the satisfiability query
   bool needExport = false;
   ExprManagerMapCollection varMap;
