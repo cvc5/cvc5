@@ -47,14 +47,15 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
       // could abort after printing here
     }
   }
-  Trace("sygus-cf-implied") << "  implies: check " << impl << "..." << std::endl;
+  Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
+  Trace("sygus-cf-implied") << "  implies: check " << imp << "..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // make the satisfiability query
   bool needExport = false;
   ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> queryChecker;
-  initializeChecker(queryChecker, em, varMap, impl, needExport);
+  initializeChecker(queryChecker, em, varMap, imp, needExport);
   Result r = queryChecker->checkSat();
   Trace("sygus-cf-implied") << "  implies: ...got : " << r << std::endl;
   if( r.asSatisfiabilityResult().isSat() != Result::UNSAT )
