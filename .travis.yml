@@ -76,6 +76,7 @@ script:
    #       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
    #   }
    makeCheck() {
+     cd build
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
      ctest -j2 -L example || error "RUNNING EXAMPLES FAILED"
    }
