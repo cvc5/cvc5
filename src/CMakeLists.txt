@@ -522,6 +522,8 @@ libcvc4_add_sources(
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
   theory/quantifiers/skolemize.h
+  theory/quantifiers/solution_filter.cpp
+  theory/quantifiers/solution_filter.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
   theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
