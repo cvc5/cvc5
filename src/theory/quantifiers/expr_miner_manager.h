@@ -19,9 +19,9 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/candidate_rewrite_database.h"
-#include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/query_generator.h"
+#include "theory/quantifiers/solution_filter.h"
 #include "theory/quantifiers/sygus_sampler.h"
 #include "theory/quantifiers_engine.h"
 

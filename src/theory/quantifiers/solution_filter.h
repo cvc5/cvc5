@@ -28,7 +28,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-/** 
+/**
  * Used to filter predicates that are collectively entailed by the previous
  * predicates in an expression stream.
  */
@@ -42,7 +42,7 @@ class SolutionFilter : public ExprMiner
                   SygusSampler* ss = nullptr) override;
   /**
    * Add term to this module. It is expected that n has Boolean type.
-   * If this method returns false, then the entailment n_1 ^ ... ^ n_m |= n 
+   * If this method returns false, then the entailment n_1 ^ ... ^ n_m |= n
    * holds, where n_1, ..., n_m are the terms previously registered to this
    * class.
    */

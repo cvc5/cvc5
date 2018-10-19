@@ -28,7 +28,6 @@ namespace theory {
 namespace quantifiers {
 
 SolutionFilter::SolutionFilter() {}
-
 void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 {
   ExprMiner::initialize(vars, ss);
@@ -36,9 +35,9 @@ void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
 
 bool SolutionFilter::addTerm(Node n, std::ostream& out)
 {
-  if( n.isConst() )
+  if (n.isConst())
   {
-    if( n.getConst<bool>() )
+    if (n.getConst<bool>())
     {
       return false;
     }
@@ -58,9 +57,9 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
   initializeChecker(queryChecker, em, varMap, imp, needExport);
   Result r = queryChecker->checkSat();
   Trace("sygus-cf-implied") << "  implies: ...got : " << r << std::endl;
-  if( r.asSatisfiabilityResult().isSat() != Result::UNSAT )
+  if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
   {
-    d_conj = d_conj.isNull() ? n : nm->mkNode( AND, d_conj, n );
+    d_conj = d_conj.isNull() ? n : nm->mkNode(AND, d_conj, n);
     return true;
   }
   Trace("sygus-cf-implied-filter") << "Filtered : " << n << std::endl;
