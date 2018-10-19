@@ -21,6 +21,7 @@ libcvc4_add_sources(
   language.h
   open_ostream.cpp
   open_ostream.h
+  option_exception.cpp
   option_exception.h
   options.h
   options_handler.cpp
