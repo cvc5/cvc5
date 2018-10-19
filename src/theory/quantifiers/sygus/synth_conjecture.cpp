@@ -1012,7 +1012,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         if (!is_unique_term)
         {
-          ++(cei->d_statistics.d_candidate_rewrites);
+          ++(cei->d_statistics.d_filtered_solutions);
         }
       }
       if (is_unique_term)
