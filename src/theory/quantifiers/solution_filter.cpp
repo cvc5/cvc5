@@ -60,9 +60,10 @@ bool SolutionFilter::addTerm(Node n, std::ostream& out)
   Trace("sygus-cf-implied") << "  implies: ...got : " << r << std::endl;
   if( r.asSatisfiabilityResult().isSat() != Result::UNSAT )
   {
-    d_conj = nm->mkNode( AND, d_conj, n );
+    d_conj = d_conj.isNull() ? n : nm->mkNode( AND, d_conj, n );
     return true;
   }
+  Trace("sygus-cf-implied-filter") << "Filtered : " << n << std::endl;
   return false;
 }
 

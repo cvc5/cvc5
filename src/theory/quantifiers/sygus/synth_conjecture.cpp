@@ -981,7 +981,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
+      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen() || options::sygusSolFilterImplied()))
       {
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);

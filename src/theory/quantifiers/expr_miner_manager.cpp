@@ -127,8 +127,12 @@ bool ExpressionMinerManager::addTerm(Node sol,
   }
 
   // add to the candidate rewrite rule database
-  bool ret = d_crd.addTerm(sol, out, rew_print);
-
+  bool ret = true;
+  if( d_doRewSynth )
+  {
+    ret = d_crd.addTerm(sol, out, rew_print);
+  }
+  
   // a unique term, let's try the query generator
   if (ret && d_doQueryGen)
   {
