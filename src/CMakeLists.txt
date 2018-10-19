@@ -823,7 +823,7 @@ install(FILES
           options/printer_modes.h
           options/quantifiers_modes.h
           options/set_language.h
-          options/simplification_mode.h
+          options/smt_modes.h
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION
