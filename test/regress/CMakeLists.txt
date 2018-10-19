@@ -1183,6 +1183,7 @@ set(regress_1_tests
   regress1/nl/nl-unk-quant.smt2
   regress1/nl/nl_uf_lalt.smt2
   regress1/nl/ones.smt2
+  regress1/nl/pinto-model-core-ni.smt2
   regress1/nl/poly-1025.smt2
   regress1/nl/quant-nl.smt2
   regress1/nl/red-exp.smt2
