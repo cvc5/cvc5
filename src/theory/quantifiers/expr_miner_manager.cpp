@@ -22,6 +22,7 @@ namespace quantifiers {
 ExpressionMinerManager::ExpressionMinerManager()
     : d_doRewSynth(false),
       d_doQueryGen(false),
+      d_doFilterImplied(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -35,6 +36,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
 {
   d_doRewSynth = false;
   d_doQueryGen = false;
+  d_doFilterImplied = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -50,6 +52,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
 {
   d_doRewSynth = false;
   d_doQueryGen = false;
+  d_doFilterImplied = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -104,21 +107,42 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   d_qg.setThreshold(deqThresh);
 }
 
+void ExpressionMinerManager::enableFilterImpliedSolutions()
+{
+  d_doFilterImplied = true;
+  std::vector<Node> vars;
+  d_sampler.getVariables(vars);
+  d_solf.initialize(vars, &d_sampler);
+}
+
 bool ExpressionMinerManager::addTerm(Node sol,
                                      std::ostream& out,
                                      bool& rew_print)
 {
-  bool ret = d_crd.addTerm(sol, out, rew_print);
+  // set the builtin version
+  Node solb = sol;
+  if (d_use_sygus_type)
+  {
+    solb = d_tds->sygusToBuiltin(sol);
+  }
+
+  // add to the candidate rewrite rule database
+  bool ret = true;
+  if (d_doRewSynth)
+  {
+    ret = d_crd.addTerm(sol, out, rew_print);
+  }
+
+  // a unique term, let's try the query generator
   if (ret && d_doQueryGen)
   {
-    // use the builtin version if d_use_sygus_type is true
-    Node solb = sol;
-    if (d_use_sygus_type)
-    {
-      solb = d_tds->sygusToBuiltin(sol);
-    }
-    // a unique term, let's try the query generator
     d_qg.addTerm(solb, out);
+  }
+
+  // filter if it's implied
+  if (ret && d_doFilterImplied)
+  {
+    ret = d_solf.addTerm(solb, out);
   }
   return ret;
 }

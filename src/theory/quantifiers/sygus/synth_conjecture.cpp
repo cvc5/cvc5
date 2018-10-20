@@ -955,7 +955,7 @@ void SynthConjecture::printAndContinueStream()
 
 void SynthConjecture::printSynthSolution(std::ostream& out)
 {
-  Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
+  Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
   std::vector<int> statuses;
@@ -981,8 +981,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()))
+      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
+                          || options::sygusSolFilterImplied()))
       {
+        Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);
         if (its == d_exprm.end())
@@ -997,6 +999,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
+          if (options::sygusSolFilterImplied())
+          {
+            d_exprm[prog].enableFilterImpliedSolutions();
+          }
           its = d_exprm.find(prog);
         }
         bool rew_print = false;
@@ -1007,7 +1013,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         if (!is_unique_term)
         {
-          ++(cei->d_statistics.d_candidate_rewrites);
+          ++(cei->d_statistics.d_filtered_solutions);
         }
       }
       if (is_unique_term)
