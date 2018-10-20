@@ -575,6 +575,21 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
           return returnRewrite(node, ret, "str-eq-repl-not-ctn");
         }
       }
+
+      // (= (str.replace x y z) z) --> (or (= x y) (= x z))
+      // if (str.len y) = (str.len z)
+      if (repl[2] == x)
+      {
+        Node lenY = nm->mkNode(STRING_LENGTH, repl[1]);
+        Node lenZ = nm->mkNode(STRING_LENGTH, repl[2]);
+        if (checkEntailArithEq(lenY, lenZ))
+        {
+          Node ret = nm->mkNode(OR,
+                                nm->mkNode(EQUAL, repl[0], repl[1]),
+                                nm->mkNode(EQUAL, repl[0], repl[2]));
+          return returnRewrite(node, ret, "str-eq-repl-to-dis");
+        }
+      }
     }
   }
 
@@ -1733,6 +1748,15 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
       }
 
+      // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
+      Node non_zero_len =
+          Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
+      if (checkEntailArithWithAssumption(non_zero_len, node[1], tot_len, false))
+      {
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
+      }
+
       // (str.substr s x x) ---> "" if (str.len s) <= 1
       if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
@@ -2164,6 +2188,24 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                             nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
                             nm->mkNode(STRING_STRCTN, node[0][0], node[0][2]));
       return returnRewrite(node, ret, "ctn-repl-to-ctn-disj");
+    }
+
+    // (str.contains (str.replace x y z) w) --->
+    //   (str.contains (str.replace x y "") w)
+    // if (str.contains z w) ---> false and (str.len w) = 1
+    if (checkEntailLengthOne(node[1]))
+    {
+      Node ctn = Rewriter::rewrite(
+          nm->mkNode(kind::STRING_STRCTN, node[1], node[0][2]));
+      if (ctn.isConst() && !ctn.getConst<bool>())
+      {
+        Node empty = nm->mkConst(String(""));
+        Node ret = nm->mkNode(
+            kind::STRING_STRCTN,
+            nm->mkNode(kind::STRING_STRREPL, node[0][0], node[0][1], empty),
+            node[1]);
+        return returnRewrite(node, ret, "ctn-repl-simp-repl");
+      }
     }
   }
 
