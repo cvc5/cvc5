@@ -1364,6 +1364,38 @@ header = "options/quantifiers_options.h"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
 
 [[option]]
+  name       = "sygusQueryGen"
+  category   = "regular"
+  long       = "sygus-query-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
+[[option]]
+  name       = "sygusQueryGenThresh"
+  category   = "regular"
+  long       = "sygus-query-gen-thresh=N"
+  type       = "unsigned"
+  default    = "5"
+  help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
+
+[[option]]
+  name       = "sygusQueryGenCheck"
+  category   = "regular"
+  long       = "sygus-query-gen-check"
+  type       = "bool"
+  default    = "true"
+  help       = "use interesting satisfiability queries to check soundness of CVC4"
+
+[[option]]
+  name       = "sygusQueryGenDumpFiles"
+  category   = "regular"
+  long       = "sygus-query-gen-dump-files"
+  type       = "bool"
+  default    = "false"
+  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
+
+[[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
   long       = "sygus-expr-miner-check-use-export"

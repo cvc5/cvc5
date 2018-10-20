@@ -33,4 +33,4 @@ cd ../
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-cryptominisat
+echo ./configure.sh --cryptominisat

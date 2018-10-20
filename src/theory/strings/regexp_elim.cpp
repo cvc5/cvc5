@@ -50,11 +50,89 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
+  std::vector<Node> children;
+  TheoryStringsRewriter::getConcat(re, children);
+
+  // If it can be reduced to memberships in fixed length regular expressions.
+  // This includes concatenations where at most one child is of the form
+  // (re.* re.allchar), which we abbreviate _* below, and all other children
+  // have a fixed length.
+  // The intuition why this is a "non-aggressive" rewrite is that membership
+  // into fixed length regular expressions are easy to handle.
+  bool hasFixedLength = true;
+  // the index of _* in re
+  unsigned pivotIndex = 0;
+  bool hasPivotIndex = false;
+  std::vector<Node> childLengths;
+  std::vector<Node> childLengthsPostPivot;
+  for (unsigned i = 0, size = children.size(); i < size; i++)
+  {
+    Node c = children[i];
+    Node fl = TheoryStringsRewriter::getFixedLengthForRegexp(c);
+    if (fl.isNull())
+    {
+      if (!hasPivotIndex && c.getKind() == REGEXP_STAR
+          && c[0].getKind() == REGEXP_SIGMA)
+      {
+        hasPivotIndex = true;
+        pivotIndex = i;
+        // set to zero for the sum below
+        fl = d_zero;
+      }
+      else
+      {
+        hasFixedLength = false;
+        break;
+      }
+    }
+    childLengths.push_back(fl);
+    if (hasPivotIndex)
+    {
+      childLengthsPostPivot.push_back(fl);
+    }
+  }
+  if (hasFixedLength)
+  {
+    Assert(re.getNumChildren() == children.size());
+    Node sum = nm->mkNode(PLUS, childLengths);
+    std::vector<Node> conc;
+    conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, sum));
+    Node currEnd = d_zero;
+    for (unsigned i = 0, size = childLengths.size(); i < size; i++)
+    {
+      if (hasPivotIndex && i == pivotIndex)
+      {
+        Node ppSum = childLengthsPostPivot.size() == 1
+                         ? childLengthsPostPivot[0]
+                         : nm->mkNode(PLUS, childLengthsPostPivot);
+        currEnd = nm->mkNode(MINUS, lenx, ppSum);
+      }
+      else
+      {
+        Node curr = nm->mkNode(STRING_SUBSTR, x, currEnd, childLengths[i]);
+        Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
+        conc.push_back(currMem);
+        currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
+        currEnd = Rewriter::rewrite(currEnd);
+      }
+    }
+    Node res = nm->mkNode(AND, conc);
+    // For example:
+    //   x in re.++(re.union(re.range("A", "J"), re.range("N", "Z")), "AB") -->
+    //   len( x ) = 3 ^
+    //   substr(x,0,1) in re.union(re.range("A", "J"), re.range("N", "Z")) ^
+    //   substr(x,1,2) in "AB"
+    // An example with a pivot index:
+    //   x in re.++( "AB" ++ _* ++ "C" ) -->
+    //   len( x ) >= 3 ^
+    //   substr( x, 0, 2 ) in "AB" ^
+    //   substr( x, len( x ) - 1, 1 ) in "C"
+    return returnElim(atom, res, "concat-fixed-len");
+  }
+
   // memberships of the form x in re.++ * s1 * ... * sn *, where * are
   // any number of repetitions (exact or indefinite) of re.allchar.
   Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
-  std::vector<Node> children;
-  TheoryStringsRewriter::getConcat(re, children);
   bool onlySigmasAndConsts = true;
   std::vector<Node> sep_children;
   std::vector<unsigned> gap_minsize;

@@ -40,7 +40,7 @@ header = "options/smt_options.h"
   type       = "SimplificationMode"
   default    = "SIMPLIFICATION_MODE_BATCH"
   handler    = "stringToSimplificationMode"
-  includes   = ["options/simplification_mode.h"]
+  includes   = ["options/smt_modes.h"]
   help       = "choose simplification mode, see --simplification=help"
 
 [[alias]]
@@ -99,13 +99,14 @@ header = "options/smt_options.h"
   help       = "output models after every SAT/INVALID/UNKNOWN response"
 
 [[option]]
-  name       = "produceModelCores"
+  name       = "modelCoresMode"
   category   = "regular"
-  long       = "produce-model-cores"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "when printing models, compute a minimal core of relevant definitions"
+  long       = "model-cores=MODE"
+  type       = "ModelCoresMode"
+  default    = "MODEL_CORES_NONE"
+  handler    = "stringToModelCoresMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing model cores"
 
 [[option]]
   name       = "proof"

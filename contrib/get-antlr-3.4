@@ -1,18 +1,21 @@
 #!/bin/bash
 #
 source "$(dirname "$0")/get-script-header.sh"
+ANTLR_HOME_DIR=antlr-3.4
 
 if [ -z "${BUILD_TYPE}" ]; then
   BUILD_TYPE="--disable-shared --enable-static"
 fi
 
 if [ -z "${MACHINE_TYPE}" ]; then
-  if ! [ -e config/config.guess ]; then
+  CONFIG_GUESS_SCRIPT=$ANTLR_HOME_DIR/config.guess
+  if ! [ -e ${CONFIG_GUESS_SCRIPT} ]; then
+    mkdir -p $ANTLR_HOME_DIR
     # Attempt to download once
-    webget 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' config/config.guess
-   if [ -e config/config.guess ]; then
-     chmod +x config/config.guess
-        else
+    webget 'http://git.savannah.gnu.org/gitweb/?p=config.git;a=blob_plain;f=config.guess;hb=HEAD' $CONFIG_GUESS_SCRIPT
+    if [ -e $CONFIG_GUESS_SCRIPT ]; then
+     chmod +x $CONFIG_GUESS_SCRIPT
+   else
      echo "$(basename $0): I need the file config/config.guess to tell MACHINE_TYPE" >&2
      echo "Try running ./autogen.sh, or set the MACHINE_TYPE environment variable" >&2
      echo "(e.g., \"export MACHINE_TYPE=x86_64\")." >&2
@@ -20,14 +23,14 @@ if [ -z "${MACHINE_TYPE}" ]; then
     fi
   fi
   # get first nibble from config.guess (x86_64, i686, ...)
-  MACHINE_TYPE=`config/config.guess | sed 's,-.*,,'`
+  MACHINE_TYPE=$(${CONFIG_GUESS_SCRIPT} | sed 's,-.*,,')
 fi
 
 set -x
-mkdir -p antlr-3.4/share/java
-mkdir -p antlr-3.4/bin
-mkdir -p antlr-3.4/src
-cd antlr-3.4
+mkdir -p $ANTLR_HOME_DIR/share/java
+mkdir -p $ANTLR_HOME_DIR/bin
+mkdir -p $ANTLR_HOME_DIR/src
+cd $ANTLR_HOME_DIR || exit 1
 webget http://www.antlr3.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
 webget http://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
 tee bin/antlr3 <<EOF
@@ -111,4 +114,4 @@ fi
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure
+echo ./configure.sh
