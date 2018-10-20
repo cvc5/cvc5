@@ -433,7 +433,7 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
+configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
