@@ -24,7 +24,8 @@ SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds) {}
 
 void SygusEnumerator::initialize(Node e)
 {
-  d_enum.initialize(this, e.getType(), false, 0, false);
+  bool ret = d_enum.initialize(this, e.getType(), false, 0, false);
+  AlwaysAssert( ret );
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -185,7 +186,7 @@ SygusEnumerator::TermEnum::TermEnum()
 {
 }
 
-void SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
+bool SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
                                            TypeNode tn,
                                            bool hasSizeLim,
                                            unsigned sizeLim,
@@ -194,25 +195,27 @@ void SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
   d_se = se;
   d_tn = tn;
   d_se->initializeTermCache(d_tn);
-  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   d_hasSizeBound = hasSizeLim;
   d_sizeLim = sizeLim;
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   if (d_hasSizeBound && d_sizeLim < tc.getEnumSize())
   {
     d_isMaster = false;
     // if the size is exact, we start at the limit
     d_currSize = sizeExact ? sizeLim : 0;
+    // initialize the index
     d_index = tc.getIndexForSize(d_currSize);
+    // initialize the next end index
     d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
-    return;
+    // ensure that indexNextEnd is valid (it must be greater than d_index)
+    return setNextEndIndex();
   }
   d_isMaster = true;
   d_currSize = 0;
   // we will start with constructor class zero
   d_consClassNum = 0;
   d_ccCons.clear();
-  bool ret = increment();
-  AlwaysAssert(ret);
+  return increment();
 }
 
 Node SygusEnumerator::TermEnum::getCurrent()
@@ -246,27 +249,15 @@ unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 
 bool SygusEnumerator::TermEnum::increment()
 {
-  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-
   if (!d_isMaster)
   {
     // increment index
     d_index++;
-    // if we are at the beginning of the next size, increment current size
-    if (d_index == d_indexNextEnd)
-    {
-      d_currSize++;
-      Assert(d_hasSizeBound);
-      // if we've hit the size limit, return false
-      if (d_currSize == d_sizeLim)
-      {
-        return false;
-      }
-      // update the next end index
-      d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
-    }
-    return true;
+    // ensure that size and the next end index are valid
+    return setNextEndIndex();
   }
+  
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
 
   // the maximum index of a constructor class to consider
   unsigned ncc = d_sizeLim == 0 ? 1 : tc.getNumConstructorClasses();
@@ -368,6 +359,25 @@ bool SygusEnumerator::TermEnum::increment()
   return increment();
 }
 
+bool SygusEnumerator::TermEnum::setNextEndIndex()
+{
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+  Assert(d_hasSizeBound);
+  // if we are at the beginning of the next size, increment current size
+  while (d_index == d_indexNextEnd)
+  {
+    d_currSize++;
+    // if we've hit the size limit, return false
+    if (d_currSize == d_sizeLim)
+    {
+      return false;
+    }
+    // update the next end index
+    d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
+  }
+  return true;
+}
+
 bool SygusEnumerator::TermEnum::initializeChildren()
 {
   unsigned initValid = d_childrenValid;
@@ -394,18 +404,25 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
 {
   Assert(d_currChildSize < d_currSize);
   TermEnum& te = d_children[i];
+  bool init = false;
   // if we are the last child
   if (i + 1 == d_ccTypes.size())
   {
     // initialize the child to enumerate exactly the terms that sum to size
-    te.initialize(
+    init = te.initialize(
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, true);
   }
   else
   {
     // initialize the child to have limit (d_currSize-1)
-    te.initialize(
+    init = te.initialize(
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
+  }
+  if( !init )
+  {
+    // failed to initialize
+    d_children.erase(i);
+    return false;
   }
   unsigned teSize = te.getCurrentSize();
   // fail if the initial children size does not fit d_currSize-1

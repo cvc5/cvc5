@@ -114,7 +114,7 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnum();
-    void initialize(SygusEnumerator* se,
+    bool initialize(SygusEnumerator* se,
                     TypeNode tn,
                     bool hasSizeLim,
                     unsigned sizeLim,
@@ -164,6 +164,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_index;
     /** the end index in the term cache */
     unsigned d_indexNextEnd;
+    /** set next end index */
+    bool setNextEndIndex();
     //----------------------------------------------- end for non-master
     // enumerators
   };
