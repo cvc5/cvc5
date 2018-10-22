@@ -27,4 +27,4 @@ make libcryptominisat5 -j$(nproc)
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-cryptominisat
+echo ./configure.sh --cryptominisat

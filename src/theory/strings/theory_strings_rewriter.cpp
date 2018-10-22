@@ -507,9 +507,7 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         }
 
         // (= "" (str.replace x "A" "")) ---> (str.prefix x "A")
-        Node one = nm->mkConst(Rational(1));
-        Node ylen = nm->mkNode(STRING_LENGTH, ne[1]);
-        if (checkEntailArithEq(ylen, one) && ne[2] == empty)
+        if (checkEntailLengthOne(ne[1]) && ne[2] == empty)
         {
           Node ret = nm->mkNode(STRING_PREFIX, ne[0], ne[1]);
           return returnRewrite(node, ret, "str-emp-repl-emp");
@@ -575,6 +573,21 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         {
           Node ret = nm->mkNode(NOT, nm->mkNode(STRING_STRCTN, x, repl[1]));
           return returnRewrite(node, ret, "str-eq-repl-not-ctn");
+        }
+      }
+
+      // (= (str.replace x y z) z) --> (or (= x y) (= x z))
+      // if (str.len y) = (str.len z)
+      if (repl[2] == x)
+      {
+        Node lenY = nm->mkNode(STRING_LENGTH, repl[1]);
+        Node lenZ = nm->mkNode(STRING_LENGTH, repl[2]);
+        if (checkEntailArithEq(lenY, lenZ))
+        {
+          Node ret = nm->mkNode(OR,
+                                nm->mkNode(EQUAL, repl[0], repl[1]),
+                                nm->mkNode(EQUAL, repl[0], repl[2]));
+          return returnRewrite(node, ret, "str-eq-repl-to-dis");
         }
       }
     }
@@ -1658,11 +1671,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
     // if (str.len y) = 1 and (str.len z) = 1
     if (node[1] == zero)
     {
-      Node one = nm->mkConst(Rational(1));
-      Node n1len = nm->mkNode(kind::STRING_LENGTH, node[0][1]);
-      Node n2len = nm->mkNode(kind::STRING_LENGTH, node[0][2]);
-      if (checkEntailArith(one, n1len) && checkEntailArith(one, n2len)
-          && checkEntailNonEmpty(node[0][1]) && checkEntailNonEmpty(node[0][2]))
+      if (checkEntailLengthOne(node[0][1], true)
+          && checkEntailLengthOne(node[0][2], true))
       {
         Node ret = nm->mkNode(
             kind::STRING_STRREPL,
@@ -1738,9 +1748,17 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         return returnRewrite(node, ret, "ss-start-entails-zero-len");
       }
 
+      // (str.substr s x y) --> "" if 0 < y |= x >= str.len(s)
+      Node non_zero_len =
+          Rewriter::rewrite(nm->mkNode(kind::LT, zero, node[2]));
+      if (checkEntailArithWithAssumption(non_zero_len, node[1], tot_len, false))
+      {
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
+      }
+
       // (str.substr s x x) ---> "" if (str.len s) <= 1
-      Node one = nm->mkConst(CVC4::Rational(1));
-      if (node[1] == node[2] && checkEntailArith(one, tot_len))
+      if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
         Node ret = nm->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-len-one-z-z");
@@ -2155,8 +2173,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
 
       // (str.contains (str.replace x y x) z) ---> (str.contains x z)
       // if (str.len z) <= 1
-      Node one = nm->mkConst(Rational(1));
-      if (checkEntailArith(one, len_n2))
+      if (checkEntailLengthOne(node[1]))
       {
         Node ret = nm->mkNode(kind::STRING_STRCTN, node[0][0], node[1]);
         return returnRewrite(node, ret, "ctn-repl-len-one-to-ctn");
@@ -2171,6 +2188,24 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
                             nm->mkNode(STRING_STRCTN, node[0][0], node[0][1]),
                             nm->mkNode(STRING_STRCTN, node[0][0], node[0][2]));
       return returnRewrite(node, ret, "ctn-repl-to-ctn-disj");
+    }
+
+    // (str.contains (str.replace x y z) w) --->
+    //   (str.contains (str.replace x y "") w)
+    // if (str.contains z w) ---> false and (str.len w) = 1
+    if (checkEntailLengthOne(node[1]))
+    {
+      Node ctn = Rewriter::rewrite(
+          nm->mkNode(kind::STRING_STRCTN, node[1], node[0][2]));
+      if (ctn.isConst() && !ctn.getConst<bool>())
+      {
+        Node empty = nm->mkConst(String(""));
+        Node ret = nm->mkNode(
+            kind::STRING_STRCTN,
+            nm->mkNode(kind::STRING_STRREPL, node[0][0], node[0][1], empty),
+            node[1]);
+        return returnRewrite(node, ret, "ctn-repl-simp-repl");
+      }
     }
   }
 
@@ -2474,7 +2509,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
     // (str.replace x y x) ---> (str.replace x (str.++ y1 ... yn) x)
     // if 1 >= (str.len x) and (= y "") ---> (= y1 "") ... (= yn "")
-    if (checkEntailArith(nm->mkConst(Rational(1)), l0))
+    if (checkEntailLengthOne(node[0]))
     {
       Node empty = nm->mkConst(String(""));
       Node rn1 = Rewriter::rewrite(
@@ -2850,7 +2885,7 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   //   str.replace( x ++ y ++ x ++ y, "A", z ) -->
   //   str.replace( x ++ y, "A", z ) ++ x ++ y
   // since if "A" occurs in x ++ y ++ x ++ y, then it must occur in x ++ y.
-  if (node[1].isConst() && node[1].getConst<String>().size() == 1)
+  if (checkEntailLengthOne(node[1]))
   {
     Node lastLhs;
     unsigned lastCheckIndex = 0;
@@ -3826,6 +3861,15 @@ bool TheoryStringsRewriter::checkEntailNonEmpty(Node a)
   return checkEntailArith(len, true);
 }
 
+bool TheoryStringsRewriter::checkEntailLengthOne(Node s, bool strict)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node one = nm->mkConst(Rational(1));
+  Node len = nm->mkNode(STRING_LENGTH, s);
+  len = Rewriter::rewrite(len);
+  return checkEntailArith(one, len) && (!strict || checkEntailArith(len, true));
+}
+
 bool TheoryStringsRewriter::checkEntailArithEq(Node a, Node b)
 {
   if (a == b)
@@ -4714,8 +4758,7 @@ Node TheoryStringsRewriter::getStringOrEmpty(Node n)
           break;
         }
 
-        Node strlen = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n[0]));
-        if (strlen == nm->mkConst(Rational(1)) && n[2] == empty)
+        if (checkEntailLengthOne(n[0]) && n[2] == empty)
         {
           // (str.replace "A" x "") --> "A"
           res = n[0];
@@ -4727,8 +4770,7 @@ Node TheoryStringsRewriter::getStringOrEmpty(Node n)
       }
       case kind::STRING_SUBSTR:
       {
-        Node strlen = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n[0]));
-        if (strlen == nm->mkConst(Rational(1)))
+        if (checkEntailLengthOne(n[0]))
         {
           // (str.substr "A" x y) --> "A"
           res = n[0];

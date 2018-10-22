@@ -39,10 +39,10 @@ class Random
   }
 
   /** Get the minimum number that can be picked. */
-  static uint64_t min() { return 0u; }
+  static constexpr uint64_t min() { return 0u; }
 
   /** Get the maximum number that can be picked. */
-  static uint64_t max() { return UINT64_MAX; }
+  static constexpr uint64_t max() { return UINT64_MAX; }
 
   /** Set seed of Random.  */
   void setSeed(uint64_t seed);

@@ -581,49 +581,67 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_listenerRegistrations->add(d_resourceManager->registerHardListener(
         new HardResourceOutListener(d_smt)));
 
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerForceLogicListener(
-            new SetLogicListener(d_smt), true));
+    try
+    {
+      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerForceLogicListener(
+              new SetLogicListener(d_smt), true));
 
-    // Multiple options reuse BeforeSearchListener so registration requires an
-    // extra bit of care.
-    // We can safely not call notify on this before search listener at
-    // registration time. This d_smt cannot be beforeSearch at construction
-    // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
-    // not have to be called.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerBeforeSearchListener(
-            new BeforeSearchListener(d_smt)));
+      // Multiple options reuse BeforeSearchListener so registration requires an
+      // extra bit of care.
+      // We can safely not call notify on this before search listener at
+      // registration time. This d_smt cannot be beforeSearch at construction
+      // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
+      // not have to be called.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerBeforeSearchListener(
+              new BeforeSearchListener(d_smt)));
 
-    // These do need registration calls.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDepthListener(
-            new SetDefaultExprDepthListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDagListener(
-            new SetDefaultExprDagListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintExprTypesListener(
-            new SetPrintExprTypesListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDumpModeListener(
-            new DumpModeListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintSuccessListener(
-            new PrintSuccessListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetRegularOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedDiagnosticChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerDumpToFileNameListener(
-            new SetToDefaultSourceListener(&d_managedDumpChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetReplayLogFilename(
-            new SetToDefaultSourceListener(&d_managedReplayLog), true));
+      // These do need registration calls.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDepthListener(
+              new SetDefaultExprDepthListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDagListener(
+              new SetDefaultExprDagListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintExprTypesListener(
+              new SetPrintExprTypesListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
+                                                         true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintSuccessListener(
+              new PrintSuccessListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetRegularOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
+              true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerDumpToFileNameListener(
+              new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetReplayLogFilename(
+              new SetToDefaultSourceListener(&d_managedReplayLog), true));
+    }
+    catch (OptionException& e)
+    {
+      // Registering the option listeners can lead to OptionExceptions, e.g.
+      // when the user chooses a dump tag that does not exist. In that case, we
+      // have to make sure that we delete existing listener registrations and
+      // that we unsubscribe from NodeManager events. Otherwise we will have
+      // errors in the deconstructors of the NodeManager (because the
+      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
+      // and the ListenerCollection (because not all registrations have been
+      // removed before calling the deconstructor).
+      delete d_listenerRegistrations;
+      d_smt.d_nodeManager->unsubscribeEvents(this);
+      throw OptionException(e.getRawMessage());
+    }
   }
 
   ~SmtEnginePrivate()
@@ -1235,7 +1253,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceModelCores())
+       || options::modelCoresMode() != MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1432,7 +1450,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || options::produceModelCores() || is_sygus))
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -1909,7 +1927,9 @@ void SmtEngine::setDefaults() {
     }
     if (options::sygusStream())
     {
-      // PBE and streaming modes are incompatible
+      // Streaming is incompatible with techniques that focus the search towards
+      // finding a single solution. This currently includes the PBE solver and
+      // static template inference for invariant synthesis.
       if (!options::sygusSymBreakPbe.wasSetByUser())
       {
         options::sygusSymBreakPbe.set(false);
@@ -1917,6 +1937,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+      }
+      if (!options::sygusInvTemplMode.wasSetByUser())
+      {
+        options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
       }
     }
     //do not allow partial functions
@@ -4263,12 +4287,12 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getModel();
 
-  if (options::produceModelCores())
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder::setModelCore(easserts, m);
+    ModelCoreBuilder::setModelCore(easserts, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
