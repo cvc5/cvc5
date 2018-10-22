@@ -51,6 +51,15 @@ public:
   TermCache();
   /** initialize this cache */
   void initialize(TypeNode tn, TermDbSygus * tds);
+  /** get num constructor classes */
+  unsigned getNumConstructorClasses() const;
+  /** get constructor class */
+  void getConstructorClass( unsigned i, std::vector< unsigned >& cclass ) const;
+  /** get types for constructor class */
+  void getTypesForConstructorClass( unsigned i, std::vector< TypeNode >& types ) const;
+  /** get child for constructor */
+  void getChildIndicesForConstructor( unsigned i, std::vector< unsigned >& cindices ) const;  
+  
   /** 
    * Add sygus term n to this cache, return true if the term was unique based
    * on the redundancy criteria used by this class. 
@@ -72,6 +81,17 @@ private:
   TypeNode d_tn;
   /** pointer to term database sygus */
   TermDbSygus * d_tds;
+  //-------------------------static information about type
+  /** number of constructor classes */
+  unsigned d_numConClasses;
+  /** constructor classes */
+  std::map< unsigned, std::vector< unsigned > > d_ccToCons;
+  /** maps constructor classes to children types */
+  std::map< unsigned, std::vector< TypeNode > > d_ccToTypes;
+  /** constructor to indices */
+  std::map< unsigned, std::vector< unsigned > > d_cToCIndices;
+  //-------------------------end static information about type
+  
   /** the list of sygus terms we have enumerated */
 std::vector< Node > d_terms;
 /** the set of builtin terms corresponding to the above list */
@@ -111,10 +131,22 @@ bool d_hasSizeBound;
 unsigned d_sizeLim;
 
 //----------------------------------------------- for master enumerators
-/** the current constructor we are using */
+/** the next constructor class we are using */
+unsigned d_consClassNum;
+/** the constructors in the current constructor class */
+std::vector< unsigned > d_ccCons;
+/** the types of the current constructor class */
+std::vector< TypeNode > d_ccTypes;
+/** 1 + the current index in the above vector we are considering */
 unsigned d_consNum;
 /** the child enumerators for this enumerator */
 std::map< unsigned, TermEnum > d_children;
+/** the current sum of child sizes */
+unsigned d_currChildSize;
+/** children valid */
+unsigned d_childrenValid;
+/** initialize child */
+bool initializeChild( unsigned i );
 //----------------------------------------------- end for master enumerators
 //----------------------------------------------- for non-master enumerators
 /** the current index in the term cache we are considering */
