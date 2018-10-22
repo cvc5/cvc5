@@ -87,6 +87,7 @@ class SygusEnumerator : public EnumValGenerator
     Node getTerm(unsigned index) const;
     /** get the number of terms */
     unsigned getNumTerms() const;
+
    private:
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
@@ -121,9 +122,10 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnum();
-    virtual ~TermEnum(){}
+    virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
     unsigned getCurrentSize();
+
    protected:
     /** pointer to the sygus enumerator class */
     SygusEnumerator* d_se;
@@ -135,7 +137,7 @@ class SygusEnumerator : public EnumValGenerator
   class TermEnumMaster;
   class TermEnumSlave : public TermEnum
   {
-  public:
+   public:
     TermEnumSlave();
     bool initialize(SygusEnumerator* se,
                     TypeNode tn,
@@ -143,7 +145,8 @@ class SygusEnumerator : public EnumValGenerator
                     bool sizeExact);
     Node getCurrent();
     bool increment();
-  private:
+
+   private:
     //------------------------------------------- for non-master enumerators
     /** the size limit */
     unsigned d_sizeLim;
@@ -164,10 +167,11 @@ class SygusEnumerator : public EnumValGenerator
   class TermEnumMaster : public TermEnum
   {
    public:
-     TermEnumMaster();
+    TermEnumMaster();
     bool initialize(SygusEnumerator* se, TypeNode tn);
     Node getCurrent();
     bool increment();
+
    private:
     //----------------------------------------------- for master enumerators
     /** the next constructor class we are using */

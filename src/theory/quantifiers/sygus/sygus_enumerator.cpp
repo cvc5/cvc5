@@ -163,14 +163,14 @@ unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
   {
     return 0;
   }
-  Assert( hasIndexForSize(s) );
+  Assert(hasIndexForSize(s));
   std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s - 1);
   return it->second;
 }
 
 bool SygusEnumerator::TermCache::hasIndexForSize(unsigned s) const
 {
-  if( s==0 )
+  if (s == 0)
   {
     return true;
   }
@@ -189,27 +189,19 @@ unsigned SygusEnumerator::TermCache::getNumTerms() const
   return d_terms.size();
 }
 
-
 unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 
-SygusEnumerator::TermEnum::TermEnum()
-    : d_se(nullptr), d_currSize(0)
-{
-}
+SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
-    : TermEnum(),
-      d_sizeLim(0),
-      d_index(0),
-      d_indexNextEnd(0),
-      d_master(nullptr)
+    : TermEnum(), d_sizeLim(0), d_index(0), d_indexNextEnd(0), d_master(nullptr)
 {
 }
 
 bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
-                                           TypeNode tn,
-                                           unsigned sizeLim,
-                                           bool sizeExact)
+                                                TypeNode tn,
+                                                unsigned sizeLim,
+                                                bool sizeExact)
 {
   d_se = se;
   d_tn = tn;
@@ -239,7 +231,6 @@ Node SygusEnumerator::TermEnumSlave::getCurrent()
 
 bool SygusEnumerator::TermEnumSlave::increment()
 {
-
   // increment index
   d_index++;
   // ensure that index is valid
@@ -250,14 +241,14 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // ensure that index is in the range
-  if( d_index>=tc.getNumTerms() )
+  if (d_index >= tc.getNumTerms())
   {
     // must push the master index
     d_master->increment();
     validateIndexNextEnd();
   }
-  
-  if( d_hasIndexNextEnd )
+
+  if (d_hasIndexNextEnd)
   {
     // if we are at the beginning of the next size, increment current size
     while (d_index == d_indexNextEnd)
@@ -279,13 +270,14 @@ void SygusEnumerator::TermEnumSlave::validateIndexNextEnd()
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // update the next end index
   d_hasIndexNextEnd = tc.hasIndexForSize(d_currSize + 1);
-  if( d_hasIndexNextEnd )
+  if (d_hasIndexNextEnd)
   {
     d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
   }
 }
 
-SygusEnumerator::TermEnumMaster* SygusEnumerator::getMasterEnumForType(TypeNode tn)
+SygusEnumerator::TermEnumMaster* SygusEnumerator::getMasterEnumForType(
+    TypeNode tn)
 {
   if (d_masterEnum.find(tn) == d_masterEnum.end())
   {
@@ -344,7 +336,6 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   d_currTerm = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
   return d_currTerm;
 }
-
 
 bool SygusEnumerator::TermEnumMaster::increment()
 {
