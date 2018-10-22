@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Bitvector proof superclass
+ ** \brief Bitvector proof base class
  **
  ** Contains code (e.g. proof printing code) which is common to all bitvector
  *proofs.
