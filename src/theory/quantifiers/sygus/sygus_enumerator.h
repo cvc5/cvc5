@@ -1,4 +1,4 @@
-*/********************                                                        */
+/********************                                                        */
 /*! \file sygus_enumerator.h
  ** \verbatim
  ** Top contributors (to current version):
