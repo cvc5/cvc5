@@ -53,6 +53,7 @@ SygusEnumerator::TermCache::TermCache()
 }
 void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
+  Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
   d_tn = tn;
   d_tds = tds;
   d_sizeStartIndex[0] = 0;
@@ -102,6 +103,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
       }
     }
   }
+  Trace("sygus-enum-debug") << "...finish" << std::endl;
 }
 unsigned SygusEnumerator::TermCache::getNumConstructorClasses() const
 {
@@ -293,6 +295,7 @@ SygusEnumerator::TermEnumMaster::TermEnumMaster()
 bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
                                                  TypeNode tn)
 {
+  Trace("sygus-enum-debug") << "Init enum master " << tn << "..." << std::endl;
   d_se = se;
   d_tn = tn;
 
@@ -301,7 +304,10 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_consClassNum = 0;
   d_ccCons.clear();
   d_isIncrementing = false;
-  return incrementInternal();
+  bool ret = incrementInternal();
+  
+  Trace("sygus-enum-debug") << "...finish" << std::endl;
+  return ret;
 }
 
 Node SygusEnumerator::TermEnumMaster::getCurrent()
@@ -466,7 +472,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
 {
   unsigned initValid = d_childrenValid;
   // while we need to initialize the current child
-  while (d_childrenValid <= d_ccTypes.size())
+  while (d_childrenValid < d_ccTypes.size())
   {
     if (!initializeChild(d_childrenValid))
     {
