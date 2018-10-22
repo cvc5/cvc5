@@ -522,6 +522,8 @@ libcvc4_add_sources(
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
   theory/quantifiers/skolemize.h
+  theory/quantifiers/solution_filter.cpp
+  theory/quantifiers/solution_filter.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
   theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
@@ -823,7 +825,7 @@ install(FILES
           options/printer_modes.h
           options/quantifiers_modes.h
           options/set_language.h
-          options/simplification_mode.h
+          options/smt_modes.h
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION

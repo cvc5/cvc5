@@ -18,7 +18,6 @@ set(libcvc4parser_src_files
   antlr_line_buffered_input.cpp
   antlr_line_buffered_input.h
   antlr_tracing.h
-  antlr_undefines.h
   bounded_token_buffer.cpp
   bounded_token_buffer.h
   bounded_token_factory.cpp
