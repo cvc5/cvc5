@@ -55,3 +55,13 @@ header = "options/decision_options.h"
   handler    = "stringToDecisionWeightInternal"
   read_only  = true
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
+
+[[option]]
+  name       = "handleAndOrEasyCheck2"
+  category   = "expert"
+  long       = "handle-and-or-easy-check2"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "For jh, check whether a child can already justify the parent before the recursive calls."
+

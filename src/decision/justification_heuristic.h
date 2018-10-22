@@ -38,7 +38,15 @@
 namespace CVC4 {
 namespace decision {
 
-class JustificationHeuristic : public ITEDecisionStrategy {
+template <bool ref_count>
+class JustificationHeuristic;
+
+template <bool check2>
+class JustificationHeuristic : public ITEDecisionStrategy
+{
+  friend class JustificationHeuristic<true>;
+  friend class JustificationHeuristic<false>;
+
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
@@ -176,7 +184,10 @@ public:
                         TNode node2, SatValue desiredVal2);
   SearchResult handleITE(TNode node, SatValue desiredVal);
   SearchResult handleEmbeddedITEs(TNode node);
-};/* class JustificationHeuristic */
+}; /* class JustificationHeuristic */
+
+typedef JustificationHeuristic<true> JustificationHeuristicNoCheck;
+typedef JustificationHeuristic<false> JustificationJeuristicCheck2;
 
 }/* namespace decision */
 }/* namespace CVC4 */
