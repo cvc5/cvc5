@@ -81,9 +81,12 @@ class SygusEnumerator : public EnumValGenerator
     unsigned getEnumSize() const;
     /** get the index at which size s terms start */
     unsigned getIndexForSize(unsigned s) const;
+    /** has index at which size s terms start */
+    bool hasIndexForSize(unsigned s) const;
     /** get the index^th term successfully added to this cache */
     Node getTerm(unsigned index) const;
-
+    /** get the number of terms */
+    unsigned getNumTerms() const;
    private:
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
@@ -118,29 +121,54 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnum();
-    bool initializeMaster(SygusEnumerator* se, TypeNode tn);
+    virtual ~TermEnum(){}
+    /** get the current size of terms we are enumerating */
+    unsigned getCurrentSize();
+   protected:
+    /** pointer to the sygus enumerator class */
+    SygusEnumerator* d_se;
+    /** the (sygus) type of terms we are enumerating */
+    TypeNode d_tn;
+    /** the current size of terms we are enumerating */
+    unsigned d_currSize;
+  };
+  class TermEnumMaster;
+  class TermEnumSlave : public TermEnum
+  {
+  public:
+    TermEnumSlave();
     bool initialize(SygusEnumerator* se,
                     TypeNode tn,
                     unsigned sizeLim,
                     bool sizeExact);
     Node getCurrent();
-    unsigned getCurrentSize();
     bool increment();
-
-   private:
-    /** pointer to the sygus enumerator class */
-    SygusEnumerator* d_se;
-    /** are we a "master" enumerator?
-     *
-     */
-    bool d_isMaster;
-    /** the (sygus) type of terms we are enumerating */
-    TypeNode d_tn;
-    /** the current size of terms we are enumerating */
-    unsigned d_currSize;
+  private:
+    //------------------------------------------- for non-master enumerators
     /** the size limit */
     unsigned d_sizeLim;
-
+    /** the current index in the term cache we are considering */
+    unsigned d_index;
+    /** the end index in the term cache */
+    unsigned d_indexNextEnd;
+    /** has next index end */
+    bool d_hasIndexNextEnd;
+    /** master enum */
+    TermEnumMaster* d_master;
+    /** validate index */
+    bool validateIndex();
+    /** validate next end index */
+    void validateIndexNextEnd();
+    //------------------------------------------- end for non-master enumerators
+  };
+  class TermEnumMaster : public TermEnum
+  {
+   public:
+     TermEnumMaster();
+    bool initialize(SygusEnumerator* se, TypeNode tn);
+    Node getCurrent();
+    bool increment();
+   private:
     //----------------------------------------------- for master enumerators
     /** the next constructor class we are using */
     unsigned d_consClassNum;
@@ -151,7 +179,7 @@ class SygusEnumerator : public EnumValGenerator
     /** 1 + the current index in the above vector we are considering */
     unsigned d_consNum;
     /** the child enumerators for this enumerator */
-    std::map<unsigned, TermEnum> d_children;
+    std::map<unsigned, TermEnumSlave> d_children;
     /** the current term */
     Node d_currTerm;
     /** the current sum of child sizes */
@@ -163,26 +191,15 @@ class SygusEnumerator : public EnumValGenerator
     /** initialize child */
     bool initializeChild(unsigned i);
     //----------------------------------------------- end for master enumerators
-    //----------------------------------------------- for non-master enumerators
-    /** the current index in the term cache we are considering */
-    unsigned d_index;
-    /** the end index in the term cache */
-    unsigned d_indexNextEnd;
-    /** master enum */
-    TermEnum* d_master;
-    /** set next end index */
-    bool setNextEndIndex();
-    //----------------------------------------------- end for non-master
-    // enumerators
   };
   /** the master enumerator for each type */
-  std::map<TypeNode, TermEnum> d_masterEnum;
+  std::map<TypeNode, TermEnumMaster> d_masterEnum;
   /** the top-level type */
   TypeNode d_etype;
   /** pointer to the top-level enumerator */
-  TermEnum* d_tlEnum;
+  TermEnumMaster* d_tlEnum;
   /** get master enumerator for type */
-  TermEnum* getMasterEnumForType(TypeNode tn);
+  TermEnumMaster* getMasterEnumForType(TypeNode tn);
 };
 
 }  // namespace quantifiers
