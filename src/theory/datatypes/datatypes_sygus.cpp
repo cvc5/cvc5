@@ -1100,11 +1100,13 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
         bool ptDisequal = false;
         unsigned pt_index = 0;
         Node bve, bvre;
-        for( unsigned i=0, npoints = its->second.getNumSamplePoints(); i<npoints; i++ )
+        for (unsigned i = 0, npoints = its->second.getNumSamplePoints();
+             i < npoints;
+             i++)
         {
-          bve = its->second.evaluate(bv,i);
-          bvre = its->second.evaluate(bvr,i);
-          if( bve!=bvre )
+          bve = its->second.evaluate(bv, i);
+          bvre = its->second.evaluate(bvr, i);
+          if (bve != bvre)
           {
             ptDisequal = true;
             pt_index = i;
@@ -1128,11 +1130,11 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
           for (unsigned i = 0, size = pt.size(); i < size; i++)
           {
             (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
-                    << std::endl;
+                   << std::endl;
           }
           Assert(bve != bvre);
           (*out) << "; unsound: where they evaluate to " << bve << " and "
-                  << bvre << std::endl;
+                 << bvre << std::endl;
 
           if (options::sygusRewVerifyAbort())
           {
