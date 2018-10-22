@@ -28,11 +28,11 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
-#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -759,7 +759,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     else
     {
-      if( options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM )
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
       {
         d_evg[e].reset(new SygusEnumerator(d_tds));
       }

@@ -58,7 +58,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
   d_tn = tn;
   d_tds = tds;
-  
+
   // compute static information about tn
 
   // constructor class 0 is reserved for nullary operators
@@ -98,7 +98,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
       // add to constructor class
       d_ccToCons[cclassi].push_back(i);
       // map to child indices
-      for(unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         d_cToCIndices[i].push_back(j);
       }
@@ -275,7 +275,7 @@ bool SygusEnumerator::TermEnum::increment()
       d_currChildSize = 0;
       d_childrenValid = 0;
       // initialize the children in their initial state
-      if( !initializeChildren() )
+      if (!initializeChildren())
       {
         // didn't work, try the next class
       }
@@ -296,13 +296,13 @@ bool SygusEnumerator::TermEnum::increment()
     d_consClassNum = 1;
     return increment();
   }
-  
+
   bool incSuccess = false;
   do
   {
     // the children should be initialized by here
-    Assert( d_childrenValid==d_ccTypes.size() );
-    
+    Assert(d_childrenValid == d_ccTypes.size());
+
     // do we have more constructors for the given children?
     if (d_consNum < d_ccCons.size())
     {
@@ -312,36 +312,36 @@ bool SygusEnumerator::TermEnum::increment()
       return true;
     }
     // finished constructors for this set of children, must increment children
-    
+
     // reset the constructor number
     d_consNum = 0;
 
     // try incrementing the last child until we find one that works
     incSuccess = false;
-    while( !incSuccess && d_childrenValid>0 )
+    while (!incSuccess && d_childrenValid > 0)
     {
-      unsigned i = d_childrenValid-1;
-      Assert(d_children[i].getCurrentSize()<=d_currChildSize);
+      unsigned i = d_childrenValid - 1;
+      Assert(d_children[i].getCurrentSize() <= d_currChildSize);
       d_currChildSize -= d_children[i].getCurrentSize();
-      if( d_children[i].increment() )
+      if (d_children[i].increment())
       {
         d_currChildSize += d_children[i].getCurrentSize();
         // must see if we can initialize the remaining children here
         // if not, there is no use continuing.
-        if( initializeChildren() )
+        if (initializeChildren())
         {
           Assert(d_currChildSize < d_currSize);
           incSuccess = true;
         }
       }
-      if( !incSuccess )
+      if (!incSuccess)
       {
         // current child is out of values
         d_children.erase(i);
         d_childrenValid--;
       }
     }
-  }while( incSuccess );
+  } while (incSuccess);
 
   return false;
 }
@@ -350,14 +350,14 @@ bool SygusEnumerator::TermEnum::initializeChildren()
 {
   unsigned initValid = d_childrenValid;
   // initialize the children
-  while( d_childrenValid<d_ccTypes.size() )
+  while (d_childrenValid < d_ccTypes.size())
   {
-    if( !initializeChild(d_childrenValid) )
+    if (!initializeChild(d_childrenValid))
     {
       // undo
-      while( d_childrenValid>initValid )
+      while (d_childrenValid > initValid)
       {
-        d_children.erase(d_childrenValid-1);
+        d_children.erase(d_childrenValid - 1);
         d_childrenValid--;
       }
       return false;
@@ -386,7 +386,7 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
   }
   unsigned teSize = te.getCurrentSize();
   // fail if the initial children size does not fit d_currSize-1
-  if( teSize+d_currChildSize >= d_currSize )
+  if (teSize + d_currChildSize >= d_currSize)
   {
     d_children.erase(i);
     return false;

@@ -165,7 +165,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the end index in the term cache */
     unsigned d_indexNextEnd;
     //----------------------------------------------- end for non-master
-    //enumerators
+    // enumerators
   };
   /** the top-level enumerator for this class */
   TermEnum d_enum;
