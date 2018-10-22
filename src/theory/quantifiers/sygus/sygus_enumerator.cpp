@@ -58,7 +58,8 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
   d_tn = tn;
   d_tds = tds;
-  // compute constructor classes
+  
+  // compute static information about tn
 
   // constructor class 0 is reserved for nullary operators
   d_ccToCons[0].clear();
@@ -66,6 +67,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 
   d_numConClasses = 1;
   const Datatype& dt = tn.getDatatype();
+  // get argument types for all constructors
   std::map<unsigned, std::vector<TypeNode> > argTypes;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -75,7 +77,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
       argTypes[i].push_back(tn);
     }
   }
-
+  // assign constructors to constructor classes
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     if (argTypes[i].empty())
@@ -85,9 +87,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
     }
     else
     {
-      // get argument types
-
-      // determine which constructor class
+      // determine which constructor class this goes into: currently trivial
       unsigned cclassi = d_numConClasses;
 
       // allocate new constructor class
@@ -98,6 +98,10 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
       // add to constructor class
       d_ccToCons[cclassi].push_back(i);
       // map to child indices
+      for(unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        d_cToCIndices[i].push_back(j);
+      }
     }
   }
 }
@@ -254,7 +258,7 @@ bool SygusEnumerator::TermEnum::increment()
   // the maximum index of a constructor class to consider
   unsigned ncc = d_sizeLim == 0 ? 1 : tc.getNumConstructorClasses();
 
-  // have we initialized the constructor class?
+  // have we initialized the current constructor class?
   while (d_ccCons.empty() && d_consClassNum < ncc)
   {
     // get the list of constructors in the constructor class
