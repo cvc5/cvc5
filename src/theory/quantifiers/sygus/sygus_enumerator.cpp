@@ -26,17 +26,21 @@ SygusEnumerator::SygusEnumerator( TermDbSygus* tds ) : d_tds(tds) {
 
 void SygusEnumerator::initialize(Node e)
 {
-  d_enum.initialize(this,e.getType(),
+  d_enum.initialize(this,e.getType(),false, 0,false);
 }
 
 void SygusEnumerator::addValue(Node v)
 {
-  
+  // do nothing
 }
 
 Node SygusEnumerator::getNext()
 {
-  
+  if( d_enum.increment() )
+  {
+    return d_enum.getCurrent();
+  }
+  return Node::null();
 }
   
 void SygusEnumerator::initializeTermCache( TypeNode tn )
@@ -55,7 +59,7 @@ d_sizeEnum(0)
 }
 void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus * tds)
 {
-  d_type = tn;
+  d_tn = tn;
   d_tds = tds;
 }
 bool SygusEnumerator::TermCache::addTerm(Node n)
@@ -76,7 +80,7 @@ void SygusEnumerator::TermCache::pushEnumSize()
   d_lastSizeIndex[d_sizeEnum] = d_terms.size();
   d_sizeEnum++;
 }
-unsigned SygusEnumerator::TermCache::getEnumSize() {
+unsigned SygusEnumerator::TermCache::getEnumSize() const {
   return d_sizeEnum; 
 }
 unsigned SygusEnumerator::TermCache::getIndexForSize( unsigned s ) const 
@@ -90,30 +94,37 @@ unsigned SygusEnumerator::TermCache::getIndexForSize( unsigned s ) const
   return it->second;
 }
 
+Node  SygusEnumerator::TermCache::getTerm( unsigned index ) const
+{
+  Assert( index<d_terms.size() );
+  return d_terms[index];
+}
+
 SygusEnumerator::TermEnum::TermEnum()
 {
   
 }
 
-void SygusEnumerator::TermEnum::initialize(SygusEnumerator * se, TypeNode tn, unsigned sizeLim, bool sizeExact)
+void SygusEnumerator::TermEnum::initialize(SygusEnumerator * se, TypeNode tn, bool hasSizeLim, unsigned sizeLim, bool sizeExact)
 {
-  se->initialize(tn);
   d_se = se;
-  SygusEnumerator::TermCache& tc = se->d_tcache[tn];
-  if( sizeLim<tc.getEnumSize() )
+  d_tn = tn;
+  d_se->initializeTermCache(d_tn);
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+  d_hasSizeBound = hasSizeLim;
+  d_sizeLim = sizeLim;
+  if( d_hasSizeBound && d_sizeLim<tc.getEnumSize() )
   {
     d_isMaster = false;
-    d_index = 0;
-    if( sizeExact )
-    {
-      d_index = tc.getIndexForSize(sizeLim);
-    }
-    d_indexEnd = tc.getIndexForSize(sizeLim+1);
+    // if the size is exact, we start at the limit
+    d_currSize = sizeExact ? sizeLim : 0;
+    d_index = tc.getIndexForSize(d_currSize);
+    d_indexNextEnd = tc.getIndexForSize(d_currSize+1);
     return;
   }
   d_isMaster = true;
   d_consNum = 0;
-  
+  // populate the children TODO
 }
 
 Node SygusEnumerator::TermEnum::getCurrent()
@@ -121,12 +132,12 @@ Node SygusEnumerator::TermEnum::getCurrent()
   if( !d_isMaster )
   {  
     // lookup in the cache
-    SygusEnumerator::TermCache& tc = se->d_tcache[tn];
+    SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
     return tc.getTerm(d_index);
   }
   // construct based on the children
   std::vector< Node > children;
-  const Datatype& dt = tn.getDatatype();
+  const Datatype& dt = d_tn.getDatatype();
   children.push_back( Node::fromExpr( dt[d_consNum].getConstructor() ) );
   for( std::pair< const unsigned, TermEnum >& c : d_children )
   {
@@ -146,8 +157,21 @@ bool SygusEnumerator::TermEnum::increment()
   {
     // increment index
     d_index++;
-    // are we at 
-    return d_index<d_indexEnd;
+    // if we are at the beginning of the next size, increment current size
+    if( d_index==d_indexNextEnd )
+    {
+      d_currSize++;
+      Assert( d_hasSizeBound );
+      // if we've hit the size limit, return false
+      if( d_currSize==d_sizeLim )
+      {
+        return false;
+      }
+      // update the next end index
+      SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+      d_indexNextEnd = tc.getIndexForSize(d_currSize+1);
+    }
+    return true;
   }
   // try incrementing the last child until success
   

@@ -19,6 +19,8 @@
 
 #include <map>
 #include <unordered_set>
+#include "expr/node.h"
+#include "expr/type_node.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 
@@ -60,12 +62,14 @@ public:
    */
   void pushEnumSize();
   /** Get the current size of terms that we are enumerating */
-  unsigned getEnumSize() { return d_sizeEnum; }
+  unsigned getEnumSize() const;
   /** get the index at which size s terms start */
   unsigned getIndexForSize( unsigned s ) const;
+  /** get the index^th term successfully added to this cache */
+  Node getTerm( unsigned index ) const;
 private:
   /** the sygus type of terms in this cache */
-  TypeNode d_type;
+  TypeNode d_tn;
   /** pointer to term database sygus */
   TermDbSygus * d_tds;
   /** the list of sygus terms we have enumerated */
@@ -86,7 +90,7 @@ class TermEnum
 {
 public:
 TermEnum();
-void initialize(SygusEnumerator * se, TypeNode tn, unsigned sizeLim, bool sizeExact);
+void initialize(SygusEnumerator * se, TypeNode tn, bool hasSizeLim, unsigned sizeLim, bool sizeExact);
 Node getCurrent();
 unsigned getCurrentSize();
 bool increment();
@@ -98,9 +102,13 @@ SygusEnumerator * d_se;
  */
 bool d_isMaster;
 /** the (sygus) type of terms we are enumerating */
-TypeNode d_type;
+TypeNode d_tn;
 /** the current size of terms we are enumerating */
 unsigned d_currSize;
+/** do we have a size bound? */
+bool d_hasSizeBound;
+/** the size limit */
+unsigned d_sizeLim;
 
 //----------------------------------------------- for master enumerators
 /** the current constructor we are using */
@@ -112,11 +120,11 @@ std::map< unsigned, TermEnum > d_children;
 /** the current index in the term cache we are considering */
 unsigned d_index;
 /** the end index in the term cache */
-unsigned d_indexEnd;
+unsigned d_indexNextEnd;
 //----------------------------------------------- end for non-master enumerators
 };
 /** the top-level enumerator for this class */
-//TermEnum d_enum;
+TermEnum d_enum;
 };
 
 } /* CVC4::theory::quantifiers namespace */
