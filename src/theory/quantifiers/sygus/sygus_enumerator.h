@@ -127,6 +127,7 @@ class SygusEnumerator : public EnumValGenerator
     virtual Node getCurrent() = 0;
     /** increment the enumerator */
     virtual bool increment() = 0;
+
    protected:
     /** pointer to the sygus enumerator class */
     SygusEnumerator* d_se;
@@ -149,6 +150,7 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     //------------------------------------------- for non-master enumerators
     /** the size limit */
@@ -179,6 +181,7 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     //----------------------------------------------- for master enumerators
     /** are we currently inside a increment() call? */
