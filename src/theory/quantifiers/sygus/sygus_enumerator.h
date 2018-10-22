@@ -154,6 +154,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currChildSize;
     /** children valid */
     unsigned d_childrenValid;
+    /** initialize children */
+    bool initializeChildren();
     /** initialize child */
     bool initializeChild(unsigned i);
     //----------------------------------------------- end for master enumerators

@@ -291,34 +291,75 @@ bool SygusEnumerator::TermEnum::increment()
     d_consClassNum = 1;
     return increment();
   }
-
-  // are the children valid?
-  if (d_childrenValid)
+  
+  bool incSuccess = false;
+  do
   {
-    // do we have more constructors for the given children?
-    if (d_consNum < d_ccCons.size())
+    // initialize the children
+    if( initializeChildren() )
     {
-      // increment constructor index
-      // we will build for the current constructor and the given children
-      d_consNum++;
-      return true;
-    }
-    // finished constructors for this set of children, must increment children
-  }
+      // do we have more constructors for the given children?
+      if (d_consNum < d_ccCons.size())
+      {
+        // increment constructor index
+        // we will build for the current constructor and the given children
+        d_consNum++;
+        return true;
+      }
+      
+      // finished constructors for this set of children, must increment children
+      
+      // reset the constructor number
+      d_consNum = 0;
 
-  // try incrementing the last child until success
+      // try incrementing the last child until we find one that works
+      incSuccess = false;
+      while( !incSuccess && d_childrenValid>0 )
+      {
+        unsigned i = d_childrenValid-1;
+        Assert(d_children[i].getCurrentSize()<=d_currChildSize);
+        d_currChildSize -= d_children[i].getCurrentSize();
+        if( d_children[i].increment() )
+        {
+          d_currChildSize += d_children[i].getCurrentSize();
+          Assert(d_currChildSize < d_currSize);
+          incSuccess = true;
+        }
+        else
+        {
+          // current child is out of children
+          d_children.erase(i);
+          d_childrenValid--;
+        }
+      }
+    }
+  }while( incSuccess );
 
   return false;
 }
 
+bool SygusEnumerator::TermEnum::initializeChildren()
+{
+  // initialize the children
+  while( d_childrenValid<d_ccTypes.size() )
+  {
+    if( !initializeChild(d_childrenValid) )
+    {
+      return false;
+    }
+    d_childrenValid++;
+  }
+  return true;
+}
+
 bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
 {
-  Assert(d_currChildSize <= (d_currSize - 1));
+  Assert(d_currChildSize < d_currSize);
   TermEnum& te = d_children[i];
   // if we are the last child
   if (i + 1 == d_ccTypes.size())
   {
-    // initialize the child to enumerate exactly the terms
+    // initialize the child to enumerate exactly the terms that sum to size
     te.initialize(
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, true);
   }
@@ -329,8 +370,12 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
   }
   // fail if the initial children size does not fit d_currSize-1
+  if( te.getCurrentSize()+d_currChildSize >= d_currSize )
+  {
+    return false;
+  }
   d_currChildSize += te.getCurrentSize();
-  return d_currChildSize < d_currSize;
+  return true;
 }
 
 }  // namespace quantifiers
