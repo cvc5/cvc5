@@ -125,7 +125,10 @@ class SygusEnumerator : public EnumValGenerator
     virtual ~TermEnum() {}
     /** get the current size of terms we are enumerating */
     unsigned getCurrentSize();
-
+    /** get the current term of the enumerator */
+    virtual Node getCurrent() = 0;
+    /** increment the enumerator */
+    virtual bool increment() = 0;
    protected:
     /** pointer to the sygus enumerator class */
     SygusEnumerator* d_se;
@@ -139,13 +142,15 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnumSlave();
+    /** initialize this enumerator */
     bool initialize(SygusEnumerator* se,
                     TypeNode tn,
                     unsigned sizeLim,
                     bool sizeExact);
-    Node getCurrent();
-    bool increment();
-
+    /** get the current term of the enumerator */
+    Node getCurrent() override;
+    /** increment the enumerator */
+    bool increment() override;
    private:
     //------------------------------------------- for non-master enumerators
     /** the size limit */
@@ -168,10 +173,12 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnumMaster();
+    /** initialize this enumerator */
     bool initialize(SygusEnumerator* se, TypeNode tn);
-    Node getCurrent();
-    bool increment();
-
+    /** get the current term of the enumerator */
+    Node getCurrent() override;
+    /** increment the enumerator */
+    bool increment() override;
    private:
     //----------------------------------------------- for master enumerators
     /** the next constructor class we are using */
