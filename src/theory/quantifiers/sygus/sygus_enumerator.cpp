@@ -45,15 +45,6 @@ Node SygusEnumerator::getNext()
   return Node::null();
 }
 
-void SygusEnumerator::initializeTermCache(TypeNode tn)
-{
-  std::map<TypeNode, TermCache>::iterator itt = d_tcache.find(tn);
-  if (itt == d_tcache.end())
-  {
-    d_tcache[tn].initialize(tn, d_tds);
-  }
-}
-
 SygusEnumerator::TermCache::TermCache()
     : d_tds(nullptr), d_numConClasses(0), d_sizeEnum(0)
 {
@@ -62,6 +53,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
   d_tn = tn;
   d_tds = tds;
+  d_lastSizeIndex[0] = 0;
 
   // compute static information about tn
 
@@ -153,17 +145,14 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
 }
 void SygusEnumerator::TermCache::pushEnumSizeIndex()
 {
-  d_lastSizeIndex[d_sizeEnum] = d_terms.size();
   d_sizeEnum++;
+  d_lastSizeIndex[d_sizeEnum] = d_terms.size();
 }
 unsigned SygusEnumerator::TermCache::getEnumSize() const { return d_sizeEnum; }
 unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
 {
-  if (s == 0)
-  {
-    return 0;
-  }
-  std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s - 1);
+  Assert( s<=d_sizeEnum );
+  std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s);
   Assert( it!=d_lastSizeIndex.end() );
   return it->second;
 }
@@ -194,7 +183,6 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
 {
   d_se = se;
   d_tn = tn;
-  d_se->initializeTermCache(d_tn);
   d_sizeLim = sizeLim;
 
   // must have pointer to the master
@@ -204,8 +192,16 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
   // if the size is exact, we start at the limit
   d_currSize = sizeExact ? sizeLim : 0;
   // initialize the index
+  while( d_currSize>tc.getEnumSize() )
+  {
+    // increment the master until we have enough terms
+    if( !d_master->increment() )
+    {
+      return false;
+    }
+  }
   d_index = tc.getIndexForSize(d_currSize);
-  // initialize the next end index
+  // initialize the next end index (marks where size increments)
   validateIndexNextEnd();
   // ensure that indexNextEnd is valid (it must be greater than d_index)
   return validateIndex();
@@ -233,7 +229,10 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   if (d_index >= tc.getNumTerms())
   {
     // must push the master index
-    d_master->increment();
+    if( !d_master->increment() )
+    {
+      return false;
+    }
     validateIndexNextEnd();
   }
 
@@ -270,6 +269,9 @@ SygusEnumerator::TermEnumMaster* SygusEnumerator::getMasterEnumForType(
 {
   if (d_masterEnum.find(tn) == d_masterEnum.end())
   {
+    // initialize the term cache
+    d_tcache[tn].initialize(tn, d_tds);
+    // initialize the master enumerator
     bool ret = d_masterEnum[tn].initialize(this, tn);
     AlwaysAssert(ret);
   }
@@ -291,7 +293,6 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
 {
   d_se = se;
   d_tn = tn;
-  d_se->initializeTermCache(d_tn);
 
   d_currSize = 0;
   // we will start with constructor class zero
