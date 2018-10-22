@@ -32,6 +32,7 @@
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -758,7 +759,14 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     else
     {
-      d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      if( options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM )
+      {
+        d_evg[e].reset(new SygusEnumerator(d_tds));
+      }
+      else
+      {
+        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      }
     }
     Trace("sygus-active-gen")
         << "Active-gen: initialize for " << e << std::endl;

@@ -266,14 +266,19 @@ bool SygusEnumerator::TermEnum::increment()
     // if there are any...
     if (!d_ccCons.empty())
     {
-      d_consNum = 0;
       // successfully initialized the constructor class
-      // now we must populate the children
+      d_consNum = 0;
+      // we will populate the children
       Assert(d_children.empty());
       Assert(d_ccTypes.empty());
       tc.getTypesForConstructorClass(d_consClassNum, d_ccTypes);
       d_currChildSize = 0;
       d_childrenValid = 0;
+      // initialize the children in their initial state
+      if( !initializeChildren() )
+      {
+        // didn't work, try the next class
+      }
     }
     d_consClassNum++;
   }
@@ -295,42 +300,45 @@ bool SygusEnumerator::TermEnum::increment()
   bool incSuccess = false;
   do
   {
-    // initialize the children
-    if( initializeChildren() )
+    // the children should be initialized by here
+    Assert( d_childrenValid==d_ccTypes.size() );
+    
+    // do we have more constructors for the given children?
+    if (d_consNum < d_ccCons.size())
     {
-      // do we have more constructors for the given children?
-      if (d_consNum < d_ccCons.size())
-      {
-        // increment constructor index
-        // we will build for the current constructor and the given children
-        d_consNum++;
-        return true;
-      }
-      
-      // finished constructors for this set of children, must increment children
-      
-      // reset the constructor number
-      d_consNum = 0;
+      // increment constructor index
+      // we will build for the current constructor and the given children
+      d_consNum++;
+      return true;
+    }
+    // finished constructors for this set of children, must increment children
+    
+    // reset the constructor number
+    d_consNum = 0;
 
-      // try incrementing the last child until we find one that works
-      incSuccess = false;
-      while( !incSuccess && d_childrenValid>0 )
+    // try incrementing the last child until we find one that works
+    incSuccess = false;
+    while( !incSuccess && d_childrenValid>0 )
+    {
+      unsigned i = d_childrenValid-1;
+      Assert(d_children[i].getCurrentSize()<=d_currChildSize);
+      d_currChildSize -= d_children[i].getCurrentSize();
+      if( d_children[i].increment() )
       {
-        unsigned i = d_childrenValid-1;
-        Assert(d_children[i].getCurrentSize()<=d_currChildSize);
-        d_currChildSize -= d_children[i].getCurrentSize();
-        if( d_children[i].increment() )
+        d_currChildSize += d_children[i].getCurrentSize();
+        // must see if we can initialize the remaining children here
+        // if not, there is no use continuing.
+        if( initializeChildren() )
         {
-          d_currChildSize += d_children[i].getCurrentSize();
           Assert(d_currChildSize < d_currSize);
           incSuccess = true;
         }
-        else
-        {
-          // current child is out of children
-          d_children.erase(i);
-          d_childrenValid--;
-        }
+      }
+      if( !incSuccess )
+      {
+        // current child is out of values
+        d_children.erase(i);
+        d_childrenValid--;
       }
     }
   }while( incSuccess );
@@ -340,11 +348,18 @@ bool SygusEnumerator::TermEnum::increment()
 
 bool SygusEnumerator::TermEnum::initializeChildren()
 {
+  unsigned initValid = d_childrenValid;
   // initialize the children
   while( d_childrenValid<d_ccTypes.size() )
   {
     if( !initializeChild(d_childrenValid) )
     {
+      // undo
+      while( d_childrenValid>initValid )
+      {
+        d_children.erase(d_childrenValid-1);
+        d_childrenValid--;
+      }
       return false;
     }
     d_childrenValid++;
@@ -369,12 +384,14 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
     te.initialize(
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
   }
+  unsigned teSize = te.getCurrentSize();
   // fail if the initial children size does not fit d_currSize-1
-  if( te.getCurrentSize()+d_currChildSize >= d_currSize )
+  if( teSize+d_currChildSize >= d_currSize )
   {
+    d_children.erase(i);
     return false;
   }
-  d_currChildSize += te.getCurrentSize();
+  d_currChildSize += teSize;
   return true;
 }
 
