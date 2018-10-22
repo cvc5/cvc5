@@ -122,6 +122,9 @@ class BitVectorProof : public TheoryProof
   void printOwnedTerm(Expr term,
                       std::ostream& os,
                       const ProofLetMap& map) override;
+
+  void printOwnedSort(Type type, std::ostream& os) override;
+
   /**
    * Populate the d_atomsInBitblastingProof member.
    * See its documentation
@@ -172,8 +175,6 @@ class BitVectorProof : public TheoryProof
   void printPredicate(Expr term, std::ostream& os, const ProofLetMap& map);
   void printOperatorParametric(Expr term, std::ostream& os, const ProofLetMap& map);
   void printBitOf(Expr term, std::ostream& os, const ProofLetMap& map);
-
-  void printOwnedSort(Type type, std::ostream& os) override;
 
   /**
    * Prints the LFSC construction of a bblast_term for `term`
