@@ -289,6 +289,7 @@ SygusEnumerator::TermEnumMaster* SygusEnumerator::getMasterEnumForType(
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
+      d_isIncrementing(false),
       d_consClassNum(0),
       d_consNum(0),
       d_currChildSize(0),
@@ -307,7 +308,8 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   // we will start with constructor class zero
   d_consClassNum = 0;
   d_ccCons.clear();
-  return increment();
+  d_isIncrementing = false;
+  return incrementInternal();
 }
 
 Node SygusEnumerator::TermEnumMaster::getCurrent()
@@ -338,6 +340,26 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
 }
 
 bool SygusEnumerator::TermEnumMaster::increment()
+{
+  // am I already incrementing? if so, fail
+  if( d_isIncrementing )
+  {
+    return false;
+  }
+  // This is to break infinite loops for slave enumerators who request an
+  // increment() from the master enumerator of their type that is also their
+  // parent. This ensures we do not loop on a grammar like:
+  //   A -> -( A ) | B+B
+  //   B -> x | y
+  // where we require the first term enumerated to be over B+B.
+  // Set that we are incrementing
+  d_isIncrementing = true;
+  bool ret = incrementInternal();
+  d_isIncrementing = false;
+  return ret;
+}
+
+bool SygusEnumerator::TermEnumMaster::incrementInternal()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
 
@@ -385,7 +407,7 @@ bool SygusEnumerator::TermEnumMaster::increment()
 
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
-    return increment();
+    return incrementInternal();
   }
 
   bool incSuccess = false;
@@ -445,7 +467,7 @@ bool SygusEnumerator::TermEnumMaster::increment()
   // restart with the next constructor class
   d_ccCons.clear();
   d_ccTypes.clear();
-  return increment();
+  return incrementInternal();
 }
 
 bool SygusEnumerator::TermEnumMaster::initializeChildren()

@@ -167,6 +167,8 @@ class SygusEnumerator : public EnumValGenerator
     bool validateIndex();
     /** validate next end index */
     void validateIndexNextEnd();
+    /** increment the enumerator */
+    bool incrementInternal();
     //------------------------------------------- end for non-master enumerators
   };
   class TermEnumMaster : public TermEnum
@@ -181,6 +183,8 @@ class SygusEnumerator : public EnumValGenerator
     bool increment() override;
    private:
     //----------------------------------------------- for master enumerators
+    /** are we currently inside a increment() call? */
+    bool d_isIncrementing;
     /** the next constructor class we are using */
     unsigned d_consClassNum;
     /** the constructors in the current constructor class */
@@ -201,6 +205,8 @@ class SygusEnumerator : public EnumValGenerator
     bool initializeChildren();
     /** initialize child */
     bool initializeChild(unsigned i);
+    /** increment internal */
+    bool incrementInternal();
     //----------------------------------------------- end for master enumerators
   };
   /** the master enumerator for each type */
