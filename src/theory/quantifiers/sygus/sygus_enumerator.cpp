@@ -40,7 +40,9 @@ Node SygusEnumerator::getNext()
 {
   if (d_tlEnum->increment())
   {
-    return d_tlEnum->getCurrent();
+    Node ret = d_tlEnum->getCurrent();
+    Trace("sygus-enum") << "Enumerate : " << d_tds->sygusToBuiltin(ret) << std::endl;
+    return ret;
   }
   return Node::null();
 }
@@ -53,7 +55,7 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
   d_tn = tn;
   d_tds = tds;
-  d_lastSizeIndex[0] = 0;
+  d_sizeStartIndex[0] = 0;
 
   // compute static information about tn
 
@@ -146,14 +148,14 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
 void SygusEnumerator::TermCache::pushEnumSizeIndex()
 {
   d_sizeEnum++;
-  d_lastSizeIndex[d_sizeEnum] = d_terms.size();
+  d_sizeStartIndex[d_sizeEnum] = d_terms.size();
 }
 unsigned SygusEnumerator::TermCache::getEnumSize() const { return d_sizeEnum; }
 unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
 {
   Assert(s <= d_sizeEnum);
-  std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s);
-  Assert(it != d_lastSizeIndex.end());
+  std::map<unsigned, unsigned>::const_iterator it = d_sizeStartIndex.find(s);
+  Assert(it != d_sizeStartIndex.end());
   return it->second;
 }
 Node SygusEnumerator::TermCache::getTerm(unsigned index) const

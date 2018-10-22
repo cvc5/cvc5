@@ -107,7 +107,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the set of builtin terms corresponding to the above list */
     std::unordered_set<Node, NodeHashFunction> d_bterms;
     /** the index of first term of each size, if it exists */
-    std::map<unsigned, unsigned> d_lastSizeIndex;
+    std::map<unsigned, unsigned> d_sizeStartIndex;
     /** the maximum size of terms we have stored in this cache so far */
     unsigned d_sizeEnum;
   };
