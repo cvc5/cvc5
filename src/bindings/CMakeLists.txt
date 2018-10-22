@@ -3,6 +3,13 @@ if(NOT ENABLE_SHARED)
 endif()
 
 find_package(SWIG 3.0.0 REQUIRED)
+
+if(USE_PYTHON3 AND (SWIG_VERSION VERSION_EQUAL 3.0.8))
+  message(FATAL_ERROR
+    "\nSWIG ${SWIG_VERSION} is not supported for python3 bindings because of the following bug: https://github.com/swig/swig/issues/588
+Please downgrade to 3.0.0-3.0.7 or upgrade.")
+endif()
+
 include(${SWIG_USE_FILE})
 
 set(CVC4_SWIG_INTERFACE ${PROJECT_SOURCE_DIR}/src/cvc4.i)
