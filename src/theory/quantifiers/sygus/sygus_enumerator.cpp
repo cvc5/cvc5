@@ -25,7 +25,7 @@ SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds) {}
 void SygusEnumerator::initialize(Node e)
 {
   bool ret = d_enum.initialize(this, e.getType(), false, 0, false);
-  AlwaysAssert( ret );
+  AlwaysAssert(ret);
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -256,7 +256,7 @@ bool SygusEnumerator::TermEnum::increment()
     // ensure that size and the next end index are valid
     return setNextEndIndex();
   }
-  
+
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
 
   // the maximum index of a constructor class to consider
@@ -418,7 +418,7 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
     init = te.initialize(
         d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
   }
-  if( !init )
+  if (!init)
   {
     // failed to initialize
     d_children.erase(i);
