@@ -28,14 +28,9 @@
  ** are not split across multiple lines).
  **/
 
-// We rely on the inclusion of #include <antlr3.h> in
-//   "parser/antlr_line_buffered_input.h".
-// This is avoid having to undefine the symbols in <antlr3.h>.
-// See the documentation in "parser/antlr_undefines.h" for more
-// details.
-
 #include "parser/antlr_line_buffered_input.h"
 
+#include <antlr3.h>
 #include <iostream>
 #include <string>
 #include <cassert>

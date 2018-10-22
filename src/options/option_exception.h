@@ -31,10 +31,20 @@ namespace CVC4 {
  */
 class CVC4_PUBLIC OptionException : public CVC4::Exception {
  public:
-  OptionException(const std::string& s)
-      : CVC4::Exception("Error in option parsing: " + s)
+  OptionException(const std::string& s) : CVC4::Exception(s_errPrefix + s) {}
+
+  /**
+   * Get the error message without the prefix that is automatically added for
+   * OptionExceptions.
+   */
+  std::string getRawMessage() const
   {
+    return getMessage().substr(s_errPrefix.size());
   }
+
+ private:
+  /** The string to be added in front of the actual error message */
+  static const std::string s_errPrefix;
 };/* class OptionException */
 
 /**

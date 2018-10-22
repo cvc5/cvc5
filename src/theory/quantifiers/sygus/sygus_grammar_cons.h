@@ -108,6 +108,12 @@ public:
    * functions-to-synthesize of sygus conjecture q.
    */
   static bool hasSyntaxRestrictions(Node q);
+  /**
+   * Make the builtin constants for type "type" that should be included in a
+   * sygus grammar, add them to vector ops.
+   */
+  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine * d_qe;
@@ -124,8 +130,6 @@ public:
   //---------------- grammar construction
   // helper for mkSygusDefaultGrammar (makes unresolved type for mutually recursive datatype construction)
   static TypeNode mkUnresolvedType(const std::string& name, std::set<Type>& unres);
-  // make the builtin constants for type type that should be included in a sygus grammar
-  static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
   // collect the list of types that depend on type range
   static void collectSygusGrammarTypesFor( TypeNode range, std::vector< TypeNode >& types, std::map< TypeNode, std::vector< DatatypeConstructorArg > >& sels );
   /** helper function for function mkSygusDefaultType

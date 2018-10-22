@@ -18,6 +18,9 @@
 #ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 #define __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
+#include <utility>
+#include <vector>
+
 #include "theory/rewriter.h"
 #include "theory/type_enumerator.h"
 #include "expr/attribute.h"
@@ -452,6 +455,19 @@ class TheoryStringsRewriter {
    * the call checkArithEntail( len( a ), true ).
    */
   static bool checkEntailNonEmpty(Node a);
+
+  /**
+   * Checks whether string has at most/exactly length one. Length one strings
+   * can be used for more aggressive rewriting because there is guaranteed that
+   * it cannot be overlap multiple components in a string concatenation.
+   *
+   * @param s The string to check
+   * @param strict If true, the string must have exactly length one, otherwise
+   * at most length one
+   * @return True if the string has at most/exactly length one, false otherwise
+   */
+  static bool checkEntailLengthOne(Node s, bool strict = false);
+
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */
@@ -465,6 +481,39 @@ class TheoryStringsRewriter {
    * Returns true if it is always the case that a >= 0.
    */
   static bool checkEntailArith(Node a, bool strict = false);
+  /** check arithmetic entailment with approximations
+   *
+   * Returns true if it is always the case that a >= 0. We expect that a is in
+   * rewritten form.
+   *
+   * This function uses "approximation" techniques that under-approximate
+   * the value of a for the purposes of showing the entailment holds. For
+   * example, given:
+   *   len( x ) - len( substr( y, 0, len( x ) ) )
+   * Since we know that len( substr( y, 0, len( x ) ) ) <= len( x ), the above
+   * term can be under-approximated as len( x ) - len( x ) = 0, which is >= 0,
+   * and thus the entailment len( x ) - len( substr( y, 0, len( x ) ) ) >= 0
+   * holds.
+   */
+  static bool checkEntailArithApprox(Node a);
+  /** Get arithmetic approximations
+   *
+   * This gets the (set of) arithmetic approximations for term a and stores
+   * them in approx. If isOverApprox is true, these are over-approximations
+   * for the value of a, otherwise, they are underapproximations. For example,
+   * an over-approximation for len( substr( y, n, m ) ) is m; an
+   * under-approximation for indexof( x, y, n ) is -1.
+   *
+   * Notice that this function is not generally recursive (although it may make
+   * a small bounded of recursive calls). Instead, it returns the shape
+   * of the approximations for a. For example, an under-approximation
+   * for the term len( replace( substr( x, 0, n ), y, z ) ) returned by this
+   * function might be len( substr( x, 0, n ) ) - len( y ), where we don't
+   * consider (recursively) the approximations for len( substr( x, 0, n ) ).
+   */
+  static void getArithApproximations(Node a,
+                                     std::vector<Node>& approx,
+                                     bool isOverApprox = false);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
@@ -530,6 +579,12 @@ class TheoryStringsRewriter {
    *   checkEntailArith( a, strict ) = true.
    */
   static Node getConstantArithBound(Node a, bool isLower = true);
+  /** get length for regular expression
+   *
+   * Given regular expression n, if this method returns a non-null value c, then
+   * x in n entails len( x ) = c.
+   */
+  static Node getFixedLengthForRegexp(Node n);
   /** decompose substr chain
    *
    * If s is substr( ... substr( base, x1, y1 ) ..., xn, yn ), then this
@@ -599,6 +654,26 @@ class TheoryStringsRewriter {
    * infer that any of the yi must be empty.
    */
   static Node inferEqsFromContains(Node x, Node y);
+
+  /**
+   * Collects equal-to-empty nodes from a conjunction or a single
+   * node. Returns a list of nodes that are compared to empty nodes
+   * and a boolean that indicates whether all nodes in the
+   * conjunction were a comparison with the empty node. The nodes in
+   * the list are sorted and duplicates removed.
+   *
+   * Examples:
+   *
+   * collectEmptyEqs( (= "" x) ) = { true, [x] }
+   * collectEmptyEqs( (and (= "" x) (= "" y)) ) = { true, [x, y] }
+   * collectEmptyEqs( (and (= "A" x) (= "" y) (= "" y)) ) = { false, [y] }
+   *
+   * @param x The conjunction of equalities or a single equality
+   * @return A pair of a boolean that indicates whether the
+   * conjunction consists only of comparisons to the empty string
+   * and the list of nodes that are compared to the empty string
+   */
+  static std::pair<bool, std::vector<Node> > collectEmptyEqs(Node x);
 };/* class TheoryStringsRewriter */
 
 }/* CVC4::theory::strings namespace */

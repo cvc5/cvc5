@@ -51,11 +51,7 @@
 
 
 
-// These headers must be the first two included.
-// See the documentation in "parser/antlr_undefines.h" for more details.
 #include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
 #include <sstream>
 
 #include "parser/antlr_input.h"

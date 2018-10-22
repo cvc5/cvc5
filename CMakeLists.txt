@@ -280,7 +280,7 @@ if(ENABLE_COVERAGE)
   # into a timeout. As a consequence, the coverage report is not generated. To
   # prevent this we always return with exit code 0 after the ctest command has
   # finished.
-  setup_target_for_coverage_lcov(
+  setup_target_for_coverage_gcovr_html(
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
@@ -433,7 +433,7 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
+configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
