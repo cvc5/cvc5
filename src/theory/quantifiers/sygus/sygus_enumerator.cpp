@@ -20,12 +20,12 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds) {}
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds), d_tlEnum(nullptr){}
 
 void SygusEnumerator::initialize(Node e)
 {
-  bool ret = d_enum.initialize(this, e.getType(), false, 0, false);
-  AlwaysAssert(ret);
+  d_etype = e.getType();
+  d_tlEnum = getMasterEnumForType(d_etype);
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -35,9 +35,9 @@ void SygusEnumerator::addValue(Node v)
 
 Node SygusEnumerator::getNext()
 {
-  if (d_enum.increment())
+  if (d_tlEnum->increment())
   {
-    return d_enum.getCurrent();
+    return d_tlEnum->getCurrent();
   }
   return Node::null();
 }
@@ -148,7 +148,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   }
   return false;
 }
-void SygusEnumerator::TermCache::pushEnumSize()
+void SygusEnumerator::TermCache::pushEnumSizeIndex()
 {
   d_lastSizeIndex[d_sizeEnum] = d_terms.size();
   d_sizeEnum++;
@@ -175,42 +175,51 @@ SygusEnumerator::TermEnum::TermEnum()
     : d_se(nullptr),
       d_isMaster(false),
       d_currSize(0),
-      d_hasSizeBound(false),
       d_sizeLim(0),
       d_consClassNum(0),
       d_consNum(0),
       d_currChildSize(0),
       d_childrenValid(0),
       d_index(0),
-      d_indexNextEnd(0)
+      d_indexNextEnd(0),
+      d_master(nullptr)
 {
 }
 
 bool SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
                                            TypeNode tn,
-                                           bool hasSizeLim,
                                            unsigned sizeLim,
                                            bool sizeExact)
 {
   d_se = se;
   d_tn = tn;
   d_se->initializeTermCache(d_tn);
-  d_hasSizeBound = hasSizeLim;
   d_sizeLim = sizeLim;
+  d_isMaster = false;
+  
+  // must have pointer to the master
+  d_master = d_se->getMasterEnumForType(d_tn);
+  
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  if (d_hasSizeBound && d_sizeLim < tc.getEnumSize())
-  {
-    d_isMaster = false;
-    // if the size is exact, we start at the limit
-    d_currSize = sizeExact ? sizeLim : 0;
-    // initialize the index
-    d_index = tc.getIndexForSize(d_currSize);
-    // initialize the next end index
-    d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
-    // ensure that indexNextEnd is valid (it must be greater than d_index)
-    return setNextEndIndex();
-  }
+  // if the size is exact, we start at the limit
+  d_currSize = sizeExact ? sizeLim : 0;
+  // initialize the index
+  d_index = tc.getIndexForSize(d_currSize);
+  // initialize the next end index
+  d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
+  // ensure that indexNextEnd is valid (it must be greater than d_index)
+  return setNextEndIndex();
+}
+
+bool SygusEnumerator::TermEnum::initializeMaster(SygusEnumerator* se,
+                                           TypeNode tn)
+{
+  d_se = se;
+  d_tn = tn;
+  d_se->initializeTermCache(d_tn);
+  d_sizeLim = 0;
   d_isMaster = true;
+  
   d_currSize = 0;
   // we will start with constructor class zero
   d_consClassNum = 0;
@@ -220,6 +229,10 @@ bool SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnum::getCurrent()
 {
+  if( !d_currTerm.isNull() )
+  {
+    return d_currTerm;
+  }
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   if (!d_isMaster)
   {
@@ -295,11 +308,12 @@ bool SygusEnumerator::TermEnum::increment()
   {
     // increment the size bound
     d_currSize++;
-    if (d_hasSizeBound && d_currSize == d_sizeLim)
-    {
-      // we are at the size bound, we are done
-      return false;
-    }
+    
+    // push the bound
+    tc.pushEnumSizeIndex();
+    
+    // TODO: find "no more values" size?
+    
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
     return increment();
@@ -312,12 +326,18 @@ bool SygusEnumerator::TermEnum::increment()
     Assert(d_childrenValid == d_ccTypes.size() + 1);
 
     // do we have more constructors for the given children?
-    if (d_consNum < d_ccCons.size())
+    while (d_consNum < d_ccCons.size())
     {
       // increment constructor index
       // we will build for the current constructor and the given children
       d_consNum++;
-      return true;
+      d_currTerm = Node::null();
+      d_currTerm = getCurrent();
+      if( tc.addTerm(d_currTerm) )
+      {
+        return true;
+      }
+      // the term was not unique based on rewriting
     }
 
     // finished constructors for this set of children, must increment children
@@ -362,7 +382,6 @@ bool SygusEnumerator::TermEnum::increment()
 bool SygusEnumerator::TermEnum::setNextEndIndex()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  Assert(d_hasSizeBound);
   // if we are at the beginning of the next size, increment current size
   while (d_index == d_indexNextEnd)
   {
@@ -410,13 +429,13 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
   {
     // initialize the child to enumerate exactly the terms that sum to size
     init = te.initialize(
-        d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, true);
+        d_se, d_ccTypes[i], (d_currSize - 1) - d_currChildSize, true);
   }
   else
   {
     // initialize the child to have limit (d_currSize-1)
     init = te.initialize(
-        d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
+        d_se, d_ccTypes[i], (d_currSize - 1) - d_currChildSize, false);
   }
   if (!init)
   {
@@ -433,6 +452,16 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
   }
   d_currChildSize += teSize;
   return true;
+}
+
+SygusEnumerator::TermEnum * SygusEnumerator::getMasterEnumForType( TypeNode tn )
+{
+  if( d_masterEnum.find(tn)==d_masterEnum.end() )
+  {
+    bool ret = d_masterEnum[tn].initializeMaster(this, tn);
+    AlwaysAssert(ret);
+  }
+  return &d_masterEnum[tn];
 }
 
 }  // namespace quantifiers
