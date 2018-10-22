@@ -63,5 +63,5 @@ header = "options/decision_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "For jh, check whether a child can already justify the parent before the recursive calls."
+  help       = "For jh, check whether children can already justify the parent 2 at a time before the recursive calls."
 
