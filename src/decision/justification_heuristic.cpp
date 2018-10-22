@@ -596,15 +596,18 @@ JustificationHeuristic<check2>::handleAndOrEasy(TNode node, SatValue desiredVal)
       std::vector<Node> nodes;
       for (int j = i; j < numChildren && j < i + 2; j++)
       {
+        // check whether the next two children can justify the parent
         TNode curNode = getChildByWeight(node, j, desiredVal);
         SatValue s = tryGetSatValue(curNode);
         if (s == desiredVal && checkJustified(curNode))
         {
+          // If a child is justified and is the same value as the parent
           setJustified(node);
           return NO_SPLITTER;
         }
         if (s != desiredValInverted)
         {
+          // If the child is not the negation of parent, try to justify it
           nodes.push_back(curNode);
         }
       }
