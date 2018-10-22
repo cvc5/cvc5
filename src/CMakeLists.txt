@@ -534,6 +534,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/sygus_enumerator.cpp
+  theory/quantifiers/sygus/sygus_enumerator.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
