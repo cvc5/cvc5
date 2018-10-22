@@ -81,8 +81,6 @@ class SygusEnumerator : public EnumValGenerator
     unsigned getEnumSize() const;
     /** get the index at which size s terms start */
     unsigned getIndexForSize(unsigned s) const;
-    /** has index at which size s terms start */
-    bool hasIndexForSize(unsigned s) const;
     /** get the index^th term successfully added to this cache */
     Node getTerm(unsigned index) const;
     /** get the number of terms */

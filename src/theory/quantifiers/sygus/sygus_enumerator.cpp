@@ -163,21 +163,10 @@ unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
   {
     return 0;
   }
-  Assert(hasIndexForSize(s));
   std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s - 1);
+  Assert( it!=d_lastSizeIndex.end() );
   return it->second;
 }
-
-bool SygusEnumerator::TermCache::hasIndexForSize(unsigned s) const
-{
-  if (s == 0)
-  {
-    return true;
-  }
-  std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s - 1);
-  return it != d_lastSizeIndex.end();
-}
-
 Node SygusEnumerator::TermCache::getTerm(unsigned index) const
 {
   Assert(index < d_terms.size());
@@ -269,7 +258,7 @@ void SygusEnumerator::TermEnumSlave::validateIndexNextEnd()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // update the next end index
-  d_hasIndexNextEnd = tc.hasIndexForSize(d_currSize + 1);
+  d_hasIndexNextEnd = d_currSize<tc.getEnumSize();
   if (d_hasIndexNextEnd)
   {
     d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
