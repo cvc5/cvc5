@@ -20,7 +20,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds), d_tlEnum(nullptr){}
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds)
+    : d_tds(tds), d_tlEnum(nullptr)
+{
+}
 
 void SygusEnumerator::initialize(Node e)
 {
@@ -196,10 +199,10 @@ bool SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
   d_se->initializeTermCache(d_tn);
   d_sizeLim = sizeLim;
   d_isMaster = false;
-  
+
   // must have pointer to the master
   d_master = d_se->getMasterEnumForType(d_tn);
-  
+
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // if the size is exact, we start at the limit
   d_currSize = sizeExact ? sizeLim : 0;
@@ -212,14 +215,14 @@ bool SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
 }
 
 bool SygusEnumerator::TermEnum::initializeMaster(SygusEnumerator* se,
-                                           TypeNode tn)
+                                                 TypeNode tn)
 {
   d_se = se;
   d_tn = tn;
   d_se->initializeTermCache(d_tn);
   d_sizeLim = 0;
   d_isMaster = true;
-  
+
   d_currSize = 0;
   // we will start with constructor class zero
   d_consClassNum = 0;
@@ -229,7 +232,7 @@ bool SygusEnumerator::TermEnum::initializeMaster(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnum::getCurrent()
 {
-  if( !d_currTerm.isNull() )
+  if (!d_currTerm.isNull())
   {
     return d_currTerm;
   }
@@ -308,12 +311,12 @@ bool SygusEnumerator::TermEnum::increment()
   {
     // increment the size bound
     d_currSize++;
-    
+
     // push the bound
     tc.pushEnumSizeIndex();
-    
+
     // TODO: find "no more values" size?
-    
+
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
     return increment();
@@ -333,7 +336,7 @@ bool SygusEnumerator::TermEnum::increment()
       d_consNum++;
       d_currTerm = Node::null();
       d_currTerm = getCurrent();
-      if( tc.addTerm(d_currTerm) )
+      if (tc.addTerm(d_currTerm))
       {
         return true;
       }
@@ -454,9 +457,9 @@ bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
   return true;
 }
 
-SygusEnumerator::TermEnum * SygusEnumerator::getMasterEnumForType( TypeNode tn )
+SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 {
-  if( d_masterEnum.find(tn)==d_masterEnum.end() )
+  if (d_masterEnum.find(tn) == d_masterEnum.end())
   {
     bool ret = d_masterEnum[tn].initializeMaster(this, tn);
     AlwaysAssert(ret);
