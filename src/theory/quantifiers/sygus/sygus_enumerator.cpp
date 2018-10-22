@@ -170,7 +170,8 @@ Node SygusEnumerator::TermCache::getTerm(unsigned index) const
   return d_terms[index];
 }
 
-SygusEnumerator::TermEnum::TermEnum() {}
+SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr),d_isMaster(false),d_currSize(0), d_hasSizeBound(false), d_sizeLim(0),d_consClassNum(0), d_consNum(0), d_currChildSize(0),d_childrenValid(0),d_index(0),d_indexNextEnd(0)
+{}
 
 void SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
                                            TypeNode tn,
@@ -274,25 +275,29 @@ bool SygusEnumerator::TermEnum::increment()
       tc.getTypesForConstructorClass(d_consClassNum, d_ccTypes);
       d_currChildSize = 0;
       d_childrenValid = 0;
-      // initialize the children in their initial state
+      // initialize the children into their initial state
       if (!initializeChildren())
       {
-        // didn't work, try the next class
+        // didn't work (due to size), we will try the next class
+        d_ccCons.clear();
+        d_ccTypes.clear();
       }
     }
+    // increment the next constructor class we will try
     d_consClassNum++;
   }
-  // we have run out of constructor classes
+  
+  // have we run out of constructor classes for this size?
   if (d_ccCons.empty())
   {
     // increment the size bound
     d_currSize++;
     if (d_hasSizeBound && d_currSize == d_sizeLim)
     {
-      // we are at the size bound
+      // we are at the size bound, we are done
       return false;
     }
-    // we now start with constructor class one (skip nullary constructors)
+    // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
     return increment();
   }
@@ -301,7 +306,7 @@ bool SygusEnumerator::TermEnum::increment()
   do
   {
     // the children should be initialized by here
-    Assert(d_childrenValid == d_ccTypes.size());
+    Assert(d_childrenValid == d_ccTypes.size()+1);
 
     // do we have more constructors for the given children?
     if (d_consNum < d_ccCons.size())
@@ -311,6 +316,7 @@ bool SygusEnumerator::TermEnum::increment()
       d_consNum++;
       return true;
     }
+    
     // finished constructors for this set of children, must increment children
 
     // reset the constructor number
@@ -322,6 +328,7 @@ bool SygusEnumerator::TermEnum::increment()
     {
       unsigned i = d_childrenValid - 1;
       Assert(d_children[i].getCurrentSize() <= d_currChildSize);
+      // track the size
       d_currChildSize -= d_children[i].getCurrentSize();
       if (d_children[i].increment())
       {
@@ -343,18 +350,21 @@ bool SygusEnumerator::TermEnum::increment()
     }
   } while (incSuccess);
 
-  return false;
+  // restart with the next constructor class
+  d_ccCons.clear();
+  d_ccTypes.clear();
+  return increment();
 }
 
 bool SygusEnumerator::TermEnum::initializeChildren()
 {
   unsigned initValid = d_childrenValid;
-  // initialize the children
-  while (d_childrenValid < d_ccTypes.size())
+  // while we need to initialize the current child
+  while (d_childrenValid <= d_ccTypes.size())
   {
     if (!initializeChild(d_childrenValid))
     {
-      // undo
+      // undo until previous initialized index
       while (d_childrenValid > initValid)
       {
         d_children.erase(d_childrenValid - 1);
@@ -364,6 +374,7 @@ bool SygusEnumerator::TermEnum::initializeChildren()
     }
     d_childrenValid++;
   }
+  // initialized all children
   return true;
 }
 
