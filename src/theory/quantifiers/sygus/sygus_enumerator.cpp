@@ -19,14 +19,12 @@ using namespace CVC4::kind;
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-  
-SygusEnumerator::SygusEnumerator( TermDbSygus* tds ) : d_tds(tds) {
 
-}
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds) : d_tds(tds) {}
 
 void SygusEnumerator::initialize(Node e)
 {
-  d_enum.initialize(this,e.getType(),false, 0,false);
+  d_enum.initialize(this, e.getType(), false, 0, false);
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -36,53 +34,51 @@ void SygusEnumerator::addValue(Node v)
 
 Node SygusEnumerator::getNext()
 {
-  if( d_enum.increment() )
+  if (d_enum.increment())
   {
     return d_enum.getCurrent();
   }
   return Node::null();
 }
-  
-void SygusEnumerator::initializeTermCache( TypeNode tn )
+
+void SygusEnumerator::initializeTermCache(TypeNode tn)
 {
-  std::map< TypeNode, TermCache >::iterator itt = d_tcache.find(tn);
-  if( itt==d_tcache.end() )
+  std::map<TypeNode, TermCache>::iterator itt = d_tcache.find(tn);
+  if (itt == d_tcache.end())
   {
-    d_tcache[tn].initialize(tn,d_tds);
+    d_tcache[tn].initialize(tn, d_tds);
   }
 }
 
-SygusEnumerator::TermCache::TermCache() : d_tds(nullptr), d_numConClasses(0),
-d_sizeEnum(0)
+SygusEnumerator::TermCache::TermCache()
+    : d_tds(nullptr), d_numConClasses(0), d_sizeEnum(0)
 {
-  
 }
-void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus * tds)
+void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
 {
   d_tn = tn;
   d_tds = tds;
   // compute constructor classes
-  
+
   // constructor class 0 is reserved for nullary operators
   d_ccToCons[0].clear();
   d_ccToTypes[0].clear();
-  
+
   d_numConClasses = 1;
   const Datatype& dt = tn.getDatatype();
-  std::map< unsigned, std::vector< TypeNode > > argTypes;
-  for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ )
+  std::map<unsigned, std::vector<TypeNode> > argTypes;
+  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
-    for( unsigned j=0, nargs = dt[i].getNumArgs(); j<nargs; j++ )
+    for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {
-      TypeNode tn = TypeNode::fromType( dt[i].getArgType(j) );
+      TypeNode tn = TypeNode::fromType(dt[i].getArgType(j));
       argTypes[i].push_back(tn);
     }
   }
-  
-  
-  for( unsigned i=0, ncons = dt.getNumConstructors(); i<ncons; i++ )
+
+  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
-    if( argTypes[i].empty() )
+    if (argTypes[i].empty())
     {
       d_ccToCons[0].push_back(i);
       d_cToCIndices[i].clear();
@@ -93,15 +89,15 @@ void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus * tds)
 
       // determine which constructor class
       unsigned cclassi = d_numConClasses;
-      
+
       // allocate new constructor class
-      d_ccToTypes[cclassi].insert(d_ccToTypes[cclassi].end(), argTypes[i].begin(),argTypes[i].end());
+      d_ccToTypes[cclassi].insert(
+          d_ccToTypes[cclassi].end(), argTypes[i].begin(), argTypes[i].end());
       d_numConClasses++;
-      
+
       // add to constructor class
       d_ccToCons[cclassi].push_back(i);
       // map to child indices
-      
     }
   }
 }
@@ -109,32 +105,37 @@ unsigned SygusEnumerator::TermCache::getNumConstructorClasses() const
 {
   return d_numConClasses;
 }
-void SygusEnumerator::TermCache::getConstructorClass( unsigned i, std::vector< unsigned >& cclass ) const
+void SygusEnumerator::TermCache::getConstructorClass(
+    unsigned i, std::vector<unsigned>& cclass) const
 {
-  std::map< unsigned, std::vector< unsigned > >::const_iterator it = d_ccToCons.find(i);
-  Assert( it!=d_ccToCons.end() );
-  cclass.insert(cclass.end(),it->second.begin(),it->second.end());
-  
+  std::map<unsigned, std::vector<unsigned> >::const_iterator it =
+      d_ccToCons.find(i);
+  Assert(it != d_ccToCons.end());
+  cclass.insert(cclass.end(), it->second.begin(), it->second.end());
 }
-void SygusEnumerator::TermCache::getTypesForConstructorClass( unsigned i, std::vector< TypeNode >& types ) const
+void SygusEnumerator::TermCache::getTypesForConstructorClass(
+    unsigned i, std::vector<TypeNode>& types) const
 {
-  std::map< unsigned, std::vector< TypeNode > >::const_iterator it =  d_ccToTypes.find(i);
-  Assert( it!=d_ccToTypes.end() );
-  types.insert(types.end(),it->second.begin(),it->second.end());
+  std::map<unsigned, std::vector<TypeNode> >::const_iterator it =
+      d_ccToTypes.find(i);
+  Assert(it != d_ccToTypes.end());
+  types.insert(types.end(), it->second.begin(), it->second.end());
 }
-void SygusEnumerator::TermCache::getChildIndicesForConstructor( unsigned i, std::vector< unsigned >& cindices ) const
+void SygusEnumerator::TermCache::getChildIndicesForConstructor(
+    unsigned i, std::vector<unsigned>& cindices) const
 {
-  std::map< unsigned, std::vector< unsigned > >::const_iterator it = d_cToCIndices.find(i);
-  Assert( it!=d_cToCIndices.end() );
-  cindices.insert(cindices.end(),it->second.begin(),it->second.end());
+  std::map<unsigned, std::vector<unsigned> >::const_iterator it =
+      d_cToCIndices.find(i);
+  Assert(it != d_cToCIndices.end());
+  cindices.insert(cindices.end(), it->second.begin(), it->second.end());
 }
-  
+
 bool SygusEnumerator::TermCache::addTerm(Node n)
 {
   Node bn = d_tds->sygusToBuiltin(n);
   bn = d_tds->getExtRewriter()->extendedRewrite(bn);
   // must be unique up to rewriting
-  if( d_bterms.find(bn)==d_bterms.end() )
+  if (d_bterms.find(bn) == d_bterms.end())
   {
     d_terms.push_back(n);
     d_bterms.insert(bn);
@@ -142,37 +143,36 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   }
   return false;
 }
-void SygusEnumerator::TermCache::pushEnumSize() 
+void SygusEnumerator::TermCache::pushEnumSize()
 {
   d_lastSizeIndex[d_sizeEnum] = d_terms.size();
   d_sizeEnum++;
 }
-unsigned SygusEnumerator::TermCache::getEnumSize() const {
-  return d_sizeEnum; 
-}
-unsigned SygusEnumerator::TermCache::getIndexForSize( unsigned s ) const 
-{ 
-  if( s==0 )
+unsigned SygusEnumerator::TermCache::getEnumSize() const { return d_sizeEnum; }
+unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
+{
+  if (s == 0)
   {
     return 0;
   }
-  std::map< unsigned, unsigned >::const_iterator it = d_lastSizeIndex.find(s-1);
-  Assert( it != d_lastSizeIndex.end() );
+  std::map<unsigned, unsigned>::const_iterator it = d_lastSizeIndex.find(s - 1);
+  Assert(it != d_lastSizeIndex.end());
   return it->second;
 }
 
-Node  SygusEnumerator::TermCache::getTerm( unsigned index ) const
+Node SygusEnumerator::TermCache::getTerm(unsigned index) const
 {
-  Assert( index<d_terms.size() );
+  Assert(index < d_terms.size());
   return d_terms[index];
 }
 
-SygusEnumerator::TermEnum::TermEnum()
-{
-  
-}
+SygusEnumerator::TermEnum::TermEnum() {}
 
-void SygusEnumerator::TermEnum::initialize(SygusEnumerator * se, TypeNode tn, bool hasSizeLim, unsigned sizeLim, bool sizeExact)
+void SygusEnumerator::TermEnum::initialize(SygusEnumerator* se,
+                                           TypeNode tn,
+                                           bool hasSizeLim,
+                                           unsigned sizeLim,
+                                           bool sizeExact)
 {
   d_se = se;
   d_tn = tn;
@@ -180,13 +180,13 @@ void SygusEnumerator::TermEnum::initialize(SygusEnumerator * se, TypeNode tn, bo
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   d_hasSizeBound = hasSizeLim;
   d_sizeLim = sizeLim;
-  if( d_hasSizeBound && d_sizeLim<tc.getEnumSize() )
+  if (d_hasSizeBound && d_sizeLim < tc.getEnumSize())
   {
     d_isMaster = false;
     // if the size is exact, we start at the limit
     d_currSize = sizeExact ? sizeLim : 0;
     d_index = tc.getIndexForSize(d_currSize);
-    d_indexNextEnd = tc.getIndexForSize(d_currSize+1);
+    d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
     return;
   }
   d_isMaster = true;
@@ -195,93 +195,90 @@ void SygusEnumerator::TermEnum::initialize(SygusEnumerator * se, TypeNode tn, bo
   d_consClassNum = 0;
   d_ccCons.clear();
   bool ret = increment();
-  AlwaysAssert( ret );
+  AlwaysAssert(ret);
 }
 
 Node SygusEnumerator::TermEnum::getCurrent()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  if( !d_isMaster )
-  {  
+  if (!d_isMaster)
+  {
     // lookup in the cache
     return tc.getTerm(d_index);
   }
   // construct based on the children
-  std::vector< Node > children;
+  std::vector<Node> children;
   const Datatype& dt = d_tn.getDatatype();
-  Assert( d_consNum>0 && d_consNum<=d_ccCons.size() );
+  Assert(d_consNum > 0 && d_consNum <= d_ccCons.size());
   // get the current constructor number
-  unsigned cnum = d_ccCons[d_consNum-1];
-  children.push_back( Node::fromExpr( dt[cnum].getConstructor() ) );
+  unsigned cnum = d_ccCons[d_consNum - 1];
+  children.push_back(Node::fromExpr(dt[cnum].getConstructor()));
   // get indices for this constructor
-  std::vector< unsigned > cindices;
-  tc.getChildIndicesForConstructor(cnum,cindices);
+  std::vector<unsigned> cindices;
+  tc.getChildIndicesForConstructor(cnum, cindices);
   // add the current of each child to children
-  for( unsigned i : cindices )
+  for (unsigned i : cindices)
   {
-    Assert( d_children.find(i)!=d_children.end() );
+    Assert(d_children.find(i) != d_children.end());
     children.push_back(d_children[i].getCurrent());
   }
-  return NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, children );
+  return NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
 }
 
-unsigned SygusEnumerator::TermEnum::getCurrentSize()
-{
-  return d_currSize;
-}
+unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 
 bool SygusEnumerator::TermEnum::increment()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  
-  if( !d_isMaster )
+
+  if (!d_isMaster)
   {
     // increment index
     d_index++;
     // if we are at the beginning of the next size, increment current size
-    if( d_index==d_indexNextEnd )
+    if (d_index == d_indexNextEnd)
     {
       d_currSize++;
-      Assert( d_hasSizeBound );
+      Assert(d_hasSizeBound);
       // if we've hit the size limit, return false
-      if( d_currSize==d_sizeLim )
+      if (d_currSize == d_sizeLim)
       {
         return false;
       }
       // update the next end index
-      d_indexNextEnd = tc.getIndexForSize(d_currSize+1);
+      d_indexNextEnd = tc.getIndexForSize(d_currSize + 1);
     }
     return true;
   }
-  
+
   // the maximum index of a constructor class to consider
-  unsigned ncc = d_sizeLim ==0 ? 1 : tc.getNumConstructorClasses();
-  
+  unsigned ncc = d_sizeLim == 0 ? 1 : tc.getNumConstructorClasses();
+
   // have we initialized the constructor class?
-  while( d_ccCons.empty() && d_consClassNum<ncc )
+  while (d_ccCons.empty() && d_consClassNum < ncc)
   {
     // get the list of constructors in the constructor class
-    tc.getConstructorClass(d_consClassNum,d_ccCons);
+    tc.getConstructorClass(d_consClassNum, d_ccCons);
     // if there are any...
-    if( !d_ccCons.empty() )
+    if (!d_ccCons.empty())
     {
       d_consNum = 0;
       // successfully initialized the constructor class
       // now we must populate the children
-      Assert( d_children.empty() );
-      Assert( d_ccTypes.empty() );
-      tc.getTypesForConstructorClass(d_consClassNum,d_ccTypes);
+      Assert(d_children.empty());
+      Assert(d_ccTypes.empty());
+      tc.getTypesForConstructorClass(d_consClassNum, d_ccTypes);
       d_currChildSize = 0;
       d_childrenValid = 0;
     }
     d_consClassNum++;
   }
   // we have run out of constructor classes
-  if( d_ccCons.empty() )
+  if (d_ccCons.empty())
   {
     // increment the size bound
     d_currSize++;
-    if( d_hasSizeBound && d_currSize==d_sizeLim )
+    if (d_hasSizeBound && d_currSize == d_sizeLim)
     {
       // we are at the size bound
       return false;
@@ -290,12 +287,12 @@ bool SygusEnumerator::TermEnum::increment()
     d_consClassNum = 1;
     return increment();
   }
-  
+
   // are the children valid?
-  if( d_childrenValid )
+  if (d_childrenValid)
   {
     // do we have more constructors for the given children?
-    if( d_consNum<d_ccCons.size() )
+    if (d_consNum < d_ccCons.size())
     {
       // increment constructor index
       // we will build for the current constructor and the given children
@@ -307,32 +304,31 @@ bool SygusEnumerator::TermEnum::increment()
 
   // try incrementing the last child until success
 
-  
-  
-  
   return false;
 }
 
-bool SygusEnumerator::TermEnum::initializeChild( unsigned i )
+bool SygusEnumerator::TermEnum::initializeChild(unsigned i)
 {
-  Assert( d_currChildSize<=(d_currSize-1) );
+  Assert(d_currChildSize <= (d_currSize - 1));
   TermEnum& te = d_children[i];
   // if we are the last child
-  if( i+1==d_ccTypes.size() )
+  if (i + 1 == d_ccTypes.size())
   {
-    // initialize the child to enumerate exactly the terms 
-    te.initialize(d_se,d_ccTypes[i], true, (d_currSize-1)-d_currChildSize, true );
+    // initialize the child to enumerate exactly the terms
+    te.initialize(
+        d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, true);
   }
   else
   {
     // initialize the child to have limit (d_currSize-1)
-    te.initialize(d_se,d_ccTypes[i], true, (d_currSize-1)-d_currChildSize, false );
+    te.initialize(
+        d_se, d_ccTypes[i], true, (d_currSize - 1) - d_currChildSize, false);
   }
   // fail if the initial children size does not fit d_currSize-1
   d_currChildSize += te.getCurrentSize();
-  return d_currChildSize<d_currSize;
+  return d_currChildSize < d_currSize;
 }
 
-} /* CVC4::theory::quantifiers namespace */
-} /* CVC4::theory namespace */
-} /* CVC4 namespace */
+}  // namespace quantifiers
+}  // namespace theory
+}  // namespace CVC4
