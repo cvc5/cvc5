@@ -257,13 +257,15 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   // ensure that index is in the range
   if (d_index >= tc.getNumTerms())
   {
+    Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
     // must push the master index
     if (!d_master->increment())
     {
       Trace("sygus-enum-debug2")
-          << "slave(" << d_tn << ") : fail master enum\n";
+          << "slave(" << d_tn << ") : ...fail force master\n";
       return false;
     }
+    Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : ...success force master\n";
     validateIndexNextEnd();
   }
   Trace("sygus-enum-debug2")
@@ -335,8 +337,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_consClassNum = 0;
   d_ccCons.clear();
   d_isIncrementing = false;
-  bool ret = incrementInternal();
-
+  bool ret = increment();
   Trace("sygus-enum-debug") << "master(" << tn << "): finish init\n";
   return ret;
 }
@@ -398,6 +399,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // have we initialized the current constructor class?
   while (d_ccCons.empty() && d_consClassNum < ncc)
   {
+    Assert( d_ccTypes.empty() );
     Trace("sygus-enum-debug2")
         << "master(" << d_tn << "): try constructor class " << d_consClassNum
         << std::endl;
@@ -457,8 +459,9 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   bool incSuccess = false;
   do
   {
+    Trace("sygus-enum-debug2") << "master(" << d_tn << "): check return " << d_childrenValid << "/" << d_ccTypes.size() << std::endl;
     // the children should be initialized by here
-    Assert(d_childrenValid == d_ccTypes.size() + 1);
+    Assert(d_childrenValid == d_ccTypes.size());
 
     // do we have more constructors for the given children?
     while (d_consNum < d_ccCons.size())
@@ -530,7 +533,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
 {
   Trace("sygus-enum-debug2")
       << "master(" << d_tn << "): init children, start = " << d_childrenValid
-      << std::endl;
+      << ", #types=" << d_ccTypes.size() << std::endl;
   unsigned initValid = d_childrenValid;
   // while we need to initialize the current child
   while (d_childrenValid < d_ccTypes.size())
