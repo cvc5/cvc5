@@ -29,14 +29,14 @@ namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
-  
+
 /** SygusEnumerator
  *
  */
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds, SynthConjecture * p);
+  SygusEnumerator(TermDbSygus* tds, SynthConjecture* p);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -49,7 +49,7 @@ class SygusEnumerator : public EnumValGenerator
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
   /** pointer to the synth conjecture that owns this enumerator */
-  SynthConjecture * d_parent;
+  SynthConjecture* d_parent;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -110,16 +110,17 @@ class SygusEnumerator : public EnumValGenerator
     bool d_isSygusType;
     /** number of constructor classes */
     unsigned d_numConClasses;
-    /** map from weights to the starting index of the constructor class for that weight */
+    /** map from weights to the starting index of the constructor class for that
+     * weight */
     std::map<unsigned, unsigned> d_weightToCcIndex;
     /** constructor classes */
-    std::map<unsigned, std::vector<unsigned> > d_ccToCons;
+    std::map<unsigned, std::vector<unsigned>> d_ccToCons;
     /** maps constructor classes to children types */
-    std::map<unsigned, std::vector<TypeNode> > d_ccToTypes;
+    std::map<unsigned, std::vector<TypeNode>> d_ccToTypes;
     /** maps constructor classes to constructor weight */
-    std::map<unsigned, unsigned > d_ccToWeight;
+    std::map<unsigned, unsigned> d_ccToWeight;
     /** constructor to indices */
-    std::map<unsigned, std::vector<unsigned> > d_cToCIndices;
+    std::map<unsigned, std::vector<unsigned>> d_cToCIndices;
     //-------------------------end static information about type
 
     /** the list of sygus terms we have enumerated */
@@ -244,7 +245,8 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
-  private:
+
+   private:
     /** the type enumerator */
     TypeEnumerator d_te;
   };

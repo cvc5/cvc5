@@ -809,7 +809,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     d_ev_curr_active_gen[e] = Node::null();
     std::vector<Node> exp;
     if (d_tds->isVariableAgnosticEnumerator(e))
-    {    
+    {
       // We must block e = absE
       d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
       for (unsigned i = 0, size = exp.size(); i < size; i++)
