@@ -66,6 +66,8 @@ class SygusEnumerator : public EnumValGenerator
     TermCache();
     /** initialize this cache */
     void initialize(TypeNode tn, TermDbSygus* tds);
+    /** get last index for weight */
+    unsigned getLastConstructorClassIndexForWeight(unsigned w) const;
     /** get num constructor classes */
     unsigned getNumConstructorClasses() const;
     /** get constructor class */
@@ -73,6 +75,8 @@ class SygusEnumerator : public EnumValGenerator
     /** get types for constructor class */
     void getTypesForConstructorClass(unsigned i,
                                      std::vector<TypeNode>& types) const;
+    /** get operator weight for constructor class */
+    unsigned getOperatorWeightForConstructorClass(unsigned i) const;
     /** get child for constructor */
     void getChildIndicesForConstructor(unsigned i,
                                        std::vector<unsigned>& cindices) const;
@@ -102,12 +106,18 @@ class SygusEnumerator : public EnumValGenerator
     /** pointer to term database sygus */
     TermDbSygus* d_tds;
     //-------------------------static information about type
+    /** is it a sygus type? */
+    bool d_isSygusType;
     /** number of constructor classes */
     unsigned d_numConClasses;
+    /** map from weights to the starting index of the constructor class for that weight */
+    std::map<unsigned, unsigned> d_weightToCcIndex;
     /** constructor classes */
     std::map<unsigned, std::vector<unsigned> > d_ccToCons;
     /** maps constructor classes to children types */
     std::map<unsigned, std::vector<TypeNode> > d_ccToTypes;
+    /** maps constructor classes to constructor weight */
+    std::map<unsigned, unsigned > d_ccToWeight;
     /** constructor to indices */
     std::map<unsigned, std::vector<unsigned> > d_cToCIndices;
     //-------------------------end static information about type
@@ -154,8 +164,8 @@ class SygusEnumerator : public EnumValGenerator
     /** initialize this enumerator */
     bool initialize(SygusEnumerator* se,
                     TypeNode tn,
-                    unsigned sizeLim,
-                    bool sizeExact);
+                    unsigned sizeMin,
+                    unsigned sizeMax);
     /** get the current term of the enumerator */
     Node getCurrent() override;
     /** increment the enumerator */
@@ -172,7 +182,7 @@ class SygusEnumerator : public EnumValGenerator
     /** has next index end */
     bool d_hasIndexNextEnd;
     /** master enum */
-    TermEnumMaster* d_master;
+    TermEnum* d_master;
     /** validate index */
     bool validateIndex();
     /** validate next end index */
@@ -202,6 +212,8 @@ class SygusEnumerator : public EnumValGenerator
     std::vector<unsigned> d_ccCons;
     /** the types of the current constructor class */
     std::vector<TypeNode> d_ccTypes;
+    /** the operator weight for the constructor class */
+    unsigned d_ccWeight;
     /** 1 + the current index in the above vector we are considering */
     unsigned d_consNum;
     /** the child enumerators for this enumerator */
@@ -217,23 +229,39 @@ class SygusEnumerator : public EnumValGenerator
     /** initialize children */
     bool initializeChildren();
     /** initialize child */
-    bool initializeChild(unsigned i);
+    bool initializeChild(unsigned i, unsigned sizeMin);
     /** increment internal */
     bool incrementInternal();
     //----------------------------------------------- end for master enumerators
   };
-  /** the master enumerator for each type */
+  class TermEnumMasterInterp : public TermEnum
+  {
+   public:
+    TermEnumMasterInterp(TypeNode tn);
+    /** initialize this enumerator */
+    bool initialize(SygusEnumerator* se, TypeNode tn);
+    /** get the current term of the enumerator */
+    Node getCurrent() override;
+    /** increment the enumerator */
+    bool increment() override;
+  private:
+    /** the type enumerator */
+    TypeEnumerator d_te;
+  };
+  /** the master enumerator for each sygus type */
   std::map<TypeNode, TermEnumMaster> d_masterEnum;
+  /** the master enumerator for each non-sygus type */
+  std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>> d_masterEnumInt;
   /** the enumerator this class is for */
   Node d_e;
   /** the top-level type */
   TypeNode d_etype;
   /** pointer to the top-level enumerator */
-  TermEnumMaster* d_tlEnum;
+  TermEnum* d_tlEnum;
   /** abort size */
   int d_abortSize;
   /** get master enumerator for type */
-  TermEnumMaster* getMasterEnumForType(TypeNode tn);
+  TermEnum* getMasterEnumForType(TypeNode tn);
 };
 
 }  // namespace quantifiers

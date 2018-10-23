@@ -807,12 +807,15 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // No more concrete values generated from absE.
     NodeManager* nm = NodeManager::currentNM();
     d_ev_curr_active_gen[e] = Node::null();
-    // We must block e = absE.
     std::vector<Node> exp;
-    d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
-    for (unsigned i = 0, size = exp.size(); i < size; i++)
-    {
-      exp[i] = exp[i].negate();
+    if (d_tds->isVariableAgnosticEnumerator(e))
+    {    
+      // We must block e = absE
+      d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
+      for (unsigned i = 0, size = exp.size(); i < size; i++)
+      {
+        exp[i] = exp[i].negate();
+      }
     }
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
