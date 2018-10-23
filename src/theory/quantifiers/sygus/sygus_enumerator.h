@@ -52,7 +52,7 @@ class SygusEnumerator : public EnumValGenerator
    * this data structure are that terms are stored in order of size, and
    * indices can be recorded that indicate where terms of size n begin for each
    * natural number n.
-   * 
+   *
    * This class also computes static information about sygus types that is
    * relevant for enumeration.
    */
