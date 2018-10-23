@@ -28,13 +28,15 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+class SynthConjecture;
+  
 /** SygusEnumerator
  *
  */
 class SygusEnumerator : public EnumValGenerator
 {
  public:
-  SygusEnumerator(TermDbSygus* tds);
+  SygusEnumerator(TermDbSygus* tds, SynthConjecture * p);
   ~SygusEnumerator() {}
   /** initialize this class with enumerator e */
   void initialize(Node e) override;
@@ -46,6 +48,8 @@ class SygusEnumerator : public EnumValGenerator
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
+  /** pointer to the synth conjecture that owns this enumerator */
+  SynthConjecture * d_parent;
   /** Term cache
    *
    * This stores a list of terms for a given sygus type. The key features of
@@ -220,6 +224,8 @@ class SygusEnumerator : public EnumValGenerator
   };
   /** the master enumerator for each type */
   std::map<TypeNode, TermEnumMaster> d_masterEnum;
+  /** the enumerator this class is for */
+  Node d_e;
   /** the top-level type */
   TypeNode d_etype;
   /** pointer to the top-level enumerator */

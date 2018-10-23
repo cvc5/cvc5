@@ -761,7 +761,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     {
       if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
       {
-        d_evg[e].reset(new SygusEnumerator(d_tds));
+        d_evg[e].reset(new SygusEnumerator(d_tds, this));
       }
       else
       {

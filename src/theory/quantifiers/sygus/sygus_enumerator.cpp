@@ -22,14 +22,15 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusEnumerator::SygusEnumerator(TermDbSygus* tds)
-    : d_tds(tds), d_tlEnum(nullptr), d_abortSize(-1)
+SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture * p)
+    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
 void SygusEnumerator::initialize(Node e)
 {
-  d_etype = e.getType();
+  d_e = e;
+  d_etype = d_e.getType();
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
 }
