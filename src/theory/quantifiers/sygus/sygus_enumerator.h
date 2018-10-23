@@ -48,7 +48,13 @@ class SygusEnumerator : public EnumValGenerator
   TermDbSygus* d_tds;
   /** Term cache
    *
-   * This stores a list of
+   * This stores a list of terms for a given sygus type. The key features of
+   * this data structure are that terms are stored in order of size, and
+   * indices can be recorded that indicate where terms of size n begin for each
+   * natural number n.
+   * 
+   * This class also computes static information about sygus types that is
+   * relevant for enumeration.
    */
   class TermCache
   {
@@ -216,6 +222,8 @@ class SygusEnumerator : public EnumValGenerator
   TypeNode d_etype;
   /** pointer to the top-level enumerator */
   TermEnumMaster* d_tlEnum;
+  /** abort size */
+  int d_abortSize;
   /** get master enumerator for type */
   TermEnumMaster* getMasterEnumForType(TypeNode tn);
 };

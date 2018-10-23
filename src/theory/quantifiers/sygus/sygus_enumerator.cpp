@@ -23,7 +23,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds)
-    : d_tds(tds), d_tlEnum(nullptr)
+    : d_tds(tds), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
@@ -31,6 +31,7 @@ void SygusEnumerator::initialize(Node e)
 {
   d_etype = e.getType();
   d_tlEnum = getMasterEnumForType(d_etype);
+  d_abortSize = options::sygusAbortSize();
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -43,7 +44,7 @@ Node SygusEnumerator::getNext()
   int cs = static_cast<int>(d_tlEnum->getCurrentSize());
   if (d_tlEnum->increment())
   {
-    if( cs>options::sygusAbortSize() )
+    if( d_abortSize>=0 && cs>d_abortSize )
     {
       std::stringstream ss;
       ss << "Maximum term size (" << options::sygusAbortSize()
