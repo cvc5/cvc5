@@ -440,6 +440,9 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         d_ccTypes.clear();
         Trace("sygus-enum-debug2")
             << "master(" << d_tn << "): failed due to init size\n";
+        // We set last size to current size. This is to indicate that the next
+        // size may still have terms to enumerate.
+        //d_lastSize = d_currSize;
       }
     }
     else
