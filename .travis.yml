@@ -27,8 +27,6 @@ addons:
   - cxxtest
   - junit4
   - libantlr3c-dev
-  - libboost-dev         # Remove with autotools build
-  - libboost-thread-dev  # Remove with autotools build
   - libcln-dev
   - libgmp-dev
   - libhamcrest-java
@@ -66,29 +64,11 @@ script:
      echo;
      exit 1;
    }
-   makeAutotools() {
-     ./autogen.sh
-     ./configure debug --with-lfsc --disable-debug-symbols
-     make -j2 check REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' || error "AUTOTOOLS BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
-   }
-   #   makeDistcheck() {
-   #     make V=1 -j2 distcheck REGRESSION_LEVEL=0 CVC4_REGRESSION_ARGS='--no-early-exit' ||
-   #       error "DISTCHECK (WITH NEWTHEORY TESTS) FAILED";
-   #   }
    makeCheck() {
      cd build
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
+     ctest -j2 -L example || error "RUNNING EXAMPLES FAILED"
    }
-   makeExamples() {
-     cd build
-     make -j2 examples || error "COULD NOT BUILD EXAMPLES${normal}";
-   }
-   #   addNewTheoryTest() {
-   #       contrib/new-theory test_newtheory || error "NEWTHEORY FAILED";
-   #       grep -q '^THEORIES *=.* test_newtheory' src/Makefile.theories || error "NEWTHEORY FAILED";
-   #       contrib/new-theory --alternate test_newtheory test_newalttheory || error "NEWTHEORY-ALTERNATE FAILED";
-   #       grep -q '^THEORIES *=.* test_newalttheory' src/Makefile.theories || error "NEWTHEORY-ALTERNATE FAILED";
-   #   }
    run() {
      echo "travis_fold:start:$1"
      echo "Running $1"
@@ -96,11 +76,8 @@ script:
      echo "travis_fold:end:$1"
    }
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
-   [ -n "$TRAVIS_AUTOTOOLS" ] && run makeAutotools
-   #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run addNewTheoryTest
-   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run configureCVC4
-   #   [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_CVC4_DISTCHECK" ] && run makeDistcheck
-   [ -n "$TRAVIS_CVC4" ] && [ -z "$TRAVIS_CVC4_DISTCHECK" ] && [ -z "$TRAVIS_AUTOTOOLS" ] && run makeCheck && run makeExamples
+   [ -n "$TRAVIS_CVC4" ] && run configureCVC4
+   [ -n "$TRAVIS_CVC4" ] && run makeCheck
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
@@ -116,18 +93,11 @@ matrix:
       env:
         - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --lfsc --no-debug-symbols'
 
-    # Add autotools build until cmake is the default
-    - compiler: gcc
-      env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_AUTOTOOLS=yes
     #
     # Test with Clang
     - compiler: clang
       env:
         - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --cln --gpl --no-debug-symbols --no-proofs'
-    - compiler: clang
-      env:
-        - TRAVIS_CVC4=yes TRAVIS_CVC4_DISTCHECK=yes TRAVIS_CVC4_CONFIG='--proofs'
 notifications:
   email:
     on_success: change

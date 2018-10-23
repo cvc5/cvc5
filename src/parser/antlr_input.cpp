@@ -15,11 +15,8 @@
  **/
 
 #include "parser/antlr_input.h"
-// We rely on the inclusion of #include <antlr3.h> in "parser/antlr_input.h".
-// This is avoid having to undefine the symbols in <antlr3.h>.
-// See the documentation in "parser/antlr_undefines.h" for more
-// details.
 
+#include <antlr3.h>
 #include <limits.h>
 #include <stdint.h>
 

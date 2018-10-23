@@ -68,6 +68,7 @@ private:
  /** commonly used constants */
  Node d_zero;
  Node d_one;
+ Node d_neg_one;
  Node d_empty_str;
  /** pointer to the skolem cache used by this class */
  SkolemCache *d_sc;

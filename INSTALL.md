@@ -297,7 +297,7 @@ All custom test targets build and run a preconfigured set of tests.
 
 - `make check [-jN] [ARGS=-jN]`  
   The default build-and-test target for CVC4, builds and runs all examples,
-  all system and unit tests, and regression tests from levels 0 and 1.
+  all system and unit tests, and regression tests from levels 0 to 2.
 
 - `make systemtests [-jN] [ARGS=-jN]`  
   Build and run all system tests.
@@ -306,7 +306,7 @@ All custom test targets build and run a preconfigured set of tests.
   Build and run all unit tests.
 
 - `make regress [-jN] [ARGS=-jN]`  
-  Build and run regression tests from levels 0 and 1.
+  Build and run regression tests from levels 0 to 2.
 
 - `make runexamples [-jN] [ARGS=-jN]`  
   Build and run all examples.
