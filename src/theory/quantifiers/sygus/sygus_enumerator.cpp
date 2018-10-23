@@ -151,13 +151,24 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   Node bn = d_tds->sygusToBuiltin(n);
   bn = d_tds->getExtRewriter()->extendedRewrite(bn);
   // must be unique up to rewriting
-  if (d_bterms.find(bn) == d_bterms.end())
+  if (d_bterms.find(bn) != d_bterms.end())
   {
-    d_terms.push_back(n);
-    d_bterms.insert(bn);
-    return true;
+    return false;
   }
-  return false;
+  /*
+  if (options::sygusSymBreakPbe())
+  {
+    // Is it equivalent under examples?
+    Node bnr = d_tds->getP->addSearchVal(d_tn, bn);
+    if( bn!=bnr )
+    {
+      return false;
+    }
+  }
+  */
+  d_terms.push_back(n);
+  d_bterms.insert(bn);
+  return true;
 }
 void SygusEnumerator::TermCache::pushEnumSizeIndex()
 {
@@ -305,7 +316,8 @@ SygusEnumerator::TermEnumMaster::TermEnumMaster()
       d_consClassNum(0),
       d_consNum(0),
       d_currChildSize(0),
-      d_childrenValid(0)
+      d_childrenValid(0),
+      d_lastSize(0)
 {
 }
 
@@ -317,6 +329,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_tn = tn;
 
   d_currSize = 0;
+  d_lastSize = 0;
   // we will start with constructor class zero
   d_consClassNum = 0;
   d_ccCons.clear();
@@ -422,14 +435,18 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // have we run out of constructor classes for this size?
   if (d_ccCons.empty())
   {
-    Trace("sygus-enum-debug2") << "master(" << d_tn << "): size++\n";
+    // "no more values" size? FIXME
+    if( d_lastSize+100<d_currSize )
+    {
+      return false;
+    }
+    
     // increment the size bound
     d_currSize++;
+    Trace("sygus-enum-debug2") << "master(" << d_tn << "): size++ : " << d_currSize << "\n";
 
     // push the bound
     tc.pushEnumSizeIndex();
-
-    // TODO: find "no more values" size?
 
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
@@ -454,6 +471,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       Node c = getCurrent();
       if (tc.addTerm(c))
       {
+        d_lastSize = d_currSize;
         return true;
       }
       Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed addTerm\n";

@@ -208,6 +208,8 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currChildSize;
     /** children valid */
     unsigned d_childrenValid;
+    /** the last enumerated term size */
+    unsigned d_lastSize;
     /** initialize children */
     bool initializeChildren();
     /** initialize child */
