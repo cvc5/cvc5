@@ -198,7 +198,7 @@ void SygusEnumerator::TermCache::getTypesForConstructorClass(
   types.insert(types.end(), it->second.begin(), it->second.end());
 }
 
-unsigned SygusEnumerator::TermCache::getOperatorWeightForConstructorClass(
+unsigned SygusEnumerator::TermCache::getWeightForConstructorClass(
     unsigned i) const
 {
   std::map<unsigned, unsigned>::const_iterator it = d_ccToWeight.find(i);
@@ -365,6 +365,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   // ensure that index is in the range
   if (d_index >= tc.getNumTerms())
   {
+    Assert( d_index==tc.getNumTerms() );
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
     // must push the master index
     if (!d_master->increment())
@@ -545,7 +546,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       Assert(d_children.empty());
       Assert(d_ccTypes.empty());
       tc.getTypesForConstructorClass(d_consClassNum, d_ccTypes);
-      d_ccWeight = tc.getOperatorWeightForConstructorClass(d_consClassNum);
+      d_ccWeight = tc.getWeightForConstructorClass(d_consClassNum);
       d_childrenValid = 0;
       // initialize the children into their initial state
       if (!initializeChildren())
