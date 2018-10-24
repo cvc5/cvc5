@@ -147,7 +147,6 @@ void SygusEnumerator::TermCache::initialize(Node e,
       if (argTypes[i].empty() && w == 0)
       {
         d_ccToCons[0].push_back(i);
-        d_cToCIndices[i].clear();
       }
       else
       {
@@ -176,12 +175,6 @@ void SygusEnumerator::TermCache::initialize(Node e,
       }
       // add to constructor class
       d_ccToCons[cclassi].push_back(i);
-      // map to child indices
-      d_cToCIndices[i].clear();
-      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-      {
-        d_cToCIndices[i].push_back(j);
-      }
     }
     Trace("sygus-enum-debug") << "#cons classes for weight <= " << w << " : "
                               << d_numConClasses << std::endl;
@@ -227,14 +220,6 @@ unsigned SygusEnumerator::TermCache::getWeightForConstructorClass(
   std::map<unsigned, unsigned>::const_iterator it = d_ccToWeight.find(i);
   Assert(it != d_ccToWeight.end());
   return it->second;
-}
-void SygusEnumerator::TermCache::getChildIndicesForConstructor(
-    unsigned i, std::vector<unsigned>& cindices) const
-{
-  std::map<unsigned, std::vector<unsigned>>::const_iterator it =
-      d_cToCIndices.find(i);
-  Assert(it != d_cToCIndices.end());
-  cindices.insert(cindices.end(), it->second.begin(), it->second.end());
 }
 
 bool SygusEnumerator::TermCache::addTerm(Node n)
@@ -537,7 +522,6 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   {
     return d_currTerm;
   }
-  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // construct based on the children
   std::vector<Node> children;
   const Datatype& dt = d_tn.getDatatype();
@@ -545,11 +529,8 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   // get the current constructor number
   unsigned cnum = d_ccCons[d_consNum - 1];
   children.push_back(Node::fromExpr(dt[cnum].getConstructor()));
-  // get indices for this constructor
-  std::vector<unsigned> cindices;
-  tc.getChildIndicesForConstructor(cnum, cindices);
   // add the current of each child to children
-  for (unsigned i : cindices)
+  for (unsigned i=0, nargs = dt[cnum].getNumArgs(); i<nargs; i++ )
   {
     Assert(d_children.find(i) != d_children.end());
     children.push_back(d_children[i].getCurrent());

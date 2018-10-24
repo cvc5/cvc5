@@ -102,24 +102,6 @@ class SygusEnumerator : public EnumValGenerator
                                      std::vector<TypeNode>& types) const;
     /** get constructor weight for constructor class i */
     unsigned getWeightForConstructorClass(unsigned i) const;
-    /** get child indices for constructor
-     *
-     * These are the argument indices of constructor i with respect to
-     * the argument types of its constructor class. Add these to indices.
-     *
-     * Let types be the argument types for the constructor class of constructor
-     * i. Then, we have that the j^th argument of constructor i has type
-     * types[indices[j]].
-     *
-     * For example, for:
-     *   A -> A+B | B-A | ...
-     * Assume we have that these constructors are in the same constructor class
-     * n, and getTypesForConstructorClass(n,types) returns types = { A, B }.
-     * We have that getChildIndicesForConstructor(i,indices) returns
-     * indices = { 0, 1 } for i=0 and indices = { 1, 0 } for i=1.
-     */
-    void getChildIndicesForConstructor(unsigned i,
-                                       std::vector<unsigned>& cindices) const;
 
     /**
      * Add sygus term n to this cache, return true if the term was unique based
@@ -284,11 +266,14 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_consNum;
     /** the child enumerators for this enumerator */
     std::map<unsigned, TermEnumSlave> d_children;
-    /** the current sum of child sizes */
+    /** the current sum of current sizes of the enumerators in d_children */
     unsigned d_currChildSize;
-    /** children valid */
+    /** the number of indices in d_children that are valid */
     unsigned d_childrenValid;
-    /** the last enumerated term size */
+    /** the last term size: this value is used for termination
+     * 
+     * FIXME
+     */
     unsigned d_lastSize;
     /** initialize children */
     bool initializeChildren();
@@ -302,8 +287,8 @@ class SygusEnumerator : public EnumValGenerator
    * This enumerator uses the builtin type enumerator for a given type. It
    * is used to fill in concrete holes into "any constant" constructors
    * when sygus-repair-const is not enabled. The number of terms of size n
-   * is m^n, where m is configurable via the option
-   * --sygus-active-gen-enum-cfactor=m, and is by default 5.
+   * is m^n, where m is configurable via --sygus-active-gen-enum-cfactor=m, and
+   * is by default 5.
    */
   class TermEnumMasterInterp : public TermEnum
   {
