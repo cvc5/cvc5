@@ -617,7 +617,8 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
     // it is only compatible with variable agnostic enumeration, since the
     // other kinds of enumeration (basic, enum) may be non-terminating for a
     // given abstract value.
-    isActiveGen = options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+    isActiveGen =
+        options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";

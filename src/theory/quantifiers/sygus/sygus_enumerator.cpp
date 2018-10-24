@@ -25,7 +25,11 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1), d_firstTime(false)
+    : d_tds(tds),
+      d_parent(p),
+      d_tlEnum(nullptr),
+      d_abortSize(-1),
+      d_firstTime(false)
 {
 }
 
@@ -45,7 +49,7 @@ void SygusEnumerator::addValue(Node v)
 
 Node SygusEnumerator::getNext()
 {
-  if( d_firstTime )
+  if (d_firstTime)
   {
     d_firstTime = false;
   }
@@ -54,14 +58,14 @@ Node SygusEnumerator::getNext()
     // no more values
     return Node::null();
   }
-  if (d_abortSize >= 0 )
+  if (d_abortSize >= 0)
   {
     int cs = static_cast<int>(d_tlEnum->getCurrentSize());
-    if( cs > d_abortSize)
+    if (cs > d_abortSize)
     {
       std::stringstream ss;
       ss << "Maximum term size (" << options::sygusAbortSize()
-        << ") for enumerative SyGuS exceeded.";
+         << ") for enumerative SyGuS exceeded.";
       throw LogicException(ss.str());
     }
   }
@@ -137,7 +141,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     std::map<Node, unsigned> nToC;
     for (unsigned i : wp.second)
     {
-      if (argTypes[i].empty() && w==0)
+      if (argTypes[i].empty() && w == 0)
       {
         d_ccToCons[0].push_back(i);
         d_cToCIndices[i].clear();
@@ -507,7 +511,8 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_ccCons.clear();
   d_isIncrementing = false;
   bool ret = increment();
-  Trace("sygus-enum-debug") << "master(" << tn << "): finish init, ret = " << ret << "\n";
+  Trace("sygus-enum-debug")
+      << "master(" << tn << "): finish init, ret = " << ret << "\n";
   return ret;
 }
 

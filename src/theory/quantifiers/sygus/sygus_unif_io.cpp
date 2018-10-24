@@ -566,7 +566,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   bool isPassive = d_tds->isPassiveEnumerator(e);
   if (getExplanationForEnumeratorExclude(e, v, base_results, exp_exc_vec))
   {
-    if( isPassive )
+    if (isPassive)
     {
       Assert(!exp_exc_vec.empty());
       exp_exc = exp_exc_vec.size() == 1

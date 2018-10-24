@@ -72,7 +72,7 @@ class SygusEnumerator : public EnumValGenerator
    * class, assuming they have identical weights. Constructor classes are used
    * as an optimization when enumerating terms, since they expect the same
    * multiset of argument terms for constructing a term of a fixed size.
-   * 
+   *
    * Construct classes are allocated such that the constructor weights are
    * in ascending order. This allows us to avoid constructors whose weight
    * is greater than n while we are trying to enumerate terms of sizes strictly
