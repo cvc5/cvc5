@@ -111,7 +111,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
   std::map<unsigned, std::vector<TypeNode>> argTypes;
   // map weights to constructors
   std::map<unsigned, std::vector<unsigned>> weightsToIndices;
-  
+
   // constructor class 0 is reserved for nullary operators with 0 weight
   // this is an optimization so that we always skip them for sizes >= 1
   d_ccToCons[0].clear();
@@ -242,7 +242,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     return false;
   }
   // if we are doing PBE symmetry breaking
-  if (d_pbe!=nullptr)
+  if (d_pbe != nullptr)
   {
     // Is it equivalent under examples?
     Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
@@ -428,8 +428,8 @@ void SygusEnumerator::initializeTermCache(TypeNode tn)
 {
   // initialize the term cache
   // see if we use sygus PBE for symmetry breaking
-  SygusPbe * pbe = nullptr;
-  if( options::sygusSymBreakPbe() )
+  SygusPbe* pbe = nullptr;
+  if (options::sygusSymBreakPbe())
   {
     pbe = d_parent->getPbe();
     if (!pbe->hasExamples(d_enum))
@@ -530,7 +530,7 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   unsigned cnum = d_ccCons[d_consNum - 1];
   children.push_back(Node::fromExpr(dt[cnum].getConstructor()));
   // add the current of each child to children
-  for (unsigned i=0, nargs = dt[cnum].getNumArgs(); i<nargs; i++ )
+  for (unsigned i = 0, nargs = dt[cnum].getNumArgs(); i < nargs; i++)
   {
     Assert(d_children.find(i) != d_children.end());
     children.push_back(d_children[i].getCurrent());
@@ -696,7 +696,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         if (initializeChildren())
         {
           Trace("sygus-enum-debug2") << "master(" << d_tn << "): success\n";
-          Assert(d_currChildSize+d_ccWeight <= d_currSize);
+          Assert(d_currChildSize + d_ccWeight <= d_currSize);
           incSuccess = true;
         }
       }
@@ -762,8 +762,8 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
 bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
                                                       unsigned sizeMin)
 {
-  Assert(d_ccWeight<=d_currSize);
-  Assert(d_currChildSize+d_ccWeight <= d_currSize);
+  Assert(d_ccWeight <= d_currSize);
+  Assert(d_currChildSize + d_ccWeight <= d_currSize);
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
   Trace("sygus-enum-debug2")
       << "master(" << d_tn << "): initializeChild " << i << " (" << d_currSize
@@ -824,11 +824,11 @@ bool SygusEnumerator::TermEnumMasterInterp::increment()
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   Node curr = getCurrent();
   tc.addTerm(curr);
-  if (tc.getNumTerms()==d_nextIndexEnd)
+  if (tc.getNumTerms() == d_nextIndexEnd)
   {
     tc.pushEnumSizeIndex();
     d_currSize++;
-    d_currNumConsts = d_currNumConsts*options::sygusActiveGenEnumConsts();
+    d_currNumConsts = d_currNumConsts * options::sygusActiveGenEnumConsts();
     d_nextIndexEnd = d_nextIndexEnd + d_currNumConsts;
   }
   ++d_te;

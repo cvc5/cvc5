@@ -205,7 +205,7 @@ class SygusEnumerator : public EnumValGenerator
   {
    public:
     TermEnumSlave();
-    /** 
+    /**
      * Initialize this enumerator to enumerate terms of type tn whose size is in
      * the range [sizeMin, sizeMax], inclusive. If this function returns true,
      * then getCurrent() will return the first term in the stream, which must be
@@ -277,7 +277,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the number of indices in d_children that are valid */
     unsigned d_childrenValid;
     /** the last term size: this value is used for termination
-     * 
+     *
      * FIXME
      */
     unsigned d_lastSize;
@@ -288,8 +288,8 @@ class SygusEnumerator : public EnumValGenerator
     /** increment internal */
     bool incrementInternal();
   };
-  /** an interpreted value enumerator 
-   * 
+  /** an interpreted value enumerator
+   *
    * This enumerator uses the builtin type enumerator for a given type. It
    * is used to fill in concrete holes into "any constant" constructors
    * when sygus-repair-const is not enabled. The number of terms of size n
@@ -315,8 +315,8 @@ class SygusEnumerator : public EnumValGenerator
     /** the next end threshold */
     unsigned d_nextIndexEnd;
   };
-  /** a free variable enumerator 
-   * 
+  /** a free variable enumerator
+   *
    * This enumerator enumerates canonical free variables for a given type.
    * The n^th variable in this stream is assigned size n. This enumerator is
    * used in conjunction with sygus-repair-const to generate solutions with
