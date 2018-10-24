@@ -117,6 +117,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
   std::map<unsigned, std::vector<TypeNode>> argTypes;
   // map weights to constructors
   std::map<unsigned, std::vector<unsigned>> weightsToIndices;
+  weightsToIndices[0].clear();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
     // record weight information
@@ -239,7 +240,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   if (!d_isSygusType)
   {
     Trace("sygus-enum-terms")
-        << "Term(" << d_tn << "): (builtin): " << n << std::endl;
+        << "tc(" << d_tn << "): term (builtin): " << n << std::endl;
     d_terms.push_back(n);
     return true;
   }
@@ -268,7 +269,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       }
     }
   }
-  Trace("sygus-enum-terms") << "Term(" << d_tn << "): " << bn << std::endl;
+  Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
   d_terms.push_back(n);
   d_bterms.insert(bnr);
   return true;
@@ -766,6 +767,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
 bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
                                                       unsigned sizeMin)
 {
+  Assert(d_ccWeight<=d_currSize);
   Assert(d_currChildSize <= (d_currSize - d_ccWeight));
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
   Trace("sygus-enum-debug2")
