@@ -269,6 +269,9 @@ public:
   /** Get the associated <code>ExprManager</code>. */
   ExprManager* getExprManager() const;
 
+  /** Get the associated solver. */
+  api::Solver* getSolver() const;
+
   /** Get the associated input. */
   inline Input* getInput() const {
     return d_input;

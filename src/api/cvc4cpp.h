@@ -218,6 +218,12 @@ class CVC4_PUBLIC Sort
   bool operator!=(const Sort& s) const;
 
   /**
+   * Is this the null sort?
+   * @return true if this sort is the null sort
+   */
+  bool isNull() const;
+
+  /**
    * Is this a Boolean sort?
    * @return true if the sort is a Boolean sort
    */
@@ -1148,7 +1154,7 @@ class CVC4_PUBLIC DatatypeConstructor
   /**
    * Constructor.
    * @param ctor the internal datatype constructor to be wrapped
-   * @return thte DatatypeConstructor
+   * @return the DatatypeConstructor
    */
   DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
 
@@ -1156,6 +1162,17 @@ class CVC4_PUBLIC DatatypeConstructor
    * Destructor.
    */
   ~DatatypeConstructor();
+
+  /**
+   * @return true if this datatype constructor has been resolved.
+   */
+  bool isResolved() const;
+
+  /**
+   * Get the constructor operator of this datatype constructor.
+   * @return the constructor operator
+   */
+  Term getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1297,6 +1314,13 @@ class CVC4_PUBLIC Datatype
    * Destructor.
    */
   ~Datatype();
+
+  /**
+   * Get the datatype constructor at a given index.
+   * @param idx the index of the datatype constructor to return
+   * @return the datatype constructor with the given index
+   */
+  DatatypeConstructor operator[](size_t idx) const;
 
   /**
    * Get the datatype constructor with the given name.
@@ -1532,6 +1556,11 @@ class CVC4_PUBLIC Solver
   /* .................................................................... */
   /* Sorts Handling                                                       */
   /* .................................................................... */
+
+  /**
+   * @return sort null
+   */
+  Sort getNullSort() const;
 
   /**
    * @return sort Boolean
@@ -1894,18 +1923,16 @@ class CVC4_PUBLIC Solver
   /**
    * Create an Real constant.
    * @param s the string represetntation of the constant
-   * @param base the base of the string representation
    * @return the Real constant
    */
-  Term mkReal(const char* s, uint32_t base = 10) const;
+  Term mkReal(const char* s) const;
 
   /**
    * Create an Real constant.
    * @param s the string represetntation of the constant
-   * @param base the base of the string representation
    * @return the Real constant
    */
-  Term mkReal(const std::string& s, uint32_t base = 10) const;
+  Term mkReal(const std::string& s) const;
 
   /**
    * Create an Real constant.
@@ -1996,16 +2023,20 @@ class CVC4_PUBLIC Solver
   /**
    * Create a String constant.
    * @param s the string this constant represents
+   * @param useEscSequences determines whether escape sequences in \p s should
+   * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const char* s) const;
+  Term mkString(const char* s, bool useEscSequences = false) const;
 
   /**
    * Create a String constant.
    * @param s the string this constant represents
+   * @param useEscSequences determines whether escape sequences in \p s should
+   * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const std::string& s) const;
+  Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
    * Create a String constant.
@@ -2066,6 +2097,64 @@ class CVC4_PUBLIC Solver
    * @return the bit-vector constant
    */
   Term mkBitVector(std::string& s, uint32_t base = 2) const;
+
+  /**
+   * Create a bit-vector constant of a given bit-width from a given string.
+   * @param s the string represetntation of the constant
+   * @param base the base of the string representation
+   * @param sz the bit-width of the constant
+   * @return the bit-vector constant
+   */
+  Term mkBitVector(const char* s, uint32_t base, uint32_t sz) const;
+
+  /**
+   * Create a bit-vector constant of a given bit-width from a given string.
+   * @param s the string represetntation of the constant
+   * @param base the base of the string representation
+   * @param sz the bit-width of the constant
+   * @return the bit-vector constant
+   */
+  Term mkBitVector(std::string& s, uint32_t base, uint32_t sz) const;
+
+  /**
+   * Create a positive infinity floating-point constant.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a negative infinity floating-point constant.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a not-a-number (NaN) floating-point constant.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNaN(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a positive zero (+0.0) floating-point constant.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a negative zero (-0.0) floating-point constant.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create constant of kind:
@@ -2604,6 +2693,14 @@ class CVC4_PUBLIC Solver
   void checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const;
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+
+  /**
+   * Helper function that ensures that a given term is of sort real (as opposed
+   * to being of sort integer).
+   * @param term a term of sort integer or real
+   * @return a term of sort real
+   */
+  Term ensureRealSort(Term expr) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
