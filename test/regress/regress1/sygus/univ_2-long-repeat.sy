@@ -1,3 +1,4 @@
+AJR-BROKEN
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-fair=direct --sygus-out=status
 (set-logic SLIA)

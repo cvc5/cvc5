@@ -106,17 +106,19 @@ void SygusEnumerator::TermCache::initialize(Node e,
   }
 
   d_isSygusType = true;
+
+  // get argument types for all constructors
+  std::map<unsigned, std::vector<TypeNode>> argTypes;
+  // map weights to constructors
+  std::map<unsigned, std::vector<unsigned>> weightsToIndices;
+  
   // constructor class 0 is reserved for nullary operators with 0 weight
   // this is an optimization so that we always skip them for sizes >= 1
   d_ccToCons[0].clear();
   d_ccToTypes[0].clear();
   d_ccToWeight[0] = 0;
-
   d_numConClasses = 1;
-  // get argument types for all constructors
-  std::map<unsigned, std::vector<TypeNode>> argTypes;
-  // map weights to constructors
-  std::map<unsigned, std::vector<unsigned>> weightsToIndices;
+  // we must indicate that we should process zero weight constructor classes
   weightsToIndices[0].clear();
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -254,7 +256,8 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
     return false;
   }
-  if (options::sygusSymBreakPbe())
+  // if we are doing PBE symmetry breaking
+  if (d_pbe!=nullptr)
   {
     // Is it equivalent under examples?
     Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
@@ -436,53 +439,64 @@ void SygusEnumerator::TermEnumSlave::validateIndexNextEnd()
   }
 }
 
+void SygusEnumerator::initializeTermCache(TypeNode tn)
+{
+  // initialize the term cache
+  // see if we use sygus PBE for symmetry breaking
+  SygusPbe * pbe = nullptr;
+  if( options::sygusSymBreakPbe() )
+  {
+    pbe = d_parent->getPbe();
+    if (!pbe->hasExamples(d_enum))
+    {
+      pbe = nullptr;
+    }
+  }
+  d_tcache[tn].initialize(d_enum, tn, d_tds, pbe);
+}
+
 SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 {
   if (tn.isDatatype() && tn.getDatatype().isSygus())
   {
     std::map<TypeNode, TermEnumMaster>::iterator it = d_masterEnum.find(tn);
-    if (it == d_masterEnum.end())
+    if (it != d_masterEnum.end())
     {
-      // initialize the term cache
-      d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
-      // initialize the master enumerator
-      bool ret = d_masterEnum[tn].initialize(this, tn);
-      AlwaysAssert(ret);
-      return &d_masterEnum[tn];
+      return &it->second;
     }
-    return &it->second;
+    initializeTermCache(tn);
+    // initialize the master enumerator
+    bool ret = d_masterEnum[tn].initialize(this, tn);
+    AlwaysAssert(ret);
+    return &d_masterEnum[tn];
   }
-
   if (options::sygusRepairConst())
   {
     std::map<TypeNode, TermEnumMasterFv>::iterator it = d_masterEnumFv.find(tn);
-    if (it == d_masterEnumFv.end())
+    if (it != d_masterEnumFv.end())
     {
-      // initialize the term cache
-      d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
-      // initialize the master enumerator
-      bool ret = d_masterEnumFv[tn].initialize(this, tn);
-      AlwaysAssert(ret);
-      return &d_masterEnumFv[tn];
+      return &it->second;
     }
-    return &it->second;
+    initializeTermCache(tn);
+    // initialize the master enumerator
+    bool ret = d_masterEnumFv[tn].initialize(this, tn);
+    AlwaysAssert(ret);
+    return &d_masterEnumFv[tn];
   }
-
   std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>>::iterator it =
       d_masterEnumInt.find(tn);
-  if (it == d_masterEnumInt.end())
+  if (it != d_masterEnumInt.end())
   {
-    // initialize the term cache
-    d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
-    // create the master enumerator
-    d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
-    // initialize the master enumerator
-    TermEnumMasterInterp* temi = d_masterEnumInt[tn].get();
-    bool ret = temi->initialize(this, tn);
-    AlwaysAssert(ret);
-    return temi;
+    return it->second.get();
   }
-  return it->second.get();
+  initializeTermCache(tn);
+  // create the master enumerator
+  d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
+  // initialize the master enumerator
+  TermEnumMasterInterp* temi = d_masterEnumInt[tn].get();
+  bool ret = temi->initialize(this, tn);
+  AlwaysAssert(ret);
+  return temi;
 }
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
