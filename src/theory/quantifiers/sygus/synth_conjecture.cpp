@@ -527,7 +527,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       {
         Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
         // do not send out
-        for (unsigned i=0, size=d_ce_sk_vars.size(); i<size; i++)
+        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
           Node v = d_ce_sk_vars[i];
           Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
