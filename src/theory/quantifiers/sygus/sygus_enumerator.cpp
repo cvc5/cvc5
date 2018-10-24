@@ -93,7 +93,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
   }
 
   d_isSygusType = true;
-  // constructor class 0 is reserved for nullary operators
+  // constructor class 0 is reserved for nullary operators with 0 weight
   // this is an optimization so that we always skip them for sizes >= 1
   d_ccToCons[0].clear();
   d_ccToTypes[0].clear();
@@ -123,19 +123,19 @@ void SygusEnumerator::TermCache::initialize(Node e,
   {
     unsigned w = wp.first;
 
-    // TODO : merge constructor classes
     // assign constructors to constructor classes
     TypeNodeIdTrie tnit;
     std::map<Node, unsigned> nToC;
     for (unsigned i : wp.second)
     {
-      if (argTypes[i].empty())
+      if (argTypes[i].empty() && w==0)
       {
         d_ccToCons[0].push_back(i);
         d_cToCIndices[i].clear();
       }
       else
       {
+        // we merge those whose argument types are the same TODO: order
         Node n = nm->mkConst(Rational(i));
         nToC[n] = i;
         tnit.add(n, argTypes[i]);
@@ -161,6 +161,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
       // add to constructor class
       d_ccToCons[cclassi].push_back(i);
       // map to child indices
+      d_cToCIndices[i].clear();
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         d_cToCIndices[i].push_back(j);
@@ -497,7 +498,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_ccCons.clear();
   d_isIncrementing = false;
   bool ret = increment();
-  Trace("sygus-enum-debug") << "master(" << tn << "): finish init\n";
+  Trace("sygus-enum-debug") << "master(" << tn << "): finish init, ret = " << ret << "\n";
   return ret;
 }
 
