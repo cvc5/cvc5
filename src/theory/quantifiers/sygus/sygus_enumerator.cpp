@@ -218,6 +218,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
 {
   if (!d_isSygusType)
   {
+    Trace("sygus-enum-terms") << "Term(" << d_tn << "): (builtin): " << n << std::endl;
     d_terms.push_back(n);
     return true;
   }
@@ -414,31 +415,31 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 {
   if (tn.isDatatype() && tn.getDatatype().isSygus())
   {
-    if (d_masterEnum.find(tn) == d_masterEnum.end())
+    std::map<TypeNode, TermEnumMaster>::iterator it =
+        d_masterEnum.find(tn);
+    if (it == d_masterEnum.end())
     {
       // initialize the term cache
       d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
       // initialize the master enumerator
       bool ret = d_masterEnum[tn].initialize(this, tn);
       AlwaysAssert(ret);
+      return &d_masterEnum[tn];
     }
-    return &d_masterEnum[tn];
+    return &it->second;
   }
-  std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>>::iterator it =
+  std::map<TypeNode, TermEnumMasterFv>::iterator it =
       d_masterEnumInt.find(tn);
   if (it == d_masterEnumInt.end())
   {
     // initialize the term cache
     d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
-    // create the master enumerator
-    d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
     // initialize the master enumerator
-    TermEnumMasterInterp* temi = d_masterEnumInt[tn].get();
-    bool ret = temi->initialize(this, tn);
+    bool ret = d_masterEnumInt[tn].initialize(this, tn);
     AlwaysAssert(ret);
-    return temi;
+    return &d_masterEnumInt[tn];
   }
-  return it->second.get();
+  return &it->second;
 }
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
@@ -742,7 +743,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   }
   unsigned teSize = te.getCurrentSize();
   // fail if the initial children size does not fit d_currSize-d_ccWeight
-  if (teSize + d_currChildSize >= d_currSize)
+  if (teSize + d_currChildSize + d_ccWeight > d_currSize)
   {
     d_children.erase(i);
     Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed due to child size\n";
@@ -753,35 +754,41 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   return true;
 }
 
-SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
-    : TermEnum(), d_te(tn)
+SygusEnumerator::TermEnumMasterFv::TermEnumMasterFv()
+    : TermEnum()
 {
 }
 
-bool SygusEnumerator::TermEnumMasterInterp::initialize(SygusEnumerator* se,
+bool SygusEnumerator::TermEnumMasterFv::initialize(SygusEnumerator* se,
                                                        TypeNode tn)
 {
   d_se = se;
   d_tn = tn;
   d_currSize = 0;
+  Node ret = getCurrent();
+  AlwaysAssert( !ret.isNull() );
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+  tc.addTerm(ret);
   return true;
 }
 
-Node SygusEnumerator::TermEnumMasterInterp::getCurrent() { return *d_te; }
+Node SygusEnumerator::TermEnumMasterFv::getCurrent() { 
+  Node ret = d_se->d_tds->getFreeVar(d_tn,d_currSize);
+  Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): mk " << ret << std::endl;
+  return ret;
+}
 
-bool SygusEnumerator::TermEnumMasterInterp::increment()
+bool SygusEnumerator::TermEnumMasterFv::increment()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  Node curr = getCurrent();
-  tc.addTerm(curr);
-  if (tc.getNumTerms() % 10 == 0)
-  {
-    tc.pushEnumSizeIndex();
-  }
   // size increments at a constant rate
   d_currSize++;
-  ++d_te;
-  return !d_te.isFinished();
+  tc.pushEnumSizeIndex();
+  Node curr = getCurrent();
+  Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): increment, add " << curr << std::endl;
+  bool ret = tc.addTerm(curr);
+  AlwaysAssert( ret );
+  return true;
 }
 
 }  // namespace quantifiers
