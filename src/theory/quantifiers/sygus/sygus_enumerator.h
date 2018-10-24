@@ -337,6 +337,8 @@ class SygusEnumerator : public EnumValGenerator
   TermEnum* d_tlEnum;
   /** abort size */
   int d_abortSize;
+  /** flag is true for the first time to getNext() */
+  bool d_firstTime;
   /** get master enumerator for type */
   TermEnum* getMasterEnumForType(TypeNode tn);
 };

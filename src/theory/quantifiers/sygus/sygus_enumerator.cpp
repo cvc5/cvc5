@@ -25,7 +25,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
-    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1)
+    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1), d_firstTime(false)
 {
 }
 
@@ -35,6 +35,7 @@ void SygusEnumerator::initialize(Node e)
   d_etype = d_enum.getType();
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
+  d_firstTime = true;
 }
 
 void SygusEnumerator::addValue(Node v)
@@ -44,22 +45,30 @@ void SygusEnumerator::addValue(Node v)
 
 Node SygusEnumerator::getNext()
 {
-  int cs = static_cast<int>(d_tlEnum->getCurrentSize());
-  if (d_tlEnum->increment())
+  if( d_firstTime )
   {
-    if (d_abortSize >= 0 && cs > d_abortSize)
+    d_firstTime = false;
+  }
+  else if (!d_tlEnum->increment())
+  {
+    // no more values
+    return Node::null();
+  }
+  if (d_abortSize >= 0 )
+  {
+    int cs = static_cast<int>(d_tlEnum->getCurrentSize());
+    if( cs > d_abortSize)
     {
       std::stringstream ss;
       ss << "Maximum term size (" << options::sygusAbortSize()
-         << ") for enumerative SyGuS exceeded.";
+        << ") for enumerative SyGuS exceeded.";
       throw LogicException(ss.str());
     }
-    Node ret = d_tlEnum->getCurrent();
-    Trace("sygus-enum") << "Enumerate : " << d_tds->sygusToBuiltin(ret)
-                        << std::endl;
-    return ret;
   }
-  return Node::null();
+  Node ret = d_tlEnum->getCurrent();
+  Trace("sygus-enum") << "Enumerate : " << d_tds->sygusToBuiltin(ret)
+                      << std::endl;
+  return ret;
 }
 
 SygusEnumerator::TermCache::TermCache()
