@@ -78,9 +78,12 @@ class SygusEnumerator : public EnumValGenerator
    public:
     TermCache();
     /** initialize this cache */
-    void initialize(Node e, TypeNode tn, TermDbSygus* tds, SygusPbe* pbe=nullptr);
+    void initialize(Node e,
+                    TypeNode tn,
+                    TermDbSygus* tds,
+                    SygusPbe* pbe = nullptr);
     /** get last constructor class index for weight
-     * 
+     *
      * This returns a minimal index n such that all constructor classes at
      * index < n have weight at most w.
      */
@@ -95,19 +98,19 @@ class SygusEnumerator : public EnumValGenerator
     /** get constructor weight for constructor class i */
     unsigned getWeightForConstructorClass(unsigned i) const;
     /** get child indices for constructor
-     * 
+     *
      * These are the argument indices of constructor i with respect to
      * the argument types of its constructor class. Add these to indices.
-     * 
+     *
      * Let types be the argument types for the constructor class of constructor
      * i. Then, we have that the j^th argument of constructor i has type
      * types[indices[j]].
-     * 
+     *
      * For example, for:
      *   A -> A+B | B-A | ...
      * Assume we have that these constructors are in the same constructor class
      * n, and getTypesForConstructorClass(n,types) returns types = { A, B }.
-     * We have that getChildIndicesForConstructor(i,indices) returns 
+     * We have that getChildIndicesForConstructor(i,indices) returns
      * indices = { 0, 1 } for i=0 and indices = { 1, 0 } for i=1.
      */
     void getChildIndicesForConstructor(unsigned i,
@@ -162,7 +165,7 @@ class SygusEnumerator : public EnumValGenerator
     std::vector<Node> d_terms;
     /** the set of builtin terms corresponding to the above list */
     std::unordered_set<Node, NodeHashFunction> d_bterms;
-    /** 
+    /**
      * The index of first term whose size is greater than or equal to that size,
      * if it exists.
      */
@@ -187,6 +190,7 @@ class SygusEnumerator : public EnumValGenerator
     virtual Node getCurrent() = 0;
     /** increment the enumerator */
     virtual bool increment() = 0;
+
    protected:
     /** pointer to the sygus enumerator class */
     SygusEnumerator* d_se;
@@ -196,12 +200,12 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currSize;
   };
   class TermEnumMaster;
-  /** A "slave" enumerator 
-   * 
+  /** A "slave" enumerator
+   *
    * A slave enumerator simply iterates over an index in a given term cache,
    * and relies on a pointer to a "master" enumerator to generate new terms
    * whenever necessary.
-   * 
+   *
    * This class maintains the following invariants, for tc=d_se->d_tcache[d_tn]:
    * (1) d_index < tc.getNumTerms(),
    * (2) d_currSize is the term size of tc.getTerm( d_index ),
@@ -223,6 +227,7 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     //------------------------------------------- for non-master enumerators
     /** the maximum size of terms this enumerator should enumerator */
@@ -241,8 +246,8 @@ class SygusEnumerator : public EnumValGenerator
     void validateIndexNextEnd();
     //------------------------------------------- end for non-master enumerators
   };
-  /** Class for "master" enumerators 
-   * 
+  /** Class for "master" enumerators
+   *
    */
   class TermEnumMaster : public TermEnum
   {
@@ -254,12 +259,13 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;
     /** the last term we enumerated */
     Node d_currTerm;
-    //----------------------------- current constructor class information 
+    //----------------------------- current constructor class information
     /** the next constructor class we are using */
     unsigned d_consClassNum;
     /** the constructors in the current constructor class */
@@ -268,7 +274,7 @@ class SygusEnumerator : public EnumValGenerator
     std::vector<TypeNode> d_ccTypes;
     /** the operator weight for the constructor class */
     unsigned d_ccWeight;
-    //----------------------------- end current constructor class information 
+    //----------------------------- end current constructor class information
     /** If >0, 1 + the index in d_ccCons we are considering */
     unsigned d_consNum;
     /** the child enumerators for this enumerator */
@@ -296,10 +302,11 @@ class SygusEnumerator : public EnumValGenerator
     Node getCurrent() override;
     /** increment the enumerator */
     bool increment() override;
+
    private:
     /** the type enumerator */
     TypeEnumerator d_te;
-  };  
+  };
   class TermEnumMasterFv : public TermEnum
   {
    public:
