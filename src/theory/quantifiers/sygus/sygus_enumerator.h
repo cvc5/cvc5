@@ -297,6 +297,14 @@ class SygusEnumerator : public EnumValGenerator
     /** increment internal */
     bool incrementInternal();
   };
+  /** an interpreted value enumerator 
+   * 
+   * This enumerator uses the builtin type enumerator for a given type. It
+   * is used to fill in concrete holes into "any constant" constructors
+   * when sygus-repair-const is not enabled. The number of terms of size n
+   * is m^n, where m is configurable via the option
+   * --sygus-active-gen-enum-cfactor=m, and is by default 5.
+   */
   class TermEnumMasterInterp : public TermEnum
   {
    public:
@@ -311,7 +319,18 @@ class SygusEnumerator : public EnumValGenerator
    private:
     /** the type enumerator */
     TypeEnumerator d_te;
+    /** the current number of terms we are enumerating for the given size */
+    unsigned d_currNumConsts;
+    /** the next end threshold */
+    unsigned d_nextIndexEnd;
   };
+  /** a free variable enumerator 
+   * 
+   * This enumerator enumerates canonical free variables for a given type.
+   * The n^th variable in this stream is assigned size n. This enumerator is
+   * used in conjunction with sygus-repair-const to generate solutions with
+   * constant holes.
+   */
   class TermEnumMasterFv : public TermEnum
   {
    public:
@@ -331,15 +350,15 @@ class SygusEnumerator : public EnumValGenerator
   std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>> d_masterEnumInt;
   /** the enumerator this class is for */
   Node d_enum;
-  /** the top-level type */
+  /** the type of d_enum */
   TypeNode d_etype;
-  /** pointer to the top-level enumerator */
+  /** pointer to the master enumerator of type d_etype */
   TermEnum* d_tlEnum;
-  /** abort size */
+  /** the abort size, caches the value of --sygus-abort-size */
   int d_abortSize;
   /** flag is true for the first time to getNext() */
   bool d_firstTime;
-  /** get master enumerator for type */
+  /** get master enumerator for type tn */
   TermEnum* getMasterEnumForType(TypeNode tn);
 };
 

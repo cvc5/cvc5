@@ -715,7 +715,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         if (initializeChildren())
         {
           Trace("sygus-enum-debug2") << "master(" << d_tn << "): success\n";
-          Assert(d_currChildSize < d_currSize);
+          Assert(d_currChildSize+d_ccWeight <= d_currSize);
           incSuccess = true;
         }
       }
@@ -782,7 +782,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
                                                       unsigned sizeMin)
 {
   Assert(d_ccWeight<=d_currSize);
-  Assert(d_currChildSize <= (d_currSize - d_ccWeight));
+  Assert(d_currChildSize+d_ccWeight <= d_currSize);
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
   Trace("sygus-enum-debug2")
       << "master(" << d_tn << "): initializeChild " << i << " (" << d_currSize
@@ -821,7 +821,7 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
 }
 
 SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
-    : TermEnum(), d_te(tn)
+    : TermEnum(), d_te(tn), d_currNumConsts(0), d_nextIndexEnd(0)
 {
 }
 
@@ -831,6 +831,8 @@ bool SygusEnumerator::TermEnumMasterInterp::initialize(SygusEnumerator* se,
   d_se = se;
   d_tn = tn;
   d_currSize = 0;
+  d_currNumConsts = 1;
+  d_nextIndexEnd = 1;
   return true;
 }
 
@@ -841,12 +843,13 @@ bool SygusEnumerator::TermEnumMasterInterp::increment()
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   Node curr = getCurrent();
   tc.addTerm(curr);
-  if (tc.getNumTerms() % 5 == 0)
+  if (tc.getNumTerms()==d_nextIndexEnd)
   {
     tc.pushEnumSizeIndex();
+    d_currSize++;
+    d_currNumConsts = d_currNumConsts*options::sygusActiveGenEnumConsts();
+    d_nextIndexEnd = d_nextIndexEnd + d_currNumConsts;
   }
-  // size increments at a constant rate
-  d_currSize++;
   ++d_te;
   return !d_te.isFinished();
 }
