@@ -30,8 +30,8 @@ SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
 
 void SygusEnumerator::initialize(Node e)
 {
-  d_e = e;
-  d_etype = d_e.getType();
+  d_enum = e;
+  d_etype = d_enum.getType();
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
 }
@@ -62,14 +62,16 @@ Node SygusEnumerator::getNext()
 }
 
 SygusEnumerator::TermCache::TermCache()
-    : d_tds(nullptr), d_numConClasses(0), d_sizeEnum(0)
+    : d_tds(nullptr), d_pbe(nullptr), d_numConClasses(0), d_sizeEnum(0)
 {
 }
-void SygusEnumerator::TermCache::initialize(TypeNode tn, TermDbSygus* tds)
+void SygusEnumerator::TermCache::initialize(Node e, TypeNode tn, TermDbSygus* tds, SygusPbe* pbe)
 {
   Trace("sygus-enum-debug") << "Init term cache " << tn << "..." << std::endl;
+  d_enum = e;
   d_tn = tn;
   d_tds = tds;
+  d_pbe = pbe;
   d_sizeStartIndex[0] = 0;
   d_isSygusType = false;
 
@@ -217,17 +219,19 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
     return false;
   }
-  /*
   if (options::sygusSymBreakPbe())
   {
     // Is it equivalent under examples?
-    Node bnr = d_tds->getP->addSearchVal(d_tn, bn);
-    if( bn!=bnr )
+    Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
+    if( !bne.isNull() )
     {
-      return false;
+      if( bnr!=bne )
+      {
+        Trace("sygus-enum-exc") << "Exclude (by examples): " << bn << ", since we already have " << bne << "!=" << bnr << std::endl;
+        return false;
+      }
     }
   }
-  */
   Trace("sygus-enum-terms") << "Term(" << d_tn << "): " << bn << std::endl;
   d_terms.push_back(n);
   d_bterms.insert(bnr);
@@ -400,7 +404,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
     if (d_masterEnum.find(tn) == d_masterEnum.end())
     {
       // initialize the term cache
-      d_tcache[tn].initialize(tn, d_tds);
+      d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
       // initialize the master enumerator
       bool ret = d_masterEnum[tn].initialize(this, tn);
       AlwaysAssert(ret);
@@ -412,7 +416,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
   if (it == d_masterEnumInt.end())
   {
     // initialize the term cache
-    d_tcache[tn].initialize(tn, d_tds);
+    d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
     // create the master enumerator
     d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
     // initialize the master enumerator

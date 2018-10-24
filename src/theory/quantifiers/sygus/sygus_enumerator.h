@@ -29,6 +29,7 @@ namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
+class SygusPbe;
 
 /** SygusEnumerator
  *
@@ -65,7 +66,7 @@ class SygusEnumerator : public EnumValGenerator
    public:
     TermCache();
     /** initialize this cache */
-    void initialize(TypeNode tn, TermDbSygus* tds);
+    void initialize(Node e, TypeNode tn, TermDbSygus* tds, SygusPbe* pbe=nullptr);
     /** get last index for weight */
     unsigned getLastConstructorClassIndexForWeight(unsigned w) const;
     /** get num constructor classes */
@@ -101,10 +102,14 @@ class SygusEnumerator : public EnumValGenerator
     unsigned getNumTerms() const;
 
    private:
+    /** the enumerator this cache is for */
+    Node d_enum;
     /** the sygus type of terms in this cache */
     TypeNode d_tn;
     /** pointer to term database sygus */
     TermDbSygus* d_tds;
+    /** point to the PBE utility (used for symmetry breaking) */
+    SygusPbe* d_pbe;
     //-------------------------static information about type
     /** is it a sygus type? */
     bool d_isSygusType;
@@ -255,7 +260,7 @@ class SygusEnumerator : public EnumValGenerator
   /** the master enumerator for each non-sygus type */
   std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>> d_masterEnumInt;
   /** the enumerator this class is for */
-  Node d_e;
+  Node d_enum;
   /** the top-level type */
   TypeNode d_etype;
   /** pointer to the top-level enumerator */
