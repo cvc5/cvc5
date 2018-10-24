@@ -15,6 +15,7 @@
 #include "theory/quantifiers/sygus/sygus_enumerator.h"
 
 #include "options/datatypes_options.h"
+#include "options/quantifiers_options.h"
 #include "theory/datatypes/datatypes_rewriter.h"
 
 using namespace CVC4::kind;
@@ -428,18 +429,38 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
     }
     return &it->second;
   }
-  std::map<TypeNode, TermEnumMasterFv>::iterator it =
+  
+  if( options::sygusRepairConst() )
+  {
+    std::map<TypeNode, TermEnumMasterFv>::iterator it =
+        d_masterEnumFv.find(tn);
+    if (it == d_masterEnumFv.end())
+    {
+      // initialize the term cache
+      d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
+      // initialize the master enumerator
+      bool ret = d_masterEnumFv[tn].initialize(this, tn);
+      AlwaysAssert(ret);
+      return &d_masterEnumFv[tn];
+    }
+    return &it->second;
+  }
+
+  std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>>::iterator it =
       d_masterEnumInt.find(tn);
   if (it == d_masterEnumInt.end())
   {
     // initialize the term cache
     d_tcache[tn].initialize(d_enum, tn, d_tds, d_parent->getPbe());
+    // create the master enumerator
+    d_masterEnumInt[tn].reset(new TermEnumMasterInterp(tn));
     // initialize the master enumerator
-    bool ret = d_masterEnumInt[tn].initialize(this, tn);
+    TermEnumMasterInterp* temi = d_masterEnumInt[tn].get();
+    bool ret = temi->initialize(this, tn);
     AlwaysAssert(ret);
-    return &d_masterEnumInt[tn];
+    return temi;
   }
-  return &it->second;
+  return it->second.get();
 }
 
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
@@ -754,6 +775,36 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   return true;
 }
 
+SygusEnumerator::TermEnumMasterInterp::TermEnumMasterInterp(TypeNode tn)
+    : TermEnum(), d_te(tn)
+{
+}
+
+bool SygusEnumerator::TermEnumMasterInterp::initialize(SygusEnumerator* se,
+                                                       TypeNode tn)
+{
+  d_se = se;
+  d_tn = tn;
+  d_currSize = 0;
+  return true;
+}
+
+Node SygusEnumerator::TermEnumMasterInterp::getCurrent() { return *d_te; }
+
+bool SygusEnumerator::TermEnumMasterInterp::increment()
+{
+  SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+  Node curr = getCurrent();
+  tc.addTerm(curr);
+  if (tc.getNumTerms() % 5 == 0)
+  {
+    tc.pushEnumSizeIndex();
+  }
+  // size increments at a constant rate
+  d_currSize++;
+  ++d_te;
+  return !d_te.isFinished();
+}
 SygusEnumerator::TermEnumMasterFv::TermEnumMasterFv()
     : TermEnum()
 {

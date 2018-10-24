@@ -286,6 +286,20 @@ class SygusEnumerator : public EnumValGenerator
     /** increment internal */
     bool incrementInternal();
   };
+  class TermEnumMasterInterp : public TermEnum
+  {
+   public:
+    TermEnumMasterInterp(TypeNode tn);
+    /** initialize this enumerator */
+    bool initialize(SygusEnumerator* se, TypeNode tn);
+    /** get the current term of the enumerator */
+    Node getCurrent() override;
+    /** increment the enumerator */
+    bool increment() override;
+   private:
+    /** the type enumerator */
+    TypeEnumerator d_te;
+  };  
   class TermEnumMasterFv : public TermEnum
   {
    public:
@@ -300,7 +314,9 @@ class SygusEnumerator : public EnumValGenerator
   /** the master enumerator for each sygus type */
   std::map<TypeNode, TermEnumMaster> d_masterEnum;
   /** the master enumerator for each non-sygus type */
-  std::map<TypeNode, TermEnumMasterFv> d_masterEnumInt;
+  std::map<TypeNode, TermEnumMasterFv> d_masterEnumFv;
+  /** the master enumerator for each non-sygus type */
+  std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>> d_masterEnumInt;
   /** the enumerator this class is for */
   Node d_enum;
   /** the top-level type */
