@@ -21,6 +21,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/node_manager_attributes.h"
 #include "options/language.h"
 #include "options/smt_options.h"
@@ -1754,8 +1755,8 @@ static void toStream(std::ostream& out, const SimplifyCommand* c)
 static void toStream(std::ostream& out, const GetValueCommand* c)
 {
   out << "(get-value ( ";
-  const vector<Expr>& terms = c->getTerms();
-  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, " "));
+  const vector<api::Term>& terms = c->getTerms();
+  copy(terms.begin(), terms.end(), ostream_iterator<api::Term>(out, " "));
   out << "))";
 }
 

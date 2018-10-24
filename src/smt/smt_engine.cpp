@@ -2497,7 +2497,7 @@ void SmtEngine::defineFunction(Expr func,
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
   PROOF(if (options::checkUnsatCores()) {
-    d_defineCommands.push_back(c.clone());
+    d_defineCommands.push_back(static_cast<DefineFunctionCommand*>(c.clone()));
   });
 
   // type check body
@@ -4359,12 +4359,10 @@ void SmtEngine::checkUnsatCore() {
   SmtEngine coreChecker(d_exprManager);
   coreChecker.setLogic(getLogicInfo());
 
-  PROOF(
-  std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
-  for (; itg != d_defineCommands.end();  ++itg) {
-    (*itg)->invoke(&coreChecker);
-  }
-  );
+  PROOF(std::vector<DefineFunctionCommand*>::const_iterator itg =
+            d_defineCommands.begin();
+        for (; itg != d_defineCommands.end();
+             ++itg) { (*itg)->invoke(&coreChecker); });
 
   Notice() << "SmtEngine::checkUnsatCore(): pushing core assertions (size == " << core.size() << ")" << endl;
   for(UnsatCore::iterator i = core.begin(); i != core.end(); ++i) {

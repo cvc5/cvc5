@@ -28,6 +28,7 @@
 #include <string>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "expr/datatype.h"
 #include "expr/expr.h"
 #include "expr/type.h"
@@ -186,22 +187,6 @@ class CVC4_PUBLIC CommandRecoverableFailure : public CommandStatus
 
 class CVC4_PUBLIC Command
 {
- protected:
-  /**
-   * This field contains a command status if the command has been
-   * invoked, or NULL if it has not.  This field is either a
-   * dynamically-allocated pointer, or it's a pointer to the singleton
-   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
-   * it avoids the need to dynamically allocate memory in the common
-   * case of a successful command.
-   */
-  const CommandStatus* d_commandStatus;
-
-  /**
-   * True if this command is "muted"---i.e., don't print "success" on
-   * successful execution.
-   */
-  bool d_muted;
 
  public:
   typedef CommandPrintSuccess printsuccess;
@@ -211,8 +196,8 @@ class CVC4_PUBLIC Command
 
   virtual ~Command();
 
-  virtual void invoke(SmtEngine* smtEngine) = 0;
-  virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
+  virtual void invoke(api::Solver* solver);
+  virtual void invoke(api::Solver* solver, std::ostream& out);
 
   void toStream(std::ostream& out,
                 int toDepth = -1,
@@ -267,6 +252,29 @@ class CVC4_PUBLIC Command
   virtual Command* clone() const = 0;
 
  protected:
+  /*
+   * The following methods are for backwards compatibility *ONLY*. They are
+   * required while we update the commands to use the new API.
+   */
+  virtual void invoke(SmtEngine* smtEngine);
+  virtual void invoke(SmtEngine* smtEngine, std::ostream& out);
+
+  /**
+   * This field contains a command status if the command has been
+   * invoked, or NULL if it has not.  This field is either a
+   * dynamically-allocated pointer, or it's a pointer to the singleton
+   * CommandSuccess instance.  Doing so is somewhat asymmetric, but
+   * it avoids the need to dynamically allocate memory in the common
+   * case of a successful command.
+   */
+  const CommandStatus* d_commandStatus;
+
+  /**
+   * True if this command is "muted"---i.e., don't print "success" on
+   * successful execution.
+   */
+  bool d_muted;
+
   class ExportTransformer
   {
     ExprManager* d_exprManager;
@@ -292,7 +300,7 @@ class CVC4_PUBLIC EmptyCommand : public Command
  public:
   EmptyCommand(std::string name = "");
   std::string getName() const;
-  void invoke(SmtEngine* smtEngine) override;
+  void invoke(api::Solver* solver) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -309,8 +317,8 @@ class CVC4_PUBLIC EchoCommand : public Command
 
   std::string getOutput() const;
 
-  void invoke(SmtEngine* smtEngine) override;
-  void invoke(SmtEngine* smtEngine, std::ostream& out) override;
+  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, std::ostream& out) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
@@ -905,16 +913,16 @@ class CVC4_PUBLIC ExpandDefinitionsCommand : public Command
 class CVC4_PUBLIC GetValueCommand : public Command
 {
  protected:
-  std::vector<Expr> d_terms;
-  Expr d_result;
+  std::vector<api::Term> d_terms;
+  api::Term d_result;
 
  public:
-  GetValueCommand(Expr term);
-  GetValueCommand(const std::vector<Expr>& terms);
+  GetValueCommand(api::Term term);
+  GetValueCommand(const std::vector<api::Term>& terms);
 
-  const std::vector<Expr>& getTerms() const;
-  Expr getResult() const;
-  void invoke(SmtEngine* smtEngine) override;
+  const std::vector<api::Term>& getTerms() const;
+  api::Term getResult() const;
+  void invoke(api::Solver* solver) override;
   void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
@@ -1372,8 +1380,8 @@ class CVC4_PUBLIC CommandSequence : public Command
   void addCommand(Command* cmd);
   void clear();
 
-  void invoke(SmtEngine* smtEngine) override;
-  void invoke(SmtEngine* smtEngine, std::ostream& out) override;
+  void invoke(api::Solver* solver) override;
+  void invoke(api::Solver* solver, std::ostream& out) override;
 
   typedef std::vector<Command*>::iterator iterator;
   typedef std::vector<Command*>::const_iterator const_iterator;

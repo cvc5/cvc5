@@ -118,9 +118,9 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
 {
   bool status = true;
   if(d_options.getVerbosity() >= -1) {
-    status = smtEngineInvoke(d_smtEngine, cmd, d_options.getOut());
+    status = smtEngineInvoke(d_solver, cmd, d_options.getOut());
   } else {
-    status = smtEngineInvoke(d_smtEngine, cmd, NULL);
+    status = smtEngineInvoke(d_solver, cmd, NULL);
   }
 
   Result res;
@@ -192,17 +192,18 @@ bool CommandExecutor::doCommandSingleton(Command* cmd)
   return status;
 }
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out)
+bool smtEngineInvoke(api::Solver* solver, Command* cmd, std::ostream* out)
 {
   if(out == NULL) {
-    cmd->invoke(smt);
+    cmd->invoke(solver);
   } else {
-    cmd->invoke(smt, *out);
+    cmd->invoke(solver, *out);
   }
   // ignore the error if the command-verbosity is 0 for this command
   std::string commandName =
       std::string("command-verbosity:") + cmd->getCommandName();
-  if(smt->getOption(commandName).getIntegerValue() == 0) {
+  if (solver->getSmtEngine()->getOption(commandName).getIntegerValue() == 0)
+  {
     return true;
   }
   return !cmd->fail();

@@ -38,6 +38,7 @@
 #include "util/utility.h"
 
 using namespace std;
+using namespace CVC4::api;
 
 namespace CVC4 {
 
@@ -185,6 +186,21 @@ bool Command::interrupted() const
          && dynamic_cast<const CommandInterrupted*>(d_commandStatus) != NULL;
 }
 
+void Command::invoke(Solver* solver) { invoke(solver->getSmtEngine()); }
+
+void Command::invoke(Solver* solver, std::ostream& out)
+{
+  invoke(solver);
+  if (!(isMuted() && ok()))
+  {
+    printResult(out,
+                solver->getSmtEngine()
+                    ->getOption("command-verbosity:" + getCommandName())
+                    .getIntegerValue()
+                    .toUnsignedInt());
+  }
+}
+
 void Command::invoke(SmtEngine* smtEngine, std::ostream& out)
 {
   invoke(smtEngine);
@@ -195,6 +211,13 @@ void Command::invoke(SmtEngine* smtEngine, std::ostream& out)
                     .getIntegerValue()
                     .toUnsignedInt());
   }
+}
+
+void Command::invoke(SmtEngine* smtEngine)
+{
+  // A command should either override this method or override
+  // `Command::invoke(Solver*)` to not call this method.
+  Unimplemented();
 }
 
 std::string Command::toString() const
@@ -235,7 +258,8 @@ void Command::printResult(std::ostream& out, uint32_t verbosity) const
 
 EmptyCommand::EmptyCommand(std::string name) : d_name(name) {}
 std::string EmptyCommand::getName() const { return d_name; }
-void EmptyCommand::invoke(SmtEngine* smtEngine)
+
+void EmptyCommand::invoke(Solver* solver)
 {
   /* empty commands have no implementation */
   d_commandStatus = CommandSuccess::instance();
@@ -256,18 +280,19 @@ std::string EmptyCommand::getCommandName() const { return "empty"; }
 
 EchoCommand::EchoCommand(std::string output) : d_output(output) {}
 std::string EchoCommand::getOutput() const { return d_output; }
-void EchoCommand::invoke(SmtEngine* smtEngine)
+void EchoCommand::invoke(Solver* solver)
 {
   /* we don't have an output stream here, nothing to do */
   d_commandStatus = CommandSuccess::instance();
 }
 
-void EchoCommand::invoke(SmtEngine* smtEngine, std::ostream& out)
+void EchoCommand::invoke(Solver* solver, std::ostream& out)
 {
   out << d_output << std::endl;
   d_commandStatus = CommandSuccess::instance();
   printResult(out,
-              smtEngine->getOption("command-verbosity:" + getCommandName())
+              solver->getSmtEngine()
+                  ->getOption("command-verbosity:" + getCommandName())
                   .getIntegerValue()
                   .toUnsignedInt());
 }
@@ -1031,11 +1056,11 @@ void CommandSequence::addCommand(Command* cmd)
 }
 
 void CommandSequence::clear() { d_commandSequence.clear(); }
-void CommandSequence::invoke(SmtEngine* smtEngine)
+void CommandSequence::invoke(Solver* solver)
 {
   for (; d_index < d_commandSequence.size(); ++d_index)
   {
-    d_commandSequence[d_index]->invoke(smtEngine);
+    d_commandSequence[d_index]->invoke(solver);
     if (!d_commandSequence[d_index]->ok())
     {
       // abort execution
@@ -1049,11 +1074,11 @@ void CommandSequence::invoke(SmtEngine* smtEngine)
   d_commandStatus = CommandSuccess::instance();
 }
 
-void CommandSequence::invoke(SmtEngine* smtEngine, std::ostream& out)
+void CommandSequence::invoke(Solver* solver, std::ostream& out)
 {
   for (; d_index < d_commandSequence.size(); ++d_index)
   {
-    d_commandSequence[d_index]->invoke(smtEngine, out);
+    d_commandSequence[d_index]->invoke(solver, out);
     if (!d_commandSequence[d_index]->ok())
     {
       // abort execution
@@ -1646,43 +1671,24 @@ std::string ExpandDefinitionsCommand::getCommandName() const
 /* class GetValueCommand                                                      */
 /* -------------------------------------------------------------------------- */
 
-GetValueCommand::GetValueCommand(Expr term) : d_terms()
+GetValueCommand::GetValueCommand(Term term) : d_terms()
 {
   d_terms.push_back(term);
 }
 
-GetValueCommand::GetValueCommand(const std::vector<Expr>& terms)
+GetValueCommand::GetValueCommand(const std::vector<Term>& terms)
     : d_terms(terms)
 {
   PrettyCheckArgument(
       terms.size() >= 1, terms, "cannot get-value of an empty set of terms");
 }
 
-const std::vector<Expr>& GetValueCommand::getTerms() const { return d_terms; }
-void GetValueCommand::invoke(SmtEngine* smtEngine)
+const std::vector<Term>& GetValueCommand::getTerms() const { return d_terms; }
+void GetValueCommand::invoke(Solver* solver)
 {
   try
   {
-    vector<Expr> result;
-    ExprManager* em = smtEngine->getExprManager();
-    NodeManager* nm = NodeManager::fromExprManager(em);
-    for (const Expr& e : d_terms)
-    {
-      Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      smt::SmtScope scope(smtEngine);
-      Node request = Node::fromExpr(
-          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
-      Node value = Node::fromExpr(smtEngine->getValue(e));
-      if (value.getType().isInteger() && request.getType() == nm->realType())
-      {
-        // Need to wrap in division-by-one so that output printers know this
-        // is an integer-looking constant that really should be output as
-        // a rational.  Necessary for SMT-LIB standards compliance.
-        value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
-      }
-      result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
-    }
-    d_result = em->mkExpr(kind::SEXPR, result);
+    d_result = solver->getValue(d_terms);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
@@ -1699,7 +1705,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Expr GetValueCommand::getResult() const { return d_result; }
+Term GetValueCommand::getResult() const { return d_result; }
 void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
 {
   if (!ok())
@@ -1716,15 +1722,14 @@ void GetValueCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* GetValueCommand::exportTo(ExprManager* exprManager,
                                    ExprManagerMapCollection& variableMap)
 {
-  vector<Expr> exportedTerms;
-  for (std::vector<Expr>::const_iterator i = d_terms.begin();
-       i != d_terms.end();
-       ++i)
+  vector<Term> exportedTerms;
+  for (const Term& term : d_terms)
   {
-    exportedTerms.push_back((*i).exportTo(exprManager, variableMap));
+    exportedTerms.emplace_back(
+        term.getExpr().exportTo(exprManager, variableMap));
   }
   GetValueCommand* c = new GetValueCommand(exportedTerms);
-  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_result = Term(d_result.getExpr().exportTo(exprManager, variableMap));
   return c;
 }
 

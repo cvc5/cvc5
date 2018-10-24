@@ -2520,16 +2520,20 @@ class CVC4_PUBLIC Solver
    * Get the value of the given term.
    * SMT-LIB: ( get-value ( <term> ) )
    * @param term the term for which the value is queried
-   * @return the value of the given term
+   * @return a pair (t v) where t is \p term (or its expanded definition) and v
+   * is an equivalent value term according to the current model
    */
   Term getValue(Term term) const;
+
   /**
    * Get the values of the given terms.
    * SMT-LIB: ( get-value ( <term>+ ) )
    * @param terms the terms for which the value is queried
-   * @return the values of the given terms
+   * @return a sequnece of pairs ((t1 v1) ... (tn vn)) where each ti
+   * corresponds to one of the \p terms (or its expanded definition) and vi is
+   * is an equivalent value term according to the current model
    */
-  std::vector<Term> getValue(const std::vector<Term>& terms) const;
+  Term getValue(const std::vector<Term>& terms) const;
 
   /**
    * Pop (a) level(s) from the assertion stack.
@@ -2594,6 +2598,10 @@ class CVC4_PUBLIC Solver
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   SmtEngine* getSmtEngine(void) const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  static std::vector<Term> exprVectorToTerms(const std::vector<Expr>& exprs);
 
  private:
   /* Helper to convert a vector of internal types to sorts. */

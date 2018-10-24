@@ -20,6 +20,7 @@
 #include <typeinfo>
 #include <vector>
 
+#include "api/cvc4cpp.h"  // for ExprSetDepth etc..
 #include "expr/expr.h" // for ExprSetDepth etc..
 #include "expr/node_manager_attributes.h" // for VarNameAttr
 #include "options/language.h" // for LANG_AST
@@ -340,8 +341,8 @@ static void toStream(std::ostream& out, const SimplifyCommand* c)
 static void toStream(std::ostream& out, const GetValueCommand* c)
 {
   out << "GetValue( << ";
-  const vector<Expr>& terms = c->getTerms();
-  copy(terms.begin(), terms.end(), ostream_iterator<Expr>(out, ", "));
+  const vector<api::Term>& terms = c->getTerms();
+  copy(terms.begin(), terms.end(), ostream_iterator<api::Term>(out, ", "));
   out << ">> )";
 }
 

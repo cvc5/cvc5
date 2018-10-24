@@ -53,6 +53,7 @@ typedef NodeTemplate<false> TNode;
 struct NodeHashFunction;
 
 class Command;
+class DefineFunctionCommand;
 class GetModelCommand;
 
 class SmtEngine;
@@ -197,7 +198,7 @@ class CVC4_PUBLIC SmtEngine {
    * A vector of command definitions to be imported in the new
    * SmtEngine when checking unsat-cores.
    */
-  std::vector<Command*> d_defineCommands;
+  std::vector<DefineFunctionCommand*> d_defineCommands;
 
   /**
    * The logic we're in.

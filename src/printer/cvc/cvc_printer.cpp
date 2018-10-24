@@ -24,11 +24,12 @@
 #include <typeinfo>
 #include <vector>
 
-#include "expr/expr.h" // for ExprSetDepth etc..
-#include "expr/node_manager_attributes.h" // for VarNameAttr
-#include "options/language.h" // for LANG_AST
-#include "printer/dagification_visitor.h"
+#include "api/cvc4cpp.h"                   // for ExprSetDepth etc..
+#include "expr/expr.h"                     // for ExprSetDepth etc..
+#include "expr/node_manager_attributes.h"  // for VarNameAttr
+#include "options/language.h"              // for LANG_AST
 #include "options/smt_options.h"
+#include "printer/dagification_visitor.h"
 #include "smt/command.h"
 #include "smt/smt_engine.h"
 #include "smt_util/node_visitor.h"
@@ -1345,10 +1346,12 @@ static void toStream(std::ostream& out, const SimplifyCommand* c, bool cvc3Mode)
 
 static void toStream(std::ostream& out, const GetValueCommand* c, bool cvc3Mode)
 {
-  const vector<Expr>& terms = c->getTerms();
+  const vector<api::Term>& terms = c->getTerms();
   Assert(!terms.empty());
   out << "GET_VALUE ";
-  copy(terms.begin(), terms.end() - 1, ostream_iterator<Expr>(out, ";\nGET_VALUE "));
+  copy(terms.begin(),
+       terms.end() - 1,
+       ostream_iterator<api::Term>(out, ";\nGET_VALUE "));
   out << terms.back() << ";";
 }
 

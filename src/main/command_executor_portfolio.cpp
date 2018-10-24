@@ -228,7 +228,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]) );
     std::ostream* winnersOut =  d_options.getVerbosity() >= -1 ?
         (d_threadOptions[d_lastWinner]).getOut() : NULL;
-    bool ret = smtEngineInvoke(d_smts[d_lastWinner], cmdExported, winnersOut);
+    bool ret =
+        smtEngineInvoke(d_solvers[d_lastWinner], cmdExported, winnersOut);
     if(d_lastWinner != 0) delete cmdExported;
     return ret;
   } else if(mode == 1) {               // portfolio
@@ -297,8 +298,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
       std::ostream* current_out_or_null = d_options.getVerbosity() >= -1 ?
           d_threadOptions[i].getOut() : NULL;
 
-      fns[i] = boost::bind(smtEngineInvoke, d_smts[i], seqs[i],
-                           current_out_or_null);
+      fns[i] = boost::bind(
+          smtEngineInvoke, d_solvers[i], seqs[i], current_out_or_null);
     }
 
     assert(d_channelsIn.size() == d_numThreads
@@ -408,8 +409,8 @@ bool CommandExecutorPortfolio::doCommandSingleton(Command* cmd)
         cmd : cmd->exportTo(d_exprMgrs[d_lastWinner], *(d_vmaps[d_lastWinner]));
     std::ostream* winner_out_if_verbose = d_options.getVerbosity() >= -1 ?
         d_threadOptions[d_lastWinner].getOut() : NULL;
-    bool ret = smtEngineInvoke(d_smts[d_lastWinner], cmdExported,
-                               winner_out_if_verbose);
+    bool ret = smtEngineInvoke(
+        d_solvers[d_lastWinner], cmdExported, winner_out_if_verbose);
     if(d_lastWinner != 0){
       delete cmdExported;
     }

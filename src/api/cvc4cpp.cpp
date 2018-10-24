@@ -26,8 +26,10 @@
 #include "expr/type.h"
 #include "options/main_options.h"
 #include "options/options.h"
+#include "options/smt_options.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
@@ -55,6 +57,7 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {DISTINCT, CVC4::Kind::DISTINCT},
     {VARIABLE, CVC4::Kind::VARIABLE},
     {BOUND_VARIABLE, CVC4::Kind::BOUND_VARIABLE},
+    {SEXPR, CVC4::Kind::SEXPR},
     {LAMBDA, CVC4::Kind::LAMBDA},
     {CHOICE, CVC4::Kind::CHOICE},
     {CHAIN, CVC4::Kind::CHAIN},
@@ -303,6 +306,7 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::DISTINCT, DISTINCT},
         {CVC4::Kind::VARIABLE, VARIABLE},
         {CVC4::Kind::BOUND_VARIABLE, BOUND_VARIABLE},
+        {CVC4::Kind::SEXPR, SEXPR},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
         {CVC4::Kind::CHAIN, CHAIN},
@@ -2870,13 +2874,29 @@ Term Solver::getValue(Term term) const
   // CHECK:
   // NodeManager::fromExprManager(d_exprMgr)
   // == NodeManager::fromExprManager(expr.getExprManager())
-  return d_smtEngine->getValue(*term.d_expr);
+
+  smt::SmtScope scope(d_smtEngine.get());
+
+  Expr e = term.getExpr();
+  Term request = Term(
+      options::expandDefinitions() ? d_smtEngine->expandDefinitions(e) : e);
+  Term value = Term(d_smtEngine->getValue(e));
+  if (value.getSort().isInteger() && request.getSort().isReal()
+      && !request.getSort().isInteger())
+  {
+    // Need to wrap in division-by-one so that output printers know this
+    // is an integer-looking constant that really should be output as
+    // a rational.  Necessary for SMT-LIB standards compliance.
+    value = mkTerm(DIVISION, value, mkConst(CONST_RATIONAL, 1));
+  }
+
+  return mkTerm(SEXPR, request, value);
 }
 
 /**
  *  ( get-value ( <term>+ ) )
  */
-std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
+Term Solver::getValue(const std::vector<Term>& terms) const
 {
   // CHECK:
   // for e in exprs:
@@ -2885,10 +2905,9 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
   std::vector<Term> res;
   for (const Term& t : terms)
   {
-    /* Can not use emplace_back here since constructor is private. */
-    res.push_back(Term(d_smtEngine->getValue(*t.d_expr)));
+    res.emplace_back(getValue(t));
   }
-  return res;
+  return mkTerm(SEXPR, res);
 }
 
 /**
@@ -2975,6 +2994,20 @@ ExprManager* Solver::getExprManager(void) const { return d_exprMgr.get(); }
  * the new API. !!!
  */
 SmtEngine* Solver::getSmtEngine(void) const { return d_smtEngine.get(); }
+
+/**
+ * !!! This is only temporarily available until the parser is fully migrated to
+ * the new API. !!!
+ */
+std::vector<Term> Solver::exprVectorToTerms(const std::vector<Expr>& exprs)
+{
+  std::vector<Term> terms;
+  for (const Expr& expr : exprs)
+  {
+    terms.emplace_back(expr);
+  }
+  return terms;
+}
 
 }  // namespace api
 }  // namespace CVC4

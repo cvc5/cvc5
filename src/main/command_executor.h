@@ -99,7 +99,7 @@ private:
 
 };/* class CommandExecutor */
 
-bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
+bool smtEngineInvoke(api::Solver* smt, Command* cmd, std::ostream* out);
 
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
