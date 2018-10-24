@@ -114,12 +114,15 @@ void SygusEnumerator::TermCache::initialize(Node e, TypeNode tn, TermDbSygus* td
       argTypes[i].push_back(tn);
     }
   }
+  NodeManager * nm = NodeManager::currentNM();
   for (std::pair<const unsigned, std::vector<unsigned>>& wp : weightsToIndices)
   {
     unsigned w = wp.first;
 
     // TODO : merge constructor classes
     // assign constructors to constructor classes
+    TypeNodeIdTrie tnit;
+    std::map<Node,unsigned> nToC;
     for (unsigned i : wp.second)
     {
       if (argTypes[i].empty())
@@ -129,23 +132,32 @@ void SygusEnumerator::TermCache::initialize(Node e, TypeNode tn, TermDbSygus* td
       }
       else
       {
-        // determine which constructor class this goes into: currently trivial
-        unsigned cclassi = d_numConClasses;
-        d_numConClasses++;
-        Trace("sygus-enum-debug") << "Constructor class for " << dt[i].getSygusOp() << " is " << cclassi << std::endl;
-
+        Node n = nm->mkConst(Rational(i));
+        nToC[n] = i;
+        tnit.add(n, argTypes[i]);
+      }
+    }
+    std::map< Node, unsigned > assign;
+    tnit.assignIds(assign, d_numConClasses);
+    for( std::pair<const Node, unsigned>& cp : assign )
+    {
+      // determine which constructor class this goes into: currently trivial
+      unsigned cclassi = cp.second;
+      unsigned i = nToC[cp.first];
+      Trace("sygus-enum-debug") << "Constructor class for " << dt[i].getSygusOp() << " is " << cclassi << std::endl;
+      // initialize the constructor class
+      if( d_ccToWeight.find(cclassi)==d_ccToWeight.end() )
+      {
         d_ccToWeight[cclassi] = w;
-        // allocate new constructor class
         d_ccToTypes[cclassi].insert(
             d_ccToTypes[cclassi].end(), argTypes[i].begin(), argTypes[i].end());
-
-        // add to constructor class
-        d_ccToCons[cclassi].push_back(i);
-        // map to child indices
-        for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
-        {
-          d_cToCIndices[i].push_back(j);
-        }
+      }
+      // add to constructor class
+      d_ccToCons[cclassi].push_back(i);
+      // map to child indices
+      for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
+      {
+        d_cToCIndices[i].push_back(j);
       }
     }
     Trace("sygus-enum-debug") << "#cons classes for weight <= " << w << " : "
