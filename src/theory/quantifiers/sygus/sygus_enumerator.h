@@ -33,6 +33,12 @@ class SygusPbe;
 
 /** SygusEnumerator
  *
+ * This class is used for enumerating all terms of a sygus datatype type. At
+ * a high level, it is used as an alternative approach to sygus datatypes
+ * solver as a candidate generator in a synthesis loop. It filters terms based
+ * on redundancy criteria, for instance, it does not generate two terms whose
+ * builtin terms (TermDb::sygusToBuiltin) can be shown to be equivalent via
+ * rewriting.
  */
 class SygusEnumerator : public EnumValGenerator
 {
@@ -390,7 +396,7 @@ class SygusEnumerator : public EnumValGenerator
   std::map<TypeNode, TermEnumMasterFv> d_masterEnumFv;
   /** the master enumerator for each non-sygus type */
   std::map<TypeNode, std::unique_ptr<TermEnumMasterInterp>> d_masterEnumInt;
-  /** the enumerator this class is for */
+  /** the sygus enumerator this class is for */
   Node d_enum;
   /** the type of d_enum */
   TypeNode d_etype;
@@ -398,7 +404,7 @@ class SygusEnumerator : public EnumValGenerator
   TermEnum* d_tlEnum;
   /** the abort size, caches the value of --sygus-abort-size */
   int d_abortSize;
-  /** flag is true for the first time to getNext() */
+  /** this flag is true for the first time to getNext() after initialize(e) */
   bool d_firstTime;
   /** get master enumerator for type tn */
   TermEnum* getMasterEnumForType(TypeNode tn);
