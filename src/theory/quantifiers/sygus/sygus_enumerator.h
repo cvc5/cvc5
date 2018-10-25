@@ -240,7 +240,30 @@ class SygusEnumerator : public EnumValGenerator
   };
   /** Class for "master" enumerators
    *
-   * TODO
+   * This enumerator is used to generate new terms of a given type d_tn. It
+   * generates all terms of type d_tn that are not redundant based on the
+   * current criteria.
+   *
+   * To enumerate terms, this class roughly performs the following steps as
+   * necessary during a call to increment():
+   * - Fix the size of terms "d_currSize" we are currently enumerating,
+   * - Set the constructor class "d_consClassNum" whose constructors are the top
+   * symbol of the current term we are constructing. All constructors from this
+   * class have some weight, which we store in d_ccWeight,
+   * - Initialize the current children "d_children" so that the sum of their
+   * current sizes is exactly (d_currSize - d_ccWeight),
+   * - Increment the current set of children until a new tuple of terms are
+   * considered,
+   * - Set the constructor "d_consNum" from within the constructor class.
+   *
+   * We say this enumerator is active if initialize(...) returns true, and the
+   * last call (if any) to increment returned true.
+   *
+   * This class maintains the following invariants, for tc=d_se->d_tcache[d_tn],
+   * if it is active:
+   * (1) getCurrent() is tc.getTerm(tc.getNumTerms()-1),
+   * (2) tc.pushEnumSizeIndex() is called by this class exactly
+   * getCurrentSize() times.
    */
   class TermEnumMaster : public TermEnum
   {
@@ -250,13 +273,22 @@ class SygusEnumerator : public EnumValGenerator
     bool initialize(SygusEnumerator* se, TypeNode tn);
     /** get the current term of the enumerator */
     Node getCurrent() override;
-    /** increment the enumerator */
+    /** increment the enumerator 
+     * 
+     * Returns true if there are more terms to enumerate, in which case a
+     * subsequent call to getCurrent() returns the next enumerated term. This
+     * method returns false if the last call to increment() has yet to
+     * terminate. This can happen for recursive datatypes where a slave
+     * enumerator may request that this class increment the next term. We avoid
+     * an infinite loop by guarding this with the d_isIncrementing flag and
+     * return false.
+     */
     bool increment() override;
 
    private:
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;
-    /** the last term we enumerated */
+    /** cache for getCurrent() */
     Node d_currTerm;
     //----------------------------- current constructor class information
     /** the next constructor class we are using */
@@ -281,11 +313,30 @@ class SygusEnumerator : public EnumValGenerator
      * FIXME
      */
     unsigned d_lastSize;
-    /** initialize children */
+    /** initialize children
+     * 
+     * Initialize all the uninitialized children of this enumerator. If this
+     * method returns true, then all children d_children are successfully
+     * initialized to be slave enumerators of the argument types indicated by
+     * d_ccTypes, and the sum of their current sizes (d_currChildSize) is
+     * exactly (d_currSize - d_ccWeight). If this method returns false, then
+     * it was not possible to initialize the children such that they meets the
+     * size requirements, and such that the assignments from children to size
+     * has not already been considered. In this case, d_children is cleared
+     * and d_currChildSize and d_childrenValid are reset.
+     */
     bool initializeChildren();
-    /** initialize child */
+    /** initialize child 
+     * 
+     * Initialize child i to enumerate terms whose size is at least sizeMin,
+     * and whose maximum size is the largest size such that we can still
+     * construct terms for the given constructor class and the current children
+     * whose size is not more than the current size d_currSize. Additionally,
+     * if i is the last child, we modify sizeMin such that it is exactly the
+     * size of terms needed for the children to sum up to size d_currSize.
+     */
     bool initializeChild(unsigned i, unsigned sizeMin);
-    /** increment internal */
+    /** increment internal, helper for increment() */
     bool incrementInternal();
   };
   /** an interpreted value enumerator
