@@ -1757,6 +1757,15 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
       }
 
+      // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
+      Node geq_zero_start =
+          Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
+      if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
+      {
+        Node ret = nm->mkConst(::CVC4::String(""));
+        return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
+      }
+
       // (str.substr s x x) ---> "" if (str.len s) <= 1
       if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
@@ -4429,6 +4438,10 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
     {
       candVars.insert(curr);
     }
+    else if (curr.getKind() == kind::STRING_LENGTH)
+    {
+      candVars.insert(curr);
+    }
   }
 
   // Check if any of the candidate variables are in n
@@ -4445,8 +4458,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
       toVisit.push_back(currChild);
     }
 
-    if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH
-        && candVars.find(curr) != candVars.end())
+    if (candVars.find(curr) != candVars.end())
     {
       v = curr;
       break;
@@ -4499,7 +4511,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("s", nm->stringType());
+    Node s = nm->mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(kind::STRING_LENGTH, s);
     assumption = Rewriter::rewrite(
         nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
