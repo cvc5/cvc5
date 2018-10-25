@@ -2438,6 +2438,10 @@ void GetInfoCommand::invoke(SmtEngine* smtEngine)
   {
     d_commandStatus = new CommandUnsupported();
   }
+  catch (RecoverableModalException& e)
+  {
+    d_commandStatus = new CommandRecoverableFailure(e.what());
+  }
   catch (exception& e)
   {
     d_commandStatus = new CommandFailure(e.what());

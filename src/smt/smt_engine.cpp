@@ -2412,8 +2412,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
     } else {
-      throw ModalException("Can't get-info :reason-unknown when the "
-                           "last result wasn't unknown!");
+      throw RecoverableModalException(
+          "Can't get-info :reason-unknown when the "
+          "last result wasn't unknown!");
     }
   } else if(key == "assertion-stack-levels") {
     AlwaysAssert(d_userLevels.size() <=

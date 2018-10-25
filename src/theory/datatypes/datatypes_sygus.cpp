@@ -1096,45 +1096,46 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
               d_tds, nv, options::sygusSamples(), false);
           its = d_sampler[a].find(tn);
         }
-
-        // register the rewritten node with the sampler
-        Node bvr_sample_ret = its->second.registerTerm(bvr);
-        // register the current node with the sampler
-        Node sample_ret = its->second.registerTerm(bv);
-
+        // see if they evaluate to same thing on all sample points
+        bool ptDisequal = false;
+        unsigned pt_index = 0;
+        Node bve, bvre;
+        for (unsigned i = 0, npoints = its->second.getNumSamplePoints();
+             i < npoints;
+             i++)
+        {
+          bve = its->second.evaluate(bv, i);
+          bvre = its->second.evaluate(bvr, i);
+          if (bve != bvre)
+          {
+            ptDisequal = true;
+            pt_index = i;
+            break;
+          }
+        }
         // bv and bvr should be equivalent under examples
-        if (sample_ret != bvr_sample_ret)
+        if (ptDisequal)
         {
           // we have detected unsoundness in the rewriter
           Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
           std::ostream* out = nodeManagerOptions.getOut();
           (*out) << "(unsound-rewrite " << bv << " " << bvr << ")" << std::endl;
           // debugging information
-          int pt_index = its->second.getDiffSamplePointIndex(bv, bvr);
-          if (pt_index >= 0)
+          (*out) << "; unsound: are not equivalent for : " << std::endl;
+          std::vector<Node> vars;
+          its->second.getVariables(vars);
+          std::vector<Node> pt;
+          its->second.getSamplePoint(pt_index, pt);
+          Assert(vars.size() == pt.size());
+          for (unsigned i = 0, size = pt.size(); i < size; i++)
           {
-            (*out) << "; unsound: are not equivalent for : " << std::endl;
-            std::vector<Node> vars;
-            its->second.getVariables(vars);
-            std::vector<Node> pt;
-            its->second.getSamplePoint(pt_index, pt);
-            Assert(vars.size() == pt.size());
-            for (unsigned i = 0, size = pt.size(); i < size; i++)
-            {
-              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
-                     << std::endl;
-            }
-            Node bv_e = its->second.evaluate(bv, pt_index);
-            Node pbv_e = its->second.evaluate(bvr, pt_index);
-            Assert(bv_e != pbv_e);
-            (*out) << "; unsound: where they evaluate to " << bv_e << " and "
-                   << pbv_e << std::endl;
+            (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
+                   << std::endl;
           }
-          else
-          {
-            // no witness point found?
-            Assert(false);
-          }
+          Assert(bve != bvre);
+          (*out) << "; unsound: where they evaluate to " << bve << " and "
+                 << bvre << std::endl;
+
           if (options::sygusRewVerifyAbort())
           {
             AlwaysAssert(
