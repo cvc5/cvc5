@@ -1409,7 +1409,15 @@ header = "options/quantifiers_options.h"
   long       = "sygus-sol-filter-implied"
   type       = "bool"
   default    = "false"
-  help       = "use sygus to enumerate interesting satisfiability queries"
+  help       = "filter implied solutions with sygus"
+
+[[option]]
+  name       = "sygusSolFilterSubsume"
+  category   = "regular"
+  long       = "sygus-sol-filter-subsume"
+  type       = "bool"
+  default    = "false"
+  help       = "filter subsumed solutions with sygus"
 
 [[option]]
   name       = "sygusExprMinerCheckUseExport"

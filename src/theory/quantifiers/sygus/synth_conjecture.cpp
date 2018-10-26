@@ -517,10 +517,15 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
+      ExprManager * origEm = nm->toExprManager();
+      ExprManagerMapCollection varMap;
+      ExprManager em(nm->getOptions());
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
-      SmtEngine verifySmt(nm->toExprManager());
+      SmtEngine verifySmt(&em);
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-      verifySmt.assertFormula(query.toExpr());
+      verifySmt.setOption("sygus-abduct", false);
+      Expr equery = query.toExpr().exportTo(&em, varMap);
+      verifySmt.assertFormula(equery);
       Result r = verifySmt.checkSat();
       Trace("cegqi-engine") << "  ...got " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -530,7 +535,8 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
           Node v = d_ce_sk_vars[i];
-          Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
+          Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr().exportTo(&em, varMap)).exportTo(
+                    origEm, varMap));
           Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
           d_ce_sk_var_mvs.push_back(mv);
         }
@@ -983,7 +989,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
-                          || options::sygusSolFilterImplied()))
+                          || options::sygusSolFilterImplied() || options::sygusSolFilterSubsume()))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
@@ -1003,6 +1009,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           if (options::sygusSolFilterImplied())
           {
             d_exprm[prog].enableFilterImpliedSolutions();
+          }
+          else if( options::sygusSolFilterSubsume() )
+          {
+            d_exprm[prog].enableFilterSubsumedSolutions();
           }
           its = d_exprm.find(prog);
         }

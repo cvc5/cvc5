@@ -23,6 +23,7 @@ ExpressionMinerManager::ExpressionMinerManager()
     : d_doRewSynth(false),
       d_doQueryGen(false),
       d_doFilterImplied(false),
+      d_doFilterSubsumed(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -37,6 +38,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
   d_doRewSynth = false;
   d_doQueryGen = false;
   d_doFilterImplied = false;
+  d_doFilterSubsumed = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -53,6 +55,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
   d_doRewSynth = false;
   d_doQueryGen = false;
   d_doFilterImplied = false;
+  d_doFilterSubsumed = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -115,6 +118,15 @@ void ExpressionMinerManager::enableFilterImpliedSolutions()
   d_solf.initialize(vars, &d_sampler);
 }
 
+
+void ExpressionMinerManager::enableFilterSubsumedSolutions()
+{
+  d_doFilterSubsumed = true;
+  std::vector<Node> vars;
+  d_sampler.getVariables(vars);
+  d_sols.initialize(vars, &d_sampler);
+}
+
 bool ExpressionMinerManager::addTerm(Node sol,
                                      std::ostream& out,
                                      bool& rew_print)
@@ -140,9 +152,16 @@ bool ExpressionMinerManager::addTerm(Node sol,
   }
 
   // filter if it's implied
-  if (ret && d_doFilterImplied)
+  if (ret)
   {
-    ret = d_solf.addTerm(solb, out);
+    if( d_doFilterImplied )
+    {
+      ret = d_solf.addTerm(solb, out);
+    }
+    else if( d_doFilterSubsumed )
+    {
+      ret = d_sols.addTerm(solb, out);
+    }
   }
   return ret;
 }

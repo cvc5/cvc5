@@ -55,6 +55,25 @@ class SolutionFilter : public ExprMiner
   Node d_conj;
 };
 
+
+class SolutionFilterRev : public ExprMiner
+{
+ public:
+  SolutionFilterRev();
+  ~SolutionFilterRev() {}
+  /** initialize */
+  void initialize(const std::vector<Node>& vars,
+                  SygusSampler* ss = nullptr) override;
+  /**
+   * add term
+   */
+  bool addTerm(Node n, std::ostream& out) override;
+
+ private:
+  /** set of all (non-implied) terms registered to this class */
+  std::vector< Node > d_curr_sols;
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

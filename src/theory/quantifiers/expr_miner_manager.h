@@ -73,6 +73,8 @@ class ExpressionMinerManager
   void enableQueryGeneration(unsigned deqThresh);
   /** filter implied solutions (--sygus-sol-filter-implied) */
   void enableFilterImpliedSolutions();
+  /** filter subsumed solutions (--sygus-sol-filter-subsumed) */
+  void enableFilterSubsumedSolutions();
   /** add term
    *
    * Expression miners may print information on the output stream out, for
@@ -94,6 +96,8 @@ class ExpressionMinerManager
   bool d_doQueryGen;
   /** whether we are filtering implied candidates */
   bool d_doFilterImplied;
+  /** whether we are filtering subsumed candidates */
+  bool d_doFilterSubsumed;
   /** the sygus function passed to initializeSygus, if any */
   Node d_sygus_fun;
   /** whether we are using sygus types */
@@ -108,6 +112,8 @@ class ExpressionMinerManager
   QueryGenerator d_qg;
   /** solution filter */
   SolutionFilter d_solf;
+  /** solution filter */
+  SolutionFilterRev d_sols;
   /** sygus sampler object */
   SygusSampler d_sampler;
   /** extended rewriter object */

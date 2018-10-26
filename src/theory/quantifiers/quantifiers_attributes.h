@@ -72,6 +72,12 @@ struct SygusPrintProxyAttributeId
 };
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
+    
+struct SygusConsistentAttributeId
+{
+};
+typedef expr::Attribute<SygusConsistentAttributeId, Node>
+    SygusConsistentAttribute;
 
 namespace quantifiers {
 
