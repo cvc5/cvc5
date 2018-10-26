@@ -55,7 +55,6 @@ class SolutionFilter : public ExprMiner
   Node d_conj;
 };
 
-
 class SolutionFilterRev : public ExprMiner
 {
  public:
@@ -71,7 +70,7 @@ class SolutionFilterRev : public ExprMiner
 
  private:
   /** set of all (non-implied) terms registered to this class */
-  std::vector< Node > d_curr_sols;
+  std::vector<Node> d_curr_sols;
 };
 
 }  // namespace quantifiers

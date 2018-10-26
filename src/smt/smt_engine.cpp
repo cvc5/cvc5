@@ -1240,7 +1240,8 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference() || options::sygusRewSynthInput() || options::sygusAbduct())
+  if (options::sygusInference() || options::sygusRewSynthInput()
+      || options::sygusAbduct())
   {
     d_logic = d_logic.getUnlockedCopy();
     // sygus requires arithmetic, datatypes and quantifiers
@@ -1920,7 +1921,8 @@ void SmtEngine::setDefaults() {
       }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen() || options::sygusAbduct())
+        || options::sygusQueryGen()
+        || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);

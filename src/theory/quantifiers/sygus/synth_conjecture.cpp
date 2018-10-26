@@ -517,7 +517,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
-      ExprManager * origEm = nm->toExprManager();
+      ExprManager* origEm = nm->toExprManager();
       ExprManagerMapCollection varMap;
       ExprManager em(nm->getOptions());
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
@@ -535,8 +535,9 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
           Node v = d_ce_sk_vars[i];
-          Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr().exportTo(&em, varMap)).exportTo(
-                    origEm, varMap));
+          Node mv = Node::fromExpr(
+              verifySmt.getValue(v.toExpr().exportTo(&em, varMap))
+                  .exportTo(origEm, varMap));
           Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
           d_ce_sk_var_mvs.push_back(mv);
         }
@@ -989,7 +990,8 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
       bool is_unique_term = true;
 
       if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
-                          || options::sygusSolFilterImplied() || options::sygusSolFilterSubsume()))
+                          || options::sygusSolFilterImplied()
+                          || options::sygusSolFilterSubsume()))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
@@ -1010,7 +1012,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableFilterImpliedSolutions();
           }
-          else if( options::sygusSolFilterSubsume() )
+          else if (options::sygusSolFilterSubsume())
           {
             d_exprm[prog].enableFilterSubsumedSolutions();
           }

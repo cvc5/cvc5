@@ -72,7 +72,7 @@ struct SygusPrintProxyAttributeId
 };
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
-    
+
 struct SygusConsistentAttributeId
 {
 };

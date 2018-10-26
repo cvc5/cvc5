@@ -118,7 +118,6 @@ void ExpressionMinerManager::enableFilterImpliedSolutions()
   d_solf.initialize(vars, &d_sampler);
 }
 
-
 void ExpressionMinerManager::enableFilterSubsumedSolutions()
 {
   d_doFilterSubsumed = true;
@@ -154,11 +153,11 @@ bool ExpressionMinerManager::addTerm(Node sol,
   // filter if it's implied
   if (ret)
   {
-    if( d_doFilterImplied )
+    if (d_doFilterImplied)
     {
       ret = d_solf.addTerm(solb, out);
     }
-    else if( d_doFilterSubsumed )
+    else if (d_doFilterSubsumed)
     {
       ret = d_sols.addTerm(solb, out);
     }
