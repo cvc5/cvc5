@@ -116,7 +116,7 @@ class TermDbSygus {
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
   /** is this enumerator a "basic" enumerator.
-   * 
+   *
    * A basic enumerator is one that does not rely on the sygus extension of the
    * datatypes solver. Basic enumerators enumerate all concrete terms for their
    * type for a single abstract value.

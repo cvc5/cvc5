@@ -762,7 +762,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     {
       // Actively-generator enumerators are currently either variable agnostic
       // or basic.
-      Assert( d_tds->isBasicEnumerator(e) );
+      Assert(d_tds->isBasicEnumerator(e));
       if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
       {
         d_evg[e].reset(new SygusEnumerator(d_tds, this));
