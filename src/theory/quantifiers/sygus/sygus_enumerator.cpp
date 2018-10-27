@@ -76,7 +76,7 @@ Node SygusEnumerator::getNext()
 }
 
 SygusEnumerator::TermCache::TermCache()
-    : d_tds(nullptr), d_pbe(nullptr), d_numConClasses(0), d_sizeEnum(0)
+    : d_tds(nullptr), d_pbe(nullptr), d_numConClasses(0), d_sizeEnum(0), d_isComplete(false)
 {
 }
 void SygusEnumerator::TermCache::initialize(Node e,
@@ -289,6 +289,15 @@ unsigned SygusEnumerator::TermCache::getNumTerms() const
   return d_terms.size();
 }
 
+bool SygusEnumerator::TermCache::isComplete() const
+{
+  return d_isComplete;
+}
+void SygusEnumerator::TermCache::setComplete()
+{
+  d_isComplete = true;
+}
+
 unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
@@ -491,8 +500,7 @@ SygusEnumerator::TermEnumMaster::TermEnumMaster()
       d_ccWeight(0),
       d_consNum(0),
       d_currChildSize(0),
-      d_childrenValid(0),
-      d_lastSize(0)
+      d_childrenValid(0)
 {
 }
 
@@ -504,7 +512,6 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_tn = tn;
 
   d_currSize = 0;
-  d_lastSize = 0;
   // we will start with constructor class zero
   d_consClassNum = 0;
   d_currChildSize = 0;
@@ -562,6 +569,10 @@ bool SygusEnumerator::TermEnumMaster::increment()
 bool SygusEnumerator::TermEnumMaster::incrementInternal()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
+  if( tc.isComplete() )
+  {
+    return false;
+  }
   Trace("sygus-enum-debug2")
       << "master(" << d_tn << "): get last constructor class..." << std::endl;
   // the maximum index of a constructor class to consider
@@ -597,9 +608,6 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         d_ccTypes.clear();
         Trace("sygus-enum-debug2")
             << "master(" << d_tn << "): failed due to init size\n";
-        // We set last size to current size. This is to indicate that the next
-        // size may still have terms to enumerate.
-        // d_lastSize = d_currSize;
       }
     }
     else
@@ -614,11 +622,54 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   // have we run out of constructor classes for this size?
   if (d_ccCons.empty())
   {
-    // "no more values" size? FIXME
-    if (d_lastSize + 100 < d_currSize)
+    // check whether we should terminate
+    if( d_tn.isInterpretedFinite() )
     {
-      Trace("sygus-enum-debug2") << "master(" << d_tn << "): fail, gap\n";
-      return false;
+      if( ncc==tc.getNumConstructorClasses() )
+      {
+        bool doTerminate = true;
+        for( unsigned i=1; i<ncc; i++ )
+        {
+          // The maximum size of terms from a constructor class can be
+          // determined if all of its argument types are finished enumerating.
+          // If this maximum size is less than or equal to d_currSize for 
+          // each constructor class, we are done.
+          unsigned sum = tc.getWeightForConstructorClass(i);
+          std::vector< TypeNode > cctns;
+          tc.getTypesForConstructorClass(i, cctns);
+          for( unsigned j=0, ntypes = cctns.size(); j<ntypes; j++ )
+          {
+            TypeNode tnc = cctns[j];
+            SygusEnumerator::TermCache& tcc = d_se->d_tcache[tnc];
+            if( !tcc.isComplete() )
+            {
+              // maximum size of this constructor class cannot be determined
+              doTerminate = false;
+              break;
+            }
+            else
+            {
+              sum += tcc.getEnumSize();
+              if( sum>d_currSize )
+              {
+                // maximum size of this constructor class is greater than size
+                doTerminate = false;
+                break;
+              }
+            }
+          }
+          if( !doTerminate )
+          {
+            break;
+          }
+        }
+        if( doTerminate )
+        {
+          Trace("cegqi-engine") << "master(" << d_tn << "): complete at size " << d_currSize << std::endl;
+          tc.setComplete();
+          return false;
+        }
+      }
     }
 
     // increment the size bound
@@ -664,7 +715,6 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       Node c = getCurrent();
       if (tc.addTerm(c))
       {
-        d_lastSize = d_currSize;
         return true;
       }
       Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed addTerm\n";

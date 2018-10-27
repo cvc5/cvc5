@@ -38,7 +38,7 @@ class SygusPbe;
  * solver as a candidate generator in a synthesis loop. It filters terms based
  * on redundancy criteria, for instance, it does not generate two terms whose
  * builtin terms (TermDb::sygusToBuiltin) can be shown to be equivalent via
- * rewriting.
+ * rewriting. It enumerates terms in order of sygus term size.
  */
 class SygusEnumerator : public EnumValGenerator
 {
@@ -127,6 +127,10 @@ class SygusEnumerator : public EnumValGenerator
     Node getTerm(unsigned index) const;
     /** get the number of terms successfully added to this cache */
     unsigned getNumTerms() const;
+    /** are we finished enumerating terms of this type? */
+    bool isComplete() const;
+    /** set complete */
+    void setComplete();
 
    private:
     /** the enumerator this cache is for */
@@ -165,6 +169,8 @@ class SygusEnumerator : public EnumValGenerator
     std::map<unsigned, unsigned> d_sizeStartIndex;
     /** the maximum size of terms we have stored in this cache so far */
     unsigned d_sizeEnum;
+    /** whether this term cache is complete */
+    bool d_isComplete;
   };
   /** above cache for each sygus type */
   std::map<TypeNode, TermCache> d_tcache;
@@ -314,11 +320,6 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_currChildSize;
     /** the number of indices in d_children that are valid */
     unsigned d_childrenValid;
-    /** the last term size: this value is used for termination
-     *
-     * FIXME
-     */
-    unsigned d_lastSize;
     /** initialize children
      * 
      * Initialize all the uninitialized children of this enumerator. If this
