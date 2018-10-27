@@ -760,6 +760,9 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     else
     {
+      // Actively-generator enumerators are currently either variable agnostic
+      // or basic.
+      Assert( d_tds->isBasicEnumerator(e) );
       if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
       {
         d_evg[e].reset(new SygusEnumerator(d_tds, this));
@@ -809,7 +812,9 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     NodeManager* nm = NodeManager::currentNM();
     d_ev_curr_active_gen[e] = Node::null();
     std::vector<Node> exp;
-    if (d_tds->isVariableAgnosticEnumerator(e))
+    // if we are a basic enumerator, one abstract value maps to *all* concrete
+    // values, thus we don't depend on the current solution.
+    if (!d_tds->isBasicEnumerator(e))
     {
       // We must block e = absE
       d_tds->getExplain()->getExplanationForEquality(e, absE, exp);

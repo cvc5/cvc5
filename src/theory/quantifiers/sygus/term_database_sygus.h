@@ -115,6 +115,13 @@ class TermDbSygus {
   bool usingSymbolicConsForEnumerator(Node e) const;
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this enumerator a "basic" enumerator.
+   * 
+   * A basic enumerator is one that does not rely on the sygus extension of the
+   * datatypes solver. Basic enumerators enumerate all concrete terms for their
+   * type for a single abstract value.
+   */
+  bool isBasicEnumerator(Node e) const;
   /** is this a "passively-generated" enumerator?
    *
    * A "passively-generated" enumerator is one for which the terms it enumerates
@@ -321,6 +328,8 @@ class TermDbSygus {
   std::map<Node, bool> d_enum_active_gen;
   /** enumerators to whether they are variable agnostic */
   std::map<Node, bool> d_enum_var_agnostic;
+  /** enumerators to whether they are basic */
+  std::map<Node, bool> d_enum_basic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
