@@ -76,7 +76,11 @@ Node SygusEnumerator::getNext()
 }
 
 SygusEnumerator::TermCache::TermCache()
-    : d_tds(nullptr), d_pbe(nullptr), d_numConClasses(0), d_sizeEnum(0), d_isComplete(false)
+    : d_tds(nullptr),
+      d_pbe(nullptr),
+      d_numConClasses(0),
+      d_sizeEnum(0),
+      d_isComplete(false)
 {
 }
 void SygusEnumerator::TermCache::initialize(Node e,
@@ -124,8 +128,8 @@ void SygusEnumerator::TermCache::initialize(Node e,
   {
     // record weight information
     unsigned w = dt[i].getWeight();
-    Trace("sygus-enum-debug")
-        << "Weight " << dt[i].getSygusOp() << ": " << w << std::endl;
+    Trace("sygus-enum-debug") << "Weight " << dt[i].getSygusOp() << ": " << w
+                              << std::endl;
     weightsToIndices[w].push_back(i);
     // record type information
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
@@ -163,9 +167,9 @@ void SygusEnumerator::TermCache::initialize(Node e,
       // determine which constructor class this goes into: currently trivial
       unsigned cclassi = cp.second;
       unsigned i = nToC[cp.first];
-      Trace("sygus-enum-debug")
-          << "Constructor class for " << dt[i].getSygusOp() << " is " << cclassi
-          << std::endl;
+      Trace("sygus-enum-debug") << "Constructor class for "
+                                << dt[i].getSygusOp() << " is " << cclassi
+                                << std::endl;
       // initialize the constructor class
       if (d_ccToWeight.find(cclassi) == d_ccToWeight.end())
       {
@@ -226,8 +230,8 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
 {
   if (!d_isSygusType)
   {
-    Trace("sygus-enum-terms")
-        << "tc(" << d_tn << "): term (builtin): " << n << std::endl;
+    Trace("sygus-enum-terms") << "tc(" << d_tn << "): term (builtin): " << n
+                              << std::endl;
     d_terms.push_back(n);
     return true;
   }
@@ -250,9 +254,9 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     {
       if (bnr != bne)
       {
-        Trace("sygus-enum-exc")
-            << "Exclude (by examples): " << bn << ", since we already have "
-            << bne << "!=" << bnr << std::endl;
+        Trace("sygus-enum-exc") << "Exclude (by examples): " << bn
+                                << ", since we already have " << bne
+                                << "!=" << bnr << std::endl;
         return false;
       }
     }
@@ -266,9 +270,9 @@ void SygusEnumerator::TermCache::pushEnumSizeIndex()
 {
   d_sizeEnum++;
   d_sizeStartIndex[d_sizeEnum] = d_terms.size();
-  Trace("sygus-enum-debug")
-      << "tc(" << d_tn << "): size " << d_sizeEnum << " terms start at index "
-      << d_terms.size() << std::endl;
+  Trace("sygus-enum-debug") << "tc(" << d_tn << "): size " << d_sizeEnum
+                            << " terms start at index " << d_terms.size()
+                            << std::endl;
 }
 unsigned SygusEnumerator::TermCache::getEnumSize() const { return d_sizeEnum; }
 unsigned SygusEnumerator::TermCache::getIndexForSize(unsigned s) const
@@ -289,19 +293,10 @@ unsigned SygusEnumerator::TermCache::getNumTerms() const
   return d_terms.size();
 }
 
-bool SygusEnumerator::TermCache::isComplete() const
-{
-  return d_isComplete;
-}
-void SygusEnumerator::TermCache::setComplete()
-{
-  d_isComplete = true;
-}
-
+bool SygusEnumerator::TermCache::isComplete() const { return d_isComplete; }
+void SygusEnumerator::TermCache::setComplete() { d_isComplete = true; }
 unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
-
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
-
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
     : TermEnum(), d_sizeLim(0), d_index(0), d_indexNextEnd(0), d_master(nullptr)
 {
@@ -315,9 +310,9 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
   d_se = se;
   d_tn = tn;
   d_sizeLim = sizeMax;
-  Trace("sygus-enum-debug2")
-      << "slave(" << d_tn << "): init, min/max=" << sizeMin << "/" << sizeMax
-      << "...\n";
+  Trace("sygus-enum-debug2") << "slave(" << d_tn
+                             << "): init, min/max=" << sizeMin << "/" << sizeMax
+                             << "...\n";
 
   // must have pointer to the master
   d_master = d_se->getMasterEnumForType(d_tn);
@@ -328,17 +323,17 @@ bool SygusEnumerator::TermEnumSlave::initialize(SygusEnumerator* se,
   // initialize the index
   while (d_currSize > tc.getEnumSize())
   {
-    Trace("sygus-enum-debug2")
-        << "slave(" << d_tn << "): init force increment master...\n";
+    Trace("sygus-enum-debug2") << "slave(" << d_tn
+                               << "): init force increment master...\n";
     // increment the master until we have enough terms
     if (!d_master->increment())
     {
-      Trace("sygus-enum-debug2")
-          << "slave(" << d_tn << "): ...fail init force master\n";
+      Trace("sygus-enum-debug2") << "slave(" << d_tn
+                                 << "): ...fail init force master\n";
       return false;
     }
-    Trace("sygus-enum-debug2")
-        << "slave(" << d_tn << "): ...success init force master\n";
+    Trace("sygus-enum-debug2") << "slave(" << d_tn
+                               << "): ...success init force master\n";
   }
   d_index = tc.getIndexForSize(d_currSize);
   Trace("sygus-enum-debug2") << "slave(" << d_tn << "): validate indices...\n";
@@ -365,9 +360,9 @@ Node SygusEnumerator::TermEnumSlave::getCurrent()
       << "): current : " << d_se->d_tds->sygusToBuiltin(curr)
       << ", sizes = " << d_se->d_tds->getSygusTermSize(curr) << " "
       << getCurrentSize() << std::endl;
-  Trace("sygus-enum-debug2")
-      << "slave(" << d_tn << "): indices : " << d_hasIndexNextEnd << " "
-      << d_indexNextEnd << " " << d_index << std::endl;
+  Trace("sygus-enum-debug2") << "slave(" << d_tn
+                             << "): indices : " << d_hasIndexNextEnd << " "
+                             << d_indexNextEnd << " " << d_index << std::endl;
   // Assert( d_se->d_tds->getSygusTermSize(curr)==getCurrentSize() );
   // lookup in the cache
   return tc.getTerm(d_index);
@@ -393,17 +388,17 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     // must push the master index
     if (!d_master->increment())
     {
-      Trace("sygus-enum-debug2")
-          << "slave(" << d_tn << ") : ...fail force master\n";
+      Trace("sygus-enum-debug2") << "slave(" << d_tn
+                                 << ") : ...fail force master\n";
       return false;
     }
-    Trace("sygus-enum-debug2")
-        << "slave(" << d_tn << ") : ...success force master\n";
+    Trace("sygus-enum-debug2") << "slave(" << d_tn
+                               << ") : ...success force master\n";
   }
   // always validate the next index end here
   validateIndexNextEnd();
-  Trace("sygus-enum-debug2")
-      << "slave(" << d_tn << ") : validate index end...\n";
+  Trace("sygus-enum-debug2") << "slave(" << d_tn
+                             << ") : validate index end...\n";
   // if we are at the beginning of the next size, increment current size
   while (d_hasIndexNextEnd && d_index == d_indexNextEnd)
   {
@@ -518,8 +513,8 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_ccCons.clear();
   d_isIncrementing = false;
   bool ret = increment();
-  Trace("sygus-enum-debug")
-      << "master(" << tn << "): finish init, ret = " << ret << "\n";
+  Trace("sygus-enum-debug") << "master(" << tn
+                            << "): finish init, ret = " << ret << "\n";
   return ret;
 }
 
@@ -569,24 +564,24 @@ bool SygusEnumerator::TermEnumMaster::increment()
 bool SygusEnumerator::TermEnumMaster::incrementInternal()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
-  if( tc.isComplete() )
+  if (tc.isComplete())
   {
     return false;
   }
-  Trace("sygus-enum-debug2")
-      << "master(" << d_tn << "): get last constructor class..." << std::endl;
+  Trace("sygus-enum-debug2") << "master(" << d_tn
+                             << "): get last constructor class..." << std::endl;
   // the maximum index of a constructor class to consider
   unsigned ncc = tc.getLastConstructorClassIndexForWeight(d_currSize);
-  Trace("sygus-enum-debug2")
-      << "Last constructor class " << d_currSize << ": " << ncc << std::endl;
+  Trace("sygus-enum-debug2") << "Last constructor class " << d_currSize << ": "
+                             << ncc << std::endl;
 
   // have we initialized the current constructor class?
   while (d_ccCons.empty() && d_consClassNum < ncc)
   {
     Assert(d_ccTypes.empty());
-    Trace("sygus-enum-debug2")
-        << "master(" << d_tn << "): try constructor class " << d_consClassNum
-        << std::endl;
+    Trace("sygus-enum-debug2") << "master(" << d_tn
+                               << "): try constructor class " << d_consClassNum
+                               << std::endl;
     // get the list of constructors in the constructor class
     tc.getConstructorClass(d_consClassNum, d_ccCons);
     // if there are any...
@@ -606,14 +601,14 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
         // didn't work (due to size), we will try the next class
         d_ccCons.clear();
         d_ccTypes.clear();
-        Trace("sygus-enum-debug2")
-            << "master(" << d_tn << "): failed due to init size\n";
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): failed due to init size\n";
       }
     }
     else
     {
-      Trace("sygus-enum-debug2")
-          << "master(" << d_tn << "): failed due to no cons\n";
+      Trace("sygus-enum-debug2") << "master(" << d_tn
+                                 << "): failed due to no cons\n";
     }
     // increment the next constructor class we will try
     d_consClassNum++;
@@ -623,25 +618,25 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   if (d_ccCons.empty())
   {
     // check whether we should terminate
-    if( d_tn.isInterpretedFinite() )
+    if (d_tn.isInterpretedFinite())
     {
-      if( ncc==tc.getNumConstructorClasses() )
+      if (ncc == tc.getNumConstructorClasses())
       {
         bool doTerminate = true;
-        for( unsigned i=1; i<ncc; i++ )
+        for (unsigned i = 1; i < ncc; i++)
         {
           // The maximum size of terms from a constructor class can be
           // determined if all of its argument types are finished enumerating.
-          // If this maximum size is less than or equal to d_currSize for 
+          // If this maximum size is less than or equal to d_currSize for
           // each constructor class, we are done.
           unsigned sum = tc.getWeightForConstructorClass(i);
-          std::vector< TypeNode > cctns;
+          std::vector<TypeNode> cctns;
           tc.getTypesForConstructorClass(i, cctns);
-          for( unsigned j=0, ntypes = cctns.size(); j<ntypes; j++ )
+          for (unsigned j = 0, ntypes = cctns.size(); j < ntypes; j++)
           {
             TypeNode tnc = cctns[j];
             SygusEnumerator::TermCache& tcc = d_se->d_tcache[tnc];
-            if( !tcc.isComplete() )
+            if (!tcc.isComplete())
             {
               // maximum size of this constructor class cannot be determined
               doTerminate = false;
@@ -650,7 +645,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
             else
             {
               sum += tcc.getEnumSize();
-              if( sum>d_currSize )
+              if (sum > d_currSize)
               {
                 // maximum size of this constructor class is greater than size
                 doTerminate = false;
@@ -658,14 +653,15 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
               }
             }
           }
-          if( !doTerminate )
+          if (!doTerminate)
           {
             break;
           }
         }
-        if( doTerminate )
+        if (doTerminate)
         {
-          Trace("cegqi-engine") << "master(" << d_tn << "): complete at size " << d_currSize << std::endl;
+          Trace("cegqi-engine") << "master(" << d_tn << "): complete at size "
+                                << d_currSize << std::endl;
           tc.setComplete();
           return false;
         }
@@ -674,15 +670,15 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
 
     // increment the size bound
     d_currSize++;
-    Trace("sygus-enum-debug2")
-        << "master(" << d_tn << "): size++ : " << d_currSize << "\n";
+    Trace("sygus-enum-debug2") << "master(" << d_tn
+                               << "): size++ : " << d_currSize << "\n";
     if (Trace.isOn("cegqi-engine"))
     {
       // am i the master enumerator? if so, print
       if (d_se->d_tlEnum == this)
       {
-        Trace("cegqi-engine")
-            << "SygusEnumerator::size = " << d_currSize << std::endl;
+        Trace("cegqi-engine") << "SygusEnumerator::size = " << d_currSize
+                              << std::endl;
       }
     }
 
@@ -697,9 +693,9 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   bool incSuccess = false;
   do
   {
-    Trace("sygus-enum-debug2")
-        << "master(" << d_tn << "): check return " << d_childrenValid << "/"
-        << d_ccTypes.size() << std::endl;
+    Trace("sygus-enum-debug2") << "master(" << d_tn << "): check return "
+                               << d_childrenValid << "/" << d_ccTypes.size()
+                               << std::endl;
     // the children should be initialized by here
     Assert(d_childrenValid == d_ccTypes.size());
 
@@ -738,8 +734,8 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       d_currChildSize -= d_children[i].getCurrentSize();
       if (d_children[i].increment())
       {
-        Trace("sygus-enum-debug2")
-            << "master(" << d_tn << "): increment success...\n";
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): increment success...\n";
         d_currChildSize += d_children[i].getCurrentSize();
         // must see if we can initialize the remaining children here
         // if not, there is no use continuing.
@@ -752,16 +748,16 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       }
       else
       {
-        Trace("sygus-enum-debug2")
-            << "master(" << d_tn << "): fail, backtrack...\n";
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): fail, backtrack...\n";
         // current child is out of values
         d_children.erase(i);
         d_childrenValid--;
       }
     }
   } while (incSuccess);
-  Trace("sygus-enum-debug2")
-      << "master(" << d_tn << "): failed increment children\n";
+  Trace("sygus-enum-debug2") << "master(" << d_tn
+                             << "): failed increment children\n";
   // restart with the next constructor class
   d_ccCons.clear();
   d_ccTypes.clear();
@@ -782,13 +778,13 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
     {
       if (d_childrenValid == 0)
       {
-        Trace("sygus-enum-debug2")
-            << "master(" << d_tn << "): init children : failed, finished"
-            << std::endl;
+        Trace("sygus-enum-debug2") << "master(" << d_tn
+                                   << "): init children : failed, finished"
+                                   << std::endl;
         return false;
       }
-      Trace("sygus-enum-debug2")
-          << "master(" << d_tn << "): init children : failed" << std::endl;
+      Trace("sygus-enum-debug2") << "master(" << d_tn
+                                 << "): init children : failed" << std::endl;
       // we failed in this size configuration
       // reinitialize with the next size up
       unsigned currSize = d_children[d_childrenValid - 1].getCurrentSize();
@@ -803,8 +799,8 @@ bool SygusEnumerator::TermEnumMaster::initializeChildren()
       d_childrenValid++;
     }
   }
-  Trace("sygus-enum-debug2")
-      << "master(" << d_tn << "): init children : success" << std::endl;
+  Trace("sygus-enum-debug2") << "master(" << d_tn
+                             << "): init children : success" << std::endl;
   // initialized all children
   return true;
 }
@@ -815,9 +811,9 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   Assert(d_ccWeight <= d_currSize);
   Assert(d_currChildSize + d_ccWeight <= d_currSize);
   unsigned sizeMax = (d_currSize - d_ccWeight) - d_currChildSize;
-  Trace("sygus-enum-debug2")
-      << "master(" << d_tn << "): initializeChild " << i << " (" << d_currSize
-      << ", " << d_ccWeight << ", " << d_currChildSize << ")\n";
+  Trace("sygus-enum-debug2") << "master(" << d_tn << "): initializeChild " << i
+                             << " (" << d_currSize << ", " << d_ccWeight << ", "
+                             << d_currChildSize << ")\n";
   if (sizeMin > sizeMax)
   {
     Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed due to size "
@@ -832,8 +828,8 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   {
     // failed to initialize
     d_children.erase(i);
-    Trace("sygus-enum-debug2")
-        << "master(" << d_tn << "): failed due to child init\n";
+    Trace("sygus-enum-debug2") << "master(" << d_tn
+                               << "): failed due to child init\n";
     return false;
   }
   unsigned teSize = te.getCurrentSize();
@@ -841,13 +837,13 @@ bool SygusEnumerator::TermEnumMaster::initializeChild(unsigned i,
   if (teSize + d_currChildSize + d_ccWeight > d_currSize)
   {
     d_children.erase(i);
-    Trace("sygus-enum-debug2")
-        << "master(" << d_tn << "): failed due to child size\n";
+    Trace("sygus-enum-debug2") << "master(" << d_tn
+                               << "): failed due to child size\n";
     return false;
   }
   d_currChildSize += teSize;
-  Trace("sygus-enum-debug2")
-      << "master(" << d_tn << "): success initializeChild " << i << "\n";
+  Trace("sygus-enum-debug2") << "master(" << d_tn
+                             << "): success initializeChild " << i << "\n";
   return true;
 }
 
@@ -868,7 +864,6 @@ bool SygusEnumerator::TermEnumMasterInterp::initialize(SygusEnumerator* se,
 }
 
 Node SygusEnumerator::TermEnumMasterInterp::getCurrent() { return *d_te; }
-
 bool SygusEnumerator::TermEnumMasterInterp::increment()
 {
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
@@ -885,7 +880,6 @@ bool SygusEnumerator::TermEnumMasterInterp::increment()
   return !d_te.isFinished();
 }
 SygusEnumerator::TermEnumMasterFv::TermEnumMasterFv() : TermEnum() {}
-
 bool SygusEnumerator::TermEnumMasterFv::initialize(SygusEnumerator* se,
                                                    TypeNode tn)
 {
@@ -902,8 +896,8 @@ bool SygusEnumerator::TermEnumMasterFv::initialize(SygusEnumerator* se,
 Node SygusEnumerator::TermEnumMasterFv::getCurrent()
 {
   Node ret = d_se->d_tds->getFreeVar(d_tn, d_currSize);
-  Trace("sygus-enum-debug2")
-      << "master_fv(" << d_tn << "): mk " << ret << std::endl;
+  Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): mk " << ret
+                             << std::endl;
   return ret;
 }
 
@@ -914,8 +908,8 @@ bool SygusEnumerator::TermEnumMasterFv::increment()
   d_currSize++;
   tc.pushEnumSizeIndex();
   Node curr = getCurrent();
-  Trace("sygus-enum-debug2")
-      << "master_fv(" << d_tn << "): increment, add " << curr << std::endl;
+  Trace("sygus-enum-debug2") << "master_fv(" << d_tn << "): increment, add "
+                             << curr << std::endl;
   bool ret = tc.addTerm(curr);
   AlwaysAssert(ret);
   return true;

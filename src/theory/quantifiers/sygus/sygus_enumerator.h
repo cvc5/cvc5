@@ -285,8 +285,8 @@ class SygusEnumerator : public EnumValGenerator
     bool initialize(SygusEnumerator* se, TypeNode tn);
     /** get the current term of the enumerator */
     Node getCurrent() override;
-    /** increment the enumerator 
-     * 
+    /** increment the enumerator
+     *
      * Returns true if there are more terms to enumerate, in which case a
      * subsequent call to getCurrent() returns the next enumerated term. This
      * method returns false if the last call to increment() has yet to
@@ -321,7 +321,7 @@ class SygusEnumerator : public EnumValGenerator
     /** the number of indices in d_children that are valid */
     unsigned d_childrenValid;
     /** initialize children
-     * 
+     *
      * Initialize all the uninitialized children of this enumerator. If this
      * method returns true, then all children d_children are successfully
      * initialized to be slave enumerators of the argument types indicated by
@@ -333,8 +333,8 @@ class SygusEnumerator : public EnumValGenerator
      * and d_currChildSize and d_childrenValid are reset.
      */
     bool initializeChildren();
-    /** initialize child 
-     * 
+    /** initialize child
+     *
      * Initialize child i to enumerate terms whose size is at least sizeMin,
      * and whose maximum size is the largest size such that we can still
      * construct terms for the given constructor class and the current children
