@@ -154,7 +154,11 @@ void SygusEnumerator::TermCache::initialize(Node e,
       }
       else
       {
-        // we merge those whose argument types are the same TODO: order
+        // we merge those whose argument types are the same
+        // We could, but choose not to, order these types, which would lead to
+        // more aggressive merging of constructor classes. On the negative side,
+        // this adds another level of indirection to remember which argument
+        // positions the argument types occur in, for each constructor.
         Node n = nm->mkConst(Rational(i));
         nToC[n] = i;
         tnit.add(n, argTypes[i]);
@@ -164,7 +168,7 @@ void SygusEnumerator::TermCache::initialize(Node e,
     tnit.assignIds(assign, d_numConClasses);
     for (std::pair<const Node, unsigned>& cp : assign)
     {
-      // determine which constructor class this goes into: currently trivial
+      // determine which constructor class this goes into using tnit
       unsigned cclassi = cp.second;
       unsigned i = nToC[cp.first];
       Trace("sygus-enum-debug") << "Constructor class for "
