@@ -54,8 +54,8 @@ class SygusAbduct : public PreprocessingPass
 
  protected:
   /**
-   * Either replaces all uninterpreted functions in assertions by their
-   * interpretation in a sygus solution, or leaves the assertions unmodified.
+   * Replaces the set of assertions by an abduction sygus problem described
+   * above.
    */
   PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
