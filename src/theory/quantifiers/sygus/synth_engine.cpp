@@ -34,12 +34,12 @@ namespace quantifiers {
 SynthEngine::SynthEngine(QuantifiersEngine* qe, context::Context* c)
     : QuantifiersModule(qe)
 {
-  d_conj = new SynthConjecture(qe);
-  d_last_inst_si = false;
+  d_conjs.push_back(
+      std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  d_conj = d_conjs.back().get();
 }
 
-SynthEngine::~SynthEngine() { delete d_conj; }
-
+SynthEngine::~SynthEngine() {}
 bool SynthEngine::needsCheck(Theory::Effort e)
 {
   return e >= Theory::EFFORT_LAST_CALL;
@@ -47,65 +47,88 @@ bool SynthEngine::needsCheck(Theory::Effort e)
 
 QuantifiersModule::QEffort SynthEngine::needsModel(Theory::Effort e)
 {
-  return d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
+  return QEFFORT_MODEL;
 }
 
 void SynthEngine::check(Theory::Effort e, QEffort quant_e)
 {
   // are we at the proper effort level?
-  unsigned echeck =
-      d_conj->isSingleInvocation() ? QEFFORT_STANDARD : QEFFORT_MODEL;
-  if (quant_e != echeck)
+  if (quant_e != QEFFORT_MODEL)
   {
     return;
   }
 
   // if we are waiting to assign the conjecture, do it now
-  if (!d_waiting_conj.isNull())
+  bool assigned = !d_waiting_conj.empty();
+  while (!d_waiting_conj.empty())
   {
-    Node q = d_waiting_conj;
+    Node q = d_waiting_conj.back();
+    d_waiting_conj.pop_back();
     Trace("cegqi-engine") << "--- Conjecture waiting to assign: " << q
                           << std::endl;
-    d_waiting_conj = Node::null();
-    if (!d_conj->isAssigned())
-    {
-      assignConjecture(q);
-      // assign conjecture always uses the output channel, we return and
-      // re-check here.
-      return;
-    }
+    assignConjecture(q);
+  }
+  if (assigned)
+  {
+    // assign conjecture always uses the output channel, either by reducing a
+    // quantified formula to another, or adding initial lemmas during
+    // SynthConjecture::assign. Thus, we return here and re-check.
+    return;
   }
 
   Trace("cegqi-engine") << "---Counterexample Guided Instantiation Engine---"
                         << std::endl;
   Trace("cegqi-engine-debug") << std::endl;
-  bool active = false;
-  bool value;
-  if (d_quantEngine->getValuation().hasSatValue(d_conj->getConjecture(), value))
+  Valuation& valuation = d_quantEngine->getValuation();
+  std::vector<SynthConjecture*> activeCheckConj;
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    active = value;
-  }
-  else
-  {
+    SynthConjecture* sc = d_conjs[i].get();
+    bool active = false;
+    bool value;
+    if (valuation.hasSatValue(sc->getConjecture(), value))
+    {
+      active = value;
+    }
+    else
+    {
+      Trace("cegqi-engine-debug") << "...no value for quantified formula."
+                                  << std::endl;
+    }
     Trace("cegqi-engine-debug")
-        << "...no value for quantified formula." << std::endl;
+        << "Current conjecture status : active : " << active << std::endl;
+    if (active && sc->needsCheck())
+    {
+      activeCheckConj.push_back(sc);
+    }
   }
-  Trace("cegqi-engine-debug")
-      << "Current conjecture status : active : " << active << std::endl;
-  if (active && d_conj->needsCheck())
+  std::vector<SynthConjecture*> acnext;
+  do
   {
-    checkConjecture(d_conj);
-  }
+    Trace("cegqi-engine-debug") << "Checking " << activeCheckConj.size()
+                                << " active conjectures..." << std::endl;
+    for (unsigned i = 0, size = activeCheckConj.size(); i < size; i++)
+    {
+      SynthConjecture* sc = activeCheckConj[i];
+      if (!checkConjecture(sc))
+      {
+        if (!sc->needsRefinement())
+        {
+          acnext.push_back(sc);
+        }
+      }
+    }
+    activeCheckConj.clear();
+    activeCheckConj = acnext;
+    acnext.clear();
+  } while (!activeCheckConj.empty()
+           && !d_quantEngine->getTheoryEngine()->needCheck());
   Trace("cegqi-engine")
       << "Finished Counterexample Guided Instantiation engine." << std::endl;
 }
 
-bool SynthEngine::assignConjecture(Node q)
+void SynthEngine::assignConjecture(Node q)
 {
-  if (d_conj->isAssigned())
-  {
-    return false;
-  }
   Trace("cegqi-engine") << "--- Assign conjecture " << q << std::endl;
   if (options::sygusQePreproc())
   {
@@ -224,33 +247,31 @@ bool SynthEngine::assignConjecture(Node q)
                            << std::endl;
       d_quantEngine->getOutputChannel().lemma(lem);
       // we've reduced the original to a preprocessed version, return
-      return false;
+      return;
     }
   }
-  d_conj->assign(q);
-  return true;
+  // allocate a new synthesis conjecture if not assigned
+  if (d_conjs.back()->isAssigned())
+  {
+    d_conjs.push_back(
+        std::unique_ptr<SynthConjecture>(new SynthConjecture(d_quantEngine)));
+  }
+  d_conjs.back()->assign(q);
 }
 
 void SynthEngine::registerQuantifier(Node q)
 {
   if (d_quantEngine->getOwner(q) == this)
-  {  // && d_eval_axioms.find( q )==d_eval_axioms.end() ){
-    if (!d_conj->isAssigned())
+  {
+    Trace("cegqi") << "Register conjecture : " << q << std::endl;
+    if (options::sygusQePreproc())
     {
-      Trace("cegqi") << "Register conjecture : " << q << std::endl;
-      if (options::sygusQePreproc())
-      {
-        d_waiting_conj = q;
-      }
-      else
-      {
-        // assign it now
-        assignConjecture(q);
-      }
+      d_waiting_conj.push_back(q);
     }
     else
     {
-      Assert(d_conj->getEmbeddedConjecture() == q);
+      // assign it now
+      assignConjecture(q);
     }
   }
   else
@@ -259,7 +280,7 @@ void SynthEngine::registerQuantifier(Node q)
   }
 }
 
-void SynthEngine::checkConjecture(SynthConjecture* conj)
+bool SynthEngine::checkConjecture(SynthConjecture* conj)
 {
   Node q = conj->getEmbeddedConjecture();
   Node aq = conj->getConjecture();
@@ -278,7 +299,6 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
       conj->doSingleInvCheck(clems);
       if (!clems.empty())
       {
-        d_last_inst_si = true;
         for (const Node& lem : clems)
         {
           Trace("cegqi-lemma")
@@ -298,16 +318,15 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
             << "  ...FAILED to add cbqi instantiation for single invocation!"
             << std::endl;
       }
-      return;
+      return true;
     }
 
     Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;
-    conj->doCheck(cclems);
+    bool ret = conj->doCheck(cclems);
     bool addedLemma = false;
     for (const Node& lem : cclems)
     {
-      d_last_inst_si = false;
       Trace("cegqi-lemma") << "Cegqi::Lemma : counterexample : " << lem
                            << std::endl;
       if (d_quantEngine->addLemma(lem))
@@ -325,16 +344,17 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
     if (addedLemma)
     {
       Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
+      return true;
     }
     else
     {
       if (conj->needsRefinement())
       {
         // immediately go to refine candidate
-        checkConjecture(conj);
-        return;
+        return checkConjecture(conj);
       }
     }
+    return ret;
   }
   else
   {
@@ -364,25 +384,29 @@ void SynthEngine::checkConjecture(SynthConjecture* conj)
       Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
     }
   }
+  return true;
 }
 
 void SynthEngine::printSynthSolution(std::ostream& out)
 {
-  if (d_conj->isAssigned())
+  Assert(!d_conjs.empty());
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    d_conj->printSynthSolution(out, d_last_inst_si);
-  }
-  else
-  {
-    Assert(false);
+    if (d_conjs[i]->isAssigned())
+    {
+      d_conjs[i]->printSynthSolution(out);
+    }
   }
 }
 
 void SynthEngine::getSynthSolutions(std::map<Node, Node>& sol_map)
 {
-  if (d_conj->isAssigned())
+  for (unsigned i = 0, size = d_conjs.size(); i < size; i++)
   {
-    d_conj->getSynthSolutions(sol_map, d_last_inst_si);
+    if (d_conjs[i]->isAssigned())
+    {
+      d_conjs[i]->getSynthSolutions(sol_map);
+    }
   }
 }
 
@@ -402,17 +426,16 @@ SynthEngine::Statistics::Statistics()
       d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
       d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
       d_solutions("SynthConjecture::solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
-                                 0),
-      d_candidate_rewrites("SynthConjecture::candidate_rewrites", 0)
+      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
 
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
   smtStatisticsRegistry()->registerStat(&d_solutions);
+  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
   smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
-  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites);
 }
 
 SynthEngine::Statistics::~Statistics()
@@ -421,8 +444,8 @@ SynthEngine::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_solutions);
+  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
   smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
-  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites);
 }
 
 }  // namespace quantifiers

@@ -262,6 +262,16 @@ enum SygusInvTemplMode {
   SYGUS_INV_TEMPL_MODE_POST,
 };
 
+enum SygusActiveGenMode
+{
+  /** do not use actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_NONE,
+  /** use basic actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_BASIC,
+  /** use variable-agnostic enumerators */
+  SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,

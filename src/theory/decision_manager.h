@@ -105,11 +105,8 @@ class DecisionManager
    * returns null, then no decisions are required by a decision strategy
    * registered to this class. In the latter case, the SAT solver will choose
    * a decision based on its given heuristic.
-   *
-   * The argument priority has the same role as in
-   * Theory::getNextDecisionRequest.
    */
-  Node getNextDecisionRequest(unsigned& priorty);
+  Node getNextDecisionRequest();
 
  private:
   /** Map containing all strategies registered to this manager */

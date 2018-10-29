@@ -68,7 +68,9 @@ endmacro()
 set(EXAMPLES_LINK_LIBS cvc4 cvc4parser)
 cvc4_add_example(simple_vc_cxx "" "${EXAMPLES_LINK_LIBS}" "")
 cvc4_add_example(simple_vc_quant_cxx "" "${EXAMPLES_LINK_LIBS}" "")
-cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" "")
+cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" ""
+    # argument to binary (for testing)
+    ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
 if(BUILD_BINDINGS_JAVA)
   find_package(Java REQUIRED)

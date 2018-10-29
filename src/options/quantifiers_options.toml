@@ -984,6 +984,14 @@ header = "options/quantifiers_options.h"
   help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
 
 [[option]]
+  name       = "sygusUnifShuffleCond"
+  category   = "regular"
+  long       = "sygus-unif-shuffle-cond"
+  type       = "bool"
+  default    = "false"
+  help       = "Shuffle condition pool when building solutions (may change solutions sizes)"
+
+[[option]]
   name       = "sygusUnifBooleanHeuristicDt"
   category   = "regular"
   long       = "sygus-unif-boolean-heuristic-dt"
@@ -994,7 +1002,7 @@ header = "options/quantifiers_options.h"
 [[option]]
   name       = "sygusUnifCondIndNoRepeatSol"
   category   = "regular"
-  long       = "sygus-unif-cond-indpendent-no-repeat-sol"
+  long       = "sygus-unif-cond-independent-no-repeat-sol"
   type       = "bool"
   default    = "true"
   help       = "Do not try repeated solutions when using independent synthesis of conditions in unification-based function synthesis"
@@ -1021,7 +1029,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-repair-const"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "use approach to repair constants in sygus candidate solutions"
 
 [[option]]
@@ -1030,6 +1038,17 @@ header = "options/quantifiers_options.h"
   long       = "sygus-repair-const-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for the satisfiability check to repair constants in sygus candidate solutions"
+
+[[option]]
+  name       = "sygusActiveGenMode"
+  category   = "regular"
+  long       = "sygus-active-gen=MODE"
+  type       = "CVC4::theory::quantifiers::SygusActiveGenMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_ACTIVE_GEN_NONE"
+  handler    = "stringToSygusActiveGenMode"
+  includes   = ["options/quantifiers_modes.h"]
+  read_only  = true
+  help       = "mode for actively-generated sygus enumerators"
 
 [[option]]
   name       = "sygusMinGrammar"
@@ -1075,7 +1094,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
   handler    = "stringToSygusInvTemplMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = true
   help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
 
 [[option]]
@@ -1249,6 +1267,14 @@ header = "options/quantifiers_options.h"
   help       = "filter candidate rewrites based on congruence"
 
 [[option]]
+  name       = "sygusRewSynthFilterNonLinear"
+  category   = "regular"
+  long       = "sygus-rr-synth-filter-nl"
+  type       = "bool"
+  default    = "false"
+  help       = "filter non-linear candidate rewrites"
+
+[[option]]
   name       = "sygusRewVerify"
   category   = "regular"
   long       = "sygus-rr-verify"
@@ -1306,11 +1332,83 @@ header = "options/quantifiers_options.h"
   help       = "use satisfiability check to verify correctness of candidate rewrites"
 
 [[option]]
+  name       = "sygusRewSynthInput"
+  category   = "regular"
+  long       = "sygus-rr-synth-input"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize rewrite rules based on the input formula"
+
+[[option]]
+  name       = "sygusRewSynthInputNVars"
+  category   = "regular"
+  long       = "sygus-rr-synth-input-nvars=N"
+  type       = "int"
+  default    = "3"
+  help       = "the maximum number of variables per type that appear in rewrites from sygus-rr-synth-input"
+
+[[option]]
+  name       = "sygusRewSynthInputUseBool"
+  category   = "regular"
+  long       = "sygus-rr-synth-input-use-bool"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize Boolean rewrite rules based on the input formula"
+
+[[option]]
   name       = "sygusExprMinerCheckTimeout"
   category   = "regular"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
+
+[[option]]
+  name       = "sygusQueryGen"
+  category   = "regular"
+  long       = "sygus-query-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
+[[option]]
+  name       = "sygusQueryGenThresh"
+  category   = "regular"
+  long       = "sygus-query-gen-thresh=N"
+  type       = "unsigned"
+  default    = "5"
+  help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
+
+[[option]]
+  name       = "sygusQueryGenCheck"
+  category   = "regular"
+  long       = "sygus-query-gen-check"
+  type       = "bool"
+  default    = "true"
+  help       = "use interesting satisfiability queries to check soundness of CVC4"
+
+[[option]]
+  name       = "sygusQueryGenDumpFiles"
+  category   = "regular"
+  long       = "sygus-query-gen-dump-files"
+  type       = "bool"
+  default    = "false"
+  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
+
+[[option]]
+  name       = "sygusSolFilterImplied"
+  category   = "regular"
+  long       = "sygus-sol-filter-implied"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
+[[option]]
+  name       = "sygusExprMinerCheckUseExport"
+  category   = "expert"
+  long       = "sygus-expr-miner-check-use-export"
+  type       = "bool"
+  default    = "true"
+  help       = "export expressions to a different ExprManager with different options for satisfiability checks in expression miners"
 
 # CEGQI applied to general quantified formulas
 

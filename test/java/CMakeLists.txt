@@ -18,7 +18,7 @@ add_jar(build-javatests
   OUTPUT_NAME javatests
 )
 add_dependencies(build-javatests cvc4jar)
-add_dependencies(check build-javatests)
+add_dependencies(build-tests build-javatests)
 
 # Add java tests to ctest
 set(classpath "${CMAKE_CURRENT_BINARY_DIR}/javatests.jar")

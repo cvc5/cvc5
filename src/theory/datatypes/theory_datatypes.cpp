@@ -453,6 +453,8 @@ bool TheoryDatatypes::doSendLemma( Node lem ) {
     d_addedLemma = true;
     return true;
   }else{
+    Trace("dt-lemma-send") << "TheoryDatatypes::doSendLemma : duplicate : "
+                           << lem << std::endl;
     return false;
   }
 }

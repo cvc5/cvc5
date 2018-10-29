@@ -277,7 +277,8 @@ int main(int argc, char* argv[])
     // Create the parser
     ParserBuilder parserBuilder(solver.get(), input, options);
     if(input == "<stdin>") parserBuilder.withStreamInput(cin);
-    Parser* parser = parserBuilder.build();
+    std::unique_ptr<Parser> parser;
+    parser.reset(parserBuilder.build());
 
     // Variables and assertions
     vector<string> variables;

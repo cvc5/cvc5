@@ -126,21 +126,18 @@ Node CegGrammarConstructor::process(Node q,
         preGrammarType = preGrammarType.getRangeType();
       }
     }
-    Node sfvl = getSygusVarList(sf);
-    // sfvl may be null for constant synthesis functions
-    Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is " << sfvl << std::endl;
 
     // the actual sygus datatype we will use (normalized below)
     TypeNode tn;
     std::stringstream ss;
     ss << sf;
-    if (preGrammarType.isDatatype()
-        && static_cast<DatatypeType>(preGrammarType.toType())
-               .getDatatype()
-               .isSygus())
+    Node sfvl;
+    if (preGrammarType.isDatatype() && preGrammarType.getDatatype().isSygus())
     {
+      sfvl = Node::fromExpr(preGrammarType.getDatatype().getSygusVarList());
       tn = preGrammarType;
     }else{
+      sfvl = getSygusVarList(sf);
       // check which arguments are irrelevant
       std::unordered_set<unsigned> arg_irrelevant;
       d_parent->getProcess()->getIrrelevantArgs(sf, arg_irrelevant);
@@ -156,6 +153,9 @@ Node CegGrammarConstructor::process(Node q,
       tn = mkSygusDefaultType(
           preGrammarType, sfvl, ss.str(), extra_cons, exc_cons, term_irlv);
     }
+    // sfvl may be null for constant synthesis functions
+    Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
+                         << sfvl << std::endl;
 
     // normalize type
     SygusGrammarNorm sygus_norm(d_qe);
@@ -366,6 +366,10 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     ops.push_back(nm->mkConst(true));
     ops.push_back(nm->mkConst(false));
+  }
+  else if (type.isString())
+  {
+    ops.push_back(nm->mkConst(String("")));
   }
   // TODO #1178 : add other missing types
 }

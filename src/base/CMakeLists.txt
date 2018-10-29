@@ -1,44 +1,13 @@
 #-----------------------------------------------------------------------------#
 # Extract info from Git for git_versioninfo.cpp
+# Note: GitInfo.cmake generates git_versioninfo.cpp.
 
 find_package(Git)
-
-set(GIT_BUILD "false")
-set(GIT_IS_DIRTY "false")
-set(GIT_SHA1 "")
-set(GIT_BRANCH "")
-
-if(GIT_FOUND)
-  # Get current git branch, result is != 0 if this is not a git repository
-  execute_process(
-    COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse --abbrev-ref HEAD
-    RESULT_VARIABLE GIT_RESULT
-    OUTPUT_VARIABLE GIT_BRANCH
-    OUTPUT_STRIP_TRAILING_WHITESPACE
-  )
-  if("${GIT_RESULT}" STREQUAL "0")
-    set(GIT_BUILD "true")
-    # Extract sha1 of HEAD
-    execute_process(
-      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} rev-parse HEAD
-      OUTPUT_VARIABLE GIT_SHA1
-      OUTPUT_STRIP_TRAILING_WHITESPACE
-    )
-    # Result is != 0 if worktree is dirty
-    execute_process(
-      COMMAND ${GIT_EXECUTABLE} -C ${PROJECT_SOURCE_DIR} diff --quiet
-      RESULT_VARIABLE GIT_RESULT
-    )
-    if(NOT "${GIT_RESULT}" STREQUAL "0")
-      set(GIT_IS_DIRTY "true")
-    endif()
-  endif()
-endif()
+configure_file(GitInfo.cmake.in GitInfo.cmake @ONLY)
+add_custom_target(gen-gitinfo
+  COMMAND ${CMAKE_COMMAND} -DGIT_FOUND=${GIT_FOUND} -P GitInfo.cmake)
 
 #-----------------------------------------------------------------------------#
-# Generate git_versioninfo.cpp
-
-configure_file(git_versioninfo.cpp.in git_versioninfo.cpp)
 
 libcvc4_add_sources(
   configuration.cpp

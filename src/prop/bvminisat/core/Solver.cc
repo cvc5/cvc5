@@ -357,8 +357,11 @@ void Solver::cancelUntil(int level) {
             Var      x  = var(trail[c]);
             assigns [x] = l_Undef;
             if (marker[x] == 2) marker[x] = 1;
-            if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
-                polarity[x] = sign(trail[c]);
+            if (phase_saving > 1
+                || ((phase_saving == 1) && c > trail_lim.last()))
+            {
+              polarity[x] = sign(trail[c]);
+            }
             insertVarOrder(x); }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
@@ -1080,16 +1083,19 @@ lbool Solver::search(int nof_conflicts, UIP uip)
               cancelUntil(assumptions.size()); 
               throw e; 
             }
-            
-            if (decisionLevel() > assumptions.size() && nof_conflicts >= 0 && conflictC >= nof_conflicts ||
-                !isWithinBudget) {
-                // Reached bound on number of conflicts:
-                Debug("bvminisat::search") << OUTPUT_TAG << " restarting " << std::endl;
-                progress_estimate = progressEstimate();
-                cancelUntil(assumptions.size());
-                return l_Undef;
+
+            if ((decisionLevel() > assumptions.size() && nof_conflicts >= 0
+                 && conflictC >= nof_conflicts)
+                || !isWithinBudget)
+            {
+              // Reached bound on number of conflicts:
+              Debug("bvminisat::search")
+                  << OUTPUT_TAG << " restarting " << std::endl;
+              progress_estimate = progressEstimate();
+              cancelUntil(assumptions.size());
+              return l_Undef;
             }
- 
+
             // Simplify the set of problem clauses:
             if (decisionLevel() == 0 && !simplify()) {
                 Debug("bvminisat::search") << OUTPUT_TAG << " base level conflict, we're unsat" << std::endl;

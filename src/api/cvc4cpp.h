@@ -272,6 +272,12 @@ class CVC4_PUBLIC Sort
   bool isDatatype() const;
 
   /**
+   * Is this a parametric datatype sort?
+   * @return true if the sort is a parametric datatype sort
+   */
+  bool isParametricDatatype() const;
+
+  /**
    * Is this a function sort?
    * @return true if the sort is a function sort
    */
@@ -322,6 +328,34 @@ class CVC4_PUBLIC Sort
   bool isSortConstructor() const;
 
   /**
+   * Is this a first-class sort?
+   * First-class sorts are sorts for which:
+   * (1) we handle equalities between terms of that type, and
+   * (2) they are allowed to be parameters of parametric sorts (e.g. index or
+   *     element sorts of arrays).
+   *
+   * Examples of sorts that are not first-class include sort constructor sorts
+   * and regular expression sorts.
+   *
+   * @return true if this is a first-class sort
+   */
+  bool isFirstClass() const;
+
+  /**
+   * Is this a function-LIKE sort?
+   *
+   * Anything function-like except arrays (e.g., datatype selectors) is
+   * considered a function here. Function-like terms can not be the argument
+   * or return value for any term that is function-like.
+   * This is mainly to avoid higher order.
+   *
+   * Note that arrays are explicitly not considered function-like here.
+   *
+   * @return true if this is a function-like sort
+   */
+  bool isFunctionLike() const;
+
+  /**
    * @return the underlying datatype of a datatype sort
    */
   Datatype getDatatype() const;
@@ -348,7 +382,118 @@ class CVC4_PUBLIC Sort
   // to the new API. !!!
   CVC4::Type getType(void) const;
 
+  /* Function sort ------------------------------------------------------- */
+
+  /**
+   * @return the arity  of a function sort
+   */
+  size_t getFunctionArity() const;
+
+  /**
+   * @return the domain sorts of a function sort
+   */
+  std::vector<Sort> getFunctionDomainSorts() const;
+
+  /**
+   * @return the codomain sort of a function sort
+   */
+  Sort getFunctionCodomainSort() const;
+
+  /* Array sort ---------------------------------------------------------- */
+
+  /**
+   * @return the array index sort of an array sort
+   */
+  Sort getArrayIndexSort() const;
+
+  /**
+   * @return the array element sort of an array element sort
+   */
+  Sort getArrayElementSort() const;
+
+  /* Set sort ------------------------------------------------------------ */
+
+  /**
+   * @return the element sort of a set sort
+   */
+  Sort getSetElementSort() const;
+
+  /* Uninterpreted sort -------------------------------------------------- */
+
+  /**
+   * @return the name of an uninterpreted sort
+   */
+  std::string getUninterpretedSortName() const;
+
+  /**
+   * @return true if an uninterpreted sort is parameterezied
+   */
+  bool isUninterpretedSortParameterized() const;
+
+  /**
+   * @return the parameter sorts of an uninterpreted sort
+   */
+  std::vector<Sort> getUninterpretedSortParamSorts() const;
+
+  /* Sort constructor sort ----------------------------------------------- */
+
+  /**
+   * @return the name of a sort constructor sort
+   */
+  std::string getSortConstructorName() const;
+
+  /**
+   * @return the arity of a sort constructor sort
+   */
+  size_t getSortConstructorArity() const;
+
+  /* Bit-vector sort ----------------------------------------------------- */
+
+  /**
+   * @return the bit-width of the bit-vector sort
+   */
+  uint32_t getBVSize() const;
+
+  /* Floating-point sort ------------------------------------------------- */
+
+  /**
+   * @return the bit-width of the exponent of the floating-point sort
+   */
+  uint32_t getFPExponentSize() const;
+
+  /**
+   * @return the width of the significand of the floating-point sort
+   */
+  uint32_t getFPSignificandSize() const;
+
+  /* Datatype sort ------------------------------------------------------- */
+
+  /**
+   * @return the parameter sorts of a datatype sort
+   */
+  std::vector<Sort> getDatatypeParamSorts() const;
+
+  /**
+   * @return the arity of a datatype sort
+   */
+  size_t getDatatypeArity() const;
+
+  /* Tuple sort ---------------------------------------------------------- */
+
+  /**
+   * @return the length of a tuple sort
+   */
+  size_t getTupleLength() const;
+
+  /**
+   * @return the element sorts of a tuple sort
+   */
+  std::vector<Sort> getTupleSorts() const;
+
  private:
+  /* Helper to convert a vector of sorts into a vector of internal types. */
+  std::vector<Sort> typeVectorToSorts(
+      const std::vector<CVC4::Type>& vector) const;
   /**
    * The interal type wrapped by this sort.
    * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
@@ -914,6 +1059,12 @@ class CVC4_PUBLIC DatatypeDecl
    */
   void addConstructor(const DatatypeConstructorDecl& ctor);
 
+  /** Get the number of constructors (so far) for this Datatype declaration. */
+  size_t getNumConstructors() const;
+
+  /** Is this Datatype declaration parametric? */
+  bool isParametric() const;
+
   /**
    * @return a string representation of this datatype declaration
    */
@@ -1164,6 +1315,12 @@ class CVC4_PUBLIC Datatype
    * first is returned.
    */
   Term getConstructorTerm(const std::string& name) const;
+
+  /** Get the number of constructors for this Datatype. */
+  size_t getNumConstructors() const;
+
+  /** Is this Datatype parametric? */
+  bool isParametric() const;
 
   /**
    * @return a string representation of this datatype
@@ -1422,6 +1579,13 @@ class CVC4_PUBLIC Solver
   Sort mkBitVectorSort(uint32_t size) const;
 
   /**
+   * Create a floating-point sort.
+   * @param exp the bit-width of the exponent of the floating-point sort.
+   * @param sig the bit-width of the significand of the floating-point sort.
+   */
+  Sort mkFloatingPointSort(uint32_t exp, uint32_t sig) const;
+
+  /**
    * Create a datatype sort.
    * @param dtypedecl the datatype declaration from which the sort is created
    * @return the datatype sort
@@ -1431,18 +1595,18 @@ class CVC4_PUBLIC Solver
   /**
    * Create function sort.
    * @param domain the sort of the fuction argument
-   * @param range the sort of the function return value
+   * @param codomain the sort of the function return value
    * @return the function sort
    */
-  Sort mkFunctionSort(Sort domain, Sort range) const;
+  Sort mkFunctionSort(Sort domain, Sort codomain) const;
 
   /**
    * Create function sort.
-   * @param argSorts the sort of the function arguments
-   * @param range the sort of the function return value
+   * @param sorts the sort of the function arguments
+   * @param codomain the sort of the function return value
    * @return the function sort
    */
-  Sort mkFunctionSort(const std::vector<Sort>& argSorts, Sort range) const;
+  Sort mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const;
 
   /**
    * Create a sort parameter.
@@ -1479,6 +1643,14 @@ class CVC4_PUBLIC Solver
    * @return the uninterpreted sort
    */
   Sort mkUninterpretedSort(const std::string& symbol) const;
+
+  /**
+   * Create a sort constructor sort.
+   * @param symbol the symbol of the sort
+   * @param arity the arity of the sort
+   * @return the sort constructor sort
+   */
+  Sort mkSortConstructorSort(const std::string& symbol, size_t arity) const;
 
   /**
    * Create a tuple sort.

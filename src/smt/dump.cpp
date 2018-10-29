@@ -15,8 +15,10 @@
  **/
 
 #include "smt/dump.h"
-#include "lib/strtok_r.h"
+
 #include "base/output.h"
+#include "lib/strtok_r.h"
+#include "preprocessing/preprocessing_pass_registry.h"
 
 namespace CVC4 {
 
@@ -55,25 +57,10 @@ void DumpC::setDumpFromString(const std::string& optarg) {
                               optargPtr + "'.  Please consult --dump help.");
       }
       if(!strcmp(p, "everything")) {
-      } else if(!strcmp(p, "definition-expansion")) {
-      } else if(!strcmp(p, "boolean-terms")) {
-      } else if(!strcmp(p, "constrain-subtypes")) {
-      } else if(!strcmp(p, "substitution")) {
-      } else if(!strcmp(p, "bv-to-bool")) {
-      } else if(!strcmp(p, "bool-to-bv")) {
-      } else if(!strcmp(p, "strings-pp")) {
-      } else if(!strcmp(p, "skolem-quant")) {
-      } else if(!strcmp(p, "simplify")) {
-      } else if(!strcmp(p, "static-learning")) {
-      } else if(!strcmp(p, "ite-removal")) {
-      } else if(!strcmp(p, "repeat-simplify")) {
-      } else if(!strcmp(p, "rewrite-apply-to-const")) {
-      } else if(!strcmp(p, "theory-preprocessing")) {
-      } else if(!strcmp(p, "nonclausal")) {
-      } else if(!strcmp(p, "theorypp")) {
-      } else if(!strcmp(p, "itesimp")) {
-      } else if(!strcmp(p, "unconstrained")) {
-      } else if(!strcmp(p, "repeatsimp")) {
+      }
+      else if (preprocessing::PreprocessingPassRegistry::getInstance().hasPass(
+                   p))
+      {
       } else {
         throw OptionException(std::string("don't know how to dump `") +
                               optargPtr + "'.  Please consult --dump help.");
@@ -116,6 +103,16 @@ void DumpC::setDumpFromString(const std::string& optarg) {
       }
     } else if(!strcmp(optargPtr, "help")) {
       puts(s_dumpHelp.c_str());
+
+      std::stringstream ss;
+      ss << "Available preprocessing passes:\n";
+      for (const std::string& pass :
+           preprocessing::PreprocessingPassRegistry::getInstance()
+               .getAvailablePasses())
+      {
+        ss << "- " << pass << "\n";
+      }
+      puts(ss.str().c_str());
       exit(1);
     } else if(!strcmp(optargPtr, "bv-abstraction")) {
       Dump.on("bv-abstraction");
@@ -139,7 +136,6 @@ void DumpC::setDumpFromString(const std::string& optarg) {
   throw OptionException("The dumping feature was disabled in this build of CVC4.");
 #endif /* CVC4_DUMPING */
 }
-
 
 const std::string DumpC::s_dumpHelp = "\
 Dump modes currently supported by the --dump option:\n\

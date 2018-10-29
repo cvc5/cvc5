@@ -371,7 +371,9 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", kind = " << sk;
             d_kinds[tn][sk] = i;
             d_arg_kind[tn][i] = sk;
-          }else if( sop.isConst() ){
+          }
+          else if (sop.isConst() && dt[i].getNumArgs() == 0)
+          {
             Trace("sygus-db") << ", constant";
             d_consts[tn][n] = i;
             d_arg_const[tn][i] = n;
@@ -466,7 +468,7 @@ void TermDbSygus::registerEnumerator(Node e,
                                      SynthConjecture* conj,
                                      bool mkActiveGuard,
                                      bool useSymbolicCons,
-                                     bool isVarAgnostic)
+                                     bool isActiveGen)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -564,6 +566,10 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
+  d_enum_active_gen[e] = isActiveGen;
+  bool isVarAgnostic =
+      isActiveGen
+      && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
   if (isVarAgnostic)
   {
@@ -588,6 +594,25 @@ void TermDbSygus::registerEnumerator(Node e,
         d_var_subclass_list_index[et][v] = d_var_subclass_list[et][sc].size();
         d_var_subclass_list[et][sc].push_back(v);
       }
+    }
+    // If no subclass has more than one variable, do not use variable agnostic
+    // enumeration
+    bool useVarAgnostic = false;
+    for (std::pair<const unsigned, std::vector<Node> >& p :
+         d_var_subclass_list[et])
+    {
+      if (p.second.size() > 1)
+      {
+        useVarAgnostic = true;
+      }
+    }
+    if (!useVarAgnostic)
+    {
+      Trace("sygus-db")
+          << "...disabling variable agnostic for " << e
+          << " since it has no subclass with more than one variable."
+          << std::endl;
+      d_enum_var_agnostic[e] = false;
     }
   }
 }
@@ -648,11 +673,11 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
 
 bool TermDbSygus::isPassiveEnumerator(Node e) const
 {
-  if (isVariableAgnosticEnumerator(e))
+  std::map<Node, bool>::const_iterator itus = d_enum_active_gen.find(e);
+  if (itus != d_enum_active_gen.end())
   {
-    return false;
+    return !itus->second;
   }
-  // other criteria go here
   return true;
 }
 

@@ -179,8 +179,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
 #ifdef CVC4_ASSERTIONS
     // Basic bounds check on a node w/out children
-    TS_ASSERT_THROWS(Node::null()[-1], AssertionException);
-    TS_ASSERT_THROWS(Node::null()[0], AssertionException);
+    TS_ASSERT_THROWS(Node::null()[-1], AssertionException&);
+    TS_ASSERT_THROWS(Node::null()[0], AssertionException&);
 #endif /* CVC4_ASSERTIONS */
 
     // Basic access check
@@ -198,8 +198,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
 #ifdef CVC4_ASSERTIONS
     // Bounds check on a node with children
-    TS_ASSERT_THROWS(ite == ite[-1], AssertionException);
-    TS_ASSERT_THROWS(ite == ite[4], AssertionException);
+    TS_ASSERT_THROWS(ite == ite[-1], AssertionException&);
+    TS_ASSERT_THROWS(ite == ite[4], AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -420,8 +420,8 @@ class NodeBlack : public CxxTest::TestSuite {
 
     TS_ASSERT(f == fa.getOperator());
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(f.getOperator(), IllegalArgumentException);
-    TS_ASSERT_THROWS(a.getOperator(), IllegalArgumentException);
+    TS_ASSERT_THROWS(f.getOperator(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(a.getOperator(), IllegalArgumentException&);
 #endif /* CVC4_ASSERTIONS */
   }
 
@@ -459,10 +459,10 @@ class NodeBlack : public CxxTest::TestSuite {
     }
 
 #ifdef CVC4_ASSERTIONS
-    TS_ASSERT_THROWS(testNaryExpForSize(AND, 0), AssertionException);
-    TS_ASSERT_THROWS(testNaryExpForSize(AND, 1), AssertionException);
-    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 0), AssertionException);
-    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 2), AssertionException);
+    TS_ASSERT_THROWS(testNaryExpForSize(AND, 0), AssertionException&);
+    TS_ASSERT_THROWS(testNaryExpForSize(AND, 1), AssertionException&);
+    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 0), AssertionException&);
+    TS_ASSERT_THROWS(testNaryExpForSize(NOT, 2), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
   }
 

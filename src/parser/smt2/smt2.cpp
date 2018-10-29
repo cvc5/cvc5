@@ -188,6 +188,7 @@ void Smt2::addFloatingPointOperators() {
   addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
   addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
+  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_GENERIC);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
   Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
@@ -627,20 +628,6 @@ void Smt2::includeFile(const std::string& filename) {
   if(!newInputStream(path, lexer)) {
     parseError("Couldn't open include file `" + path + "'");
   }
-}
-
-void Smt2::mkSygusVar(const std::string& name, const Type& type, bool isPrimed)
-{
-  if (!isPrimed)
-  {
-    d_sygusVars.push_back(mkBoundVar(name, type));
-  }
-#ifdef CVC4_ASSERTIONS
-  else
-  {
-    d_sygusVarPrimed.push_back(mkBoundVar(name, type));
-  }
-#endif
 }
 
 void Smt2::mkSygusConstantsForType( const Type& type, std::vector<CVC4::Expr>& ops ) {
@@ -1231,59 +1218,6 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
     lvars.push_back(v);
   }
   return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
-}
-
-const void Smt2::getSygusInvVars(FunctionType t,
-                                 std::vector<Expr>& vars,
-                                 std::vector<Expr>& primed_vars)
-{
-  std::vector<Type> argTypes = t.getArgTypes();
-  ExprManager* em = getExprManager();
-  for (const Type& ti : argTypes)
-  {
-    vars.push_back(em->mkBoundVar(ti));
-    d_sygusVars.push_back(vars.back());
-    std::stringstream ss;
-    ss << vars.back() << "'";
-    primed_vars.push_back(em->mkBoundVar(ss.str(), ti));
-    d_sygusVars.push_back(primed_vars.back());
-#ifdef CVC4_ASSERTIONS
-    bool find_new_declared_var = false;
-    for (const Expr& e : d_sygusVarPrimed)
-    {
-      if (e.getType() == ti)
-      {
-        d_sygusVarPrimed.erase(
-            std::find(d_sygusVarPrimed.begin(), d_sygusVarPrimed.end(), e));
-        find_new_declared_var = true;
-        break;
-      }
-    }
-    if (!find_new_declared_var)
-    {
-      ss.str("");
-      ss << "warning: decleared primed variables do not match invariant's "
-            "type\n";
-      warning(ss.str());
-    }
-#endif
-  }
-}
-
-const void Smt2::addSygusFunSymbol( Type t, Expr synth_fun ){
-  // When constructing the synthesis conjecture, we quantify on the
-  // (higher-order) bound variable synth_fun.
-  d_sygusFunSymbols.push_back(synth_fun);
-
-  // Variable "sfproxy" carries the type, which may be a SyGuS datatype
-  // that corresponds to syntactic restrictions.
-  Expr sym = mkBoundVar("sfproxy", t);
-  std::vector< Expr > attr_value;
-  attr_value.push_back(sym);
-  Command* cattr =
-      new SetUserAttributeCommand("sygus-synth-grammar", synth_fun, attr_value);
-  cattr->setMuted(true);
-  preemptCommand(cattr);
 }
 
 InputLanguage Smt2::getLanguage() const

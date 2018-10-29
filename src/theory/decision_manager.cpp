@@ -38,7 +38,7 @@ void DecisionManager::registerStrategy(StrategyId id, DecisionStrategy* ds)
   d_reg_strategy[id].push_back(ds);
 }
 
-Node DecisionManager::getNextDecisionRequest(unsigned& priority)
+Node DecisionManager::getNextDecisionRequest()
 {
   Trace("dec-manager-debug")
       << "DecisionManager: Get next decision..." << std::endl;
@@ -51,10 +51,6 @@ Node DecisionManager::getNextDecisionRequest(unsigned& priority)
       Node lit = ds->getNextDecisionRequest();
       if (!lit.isNull())
       {
-        StrategyId sid = rs.first;
-        priority = sid < STRAT_LAST_M_SOUND
-                       ? 0
-                       : (sid < STRAT_LAST_FM_COMPLETE ? 1 : 2);
         Trace("dec-manager")
             << "DecisionManager:  -> literal " << lit << " decided by strategy "
             << ds->identify() << std::endl;

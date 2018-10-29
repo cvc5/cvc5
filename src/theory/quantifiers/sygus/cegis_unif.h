@@ -71,6 +71,13 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   void initialize(const std::vector<Node>& es,
                   const std::map<Node, Node>& e_to_cond,
                   const std::map<Node, std::vector<Node>>& strategy_lemmas);
+
+  /*
+   * Do not hide the zero-argument version of initialize() inherited from the
+   * base class
+   */
+  using DecisionStrategy::initialize;
+
   /** get the current set of enumerators for strategy point e
    *
    * Index 0 adds the set of return value enumerators to es, index 1 adds the
@@ -88,8 +95,7 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
    * registerEvalPtAtSize on the output channel of d_qe.
    */
   void registerEvalPts(const std::vector<Node>& eis, Node e);
-  /** Retrieves active guard for enumerator */
-  Node getActiveGuardForEnumerator(Node e);
+
  private:
   /** reference to quantifier engine */
   QuantifiersEngine* d_qe;
@@ -101,9 +107,6 @@ class CegisUnifEnumDecisionStrategy : public DecisionStrategyFmf
   bool d_initialized;
   /** null node */
   Node d_null;
-  /** map from condition enumerators to active guards (in case they are
-   * enumerated indepedently of the return values) */
-  std::map<Node, Node> d_enum_to_active_guard;
   /** information per initialized type */
   class StrategyPtInfo
   {
@@ -223,7 +226,7 @@ class CegisUnif : public Cegis
    * example would actually correspond to
    *   eval(d, 0) != c1 v eval(d, c1) != c2 v eval(d, c2) > 1
    * in which d is the deep embedding of the function-to-synthesize f
-  */
+   */
   void registerRefinementLemma(const std::vector<Node>& vars,
                                Node lem,
                                std::vector<Node>& lems) override;
@@ -261,6 +264,35 @@ class CegisUnif : public Cegis
                                   std::vector<Node>& candidate_values,
                                   bool satisfiedRl,
                                   std::vector<Node>& lems) override;
+  /** communicate condition values to solution building utility
+   *
+   * for each unification candidate and for each strategy point associated with
+   * it, set in d_sygus_unif the condition values (unif_cvalues) for respective
+   * condition enumerators (unif_cenums)
+   */
+  void setConditions(const std::map<Node, std::vector<Node>>& unif_cenums,
+                     const std::map<Node, std::vector<Node>>& unif_cvalues,
+                     std::vector<Node>& lems);
+  /** set values of condition enumerators based on current enumerator assignment
+   *
+   * enums and enum_values are the enumerators registered in getTermList and
+   * their values retrieved by the parent SynthConjecture module, respectively.
+   *
+   * unif_cenums and unif_cvalues associate the conditional enumerators of each
+   * strategy point of each unification candidate with their respective model
+   * values
+   *
+   * This function also generates inter-enumerator symmetry breaking for return
+   * values, such that their model values are ordered by size
+   *
+   * returns true if no symmetry breaking lemmas were generated for the return
+   * value enumerators, false otherwise
+   */
+  bool getEnumValues(const std::vector<Node>& enums,
+                     const std::vector<Node>& enum_values,
+                     std::map<Node, std::vector<Node>>& unif_cenums,
+                     std::map<Node, std::vector<Node>>& unif_cvalues,
+                     std::vector<Node>& lems);
   /**
    * Sygus unif utility. This class implements the core algorithm (e.g. decision
    * tree learning) that this module relies upon.

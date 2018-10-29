@@ -63,6 +63,61 @@ bool hasSubterm(TNode n, TNode t, bool strict)
   return false;
 }
 
+bool hasSubtermMulti(TNode n, TNode t)
+{
+  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_map<TNode, bool, TNodeHashFunction> contains;
+  std::unordered_map<TNode, bool, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      if (cur == t)
+      {
+        visited[cur] = true;
+        contains[cur] = true;
+      }
+      else
+      {
+        visited[cur] = false;
+        visit.push_back(cur);
+        for (const Node& cc : cur)
+        {
+          visit.push_back(cc);
+        }
+      }
+    }
+    else if (!it->second)
+    {
+      bool doesContain = false;
+      for (const Node& cn : cur)
+      {
+        it = contains.find(cn);
+        Assert(it != visited.end());
+        if (it->second)
+        {
+          if (doesContain)
+          {
+            // two children have t, return true
+            return true;
+          }
+          doesContain = true;
+        }
+      }
+      contains[cur] = doesContain;
+      visited[cur] = true;
+    }
+  } while (!visit.empty());
+  return false;
+}
+
 struct HasBoundVarTag
 {
 };

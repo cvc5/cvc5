@@ -163,7 +163,18 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+  //--------------------------for checkExtfReductions
+  /** do reduction
+   *
+   * This is called when an extended function application n is not able to be
+   * simplified by context-depdendent simplification, and we are resorting to
+   * expanding n to its full semantics via a reduction. This method returns
+   * true if it successfully reduced n by some reduction and sets isCd to
+   * true if the reduction was (SAT)-context-dependent, and false otherwise.
+   * The argument effort has the same meaning as in checkExtfReductions.
+   */
+  bool doReduction(int effort, Node n, bool& isCd);
+  //--------------------------end for checkExtfReductions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -278,9 +289,8 @@ private:
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   NodeSet d_length_lemma_terms_cache;
-  // preprocess cache
+  /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
-  NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   NodeSet d_extf_infer_cache_u;
@@ -739,6 +749,12 @@ private:
     bool isInitialized();
     /** initialize */
     void initialize(const std::vector<Node>& vars);
+
+    /*
+     * Do not hide the zero-argument version of initialize() inherited from the
+     * base class
+     */
+    using DecisionStrategyFmf::initialize;
 
    private:
     /**

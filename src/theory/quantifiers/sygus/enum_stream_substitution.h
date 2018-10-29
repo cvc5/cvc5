@@ -274,6 +274,26 @@ class EnumStreamSubstitution
   unsigned d_curr_ind;
 };
 
+/**
+ * An enumerated value generator based on the above class. This is
+ * SynthConjecture's interface to using the above utility.
+ */
+class EnumStreamConcrete : public EnumValGenerator
+{
+ public:
+  EnumStreamConcrete(quantifiers::TermDbSygus* tds) : d_ess(tds) {}
+  /** initialize this class with enumerator e */
+  void initialize(Node e) override;
+  /** get that value v was enumerated */
+  void addValue(Node v) override;
+  /** get the next value enumerated by this class */
+  Node getNext() override;
+
+ private:
+  /** stream substitution utility */
+  EnumStreamSubstitution d_ess;
+};
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

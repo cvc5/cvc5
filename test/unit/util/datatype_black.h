@@ -70,8 +70,9 @@ class DatatypeBlack : public CxxTest::TestSuite {
     const Datatype& colorsDT = colorsType.getDatatype();
     TS_ASSERT(colorsDT.getConstructor("blue") == ctor);
     TS_ASSERT(colorsDT["blue"].getConstructor() == ctor);
-    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"), IllegalArgumentException);
-    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException);
+    TS_ASSERT_THROWS(colorsDT["blue"].getSelector("foo"),
+                     IllegalArgumentException&);
+    TS_ASSERT_THROWS(colorsDT["blue"]["foo"], IllegalArgumentException&);
 
     TS_ASSERT(! colorsType.getDatatype().isParametric());
     TS_ASSERT(colorsType.getDatatype().isFinite());
@@ -130,7 +131,8 @@ class DatatypeBlack : public CxxTest::TestSuite {
     Expr ctor = treeType.getDatatype()[1].getConstructor();
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
     TS_ASSERT(treeType.getConstructor("leaf") == ctor);
-    TS_ASSERT_THROWS(treeType.getConstructor("leff"), IllegalArgumentException);
+    TS_ASSERT_THROWS(treeType.getConstructor("leff"),
+                     IllegalArgumentException&);
 
     TS_ASSERT(! treeType.getDatatype().isParametric());
     TS_ASSERT(! treeType.getDatatype().isFinite());

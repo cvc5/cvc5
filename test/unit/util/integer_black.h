@@ -293,14 +293,14 @@ public:
   }
 
   void testParseErrors() {
-    TS_ASSERT_THROWS(Integer("abracadabra"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("+-1"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("-+1"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("5i"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("10xyz"), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("0xff", 10), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("#x5", 0), std::invalid_argument);
-    TS_ASSERT_THROWS(Integer("0b123", 0), std::invalid_argument);
+    TS_ASSERT_THROWS(Integer("abracadabra"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("+-1"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("-+1"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("5i"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("10xyz"), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("0xff", 10), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("#x5", 0), std::invalid_argument&);
+    TS_ASSERT_THROWS(Integer("0b123", 0), std::invalid_argument&);
   }
 
   void testPow() {

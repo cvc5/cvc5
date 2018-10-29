@@ -63,6 +63,8 @@ public:
 
   static bool isProfilingBuild();
 
+  static bool isAsanBuild();
+
   static bool isCompetitionBuild();
 
   static std::string getPackageName();

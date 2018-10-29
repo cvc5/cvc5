@@ -33,12 +33,16 @@
 
 namespace CVC4 {
 
+namespace api {
+class Solver;
+}
 namespace options {
   struct OptionsHolder;
   class OptionsHandler;
 }/* CVC4::options namespace */
 
 class CVC4_PUBLIC Options {
+  friend api::Solver;
   /** The struct that holds all option values. */
   options::OptionsHolder* d_holder;
 
