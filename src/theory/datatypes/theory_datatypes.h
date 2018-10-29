@@ -42,7 +42,8 @@ namespace datatypes {
 class TheoryDatatypes : public Theory {
  private:
   typedef context::CDList<Node> NodeList;
-  typedef context::CDHashMap<Node, unsigned, NodeHashFunction> NodeUIntMap;
+  /** maps nodes to an index in a vector */
+  typedef context::CDHashMap<Node, size_t, NodeHashFunction> NodeUIntMap;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> BoolMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
