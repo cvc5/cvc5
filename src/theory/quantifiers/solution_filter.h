@@ -32,7 +32,9 @@ namespace quantifiers {
  * This class is used to filter solutions based on logical strength.
  *
  * Currently, it is used to filter predicate solutions that are collectively
- * entailed by the previous predicate solutions.
+ * entailed by the previous predicate solutions (if we are looking for logically
+ * strong solutions), or to filter predicate solutions that entail any previous
+ * predicate (if we are looking for logically weak solutions).
  */
 class SolutionFilterStrength : public ExprMiner
 {
