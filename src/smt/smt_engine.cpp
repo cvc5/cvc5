@@ -3278,14 +3278,6 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&d_assertions);
-    }
-    else if (options::sygusAbduct())
-    {
-      d_passes["sygus-abduct"]->apply(&d_assertions);
-    }
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
@@ -3295,8 +3287,17 @@ void SmtEnginePrivate::processAssertions() {
   if( options::pbRewrites() ){
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
-
-  if (options::sygusRewSynthInput())
+  
+  // rephrasing normal inputs as sygus problems
+  if (options::sygusInference())
+  {
+    d_passes["sygus-infer"]->apply(&d_assertions);
+  }
+  else if (options::sygusAbduct())
+  {
+    d_passes["sygus-abduct"]->apply(&d_assertions);
+  }
+  else if (options::sygusRewSynthInput())
   {
     // do candidate rewrite rule synthesis
     d_passes["synth-rr"]->apply(&d_assertions);
