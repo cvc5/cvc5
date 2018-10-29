@@ -517,15 +517,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     lem = nm->mkNode(OR, d_quant.negate(), query);
     if (options::sygusVerifySubcall())
     {
-      ExprManager* origEm = nm->toExprManager();
-      ExprManagerMapCollection varMap;
-      ExprManager em(nm->getOptions());
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
-      SmtEngine verifySmt(&em);
+      SmtEngine verifySmt(nm->toExprManager());
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-      verifySmt.setOption("sygus-abduct", false);
-      Expr equery = query.toExpr().exportTo(&em, varMap);
-      verifySmt.assertFormula(equery);
+      verifySmt.assertFormula(query.toExpr());
       Result r = verifySmt.checkSat();
       Trace("cegqi-engine") << "  ...got " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() == Result::SAT)
@@ -535,9 +530,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
         for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
           Node v = d_ce_sk_vars[i];
-          Node mv = Node::fromExpr(
-              verifySmt.getValue(v.toExpr().exportTo(&em, varMap))
-                  .exportTo(origEm, varMap));
+          Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
           Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
           d_ce_sk_var_mvs.push_back(mv);
         }
