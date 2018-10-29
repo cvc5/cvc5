@@ -57,9 +57,9 @@ header = "options/decision_options.h"
   help       = "computer weights of internal nodes using children: off, max, sum, usr1 (meaning evolving)"
 
 [[option]]
-  name       = "handleAndOrEasyCheck2"
+  name       = "handleAndOrEasyCheckInPairs"
   category   = "expert"
-  long       = "handle-and-or-easy-check2"
+  long       = "handle-and-or-easy-check-in-pairs"
   type       = "bool"
   default    = "false"
   read_only  = true

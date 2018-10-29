@@ -179,7 +179,7 @@ public:
                         TNode node2, SatValue desiredVal2);
   SearchResult handleITE(TNode node, SatValue desiredVal);
   SearchResult handleEmbeddedITEs(TNode node);
-}; /* class JustificationHeuristic */
+};/* class JustificationHeuristic */
 
 }/* namespace decision */
 }/* namespace CVC4 */

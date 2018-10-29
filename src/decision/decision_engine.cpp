@@ -56,7 +56,7 @@ void DecisionEngine::init()
   if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
   if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
     ITEDecisionStrategy* ds;
-    if (options::handleAndOrEasyCheck2())
+    if (options::handleAndOrEasyCheckInPairs())
     {
       ds = new decision::JustificationHeuristic<true>(
           this, d_userContext, d_satContext);
