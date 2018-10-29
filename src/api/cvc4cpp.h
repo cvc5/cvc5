@@ -1871,126 +1871,86 @@ class CVC4_PUBLIC Solver
   Term mkBoolean(bool val) const;
 
   /**
-   * Create an Integer constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Integer constant
-   */
-  Term mkInteger(const char* s, uint32_t base = 10) const;
-
-  /**
-   * Create an Integer constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Integer constant
-   */
-  Term mkInteger(const std::string& s, uint32_t base = 10) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(int32_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(uint32_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(int64_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(uint64_t val) const;
-
-  /**
    * Create a constant representing the number Pi.
    * @return a constant representing Pi
    */
   Term mkPi() const;
 
   /**
-   * Create an Real constant.
-   * @param s the string represetntation of the constant
-   * @return the Real constant
+   * Create a real constant.
+   * @param s the string representation of the constant
+   * @return a constant of sort Real or Integer (if the string is an integer)
    */
   Term mkReal(const char* s) const;
 
   /**
-   * Create an Real constant.
-   * @param s the string represetntation of the constant
-   * @return the Real constant
+   * Create a real constant.
+   * @param s the string representation of the constant
+   * @return a constant of sort Real or Integer (if the string is an integer)
    */
   Term mkReal(const std::string& s) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant from an integer.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(int32_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(int64_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(uint32_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(uint64_t val) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if the numerator is divisible
+   * by the denominator)
    */
   Term mkReal(int32_t num, int32_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if the numerator is divisible
+   * by the denominator)
    */
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if the numerator is divisible
+   * by the denominator)
    */
   Term mkReal(uint32_t num, uint32_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if the numerator is divisible
+   * by the denominator)
    */
   Term mkReal(uint64_t num, uint64_t den) const;
 
@@ -2675,6 +2635,15 @@ class CVC4_PUBLIC Solver
    * @param value the option value
    */
   void setOption(const std::string& option, const std::string& value) const;
+
+  /**
+   * If needed, convert this term to a given sort. Note that the sort of the
+   * term must be convertible into the target sort. Currently only Int to Real
+   * conversions are supported.
+   * @param s the target sort
+   * @return the term wrapped into a sort conversion if needed
+   */
+  Term ensureTermSort(const Term& t, const Sort& s) const;
 
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!

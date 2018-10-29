@@ -1831,104 +1831,59 @@ Term Solver::mkFalse(void) const { return d_exprMgr->mkConst<bool>(false); }
 
 Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
 
-Term Solver::mkInteger(const char* s, uint32_t base) const
-{
-  return d_exprMgr->mkConst(Rational(s, base));
-}
-
-Term Solver::mkInteger(const std::string& s, uint32_t base) const
-{
-  return d_exprMgr->mkConst(Rational(s, base));
-}
-
-Term Solver::mkInteger(int32_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(uint32_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(int64_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(uint64_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
 Term Solver::mkPi() const
 {
   return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
 }
 
-Term Solver::ensureRealSort(Term expr) const
-{
-  // Integers are reals, too
-  Assert(expr.getSort().isReal());
-  if (expr.getSort().isInteger())
-  {
-    // Must cast to Real to ensure correct type is passed to parametric type
-    // constructors. We do this cast using division with 1. This has the
-    // advantage wrt using TO_REAL since (constant) division is always included
-    // in the theory.
-    expr = mkTerm(DIVISION, expr, mkInteger(1));
-  }
-  return expr;
-}
-
 Term Solver::mkReal(const char* s) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational::fromDecimal(s)));
+  return d_exprMgr->mkConst(Rational::fromDecimal(s));
 }
 
 Term Solver::mkReal(const std::string& s) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational::fromDecimal(s)));
+  return d_exprMgr->mkConst(Rational::fromDecimal(s));
 }
 
 Term Solver::mkReal(int32_t val) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(val)));
+  return d_exprMgr->mkConst(Rational(val));
 }
 
 Term Solver::mkReal(int64_t val) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(val)));
+  return d_exprMgr->mkConst(Rational(val));
 }
 
 Term Solver::mkReal(uint32_t val) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(val)));
+  return d_exprMgr->mkConst(Rational(val));
 }
 
 Term Solver::mkReal(uint64_t val) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(val)));
+  return d_exprMgr->mkConst(Rational(val));
 }
 
 Term Solver::mkReal(int32_t num, int32_t den) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(num, den)));
+  return d_exprMgr->mkConst(Rational(num, den));
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(num, den)));
+  return d_exprMgr->mkConst(Rational(num, den));
 }
 
 Term Solver::mkReal(uint32_t num, uint32_t den) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(num, den)));
+  return d_exprMgr->mkConst(Rational(num, den));
 }
 
 Term Solver::mkReal(uint64_t num, uint64_t den) const
 {
-  return ensureRealSort(d_exprMgr->mkConst(Rational(num, den)));
+  return d_exprMgr->mkConst(Rational(num, den));
 }
 
 Term Solver::mkRegexpEmpty() const
@@ -2094,7 +2049,7 @@ Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
   }
   if (kind == CONST_RATIONAL)
   {
-    return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
   }
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
@@ -2111,7 +2066,7 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
   }
   if (kind == CONST_RATIONAL)
   {
-    return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
   }
   return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
@@ -2128,7 +2083,7 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
   }
   if (kind == CONST_RATIONAL)
   {
-    return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg)));
+    return d_exprMgr->mkConst(CVC4::Rational(arg));
   }
   return d_exprMgr->mkConst(CVC4::BitVector(arg));
 }
@@ -2142,7 +2097,7 @@ Term Solver::mkConst(Kind kind, int32_t arg) const
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
   }
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
@@ -2154,7 +2109,7 @@ Term Solver::mkConst(Kind kind, int64_t arg) const
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
   }
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
@@ -2166,35 +2121,35 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
   {
     return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
   }
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return ensureRealSort(d_exprMgr->mkConst(CVC4::Rational(arg1, arg2)));
+  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
@@ -3041,6 +2996,27 @@ void Solver::setOption(const std::string& option,
   // CHECK: option exists?
   // CHECK: !d_smtEngine->d_fullInited, else option can't be set
   d_smtEngine->setOption(option, value);
+}
+
+Term Solver::ensureTermSort(const Term& t, const Sort& s) const
+{
+  CVC4_API_CHECK(s.isReal() && !s.isInteger())
+      << "Expected conversion to real sort";
+  CVC4_API_CHECK(t.getSort().isReal()) << "Expected term of sort real";
+
+  // Integers are reals, too
+  Assert(t.getSort().isReal());
+  Term res = t;
+  if (t.getSort().isInteger())
+  {
+    // Must cast to Real to ensure correct type is passed to parametric type
+    // constructors. We do this cast using division with 1. This has the
+    // advantage wrt using TO_REAL since (constant) division is always included
+    // in the theory.
+    res = mkTerm(DIVISION, *t.d_expr, mkReal(1));
+  }
+  Assert(res.getSort() == s);
+  return res;
 }
 
 /**

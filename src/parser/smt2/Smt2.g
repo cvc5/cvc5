@@ -2246,14 +2246,15 @@ termAtomic[CVC4::api::Term& atomTerm]
   : INTEGER_LITERAL
     {
       std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
-      atomTerm = SOLVER->mkInteger(intStr, 10);
+      atomTerm = SOLVER->mkReal(intStr);
     }
   | DECIMAL_LITERAL
     {
       // FIXME: This doesn't work because an SMT rational is not a
       // valid GMP rational string
       std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
-      atomTerm = SOLVER->mkReal(realStr);
+      atomTerm = SOLVER->ensureTermSort(SOLVER->mkReal(realStr),
+                                        SOLVER->getRealSort());
     }
 
   // Pi constant
