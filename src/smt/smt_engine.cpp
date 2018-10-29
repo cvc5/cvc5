@@ -1937,8 +1937,9 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution. This currently includes the PBE solver and
-      // static template inference for invariant synthesis.
+      // finding a single solution. This currently includes the PBE solver,
+      // static template inference for invariant synthesis, and single
+      // invocation techniques.
       if (!options::sygusSymBreakPbe.wasSetByUser())
       {
         options::sygusSymBreakPbe.set(false);
@@ -1950,6 +1951,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
         options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+      }
+      if( !options::cegqiSingleInvMode.wasSetByUser() )
+      {
+        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
       }
     }
     //do not allow partial functions

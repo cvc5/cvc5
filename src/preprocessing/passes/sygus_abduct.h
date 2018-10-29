@@ -29,12 +29,23 @@ namespace passes {
 
 /** SygusAbduct
  *
- * A preprocessing utility that turns a set of (quantified) assertions into a
- * single SyGuS conjecture. If this is possible, we solve for this single Sygus
- * conjecture using a separate copy of the SMT engine. If sygus successfully
- * solves the conjecture, we plug the synthesis solutions back into the original
- * problem, thus obtaining a set of model substitutions under which the
- * assertions should simplify to true.
+ * A preprocessing utility that turns a set of quantifier-free assertions into
+ * a sygus conjecture that encodes an abduction problem. In detail, if our
+ * input formula is F( x ) for free symbols x, then we construct the sygus
+ * conjecture:
+ * 
+ * exists A. forall x. ( A( x ) => ~F( x ) )
+ * 
+ * where A( x ) is a predicate over the free symbols of our input. In other
+ * words, A( x ) is a sufficient condition for showing ~F( x ).
+ * 
+ * Another way to view this is A( x ) is any condition such that A( x ) ^ F( x )
+ * is unsatisfiable.
+ * 
+ * A common use case is to find the weakest such A that meets the above
+ * specification. We do this by streaming solutions (sygus-stream) for A
+ * while filtering stronger solutions (sygus-filter-sol=strong). These options
+ * are enabled by default when this preprocessing class is used (sygus-abduct).
  */
 class SygusAbduct : public PreprocessingPass
 {
