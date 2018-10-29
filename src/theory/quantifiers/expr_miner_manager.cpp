@@ -150,7 +150,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   }
 
   // filter based on logical strength
-  if (ret &&d_doFilterLogicalStrength)
+  if (ret && d_doFilterLogicalStrength)
   {
     ret = d_sols.addTerm(solb, out);
   }

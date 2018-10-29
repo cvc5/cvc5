@@ -68,7 +68,8 @@ class SolutionFilterStrength : public ExprMiner
    */
   bool addTerm(Node n, std::ostream& out) override;
   /** set logically strong */
-  void setLogicallyStrong( bool isStrong );
+  void setLogicallyStrong(bool isStrong);
+
  private:
   /** set of all (non-filtered) terms registered to this class */
   std::vector<Node> d_curr_sols;

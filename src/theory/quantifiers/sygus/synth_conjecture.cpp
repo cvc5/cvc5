@@ -982,8 +982,9 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
-                          || options::sygusFilterSolMode()!=SYGUS_FILTER_SOL_NONE))
+      if (status != 0
+          && (options::sygusRewSynth() || options::sygusQueryGen()
+              || options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
@@ -1000,13 +1001,13 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
-          if (options::sygusFilterSolMode()!=SYGUS_FILTER_SOL_NONE)
+          if (options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE)
           {
-            if( options::sygusFilterSolMode()==SYGUS_FILTER_SOL_STRONG )
+            if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_STRONG)
             {
               d_exprm[prog].enableFilterStrongSolutions();
             }
-            else if( options::sygusFilterSolMode()==SYGUS_FILTER_SOL_WEAK )
+            else if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_WEAK)
             {
               d_exprm[prog].enableFilterWeakSolutions();
             }

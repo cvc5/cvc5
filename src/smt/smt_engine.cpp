@@ -1920,17 +1920,16 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
-    if( options::sygusAbduct() )
+    if (options::sygusAbduct())
     {
       // if doing abduction, we should filter strong solutions
-      if( !options::sygusFilterSolMode.wasSetByUser() )
+      if (!options::sygusFilterSolMode.wasSetByUser())
       {
-        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG );
+        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
       }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen()
-        || options::sygusAbduct())
+        || options::sygusQueryGen() || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);

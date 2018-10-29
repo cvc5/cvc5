@@ -92,7 +92,7 @@ class ExprMiner
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);
-  /** 
+  /**
    * Run the satisfiability check based on initializing the subsolver using the
    * above function, return the result.
    */

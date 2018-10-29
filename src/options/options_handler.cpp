@@ -960,8 +960,9 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
-theory::quantifiers::SygusFilterSolMode OptionsHandler::stringToSygusFilterSolMode(
-    std::string option, std::string optarg)
+theory::quantifiers::SygusFilterSolMode
+OptionsHandler::stringToSygusFilterSolMode(std::string option,
+                                           std::string optarg)
 {
   if (optarg == "none")
   {
@@ -982,9 +983,9 @@ theory::quantifiers::SygusFilterSolMode OptionsHandler::stringToSygusFilterSolMo
   }
   else
   {
-    throw OptionException(std::string("unknown option for --sygus-filter-sol: `")
-                          + optarg
-                          + "'.  Try --sygus-filter-sol help.");
+    throw OptionException(
+        std::string("unknown option for --sygus-filter-sol: `") + optarg
+        + "'.  Try --sygus-filter-sol help.");
   }
 }
 
