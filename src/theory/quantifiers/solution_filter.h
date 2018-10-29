@@ -29,32 +29,11 @@ namespace theory {
 namespace quantifiers {
 
 /**
- * This class is used to filter solutions based on some criteria.
+ * This class is used to filter solutions based on logical strength.
  *
  * Currently, it is used to filter predicate solutions that are collectively
  * entailed by the previous predicate solutions.
  */
-class SolutionFilter : public ExprMiner
-{
- public:
-  SolutionFilter();
-  ~SolutionFilter() {}
-  /** initialize */
-  void initialize(const std::vector<Node>& vars,
-                  SygusSampler* ss = nullptr) override;
-  /**
-   * Add term to this module. It is expected that n has Boolean type.
-   * If this method returns false, then the entailment n_1 ^ ... ^ n_m |= n
-   * holds, where n_1, ..., n_m are the terms previously registered to this
-   * class.
-   */
-  bool addTerm(Node n, std::ostream& out) override;
-
- private:
-  /** conjunction of all (non-implied) terms registered to this class */
-  Node d_conj;
-};
-
 class SolutionFilterStrength : public ExprMiner
 {
  public:
@@ -64,7 +43,14 @@ class SolutionFilterStrength : public ExprMiner
   void initialize(const std::vector<Node>& vars,
                   SygusSampler* ss = nullptr) override;
   /**
-   * add term
+   * Add term to this miner. It is expected that n has Boolean type.
+   * 
+   * If d_isStrong is true, then if this method returns false, then the
+   * entailment n_1 ^ ... ^ n_m |= n holds, where n_1, ..., n_m are the terms
+   * previously registered to this class.
+   * 
+   * Dually, if d_isStrong is false, then if this method returns false, then
+   * the entailment n |= n_1 V ... V n_m holds.
    */
   bool addTerm(Node n, std::ostream& out) override;
   /** set logically strong */

@@ -26,67 +26,6 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SolutionFilter::SolutionFilter() {}
-void SolutionFilter::initialize(const std::vector<Node>& vars, SygusSampler* ss)
-{
-  ExprMiner::initialize(vars, ss);
-}
-
-bool SolutionFilter::addTerm(Node n, std::ostream& out)
-{
-  if (!n.getType().isBoolean())
-  {
-    // currently, should not register non-Boolean terms here
-    Assert(false);
-    return true;
-  }
-  NodeManager* nm = NodeManager::currentNM();
-  Node imp = d_conj.isNull() ? n.negate() : nm->mkNode(AND, d_conj, n.negate());
-  imp = Rewriter::rewrite(imp);
-  bool success = false;
-  if (imp.isConst())
-  {
-    if (!imp.getConst<bool>())
-    {
-      // if the implication rewrites to false, we filter
-      Trace("sygus-sol-implied-filter") << "Filtered (by rewriting) : " << n
-                                        << std::endl;
-      return false;
-    }
-    else
-    {
-      // if the implication rewrites to true, it is trivial
-      success = true;
-    }
-  }
-  if (!success)
-  {
-    Trace("sygus-sol-implied") << "  implies: check " << imp << "..."
-                               << std::endl;
-    // make the satisfiability query
-    bool needExport = false;
-    ExprManagerMapCollection varMap;
-    ExprManager em(nm->getOptions());
-    std::unique_ptr<SmtEngine> queryChecker;
-    initializeChecker(queryChecker, em, varMap, imp, needExport);
-    Result r = queryChecker->checkSat();
-    Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
-    if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
-    {
-      success = true;
-    }
-  }
-  if (success)
-  {
-    d_conj = d_conj.isNull() ? n : nm->mkNode(AND, d_conj, n);
-    d_conj = Rewriter::rewrite(d_conj);
-    // note if d_conj is false, we could terminate here
-    return true;
-  }
-  Trace("sygus-sol-implied-filter") << "Filtered : " << n << std::endl;
-  return false;
-}
-
 SolutionFilterStrength::SolutionFilterStrength() : d_isStrong(true) {}
 void SolutionFilterStrength::initialize(const std::vector<Node>& vars,
                                         SygusSampler* ss)
@@ -118,13 +57,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
                           : nm->mkNode(AND, n, curr.negate());
     Trace("sygus-sol-implied")
         << "  implies: check subsumed " << imp << "..." << std::endl;
-    // make the satisfiability query
-    bool needExport = false;
-    ExprManagerMapCollection varMap;
-    ExprManager em(nm->getOptions());
-    std::unique_ptr<SmtEngine> queryChecker;
-    initializeChecker(queryChecker, em, varMap, imp, needExport);
-    Result r = queryChecker->checkSat();
+    // check the satisfiability query
+    Result r = doCheck(imp);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
     if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
@@ -143,13 +77,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
                             : nm->mkNode(AND, s, n.negate());
       Trace("sygus-sol-implied")
           << "  implies: check subsuming " << imp << "..." << std::endl;
-      // make the satisfiability query
-      bool needExport = false;
-      ExprManagerMapCollection varMap;
-      ExprManager em(nm->getOptions());
-      std::unique_ptr<SmtEngine> queryChecker;
-      initializeChecker(queryChecker, em, varMap, imp, needExport);
-      Result r = queryChecker->checkSat();
+      // check the satisfiability query
+      Result r = doCheck(imp);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
       if (r.asSatisfiabilityResult().isSat() != Result::UNSAT)
       {

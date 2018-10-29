@@ -93,14 +93,11 @@ class ExprMiner
                          Node query,
                          bool& needExport);
   /**
-   * Run the satisfiability check based on initializing the subsolver using the
-   * above function, return the result.
+   * Run the satisfiability check on query, without returning the checker. This
+   * can be used for cases where for instance the model for the query is not
+   * important.
    */
-  Result doCheck(std::unique_ptr<SmtEngine>& smte,
-                 ExprManager& em,
-                 ExprManagerMapCollection& varMap,
-                 Node query,
-                 bool& needExport);
+  Result doCheck(Node query);
 };
 
 }  // namespace quantifiers

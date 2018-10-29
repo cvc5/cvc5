@@ -114,11 +114,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   }
 }
 
-Result ExprMiner::doCheck(std::unique_ptr<SmtEngine>& smte,
-                          ExprManager& em,
-                          ExprManagerMapCollection& varMap,
-                          Node query,
-                          bool& needExport)
+Result ExprMiner::doCheck(Node query)
 {
   Node queryr = Rewriter::rewrite(query);
   if (queryr.isConst())
@@ -132,7 +128,12 @@ Result ExprMiner::doCheck(std::unique_ptr<SmtEngine>& smte,
       return Result(Result::SAT);
     }
   }
-  initializeChecker(smte, em, varMap, query, needExport);
+  NodeManager * nm = NodeManager::currentNM();
+  bool needExport = false;
+  ExprManagerMapCollection varMap;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> smte;
+  initializeChecker(smte, em, varMap, queryr, needExport);
   return smte->checkSat();
 }
 
