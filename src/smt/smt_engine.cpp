@@ -1674,7 +1674,7 @@ void SmtEngine::setDefaults() {
 
     Trace("smt") << "setting decision mode to " << decMode << endl;
     options::decisionMode.set(decMode);
-    options::decisionStopOnly.set(stoponly ? 1 : 0);
+    options::decisionStopOnly.set(stoponly ? decision::VSIDS : decision::Off);
   }
   if( options::incrementalSolving() ){
     //disable modes not supported by incremental
@@ -2200,7 +2200,7 @@ void SmtEngine::setDefaults() {
   }
 
   if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-      || options::decisionStopOnly() == 2)
+      || options::decisionStopOnly() == decision::LRB)
   {
     // turn on literal-block-distance based conflict clause removal
     // by default for learning-rate based heuristics
@@ -2921,14 +2921,16 @@ Result SmtEngine::check() {
 
   // Turn off stop only for QF_LRA
   // TODO: Bring up in a meeting where to put this
-  if(options::decisionStopOnly() && !options::decisionMode.wasSetByUser() ){
+  if (options::decisionStopOnly() != decision::Off
+      && !options::decisionMode.wasSetByUser())
+  {
     if( // QF_LRA
        (not d_logic.isQuantified() &&
         d_logic.isPure(THEORY_ARITH) && d_logic.isLinear() && !d_logic.isDifferenceLogic() &&  !d_logic.areIntegersUsed()
         )){
       if (d_private->getIteSkolemMap().empty())
       {
-        options::decisionStopOnly.set(0);
+        options::decisionStopOnly.set(decision::Off);
         d_decisionEngine->clearStrategies();
         Trace("smt") << "SmtEngine::check(): turning off stop only" << endl;
       }

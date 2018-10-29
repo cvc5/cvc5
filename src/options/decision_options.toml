@@ -15,9 +15,11 @@ header = "options/decision_options.h"
 
 [[option]]
   name       = "decisionStopOnly"
-  category   = "undocumented"
-  type       = "int"
-  help       = "0: turned off, 1: vsids, 2: lrb"
+  category   = "expert"
+  type       = "decision::StopOnly"
+  includes   = ["options/decision_stoponly.h"]
+  default    = "decision::Off"
+  help       = "Choose whether to turn on stoponly and which branching heuristics to use"
 
 [[option]]
   name       = "decisionThreshold"

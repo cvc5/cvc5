@@ -78,6 +78,7 @@ liboptions_la_SOURCES = \
 	datatypes_modes.h \
 	decision_mode.cpp \
 	decision_mode.h \
+	decision_stoponly.h \
 	decision_weight.h \
 	didyoumean.cpp \
 	didyoumean.h \

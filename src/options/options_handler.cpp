@@ -1410,19 +1410,19 @@ justification-stoponly\n\
 decision::DecisionMode OptionsHandler::stringToDecisionMode(std::string option,
                                                             std::string optarg)
 {
-  options::decisionStopOnly.set(0);
+  options::decisionStopOnly.set(decision::Off);
 
   if(optarg == "internal") {
     return decision::DECISION_STRATEGY_INTERNAL;
   } else if(optarg == "justification") {
     return decision::DECISION_STRATEGY_JUSTIFICATION;
   } else if(optarg == "justification-stoponly") {
-    options::decisionStopOnly.set(1);
+    options::decisionStopOnly.set(decision::VSIDS);
     return decision::DECISION_STRATEGY_JUSTIFICATION;
   }
   else if (optarg == "justification-stoponly-lrb")
   {
-    options::decisionStopOnly.set(2);
+    options::decisionStopOnly.set(decision::LRB);
     return decision::DECISION_STRATEGY_JUSTIFICATION;
   }
   else if (optarg == "lrb")
