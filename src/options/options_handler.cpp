@@ -508,6 +508,21 @@ trust  \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusFilterSolHelp =
+    "\
+Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
+\n\
+none (default) \n\
++ Do not filter sygus solutions.\n\
+\n\
+strong \n\
++ Filter solutions that are logically stronger than others.\n\
+\n\
+weak \n\
++ Filter solutions that are logically weaker than others.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusInvTemplHelp = "\
 Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
 \n\
@@ -942,6 +957,34 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
     throw OptionException(std::string("unknown option for --cegis-sample: `")
                           + optarg
                           + "'.  Try --cegis-sample help.");
+  }
+}
+
+theory::quantifiers::SygusFilterSolMode OptionsHandler::stringToSygusFilterSolMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_NONE;
+  }
+  else if (optarg == "strong")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_STRONG;
+  }
+  else if (optarg == "weak")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_WEAK;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegisSampleHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --sygus-filter-sol: `")
+                          + optarg
+                          + "'.  Try --sygus-filter-sol help.");
   }
 }
 

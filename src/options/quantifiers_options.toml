@@ -1404,21 +1404,24 @@ header = "options/quantifiers_options.h"
   help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
 
 [[option]]
-  name       = "sygusSolFilterImplied"
+  name       = "sygusFilterSolMode"
   category   = "regular"
-  long       = "sygus-sol-filter-implied"
-  type       = "bool"
-  default    = "false"
-  help       = "filter implied solutions with sygus"
+  long       = "sygus-filter-sol=MODE"
+  type       = "CVC4::theory::quantifiers::SygusFilterSolMode"
+  default    = "CVC4::theory::quantifiers::SYGUS_FILTER_SOL_NONE"
+  handler    = "stringToSygusFilterSolMode"
+  includes   = ["options/quantifiers_modes.h"]
+  help       = "mode for filtering sygus solutions"
 
 [[option]]
-  name       = "sygusSolFilterSubsume"
-  category   = "regular"
-  long       = "sygus-sol-filter-subsume"
+  name       = "sygusFilterSolRevSubsume"
+  category   = "expert"
+  long       = "sygus-filter-sol-rev"
   type       = "bool"
   default    = "false"
-  help       = "filter subsumed solutions with sygus"
+  help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"

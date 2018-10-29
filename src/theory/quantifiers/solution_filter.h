@@ -55,11 +55,11 @@ class SolutionFilter : public ExprMiner
   Node d_conj;
 };
 
-class SolutionFilterRev : public ExprMiner
+class SolutionFilterStrength : public ExprMiner
 {
  public:
-  SolutionFilterRev();
-  ~SolutionFilterRev() {}
+  SolutionFilterStrength();
+  ~SolutionFilterStrength() {}
   /** initialize */
   void initialize(const std::vector<Node>& vars,
                   SygusSampler* ss = nullptr) override;
@@ -67,10 +67,13 @@ class SolutionFilterRev : public ExprMiner
    * add term
    */
   bool addTerm(Node n, std::ostream& out) override;
-
+  /** set logically strong */
+  void setLogicallyStrong( bool isStrong );
  private:
-  /** set of all (non-implied) terms registered to this class */
+  /** set of all (non-filtered) terms registered to this class */
   std::vector<Node> d_curr_sols;
+  /** whether we are trying to find the logically strongest solutions */
+  bool d_isStrong;
 };
 
 }  // namespace quantifiers

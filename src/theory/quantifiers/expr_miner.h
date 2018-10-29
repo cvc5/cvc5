@@ -92,6 +92,15 @@ class ExprMiner
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);
+  /** 
+   * Run the satisfiability check based on initializing the subsolver using the
+   * above function, return the result.
+   */
+  Result doCheck(std::unique_ptr<SmtEngine>& smte,
+                 ExprManager& em,
+                 ExprManagerMapCollection& varMap,
+                 Node query,
+                 bool& needExport);
 };
 
 }  // namespace quantifiers

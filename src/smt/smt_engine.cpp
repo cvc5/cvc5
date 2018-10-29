@@ -1920,6 +1920,14 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
+    if( options::sygusAbduct() )
+    {
+      // if doing abduction, we should filter strong solutions
+      if( !options::sygusFilterSolMode.wasSetByUser() )
+      {
+        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG );
+      }
+    }
     if (options::sygusRewSynth() || options::sygusRewVerify()
         || options::sygusQueryGen()
         || options::sygusAbduct())
