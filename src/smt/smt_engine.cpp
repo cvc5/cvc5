@@ -2256,11 +2256,12 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput())
+    if (options::sygusRewSynthInput() || options::sygusAbduct())
     {
-      throw OptionException(
-          "--sygus-rr-synth-input requires "
-          "--sygus-expr-miner-check-use-export");
+      std::stringstream ss;
+      ss << ( options::sygusRewSynthInput() ? "--sygus-rr-synth-input" : "--sygus-abduct" );
+      ss << "requires --sygus-expr-miner-check-use-export";
+      throw OptionException(ss.str());
     }
   }
 }
