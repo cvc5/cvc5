@@ -3287,7 +3287,7 @@ void SmtEnginePrivate::processAssertions() {
   if( options::pbRewrites() ){
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
-  
+
   // rephrasing normal inputs as sygus problems
   if (options::sygusInference())
   {
