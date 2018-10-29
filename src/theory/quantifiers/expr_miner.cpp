@@ -128,7 +128,7 @@ Result ExprMiner::doCheck(Node query)
       return Result(Result::SAT);
     }
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   bool needExport = false;
   ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());

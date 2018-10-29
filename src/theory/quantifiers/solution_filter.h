@@ -46,11 +46,11 @@ class SolutionFilterStrength : public ExprMiner
                   SygusSampler* ss = nullptr) override;
   /**
    * Add term to this miner. It is expected that n has Boolean type.
-   * 
+   *
    * If d_isStrong is true, then if this method returns false, then the
    * entailment n_1 ^ ... ^ n_m |= n holds, where n_1, ..., n_m are the terms
    * previously registered to this class.
-   * 
+   *
    * Dually, if d_isStrong is false, then if this method returns false, then
    * the entailment n |= n_1 V ... V n_m holds.
    */
