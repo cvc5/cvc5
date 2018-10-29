@@ -1952,7 +1952,7 @@ void SmtEngine::setDefaults() {
       {
         options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
       }
-      if( !options::cegqiSingleInvMode.wasSetByUser() )
+      if (!options::cegqiSingleInvMode.wasSetByUser())
       {
         options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
       }

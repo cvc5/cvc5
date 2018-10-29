@@ -33,15 +33,15 @@ namespace passes {
  * a sygus conjecture that encodes an abduction problem. In detail, if our
  * input formula is F( x ) for free symbols x, then we construct the sygus
  * conjecture:
- * 
+ *
  * exists A. forall x. ( A( x ) => ~F( x ) )
- * 
+ *
  * where A( x ) is a predicate over the free symbols of our input. In other
  * words, A( x ) is a sufficient condition for showing ~F( x ).
- * 
+ *
  * Another way to view this is A( x ) is any condition such that A( x ) ^ F( x )
  * is unsatisfiable.
- * 
+ *
  * A common use case is to find the weakest such A that meets the above
  * specification. We do this by streaming solutions (sygus-stream) for A
  * while filtering stronger solutions (sygus-filter-sol=strong). These options
