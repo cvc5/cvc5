@@ -253,9 +253,9 @@ public:
     //
     int       verbosity;
     // for LRB
-    double step_size;
-    double step_size_dec;
-    double min_step_size;
+    double step_size;            // The parameter for computing the exponential moving average. The larger it is, the more weights are given to recent data.
+    double step_size_dec;        // The decrease in the step-size after each conflict
+    double min_step_size;        // The minimum step-size allowed. When reached, the step-size remain the same for the rest of the learn.
     // for VSIDS
     double    var_decay;
     double    clause_decay;
@@ -285,9 +285,8 @@ public:
     uint64_t lbd_calls;
     vec<uint64_t> lbd_seen;
     vec<uint64_t> picked;
-    vec<uint64_t> conflicted;
-    // Almost conflict
-    vec<uint64_t> almost_conflicted;
+    vec<uint64_t> conflicted; // A vector of length numVar, which stores the number of time each variable participates in a conflict.
+    vec<uint64_t> almost_conflicted; // A vector of length numVar, which stores the number of time each variable almost participate in a conflict.
     //
     // Anti-exploration
     vec<uint64_t> canceled;

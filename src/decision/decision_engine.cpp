@@ -53,15 +53,14 @@ void DecisionEngine::init()
   Trace("decision-init") << " * options->decisionStopOnly: "
                          << options::decisionStopOnly() << std::endl;
 
-  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL) { }
-  if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
+  // LRB and VSIDS are both handled internally
+  if(options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL ||
+     options::decisionMode() == decision::DECISION_STRATEGY_LRB) { }
+  else if(options::decisionMode() == decision::DECISION_STRATEGY_JUSTIFICATION) {
     ITEDecisionStrategy* ds =
       new decision::JustificationHeuristic(this, d_userContext, d_satContext);
     enableStrategy(ds);
     d_needIteSkolemMap.push_back(ds);
-  }
-  if (options::decisionMode() == decision::DECISION_STRATEGY_LRB)
-  {
   }
 }
 

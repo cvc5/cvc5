@@ -136,7 +136,7 @@ Solver::Solver(CVC4::prop::TheoryProxy* proxy,
       learntsize_adjust_start_confl(100),
       learntsize_adjust_inc(1.5)
 
-      // Step size for lrb:
+      // Step size for lrb, these values are set based on empirical results in the lrb paper by Zhang et al. (might want to tune in the future)
       ,
       step_size(0.4),
       step_size_dec(0.000001),
@@ -225,10 +225,10 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     lbd_seen.push(0);
     picked.push(0);
-    conflicted.push(0);
     if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
         || options::decisionStopOnly() == decision::LRB)
     {
+      conflicted.push(0);
       almost_conflicted.push(0);
       canceled.push(0);
     }
