@@ -2259,7 +2259,8 @@ void SmtEngine::setDefaults() {
     if (options::sygusRewSynthInput() || options::sygusAbduct())
     {
       std::stringstream ss;
-      ss << ( options::sygusRewSynthInput() ? "--sygus-rr-synth-input" : "--sygus-abduct" );
+      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
+                                           : "--sygus-abduct");
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
