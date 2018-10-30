@@ -28,11 +28,9 @@
 
 namespace CVC4 {
 
-namespace decision {
-
-template <bool checkInPairs>
-JustificationHeuristic<checkInPairs>::JustificationHeuristic(
-    CVC4::DecisionEngine *de, context::UserContext *uc, context::Context *c)
+JustificationHeuristic::JustificationHeuristic(CVC4::DecisionEngine* de,
+                                               context::UserContext *uc,
+                                               context::Context *c)
     : ITEDecisionStrategy(de, c),
       d_justified(c),
       d_exploredThreshold(c),
@@ -50,6 +48,7 @@ JustificationHeuristic<checkInPairs>::JustificationHeuristic(
       d_curThreshold(0),
       d_childCache(uc),
       d_weightCache(uc),
+      d_checkInPairs(options::handleAndOrEasyCheckInPairs()),
       d_startIndexCache(c)
 {
   smtStatisticsRegistry()->registerStat(&d_helfulness);
@@ -58,17 +57,14 @@ JustificationHeuristic<checkInPairs>::JustificationHeuristic(
   Trace("decision") << "Justification heuristic enabled" << std::endl;
 }
 
-template <bool checkInPairs>
-JustificationHeuristic<checkInPairs>::~JustificationHeuristic()
+JustificationHeuristic::~JustificationHeuristic()
 {
   smtStatisticsRegistry()->unregisterStat(&d_helfulness);
   smtStatisticsRegistry()->unregisterStat(&d_giveup);
   smtStatisticsRegistry()->unregisterStat(&d_timestat);
 }
 
-template <bool checkInPairs>
-CVC4::prop::SatLiteral JustificationHeuristic<checkInPairs>::getNext(
-    bool &stopSearch)
+CVC4::prop::SatLiteral JustificationHeuristic::getNext(bool &stopSearch)
 {
   if(options::decisionThreshold() > 0) {
     bool stopSearchTmp = false;
@@ -82,10 +78,7 @@ CVC4::prop::SatLiteral JustificationHeuristic<checkInPairs>::getNext(
   return getNextThresh(stopSearch, 0);
 }
 
-template <bool checkInPairs>
-CVC4::prop::SatLiteral JustificationHeuristic<checkInPairs>::getNextThresh(
-    bool &stopSearch, DecisionWeight threshold)
-{
+CVC4::prop::SatLiteral JustificationHeuristic::getNextThresh(bool &stopSearch, DecisionWeight threshold) {
   Trace("decision") << "JustificationHeuristic::getNextThresh(stopSearch, "<<threshold<<")" << std::endl;
   TimerStat::CodeTimer codeTimer(d_timestat);
 
@@ -149,6 +142,7 @@ CVC4::prop::SatLiteral JustificationHeuristic<checkInPairs>::getNextThresh(
   return prop::undefSatLiteral;
 }
 
+
 inline void computeXorIffDesiredValues
 (Kind k, SatValue desiredVal, SatValue &desiredVal1, SatValue &desiredVal2)
 {
@@ -171,8 +165,7 @@ inline void computeXorIffDesiredValues
   }
 }
 
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::addAssertions(
+void JustificationHeuristic::addAssertions(
     const preprocessing::AssertionPipeline &assertions)
 {
   size_t assertionsEnd = assertions.getRealAssertionsEnd();
@@ -202,44 +195,38 @@ void JustificationHeuristic<checkInPairs>::addAssertions(
   // Automatic weight computation
 }
 
-template <bool checkInPairs>
-SatLiteral JustificationHeuristic<checkInPairs>::findSplitter(
-    TNode node, SatValue desiredVal)
+SatLiteral JustificationHeuristic::findSplitter(TNode node,
+                                                SatValue desiredVal)
 {
   d_curDecision = undefSatLiteral;
   findSplitterRec(node, desiredVal);
   return d_curDecision;
 }
 
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::setJustified(TNode n)
+
+void JustificationHeuristic::setJustified(TNode n)
 {
   d_justified.insert(n);
 }
 
-template <bool checkInPairs>
-bool JustificationHeuristic<checkInPairs>::checkJustified(TNode n)
+bool JustificationHeuristic::checkJustified(TNode n)
 {
   return d_justified.find(n) != d_justified.end();
 }
 
-template <bool checkInPairs>
-DecisionWeight JustificationHeuristic<checkInPairs>::getExploredThreshold(
-    TNode n)
+DecisionWeight JustificationHeuristic::getExploredThreshold(TNode n)
 {
   return
     d_exploredThreshold.find(n) == d_exploredThreshold.end() ?
     numeric_limits<DecisionWeight>::max() : d_exploredThreshold[n];
 }
 
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::setExploredThreshold(TNode n)
+void JustificationHeuristic::setExploredThreshold(TNode n)
 {
   d_exploredThreshold[n] = d_curThreshold;
 }
 
-template <bool checkInPairs>
-int JustificationHeuristic<checkInPairs>::getPrvsIndex()
+int JustificationHeuristic::getPrvsIndex()
 {
   if(d_curThreshold == 0)
     return d_prvsIndex;
@@ -247,8 +234,7 @@ int JustificationHeuristic<checkInPairs>::getPrvsIndex()
     return d_threshPrvsIndex;
 }
 
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::setPrvsIndex(int prvsIndex)
+void JustificationHeuristic::setPrvsIndex(int prvsIndex)
 {
   if(d_curThreshold == 0)
     d_prvsIndex = prvsIndex;
@@ -256,17 +242,13 @@ void JustificationHeuristic<checkInPairs>::setPrvsIndex(int prvsIndex)
     d_threshPrvsIndex = prvsIndex;
 }
 
-template <bool checkInPairs>
-DecisionWeight JustificationHeuristic<checkInPairs>::getWeightPolarized(
-    TNode n, SatValue satValue)
+DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, SatValue satValue)
 {
   Assert(satValue == SAT_VALUE_TRUE || satValue == SAT_VALUE_FALSE);
   return getWeightPolarized(n, satValue == SAT_VALUE_TRUE);
 }
 
-template <bool checkInPairs>
-DecisionWeight JustificationHeuristic<checkInPairs>::getWeightPolarized(
-    TNode n, bool polarity)
+DecisionWeight JustificationHeuristic::getWeightPolarized(TNode n, bool polarity)
 {
   if(options::decisionWeightInternal() != DECISION_WEIGHT_INTERNAL_USR1) {
     return getWeight(n);
@@ -315,9 +297,7 @@ DecisionWeight JustificationHeuristic<checkInPairs>::getWeightPolarized(
   return polarity ? d_weightCache[n].get().first : d_weightCache[n].get().second;
 }
 
-template <bool checkInPairs>
-DecisionWeight JustificationHeuristic<checkInPairs>::getWeight(TNode n)
-{
+DecisionWeight JustificationHeuristic::getWeight(TNode n) {
   if(!n.hasAttribute(DecisionWeightAttr()) ) {
 
     DecisionWeightInternal combiningFn = options::decisionWeightInternal();
@@ -354,12 +334,7 @@ DecisionWeight JustificationHeuristic<checkInPairs>::getWeight(TNode n)
 }
 
 typedef vector<TNode> ChildList;
-
-template <bool checkInPairs>
-TNode JustificationHeuristic<checkInPairs>::getChildByWeight(TNode n,
-                                                             int i,
-                                                             bool polarity)
-{
+TNode JustificationHeuristic::getChildByWeight(TNode n, int i, bool polarity) {
   if(options::decisionUseWeight()) {
     // TODO: Optimize storing & access
     if(d_childCache.find(n) == d_childCache.end()) {
@@ -374,8 +349,7 @@ TNode JustificationHeuristic<checkInPairs>::getChildByWeight(TNode n,
   }
 }
 
-template <bool checkInPairs>
-SatValue JustificationHeuristic<checkInPairs>::tryGetSatValue(Node n)
+SatValue JustificationHeuristic::tryGetSatValue(Node n)
 {
   Debug("decision") << "   "  << n << " has sat value " << " ";
   if(d_decisionEngine->hasSatLiteral(n) ) {
@@ -387,9 +361,8 @@ SatValue JustificationHeuristic<checkInPairs>::tryGetSatValue(Node n)
   }//end of else
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::IteList
-JustificationHeuristic<checkInPairs>::getITEs(TNode n)
+JustificationHeuristic::IteList
+JustificationHeuristic::getITEs(TNode n)
 {
   IteCache::iterator it = d_iteCache.find(n);
   if(it != d_iteCache.end()) {
@@ -405,8 +378,7 @@ JustificationHeuristic<checkInPairs>::getITEs(TNode n)
   }
 }
 
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::computeITEs(TNode n, IteList &l)
+void JustificationHeuristic::computeITEs(TNode n, IteList &l)
 {
   Trace("decision::jh::ite") << " computeITEs( " << n << ", &l)\n";
   d_visitedComputeITE.insert(n);
@@ -423,10 +395,8 @@ void JustificationHeuristic<checkInPairs>::computeITEs(TNode n, IteList &l)
   }
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::findSplitterRec(TNode node,
-                                                      SatValue desiredVal)
+JustificationHeuristic::SearchResult
+JustificationHeuristic::findSplitterRec(TNode node, SatValue desiredVal)
 {
   /**
    * Main idea
@@ -584,20 +554,18 @@ JustificationHeuristic<checkInPairs>::findSplitterRec(TNode node,
   return ret;
 }/* findRecSplit method */
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleAndOrEasy(TNode node,
-                                                      SatValue desiredVal)
+JustificationHeuristic::SearchResult
+JustificationHeuristic::handleAndOrEasy(TNode node, SatValue desiredVal)
 {
   Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_FALSE) or
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_TRUE) );
 
   int numChildren = node.getNumChildren();
   SatValue desiredValInverted = invertValue(desiredVal);
-  if (checkInPairs)
-  {
-    std::vector<TNode> nodes;
-    for (int i = 0; i < numChildren; i += 2)
+  if (d_checkInPairs)
+    {
+      std::vector<TNode> nodes;
+      for (int i = 0; i < numChildren; i += 2)
     {
       nodes.clear();
       for (int j = i; j < numChildren && j < i + 2; j++)
@@ -642,26 +610,20 @@ JustificationHeuristic<checkInPairs>::handleAndOrEasy(TNode node,
       }
     }
   }
+
   Assert(d_curThreshold != 0, "handleAndOrEasy: No controlling input found");
   return DONT_KNOW;
 }
 
-template <bool checkInPairs>
-int JustificationHeuristic<checkInPairs>::getStartIndex(TNode node)
-{
+int JustificationHeuristic::getStartIndex(TNode node) {
   return d_startIndexCache[node];
 }
-template <bool checkInPairs>
-void JustificationHeuristic<checkInPairs>::saveStartIndex(TNode node, int val)
-{
+void JustificationHeuristic::saveStartIndex(TNode node, int val) {
   d_startIndexCache[node] = val;
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleAndOrHard(TNode node,
-                                                      SatValue desiredVal)
-{
+JustificationHeuristic::SearchResult JustificationHeuristic::handleAndOrHard(TNode node,
+                                             SatValue desiredVal) {
   Assert( (node.getKind() == kind::AND and desiredVal == SAT_VALUE_TRUE) or
           (node.getKind() == kind::OR  and desiredVal == SAT_VALUE_FALSE) );
 
@@ -680,12 +642,10 @@ JustificationHeuristic<checkInPairs>::handleAndOrHard(TNode node,
   return noSplitter ? NO_SPLITTER : DONT_KNOW;
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleBinaryEasy(TNode node1,
-                                                       SatValue desiredVal1,
-                                                       TNode node2,
-                                                       SatValue desiredVal2)
+JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryEasy(TNode node1,
+                                              SatValue desiredVal1,
+                                              TNode node2,
+                                              SatValue desiredVal2)
 {
   if(options::decisionUseWeight() &&
      getWeightPolarized(node1, desiredVal1) > getWeightPolarized(node2, desiredVal2)) {
@@ -707,12 +667,10 @@ JustificationHeuristic<checkInPairs>::handleBinaryEasy(TNode node1,
   return DONT_KNOW;
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleBinaryHard(TNode node1,
-                                                       SatValue desiredVal1,
-                                                       TNode node2,
-                                                       SatValue desiredVal2)
+JustificationHeuristic::SearchResult JustificationHeuristic::handleBinaryHard(TNode node1,
+                                              SatValue desiredVal1,
+                                              TNode node2,
+                                              SatValue desiredVal2)
 {
   if(options::decisionUseWeight() &&
      getWeightPolarized(node1, desiredVal1) > getWeightPolarized(node2, desiredVal2)) {
@@ -736,9 +694,7 @@ JustificationHeuristic<checkInPairs>::handleBinaryHard(TNode node1,
   return noSplitter ? NO_SPLITTER : DONT_KNOW;
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleITE(TNode node, SatValue desiredVal)
+JustificationHeuristic::SearchResult JustificationHeuristic::handleITE(TNode node, SatValue desiredVal)
 {
   Debug("decision::jh") << " handleITE (" << node << ", "
                               << desiredVal << std::endl;
@@ -784,9 +740,7 @@ JustificationHeuristic<checkInPairs>::handleITE(TNode node, SatValue desiredVal)
   }// else (...ifVal...)
 }
 
-template <bool checkInPairs>
-typename JustificationHeuristic<checkInPairs>::SearchResult
-JustificationHeuristic<checkInPairs>::handleEmbeddedITEs(TNode node)
+JustificationHeuristic::SearchResult JustificationHeuristic::handleEmbeddedITEs(TNode node)
 {
   const IteList l = getITEs(node);
   Trace("decision::jh::ite") << " ite size = " << l.size() << std::endl;
@@ -804,10 +758,5 @@ JustificationHeuristic<checkInPairs>::handleEmbeddedITEs(TNode node)
   }
   return noSplitter ? NO_SPLITTER : DONT_KNOW;
 }
-
-template class JustificationHeuristic<true>;
-template class JustificationHeuristic<false>;
-
-} /* namespace decision */
 
 } /* namespace CVC4 */

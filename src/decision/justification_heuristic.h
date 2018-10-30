@@ -38,10 +38,7 @@
 namespace CVC4 {
 namespace decision {
 
-template <bool checkInPairs>
-class JustificationHeuristic : public ITEDecisionStrategy
-{
-
+class JustificationHeuristic : public ITEDecisionStrategy {
   //                   TRUE           FALSE         MEH
   enum SearchResult {FOUND_SPLITTER, NO_SPLITTER, DONT_KNOW};
 
@@ -63,6 +60,8 @@ class JustificationHeuristic : public ITEDecisionStrategy
   IntStat d_helfulness;
   IntStat d_giveup;
   TimerStat d_timestat;
+
+  bool d_checkInPairs;
 
   /**
    * A copy of the assertions that need to be justified
