@@ -635,9 +635,7 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         weights.push_back(-1);
       }
     }else{
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      throw LogicException(sserr.str());
+      Warning() << "Warning: No implementation for default Sygus grammar of type " << types[i] << std::endl;
     }
     //add for all selectors to this type
     if( !sels[types[i]].empty() ){
