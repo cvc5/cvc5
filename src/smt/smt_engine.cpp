@@ -858,6 +858,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
+      d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
       d_problemExtended(false),
@@ -1240,17 +1241,20 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference() || options::sygusRewSynthInput()
-      || options::sygusAbduct())
+  if( !d_isInternalSubsolver )
   {
-    d_logic = d_logic.getUnlockedCopy();
-    // sygus requires arithmetic, datatypes and quantifiers
-    d_logic.enableTheory(THEORY_ARITH);
-    d_logic.enableTheory(THEORY_DATATYPES);
-    d_logic.enableTheory(THEORY_QUANTIFIERS);
-    d_logic.lock();
-    // since we are trying to recast as sygus, we assume the input is sygus
-    is_sygus = true;
+    if (options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusAbduct())
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      // sygus requires arithmetic, datatypes and quantifiers
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.enableTheory(THEORY_DATATYPES);
+      d_logic.enableTheory(THEORY_QUANTIFIERS);
+      d_logic.lock();
+      // since we are trying to recast as sygus, we assume the input is sygus
+      is_sygus = true;
+    }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -3291,18 +3295,21 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // rephrasing normal inputs as sygus problems
-  if (options::sygusInference())
+  if( !d_smt.d_isInternalSubsolver )
   {
-    d_passes["sygus-infer"]->apply(&d_assertions);
-  }
-  else if (options::sygusAbduct())
-  {
-    d_passes["sygus-abduct"]->apply(&d_assertions);
-  }
-  else if (options::sygusRewSynthInput())
-  {
-    // do candidate rewrite rule synthesis
-    d_passes["synth-rr"]->apply(&d_assertions);
+    if (options::sygusInference())
+    {
+      d_passes["sygus-infer"]->apply(&d_assertions);
+    }
+    else if (options::sygusAbduct())
+    {
+      d_passes["sygus-abduct"]->apply(&d_assertions);
+    }
+    else if (options::sygusRewSynthInput())
+    {
+      // do candidate rewrite rule synthesis
+      d_passes["synth-rr"]->apply(&d_assertions);
+    }
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -5202,6 +5209,11 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   string optionarg = value.getValue();
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   nodeManagerOptions.setOption(key, optionarg);
+}
+
+void SmtEngine::setIsInternalSubsolver()
+{
+  d_isInternalSubsolver = true;
 }
 
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const

@@ -87,6 +87,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     try
     {
       checker.reset(new SmtEngine(&em));
+      checker->setIsInternalSubsolver();
       checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
       checker->setOption("sygus-rr-synth-input", false);

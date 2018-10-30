@@ -519,6 +519,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
       SmtEngine verifySmt(nm->toExprManager());
+      verifySmt.setIsInternalSubsolver();
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
       verifySmt.assertFormula(query.toExpr());
       Result r = verifySmt.checkSat();
