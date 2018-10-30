@@ -102,7 +102,11 @@ public:
 Solver::Solver(CVC4::prop::TheoryProxy* proxy,
                CVC4::context::Context* context,
                bool enable_incremental)
-    : proxy(proxy),
+    :
+      d_decision_heuristic(options::decisionMode()==decision::DECISION_STRATEGY_INTERNAL ||
+                           options::decisionStopOnly()==decision::VSIDS ? D_VSIDS : D_LRB),
+      d_lbd(options::lbd()),
+      proxy(proxy),
       context(context),
       assertionLevel(0),
       enable_incremental(enable_incremental),
@@ -225,8 +229,7 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
 
     lbd_seen.push(0);
     picked.push(0);
-    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-        || options::decisionStopOnly() == decision::LRB)
+    if (d_decision_heuristic==D_LRB)
     {
       conflicted.push(0);
       almost_conflicted.push(0);
@@ -600,8 +603,7 @@ void Solver::cancelUntil(int level) {
           if (age > 0)
           {
             double reward = ((double)conflicted[x]) / ((double)age);
-            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-                || options::decisionStopOnly() == decision::LRB)
+            if (d_decision_heuristic==D_LRB)
             {
               double adjusted_reward =
                   ((double)(conflicted[x] + almost_conflicted[x]))
@@ -620,8 +622,7 @@ void Solver::cancelUntil(int level) {
             total_actual_rewards[x] += reward;
             total_actual_count[x]++;
           }
-          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-              || options::decisionStopOnly() == decision::LRB)
+          if (d_decision_heuristic==D_LRB)
           {
             canceled[x] = conflicts;
             }
@@ -714,8 +715,7 @@ Lit Solver::pickBranchLit()
             next = var_Undef;
             break;
         }else {
-          if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-              || options::decisionStopOnly() == decision::LRB)
+          if (d_decision_heuristic==D_LRB)
           {
             next = order_heap[0];
             uint64_t age = conflicts - canceled[next];
@@ -801,7 +801,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
           Clause& c = ca[confl];
           max_resolution_level = std::max(max_resolution_level, c.level());
 
-          if (options::lbd())
+          if (d_lbd)
           {
             if (c.removable() && c.activity() > 2) c.activity() = lbd(c);
           }
@@ -819,8 +819,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
 
           if (!seen[var(q)] && level(var(q)) > 0)
           {
-            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL
-                || options::decisionStopOnly() == decision::VSIDS)
+            if (d_decision_heuristic==D_VSIDS)
             {
               varBumpActivity(var(q));
             }
@@ -927,8 +926,7 @@ int Solver::analyze(CRef confl, vec<Lit>& out_learnt, int& out_btlevel)
         out_btlevel       = level(var(p));
     }
 
-    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-        || options::decisionStopOnly() == decision::LRB)
+    if (d_decision_heuristic==D_LRB)
     {
       seen[var(p)] = true;
       for (int i = out_learnt.size() - 1; i >= 0; i--)
@@ -1039,8 +1037,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
     assert(value(p) == l_Undef);
     assert(var(p) < nVars());
     picked[var(p)] = conflicts;
-    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-        || options::decisionStopOnly() == decision::LRB)
+    if (d_decision_heuristic==D_LRB)
     {
       uint64_t age = conflicts - canceled[var(p)];
       if (age > 0)
@@ -1054,8 +1051,7 @@ void Solver::uncheckedEnqueue(Lit p, CRef from)
       }
     }
     conflicted[var(p)] = 0;
-    if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-        || options::decisionStopOnly() == decision::LRB)
+    if (d_decision_heuristic==D_LRB)
     {
       almost_conflicted[var(p)] = 0;
     }
@@ -1436,8 +1432,7 @@ lbool Solver::search(int nof_conflicts)
 
             conflicts++; conflictC++;
 
-            if (options::decisionMode() == decision::DECISION_STRATEGY_LRB
-                || options::decisionStopOnly() == decision::LRB)
+            if (d_decision_heuristic==D_LRB)
             {
               if (step_size > min_step_size) step_size -= step_size_dec;
             }
@@ -1464,7 +1459,7 @@ lbool Solver::search(int nof_conflicts)
                            true);
               clauses_removable.push(cr);
               attachClause(cr);
-              if (options::lbd())
+              if (d_lbd)
               {
                 Clause& clause = ca[cr];
                 clause.activity() = lbd(clause);
@@ -1484,19 +1479,18 @@ lbool Solver::search(int nof_conflicts)
                         ProofManager::getSatProof()
                             ->endResChain(id););
             }
-            if (options::decisionMode() == decision::DECISION_STRATEGY_INTERNAL
-                || options::decisionStopOnly() == decision::VSIDS)
+            if (d_decision_heuristic==D_VSIDS)
             {
               varDecayActivity();
             }
-            if (!options::lbd())
+            if (!d_lbd)
             {
               claDecayActivity();
             }
             if (--learntsize_adjust_cnt == 0){
                 learntsize_adjust_confl *= learntsize_adjust_inc;
                 learntsize_adjust_cnt    = (int)learntsize_adjust_confl;
-              if (!options::lbd())
+              if (!d_lbd)
               {
                 max_learnts             *= learntsize_inc;
               }
@@ -1553,7 +1547,7 @@ lbool Solver::search(int nof_conflicts)
 
             if (clauses_removable.size()-nAssigns() >= max_learnts) {
                 // Reduce the set of learnt clauses:
-                if (options::lbd()){
+                if (d_lbd){
                     reduceDB_lbd();
                     max_learnts += 500;
                 }
@@ -1663,7 +1657,7 @@ lbool Solver::solve_()
 
     solves++;
 
-    if (options::lbd())
+    if (d_lbd)
     {
       max_learnts =
           2000;  // The threshold to perform lbd-based conflict clause deletion

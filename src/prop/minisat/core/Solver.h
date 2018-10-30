@@ -57,6 +57,7 @@ class Solver {
   friend class CVC4::prop::TheoryProxy;
   friend class CVC4::TSatProof<Minisat::Solver>;
 
+
 public:
   static CRef TCRef_Undef;
   static CRef TCRef_Lazy;
@@ -66,9 +67,8 @@ public:
   typedef Clause TClause; 
   typedef CRef TCRef;
   typedef vec<Lit> TLitVec;
-  
-protected:
 
+protected:
   /** The pointer to the proxy that provides interfaces to the SMT engine */
   CVC4::prop::TheoryProxy* proxy;
 
@@ -252,6 +252,14 @@ public:
     // Mode of operation:
     //
     int       verbosity;
+
+
+    enum DecisionHeuristic {
+      D_LRB,
+      D_VSIDS
+    };
+
+
     // for LRB
     double step_size;            // The parameter for computing the exponential moving average. The larger it is, the more weights are given to recent data.
     double step_size_dec;        // The decrease in the step-size after each conflict
@@ -293,6 +301,11 @@ public:
     //
     vec<long double> total_actual_rewards;
     vec<int> total_actual_count;
+
+
+    DecisionHeuristic d_decision_heuristic;
+    bool d_lbd;
+
 
    protected:
 
