@@ -554,14 +554,12 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  d_enum_active_gen[e] = isActiveGen;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =
       isActiveGen
       && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
   d_enum_var_agnostic[e] = isVarAgnostic;
-  d_enum_basic[e] = !isVarAgnostic;
   if (isVarAgnostic)
   {
     // if not done so already, compute type class identifiers for each variable
@@ -604,8 +602,11 @@ void TermDbSygus::registerEnumerator(Node e,
           << " since it has no subclass with more than one variable."
           << std::endl;
       d_enum_var_agnostic[e] = false;
+      isActiveGen = false;
     }
   }
+  d_enum_active_gen[e] = isActiveGen;
+  d_enum_basic[e] = isActiveGen && !isVarAgnostic;
 }
 
 bool TermDbSygus::isEnumerator(Node e) const
