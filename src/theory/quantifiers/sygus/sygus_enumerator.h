@@ -431,8 +431,6 @@ class SygusEnumerator : public EnumValGenerator
   TermEnum* d_tlEnum;
   /** the abort size, caches the value of --sygus-abort-size */
   int d_abortSize;
-  /** this flag is true for the first time to getNext() after initialize(e) */
-  bool d_firstTime;
   /** get master enumerator for type tn */
   TermEnum* getMasterEnumForType(TypeNode tn);
 };

@@ -802,6 +802,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   // Check if there is an (abstract) value absE we were actively generating
   // values based on.
   Node absE = d_ev_curr_active_gen[e];
+  bool firstTime = false;
   if (absE.isNull())
   {
     // None currently exist. The next abstract value is the model value for e.
@@ -816,8 +817,13 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     d_ev_curr_active_gen[e] = absE;
     iteg->second->addValue(absE);
+    firstTime = true;
   }
-  bool inc = iteg->second->increment(); 
+  bool inc = true;
+  if( !firstTime )
+  {
+    inc = iteg->second->increment();
+  }
   Node v;
   if( inc )
   {
