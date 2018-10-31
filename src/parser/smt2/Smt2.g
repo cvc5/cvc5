@@ -2216,16 +2216,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
-    std::vector<Type> types;
-    for (std::vector<Expr>::const_iterator i = args.begin(); i != args.end();
-         ++i)
+    std::vector<api::Sort> sorts;
+    std::vector<api::Term> terms;
+    for (const Expr& arg : args)
     {
-      types.push_back((*i).getType());
+      sorts.emplace_back(arg.getType());
+      terms.emplace_back(arg);
     }
-    DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-    const Datatype& dt = t.getDatatype();
-    args.insert(args.begin(), dt[0].getConstructor());
-    expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    expr = SOLVER->mkTuple(sorts, terms).getExpr();
   }
   | /* an atomic term (a term with no subterms) */
     termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
@@ -2374,12 +2372,8 @@ termAtomic[CVC4::api::Term& atomTerm]
   // Empty tuple constant
   | TUPLE_CONST_TOK
     {
-      std::vector<api::Sort> sorts;
-      api::Sort s = SOLVER->mkTupleSort(sorts);
-      api::Datatype dt = s.getDatatype();
-      std::vector<api::Term> termArgs;
-      termArgs.push_back(dt[0].getConstructorTerm());
-      atomTerm = SOLVER->mkTerm(api::APPLY_CONSTRUCTOR, termArgs);
+      atomTerm = SOLVER->mkTuple(std::vector<api::Sort>(),
+                                 std::vector<api::Term>());
     }
   ;
   

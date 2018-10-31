@@ -1766,6 +1766,15 @@ class CVC4_PUBLIC Solver
    */
   Term mkTerm(OpTerm opTerm, const std::vector<Term>& children) const;
 
+  /**
+   * Create a tuple term. Terms are automatically converted if sorts are
+   * compatible.
+   * @param sorts The sorts of the elements in the tuple
+   * @param terms The elements in the tuple
+   * @return the tuple Term
+   */
+  Term mkTuple(const std::vector<Sort>& sorts, const std::vector<Term>& terms) const;
+
   /* .................................................................... */
   /* Create Operator Terms                                                */
   /* .................................................................... */
