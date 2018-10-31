@@ -749,15 +749,6 @@ Sort::Sort(const CVC4::Type& t) : d_type(new CVC4::Type(t)) {}
 
 Sort::~Sort() {}
 
-Sort& Sort::operator=(const Sort& s)
-{
-  if (this != &s)
-  {
-    *d_type = *s.d_type;
-  }
-  return *this;
-}
-
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
@@ -1008,15 +999,6 @@ Term::Term(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e)) {}
 
 Term::~Term() {}
 
-Term& Term::operator=(const Term& t)
-{
-  if (this != &t)
-  {
-    *d_expr = *t.d_expr;
-  }
-  return *this;
-}
-
 bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
@@ -1179,15 +1161,6 @@ OpTerm::OpTerm() : d_expr(new CVC4::Expr()) {}
 OpTerm::OpTerm(const CVC4::Expr& e) : d_expr(new CVC4::Expr(e)) {}
 
 OpTerm::~OpTerm() {}
-
-OpTerm& OpTerm::operator=(const OpTerm& t)
-{
-  if (this != &t)
-  {
-    *d_expr = *t.d_expr;
-  }
-  return *this;
-}
 
 bool OpTerm::operator==(const OpTerm& t) const { return *d_expr == *t.d_expr; }
 
