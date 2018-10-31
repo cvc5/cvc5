@@ -73,11 +73,14 @@ struct SygusPrintProxyAttributeId
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
 
-struct SygusConsistentAttributeId
+/** Attribute for specify a "side condition" for a sygus function-to-synthesize
+ * 
+ */
+struct SygusSideConditionAttributeId
 {
 };
-typedef expr::Attribute<SygusConsistentAttributeId, Node>
-    SygusConsistentAttribute;
+typedef expr::Attribute<SygusSideConditionAttributeId, Node>
+    SygusSideConditionAttribute;
 
 namespace quantifiers {
 
