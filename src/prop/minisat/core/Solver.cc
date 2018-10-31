@@ -235,8 +235,6 @@ Var Solver::newVar(bool sign, bool dvar, bool isTheoryAtom, bool preRegister, bo
       almost_conflicted.push(0);
       canceled.push(0);
     }
-    total_actual_rewards.push(0);
-    total_actual_count.push(0);
     setDecisionVar(v, dvar);
 
     // If the variable is introduced at non-zero level, we need to reintroduce it on backtracks
@@ -599,37 +597,40 @@ void Solver::cancelUntil(int level) {
         }
         for (int c = trail.size()-1; c >= trail_lim[level]; c--){
           Var x = var(trail[c]);
-          uint64_t age = conflicts - picked[x];
-          if (age > 0)
-          {
-            double reward = ((double)conflicted[x]) / ((double)age);
-            if (d_decision_heuristic==D_LRB)
-            {
-              double adjusted_reward =
+          if (d_decision_heuristic==D_LRB){
+            // Age is computed by the #conflict at this point and the #conflict last time this variable is picked
+            uint64_t age = conflicts - picked[x];
+            if (age > 0)
+              {
+                // Compute the learning rate and the adjusted learning rate
+                // double reward = ((double)conflicted[x]) / ((double)age);
+                // Adjusted learning rate is actually what we use
+                double adjusted_reward =
                   ((double)(conflicted[x] + almost_conflicted[x]))
                   / ((double)age);
-              double old_activity = activity[x];
-              activity[x] = step_size * adjusted_reward
-                            + ((1 - step_size) * old_activity);
-              if (order_heap.inHeap(x))
-              {
-                if (activity[x] > old_activity)
-                  order_heap.decrease(x);
-                else
-                  order_heap.increase(x);
+                // Compute the exponential moving average (EMA) incrementally
+                double old_activity = activity[x];
+                activity[x] = step_size * adjusted_reward
+                  + ((1 - step_size) * old_activity);
+                if (order_heap.inHeap(x))
+                  {
+                    if (activity[x] > old_activity)
+                      order_heap.decrease(x);
+                    else
+                      order_heap.increase(x);
+                  }
               }
-            }
-            total_actual_rewards[x] += reward;
-            total_actual_count[x]++;
-          }
-          if (d_decision_heuristic==D_LRB)
-          {
+            // Store the #conflict as a timestamp of variable x being poped from the search tree
             canceled[x] = conflicts;
-            }
-            assigns[x] = l_Undef;
-            if (phase_saving > 1 || (phase_saving == 1) && c > trail_lim.last())
-              polarity[x] = sign(trail[c]);
-            insertVarOrder(x);
+          }
+          assigns[x] = l_Undef;
+          vardata[x].trail_index = -1;
+          if ((phase_saving > 1 ||
+               ((phase_saving == 1) && c > trail_lim.last())
+               ) && ((polarity[x] & 0x2) == 0)) {
+            polarity[x] = sign(trail[c]);
+          }
+          insertVarOrder(x);
         }
         qhead = trail_lim[level];
         trail.shrink(trail.size() - trail_lim[level]);
@@ -1434,6 +1435,7 @@ lbool Solver::search(int nof_conflicts)
 
             if (d_decision_heuristic==D_LRB)
             {
+              // Update the step size
               if (step_size > min_step_size) step_size -= step_size_dec;
             }
             if (decisionLevel() == 0) {

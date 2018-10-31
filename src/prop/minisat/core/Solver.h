@@ -299,8 +299,8 @@ public:
     // Anti-exploration
     vec<uint64_t> canceled;
     //
-    vec<long double> total_actual_rewards;
-    vec<int> total_actual_count;
+    // vec<long double> total_actual_rewards;
+    // vec<int> total_actual_count;
 
 
     DecisionHeuristic d_decision_heuristic;
