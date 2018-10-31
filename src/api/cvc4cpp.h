@@ -197,13 +197,6 @@ class CVC4_PUBLIC Sort
   ~Sort();
 
   /**
-   * Assignment operator.
-   * @param s the sort to assign to this sort
-   * @return this sort after assignment
-   */
-  Sort& operator=(const Sort& s);
-
-  /**
    * Comparison for structural equality.
    * @param s the sort to compare to
    * @return true if the sorts are equal
@@ -560,14 +553,6 @@ class CVC4_PUBLIC Term
   ~Term();
 
   /**
-   * Assignment operator, makes a copy of the given term.
-   * Both terms must belong to the same solver object.
-   * @param t the term to assign
-   * @return the reference to this term after assignment
-   */
-  Term& operator=(const Term& t);
-
-  /**
    * Syntactic equality operator.
    * Return true if both terms are syntactically identical.
    * Both terms must belong to the same solver object.
@@ -848,14 +833,6 @@ class CVC4_PUBLIC OpTerm
    * Destructor.
    */
   ~OpTerm();
-
-  /**
-   * Assignment operator, makes a copy of the given operator term.
-   * Both terms must belong to the same solver object.
-   * @param t the term to assign
-   * @return the reference to this operator term after assignment
-   */
-  OpTerm& operator=(const OpTerm& t);
 
   /**
    * Syntactic equality operator.
