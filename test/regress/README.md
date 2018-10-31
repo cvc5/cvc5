@@ -35,10 +35,10 @@ To add a new regression file, add the file to git, for example:
 git add regress/regress0/testMyFunctionality.cvc
 ```
 
-Also add it to [Makefile.tests](Makefile.tests) in this directory.
+Also add it to [CMakeLists.txt](CMakeLists.txt) in this directory.
 
 A number of regressions exist under test/regress that are not listed in
-[Makefile.tests](Makefile.tests). These are regressions that may someday be
+[CMakeLists.txt](CMakeLists.txt). These are regressions that may someday be
 included in the standard suite of tests, but are not yet included (perhaps they
 test functionality not yet supported).
 
