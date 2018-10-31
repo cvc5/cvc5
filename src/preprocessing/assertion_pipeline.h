@@ -40,15 +40,22 @@ class AssertionPipeline
 
   void resize(size_t n) { d_nodes.resize(n); }
 
-  void clear()
-  {
-    d_nodes.clear();
-    d_realAssertionsEnd = 0;
-  }
+  /**
+   * Clear the list of assertions and assumptions.
+   */
+  void clear();
 
   Node& operator[](size_t i) { return d_nodes[i]; }
   const Node& operator[](size_t i) const { return d_nodes[i]; }
-  void push_back(Node n) { d_nodes.push_back(n); }
+
+  /**
+   * Adds an assertion/assumption to be preprocessed.
+   *
+   * @param n The assertion/assumption
+   * @param isAssumption If true, records that \p n is an assumption. Note that
+   * all assumptions have to be added contiguously.
+   */
+  void push_back(Node n, bool isAssumption = false);
 
   std::vector<Node>& ref() { return d_nodes; }
   const std::vector<Node>& ref() const { return d_nodes; }
@@ -80,9 +87,16 @@ class AssertionPipeline
 
   size_t getRealAssertionsEnd() const { return d_realAssertionsEnd; }
 
+  /** @return The index of the first assumption */
+  size_t getAssumptionsStart() const { return d_assumptionsStart; }
+
+  /** @return The number of assumptions */
+  size_t getNumAssumptions() const { return d_numAssumptions; }
+
   void updateRealAssertionsEnd() { d_realAssertionsEnd = d_nodes.size(); }
 
  private:
+  /** The list of current assertions */
   std::vector<Node> d_nodes;
 
   /**
@@ -93,6 +107,11 @@ class AssertionPipeline
 
   /** Size of d_nodes when preprocessing starts */
   size_t d_realAssertionsEnd;
+
+  /** Index of the first assumption */
+  size_t d_assumptionsStart;
+  /** The number of assumptions */
+  size_t d_numAssumptions;
 }; /* class AssertionPipeline */
 
 }  // namespace preprocessing

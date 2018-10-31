@@ -756,8 +756,14 @@ class SmtEnginePrivate : public NodeManagerListener {
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
    * the 2nd and 3rd arguments added for bookkeeping for proofs
+   *
+   * @param isAssumption If true, the formula is considered to be an assumption
+   * (this is used to distinguish assertions and assumptions)
    */
-  void addFormula(TNode n, bool inUnsatCore, bool inInput = true);
+  void addFormula(TNode n,
+                  bool inUnsatCore,
+                  bool inInput = true,
+                  bool isAssumption = false);
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -3071,7 +3077,8 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() begin" << endl;
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
-  Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assertions : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assumptions: " << d_assertions.getNumAssumptions() << endl;
 
   if (d_assertions.size() == 0) {
     // nothing to do
@@ -3450,14 +3457,20 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
+void SmtEnginePrivate::addFormula(TNode n,
+                                  bool inUnsatCore,
+                                  bool inInput,
+                                  bool isAssumption)
 {
   if (n == d_true) {
     // nothing to do
     return;
   }
 
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n << "), inUnsatCore = " << inUnsatCore << ", inInput = " << inInput << endl;
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+               << "), inUnsatCore = " << inUnsatCore
+               << ", inInput = " << inInput
+               << ", isAssumption = " << isAssumption << endl;
 
   // Give it to proof manager
   PROOF(
@@ -3480,7 +3493,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   );
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n);
+  d_assertions.push_back(n, isAssumption);
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
@@ -3602,7 +3615,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       {
         d_assertionList->push_back(e);
       }
-      d_private->addFormula(e.getNode(), inUnsatCore);
+      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
