@@ -2302,9 +2302,11 @@ Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 Term Solver::mkTuple(const std::vector<Sort>& sorts,
                      const std::vector<Term>& terms) const
 {
-  CVC4_API_CHECK(sorts.size() == terms.size()) << "Expected the same number of sorts and elements";
+  CVC4_API_CHECK(sorts.size() == terms.size())
+      << "Expected the same number of sorts and elements";
   std::vector<Term> args;
-  for (size_t i = 0, size = sorts.size(); i < size; i++) {
+  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  {
     args.push_back(ensureTermSort(terms[i], sorts[i]));
   }
 
@@ -2988,9 +2990,11 @@ void Solver::setOption(const std::string& option,
 
 Term Solver::ensureTermSort(const Term& t, const Sort& s) const
 {
-  CVC4_API_CHECK(t.getSort() == s || (t.getSort().isInteger() && s.isReal())) << "Expected conversion from Int to Real";
+  CVC4_API_CHECK(t.getSort() == s || (t.getSort().isInteger() && s.isReal()))
+      << "Expected conversion from Int to Real";
 
-  if (t.getSort() == s) {
+  if (t.getSort() == s)
+  {
     return t;
   }
 

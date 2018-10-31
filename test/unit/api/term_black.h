@@ -24,7 +24,8 @@ class TermBlack : public CxxTest::TestSuite
   void setUp() override {}
   void tearDown() override {}
 
-  void testTermAssignment() {
+  void testTermAssignment()
+  {
     Term t1 = d_solver.mkReal(1);
     Term t2 = t1;
     t2 = d_solver.mkReal(2);
