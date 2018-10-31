@@ -610,6 +610,8 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     }
     else
     {
+      // No constructors in constructor class. This can happen for class 0 if a
+      // type has no nullary constructors with weight 0.
       Trace("sygus-enum-debug2") << "master(" << d_tn
                                  << "): failed due to no cons\n";
     }
