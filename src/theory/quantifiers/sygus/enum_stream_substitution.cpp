@@ -609,7 +609,12 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
 
 void EnumStreamConcrete::initialize(Node e) { d_ess.initialize(e.getType()); }
 void EnumStreamConcrete::addValue(Node v) { d_ess.resetValue(v); }
-Node EnumStreamConcrete::getNext() { return d_ess.getNext(); }
+bool EnumStreamConcrete::increment() 
+{
+  d_currTerm = d_ess.getNext();
+  return !d_currTerm.isNull();
+}
+Node EnumStreamConcrete::getNext() { return d_currTerm; }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4

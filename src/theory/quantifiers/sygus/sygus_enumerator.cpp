@@ -47,7 +47,7 @@ void SygusEnumerator::addValue(Node v)
   // do nothing
 }
 
-Node SygusEnumerator::getNext()
+bool SygusEnumerator::increment()
 {
   if (d_firstTime)
   {
@@ -56,7 +56,7 @@ Node SygusEnumerator::getNext()
   else if (!d_tlEnum->increment())
   {
     // no more values
-    return Node::null();
+    return false;
   }
   if (d_abortSize >= 0)
   {
@@ -69,6 +69,10 @@ Node SygusEnumerator::getNext()
       throw LogicException(ss.str());
     }
   }
+  return true;
+}
+Node SygusEnumerator::getCurrent()
+{
   Node ret = d_tlEnum->getCurrent();
   Trace("sygus-enum") << "Enumerate : " << d_tds->sygusToBuiltin(ret)
                       << std::endl;

@@ -697,25 +697,35 @@ class EnumValGeneratorBasic : public EnumValGenerator
    * Get next returns the next (T-rewriter-unique) value based on the type
    * enumerator.
    */
-  Node getNext() override
+  bool increment() override
   {
     if (d_te.isFinished())
     {
-      return Node::null();
+      d_currTerm = Node::null();
+      return false;
     }
-    Node next = *d_te;
+    d_currTerm = *d_te;
     ++d_te;
-    Node nextb = d_tds->sygusToBuiltin(next);
     if (options::sygusSymBreakDynamic())
     {
-      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+      Node nextb = d_tds->sygusToBuiltin(d_currTerm);
+      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);   
+      if (d_cache.find(nextb) == d_cache.end())
+      {
+        d_cache.insert(nextb);
+        // only return the current term if not unique
+      }
+      else
+      {
+        d_currTerm = Node::null();
+      }
     }
-    if (d_cache.find(nextb) == d_cache.end())
-    {
-      d_cache.insert(nextb);
-      return next;
-    }
-    return getNext();
+    return true;
+  }
+  /** get the current term */
+  Node getCurrent() override
+  {
+    return d_currTerm;
   }
 
  private:
@@ -723,6 +733,8 @@ class EnumValGeneratorBasic : public EnumValGenerator
   TermDbSygus* d_tds;
   /** the type enumerator */
   TypeEnumerator d_te;
+  /** the current term */
+  Node d_currTerm;
   /** cache of (enumerated) builtin values we have enumerated so far */
   std::unordered_set<Node, NodeHashFunction> d_cache;
 };
