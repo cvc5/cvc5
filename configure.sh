@@ -29,8 +29,7 @@ The following flags enable optional features (disable with --no-<option name>).
   --optimized              optimize the build
   --debug-symbols          include debug symbols
   --valgrind               Valgrind instrumentation
-  --debug-context-memory-manager
-                           use the debug context memory manager
+  --debug-context-mm       use the debug context memory manager
   --statistics             include statistics
   --replay                 turn on the replay feature
   --assertions             turn on assertions
@@ -198,8 +197,8 @@ do
     --debug-symbols) debug_symbols=ON;;
     --no-debug-symbols) debug_symbols=OFF;;
 
-    --debug-context-memory-manager) debug_context_mm=ON;;
-    --no-debug-context-memory-manager) debug_context_mm=OFF;;
+    --debug-context-mm) debug_context_mm=ON;;
+    --no-debug-context-mm) debug_context_mm=OFF;;
 
     --dumping) dumping=ON;;
     --no-dumping) dumping=OFF;;
