@@ -49,6 +49,7 @@ macro(cvc4_add_unit_test is_white name output_dir)
   # As a consequence, all build target names must be globally unique.
   add_executable(${name} ${test_src} ${test_header})
   target_link_libraries(${name} main-test)
+  target_include_directories(${name} PRIVATE ${CxxTest_INCLUDE_DIR})
   target_compile_definitions(${name} PRIVATE ${CVC4_CXXTEST_FLAGS_BLACK})
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)

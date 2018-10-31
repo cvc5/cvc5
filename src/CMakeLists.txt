@@ -512,6 +512,8 @@ libcvc4_add_sources(
   theory/quantifiers/quantifiers_attributes.h
   theory/quantifiers/quantifiers_rewriter.cpp
   theory/quantifiers/quantifiers_rewriter.h
+  theory/quantifiers/query_generator.cpp
+  theory/quantifiers/query_generator.h
   theory/quantifiers/relevant_domain.cpp
   theory/quantifiers/relevant_domain.h
   theory/quantifiers/rewrite_engine.cpp
@@ -520,6 +522,8 @@ libcvc4_add_sources(
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
   theory/quantifiers/skolemize.h
+  theory/quantifiers/solution_filter.cpp
+  theory/quantifiers/solution_filter.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
   theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
@@ -708,7 +712,7 @@ target_compile_definitions(cvc4
     -D__STDC_FORMAT_MACROS
 )
 # Add libcvc4 dependencies for generated sources.
-add_dependencies(cvc4 gen-expr gen-options gen-tags gen-theory)
+add_dependencies(cvc4 gen-expr gen-gitinfo gen-options gen-tags gen-theory)
 
 # Add library/include dependencies
 if(ENABLE_VALGRIND)
@@ -821,7 +825,7 @@ install(FILES
           options/printer_modes.h
           options/quantifiers_modes.h
           options/set_language.h
-          options/simplification_mode.h
+          options/smt_modes.h
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION

@@ -984,6 +984,14 @@ header = "options/quantifiers_options.h"
   help       = "Synthesize conditions indepedently from return values (may generate bigger solutions)"
 
 [[option]]
+  name       = "sygusUnifShuffleCond"
+  category   = "regular"
+  long       = "sygus-unif-shuffle-cond"
+  type       = "bool"
+  default    = "false"
+  help       = "Shuffle condition pool when building solutions (may change solutions sizes)"
+
+[[option]]
   name       = "sygusUnifBooleanHeuristicDt"
   category   = "regular"
   long       = "sygus-unif-boolean-heuristic-dt"
@@ -1086,7 +1094,6 @@ header = "options/quantifiers_options.h"
   default    = "CVC4::theory::quantifiers::SYGUS_INV_TEMPL_MODE_POST"
   handler    = "stringToSygusInvTemplMode"
   includes   = ["options/quantifiers_modes.h"]
-  read_only  = true
   help       = "template mode for sygus invariant synthesis (weaken pre-condition, strengthen post-condition, or none)"
 
 [[option]]
@@ -1354,6 +1361,46 @@ header = "options/quantifiers_options.h"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
+
+[[option]]
+  name       = "sygusQueryGen"
+  category   = "regular"
+  long       = "sygus-query-gen"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
+
+[[option]]
+  name       = "sygusQueryGenThresh"
+  category   = "regular"
+  long       = "sygus-query-gen-thresh=N"
+  type       = "unsigned"
+  default    = "5"
+  help       = "number of points that we allow to be equal for enumerating satisfiable queries with sygus-query-gen"
+
+[[option]]
+  name       = "sygusQueryGenCheck"
+  category   = "regular"
+  long       = "sygus-query-gen-check"
+  type       = "bool"
+  default    = "true"
+  help       = "use interesting satisfiability queries to check soundness of CVC4"
+
+[[option]]
+  name       = "sygusQueryGenDumpFiles"
+  category   = "regular"
+  long       = "sygus-query-gen-dump-files"
+  type       = "bool"
+  default    = "false"
+  help       = "dump external files corresponding to interesting satisfiability queries with sygus-query-gen"
+
+[[option]]
+  name       = "sygusSolFilterImplied"
+  category   = "regular"
+  long       = "sygus-sol-filter-implied"
+  type       = "bool"
+  default    = "false"
+  help       = "use sygus to enumerate interesting satisfiability queries"
 
 [[option]]
   name       = "sygusExprMinerCheckUseExport"

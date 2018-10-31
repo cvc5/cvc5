@@ -17,14 +17,9 @@
 #ifndef __CVC4__PARSER__ANTLR_INPUT_H
 #define __CVC4__PARSER__ANTLR_INPUT_H
 
-// These headers must be included first. See the documentation
-// in parser/antlr_undefines.h for an explanation.
-// Also while unusual this must also be within the #ifdef guard.
-#include <antlr3.h>
-#include "parser/antlr_undefines.h"
-
 #include "cvc4parser_private.h"
 
+#include <antlr3.h>
 #include <iostream>
 #include <sstream>
 #include <stdexcept>

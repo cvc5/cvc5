@@ -458,11 +458,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   Node lem;
   // introduce the skolem variables
   std::vector<Node> sks;
+  std::vector<Node> vars;
   if (constructed_cand)
   {
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
-      std::vector<Node> vars;
       for (const Node& v : inst[0][0])
       {
         Node sk = nm->mkSkolem("rsk", v.getType());
@@ -527,10 +527,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       {
         Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
         // do not send out
-        for (const Node& v : d_ce_sk_vars)
+        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
+          Node v = d_ce_sk_vars[i];
           Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
-          Trace("cegqi-engine") << v << " -> " << mv << " ";
+          Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
           d_ce_sk_var_mvs.push_back(mv);
         }
         Trace("cegqi-engine") << std::endl;
@@ -955,7 +956,7 @@ void SynthConjecture::printAndContinueStream()
 
 void SynthConjecture::printSynthSolution(std::ostream& out)
 {
-  Trace("cegqi-debug") << "Printing synth solution..." << std::endl;
+  Trace("cegqi-sol-debug") << "Printing synth solution..." << std::endl;
   Assert(d_quant[0].getNumChildren() == d_embed_quant[0].getNumChildren());
   std::vector<Node> sols;
   std::vector<int> statuses;
@@ -981,8 +982,10 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && options::sygusRewSynth())
+      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
+                          || options::sygusSolFilterImplied()))
       {
+        Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
             d_exprm.find(prog);
         if (its == d_exprm.end())
@@ -992,6 +995,14 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           if (options::sygusRewSynth())
           {
             d_exprm[prog].enableRewriteRuleSynth();
+          }
+          if (options::sygusQueryGen())
+          {
+            d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
+          }
+          if (options::sygusSolFilterImplied())
+          {
+            d_exprm[prog].enableFilterImpliedSolutions();
           }
           its = d_exprm.find(prog);
         }
@@ -1003,7 +1014,7 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
         }
         if (!is_unique_term)
         {
-          ++(cei->d_statistics.d_candidate_rewrites);
+          ++(cei->d_statistics.d_filtered_solutions);
         }
       }
       if (is_unique_term)

@@ -42,8 +42,6 @@
 #include "options/language.h"
 #include "options/option_exception.h"
 #include "options/printer_modes.h"
-#include "options/quantifiers_modes.h"
-#include "options/simplification_mode.h"
 #include "options/smt_options.h"
 #include "options/theory_options.h"
 #include "options/theoryof_mode.h"
@@ -86,8 +84,7 @@ void OptionsHandler::notifyBeforeSearch(const std::string& option)
     d_options->d_beforeSearchListeners.notify();
   } catch (ModalException&){
     std::stringstream ss;
-    ss << "cannot change option `" << option
-       << "' after final initialization (i.e., after logic has been set)";
+    ss << "cannot change option `" << option << "' after final initialization";
     throw ModalException(ss.str());
   }
 }
@@ -1484,6 +1481,51 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(
   }
 }
 
+const std::string OptionsHandler::s_modelCoresHelp =
+    "\
+Model cores modes currently supported by the --simplification option:\n\
+\n\
+none (default) \n\
++ do not compute model cores\n\
+\n\
+simple\n\
++ only include a subset of variables whose values are sufficient to show the\n\
+input formula is satisfied by the given model\n\
+\n\
+non-implied\n\
++ only include a subset of variables whose values, in addition to the values\n\
+of variables whose values are implied, are sufficient to show the input\n\
+formula is satisfied by the given model\n\
+\n\
+";
+
+ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
+                                                      std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return MODEL_CORES_NONE;
+  }
+  else if (optarg == "simple")
+  {
+    return MODEL_CORES_SIMPLE;
+  }
+  else if (optarg == "non-implied")
+  {
+    return MODEL_CORES_NON_IMPLIED;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_modelCoresHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --model-cores: `")
+                          + optarg + "'.  Try --model-cores help.");
+  }
+}
+
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\
 Modes for finite model finding bound minimization, supported by --sygus-out:\n\
@@ -1697,6 +1739,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("proof", Configuration::isProofBuild());
   print_config_cond("coverage", Configuration::isCoverageBuild());
   print_config_cond("profiling", Configuration::isProfilingBuild());
+  print_config_cond("asan", Configuration::isAsanBuild());
   print_config_cond("competition", Configuration::isCompetitionBuild());
   
   std::cout << std::endl;
