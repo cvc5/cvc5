@@ -31,6 +31,23 @@ namespace quantifiers {
 
 class SynthConjecture;
 
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
+{
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types);
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
+};
+
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
@@ -98,6 +115,13 @@ class TermDbSygus {
   bool usingSymbolicConsForEnumerator(Node e) const;
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this enumerator a "basic" enumerator.
+   *
+   * A basic enumerator is one that does not rely on the sygus extension of the
+   * datatypes solver. Basic enumerators enumerate all concrete terms for their
+   * type for a single abstract value.
+   */
+  bool isBasicEnumerator(Node e) const;
   /** is this a "passively-generated" enumerator?
    *
    * A "passively-generated" enumerator is one for which the terms it enumerates
@@ -304,6 +328,8 @@ class TermDbSygus {
   std::map<Node, bool> d_enum_active_gen;
   /** enumerators to whether they are variable agnostic */
   std::map<Node, bool> d_enum_var_agnostic;
+  /** enumerators to whether they are basic */
+  std::map<Node, bool> d_enum_basic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin

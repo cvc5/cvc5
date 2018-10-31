@@ -1051,6 +1051,14 @@ header = "options/quantifiers_options.h"
   help       = "mode for actively-generated sygus enumerators"
 
 [[option]]
+  name       = "sygusActiveGenEnumConsts"
+  category   = "regular"
+  long       = "sygus-active-gen-cfactor=N"
+  type       = "unsigned long"
+  default    = "5"
+  help       = "the branching factor for the number of interpreted constants to consider for each size when using --sygus-active-gen=enum"
+
+[[option]]
   name       = "sygusMinGrammar"
   category   = "regular"
   long       = "sygus-min-grammar"
