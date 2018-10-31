@@ -817,8 +817,13 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     d_ev_curr_active_gen[e] = absE;
     iteg->second->addValue(absE);
   }
-  Node v = iteg->second->getNext();
-  if (v.isNull())
+  bool inc = iteg->second->increment(); 
+  Node v;
+  if( inc )
+  {
+    v = iteg->second->getCurrent();
+  }
+  if (inc)
   {
     // No more concrete values generated from absE.
     NodeManager* nm = NodeManager::currentNM();

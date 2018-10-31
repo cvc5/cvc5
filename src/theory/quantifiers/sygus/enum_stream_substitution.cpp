@@ -614,7 +614,7 @@ bool EnumStreamConcrete::increment()
   d_currTerm = d_ess.getNext();
   return !d_currTerm.isNull();
 }
-Node EnumStreamConcrete::getNext() { return d_currTerm; }
+Node EnumStreamConcrete::getCurrent() { return d_currTerm; }
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
