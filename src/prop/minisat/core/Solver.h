@@ -1,6 +1,9 @@
 /****************************************************************************************[Solver.h]
-Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
-Copyright (c) 2007-2010, Niklas Sorensson
+
+MapleSAT -- Copyright (c) 2016, Jia Hui Liang, Vijay Ganesh
+
+MiniSat -- Copyright (c) 2003-2006, Niklas Een, Niklas Sorensson
+           Copyright (c) 2007-2010, Niklas Sorensson
 
 Permission is hereby granted, free of charge, to any person obtaining a copy of this software and
 associated documentation files (the "Software"), to deal in the Software without restriction,
@@ -261,7 +264,7 @@ public:
 
 
     // for LRB
-    double step_size;            // The parameter for computing the exponential moving average. The larger it is, the more weights are given to recent data.
+    double step_size;            // The parameter for computing the exponential moving average of the learning rate. The larger it is, the more weights are given to recent data.
     double step_size_dec;        // The decrease in the step-size after each conflict
     double min_step_size;        // The minimum step-size allowed. When reached, the step-size remain the same for the rest of the learn.
     // for VSIDS
@@ -292,7 +295,7 @@ public:
 
     uint64_t lbd_calls;
     vec<uint64_t> lbd_seen;
-    vec<uint64_t> picked;
+    vec<uint64_t> picked; // The #conflict the last time the variable is picked as a branching variable
     vec<uint64_t> conflicted; // A vector of length numVar, which stores the number of time each variable participates in a conflict.
     vec<uint64_t> almost_conflicted; // A vector of length numVar, which stores the number of time each variable almost participate in a conflict.
     //

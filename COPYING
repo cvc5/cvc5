@@ -84,6 +84,12 @@ The implementation of the floating point solver in CVC4 depends on symfpu
 See https://raw.githubusercontent.com/martin-cs/symfpu/CVC4/LICENSE for
 copyright and licensing information.
 
+CVC4 incorporates code from MapleSAT (see src/prop/minisat/core/Solver.cc and
+src/prop/minisat/core/Solver.h), excluded from the above copyright. See
+licenses/MapleSAT-LICENSE for copyright and licensing information. See
+https://sites.google.com/a/gsd.uwaterloo.ca/maplesat/maplesat for more
+information about MapleSAT.
+
 CVC4 optionally links against the following libraries:
 
   ABC                (https://bitbucket.org/alanmi/abc)
