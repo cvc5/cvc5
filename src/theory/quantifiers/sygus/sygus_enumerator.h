@@ -324,6 +324,8 @@ class SygusEnumerator : public EnumValGenerator
     bool d_isIncrementing;
     /** cache for getCurrent() */
     Node d_currTerm;
+    /** is d_currTerm set */
+    bool d_currTermSet;
     //----------------------------- current constructor class information
     /** the next constructor class we are using */
     unsigned d_consClassNum;

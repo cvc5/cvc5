@@ -346,14 +346,17 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   {
     // get the model value of the relevant terms from the master module
     std::vector<Node> enum_values;
-    bool fullModel = getEnumeratedValues(terms, enum_values);
+    bool activeIncomplete = false;
+    bool fullModel = getEnumeratedValues(terms, enum_values, activeIncomplete);
 
     // if the master requires a full model and the model is partial, we fail
     if (!d_master->allowPartialModel() && !fullModel)
     {
       // we retain the values in d_ev_active_gen_waiting
       Trace("cegqi-engine") << "...partial model, fail." << std::endl;
-      return true;
+      // if we are partial due to an active enumerator, we may still succeed
+      // on the next call
+      return !activeIncomplete;
     }
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
@@ -396,7 +399,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (emptyModel)
     {
       Trace("cegqi-engine") << "...empty model, fail." << std::endl;
-      return true;
+      return !activeIncomplete;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -650,7 +653,7 @@ void SynthConjecture::preregisterConjecture(Node q)
 }
 
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
-                                          std::vector<Node>& v)
+                                          std::vector<Node>& v, bool& activeIncomplete)
 {
   std::vector<Node> ncheck = n;
   n.clear();
@@ -670,7 +673,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
         continue;
       }
     }
-    Node nv = getEnumeratedValue(e);
+    Node nv = getEnumeratedValue(e,activeIncomplete);
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
@@ -741,7 +744,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
   std::unordered_set<Node, NodeHashFunction> d_cache;
 };
 
-Node SynthConjecture::getEnumeratedValue(Node e)
+Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
 {
   bool isEnum = d_tds->isEnumerator(e);
 
@@ -831,6 +834,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   {
     v = iteg->second->getCurrent();
   }
+  Trace("sygus-active-gen-debug") << "...generated " << v << ", with increment success : " << inc << std::endl;
   if (!inc)
   {
     // No more concrete values generated from absE.
@@ -877,7 +881,14 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   else
   {
     // We are waiting to send e -> v to the module that requested it.
-    d_ev_active_gen_waiting[e] = v;
+    if( v.isNull() )
+    {
+      activeIncomplete = true;
+    }
+    else
+    {
+      d_ev_active_gen_waiting[e] = v;
+    }
     if (Trace.isOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen : " << e << " : ";

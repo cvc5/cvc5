@@ -756,9 +756,16 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-    Trace(c) << ss.str();
+    if( n.isNull() )
+    {
+      Trace(c) << n;
+    }
+    else
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
+      Trace(c) << ss.str();
+    }
   }
 }
 

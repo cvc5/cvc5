@@ -198,15 +198,21 @@ class SynthConjecture
    * Get model values for terms n, store in vector v. This method returns true
    * if and only if all values added to v are non-null.
    *
+   * The argument activeIncomplete indicates whether n contains an active
+   * enumerator that is currently not finished enumerating values.
+   * 
    * It removes terms from n that correspond to "inactive" enumerators, that
    * is, enumerators whose values have been exhausted.
    */
-  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v);
+  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v, bool& activeIncomplete);
   /**
    * Get model value for term n. If n has a value that was excluded by
-   * datatypes sygus symmetry breaking, this method returns null.
+   * datatypes sygus symmetry breaking, this method returns null. It sets 
+   * activeIncomplete to true if there is a actively-generated enumerator whose
+   * current value is null. This value is used for determining whether we should
+   * try another call to getEnumeratedValues.
    */
-  Node getEnumeratedValue(Node n);
+  Node getEnumeratedValue(Node n, bool& activeIncomplete);
   /** enumerator generators for each actively-generated enumerator */
   std::map<Node, std::unique_ptr<EnumValGenerator> > d_evg;
   /**

@@ -63,8 +63,12 @@ Node SygusEnumerator::getCurrent()
     }
   }  
   Node ret = d_tlEnum->getCurrent();
-  Trace("sygus-enum") << "Enumerate : " << d_tds->sygusToBuiltin(ret)
-                      << std::endl;
+  if( Trace.isOn("sygus-enum")  )
+  {
+    Trace("sygus-enum") << "Enumerate : ";
+    TermDbSygus::toStreamSygus("sygus-enum", ret);
+    Trace("sygus-enum")  << std::endl;
+  }
   return ret;
 }
 
@@ -234,6 +238,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     d_terms.push_back(n);
     return true;
   }
+  Assert( !n.isNull() );
   Node bn = d_tds->sygusToBuiltin(n);
   Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
   // must be unique up to rewriting
@@ -377,7 +382,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : validate index...\n";
   SygusEnumerator::TermCache& tc = d_se->d_tcache[d_tn];
   // ensure that index is in the range
-  if (d_index >= tc.getNumTerms())
+  while (d_index >= tc.getNumTerms())
   {
     Assert(d_index == tc.getNumTerms());
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
@@ -487,6 +492,7 @@ SygusEnumerator::TermEnum* SygusEnumerator::getMasterEnumForType(TypeNode tn)
 SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
       d_isIncrementing(false),
+      d_currTermSet(false),
       d_consClassNum(0),
       d_ccWeight(0),
       d_consNum(0),
@@ -508,6 +514,7 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
   d_currChildSize = 0;
   d_ccCons.clear();
   d_isIncrementing = false;
+  d_currTermSet = false;
   bool ret = increment();
   Trace("sygus-enum-debug") << "master(" << tn
                             << "): finish init, ret = " << ret << "\n";
@@ -516,10 +523,11 @@ bool SygusEnumerator::TermEnumMaster::initialize(SygusEnumerator* se,
 
 Node SygusEnumerator::TermEnumMaster::getCurrent()
 {
-  if (!d_currTerm.isNull())
+  if (d_currTermSet)
   {
     return d_currTerm;
   }
+  d_currTermSet = true;
   // construct based on the children
   std::vector<Node> children;
   const Datatype& dt = d_tn.getDatatype();
@@ -531,7 +539,13 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   for (unsigned i = 0, nargs = dt[cnum].getNumArgs(); i < nargs; i++)
   {
     Assert(d_children.find(i) != d_children.end());
-    children.push_back(d_children[i].getCurrent());
+    Node cc = d_children[i].getCurrent();
+    if( cc.isNull() )
+    {
+      d_currTerm = cc;
+      return cc;
+    }
+    children.push_back(cc);
   }
   d_currTerm = NodeManager::currentNM()->mkNode(APPLY_CONSTRUCTOR, children);
   return d_currTerm;
@@ -698,21 +712,26 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     Assert(d_childrenValid == d_ccTypes.size());
 
     // do we have more constructors for the given children?
-    while (d_consNum < d_ccCons.size())
+    if (d_consNum < d_ccCons.size())
     {
       Trace("sygus-enum-debug2") << "master(" << d_tn << "): try constructor "
                                  << d_consNum << std::endl;
       // increment constructor index
       // we will build for the current constructor and the given children
       d_consNum++;
+      d_currTermSet = false;
       d_currTerm = Node::null();
       Node c = getCurrent();
-      if (tc.addTerm(c))
+      if( !c.isNull() )
       {
-        return true;
+        if (!tc.addTerm(c))
+        {
+          // the term was not unique based on rewriting
+          Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed addTerm\n";
+          d_currTerm = Node::null();
+        }
       }
-      Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed addTerm\n";
-      // the term was not unique based on rewriting
+      return true;
     }
 
     // finished constructors for this set of children, must increment children
