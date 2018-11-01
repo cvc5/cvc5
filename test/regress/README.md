@@ -5,7 +5,8 @@
 CVC4's regression tests are divided into 5 levels (level 0 to 4). Higher
 regression levels are reserved for longer running regressions. 
 
-For running regressions tests, see the [INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4) file.
+For running regressions tests, 
+see the [INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4) file.
 
 By default, each invocation of CVC4 is done with a 10 minute timeout. To use a
 different timeout, set the `TEST_TIMEOUT` environment variable:
