@@ -371,6 +371,38 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     ops.push_back(nm->mkConst(String("")));
   }
+  else if (type.isArray())
+  {
+    TypeNode constituentType = TypeNode::fromType(
+        static_cast<ArrayType>(type.toType()).getConstituentType());
+    Node firstElem;
+    if (constituentType.isReal())
+    {
+      firstElem = nm->mkConst(Rational(0));
+    }
+    else if (constituentType.isBitVector())
+    {
+      firstElem = bv::utils::mkZero(constituentType.getBitVectorSize());
+    }
+    else if (constituentType.isBoolean())
+    {
+      firstElem = nm->mkConst(true);
+    }
+    else if (constituentType.isString())
+    {
+      firstElem = nm->mkConst(String(""));
+    }
+    else
+    {
+      std::stringstream sserr;
+      sserr << "No implementation for default Sygus grammar of type " << type
+            << std::endl;
+      throw LogicException(sserr.str());
+    }
+    ops.push_back(
+        nm->mkConst(ArrayStoreAll(type.toType(), firstElem.toExpr())));
+  }
+
   // TODO #1178 : add other missing types
 }
 
@@ -386,6 +418,15 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor( TypeNode range, std::ve
             collectSygusGrammarTypesFor( TypeNode::fromType( static_cast<SelectorType>(dt[i][j].getType()).getRangeType() ), types );
           }
         }
+      }
+      else if (range.isArray())
+      {
+        ArrayType arrayType = static_cast<ArrayType>(range.toType());
+        // add index and constituent type
+        collectSygusGrammarTypesFor(
+            TypeNode::fromType(arrayType.getIndexType()), types);
+        collectSygusGrammarTypesFor(
+            TypeNode::fromType(arrayType.getConstituentType()), types);
       }
     }
   }
@@ -623,6 +664,56 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
+    }
+    else if (types[i].isArray())
+    {
+      ArrayType arrayType = static_cast<ArrayType>(types[i].toType());
+      Trace("sygus-grammar-def") << "...building for array type " << arrayType << "\n";
+      Trace("sygus-grammar-def")
+          << "......finding unres type for index type "
+          << arrayType.getIndexType() << " with typenode "
+          << TypeNode::fromType(arrayType.getIndexType()) << "\n";
+      // retrieve index and constituent unresolved types
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getIndexType()))
+             != types.end());
+      unsigned i_indexType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    TypeNode::fromType(arrayType.getIndexType())));
+      Type unres_indexType = unres_types[i_indexType];
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getConstituentType()))
+             != types.end());
+      unsigned i_constituentType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    TypeNode::fromType(arrayType.getConstituentType())));
+      Type unres_constituentType = unres_types[i_constituentType];
+      // add (store ArrayType IndexType ConstituentType)
+      Trace("sygus-grammar-def") << "...add for STORE\n";
+      ops[i].push_back(nm->operatorOf(STORE).toExpr());
+      cnames[i].push_back(kindToString(STORE));
+      cargs[i].push_back(std::vector<Type>());
+      cargs[i].back().push_back(unres_t);
+      cargs[i].back().push_back(unres_indexType);
+      cargs[i].back().push_back(unres_constituentType);
+      pcs[i].push_back(nullptr);
+      weights[i].push_back(-1);
+      // add to constituent type : (select ArrayType IndexType)
+      Trace("sygus-grammar-def") << "...add select for constituent type"
+                                 << unres_constituentType << "\n";
+      ops[i_constituentType].push_back(nm->operatorOf(SELECT).toExpr());
+      cnames[i_constituentType].push_back(kindToString(SELECT));
+      cargs[i_constituentType].push_back(std::vector<Type>());
+      cargs[i_constituentType].back().push_back(unres_t);
+      cargs[i_constituentType].back().push_back(unres_indexType);
+      pcs[i_constituentType].push_back(nullptr);
+      weights[i_constituentType].push_back(-1);
     }
     else if (types[i].isDatatype())
     {
