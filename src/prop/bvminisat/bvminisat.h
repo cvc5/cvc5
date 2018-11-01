@@ -22,6 +22,7 @@
 
 #include "context/cdo.h"
 #include "proof/clause_id.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
 #include "util/statistics_registry.h"

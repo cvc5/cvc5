@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 

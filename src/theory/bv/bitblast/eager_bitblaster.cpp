@@ -19,7 +19,6 @@
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "options/bv_options.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"

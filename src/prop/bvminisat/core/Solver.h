@@ -39,6 +39,7 @@ namespace BVMinisat {
 class Solver;
 }
 
+// TODO (aozdemir) replace this forward declaration with an include
 namespace proof {
 class ResolutionBitVectorProof;
 }

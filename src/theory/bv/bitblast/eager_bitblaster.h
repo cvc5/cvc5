@@ -24,6 +24,7 @@
 #include "theory/bv/bitblast/bitblaster.h"
 
 #include "proof/bitvector_proof.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 

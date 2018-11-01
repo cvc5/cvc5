@@ -42,7 +42,7 @@ typedef std::unordered_map<Expr, std::string, ExprHashFunction> ExprToString;
  * A bitvector proof is best understood as having
  *
  *    1. A declaration of a "bitblasted formulas" -- boolean formulas
- *       that each translations of a BV-literal (a comparison between BVs).
+ *       that are each translations of a BV-literal (a comparison between BVs).
  *
  *       (and a proof that each "bitblasted formula" is implied by the
  *       corresponding BV literal)
@@ -66,8 +66,8 @@ class BitVectorProof : public TheoryProof
   // Set of BV variables in the input. (e.g. "a" in [ a = 000 ] ^ [ a == 001 ])
   ExprSet d_declarations;
 
-  ExprSet
-      d_usedBB;  // terms and formulas that are actually relevant to the proof
+  // terms and formulas that are actually relevant to the proof
+  ExprSet d_usedBB;
 
   ExprSet d_seenBBTerms;        // terms that need to be bit-blasted
   std::vector<Expr> d_bbTerms;  // order of bit-blasting

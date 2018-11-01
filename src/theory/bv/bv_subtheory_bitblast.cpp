@@ -19,7 +19,6 @@
 #include "options/bv_options.h"
 #include "options/decision_options.h"
 #include "proof/proof_manager.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/abstraction.h"
 #include "theory/bv/bitblast/lazy_bitblaster.h"

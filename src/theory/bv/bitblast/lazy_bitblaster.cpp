@@ -20,7 +20,6 @@
 
 #include "options/bv_options.h"
 #include "proof/proof_manager.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_factory.h"

@@ -19,20 +19,16 @@
 #ifndef __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H
 #define __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H
 
-#include <iostream>
-#include <sstream>
+#include <iosfwd>
 
 #include "context/context.h"
 #include "expr/expr.h"
 #include "proof/bitvector_proof.h"
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
+#include "prop/cnf_stream.h"
 
 namespace CVC4 {
-
-namespace prop {
-class CnfStream;
-}  // namespace prop
 
 namespace theory {
 namespace bv {
@@ -78,6 +74,7 @@ class ResolutionBitVectorProof : public BitVectorProof
    * Kind of a mess.
    * In eager mode this must be invoked before printing a proof of the empty
    * clause. In lazy mode the behavior is ???
+   * TODO(aozdemir) clean this up.
    */
   void finalizeConflicts(std::vector<Expr>& conflicts);
 

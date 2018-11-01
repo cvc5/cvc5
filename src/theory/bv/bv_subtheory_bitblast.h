@@ -23,6 +23,11 @@
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
+
+namespace proof {
+class ResolutionBitVectorProof;
+}
+
 namespace theory {
 namespace bv {
 
