@@ -653,7 +653,8 @@ void SynthConjecture::preregisterConjecture(Node q)
 }
 
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
-                                          std::vector<Node>& v, bool& activeIncomplete)
+                                          std::vector<Node>& v,
+                                          bool& activeIncomplete)
 {
   std::vector<Node> ncheck = n;
   n.clear();
@@ -673,7 +674,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
         continue;
       }
     }
-    Node nv = getEnumeratedValue(e,activeIncomplete);
+    Node nv = getEnumeratedValue(e, activeIncomplete);
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
@@ -695,9 +696,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
   /** initialize (do nothing) */
   void initialize(Node e) override {}
   /** initialize (do nothing) */
-  void addValue(Node v) override {
-    d_currTerm = *d_te;
-  }
+  void addValue(Node v) override { d_currTerm = *d_te; }
   /**
    * Get next returns the next (T-rewriter-unique) value based on the type
    * enumerator.
@@ -714,7 +713,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
     if (options::sygusSymBreakDynamic())
     {
       Node nextb = d_tds->sygusToBuiltin(d_currTerm);
-      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);   
+      nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
       if (d_cache.find(nextb) == d_cache.end())
       {
         d_cache.insert(nextb);
@@ -728,11 +727,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
     return true;
   }
   /** get the current term */
-  Node getCurrent() override
-  {
-    return d_currTerm;
-  }
-
+  Node getCurrent() override { return d_currTerm; }
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
@@ -825,16 +820,18 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
     firstTime = true;
   }
   bool inc = true;
-  if( !firstTime )
+  if (!firstTime)
   {
     inc = iteg->second->increment();
   }
   Node v;
-  if( inc )
+  if (inc)
   {
     v = iteg->second->getCurrent();
   }
-  Trace("sygus-active-gen-debug") << "...generated " << v << ", with increment success : " << inc << std::endl;
+  Trace("sygus-active-gen-debug") << "...generated " << v
+                                  << ", with increment success : " << inc
+                                  << std::endl;
   if (!inc)
   {
     // No more concrete values generated from absE.
@@ -881,7 +878,7 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
   else
   {
     // We are waiting to send e -> v to the module that requested it.
-    if( v.isNull() )
+    if (v.isNull())
     {
       activeIncomplete = true;
     }

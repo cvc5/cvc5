@@ -25,10 +25,7 @@ namespace theory {
 namespace quantifiers {
 
 SygusEnumerator::SygusEnumerator(TermDbSygus* tds, SynthConjecture* p)
-    : d_tds(tds),
-      d_parent(p),
-      d_tlEnum(nullptr),
-      d_abortSize(-1)
+    : d_tds(tds), d_parent(p), d_tlEnum(nullptr), d_abortSize(-1)
 {
 }
 
@@ -45,10 +42,7 @@ void SygusEnumerator::addValue(Node v)
   // do nothing
 }
 
-bool SygusEnumerator::increment()
-{
-  return d_tlEnum->increment();
-}
+bool SygusEnumerator::increment() { return d_tlEnum->increment(); }
 Node SygusEnumerator::getCurrent()
 {
   if (d_abortSize >= 0)
@@ -61,13 +55,13 @@ Node SygusEnumerator::getCurrent()
          << ") for enumerative SyGuS exceeded.";
       throw LogicException(ss.str());
     }
-  }  
+  }
   Node ret = d_tlEnum->getCurrent();
-  if( Trace.isOn("sygus-enum")  )
+  if (Trace.isOn("sygus-enum"))
   {
     Trace("sygus-enum") << "Enumerate : ";
     TermDbSygus::toStreamSygus("sygus-enum", ret);
-    Trace("sygus-enum")  << std::endl;
+    Trace("sygus-enum") << std::endl;
   }
   return ret;
 }
@@ -238,7 +232,7 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     d_terms.push_back(n);
     return true;
   }
-  Assert( !n.isNull() );
+  Assert(!n.isNull());
   Node bn = d_tds->sygusToBuiltin(n);
   Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
   // must be unique up to rewriting
@@ -540,7 +534,7 @@ Node SygusEnumerator::TermEnumMaster::getCurrent()
   {
     Assert(d_children.find(i) != d_children.end());
     Node cc = d_children[i].getCurrent();
-    if( cc.isNull() )
+    if (cc.isNull())
     {
       d_currTerm = cc;
       return cc;
@@ -722,12 +716,13 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
       d_currTermSet = false;
       d_currTerm = Node::null();
       Node c = getCurrent();
-      if( !c.isNull() )
+      if (!c.isNull())
       {
         if (!tc.addTerm(c))
         {
           // the term was not unique based on rewriting
-          Trace("sygus-enum-debug2") << "master(" << d_tn << "): failed addTerm\n";
+          Trace("sygus-enum-debug2") << "master(" << d_tn
+                                     << "): failed addTerm\n";
           d_currTerm = Node::null();
         }
       }

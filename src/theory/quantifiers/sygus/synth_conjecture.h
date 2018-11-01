@@ -204,14 +204,16 @@ class SynthConjecture
    * null on a call to getEnumeratedValue. This value is used for determining
    * whether we should call getEnumeratedValues again within a call to
    * SynthConjecture::check.
-   * 
+   *
    * It removes terms from n that correspond to "inactive" enumerators, that
    * is, enumerators whose values have been exhausted.
    */
-  bool getEnumeratedValues(std::vector<Node>& n, std::vector<Node>& v, bool& activeIncomplete);
+  bool getEnumeratedValues(std::vector<Node>& n,
+                           std::vector<Node>& v,
+                           bool& activeIncomplete);
   /**
    * Get model value for term n. If n has a value that was excluded by
-   * datatypes sygus symmetry breaking, this method returns null. It sets 
+   * datatypes sygus symmetry breaking, this method returns null. It sets
    * activeIncomplete to true if there is a actively-generated enumerator whose
    * current value is null but it has not finished generating values.
    */

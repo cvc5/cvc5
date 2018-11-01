@@ -756,7 +756,7 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    if( n.isNull() )
+    if (n.isNull())
     {
       Trace(c) << n;
     }
