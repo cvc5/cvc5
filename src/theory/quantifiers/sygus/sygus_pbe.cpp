@@ -356,10 +356,10 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
   Assert(isPbe());
   Assert(!e.isNull());
-  if (!d_tds->isPassiveEnumerator(e))
+  if (d_tds->isVariableAgnosticEnumerator(e))
   {
-    // we cannot apply conjecture-specific symmetry breaking on enumerators that
-    // are not passive
+    // we cannot apply conjecture-specific symmetry breaking on variable
+    // agnostic enumerators
     return Node::null();
   }
   Node ee = d_tds->getSynthFunForEnumerator(e);

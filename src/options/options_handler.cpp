@@ -530,7 +530,10 @@ none  \n\
 + Do not use actively-generated sygus enumerators.\n\
 \n\
 basic  \n\
-+ Use basic type enumerator as sygus enumerator.\n\
++ Use basic type enumerator for actively-generated sygus enumerators.\n\
+\n\
+enum  \n\
++ Use optimized enumerator for actively-generated sygus enumerators.\n\
 \n\
 var-agnostic \n\
 + Use sygus solver to enumerate terms that are agnostic to variables. \n\
@@ -974,7 +977,11 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   }
   else if (optarg == "basic")
   {
-    return theory::quantifiers::SYGUS_ACTIVE_GEN_BASIC;
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_ENUM_BASIC;
+  }
+  else if (optarg == "enum")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_ENUM;
   }
   else if (optarg == "var-agnostic")
   {
