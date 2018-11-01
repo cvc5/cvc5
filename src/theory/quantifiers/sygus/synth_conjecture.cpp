@@ -692,7 +692,9 @@ class EnumValGeneratorBasic : public EnumValGenerator
   /** initialize (do nothing) */
   void initialize(Node e) override {}
   /** initialize (do nothing) */
-  void addValue(Node v) override {}
+  void addValue(Node v) override {
+    d_currTerm = *d_te;
+  }
   /**
    * Get next returns the next (T-rewriter-unique) value based on the type
    * enumerator.
@@ -829,7 +831,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   {
     v = iteg->second->getCurrent();
   }
-  if (inc)
+  if (!inc)
   {
     // No more concrete values generated from absE.
     NodeManager* nm = NodeManager::currentNM();

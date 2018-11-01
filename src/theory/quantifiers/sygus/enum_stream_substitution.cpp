@@ -608,7 +608,10 @@ bool EnumStreamSubstitution::CombinationState::getNextCombination()
 }
 
 void EnumStreamConcrete::initialize(Node e) { d_ess.initialize(e.getType()); }
-void EnumStreamConcrete::addValue(Node v) { d_ess.resetValue(v); }
+void EnumStreamConcrete::addValue(Node v) { 
+  d_ess.resetValue(v); 
+  d_currTerm = d_ess.getNext();
+}
 bool EnumStreamConcrete::increment() 
 {
   d_currTerm = d_ess.getNext();
