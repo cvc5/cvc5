@@ -24,7 +24,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
@@ -92,7 +93,7 @@ class TBitblaster
   void invalidateModelCache();
 };
 
-class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify
+class MinisatEmptyNotify : public prop::BVSatSolverNotify
 {
  public:
   MinisatEmptyNotify() {}

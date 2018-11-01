@@ -26,7 +26,7 @@
 #include "context/cdlist.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
@@ -107,7 +107,7 @@ class TLazyBitblaster : public TBitblaster<Node>
                              prop::SatLiteralHashFunction>
       ExplanationMap;
   /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify
+  class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
     TheoryBV* d_bv;
@@ -133,7 +133,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   std::unique_ptr<context::Context> d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
-  std::unique_ptr<prop::BVSatSolverInterface::Notify> d_satSolverNotify;
+  std::unique_ptr<prop::BVSatSolverNotify> d_satSolverNotify;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   AssertionList*

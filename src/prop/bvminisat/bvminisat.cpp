@@ -51,7 +51,7 @@ void BVMinisatSatSolver::MinisatNotify::notify(
   d_notify->notify(satClause);
 }
 
-void BVMinisatSatSolver::setNotify(Notify* notify) {
+void BVMinisatSatSolver::setNotify(BVSatSolverNotify* notify) {
   d_minisatNotify.reset(new MinisatNotify(notify));
   d_minisat->setNotify(d_minisatNotify.get());
 }

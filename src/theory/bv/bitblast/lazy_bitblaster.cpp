@@ -90,8 +90,8 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
 
   d_satSolverNotify.reset(
       d_emptyNotify
-          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
-          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+          ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverNotify*)new MinisatNotify(
                 d_cnfStream.get(), bv, this));
 
   d_satSolver->setNotify(d_satSolverNotify.get());
@@ -591,8 +591,8 @@ void TLazyBitblaster::clearSolver() {
       d_satSolver.get(), d_nullRegistrar.get(), d_nullContext.get()));
   d_satSolverNotify.reset(
       d_emptyNotify
-          ? (prop::BVSatSolverInterface::Notify*)new MinisatEmptyNotify()
-          : (prop::BVSatSolverInterface::Notify*)new MinisatNotify(
+          ? (prop::BVSatSolverNotify*)new MinisatEmptyNotify()
+          : (prop::BVSatSolverNotify*)new MinisatNotify(
                 d_cnfStream.get(), d_bv, this));
   d_satSolver->setNotify(d_satSolverNotify.get());
 }

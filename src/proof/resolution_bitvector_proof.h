@@ -26,7 +26,6 @@
 #include "proof/bitvector_proof.h"
 #include "proof/theory_proof.h"
 #include "prop/bvminisat/core/Solver.h"
-#include "prop/cnf_stream.h"
 
 namespace CVC4 {
 
@@ -38,7 +37,14 @@ class TBitblaster;
 }  // namespace bv
 }  // namespace theory
 
+// TODO(aozdemir) break the sat_solver - resolution_bitvectorproof - cnf_stream
+// header cycle and remove this.
+namespace prop {
+class CnfStream;
+}
+
 } /* namespace CVC4 */
+
 
 namespace CVC4 {
 
