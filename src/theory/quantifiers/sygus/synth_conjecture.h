@@ -200,7 +200,10 @@ class SynthConjecture
    * if and only if all values added to v are non-null.
    *
    * The argument activeIncomplete indicates whether n contains an active
-   * enumerator that is currently not finished enumerating values.
+   * enumerator that is currently not finished enumerating values, but returned
+   * null on a call to getEnumeratedValue. This value is used for determining
+   * whether we should call getEnumeratedValues again within a call to
+   * SynthConjecture::check.
    * 
    * It removes terms from n that correspond to "inactive" enumerators, that
    * is, enumerators whose values have been exhausted.
@@ -210,8 +213,7 @@ class SynthConjecture
    * Get model value for term n. If n has a value that was excluded by
    * datatypes sygus symmetry breaking, this method returns null. It sets 
    * activeIncomplete to true if there is a actively-generated enumerator whose
-   * current value is null. This value is used for determining whether we should
-   * try another call to getEnumeratedValues.
+   * current value is null but it has not finished generating values.
    */
   Node getEnumeratedValue(Node n, bool& activeIncomplete);
   /** enumerator generators for each actively-generated enumerator */
