@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BITVECTOR__PROOF_H
-#define __CVC4__BITVECTOR__PROOF_H
+#ifndef __CVC4__BITVECTOR_PROOF_H
+#define __CVC4__BITVECTOR_PROOF_H
 
 #include <set>
 #include <unordered_map>
