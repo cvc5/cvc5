@@ -231,7 +231,6 @@ Node BVToBool::convertBvTerm(TNode node)
 Node BVToBool::liftNode(TNode current)
 {
   Node result;
-
   if (hasLiftCache(current))
   {
     result = getLiftCache(current);

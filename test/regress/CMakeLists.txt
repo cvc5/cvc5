@@ -173,7 +173,8 @@ set(regress_0_tests
   regress0/bv/bv-options2.smt2
   regress0/bv/bv-options3.smt2
   regress0/bv/bv-options4.smt2
-  regress0/bv/bv-to-bool.smt
+  regress0/bv/bv-to-bool1.smt
+  regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
