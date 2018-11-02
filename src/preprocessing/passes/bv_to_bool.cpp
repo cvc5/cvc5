@@ -106,9 +106,6 @@ bool BVToBool::isConvertibleBvAtom(TNode node)
 
 bool BVToBool::isConvertibleBvTerm(TNode node)
 {
-  if (!node.getType().isBitVector() || node.getType().getBitVectorSize() != 1)
-    return false;
-
   Kind kind = node.getKind();
 
   if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
