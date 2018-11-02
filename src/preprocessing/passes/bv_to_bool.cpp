@@ -107,8 +107,8 @@ bool BVToBool::isConvertibleBvAtom(TNode node)
 bool BVToBool::isConvertibleBvTerm(TNode node)
 {
   if (!node.getType().isBitVector() || node.getType().getBitVectorSize() != 1)
-    Assert(false);
-  
+    return false;
+
   Kind kind = node.getKind();
 
   if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
@@ -141,6 +141,8 @@ Node BVToBool::convertBvAtom(TNode node)
 
 Node BVToBool::convertBvTerm(TNode node)
 {
+  Assert(node.getType().isBitVector()
+         && node.getType().getBitVectorSize() == 1);
 
   if (hasBoolCache(node)) return getBoolCache(node);
 
@@ -231,6 +233,7 @@ Node BVToBool::convertBvTerm(TNode node)
 Node BVToBool::liftNode(TNode current)
 {
   Node result;
+
   if (hasLiftCache(current))
   {
     result = getLiftCache(current);
