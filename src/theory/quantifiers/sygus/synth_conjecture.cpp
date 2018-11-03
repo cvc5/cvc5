@@ -80,10 +80,14 @@ void SynthConjecture::assign(Node q)
   // pre-simplify the quantified formula based on the process utility
   d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
+  // compute its attributes
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+  
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
@@ -110,9 +114,16 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
+  Node sc = qa.d_sygusSideCondition;
+  if( !sc.isNull() )
+  {
+    // convert to deep embedding
+    d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
+  }
+                 
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }

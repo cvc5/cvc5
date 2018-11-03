@@ -264,6 +264,11 @@ class SynthConjecture
 
   /** the asserted (negated) conjecture */
   Node d_quant;
+  /** 
+   * The side condition for solving the conjecture, after conversion to deep
+   * embedding.
+   */
+  Node d_embedSideCondition;
   /** (negated) conjecture after simplification */
   Node d_simp_quant;
   /** (negated) conjecture after simplification, conversion to deep embedding */
