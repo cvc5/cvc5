@@ -214,7 +214,7 @@ class SynthConjecture
   /**
    * Get model value for term n. If n has a value that was excluded by
    * datatypes sygus symmetry breaking, this method returns null. It sets
-   * activeIncomplete to true if there is a actively-generated enumerator whose
+   * activeIncomplete to true if there is an actively-generated enumerator whose
    * current value is null but it has not finished generating values.
    */
   Node getEnumeratedValue(Node n, bool& activeIncomplete);
