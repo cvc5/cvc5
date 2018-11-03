@@ -28,6 +28,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -759,7 +760,17 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     else
     {
-      d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      // Actively-generated enumerators are currently either variable agnostic
+      // or basic.
+      Assert(d_tds->isBasicEnumerator(e));
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
+      {
+        d_evg[e].reset(new SygusEnumerator(d_tds, this));
+      }
+      else
+      {
+        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      }
     }
     Trace("sygus-active-gen")
         << "Active-gen: initialize for " << e << std::endl;
@@ -800,12 +811,18 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     // No more concrete values generated from absE.
     NodeManager* nm = NodeManager::currentNM();
     d_ev_curr_active_gen[e] = Node::null();
-    // We must block e = absE.
     std::vector<Node> exp;
-    d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
-    for (unsigned i = 0, size = exp.size(); i < size; i++)
+    // If we are a basic enumerator, a single abstract value maps to *all*
+    // concrete values of its type, thus we don't depend on the current
+    // solution.
+    if (!d_tds->isBasicEnumerator(e))
     {
-      exp[i] = exp[i].negate();
+      // We must block e = absE
+      d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
+      for (unsigned i = 0, size = exp.size(); i < size; i++)
+      {
+        exp[i] = exp[i].negate();
+      }
     }
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
