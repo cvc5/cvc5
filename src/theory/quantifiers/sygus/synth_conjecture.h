@@ -264,7 +264,7 @@ class SynthConjecture
 
   /** the asserted (negated) conjecture */
   Node d_quant;
-  /** 
+  /**
    * The side condition for solving the conjecture, after conversion to deep
    * embedding.
    */

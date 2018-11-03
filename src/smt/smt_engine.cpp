@@ -1247,7 +1247,7 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if( !d_isInternalSubsolver )
+  if (!d_isInternalSubsolver)
   {
     if (options::sygusInference() || options::sygusRewSynthInput()
         || options::sygusAbduct())
@@ -1939,7 +1939,8 @@ void SmtEngine::setDefaults() {
       }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen() || options::sygusAbduct())
+        || options::sygusQueryGen()
+        || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -3302,7 +3303,7 @@ void SmtEnginePrivate::processAssertions() {
   }
 
   // rephrasing normal inputs as sygus problems
-  if( !d_smt.d_isInternalSubsolver )
+  if (!d_smt.d_isInternalSubsolver)
   {
     if (options::sygusInference())
     {
@@ -5224,11 +5225,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   nodeManagerOptions.setOption(key, optionarg);
 }
 
-void SmtEngine::setIsInternalSubsolver()
-{
-  d_isInternalSubsolver = true;
-}
-
+void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(d_nodeManager);

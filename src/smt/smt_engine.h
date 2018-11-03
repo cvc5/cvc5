@@ -208,7 +208,7 @@ class CVC4_PUBLIC SmtEngine {
    * Keep a copy of the original option settings (for reset()).
    */
   Options d_originalOptions;
-  
+
   /** whether this is an internal subsolver */
   bool d_isInternalSubsolver;
 
@@ -496,7 +496,7 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
-  
+
   /** Set is internal subsolver.
    *
    * This function is called on SmtEngine objects that are created internally.
@@ -505,7 +505,7 @@ class CVC4_PUBLIC SmtEngine {
    * --sygus-abduct.
    */
   void setIsInternalSubsolver();
-  
+
   /** sets the input name */
   void setFilename(std::string filename);
   /** return the input name (if any) */

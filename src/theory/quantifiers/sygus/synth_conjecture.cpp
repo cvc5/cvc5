@@ -83,7 +83,7 @@ void SynthConjecture::assign(Node q)
   // compute its attributes
   QAttributes qa;
   QuantAttributes::computeQuantAttributes(q, qa);
-  
+
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
@@ -115,12 +115,12 @@ void SynthConjecture::assign(Node q)
                  << d_embed_quant << std::endl;
 
   Node sc = qa.d_sygusSideCondition;
-  if( !sc.isNull() )
+  if (!sc.isNull())
   {
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
   }
-                 
+
   // we now finalize the single invocation module, based on the syntax
   // restrictions
   if (qa.d_sygus)

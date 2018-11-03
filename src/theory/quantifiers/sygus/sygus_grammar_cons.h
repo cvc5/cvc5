@@ -113,16 +113,16 @@ public:
    * sygus grammar, add them to vector ops.
    */
   static void mkSygusConstantsForType(TypeNode type, std::vector<Node>& ops);
-  /** 
+  /**
    * Convert node n based on deep embedding, see Section 4 of Reynolds et al
    * CAV 2015.
-   * 
+   *
    * This returns the result of converting n to its deep embedding based on
    * the mapping from functions to datatype variables, stored in
    * d_synth_fun_vars. This method should be called only after calling process
    * above.
    */
-  Node convertToEmbedding( Node n);
+  Node convertToEmbedding(Node n);
 
  private:
   /** reference to quantifier engine */
@@ -130,12 +130,12 @@ public:
   /** parent conjecture
   * This contains global information about the synthesis conjecture.
   */
-  SynthConjecture* d_parent; 
-  /** 
+  SynthConjecture* d_parent;
+  /**
    * Maps each synthesis function to its corresponding (first-order) sygus
    * datatype variable. This map is initialized by the process methods.
    */
-  std::map< Node, Node > d_synth_fun_vars;
+  std::map<Node, Node> d_synth_fun_vars;
   /** is the syntax restricted? */
   bool d_is_syntax_restricted;
   /** collect terms */
