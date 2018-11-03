@@ -159,6 +159,7 @@ void SynthEngine::assignConjecture(Node q)
     {
       // create new smt engine to do quantifier elimination
       SmtEngine smt_qe(nm->toExprManager());
+      smt_qe.setIsInternalSubsolver();
       smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."

@@ -92,13 +92,6 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
   
   Trace("sygus-abduct-debug") << "Set attributes..." << std::endl;
-  if( !assumptions.empty() )
-  {
-    Node aconj = assumptions.size()==1 ? assumptions[0] : nm->mkNode( AND, assumptions );
-    aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
-    Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
-    abd.setAttribute(theory::SygusSideConditionAttribute(), aconj );
-  }
   // set the sygus bound variable list
   Node abvl = nm->mkNode(BOUND_VAR_LIST, varlist);
   abd.setAttribute(theory::SygusSynthFunVarListAttribute(), abvl);
@@ -124,7 +117,24 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   theory::SygusAttribute ca;
   sygusVar.setAttribute(ca, true);
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
-  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, instAttr);
+  std::vector< Node > iplc;
+  iplc.push_back(instAttr);
+  if( !assumptions.empty() )
+  {
+    Node aconj = assumptions.size()==1 ? assumptions[0] : nm->mkNode( AND, assumptions );
+    aconj = aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
+    Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
+    Node sc = nm->mkNode(AND,aconj,abdApp);
+    Node vbvl = nm->mkNode(BOUND_VAR_LIST, vars);
+    sc = nm->mkNode(EXISTS, vbvl, sc);
+    Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
+    sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc );
+    // build in the side condition
+    //   exists x. A( x ) ^ input_assumptions( x )
+    // as an additional annotation on the sygus conjecture
+    iplc.push_back(sygusScVar);
+  }
+  Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
 
   Node fbvl = nm->mkNode(BOUND_VAR_LIST, abd);
 
