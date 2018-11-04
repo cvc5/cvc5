@@ -241,33 +241,36 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     d_terms.push_back(n);
     return true;
   }
-  Node bn = d_tds->sygusToBuiltin(n);
-  Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
-  // must be unique up to rewriting
-  if (d_bterms.find(bnr) != d_bterms.end())
+  if (options::sygusSymBreakDynamic())
   {
-    Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
-    return false;
-  }
-  // if we are doing PBE symmetry breaking
-  if (d_pbe != nullptr)
-  {
-    // Is it equivalent under examples?
-    Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
-    if (!bne.isNull())
+    Node bn = d_tds->sygusToBuiltin(n);
+    Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
+    // must be unique up to rewriting
+    if (d_bterms.find(bnr) != d_bterms.end())
     {
-      if (bnr != bne)
+      Trace("sygus-enum-exc") << "Exclude: " << bn << std::endl;
+      return false;
+    }
+    // if we are doing PBE symmetry breaking
+    if (d_pbe != nullptr)
+    {
+      // Is it equivalent under examples?
+      Node bne = d_pbe->addSearchVal(d_tn, d_enum, bnr);
+      if (!bne.isNull())
       {
-        Trace("sygus-enum-exc") << "Exclude (by examples): " << bn
-                                << ", since we already have " << bne
-                                << "!=" << bnr << std::endl;
-        return false;
+        if (bnr != bne)
+        {
+          Trace("sygus-enum-exc") << "Exclude (by examples): " << bn
+                                  << ", since we already have " << bne
+                                  << "!=" << bnr << std::endl;
+          return false;
+        }
       }
     }
+    Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
+    d_bterms.insert(bnr);
   }
-  Trace("sygus-enum-terms") << "tc(" << d_tn << "): term " << bn << std::endl;
   d_terms.push_back(n);
-  d_bterms.insert(bnr);
   return true;
 }
 void SygusEnumerator::TermCache::pushEnumSizeIndex()
