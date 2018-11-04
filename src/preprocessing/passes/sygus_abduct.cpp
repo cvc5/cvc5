@@ -131,10 +131,11 @@ PreprocessingPassResult SygusAbduct::applyInternal(
     sc = nm->mkNode(EXISTS, vbvl, sc);
     Node sygusScVar = nm->mkSkolem("sygus_sc", nm->booleanType());
     sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
+    instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
     // build in the side condition
     //   exists x. A( x ) ^ input_assumptions( x )
     // as an additional annotation on the sygus conjecture
-    iplc.push_back(sygusScVar);
+    iplc.push_back(instAttr);
   }
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
 

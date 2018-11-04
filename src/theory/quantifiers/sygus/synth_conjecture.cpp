@@ -119,6 +119,7 @@ void SynthConjecture::assign(Node q)
   {
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
+    Trace("cegqi") << "SynthConjecture : side condition : " << d_embedSideCondition << std::endl;
   }
 
   // we now finalize the single invocation module, based on the syntax
