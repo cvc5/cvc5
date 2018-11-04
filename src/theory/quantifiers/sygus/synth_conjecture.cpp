@@ -715,8 +715,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
       return getNext();
     }
     d_cache.insert(nextb);
-  }
-  return next;
+    return next;
   }
 
  private:
