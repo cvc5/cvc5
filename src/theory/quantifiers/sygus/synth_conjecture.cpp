@@ -709,12 +709,12 @@ class EnumValGeneratorBasic : public EnumValGenerator
     {
       Node nextb = d_tds->sygusToBuiltin(next);
       nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+      if (d_cache.find(nextb) != d_cache.end())
+      {
+        return getNext();
+      }
+      d_cache.insert(nextb);
     }
-    if (d_cache.find(nextb) != d_cache.end())
-    {
-      return getNext();
-    }
-    d_cache.insert(nextb);
     return next;
   }
 
