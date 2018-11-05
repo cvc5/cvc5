@@ -867,8 +867,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       NodeUIntMap::iterator lbl_i = d_labels.find(t2);
       if( lbl_i != d_labels.end() ){
         Trace("datatypes-debug") << "  merge labels from " << eqc2 << " " << t2 << std::endl;
-        unsigned n_label = (*lbl_i).second;
-        for (unsigned i = 0; i < n_label; i++)
+        size_t n_label = (*lbl_i).second;
+        for (size_t i = 0; i < n_label; i++)
         {
           Assert(i < d_labels_data[t2].size());
           Node t = d_labels_data[ t2 ][i];
@@ -890,8 +890,8 @@ void TheoryDatatypes::merge( Node t1, Node t2 ){
       NodeUIntMap::iterator sel_i = d_selector_apps.find(t2);
       if( sel_i != d_selector_apps.end() ){
         Trace("datatypes-debug") << "  merge selectors from " << eqc2 << " " << t2 << std::endl;
-        unsigned n_sel = (*sel_i).second;
-        for (unsigned j = 0; j < n_sel; j++)
+        size_t n_sel = (*sel_i).second;
+        for (size_t j = 0; j < n_sel; j++)
         {
           addSelector( d_selector_apps_data[t2][j], eqc1, t1, eqc2->d_constructor.get().isNull() );
         }
@@ -926,7 +926,7 @@ bool TheoryDatatypes::hasLabel( EqcInfo* eqc, Node n ){
 Node TheoryDatatypes::getLabel( Node n ) {
   NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
-    unsigned n_lbl = (*lbl_i).second;
+    size_t n_lbl = (*lbl_i).second;
     if( n_lbl>0 && d_labels_data[n][ n_lbl-1 ].getKind()!=kind::NOT ){
       return d_labels_data[n][ n_lbl-1 ];
     }
@@ -968,8 +968,8 @@ void TheoryDatatypes::getPossibleCons( EqcInfo* eqc, Node n, std::vector< bool >
   }else{
     NodeUIntMap::iterator lbl_i = d_labels.find(n);
     if( lbl_i != d_labels.end() ){
-      unsigned n_lbl = (*lbl_i).second;
-      for (unsigned i = 0; i < n_lbl; i++)
+      size_t n_lbl = (*lbl_i).second;
+      for (size_t i = 0; i < n_lbl; i++)
       {
         Assert(d_labels_data[n][i].getKind() == NOT);
         unsigned tindex = d_labels_tindex[n][i];
@@ -1047,9 +1047,9 @@ void TheoryDatatypes::addTester(
     //otherwise, scan list of labels
     NodeUIntMap::iterator lbl_i = d_labels.find(n);
     Assert( lbl_i != d_labels.end() );
-    unsigned n_lbl = (*lbl_i).second;
+    size_t n_lbl = (*lbl_i).second;
     std::map< int, bool > neg_testers;
-    for (unsigned i = 0; i < n_lbl; i++)
+    for (size_t i = 0; i < n_lbl; i++)
     {
       Assert(d_labels_data[n][i].getKind() == NOT);
       unsigned jtindex = d_labels_tindex[n][i];
@@ -1158,8 +1158,8 @@ void TheoryDatatypes::addSelector( Node s, EqcInfo* eqc, Node n, bool assertFact
   NodeUIntMap::iterator sel_i = d_selector_apps.find(n);
   Assert( sel_i != d_selector_apps.end() );
   if( sel_i != d_selector_apps.end() ){
-    unsigned n_sel = (*sel_i).second;
-    for (unsigned j = 0; j < n_sel; j++)
+    size_t n_sel = (*sel_i).second;
+    for (size_t j = 0; j < n_sel; j++)
     {
       Node ss = d_selector_apps_data[n][j];
       if( s.getOperator()==ss.getOperator() && ( s.getKind()!=DT_HEIGHT_BOUND || s[1]==ss[1] ) ){
@@ -1192,8 +1192,8 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   NodeUIntMap::iterator lbl_i = d_labels.find(n);
   if( lbl_i != d_labels.end() ){
     size_t constructorIndex = DatatypesRewriter::indexOf(c.getOperator());
-    unsigned n_lbl = (*lbl_i).second;
-    for (unsigned i = 0; i < n_lbl; i++)
+    size_t n_lbl = (*lbl_i).second;
+    for (size_t i = 0; i < n_lbl; i++)
     {
       Node t = d_labels_data[n][i];
       if (d_labels_data[n][i].getKind() == NOT)
@@ -1216,8 +1216,8 @@ void TheoryDatatypes::addConstructor( Node c, EqcInfo* eqc, Node n ){
   //check selectors
   NodeUIntMap::iterator sel_i = d_selector_apps.find(n);
   if( sel_i != d_selector_apps.end() ){
-    unsigned n_sel = (*sel_i).second;
-    for (unsigned j = 0; j < n_sel; j++)
+    size_t n_sel = (*sel_i).second;
+    for (size_t j = 0; j < n_sel; j++)
     {
       Node s = d_selector_apps_data[n][j];
       //collapse the selector
@@ -2134,7 +2134,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
           }else{
             NodeUIntMap::iterator lbl_i = d_labels.find(eqc);
             if( lbl_i != d_labels.end() ){
-              for (unsigned j = 0; j < (*lbl_i).second; j++)
+              for (size_t j = 0; j < (*lbl_i).second; j++)
               {
                 Trace( c ) << d_labels_data[eqc][j] << " ";
               }
@@ -2144,7 +2144,7 @@ void TheoryDatatypes::printModelDebug( const char* c ){
           Trace( c ) << "   Selectors : " << ( ei->d_selectors ? "yes, " : "no " );
           NodeUIntMap::iterator sel_i = d_selector_apps.find(eqc);
           if( sel_i != d_selector_apps.end() ){
-            for (unsigned j = 0; j < (*sel_i).second; j++)
+            for (size_t j = 0; j < (*sel_i).second; j++)
             {
               Trace( c ) << d_selector_apps_data[eqc][j] << " ";
             }
