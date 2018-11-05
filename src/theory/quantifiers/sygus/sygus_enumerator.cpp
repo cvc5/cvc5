@@ -78,6 +78,7 @@ Node SygusEnumerator::getNext()
 SygusEnumerator::TermCache::TermCache()
     : d_tds(nullptr),
       d_pbe(nullptr),
+      d_isSygusType(false),
       d_numConClasses(0),
       d_sizeEnum(0),
       d_isComplete(false)
@@ -305,7 +306,7 @@ void SygusEnumerator::TermCache::setComplete() { d_isComplete = true; }
 unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
-    : TermEnum(), d_sizeLim(0), d_index(0), d_indexNextEnd(0), d_master(nullptr)
+    : TermEnum(), d_sizeLim(0), d_index(0), d_indexNextEnd(0), d_hasIndexNextEnd(false), d_master(nullptr)
 {
 }
 
