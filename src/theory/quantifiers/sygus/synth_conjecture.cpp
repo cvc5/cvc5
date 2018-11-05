@@ -445,31 +445,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     inst = d_base_inst;
   }
 
-  Node sc;
-  if( !d_embedSideCondition.isNull() && constructed_cand)
-  {
-    sc = d_embedSideCondition.substitute(d_candidates.begin(),
-                                  d_candidates.end(),
-                                  candidate_values.begin(),
-                                  candidate_values.end());
-    sc = Rewriter::rewrite(sc);
-    Trace("cegqi-engine") << "Check side condition..." << std::endl;
-    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
-    SmtEngine scSmt(nm->toExprManager());
-    scSmt.setIsInternalSubsolver();
-    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
-    scSmt.assertFormula(sc.toExpr());
-    Result r = scSmt.checkSat();
-    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if( r==Result::UNSAT )
-    {
-      // exclude the current solution TODO
-      excludeCurrentSolution();
-      Trace("cegqi-engine") << "...failed side condition" << std::endl;
-      return false;
-    }
-    Trace("cegqi-engine") << "...passed side condition" << std::endl;
-  }
   // check whether we will run CEGIS on inner skolem variables
   bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
   if (sk_refine)
@@ -542,6 +517,34 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
+  
+  // check the side condition
+  Node sc;
+  if( !d_embedSideCondition.isNull() && constructed_cand)
+  {
+    sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setIsInternalSubsolver();
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if( r==Result::UNSAT )
+    {
+      // exclude the current solution TODO
+      excludeCurrentSolution();
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
+    }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+  }
+  
   Node query = lem;
   bool success = false;
   if (query.isConst() && !query.getConst<bool>())
