@@ -306,7 +306,12 @@ void SygusEnumerator::TermCache::setComplete() { d_isComplete = true; }
 unsigned SygusEnumerator::TermEnum::getCurrentSize() { return d_currSize; }
 SygusEnumerator::TermEnum::TermEnum() : d_se(nullptr), d_currSize(0) {}
 SygusEnumerator::TermEnumSlave::TermEnumSlave()
-    : TermEnum(), d_sizeLim(0), d_index(0), d_indexNextEnd(0), d_hasIndexNextEnd(false), d_master(nullptr)
+    : TermEnum(),
+      d_sizeLim(0),
+      d_index(0),
+      d_indexNextEnd(0),
+      d_hasIndexNextEnd(false),
+      d_master(nullptr)
 {
 }
 
