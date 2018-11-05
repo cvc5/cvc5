@@ -272,6 +272,8 @@ enum SygusActiveGenMode
   SYGUS_ACTIVE_GEN_ENUM,
   /** use variable-agnostic enumerators */
   SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
 };
 
 enum MacrosQuantMode {
