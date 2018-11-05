@@ -705,17 +705,17 @@ class EnumValGeneratorBasic : public EnumValGenerator
     }
     Node next = *d_te;
     ++d_te;
-    Node nextb = d_tds->sygusToBuiltin(next);
     if (options::sygusSymBreakDynamic())
     {
+      Node nextb = d_tds->sygusToBuiltin(next);
       nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
-    }
-    if (d_cache.find(nextb) == d_cache.end())
-    {
+      if (d_cache.find(nextb) != d_cache.end())
+      {
+        return getNext();
+      }
       d_cache.insert(nextb);
-      return next;
     }
-    return getNext();
+    return next;
   }
 
  private:
