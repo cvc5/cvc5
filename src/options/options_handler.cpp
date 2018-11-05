@@ -538,6 +538,9 @@ enum  \n\
 var-agnostic \n\
 + Use sygus solver to enumerate terms that are agnostic to variables. \n\
 \n\
+auto (default) \n\
++ Internally decide the best policy for each enumerator. \n\
+\n\
 ";
 
 const std::string OptionsHandler::s_macrosQuantHelp = "\
@@ -986,6 +989,10 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   else if (optarg == "var-agnostic")
   {
     return theory::quantifiers::SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  }
+  else if (optarg == "auto")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_AUTO;
   }
   else if (optarg == "help")
   {

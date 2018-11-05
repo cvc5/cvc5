@@ -703,13 +703,13 @@ class EnumValGeneratorBasic : public EnumValGenerator
    */
   bool increment() override
   {
+    ++d_te;
     if (d_te.isFinished())
     {
       d_currTerm = Node::null();
       return false;
     }
     d_currTerm = *d_te;
-    ++d_te;
     if (options::sygusSymBreakDynamic())
     {
       Node nextb = d_tds->sygusToBuiltin(d_currTerm);
@@ -773,15 +773,18 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
     else
     {
       // Actively-generated enumerators are currently either variable agnostic
-      // or basic.
+      // or basic. The auto mode always prefers the optimized enumerator over
+      // the basic one.
       Assert(d_tds->isBasicEnumerator(e));
-      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM)
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM_BASIC)
       {
-        d_evg[e].reset(new SygusEnumerator(d_tds, this));
+        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
       }
       else
       {
-        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+        Assert(options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM
+               || options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO);
+        d_evg[e].reset(new SygusEnumerator(d_tds, this));
       }
     }
     Trace("sygus-active-gen")

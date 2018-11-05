@@ -1044,7 +1044,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-active-gen=MODE"
   type       = "CVC4::theory::quantifiers::SygusActiveGenMode"
-  default    = "CVC4::theory::quantifiers::SYGUS_ACTIVE_GEN_NONE"
+  default    = "CVC4::theory::quantifiers::SYGUS_ACTIVE_GEN_AUTO"
   handler    = "stringToSygusActiveGenMode"
   includes   = ["options/quantifiers_modes.h"]
   read_only  = true
@@ -1135,7 +1135,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "sygus-pbe-multi-fair"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   help       = "when using multiple enumerators, ensure that we only register value of minimial term size"
 
 [[option]]
