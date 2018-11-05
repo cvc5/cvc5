@@ -99,22 +99,22 @@ class TermDbSygus {
    * Register a variable e that we will do enumerative search on.
    *
    * conj : the conjecture that the enumeration of e is for.
-   * 
+   *
    * f : the synth-fun that the enumeration of e is for.Notice that enumerator
    * e may not be one-to-one with f in synthesis-through-unification approaches
    * (e.g. decision tree construction for PBE synthesis).
-   * 
+   *
    * erole : the role of this enumerator (see definition of EnumeratorRole).
    * Depending on this and the policy for actively-generated enumerators
-   * (--sygus-active-gen), the enumerator may be "actively-generated". 
+   * (--sygus-active-gen), the enumerator may be "actively-generated".
    * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
    * only generate values whose variables are in canonical order (only x1-x2
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
-   * 
+   *
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
-   * 
+   *
    * An "active guard" may be allocated by this method for e based on erole
    * and the policies for active generation.
    */

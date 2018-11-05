@@ -600,7 +600,8 @@ void TermDbSygus::registerEnumerator(Node e,
         // the bottleneck often becomes the large number of "exclude the current
         // solution" clauses.
         const Datatype& dt = et.getDatatype();
-        if( options::sygusStream() || ( !hasKind( et, ITE ) && !dt.getSygusType().isBoolean() ) )
+        if (options::sygusStream()
+            || (!hasKind(et, ITE) && !dt.getSygusType().isBoolean()))
         {
           isActiveGen = true;
         }
@@ -615,7 +616,8 @@ void TermDbSygus::registerEnumerator(Node e,
       Unreachable("Unknown enumerator mode in registerEnumerator");
     }
   }
-  Trace("sygus-active-gen") << "isActiveGen for " << e << ", role = " << erole << " returned " << isActiveGen << std::endl;
+  Trace("sygus-active-gen") << "isActiveGen for " << e << ", role = " << erole
+                            << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =
