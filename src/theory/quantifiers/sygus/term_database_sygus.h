@@ -55,10 +55,10 @@ enum EnumeratorRole
   ROLE_ENUM_POOL,
   /** The enumerator is the single solution of the problem. */
   ROLE_ENUM_SINGLE_SOLUTION,
-  /** 
-    * The enumerator is part of the solution of the problem (e.g. multiple
-    * functions to synthesize).
-    */
+  /**
+   * The enumerator is part of the solution of the problem (e.g. multiple
+   * functions to synthesize).
+   */
   ROLE_ENUM_MULTI_SOLUTION,
   /** The enumerator must satisfy some set of constraints */
   ROLE_ENUM_CONSTRAINED,

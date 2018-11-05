@@ -71,7 +71,8 @@ bool Cegis::processInitialize(Node n,
   unsigned csize = candidates.size();
   // The role of enumerators is to be either the single solution or part of
   // a solution involving multiple enumerators.
-  EnumeratorRole erole = csize==1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
+  EnumeratorRole erole =
+      csize == 1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < csize; i++)
   {
@@ -91,11 +92,8 @@ bool Cegis::processInitialize(Node n,
     }
     Trace("cegis") << std::endl;
     // variable agnostic enumerators require an active guard
-    d_tds->registerEnumerator(candidates[i],
-                              candidates[i],
-                              d_parent,
-                              erole,
-                              do_repair_const);
+    d_tds->registerEnumerator(
+        candidates[i], candidates[i], d_parent, erole, do_repair_const);
   }
   return true;
 }

@@ -47,7 +47,9 @@ bool CegisUnif::processInitialize(Node n,
   // Initialize strategies for all functions-to-synthesize
   // The role of non-unification enumerators is to be either the single solution
   // or part of a solution involving multiple enumerators.
-  EnumeratorRole eroleNonUnif = candidates.size()==1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
+  EnumeratorRole eroleNonUnif = candidates.size() == 1
+                                    ? ROLE_ENUM_SINGLE_SOLUTION
+                                    : ROLE_ENUM_MULTI_SOLUTION;
   for (const Node& f : candidates)
   {
     // Init UNIF util for this candidate
@@ -465,7 +467,8 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
                                                                exclude_cons,
                                                                term_irrelevant);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
-      d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
+      d_tds->registerEnumerator(
+          d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
     // if new_size is a power of two, then isPow2 returns log2(new_size)+1
     // otherwise, this returns 0. In the case it returns 0, we don't care
@@ -619,8 +622,7 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(
-      e, si.d_pt, d_parent, erole, false);
+  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, false);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(

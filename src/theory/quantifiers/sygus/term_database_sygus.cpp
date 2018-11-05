@@ -546,11 +546,11 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  // determine if we are actively-generated 
+  // determine if we are actively-generated
   bool isActiveGen = false;
-  if( options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE )
+  if (options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE)
   {
-    if( erole==ROLE_ENUM_MULTI_SOLUTION || erole==ROLE_ENUM_CONSTRAINED )
+    if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
     {
       // If the enumerator is a solution for a conjecture with multiple
       // functions, we do not use active generation. If we did, we would have to
@@ -565,17 +565,17 @@ void TermDbSygus::registerEnumerator(Node e,
       // for each i,j. We instead use passive enumeration in this case.
       // If the enumerator is constrained, it cannot be actively generated.
     }
-    else if( erole==ROLE_ENUM_POOL )
+    else if (erole == ROLE_ENUM_POOL)
     {
       // If the enumerator is used for generating a pool of values, we always
       // use active generation.
       isActiveGen = true;
     }
-    else if( erole==ROLE_ENUM_SINGLE_SOLUTION )
+    else if (erole == ROLE_ENUM_SINGLE_SOLUTION)
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
-      if( options::sygusActiveGenMode()==SYGUS_ACTIVE_GEN_AUTO )
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO)
       {
         // TODO
         // We use active generation if the grammar of the enumerator does not
@@ -648,11 +648,12 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
-  
+
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is populate
   // a pool of terms, or if it is actively generated.
-  if( isActiveGen || erole==ROLE_ENUM_POOL ){
+  if (isActiveGen || erole == ROLE_ENUM_POOL)
+  {
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
