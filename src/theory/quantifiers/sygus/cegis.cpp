@@ -91,7 +91,6 @@ bool Cegis::processInitialize(Node n,
       }
     }
     Trace("cegis") << std::endl;
-    // variable agnostic enumerators require an active guard
     d_tds->registerEnumerator(
         candidates[i], candidates[i], d_parent, erole, do_repair_const);
   }
