@@ -651,7 +651,7 @@ void TermDbSygus::registerEnumerator(Node e,
   
   // We make an active guard if we will be explicitly blocking solutions for
   // the enumerator. This is the case if the role of the enumerator is populate
-  // a pool of terms.
+  // a pool of terms, or if it is actively generated.
   if( isActiveGen || erole==ROLE_ENUM_POOL ){
     // make the guard
     Node ag = nm->mkSkolem("eG", nm->booleanType());
