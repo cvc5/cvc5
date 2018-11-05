@@ -782,7 +782,8 @@ Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
       }
       else
       {
-        Assert( options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM || options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO );
+        Assert(options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM
+               || options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO);
         d_evg[e].reset(new SygusEnumerator(d_tds, this));
       }
     }

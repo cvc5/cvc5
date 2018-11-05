@@ -617,7 +617,7 @@ void TermDbSygus::registerEnumerator(Node e,
     }
   }
   Trace("sygus-reg-enum") << "isActiveGen for " << e << ", role = " << erole
-                            << " returned " << isActiveGen << std::endl;
+                          << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =
