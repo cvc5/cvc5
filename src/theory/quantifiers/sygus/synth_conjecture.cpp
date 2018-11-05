@@ -143,6 +143,10 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
+  if( !d_embedSideCondition.isNull() )
+  {
+    d_embedSideCondition = d_embedSideCondition.substitute(vars.begin(),vars.end(),d_candidates.begin(),d_candidates.end());
+  }
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // initialize the sygus constant repair utility
@@ -441,6 +445,27 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     inst = d_base_inst;
   }
 
+  Node sc;
+  if( !d_embedSideCondition.isNull() )
+  {
+    sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                  d_candidates.end(),
+                                  candidate_values.begin(),
+                                  candidate_values.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setIsInternalSubsolver();
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if( r!=Result::SAT)
+    {
+      // exclude the current solution TODO
+      //return false;
+    }
+  }
   // check whether we will run CEGIS on inner skolem variables
   bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
   if (sk_refine)
