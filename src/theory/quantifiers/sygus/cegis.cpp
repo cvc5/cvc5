@@ -95,7 +95,6 @@ bool Cegis::processInitialize(Node n,
                               candidates[i],
                               d_parent,
                               erole,
-                              isActiveGen,
                               do_repair_const);
   }
   return true;

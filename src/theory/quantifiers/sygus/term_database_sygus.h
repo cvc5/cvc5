@@ -117,7 +117,6 @@ class TermDbSygus {
                           Node f,
                           SynthConjecture* conj,
                           EnumeratorRole er,
-                          bool mkActiveGuard = false,
                           bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;

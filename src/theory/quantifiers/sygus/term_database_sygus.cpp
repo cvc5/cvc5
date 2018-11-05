@@ -454,8 +454,7 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
-                                     EnumeratorRole er,
-                                     bool mkActiveGuard,
+                                     EnumeratorRole erole,
                                      bool useSymbolicCons)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
@@ -470,13 +469,6 @@ void TermDbSygus::registerEnumerator(Node e,
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
   NodeManager* nm = NodeManager::currentNM();
-  if( mkActiveGuard ){
-    // make the guard
-    Node ag = nm->mkSkolem("eG", nm->booleanType());
-    // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
-    d_enum_to_active_guard[e] = ag;
-  }
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
@@ -579,13 +571,18 @@ void TermDbSygus::registerEnumerator(Node e,
       // use active generation.
       isActiveGen = true;
     }
-    else if( erole==ROLE_ENUM_SOLUTION )
+    else if( erole==ROLE_ENUM_SINGLE_SOLUTION )
     {
       // If the enumerator is the single function-to-synthesize, if auto is
       // enabled, we infer whether it is better to enable active generation.
       if( options::sygusActiveGenMode()==SYGUS_ACTIVE_GEN_AUTO )
       {
         // TODO
+        // We use active generation if the grammar of the enumerator does not
+        // habe ITE or Boolean connectives. Experimentally, it is better to
+        // use passive generation for these cases since it enables useful
+        // search space pruning techniques, e.g. evaluation unfolding,
+        // conjecture-specific symmetry breaking.
         isActiveGen = false;
       }
       else
@@ -651,6 +648,17 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   d_enum_active_gen[e] = isActiveGen;
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
+  
+  // We make an active guard if we will be explicitly blocking solutions for
+  // the enumerator. This is the case if the role of the enumerator is populate
+  // a pool of terms.
+  if( isActiveGen || erole==ROLE_ENUM_POOL ){
+    // make the guard
+    Node ag = nm->mkSkolem("eG", nm->booleanType());
+    // must ensure it is a literal immediately here
+    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    d_enum_to_active_guard[e] = ag;
+  }
 }
 
 bool TermDbSygus::isEnumerator(Node e) const
