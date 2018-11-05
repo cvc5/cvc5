@@ -58,6 +58,19 @@ void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
   }
 }
 
+std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
+{
+  switch (r)
+  {
+    case ROLE_ENUM_POOL: os << "POOL"; break;
+    case ROLE_ENUM_SINGLE_SOLUTION: os << "SINGLE_SOLUTION"; break;
+    case ROLE_ENUM_MULTI_SOLUTION: os << "MULTI_SOLUTION"; break;
+    case ROLE_ENUM_CONSTRAINED: os << "CONSTRAINED"; break;
+    default: os << "enum_" << static_cast<unsigned>(r); break;
+  }
+  return os;
+}
+
 TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_syexp(new SygusExplain(this)),
@@ -581,9 +594,13 @@ void TermDbSygus::registerEnumerator(Node e,
         // have ITE and is not Boolean. Experimentally, it is better to
         // use passive generation for these cases since it enables useful
         // search space pruning techniques, e.g. evaluation unfolding,
-        // conjecture-specific symmetry breaking.
+        // conjecture-specific symmetry breaking. Also, if sygus-stream is
+        // enabled, we always use active generation, since the use cases of
+        // sygus stream are to find many solutions to an easy problem, where
+        // the bottleneck often becomes the large number of "exclude the current
+        // solution" clauses.
         const Datatype& dt = et.getDatatype();
-        if( !hasKind( et, ITE ) && !dt.getSygusType().isBoolean() )
+        if( options::sygusStream() || ( !hasKind( et, ITE ) && !dt.getSygusType().isBoolean() ) )
         {
           isActiveGen = true;
         }
@@ -598,6 +615,7 @@ void TermDbSygus::registerEnumerator(Node e,
       Unreachable("Unknown enumerator mode in registerEnumerator");
     }
   }
+  Trace("sygus-active-gen") << "isActiveGen for " << e << ", role = " << erole << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =
