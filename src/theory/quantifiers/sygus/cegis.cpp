@@ -69,17 +69,9 @@ bool Cegis::processInitialize(Node n,
 {
   Trace("cegis") << "Initialize cegis..." << std::endl;
   unsigned csize = candidates.size();
-  // We only can use actively-generated enumerators if there is only one
-  // function-to-synthesize. Otherwise, we would have to generate a "product" of
-  // two actively-generated enumerators. That is, given a conjecture with two
-  // functions-to-synthesize with enumerators e_f and e_g, if:
-  // e_f -> t1, ..., tn
-  // e_g -> s1, ..., sm
-  // This module would expect constructCandidates calls (e_f,e_g) -> (ti, sj)
-  // for each i,j. We do not do this and revert to the default behavior of
-  // this module instead.
-  bool isActiveGen =
-      options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE && csize == 1;
+  // The role of enumerators is to be either the single solution or part of
+  // a solution involving multiple enumerators.
+  EnumeratorRole erole = csize==1 ? ROLE_ENUM_SINGLE_SOLUTION : ROLE_ENUM_MULTI_SOLUTION;
   // initialize an enumerator for each candidate
   for (unsigned i = 0; i < csize; i++)
   {
@@ -102,9 +94,9 @@ bool Cegis::processInitialize(Node n,
     d_tds->registerEnumerator(candidates[i],
                               candidates[i],
                               d_parent,
+                              erole,
                               isActiveGen,
-                              do_repair_const,
-                              isActiveGen);
+                              do_repair_const);
   }
   return true;
 }

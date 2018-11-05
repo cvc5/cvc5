@@ -454,9 +454,9 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
+                                     EnumeratorRole er,
                                      bool mkActiveGuard,
-                                     bool useSymbolicCons,
-                                     bool isActiveGen)
+                                     bool useSymbolicCons)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -554,6 +554,50 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
+  // determine if we are actively-generated 
+  bool isActiveGen = false;
+  if( options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE )
+  {
+    if( erole==ROLE_ENUM_MULTI_SOLUTION || erole==ROLE_ENUM_CONSTRAINED )
+    {
+      // If the enumerator is a solution for a conjecture with multiple
+      // functions, we do not use active generation. If we did, we would have to
+      // generate a "product" of two actively-generated enumerators. That is,
+      // given a conjecture with two functions-to-synthesize with enumerators
+      // e_f and e_g, and if these enumerators generated:
+      // e_f -> t1, ..., tn
+      // e_g -> s1, ..., sm
+      // The sygus module in charge of this conjecture would expect
+      // constructCandidates calls of the form
+      //   (e_f,e_g) -> (ti, sj)
+      // for each i,j. We instead use passive enumeration in this case.
+      // If the enumerator is constrained, it cannot be actively generated.
+    }
+    else if( erole==ROLE_ENUM_POOL )
+    {
+      // If the enumerator is used for generating a pool of values, we always
+      // use active generation.
+      isActiveGen = true;
+    }
+    else if( erole==ROLE_ENUM_SOLUTION )
+    {
+      // If the enumerator is the single function-to-synthesize, if auto is
+      // enabled, we infer whether it is better to enable active generation.
+      if( options::sygusActiveGenMode()==SYGUS_ACTIVE_GEN_AUTO )
+      {
+        // TODO
+        isActiveGen = false;
+      }
+      else
+      {
+        isActiveGen = true;
+      }
+    }
+    else
+    {
+      Unreachable("Unknown enumerator mode in registerEnumerator");
+    }
+  }
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =

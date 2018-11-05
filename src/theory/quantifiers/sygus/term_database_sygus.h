@@ -48,6 +48,22 @@ class TypeNodeIdTrie
   void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
 };
 
+/** role for registering an enumerator */
+enum EnumeratorRole
+{
+  /** The enumerator populates a pool of terms (e.g. for PBE). */
+  ROLE_ENUM_POOL,
+  /** The enumerator is the single solution of the problem. */
+  ROLE_ENUM_SINGLE_SOLUTION,
+  /** 
+    * The enumerator is part of the solution of the problem (e.g. multiple
+    * functions to synthesize).
+    */
+  ROLE_ENUM_MULTI_SOLUTION,
+  /** The enumerator must satisfy some set of constraints */
+  ROLE_ENUM_CONSTRAINED,
+};
+
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
@@ -100,9 +116,9 @@ class TermDbSygus {
   void registerEnumerator(Node e,
                           Node f,
                           SynthConjecture* conj,
+                          EnumeratorRole er,
                           bool mkActiveGuard = false,
-                          bool useSymbolicCons = false,
-                          bool isActiveGen = false);
+                          bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
