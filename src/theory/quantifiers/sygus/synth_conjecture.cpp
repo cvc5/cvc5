@@ -703,13 +703,13 @@ class EnumValGeneratorBasic : public EnumValGenerator
    */
   bool increment() override
   {
+    ++d_te;
     if (d_te.isFinished())
     {
       d_currTerm = Node::null();
       return false;
     }
     d_currTerm = *d_te;
-    ++d_te;
     if (options::sygusSymBreakDynamic())
     {
       Node nextb = d_tds->sygusToBuiltin(d_currTerm);

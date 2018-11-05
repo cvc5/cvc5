@@ -616,8 +616,8 @@ void TermDbSygus::registerEnumerator(Node e,
       Unreachable("Unknown enumerator mode in registerEnumerator");
     }
   }
-  Trace("sygus-reg-enum") << "isActiveGen for " << e << ", role = " << erole
-                          << " returned " << isActiveGen << std::endl;
+  Trace("sygus-db") << "isActiveGen for " << e << ", role = " << erole
+                    << " returned " << isActiveGen << std::endl;
   // Currently, actively-generated enumerators are either basic or variable
   // agnostic.
   bool isVarAgnostic =
@@ -673,8 +673,8 @@ void TermDbSygus::registerEnumerator(Node e,
   d_enum_basic[e] = isActiveGen && !isVarAgnostic;
 
   // We make an active guard if we will be explicitly blocking solutions for
-  // the enumerator. This is the case if the role of the enumerator is populate
-  // a pool of terms, or if it is actively generated.
+  // the enumerator. This is the case if the role of the enumerator is to
+  // populate a pool of terms, or (some cases) of when it is actively generated.
   if (isActiveGen || erole == ROLE_ENUM_POOL)
   {
     // make the guard
