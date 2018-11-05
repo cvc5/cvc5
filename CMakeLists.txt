@@ -31,6 +31,17 @@ set(CMAKE_CXX_STANDARD 11)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Embed the installation prefix as an RPATH in the executable such that the
+# linker can find our libraries (such as libcvc4parser) when executing the cvc4
+# binary. This is for example useful when installing CVC4 with a custom prefix
+# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
+# set this option, then the linker will not be able to find the required
+# libraries when trying to run CVC4.
+#
+# More information on RPATH in CMake:
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 #-----------------------------------------------------------------------------#
 
 include(Helpers)
@@ -280,7 +291,7 @@ if(ENABLE_COVERAGE)
   # into a timeout. As a consequence, the coverage report is not generated. To
   # prevent this we always return with exit code 0 after the ctest command has
   # finished.
-  setup_target_for_coverage_lcov(
+  setup_target_for_coverage_gcovr_html(
     NAME coverage
     EXECUTABLE
       ctest -j${CTEST_NTHREADS} -LE "example"
@@ -433,7 +444,7 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
+configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#

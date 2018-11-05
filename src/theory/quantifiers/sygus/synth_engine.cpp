@@ -426,17 +426,16 @@ SynthEngine::Statistics::Statistics()
       d_cegqi_lemmas_refine("SynthEngine::cegqi_lemmas_refine", 0),
       d_cegqi_si_lemmas("SynthEngine::cegqi_lemmas_si", 0),
       d_solutions("SynthConjecture::solutions", 0),
-      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print",
-                                 0),
-      d_candidate_rewrites("SynthConjecture::candidate_rewrites", 0)
+      d_filtered_solutions("SynthConjecture::filtered_solutions", 0),
+      d_candidate_rewrites_print("SynthConjecture::candidate_rewrites_print", 0)
 
 {
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_ce);
   smtStatisticsRegistry()->registerStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->registerStat(&d_cegqi_si_lemmas);
   smtStatisticsRegistry()->registerStat(&d_solutions);
+  smtStatisticsRegistry()->registerStat(&d_filtered_solutions);
   smtStatisticsRegistry()->registerStat(&d_candidate_rewrites_print);
-  smtStatisticsRegistry()->registerStat(&d_candidate_rewrites);
 }
 
 SynthEngine::Statistics::~Statistics()
@@ -445,8 +444,8 @@ SynthEngine::Statistics::~Statistics()
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_lemmas_refine);
   smtStatisticsRegistry()->unregisterStat(&d_cegqi_si_lemmas);
   smtStatisticsRegistry()->unregisterStat(&d_solutions);
+  smtStatisticsRegistry()->unregisterStat(&d_filtered_solutions);
   smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites_print);
-  smtStatisticsRegistry()->unregisterStat(&d_candidate_rewrites);
 }
 
 }  // namespace quantifiers

@@ -31,6 +31,33 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void TypeNodeIdTrie::add(Node v, std::vector<TypeNode>& types)
+{
+  TypeNodeIdTrie* tnt = this;
+  for (unsigned i = 0, size = types.size(); i < size; i++)
+  {
+    tnt = &tnt->d_children[types[i]];
+  }
+  tnt->d_data.push_back(v);
+}
+
+void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
+                               unsigned& idCount)
+{
+  if (!d_data.empty())
+  {
+    for (const Node& v : d_data)
+    {
+      assign[v] = idCount;
+    }
+    idCount++;
+  }
+  for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+  {
+    c.second.assignIds(assign, idCount);
+  }
+}
+
 TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_syexp(new SygusExplain(this)),
@@ -424,45 +451,6 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
   }
 }
 
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types)
-  {
-    TypeNodeIdTrie* tnt = this;
-    for (unsigned i = 0, size = types.size(); i < size; i++)
-    {
-      tnt = &tnt->d_children[types[i]];
-    }
-    tnt->d_data.push_back(v);
-  }
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
-  {
-    if (!d_data.empty())
-    {
-      for (const Node& v : d_data)
-      {
-        assign[v] = idCount;
-      }
-      idCount++;
-    }
-    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
-    {
-      c.second.assignIds(assign, idCount);
-    }
-  }
-};
-
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
@@ -566,7 +554,8 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  d_enum_active_gen[e] = isActiveGen;
+  // Currently, actively-generated enumerators are either basic or variable
+  // agnostic.
   bool isVarAgnostic =
       isActiveGen
       && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
@@ -613,8 +602,11 @@ void TermDbSygus::registerEnumerator(Node e,
           << " since it has no subclass with more than one variable."
           << std::endl;
       d_enum_var_agnostic[e] = false;
+      isActiveGen = false;
     }
   }
+  d_enum_active_gen[e] = isActiveGen;
+  d_enum_basic[e] = isActiveGen && !isVarAgnostic;
 }
 
 bool TermDbSygus::isEnumerator(Node e) const
@@ -665,6 +657,16 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
 {
   std::map<Node, bool>::const_iterator itus = d_enum_var_agnostic.find(e);
   if (itus != d_enum_var_agnostic.end())
+  {
+    return itus->second;
+  }
+  return false;
+}
+
+bool TermDbSygus::isBasicEnumerator(Node e) const
+{
+  std::map<Node, bool>::const_iterator itus = d_enum_basic.find(e);
+  if (itus != d_enum_basic.end())
   {
     return itus->second;
   }
@@ -754,9 +756,16 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-    Trace(c) << ss.str();
+    if (n.isNull())
+    {
+      Trace(c) << n;
+    }
+    else
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
+      Trace(c) << ss.str();
+    }
   }
 }
 

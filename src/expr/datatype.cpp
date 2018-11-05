@@ -173,8 +173,8 @@ void Datatype::setSygus( Type st, Expr bvl, bool allow_const, bool allow_all ){
 }
 
 void Datatype::addSygusConstructor(Expr op,
-                                   std::string& cname,
-                                   std::vector<Type>& cargs,
+                                   const std::string& cname,
+                                   const std::vector<Type>& cargs,
                                    std::shared_ptr<SygusPrintCallback> spc,
                                    int weight)
 {
@@ -1316,7 +1316,7 @@ void DatatypeConstructorArg::toStream(std::ostream& out) const
   else if (d_selector.isNull())
   {
     string typeName = d_name.substr(d_name.find('\0') + 1);
-    out << (typeName == "") ? "[self]" : typeName;
+    out << ((typeName == "") ? "[self]" : typeName);
     return;
   }
   else

@@ -21,4 +21,4 @@ echo
 echo "Using symfpu commit $commit"
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-symfpu
+echo ./configure.sh --symfpu

@@ -276,11 +276,7 @@ CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
 
 bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
-  ExtendedRewriter* er = nullptr;
-  if (options::synthRrPrepExtRew())
-  {
-    er = &d_ext_rewrite;
-  }
+  ExtendedRewriter* er = &d_ext_rewrite;
   Node nr;
   if (er == nullptr)
   {

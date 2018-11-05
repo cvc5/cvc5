@@ -50,11 +50,89 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Node x = atom[0];
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
+  std::vector<Node> children;
+  TheoryStringsRewriter::getConcat(re, children);
+
+  // If it can be reduced to memberships in fixed length regular expressions.
+  // This includes concatenations where at most one child is of the form
+  // (re.* re.allchar), which we abbreviate _* below, and all other children
+  // have a fixed length.
+  // The intuition why this is a "non-aggressive" rewrite is that membership
+  // into fixed length regular expressions are easy to handle.
+  bool hasFixedLength = true;
+  // the index of _* in re
+  unsigned pivotIndex = 0;
+  bool hasPivotIndex = false;
+  std::vector<Node> childLengths;
+  std::vector<Node> childLengthsPostPivot;
+  for (unsigned i = 0, size = children.size(); i < size; i++)
+  {
+    Node c = children[i];
+    Node fl = TheoryStringsRewriter::getFixedLengthForRegexp(c);
+    if (fl.isNull())
+    {
+      if (!hasPivotIndex && c.getKind() == REGEXP_STAR
+          && c[0].getKind() == REGEXP_SIGMA)
+      {
+        hasPivotIndex = true;
+        pivotIndex = i;
+        // set to zero for the sum below
+        fl = d_zero;
+      }
+      else
+      {
+        hasFixedLength = false;
+        break;
+      }
+    }
+    childLengths.push_back(fl);
+    if (hasPivotIndex)
+    {
+      childLengthsPostPivot.push_back(fl);
+    }
+  }
+  if (hasFixedLength)
+  {
+    Assert(re.getNumChildren() == children.size());
+    Node sum = nm->mkNode(PLUS, childLengths);
+    std::vector<Node> conc;
+    conc.push_back(nm->mkNode(hasPivotIndex ? GEQ : EQUAL, lenx, sum));
+    Node currEnd = d_zero;
+    for (unsigned i = 0, size = childLengths.size(); i < size; i++)
+    {
+      if (hasPivotIndex && i == pivotIndex)
+      {
+        Node ppSum = childLengthsPostPivot.size() == 1
+                         ? childLengthsPostPivot[0]
+                         : nm->mkNode(PLUS, childLengthsPostPivot);
+        currEnd = nm->mkNode(MINUS, lenx, ppSum);
+      }
+      else
+      {
+        Node curr = nm->mkNode(STRING_SUBSTR, x, currEnd, childLengths[i]);
+        Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
+        conc.push_back(currMem);
+        currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
+        currEnd = Rewriter::rewrite(currEnd);
+      }
+    }
+    Node res = nm->mkNode(AND, conc);
+    // For example:
+    //   x in re.++(re.union(re.range("A", "J"), re.range("N", "Z")), "AB") -->
+    //   len( x ) = 3 ^
+    //   substr(x,0,1) in re.union(re.range("A", "J"), re.range("N", "Z")) ^
+    //   substr(x,1,2) in "AB"
+    // An example with a pivot index:
+    //   x in re.++( "AB" ++ _* ++ "C" ) -->
+    //   len( x ) >= 3 ^
+    //   substr( x, 0, 2 ) in "AB" ^
+    //   substr( x, len( x ) - 1, 1 ) in "C"
+    return returnElim(atom, res, "concat-fixed-len");
+  }
+
   // memberships of the form x in re.++ * s1 * ... * sn *, where * are
   // any number of repetitions (exact or indefinite) of re.allchar.
   Trace("re-elim-debug") << "Try re concat with gaps " << atom << std::endl;
-  std::vector<Node> children;
-  TheoryStringsRewriter::getConcat(re, children);
   bool onlySigmasAndConsts = true;
   std::vector<Node> sep_children;
   std::vector<unsigned> gap_minsize;
@@ -104,18 +182,21 @@ Node RegExpElimination::eliminateConcat(Node atom)
     // prev_end stores the current (symbolic) index in x that we are
     // searching.
     Node prev_end = d_zero;
+    // the symbolic index we start searching, for each child in sep_children.
+    std::vector<Node> prev_ends;
     unsigned gap_minsize_end = gap_minsize.back();
     bool gap_exact_end = gap_exact.back();
     std::vector<Node> non_greedy_find_vars;
     for (unsigned i = 0, size = sep_children.size(); i < size; i++)
     {
-      Node sc = sep_children[i];
       if (gap_minsize[i] > 0)
       {
         // the gap to this child is at least gap_minsize[i]
         prev_end =
             nm->mkNode(PLUS, prev_end, nm->mkConst(Rational(gap_minsize[i])));
       }
+      prev_ends.push_back(prev_end);
+      Node sc = sep_children[i];
       Node lensc = nm->mkNode(STRING_LENGTH, sc);
       if (gap_exact[i])
       {
@@ -169,7 +250,6 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node lenSc = nm->mkNode(STRING_LENGTH, sc);
         Node loc = nm->mkNode(MINUS, lenx, nm->mkNode(PLUS, lenSc, cEnd));
         Node scc = sc.eqNode(nm->mkNode(STRING_SUBSTR, x, loc, lenSc));
-        conj.push_back(scc);
         // We also must ensure that we fit. This constraint is necessary in
         // addition to the constraint above. Take this example:
         //     x in (re.++ "A" _ (re.* _) "B" _) --->
@@ -182,9 +262,23 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // would have been the case than "ABB" would be a model for x, where
         // the second constraint refers to the third position, and the third
         // constraint refers to the second position.
+        //
+        // With respect to the above example, the following is an optimization.
+        // For that example, we instead produce:
+        //     x in (re.++ "A" _ (re.* _) "B" _) --->
+        //       substr( x, 0, 1 ) = "A" ^          // find "A"
+        //       substr( x, len(x)-2, 1 ) = "B" ^   // "B" is at end - 2
+        //       2 <= len( x ) - 2
+        // The intuition is that above, there are two constraints that insist
+        // that "B" is found, whereas we only need one. The last constraint
+        // above says that the "B" we find at end-2 can be found >=1 after
+        // the "A".
+        conj.pop_back();
         Node fit = nm->mkNode(gap_exact[sep_children.size() - 1] ? EQUAL : LEQ,
-                              nm->mkNode(MINUS, prev_end, lenSc),
+                              prev_ends.back(),
                               loc);
+
+        conj.push_back(scc);
         conj.push_back(fit);
       }
       else if (gap_minsize_end > 0)

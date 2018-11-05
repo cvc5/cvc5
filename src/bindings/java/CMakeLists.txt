@@ -77,6 +77,9 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/DeclarationDefinitionCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/DeclarationSequence.java
   ${CMAKE_CURRENT_BINARY_DIR}/DeclareFunctionCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusFunctionCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusPrimedVarCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/DeclareSygusVarCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/DeclareTypeCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/DefineFunctionCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/DefineFunctionRecCommand.java
@@ -200,7 +203,10 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/Statistics.java
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SygusConstraintCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusGTerm.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SygusInvConstraintCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolTable.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolType.java
