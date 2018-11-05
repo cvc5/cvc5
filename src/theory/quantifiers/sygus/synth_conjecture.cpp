@@ -446,13 +446,14 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   }
 
   Node sc;
-  if( !d_embedSideCondition.isNull() )
+  if( !d_embedSideCondition.isNull() && constructed_cand)
   {
     sc = d_embedSideCondition.substitute(d_candidates.begin(),
                                   d_candidates.end(),
                                   candidate_values.begin(),
                                   candidate_values.end());
     sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     SmtEngine scSmt(nm->toExprManager());
     scSmt.setIsInternalSubsolver();
@@ -460,11 +461,14 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     scSmt.assertFormula(sc.toExpr());
     Result r = scSmt.checkSat();
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if( r!=Result::SAT)
+    if( r==Result::UNSAT )
     {
       // exclude the current solution TODO
-      //return false;
+      excludeCurrentSolution();
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
     }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
   }
   // check whether we will run CEGIS on inner skolem variables
   bool sk_refine = (!isGround() || d_refine_count == 0) && constructed_cand;
@@ -949,7 +953,11 @@ void SynthConjecture::printAndContinueStream()
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   printSynthSolution(*nodeManagerOptions.getOut());
+  excludeCurrentSolution();
+}
 
+void SynthConjecture::excludeCurrentSolution()
+{
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;

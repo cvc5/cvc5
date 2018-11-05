@@ -352,6 +352,8 @@ class SynthConjecture
    * output channel, which we refer to as a "stream exclusion lemma".
    */
   void printAndContinueStream();
+  /** exclude the current solution */
+  void excludeCurrentSolution();
   /**
    * Whether we have guarded a stream exclusion lemma when using sygusStream.
    * This is an optimization that allows us to guard only the first stream
