@@ -577,13 +577,16 @@ void TermDbSygus::registerEnumerator(Node e,
       // enabled, we infer whether it is better to enable active generation.
       if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO)
       {
-        // TODO
         // We use active generation if the grammar of the enumerator does not
-        // habe ITE or Boolean connectives. Experimentally, it is better to
+        // have ITE and is not Boolean. Experimentally, it is better to
         // use passive generation for these cases since it enables useful
         // search space pruning techniques, e.g. evaluation unfolding,
         // conjecture-specific symmetry breaking.
-        isActiveGen = false;
+        const Datatype& dt = et.getDatatype();
+        if( !hasKind( et, ITE ) && !dt.getSygusType().isBoolean() )
+        {
+          isActiveGen = true;
+        }
       }
       else
       {
