@@ -576,6 +576,7 @@ void TermDbSygus::registerEnumerator(Node e,
       // constructCandidates calls of the form
       //   (e_f,e_g) -> (ti, sj)
       // for each i,j. We instead use passive enumeration in this case.
+      //
       // If the enumerator is constrained, it cannot be actively generated.
     }
     else if (erole == ROLE_ENUM_POOL)
