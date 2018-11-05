@@ -53,7 +53,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
-  --cryptominisat          use the CryptoMiniSat sat solver
+  --cryptominisat          use the CryptoMiniSat SAT solver
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
   --portfolio              build the multithreaded portfolio version of CVC4
@@ -197,8 +197,8 @@ do
     --debug-symbols) debug_symbols=ON;;
     --no-debug-symbols) debug_symbols=OFF;;
 
-    --debug-context-memory-manager) debug_context_mm=ON;;
-    --no-debug-context-memory-manager) debug_context_mm=OFF;;
+    --debug-context-mm) debug_context_mm=ON;;
+    --no-debug-context-mm) debug_context_mm=OFF;;
 
     --dumping) dumping=ON;;
     --no-dumping) dumping=OFF;;
