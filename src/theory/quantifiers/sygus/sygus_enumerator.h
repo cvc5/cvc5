@@ -437,7 +437,7 @@ class SygusEnumerator : public EnumValGenerator
   TermEnum* getMasterEnumForType(TypeNode tn);
   //-------------------------------- externally specified symmetry breaking
   /** set of operators we disallow at top level */
-  std::unordered_set< Node, NodeHashFunction > d_sbExcTlCons;
+  std::unordered_set<Node, NodeHashFunction> d_sbExcTlCons;
   //-------------------------------- end externally specified symmetry breaking
 };
 

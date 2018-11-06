@@ -34,33 +34,33 @@ void SygusEnumerator::initialize(Node e)
   Trace("sygus-enum") << "SygusEnumerator::initialize " << e << std::endl;
   d_enum = e;
   d_etype = d_enum.getType();
-  Assert( d_etype.isDatatype() );
-  Assert( d_etype.getDatatype().isSygus() );
+  Assert(d_etype.isDatatype());
+  Assert(d_etype.getDatatype().isSygus());
   d_tlEnum = getMasterEnumForType(d_etype);
   d_abortSize = options::sygusAbortSize();
-  
+
   // Get the statically registered symmetry breaking clauses for e, see if they
   // can be used for speeding up the enumeration.
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sbl;
   d_tds->getSymBreakLemmas(e, sbl);
   TNode ag = d_tds->getActiveGuardForEnumerator(e);
   Node truen = nm->mkConst(true);
   TNode truent = truent;
-  Assert( d_tcache.find(d_etype)!=d_tcache.end() );
+  Assert(d_tcache.find(d_etype) != d_tcache.end());
   const Datatype& dt = d_etype.getDatatype();
-  for( const Node& lem : sbl )
+  for (const Node& lem : sbl)
   {
-    if( !d_tds->isSymBreakLemmaTemplate(lem) )
+    if (!d_tds->isSymBreakLemmaTemplate(lem))
     {
       // substitute its active guard by true and rewrite
-      Node slem = lem.substitute(ag,truen);
+      Node slem = lem.substitute(ag, truen);
       slem = Rewriter::rewrite(slem);
       // break into conjuncts
-      std::vector< Node > sblc;
-      if( slem.getKind()==AND )
+      std::vector<Node> sblc;
+      if (slem.getKind() == AND)
       {
-        for( const Node& slemc : slem )
+        for (const Node& slemc : slem)
         {
           sblc.push_back(slemc);
         }
@@ -69,22 +69,24 @@ void SygusEnumerator::initialize(Node e)
       {
         sblc.push_back(slem);
       }
-      for( const Node& sbl : sblc )
+      for (const Node& sbl : sblc)
       {
-        Trace("sygus-enum") << "  symmetry breaking lemma : " << sbl << std::endl;
+        Trace("sygus-enum")
+            << "  symmetry breaking lemma : " << sbl << std::endl;
         // if its a negation of a unit top-level tester, then this specifies
         // that we should not enumerate terms whose top symbol is that
         // constructor
-        if( sbl.getKind()==NOT )
+        if (sbl.getKind() == NOT)
         {
           Node a;
-          int tst = datatypes::DatatypesRewriter::isTester(sbl[0],a);
-          if( tst>=0 )
+          int tst = datatypes::DatatypesRewriter::isTester(sbl[0], a);
+          if (tst >= 0)
           {
-            if( a==e )
+            if (a == e)
             {
-              Node cons = Node::fromExpr( dt[tst].getConstructor() );
-              Trace("sygus-enum") << "  ...unit exclude constructor #" << tst << ", constructor " << cons << std::endl;
+              Node cons = Node::fromExpr(dt[tst].getConstructor());
+              Trace("sygus-enum") << "  ...unit exclude constructor #" << tst
+                                  << ", constructor " << cons << std::endl;
               d_sbExcTlCons.insert(cons);
             }
           }
@@ -114,13 +116,14 @@ Node SygusEnumerator::getCurrent()
     }
   }
   Node ret = d_tlEnum->getCurrent();
-  if( !ret.isNull() && !d_sbExcTlCons.empty() )
+  if (!ret.isNull() && !d_sbExcTlCons.empty())
   {
-    Assert( ret.hasOperator() );
+    Assert(ret.hasOperator());
     // might be excluded by an externally provided symmetry breaking clause
-    if( d_sbExcTlCons.find(ret.getOperator())!=d_sbExcTlCons.end() )
+    if (d_sbExcTlCons.find(ret.getOperator()) != d_sbExcTlCons.end())
     {
-      Trace("sygus-enum-exc") << "Exclude (external) : " << d_tds->sygusToBuiltin(ret) << std::endl;
+      Trace("sygus-enum-exc")
+          << "Exclude (external) : " << d_tds->sygusToBuiltin(ret) << std::endl;
       ret = Node::null();
     }
   }

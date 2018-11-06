@@ -1581,13 +1581,13 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 
   // register search values, add symmetry breaking lemmas if applicable
-  std::vector< Node > es;
+  std::vector<Node> es;
   d_tds->getEnumerators(es);
   bool needsRecheck = false;
   // for each enumerator registered to d_tds
   for (Node& prog : es)
   {
-    if( d_register_st.find(prog)==d_register_st.end() )
+    if (d_register_st.find(prog) == d_register_st.end())
     {
       // not yet registered, do so now
       registerSizeTerm(prog, lemmas);
