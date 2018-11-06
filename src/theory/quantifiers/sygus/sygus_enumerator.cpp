@@ -93,6 +93,7 @@ void SygusEnumerator::initialize(Node e)
             }
           }
         }
+        // other symmetry breaking lemmas such as disjunctions are not used
       }
     }
   }
