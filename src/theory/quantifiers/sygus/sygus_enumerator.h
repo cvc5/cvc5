@@ -436,7 +436,12 @@ class SygusEnumerator : public EnumValGenerator
   /** get master enumerator for type tn */
   TermEnum* getMasterEnumForType(TypeNode tn);
   //-------------------------------- externally specified symmetry breaking
-  /** set of operators we disallow at top level */
+  /** set of constructors we disallow at top level
+   *
+   * A constructor C is disallowed at the top level if a symmetry breaking
+   * lemma that entails ~is-C( d_enum ) was registered to
+   * TermDbSygus::registerSymBreakLemma.
+   */
   std::unordered_set<Node, NodeHashFunction> d_sbExcTlCons;
   //-------------------------------- end externally specified symmetry breaking
 };
