@@ -823,7 +823,7 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 bool TermDbSygus::isSymBreakLemmaTemplate(Node lem) const
 {
   std::map<Node, bool>::const_iterator it = d_sb_lemma_to_isTempl.find(lem);
-  Assert(it != d_sb_lemma_to_size.end());
+  Assert(it != d_sb_lemma_to_isTempl.end());
   return it->second;
 }
 
