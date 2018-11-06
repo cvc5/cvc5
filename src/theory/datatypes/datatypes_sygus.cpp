@@ -1304,31 +1304,31 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
   }
 }
 
-bool SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
+void SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
 {
   if (d_register_st.find(e) != d_register_st.end())
   {
     // already registered
-    return false;
+    return;
   }
   TypeNode etn = e.getType();
   if (!etn.isDatatype())
   {
     // not a datatype term
     d_register_st[e] = false;
-    return false;
+    return;
   }
   const Datatype& dt = etn.getDatatype();
   if (!dt.isSygus())
   {
     // not a sygus datatype term
     d_register_st[e] = false;
-    return false;
+    return;
   }
   if (!d_tds->isEnumerator(e))
   {
     // not sure if it is a size term or not (may be registered later?)
-    return false;
+    return;
   }
   d_register_st[e] = true;
   Node ag = d_tds->getActiveGuardForEnumerator(e);
@@ -1417,7 +1417,6 @@ bool SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
       lemmas.push_back(preNoVarProc);
     }
   }
-  return true;
 }
 
 void SygusSymBreakNew::registerMeasureTerm( Node m ) {
@@ -1582,9 +1581,20 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 
   // register search values, add symmetry breaking lemmas if applicable
-  for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
-    if( it->second ){
-      Node prog = it->first;
+  std::vector< Node > es;
+  d_tds->getEnumerators(es);
+  bool needsRecheck = false;
+  // for each enumerator registered to d_tds
+  for (Node& prog : es)
+  {
+    if( d_register_st.find(prog)==d_register_st.end() )
+    {
+      // not yet registered, do so now
+      registerSizeTerm(prog, lemmas);
+      needsRecheck = true;
+    }
+    else
+    {
       Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
                               << std::endl;
       Assert(prog.getType().isDatatype());
@@ -1641,18 +1651,6 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       }
       SygusSymBreakOkAttribute ssbo;
       prog.setAttribute(ssbo, !isExc);
-    }
-  }
-  //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
-  Trace("sygus-sb") << "Register size terms..." << std::endl;
-  std::vector< Node > mts;
-  d_tds->getEnumerators(mts);
-  bool needsRecheck = false;
-  for (const Node& e : mts)
-  {
-    if (registerSizeTerm(e, lemmas))
-    {
-      needsRecheck = true;
     }
   }
   Trace("sygus-sb") << "SygusSymBreakNew::check: finished." << std::endl;
