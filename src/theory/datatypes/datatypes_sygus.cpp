@@ -1304,30 +1304,30 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
   }
 }
 
-void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
+bool SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
   if (d_register_st.find(e) != d_register_st.end())
   {
     // already registered
-    return;
+    return false;
   }
   TypeNode etn = e.getType();
   if (!etn.isDatatype())
   {
     // not a datatype term
     d_register_st[e] = false;
-    return;
+    return false;
   }
   const Datatype& dt = etn.getDatatype();
   if (!dt.isSygus())
   {
     // not a sygus datatype term
     d_register_st[e] = false;
-    return;
+    return false;
   }
   if (!d_tds->isEnumerator(e))
   {
     // not sure if it is a size term or not (may be registered later?)
-    return;
+    return false;
   }
   d_register_st[e] = true;
   Node ag = d_tds->getActiveGuardForEnumerator(e);
@@ -1416,6 +1416,7 @@ void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
       lemmas.push_back(preNoVarProc);
     }
   }
+  return true;
 }
 
 void SygusSymBreakNew::registerMeasureTerm( Node m ) {
@@ -1644,10 +1645,19 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   Trace("sygus-sb") << "Register size terms..." << std::endl;
   std::vector< Node > mts;
   d_tds->getEnumerators(mts);
-  for( unsigned i=0; i<mts.size(); i++ ){
-    registerSizeTerm( mts[i], lemmas );
+  bool needsRecheck = false;
+  for( const Node& e : mts ){
+    if( registerSizeTerm( e, lemmas ) )
+    {
+      needsRecheck = true;
+    }
   }
-  Trace("sygus-sb") << " SygusSymBreakNew::check: finished." << std::endl;
+  Trace("sygus-sb") << "SygusSymBreakNew::check: finished." << std::endl;
+  if( needsRecheck )
+  {
+    Trace("sygus-sb") << " SygusSymBreakNew::rechecking..."  << std::endl;
+    return check(lemmas);
+  }
 
   if (Trace.isOn("cegqi-engine") && !d_szinfo.empty())
   {

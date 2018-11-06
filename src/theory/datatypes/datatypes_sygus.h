@@ -542,7 +542,8 @@ private:
   //----------------------search size information
   /**
    * Checks whether e is a sygus enumerator, that is, a term for which this
-   * class will track size for.
+   * class will track size for. This method returns true if e was previously
+   * unregistered and is a sygus enumerator.
    *
    * We associate each sygus enumerator e with a "measure term", which is used
    * for bounding the size of terms for the models of e. The measure term for a
@@ -553,7 +554,7 @@ private:
    * After determining the measure term m for e, if applicable, we initialize
    * SygusSizeDecisionStrategy for m below. This may result in lemmas
    */
-  void registerSizeTerm(Node e, std::vector<Node>& lemmas);
+  bool registerSizeTerm(Node e, std::vector<Node>& lemmas);
   /** A decision strategy for each measure term allocated by this class */
   class SygusSizeDecisionStrategy : public DecisionStrategyFmf
   {
