@@ -241,8 +241,8 @@ bool SygusPbe::initialize(Node n,
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
-        // Register as a symmetry breaking lemma with the term database
-        // this will either be processed via a lemma on the output channel
+        // Register as a symmetry breaking lemma with the term database.
+        // This will either be processed via a lemma on the output channel
         // of the sygus extension of the datatypes solver, or internally
         // encoded as a constraint to an active enumerator.
         d_tds->registerSymBreakLemma(e, lem, etn, 0, false);

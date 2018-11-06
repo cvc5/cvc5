@@ -45,8 +45,9 @@ void SygusEnumerator::initialize(Node e)
   std::vector<Node> sbl;
   d_tds->getSymBreakLemmas(e, sbl);
   Node ag = d_tds->getActiveGuardForEnumerator(e);
-  TNode agt = ag;
   Node truen = nm->mkConst(true);
+  // use TNode for substitute below
+  TNode agt = ag;
   TNode truent = truent;
   Assert(d_tcache.find(d_etype) != d_tcache.end());
   const Datatype& dt = d_etype.getDatatype();
