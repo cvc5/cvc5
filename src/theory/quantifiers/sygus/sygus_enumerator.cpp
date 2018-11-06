@@ -44,7 +44,8 @@ void SygusEnumerator::initialize(Node e)
   NodeManager* nm = NodeManager::currentNM();
   std::vector<Node> sbl;
   d_tds->getSymBreakLemmas(e, sbl);
-  TNode ag = d_tds->getActiveGuardForEnumerator(e);
+  Node ag = d_tds->getActiveGuardForEnumerator(e);
+  TNode agt = ag;
   Node truen = nm->mkConst(true);
   TNode truent = truent;
   Assert(d_tcache.find(d_etype) != d_tcache.end());
@@ -54,7 +55,7 @@ void SygusEnumerator::initialize(Node e)
     if (!d_tds->isSymBreakLemmaTemplate(lem))
     {
       // substitute its active guard by true and rewrite
-      Node slem = lem.substitute(ag, truen);
+      Node slem = lem.substitute(agt, truent);
       slem = Rewriter::rewrite(slem);
       // break into conjuncts
       std::vector<Node> sblc;
