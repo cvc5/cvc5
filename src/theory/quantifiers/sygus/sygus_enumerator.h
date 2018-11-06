@@ -435,6 +435,10 @@ class SygusEnumerator : public EnumValGenerator
   int d_abortSize;
   /** get master enumerator for type tn */
   TermEnum* getMasterEnumForType(TypeNode tn);
+  //-------------------------------- externally specified symmetry breaking
+  /** set of operators we disallow at top level */
+  std::unordered_set< Node, NodeHashFunction > d_sbExcTlCons;
+  //-------------------------------- end externally specified symmetry breaking
 };
 
 }  // namespace quantifiers
