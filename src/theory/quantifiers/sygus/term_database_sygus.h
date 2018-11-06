@@ -170,12 +170,14 @@ class TermDbSygus {
    *
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
-   * sz : the minimum size of terms that the lem blocks.
+   * sz : the minimum size of terms that the lem blocks,
+   * isTempl : if this flag is false, then lem is a literal
    *
-   * Notice that the symmetry breaking lemma template should be relative to x,
-   * where x is returned by the call to getFreeVar( tn, 0 ) in this class.
+   * If isTempl is true, then lem is a symmetry breaking lemma template
+   * involving x, where x is returned by the call to getFreeVar( tn, 0 ) in this
+   * class.
    */
-  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
+  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl=true);
   /** Has symmetry breaking lemmas been added for any enumerator? */
   bool hasSymBreakLemmas(std::vector<Node>& enums) const;
   /** Get symmetry breaking lemmas
@@ -188,6 +190,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
+  /** Returns true if lem is a lemma template, false if lem is a lemma */
+  bool isSymBreakLemmaTemplate(Node lem) const;
   /** Clear information about symmetry breaking lemmas for enumerator e */
   void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
@@ -344,6 +348,8 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** mapping from symmetry breaking lemmas to whether they are templates */
+  std::map<Node, bool> d_sb_lemma_to_isTempl;
   /** enumerators to whether they are actively-generated */
   std::map<Node, bool> d_enum_active_gen;
   /** enumerators to whether they are variable agnostic */

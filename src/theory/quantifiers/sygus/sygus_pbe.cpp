@@ -228,13 +228,24 @@ bool SygusPbe::initialize(Node n,
             {
               lem = lem.substitute(tsp, te);
             }
-            disj.push_back(lem);
+            if( std::find( disj.begin(), disj.end(), lem )==disj.end() )
+            {
+              disj.push_back(lem);
+            }
           }
         }
+        // add its active guard
+        Node ag = d_tds->getActiveGuardForEnumerator(e);
+        Assert( !ag.isNull() );
+        disj.push_back(ag.negate());
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
-        lemmas.push_back(lem);
+        // Register as a symmetry breaking lemma with the term database
+        // this will either be processed via a lemma on the output channel
+        // of the sygus extension of the datatypes solver, or internally
+        // encoded as a constraint to an active enumerator.
+        d_tds->registerSymBreakLemma(e,lem,etn,0,false);
       }
     }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()

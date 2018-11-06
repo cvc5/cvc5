@@ -1545,15 +1545,31 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       {
         // symmetry breaking lemmas should only be for enumerators
         Assert(d_register_st[a]);
-        std::vector<Node> sbl;
-        d_tds->getSymBreakLemmas(a, sbl);
-        for (const Node& lem : sbl)
+        // If this is a non-basic enumerator, process its symmetry breaking
+        // clauses. Since this class is not responsible for basic enumerators,
+        // their symmetry breaking clauses are ignored.
+        if( !d_tds->isBasicEnumerator(a) )
         {
-          TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
-          unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
-          registerSymBreakLemma(tn, lem, sz, a, lemmas);
+          std::vector<Node> sbl;
+          d_tds->getSymBreakLemmas(a, sbl);
+          for (const Node& lem : sbl)
+          {
+            if( d_tds->isSymBreakLemmaTemplate(lem) )
+            {
+              // register the lemma template
+              TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
+              unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
+              registerSymBreakLemma(tn, lem, sz, a, lemmas);
+            }
+            else
+            {
+              Trace("dt-sygus-debug") << "DT sym break lemma : " << lem << std::endl;
+              // it is a normal lemma
+              lemmas.push_back(lem);
+            }
+          }
+          d_tds->clearSymBreakLemmas(a);
         }
-        d_tds->clearSymBreakLemmas(a);
       }
     }
     if (!lemmas.empty())

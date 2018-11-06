@@ -774,11 +774,14 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
 void TermDbSygus::registerSymBreakLemma(Node e,
                                         Node lem,
                                         TypeNode tn,
-                                        unsigned sz)
+                                        unsigned sz,
+                                        bool isTempl
+                                       )
 {
   d_enum_to_sb_lemmas[e].push_back(lem);
   d_sb_lemma_to_type[lem] = tn;
   d_sb_lemma_to_size[lem] = sz;
+  d_sb_lemma_to_isTempl[lem] = isTempl;
 }
 
 bool TermDbSygus::hasSymBreakLemmas(std::vector<Node>& enums) const
@@ -813,6 +816,13 @@ TypeNode TermDbSygus::getTypeForSymBreakLemma(Node lem) const
 unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 {
   std::map<Node, unsigned>::const_iterator it = d_sb_lemma_to_size.find(lem);
+  Assert(it != d_sb_lemma_to_size.end());
+  return it->second;
+}
+
+bool TermDbSygus::isSymBreakLemmaTemplate(Node lem) const
+{
+  std::map<Node, bool>::const_iterator it = d_sb_lemma_to_isTempl.find(lem);
   Assert(it != d_sb_lemma_to_size.end());
   return it->second;
 }
