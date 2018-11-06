@@ -228,7 +228,7 @@ bool SygusPbe::initialize(Node n,
             {
               lem = lem.substitute(tsp, te);
             }
-            if( std::find( disj.begin(), disj.end(), lem )==disj.end() )
+            if (std::find(disj.begin(), disj.end(), lem) == disj.end())
             {
               disj.push_back(lem);
             }
@@ -236,7 +236,7 @@ bool SygusPbe::initialize(Node n,
         }
         // add its active guard
         Node ag = d_tds->getActiveGuardForEnumerator(e);
-        Assert( !ag.isNull() );
+        Assert(!ag.isNull());
         disj.push_back(ag.negate());
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
@@ -245,7 +245,7 @@ bool SygusPbe::initialize(Node n,
         // this will either be processed via a lemma on the output channel
         // of the sygus extension of the datatypes solver, or internally
         // encoded as a constraint to an active enumerator.
-        d_tds->registerSymBreakLemma(e,lem,etn,0,false);
+        d_tds->registerSymBreakLemma(e, lem, etn, 0, false);
       }
     }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()

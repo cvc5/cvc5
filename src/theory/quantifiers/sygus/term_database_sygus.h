@@ -177,7 +177,8 @@ class TermDbSygus {
    * involving x, where x is returned by the call to getFreeVar( tn, 0 ) in this
    * class.
    */
-  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl=true);
+  void registerSymBreakLemma(
+      Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl = true);
   /** Has symmetry breaking lemmas been added for any enumerator? */
   bool hasSymBreakLemmas(std::vector<Node>& enums) const;
   /** Get symmetry breaking lemmas

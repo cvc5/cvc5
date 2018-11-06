@@ -1304,7 +1304,8 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
   }
 }
 
-bool SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
+bool SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
+{
   if (d_register_st.find(e) != d_register_st.end())
   {
     // already registered
@@ -1549,13 +1550,13 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
         // If this is a non-basic enumerator, process its symmetry breaking
         // clauses. Since this class is not responsible for basic enumerators,
         // their symmetry breaking clauses are ignored.
-        if( !d_tds->isBasicEnumerator(a) )
+        if (!d_tds->isBasicEnumerator(a))
         {
           std::vector<Node> sbl;
           d_tds->getSymBreakLemmas(a, sbl);
           for (const Node& lem : sbl)
           {
-            if( d_tds->isSymBreakLemmaTemplate(lem) )
+            if (d_tds->isSymBreakLemmaTemplate(lem))
             {
               // register the lemma template
               TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
@@ -1564,7 +1565,8 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
             }
             else
             {
-              Trace("dt-sygus-debug") << "DT sym break lemma : " << lem << std::endl;
+              Trace("dt-sygus-debug")
+                  << "DT sym break lemma : " << lem << std::endl;
               // it is a normal lemma
               lemmas.push_back(lem);
             }
@@ -1646,16 +1648,17 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   std::vector< Node > mts;
   d_tds->getEnumerators(mts);
   bool needsRecheck = false;
-  for( const Node& e : mts ){
-    if( registerSizeTerm( e, lemmas ) )
+  for (const Node& e : mts)
+  {
+    if (registerSizeTerm(e, lemmas))
     {
       needsRecheck = true;
     }
   }
   Trace("sygus-sb") << "SygusSymBreakNew::check: finished." << std::endl;
-  if( needsRecheck )
+  if (needsRecheck)
   {
-    Trace("sygus-sb") << " SygusSymBreakNew::rechecking..."  << std::endl;
+    Trace("sygus-sb") << " SygusSymBreakNew::rechecking..." << std::endl;
     return check(lemmas);
   }
 
