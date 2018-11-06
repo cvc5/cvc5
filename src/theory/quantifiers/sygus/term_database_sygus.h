@@ -171,11 +171,9 @@ class TermDbSygus {
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
    * sz : the minimum size of terms that the lem blocks,
-   * isTempl : if this flag is false, then lem is a literal
-   *
-   * If isTempl is true, then lem is a symmetry breaking lemma template
-   * involving x, where x is returned by the call to getFreeVar( tn, 0 ) in this
-   * class.
+   * isTempl : if this flag is false, then lem is a (concrete) lemma.
+   * If this flag is true, then lem is a symmetry breaking lemma template
+   * over x, where x is returned by the call to getFreeVar( tn, 0 ).
    */
   void registerSymBreakLemma(
       Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl = true);
