@@ -373,36 +373,9 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   }
   else if (type.isArray())
   {
-    TypeNode constituentType = TypeNode::fromType(
-        static_cast<ArrayType>(type.toType()).getConstituentType());
-    Node firstElem;
-    if (constituentType.isReal())
-    {
-      firstElem = nm->mkConst(Rational(0));
-    }
-    else if (constituentType.isBitVector())
-    {
-      firstElem = bv::utils::mkZero(constituentType.getBitVectorSize());
-    }
-    else if (constituentType.isBoolean())
-    {
-      firstElem = nm->mkConst(true);
-    }
-    else if (constituentType.isString())
-    {
-      firstElem = nm->mkConst(String(""));
-    }
-    else
-    {
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << type
-            << std::endl;
-      throw LogicException(sserr.str());
-    }
-    ops.push_back(
-        nm->mkConst(ArrayStoreAll(type.toType(), firstElem.toExpr())));
+    // TODO #2694 : generate constant array over the first element of the
+    // constituent type
   }
-
   // TODO #1178 : add other missing types
 }
 
