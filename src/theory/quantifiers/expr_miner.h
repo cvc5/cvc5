@@ -92,6 +92,12 @@ class ExprMiner
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);
+  /**
+   * Run the satisfiability check on query, without returning the checker. This
+   * can be used for cases where for instance the model for the query is not
+   * important.
+   */
+  Result doCheck(Node query);
 };
 
 }  // namespace quantifiers

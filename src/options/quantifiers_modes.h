@@ -276,6 +276,16 @@ enum SygusActiveGenMode
   SYGUS_ACTIVE_GEN_AUTO,
 };
 
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically strong solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weak solutions */
+  SYGUS_FILTER_SOL_WEAK,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,
