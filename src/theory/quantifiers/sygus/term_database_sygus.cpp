@@ -682,6 +682,10 @@ void TermDbSygus::registerEnumerator(Node e,
     Node ag = nm->mkSkolem("eG", nm->booleanType());
     // must ensure it is a literal immediately here
     ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    // must ensure that it is asserted as a literal before we begin solving
+    Node lem = nm->mkNode(OR, ag, ag.negate());
+    d_quantEngine->getOutputChannel().requirePhase(ag, true);
+    d_quantEngine->getOutputChannel().lemma(lem);
     d_enum_to_active_guard[e] = ag;
   }
 }
@@ -771,14 +775,13 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
   }
 }
 
-void TermDbSygus::registerSymBreakLemma(Node e,
-                                        Node lem,
-                                        TypeNode tn,
-                                        unsigned sz)
+void TermDbSygus::registerSymBreakLemma(
+    Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl)
 {
   d_enum_to_sb_lemmas[e].push_back(lem);
   d_sb_lemma_to_type[lem] = tn;
   d_sb_lemma_to_size[lem] = sz;
+  d_sb_lemma_to_isTempl[lem] = isTempl;
 }
 
 bool TermDbSygus::hasSymBreakLemmas(std::vector<Node>& enums) const
@@ -814,6 +817,13 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
 {
   std::map<Node, unsigned>::const_iterator it = d_sb_lemma_to_size.find(lem);
   Assert(it != d_sb_lemma_to_size.end());
+  return it->second;
+}
+
+bool TermDbSygus::isSymBreakLemmaTemplate(Node lem) const
+{
+  std::map<Node, bool>::const_iterator it = d_sb_lemma_to_isTempl.find(lem);
+  Assert(it != d_sb_lemma_to_isTempl.end());
   return it->second;
 }
 

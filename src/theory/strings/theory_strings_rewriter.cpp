@@ -4948,7 +4948,7 @@ std::pair<bool, std::vector<Node> > TheoryStringsRewriter::collectEmptyEqs(
       allEmptyEqs = false;
     }
   }
-  else
+  else if (x.getKind() == kind::AND)
   {
     for (const Node& c : x)
     {
