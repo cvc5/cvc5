@@ -836,6 +836,8 @@ set(regress_0_tests
   regress0/strings/substr-rewrites.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
+  regress0/sygus/array-grammar-select.sy
+  regress0/sygus/array-grammar-store.sy
   regress0/sygus/General_plus10.sy
   regress0/sygus/aig-si.sy
   regress0/sygus/c100.sy
