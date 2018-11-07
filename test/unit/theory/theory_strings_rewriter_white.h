@@ -604,6 +604,18 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                              b);
     repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
     sameNormalForm(repl_repl, repl);
+
+    // Different normal forms for:
+    //
+    // (str.replace "B" (str.replace "" x "A") "B")
+    //
+    // (str.replace "B" x "B")
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             b,
+                             d_nm->mkNode(kind::STRING_STRREPL, empty, x, a),
+                             b);
+    repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
+    differentNormalForms(repl_repl, repl);
   }
 
   void testRewriteContains()
