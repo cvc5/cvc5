@@ -157,6 +157,8 @@ set(regress_0_tests
   regress0/buggy-ite.smt2
   regress0/bv/ackermann1.smt2
   regress0/bv/ackermann2.smt2
+  regress0/bv/ackermann3.smt2
+  regress0/bv/ackermann4.smt2
   regress0/bv/bool-to-bv.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
@@ -171,7 +173,8 @@ set(regress_0_tests
   regress0/bv/bv-options2.smt2
   regress0/bv/bv-options3.smt2
   regress0/bv/bv-options4.smt2
-  regress0/bv/bv-to-bool.smt
+  regress0/bv/bv-to-bool1.smt
+  regress0/bv/bv-to-bool2.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -836,6 +839,7 @@ set(regress_0_tests
   regress0/strings/substr-rewrites.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
+  regress0/strings/unsound-repl-rewrite.smt2
   regress0/sygus/array-grammar-select.sy
   regress0/sygus/array-grammar-store.sy
   regress0/sygus/General_plus10.sy

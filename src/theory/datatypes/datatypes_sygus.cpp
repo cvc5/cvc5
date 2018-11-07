@@ -1304,7 +1304,8 @@ void SygusSymBreakNew::preRegisterTerm( TNode n, std::vector< Node >& lemmas  ) 
   }
 }
 
-void SygusSymBreakNew::registerSizeTerm( Node e, std::vector< Node >& lemmas ) {
+void SygusSymBreakNew::registerSizeTerm(Node e, std::vector<Node>& lemmas)
+{
   if (d_register_st.find(e) != d_register_st.end())
   {
     // already registered
@@ -1545,15 +1546,32 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       {
         // symmetry breaking lemmas should only be for enumerators
         Assert(d_register_st[a]);
-        std::vector<Node> sbl;
-        d_tds->getSymBreakLemmas(a, sbl);
-        for (const Node& lem : sbl)
+        // If this is a non-basic enumerator, process its symmetry breaking
+        // clauses. Since this class is not responsible for basic enumerators,
+        // their symmetry breaking clauses are ignored.
+        if (!d_tds->isBasicEnumerator(a))
         {
-          TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
-          unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
-          registerSymBreakLemma(tn, lem, sz, a, lemmas);
+          std::vector<Node> sbl;
+          d_tds->getSymBreakLemmas(a, sbl);
+          for (const Node& lem : sbl)
+          {
+            if (d_tds->isSymBreakLemmaTemplate(lem))
+            {
+              // register the lemma template
+              TypeNode tn = d_tds->getTypeForSymBreakLemma(lem);
+              unsigned sz = d_tds->getSizeForSymBreakLemma(lem);
+              registerSymBreakLemma(tn, lem, sz, a, lemmas);
+            }
+            else
+            {
+              Trace("dt-sygus-debug")
+                  << "DT sym break lemma : " << lem << std::endl;
+              // it is a normal lemma
+              lemmas.push_back(lem);
+            }
+          }
+          d_tds->clearSymBreakLemmas(a);
         }
-        d_tds->clearSymBreakLemmas(a);
       }
     }
     if (!lemmas.empty())
@@ -1563,9 +1581,20 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
   }
 
   // register search values, add symmetry breaking lemmas if applicable
-  for( std::map< Node, bool >::iterator it = d_register_st.begin(); it != d_register_st.end(); ++it ){
-    if( it->second ){
-      Node prog = it->first;
+  std::vector<Node> es;
+  d_tds->getEnumerators(es);
+  bool needsRecheck = false;
+  // for each enumerator registered to d_tds
+  for (Node& prog : es)
+  {
+    if (d_register_st.find(prog) == d_register_st.end())
+    {
+      // not yet registered, do so now
+      registerSizeTerm(prog, lemmas);
+      needsRecheck = true;
+    }
+    else
+    {
       Trace("dt-sygus-debug") << "Checking model value of " << prog << "..."
                               << std::endl;
       Assert(prog.getType().isDatatype());
@@ -1624,14 +1653,12 @@ void SygusSymBreakNew::check( std::vector< Node >& lemmas ) {
       prog.setAttribute(ssbo, !isExc);
     }
   }
-  //register any measured terms that we haven't encountered yet (should only be invoked on first call to check
-  Trace("sygus-sb") << "Register size terms..." << std::endl;
-  std::vector< Node > mts;
-  d_tds->getEnumerators(mts);
-  for( unsigned i=0; i<mts.size(); i++ ){
-    registerSizeTerm( mts[i], lemmas );
+  Trace("sygus-sb") << "SygusSymBreakNew::check: finished." << std::endl;
+  if (needsRecheck)
+  {
+    Trace("sygus-sb") << " SygusSymBreakNew::rechecking..." << std::endl;
+    return check(lemmas);
   }
-  Trace("sygus-sb") << " SygusSymBreakNew::check: finished." << std::endl;
 
   if (Trace.isOn("cegqi-engine") && !d_szinfo.empty())
   {
