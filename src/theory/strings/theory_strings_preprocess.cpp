@@ -192,9 +192,9 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ud =
         nm->mkSkolem("Ud", nm->mkFunctionType(argTypes, nm->stringType()));
 
-    Node lem = nm->mkNode( GEQ, leni, d_one);
+    Node lem = nm->mkNode(GEQ, leni, d_one);
     conc.push_back(lem);
-    
+
     lem = n.eqNode(nm->mkNode(APPLY_UF, u, leni));
     conc.push_back(lem);
 
@@ -223,7 +223,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ten = nm->mkConst(Rational(10));
     Node eqs = usx.eqNode(nm->mkNode(STRING_CONCAT, udx, usx1));
     Node eq = ux1.eqNode(nm->mkNode(PLUS, c, nm->mkNode(MULT, ten, ux)));
-    Node leadingZeroPos = nm->mkNode(AND, x.eqNode(d_zero), nm->mkNode( GT, leni, d_one) );
+    Node leadingZeroPos =
+        nm->mkNode(AND, x.eqNode(d_zero), nm->mkNode(GT, leni, d_one));
     Node cb = nm->mkNode(
         AND,
         nm->mkNode(GEQ, c, nm->mkNode(ITE, leadingZeroPos, d_one, d_zero)),
@@ -260,7 +261,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     // str.to.int( str.substr( int.to.str( n ), 0, x ) ). For example, for
     // n=345, we have that U(1), U(2), U(3) = 3, 34, 345.
     // Above, we use str.code to map characters to their integer value, where
-    // note that str.code( "0" ) = 48. Further notice that 
+    // note that str.code( "0" ) = 48. Further notice that
     //   ite( x=0 AND str.len(itost)>1, 49, 48 )
     // enforces that int.to.str( n ) has no leading zeroes.
     retNode = itost;
