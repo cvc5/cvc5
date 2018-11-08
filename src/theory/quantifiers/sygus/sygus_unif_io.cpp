@@ -495,7 +495,7 @@ void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
   d_examples_out.push_back(output);
 }
 
-void SygusUnifIo::computeExamples( Node e, Node bv, std::vector< Node >& exOut )
+void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
 {
   TypeNode xtn = e.getType();
   for (unsigned j = 0, size = d_examples.size(); j < size; j++)
@@ -522,7 +522,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   TypeNode xtn = e.getType();
   Node bv = d_tds->sygusToBuiltin(v, xtn);
   // compte the results
-  computeExamples(e,bv,base_results);
+  computeExamples(e, bv, base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();

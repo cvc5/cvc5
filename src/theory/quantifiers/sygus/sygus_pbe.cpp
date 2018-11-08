@@ -259,14 +259,14 @@ bool SygusPbe::initialize(Node n,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addTerm(Node b, std::vector< Node >& exOut)
+Node SygusPbe::PbeTrie::addTerm(Node b, std::vector<Node>& exOut)
 {
-  PbeTrie * curr = this;
-  for( const Node& eo : exOut )
+  PbeTrie* curr = this;
+  for (const Node& eo : exOut)
   {
     curr = &(curr->d_children[eo]);
   }
-  if( !curr->d_children.empty() )
+  if (!curr->d_children.empty())
   {
     return curr->d_children.begin()->first;
   }
@@ -342,14 +342,15 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    // compute example values with the I/O utility 
-    std::vector< Node > vals;
-    Trace("sygus-pbe-debug") << "Compute examples " << bvr << "..." << std::endl;
-    d_sygus_unif[ee].computeExamples(e,bvr,vals);
-    Assert( vals.size()==d_examples[ee].size() );
+    // compute example values with the I/O utility
+    std::vector<Node> vals;
+    Trace("sygus-pbe-debug")
+        << "Compute examples " << bvr << "..." << std::endl;
+    d_sygus_unif[ee].computeExamples(e, bvr, vals);
+    Assert(vals.size() == d_examples[ee].size());
     Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
-    Node ret = d_pbe_trie[e][tn].addTerm(bvr,vals);
+    Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
     Assert(ret.getType() == bvr.getType());
     return ret;

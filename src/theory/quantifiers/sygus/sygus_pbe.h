@@ -271,7 +271,7 @@ class SygusPbe : public SygusModule
      * Add term b whose value on examples is exOut to the trie. Return
      * the first term registered to this trie whose evaluation was exOut.
      */
-    Node addTerm(Node b, std::vector< Node >& exOut);
+    Node addTerm(Node b, std::vector<Node>& exOut);
   };
   /** trie of candidate solutions tried
   * This stores information for each (enumerator, type),
