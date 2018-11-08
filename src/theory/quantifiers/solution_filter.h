@@ -59,7 +59,10 @@ class SolutionFilterStrength : public ExprMiner
   void setLogicallyStrong(bool isStrong);
 
  private:
-  /** set of all (non-filtered) terms registered to this class */
+  /**
+   * Set of all (non-filtered) terms registered to this class. We store the
+   * negation of these terms if d_isStrong is false.
+   */
   std::vector<Node> d_curr_sols;
   /** whether we are trying to find the logically strongest solutions */
   bool d_isStrong;
