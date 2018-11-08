@@ -46,15 +46,15 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
     Assert(false);
     return true;
   }
+  Node basen = d_isStrong ? n : n.negate();
   NodeManager* nm = NodeManager::currentNM();
   // Do i subsume the disjunction of all previous solutions? If so, we discard
   // this immediately
+  Node curr;
   if (!d_curr_sols.empty())
   {
-    Node curr =
-        d_curr_sols.size() == 1 ? d_curr_sols[0] : nm->mkNode(AND, d_curr_sols);
-    Node imp = d_isStrong ? nm->mkNode(AND, n.negate(), curr)
-                          : nm->mkNode(AND, n, curr.negate());
+    curr = d_curr_sols.size() == 1 ? d_curr_sols[0] : nm->mkNode(d_isStrong ? AND : OR, d_curr_sols);
+    Node imp =  nm->mkNode(AND, basen.negate(), curr);
     Trace("sygus-sol-implied") << "  implies: check subsumed " << imp << "..."
                                << std::endl;
     // check the satisfiability query
@@ -73,8 +73,7 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
     std::vector<Node> nsubsume;
     for (const Node& s : d_curr_sols)
     {
-      Node imp = d_isStrong ? nm->mkNode(AND, s.negate(), n)
-                            : nm->mkNode(AND, s, n.negate());
+      Node imp = nm->mkNode(AND, s.negate(), basen);
       Trace("sygus-sol-implied") << "  implies: check subsuming " << imp
                                  << "..." << std::endl;
       // check the satisfiability query
@@ -88,13 +87,13 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       {
         Options& nodeManagerOptions = nm->getOptions();
         std::ostream* out = nodeManagerOptions.getOut();
-        (*out) << "; (filtered " << s << ")" << std::endl;
+        (*out) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")" << std::endl;
       }
     }
     d_curr_sols.clear();
     d_curr_sols.insert(d_curr_sols.end(), nsubsume.begin(), nsubsume.end());
   }
-  d_curr_sols.push_back(n);
+  d_curr_sols.push_back(basen);
   return true;
 }
 
