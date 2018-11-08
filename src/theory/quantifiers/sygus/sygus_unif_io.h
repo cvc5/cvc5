@@ -301,6 +301,10 @@ class SygusUnifIo : public SygusUnif
    */
   void addExample(const std::vector<Node>& input, Node output);
 
+  /** compute examples 
+   * 
+   */
+  void computeExamples( Node e, Node bv, std::vector< Node >& exOut );
  protected:
   /** the candidate */
   Node d_candidate;

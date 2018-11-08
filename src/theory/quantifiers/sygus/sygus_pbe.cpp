@@ -378,6 +378,11 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   if (itx == d_examples_invalid.end()) {
     unsigned nex = d_examples[ee].size();
     Node ret = d_pbe_trie[e][tn].addPbeExample(tn, ee, bvr, this, 0, nex);
+    
+    // compute example values with the I/O utility 
+    //std::vector< Node > vals;
+    //d_sygus_unif[e].computeExamples(e,bvr,vals);
+    
     Assert(ret.getType() == bvr.getType());
     return ret;
   }

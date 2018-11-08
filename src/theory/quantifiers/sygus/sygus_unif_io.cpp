@@ -495,6 +495,16 @@ void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
   d_examples_out.push_back(output);
 }
 
+void SygusUnifIo::computeExamples( Node e, Node bv, std::vector< Node >& exOut )
+{
+  TypeNode xtn = e.getType();
+  for (unsigned j = 0, size = d_examples.size(); j < size; j++)
+  {
+    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
+    exOut.push_back(res);
+  }
+}
+
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
 {
   Trace("sygus-sui-enum") << "Notify enumeration for " << e << " : " << v
@@ -508,17 +518,11 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
   // iterations.
   Node exp_exc;
 
+  std::vector<Node> base_results;
   TypeNode xtn = e.getType();
   Node bv = d_tds->sygusToBuiltin(v, xtn);
-  std::vector<Node> base_results;
   // compte the results
-  for (unsigned j = 0, size = d_examples.size(); j < size; j++)
-  {
-    Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
-    Trace("sygus-sui-enum-debug")
-        << "...got res = " << res << " from " << bv << std::endl;
-    base_results.push_back(res);
-  }
+  computeExamples(e,bv,base_results);
   // get the results for each slave enumerator
   std::map<Node, std::vector<Node>> srmap;
   Evaluator* ev = d_tds->getEvaluator();
