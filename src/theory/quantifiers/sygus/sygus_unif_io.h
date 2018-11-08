@@ -309,6 +309,8 @@ class SygusUnifIo : public SygusUnif
    */
   void computeExamples(Node e, Node bv, std::vector<Node>& exOut);
 
+  /** clear example cache */
+  void clearExampleCache(Node e, Node bv);
  protected:
   /** the candidate */
   Node d_candidate;
@@ -350,6 +352,9 @@ class SygusUnifIo : public SygusUnif
   std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
+  
+  /** cache for computeExamples */
+  std::map< Node, std::map< Node, std::vector< Node > > > d_exOutCache;
 
   /**
   * This class stores information regarding an enumerator, including:

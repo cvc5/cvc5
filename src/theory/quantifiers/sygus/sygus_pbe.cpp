@@ -352,6 +352,11 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
+    if( ret!=bvr )
+    {
+      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+      d_sygus_unif[ee].clearExampleCache(e,bvr);
+    }
     Assert(ret.getType() == bvr.getType());
     return ret;
   }
