@@ -25,6 +25,7 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
+  --static-binary          enable/disable static binaries
   --proofs                 support for proof generation
   --optimized              optimize the build
   --debug-symbols          include debug symbols
@@ -122,6 +123,7 @@ portfolio=default
 proofs=default
 replay=default
 shared=default
+static_binary=default
 statistics=default
 symfpu=default
 tracing=default
@@ -230,8 +232,11 @@ do
     --replay) replay=ON;;
     --no-replay) replay=OFF;;
 
-    --static) shared=OFF;;
+    --static) shared=OFF; static_binary=ON;;
     --no-static) shared=ON;;
+
+    --static-binary) static_binary=ON;;
+    --no-static-binary) static_binary=OFF;;
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
@@ -355,6 +360,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
+[ $static_binary != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
