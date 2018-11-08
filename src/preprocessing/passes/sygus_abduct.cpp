@@ -52,8 +52,8 @@ PreprocessingPassResult SygusAbduct::applyInternal(
       assumptions.push_back(asserts[i]);
     }
   }
-  Trace("sygus-abduct-debug") << "...finish, got " << symset.size()
-                              << " symbols." << std::endl;
+  Trace("sygus-abduct-debug")
+      << "...finish, got " << symset.size() << " symbols." << std::endl;
 
   Trace("sygus-abduct-debug") << "Setup symbols..." << std::endl;
   std::vector<Node> syms;

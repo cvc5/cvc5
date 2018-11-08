@@ -120,7 +120,8 @@ void SynthConjecture::assign(Node q)
   {
     // convert to deep embedding
     d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
-    Trace("cegqi") << "SynthConjecture : side condition : " << d_embedSideCondition << std::endl;
+    Trace("cegqi") << "SynthConjecture : side condition : "
+                   << d_embedSideCondition << std::endl;
   }
 
   // we now finalize the single invocation module, based on the syntax
@@ -144,9 +145,10 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
-  if( !d_embedSideCondition.isNull() )
+  if (!d_embedSideCondition.isNull())
   {
-    d_embedSideCondition = d_embedSideCondition.substitute(vars.begin(),vars.end(),d_candidates.begin(),d_candidates.end());
+    d_embedSideCondition = d_embedSideCondition.substitute(
+        vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
   }
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
@@ -521,15 +523,15 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
-  
+
   // check the side condition
   Node sc;
-  if( !d_embedSideCondition.isNull() && constructed_cand)
+  if (!d_embedSideCondition.isNull() && constructed_cand)
   {
     sc = d_embedSideCondition.substitute(d_candidates.begin(),
-                                  d_candidates.end(),
-                                  candidate_values.begin(),
-                                  candidate_values.end());
+                                         d_candidates.end(),
+                                         candidate_values.begin(),
+                                         candidate_values.end());
     sc = Rewriter::rewrite(sc);
     Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
@@ -539,7 +541,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     scSmt.assertFormula(sc.toExpr());
     Result r = scSmt.checkSat();
     Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
-    if( r==Result::UNSAT )
+    if (r == Result::UNSAT)
     {
       // exclude the current solution TODO
       excludeCurrentSolution();
@@ -548,7 +550,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     Trace("cegqi-engine") << "...passed side condition" << std::endl;
   }
-  
+
   Node query = lem;
   bool success = false;
   if (query.isConst() && !query.getConst<bool>())

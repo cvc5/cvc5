@@ -53,10 +53,12 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
   Node curr;
   if (!d_curr_sols.empty())
   {
-    curr = d_curr_sols.size() == 1 ? d_curr_sols[0] : nm->mkNode(d_isStrong ? AND : OR, d_curr_sols);
-    Node imp =  nm->mkNode(AND, basen.negate(), curr);
-    Trace("sygus-sol-implied") << "  implies: check subsumed " << imp << "..."
-                               << std::endl;
+    curr = d_curr_sols.size() == 1
+               ? d_curr_sols[0]
+               : nm->mkNode(d_isStrong ? AND : OR, d_curr_sols);
+    Node imp = nm->mkNode(AND, basen.negate(), curr);
+    Trace("sygus-sol-implied")
+        << "  implies: check subsumed " << imp << "..." << std::endl;
     // check the satisfiability query
     Result r = doCheck(imp);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
@@ -74,8 +76,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
     for (const Node& s : d_curr_sols)
     {
       Node imp = nm->mkNode(AND, s.negate(), basen);
-      Trace("sygus-sol-implied") << "  implies: check subsuming " << imp
-                                 << "..." << std::endl;
+      Trace("sygus-sol-implied")
+          << "  implies: check subsuming " << imp << "..." << std::endl;
       // check the satisfiability query
       Result r = doCheck(imp);
       Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
@@ -87,7 +89,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
       {
         Options& nodeManagerOptions = nm->getOptions();
         std::ostream* out = nodeManagerOptions.getOut();
-        (*out) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")" << std::endl;
+        (*out) << "; (filtered " << (d_isStrong ? s : s.negate()) << ")"
+               << std::endl;
       }
     }
     d_curr_sols.clear();

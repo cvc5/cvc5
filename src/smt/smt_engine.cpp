@@ -1939,8 +1939,7 @@ void SmtEngine::setDefaults() {
       }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen()
-        || options::sygusAbduct())
+        || options::sygusQueryGen() || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
