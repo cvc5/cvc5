@@ -15,7 +15,6 @@
 #include "theory/quantifiers/first_order_model.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
@@ -520,128 +519,6 @@ Node FirstOrderModelFmc::getFunctionValue(Node op, const char* argPrefix ) {
   Trace("fmc-model") << "Made " << curr << " for " << op << std::endl;
   curr = Rewriter::rewrite( curr );
   return NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
-}
-
-FirstOrderModelAbs::FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name) :
-FirstOrderModel(qe, c, name) {
-
-}
-
-FirstOrderModelAbs::~FirstOrderModelAbs()
-{
-  for(std::map<Node, AbsDef*>::iterator i = d_models.begin(); i != d_models.end(); ++i) {
-    delete (*i).second;
-  }
-}
-
-void FirstOrderModelAbs::processInitialize( bool ispre ) {
-  if( !ispre ){
-    Trace("ambqi-debug") << "Process initialize" << std::endl;
-    for( std::map<Node, AbsDef * >::iterator it = d_models.begin(); it != d_models.end(); ++it ) {
-      Node op = it->first;
-      TypeNode tno = op.getType();
-      Trace("ambqi-debug") << "  Init " << op << " " << tno << std::endl;
-      for( unsigned i=0; i<tno.getNumChildren(); i++) {
-        //make sure a representative of the type exists
-        if( !d_rep_set.hasType( tno[i] ) ){
-          Node e = getSomeDomainElement( tno[i] );
-          Trace("ambqi-debug") << "  * Initialize type " << tno[i] << ", add ";
-          Trace("ambqi-debug") << e << " " << e.getType() << std::endl;
-          //d_rep_set.add( e );
-        }
-      }
-    }
-  }
-}
-
-unsigned FirstOrderModelAbs::getRepresentativeId( TNode n ) {
-  TNode r = getUsedRepresentative( n );
-  std::map< TNode, unsigned >::iterator it = d_rep_id.find( r );
-  if( it!=d_rep_id.end() ){
-    return it->second;
-  }else{
-    return 0;
-  }
-}
-
-TNode FirstOrderModelAbs::getUsedRepresentative( TNode n ) {
-  if( hasTerm( n ) ){
-    if( n.getType().isBoolean() ){
-      return areEqual(n, d_true) ? d_true : d_false;
-    }else{
-      return getRepresentative( n );
-    }
-  }else{
-    Trace("qint-debug") << "Get rep " << n << " " << n.getType() << std::endl;
-    Assert( d_rep_set.hasType( n.getType() ) && !d_rep_set.d_type_reps[n.getType()].empty() );
-    return d_rep_set.d_type_reps[n.getType()][0];
-  }
-}
-
-Node FirstOrderModelAbs::getFunctionValue(Node op, const char* argPrefix ) {
-  if( d_models_valid[op] ){
-    Trace("ambqi-debug") << "Get function value for " << op << std::endl;
-    TypeNode type = op.getType();
-    std::vector< Node > vars;
-    for( size_t i=0; i<type.getNumChildren()-1; i++ ){
-      std::stringstream ss;
-      ss << argPrefix << (i+1);
-      Node b = NodeManager::currentNM()->mkBoundVar( ss.str(), type[i] );
-      vars.push_back( b );
-    }
-    Node boundVarList = NodeManager::currentNM()->mkNode(kind::BOUND_VAR_LIST, vars);
-    Node curr = d_models[op]->getFunctionValue( this, op, vars );
-    Node fv = NodeManager::currentNM()->mkNode(kind::LAMBDA, boundVarList, curr);
-    Trace("ambqi-debug") << "Return " << fv << std::endl;
-    return fv;
-  }else{
-
-  }
-  return Node::null();
-}
-
-void FirstOrderModelAbs::processInitializeModelForTerm( Node n ) {
-  if( n.getKind()==APPLY_UF || n.getKind()==VARIABLE || n.getKind()==SKOLEM ){
-    Node op = n.getKind()==APPLY_UF ? n.getOperator() : n;
-    if( d_models.find(op)==d_models.end()) {
-      Trace("abmqi-debug") << "init model for " << op << std::endl;
-      d_models[op] = new AbsDef;
-      d_models_valid[op] = false;
-    }
-  }
-}
-
-void FirstOrderModelAbs::collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars ) {
-  for( unsigned i=0; i<n.getNumChildren(); i++ ){
-    if( n.getKind()==EQUAL && n[i].getKind()==BOUND_VARIABLE ){
-      int v = getVariableId( q, n[i] );
-      Assert( v>=0 && v<(int)q[0].getNumChildren() );
-      eq_vars[v] = true;
-    }
-    collectEqVars( q, n[i], eq_vars );
-  }
-}
-
-void FirstOrderModelAbs::processInitializeQuantifier( Node q ) {
-  if( d_var_order.find( q )==d_var_order.end() ){
-    std::map< int, bool > eq_vars;
-    for( unsigned i=0; i<q[0].getNumChildren(); i++ ){
-      eq_vars[i] = false;
-    }
-    collectEqVars( q, q[1], eq_vars );
-    for( unsigned r=0; r<2; r++ ){
-      for( std::map< int, bool >::iterator it = eq_vars.begin(); it != eq_vars.end(); ++it ){
-        if( it->second==(r==1) ){
-          d_var_index[q][it->first] = d_var_order[q].size();
-          d_var_order[q].push_back( it->first );
-        }
-      }
-    }
-  }
-}
-
-Node FirstOrderModelAbs::getVariable( Node q, unsigned i ) {
-  return q[0][d_var_order[q][i]];
 }
 
 } /* CVC4::theory::quantifiers namespace */

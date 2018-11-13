@@ -70,9 +70,6 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::MbqiMode mode) 
   case theory::quantifiers::MBQI_FMC:
     out << "MBQI_FMC";
     break;
-  case theory::quantifiers::MBQI_ABS:
-    out << "MBQI_ABS";
-    break;
   case theory::quantifiers::MBQI_TRUST:
     out << "MBQI_TRUST";
     break;

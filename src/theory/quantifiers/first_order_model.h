@@ -46,8 +46,6 @@ namespace fmcheck {
   class FirstOrderModelFmc;
 }/* CVC4::theory::quantifiers::fmcheck namespace */
 
-class FirstOrderModelAbs;
-
 struct IsStarAttributeId {};
 typedef expr::Attribute<IsStarAttributeId, bool> IsStarAttribute;
 
@@ -92,7 +90,6 @@ class FirstOrderModel : public TheoryModel
   FirstOrderModel(QuantifiersEngine* qe, context::Context* c, std::string name);
 
   virtual fmcheck::FirstOrderModelFmc* asFirstOrderModelFmc() { return nullptr; }
-  virtual FirstOrderModelAbs* asFirstOrderModelAbs() { return nullptr; }
   /** assert quantifier */
   void assertQuantifier( Node n );
   /** get number of asserted quantifiers */
@@ -215,36 +212,6 @@ class FirstOrderModelFmc : public FirstOrderModel
 };/* class FirstOrderModelFmc */
 
 }/* CVC4::theory::quantifiers::fmcheck namespace */
-
-class AbsDef;
-
-class FirstOrderModelAbs : public FirstOrderModel
-{
- public:
-  std::map< Node, AbsDef * > d_models;
-  std::map< Node, bool > d_models_valid;
-  std::map< TNode, unsigned > d_rep_id;
-  std::map< TypeNode, unsigned > d_domain;
-  std::map< Node, std::vector< int > > d_var_order;
-  std::map< Node, std::map< int, int > > d_var_index;
-
- private:
-  /** get current model value */
-  void processInitializeModelForTerm(Node n) override;
-  void processInitializeQuantifier(Node q) override;
-  void collectEqVars( TNode q, TNode n, std::map< int, bool >& eq_vars );
-  TNode getUsedRepresentative( TNode n );
-
- public:
-  FirstOrderModelAbs(QuantifiersEngine * qe, context::Context* c, std::string name);
-  ~FirstOrderModelAbs() override;
-  FirstOrderModelAbs* asFirstOrderModelAbs() override { return this; }
-  void processInitialize(bool ispre) override;
-  unsigned getRepresentativeId( TNode n );
-  bool isValidType( TypeNode tn ) { return d_domain.find( tn )!=d_domain.end(); }
-  Node getFunctionValue(Node op, const char* argPrefix );
-  Node getVariable( Node q, unsigned i );
-};
 
 }/* CVC4::theory::quantifiers namespace */
 }/* CVC4::theory namespace */
