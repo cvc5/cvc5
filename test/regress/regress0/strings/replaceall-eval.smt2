@@ -8,4 +8,3 @@
 (assert (= y (str.replaceall "AABAABBC" "AB" "BA")))
 
 (check-sat)
-(get-model)
