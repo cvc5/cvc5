@@ -100,8 +100,8 @@ class SynthEngine : public QuantifiersModule
     IntStat d_cegqi_lemmas_refine;
     IntStat d_cegqi_si_lemmas;
     IntStat d_solutions;
+    IntStat d_filtered_solutions;
     IntStat d_candidate_rewrites_print;
-    IntStat d_candidate_rewrites;
     Statistics();
     ~Statistics();
   }; /* class SynthEngine::Statistics */

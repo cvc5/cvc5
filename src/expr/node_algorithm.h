@@ -39,6 +39,11 @@ namespace expr {
 bool hasSubterm(TNode n, TNode t, bool strict = false);
 
 /**
+ * Check if the node n has >1 occurrences of a subterm t.
+ */
+bool hasSubtermMulti(TNode n, TNode t);
+
+/**
  * Returns true iff the node n contains a bound variable, that is a node of
  * kind BOUND_VARIABLE. This bound variable may or may not be free.
  * @param n The node under investigation

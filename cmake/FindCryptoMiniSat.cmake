@@ -8,13 +8,13 @@
 # If the user provides a directory we will not search the default paths and
 # fail if CryptoMiniSat was not found in the specified directory.
 if(NOT CryptoMiniSat_HOME)
-  set(CryptoMiniSat_HOME ${PROJECT_SOURCE_DIR}/cryptominisat5/install)
+  set(CryptoMiniSat_HOME ${PROJECT_SOURCE_DIR}/cryptominisat5/build)
   set(CHECK_SYSTEM_VERSION TRUE)
 endif()
 
 find_path(CryptoMiniSat_INCLUDE_DIR
           NAMES cryptominisat5/cryptominisat.h
-          PATHS ${CryptoMiniSat_HOME}/include
+          PATHS ${CryptoMiniSat_HOME}/include ${CryptoMiniSat_HOME}/cmsat5-src
           NO_DEFAULT_PATH)
 find_library(CryptoMiniSat_LIBRARIES
              NAMES cryptominisat5

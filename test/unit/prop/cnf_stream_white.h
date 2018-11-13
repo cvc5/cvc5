@@ -136,6 +136,10 @@ class CnfStreamWhite : public CxxTest::TestSuite {
     d_nodeManager = NodeManager::fromExprManager(d_exprManager);
     d_scope = new SmtScope(d_smt);
 
+    // Notice that this unit test uses the theory engine of a created SMT
+    // engine d_smt. We must ensure that d_smt is properly initialized via
+    // the following call, which constructs its underlying theory engine.
+    d_smt->finalOptionsAreSet();
     d_theoryEngine = d_smt->d_theoryEngine;
 
     d_satSolver = new FakeSatSolver();

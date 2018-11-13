@@ -44,7 +44,12 @@ bool CegisUnif::processInitialize(Node n,
   std::map<Node, Node> pt_to_cond;
   // strategy lemmas for each strategy point
   std::map<Node, std::vector<Node>> strategy_lemmas;
-  // Initialize strategies for all functions-to-synhesize
+  // Initialize strategies for all functions-to-synthesize
+  // The role of non-unification enumerators is to be either the single solution
+  // or part of a solution involving multiple enumerators.
+  EnumeratorRole eroleNonUnif = candidates.size() == 1
+                                    ? ROLE_ENUM_SINGLE_SOLUTION
+                                    : ROLE_ENUM_MULTI_SOLUTION;
   for (const Node& f : candidates)
   {
     // Init UNIF util for this candidate
@@ -53,7 +58,7 @@ bool CegisUnif::processInitialize(Node n,
     if (!d_sygus_unif.usingUnif(f))
     {
       Trace("cegis-unif") << "* non-unification candidate : " << f << std::endl;
-      d_tds->registerEnumerator(f, f, d_parent);
+      d_tds->registerEnumerator(f, f, d_parent, eroleNonUnif);
       d_non_unif_candidates.push_back(f);
     }
     else
@@ -462,7 +467,8 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
                                                                exclude_cons,
                                                                term_irrelevant);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
-      d_tds->registerEnumerator(d_virtual_enum, Node::null(), d_parent);
+      d_tds->registerEnumerator(
+          d_virtual_enum, Node::null(), d_parent, ROLE_ENUM_CONSTRAINED);
     }
     // if new_size is a power of two, then isPow2 returns log2(new_size)+1
     // otherwise, this returns 0. In the case it returns 0, we don't care
@@ -606,20 +612,17 @@ void CegisUnifEnumDecisionStrategy::setUpEnumerator(Node e,
   }
   // register the enumerator
   si.d_enums[index].push_back(e);
-  bool mkActiveGuard = false;
-  bool isActiveGen = false;
+  EnumeratorRole erole = ROLE_ENUM_CONSTRAINED;
   // if we are using a single independent enumerator for conditions, then we
   // allocate an active guard, and are eligible to use variable-agnostic
   // enumeration.
   if (options::sygusUnifCondIndependent() && index == 1)
   {
-    mkActiveGuard = true;
-    isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
+    erole = ROLE_ENUM_POOL;
   }
   Trace("cegis-unif-enum") << "* Registering new enumerator " << e
                            << " to strategy point " << si.d_pt << "\n";
-  d_tds->registerEnumerator(
-      e, si.d_pt, d_parent, mkActiveGuard, false, isActiveGen);
+  d_tds->registerEnumerator(e, si.d_pt, d_parent, erole, false);
 }
 
 void CegisUnifEnumDecisionStrategy::registerEvalPts(
