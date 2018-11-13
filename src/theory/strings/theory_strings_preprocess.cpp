@@ -410,6 +410,75 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, replace( x, y, z ) = rpw.
     retNode = rpw;
+  }
+  else if (t.getKind() == kind::STRING_STRREPLALL)
+  {
+    // processing term: replaceall( x, y, z )
+    Node x = t[0];
+    Node y = t[1];
+    Node z = t[2];
+    Node rpaw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
+    
+    Node numOcc = nm->mkSkolem("numOcc", nm->integerType());
+    std::vector< TypeNode > argTypes;
+    argTypes.push_back(nm->integerType());
+    Node us =
+        nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
+    Node uf =
+        nm->mkSkolem("Uf", nm->mkFunctionType(argTypes, nm->integerType()));
+    
+    Node ufno = nm->mkNode(APPLY_UF,uf,numOcc);
+    Node usno = nm->mkNode( APPLY_UF, us, numOcc );
+    Node rem = nm->mkNode(STRING_SUBSTR,x,ufno, nm->mkNode(STRING_LENGTH,x));
+        
+    std::vector< Node > lem;
+    lem.push_back( nm->mkNode(GEQ, numOcc, d_zero));
+    lem.push_back( rpaw.eqNode(nm->mkNode(APPLY_UF,us,d_zero)));
+    lem.push_back(usno.eqNode(rem));
+    lem.push_back( nm->mkNode(APPLY_UF,uf,d_zero).eqNode(d_zero));
+    lem.push_back(nm->mkNode(STRING_STRIDOF,x,y,ufno).eqNode(d_neg_one));
+    
+        
+    Node i = nm->mkBoundVar(nm->integerType());
+    Node bvli = nm->mkNode( BOUND_VAR_LIST, i );
+    Node bound = nm->mkNode(AND, nm->mkNode(GEQ,i,d_zero), nm->mkNode(LT,i,numOcc));
+    Node ufi = nm->mkNode(APPLY_UF,uf,i);
+    Node ufip1 = nm->mkNode(APPLY_UF,uf, nm->mkNode( PLUS, i, d_one ) );
+    Node ii = nm->mkNode( STRING_STRIDOF, x, y, ufi );
+    Node cc = nm->mkNode(STRING_CONCAT,nm->mkNode( STRING_SUBSTR, x, ufi, nm->mkNode( MINUS, ii, ufi ) ),z,nm->mkNode(APPLY_UF,us, nm->mkNode( PLUS, i, d_one ) ));
+    
+    std::vector< Node > flem;
+    flem.push_back( ii.eqNode(d_neg_one).negate() );
+    flem.push_back( nm->mkNode(APPLY_UF,us,i).eqNode(cc) );
+    flem.push_back( ufip1.eqNode( nm->mkNode( PLUS, ii, nm->mkNode( STRING_LENGTH, y ) ) ) );
+    
+    Node q = nm->mkNode(FORALL,bvli,nm->mkNode(OR, bound.negate(), nm->mkNode( AND, flem ) ) );
+    lem.push_back(q);
+    
+    // assert:
+    //   IF y=""
+    //   THEN: rpaw = x
+    //   ELSE:
+    //     numOcc >= 0 ^
+    //     rpaw = Us(0) ^ Us(numOcc) = substr(x, Uf(numOcc), len(x)) ^
+    //     Uf(0) = 0 ^ indexof( x, y, Uf(numOcc) ) = -1 ^
+    //     forall i. 0 <= i < numOcc =>
+    //        ii != -1 ^
+    //        Us( i ) = str.substr( x, Uf(i), ii - Uf(i) ) ++ z ++ Us(i+1) ^
+    //        Uf( i+1 ) = ii + len(y)
+    //        where ii == indexof( x, y, Uf(i) )
+    
+    // Conceptually, numOcc is the number of occurrences of y in x, Uf( i ) is
+    // the index to begin searching in x for y after the i^th occurrence of y in
+    // x, and Us( i ) is the result of processing the remainder after processing
+    // the i^th occurrence of y in x.
+    Node assert = nm->mkNode( ITE, y.eqNode(d_empty_str), rpaw.eqNode(x),
+                              nm->mkNode(AND,lem) );
+    new_nodes.push_back( assert );
+    
+    // Thus, replaceall( x, y, z ) = rpaw
+    retNode = rpaw;
+    
   } else if( t.getKind() == kind::STRING_STRCTN ){
     Node x = t[0];
     Node s = t[1];
