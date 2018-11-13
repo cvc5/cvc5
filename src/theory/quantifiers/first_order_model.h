@@ -169,6 +169,7 @@ class FirstOrderModel : public TheoryModel
   virtual void processInitializeQuantifier(Node q) {}
   /** process initialize */
   virtual void processInitialize(bool ispre) {}
+
  private:
   // list of inactive quantified formulas
   std::map<TNode, bool> d_quant_active;

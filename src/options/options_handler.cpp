@@ -267,7 +267,8 @@ agg \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_mbqiModeHelp = "\
+const std::string OptionsHandler::s_mbqiModeHelp =
+    "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
