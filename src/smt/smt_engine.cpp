@@ -4308,9 +4308,9 @@ Model* SmtEngine::getModel() {
     std::vector<Expr> easserts = getAssertions();
     // must expand definitions
     std::vector<Expr> eassertsProc;
-    for( unsigned i=0, nasserts = easserts.size(); i<nasserts; i++ )
+    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
     {
-      Node ea = Node::fromExpr( easserts[i] );
+      Node ea = Node::fromExpr(easserts[i]);
       std::unordered_map<Node, Node, NodeHashFunction> cache;
       Node eae = d_private->expandDefinitions(ea, cache);
       eassertsProc.push_back(eae.toExpr());
