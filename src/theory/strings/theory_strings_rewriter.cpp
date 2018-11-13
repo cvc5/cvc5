@@ -2953,7 +2953,7 @@ Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
     std::vector<Node> children;
     String s = node[0].getConst<String>();
     String t = node[1].getConst<String>();
-    if (t.isEmptyString())
+    if (s.isEmptyString() || t.isEmptyString())
     {
       return returnRewrite(node, node[0], "replall-empty-find");
     }
@@ -2973,9 +2973,9 @@ Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
       }
       else
       {
-        children.push_back(nm->mkConst(s.substr(index, s.size())));
+        children.push_back(nm->mkConst(s.substr(index, s.size()-index)));
       }
-    } while (curr != std::string::npos);
+    } while (curr != std::string::npos && curr<s.size());
     // constant evaluation
     Node res = mkConcat(STRING_CONCAT, children);
     return returnRewrite(node, res, "replall-const");
@@ -3005,7 +3005,11 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
 
   if (node[0] == node[1])
   {
-    return returnRewrite(node, node[2], "rpl-replace");
+    // only holds for replaceall if non-empty
+    if( nk==STRING_STRREPL || checkEntailNonEmpty(node[1]) )
+    {
+      return returnRewrite(node, node[2], "rpl-replace");
+    }
   }
 
   return Node::null();
