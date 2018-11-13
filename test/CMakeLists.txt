@@ -17,7 +17,7 @@ add_dependencies(build-tests examples)
 # Dependencies of check are added in the corresponding subdirectories.
 add_custom_target(check
   COMMAND
-    ctest --output-on-failure -LE "regress[2-4]" -j${CTEST_NTHREADS} $(ARGS)
+    ctest --output-on-failure -LE "regress[3-4]" -j${CTEST_NTHREADS} $(ARGS)
   DEPENDS
     build-tests)
 

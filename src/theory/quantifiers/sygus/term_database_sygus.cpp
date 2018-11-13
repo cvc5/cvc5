@@ -31,6 +31,46 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void TypeNodeIdTrie::add(Node v, std::vector<TypeNode>& types)
+{
+  TypeNodeIdTrie* tnt = this;
+  for (unsigned i = 0, size = types.size(); i < size; i++)
+  {
+    tnt = &tnt->d_children[types[i]];
+  }
+  tnt->d_data.push_back(v);
+}
+
+void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
+                               unsigned& idCount)
+{
+  if (!d_data.empty())
+  {
+    for (const Node& v : d_data)
+    {
+      assign[v] = idCount;
+    }
+    idCount++;
+  }
+  for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+  {
+    c.second.assignIds(assign, idCount);
+  }
+}
+
+std::ostream& operator<<(std::ostream& os, EnumeratorRole r)
+{
+  switch (r)
+  {
+    case ROLE_ENUM_POOL: os << "POOL"; break;
+    case ROLE_ENUM_SINGLE_SOLUTION: os << "SINGLE_SOLUTION"; break;
+    case ROLE_ENUM_MULTI_SOLUTION: os << "MULTI_SOLUTION"; break;
+    case ROLE_ENUM_CONSTRAINED: os << "CONSTRAINED"; break;
+    default: os << "enum_" << static_cast<unsigned>(r); break;
+  }
+  return os;
+}
+
 TermDbSygus::TermDbSygus(context::Context* c, QuantifiersEngine* qe)
     : d_quantEngine(qe),
       d_syexp(new SygusExplain(this)),
@@ -424,51 +464,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
   }
 }
 
-/** A trie indexed by types that assigns unique identifiers to nodes. */
-class TypeNodeIdTrie
-{
- public:
-  /** children of this node */
-  std::map<TypeNode, TypeNodeIdTrie> d_children;
-  /** the data stored at this node */
-  std::vector<Node> d_data;
-  /** add v to this trie, indexed by types */
-  void add(Node v, std::vector<TypeNode>& types)
-  {
-    TypeNodeIdTrie* tnt = this;
-    for (unsigned i = 0, size = types.size(); i < size; i++)
-    {
-      tnt = &tnt->d_children[types[i]];
-    }
-    tnt->d_data.push_back(v);
-  }
-  /**
-   * Assign each node in this trie an identifier such that
-   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
-   */
-  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount)
-  {
-    if (!d_data.empty())
-    {
-      for (const Node& v : d_data)
-      {
-        assign[v] = idCount;
-      }
-      idCount++;
-    }
-    for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
-    {
-      c.second.assignIds(assign, idCount);
-    }
-  }
-};
-
 void TermDbSygus::registerEnumerator(Node e,
                                      Node f,
                                      SynthConjecture* conj,
-                                     bool mkActiveGuard,
-                                     bool useSymbolicCons,
-                                     bool isActiveGen)
+                                     EnumeratorRole erole,
+                                     bool useSymbolicCons)
 {
   if (d_enum_to_conjecture.find(e) != d_enum_to_conjecture.end())
   {
@@ -482,13 +482,6 @@ void TermDbSygus::registerEnumerator(Node e,
   d_enum_to_conjecture[e] = conj;
   d_enum_to_synth_fun[e] = f;
   NodeManager* nm = NodeManager::currentNM();
-  if( mkActiveGuard ){
-    // make the guard
-    Node ag = nm->mkSkolem("eG", nm->booleanType());
-    // must ensure it is a literal immediately here
-    ag = d_quantEngine->getValuation().ensureLiteral(ag);
-    d_enum_to_active_guard[e] = ag;
-  }
 
   Trace("sygus-db") << "  registering symmetry breaking clauses..."
                     << std::endl;
@@ -566,7 +559,68 @@ void TermDbSygus::registerEnumerator(Node e,
   }
   Trace("sygus-db") << "  ...finished" << std::endl;
 
-  d_enum_active_gen[e] = isActiveGen;
+  // determine if we are actively-generated
+  bool isActiveGen = false;
+  if (options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE)
+  {
+    if (erole == ROLE_ENUM_MULTI_SOLUTION || erole == ROLE_ENUM_CONSTRAINED)
+    {
+      // If the enumerator is a solution for a conjecture with multiple
+      // functions, we do not use active generation. If we did, we would have to
+      // generate a "product" of two actively-generated enumerators. That is,
+      // given a conjecture with two functions-to-synthesize with enumerators
+      // e_f and e_g, and if these enumerators generated:
+      // e_f -> t1, ..., tn
+      // e_g -> s1, ..., sm
+      // The sygus module in charge of this conjecture would expect
+      // constructCandidates calls of the form
+      //   (e_f,e_g) -> (ti, sj)
+      // for each i,j. We instead use passive enumeration in this case.
+      //
+      // If the enumerator is constrained, it cannot be actively generated.
+    }
+    else if (erole == ROLE_ENUM_POOL)
+    {
+      // If the enumerator is used for generating a pool of values, we always
+      // use active generation.
+      isActiveGen = true;
+    }
+    else if (erole == ROLE_ENUM_SINGLE_SOLUTION)
+    {
+      // If the enumerator is the single function-to-synthesize, if auto is
+      // enabled, we infer whether it is better to enable active generation.
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO)
+      {
+        // We use active generation if the grammar of the enumerator does not
+        // have ITE and is not Boolean. Experimentally, it is better to
+        // use passive generation for these cases since it enables useful
+        // search space pruning techniques, e.g. evaluation unfolding,
+        // conjecture-specific symmetry breaking. Also, if sygus-stream is
+        // enabled, we always use active generation, since the use cases of
+        // sygus stream are to find many solutions to an easy problem, where
+        // the bottleneck often becomes the large number of "exclude the current
+        // solution" clauses.
+        const Datatype& dt = et.getDatatype();
+        if (options::sygusStream()
+            || (!hasKind(et, ITE) && !dt.getSygusType().isBoolean()))
+        {
+          isActiveGen = true;
+        }
+      }
+      else
+      {
+        isActiveGen = true;
+      }
+    }
+    else
+    {
+      Unreachable("Unknown enumerator mode in registerEnumerator");
+    }
+  }
+  Trace("sygus-db") << "isActiveGen for " << e << ", role = " << erole
+                    << " returned " << isActiveGen << std::endl;
+  // Currently, actively-generated enumerators are either basic or variable
+  // agnostic.
   bool isVarAgnostic =
       isActiveGen
       && options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
@@ -613,7 +667,26 @@ void TermDbSygus::registerEnumerator(Node e,
           << " since it has no subclass with more than one variable."
           << std::endl;
       d_enum_var_agnostic[e] = false;
+      isActiveGen = false;
     }
+  }
+  d_enum_active_gen[e] = isActiveGen;
+  d_enum_basic[e] = isActiveGen && !isVarAgnostic;
+
+  // We make an active guard if we will be explicitly blocking solutions for
+  // the enumerator. This is the case if the role of the enumerator is to
+  // populate a pool of terms, or (some cases) of when it is actively generated.
+  if (isActiveGen || erole == ROLE_ENUM_POOL)
+  {
+    // make the guard
+    Node ag = nm->mkSkolem("eG", nm->booleanType());
+    // must ensure it is a literal immediately here
+    ag = d_quantEngine->getValuation().ensureLiteral(ag);
+    // must ensure that it is asserted as a literal before we begin solving
+    Node lem = nm->mkNode(OR, ag, ag.negate());
+    d_quantEngine->getOutputChannel().requirePhase(ag, true);
+    d_quantEngine->getOutputChannel().lemma(lem);
+    d_enum_to_active_guard[e] = ag;
   }
 }
 
@@ -671,6 +744,16 @@ bool TermDbSygus::isVariableAgnosticEnumerator(Node e) const
   return false;
 }
 
+bool TermDbSygus::isBasicEnumerator(Node e) const
+{
+  std::map<Node, bool>::const_iterator itus = d_enum_basic.find(e);
+  if (itus != d_enum_basic.end())
+  {
+    return itus->second;
+  }
+  return false;
+}
+
 bool TermDbSygus::isPassiveEnumerator(Node e) const
 {
   std::map<Node, bool>::const_iterator itus = d_enum_active_gen.find(e);
@@ -692,14 +775,13 @@ void TermDbSygus::getEnumerators(std::vector<Node>& mts)
   }
 }
 
-void TermDbSygus::registerSymBreakLemma(Node e,
-                                        Node lem,
-                                        TypeNode tn,
-                                        unsigned sz)
+void TermDbSygus::registerSymBreakLemma(
+    Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl)
 {
   d_enum_to_sb_lemmas[e].push_back(lem);
   d_sb_lemma_to_type[lem] = tn;
   d_sb_lemma_to_size[lem] = sz;
+  d_sb_lemma_to_isTempl[lem] = isTempl;
 }
 
 bool TermDbSygus::hasSymBreakLemmas(std::vector<Node>& enums) const
@@ -738,6 +820,13 @@ unsigned TermDbSygus::getSizeForSymBreakLemma(Node lem) const
   return it->second;
 }
 
+bool TermDbSygus::isSymBreakLemmaTemplate(Node lem) const
+{
+  std::map<Node, bool>::const_iterator it = d_sb_lemma_to_isTempl.find(lem);
+  Assert(it != d_sb_lemma_to_isTempl.end());
+  return it->second;
+}
+
 void TermDbSygus::clearSymBreakLemmas(Node e) { d_enum_to_sb_lemmas.erase(e); }
 
 bool TermDbSygus::isRegistered(TypeNode tn) const
@@ -754,9 +843,16 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 {
   if (Trace.isOn(c))
   {
-    std::stringstream ss;
-    Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
-    Trace(c) << ss.str();
+    if (n.isNull())
+    {
+      Trace(c) << n;
+    }
+    else
+    {
+      std::stringstream ss;
+      Printer::getPrinter(options::outputLanguage())->toStreamSygus(ss, n);
+      Trace(c) << ss.str();
+    }
   }
 }
 

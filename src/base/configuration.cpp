@@ -39,7 +39,7 @@ using namespace std;
 namespace CVC4 {
 
 string Configuration::getName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 bool Configuration::isDebugBuild() {
@@ -89,7 +89,7 @@ bool Configuration::isCompetitionBuild() {
 }
 
 string Configuration::getPackageName() {
-  return PACKAGE_NAME;
+  return CVC4_PACKAGE_NAME;
 }
 
 string Configuration::getVersionString() {

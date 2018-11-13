@@ -497,6 +497,31 @@ class SmtEnginePrivate : public NodeManagerListener {
   /* Finishes the initialization of the private portion of SMTEngine. */
   void finishInit();
 
+  /*------------------- sygus utils ------------------*/
+  /**
+   * sygus variables declared (from "declare-var" and "declare-fun" commands)
+   *
+   * The SyGuS semantics for declared variables is that they are implicitly
+   * universally quantified in the constraints.
+   */
+  std::vector<Node> d_sygusVars;
+  /** types of sygus primed variables (for debugging) */
+  std::vector<Type> d_sygusPrimedVarTypes;
+  /** sygus constraints */
+  std::vector<Node> d_sygusConstraints;
+  /** functions-to-synthesize */
+  std::vector<Node> d_sygusFunSymbols;
+  /** maps functions-to-synthesize to their respective input variables lists */
+  std::map<Node, std::vector<Node>> d_sygusFunVars;
+  /** maps functions-to-synthesize to their respective syntactic restrictions
+   *
+   * If function has syntactic restrictions, these are encoded as a SyGuS
+   * datatype type
+   */
+  std::map<Node, TypeNode> d_sygusFunSyntax;
+
+  /*------------------- end of sygus utils ------------------*/
+
  private:
   std::unique_ptr<PreprocessingPassContext> d_preprocessingPassContext;
 
@@ -556,49 +581,67 @@ class SmtEnginePrivate : public NodeManagerListener {
     d_listenerRegistrations->add(d_resourceManager->registerHardListener(
         new HardResourceOutListener(d_smt)));
 
-    Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerForceLogicListener(
-            new SetLogicListener(d_smt), true));
+    try
+    {
+      Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerForceLogicListener(
+              new SetLogicListener(d_smt), true));
 
-    // Multiple options reuse BeforeSearchListener so registration requires an
-    // extra bit of care.
-    // We can safely not call notify on this before search listener at
-    // registration time. This d_smt cannot be beforeSearch at construction
-    // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
-    // not have to be called.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerBeforeSearchListener(
-            new BeforeSearchListener(d_smt)));
+      // Multiple options reuse BeforeSearchListener so registration requires an
+      // extra bit of care.
+      // We can safely not call notify on this before search listener at
+      // registration time. This d_smt cannot be beforeSearch at construction
+      // time. Therefore the BeforeSearchListener is a no-op. Therefore it does
+      // not have to be called.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerBeforeSearchListener(
+              new BeforeSearchListener(d_smt)));
 
-    // These do need registration calls.
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDepthListener(
-            new SetDefaultExprDepthListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDefaultExprDagListener(
-            new SetDefaultExprDagListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintExprTypesListener(
-            new SetPrintExprTypesListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDumpModeListener(
-            new DumpModeListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetPrintSuccessListener(
-            new PrintSuccessListener(), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetRegularOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedRegularChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
-            new SetToDefaultSourceListener(&d_managedDiagnosticChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerDumpToFileNameListener(
-            new SetToDefaultSourceListener(&d_managedDumpChannel), true));
-    d_listenerRegistrations->add(
-        nodeManagerOptions.registerSetReplayLogFilename(
-            new SetToDefaultSourceListener(&d_managedReplayLog), true));
+      // These do need registration calls.
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDepthListener(
+              new SetDefaultExprDepthListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDefaultExprDagListener(
+              new SetDefaultExprDagListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintExprTypesListener(
+              new SetPrintExprTypesListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDumpModeListener(new DumpModeListener(),
+                                                         true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetPrintSuccessListener(
+              new PrintSuccessListener(), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetRegularOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedRegularChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetDiagnosticOutputChannelListener(
+              new SetToDefaultSourceListener(&d_managedDiagnosticChannel),
+              true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerDumpToFileNameListener(
+              new SetToDefaultSourceListener(&d_managedDumpChannel), true));
+      d_listenerRegistrations->add(
+          nodeManagerOptions.registerSetReplayLogFilename(
+              new SetToDefaultSourceListener(&d_managedReplayLog), true));
+    }
+    catch (OptionException& e)
+    {
+      // Registering the option listeners can lead to OptionExceptions, e.g.
+      // when the user chooses a dump tag that does not exist. In that case, we
+      // have to make sure that we delete existing listener registrations and
+      // that we unsubscribe from NodeManager events. Otherwise we will have
+      // errors in the deconstructors of the NodeManager (because the
+      // NodeManager tries to notify an SmtEnginePrivate that does not exist)
+      // and the ListenerCollection (because not all registrations have been
+      // removed before calling the deconstructor).
+      delete d_listenerRegistrations;
+      d_smt.d_nodeManager->unsubscribeEvents(this);
+      throw OptionException(e.getRawMessage());
+    }
   }
 
   ~SmtEnginePrivate()
@@ -713,8 +756,14 @@ class SmtEnginePrivate : public NodeManagerListener {
    * immediately, or it might be simplified and kept, or it might not
    * even be simplified.
    * the 2nd and 3rd arguments added for bookkeeping for proofs
+   *
+   * @param isAssumption If true, the formula is considered to be an assumption
+   * (this is used to distinguish assertions and assumptions)
    */
-  void addFormula(TNode n, bool inUnsatCore, bool inInput = true);
+  void addFormula(TNode n,
+                  bool inUnsatCore,
+                  bool inInput = true,
+                  bool isAssumption = false);
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
@@ -1210,7 +1259,7 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::produceModelCores())
+       || options::modelCoresMode() != MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -1407,7 +1456,7 @@ void SmtEngine::setDefaults() {
   // cases where we need produce models
   if (!options::produceModels()
       && (options::produceAssignments() || options::sygusRewSynthCheck()
-          || options::produceModelCores() || is_sygus))
+          || is_sygus))
   {
     Notice() << "SmtEngine: turning on produce-models" << endl;
     setOption("produce-models", SExpr("true"));
@@ -1884,7 +1933,9 @@ void SmtEngine::setDefaults() {
     }
     if (options::sygusStream())
     {
-      // PBE and streaming modes are incompatible
+      // Streaming is incompatible with techniques that focus the search towards
+      // finding a single solution. This currently includes the PBE solver and
+      // static template inference for invariant synthesis.
       if (!options::sygusSymBreakPbe.wasSetByUser())
       {
         options::sygusSymBreakPbe.set(false);
@@ -1892,6 +1943,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+      }
+      if (!options::sygusInvTemplMode.wasSetByUser())
+      {
+        options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
       }
     }
     //do not allow partial functions
@@ -2363,8 +2418,9 @@ CVC4::SExpr SmtEngine::getInfo(const std::string& key) const {
       transform(s.begin(), s.end(), s.begin(), ::tolower);
       return SExpr(SExpr::Keyword(s));
     } else {
-      throw ModalException("Can't get-info :reason-unknown when the "
-                           "last result wasn't unknown!");
+      throw RecoverableModalException(
+          "Can't get-info :reason-unknown when the "
+          "last result wasn't unknown!");
     }
   } else if(key == "assertion-stack-levels") {
     AlwaysAssert(d_userLevels.size() <=
@@ -3021,7 +3077,8 @@ void SmtEnginePrivate::processAssertions() {
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() begin" << endl;
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
-  Debug("smt") << " d_assertions     : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assertions : " << d_assertions.size() << endl;
+  Debug("smt") << "#Assumptions: " << d_assertions.getNumAssumptions() << endl;
 
   if (d_assertions.size() == 0) {
     // nothing to do
@@ -3400,14 +3457,20 @@ void SmtEnginePrivate::processAssertions() {
   getIteSkolemMap().clear();
 }
 
-void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
+void SmtEnginePrivate::addFormula(TNode n,
+                                  bool inUnsatCore,
+                                  bool inInput,
+                                  bool isAssumption)
 {
   if (n == d_true) {
     // nothing to do
     return;
   }
 
-  Trace("smt") << "SmtEnginePrivate::addFormula(" << n << "), inUnsatCore = " << inUnsatCore << ", inInput = " << inInput << endl;
+  Trace("smt") << "SmtEnginePrivate::addFormula(" << n
+               << "), inUnsatCore = " << inUnsatCore
+               << ", inInput = " << inInput
+               << ", isAssumption = " << isAssumption << endl;
 
   // Give it to proof manager
   PROOF(
@@ -3430,7 +3493,7 @@ void SmtEnginePrivate::addFormula(TNode n, bool inUnsatCore, bool inInput)
   );
 
   // Add the normalized formula to the queue
-  d_assertions.push_back(n);
+  d_assertions.push_back(n, isAssumption);
   //d_assertions.push_back(Rewriter::rewrite(n));
 }
 
@@ -3552,7 +3615,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
       {
         d_assertionList->push_back(e);
       }
-      d_private->addFormula(e.getNode(), inUnsatCore);
+      d_private->addFormula(e.getNode(), inUnsatCore, true, true);
     }
 
     r = isQuery ? check().asValidityResult() : check().asSatisfiabilityResult();
@@ -3692,14 +3755,6 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
   return res;
 }
 
-Result SmtEngine::checkSynth(const Expr& e)
-{
-  SmtScope smts(this);
-  Trace("smt") << "Check synth: " << e << std::endl;
-  Trace("smt-synth") << "Check synthesis conjecture: " << e << std::endl;
-  return checkSatisfiability(e, true, false);
-}
-
 Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
 {
   Assert(ex.getExprManager() == d_exprManager);
@@ -3723,6 +3778,235 @@ Result SmtEngine::assertFormula(const Expr& ex, bool inUnsatCore)
   d_private->addFormula(e.getNode(), inUnsatCore);
   return quickCheck().asValidityResult();
 }/* SmtEngine::assertFormula() */
+
+/*
+   --------------------------------------------------------------------------
+    Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
+
+void SmtEngine::declareSygusVar(const std::string& id, Expr var, Type type)
+{
+  d_private->d_sygusVars.push_back(Node::fromExpr(var));
+  Trace("smt") << "SmtEngine::declareSygusVar: " << var << "\n";
+}
+
+void SmtEngine::declareSygusPrimedVar(const std::string& id, Type type)
+{
+#ifdef CVC4_ASSERTIONS
+  d_private->d_sygusPrimedVarTypes.push_back(type);
+#endif
+  Trace("smt") << "SmtEngine::declareSygusPrimedVar: " << id << "\n";
+}
+
+void SmtEngine::declareSygusFunctionVar(const std::string& id,
+                                        Expr var,
+                                        Type type)
+{
+  d_private->d_sygusVars.push_back(Node::fromExpr(var));
+  Trace("smt") << "SmtEngine::declareSygusFunctionVar: " << var << "\n";
+}
+
+void SmtEngine::declareSynthFun(const std::string& id,
+                                Expr func,
+                                Type sygusType,
+                                bool isInv,
+                                const std::vector<Expr>& vars)
+{
+  Node fn = Node::fromExpr(func);
+  d_private->d_sygusFunSymbols.push_back(fn);
+  std::vector<Node> var_nodes;
+  for (const Expr& v : vars)
+  {
+    var_nodes.push_back(Node::fromExpr(v));
+  }
+  d_private->d_sygusFunVars[fn] = var_nodes;
+  // whether sygus type encodes syntax restrictions
+  if (sygusType.isDatatype()
+      && static_cast<DatatypeType>(sygusType).getDatatype().isSygus())
+  {
+    d_private->d_sygusFunSyntax[fn] = TypeNode::fromType(sygusType);
+  }
+  Trace("smt") << "SmtEngine::declareSynthFun: " << func << "\n";
+}
+
+void SmtEngine::assertSygusConstraint(Expr constraint)
+{
+  d_private->d_sygusConstraints.push_back(constraint);
+
+  Trace("smt") << "SmtEngine::assertSygusConstrant: " << constraint << "\n";
+}
+
+void SmtEngine::assertSygusInvConstraint(const Expr& inv,
+                                         const Expr& pre,
+                                         const Expr& trans,
+                                         const Expr& post)
+{
+  SmtScope smts(this);
+  // build invariant constraint
+
+  // get variables (regular and their respective primed versions)
+  std::vector<Node> terms, vars, primed_vars;
+  terms.push_back(Node::fromExpr(inv));
+  terms.push_back(Node::fromExpr(pre));
+  terms.push_back(Node::fromExpr(trans));
+  terms.push_back(Node::fromExpr(post));
+  // variables are built based on the invariant type
+  FunctionType t = static_cast<FunctionType>(inv.getType());
+  std::vector<Type> argTypes = t.getArgTypes();
+  for (const Type& ti : argTypes)
+  {
+    TypeNode tn = TypeNode::fromType(ti);
+    vars.push_back(d_nodeManager->mkBoundVar(tn));
+    d_private->d_sygusVars.push_back(vars.back());
+    std::stringstream ss;
+    ss << vars.back() << "'";
+    primed_vars.push_back(d_nodeManager->mkBoundVar(ss.str(), tn));
+    d_private->d_sygusVars.push_back(primed_vars.back());
+#ifdef CVC4_ASSERTIONS
+    bool find_new_declared_var = false;
+    for (const Type& t : d_private->d_sygusPrimedVarTypes)
+    {
+      if (t == ti)
+      {
+        d_private->d_sygusPrimedVarTypes.erase(
+            std::find(d_private->d_sygusPrimedVarTypes.begin(),
+                      d_private->d_sygusPrimedVarTypes.end(),
+                      t));
+        find_new_declared_var = true;
+        break;
+      }
+    }
+    if (!find_new_declared_var)
+    {
+      Warning()
+          << "warning: declared primed variables do not match invariant's "
+             "type\n";
+    }
+#endif
+  }
+
+  // make relevant terms; 0 -> Inv, 1 -> Pre, 2 -> Trans, 3 -> Post
+  for (unsigned i = 0; i < 4; ++i)
+  {
+    Node op = terms[i];
+    Trace("smt-debug") << "Make inv-constraint term #" << i << " : " << op
+                       << " with type " << op.getType() << "...\n";
+    std::vector<Node> children;
+    children.push_back(op);
+    // transition relation applied over both variable lists
+    if (i == 2)
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+    }
+    else
+    {
+      children.insert(children.end(), vars.begin(), vars.end());
+    }
+    terms[i] =
+        d_nodeManager->mkNode(i == 0 ? kind::APPLY_UF : kind::APPLY, children);
+    // make application of Inv on primed variables
+    if (i == 0)
+    {
+      children.clear();
+      children.push_back(op);
+      children.insert(children.end(), primed_vars.begin(), primed_vars.end());
+      terms.push_back(d_nodeManager->mkNode(kind::APPLY_UF, children));
+    }
+  }
+  // make constraints
+  std::vector<Node> conj;
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[1], terms[0]));
+  Node term0_and_2 = d_nodeManager->mkNode(kind::AND, terms[0], terms[2]);
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, term0_and_2, terms[4]));
+  conj.push_back(d_nodeManager->mkNode(kind::IMPLIES, terms[0], terms[3]));
+  Node constraint = d_nodeManager->mkNode(kind::AND, conj);
+
+  d_private->d_sygusConstraints.push_back(constraint);
+
+  Trace("smt") << "SmtEngine::assertSygusInvConstrant: " << constraint << "\n";
+}
+
+Result SmtEngine::checkSynth()
+{
+  SmtScope smts(this);
+  // build synthesis conjecture from asserted constraints and declared
+  // variables/functions
+  Node sygusVar =
+      d_nodeManager->mkSkolem("sygus", d_nodeManager->booleanType());
+  Node inst_attr = d_nodeManager->mkNode(kind::INST_ATTRIBUTE, sygusVar);
+  Node sygusAttr = d_nodeManager->mkNode(kind::INST_PATTERN_LIST, inst_attr);
+  std::vector<Node> bodyv;
+  Trace("smt") << "Sygus : Constructing sygus constraint...\n";
+  unsigned n_constraints = d_private->d_sygusConstraints.size();
+  Node body = n_constraints == 0
+                  ? d_nodeManager->mkConst(true)
+                  : (n_constraints == 1
+                         ? d_private->d_sygusConstraints[0]
+                         : d_nodeManager->mkNode(
+                               kind::AND, d_private->d_sygusConstraints));
+  body = body.notNode();
+  Trace("smt") << "...constructed sygus constraint " << body << std::endl;
+  if (!d_private->d_sygusVars.empty())
+  {
+    Node boundVars =
+        d_nodeManager->mkNode(kind::BOUND_VAR_LIST, d_private->d_sygusVars);
+    body = d_nodeManager->mkNode(kind::EXISTS, boundVars, body);
+    Trace("smt") << "...constructed exists " << body << std::endl;
+  }
+  if (!d_private->d_sygusFunSymbols.empty())
+  {
+    Node boundVars = d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                           d_private->d_sygusFunSymbols);
+    body = d_nodeManager->mkNode(kind::FORALL, boundVars, body, sygusAttr);
+  }
+  Trace("smt") << "...constructed forall " << body << std::endl;
+
+  // set attribute for synthesis conjecture
+  setUserAttribute("sygus", sygusVar.toExpr(), {}, "");
+
+  // set attributes for functions-to-synthesize
+  for (const Node& synth_fun : d_private->d_sygusFunSymbols)
+  {
+    // associate var list with function-to-synthesize
+    Assert(d_private->d_sygusFunVars.find(synth_fun)
+           != d_private->d_sygusFunVars.end());
+    const std::vector<Node>& vars = d_private->d_sygusFunVars[synth_fun];
+    Node bvl;
+    if (!vars.empty())
+    {
+      bvl = d_nodeManager->mkNode(kind::BOUND_VAR_LIST, vars);
+    }
+    std::vector<Expr> attr_val_bvl;
+    attr_val_bvl.push_back(bvl.toExpr());
+    setUserAttribute(
+        "sygus-synth-fun-var-list", synth_fun.toExpr(), attr_val_bvl, "");
+    // If the function has syntax restrition, bulid a variable "sfproxy" which
+    // carries the type, a SyGuS datatype that corresponding to the syntactic
+    // restrictions.
+    std::map<Node, TypeNode>::const_iterator it =
+        d_private->d_sygusFunSyntax.find(synth_fun);
+    if (it != d_private->d_sygusFunSyntax.end())
+    {
+      Node sym = d_nodeManager->mkBoundVar("sfproxy", it->second);
+      std::vector<Expr> attr_value;
+      attr_value.push_back(sym.toExpr());
+      setUserAttribute(
+          "sygus-synth-grammar", synth_fun.toExpr(), attr_value, "");
+    }
+  }
+
+  Trace("smt") << "Check synthesis conjecture: " << body << std::endl;
+
+  return checkSatisfiability(body.toExpr(), true, false);
+}
+
+/*
+   --------------------------------------------------------------------------
+    End of Handling SyGuS commands
+   --------------------------------------------------------------------------
+*/
 
 Node SmtEngine::postprocess(TNode node, TypeNode expectedType) const {
   return node;
@@ -4017,12 +4301,12 @@ Model* SmtEngine::getModel() {
   }
   TheoryModel* m = d_theoryEngine->getModel();
 
-  if (options::produceModelCores())
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder::setModelCore(easserts, m);
+    ModelCoreBuilder::setModelCore(easserts, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;

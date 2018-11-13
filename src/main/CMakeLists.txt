@@ -3,7 +3,6 @@
 
 set(libmain_src_files
   command_executor.cpp
-  driver_unified.cpp
   interactive_shell.cpp
   interactive_shell.h
   main.h
@@ -32,13 +31,14 @@ target_include_directories(main PRIVATE ${LIBCVC4_INCLUDES})
 # main-test library is only used for linking against system and unit tests so
 # that we don't have to include all object files of main into each unit/system
 # test. Do not link against main-test in any other case.
-add_library(main-test $<TARGET_OBJECTS:main>)
+add_library(main-test driver_unified.cpp $<TARGET_OBJECTS:main>)
+target_compile_definitions(main-test PRIVATE -D__BUILDING_CVC4DRIVER)
 target_link_libraries(main-test cvc4 cvc4parser)
 
 #-----------------------------------------------------------------------------#
 # cvc4 binary configuration
 
-add_executable(cvc4-bin main.cpp $<TARGET_OBJECTS:main>)
+add_executable(cvc4-bin driver_unified.cpp main.cpp $<TARGET_OBJECTS:main>)
 target_compile_definitions(cvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
 set_target_properties(cvc4-bin
   PROPERTIES
@@ -56,7 +56,7 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(NOT ENABLE_SHARED)
+if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc4-bin PROPERTIES LINK_FLAGS -static)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
@@ -64,17 +64,19 @@ endif()
 
 if(ENABLE_PORTFOLIO)
   set(pcvc4_src_files
+    command_executor_portfolio.cpp
+    command_executor_portfolio.h
+    driver_unified.cpp
     main.cpp
     portfolio.cpp
     portfolio.h
     portfolio_util.cpp
     portfolio_util.h
-    command_executor_portfolio.cpp
-    command_executor_portfolio.h
   )
 
   add_executable(pcvc4-bin ${pcvc4_src_files} $<TARGET_OBJECTS:main>)
   target_compile_definitions(pcvc4-bin PRIVATE -D__BUILDING_CVC4DRIVER)
+  target_compile_definitions(pcvc4-bin PRIVATE -DPORTFOLIO_BUILD)
   set_target_properties(pcvc4-bin
     PROPERTIES
       OUTPUT_NAME pcvc4
@@ -88,7 +90,7 @@ if(ENABLE_PORTFOLIO)
     install(TARGETS pcvc4-bin DESTINATION bin)
   endif()
 
-  if(NOT ENABLE_SHARED)
+  if(ENABLE_STATIC_BINARY)
     set_target_properties(pcvc4-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
     set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)

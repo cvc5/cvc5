@@ -273,35 +273,6 @@ private:
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
 
-  void addSygusConstraint(Expr constraint) {
-    d_sygusConstraints.push_back(constraint);
-  }
-
-  Expr getSygusConstraints() {
-    switch(d_sygusConstraints.size()) {
-    case 0: return getExprManager()->mkConst(bool(true));
-    case 1: return d_sygusConstraints[0];
-    default: return getExprManager()->mkExpr(kind::AND, d_sygusConstraints);
-    }
-  }
-
-  const std::vector<Expr>& getSygusVars() {
-    return d_sygusVars;
-  }
-  /** retrieves the invariant variables (both regular and primed)
-   *
-   * To ensure that the variable list represent the correct argument type order
-   * the type  of the invariant predicate is used during the variable retrieval
-   */
-  const void getSygusInvVars(FunctionType t,
-                             std::vector<Expr>& vars,
-                             std::vector<Expr>& primed_vars);
-
-  const void addSygusFunSymbol( Type t, Expr synth_fun );
-  const std::vector<Expr>& getSygusFunSymbols() {
-    return d_sygusFunSymbols;
-  }
-
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.

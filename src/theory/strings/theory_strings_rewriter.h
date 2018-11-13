@@ -455,6 +455,19 @@ class TheoryStringsRewriter {
    * the call checkArithEntail( len( a ), true ).
    */
   static bool checkEntailNonEmpty(Node a);
+
+  /**
+   * Checks whether string has at most/exactly length one. Length one strings
+   * can be used for more aggressive rewriting because there is guaranteed that
+   * it cannot be overlap multiple components in a string concatenation.
+   *
+   * @param s The string to check
+   * @param strict If true, the string must have exactly length one, otherwise
+   * at most length one
+   * @return True if the string has at most/exactly length one, false otherwise
+   */
+  static bool checkEntailLengthOne(Node s, bool strict = false);
+
   /** check arithmetic entailment equal
    * Returns true if it is always the case that a = b.
    */

@@ -522,6 +522,8 @@ libcvc4_add_sources(
   theory/quantifiers/single_inv_partition.h
   theory/quantifiers/skolemize.cpp
   theory/quantifiers/skolemize.h
+  theory/quantifiers/solution_filter.cpp
+  theory/quantifiers/solution_filter.h
   theory/quantifiers/sygus/ce_guided_single_inv.cpp
   theory/quantifiers/sygus/ce_guided_single_inv.h
   theory/quantifiers/sygus/ce_guided_single_inv_sol.cpp
@@ -532,6 +534,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/sygus_enumerator.cpp
+  theory/quantifiers/sygus/sygus_enumerator.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
@@ -823,7 +827,7 @@ install(FILES
           options/printer_modes.h
           options/quantifiers_modes.h
           options/set_language.h
-          options/simplification_mode.h
+          options/smt_modes.h
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION

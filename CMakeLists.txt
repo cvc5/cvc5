@@ -31,6 +31,17 @@ set(CMAKE_CXX_STANDARD 11)
 # plugins.
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+# Embed the installation prefix as an RPATH in the executable such that the
+# linker can find our libraries (such as libcvc4parser) when executing the cvc4
+# binary. This is for example useful when installing CVC4 with a custom prefix
+# on macOS (e.g. when using homebrew in a non-standard directory). If we do not
+# set this option, then the linker will not be able to find the required
+# libraries when trying to run CVC4.
+#
+# More information on RPATH in CMake:
+# https://gitlab.kitware.com/cmake/community/wikis/doc/cmake/RPATH-handling
+set(CMAKE_INSTALL_RPATH "${CMAKE_INSTALL_PREFIX}/lib")
+
 #-----------------------------------------------------------------------------#
 
 include(Helpers)
@@ -60,6 +71,8 @@ cvc4_option(ENABLE_TRACING       "Enable tracing")
 cvc4_option(ENABLE_UNIT_TESTING  "Enable unit testing")
 cvc4_option(ENABLE_VALGRIND      "Enable valgrind instrumentation")
 cvc4_option(ENABLE_SHARED        "Build as shared library")
+cvc4_option(ENABLE_STATIC_BINARY
+            "Build static binaries with statically linked system libraries")
 # >> 2-valued: ON OFF
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(ENABLE_BEST             "Enable dependencies known to give best performance")
@@ -173,7 +186,11 @@ add_check_cxx_flag("-Wno-class-memaccess")
 # These options are only set if their value is IGNORE. Otherwise, the user
 # already set the option, which we don't want to overwrite.
 
-cvc4_set_option(ENABLE_SHARED ON)
+if(ENABLE_STATIC_BINARY)
+  cvc4_set_option(ENABLE_SHARED OFF)
+else()
+  cvc4_set_option(ENABLE_SHARED ON)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Set options for best configuration
@@ -210,11 +227,16 @@ endif()
 
 if(ENABLE_SHARED)
   set(BUILD_SHARED_LIBS ON)
+  if(ENABLE_STATIC_BINARY)
+    set(ENABLE_STATIC_BINARY OFF)
+    message(WARNING "Disabling static binary since shared build is enabled.")
+  endif()
 else()
   set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
   set(BUILD_SHARED_LIBS OFF)
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
+  cvc4_set_option(ENABLE_STATIC_BINARY ON)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -433,7 +455,7 @@ endif()
 # Generate CVC4's cvc4autoconfig.h header
 
 include(ConfigureCVC4)
-configure_file(cvc4autoconfig.new.h.in cvc4autoconfig.h)
+configure_file(cvc4autoconfig.h.in cvc4autoconfig.h)
 include_directories(${CMAKE_CURRENT_BINARY_DIR})
 
 #-----------------------------------------------------------------------------#
@@ -490,6 +512,7 @@ print_config("Unit tests           :" ENABLE_UNIT_TESTING)
 print_config("Valgrind             :" ENABLE_VALGRIND)
 message("")
 print_config("Shared libs          :" ENABLE_SHARED)
+print_config("Static binary        :" ENABLE_STATIC_BINARY)
 print_config("Java bindings        :" BUILD_BINDINGS_JAVA)
 print_config("Python bindings      :" BUILD_BINDINGS_PYTHON)
 print_config("Python2              :" USE_PYTHON2)
