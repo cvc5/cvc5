@@ -144,6 +144,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   getExtTheory()->addFunctionKind(kind::STRING_ITOS);
   getExtTheory()->addFunctionKind(kind::STRING_STOI);
   getExtTheory()->addFunctionKind(kind::STRING_STRREPL);
+  getExtTheory()->addFunctionKind(kind::STRING_STRREPLALL);
   getExtTheory()->addFunctionKind(kind::STRING_STRCTN);
   getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
   getExtTheory()->addFunctionKind(kind::STRING_LEQ);
@@ -162,6 +163,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
     d_equalityEngine.addFunctionKind(kind::STRING_STOI);
     d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
     d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+    d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
   }
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
@@ -502,7 +504,7 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
-           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
+           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL || k == STRING_STRREPLALL
            || k == STRING_LEQ);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
@@ -819,6 +821,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
           || k == kind::STRING_STOI
           || k == kind::STRING_STRREPL
+          || k == kind::STRING_STRREPLALL
           || k == kind::STRING_STRCTN
           || k == STRING_LEQ)
       {

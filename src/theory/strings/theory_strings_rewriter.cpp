@@ -2996,7 +2996,7 @@ Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
 Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
 {
   Kind nk = node.getKind();
-  Assert(node.getKind() == STRING_STRREPLALL);
+  Assert(nk == STRING_STRREPL || nk == STRING_STRREPLALL);
 
   if (node[1] == node[2])
   {
