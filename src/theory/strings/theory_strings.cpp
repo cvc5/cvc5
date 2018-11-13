@@ -504,8 +504,8 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
   {
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
-           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL || k == STRING_STRREPLALL
-           || k == STRING_LEQ);
+           || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
+           || k == STRING_STRREPLALL || k == STRING_LEQ);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -819,10 +819,8 @@ void TheoryStrings::preRegisterTerm(TNode n) {
     Kind k = n.getKind();
     if( !options::stringExp() ){
       if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
-          || k == kind::STRING_STOI
-          || k == kind::STRING_STRREPL
-          || k == kind::STRING_STRREPLALL
-          || k == kind::STRING_STRCTN
+          || k == kind::STRING_STOI || k == kind::STRING_STRREPL
+          || k == kind::STRING_STRREPLALL || k == kind::STRING_STRCTN
           || k == STRING_LEQ)
       {
         std::stringstream ss;

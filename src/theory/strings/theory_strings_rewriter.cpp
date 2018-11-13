@@ -2973,9 +2973,9 @@ Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
       }
       else
       {
-        children.push_back(nm->mkConst(s.substr(index, s.size()-index)));
+        children.push_back(nm->mkConst(s.substr(index, s.size() - index)));
       }
-    } while (curr != std::string::npos && curr<s.size());
+    } while (curr != std::string::npos && curr < s.size());
     // constant evaluation
     Node res = mkConcat(STRING_CONCAT, children);
     return returnRewrite(node, res, "replall-const");
@@ -3006,7 +3006,7 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   if (node[0] == node[1])
   {
     // only holds for replaceall if non-empty
-    if( nk==STRING_STRREPL || checkEntailNonEmpty(node[1]) )
+    if (nk == STRING_STRREPL || checkEntailNonEmpty(node[1]))
     {
       return returnRewrite(node, node[2], "rpl-replace");
     }
