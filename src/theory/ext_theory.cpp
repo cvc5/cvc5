@@ -233,6 +233,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       std::vector<std::vector<Node> > exp;
       getSubstitutedTerms(effort, terms, sterms, exp);
       std::map<Node, unsigned> sterm_index;
+      NodeManager * nm = NodeManager::currentNM();
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         bool processed = false;
@@ -248,7 +249,8 @@ bool ExtTheory::doInferencesInternal(int effort,
             // We have exp[i] => terms[i] = sr, convert this to a clause.
             // This ensures the proof infrastructure can process this as a
             // normal theory lemma.
-            Node lem = terms[i].eqNode(sr);
+            Node eq = terms[i].eqNode(sr);
+            Node lem = eq;
             if (!exp[i].empty())
             {
               std::vector<Node> eei;
@@ -256,8 +258,8 @@ bool ExtTheory::doInferencesInternal(int effort,
               {
                 eei.push_back(e.negate());
               }
-              eei.push_back(lem);
-              lem = NodeManager::currentNM()->mkNode(kind::OR, eei);
+              eei.push_back(eq);
+              lem = nm->mkNode(kind::OR, eei);
             }
 
             Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq
