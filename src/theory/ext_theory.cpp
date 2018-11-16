@@ -245,15 +245,23 @@ bool ExtTheory::doInferencesInternal(int effort,
           {
             processed = true;
             markReduced(terms[i]);
-            Node eq = terms[i].eqNode(sr);
-            Node expn =
-                exp[i].size() > 1
-                    ? NodeManager::currentNM()->mkNode(kind::AND, exp[i])
-                    : (exp[i].size() == 1 ? exp[i][0] : d_true);
+            // We have exp[i] => terms[i] = sr, convert this to a clause.
+            // This ensures the proof infrastructure can process this as a
+            // normal theory lemma.
+            Node lem = terms[i].eqNode(sr);
+            if( !exp[i].empty() )
+            {
+              std::vector< Node > eei;
+              for( const Node& e : exp[i] )
+              {
+                eei.push_back( e.negate() );
+              }
+              eei.push_back( lem );
+              lem = NodeManager::currentNM()->mkNode(kind::OR,eei);
+            }
+
             Trace("extt-debug") << "ExtTheory::doInferences : infer : " << eq
-                                << " by " << expn << std::endl;
-            Node lem =
-                NodeManager::currentNM()->mkNode(kind::IMPLIES, expn, eq);
+                                << " by " << exp[i] << std::endl;
             Trace("extt-debug") << "...send lemma " << lem << std::endl;
             if (sendLemma(lem))
             {
