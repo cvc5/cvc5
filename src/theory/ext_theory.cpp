@@ -233,7 +233,7 @@ bool ExtTheory::doInferencesInternal(int effort,
       std::vector<std::vector<Node> > exp;
       getSubstitutedTerms(effort, terms, sterms, exp);
       std::map<Node, unsigned> sterm_index;
-      NodeManager * nm = NodeManager::currentNM();
+      NodeManager* nm = NodeManager::currentNM();
       for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
         bool processed = false;
