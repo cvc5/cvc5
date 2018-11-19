@@ -21,5 +21,10 @@
 ; a constant term
 (declare a_real (! x mpq (term Real)))
 
+(declare >=0_Real (! x (term Real) formula))
+(declare =0_Real (! x (term Real) formula))
+(declare >0_Real (! x (term Real) formula))
+(declare distinct0_Real (! x (term Real) formula))
+
 ; unary negation
 (declare u-_Real (! t (term Real) (term Real)))
