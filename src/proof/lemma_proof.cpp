@@ -47,7 +47,13 @@ std::set<Node> LemmaProofRecipe::getMissingAssertionsForStep(unsigned index) con
 
   std::set<Node> existingAssertions = getBaseAssertions();
 
+  // The literals for all the steps "before" (i.e. behind) the step indicated
+  // by the index are considered "existing"
   size_t revIndex = d_proofSteps.size() - 1 - index;
+  for (size_t i = d_proofSteps.size() - 1; i != revIndex; --i)
+  {
+    existingAssertions.insert(d_proofSteps[i].getLiteral().negate());
+  }
 
   std::set<Node> neededAssertions = d_proofSteps[revIndex].getAssertions();
 
