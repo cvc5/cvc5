@@ -78,6 +78,12 @@ void SynthConjecture::assign(Node q)
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
 
+  // initialize the guard
+  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
+  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  AlwaysAssert(!d_feasible_guard.isNull());
+  
   // pre-simplify the quantified formula based on the process utility
   d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
@@ -177,11 +183,6 @@ void SynthConjecture::assign(Node q)
     }
   }
 
-  // initialize the guard
-  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
-  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
-  AlwaysAssert(!d_feasible_guard.isNull());
   // register the strategy
   d_feasible_strategy.reset(
       new DecisionStrategySingleton("sygus_feasible",

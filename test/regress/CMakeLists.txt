@@ -860,6 +860,7 @@ set(regress_0_tests
   regress0/sygus/real-si-all.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/uminus_one.sy
+  regress0/sygus/univ_3-long-repeat-conflict.sy
   regress0/test11.cvc
   regress0/test9.cvc
   regress0/tptp/ARI086=1.p
