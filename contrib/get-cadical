@@ -19,4 +19,4 @@ echo
 echo "Using CaDiCaL commit $commit"
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-cadical
+echo ./configure.sh --cadical

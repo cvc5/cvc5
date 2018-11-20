@@ -9,28 +9,22 @@ fi
 
 version="5.6.3"
 
-mkdir cryptominisat5
-cd cryptominisat5
-CRYPTOMINISAT_PATH=`pwd`
-
 webget https://github.com/msoos/cryptominisat/archive/$version.tar.gz cryptominisat-$version.tar.gz
-gunzip -f cryptominisat-$version.tar.gz
-tar xfv cryptominisat-$version.tar
-cd cryptominisat-$version
+tar xfvz cryptominisat-$version.tar.gz
+rm cryptominisat-$version.tar.gz
+mv cryptominisat-$version cryptominisat5
 
-mkdir ../build
-cd ../build
+cd cryptominisat5
+mkdir build
+cd build
 
 cmake -DENABLE_PYTHON_INTERFACE=OFF \
-      -DCMAKE_INSTALL_PREFIX:PATH=$CRYPTOMINISAT_PATH/install \
       -DSTATICCOMPILE=ON \
       -DNOM4RI=ON \
-      ../cryptominisat-$version
+      ..
 
-make install -j$(nproc)
-
-cd ../
+make libcryptominisat5 -j$(nproc)
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-cryptominisat
+echo ./configure.sh --cryptominisat

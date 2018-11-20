@@ -150,6 +150,22 @@ namespace CVC4 {
 #  define IS_GPL_BUILD false
 #endif /* CVC4_GPL_DEPS */
 
+#define IS_ASAN_BUILD false
+
+// GCC test
+#if defined(__SANITIZE_ADDRESS__)
+#  undef IS_ASAN_BUILD
+#  define IS_ASAN_BUILD true
+#endif /* defined(__SANITIZE_ADDRESS__) */
+
+// Clang test
+#if defined(__has_feature)
+#  if __has_feature(address_sanitizer)
+#    undef IS_ASAN_BUILD
+#    define IS_ASAN_BUILD true
+#  endif /* __has_feature(address_sanitizer) */
+#endif /* defined(__has_feature) */
+
 }/* CVC4 namespace */
 
 #endif /* __CVC4__CONFIGURATION_PRIVATE_H */
