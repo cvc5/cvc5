@@ -160,7 +160,8 @@ bool SygusPbe::initialize(Node n,
   }
 
   std::map<Node, bool> visited;
-  if (!collectExamples(n.negate(), visited, true, true))
+  // n is negated conjecture
+  if (!collectExamples(n, visited, true, false))
   {
     Trace("sygus-pbe") << "...conflicting examples" << std::endl;
     Node infeasible = d_parent->getGuard().negate();

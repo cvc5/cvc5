@@ -44,6 +44,7 @@
 (constraint (= (f "University of Pennsylvania" "Phialdelphia, PA, USA") 
                   "Phialdelphia, PA, USA"))
 (constraint (= (f "UCLA" "Los Angeles, CA") 
-                    "Los Angeles, CA, USA"))                              
- 
+                    "Los Angeles, CA, USA"))
+
+; has contradictory examples
 (check-synth)
