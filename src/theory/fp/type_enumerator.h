@@ -66,8 +66,9 @@ class FloatingPointEnumerator
     // Rotate the LSB into the sign so that NaN is the last value
     uint64_t vone = 1;
     uint64_t vmax = d_state.getSize() - 1;
-    BitVector bva = d_state.logicalRightShift(BitVector(d_state.getSize(),vone));
-    BitVector bvb = d_state.leftShift(BitVector(d_state.getSize(),vmax));
+    BitVector bva =
+        d_state.logicalRightShift(BitVector(d_state.getSize(), vone));
+    BitVector bvb = d_state.leftShift(BitVector(d_state.getSize(), vmax));
     const BitVector value = (bva | bvb);
 
     return FloatingPoint(d_e, d_s, value);
