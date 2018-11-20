@@ -16,10 +16,10 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_util.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -58,7 +58,9 @@ bool SygusPbe::collectExamples(Node n,
         n_output = pol ? d_true : d_false;
       }
       neval_is_evalapp = true;
-    }else if( n.getKind()==EQUAL && hasPol && pol ){
+    }
+    else if (n.getKind() == EQUAL && hasPol && pol)
+    {
       for( unsigned r=0; r<2; r++ ){
         if (n[r].getKind() == DT_SYGUS_EVAL)
         {
@@ -73,18 +75,19 @@ bool SygusPbe::collectExamples(Node n,
     // is it an evaluation function?
     if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
     {
-      Trace("sygus-pbe-debug") << "Process head: " << n << " == " << n_output << std::endl;
+      Trace("sygus-pbe-debug")
+          << "Process head: " << n << " == " << n_output << std::endl;
       // If n_output is null, then neval does not have a constant value
       // If n_output is non-null, then neval is constrained to always be
       // that value.
-      if( !n_output.isNull() )
+      if (!n_output.isNull())
       {
-        std::map< Node, Node >::iterator itet = d_exampleTermMap.find(neval);
-        if( itet==d_exampleTermMap.end() )
+        std::map<Node, Node>::iterator itet = d_exampleTermMap.find(neval);
+        if (itet == d_exampleTermMap.end())
         {
           d_exampleTermMap[neval] = n_output;
         }
-        else if( itet->second!=n_output )
+        else if (itet->second != n_output)
         {
           // We have a conflicting pair f( c ) = d1 ^ f( c ) = d2 for d1 != d2,
           // the conjecture is infeasible.
@@ -131,8 +134,8 @@ bool SygusPbe::collectExamples(Node n,
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       bool newHasPol;
       bool newPol;
-      QuantPhaseReq::getEntailPolarity( n, i, hasPol, pol, newHasPol, newPol );
-      if( !collectExamples( n[i], visited, newHasPol, newPol ) )
+      QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
+      if (!collectExamples(n[i], visited, newHasPol, newPol))
       {
         return false;
       }
@@ -157,7 +160,7 @@ bool SygusPbe::initialize(Node n,
   }
 
   std::map<Node, bool> visited;
-  if( !collectExamples(n.negate(), visited, true, true) )
+  if (!collectExamples(n.negate(), visited, true, true))
   {
     Trace("sygus-pbe") << "...conflicting examples" << std::endl;
     Node infeasible = d_parent->getGuard().negate();

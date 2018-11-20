@@ -1304,10 +1304,10 @@ void SmtEngine::setDefaults() {
       options::unconstrainedSimp.set(uncSimp);
     }
   }
-  if( !options::proof() )
+  if (!options::proof())
   {
     // minimizing solutions from single invocation requires proofs
-    if( options::cegqiSolMinCore() )
+    if (options::cegqiSolMinCore())
     {
       throw OptionException("cegqi-si-sol-min-core requires --proof");
     }
