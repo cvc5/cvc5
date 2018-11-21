@@ -105,8 +105,8 @@ class SkolemCache
     SK_NUM_OCCUR,
     // --------------- function skolems
     // For function k: Int -> Int
-    //   exists k. 
-    //     forall 0 <= x < n, 
+    //   exists k.
+    //     forall 0 <= x < n,
     //       k(x) is the index of the (x+1)^th occurrence of b in a
     //   where n is the number of occurrences of b in a
     SK_OCCUR_INDEX,
@@ -122,7 +122,8 @@ class SkolemCache
    */
   Node mkSkolemCached(Node a, SkolemId id, const char* c);
   /** Same as above, but the skolem to construct has a custom type tn */
-  Node mkTypedSkolemCached(TypeNode tn, Node a, Node b, SkolemId id, const char* c);
+  Node mkTypedSkolemCached(
+      TypeNode tn, Node a, Node b, SkolemId id, const char* c);
   /** Same as mkTypedSkolemCached above for (a,[null],id) */
   Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
   /** Returns a (uncached) skolem of type string with name c */

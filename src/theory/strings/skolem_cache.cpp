@@ -20,14 +20,14 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-SkolemCache::SkolemCache() 
+SkolemCache::SkolemCache()
 {
   d_strType = NodeManager::currentNM()->stringType();
 }
 
 Node SkolemCache::mkSkolemCached(Node a, Node b, SkolemId id, const char* c)
 {
-  return mkTypedSkolemCached(d_strType,a,b,id,c);
+  return mkTypedSkolemCached(d_strType, a, b, id, c);
 }
 
 Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
@@ -35,27 +35,31 @@ Node SkolemCache::mkSkolemCached(Node a, SkolemId id, const char* c)
   return mkSkolemCached(a, Node::null(), id, c);
 }
 
-Node SkolemCache::mkTypedSkolemCached(TypeNode tn, Node a, Node b, SkolemId id, const char* c)
+Node SkolemCache::mkTypedSkolemCached(
+    TypeNode tn, Node a, Node b, SkolemId id, const char* c)
 {
   a = a.isNull() ? a : Rewriter::rewrite(a);
   b = b.isNull() ? b : Rewriter::rewrite(b);
   std::map<SkolemId, Node>::iterator it = d_skolemCache[a][b].find(id);
   if (it == d_skolemCache[a][b].end())
   {
-    Node sk = mkTypedSkolem(tn,c);
+    Node sk = mkTypedSkolem(tn, c);
     d_skolemCache[a][b][id] = sk;
     return sk;
   }
   return it->second;
 }
-Node SkolemCache::mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c)
+Node SkolemCache::mkTypedSkolemCached(TypeNode tn,
+                                      Node a,
+                                      SkolemId id,
+                                      const char* c)
 {
-  return mkTypedSkolemCached(tn,a,Node::null(),id,c);
+  return mkTypedSkolemCached(tn, a, Node::null(), id, c);
 }
 
 Node SkolemCache::mkSkolem(const char* c)
 {
-  return mkTypedSkolem(d_strType,c);
+  return mkTypedSkolem(d_strType, c);
 }
 
 Node SkolemCache::mkTypedSkolem(TypeNode tn, const char* c)
