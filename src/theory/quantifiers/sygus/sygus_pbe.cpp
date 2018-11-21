@@ -259,7 +259,7 @@ bool SygusPbe::initialize(Node n,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addTerm(Node b, std::vector<Node>& exOut)
+Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 {
   PbeTrie* curr = this;
   for (const Node& eo : exOut)
@@ -270,7 +270,7 @@ Node SygusPbe::PbeTrie::addTerm(Node b, std::vector<Node>& exOut)
   {
     return curr->d_children.begin()->first;
   }
-  curr->d_children[b].clear();
+  curr->d_children.insert(curr->d_children.begin(),std::pair<Node, PbeTrie>(b,PbeTrie()));
   return b;
 }
 
