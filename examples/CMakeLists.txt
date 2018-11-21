@@ -4,7 +4,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 
 # Some of the examples require boost. Enable these examples if boost is
 # installed.
-find_package(Boost)
+find_package(Boost 1.50.0)
 
 set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin/examples)
 
