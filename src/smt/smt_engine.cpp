@@ -1307,7 +1307,7 @@ void SmtEngine::setDefaults() {
   if (!options::proof())
   {
     // minimizing solutions from single invocation requires proofs
-    if (options::cegqiSolMinCore())
+    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
     {
       throw OptionException("cegqi-si-sol-min-core requires --proof");
     }
