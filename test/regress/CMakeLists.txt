@@ -1732,6 +1732,7 @@ set(regress_2_tests
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
+  regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
