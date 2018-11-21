@@ -326,9 +326,9 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
       {
         if (bnr != bne)
         {
-          Trace("sygus-enum-exc") << "Exclude (by examples): " << bn
-                                  << ", since we already have " << bne
-                                  << std::endl;
+          Trace("sygus-enum-exc")
+              << "Exclude (by examples): " << bn << ", since we already have "
+              << bne << std::endl;
           return false;
         }
       }

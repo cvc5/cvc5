@@ -497,15 +497,15 @@ void SygusUnifIo::addExample(const std::vector<Node>& input, Node output)
 
 void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
 {
-  std::map< Node, std::vector< Node > >& eoc = d_exOutCache[e];
-  std::map< Node, std::vector< Node > >::iterator it = eoc.find(bv);
-  if( it!=eoc.end() )
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  std::map<Node, std::vector<Node>>::iterator it = eoc.find(bv);
+  if (it != eoc.end())
   {
-    exOut.insert(exOut.end(),it->second.begin(),it->second.end() );
+    exOut.insert(exOut.end(), it->second.begin(), it->second.end());
     return;
   }
   TypeNode xtn = e.getType();
-  std::vector< Node >& eocv = eoc[bv];
+  std::vector<Node>& eocv = eoc[bv];
   for (unsigned j = 0, size = d_examples.size(); j < size; j++)
   {
     Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
@@ -516,9 +516,9 @@ void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
 
 void SygusUnifIo::clearExampleCache(Node e, Node bv)
 {
-  std::map< Node, std::vector< Node > >& eoc = d_exOutCache[e];
-  Assert( eoc.find(bv)!=eoc.end());
-  eoc.erase( bv );
+  std::map<Node, std::vector<Node>>& eoc = d_exOutCache[e];
+  Assert(eoc.find(bv) != eoc.end());
+  eoc.erase(bv);
 }
 
 void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)

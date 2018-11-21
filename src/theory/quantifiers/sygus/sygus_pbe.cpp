@@ -270,7 +270,8 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
   {
     return curr->d_children.begin()->first;
   }
-  curr->d_children.insert(curr->d_children.begin(),std::pair<Node, PbeTrie>(b,PbeTrie()));
+  curr->d_children.insert(curr->d_children.begin(),
+                          std::pair<Node, PbeTrie>(b, PbeTrie()));
   return b;
 }
 
@@ -352,10 +353,10 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
     Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
     Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
     Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
-    if( ret!=bvr )
+    if (ret != bvr)
     {
       Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
-      d_sygus_unif[ee].clearExampleCache(e,bvr);
+      d_sygus_unif[ee].clearExampleCache(e, bvr);
     }
     Assert(ret.getType() == bvr.getType());
     return ret;
