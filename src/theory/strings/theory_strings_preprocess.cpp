@@ -419,13 +419,13 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node z = t[2];
     Node rpaw = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "rpaw");
 
-    Node numOcc = nm->mkSkolem("numOcc", nm->integerType());
+    Node numOcc = d_sc->mkTypedSkolemCached(nm->integerType(),x,y,SkolemCache::SK_NUM_OCCUR, "numOcc");
     std::vector<TypeNode> argTypes;
     argTypes.push_back(nm->integerType());
     Node us =
         nm->mkSkolem("Us", nm->mkFunctionType(argTypes, nm->stringType()));
-    Node uf =
-        nm->mkSkolem("Uf", nm->mkFunctionType(argTypes, nm->integerType()));
+    TypeNode ufType = nm->mkFunctionType(argTypes, nm->integerType());
+    Node uf = d_sc->mkTypedSkolemCached(ufType,x,y,SkolemCache::SK_OCCUR_INDEX, "Uf");
 
     Node ufno = nm->mkNode(APPLY_UF, uf, numOcc);
     Node usno = nm->mkNode(APPLY_UF, us, numOcc);
@@ -548,7 +548,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
         nm->mkNode(ITE, t[0].eqNode(t[1]), ltp, nm->mkNode(AND, conj));
     new_nodes.push_back(assert);
 
-    // Thus, str.<=( x, y ) = p_lt
+    // Thus, str.<=( x, y ) = ltp
     retNode = ltp;
   }
 

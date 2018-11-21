@@ -100,6 +100,16 @@ class SkolemCache
     // b > 0 =>
     //    exists k. a = a' ++ k ^ len( k ) = ite( len(a)>b, len(a)-b, 0 )
     SK_SUFFIX_REM,
+    // --------------- integer skolems
+    // exists k. ( b occurs k times in a )
+    SK_NUM_OCCUR,
+    // --------------- function skolems
+    // For function k: Int -> Int
+    //   exists k. 
+    //     forall 0 <= x < n, 
+    //       k(x) is the index of the (x+1)^th occurrence of b in a
+    //   where n is the number of occurrences of b in a
+    SK_OCCUR_INDEX,
   };
   /**
    * Returns a skolem of type string that is cached for (a,b,id) and has
@@ -111,12 +121,20 @@ class SkolemCache
    * name c.
    */
   Node mkSkolemCached(Node a, SkolemId id, const char* c);
+  /** Same as above, but the skolem to construct has a custom type tn */
+  Node mkTypedSkolemCached(TypeNode tn, Node a, Node b, SkolemId id, const char* c);
+  /** Same as mkTypedSkolemCached above for (a,[null],id) */
+  Node mkTypedSkolemCached(TypeNode tn, Node a, SkolemId id, const char* c);
   /** Returns a (uncached) skolem of type string with name c */
   Node mkSkolem(const char* c);
+  /** Same as above, but for custom type tn */
+  Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
 
  private:
+  /** string type */
+  TypeNode d_strType;
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
