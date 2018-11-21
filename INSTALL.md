@@ -151,7 +151,8 @@ provided with CVC4.
 ### CxxTest Unit Testing Framework (Unit Tests)
 
 [CxxTest](http://cxxtest.com) is required to optionally run CVC4's unit tests
-(included with the distribution). See [Testing](testing) below for more details.
+(included with the distribution). 
+See [Testing CVC4](#Testing-CVC4) below for more details.
 
 
 ## Building CVC4
