@@ -1762,7 +1762,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
           Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
       if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
       {
-        Node ret = nm->mkConst(::CVC4::String(""));
+        Node ret = nm->mkConst(String(""));
         return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
       }
 
