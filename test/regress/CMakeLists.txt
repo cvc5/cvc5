@@ -825,6 +825,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
@@ -1544,6 +1545,8 @@ set(regress_1_tests
   regress1/strings/reloop.smt2
   regress1/strings/repl-empty-sem.smt2
   regress1/strings/repl-soundness-sem.smt2
+  regress1/strings/replaceall-len.smt2
+  regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/str-code-sat.smt2
@@ -1729,6 +1732,8 @@ set(regress_2_tests
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
+  regress2/strings/replaceall-diffrange.smt2
+  regress2/strings/replaceall-len-c.smt2
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy
