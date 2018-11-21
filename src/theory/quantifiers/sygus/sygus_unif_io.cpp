@@ -506,7 +506,7 @@ void SygusUnifIo::computeExamples(Node e, Node bv, std::vector<Node>& exOut)
   }
   TypeNode xtn = e.getType();
   std::vector<Node>& eocv = eoc[bv];
-  for (unsigned j = 0, size = d_examples.size(); j < size; j++)
+  for (size_t j = 0, size = d_examples.size(); j < size; j++)
   {
     Node res = d_tds->evaluateBuiltin(xtn, bv, d_examples[j]);
     exOut.push_back(res);

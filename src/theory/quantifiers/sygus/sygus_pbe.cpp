@@ -270,8 +270,7 @@ Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
   {
     return curr->d_children.begin()->first;
   }
-  curr->d_children.insert(curr->d_children.begin(),
-                          std::pair<Node, PbeTrie>(b, PbeTrie()));
+  curr->d_children.insert(std::pair<Node, PbeTrie>(b, PbeTrie()));
   return b;
 }
 
