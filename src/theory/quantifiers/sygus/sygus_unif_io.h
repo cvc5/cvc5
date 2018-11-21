@@ -274,6 +274,17 @@ class SygusUnifIo : public SygusUnif
    */
   void addExample(const std::vector<Node>& input, Node output);
 
+  /** compute examples
+   *
+   * This adds the result of evaluating bv on the set of input examples managed
+   * by this class. Term bv is the builtin version of a term generated for
+   * enumerator e. It stores the resulting output for each example in exOut.
+   */
+  void computeExamples(Node e, Node bv, std::vector<Node>& exOut);
+
+  /** clear example cache */
+  void clearExampleCache(Node e, Node bv);
+
  protected:
   /** the candidate */
   Node d_candidate;
@@ -320,6 +331,9 @@ class SygusUnifIo : public SygusUnif
   std::vector<std::vector<Node>> d_examples;
   /** output of I/O examples */
   std::vector<Node> d_examples_out;
+
+  /** cache for computeExamples */
+  std::map<Node, std::map<Node, std::vector<Node>>> d_exOutCache;
 
   /**
   * This class stores information regarding an enumerator, including:

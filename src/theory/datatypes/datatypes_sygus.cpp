@@ -759,12 +759,12 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
             deq_child[1].push_back(1);
           }
         }
-        if (nk == ITE || nk == STRING_STRREPL)
+        if (nk == ITE || nk == STRING_STRREPL || nk == STRING_STRREPLALL)
         {
           deq_child[0].push_back(1);
           deq_child[1].push_back(2);
         }
-        if (nk == STRING_STRREPL)
+        if (nk == STRING_STRREPL || nk == STRING_STRREPLALL)
         {
           deq_child[0].push_back(0);
           deq_child[1].push_back(1);

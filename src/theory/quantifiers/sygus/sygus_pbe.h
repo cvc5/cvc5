@@ -240,11 +240,17 @@ class SygusPbe : public SygusModule
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
   std::map<Node, std::vector<Node> > d_examples_term;
+  /**
+   * Map from example input terms to their output, for example [EX#1] above,
+   * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
+   */
+  std::map<Node, Node> d_exampleTermMap;
   /** collect the PBE examples in n
-  * This is called on the input conjecture, and will populate the above vectors.
-  *   hasPol/pol denote the polarity of n in the conjecture.
-  */
-  void collectExamples(Node n,
+   * This is called on the input conjecture, and will populate the above
+   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
+   * function returns false if it finds two examples that are contradictory.
+   */
+  bool collectExamples(Node n,
                        std::map<Node, bool>& visited,
                        bool hasPol,
                        bool pol);
@@ -263,35 +269,15 @@ class SygusPbe : public SygusModule
    public:
     PbeTrie() {}
     ~PbeTrie() {}
-    /** the data for this node in the trie */
-    Node d_lazy_child;
     /** the children for this node in the trie */
     std::map<Node, PbeTrie> d_children;
     /** clear this trie */
     void clear() { d_children.clear(); }
     /**
-     * Add term b as a value enumerated for enumerator e to the trie.
-     *
-     * cpbe : reference to the parent pbe utility which stores the examples,
-     * index : the index of the example we are processing,
-     * ntotal : the total of the examples for enumerator e.
+     * Add term b whose value on examples is exOut to the trie. Return
+     * the first term registered to this trie whose evaluation was exOut.
      */
-    Node addPbeExample(TypeNode etn,
-                       Node e,
-                       Node b,
-                       SygusPbe* cpbe,
-                       unsigned index,
-                       unsigned ntotal);
-
-   private:
-    /** Helper function for above, called when we get the current example ex. */
-    Node addPbeExampleEval(TypeNode etn,
-                           Node e,
-                           Node b,
-                           std::vector<Node>& ex,
-                           SygusPbe* cpbe,
-                           unsigned index,
-                           unsigned ntotal);
+    Node addTerm(Node b, const std::vector<Node>& exOut);
   };
   /** trie of candidate solutions tried
   * This stores information for each (enumerator, type),
