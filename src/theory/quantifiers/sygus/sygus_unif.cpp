@@ -42,25 +42,28 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm(const std::vector<Node>& solved)
+Node SygusUnif::constructBestStringSolvedTerm(Node e,
+                                              const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestSolvedConditional(const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedConditional(Node ce,
+                                               const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
+Node SygusUnif::constructBestConditional(Node ce,
+                                         const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
