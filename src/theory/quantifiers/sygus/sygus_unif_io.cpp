@@ -701,12 +701,12 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           Trace("sygus-sui-enum")
               << "  ...fail : term is not unique" << std::endl;
         }
-        d_cond_count++;
       }
       if (keep)
       {
         // notify to retry the build of solution
         d_check_sol = true;
+        d_cond_count++;
         ecv.addEnumValue(v, results);
       }
     }

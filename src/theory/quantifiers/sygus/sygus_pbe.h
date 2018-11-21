@@ -240,11 +240,17 @@ class SygusPbe : public SygusModule
    * For the example [EX#1] above, this is f( 0 ), f( 5 ), f( 6 )
    */
   std::map<Node, std::vector<Node> > d_examples_term;
+  /**
+   * Map from example input terms to their output, for example [EX#1] above,
+   * this is { f( 0 ) -> 2, f( 5 ) -> 7, f( 6 ) -> 8 }.
+   */
+  std::map<Node, Node> d_exampleTermMap;
   /** collect the PBE examples in n
-  * This is called on the input conjecture, and will populate the above vectors.
-  *   hasPol/pol denote the polarity of n in the conjecture.
-  */
-  void collectExamples(Node n,
+   * This is called on the input conjecture, and will populate the above
+   * vectors, where hasPol/pol denote the polarity of n in the conjecture. This
+   * function returns false if it finds two examples that are contradictory.
+   */
+  bool collectExamples(Node n,
                        std::map<Node, bool>& visited,
                        bool hasPol,
                        bool pol);

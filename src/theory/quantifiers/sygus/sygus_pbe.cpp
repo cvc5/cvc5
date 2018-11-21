@@ -16,9 +16,10 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -40,7 +41,7 @@ SygusPbe::~SygusPbe() {}
 
 //--------------------------------- collecting finite input/output domain information
 
-void SygusPbe::collectExamples(Node n,
+bool SygusPbe::collectExamples(Node n,
                                std::map<Node, bool>& visited,
                                bool hasPol,
                                bool pol)
@@ -54,10 +55,12 @@ void SygusPbe::collectExamples(Node n,
     {
       neval = n;
       if( hasPol ){
-        n_output = !pol ? d_true : d_false;
+        n_output = pol ? d_true : d_false;
       }
       neval_is_evalapp = true;
-    }else if( n.getKind()==EQUAL && hasPol && !pol ){
+    }
+    else if (n.getKind() == EQUAL && hasPol && pol)
+    {
       for( unsigned r=0; r<2; r++ ){
         if (n[r].getKind() == DT_SYGUS_EVAL)
         {
@@ -72,6 +75,25 @@ void SygusPbe::collectExamples(Node n,
     // is it an evaluation function?
     if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
     {
+      Trace("sygus-pbe-debug")
+          << "Process head: " << n << " == " << n_output << std::endl;
+      // If n_output is null, then neval does not have a constant value
+      // If n_output is non-null, then neval is constrained to always be
+      // that value.
+      if (!n_output.isNull())
+      {
+        std::map<Node, Node>::iterator itet = d_exampleTermMap.find(neval);
+        if (itet == d_exampleTermMap.end())
+        {
+          d_exampleTermMap[neval] = n_output;
+        }
+        else if (itet->second != n_output)
+        {
+          // We have a conflicting pair f( c ) = d1 ^ f( c ) = d2 for d1 != d2,
+          // the conjecture is infeasible.
+          return false;
+        }
+      }
       // get the evaluation head
       Node eh = neval[0];
       std::map<Node, bool>::iterator itx = d_examples_invalid.find(eh);
@@ -103,7 +125,7 @@ void SygusPbe::collectExamples(Node n,
             Assert(n_output.isConst());
           }
           // finished processing this node
-          return;
+          return true;
         }
         d_examples_invalid[eh] = true;
         d_examples_out_invalid[eh] = true;
@@ -112,10 +134,14 @@ void SygusPbe::collectExamples(Node n,
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       bool newHasPol;
       bool newPol;
-      QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-      collectExamples( n[i], visited, newHasPol, newPol );
+      QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
+      if (!collectExamples(n[i], visited, newHasPol, newPol))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 bool SygusPbe::initialize(Node n,
@@ -123,6 +149,7 @@ bool SygusPbe::initialize(Node n,
                           std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
 
   for (unsigned i = 0; i < candidates.size(); i++)
   {
@@ -133,7 +160,14 @@ bool SygusPbe::initialize(Node n,
   }
 
   std::map<Node, bool> visited;
-  collectExamples(n, visited, true, true);
+  // n is negated conjecture
+  if (!collectExamples(n, visited, true, false))
+  {
+    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
+    Node infeasible = d_parent->getGuard().negate();
+    lemmas.push_back(infeasible);
+    return false;
+  }
 
   for (unsigned i = 0; i < candidates.size(); i++)
   {
@@ -198,7 +232,6 @@ bool SygusPbe::initialize(Node n,
       tn_to_strategy_pt[tnsp].push_back(p.first);
     }
     // initialize the enumerators
-    NodeManager* nm = NodeManager::currentNM();
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();

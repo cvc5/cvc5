@@ -1304,6 +1304,14 @@ void SmtEngine::setDefaults() {
       options::unconstrainedSimp.set(uncSimp);
     }
   }
+  if (!options::proof())
+  {
+    // minimizing solutions from single invocation requires proofs
+    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
+    {
+      throw OptionException("cegqi-si-sol-min-core requires --proof");
+    }
+  }
 
   // Disable options incompatible with unsat cores and proofs or output an
   // error if enabled explicitly
