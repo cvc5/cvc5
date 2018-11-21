@@ -156,24 +156,24 @@ class SygusUnif
    */
   virtual Node constructSol(
       Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas) = 0;
-  /** 
+  /**
    * Heuristically choose the best solved term for enumerator e,
-   * currently return the first by default. 
+   * currently return the first by default.
    */
   virtual Node constructBestSolvedTerm(Node e, const std::vector<Node>& solved);
-  /** 
-   * Heuristically choose the best solved string term for enumerator e, 
+  /**
+   * Heuristically choose the best solved string term for enumerator e,
    * return the first by default.
    */
   virtual Node constructBestStringSolvedTerm(Node e,
                                              const std::vector<Node>& solved);
-  /** 
+  /**
    * Heuristically choose the best solved conditional term for condition
-   * enumerator ce, random by default. 
+   * enumerator ce, random by default.
    */
   virtual Node constructBestSolvedConditional(Node ce,
                                               const std::vector<Node>& solved);
-  /** 
+  /**
    * Heuristically choose the best conditional term from conds for condition
    * enumerator ce, random by default.
    */
