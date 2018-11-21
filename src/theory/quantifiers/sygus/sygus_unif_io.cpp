@@ -782,6 +782,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
     Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
                        << std::endl;
     d_check_sol = false;
+    d_solConsUsingInfoGain = false;
     // try multiple times if we have done multiple conditions, due to
     // non-determinism
     unsigned sol_term_size = 0;
@@ -806,7 +807,9 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
         d_solution = vcc;
         sol_term_size = d_tds->getSygusTermSize(vcc);
-        // now, enable information gain and retry
+        // We've determined its feasible, now, enable information gain and
+        // retry. We do this since information gain comes with an overhead,
+        // and we want testing feasibility to be fast.
         if (!d_solConsUsingInfoGain)
         {
           d_solConsUsingInfoGain = true;
@@ -1297,7 +1300,7 @@ Node SygusUnifIo::constructSol(
                 Assert(!rec_c.isNull());
                 indent("sygus-sui-dt", ind);
                 Trace("sygus-sui-dt")
-                    << "PBE: ITE strategy : choose random conditional "
+                    << "PBE: ITE strategy : choose best conditional "
                     << d_tds->sygusToBuiltin(rec_c) << std::endl;
               }
             }
