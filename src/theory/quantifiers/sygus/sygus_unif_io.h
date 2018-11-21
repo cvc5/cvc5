@@ -308,6 +308,11 @@ class SygusUnifIo : public SygusUnif
    * which can be closed with "B", giving us (x ++ "B") as a solution.
    */
   bool d_sol_cons_nondet;
+  /** 
+   * Whether we are using information gain heuristic during solution
+   * construction.
+   */
+  bool d_solConsUsingInfoGain;
   /** true and false nodes */
   Node d_true;
   Node d_false;
