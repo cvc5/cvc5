@@ -292,53 +292,19 @@ bool SygusPbe::initialize(Node n,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn,
-                                      Node e,
-                                      Node b,
-                                      SygusPbe* cpbe,
-                                      unsigned index,
-                                      unsigned ntotal)
+Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 {
-  if (index == ntotal) {
-    // lazy child holds the leaf data
-    if (d_lazy_child.isNull()) {
-      d_lazy_child = b;
-    }
-    return d_lazy_child;
-  } else {
-    std::vector<Node> ex;
-    if (d_children.empty()) {
-      if (d_lazy_child.isNull()) {
-        d_lazy_child = b;
-        return d_lazy_child;
-      } else {
-        // evaluate the lazy child
-        Assert(cpbe->d_examples.find(e) != cpbe->d_examples.end());
-        Assert(index < cpbe->d_examples[e].size());
-        ex = cpbe->d_examples[e][index];
-        addPbeExampleEval(etn, e, d_lazy_child, ex, cpbe, index, ntotal);
-        Assert(!d_children.empty());
-        d_lazy_child = Node::null();
-      }
-    } else {
-      Assert(cpbe->d_examples.find(e) != cpbe->d_examples.end());
-      Assert(index < cpbe->d_examples[e].size());
-      ex = cpbe->d_examples[e][index];
-    }
-    return addPbeExampleEval(etn, e, b, ex, cpbe, index, ntotal);
+  PbeTrie* curr = this;
+  for (const Node& eo : exOut)
+  {
+    curr = &(curr->d_children[eo]);
   }
-}
-
-Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn,
-                                          Node e,
-                                          Node b,
-                                          std::vector<Node>& ex,
-                                          SygusPbe* cpbe,
-                                          unsigned index,
-                                          unsigned ntotal)
-{
-  Node eb = cpbe->d_tds->evaluateBuiltin(etn, b, ex);
-  return d_children[eb].addPbeExample(etn, e, b, cpbe, index + 1, ntotal);
+  if (!curr->d_children.empty())
+  {
+    return curr->d_children.begin()->first;
+  }
+  curr->d_children.insert(std::pair<Node, PbeTrie>(b, PbeTrie()));
+  return b;
 }
 
 bool SygusPbe::hasExamples(Node e)
@@ -409,8 +375,21 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    unsigned nex = d_examples[ee].size();
-    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, ee, bvr, this, 0, nex);
+    // compute example values with the I/O utility
+    std::vector<Node> vals;
+    Trace("sygus-pbe-debug")
+        << "Compute examples " << bvr << "..." << std::endl;
+    d_sygus_unif[ee].computeExamples(e, bvr, vals);
+    Assert(vals.size() == d_examples[ee].size());
+    Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
+    Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
+    Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
+    Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
+    if (ret != bvr)
+    {
+      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+      d_sygus_unif[ee].clearExampleCache(e, bvr);
+    }
     Assert(ret.getType() == bvr.getType());
     return ret;
   }

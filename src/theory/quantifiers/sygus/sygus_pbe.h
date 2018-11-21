@@ -269,35 +269,15 @@ class SygusPbe : public SygusModule
    public:
     PbeTrie() {}
     ~PbeTrie() {}
-    /** the data for this node in the trie */
-    Node d_lazy_child;
     /** the children for this node in the trie */
     std::map<Node, PbeTrie> d_children;
     /** clear this trie */
     void clear() { d_children.clear(); }
     /**
-     * Add term b as a value enumerated for enumerator e to the trie.
-     *
-     * cpbe : reference to the parent pbe utility which stores the examples,
-     * index : the index of the example we are processing,
-     * ntotal : the total of the examples for enumerator e.
+     * Add term b whose value on examples is exOut to the trie. Return
+     * the first term registered to this trie whose evaluation was exOut.
      */
-    Node addPbeExample(TypeNode etn,
-                       Node e,
-                       Node b,
-                       SygusPbe* cpbe,
-                       unsigned index,
-                       unsigned ntotal);
-
-   private:
-    /** Helper function for above, called when we get the current example ex. */
-    Node addPbeExampleEval(TypeNode etn,
-                           Node e,
-                           Node b,
-                           std::vector<Node>& ex,
-                           SygusPbe* cpbe,
-                           unsigned index,
-                           unsigned ntotal);
+    Node addTerm(Node b, const std::vector<Node>& exOut);
   };
   /** trie of candidate solutions tried
   * This stores information for each (enumerator, type),
