@@ -106,9 +106,9 @@ class SkolemCache
     // --------------- function skolems
     // For function k: Int -> Int
     //   exists k.
-    //     forall 0 <= x < n,
-    //       k(x) is the index of the (x+1)^th occurrence of b in a
-    //   where n is the number of occurrences of b in a
+    //     forall 0 <= x <= n,
+    //       k(x) is the end index of the x^th occurrence of b in a
+    //   where n is the number of occurrences of b in a, and k(0)=0.
     SK_OCCUR_INDEX,
   };
   /**
