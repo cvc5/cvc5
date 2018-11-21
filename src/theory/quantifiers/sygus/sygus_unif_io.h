@@ -419,8 +419,8 @@ class SygusUnifIo : public SygusUnif
                     NodeRole nrole,
                     int ind,
                     std::vector<Node>& lemmas) override;
-  /** construct best conditional 
-   * 
+  /** construct best conditional
+   *
    * This returns the condition in solved that maximizes information gain with
    * respect to the current active points in d_context.
    */
