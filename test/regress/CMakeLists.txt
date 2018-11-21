@@ -1052,7 +1052,6 @@ set(regress_1_tests
   regress1/arith/mult.02.smt2
   regress1/arith/pbrewrites-test.smt2
   regress1/arith/problem__003.smt2
-  regress1/arith/real2int-test.smt2
   regress1/arrayinuf_error.smt2
   regress1/aufbv/bug580.smt2
   regress1/aufbv/fuzz10.smt
@@ -1360,6 +1359,7 @@ set(regress_1_tests
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
+  regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
   regress1/quantifiers/rew-to-0211-dd.smt2
   regress1/quantifiers/ricart-agrawala6.smt2
@@ -1685,6 +1685,7 @@ set(regress_2_tests
   regress2/arith/pursuit-safety-11.smt
   regress2/arith/pursuit-safety-12.smt
   regress2/arith/qlock-4-10-9.base.cvc.smt2
+  regress2/arith/real2int-test.smt2
   regress2/arith/sc-7.base.cvc.smt
   regress2/arith/uart-8.base.cvc.smt
   regress2/auflia-fuzz06.smt

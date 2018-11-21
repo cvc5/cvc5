@@ -4306,7 +4306,16 @@ Model* SmtEngine::getModel() {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder::setModelCore(easserts, m, options::modelCoresMode());
+    // must expand definitions
+    std::vector<Expr> eassertsProc;
+    std::unordered_map<Node, Node, NodeHashFunction> cache;
+    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+    {
+      Node ea = Node::fromExpr(easserts[i]);
+      Node eae = d_private->expandDefinitions(ea, cache);
+      eassertsProc.push_back(eae.toExpr());
+    }
+    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
