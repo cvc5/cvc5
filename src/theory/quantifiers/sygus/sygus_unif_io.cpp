@@ -468,7 +468,10 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
 }
 
 SygusUnifIo::SygusUnifIo()
-    : d_check_sol(false), d_cond_count(0), d_sol_cons_nondet(false), d_solConsUsingInfoGain(false)
+    : d_check_sol(false),
+      d_cond_count(0),
+      d_sol_cons_nondet(false),
+      d_solConsUsingInfoGain(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -780,7 +783,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         d_solution = vcc;
         sol_term_size = d_tds->getSygusTermSize(vcc);
         // now, enable information gain and retry
-        if( !d_solConsUsingInfoGain )
+        if (!d_solConsUsingInfoGain)
         {
           d_solConsUsingInfoGain = true;
           i = 0;
@@ -1350,9 +1353,9 @@ Node SygusUnifIo::constructSol(
 Node SygusUnifIo::constructBestConditional(Node ce,
                                            const std::vector<Node>& solved)
 {
-  if( !d_solConsUsingInfoGain )
+  if (!d_solConsUsingInfoGain)
   {
-    return SygusUnif::constructBestConditional(ce,solved);
+    return SygusUnif::constructBestConditional(ce, solved);
   }
   UnifContextIo& x = d_context;
   // use information gain heuristic
