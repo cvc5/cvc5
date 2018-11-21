@@ -5,5 +5,7 @@
 (set-option :strings-fmf true)
 (declare-fun x () String)
 (declare-fun y () String)
-(assert (= (str.len (str.replaceall x y "AB")) (+ (str.len (str.replaceall x y "A")) 3)))
+(declare-fun z () String)
+(declare-fun w () String)
+(assert (= (str.len (str.replaceall x y z)) (+ (str.len (str.replaceall x y w)) 3)))
 (check-sat)
