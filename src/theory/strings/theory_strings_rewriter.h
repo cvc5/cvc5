@@ -196,6 +196,18 @@ class TheoryStringsRewriter {
   * Returns the rewritten form of node.
   */
   static Node rewriteReplace(Node node);
+  /** rewrite replace all
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.replaceall( s, t, r )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteReplaceAll(Node node);
+  /** rewrite replace internal
+   *
+   * This method implements rewrite rules that apply to both str.replace and
+   * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
+   */
+  static Node rewriteReplaceInternal(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )

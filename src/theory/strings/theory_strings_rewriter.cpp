@@ -1392,9 +1392,12 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   }
   else if (nk == kind::STRING_LENGTH)
   {
+    Kind nk0 = node[0].getKind();
     if( node[0].isConst() ){
       retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( node[0].getConst<String>().size() ) );
-    }else if( node[0].getKind() == kind::STRING_CONCAT ){
+    }
+    else if (nk0 == kind::STRING_CONCAT)
+    {
       Node tmpNode = node[0];
       if(tmpNode.isConst()) {
         retNode = NodeManager::currentNM()->mkConst( ::CVC4::Rational( tmpNode.getConst<String>().size() ) );
@@ -1410,7 +1413,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
         retNode = NodeManager::currentNM()->mkNode(kind::PLUS, node_vec);
       }
     }
-    else if (node[0].getKind() == STRING_STRREPL)
+    else if (nk0 == STRING_STRREPL || nk0 == STRING_STRREPLALL)
     {
       Node len1 = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, node[0][1]));
       Node len2 = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, node[0][2]));
@@ -1452,6 +1455,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == kind::STRING_STRREPL)
   {
     retNode = rewriteReplace( node );
+  }
+  else if (nk == kind::STRING_STRREPLALL)
+  {
+    retNode = rewriteReplaceAll(node);
   }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
@@ -1755,6 +1762,15 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       {
         Node ret = nm->mkConst(::CVC4::String(""));
         return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
+      }
+
+      // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
+      Node geq_zero_start =
+          Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
+      if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
+      {
+        Node ret = nm->mkConst(String(""));
+        return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
       }
 
       // (str.substr s x x) ---> "" if (str.len s) <= 1
@@ -2446,16 +2462,6 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   Assert(node.getKind() == kind::STRING_STRREPL);
   NodeManager* nm = NodeManager::currentNM();
 
-  if (node[1] == node[2])
-  {
-    return returnRewrite(node, node[0], "rpl-id");
-  }
-
-  if (node[0] == node[1])
-  {
-    return returnRewrite(node, node[2], "rpl-replace");
-  }
-
   if (node[1].isConst() && node[1].getConst<String>().isEmptyString())
   {
     Node ret = nm->mkNode(STRING_CONCAT, node[2], node[0]);
@@ -2504,6 +2510,14 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       Node ret = mkConcat(kind::STRING_CONCAT, children);
       return returnRewrite(node, ret, "rpl-const-find");
     }
+  }
+
+  // rewrites that apply to both replace and replaceall
+  Node rri = rewriteReplaceInternal(node);
+  if (!rri.isNull())
+  {
+    // printing of the rewrite managed by the call above
+    return rri;
   }
 
   if (node[0] == node[2])
@@ -2945,6 +2959,78 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
 
   Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
+}
+
+Node TheoryStringsRewriter::rewriteReplaceAll(Node node)
+{
+  Assert(node.getKind() == STRING_STRREPLALL);
+  NodeManager* nm = NodeManager::currentNM();
+
+  if (node[0].isConst() && node[1].isConst())
+  {
+    std::vector<Node> children;
+    String s = node[0].getConst<String>();
+    String t = node[1].getConst<String>();
+    if (s.isEmptyString() || t.isEmptyString())
+    {
+      return returnRewrite(node, node[0], "replall-empty-find");
+    }
+    std::size_t index = 0;
+    std::size_t curr = 0;
+    do
+    {
+      curr = s.find(t, index);
+      if (curr != std::string::npos)
+      {
+        if (curr > index)
+        {
+          children.push_back(nm->mkConst(s.substr(index, curr - index)));
+        }
+        children.push_back(node[2]);
+        index = curr + t.size();
+      }
+      else
+      {
+        children.push_back(nm->mkConst(s.substr(index, s.size() - index)));
+      }
+    } while (curr != std::string::npos && curr < s.size());
+    // constant evaluation
+    Node res = mkConcat(STRING_CONCAT, children);
+    return returnRewrite(node, res, "replall-const");
+  }
+
+  // rewrites that apply to both replace and replaceall
+  Node rri = rewriteReplaceInternal(node);
+  if (!rri.isNull())
+  {
+    // printing of the rewrite managed by the call above
+    return rri;
+  }
+
+  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
+{
+  Kind nk = node.getKind();
+  Assert(nk == STRING_STRREPL || nk == STRING_STRREPLALL);
+
+  if (node[1] == node[2])
+  {
+    return returnRewrite(node, node[0], "rpl-id");
+  }
+
+  if (node[0] == node[1])
+  {
+    // only holds for replaceall if non-empty
+    if (nk == STRING_STRREPL || checkEntailNonEmpty(node[1]))
+    {
+      return returnRewrite(node, node[2], "rpl-replace");
+    }
+  }
+
+  return Node::null();
 }
 
 Node TheoryStringsRewriter::rewriteStringLeq(Node n)
@@ -4438,6 +4524,10 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
     {
       candVars.insert(curr);
     }
+    else if (curr.getKind() == kind::STRING_LENGTH)
+    {
+      candVars.insert(curr);
+    }
   }
 
   // Check if any of the candidate variables are in n
@@ -4454,8 +4544,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
       toVisit.push_back(currChild);
     }
 
-    if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH
-        && candVars.find(curr) != candVars.end())
+    if (candVars.find(curr) != candVars.end())
     {
       v = curr;
       break;
@@ -4508,7 +4597,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("s", nm->stringType());
+    Node s = nm->mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(kind::STRING_LENGTH, s);
     assumption = Rewriter::rewrite(
         nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
