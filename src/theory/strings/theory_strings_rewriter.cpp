@@ -1839,7 +1839,6 @@ Node TheoryStringsRewriter::rewriteSubstrExt(Node node)
     }
   }
 
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
