@@ -31,8 +31,8 @@ mkdir -p $ANTLR_HOME_DIR/share/java
 mkdir -p $ANTLR_HOME_DIR/bin
 mkdir -p $ANTLR_HOME_DIR/src
 cd $ANTLR_HOME_DIR || exit 1
-webget http://www.antlr3.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
-webget http://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
+webget https://www.antlr3.org/download/antlr-3.4-complete.jar share/java/antlr-3.4-complete.jar 
+webget https://www.antlr3.org/download/C/libantlr3c-3.4.tar.gz src/libantlr3c-3.4.tar.gz
 tee bin/antlr3 <<EOF
 #!/bin/bash
 export CLASSPATH=`pwd`/share/java/antlr-3.4-complete.jar:\$CLASSPATH
