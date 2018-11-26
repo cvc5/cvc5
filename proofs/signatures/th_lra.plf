@@ -1,5 +1,4 @@
-; 59 loc in side conditions
-
+; Depends on th_real.plf, th_smt.plf
 (program mpq_ifpos ((x mpq)) bool
   (mp_ifneg x ff (mp_ifzero x ff tt)))
 
