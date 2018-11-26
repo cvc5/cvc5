@@ -168,12 +168,6 @@ class SygusUnif
   virtual Node constructBestStringSolvedTerm(Node e,
                                              const std::vector<Node>& solved);
   /**
-   * Heuristically choose the best solved conditional term for condition
-   * enumerator ce, random by default.
-   */
-  virtual Node constructBestSolvedConditional(Node ce,
-                                              const std::vector<Node>& solved);
-  /**
    * Heuristically choose the best conditional term from conds for condition
    * enumerator ce, random by default.
    */
