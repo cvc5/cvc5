@@ -808,7 +808,8 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         d_solution = vcc;
         newSolution = vcc;
         d_sol_term_size = d_tds->getSygusTermSize(vcc);
-        Trace("sygus-pbe-sol") << "PBE solution size: " << d_sol_term_size << std::endl;
+        Trace("sygus-pbe-sol")
+            << "PBE solution size: " << d_sol_term_size << std::endl;
         // We've determined its feasible, now, enable information gain and
         // retry. We do this since information gain comes with an overhead,
         // and we want testing feasibility to be fast.
@@ -1451,15 +1452,15 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     Trace("sygus-sui-dt-igain") << "..." << entropySum << std::endl;
     // either less, or equal and coin flip passes
     bool doSet = false;
-    if( entropySum==minEntropy )
+    if (entropySum == minEntropy)
     {
       numEqual++;
-      if( Random::getRandom().pickWithProb(double(1)/double(numEqual)) )
+      if (Random::getRandom().pickWithProb(double(1) / double(numEqual)))
       {
         doSet = true;
       }
     }
-    else if( entropySum < minEntropy )
+    else if (entropySum < minEntropy)
     {
       doSet = true;
       numEqual = 1;

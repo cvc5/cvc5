@@ -26,7 +26,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusUnif::SygusUnif() : d_qe(nullptr), d_tds(nullptr), d_enableMinimality(false) {}
+SygusUnif::SygusUnif()
+    : d_qe(nullptr), d_tds(nullptr), d_enableMinimality(false)
+{
+}
 SygusUnif::~SygusUnif() {}
 
 void SygusUnif::initializeCandidate(
@@ -42,16 +45,16 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-Node SygusUnif::getMinimalTerm( const std::vector< Node >& terms )
+Node SygusUnif::getMinimalTerm(const std::vector<Node>& terms)
 {
   unsigned minSize = 0;
   Node minTerm;
-  std::map< Node, unsigned >::iterator it;
-  for( const Node& n : terms )
+  std::map<Node, unsigned>::iterator it;
+  for (const Node& n : terms)
   {
     it = d_termToSize.find(n);
     unsigned ssize = 0;
-    if( it==d_termToSize.end() )
+    if (it == d_termToSize.end())
     {
       ssize = d_tds->getSygusTermSize(n);
       d_termToSize[n] = ssize;
@@ -60,7 +63,7 @@ Node SygusUnif::getMinimalTerm( const std::vector< Node >& terms )
     {
       ssize = it->second;
     }
-    if( minTerm.isNull() || ssize<minSize )
+    if (minTerm.isNull() || ssize < minSize)
     {
       minTerm = n;
       minSize = ssize;
@@ -72,7 +75,7 @@ Node SygusUnif::getMinimalTerm( const std::vector< Node >& terms )
 Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
-  if( d_enableMinimality )
+  if (d_enableMinimality)
   {
     return getMinimalTerm(solved);
   }
@@ -83,7 +86,7 @@ Node SygusUnif::constructBestStringSolvedTerm(Node e,
                                               const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
-  if( d_enableMinimality )
+  if (d_enableMinimality)
   {
     return getMinimalTerm(solved);
   }
