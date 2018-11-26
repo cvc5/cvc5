@@ -184,6 +184,15 @@ class SygusUnif
       const std::map<Node, unsigned>& total_inc,
       const std::map<Node, std::vector<unsigned> >& incr);
   //------------------------------ end constructing solutions
+  /** map terms to their sygus size */
+  std::map< Node, unsigned > d_termToSize;
+  /** 
+   * Whether to ensure terms selected by the above methods lead to minimal
+   * solutions.
+   */
+  bool d_enableMinimality;
+  /** returns the term whose sygus size is minimal among those in terms */
+  Node getMinimalTerm( const std::vector< Node >& terms );
 };
 
 } /* CVC4::theory::quantifiers namespace */

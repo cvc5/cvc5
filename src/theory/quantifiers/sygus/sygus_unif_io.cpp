@@ -816,6 +816,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         {
           // we permanently enable information gain now
           d_solConsUsingInfoGain = true;
+          d_enableMinimality = true;
           i = 0;
         }
       }
