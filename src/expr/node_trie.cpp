@@ -39,8 +39,8 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(const std::vecto
   return tnt->d_data.begin()->first;
 }
 
-template NodeTemplate<false> NodeTemplateTrie<false>::existsTerm(const std::vector<NodeTemplate<false>>& reps) const;
-template NodeTemplate<true> NodeTemplateTrie<true>::existsTerm(const std::vector<NodeTemplate<true>>& reps) const;
+template TNode NodeTemplateTrie<false>::existsTerm(const std::vector<TNode>& reps) const;
+template Node NodeTemplateTrie<true>::existsTerm(const std::vector<Node>& reps) const;
 
 template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
@@ -60,8 +60,8 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(NodeTemplate<r
   return tnt->d_data.begin()->first;
 }
 
-template NodeTemplate<false> NodeTemplateTrie<false>::addOrGetTerm(NodeTemplate<false> n, const std::vector<NodeTemplate<false>>& reps);
-template NodeTemplate<true> NodeTemplateTrie<true>::addOrGetTerm(NodeTemplate<true> n, const std::vector<NodeTemplate<true>>& reps);
+template TNode NodeTemplateTrie<false>::addOrGetTerm(TNode n, const std::vector<TNode>& reps);
+template Node NodeTemplateTrie<true>::addOrGetTerm(Node n, const std::vector<Node>& reps);
 
 template <bool ref_count>
 void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) const
