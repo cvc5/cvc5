@@ -1676,6 +1676,10 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   {
     new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
   }
+  else if (ret.getKind() == STRING_SUBSTR)
+  {
+    new_ret = strings::TheoryStringsRewriter::rewriteSubstrExt(ret);
+  }
 
   return new_ret;
 }
