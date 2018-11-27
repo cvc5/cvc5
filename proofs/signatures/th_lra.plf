@@ -1,5 +1,4 @@
-; 59 loc in side conditions
-
+; Depends on th_real.plf, th_smt.plf
 (program mpq_ifpos ((x mpq)) bool
   (mp_ifneg x ff (mp_ifzero x ff tt)))
 
@@ -111,7 +110,7 @@
   (! f1 (th_holds (>=0_Real (poly_term p1)))
   (! f2 (th_holds (>=0_Real (poly_term p2)))
   (! i2 (^ (mp_ifzero (is_poly_const (poly_add p1 p2)) tt ff) tt)
-    (th_holds (=0_Real (poly_term p2))))))))))
+    (th_holds (=0_Real (poly_term p2)))))))))
 
 ;; axioms
 
@@ -202,7 +201,7 @@
   (! f1 (th_holds (=0_Real (poly_term p1)))
   (! f2 (th_holds (=0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (=0_Real (poly_term p3)))))))))))
+    (th_holds (=0_Real (poly_term p3))))))))))
 
 (declare lra_add_>_>
   (! p1 poly
@@ -256,7 +255,7 @@
   (! f1 (th_holds (=0_Real (poly_term p1)))
   (! f2 (th_holds (distinct0_Real (poly_term p2)))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (distinct0_Real (poly_term p3)))))))))))
+    (th_holds (distinct0_Real (poly_term p3))))))))))
 
 ;; substracting equations
 
