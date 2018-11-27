@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief term_arg_trie
+ ** \brief A trie class for Nodes and TNodes.
  **/
 
 #include "cvc4_private.h"
@@ -56,11 +56,12 @@ namespace theory {
  * term f(d,c) is indexed by the representative arguments (a,c), and is stored
  * as a the (single) key in the data of t.d_data[a].d_data[c].
  */
-class TNodeTrie
+template <bool ref_count>
+class NodeTemplateTrie
 {
  public:
   /** The children of this node. */
-  std::map<TNode, TNodeTrie> d_data;
+  std::map<TNode, NodeTemplateTrie<ref_count> > d_data;
   /** For leaf nodes : does this node have data? */
   bool hasData() const { return !d_data.empty(); }
   /** For leaf nodes : get the node corresponding to this leaf. */
@@ -81,13 +82,19 @@ class TNodeTrie
    *   and adds n to the trie, indexed by reps.
    */
   bool addTerm(TNode n, std::vector<TNode>& reps);
-  /** Debug print this trie. */
-  void debugPrint(const char* c, Node n, unsigned depth = 0) const;
+  /** Debug print this trie on Trace c with indentation depth. */
+  void debugPrint(const char* c, unsigned depth = 0) const;
   /** Clear all data from this trie. */
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
 }; /* class TNodeTrie */
+
+/** Reference-counted version of the above data structure */
+typedef NodeTemplateTrie<true> NodeTrie;
+/** Non-reference-counted version of the above data structure */
+typedef NodeTemplateTrie<false> TNodeTrie;
+
 
 }  // namespace theory
 }  // namespace CVC4

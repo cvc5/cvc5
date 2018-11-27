@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of node trie.
+ ** \brief Implementation of a trie class for Nodes and TNodes.
  **/
 
 #include "expr/node_trie.h"
@@ -17,10 +17,11 @@
 namespace CVC4 {
 namespace theory {
 
-TNode TNodeTrie::existsTerm(std::vector<TNode>& reps) const
+template <bool ref_count>
+TNode NodeTemplateTrie<ref_count>::existsTerm(std::vector<TNode>& reps) const
 {
-  const TNodeTrie* tnt = this;
-  std::map<TNode, TNodeTrie>::const_iterator it;
+  const NodeTemplateTrie<ref_count>* tnt = this;
+  std::map<TNode, NodeTemplateTrie<ref_count>>::const_iterator it;
   for (TNode r : reps)
   {
     it = tnt->d_data.find(r);
@@ -38,14 +39,16 @@ TNode TNodeTrie::existsTerm(std::vector<TNode>& reps) const
   return tnt->d_data.begin()->first;
 }
 
-bool TNodeTrie::addTerm(TNode n, std::vector<TNode>& reps)
+template <bool ref_count>
+bool NodeTemplateTrie<ref_count>::addTerm(TNode n, std::vector<TNode>& reps)
 {
   return addOrGetTerm(n, reps) == n;
 }
 
-TNode TNodeTrie::addOrGetTerm(TNode n, std::vector<TNode>& reps)
+template <bool ref_count>
+TNode NodeTemplateTrie<ref_count>::addOrGetTerm(TNode n, std::vector<TNode>& reps)
 {
-  TNodeTrie* tnt = this;
+  NodeTemplateTrie<ref_count>* tnt = this;
   for (TNode r : reps)
   {
     tnt = &(tnt->d_data[r]);
@@ -60,16 +63,17 @@ TNode TNodeTrie::addOrGetTerm(TNode n, std::vector<TNode>& reps)
   return tnt->d_data.begin()->first;
 }
 
-void TNodeTrie::debugPrint(const char* c, Node n, unsigned depth) const
+template <bool ref_count>
+void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) const
 {
-  for (const std::pair<const TNode, TNodeTrie>& p : d_data)
+  for (const std::pair<const TNode, NodeTemplateTrie<ref_count>>& p : d_data)
   {
     for (unsigned i = 0; i < depth; i++)
     {
       Trace(c) << "  ";
     }
     Trace(c) << p.first << std::endl;
-    p.second.debugPrint(c, n, depth + 1);
+    p.second.debugPrint(c, depth + 1);
   }
 }
 
