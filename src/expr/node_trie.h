@@ -78,7 +78,7 @@ class TNodeTrie
   /**
    * Returns false if a term is previously indexed by reps.
    * Returns true if no term is previously indexed by reps,
-   *   and adds n to the trie, indexed by reps, and returns n.
+   *   and adds n to the trie, indexed by reps.
    */
   bool addTerm(TNode n, std::vector<TNode>& reps);
   /** Debug print this trie. */
