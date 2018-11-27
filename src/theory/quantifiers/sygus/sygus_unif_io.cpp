@@ -238,11 +238,14 @@ Node SubsumeTrie::addTermInternal(Node t,
       if (!d_term.isNull())
       {
         subsumed.push_back(d_term);
-        if (!checkExistsOnly)
-        {
-          // remove it if checkExistsOnly = false
-          d_term = Node::null();
-        }
+        // If we are only interested in feasibility, we could set d_term to null
+        // here. However, d_term still could be useful, since it may be
+        // smaller than t and suffice as a solution under some condition.
+        // As a simple example, consider predicate synthesis and a case where we
+        // enumerate a C that is correct for all I/O points whose output is
+        // true. Then, C subsumes true. However, true may be preferred, e.g.
+        // to generate a solution ite( C, true, D ) instead of ite( C, C, D ),
+        // since true is conditionally correct under C, and is smaller than C.
       }
     }
     else
