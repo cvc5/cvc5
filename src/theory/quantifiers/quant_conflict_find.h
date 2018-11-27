@@ -22,7 +22,7 @@
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
-#include "theory/quantifiers/term_database.h"
+#include "expr/node_trie.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
@@ -45,8 +45,8 @@ private:
   MatchGen * getChild( int i ) { return &d_children[d_children_order[i]]; }
   //MatchGen * getChild( int i ) { return &d_children[i]; }
   //current matching information
-  std::vector< TermArgTrie * > d_qn;
-  std::vector< std::map< TNode, TermArgTrie >::iterator > d_qni;
+  std::vector<TNodeTrie*> d_qn;
+  std::vector<std::map<TNode, TNodeTrie>::iterator> d_qni;
   bool doMatching( QuantConflictFind * p, QuantInfo * qi );
   //for matching : each index is either a variable or a ground term
   unsigned d_qni_size;

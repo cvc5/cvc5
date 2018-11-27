@@ -21,7 +21,6 @@
 #include "expr/node_algorithm.h"
 #include "options/sets_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/term_database.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
 #include "theory/theory_model.h"
@@ -1774,11 +1773,16 @@ void TheorySetsPrivate::addSharedTerm(TNode n) {
   d_equalityEngine.addTriggerTerm(n, THEORY_SETS);
 }
 
-void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs ){
+void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
+                                     TNodeTrie* t2,
+                                     unsigned arity,
+                                     unsigned depth,
+                                     unsigned& n_pairs)
+{
   if( depth==arity ){
     if( t2!=NULL ){
-      Node f1 = t1->getNodeData();
-      Node f2 = t2->getNodeData();
+      Node f1 = t1->getData();
+      Node f2 = t2->getData();
       if( !ee_areEqual( f1, f2 ) ){
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
@@ -1818,13 +1822,17 @@ void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers
     if( t2==NULL ){
       if( depth<(arity-1) ){
         //add care pairs internal to each child
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-          addCarePairs( &it->second, NULL, arity, depth+1, n_pairs );
+        for (std::pair<const TNode, TNodeTrie>& t : t1->d_data)
+        {
+          addCarePairs(&t.second, NULL, arity, depth + 1, n_pairs);
         }
       }
       //add care pairs based on each pair of non-disequal arguments
-      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = it;
+      for (std::map<TNode, TNodeTrie>::iterator it = t1->d_data.begin();
+           it != t1->d_data.end();
+           ++it)
+      {
+        std::map<TNode, TNodeTrie>::iterator it2 = it;
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
@@ -1836,11 +1844,15 @@ void TheorySetsPrivate::addCarePairs( quantifiers::TermArgTrie * t1, quantifiers
       }
     }else{
       //add care pairs based on product of indices, non-disequal arguments
-      for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = t1->d_data.begin(); it != t1->d_data.end(); ++it ){
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it2 = t2->d_data.begin(); it2 != t2->d_data.end(); ++it2 ){
-          if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            if( !ee_areCareDisequal(it->first, it2->first) ){
-              addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
+      for (std::pair<const TNode, TNodeTrie>& tt1 : t1->d_data)
+      {
+        for (std::pair<const TNode, TNodeTrie>& tt2 : t2->d_data)
+        {
+          if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
+          {
+            if (!ee_areCareDisequal(tt1.first, tt2.first))
+            {
+              addCarePairs(&tt1.second, &tt2.second, arity, depth + 1, n_pairs);
             }
           }
         }
@@ -1855,7 +1867,7 @@ void TheorySetsPrivate::computeCareGraph() {
       unsigned n_pairs = 0;
       Trace("sets-cg-summary") << "Compute graph for sets, op=" << it->first << "..." << it->second.size() << std::endl;
       Trace("sets-cg") << "Build index for " << it->first << "..." << std::endl;
-      std::map< TypeNode, quantifiers::TermArgTrie > index;
+      std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
       //populate indices
       for( unsigned i=0; i<it->second.size(); i++ ){
@@ -1882,9 +1894,11 @@ void TheorySetsPrivate::computeCareGraph() {
       }
       if( arity>0 ){
         //for each index
-        for( std::map< TypeNode, quantifiers::TermArgTrie >::iterator iti = index.begin(); iti != index.end(); ++iti ){
-          Trace("sets-cg") << "Process index " << iti->first << "..." << std::endl;
-          addCarePairs( &iti->second, NULL, arity, 0, n_pairs );
+        for (std::pair<const TypeNode, TNodeTrie>& tt : index)
+        {
+          Trace("sets-cg") << "Process index " << tt.first << "..."
+                           << std::endl;
+          addCarePairs(&tt.second, nullptr, arity, 0, n_pairs);
         }
       }
       Trace("sets-cg-summary") << "...done, # pairs = " << n_pairs << std::endl;

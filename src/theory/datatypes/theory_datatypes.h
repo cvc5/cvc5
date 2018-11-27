@@ -25,6 +25,7 @@
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/datatype.h"
+#include "expr/node_trie.h"
 #include "theory/datatypes/datatypes_sygus.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -32,11 +33,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace datatypes {
 
 class TheoryDatatypes : public Theory {
@@ -253,7 +249,11 @@ private:
   TNode getEqcConstructor( TNode r );
 
  protected:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth,
+                    unsigned& n_pairs);
   /** compute care graph */
   void computeCareGraph() override;
 
