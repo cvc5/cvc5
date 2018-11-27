@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A trie class for Nodes and TNodes.
+ ** \brief A trie class for Nodes and NodeTemplate<ref_count>s.
  **/
 
 #include "cvc4_private.h"
@@ -23,7 +23,7 @@
 namespace CVC4 {
 namespace theory {
 
-/** TNode trie class
+/** NodeTemplate trie class
  *
  * This is a trie data structure whose distinguishing feature is that it has
  * no "data" members and only references to children. The motivation for having
@@ -40,7 +40,7 @@ namespace theory {
  * { c, f( b, b ) }
  *
  * where the first elements ( a, b, c ) are the representatives of these
- * classes. The TNodeTrie t we may build for f is :
+ * classes. The NodeTemplateTrie t we may build for f is :
  *
  * t :
  *   t.d_data[a] :
@@ -61,34 +61,40 @@ class NodeTemplateTrie
 {
  public:
   /** The children of this node. */
-  std::map<TNode, NodeTemplateTrie<ref_count> > d_data;
+  std::map<NodeTemplate<ref_count>, NodeTemplateTrie<ref_count> > d_data;
   /** For leaf nodes : does this node have data? */
   bool hasData() const { return !d_data.empty(); }
   /** For leaf nodes : get the node corresponding to this leaf. */
-  TNode getData() const { return d_data.begin()->first; }
+  NodeTemplate<ref_count> getData() const { return d_data.begin()->first; }
   /**
    * Returns the term that is indexed by reps, if one exists, or
    * or returns null otherwise.
    */
-  TNode existsTerm(std::vector<TNode>& reps) const;
+  NodeTemplate<ref_count> existsTerm(const std::vector<NodeTemplate<ref_count>>& reps) const;
   /**
    * Returns the term that is previously indexed by reps, if one exists, or
    * adds n to the trie, indexed by reps, and returns n.
    */
-  TNode addOrGetTerm(TNode n, std::vector<TNode>& reps);
+  NodeTemplate<ref_count> addOrGetTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps);
   /**
    * Returns false if a term is previously indexed by reps.
    * Returns true if no term is previously indexed by reps,
    *   and adds n to the trie, indexed by reps.
    */
-  bool addTerm(TNode n, std::vector<TNode>& reps);
+  inline bool addTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps);
   /** Debug print this trie on Trace c with indentation depth. */
   void debugPrint(const char* c, unsigned depth = 0) const;
   /** Clear all data from this trie. */
   void clear() { d_data.clear(); }
   /** Is this trie empty? */
   bool empty() const { return d_data.empty(); }
-}; /* class TNodeTrie */
+}; /* class NodeTemplateTrie */
+
+template <bool ref_count>
+bool NodeTemplateTrie<ref_count>::addTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
+{
+  return addOrGetTerm(n, reps) == n;
+}
 
 /** Reference-counted version of the above data structure */
 typedef NodeTemplateTrie<true> NodeTrie;

@@ -18,11 +18,11 @@ namespace CVC4 {
 namespace theory {
 
 template <bool ref_count>
-TNode NodeTemplateTrie<ref_count>::existsTerm(std::vector<TNode>& reps) const
+NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(const std::vector<NodeTemplate<ref_count>>& reps) const
 {
   const NodeTemplateTrie<ref_count>* tnt = this;
-  std::map<TNode, NodeTemplateTrie<ref_count>>::const_iterator it;
-  for (TNode r : reps)
+  typename std::map<NodeTemplate<ref_count>, NodeTemplateTrie<ref_count>>::const_iterator it;
+  for (const NodeTemplate<ref_count> r : reps)
   {
     it = tnt->d_data.find(r);
     if (it == tnt->d_data.end())
@@ -39,17 +39,14 @@ TNode NodeTemplateTrie<ref_count>::existsTerm(std::vector<TNode>& reps) const
   return tnt->d_data.begin()->first;
 }
 
-template <bool ref_count>
-bool NodeTemplateTrie<ref_count>::addTerm(TNode n, std::vector<TNode>& reps)
-{
-  return addOrGetTerm(n, reps) == n;
-}
+template NodeTemplate<false> NodeTemplateTrie<false>::existsTerm(const std::vector<NodeTemplate<false>>& reps) const;
+template NodeTemplate<true> NodeTemplateTrie<true>::existsTerm(const std::vector<NodeTemplate<true>>& reps) const;
 
 template <bool ref_count>
-TNode NodeTemplateTrie<ref_count>::addOrGetTerm(TNode n, std::vector<TNode>& reps)
+NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
 {
   NodeTemplateTrie<ref_count>* tnt = this;
-  for (TNode r : reps)
+  for (const NodeTemplate<ref_count> r : reps)
   {
     tnt = &(tnt->d_data[r]);
   }
@@ -63,10 +60,13 @@ TNode NodeTemplateTrie<ref_count>::addOrGetTerm(TNode n, std::vector<TNode>& rep
   return tnt->d_data.begin()->first;
 }
 
+template NodeTemplate<false> NodeTemplateTrie<false>::addOrGetTerm(NodeTemplate<false> n, const std::vector<NodeTemplate<false>>& reps);
+template NodeTemplate<true> NodeTemplateTrie<true>::addOrGetTerm(NodeTemplate<true> n, const std::vector<NodeTemplate<true>>& reps);
+
 template <bool ref_count>
 void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) const
 {
-  for (const std::pair<const TNode, NodeTemplateTrie<ref_count>>& p : d_data)
+  for (const std::pair<const NodeTemplate<ref_count>, NodeTemplateTrie<ref_count>>& p : d_data)
   {
     for (unsigned i = 0; i < depth; i++)
     {
