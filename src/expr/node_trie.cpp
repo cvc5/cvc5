@@ -77,5 +77,9 @@ void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) cons
   }
 }
 
+template void NodeTemplateTrie<false>::debugPrint(const char* c, unsigned depth) const;
+template void NodeTemplateTrie<true>::debugPrint(const char* c, unsigned depth) const;
+
+
 }  // namespace theory
 }  // namespace CVC4
