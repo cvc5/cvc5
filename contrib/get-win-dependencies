@@ -24,7 +24,7 @@ while getopts ":s" opt; do
 done
 
 if [ -z "$HOST" ]; then
-  HOST=i686-w64-mingw32
+  HOST=x86_64-w64-mingw32
   echo "WARNING:"
   echo "WARNING: Using default HOST value: $HOST"
   echo "WARNING: You should probably run this script like this:"

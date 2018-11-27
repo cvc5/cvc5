@@ -20,9 +20,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/quantifiers/sygus/ce_guided_instantiation.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -64,7 +64,7 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
   d_qe = qe;
   d_tds = d_qe->getTermDatabaseSygus();
   d_ext_rewrite = nullptr;
-  d_crewrite_filter.initialize(ss, d_tds, false);
+  d_crewrite_filter.initialize(ss, d_tds, d_using_sygus);
   ExprMiner::initialize(vars, ss);
 }
 
@@ -276,11 +276,7 @@ CandidateRewriteDatabaseGen::CandidateRewriteDatabaseGen(
 
 bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
 {
-  ExtendedRewriter* er = nullptr;
-  if (options::synthRrPrepExtRew())
-  {
-    er = &d_ext_rewrite;
-  }
+  ExtendedRewriter* er = &d_ext_rewrite;
   Node nr;
   if (er == nullptr)
   {

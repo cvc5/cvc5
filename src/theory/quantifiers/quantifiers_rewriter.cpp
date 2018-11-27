@@ -667,7 +667,28 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
           }
         }
       }
-    }else if( elimExtArith ){
+    }
+    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
+    {
+      Node st = ret[0];
+      Node index = ret[1];
+      std::vector<Node> iconds;
+      std::vector<Node> elements;
+      while (st.getKind() == STORE)
+      {
+        iconds.push_back(index.eqNode(st[1]));
+        elements.push_back(st[2]);
+        st = st[0];
+      }
+      ret = nm->mkNode(SELECT, st, index);
+      // conditions
+      for (int i = (iconds.size() - 1); i >= 0; i--)
+      {
+        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
+      }
+    }
+    else if( elimExtArith )
+    {
       if( ret.getKind()==INTS_DIVISION_TOTAL || ret.getKind()==INTS_MODULUS_TOTAL ){
         Node num = ret[0];
         Node den = ret[1];
@@ -709,25 +730,6 @@ Node QuantifiersRewriter::computeProcessTerms2( Node body, bool hasPol, bool pol
         }else{
           ret = ret[0].eqNode( intVar );
         }
-      }
-    }
-    else if (ret.getKind() == SELECT && ret[0].getKind() == STORE)
-    {
-      Node st = ret[0];
-      Node index = ret[1];
-      std::vector<Node> iconds;
-      std::vector<Node> elements;
-      while (st.getKind() == STORE)
-      {
-        iconds.push_back(index.eqNode(st[1]));
-        elements.push_back(st[2]);
-        st = st[0];
-      }
-      ret = nm->mkNode(SELECT, st, index);
-      // conditions
-      for (int i = (iconds.size() - 1); i >= 0; i--)
-      {
-        ret = nm->mkNode(ITE, iconds[i], elements[i], ret);
       }
     }
     icache[prev] = ret;

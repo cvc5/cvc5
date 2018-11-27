@@ -297,10 +297,12 @@ TheoryEngine::TheoryEngine(context::Context* context,
       d_aloc_curr_model(false),
       d_curr_model_builder(nullptr),
       d_aloc_curr_model_builder(false),
+      d_eager_model_building(false),
       d_ppCache(),
       d_possiblePropagations(context),
       d_hasPropagated(context),
       d_inConflict(context, false),
+      d_inSatMode(false),
       d_hasShutDown(false),
       d_incomplete(context, false),
       d_propagationMap(context),
@@ -619,9 +621,12 @@ void TheoryEngine::check(Theory::Effort effort) {
       }
       if (!d_inConflict && !needCheck())
       {
-        if (options::produceModels() && !d_curr_model->isBuilt())
+        // If d_eager_model_building is false, then we only mark that we
+        // are in "SAT mode". We build the model later only if the user asks
+        // for it via getBuiltModel.
+        d_inSatMode = true;
+        if (d_eager_model_building && !d_curr_model->isBuilt())
         {
-          // must build model at this point
           d_curr_model_builder->buildModel(d_curr_model);
         }
       }
@@ -767,28 +772,9 @@ void TheoryEngine::propagate(Theory::Effort effort) {
   }
 }
 
-Node TheoryEngine::getNextDecisionRequest() {
-  unsigned min_priority = 0;
-  Node dec = d_decManager->getNextDecisionRequest(min_priority);
-
-  // Definition of the statement that is to be run by every theory
-#ifdef CVC4_FOR_EACH_THEORY_STATEMENT
-#undef CVC4_FOR_EACH_THEORY_STATEMENT
-#endif
-#define CVC4_FOR_EACH_THEORY_STATEMENT(THEORY) \
-  if (theory::TheoryTraits<THEORY>::hasGetNextDecisionRequest && d_logicInfo.isTheoryEnabled(THEORY)) { \
-    unsigned priority; \
-    Node n = theoryOf(THEORY)->getNextDecisionRequest( priority ); \
-    if(! n.isNull() && ( dec.isNull() || priority<min_priority ) ) { \
-      dec = n; \
-      min_priority = priority; \
-    } \
-  }
-
-  // Request decision from each theory using the statement above
-  CVC4_FOR_EACH_THEORY;
-
-  return dec;
+Node TheoryEngine::getNextDecisionRequest()
+{
+  return d_decManager->getNextDecisionRequest();
 }
 
 bool TheoryEngine::properConflict(TNode conflict) const {
@@ -871,6 +857,7 @@ bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
       }
     }
   }
+  Trace("model-builder") << "  CollectModelInfo boolean variables" << std::endl;
   // Get the Boolean variables
   vector<TNode> boolVars;
   d_propEngine->getBooleanVariables(boolVars);
@@ -881,6 +868,8 @@ bool TheoryEngine::collectModelInfo(theory::TheoryModel* m)
     hasValue = d_propEngine->hasValue(var, value);
     // TODO: Assert that hasValue is true?
     if (!hasValue) {
+      Trace("model-builder-assertions")
+          << "    has no value : " << var << std::endl;
       value = false;
     }
     Trace("model-builder-assertions") << "(assert" << (value ? " " : " (not ") << var << (value ? ");" : "));") << endl;
@@ -901,8 +890,20 @@ void TheoryEngine::postProcessModel( theory::TheoryModel* m ){
   }
 }
 
-/* get model */
 TheoryModel* TheoryEngine::getModel() {
+  return d_curr_model;
+}
+
+TheoryModel* TheoryEngine::getBuiltModel()
+{
+  if (!d_curr_model->isBuilt())
+  {
+    // If this method was called, we should be in SAT mode, and produceModels
+    // should be true.
+    AlwaysAssert(d_inSatMode && options::produceModels());
+    // must build model at this point
+    d_curr_model_builder->buildModel(d_curr_model);
+  }
   return d_curr_model;
 }
 
@@ -948,7 +949,8 @@ void TheoryEngine::postsolve() {
   // Reset the decision manager. This clears its decision strategies, which are
   // user-context-dependent.
   d_decManager->reset();
-
+  // no longer in SAT mode
+  d_inSatMode = false;
   // Reset the interrupt flag
   d_interrupted = false;
   bool CVC4_UNUSED wasInConflict = d_inConflict;

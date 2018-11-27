@@ -35,4 +35,4 @@ cd ..
 
 echo
 echo ===================== Now configure CVC4 with =====================
-echo ./configure --with-lfsc
+echo ./configure.sh --lfsc

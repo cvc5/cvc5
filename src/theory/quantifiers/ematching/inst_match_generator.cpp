@@ -384,6 +384,11 @@ void InstMatchGenerator::resetInstantiationRound( QuantifiersEngine* qe ){
 }
 
 bool InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
+  if (d_cg == nullptr)
+  {
+    // we did not properly initialize the candidate generator, thus we fail
+    return false;
+  }
   eqc = qe->getEqualityQuery()->getRepresentative( eqc );
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()!=INST_CONSTANT ){

@@ -26,6 +26,7 @@
 #include "theory/evaluator.h"
 #include "theory/rewriter.h"
 #include "theory/theory_test_utils.h"
+#include "util/rational.h"
 
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -118,5 +119,65 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(r,
                      Rewriter::rewrite(t.substitute(
                          args.begin(), args.end(), vals.begin(), vals.end())));
+  }
+
+  void testStrIdOf()
+  {
+    Node a = d_nm->mkConst(String("A"));
+    Node empty = d_nm->mkConst(String(""));
+    Node one = d_nm->mkConst(Rational(1));
+    Node two = d_nm->mkConst(Rational(2));
+
+    std::vector<Node> args;
+    std::vector<Node> vals;
+    Evaluator eval;
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, empty, one);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, a, one);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, empty, two);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+
+    {
+      Node n = d_nm->mkNode(kind::STRING_STRIDOF, a, a, two);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
+    }
+  }
+
+  void testCode()
+  {
+    Node a = d_nm->mkConst(String("A"));
+    Node empty = d_nm->mkConst(String(""));
+
+    std::vector<Node> args;
+    std::vector<Node> vals;
+    Evaluator eval;
+
+    // (str.code "A") ---> 65
+    {
+      Node n = d_nm->mkNode(kind::STRING_CODE, a);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(65)));
+    }
+
+    // (str.code "") ---> -1
+    {
+      Node n = d_nm->mkNode(kind::STRING_CODE, empty);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(-1)));
+    }
   }
 };

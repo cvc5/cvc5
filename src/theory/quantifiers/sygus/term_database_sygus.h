@@ -29,7 +29,41 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-class CegConjecture;
+class SynthConjecture;
+
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
+{
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types);
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
+};
+
+/** role for registering an enumerator */
+enum EnumeratorRole
+{
+  /** The enumerator populates a pool of terms (e.g. for PBE). */
+  ROLE_ENUM_POOL,
+  /** The enumerator is the single solution of the problem. */
+  ROLE_ENUM_SINGLE_SOLUTION,
+  /**
+   * The enumerator is part of the solution of the problem (e.g. multiple
+   * functions to synthesize).
+   */
+  ROLE_ENUM_MULTI_SOLUTION,
+  /** The enumerator must satisfy some set of constraints */
+  ROLE_ENUM_CONSTRAINED,
+};
+std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
 
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
@@ -63,32 +97,69 @@ class TermDbSygus {
   //------------------------------enumerators
   /**
    * Register a variable e that we will do enumerative search on.
+   *
    * conj : the conjecture that the enumeration of e is for.
-   * f : the synth-fun that the enumeration of e is for.
-   * mkActiveGuard : whether we want to make an active guard for e
-   * (see d_enum_to_active_guard),
+   *
+   * f : the synth-fun that the enumeration of e is for.Notice that enumerator
+   * e may not be one-to-one with f in synthesis-through-unification approaches
+   * (e.g. decision tree construction for PBE synthesis).
+   *
+   * erole : the role of this enumerator (see definition of EnumeratorRole).
+   * Depending on this and the policy for actively-generated enumerators
+   * (--sygus-active-gen), the enumerator may be "actively-generated".
+   * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
+   * only generate values whose variables are in canonical order (only x1-x2
+   * and not x2-x1 will be generated, assuming x1 and x2 are in the same
+   * "subclass", see getSubclassForVar).
+   *
    * useSymbolicCons : whether we want model values for e to include symbolic
    * constructors like the "any constant" variable.
    *
-   * Notice that enumerator e may not be one-to-one with f in
-   * synthesis-through-unification approaches (e.g. decision tree construction
-   * for PBE synthesis).
+   * An "active guard" may be allocated by this method for e based on erole
+   * and the policies for active generation.
    */
   void registerEnumerator(Node e,
                           Node f,
-                          CegConjecture* conj,
-                          bool mkActiveGuard = false,
+                          SynthConjecture* conj,
+                          EnumeratorRole erole,
                           bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
-  CegConjecture* getConjectureForEnumerator(Node e) const;
+  SynthConjecture* getConjectureForEnumerator(Node e) const;
   /** return the function-to-synthesize e is associated with */
   Node getSynthFunForEnumerator(Node e) const;
   /** get active guard for e */
   Node getActiveGuardForEnumerator(Node e) const;
   /** are we using symbolic constructors for enumerator e? */
   bool usingSymbolicConsForEnumerator(Node e) const;
+  /** is this enumerator agnostic to variables? */
+  bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this enumerator a "basic" enumerator.
+   *
+   * A basic enumerator is one that does not rely on the sygus extension of the
+   * datatypes solver. Basic enumerators enumerate all concrete terms for their
+   * type for a single abstract value.
+   */
+  bool isBasicEnumerator(Node e) const;
+  /** is this a "passively-generated" enumerator?
+   *
+   * A "passively-generated" enumerator is one for which the terms it enumerates
+   * are obtained by looking at its model value only. For passively-generated
+   * enumerators, it is the responsibility of the user of that enumerator (say
+   * a SygusModule) to block the current model value of it before asking for
+   * another value. By default, the Cegis module uses passively-generated
+   * enumerators and "conjecture-specific refinement" to rule out models
+   * for passively-generated enumerators.
+   *
+   * On the other hand, an "actively-generated" enumerator is one for which the
+   * terms it enumerates are not necessarily a subset of the model values the
+   * enumerator takes. Actively-generated enumerators are centrally managed by
+   * SynthConjecture. The user of actively-generated enumerators are prohibited
+   * from influencing its model value. For example, conjecture-specific
+   * refinement in Cegis is not applied to actively-generated enumerators.
+   */
+  bool isPassiveEnumerator(Node e) const;
   /** get all registered enumerators */
   void getEnumerators(std::vector<Node>& mts);
   /** Register symmetry breaking lemma
@@ -99,12 +170,13 @@ class TermDbSygus {
    *
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
-   * sz : the minimum size of terms that the lem blocks.
-   *
-   * Notice that the symmetry breaking lemma template should be relative to x,
-   * where x is returned by the call to getFreeVar( tn, 0 ) in this class.
+   * sz : the minimum size of terms that the lem blocks,
+   * isTempl : if this flag is false, then lem is a (concrete) lemma.
+   * If this flag is true, then lem is a symmetry breaking lemma template
+   * over x, where x is returned by the call to getFreeVar( tn, 0 ).
    */
-  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
+  void registerSymBreakLemma(
+      Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl = true);
   /** Has symmetry breaking lemmas been added for any enumerator? */
   bool hasSymBreakLemmas(std::vector<Node>& enums) const;
   /** Get symmetry breaking lemmas
@@ -117,6 +189,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
+  /** Returns true if lem is a lemma template, false if lem is a lemma */
+  bool isSymBreakLemmaTemplate(Node lem) const;
   /** Clear information about symmetry breaking lemmas for enumerator e */
   void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
@@ -252,7 +326,7 @@ class TermDbSygus {
   //------------------------------enumerators
   /** mapping from enumerator terms to the conjecture they are associated with
    */
-  std::map<Node, CegConjecture*> d_enum_to_conjecture;
+  std::map<Node, SynthConjecture*> d_enum_to_conjecture;
   /** mapping from enumerator terms to the function-to-synthesize they are
    * associated with 
    */
@@ -273,6 +347,14 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** mapping from symmetry breaking lemmas to whether they are templates */
+  std::map<Node, bool> d_sb_lemma_to_isTempl;
+  /** enumerators to whether they are actively-generated */
+  std::map<Node, bool> d_enum_active_gen;
+  /** enumerators to whether they are variable agnostic */
+  std::map<Node, bool> d_enum_var_agnostic;
+  /** enumerators to whether they are basic */
+  std::map<Node, bool> d_enum_basic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
@@ -345,6 +427,17 @@ class TermDbSygus {
    * for this type.
    */
   std::map<TypeNode, bool> d_has_subterm_sym_cons;
+  /**
+   * Map from sygus types and bound variables to their type subclass id. Note
+   * type class identifiers are computed for each type of registered sygus
+   * enumerators, but not all sygus types. For details, see getSubclassIdForVar.
+   */
+  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_id;
+  /** the list of variables with given subclass */
+  std::map<TypeNode, std::map<unsigned, std::vector<Node> > >
+      d_var_subclass_list;
+  /** the index of each variable in the above list */
+  std::map<TypeNode, std::map<Node, unsigned> > d_var_subclass_list_index;
 
  public:  // general sygus utilities
   bool isRegistered(TypeNode tn) const;
@@ -390,6 +483,45 @@ class TermDbSygus {
    * Returns true if any subterm of type tn can be a symbolic constructor.
    */
   bool hasSubtermSymbolicCons(TypeNode tn) const;
+  //--------------------------------- variable subclasses
+  /** Get subclass id for variable
+   *
+   * This returns the "subclass" identifier for variable v in sygus
+   * type tn. A subclass identifier groups variables based on the sygus
+   * types they occur in:
+   *   A -> A + B | C + C | x | y | z | w | u
+   *   B -> y | z
+   *   C -> u
+   * The variables in this grammar can be grouped according to the sygus types
+   * they appear in:
+   *   { x,w } occur in A
+   *   { y,z } occur in A,B
+   *   { u } occurs in A,C
+   * We say that e.g. x, w are in the same subclass.
+   *
+   * If this method returns 0, then v is not a variable in sygus type tn.
+   * Otherwise, this method returns a positive value n, such that
+   * getSubclassIdForVar[v1] = getSubclassIdForVar[v2] iff v1 and v2 are in the
+   * same subclass.
+   *
+   * The type tn should be the type of an enumerator registered to this
+   * database, where notice that we do not compute this information for the
+   * subfield types of the enumerator.
+   */
+  unsigned getSubclassForVar(TypeNode tn, Node v) const;
+  /**
+   * Get the number of variable in the subclass with identifier sc for type tn.
+   */
+  unsigned getNumSubclassVars(TypeNode tn, unsigned sc) const;
+  /** Get the i^th variable in the subclass with identifier sc for type tn */
+  Node getVarSubclassIndex(TypeNode tn, unsigned sc, unsigned i) const;
+  /**
+   * Get the a variable's index in its subclass list. This method returns true
+   * iff variable v has been assigned a subclass in tn. It updates index to
+   * be v's index iff the method returns true.
+   */
+  bool getIndexInSubclassForVar(TypeNode tn, Node v, unsigned& index) const;
+  //--------------------------------- end variable subclasses
   /** return whether n is an application of a symbolic constructor */
   bool isSymbolicConsApp(Node n) const;
   /** can construct kind

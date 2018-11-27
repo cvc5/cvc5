@@ -413,6 +413,7 @@ void PseudoBooleanProcessor::clear()
   d_neg.clear();
 }
 
+
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4

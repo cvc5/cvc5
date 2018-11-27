@@ -68,7 +68,7 @@ namespace quantifiers {
   class RewriteEngine;
   class QModelBuilder;
   class ConjectureGenerator;
-  class CegInstantiation;
+  class SynthEngine;
   class LtePartialInst;
   class AlphaEquivalence;
   class InstStrategyEnum;
@@ -150,7 +150,7 @@ public:
   /** rewrite rules utility */
   quantifiers::RewriteEngine* getRewriteEngine() const;
   /** ceg instantiation */
-  quantifiers::CegInstantiation* getCegInstantiation() const;
+  quantifiers::SynthEngine* getSynthEngine() const;
   /** get full saturation */
   quantifiers::InstStrategyEnum* getInstStrategyEnum() const;
   /** get inst strategy cbqi */
@@ -375,7 +375,7 @@ public:
   /** subgoal generator */
   std::unique_ptr<quantifiers::ConjectureGenerator> d_sg_gen;
   /** ceg instantiation */
-  std::unique_ptr<quantifiers::CegInstantiation> d_ceg_inst;
+  std::unique_ptr<quantifiers::SynthEngine> d_synth_e;
   /** lte partial instantiation */
   std::unique_ptr<quantifiers::LtePartialInst> d_lte_part_inst;
   /** full saturation */

@@ -35,7 +35,7 @@
 #include "options/options.h"
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
-#include "options/simplification_mode.h"
+#include "options/smt_modes.h"
 #include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
@@ -114,6 +114,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusActiveGenMode stringToSygusActiveGenMode(
+      std::string option, std::string optarg);
   theory::quantifiers::MacrosQuantMode stringToMacrosQuantMode(
       std::string option, std::string optarg);
   theory::quantifiers::QuantDSplitMode stringToQuantDSplitMode(
@@ -169,6 +171,7 @@ public:
   void notifyDumpMode(std::string option);
   SimplificationMode stringToSimplificationMode(std::string option,
                                                 std::string optarg);
+  ModelCoresMode stringToModelCoresMode(std::string option, std::string optarg);
   SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
                                                     std::string optarg);
   void setProduceAssertions(std::string option, bool value);
@@ -239,12 +242,14 @@ public:
   static const std::string s_qcfModeHelp;
   static const std::string s_qcfWhenModeHelp;
   static const std::string s_simplificationHelp;
+  static const std::string s_modelCoresHelp;
   static const std::string s_sygusSolutionOutModeHelp;
   static const std::string s_cbqiBvIneqModeHelp;
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
   static const std::string s_sygusInvTemplHelp;
+  static const std::string s_sygusActiveGenHelp;
   static const std::string s_termDbModeHelp;
   static const std::string s_theoryOfModeHelp;
   static const std::string s_triggerSelModeHelp;

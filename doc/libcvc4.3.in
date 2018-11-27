@@ -61,4 +61,4 @@ is used primarily to make assertions, check satisfiability/validity, and extract
 
 Additionally, the CVC4 wiki contains useful information about the
 design and internals of CVC4.  It is maintained at
-.BR http://goedel.cs.stanford.edu/wiki/ .
+.BR http://cvc4.cs.stanford.edu/wiki/ .

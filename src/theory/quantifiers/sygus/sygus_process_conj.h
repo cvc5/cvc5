@@ -88,10 +88,10 @@ namespace quantifiers {
  * position in the function to synthesize is
  * relevant.
  */
-class CegConjectureProcessArg
+class SynthConjectureProcessArg
 {
  public:
-  CegConjectureProcessArg() : d_var_single_occ(false), d_relevant(false) {}
+  SynthConjectureProcessArg() : d_var_single_occ(false), d_relevant(false) {}
   /** template definition
    * This is the term s[z] described
    * under "Argument Invariance" above.
@@ -120,11 +120,11 @@ class CegConjectureProcessArg
 * It maintains information about each of the function to
 * synthesize's arguments.
 */
-struct CegConjectureProcessFun
+struct SynthConjectureProcessFun
 {
  public:
-  CegConjectureProcessFun() {}
-  ~CegConjectureProcessFun() {}
+  SynthConjectureProcessFun() {}
+  ~SynthConjectureProcessFun() {}
   /** initialize this class for function f */
   void init(Node f);
   /** process terms
@@ -159,12 +159,12 @@ struct CegConjectureProcessFun
   /** the synth fun associated with this */
   Node d_synth_fun;
   /** properties of each argument */
-  std::vector<CegConjectureProcessArg> d_arg_props;
+  std::vector<SynthConjectureProcessArg> d_arg_props;
   /** variables for each argument type of f
    *
    * These are used to express templates for argument
    * invariance, in the data member
-   * CegConjectureProcessArg::d_template.
+   * SynthConjectureProcessArg::d_template.
    */
   std::vector<Node> d_arg_vars;
   /** map from d_arg_vars to the argument #
@@ -254,51 +254,50 @@ struct CegConjectureProcessFun
 };
 
 /** Ceg Conjecture Process
-*
-* This class implements static techniques for preprocessing and analysis of
-* sygus conjectures.
-*
-* It is used as a back-end to CegConjecture, which calls it using the following
-* interface:
-* (1) When a sygus conjecture is asserted, we call
-* CegConjectureProcess::simplify( q ),
-*     where q is the sygus conjecture in original form.
-*
-* (2) After a sygus conjecture is simplified and converted to deep
-* embedding form, we call CegConjectureProcess::initialize( n, candidates ).
-*
-* (3) During enumerative SyGuS search, calls may be made by
-* the extension of the quantifier-free datatypes decision procedure for
-* sygus to CegConjectureProcess::getSymmetryBreakingPredicate(...), which are
-* used for pruning search space based on conjecture-specific analysis.
-*/
-class CegConjectureProcess
+ *
+ * This class implements static techniques for preprocessing and analysis of
+ * sygus conjectures.
+ *
+ * It is used as a back-end to SynthConjecture, which calls it using the
+ * following interface: (1) When a sygus conjecture is asserted, we call
+ * SynthConjectureProcess::simplify( q ),
+ *     where q is the sygus conjecture in original form.
+ *
+ * (2) After a sygus conjecture is simplified and converted to deep
+ * embedding form, we call SynthConjectureProcess::initialize( n, candidates ).
+ *
+ * (3) During enumerative SyGuS search, calls may be made by
+ * the extension of the quantifier-free datatypes decision procedure for
+ * sygus to SynthConjectureProcess::getSymmetryBreakingPredicate(...), which are
+ * used for pruning search space based on conjecture-specific analysis.
+ */
+class SynthConjectureProcess
 {
  public:
-  CegConjectureProcess(QuantifiersEngine* qe);
-  ~CegConjectureProcess();
+  SynthConjectureProcess(QuantifiersEngine* qe);
+  ~SynthConjectureProcess();
   /** simplify the synthesis conjecture q
-  * Returns a formula that is equivalent to q.
-  * This simplification pass is called before all others
-  * in CegConjecture::assign.
-  *
-  * This function is intended for simplifications that
-  * impact whether or not the synthesis conjecture is
-  * single-invocation.
-  */
+   * Returns a formula that is equivalent to q.
+   * This simplification pass is called before all others
+   * in SynthConjecture::assign.
+   *
+   * This function is intended for simplifications that
+   * impact whether or not the synthesis conjecture is
+   * single-invocation.
+   */
   Node preSimplify(Node q);
   /** simplify the synthesis conjecture q
-  * Returns a formula that is equivalent to q.
-  * This simplification pass is called after all others
-  * in CegConjecture::assign.
-  */
+   * Returns a formula that is equivalent to q.
+   * This simplification pass is called after all others
+   * in SynthConjecture::assign.
+   */
   Node postSimplify(Node q);
   /** initialize
-  *
-  * n is the "base instantiation" of the deep-embedding version of
-  *   the synthesis conjecture under "candidates".
-  *   (see CegConjecture::d_base_inst)
-  */
+   *
+   * n is the "base instantiation" of the deep-embedding version of
+   *   the synthesis conjecture under "candidates".
+   *   (see SynthConjecture::d_base_inst)
+   */
   void initialize(Node n, std::vector<Node>& candidates);
   /** is the i^th argument of the function-to-synthesize f relevant? */
   bool isArgRelevant(Node f, unsigned i);
@@ -352,7 +351,7 @@ class CegConjectureProcess
                          std::unordered_set<Node, NodeHashFunction>,
                          NodeHashFunction>& free_vars);
   /** for each synth-fun, information that is specific to this conjecture */
-  std::map<Node, CegConjectureProcessFun> d_sf_info;
+  std::map<Node, SynthConjectureProcessFun> d_sf_info;
 
   /** get component vector */
   void getComponentVector(Kind k, Node n, std::vector<Node>& args);

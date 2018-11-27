@@ -71,9 +71,9 @@ class DecisionManager
     STRAT_UF_CARD,
     STRAT_DT_SYGUS_ENUM_ACTIVE,
     STRAT_DT_SYGUS_ENUM_SIZE,
+    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_QUANT_BOUND_INT_SIZE,
     STRAT_QUANT_CEGIS_UNIF_NUM_ENUMS,
-    STRAT_STRINGS_SUM_LENGTHS,
     STRAT_SEP_NEG_GUARD,
     // placeholder for last finite-model-complete required strategy
     STRAT_LAST_FM_COMPLETE,
@@ -105,11 +105,8 @@ class DecisionManager
    * returns null, then no decisions are required by a decision strategy
    * registered to this class. In the latter case, the SAT solver will choose
    * a decision based on its given heuristic.
-   *
-   * The argument priority has the same role as in
-   * Theory::getNextDecisionRequest.
    */
-  Node getNextDecisionRequest(unsigned& priorty);
+  Node getNextDecisionRequest();
 
  private:
   /** Map containing all strategies registered to this manager */

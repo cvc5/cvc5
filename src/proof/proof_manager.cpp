@@ -808,8 +808,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
         ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm(inputAssertion, os, globalLetMap);
         os << " ";
-        ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-
+        ProofManager::currentPM()->printTrustedTerm(*it, os, globalLetMap);
         os << "))";
         os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
         paren << "))";
@@ -832,9 +831,7 @@ void LFSCProof::printPreprocessedAssertions(const NodeSet& assertions,
 
       //TODO
       os << "(trust_f ";
-      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << "(p_app ";
-      ProofManager::currentPM()->getTheoryProofEngine()->printTheoryTerm((*it).toExpr(), os, globalLetMap);
-      if (ProofManager::currentPM()->getTheoryProofEngine()->printsAsBool(*it)) os << ")";
+      ProofManager::currentPM()->printTrustedTerm(*it, os, globalLetMap);
       os << ") ";
 
       os << "(\\ "<< ProofManager::getPreprocessedAssertionName(*it, "") << "\n";
@@ -1063,5 +1060,13 @@ void ProofManager::printGlobalLetMap(std::set<Node>& atoms,
 void ProofManager::ensureLiteral(Node node) {
   d_cnfProof->ensureLiteral(node);
 }
-
+void ProofManager::printTrustedTerm(Node term,
+                                    std::ostream& os,
+                                    ProofLetMap& globalLetMap)
+{
+  TheoryProofEngine* tpe = ProofManager::currentPM()->getTheoryProofEngine();
+  if (tpe->printsAsBool(term)) os << "(p_app ";
+  tpe->printTheoryTerm(term.toExpr(), os, globalLetMap);
+  if (tpe->printsAsBool(term)) os << ")";
+}
 } /* CVC4  namespace */

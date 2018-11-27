@@ -36,6 +36,7 @@
 #include <sys/resource.h>
 #include <sys/time.h>
 
+#include "base/configuration_private.h"
 #include "base/cvc4_assert.h"
 
 // Conditionally define CVC4_MEMORY_LIMITING_DISABLED.
@@ -43,17 +44,14 @@
 #  define CVC4_MEMORY_LIMITING_DISABLED 1
 #  define CVC4_MEMORY_LIMITING_DISABLED_REASON "setrlimit() is broken on Mac."
 #else /* __APPLE__ */
-#  if defined(__has_feature)
-#    if __has_feature(address_sanitizer)
+
 // Tests cannot expect bad_alloc to be thrown due to limit memory using
 // setrlimit when ASAN is enable. ASAN instead aborts on mmap failures.
-#      define CVC4_MEMORY_LIMITING_DISABLED 1
-#      define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
-#    endif /* __has_feature(address_sanitizer) */
-#  endif /* defined(__has_feature) */
+#  if IS_ASAN_BUILD
+#    define CVC4_MEMORY_LIMITING_DISABLED 1
+#    define CVC4_MEMORY_LIMITING_DISABLED_REASON "ASAN's mmap failures abort."
+#  endif
 #endif
-
-
 
 namespace CVC4 {
 namespace test {

@@ -311,6 +311,7 @@ void TheorySep::check(Effort e) {
 
   TimerStat::CodeTimer checkTimer(d_checkTime);
   Trace("sep-check") << "Sep::check(): " << e << endl;
+  NodeManager* nm = NodeManager::currentNM();
 
   while( !done() && !d_conflict ){
     // Get all the assertions
@@ -454,12 +455,16 @@ void TheorySep::check(Effort e) {
             if( !use_polarity ){
               // introduce guard, assert positive version
               Trace("sep-lemma-debug") << "Negated spatial constraint asserted to sep theory: " << fact << std::endl;
-              Node lit = Rewriter::rewrite( NodeManager::currentNM()->mkSkolem( "G", NodeManager::currentNM()->booleanType() ) );
-              lit = getValuation().ensureLiteral( lit );
+              Node g = nm->mkSkolem("G", nm->booleanType());
+              d_neg_guard_strategy[g].reset(new DecisionStrategySingleton(
+                  "sep_neg_guard", g, getSatContext(), getValuation()));
+              DecisionStrategySingleton* ds = d_neg_guard_strategy[g].get();
+              getDecisionManager()->registerStrategy(
+                  DecisionManager::STRAT_SEP_NEG_GUARD, ds);
+              Node lit = ds->getLiteral(0);
               d_neg_guard[s_lbl][s_atom] = lit;
               Trace("sep-lemma-debug") << "Neg guard : " << s_lbl << " " << s_atom << " " << lit << std::endl;
               AlwaysAssert( !lit.isNull() );
-              d_out->requirePhase( lit, true );
               d_neg_guards.push_back( lit );
               d_guard_to_assertion[lit] = s_atom;
               //Node lem = NodeManager::currentNM()->mkNode( kind::EQUAL, lit, conc );
@@ -820,40 +825,6 @@ void TheorySep::check(Effort e) {
 
 bool TheorySep::needsCheckLastEffort() {
   return hasFacts();
-}
-
-Node TheorySep::getNextDecisionRequest( unsigned& priority ) {
-  for( unsigned i=0; i<d_neg_guards.size(); i++ ){
-    Node g = d_neg_guards[i];
-    bool success = true;
-    if( getLogicInfo().isQuantified() ){
-      Assert( d_guard_to_assertion.find( g )!= d_guard_to_assertion.end() );
-      Node a = d_guard_to_assertion[g];
-      Node q = quantifiers::TermUtil::getInstConstAttr( a );
-      if( !q.isNull() ){
-        //must wait to decide on counterexample literal from quantified formula
-        Node cel = getQuantifiersEngine()->getTermUtil()->getCounterexampleLiteral( q );
-        bool value;
-        if( d_valuation.hasSatValue( cel, value ) ){
-          Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : dependent guard " << g << " depends on value for guard for quantified formula : " << value << std::endl;
-          success = value;
-        }else{
-          Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : wait to decide on " << g << " until " << cel << " is set " << std::endl;
-          success = false;
-        }
-      }
-    }
-    if( success ){
-      bool value;
-      if( !d_valuation.hasSatValue( g, value ) ) {
-        Trace("sep-dec") << "TheorySep::getNextDecisionRequest : " << g << " (" << i << "/" << d_neg_guards.size() << ")" << std::endl;
-        priority = 0;
-        return g;
-      }
-    }
-  }
-  Trace("sep-dec-debug") << "TheorySep::getNextDecisionRequest : null" << std::endl;
-  return Node::null();
 }
 
 void TheorySep::conflict(TNode a, TNode b) {
