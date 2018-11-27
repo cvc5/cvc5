@@ -18,10 +18,12 @@ namespace CVC4 {
 namespace theory {
 
 template <bool ref_count>
-NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(const std::vector<NodeTemplate<ref_count>>& reps) const
+NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(
+    const std::vector<NodeTemplate<ref_count>>& reps) const
 {
   const NodeTemplateTrie<ref_count>* tnt = this;
-  typename std::map<NodeTemplate<ref_count>, NodeTemplateTrie<ref_count>>::const_iterator it;
+  typename std::map<NodeTemplate<ref_count>,
+                    NodeTemplateTrie<ref_count>>::const_iterator it;
   for (const NodeTemplate<ref_count> r : reps)
   {
     it = tnt->d_data.find(r);
@@ -39,11 +41,14 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsTerm(const std::vecto
   return tnt->d_data.begin()->first;
 }
 
-template TNode NodeTemplateTrie<false>::existsTerm(const std::vector<TNode>& reps) const;
-template Node NodeTemplateTrie<true>::existsTerm(const std::vector<Node>& reps) const;
+template TNode NodeTemplateTrie<false>::existsTerm(
+    const std::vector<TNode>& reps) const;
+template Node NodeTemplateTrie<true>::existsTerm(
+    const std::vector<Node>& reps) const;
 
 template <bool ref_count>
-NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
+NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(
+    NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
 {
   NodeTemplateTrie<ref_count>* tnt = this;
   for (const NodeTemplate<ref_count> r : reps)
@@ -60,13 +65,17 @@ NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(NodeTemplate<r
   return tnt->d_data.begin()->first;
 }
 
-template TNode NodeTemplateTrie<false>::addOrGetTerm(TNode n, const std::vector<TNode>& reps);
-template Node NodeTemplateTrie<true>::addOrGetTerm(Node n, const std::vector<Node>& reps);
+template TNode NodeTemplateTrie<false>::addOrGetTerm(
+    TNode n, const std::vector<TNode>& reps);
+template Node NodeTemplateTrie<true>::addOrGetTerm(
+    Node n, const std::vector<Node>& reps);
 
 template <bool ref_count>
-void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) const
+void NodeTemplateTrie<ref_count>::debugPrint(const char* c,
+                                             unsigned depth) const
 {
-  for (const std::pair<const NodeTemplate<ref_count>, NodeTemplateTrie<ref_count>>& p : d_data)
+  for (const std::pair<const NodeTemplate<ref_count>,
+                       NodeTemplateTrie<ref_count>>& p : d_data)
   {
     for (unsigned i = 0; i < depth; i++)
     {
@@ -77,9 +86,10 @@ void NodeTemplateTrie<ref_count>::debugPrint(const char* c, unsigned depth) cons
   }
 }
 
-template void NodeTemplateTrie<false>::debugPrint(const char* c, unsigned depth) const;
-template void NodeTemplateTrie<true>::debugPrint(const char* c, unsigned depth) const;
-
+template void NodeTemplateTrie<false>::debugPrint(const char* c,
+                                                  unsigned depth) const;
+template void NodeTemplateTrie<true>::debugPrint(const char* c,
+                                                 unsigned depth) const;
 
 }  // namespace theory
 }  // namespace CVC4
