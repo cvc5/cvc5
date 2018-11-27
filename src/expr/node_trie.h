@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A trie class for Nodes and NodeTemplate<ref_count>s.
+ ** \brief A trie class for Nodes and TNodes.
  **/
 
 #include "cvc4_private.h"
