@@ -22,6 +22,7 @@ operator STRING_LT 2 "string less than"
 operator STRING_LEQ 2 "string less than or equal"
 operator STRING_STRIDOF 3 "string indexof"
 operator STRING_STRREPL 3 "string replace"
+operator STRING_STRREPLALL 3 "string replace all"
 operator STRING_PREFIX 2 "string prefixof"
 operator STRING_SUFFIX 2 "string suffixof"
 operator STRING_ITOS 1 "integer to string"
@@ -93,6 +94,7 @@ typerule STRING_LT ::CVC4::theory::strings::StringRelationTypeRule
 typerule STRING_LEQ ::CVC4::theory::strings::StringRelationTypeRule
 typerule STRING_STRIDOF ::CVC4::theory::strings::StringIndexOfTypeRule
 typerule STRING_STRREPL ::CVC4::theory::strings::StringReplaceTypeRule
+typerule STRING_STRREPLALL ::CVC4::theory::strings::StringReplaceTypeRule
 typerule STRING_PREFIX ::CVC4::theory::strings::StringPrefixOfTypeRule
 typerule STRING_SUFFIX ::CVC4::theory::strings::StringSuffixOfTypeRule
 typerule STRING_ITOS ::CVC4::theory::strings::StringIntToStrTypeRule

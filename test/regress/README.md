@@ -3,20 +3,10 @@
 ## Regression Levels and Running Regression Tests
 
 CVC4's regression tests are divided into 5 levels (level 0 to 4). Higher
-regression levels are reserved for longer running regressions. To run
-regressions up to a certain level use `make regressX` where `X` designates the
-level. `make regress` by default runs levels 0 and 1. On Travis, we only run
-regression level 0 to keep the time short. During our nightly builds, we run
-regression level 2.
+regression levels are reserved for longer running regressions. 
 
-To only run some benchmarks, you can use the `TEST_REGEX` environment variable.
-For example:
-
-```
-TEST_REGEX=quantifiers make regress0
-```
-
-This runs regression tests from level 0 that have "quantifiers" in their name.
+For running regressions tests, 
+see the [INSTALL](https://github.com/CVC4/CVC4/blob/master/INSTALL.md#testing-cvc4) file.
 
 By default, each invocation of CVC4 is done with a 10 minute timeout. To use a
 different timeout, set the `TEST_TIMEOUT` environment variable:
@@ -35,10 +25,10 @@ To add a new regression file, add the file to git, for example:
 git add regress/regress0/testMyFunctionality.cvc
 ```
 
-Also add it to [Makefile.tests](Makefile.tests) in this directory.
+Also add it to [CMakeLists.txt](CMakeLists.txt) in this directory.
 
 A number of regressions exist under test/regress that are not listed in
-[Makefile.tests](Makefile.tests). These are regressions that may someday be
+[CMakeLists.txt](CMakeLists.txt). These are regressions that may someday be
 included in the standard suite of tests, but are not yet included (perhaps they
 test functionality not yet supported).
 

@@ -23,6 +23,7 @@
 #include "prop/sat_solver_types.h"
 #include "util/proof.h"
 #include "expr/node.h"
+#include <iosfwd>
 
 namespace CVC4 {
 
@@ -48,9 +49,27 @@ public:
   theory::TheoryId getTheory() const;
 
   //* Rewrite rules */
-  typedef std::map<Node, Node>::const_iterator RewriteIterator;
+  using RewriteIterator = std::map<Node, Node>::const_iterator;
   RewriteIterator rewriteBegin() const;
   RewriteIterator rewriteEnd() const;
+
+  // Steps iterator
+  // The default iterator for a LemmaProofRecipe
+  using iterator = std::vector<ProofStep>::reverse_iterator;
+  std::vector<ProofStep>::reverse_iterator begin();
+  std::vector<ProofStep>::reverse_iterator end();
+
+  using const_iterator = std::vector<ProofStep>::const_reverse_iterator;
+  std::vector<ProofStep>::const_reverse_iterator begin() const;
+  std::vector<ProofStep>::const_reverse_iterator end() const;
+
+  using difference_type = ptrdiff_t;
+  using size_type = size_t;
+  using value_type = ProofStep;
+  using pointer = ProofStep *;
+  using const_pointer = const ProofStep *;
+  using reference = ProofStep &;
+  using const_reference = const ProofStep &;
 
   void addRewriteRule(Node assertion, Node explanation);
   bool wasRewritten(Node assertion) const;
@@ -77,7 +96,8 @@ private:
   std::set<Node> d_baseAssertions;
 
   //* The various steps needed to derive the empty clause */
-  std::list<ProofStep> d_proofSteps;
+  // The "first" step is actually at the back.
+  std::vector<ProofStep> d_proofSteps;
 
   //* A map from assertions to their rewritten explanations (toAssert --> toExplain) */
   std::map<Node, Node> d_assertionToExplanation;
@@ -85,6 +105,10 @@ private:
   //* The original lemma, as asserted by the owner theory solver */
   Node d_originalLemma;
 };
+
+std::ostream& operator<<(std::ostream & out, const LemmaProofRecipe::ProofStep & step);
+
+std::ostream& operator<<(std::ostream & out, const LemmaProofRecipe & recipe);
 
 } /* CVC4 namespace */
 

@@ -16,9 +16,10 @@
 
 #include "expr/datatype.h"
 #include "options/quantifiers_options.h"
+#include "theory/datatypes/datatypes_rewriter.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/datatypes/datatypes_rewriter.h"
 #include "util/random.h"
 
 using namespace CVC4;
@@ -40,7 +41,7 @@ SygusPbe::~SygusPbe() {}
 
 //--------------------------------- collecting finite input/output domain information
 
-void SygusPbe::collectExamples(Node n,
+bool SygusPbe::collectExamples(Node n,
                                std::map<Node, bool>& visited,
                                bool hasPol,
                                bool pol)
@@ -54,10 +55,12 @@ void SygusPbe::collectExamples(Node n,
     {
       neval = n;
       if( hasPol ){
-        n_output = !pol ? d_true : d_false;
+        n_output = pol ? d_true : d_false;
       }
       neval_is_evalapp = true;
-    }else if( n.getKind()==EQUAL && hasPol && !pol ){
+    }
+    else if (n.getKind() == EQUAL && hasPol && pol)
+    {
       for( unsigned r=0; r<2; r++ ){
         if (n[r].getKind() == DT_SYGUS_EVAL)
         {
@@ -72,6 +75,25 @@ void SygusPbe::collectExamples(Node n,
     // is it an evaluation function?
     if (neval_is_evalapp && d_examples.find(neval[0]) != d_examples.end())
     {
+      Trace("sygus-pbe-debug")
+          << "Process head: " << n << " == " << n_output << std::endl;
+      // If n_output is null, then neval does not have a constant value
+      // If n_output is non-null, then neval is constrained to always be
+      // that value.
+      if (!n_output.isNull())
+      {
+        std::map<Node, Node>::iterator itet = d_exampleTermMap.find(neval);
+        if (itet == d_exampleTermMap.end())
+        {
+          d_exampleTermMap[neval] = n_output;
+        }
+        else if (itet->second != n_output)
+        {
+          // We have a conflicting pair f( c ) = d1 ^ f( c ) = d2 for d1 != d2,
+          // the conjecture is infeasible.
+          return false;
+        }
+      }
       // get the evaluation head
       Node eh = neval[0];
       std::map<Node, bool>::iterator itx = d_examples_invalid.find(eh);
@@ -103,7 +125,7 @@ void SygusPbe::collectExamples(Node n,
             Assert(n_output.isConst());
           }
           // finished processing this node
-          return;
+          return true;
         }
         d_examples_invalid[eh] = true;
         d_examples_out_invalid[eh] = true;
@@ -112,10 +134,14 @@ void SygusPbe::collectExamples(Node n,
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
       bool newHasPol;
       bool newPol;
-      QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
-      collectExamples( n[i], visited, newHasPol, newPol );
+      QuantPhaseReq::getEntailPolarity(n, i, hasPol, pol, newHasPol, newPol);
+      if (!collectExamples(n[i], visited, newHasPol, newPol))
+      {
+        return false;
+      }
     }
   }
+  return true;
 }
 
 bool SygusPbe::initialize(Node n,
@@ -123,6 +149,7 @@ bool SygusPbe::initialize(Node n,
                           std::vector<Node>& lemmas)
 {
   Trace("sygus-pbe") << "Initialize PBE : " << n << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
 
   for (unsigned i = 0; i < candidates.size(); i++)
   {
@@ -133,7 +160,14 @@ bool SygusPbe::initialize(Node n,
   }
 
   std::map<Node, bool> visited;
-  collectExamples(n, visited, true, true);
+  // n is negated conjecture
+  if (!collectExamples(n, visited, true, false))
+  {
+    Trace("sygus-pbe") << "...conflicting examples" << std::endl;
+    Node infeasible = d_parent->getGuard().negate();
+    lemmas.push_back(infeasible);
+    return false;
+  }
 
   for (unsigned i = 0; i < candidates.size(); i++)
   {
@@ -179,7 +213,6 @@ bool SygusPbe::initialize(Node n,
       return false;
     }
   }
-  bool isActiveGen = options::sygusActiveGenMode() != SYGUS_ACTIVE_GEN_NONE;
   for (const Node& c : candidates)
   {
     Assert(d_examples.find(c) != d_examples.end());
@@ -199,11 +232,10 @@ bool SygusPbe::initialize(Node n,
       tn_to_strategy_pt[tnsp].push_back(p.first);
     }
     // initialize the enumerators
-    NodeManager* nm = NodeManager::currentNM();
     for (const Node& e : d_candidate_to_enum[c])
     {
       TypeNode etn = e.getType();
-      d_tds->registerEnumerator(e, c, d_parent, true, false, isActiveGen);
+      d_tds->registerEnumerator(e, c, d_parent, ROLE_ENUM_POOL, false);
       d_enum_to_candidate[e] = c;
       TNode te = e;
       // initialize static symmetry breaking lemmas for it
@@ -229,13 +261,24 @@ bool SygusPbe::initialize(Node n,
             {
               lem = lem.substitute(tsp, te);
             }
-            disj.push_back(lem);
+            if (std::find(disj.begin(), disj.end(), lem) == disj.end())
+            {
+              disj.push_back(lem);
+            }
           }
         }
+        // add its active guard
+        Node ag = d_tds->getActiveGuardForEnumerator(e);
+        Assert(!ag.isNull());
+        disj.push_back(ag.negate());
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
-        lemmas.push_back(lem);
+        // Register as a symmetry breaking lemma with the term database.
+        // This will either be processed via a lemma on the output channel
+        // of the sygus extension of the datatypes solver, or internally
+        // encoded as a constraint to an active enumerator.
+        d_tds->registerSymBreakLemma(e, lem, etn, 0, false);
       }
     }
     Trace("sygus-pbe") << "Initialize " << d_examples[c].size()
@@ -249,53 +292,19 @@ bool SygusPbe::initialize(Node n,
   return true;
 }
 
-Node SygusPbe::PbeTrie::addPbeExample(TypeNode etn,
-                                      Node e,
-                                      Node b,
-                                      SygusPbe* cpbe,
-                                      unsigned index,
-                                      unsigned ntotal)
+Node SygusPbe::PbeTrie::addTerm(Node b, const std::vector<Node>& exOut)
 {
-  if (index == ntotal) {
-    // lazy child holds the leaf data
-    if (d_lazy_child.isNull()) {
-      d_lazy_child = b;
-    }
-    return d_lazy_child;
-  } else {
-    std::vector<Node> ex;
-    if (d_children.empty()) {
-      if (d_lazy_child.isNull()) {
-        d_lazy_child = b;
-        return d_lazy_child;
-      } else {
-        // evaluate the lazy child
-        Assert(cpbe->d_examples.find(e) != cpbe->d_examples.end());
-        Assert(index < cpbe->d_examples[e].size());
-        ex = cpbe->d_examples[e][index];
-        addPbeExampleEval(etn, e, d_lazy_child, ex, cpbe, index, ntotal);
-        Assert(!d_children.empty());
-        d_lazy_child = Node::null();
-      }
-    } else {
-      Assert(cpbe->d_examples.find(e) != cpbe->d_examples.end());
-      Assert(index < cpbe->d_examples[e].size());
-      ex = cpbe->d_examples[e][index];
-    }
-    return addPbeExampleEval(etn, e, b, ex, cpbe, index, ntotal);
+  PbeTrie* curr = this;
+  for (const Node& eo : exOut)
+  {
+    curr = &(curr->d_children[eo]);
   }
-}
-
-Node SygusPbe::PbeTrie::addPbeExampleEval(TypeNode etn,
-                                          Node e,
-                                          Node b,
-                                          std::vector<Node>& ex,
-                                          SygusPbe* cpbe,
-                                          unsigned index,
-                                          unsigned ntotal)
-{
-  Node eb = cpbe->d_tds->evaluateBuiltin(etn, b, ex);
-  return d_children[eb].addPbeExample(etn, e, b, cpbe, index + 1, ntotal);
+  if (!curr->d_children.empty())
+  {
+    return curr->d_children.begin()->first;
+  }
+  curr->d_children.insert(std::pair<Node, PbeTrie>(b, PbeTrie()));
+  return b;
 }
 
 bool SygusPbe::hasExamples(Node e)
@@ -356,18 +365,31 @@ Node SygusPbe::addSearchVal(TypeNode tn, Node e, Node bvr)
 {
   Assert(isPbe());
   Assert(!e.isNull());
-  if (!d_tds->isPassiveEnumerator(e))
+  if (d_tds->isVariableAgnosticEnumerator(e))
   {
-    // we cannot apply conjecture-specific symmetry breaking on enumerators that
-    // are not passive
+    // we cannot apply conjecture-specific symmetry breaking on variable
+    // agnostic enumerators
     return Node::null();
   }
   Node ee = d_tds->getSynthFunForEnumerator(e);
   Assert(!e.isNull());
   std::map<Node, bool>::iterator itx = d_examples_invalid.find(ee);
   if (itx == d_examples_invalid.end()) {
-    unsigned nex = d_examples[ee].size();
-    Node ret = d_pbe_trie[e][tn].addPbeExample(tn, ee, bvr, this, 0, nex);
+    // compute example values with the I/O utility
+    std::vector<Node> vals;
+    Trace("sygus-pbe-debug")
+        << "Compute examples " << bvr << "..." << std::endl;
+    d_sygus_unif[ee].computeExamples(e, bvr, vals);
+    Assert(vals.size() == d_examples[ee].size());
+    Trace("sygus-pbe-debug") << "...got " << vals << std::endl;
+    Trace("sygus-pbe-debug") << "Add to trie..." << std::endl;
+    Node ret = d_pbe_trie[e][tn].addTerm(bvr, vals);
+    Trace("sygus-pbe-debug") << "...got " << ret << std::endl;
+    if (ret != bvr)
+    {
+      Trace("sygus-pbe-debug") << "...clear example cache" << std::endl;
+      d_sygus_unif[ee].clearExampleCache(e, bvr);
+    }
     Assert(ret.getType() == bvr.getType());
     return ret;
   }
