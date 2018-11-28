@@ -787,6 +787,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
                        << std::endl;
     d_check_sol = false;
     Node newSolution;
+    d_solConsUsingInfoGain = false;
     // try multiple times if we have done multiple conditions, due to
     // non-determinism
     for (unsigned i = 0; i <= d_cond_count; i++)
@@ -818,7 +819,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
         // and we want testing feasibility to be fast.
         if (!d_solConsUsingInfoGain)
         {
-          // we permanently enable information gain now
+          // we permanently enable information gain and minimality now
           d_solConsUsingInfoGain = true;
           d_enableMinimality = true;
           i = 0;
@@ -1054,7 +1055,7 @@ Node SygusUnifIo::constructSol(
           }
           if (!str_solved.empty())
           {
-            ret_dt = constructBestStringSolvedTerm(e, str_solved);
+            ret_dt = constructBestSolvedTerm(e, str_solved);
             indent("sygus-sui-dt", ind);
             Trace("sygus-sui-dt") << "return PBE: success : string solved "
                                   << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -1386,26 +1387,33 @@ Node SygusUnifIo::constructSol(
 }
 
 Node SygusUnifIo::constructBestConditional(Node ce,
-                                           const std::vector<Node>& solved)
+                                           const std::vector<Node>& conds)
 {
   if (!d_solConsUsingInfoGain)
   {
-    return SygusUnif::constructBestConditional(ce, solved);
+    return SygusUnif::constructBestConditional(ce, conds);
   }
   UnifContextIo& x = d_context;
   // use information gain heuristic
   Trace("sygus-sui-dt-igain") << "Best information gain in context ";
   print_val("sygus-sui-dt-igain", x.d_vals);
   Trace("sygus-sui-dt-igain") << std::endl;
+  // set of indices that are active in this branch, i.e. x.d_vals[i] is true
   std::vector<unsigned> activeIndices;
+  // map (j,t,s) -> n, such that the j^th condition in the vector conds
+  // evaluates to t (typically true/false) on n active I/O pairs with output s.
   std::map<unsigned, std::map<Node, std::map<Node, unsigned>>> eval;
+  // map (j,t) -> m, such that the j^th condition in the vector conds
+  // evaluates to t (typically true/false) for m active I/O pairs.
   std::map<unsigned, std::map<Node, unsigned>> evalCount;
-  unsigned nsolved = solved.size();
+  unsigned nconds = conds.size();
   EnumCache& ecache = d_ecache[ce];
+  // Get the index of conds[j] in the enumerator cache, this is to look up
+  // its evaluation on each point.
   std::vector<unsigned> eindex;
-  for (unsigned j = 0; j < nsolved; j++)
+  for (unsigned j = 0; j < nconds; j++)
   {
-    eindex.push_back(ecache.d_enum_val_to_index[solved[j]]);
+    eindex.push_back(ecache.d_enum_val_to_index[conds[j]]);
   }
   unsigned activePoints = 0;
   for (unsigned i = 0, npoints = x.d_vals.size(); i < npoints; i++)
@@ -1414,7 +1422,7 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     {
       activePoints++;
       Node eo = d_examples_out[i];
-      for (unsigned j = 0; j < nsolved; j++)
+      for (unsigned j = 0; j < nconds; j++)
       {
         Node resn = ecache.d_enum_vals_res[eindex[j]][i];
         Assert(resn.isConst());
@@ -1424,11 +1432,19 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     }
   }
   AlwaysAssert(activePoints > 0);
+  // find the condition that leads to the lowest entropy
+  // initially set minEntropy to > 1.0.
   double minEntropy = 2.0;
   unsigned bestIndex = 0;
-  int numEqual = 1;
-  for (unsigned j = 0; j < nsolved; j++)
+  for (unsigned j = 0; j < nconds; j++)
   {
+    // To compute the entropy for a condition C, for pair of terms (s, t), let
+    //   prob(t) be the probability C evaluates to t on an active point,
+    //   prob(s|t) be the probability that an active point on which C
+    //     evaluates to t has output s.
+    // Then, the entropy of C is:
+    //   sum{t}. prob(t)*( sum{s}. -prob(s|t)*log2(prob(s|t)) )
+    // where notice this is always between 0 and 1.
     double entropySum = 0.0;
     Trace("sygus-sui-dt-igain") << j << " : ";
     for (std::pair<const Node, std::map<Node, unsigned>>& ej : eval[j])
@@ -1475,8 +1491,8 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     }
   }
 
-  Assert(!solved.empty());
-  return solved[bestIndex];
+  Assert(!conds.empty());
+  return conds[bestIndex];
 }
 
 } /* CVC4::theory::quantifiers namespace */

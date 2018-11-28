@@ -92,6 +92,14 @@ class ExprMiner
                          ExprManagerMapCollection& varMap,
                          Node query,
                          bool& needExport);
+  /**
+   * Run the satisfiability check on query and return the result
+   * (sat/unsat/unknown).
+   *
+   * In contrast to the above method, this call should be used for cases where
+   * the model for the query is not important.
+   */
+  Result doCheck(Node query);
 };
 
 }  // namespace quantifiers

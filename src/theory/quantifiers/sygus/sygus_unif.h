@@ -158,15 +158,12 @@ class SygusUnif
       Node f, Node e, NodeRole nrole, int ind, std::vector<Node>& lemmas) = 0;
   /**
    * Heuristically choose the best solved term for enumerator e,
-   * currently return the first by default.
+   * currently return the first by default. A solved term is one that
+   * suffices to form part of the solution for the given context. For example,
+   * x is a solved term in the context "ite(x>0, _, 0)" for PBE problem
+   * with I/O pairs { 1 -> 1, 4 -> 4, -1 -> 0 }.
    */
   virtual Node constructBestSolvedTerm(Node e, const std::vector<Node>& solved);
-  /**
-   * Heuristically choose the best solved string term for enumerator e,
-   * return the first by default.
-   */
-  virtual Node constructBestStringSolvedTerm(Node e,
-                                             const std::vector<Node>& solved);
   /**
    * Heuristically choose the best conditional term from conds for condition
    * enumerator ce, random by default.

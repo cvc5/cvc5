@@ -82,17 +82,6 @@ Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm(Node e,
-                                              const std::vector<Node>& solved)
-{
-  Assert(!solved.empty());
-  if (d_enableMinimality)
-  {
-    return getMinimalTerm(solved);
-  }
-  return solved[0];
-}
-
 Node SygusUnif::constructBestConditional(Node ce,
                                          const std::vector<Node>& conds)
 {
