@@ -113,7 +113,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         // We do not need to include memberships of the form
         //   (str.substr x 0 n) in re.allchar
         // since we know that by construction, n < len( x ).
-        if( re[i].getKind()!=REGEXP_SIGMA )
+        if (re[i].getKind() != REGEXP_SIGMA)
         {
           Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
           conc.push_back(currMem);
