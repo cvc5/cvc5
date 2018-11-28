@@ -1436,6 +1436,7 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   // initially set minEntropy to > 1.0.
   double minEntropy = 2.0;
   unsigned bestIndex = 0;
+  int numEqual = 1;
   for (unsigned j = 0; j < nconds; j++)
   {
     // To compute the entropy for a condition C, for pair of terms (s, t), let
