@@ -93,9 +93,11 @@ class ExprMiner
                          Node query,
                          bool& needExport);
   /**
-   * Run the satisfiability check on query, without returning the checker. This
-   * can be used for cases where for instance the model for the query is not
-   * important.
+   * Run the satisfiability check on query and return the result
+   * (sat/unsat/unknown).
+   *
+   * In contrast to the above method, this call should be used for cases where
+   * the model for the query is not important.
    */
   Result doCheck(Node query);
 };

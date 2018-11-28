@@ -280,9 +280,9 @@ enum SygusFilterSolMode
 {
   /** do not filter solutions */
   SYGUS_FILTER_SOL_NONE,
-  /** filter logically strong solutions */
+  /** filter logically stronger solutions */
   SYGUS_FILTER_SOL_STRONG,
-  /** filter logically weak solutions */
+  /** filter logically weaker solutions */
   SYGUS_FILTER_SOL_WEAK,
 };
 

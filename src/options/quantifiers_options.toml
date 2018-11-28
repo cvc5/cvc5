@@ -1420,7 +1420,6 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
-  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
