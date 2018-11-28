@@ -66,27 +66,12 @@ class NodeTemplateTrie
   bool hasData() const { return !d_data.empty(); }
   /** For leaf nodes : get the node corresponding to this leaf. */
   NodeTemplate<ref_count> getData() const { return d_data.begin()->first; }
-
   /**
    * Returns the term that is indexed by reps, if one exists, or
    * or returns null otherwise.
    */
   NodeTemplate<ref_count> existsTerm(
       const std::vector<NodeTemplate<ref_count>>& reps) const;
-
-  /**
-   * Given an index-prefix repsPre, finds a node whose index has repsPre as a
-   * prefix. If multiple nodes have the index prefix repsPre, it is not
-   * specified which one will be returned. If none exists, the method returns
-   * null.
-   *
-   * @param repsPre The index prefix
-   * @return A node whose index has repsPre as a prefix or the null node if no
-   * such node exists.
-   */
-  NodeTemplate<ref_count> existsPrefix(
-      const std::vector<NodeTemplate<ref_count>>& repsPre) const;
-
   /**
    * Returns the term that is previously indexed by reps, if one exists, or
    * adds n to the trie, indexed by reps, and returns n.

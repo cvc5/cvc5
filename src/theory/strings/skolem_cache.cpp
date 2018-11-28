@@ -55,14 +55,6 @@ Node SkolemCache::mkTypedSkolemCached(
   {
     Node sk = mkTypedSkolem(tn, c);
     d_skolemCache[a][b][id] = sk;
-
-    if (id == SK_FIRST_CTN_PRE)
-    {
-      std::vector<Node> children;
-      TheoryStringsRewriter::getConcat(a, children);
-      d_firstCtnPreSkolems[b].addTerm(a, children);
-    }
-
     return sk;
   }
   return it->second;
@@ -121,15 +113,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     while (a.getKind() == kind::STRING_SUBSTR && a[1] == d_zero)
     {
       a = a[0];
-    }
-
-    // SK_FIRST_CTN_PRE(x, y) ---> SK_FIRST_CTN_PRE(x ++ z, y)
-    std::vector<Node> children;
-    TheoryStringsRewriter::getConcat(a, children);
-    Node aa = d_firstCtnPreSkolems[b].existsPrefix(children);
-    if (!aa.isNull())
-    {
-      a = aa;
     }
   }
 

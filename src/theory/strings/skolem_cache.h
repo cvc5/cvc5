@@ -141,10 +141,10 @@ class SkolemCache
   /**
    * Simplifies the arguments for a string skolem used for indexing into the
    * cache. In certain cases, we can share skolems with similar arguments e.g.
-   * SK_FIRST_CTN(a ++ b, c) can be used instead of SK_FIRST_CTN(a, c) because
-   * the first occurrence of "c" in "a" is also the first occurrence of "c" in
-   * "a ++ b" (assuming that "c" appears in both and otherwise the value of
-   * SK_FIRST_CTN does not matter).
+   * SK_FIRST_CTN(a, c) can be used instead of SK_FIRST_CTN((str.substr a 0 n),
+   * c) because the first occurrence of "c" in "(str.substr a 0 n)" is also the
+   * first occurrence of "c" in "a" (assuming that "c" appears in both and
+   * otherwise the value of SK_FIRST_CTN does not matter).
    *
    * @param id The type of skolem
    * @param a The first argument used for indexing
@@ -164,17 +164,6 @@ class SkolemCache
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node, NodeHashFunction> d_allSkolems;
-
-  /**
-   * Maps each b to a trie of "a"s that they were paired with when creating
-   * SK_FIRST_CTN_PRE skolems. For example, if we call:
-   *
-   * mkSkolemCached(x, y, SK_FIRST_CTN_PRE) and then
-   * mkSkolemCached(z, y, SK_FIRST_CTN_PRE)
-   *
-   * then d_firstCtnPreSkolems is { y -> [x, z] }.
-   */
-  std::unordered_map<Node, NodeTrie, NodeHashFunction> d_firstCtnPreSkolems;
 };
 
 }  // namespace strings
