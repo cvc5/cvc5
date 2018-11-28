@@ -1399,6 +1399,8 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   std::map<unsigned, std::map<Node, unsigned>> evalCount;
   unsigned nsolved = solved.size();
   EnumCache& ecache = d_ecache[ce];
+  // Get the index of solved[j] in the enumerator cache, this is to look up
+  // its evaluation on each point.
   std::vector<unsigned> eindex;
   for (unsigned j = 0; j < nsolved; j++)
   {
