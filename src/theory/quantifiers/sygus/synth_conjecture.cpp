@@ -354,7 +354,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     if (!d_master->allowPartialModel() && !fullModel)
     {
       // we retain the values in d_ev_active_gen_waiting
-      Trace("cegqi-engine") << "...partial model, fail." << std::endl;
+      Trace("cegqi-engine-debug") << "...partial model, fail." << std::endl;
       // if we are partial due to an active enumerator, we may still succeed
       // on the next call
       return !activeIncomplete;
@@ -362,19 +362,27 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
 
-    // debug print
     Assert(terms.size() == enum_values.size());
     bool emptyModel = true;
-    Trace("cegqi-engine") << "  * Value is : ";
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
-      Node nv = enum_values[i];
-      if (!nv.isNull())
+      if (!enum_values[i].isNull())
       {
         emptyModel = false;
       }
-      if (Trace.isOn("cegqi-engine"))
+    }
+    if (emptyModel)
+    {
+      Trace("cegqi-engine-debug") << "...empty model, fail." << std::endl;
+      return !activeIncomplete;
+    }
+    // debug print
+    if (Trace.isOn("cegqi-engine"))
+    {
+      Trace("cegqi-engine") << "  * Value is : ";
+      for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
+        Node nv = enum_values[i];
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
@@ -395,12 +403,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
           }
         }
       }
-    }
-    Trace("cegqi-engine") << std::endl;
-    if (emptyModel)
-    {
-      Trace("cegqi-engine") << "...empty model, fail." << std::endl;
-      return !activeIncomplete;
+      Trace("cegqi-engine") << std::endl;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(

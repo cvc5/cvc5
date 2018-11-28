@@ -2611,64 +2611,49 @@ termList[std::vector<CVC4::Expr>& formulas, CVC4::Expr& expr]
  * Matches a string, and strips off the quotes.
  */
 str[std::string& s, bool fsmtlib]
-  : STRING_LITERAL_2_0
-    { s = AntlrInput::tokenText($STRING_LITERAL_2_0);
+  : STRING_LITERAL
+    {
+      s = AntlrInput::tokenText($STRING_LITERAL);
       /* strip off the quotes */
       s = s.substr(1, s.size() - 2);
-      for(size_t i=0; i<s.size(); i++) {
-        if((unsigned)s[i] > 127 && !isprint(s[i])) {
-          PARSER_STATE->parseError("Extended/unprintable characters are not "
-                                   "part of SMT-LIB, and they must be encoded "
-                                   "as escape sequences");
+      for (size_t i = 0; i < s.size(); i++)
+      {
+        if ((unsigned)s[i] > 127 && !isprint(s[i]))
+        {
+          PARSER_STATE->parseError(
+              "Extended/unprintable characters are not "
+              "part of SMT-LIB, and they must be encoded "
+              "as escape sequences");
         }
       }
-      if(fsmtlib) {
-        /* handle SMT-LIB standard escapes '\\' and '\"' */
+      if (fsmtlib || PARSER_STATE->escapeDupDblQuote())
+      {
         char* p_orig = strdup(s.c_str());
         char *p = p_orig, *q = p_orig;
-        while(*q != '\0') {
-          if(*q == '\\') {
+        while (*q != '\0')
+        {
+          if (PARSER_STATE->escapeDupDblQuote() && *q == '"')
+          {
+            // Handle SMT-LIB >=2.5 standard escape '""'.
             ++q;
-            if(*q == '\\' || *q == '"') {
-              *p++ = *q++;
-            } else {
+            assert(*q == '"');
+          }
+          else if (!PARSER_STATE->escapeDupDblQuote() && *q == '\\')
+          {
+            ++q;
+            // Handle SMT-LIB 2.0 standard escapes '\\' and '\"'.
+            if (*q != '\\' && *q != '"')
+            {
               assert(*q != '\0');
               *p++ = '\\';
-              *p++ = *q++;
             }
-          } else {
-            *p++ = *q++;
           }
+          *p++ = *q++;
         }
         *p = '\0';
         s = p_orig;
         free(p_orig);
       }
-    }
-  | STRING_LITERAL_2_5
-    { s = AntlrInput::tokenText($STRING_LITERAL_2_5);
-      /* strip off the quotes */
-      s = s.substr(1, s.size() - 2);
-      for(size_t i=0; i<s.size(); i++) {
-        if((unsigned)s[i] > 127 && !isprint(s[i])) {
-          PARSER_STATE->parseError("Extended/unprintable characters are not "
-                                   "part of SMT-LIB, and they must be encoded "
-                                   "as escape sequences");
-        }
-      }
-      // In the 2.5 version, always handle escapes (regardless of fsmtlib flag).
-      char* p_orig = strdup(s.c_str());
-      char *p = p_orig, *q = p_orig;
-      while(*q != '\0') {
-        if(*q == '"') {
-          ++q;
-          assert(*q == '"');
-        }
-        *p++ = *q++;
-      }
-      *p = '\0';
-      s = p_orig;
-      free(p_orig);
     }
   ;
 
@@ -3276,36 +3261,24 @@ BINARY_LITERAL
   ;
 
 /**
- * Matches a double-quoted string literal from SMT-LIB 2.0.
- * Escaping is supported, and * escape character '\' has to be escaped.
+ * Matches a double-quoted string literal. Depending on the language that is
+ * being parsed, different escape sequences are supported:
+ *
+ * For SMT-LIB 2.0 the sequence \" is interpreted as a double quote (") and the
+ * sequence \\ is interpreted as a backslash (\).
+ *
+ * For SMT-LIB >=2.5 and SyGuS a double-quote inside a string is escaped with
+ * "", e.g., "This is a string literal with "" a single, embedded double
+ * quote."
  *
  * You shouldn't generally use this in parser rules, as the quotes
  * will be part of the token text.  Use the str[] parser rule instead.
  */
-STRING_LITERAL_2_0
-  : { PARSER_STATE->v2_0() }?=>
+STRING_LITERAL
+  : { !PARSER_STATE->escapeDupDblQuote() }?=>
     '"' ('\\' . | ~('\\' | '"'))* '"'
-  ;
-
-/**
- * Matches a double-quoted string literal from SMT-LIB 2.5.
- * You escape a double-quote inside the string with "", e.g.,
- * "This is a string literal with "" a single, embedded double quote."
- *
- * You shouldn't generally use this in parser rules, as the quotes
- * will be part of the token text.  Use the str[] parser rule instead.
- */
-STRING_LITERAL_2_5
-  : { PARSER_STATE->v2_5() || PARSER_STATE->sygus() }?=>
+  | { PARSER_STATE->escapeDupDblQuote() }?=>
     '"' (~('"') | '""')* '"'
-  ;
-
-/**
- * Matches sygus quoted literal 
- */
-SYGUS_QUOTED_LITERAL
- : { PARSER_STATE->sygus() }?=>
-   '"' (ALPHA|DIGIT)* '"'
   ;
   
 /**
