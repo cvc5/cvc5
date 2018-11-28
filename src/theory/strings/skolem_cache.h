@@ -18,8 +18,12 @@
 #define __CVC4__THEORY__STRINGS__SKOLEM_CACHE_H
 
 #include <map>
+#include <tuple>
+#include <unordered_map>
 #include <unordered_set>
+
 #include "expr/node.h"
+#include "expr/node_trie.h"
 
 namespace CVC4 {
 namespace theory {
@@ -134,12 +138,43 @@ class SkolemCache
   bool isSkolem(Node n) const;
 
  private:
+  /**
+   * Simplifies the arguments for a string skolem used for indexing into the
+   * cache. In certain cases, we can share skolems with similar arguments e.g.
+   * SK_FIRST_CTN(a ++ b, c) can be used instead of SK_FIRST_CTN(a, c) because
+   * the first occurrence of "c" in "a" is also the first occurrence of "c" in
+   * "a ++ b" (assuming that "c" appears in both and otherwise the value of
+   * SK_FIRST_CTN does not matter).
+   *
+   * @param id The type of skolem
+   * @param a The first argument used for indexing
+   * @param b The second argument used for indexing
+   * @return A tuple with the new skolem id, the new first, and the new second
+   * argument
+   */
+  std::tuple<SkolemId, Node, Node> normalizeStringSkolem(SkolemId id,
+                                                         Node a,
+                                                         Node b);
+
   /** string type */
   TypeNode d_strType;
+  /** Constant node zero */
+  Node d_zero;
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;
   /** the set of all skolems we have generated */
   std::unordered_set<Node, NodeHashFunction> d_allSkolems;
+
+  /**
+   * Maps each b to a trie of "a"s that they were paired with when creating
+   * SK_FIRST_CTN_PRE skolems. For example, if we call:
+   *
+   * mkSkolemCached(x, y, SK_FIRST_CTN_PRE) and then
+   * mkSkolemCached(z, y, SK_FIRST_CTN_PRE)
+   *
+   * then d_firstCtnPreSkolems is { y -> [x, z] }.
+   */
+  std::unordered_map<Node, NodeTrie, NodeHashFunction> d_firstCtnPreSkolems;
 };
 
 }  // namespace strings

@@ -47,6 +47,48 @@ template Node NodeTemplateTrie<true>::existsTerm(
     const std::vector<Node>& reps) const;
 
 template <bool ref_count>
+NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::existsPrefix(
+    const std::vector<NodeTemplate<ref_count>>& repsPre) const
+{
+  const NodeTemplateTrie<ref_count>* tnt = this;
+  typename std::map<NodeTemplate<ref_count>,
+                    NodeTemplateTrie<ref_count>>::const_iterator it;
+  // Find the index prefix in the trie
+  for (const NodeTemplate<ref_count> r : repsPre)
+  {
+    it = tnt->d_data.find(r);
+    if (it == tnt->d_data.end())
+    {
+      // Didn't find this child, return null
+      return Node::null();
+    }
+    tnt = &it->second;
+  }
+
+  // The prefix ends at a leaf
+  if (tnt->d_data.empty())
+  {
+    return Node::null();
+  }
+
+  // From the end of the index prefix, traverse the rest of the trie until we
+  // find a leaf
+  Node result;
+  do
+  {
+    result = tnt->d_data.begin()->first;
+    tnt = &tnt->d_data.begin()->second;
+  } while (!tnt->d_data.empty());
+
+  return result;
+}
+
+template TNode NodeTemplateTrie<false>::existsPrefix(
+    const std::vector<TNode>& repsPre) const;
+template Node NodeTemplateTrie<true>::existsPrefix(
+    const std::vector<Node>& repsPre) const;
+
+template <bool ref_count>
 NodeTemplate<ref_count> NodeTemplateTrie<ref_count>::addOrGetTerm(
     NodeTemplate<ref_count> n, const std::vector<NodeTemplate<ref_count>>& reps)
 {
