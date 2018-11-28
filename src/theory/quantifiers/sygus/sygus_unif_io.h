@@ -441,7 +441,8 @@ class SygusUnifIo : public SygusUnif
   /** construct best conditional
    *
    * This returns the condition in solved that maximizes information gain with
-   * respect to the current active points in d_context.
+   * respect to the current active points in d_context. For example, see
+   * Alur TACAS 2017 for an example of information gain.
    */
   Node constructBestConditional(Node ce,
                                 const std::vector<Node>& solved) override;

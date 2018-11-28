@@ -1046,7 +1046,7 @@ Node SygusUnifIo::constructSol(
           }
           if (!str_solved.empty())
           {
-            ret_dt = constructBestStringSolvedTerm(e, str_solved);
+            ret_dt = constructBestSolvedTerm(e, str_solved);
             indent("sygus-sui-dt", ind);
             Trace("sygus-sui-dt") << "return PBE: success : string solved "
                                   << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -1389,8 +1389,13 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   Trace("sygus-sui-dt-igain") << "Best information gain in context ";
   print_val("sygus-sui-dt-igain", x.d_vals);
   Trace("sygus-sui-dt-igain") << std::endl;
+  // set of indices that are active in this branch, i.e. x.d_vals[i] is true
   std::vector<unsigned> activeIndices;
+  // map (j,t,s) -> n, such that the j^th condition in the vector solved
+  // evaluates to t (typically true/false) on n active I/O pairs with output s.
   std::map<unsigned, std::map<Node, std::map<Node, unsigned>>> eval;
+  // map (j,t) -> m, such that the j^th condition in the vector solved
+  // evaluates to t (typically true/false) for m active I/O pairs.
   std::map<unsigned, std::map<Node, unsigned>> evalCount;
   unsigned nsolved = solved.size();
   EnumCache& ecache = d_ecache[ce];
@@ -1416,6 +1421,8 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     }
   }
   AlwaysAssert(activePoints > 0);
+  // find the condition that leads to the lowest entropy
+  // initially set minEntropy to > 1.0.
   double minEntropy = 2.0;
   unsigned bestIndex = 0;
   for (unsigned j = 0; j < nsolved; j++)
