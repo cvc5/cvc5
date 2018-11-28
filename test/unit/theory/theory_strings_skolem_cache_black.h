@@ -44,7 +44,6 @@ class TheoryStringsSkolemCacheBlack : public CxxTest::TestSuite
     Node b = d_nm->mkSkolem("b", d_nm->stringType());
     Node c = d_nm->mkSkolem("c", d_nm->stringType());
     Node d = d_nm->mkSkolem("d", d_nm->stringType());
-    Node cd = d_nm->mkNode(kind::STRING_CONCAT, c, d);
     Node sa = d_nm->mkNode(kind::STRING_SUBSTR,
                            a,
                            zero,
@@ -66,22 +65,11 @@ class TheoryStringsSkolemCacheBlack : public CxxTest::TestSuite
 
     // Check that skolems are shared between:
     //
-    // SK_FIRST_CTN(c ++ d, b)
-    //
     // SK_FIRST_CTN(c, b)
-    {
-      Node s1 = sk.mkSkolemCached(cd, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      Node s2 = sk.mkSkolemCached(c, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
-      TS_ASSERT_EQUALS(s1, s2);
-    }
-
-    // Check that skolems are shared between:
-    //
-    // SK_FIRST_CTN(c ++ d, b)
     //
     // SK_FIRST_CTN((str.substr c), b)
     {
-      Node s1 = sk.mkSkolemCached(cd, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
+      Node s1 = sk.mkSkolemCached(c, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
       Node s2 = sk.mkSkolemCached(sc, b, SkolemCache::SK_FIRST_CTN_PRE, "foo");
       TS_ASSERT_EQUALS(s1, s2);
     }

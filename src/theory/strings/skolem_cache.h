@@ -19,11 +19,9 @@
 
 #include <map>
 #include <tuple>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "expr/node.h"
-#include "expr/node_trie.h"
 
 namespace CVC4 {
 namespace theory {
