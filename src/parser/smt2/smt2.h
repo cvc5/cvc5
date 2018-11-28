@@ -183,6 +183,13 @@ private:
 
   bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
 
+  /**
+   * Returns true if the language that we are parsing (SMT-LIB version >=2.5
+   * and SyGuS) treats duplicate double quotes ("") as an escape sequence
+   * denoting a single double quote (").
+   */
+  bool escapeDupDblQuote() const { return v2_5() || sygus(); }
+
   void setInfo(const std::string& flag, const SExpr& sexpr);
 
   void setOption(const std::string& flag, const SExpr& sexpr);

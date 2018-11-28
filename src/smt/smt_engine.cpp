@@ -1022,12 +1022,6 @@ void SmtEngine::shutdown() {
     internalPop(true);
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
-
   if(d_propEngine != NULL) {
     d_propEngine->shutdown();
   }
@@ -1302,6 +1296,14 @@ void SmtEngine::setDefaults() {
       Trace("smt") << "setting unconstrained simplification to " << uncSimp
                    << endl;
       options::unconstrainedSimp.set(uncSimp);
+    }
+  }
+  if (!options::proof())
+  {
+    // minimizing solutions from single invocation requires proofs
+    if (options::cegqiSolMinCore() && options::cegqiSolMinCore.wasSetByUser())
+    {
+      throw OptionException("cegqi-si-sol-min-core requires --proof");
     }
   }
 
@@ -3560,11 +3562,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                            "(try --incremental)");
     }
 
-    // check to see if a postsolve() is pending
-    if(d_needPostsolve) {
-      d_theoryEngine->postsolve();
-      d_needPostsolve = false;
-    }
     // Note that a query has been made
     d_queryMade = true;
     // reset global negation
@@ -3668,8 +3665,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         Dump("benchmark") << CheckSatAssumingCommand(d_assumptions);
       }
     }
-
-    d_propEngine->resetTrail();
 
     // Pop the context
     if (didInternalPush)
@@ -4114,7 +4109,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   }
 
   Trace("smt") << "--- getting value of " << n << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
   Node resultNode;
   if(m != NULL) {
     resultNode = m->getValue(n);
@@ -4201,7 +4196,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
   if (d_assignments != nullptr)
   {
     TypeNode boolType = d_nodeManager->booleanType();
-    TheoryModel* m = d_theoryEngine->getModel();
+    TheoryModel* m = d_theoryEngine->getBuiltModel();
     for (AssignmentSet::key_iterator i = d_assignments->key_begin(),
                                      iend = d_assignments->key_end();
          i != iend;
@@ -4252,7 +4247,6 @@ void SmtEngine::addToModelCommandAndDump(const Command& c, uint32_t flags, bool 
   if(/* userVisible && */
      (!d_fullyInited || options::produceModels()) &&
      (flags & ExprManager::VAR_FLAG_DEFINED) == 0) {
-    doPendingPops();
     if(flags & ExprManager::VAR_FLAG_GLOBAL) {
       d_modelGlobalCommands.push_back(c.clone());
     } else {
@@ -4299,14 +4293,28 @@ Model* SmtEngine::getModel() {
       "Cannot get model when produce-models options is off.";
     throw ModalException(msg);
   }
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  // Since model m is being returned to the user, we must ensure that this
+  // model object remains valid with future check-sat calls. Hence, we set
+  // the theory engine into "eager model building" mode. TODO #2648: revisit.
+  d_theoryEngine->setEagerModelBuilding();
 
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
     std::vector<Expr> easserts = getAssertions();
-    ModelCoreBuilder::setModelCore(easserts, m, options::modelCoresMode());
+    // must expand definitions
+    std::vector<Expr> eassertsProc;
+    std::unordered_map<Node, Node, NodeHashFunction> cache;
+    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+    {
+      Node ea = Node::fromExpr(easserts[i]);
+      Node eae = d_private->expandDefinitions(ea, cache);
+      eassertsProc.push_back(eae.toExpr());
+    }
+    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
@@ -4324,7 +4332,7 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   NodeManagerScope nms(d_nodeManager);
   Expr heap;
   Expr nil;
-  Model* m = getModel();
+  Model* m = d_theoryEngine->getBuiltModel();
   if (m->getHeapModel(heap, nil))
   {
     return std::make_pair(heap, nil);
@@ -4417,7 +4425,7 @@ void SmtEngine::checkModel(bool hardFailure) {
   // and if Notice() is on, the user gave --verbose (or equivalent).
 
   Notice() << "SmtEngine::checkModel(): generating model" << endl;
-  TheoryModel* m = d_theoryEngine->getModel();
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
 
   // check-model is not guaranteed to succeed if approximate values were used
   if (m->hasApproximations())
@@ -4933,11 +4941,6 @@ void SmtEngine::push()
     throw ModalException("Cannot push when not solving incrementally (use --incremental)");
   }
 
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
-  }
 
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
@@ -4962,12 +4965,6 @@ void SmtEngine::pop() {
   }
   if(d_userLevels.size() == 0) {
     throw ModalException("Cannot pop beyond the first user frame");
-  }
-
-  // check to see if a postsolve() is pending
-  if(d_needPostsolve) {
-    d_theoryEngine->postsolve();
-    d_needPostsolve = false;
   }
 
   // The problem isn't really "extended" yet, but this disallows
@@ -5019,13 +5016,24 @@ void SmtEngine::internalPop(bool immediate) {
 }
 
 void SmtEngine::doPendingPops() {
+  Trace("smt") << "SmtEngine::doPendingPops()" << endl;
   Assert(d_pendingPops == 0 || options::incrementalSolving());
+  // check to see if a postsolve() is pending
+  if (d_needPostsolve)
+  {
+    d_propEngine->resetTrail();
+  }
   while(d_pendingPops > 0) {
     TimerStat::CodeTimer pushPopTimer(d_stats->d_pushPopTime);
     d_propEngine->pop();
     // the d_context pop is done inside of the SAT solver
     d_userContext->pop();
     --d_pendingPops;
+  }
+  if (d_needPostsolve)
+  {
+    d_theoryEngine->postsolve();
+    d_needPostsolve = false;
   }
 }
 

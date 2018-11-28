@@ -196,9 +196,17 @@ void LtePartialInst::getInstantiations( std::vector< Node >& lemmas ) {
   }
 }
 
-void LtePartialInst::getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
-                                               std::vector< Node >& vars, std::vector< Node >& terms, std::vector< TypeNode >& types, TermArgTrie * curr,
-                                               unsigned pindex, unsigned paindex, unsigned iindex ){
+void LtePartialInst::getPartialInstantiations(std::vector<Node>& conj,
+                                              Node q,
+                                              Node bvl,
+                                              std::vector<Node>& vars,
+                                              std::vector<Node>& terms,
+                                              std::vector<TypeNode>& types,
+                                              TNodeTrie* curr,
+                                              unsigned pindex,
+                                              unsigned paindex,
+                                              unsigned iindex)
+{
   if( iindex==vars.size() ){
     Node body = q[1].substitute( vars.begin(), vars.end(), terms.begin(), terms.end() );
     if( bvl.isNull() ){
@@ -231,9 +239,19 @@ void LtePartialInst::getPartialInstantiations( std::vector< Node >& conj, Node q
           //start traversing term index for the operator
           curr = d_quantEngine->getTermDatabase()->getTermArgTrie( pat.getOperator() );
         }
-        for( std::map< TNode, TermArgTrie >::iterator it = curr->d_data.begin(); it != curr->d_data.end(); ++it ){
-          terms[d_pat_var_order[q][iindex]] = it->first;
-          getPartialInstantiations( conj, q, bvl, vars, terms, types, &it->second, pindex, paindex+1, iindex+1 );
+        for (std::pair<const TNode, TNodeTrie>& t : curr->d_data)
+        {
+          terms[d_pat_var_order[q][iindex]] = t.first;
+          getPartialInstantiations(conj,
+                                   q,
+                                   bvl,
+                                   vars,
+                                   terms,
+                                   types,
+                                   &t.second,
+                                   pindex,
+                                   paindex + 1,
+                                   iindex + 1);
         }
       }
     }else{
