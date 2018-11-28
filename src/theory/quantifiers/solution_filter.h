@@ -33,8 +33,8 @@ namespace quantifiers {
  *
  * Currently, it is used to filter predicate solutions that are collectively
  * entailed by the previous predicate solutions (if we are looking for logically
- * strong solutions), or to filter predicate solutions that entail any previous
- * predicate (if we are looking for logically weak solutions).
+ * stronger solutions), or to filter predicate solutions that entail any
+ * previous predicate (if we are looking for logically weaker solutions).
  */
 class SolutionFilterStrength : public ExprMiner
 {

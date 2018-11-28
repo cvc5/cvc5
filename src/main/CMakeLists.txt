@@ -56,7 +56,7 @@ endif()
 # use the static system libraries.
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_START_STATIC.html
 #   https://cmake.org/cmake/help/v3.0/prop_tgt/LINK_SEARCH_END_STATIC.html
-if(NOT ENABLE_SHARED)
+if(ENABLE_STATIC_BINARY)
   set_target_properties(cvc4-bin PROPERTIES LINK_FLAGS -static)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
   set_target_properties(cvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
@@ -90,7 +90,7 @@ if(ENABLE_PORTFOLIO)
     install(TARGETS pcvc4-bin DESTINATION bin)
   endif()
 
-  if(NOT ENABLE_SHARED)
+  if(ENABLE_STATIC_BINARY)
     set_target_properties(pcvc4-bin PROPERTIES LINK_FLAGS -static)
     set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_START_STATIC ON)
     set_target_properties(pcvc4-bin PROPERTIES LINK_SEARCH_END_STATIC ON)
