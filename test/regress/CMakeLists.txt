@@ -1549,7 +1549,6 @@ set(regress_1_tests
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
-  regress1/strings/small-1.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/str-code-sat.smt2
   regress1/strings/str-code-unsat-2.smt2
@@ -1736,6 +1735,7 @@ set(regress_2_tests
   regress2/strings/repl-repl.smt2
   regress2/strings/replaceall-diffrange.smt2
   regress2/strings/replaceall-len-c.smt2
+  regress2/strings/small-1.smt2
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy
