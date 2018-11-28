@@ -1764,6 +1764,15 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
         return returnRewrite(node, ret, "ss-non-zero-len-entails-oob");
       }
 
+      // (str.substr s x y) --> "" if x >= 0 |= 0 >= str.len(s)
+      Node geq_zero_start =
+          Rewriter::rewrite(nm->mkNode(kind::GEQ, node[1], zero));
+      if (checkEntailArithWithAssumption(geq_zero_start, zero, tot_len, false))
+      {
+        Node ret = nm->mkConst(String(""));
+        return returnRewrite(node, ret, "ss-geq-zero-start-entails-emp-s");
+      }
+
       // (str.substr s x x) ---> "" if (str.len s) <= 1
       if (node[1] == node[2] && checkEntailLengthOne(node[0]))
       {
@@ -1797,8 +1806,18 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
     }
   }
+  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
+  return node;
+}
+
+Node TheoryStringsRewriter::rewriteSubstrExt(Node node)
+{
+  Assert(node.getKind() == STRING_SUBSTR);
+
+  NodeManager* nm = NodeManager::currentNM();
+
   // combine substr
-  if (node[0].getKind() == kind::STRING_SUBSTR)
+  if (node[0].getKind() == STRING_SUBSTR)
   {
     Node start_inner = node[0][1];
     Node start_outer = node[1];
@@ -1811,7 +1830,7 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
       Node len_from_inner =
-          Rewriter::rewrite(nm->mkNode(kind::MINUS, node[0][2], start_outer));
+          Rewriter::rewrite(nm->mkNode(MINUS, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other
@@ -1829,14 +1848,13 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
       if (!new_len.isNull())
       {
-        Node new_start = nm->mkNode(kind::PLUS, start_inner, start_outer);
-        Node ret =
-            nm->mkNode(kind::STRING_SUBSTR, node[0][0], new_start, new_len);
+        Node new_start = nm->mkNode(PLUS, start_inner, start_outer);
+        Node ret = nm->mkNode(STRING_SUBSTR, node[0][0], new_start, new_len);
         return returnRewrite(node, ret, "ss-combine");
       }
     }
   }
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
+
   return node;
 }
 
@@ -4506,6 +4524,10 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
     {
       candVars.insert(curr);
     }
+    else if (curr.getKind() == kind::STRING_LENGTH)
+    {
+      candVars.insert(curr);
+    }
   }
 
   // Check if any of the candidate variables are in n
@@ -4522,8 +4544,7 @@ bool TheoryStringsRewriter::checkEntailArithWithEqAssumption(Node assumption,
       toVisit.push_back(currChild);
     }
 
-    if (curr.isVar() && Theory::theoryOf(curr) == THEORY_ARITH
-        && candVars.find(curr) != candVars.end())
+    if (candVars.find(curr) != candVars.end())
     {
       v = curr;
       break;
@@ -4576,7 +4597,7 @@ bool TheoryStringsRewriter::checkEntailArithWithAssumption(Node assumption,
       y = assumption[0][0];
     }
 
-    Node s = nm->mkBoundVar("s", nm->stringType());
+    Node s = nm->mkBoundVar("slackVal", nm->stringType());
     Node slen = nm->mkNode(kind::STRING_LENGTH, s);
     assumption = Rewriter::rewrite(
         nm->mkNode(kind::EQUAL, x, nm->mkNode(kind::PLUS, y, slen)));
