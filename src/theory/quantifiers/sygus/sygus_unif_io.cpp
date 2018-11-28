@@ -1378,11 +1378,11 @@ Node SygusUnifIo::constructSol(
 }
 
 Node SygusUnifIo::constructBestConditional(Node ce,
-                                           const std::vector<Node>& solved)
+                                           const std::vector<Node>& conds)
 {
   if (!d_solConsUsingInfoGain)
   {
-    return SygusUnif::constructBestConditional(ce, solved);
+    return SygusUnif::constructBestConditional(ce, conds);
   }
   UnifContextIo& x = d_context;
   // use information gain heuristic
@@ -1391,20 +1391,20 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   Trace("sygus-sui-dt-igain") << std::endl;
   // set of indices that are active in this branch, i.e. x.d_vals[i] is true
   std::vector<unsigned> activeIndices;
-  // map (j,t,s) -> n, such that the j^th condition in the vector solved
+  // map (j,t,s) -> n, such that the j^th condition in the vector conds
   // evaluates to t (typically true/false) on n active I/O pairs with output s.
   std::map<unsigned, std::map<Node, std::map<Node, unsigned>>> eval;
-  // map (j,t) -> m, such that the j^th condition in the vector solved
+  // map (j,t) -> m, such that the j^th condition in the vector conds
   // evaluates to t (typically true/false) for m active I/O pairs.
   std::map<unsigned, std::map<Node, unsigned>> evalCount;
-  unsigned nsolved = solved.size();
+  unsigned nconds = conds.size();
   EnumCache& ecache = d_ecache[ce];
-  // Get the index of solved[j] in the enumerator cache, this is to look up
+  // Get the index of conds[j] in the enumerator cache, this is to look up
   // its evaluation on each point.
   std::vector<unsigned> eindex;
-  for (unsigned j = 0; j < nsolved; j++)
+  for (unsigned j = 0; j < nconds; j++)
   {
-    eindex.push_back(ecache.d_enum_val_to_index[solved[j]]);
+    eindex.push_back(ecache.d_enum_val_to_index[conds[j]]);
   }
   unsigned activePoints = 0;
   for (unsigned i = 0, npoints = x.d_vals.size(); i < npoints; i++)
@@ -1413,7 +1413,7 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     {
       activePoints++;
       Node eo = d_examples_out[i];
-      for (unsigned j = 0; j < nsolved; j++)
+      for (unsigned j = 0; j < nconds; j++)
       {
         Node resn = ecache.d_enum_vals_res[eindex[j]][i];
         Assert(resn.isConst());
@@ -1427,8 +1427,15 @@ Node SygusUnifIo::constructBestConditional(Node ce,
   // initially set minEntropy to > 1.0.
   double minEntropy = 2.0;
   unsigned bestIndex = 0;
-  for (unsigned j = 0; j < nsolved; j++)
+  for (unsigned j = 0; j < nconds; j++)
   {
+    // To compute the entropy for a condition C, for pair of terms (s, t), let
+    //   prob(t) be the probability C evaluates to t on an active point,
+    //   prob(s|t) be the probability that an active point on which C
+    //     evaluates to t has output s.
+    // Then, the entropy of C is:
+    //   sum{t}. prob(t)*( sum{s}. -prob(s|t)*log2(prob(s|t)) )
+    // where notice this is always between 0 and 1.
     double entropySum = 0.0;
     Trace("sygus-sui-dt-igain") << j << " : ";
     for (std::pair<const Node, std::map<Node, unsigned>>& ej : eval[j])
@@ -1460,8 +1467,8 @@ Node SygusUnifIo::constructBestConditional(Node ce,
     }
   }
 
-  Assert(!solved.empty());
-  return solved[bestIndex];
+  Assert(!conds.empty());
+  return conds[bestIndex];
 }
 
 } /* CVC4::theory::quantifiers namespace */
