@@ -601,6 +601,7 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRCTN:
   case kind::STRING_STRIDOF:
   case kind::STRING_STRREPL:
+  case kind::STRING_STRREPLALL:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
   case kind::STRING_LEQ:
@@ -1143,6 +1144,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_CHARAT: return "str.at" ;
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
+  case kind::STRING_STRREPLALL: return "str.replaceall";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
