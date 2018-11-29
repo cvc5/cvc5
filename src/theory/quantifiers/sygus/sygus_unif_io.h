@@ -447,6 +447,14 @@ class SygusUnifIo : public SygusUnif
                     NodeRole nrole,
                     int ind,
                     std::vector<Node>& lemmas) override;
+  /** construct best conditional
+   *
+   * This returns the condition in conds that maximizes information gain with
+   * respect to the current active points in d_context. For example, see
+   * Alur et al. TACAS 2017 for an example of information gain.
+   */
+  Node constructBestConditional(Node ce,
+                                const std::vector<Node>& conds) override;
 };
 
 } /* CVC4::theory::quantifiers namespace */
