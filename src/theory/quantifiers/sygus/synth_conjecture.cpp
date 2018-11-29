@@ -87,10 +87,14 @@ void SynthConjecture::assign(Node q)
   // pre-simplify the quantified formula based on the process utility
   d_simp_quant = d_ceg_proc->preSimplify(d_quant);
 
+  // compute its attributes
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
+
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
@@ -117,9 +121,18 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
+  Node sc = qa.d_sygusSideCondition;
+  if (!sc.isNull())
+  {
+    // convert to deep embedding
+    d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
+    Trace("cegqi") << "SynthConjecture : side condition : "
+                   << d_embedSideCondition << std::endl;
+  }
+
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
@@ -138,6 +151,11 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
+  if (!d_embedSideCondition.isNull())
+  {
+    d_embedSideCondition = d_embedSideCondition.substitute(
+        vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
+  }
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // initialize the sygus constant repair utility
@@ -509,6 +527,33 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
+
+  // check the side condition
+  Node sc;
+  if (!d_embedSideCondition.isNull() && constructed_cand)
+  {
+    sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                         d_candidates.end(),
+                                         candidate_values.begin(),
+                                         candidate_values.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if (r == Result::UNSAT)
+    {
+      // exclude the current solution TODO
+      excludeCurrentSolution();
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
+    }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+  }
+
   Node query = lem;
   bool success = false;
   if (query.isConst() && !query.getConst<bool>())
@@ -527,6 +572,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
       SmtEngine verifySmt(nm->toExprManager());
+      verifySmt.setIsInternalSubsolver();
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
       verifySmt.assertFormula(query.toExpr());
       Result r = verifySmt.checkSat();
@@ -968,7 +1014,11 @@ void SynthConjecture::printAndContinueStream()
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   printSynthSolution(*nodeManagerOptions.getOut());
+  excludeCurrentSolution();
+}
 
+void SynthConjecture::excludeCurrentSolution()
+{
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;
