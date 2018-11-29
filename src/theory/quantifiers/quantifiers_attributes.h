@@ -76,7 +76,7 @@ typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
 /** Attribute for specify a "side condition" for a sygus function-to-synthesize
  *
  * A sygus conjecture of the form exists f. forall x. P[f,x] whose side
- * condition is C[f] have the semantics exists f. C[f] ^ forall x. P[f,x].
+ * condition is C[f] has the semantics exists f. C[f] ^ forall x. P[f,x].
  */
 struct SygusSideConditionAttributeId
 {
