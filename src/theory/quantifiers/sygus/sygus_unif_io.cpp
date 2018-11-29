@@ -21,8 +21,6 @@
 #include "theory/quantifiers/term_util.h"
 #include "util/random.h"
 
-#include <math.h>
-
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -91,6 +89,7 @@ void UnifContextIo::initialize(SygusUnifIo* sui)
   d_str_pos.clear();
   d_curr_role = role_equal;
   d_visit_role.clear();
+  d_uinfo.clear();
 
   // initialize with #examples
   unsigned sz = sui->d_examples.size();
@@ -428,10 +427,13 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
 {
   if (index == vals.size())
   {
+    // by convention, if we did not test any points, then we consider the
+    // evaluation along the current path to be always false.
+    int rstatus = status == -2 ? -1 : status;
     Assert(!d_term.isNull());
-    Assert(std::find(v[status].begin(), v[status].end(), d_term)
-           == v[status].end());
-    v[status].push_back(d_term);
+    Assert(std::find(v[rstatus].begin(), v[rstatus].end(), d_term)
+           == v[rstatus].end());
+    v[rstatus].push_back(d_term);
   }
   else
   {
@@ -468,10 +470,7 @@ void SubsumeTrie::getLeaves(const std::vector<Node>& vals,
 }
 
 SygusUnifIo::SygusUnifIo()
-    : d_check_sol(false),
-      d_cond_count(0),
-      d_sol_cons_nondet(false),
-      d_solConsUsingInfoGain(false)
+    : d_check_sol(false), d_cond_count(0), d_sol_cons_nondet(false)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -782,7 +781,6 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
     Trace("sygus-pbe") << "Construct solution, #iterations = " << d_cond_count
                        << std::endl;
     d_check_sol = false;
-    d_solConsUsingInfoGain = false;
     // try multiple times if we have done multiple conditions, due to
     // non-determinism
     unsigned sol_term_size = 0;
@@ -802,19 +800,12 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
               || (!d_solution.isNull()
                   && d_tds->getSygusTermSize(vcc) < sol_term_size)))
       {
-        Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = " << vcc
-                           << std::endl;
+        Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = ";
+        TermDbSygus::toStreamSygus("sygus-pbe", vcc);
+        Trace("sygus-pbe") << std::endl;
         Trace("sygus-pbe") << "...solved at iteration " << i << std::endl;
         d_solution = vcc;
         sol_term_size = d_tds->getSygusTermSize(vcc);
-        // We've determined its feasible, now, enable information gain and
-        // retry. We do this since information gain comes with an overhead,
-        // and we want testing feasibility to be fast.
-        if (!d_solConsUsingInfoGain)
-        {
-          d_solConsUsingInfoGain = true;
-          i = 0;
-        }
       }
       else if (!d_sol_cons_nondet)
       {
@@ -858,12 +849,12 @@ bool SygusUnifIo::useStrContainsEnumeratorExclude(Node e)
         d_use_str_contains_eexc[e] = false;
         return false;
       }
+      d_use_str_contains_eexc_conditional[e] = false;
       if (eis.isConditional())
       {
         Trace("sygus-sui-enum-debug")
             << "  conditional slave : " << sn << std::endl;
-        d_use_str_contains_eexc[e] = false;
-        return false;
+        d_use_str_contains_eexc_conditional[e] = true;
       }
     }
     Trace("sygus-sui-enum-debug")
@@ -886,6 +877,9 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     // the output for some input/output pair. If so, then this term is never
     // useful. We generalize its explanation below.
 
+    // if the enumerator is in a conditional context, then we are stricter
+    // about when to exclude
+    bool isConditional = d_use_str_contains_eexc_conditional[e];
     if (Trace.isOn("sygus-sui-cterm-debug"))
     {
       Trace("sygus-sui-enum") << std::endl;
@@ -896,6 +890,8 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         << "Check enumerator exclusion for " << e << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
+    std::vector<bool> cmpRes;
+    bool allConditionalFail = false;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
       Assert(results[i].isConst());
@@ -906,27 +902,123 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
       {
+        cmpRes.push_back(false);
         cmp_indices.push_back(i);
         Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
       }
       else
       {
+        cmpRes.push_back(true);
         Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
+        if (isConditional)
+        {
+          allConditionalFail = true;
+        }
       }
     }
     if (!cmp_indices.empty())
     {
-      // we check invariance with respect to a negative contains test
-      NegContainsSygusInvarianceTest ncset;
-      ncset.init(e, d_examples, d_examples_out, cmp_indices);
-      // construct the generalized explanation
-      d_tds->getExplain()->getExplanationFor(e, v, exp, ncset);
-      Trace("sygus-sui-cterm")
-          << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin(v)
-          << " due to negative containment." << std::endl;
-      return true;
+      if (allConditionalFail)
+      {
+        // we may be equivalent-to-examples on those we are contained in
+        bool res = existsSearchValSubset(e, v, results, cmpRes);
+        if (res)
+        {
+          // use basic non-generalized exclusion
+          d_tds->getExplain()->getExplanationForEquality(e, v, exp);
+          return true;
+        }
+      }
+      else
+      {
+        // we check invariance with respect to a negative contains test
+        NegContainsSygusInvarianceTest ncset;
+        if (isConditional)
+        {
+          ncset.setUniversal();
+        }
+        ncset.init(e, d_examples, d_examples_out, cmp_indices);
+        // construct the generalized explanation
+        d_tds->getExplain()->getExplanationFor(e, v, exp, ncset);
+        Trace("sygus-sui-cterm")
+            << "PBE-cterm : enumerator exclude " << d_tds->sygusToBuiltin(v)
+            << " due to negative containment." << std::endl;
+        return true;
+      }
     }
+    // if we're using it, we add it now
+    addSearchVal(e, v, results);
   }
+  return false;
+}
+
+void SygusUnifIo::addSearchVal(Node e, Node v, std::vector<Node>& res)
+{
+  PbeTrie* curr = &d_pbe_trie[e];
+  for (const Node& eo : res)
+  {
+    curr = &(curr->d_children[eo]);
+  }
+  if (curr->d_children.empty())
+  {
+    curr->d_children[v].clear();
+  }
+}
+
+bool SygusUnifIo::existsSearchValSubset(Node e,
+                                        Node v,
+                                        std::vector<Node>& res,
+                                        std::vector<bool>& ss)
+{
+  Assert(res.size() == ss.size());
+  std::vector<PbeTrie*> visit;
+  std::vector<unsigned> visitIndex;
+  PbeTrie* cur = nullptr;
+  unsigned curIndex = 0;
+  visit.push_back(&d_pbe_trie[e]);
+  visitIndex.push_back(0);
+  std::map<Node, PbeTrie>::iterator cit;
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    curIndex = visitIndex.back();
+    visitIndex.pop_back();
+    // follow required paths
+    bool success = true;
+    while (success && curIndex < res.size() && ss[curIndex])
+    {
+      // must be the exact child
+      cit = cur->d_children.find(res[curIndex]);
+      if (cit != cur->d_children.end())
+      {
+        cur = &cit->second;
+        curIndex++;
+      }
+      else
+      {
+        success = false;
+      }
+    }
+    if (success)
+    {
+      if (curIndex == res.size())
+      {
+        return true;
+      }
+      else
+      {
+        Assert(!ss[curIndex]);
+        // branch and look at all children
+        for (cit = cur->d_children.begin(); cit != cur->d_children.end(); ++cit)
+        {
+          visit.push_back(&cit->second);
+          visitIndex.push_back(curIndex + 1);
+        }
+      }
+    }
+  } while (!visit.empty());
+
   return false;
 }
 
@@ -983,10 +1075,12 @@ Node SygusUnifIo::constructSol(
 
   EnumCache& ecache = d_ecache[e];
 
+  bool retValMod = x.isReturnValueModified();
+
   Node ret_dt;
   if (nrole == role_equal)
   {
-    if (!x.isReturnValueModified())
+    if (!retValMod)
     {
       if (ecache.isSolved())
       {
@@ -1004,7 +1098,7 @@ Node SygusUnifIo::constructSol(
         ecache.d_term_trie.getSubsumedBy(x.d_vals, true, subsumed_by);
         if (!subsumed_by.empty())
         {
-          ret_dt = constructBestSolvedTerm(e, subsumed_by);
+          ret_dt = constructBestSolvedTerm(subsumed_by);
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "return PBE: success : conditionally solved"
                                 << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -1046,7 +1140,7 @@ Node SygusUnifIo::constructSol(
           }
           if (!str_solved.empty())
           {
-            ret_dt = constructBestSolvedTerm(e, str_solved);
+            ret_dt = constructBestStringSolvedTerm(str_solved);
             indent("sygus-sui-dt", ind);
             Trace("sygus-sui-dt") << "return PBE: success : string solved "
                                   << d_tds->sygusToBuiltin(ret_dt) << std::endl;
@@ -1060,11 +1154,67 @@ Node SygusUnifIo::constructSol(
         }
       }
     }
+    // maybe we can find one in the cache
+    if (ret_dt.isNull() && !retValMod)
+    {
+      bool firstTime = true;
+      std::unordered_set<Node, NodeHashFunction> intersection;
+      std::map<unsigned, std::unordered_set<Node, NodeHashFunction>>::iterator
+          pit;
+      for (unsigned i = 0, nvals = x.d_vals.size(); i < nvals; i++)
+      {
+        if (x.d_vals[i].getConst<bool>())
+        {
+          pit = d_psolutions.find(i);
+          if (pit == d_psolutions.end())
+          {
+            // no cached solution
+            intersection.clear();
+            break;
+          }
+          if (firstTime)
+          {
+            intersection = pit->second;
+            firstTime = false;
+          }
+          else
+          {
+            std::vector<Node> rm;
+            for (const Node& a : intersection)
+            {
+              if (pit->second.find(a) == pit->second.end())
+              {
+                rm.push_back(a);
+              }
+            }
+            for (const Node& a : rm)
+            {
+              intersection.erase(a);
+            }
+            if (intersection.empty())
+            {
+              break;
+            }
+          }
+        }
+      }
+      if (!intersection.empty())
+      {
+        ret_dt = *intersection.begin();
+        if (Trace.isOn("sygus-sui-dt"))
+        {
+          indent("sygus-sui-dt", ind);
+          Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
+          TermDbSygus::toStreamSygus("sygus-sui-dt", ret_dt);
+          Trace("sygus-sui-dt") << std::endl;
+        }
+      }
+    }
   }
   else if (nrole == role_string_prefix || nrole == role_string_suffix)
   {
     // check if each return value is a prefix/suffix of all open examples
-    if (!x.isReturnValueModified() || x.getCurrentRole() == nrole)
+    if (!retValMod || x.getCurrentRole() == nrole)
     {
       std::map<Node, std::vector<unsigned> > incr;
       bool isPrefix = nrole == role_string_prefix;
@@ -1255,11 +1405,11 @@ Node SygusUnifIo::constructSol(
             Assert(set_split_cond_res_index);
             Assert(split_cond_res_index < ecache_cond.d_enum_vals_res.size());
             prev = x.d_vals;
-            bool ret = x.updateContext(
-                this,
-                ecache_cond.d_enum_vals_res[split_cond_res_index],
-                sc == 1);
-            AlwaysAssert(ret);
+            x.updateContext(this,
+                            ecache_cond.d_enum_vals_res[split_cond_res_index],
+                            sc == 1);
+            // ret may be false in corner cases where we must choose
+            // a non-separating condition to traverse to another strategy node
           }
 
           // recurse
@@ -1269,49 +1419,145 @@ Node SygusUnifIo::constructSol(
 
             EnumCache& ecache_child = d_ecache[ce];
 
+            // only used if the return value is not modified
+            if (!x.isReturnValueModified())
+            {
+              if (x.d_uinfo.find(ce) == x.d_uinfo.end())
+              {
+                x.d_uinfo[ce].clear();
+                Trace("sygus-sui-dt-debug2")
+                    << "  reg : PBE: Look for direct solutions for conditional "
+                       "enumerator "
+                    << ce << " ... " << std::endl;
+                Assert(ecache_child.d_enum_vals.size()
+                       == ecache_child.d_enum_vals_res.size());
+                for (unsigned i = 1; i <= 2; i++)
+                {
+                  std::pair<Node, NodeRole>& te_pair = etis->d_cenum[i];
+                  Node te = te_pair.first;
+                  EnumCache& ecache_te = d_ecache[te];
+                  bool branch_pol = (i == 1);
+                  // for each condition, get terms that satisfy it in this
+                  // branch
+                  for (unsigned k = 0, size = ecache_child.d_enum_vals.size();
+                       k < size;
+                       k++)
+                  {
+                    Node cond = ecache_child.d_enum_vals[k];
+                    std::vector<Node> solved;
+                    ecache_te.d_term_trie.getSubsumedBy(
+                        ecache_child.d_enum_vals_res[k], branch_pol, solved);
+                    Trace("sygus-sui-dt-debug2")
+                        << "  reg : PBE: " << d_tds->sygusToBuiltin(cond)
+                        << " has " << solved.size() << " solutions in branch "
+                        << i << std::endl;
+                    if (!solved.empty())
+                    {
+                      Node slv = constructBestSolvedTerm(solved);
+                      Trace("sygus-sui-dt-debug2")
+                          << "  reg : PBE: ..." << d_tds->sygusToBuiltin(slv)
+                          << " is a solution under branch " << i;
+                      Trace("sygus-sui-dt-debug2")
+                          << " of condition " << d_tds->sygusToBuiltin(cond)
+                          << std::endl;
+                      x.d_uinfo[ce].d_look_ahead_sols[cond][i] = slv;
+                    }
+                  }
+                }
+              }
+            }
+
             // get the conditionals in the current context : they must be
             // distinguishable
             std::map<int, std::vector<Node> > possible_cond;
             std::map<Node, int> solved_cond;  // stores branch
             ecache_child.d_term_trie.getLeaves(x.d_vals, true, possible_cond);
 
-            std::map<int, std::vector<Node> >::iterator itpc =
-                possible_cond.find(0);
-            if (itpc != possible_cond.end())
+            // prefer distinguishable conditions, then we try true, false
+            // unsigned lastTest =
+            for (unsigned d = 0; d < 1; d++)
             {
-              if (Trace.isOn("sygus-sui-dt-debug"))
+              unsigned pcv = d == 2 ? -1 : d;
+              std::map<int, std::vector<Node>>::iterator itpc =
+                  possible_cond.find(pcv);
+              if (itpc != possible_cond.end())
               {
-                indent("sygus-sui-dt-debug", ind + 1);
-                Trace("sygus-sui-dt-debug")
-                    << "PBE : We have " << itpc->second.size()
-                    << " distinguishable conditionals:" << std::endl;
-                for (Node& cond : itpc->second)
+                if (Trace.isOn("sygus-sui-dt-debug"))
                 {
-                  indent("sygus-sui-dt-debug", ind + 2);
+                  indent("sygus-sui-dt-debug", ind + 1);
                   Trace("sygus-sui-dt-debug")
-                      << d_tds->sygusToBuiltin(cond) << std::endl;
+                      << "PBE : We have " << itpc->second.size()
+                      << " distinguishable conditionals:" << std::endl;
+                  for (Node& cond : itpc->second)
+                  {
+                    indent("sygus-sui-dt-debug", ind + 2);
+                    Trace("sygus-sui-dt-debug")
+                        << d_tds->sygusToBuiltin(cond) << std::endl;
+                  }
                 }
-              }
 
-              // otherwise, guess a conditional
-              if (rec_c.isNull())
+                // static look ahead conditional : choose conditionals that have
+                // solved terms in at least one branch
+                //    only applicable if we have not modified the return value
+                std::map<int, std::vector<Node>> solved_cond;
+                if (!x.isReturnValueModified() && !x.d_uinfo[ce].empty())
+                {
+                  int solve_max = 0;
+                  for (Node& cond : itpc->second)
+                  {
+                    std::map<Node, std::map<unsigned, Node>>::iterator itla =
+                        x.d_uinfo[ce].d_look_ahead_sols.find(cond);
+                    if (itla != x.d_uinfo[ce].d_look_ahead_sols.end())
+                    {
+                      int nsolved = itla->second.size();
+                      solve_max = nsolved > solve_max ? nsolved : solve_max;
+                      solved_cond[nsolved].push_back(cond);
+                    }
+                  }
+                  int n = solve_max;
+                  while (n > 0)
+                  {
+                    if (!solved_cond[n].empty())
+                    {
+                      rec_c = constructBestSolvedConditional(solved_cond[n]);
+                      indent("sygus-sui-dt", ind + 1);
+                      Trace("sygus-sui-dt")
+                          << "PBE: ITE strategy : choose solved conditional "
+                          << d_tds->sygusToBuiltin(rec_c) << " with " << n
+                          << " solved children..." << std::endl;
+                      std::map<Node, std::map<unsigned, Node>>::iterator itla =
+                          x.d_uinfo[ce].d_look_ahead_sols.find(rec_c);
+                      Assert(itla != x.d_uinfo[ce].d_look_ahead_sols.end());
+                      for (std::pair<const unsigned, Node>& las : itla->second)
+                      {
+                        look_ahead_solved_children[las.first] = las.second;
+                      }
+                      break;
+                    }
+                    n--;
+                  }
+                }
+
+                // otherwise, guess a conditional
+                if (rec_c.isNull())
+                {
+                  rec_c = constructBestConditional(itpc->second);
+                  Assert(!rec_c.isNull());
+                  indent("sygus-sui-dt", ind);
+                  Trace("sygus-sui-dt")
+                      << "PBE: ITE strategy : choose random conditional "
+                      << d_tds->sygusToBuiltin(rec_c) << std::endl;
+                }
+                break;
+              }
+              else
               {
-                rec_c = constructBestConditional(ce, itpc->second);
-                Assert(!rec_c.isNull());
                 indent("sygus-sui-dt", ind);
                 Trace("sygus-sui-dt")
-                    << "PBE: ITE strategy : choose best conditional "
-                    << d_tds->sygusToBuiltin(rec_c) << std::endl;
+                    << "return PBE: failed ITE strategy, "
+                       "cannot find a distinguishable condition"
+                    << std::endl;
               }
-            }
-            else
-            {
-              // TODO (#1250) : degenerate case where children have different
-              // types?
-              indent("sygus-sui-dt", ind);
-              Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
-                                       "cannot find a distinguishable condition"
-                                    << std::endl;
             }
             if (!rec_c.isNull())
             {
@@ -1327,7 +1573,11 @@ Node SygusUnifIo::constructSol(
           else
           {
             did_recurse = true;
+            // Store the previous visit role, this ensures a strategy node can
+            // be visited on multiple paths in the solution in the same context.
+            // std::map<Node, std::map<NodeRole, bool>> pvr = x.d_visit_role;
             rec_c = constructSol(f, cenum.first, cenum.second, ind + 2, lemmas);
+            // x.d_visit_role = pvr;
           }
 
           // undo update the context
@@ -1372,103 +1622,36 @@ Node SygusUnifIo::constructSol(
   }
 
   Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
-  indent("sygus-sui-dt", ind);
-  Trace("sygus-sui-dt") << "ConstructPBE: returned " << ret_dt << std::endl;
-  return ret_dt;
-}
-
-Node SygusUnifIo::constructBestConditional(Node ce,
-                                           const std::vector<Node>& conds)
-{
-  if (!d_solConsUsingInfoGain)
+  if (Trace.isOn("sygus-sui-dt"))
   {
-    return SygusUnif::constructBestConditional(ce, conds);
+    indent("sygus-sui-dt", ind);
+    Trace("sygus-sui-dt") << "ConstructPBE: returned ";
+    TermDbSygus::toStreamSygus("sygus-sui-dt", ret_dt);
+    Trace("sygus-sui-dt") << std::endl;
   }
-  UnifContextIo& x = d_context;
-  // use information gain heuristic
-  Trace("sygus-sui-dt-igain") << "Best information gain in context ";
-  print_val("sygus-sui-dt-igain", x.d_vals);
-  Trace("sygus-sui-dt-igain") << std::endl;
-  // set of indices that are active in this branch, i.e. x.d_vals[i] is true
-  std::vector<unsigned> activeIndices;
-  // map (j,t,s) -> n, such that the j^th condition in the vector conds
-  // evaluates to t (typically true/false) on n active I/O pairs with output s.
-  std::map<unsigned, std::map<Node, std::map<Node, unsigned>>> eval;
-  // map (j,t) -> m, such that the j^th condition in the vector conds
-  // evaluates to t (typically true/false) for m active I/O pairs.
-  std::map<unsigned, std::map<Node, unsigned>> evalCount;
-  unsigned nconds = conds.size();
-  EnumCache& ecache = d_ecache[ce];
-  // Get the index of conds[j] in the enumerator cache, this is to look up
-  // its evaluation on each point.
-  std::vector<unsigned> eindex;
-  for (unsigned j = 0; j < nconds; j++)
+  // remember the solution
+  if (nrole == role_equal)
   {
-    eindex.push_back(ecache.d_enum_val_to_index[conds[j]]);
-  }
-  unsigned activePoints = 0;
-  for (unsigned i = 0, npoints = x.d_vals.size(); i < npoints; i++)
-  {
-    if (x.d_vals[i].getConst<bool>())
+    if (!retValMod && !ret_dt.isNull())
     {
-      activePoints++;
-      Node eo = d_examples_out[i];
-      for (unsigned j = 0; j < nconds; j++)
+      for (unsigned i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
-        Node resn = ecache.d_enum_vals_res[eindex[j]][i];
-        Assert(resn.isConst());
-        eval[j][resn][eo]++;
-        evalCount[j][resn]++;
-      }
-    }
-  }
-  AlwaysAssert(activePoints > 0);
-  // find the condition that leads to the lowest entropy
-  // initially set minEntropy to > 1.0.
-  double minEntropy = 2.0;
-  unsigned bestIndex = 0;
-  for (unsigned j = 0; j < nconds; j++)
-  {
-    // To compute the entropy for a condition C, for pair of terms (s, t), let
-    //   prob(t) be the probability C evaluates to t on an active point,
-    //   prob(s|t) be the probability that an active point on which C
-    //     evaluates to t has output s.
-    // Then, the entropy of C is:
-    //   sum{t}. prob(t)*( sum{s}. -prob(s|t)*log2(prob(s|t)) )
-    // where notice this is always between 0 and 1.
-    double entropySum = 0.0;
-    Trace("sygus-sui-dt-igain") << j << " : ";
-    for (std::pair<const Node, std::map<Node, unsigned>>& ej : eval[j])
-    {
-      unsigned ecount = evalCount[j][ej.first];
-      if (ecount > 0)
-      {
-        double probBranch = double(ecount) / double(activePoints);
-        Trace("sygus-sui-dt-igain") << ej.first << " -> ( ";
-        for (std::pair<const Node, unsigned>& eej : ej.second)
+        if (x.d_vals[i].getConst<bool>())
         {
-          if (eej.second > 0)
+          if (Trace.isOn("sygus-sui-cache"))
           {
-            double probVal = double(eej.second) / double(ecount);
-            Trace("sygus-sui-dt-igain")
-                << eej.first << ":" << eej.second << " ";
-            double factor = -probVal * log2(probVal);
-            entropySum += probBranch * factor;
+            indent("sygus-sui-cache", ind);
+            Trace("sygus-sui-cache") << "Cache solution (#" << i << ") : ";
+            TermDbSygus::toStreamSygus("sygus-sui-cache", ret_dt);
+            Trace("sygus-sui-cache") << std::endl;
           }
+          d_psolutions[i].insert(ret_dt);
         }
-        Trace("sygus-sui-dt-igain") << ") ";
       }
-    }
-    Trace("sygus-sui-dt-igain") << "..." << entropySum << std::endl;
-    if (entropySum < minEntropy)
-    {
-      minEntropy = entropySum;
-      bestIndex = j;
     }
   }
 
-  Assert(!conds.empty());
-  return conds[bestIndex];
+  return ret_dt;
 }
 
 } /* CVC4::theory::quantifiers namespace */

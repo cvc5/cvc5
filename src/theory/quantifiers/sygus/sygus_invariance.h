@@ -249,7 +249,7 @@ class DivByZeroSygusInvarianceTest : public SygusInvarianceTest
 class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 {
  public:
-  NegContainsSygusInvarianceTest() {}
+  NegContainsSygusInvarianceTest() : d_isUniversal(false) {}
 
   /** initialize this invariance test
    *  e is the enumerator which we are reasoning about (associated with a synth
@@ -266,6 +266,8 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
             std::vector<std::vector<Node> >& ex,
             std::vector<Node>& exo,
             std::vector<unsigned>& ncind);
+  /** set universal */
+  void setUniversal() { d_isUniversal = true; }
 
  protected:
   /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
@@ -282,6 +284,8 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
    *    contains( out_i, nvn[in_i] ) ---> false
    */
   std::vector<unsigned> d_neg_con_indices;
+  /** requires not being in all examples */
+  bool d_isUniversal;
 };
 
 } /* CVC4::theory::quantifiers namespace */
