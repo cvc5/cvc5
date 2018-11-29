@@ -300,6 +300,8 @@ class SygusUnifIo : public SygusUnif
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */
   Node d_solution;
+  /** the term size of the above solution */
+  unsigned d_sol_term_size;
   /** partial solutions
    *
    * Maps indices for I/O points to a list of solutions for that point.
