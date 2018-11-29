@@ -1380,10 +1380,9 @@ Node SygusUnifIo::constructSol(
               // TODO (#1250) : degenerate case where children have different
               // types?
               indent("sygus-sui-dt", ind);
-              Trace("sygus-sui-dt")
-                  << "return PBE: failed ITE strategy, "
-                      "cannot find a distinguishable condition"
-                  << std::endl;
+              Trace("sygus-sui-dt") << "return PBE: failed ITE strategy, "
+                                       "cannot find a distinguishable condition"
+                                    << std::endl;
             }
             if (!rec_c.isNull())
             {
