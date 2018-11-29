@@ -298,6 +298,8 @@ class SygusUnifIo : public SygusUnif
   unsigned d_cond_count;
   /** The solution for the function of this class, if one has been found */
   Node d_solution;
+  /** the term size of the above solution */
+  unsigned d_sol_term_size;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
