@@ -434,7 +434,11 @@ class SygusUnifIo : public SygusUnif
   bool useStrContainsEnumeratorExclude(Node e);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
-  /** cache for the above function */
+  /**
+   * cache for the above function, stores whether enumerators e are in
+   * a conditional context, e.g. used for enumerating the return values for
+   * leaves of ITE trees.
+   */
   std::map<Node, bool> d_use_str_contains_eexc_conditional;
 
   /** the unification context used within constructSolution */

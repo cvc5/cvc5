@@ -1340,8 +1340,9 @@ Node SygusUnifIo::constructSol(
             x.updateContext(this,
                             ecache_cond.d_enum_vals_res[split_cond_res_index],
                             sc == 1);
-            // ret may be false in corner cases where we must choose
-            // a non-separating condition to traverse to another strategy node
+            // return value of above call may be false in corner cases where we
+            // must choose a non-separating condition to traverse to another
+            // strategy node
           }
 
           // recurse
@@ -1380,7 +1381,7 @@ Node SygusUnifIo::constructSol(
                 Assert(!rec_c.isNull());
                 indent("sygus-sui-dt", ind);
                 Trace("sygus-sui-dt")
-                    << "PBE: ITE strategy : choose random conditional "
+                    << "PBE: ITE strategy : choose best conditional "
                     << d_tds->sygusToBuiltin(rec_c) << std::endl;
               }
             }
@@ -1407,11 +1408,7 @@ Node SygusUnifIo::constructSol(
           else
           {
             did_recurse = true;
-            // Store the previous visit role, this ensures a strategy node can
-            // be visited on multiple paths in the solution in the same context.
-            // std::map<Node, std::map<NodeRole, bool>> pvr = x.d_visit_role;
             rec_c = constructSol(f, cenum.first, cenum.second, ind + 2, lemmas);
-            // x.d_visit_role = pvr;
           }
 
           // undo update the context
