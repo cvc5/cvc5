@@ -16,6 +16,7 @@
 
 #include "preprocessing/passes/nl_ext_purify.h"
 
+
 namespace CVC4 {
 namespace preprocessing {
 namespace passes {
@@ -124,6 +125,7 @@ PreprocessingPassResult NlExtPurify::applyInternal(
   }
   return PreprocessingPassResult::NO_CONFLICT;
 }
+
 
 }  // namespace passes
 }  // namespace preprocessing

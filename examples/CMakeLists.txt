@@ -4,7 +4,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 
 # Some of the examples require boost. Enable these examples if boost is
 # installed.
-find_package(Boost)
+find_package(Boost 1.50.0)
 
 set(EXAMPLES_BIN_DIR ${CMAKE_BINARY_DIR}/bin/examples)
 
@@ -68,7 +68,9 @@ endmacro()
 set(EXAMPLES_LINK_LIBS cvc4 cvc4parser)
 cvc4_add_example(simple_vc_cxx "" "${EXAMPLES_LINK_LIBS}" "")
 cvc4_add_example(simple_vc_quant_cxx "" "${EXAMPLES_LINK_LIBS}" "")
-cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" "")
+cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" ""
+    # argument to binary (for testing)
+    ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
 if(BUILD_BINDINGS_JAVA)
   find_package(Java REQUIRED)

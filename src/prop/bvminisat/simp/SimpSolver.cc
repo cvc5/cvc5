@@ -255,17 +255,23 @@ bool SimpSolver::merge(const Clause& _ps, const Clause& _qs, Var v, vec<Lit>& ou
     const Clause& ps  =  ps_smallest ? _qs : _ps;
     const Clause& qs  =  ps_smallest ? _ps : _qs;
 
-    for (int i = 0; i < qs.size(); i++){
-        if (var(qs[i]) != v){
-            for (int j = 0; j < ps.size(); j++)
-                if (var(ps[j]) == var(qs[i]))
-                    if (ps[j] == ~qs[i])
-                        return false;
-                    else
-                        goto next;
-            out_clause.push(qs[i]);
+    for (int i = 0; i < qs.size(); i++)
+    {
+      if (var(qs[i]) != v)
+      {
+        for (int j = 0; j < ps.size(); j++)
+        {
+          if (var(ps[j]) == var(qs[i]))
+          {
+            if (ps[j] == ~qs[i])
+              return false;
+            else
+              goto next;
+          }
         }
-        next:;
+        out_clause.push(qs[i]);
+      }
+    next:;
     }
 
     for (int i = 0; i < ps.size(); i++)
@@ -289,17 +295,23 @@ bool SimpSolver::merge(const Clause& _ps, const Clause& _qs, Var v, int& size)
 
     size = ps.size()-1;
 
-    for (int i = 0; i < qs.size(); i++){
-        if (var(__qs[i]) != v){
-            for (int j = 0; j < ps.size(); j++)
-                if (var(__ps[j]) == var(__qs[i]))
-                    if (__ps[j] == ~__qs[i])
-                        return false;
-                    else
-                        goto next;
-            size++;
+    for (int i = 0; i < qs.size(); i++)
+    {
+      if (var(__qs[i]) != v)
+      {
+        for (int j = 0; j < ps.size(); j++)
+        {
+          if (var(__ps[j]) == var(__qs[i]))
+          {
+            if (__ps[j] == ~__qs[i])
+              return false;
+            else
+              goto next;
+          }
         }
-        next:;
+        size++;
+      }
+    next:;
     }
 
     return true;

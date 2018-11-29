@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --sygus-unif --sygus-unif-cond-independent --sygus-unif-boolean-heuristic-dt
+; COMMAND-LINE: --sygus-out=status --sygus-unif --sygus-unif-cond-independent --sygus-unif-boolean-heuristic-dt --decision=justification
 
 (set-logic LIA)
 

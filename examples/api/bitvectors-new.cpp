@@ -50,10 +50,8 @@ int main()
   // Creating a bit-vector type of width 32
   Sort bitvector32 = slv.mkBitVectorSort(32);
 
-  std::cout << "bitvector32 " << bitvector32 << std::endl;
   // Variables
   Term x = slv.mkVar("x", bitvector32);
-  std::cout << "bitvector32 " << bitvector32 << std::endl;
   Term a = slv.mkVar("a", bitvector32);
   Term b = slv.mkVar("b", bitvector32);
 

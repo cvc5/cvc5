@@ -262,6 +262,30 @@ enum SygusInvTemplMode {
   SYGUS_INV_TEMPL_MODE_POST,
 };
 
+enum SygusActiveGenMode
+{
+  /** do not use actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_NONE,
+  /** use basic enumeration for actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM_BASIC,
+  /** use optimized enumeration actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM,
+  /** use variable-agnostic enumerators */
+  SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
+};
+
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically stronger solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weaker solutions */
+  SYGUS_FILTER_SOL_WEAK,
+};
+
 enum MacrosQuantMode {
   /** infer all definitions */
   MACROS_QUANT_MODE_ALL,

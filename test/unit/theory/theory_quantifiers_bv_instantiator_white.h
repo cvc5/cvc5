@@ -19,10 +19,9 @@
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
+#include "theory/quantifiers/cegqi/ceg_bv_instantiator_utils.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
-
-#include "theory/quantifiers/cegqi/ceg_bv_instantiator.cpp"
 
 #include <cxxtest/TestSuite.h>
 #include <iostream>
@@ -33,6 +32,7 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 using namespace CVC4::theory::bv::utils;
 using namespace CVC4::theory::quantifiers;
+using namespace CVC4::theory::quantifiers::utils;
 using namespace CVC4::smt;
 
 class BvInstantiatorWhite : public CxxTest::TestSuite

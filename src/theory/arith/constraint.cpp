@@ -711,9 +711,8 @@ bool Constraint::wellFormedFarkasProof() const {
   }
   Debug("constraints::wffp") << "final sum: " << lhs << " <= " << rhs << endl;
   // 0 = lhs <= rhs < 0
-  return
-    (lhs.isNull() || Constant::isMember(lhs) && Constant(lhs).isZero() ) &&
-    rhs.sgn() < 0;
+  return (lhs.isNull() || (Constant::isMember(lhs) && Constant(lhs).isZero()))
+         && rhs.sgn() < 0;
 
 #else  /* IS_PROOFS_BUILD */
   return true;

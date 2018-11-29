@@ -84,9 +84,13 @@ class SygusModule
   /** construct candidate
    *
    * This function takes as input:
-   *   terms : the terms returned by a call to getTermList,
+   *   terms : (a subset of) the terms returned by a call to getTermList,
    *   term_values : the current model values of terms,
    *   candidates : the list of candidates.
+   *
+   * In particular, notice that terms do not include inactive enumerators,
+   * thus if inactive enumerators were added to getTermList, then the terms
+   * list passed to this call will be a (strict) subset of that list.
    *
    * If this function returns true, it adds to candidate_values a list of terms
    * of the same length and type as candidates that are candidate solutions

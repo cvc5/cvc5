@@ -213,6 +213,7 @@ PreprocessingPassResult BVAckermann::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+
 /* -------------------------------------------------------------------------- */
 
 }  // namespace passes

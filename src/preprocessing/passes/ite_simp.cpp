@@ -14,12 +14,12 @@
 
 #include "preprocessing/passes/ite_simp.h"
 
+#include <vector>
+
 #include "options/proof_options.h"
 #include "smt/smt_statistics_registry.h"
 #include "smt_util/nary_builder.h"
 #include "theory/arith/arith_ite_utils.h"
-
-#include <vector>
 
 using namespace CVC4;
 using namespace CVC4::theory;
@@ -255,6 +255,7 @@ PreprocessingPassResult ITESimp::applyInternal(
   return done ? PreprocessingPassResult::NO_CONFLICT
               : PreprocessingPassResult::CONFLICT;
 }
+
 
 /* -------------------------------------------------------------------------- */
 

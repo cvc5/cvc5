@@ -14,10 +14,7 @@ include_directories(${CMAKE_BINARY_DIR}/src)
 # > unit tests
 
 add_custom_target(build-units)
-add_dependencies(check build-units)
-if(ENABLE_COVERAGE)
-  add_dependencies(coverage build-units)
-endif()
+add_dependencies(build-tests build-units)
 
 add_custom_target(units
   COMMAND ctest --output-on-failure -L "unit" -j${CTEST_NTHREADS} $(ARGS)
@@ -52,6 +49,7 @@ macro(cvc4_add_unit_test is_white name output_dir)
   # As a consequence, all build target names must be globally unique.
   add_executable(${name} ${test_src} ${test_header})
   target_link_libraries(${name} main-test)
+  target_include_directories(${name} PRIVATE ${CxxTest_INCLUDE_DIR})
   target_compile_definitions(${name} PRIVATE ${CVC4_CXXTEST_FLAGS_BLACK})
   if(${is_white})
     target_compile_options(${name} PRIVATE -fno-access-control)
@@ -84,6 +82,7 @@ macro(cvc4_add_unit_test_white name output_dir)
   cvc4_add_unit_test(TRUE ${name} ${output_dir})
 endmacro()
 
+add_subdirectory(api)
 add_subdirectory(base)
 add_subdirectory(context)
 add_subdirectory(expr)

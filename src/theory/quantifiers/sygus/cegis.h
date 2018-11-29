@@ -137,17 +137,38 @@ class Cegis : public SygusModule
 
   /** evaluates candidate values on current refinement lemmas
    *
-   * Returns true if refinement lemmas are added after evaluation, false
-   * otherwise.
+   * This method performs techniques that ensure that
+   * { candidates -> candidate_values } is a candidate solution that should
+   * be checked by the solution verifier of the CEGIS loop. This method
+   * invokes two sub-methods which may reject the current solution.
+   * The first is "refinement evaluation", described above the method
+   * getRefinementEvalLemmas below. The second is "evaluation unfolding",
+   * which eagerly unfolds applications of evaluation functions (see
+   * sygus_eval_unfold.h for details).
    *
-   * Also eagerly unfolds evaluation functions in a heuristic manner, which is
-   * useful e.g. for boolean connectives
+   * If this method returns true, then { candidates -> candidate_values }
+   * is not ready to be tried as a candidate solution. In this case, it may add
+   * lemmas to lems.
+   *
+   * Notice that this method may return true without adding any lemmas to
+   * lems, in the case that terms from candidates are "actively-generated
+   * enumerators", since the model values of such terms are managed
+   * explicitly within getEnumeratedValue. In this case, the owner of the
+   * actively-generated enumerators (e.g. SynthConjecture) is responsible for
+   * blocking the current value of candidates.
    */
   bool addEvalLemmas(const std::vector<Node>& candidates,
-                     const std::vector<Node>& candidate_values);
+                     const std::vector<Node>& candidate_values,
+                     std::vector<Node>& lems);
   //-----------------------------------end refinement lemmas
 
   /** Get refinement evaluation lemmas
+   *
+   * This method performs "refinement evaluation", that is, it tests
+   * whether the current solution, given by { candidates -> candidate_values },
+   * satisfies all current refinement lemmas. If it does not, it may add
+   * blocking lemmas L to lems which exclude (a generalization of) the current
+   * solution.
    *
    * Given a candidate solution ms for candidates vs, this function adds lemmas
    * to lems based on evaluating the conjecture, instantiated for ms, on lemmas

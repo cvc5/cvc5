@@ -77,7 +77,7 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   // check is ground.
   Node squery = convertToSkolem(query);
   NodeManager* nm = NodeManager::currentNM();
-  if (options::sygusExprMinerCheckTimeout.wasSetByUser())
+  if (options::sygusExprMinerCheckUseExport())
   {
     // To support a separate timeout for the subsolver, we need to create
     // a separate ExprManager with its own options. This requires that
@@ -89,6 +89,8 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
       checker.reset(new SmtEngine(&em));
       checker->setTimeLimit(options::sygusExprMinerCheckTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
+      checker->setOption("sygus-rr-synth-input", false);
+      checker->setOption("input-language", "smt2");
       Expr equery = squery.toExpr().exportTo(&em, varMap);
       checker->assertFormula(equery);
     }
@@ -96,8 +98,9 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     {
       std::stringstream msg;
       msg << "Unable to export " << squery
-          << " but exporting expressions is required for "
-             "--sygus-rr-synth-check-timeout.";
+          << " but exporting expressions is "
+             "required for an expression "
+             "miner check.";
       throw OptionException(msg.str());
     }
     needExport = true;
@@ -108,6 +111,29 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     checker.reset(new SmtEngine(nm->toExprManager()));
     checker->assertFormula(squery.toExpr());
   }
+}
+
+Result ExprMiner::doCheck(Node query)
+{
+  Node queryr = Rewriter::rewrite(query);
+  if (queryr.isConst())
+  {
+    if (!queryr.getConst<bool>())
+    {
+      return Result(Result::UNSAT);
+    }
+    else
+    {
+      return Result(Result::SAT);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  bool needExport = false;
+  ExprManagerMapCollection varMap;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> smte;
+  initializeChecker(smte, em, varMap, queryr, needExport);
+  return smte->checkSat();
 }
 
 }  // namespace quantifiers

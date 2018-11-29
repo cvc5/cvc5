@@ -142,11 +142,12 @@ class CDListBlack : public CxxTest::TestSuite {
         {
           // We cap it at UINT_MAX, preferring to terminate with a
           // failure than run indefinitely.
-          for (unsigned i = 0; i < UINT_MAX; ++i) {
+          for (unsigned i = 0; i < UINT_MAX; ++i)
+          {
             list.push_back(i);
           }
         },
-        bad_alloc);
+        bad_alloc&);
 
 #endif /* CVC4_MEMORY_LIMITING_DISABLED */
   }

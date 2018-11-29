@@ -90,7 +90,7 @@ private:
     }
 
     // Try popping out of scope
-    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException);
+    TS_ASSERT_THROWS(d_cmm->pop(), CVC4::AssertionException&);
 #endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
   }
 

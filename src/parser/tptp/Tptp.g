@@ -42,10 +42,6 @@ options {
 
 @lexer::includes {
 
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
-
 /** This suppresses warnings about the redefinition of token symbols between
   * different parsers. The redefinitions should be harmless as long as no
   * client: (a) #include's the lexer headers for two grammars AND (b) uses the
@@ -88,10 +84,6 @@ using namespace CVC4::parser;
 }/* @lexer::postinclude */
 
 @parser::includes {
-
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
 
 #include <memory>
 

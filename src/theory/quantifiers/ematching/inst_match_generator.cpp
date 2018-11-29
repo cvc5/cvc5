@@ -384,6 +384,11 @@ void InstMatchGenerator::resetInstantiationRound( QuantifiersEngine* qe ){
 }
 
 bool InstMatchGenerator::reset( Node eqc, QuantifiersEngine* qe ){
+  if (d_cg == nullptr)
+  {
+    // we did not properly initialize the candidate generator, thus we fail
+    return false;
+  }
   eqc = qe->getEqualityQuery()->getRepresentative( eqc );
   Trace("matching-debug2") << this << " reset " << eqc << "." << std::endl;
   if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()!=INST_CONSTANT ){
@@ -1023,7 +1028,7 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
                                                 Trigger* tparent)
 {
   int addedLemmas = 0;
-  quantifiers::TermArgTrie* tat;
+  TNodeTrie* tat;
   if( d_eqc.isNull() ){
     tat = qe->getTermDatabase()->getTermArgTrie( d_op );
   }else{
@@ -1035,10 +1040,12 @@ int InstMatchGeneratorSimple::addInstantiations(Node q,
       if (tat && !qe->inConflict())
       {
         Node r = qe->getEqualityQuery()->getRepresentative(d_eqc);
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
-          if( it->first!=r ){
+        for (std::pair<const TNode, TNodeTrie>& t : tat->d_data)
+        {
+          if (t.first != r)
+          {
             InstMatch m( q );
-            addInstantiations( m, qe, addedLemmas, 0, &(it->second) );
+            addInstantiations(m, qe, addedLemmas, 0, &(t.second));
             if( qe->inConflict() ){
               break;
             }
@@ -1061,13 +1068,13 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
                                                  QuantifiersEngine* qe,
                                                  int& addedLemmas,
                                                  unsigned argIndex,
-                                                 quantifiers::TermArgTrie* tat)
+                                                 TNodeTrie* tat)
 {
   Debug("simple-trigger-debug") << "Add inst " << argIndex << " " << d_match_pattern << std::endl;
   if (argIndex == d_match_pattern.getNumChildren())
   {
     Assert( !tat->d_data.empty() );
-    TNode t = tat->getNodeData();
+    TNode t = tat->getData();
     Debug("simple-trigger") << "Actual term is " << t << std::endl;
     //convert to actual used terms
     for (std::map<unsigned, int>::iterator it = d_var_num.begin();
@@ -1091,14 +1098,15 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
     if( d_match_pattern[argIndex].getKind()==INST_CONSTANT ){
       int v = d_var_num[argIndex];
       if( v!=-1 ){
-        for( std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.begin(); it != tat->d_data.end(); ++it ){
-          Node t = it->first;
+        for (std::pair<const TNode, TNodeTrie>& tt : tat->d_data)
+        {
+          Node t = tt.first;
           Node prev = m.get( v );
           //using representatives, just check if equal
           Assert( t.getType().isComparableTo( d_match_pattern_arg_types[argIndex] ) );
           if( prev.isNull() || prev==t ){
             m.setValue( v, t);
-            addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
+            addInstantiations(m, qe, addedLemmas, argIndex + 1, &(tt.second));
             m.setValue( v, prev);
             if( qe->inConflict() ){
               break;
@@ -1110,7 +1118,7 @@ void InstMatchGeneratorSimple::addInstantiations(InstMatch& m,
       //inst constant from another quantified formula, treat as ground term  TODO: remove this?
     }
     Node r = qe->getEqualityQuery()->getRepresentative( d_match_pattern[argIndex] );
-    std::map< TNode, quantifiers::TermArgTrie >::iterator it = tat->d_data.find( r );
+    std::map<TNode, TNodeTrie>::iterator it = tat->d_data.find(r);
     if( it!=tat->d_data.end() ){
       addInstantiations( m, qe, addedLemmas, argIndex+1, &(it->second) );
     }

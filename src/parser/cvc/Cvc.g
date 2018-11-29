@@ -222,6 +222,7 @@ tokens {
   STRING_CHARAT_TOK = 'CHARAT';
   STRING_INDEXOF_TOK = 'INDEXOF';
   STRING_REPLACE_TOK = 'REPLACE';
+  STRING_REPLACE_ALL_TOK = 'REPLACE_ALL';
   STRING_PREFIXOF_TOK = 'PREFIXOF';
   STRING_SUFFIXOF_TOK = 'SUFFIXOF';
   STRING_STOI_TOK = 'STRING_TO_INTEGER';
@@ -495,10 +496,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 
 @lexer::includes {
 
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
-
 /** This suppresses warnings about the redefinition of token symbols between different
   * parsers. The redefinitions should be harmless as long as no client: (a) #include's
   * the lexer headers for two grammars AND (b) uses the token symbol definitions. */
@@ -522,10 +519,6 @@ Expr addNots(ExprManager* em, size_t n, Expr e) {
 }/* @lexer::includes */
 
 @parser::includes {
-
-// This should come immediately after #include <antlr3.h> in the generated
-// files. See the documentation in "parser/antlr_undefines.h" for more details.
-#include "parser/antlr_undefines.h"
 
 #include <cassert>
 #include <memory>
@@ -2036,6 +2029,8 @@ stringTerm[CVC4::Expr& f]
     { f = MK_EXPR(CVC4::kind::STRING_STRIDOF, f, f2, f3); }
   | STRING_REPLACE_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_STRREPL, f, f2, f3); }
+  | STRING_REPLACE_ALL_TOK LPAREN formula[f] COMMA formula[f2] COMMA formula[f3] RPAREN
+    { f = MK_EXPR(CVC4::kind::STRING_STRREPLALL, f, f2, f3); }
   | STRING_PREFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN
     { f = MK_EXPR(CVC4::kind::STRING_PREFIX, f, f2); }
   | STRING_SUFFIXOF_TOK LPAREN formula[f] COMMA formula[f2] RPAREN

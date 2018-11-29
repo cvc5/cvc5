@@ -34,9 +34,11 @@ public:
     Cardinality two(2);
 
     Cardinality invalid(0);
-    TS_ASSERT_THROWS( invalid = Cardinality(-1), IllegalArgumentException);
-    TS_ASSERT_THROWS( invalid = Cardinality(-2), IllegalArgumentException);
-    TS_ASSERT_THROWS( invalid = Cardinality(Integer("-3983982192391747295721957")), IllegalArgumentException);
+    TS_ASSERT_THROWS(invalid = Cardinality(-1), IllegalArgumentException&);
+    TS_ASSERT_THROWS(invalid = Cardinality(-2), IllegalArgumentException&);
+    TS_ASSERT_THROWS(
+        invalid = Cardinality(Integer("-3983982192391747295721957")),
+        IllegalArgumentException&);
     invalid = one; // test assignment
     invalid = Cardinality(5); // test assignment to temporary
 
@@ -121,16 +123,16 @@ public:
     TS_ASSERT( two.getFiniteCardinality() == 2 );
     TS_ASSERT( copy.getFiniteCardinality() == 1 );
     TS_ASSERT( invalid.getFiniteCardinality() == 5 );
-    TS_ASSERT_THROWS( big.getFiniteCardinality(), IllegalArgumentException );
-    TS_ASSERT_THROWS( i.getFiniteCardinality(), IllegalArgumentException );
-    TS_ASSERT_THROWS( r.getFiniteCardinality(), IllegalArgumentException );
+    TS_ASSERT_THROWS(big.getFiniteCardinality(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(i.getFiniteCardinality(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(r.getFiniteCardinality(), IllegalArgumentException&);
 
-    TS_ASSERT_THROWS( zero.getBethNumber(), IllegalArgumentException );
-    TS_ASSERT_THROWS( one.getBethNumber(), IllegalArgumentException );
-    TS_ASSERT_THROWS( two.getBethNumber(), IllegalArgumentException );
-    TS_ASSERT_THROWS( copy.getBethNumber(), IllegalArgumentException );
-    TS_ASSERT_THROWS( invalid.getBethNumber(), IllegalArgumentException );
-    TS_ASSERT_THROWS( big.getBethNumber(), IllegalArgumentException );
+    TS_ASSERT_THROWS(zero.getBethNumber(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(one.getBethNumber(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(two.getBethNumber(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(copy.getBethNumber(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(invalid.getBethNumber(), IllegalArgumentException&);
+    TS_ASSERT_THROWS(big.getBethNumber(), IllegalArgumentException&);
     TS_ASSERT( i.getBethNumber() == 0 );
     TS_ASSERT( r.getBethNumber() == 1 );
 
@@ -211,7 +213,7 @@ public:
     TS_ASSERT( x.compare(y) == Cardinality::LESS );
     TS_ASSERT( y.compare(z) == Cardinality::LESS );
 
-    TS_ASSERT_THROWS( big.getBethNumber(), IllegalArgumentException );
+    TS_ASSERT_THROWS(big.getBethNumber(), IllegalArgumentException&);
     TS_ASSERT( x.getBethNumber() == 0 );
     TS_ASSERT( y.getBethNumber() == 1 );
     TS_ASSERT( z.getBethNumber() == 2 );

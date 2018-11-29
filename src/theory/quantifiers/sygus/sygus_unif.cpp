@@ -42,25 +42,14 @@ void SygusUnif::initializeCandidate(
   d_strategy[f].initialize(qe, f, enums);
 }
 
-Node SygusUnif::constructBestSolvedTerm(const std::vector<Node>& solved)
+Node SygusUnif::constructBestSolvedTerm(Node e, const std::vector<Node>& solved)
 {
   Assert(!solved.empty());
   return solved[0];
 }
 
-Node SygusUnif::constructBestStringSolvedTerm(const std::vector<Node>& solved)
-{
-  Assert(!solved.empty());
-  return solved[0];
-}
-
-Node SygusUnif::constructBestSolvedConditional(const std::vector<Node>& solved)
-{
-  Assert(!solved.empty());
-  return solved[0];
-}
-
-Node SygusUnif::constructBestConditional(const std::vector<Node>& conds)
+Node SygusUnif::constructBestConditional(Node ce,
+                                         const std::vector<Node>& conds)
 {
   Assert(!conds.empty());
   double r = Random::getRandom().pickDouble(0.0, 1.0);
@@ -79,7 +68,7 @@ Node SygusUnif::constructBestStringToConcat(
 {
   Assert(!strs.empty());
   std::vector<Node> strs_tmp = strs;
-  std::random_shuffle(strs_tmp.begin(), strs_tmp.end());
+  std::shuffle(strs_tmp.begin(), strs_tmp.end(), Random::getRandom());
   // prefer one that has incremented by more than 0
   for (const Node& ns : strs_tmp)
   {

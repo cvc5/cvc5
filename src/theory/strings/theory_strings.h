@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
@@ -35,11 +36,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace strings {
 
 /**
@@ -163,7 +159,18 @@ class TheoryStrings : public Theory {
                               std::vector<Node>& vars,
                               std::vector<Node>& subs,
                               std::map<Node, std::vector<Node> >& exp) override;
-  int getReduction(int effort, Node n, Node& nr) override;
+  //--------------------------for checkExtfReductions
+  /** do reduction
+   *
+   * This is called when an extended function application n is not able to be
+   * simplified by context-depdendent simplification, and we are resorting to
+   * expanding n to its full semantics via a reduction. This method returns
+   * true if it successfully reduced n by some reduction and sets isCd to
+   * true if the reduction was (SAT)-context-dependent, and false otherwise.
+   * The argument effort has the same meaning as in checkExtfReductions.
+   */
+  bool doReduction(int effort, Node n, bool& isCd);
+  //--------------------------end for checkExtfReductions
 
   // NotifyClass for equality engine
   class NotifyClass : public eq::EqualityEngineNotify {
@@ -278,9 +285,8 @@ private:
   NodeSet d_pregistered_terms_cache;
   NodeSet d_registered_terms_cache;
   NodeSet d_length_lemma_terms_cache;
-  // preprocess cache
+  /** preprocessing utility, for performing strings reductions */
   StringsPreprocess d_preproc;
-  NodeBoolMap d_preproc_cache;
   // extended functions inferences cache
   NodeSet d_extf_infer_cache;
   NodeSet d_extf_infer_cache_u;
@@ -547,7 +553,10 @@ private:
   //--------------------------------end for checkMemberships
 
  private:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth);
 
  public:
   /** preregister term */
@@ -580,7 +589,12 @@ private:
   void doPendingFacts();
   void doPendingLemmas();
   bool hasProcessed();
+  /**
+   * Adds equality a = b to the vector exp if a and b are distinct terms. It
+   * must be the case that areEqual( a, b ) holds in this context.
+   */
   void addToExplanation(Node a, Node b, std::vector<Node>& exp);
+  /** Adds lit to the vector exp if it is non-null */
   void addToExplanation(Node lit, std::vector<Node>& exp);
 
   /** Register term
@@ -602,6 +616,22 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
+  //-------------------------------------send inferences
+  /** send internal inferences
+   *
+   * This is called when we have inferred exp => conc, where exp is a set
+   * of equalities and disequalities that hold in the current equality engine.
+   * This method adds equalities and disequalities ~( s = t ) via
+   * sendInference such that both s and t are either constants or terms
+   * that already occur in the equality engine, and ~( s = t ) is a consequence
+   * of conc. This function can be seen as a "conservative" version of
+   * sendInference below in that it does not introduce any new non-constant
+   * terms to the state.
+   *
+   * The argument c is a string identifying the reason for the interference.
+   * This string is used for debugging purposes.
+   */
+  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
   // send lemma
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
@@ -615,6 +645,7 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  //-------------------------------------end send inferences
 
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
@@ -717,6 +748,12 @@ private:
     bool isInitialized();
     /** initialize */
     void initialize(const std::vector<Node>& vars);
+
+    /*
+     * Do not hide the zero-argument version of initialize() inherited from the
+     * base class
+     */
+    using DecisionStrategyFmf::initialize;
 
    private:
     /**
