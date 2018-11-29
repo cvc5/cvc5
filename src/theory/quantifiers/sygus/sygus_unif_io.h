@@ -124,33 +124,6 @@ class UnifContextIo : public UnifContext
   */
   std::map<Node, std::map<NodeRole, bool>> d_visit_role;
 
-  /** unif context enumerator information */
-  class UEnumInfo
-  {
-   public:
-    UEnumInfo() {}
-    /** map from conditions and branch positions to a solved node
-    *
-    * For example, if we have:
-    *   f( 1 ) = 2 ^ f( 3 ) = 4 ^ f( -1 ) = 1
-    * Then, valid entries in this map is:
-    *   d_look_ahead_sols[x>0][1] = x+1
-    *   d_look_ahead_sols[x>0][2] = 1
-    * For the first entry, notice that  for all input examples such that x>0
-    * evaluates to true, which are (1) and (3), we have that their output
-    * values for x+1 under the substitution that maps x to the input value,
-    * resulting in 2 and 4, are equal to the output value for the respective
-    * pairs.
-    */
-    std::map<Node, std::map<unsigned, Node>> d_look_ahead_sols;
-    /** clear */
-    void clear() { d_look_ahead_sols.clear(); }
-    /** is empty */
-    bool empty() { return d_look_ahead_sols.empty(); }
-  };
-  /** map from enumerators to the above info class */
-  std::map<Node, UEnumInfo> d_uinfo;
-
  private:
   /** true and false nodes */
   Node d_true;
@@ -353,6 +326,11 @@ class SygusUnifIo : public SygusUnif
    * which can be closed with "B", giving us (x ++ "B") as a solution.
    */
   bool d_sol_cons_nondet;
+  /**
+   * Whether we are using information gain heuristic during solution
+   * construction.
+   */
+  bool d_solConsUsingInfoGain;
   /** true and false nodes */
   Node d_true;
   Node d_false;
@@ -469,28 +447,6 @@ class SygusUnifIo : public SygusUnif
                     NodeRole nrole,
                     int ind,
                     std::vector<Node>& lemmas) override;
-
-  class PbeTrie
-  {
-   public:
-    PbeTrie() {}
-    ~PbeTrie() {}
-    /** the children for this node in the trie */
-    std::map<Node, PbeTrie> d_children;
-    /** clear this trie */
-    void clear() { d_children.clear(); }
-    /**
-     * Add term b whose value on examples is exOut to the trie. Return
-     * the first term registered to this trie whose evaluation was exOut.
-     */
-    Node addTerm(Node b, std::vector<Node>& exOut);
-  };
-  std::map<Node, PbeTrie> d_pbe_trie;
-  void addSearchVal(Node e, Node v, std::vector<Node>& res);
-  bool existsSearchValSubset(Node e,
-                             Node v,
-                             std::vector<Node>& res,
-                             std::vector<bool>& ss);
 };
 
 } /* CVC4::theory::quantifiers namespace */
