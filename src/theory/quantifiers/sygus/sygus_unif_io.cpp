@@ -903,7 +903,6 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
         << "Check enumerator exclusion for " << e << " -> "
         << d_tds->sygusToBuiltin(v) << " based on str.contains." << std::endl;
     std::vector<unsigned> cmp_indices;
-    std::vector<bool> cmpRes;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
       Assert(results[i].isConst());
@@ -914,13 +913,11 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
       Node contr = Rewriter::rewrite(cont);
       if (contr == d_false)
       {
-        cmpRes.push_back(false);
         cmp_indices.push_back(i);
         Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
       }
       else
       {
-        cmpRes.push_back(true);
         Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
         if (isConditional)
         {
@@ -944,8 +941,6 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
           << " due to negative containment." << std::endl;
       return true;
     }
-    // if we're using it, we add it now
-    addSearchVal(e, v, results);
   }
   return false;
 }
@@ -1382,6 +1377,8 @@ Node SygusUnifIo::constructSol(
             }
             else
             {
+              // TODO (#1250) : degenerate case where children have different
+              // types?
               indent("sygus-sui-dt", ind);
               Trace("sygus-sui-dt")
                   << "return PBE: failed ITE strategy, "
