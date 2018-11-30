@@ -266,11 +266,19 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
             std::vector<std::vector<Node> >& ex,
             std::vector<Node>& exo,
             std::vector<unsigned>& ncind);
-  /** set universal */
+  /** set universal 
+   *
+   * This updates the semantics of this check such that *all* instead of some
+   * examples must fail the containment test.
+   */
   void setUniversal() { d_isUniversal = true; }
 
  protected:
-  /** checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i. */
+  /** 
+   * Checks if contains( out_i, nvn[in_i] ) --> false for some I/O pair i; if
+   * d_isUniversal is true, then we check if the rewrite holds for *all* I/O
+   * pairs.
+   */
   bool invariant(TermDbSygus* tds, Node nvn, Node x) override;
 
  private:
