@@ -306,7 +306,7 @@ class SygusUnifIo : public SygusUnif
    *
    * Maps indices for I/O points to a list of solutions for that point.
    */
-  std::map<unsigned, std::unordered_set<Node, NodeHashFunction>> d_psolutions;
+  std::map<size_t, std::unordered_set<Node, NodeHashFunction>> d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
