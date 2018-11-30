@@ -1465,7 +1465,7 @@ Node SygusUnifIo::constructSol(
   {
     if (!retValMod && !ret_dt.isNull())
     {
-      for (unsigned i = 0, nvals = x.d_vals.size(); i < nvals; i++)
+      for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
         {
