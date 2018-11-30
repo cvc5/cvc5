@@ -1093,7 +1093,7 @@ Node SygusUnifIo::constructSol(
       std::unordered_set<Node, NodeHashFunction> intersection;
       std::map<size_t, std::unordered_set<Node, NodeHashFunction>>::iterator
           pit;
-      for (unsigned i = 0, nvals = x.d_vals.size(); i < nvals; i++)
+      for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
         {
