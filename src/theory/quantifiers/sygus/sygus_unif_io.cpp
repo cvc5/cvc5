@@ -809,7 +809,7 @@ Node SygusUnifIo::constructSolutionNode(std::vector<Node>& lemmas)
               || (!d_solution.isNull()
                   && d_tds->getSygusTermSize(vcc) < d_sol_term_size)))
       {
-        if( Trace.isOn("sygus-pbe") )
+        if (Trace.isOn("sygus-pbe"))
         {
           Trace("sygus-pbe") << "**** SygusUnif SOLVED : " << c << " = ";
           TermDbSygus::toStreamSygus("sygus-pbe", vcc);
