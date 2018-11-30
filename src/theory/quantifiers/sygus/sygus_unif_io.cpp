@@ -1091,7 +1091,7 @@ Node SygusUnifIo::constructSol(
     {
       bool firstTime = true;
       std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<unsigned, std::unordered_set<Node, NodeHashFunction>>::iterator
+      std::map<size_t, std::unordered_set<Node, NodeHashFunction>>::iterator
           pit;
       for (unsigned i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
