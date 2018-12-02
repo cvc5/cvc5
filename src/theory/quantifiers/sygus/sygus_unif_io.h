@@ -183,12 +183,14 @@ class SubsumeTrie
                      bool pol,
                      std::vector<Node>& subsumed_by);
   /**
-  * Get the leaves of the trie, which we store in the map v.
-  * v[-1] stores the children that always evaluate to !pol,
-  * v[1] stores the children that always evaluate to pol,
-  * v[0] stores the children that both evaluate to true and false for at least
-  * one example.
-  */
+   * Get the leaves of the trie, which we store in the map v. We consider their
+   * evaluation on points such that (pol ? vals : !vals) is true.
+   *
+   * v[-1] stores the children that always evaluate to !pol,
+   * v[1] stores the children that always evaluate to pol,
+   * v[0] stores the children that both evaluate to true and false for at least
+   * one example.
+   */
   void getLeaves(const std::vector<Node>& vals,
                  bool pol,
                  std::map<int, std::vector<Node>>& v);
@@ -300,6 +302,11 @@ class SygusUnifIo : public SygusUnif
   Node d_solution;
   /** the term size of the above solution */
   unsigned d_sol_term_size;
+  /** partial solutions
+   *
+   * Maps indices for I/O points to a list of solutions for that point.
+   */
+  std::map<size_t, std::unordered_set<Node, NodeHashFunction>> d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
@@ -427,6 +434,12 @@ class SygusUnifIo : public SygusUnif
   bool useStrContainsEnumeratorExclude(Node e);
   /** cache for the above function */
   std::map<Node, bool> d_use_str_contains_eexc;
+  /**
+   * cache for the above function, stores whether enumerators e are in
+   * a conditional context, e.g. used for enumerating the return values for
+   * leaves of ITE trees.
+   */
+  std::map<Node, bool> d_use_str_contains_eexc_conditional;
 
   /** the unification context used within constructSolution */
   UnifContextIo d_context;
