@@ -1,0 +1,617 @@
+(declare test_clause_concat
+         (! c1 clause
+            (! c2 clause
+               (! cr clause
+                  (! sc (^ (clause_concat c1 c2) cr) type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (test_clause_concat
+      (clc (pos v1) (clc (neg v2) cln))
+      (clc (pos v3) (clc (neg v2) cln))
+      (clc (pos v1) (clc (neg v2) (clc (pos v3) (clc (neg v2) cln))))
+    )
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (test_clause_concat
+      cln
+      (clc (pos v3) (clc (neg v2) cln))
+      (clc (pos v3) (clc (neg v2) cln))
+    )
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (test_clause_concat
+      (clc (pos v3) (clc (neg v2) cln))
+      cln
+      (clc (pos v3) (clc (neg v2) cln))
+    )
+  ))))
+)
+
+(declare test_CMap_remove_many
+         (! is CIList
+            (! cs CMap
+               (! csr CMap
+                  (! sc (^ (CMap_remove_many is cs) csr) type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v4) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v3) cln))
+    (@ c4 (clc (neg v3) (clc (neg v4) cln))
+      (@ cs_in (CMapc 0 c1 (CMapc 3 c2 (CMapc 4 c3 (CMapc 5 c3 (CMapc 6 c4 CMapn)))))
+      (@ cs_out (CMapc 3 c2 (CMapc 5 c3 CMapn))
+      (@ is_in (CIListc 0 (CIListc 4 (CIListc 6 CIListn)))
+        (test_CMap_remove_many
+          is_in
+          cs_in
+          cs_out
+        )
+      )))
+    ))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v4) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v3) cln))
+    (@ c4 (clc (neg v3) (clc (neg v4) cln))
+      (@ cs_in (CMapc 0 c1 (CMapc 3 c2 (CMapc 4 c3 (CMapc 5 c3 (CMapc 6 c4 CMapn)))))
+      (@ cs_out (CMapc 0 c1 (CMapc 3 c2 (CMapc 5 c3 (CMapc 6 c4 CMapn))))
+      (@ is_in (CIListc 4 CIListn)
+        (test_CMap_remove_many
+          is_in
+          cs_in
+          cs_out
+        )
+      )))
+    ))))
+  ))))
+)
+
+(declare test_clause_remove_all
+         (! l lit
+            (! c clause
+               (! c' clause
+                  (! sc (^ (clause_remove_all l c) c') type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v4) (clc (neg v2) (clc (neg v2) (clc (pos v2) (clc (pos v1) cln)))))
+    (@ c2 (clc (pos v4) (clc (pos v2) (clc (pos v1) cln)))
+      (test_clause_remove_all
+        (neg v2)
+        c1
+        c2
+      )
+    ))
+  ))))
+)
+
+(declare test_collect_resolution_targets
+         (! cs CMap
+            (! c clause
+               (! is CIList
+                  (! sc (^ (collect_resolution_targets cs c) is) type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v3) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v3) cln))
+    (@ c4 (clc (neg v3) (clc (pos v3) cln))
+    (@ ct (clc (neg v3) (clc (neg v4) cln))
+      (@ cs_in (CMapc 0 c1 (CMapc 3 c2 (CMapc 4 c3 (CMapc 5 c3 (CMapc 6 c4 CMapn)))))
+      (@ is_out (CIListc 0 (CIListc 4 (CIListc 5 (CIListc 6 CIListn))))
+        (test_collect_resolution_targets
+          cs_in
+          ct
+          is_out
+        )
+      )))
+    ))))
+  ))))
+)
+
+(declare test_resolution_targets_match
+         (! c CIList
+            (! g RATHints
+               (! ans bool
+                  (! sc (^ (resolution_targets_match c g) ans) type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ idxs_in (CIListc 0 (CIListc 4 (CIListc 5 (CIListc 6 CIListn))))
+    (@ hints_in
+       (RATHintsc 0 Tracen
+       (RATHintsc 4 Tracen
+       (RATHintsc 5 Tracen
+       (RATHintsc 6 Tracen
+       RATHintsn))))
+      (test_resolution_targets_match
+        idxs_in
+        hints_in
+        tt
+      )
+    ))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ idxs_in (CIListc 0 (CIListc 2 (CIListc 5 (CIListc 6 CIListn))))
+    (@ hints_in
+       (RATHintsc 0 Tracen
+       (RATHintsc 4 Tracen
+       (RATHintsc 5 Tracen
+       (RATHintsc 6 Tracen
+       RATHintsn))))
+      (test_resolution_targets_match
+        idxs_in
+        hints_in
+        ff
+      )
+    ))
+  ))))
+)
+
+(declare test_is_at_trace
+         (! cs CMap
+            (! c clause
+               (! t Trace
+                  (! r UPResult
+                    (! sc (^ (is_at_trace cs c t) r) type))))))
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v3) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v1) cln))
+    (@ c4 (clc (neg v3) (clc (pos v2) cln))
+      (@ cs (CMapc 0 c1 (CMapc 3 c2 (CMapc 5 c3 (CMapc 6 c4 CMapn))))
+      (@ c  (clc (neg v3) cln)
+      (@ t  (Tracec 3 (Tracec 5 (Tracec 6 Tracen)))
+        (test_is_at_trace
+          cs
+          c
+          t
+          UPR_Bottom
+        )
+      )))
+    ))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v3) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v1) cln))
+    (@ c4 (clc (neg v3) (clc (pos v2) cln))
+      (@ cs (CMapc 0 c1 (CMapc 3 c2 (CMapc 5 c3 (CMapc 6 c4 CMapn))))
+      (@ c  (clc (neg v3) cln)
+      (@ t  (Tracec 3 (Tracec 5 Tracen))
+        (test_is_at_trace
+          cs
+          c
+          t
+          UPR_Ok
+        )
+      )))
+    ))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v3) (clc (neg v2) cln))
+    (@ c2 (clc (neg v3) (clc (neg v1) cln))
+    (@ c3 (clc (neg v2) (clc (pos v1) cln))
+    (@ c4 (clc (neg v3) (clc (pos v2) cln))
+      (@ cs (CMapc 1 c1 (CMapc 2 c2 (CMapc 3 c3 (CMapc 4 c4 CMapn))))
+      (@ c  (clc (neg v3) cln)
+      (@ t  (Tracec 2 (Tracec 1 Tracen))
+        (test_is_at_trace
+          cs
+          c
+          t
+          UPR_Broken
+        )
+      )))
+    ))))
+  ))))
+)
+
+(declare test_is_rat_trace (! cs CMap
+            (! c clause
+               (! t Trace
+                  (! h RATHints
+                     (! r UPResult
+                       (! sc (^ (is_rat_trace cs c t h) r) type)))))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8 CMapn))))))))
+      (@ c  (clc (pos v1) cln)
+      (@ t  Tracen
+      (@ h  (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+            (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+            (RATHintsc 7 (Tracec 6 (Tracec 1 Tracen))
+                       RATHintsn)))
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Bottom
+        )
+      ))))
+    ))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8 CMapn))))))))
+      (@ c  (clc (pos v1) cln)
+      (@ t  Tracen
+      (@ h  (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+            (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+                       RATHintsn))
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Broken
+        )
+      ))))
+    ))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8 CMapn))))))))
+      (@ c  (clc (pos v1) cln)
+      (@ t  Tracen
+      (@ h  (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+            (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+            (RATHintsc 7 (Tracec 3 (Tracec 1 Tracen))
+                       RATHintsn)))
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Broken
+        )
+      ))))
+    ))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8 CMapn))))))))
+      (@ c  (clc (pos v1) cln)
+      (@ t  Tracen
+      (@ h  (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+            (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+            (RATHintsc 7 (Tracec 3 Tracen)
+                       RATHintsn)))
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Broken
+        )
+      ))))
+    ))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+    (@ c9 (clc (pos v1) cln)
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8
+            (CMapc 9 c9
+                   CMapn)))))))))
+      (@ c  (clc (pos v2) cln)
+      (@ t  (Tracec 9 (Tracec 7 (Tracec 5 (Tracec 3 Tracen))))
+      (@ h  RATHintsn
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Bottom
+        )
+      ))))
+    )))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+    (@ c9 (clc (pos v1) cln)
+    (@ c10 (clc (pos v2) cln)
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8
+            (CMapc 9 c9
+            (CMapc 10 c10
+                   CMapn))))))))))
+      (@ c  cln
+      (@ t  (Tracec 9 (Tracec 10 (Tracec 2 (Tracec 4 (Tracec 5 Tracen)))))
+      (@ h  RATHintsn
+        (test_is_rat_trace
+          cs
+          c
+          t
+          h
+          UPR_Bottom
+        )
+      ))))
+    ))))))))))
+  ))))
+)
+
+(declare test_is_lrat_proof_of_bottom
+            (! f CMap
+               (! p LRATProof
+                  (! r bool
+                     (! sc (^ (is_lrat_proof_of_bottom f p) r) type)))))
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8
+                   CMapn))))))))
+      (@ p
+            (LRATProofa 9
+                        (clc (pos v1) cln)
+                        Tracen
+                        (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+                          (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+                          (RATHintsc 7 (Tracec 6 (Tracec 1 Tracen))
+                                     RATHintsn)))
+            (LRATProofd (CIListc 1 (CIListc 6 (CIListc 8 CIListn)))
+            (LRATProofa 10
+                        (clc (pos v2) cln)
+                        (Tracec 9 (Tracec 7 (Tracec 5 (Tracec 3 Tracen))))
+                        RATHintsn
+            (LRATProofd (CIListc 3 (CIListc 7 CIListn))
+            (LRATProofa 11
+                        cln
+                        (Tracec 9 (Tracec 10 (Tracec 2 (Tracec 4 (Tracec 5 Tracen)))))
+                        RATHintsn
+            LRATProofn)))))
+            (test_is_lrat_proof_of_bottom
+              cs
+              p
+              tt
+            )
+      ))
+    ))))))))
+  ))))
+)
+
+(check
+  (% v1 var
+  (% v2 var
+  (% v3 var
+  (% v4 var
+    (@ c1 (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+    (@ c2 (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+    (@ c3 (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+    (@ c4 (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+    (@ c5 (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+    (@ c6 (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+    (@ c7 (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+    (@ c8 (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+      (@ cs (CMapc 1 c1
+            (CMapc 2 c2
+            (CMapc 3 c3
+            (CMapc 4 c4
+            (CMapc 5 c5
+            (CMapc 6 c6
+            (CMapc 7 c7
+            (CMapc 8 c8
+                   CMapn))))))))
+      (@ p
+            (LRATProofa 9
+                        (clc (pos v1) cln)
+                        Tracen
+                        (RATHintsc 2 (Tracec 6 (Tracec 8 Tracen))
+                          (RATHintsc 5 (Tracec 1 (Tracec 8 Tracen))
+                          (RATHintsc 7 (Tracec 6 (Tracec 1 Tracen))
+                                     RATHintsn)))
+            (LRATProofd (CIListc 1 (CIListc 6 (CIListc 8 CIListn)))
+            (LRATProofa 10
+                        (clc (pos v2) cln)
+                        (Tracec 9 (Tracec 7 (Tracec 5 (Tracec 3 Tracen))))
+                        RATHintsn
+            (LRATProofd (CIListc 3 (CIListc 7 CIListn))
+            (LRATProofa 11
+                        cln
+                        (Tracec 9 (Tracec 10 (Tracec 2 (Tracec 4 Tracen))))
+                        RATHintsn
+            LRATProofn)))))
+            (test_is_lrat_proof_of_bottom
+              cs
+              p
+              ff
+            )
+      ))
+    ))))))))
+  ))))
+)
