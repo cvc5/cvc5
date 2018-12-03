@@ -35,13 +35,33 @@ BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
 {
 }
 
-std::string BitVectorProof::getBBTermName(Expr expr)
+void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb)
 {
-  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt"
-                  << expr.getId() << std::endl;
-  std::ostringstream os;
-  os << "bt" << expr.getId();
-  return os.str();
+  Assert(d_bitblaster == NULL);
+  d_bitblaster = bb;
+}
+
+void BitVectorProof::registerTermBB(Expr term)
+{
+  Debug("pf::bv") << "BitVectorProof::registerTermBB( " << term
+                  << " )" << std::endl;
+
+  if (d_seenBBTerms.find(term) != d_seenBBTerms.end()) return;
+
+  d_seenBBTerms.insert(term);
+  d_bbTerms.push_back(term);
+
+  // If this term gets used in the final proof, we will want to register it.
+  // However, we don't know this at this point; and when the theory proof engine
+  // sees it, if it belongs to another theory, it won't register it with this
+  // proof. So, we need to tell the engine to inform us.
+
+  if (theory::Theory::theoryOf(term) != theory::THEORY_BV)
+  {
+    Debug("pf::bv") << "\tMarking term " << term
+                    << " for future BV registration" << std::endl;
+    d_proofEngine->markTermForFutureRegistration(term, theory::THEORY_BV);
+  }
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
@@ -87,40 +107,20 @@ void BitVectorProof::registerTerm(Expr term) {
   }
 }
 
+std::string BitVectorProof::getBBTermName(Expr expr)
+{
+  Debug("pf::bv") << "BitVectorProof::getBBTermName( " << expr << " ) = bt"
+                  << expr.getId() << std::endl;
+  std::ostringstream os;
+  os << "bt" << expr.getId();
+  return os.str();
+}
+
 void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
                                   context::Context* cnf)
 {
   Assert(d_cnfProof == nullptr);
   d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
-}
-
-void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb)
-{
-  Assert(d_bitblaster == NULL);
-  d_bitblaster = bb;
-}
-
-void BitVectorProof::registerTermBB(Expr term)
-{
-  Debug("pf::bv") << "BitVectorProof::registerTermBB( " << term
-                  << " )" << std::endl;
-
-  if (d_seenBBTerms.find(term) != d_seenBBTerms.end()) return;
-
-  d_seenBBTerms.insert(term);
-  d_bbTerms.push_back(term);
-
-  // If this term gets used in the final proof, we will want to register it.
-  // However, we don't know this at this point; and when the theory proof engine
-  // sees it, if it belongs to another theory, it won't register it with this
-  // proof. So, we need to tell the engine to inform us.
-
-  if (theory::Theory::theoryOf(term) != theory::THEORY_BV)
-  {
-    Debug("pf::bv") << "\tMarking term " << term
-                    << " for future BV registration" << std::endl;
-    d_proofEngine->markTermForFutureRegistration(term, theory::THEORY_BV);
-  }
 }
 
 void BitVectorProof::printOwnedTerm(Expr term,
