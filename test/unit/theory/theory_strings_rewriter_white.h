@@ -221,6 +221,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node a = d_nm->mkConst(::CVC4::String("A"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node abcd = d_nm->mkConst(::CVC4::String("ABCD"));
+    Node negone = d_nm->mkConst(Rational(-1));
     Node zero = d_nm->mkConst(Rational(0));
     Node one = d_nm->mkConst(Rational(1));
     Node two = d_nm->mkConst(Rational(2));
@@ -330,6 +331,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node substr_itos = d_nm->mkNode(
         kind::STRING_SUBSTR, d_nm->mkNode(kind::STRING_ITOS, x), x, x);
     sameNormalForm(substr_itos, empty);
+
+    // (str.substr s (* (- 1) (str.len s)) 1) ---> empty
+    Node substr = d_nm->mkNode(
+        kind::STRING_SUBSTR,
+        s,
+        d_nm->mkNode(kind::MULT, negone, d_nm->mkNode(kind::STRING_LENGTH, s)),
+        one);
+    sameNormalForm(substr, empty);
   }
 
   void testRewriteConcat()
@@ -604,6 +613,18 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                              b);
     repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
     sameNormalForm(repl_repl, repl);
+
+    // Different normal forms for:
+    //
+    // (str.replace "B" (str.replace "" x "A") "B")
+    //
+    // (str.replace "B" x "B")
+    repl_repl = d_nm->mkNode(kind::STRING_STRREPL,
+                             b,
+                             d_nm->mkNode(kind::STRING_STRREPL, empty, x, a),
+                             b);
+    repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
+    differentNormalForms(repl_repl, repl);
   }
 
   void testRewriteContains()

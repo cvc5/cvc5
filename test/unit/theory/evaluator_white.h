@@ -156,4 +156,28 @@ class TheoryEvaluatorWhite : public CxxTest::TestSuite
       TS_ASSERT_EQUALS(r, Rewriter::rewrite(n));
     }
   }
+
+  void testCode()
+  {
+    Node a = d_nm->mkConst(String("A"));
+    Node empty = d_nm->mkConst(String(""));
+
+    std::vector<Node> args;
+    std::vector<Node> vals;
+    Evaluator eval;
+
+    // (str.code "A") ---> 65
+    {
+      Node n = d_nm->mkNode(kind::STRING_CODE, a);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(65)));
+    }
+
+    // (str.code "") ---> -1
+    {
+      Node n = d_nm->mkNode(kind::STRING_CODE, empty);
+      Node r = eval.eval(n, args, vals);
+      TS_ASSERT_EQUALS(r, d_nm->mkConst(Rational(-1)));
+    }
+  }
 };
