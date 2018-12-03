@@ -129,6 +129,28 @@
                                     (ff (clause_contains_lit c' l))))
                 (cln ff)))
 
+; Returns a copy of `c` with any duplicate literals removed.
+; Never fails.
+; Uses marks 3 & 4. Expects them to be clear before hand, and leaves them clear
+; afterwards.
+(program clause_dedup ((c clause)) clause
+         (match c
+                (cln cln)
+                ((clc l rest)
+                 (match l
+                        ((pos v) (ifmarked3
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar3 v)
+                                     (let result (clc (pos v) (clause_dedup rest))
+                                       (do (markvar3 v) result)))))
+                        ((neg v) (ifmarked4
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar4 v)
+                                     (let result (clc (neg v) (clause_dedup rest))
+                                       (do (markvar4 v) result)))))))))
+
 ; Append two traces
 (program Trace_concat ((t1 Trace) (t2 Trace)) Trace
          (match t1
@@ -473,9 +495,9 @@
                 (RATHintsn CTPn)
                 ((RATHintsc i ht hints')
                  (CTPc
-                   (clause_append c
+                   (clause_dedup (clause_append c
                                   (clause_remove_all (lit_flip (clause_head c))
-                                                     (CMap_get i cs)))
+                                                     (CMap_get i cs))))
                    (Trace_concat t ht)
                    (construct_ct_pairs cs c t hints')))))
 
@@ -534,17 +556,22 @@
                 (LRATProofn ff))
          )
 
+
 ; Proof of a CMap from clause proofs.
 ; The idx is unelidable b/c it is unspecified.
+;  Robust against clauses with duplicat literals, but not against tautological
+;  clauses.
 (declare CMap_holds (! c CMap type))
 (declare CMapn_proof (CMap_holds CMapn))
 (declare CMapc_proof
          (! idx mpz ; Not elidable!
             (! c clause
-               (! rest CMap
-                  (! proof_c (holds c)
-                     ( ! proof_rest (CMap_holds rest)
-                         (CMap_holds (CMapc idx c rest))))))))
+               (! deduped_c clause
+                  (! rest CMap
+                     (! proof_c (holds c)
+                        (! proof_rest (CMap_holds rest)
+                            (! sc (^ (clause_dedup c) deduped_c)
+                               (CMap_holds (CMapc idx deduped_c rest))))))))))
 
 (define bottom (holds cln))
 (declare lrat_proof_of_bottom
