@@ -45,7 +45,7 @@ std::string BitVectorProof::getBBTermName(Expr expr)
 }
 
 void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerAtomBB( " << atom
+  Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom
                   << ", " << atom_bb << " )" << std::endl;
 
   Expr def = atom.iffExpr(atom_bb);
@@ -58,7 +58,7 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
 }
 
 void BitVectorProof::registerTerm(Expr term) {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerTerm( " << term << " )"
+  Debug("pf::bv") << "BitVectorProof::registerTerm( " << term << " )"
                   << std::endl;
 
   if (options::lfscLetification() && term.isConst()) {
@@ -102,7 +102,7 @@ void BitVectorProof::setBitblaster(theory::bv::TBitblaster<Node>* bb)
 
 void BitVectorProof::registerTermBB(Expr term)
 {
-  Debug("pf::bv") << "ResolutionBitVectorProof::registerTermBB( " << term
+  Debug("pf::bv") << "BitVectorProof::registerTermBB( " << term
                   << " )" << std::endl;
 
   if (d_seenBBTerms.find(term) != d_seenBBTerms.end()) return;
