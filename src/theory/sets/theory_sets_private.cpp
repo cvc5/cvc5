@@ -1543,7 +1543,7 @@ void TheorySetsPrivate::checkMinCard( std::vector< Node >& lemmas ) {
 
   for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
     Node eqc = d_set_eqc[i];
-    TypeNode tn = eqc.getType();
+    TypeNode tn = eqc.getType().getSetElementType();
     if (d_t_card_enabled.find(tn) == d_t_card_enabled.end())
     {
       // cardinality is not enabled for this type, skip
