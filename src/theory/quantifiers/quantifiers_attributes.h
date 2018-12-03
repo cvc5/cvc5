@@ -73,6 +73,17 @@ struct SygusPrintProxyAttributeId
 typedef expr::Attribute<SygusPrintProxyAttributeId, Node>
     SygusPrintProxyAttribute;
 
+/** Attribute for specifying a "side condition" for a sygus conjecture
+ *
+ * A sygus conjecture of the form exists f. forall x. P[f,x] whose side
+ * condition is C[f] has the semantics exists f. C[f] ^ forall x. P[f,x].
+ */
+struct SygusSideConditionAttributeId
+{
+};
+typedef expr::Attribute<SygusSideConditionAttributeId, Node>
+    SygusSideConditionAttribute;
+
 namespace quantifiers {
 
 /** Attribute priority for rewrite rules */
@@ -109,6 +120,8 @@ struct QAttributes
   Node d_fundef_f;
   /** is this formula marked as a sygus conjecture? */
   bool d_sygus;
+  /** side condition for sygus conjectures */
+  Node d_sygusSideCondition;
   /** if a rewrite rule, then this is the priority value for the rewrite rule */
   int d_rr_priority;
   /** stores the maximum instantiation level allowed for this quantified formula

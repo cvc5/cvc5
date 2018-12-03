@@ -1630,7 +1630,7 @@ bool TermGenerator::getNextMatch( TermGenEnv * s, TNode eqc, std::map< TypeNode,
           //initial binding
           TNode f = s->getTgFunc( d_typ, d_status_num );
           Assert( !eqc.isNull() );
-          TermArgTrie * tat = s->getTermDatabase()->getTermArgTrie( eqc, f );
+          TNodeTrie* tat = s->getTermDatabase()->getTermArgTrie(eqc, f);
           if( tat ){
             d_match_children.push_back( tat->d_data.begin() );
             d_match_children_end.push_back( tat->d_data.end() );

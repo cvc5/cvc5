@@ -1938,13 +1938,14 @@ void SmtEngine::setDefaults() {
       // Streaming is incompatible with techniques that focus the search towards
       // finding a single solution. This currently includes the PBE solver and
       // static template inference for invariant synthesis.
-      if (!options::sygusSymBreakPbe.wasSetByUser())
-      {
-        options::sygusSymBreakPbe.set(false);
-      }
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+        // also disable PBE-specific symmetry breaking unless PBE was enabled
+        if (!options::sygusSymBreakPbe.wasSetByUser())
+        {
+          options::sygusSymBreakPbe.set(false);
+        }
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {

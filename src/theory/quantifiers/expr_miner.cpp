@@ -113,6 +113,29 @@ void ExprMiner::initializeChecker(std::unique_ptr<SmtEngine>& checker,
   }
 }
 
+Result ExprMiner::doCheck(Node query)
+{
+  Node queryr = Rewriter::rewrite(query);
+  if (queryr.isConst())
+  {
+    if (!queryr.getConst<bool>())
+    {
+      return Result(Result::UNSAT);
+    }
+    else
+    {
+      return Result(Result::SAT);
+    }
+  }
+  NodeManager* nm = NodeManager::currentNM();
+  bool needExport = false;
+  ExprManagerMapCollection varMap;
+  ExprManager em(nm->getOptions());
+  std::unique_ptr<SmtEngine> smte;
+  initializeChecker(smte, em, varMap, queryr, needExport);
+  return smte->checkSat();
+}
+
 }  // namespace quantifiers
 }  // namespace theory
 }  // namespace CVC4
