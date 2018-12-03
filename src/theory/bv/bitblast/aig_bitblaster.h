@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
+#include "prop/sat_solver.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
