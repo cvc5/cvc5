@@ -19,13 +19,14 @@
 #ifndef __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 #define __CVC4__THEORY__BV__BITBLAST__LAZY_BITBLASTER_H
 
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/bitblast/bitblaster.h"
 
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "prop/cnf_stream.h"
 #include "prop/registrar.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "theory/bv/abstraction.h"
 
 namespace CVC4 {
@@ -76,7 +77,7 @@ class TLazyBitblaster : public TBitblaster<Node>
    * constants to equivalence classes that don't already have them
    */
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setProofLog(proof::ResolutionBitVectorProof* bvp);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -106,7 +107,7 @@ class TLazyBitblaster : public TBitblaster<Node>
                              prop::SatLiteralHashFunction>
       ExplanationMap;
   /** This class gets callbacks from minisat on propagations */
-  class MinisatNotify : public prop::BVSatSolverInterface::Notify
+  class MinisatNotify : public prop::BVSatSolverNotify
   {
     prop::CnfStream* d_cnf;
     TheoryBV* d_bv;
@@ -125,13 +126,14 @@ class TLazyBitblaster : public TBitblaster<Node>
   };
 
   TheoryBV* d_bv;
+  proof::ResolutionBitVectorProof* d_bvp;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
   std::unique_ptr<context::Context> d_nullContext;
   // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
-  std::unique_ptr<prop::BVSatSolverInterface::Notify> d_satSolverNotify;
+  std::unique_ptr<prop::BVSatSolverNotify> d_satSolverNotify;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   AssertionList*

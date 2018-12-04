@@ -21,11 +21,11 @@
 #include "context/context.h"
 #include "options/bv_options.h"
 #include "options/proof_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/proof_utils.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
@@ -116,10 +116,11 @@ UFProof* ProofManager::getUfProof() {
   return (UFProof*)pf;
 }
 
-BitVectorProof* ProofManager::getBitVectorProof() {
+proof::ResolutionBitVectorProof* ProofManager::getBitVectorProof()
+{
   Assert (options::proof());
   TheoryProof* pf = getTheoryProofEngine()->getTheoryProof(theory::THEORY_BV);
-  return (BitVectorProof*)pf;
+  return static_cast<proof::ResolutionBitVectorProof*>(pf);
 }
 
 ArrayProof* ProofManager::getArrayProof() {

@@ -22,8 +22,10 @@
 
 #include "context/cdo.h"
 #include "proof/clause_id.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "prop/bvminisat/simp/SimpSolver.h"
 #include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
@@ -35,10 +37,10 @@ class BVMinisatSatSolver : public BVSatSolverInterface,
  private:
   class MinisatNotify : public BVMinisat::Notify
   {
-    BVSatSolverInterface::Notify* d_notify;
+    BVSatSolverNotify* d_notify;
 
    public:
-    MinisatNotify(BVSatSolverInterface::Notify* notify) : d_notify(notify) {}
+    MinisatNotify(BVSatSolverNotify* notify) : d_notify(notify) {}
     bool notify(BVMinisat::Lit lit) override
     {
       return d_notify->notify(toSatLiteral(lit));
@@ -66,7 +68,7 @@ public:
   BVMinisatSatSolver(StatisticsRegistry* registry, context::Context* mainSatContext, const std::string& name = "");
   virtual ~BVMinisatSatSolver();
 
-  void setNotify(Notify* notify) override;
+  void setNotify(BVSatSolverNotify* notify) override;
 
   ClauseId addClause(SatClause& clause, bool removable) override;
 
@@ -117,7 +119,7 @@ public:
 
   void popAssumption() override;
 
-  void setProofLog(BitVectorProof* bvp) override;
+  void setProofLog(proof::ResolutionBitVectorProof* bvp) override;
 
  private:
   /* Disable the default constructor. */
