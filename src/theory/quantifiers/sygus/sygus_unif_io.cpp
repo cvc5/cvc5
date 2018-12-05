@@ -1013,6 +1013,7 @@ Node SygusUnifIo::constructSol(
   bool retValMod = x.isReturnValueModified();
 
   Node ret_dt;
+  Node cached_ret_dt;
   if (nrole == role_equal)
   {
     if (!retValMod)
@@ -1135,12 +1136,25 @@ Node SygusUnifIo::constructSol(
       }
       if (!intersection.empty())
       {
-        ret_dt = *intersection.begin();
+        if (d_enableMinimality)
+        {
+          // if we are enabling minimality, the minimal cached solution may
+          // still not be the best solution, thus we remember it and keep it if
+          // we don't construct a better one below
+          std::vector<Node> intervec;
+          intervec.insert(
+              intervec.begin(), intersection.begin(), intersection.end());
+          cached_ret_dt = getMinimalTerm(intervec);
+        }
+        else
+        {
+          ret_dt = *intersection.begin();
+        }
         if (Trace.isOn("sygus-sui-dt"))
         {
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
-          TermDbSygus::toStreamSygus("sygus-sui-dt", ret_dt);
+          TermDbSygus::toStreamSygus("sygus-sui-dt", *intersection.begin());
           Trace("sygus-sui-dt") << std::endl;
         }
       }
@@ -1455,6 +1469,23 @@ Node SygusUnifIo::constructSol(
     sindex++;
   }
 
+  // if there was a cached solution, process it now
+  if (cached_ret_dt != ret_dt)
+  {
+    if (ret_dt.isNull())
+    {
+      // take the cached one if it is the only one
+      ret_dt = cached_ret_dt;
+    }
+    else if (d_enableMinimality)
+    {
+      // take the cached one if it is smaller
+      std::vector<Node> retDts;
+      retDts.push_back(cached_ret_dt);
+      retDts.push_back(ret_dt);
+      ret_dt = getMinimalTerm(retDts);
+    }
+  }
   Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
   if (Trace.isOn("sygus-sui-dt"))
   {
