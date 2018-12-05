@@ -1633,7 +1633,7 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
 #ifdef CVC4_PROOF
-  if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
       && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
   {
     throw OptionException(
