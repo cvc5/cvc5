@@ -1470,7 +1470,7 @@ Node SygusUnifIo::constructSol(
   }
 
   // if there was a cached solution, process it now
-  if (cached_ret_dt != ret_dt)
+  if (!cached_ret_dt.isNull() && cached_ret_dt != ret_dt)
   {
     if (ret_dt.isNull())
     {
