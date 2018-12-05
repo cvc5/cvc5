@@ -88,9 +88,26 @@ struct LRATInstruction
 class LRATProof
 {
  public:
+
+   /**
+    * @brief Construct an LRAT proof from a DRAT proof, using drat-trim
+    *
+    * @param usedClauses The CNF formula that we're deriving bottom from.
+    *                    It's a map because other parts of the system represent
+    *                    it this way.
+    * @param clauseOrder A record of the order in which those clauses were
+    *                    given to the SAT solver.
+    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
+    */
   LRATProof(const std::unordered_map<ClauseId, prop::SatClause*>& usedClauses,
             const std::vector<ClauseId>& clauseOrder,
             const std::string& dratBinary);
+  /**
+   * @brief Construct an LRAT proof from its textual representation
+   *
+   * @param textualProof the textual encoding of the LRAT proof. See the paper
+   *                     in the file's header comment.
+   */
   LRATProof(std::istream& textualProof);
 
   inline const std::vector<LRATInstruction>& getInstructions() const
@@ -99,6 +116,7 @@ class LRATProof
   }
 
  private:
+  // The instructions in the proof. Each is a deletion or addition.
   std::vector<LRATInstruction> d_instructions;
 };
 
