@@ -1095,14 +1095,14 @@ Node SygusUnifIo::constructSol(
     {
       bool firstTime = true;
       std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<size_t, std::unordered_set<Node, NodeHashFunction>>::iterator
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
           pit;
       for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
         {
-          pit = d_psolutions.find(i);
-          if (pit == d_psolutions.end())
+          pit = d_psolutions[i].find(etn);
+          if (pit == d_psolutions[i].end())
           {
             // no cached solution
             intersection.clear();
@@ -1479,6 +1479,7 @@ Node SygusUnifIo::constructSol(
     }
     else if (d_enableMinimality)
     {
+      Assert(ret_dt.getType() == cached_ret_dt.getType());
       // take the cached one if it is smaller
       std::vector<Node> retDts;
       retDts.push_back(cached_ret_dt);
@@ -1510,7 +1511,7 @@ Node SygusUnifIo::constructSol(
             TermDbSygus::toStreamSygus("sygus-sui-cache", ret_dt);
             Trace("sygus-sui-cache") << std::endl;
           }
-          d_psolutions[i].insert(ret_dt);
+          d_psolutions[i][etn].insert(ret_dt);
         }
       }
     }
