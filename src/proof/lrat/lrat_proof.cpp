@@ -94,7 +94,7 @@ LRATProof::LRATProof(
   *this = std::move(lratProof);
 }
 
-std::istream& operator>>(std::istream& in, prop::SatLiteral& l)
+std::istream& operator>>(std::istream& in, SatLiteral& l)
 {
   long int i;
   in >> i;
@@ -169,7 +169,7 @@ LRATProof::LRATProof(std::istream& textualProof)
         instr.additionData.atTrace.push_back(i);
       }
 
-      // For each RAT hint... (each RAT hint starts with a (-).
+      // For each RAT hint... (each RAT hint starts with a (-)).
       for (; i<0; textualProof>> i)
       {
         Assert(textualProof.good());

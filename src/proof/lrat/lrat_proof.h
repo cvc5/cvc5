@@ -24,7 +24,7 @@
 #include "cvc4_private.h"
 
 #ifndef __CVC4__PROOF__LRAT__LRAT_PROOF_H
-#define __CVC4__PROOF__LRAT__LRAT_PROOF_H 0
+#define __CVC4__PROOF__LRAT__LRAT_PROOF_H
 
 #include <vector>
 #include <unordered_map>
@@ -32,7 +32,7 @@
 
 #include "base/output.h"
 #include "proof/clause_id.h"
-// Included because we nee operator<< for the SAT types
+// Included because we need operator<< for the SAT types
 #include "prop/sat_solver.h"
 
 namespace CVC4 {
@@ -146,7 +146,7 @@ inline std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
 // end.
 inline std::ostream& operator<<(std::ostream& o, const LRATUPTrace& trace)
 {
-  for (const auto i : trace)
+  for (const auto& i : trace)
   {
     o << i << " ";
   }
