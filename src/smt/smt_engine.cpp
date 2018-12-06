@@ -1071,21 +1071,24 @@ SmtEngine::~SmtEngine()
     //destroy all passes before destroying things that they refer to
     d_private->cleanupPreprocessingPasses();
 
+    // d_proofManager is always created when proofs are enabled at configure
+    // time.  Because of this, this code should not be wrapped in PROOF() which
+    // additionally checks flags such as options::proof().
+    //
+    // Note: the proof manager must be destroyed before the theory engine.
+    // Because the destruction of the proofs depends on contexts owned be the
+    // theory solvers.
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
+
     delete d_theoryEngine;
     d_theoryEngine = NULL;
     delete d_propEngine;
     d_propEngine = NULL;
     delete d_decisionEngine;
     d_decisionEngine = NULL;
-
-
-// d_proofManager is always created when proofs are enabled at configure time.
-// Becuase of this, this code should not be wrapped in PROOF() which
-// additionally checks flags such as options::proof().
-#ifdef CVC4_PROOF
-    delete d_proofManager;
-    d_proofManager = NULL;
-#endif
 
     delete d_stats;
     d_stats = NULL;

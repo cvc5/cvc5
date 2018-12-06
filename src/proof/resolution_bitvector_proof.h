@@ -98,6 +98,8 @@ class ResolutionBitVectorProof : public BitVectorProof
   void initCnfProof(prop::CnfStream* cnfStream, context::Context* cnf) override;
 
  protected:
+  context::Context d_fakeContext;
+
   // The CNF formula that results from bit-blasting will need a proof.
   // This is that proof.
   std::unique_ptr<BVSatProof> d_resolutionProof;
@@ -105,7 +107,6 @@ class ResolutionBitVectorProof : public BitVectorProof
   bool d_isAssumptionConflict;
 
   theory::TheoryId getTheoryId() override;
-  context::Context d_fakeContext;
 };
 
 class LFSCBitVectorProof : public ResolutionBitVectorProof
