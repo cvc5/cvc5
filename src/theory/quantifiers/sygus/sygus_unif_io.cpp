@@ -1155,7 +1155,7 @@ Node SygusUnifIo::constructSol(
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
           Node csol = ret_dt;
-          if( d_enableMinimality )
+          if (d_enableMinimality)
           {
             csol = cached_ret_dt;
             Trace("sygus-sui-dt") << "(minimal) ";
