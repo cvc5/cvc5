@@ -304,9 +304,14 @@ class SygusUnifIo : public SygusUnif
   unsigned d_sol_term_size;
   /** partial solutions
    *
-   * Maps indices for I/O points to a list of solutions for that point.
+   * Maps indices for I/O points to a list of solutions for that point, for each
+   * type. We may have more than one type for solutions, e.g. for grammar:
+   *   A -> ite( A, B, C ) | ...
+   * where terms of type B and C can both act as solutions.
    */
-  std::map<size_t, std::unordered_set<Node, NodeHashFunction>> d_psolutions;
+  std::map<size_t,
+           std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>>
+      d_psolutions;
   /**
    * This flag is set to true if the solution construction was
    * non-deterministic with respect to failure/success.
