@@ -16,13 +16,13 @@
 
 #include "proof/lrat/lrat_proof.h"
 
-#include "base/output.h"
 #include "base/cvc4_assert.h"
+#include "base/output.h"
 
 #include <algorithm>
 #include <cstdlib>
-#include <iostream>
 #include <fstream>
+#include <iostream>
 #include <unordered_map>
 
 namespace CVC4 {
@@ -33,8 +33,71 @@ using prop::SatClause;
 using prop::SatLiteral;
 using prop::SatVariable;
 
-LRATProof::LRATProof(
-    const std::unordered_map<ClauseId, prop::SatClause*>& usedClauses,
+LratInstruction::LratInstruction(LratInstruction&& instr) : d_kind(instr.d_kind)
+{
+  switch (d_kind)
+  {
+    case LRAT_ADDITION:
+    {
+      d_data.d_addition = instr.d_data.d_addition;
+      break;
+    }
+    case LRAT_DELETION:
+    {
+      d_data.d_deletion = instr.d_data.d_deletion;
+      break;
+    }
+  }
+}
+
+LratInstruction::LratInstruction(LratInstruction& instr) : d_kind(instr.d_kind)
+{
+  switch (d_kind)
+  {
+    case LRAT_ADDITION:
+    {
+      d_data.d_addition = instr.d_data.d_addition;
+      break;
+    }
+    case LRAT_DELETION:
+    {
+      d_data.d_deletion = instr.d_data.d_deletion;
+      break;
+    }
+  }
+}
+
+LratInstruction::LratInstruction(LratAdditionData&& addition)
+    : d_kind(LRAT_ADDITION)
+{
+  d_data.d_addition = std::move(addition);
+}
+
+LratInstruction::LratInstruction(LratDeletionData&& deletion)
+    : d_kind(LRAT_DELETION)
+{
+  d_data.d_deletion = std::move(deletion);
+}
+
+LratInstruction::~LratInstruction()
+{
+  switch (d_kind)
+  {
+    case LRAT_ADDITION:
+    {
+      d_data.d_addition.~LratAdditionData();
+      break;
+    }
+    case LRAT_DELETION:
+    {
+      d_data.d_deletion.~LratDeletionData();
+      break;
+    }
+  }
+}
+
+LratProof LratProof::fromDratProof(
+    const std::unordered_map<ClauseId, SatClause*>& usedClauses,
     const std::vector<ClauseId>& clauseOrder,
     const std::string& dratBinary)
 {
@@ -45,10 +108,13 @@ LRATProof::LRATProof(
   int r;
   r = mkstemp(formulaFilename);
   Assert(r > 0);
+  close(r);
   r = mkstemp(dratFilename);
   Assert(r > 0);
+  close(r);
   r = mkstemp(lratFilename);
   Assert(r > 0);
+  close(r);
   std::ofstream formStream(formulaFilename);
   size_t maxVar = 0;
   for (auto& c : usedClauses)
@@ -87,29 +153,27 @@ LRATProof::LRATProof(
   Unimplemented();
 
   std::ifstream lratStream(lratFilename);
-  LRATProof lratProof(lratStream);
+  LratProof lrat(lratStream);
   remove(formulaFilename);
   remove(dratFilename);
   remove(lratFilename);
-  *this = std::move(lratProof);
+  return lrat;
 }
 
 std::istream& operator>>(std::istream& in, SatLiteral& l)
 {
-  long int i;
+  int64_t i;
   in >> i;
-  l = prop::SatLiteral(labs(i), i < 0);
+  l = SatLiteral(labs(i), i < 0);
   return in;
 }
 
 // This parser is implemented to parse the textual RAT format found in
 // "Efficient Certified RAT Verification", by Cruz-Filipe et. All
-LRATProof::LRATProof(std::istream& textualProof)
+LratProof::LratProof(std::istream& textualProof)
 {
   for (size_t line = 0;; ++line)
   {
-    LRATInstruction instr;
-
     // Read beginning of instruction. EOF indicates that we're done.
     size_t clauseIdx;
     textualProof >> clauseIdx;
@@ -125,8 +189,7 @@ LRATProof::LRATProof(std::istream& textualProof)
     Assert(textualProof.good());
     if (first == "d")
     {
-      instr.kind = lratDeletion;
-      instr.deletionData.idxOfClause = clauseIdx;
+      std::vector<ClauseIdx> clauses;
       while (true)
       {
         ClauseIdx di;
@@ -136,16 +199,14 @@ LRATProof::LRATProof(std::istream& textualProof)
         {
           break;
         }
-        instr.deletionData.clauses.push_back(di);
+        clauses.push_back(di);
       }
-      std::sort(instr.deletionData.clauses.begin(),
-                instr.deletionData.clauses.end());
+      std::sort(clauses.begin(), clauses.end());
+      d_instructions.emplace_back(
+          LratInstruction(LratDeletionData(clauseIdx, std::move(clauses))));
     }
     else
     {
-      instr.kind = lratAddition;
-      instr.additionData.idxOfClause = clauseIdx;
-
       // We need to reparse the first word as a literal to read the clause
       // we're parsing. It ends with a 0;
       std::istringstream firstS(first);
@@ -153,45 +214,130 @@ LRATProof::LRATProof(std::istream& textualProof)
       firstS >> lit;
       Trace("pf::lrat") << "First lit: " << lit << std::endl;
       Assert(!firstS.fail(), "Couldn't parse first literal from addition line");
+
+      SatClause clause;
       for (; lit != 0; textualProof >> lit)
       {
         Assert(textualProof.good());
-        SatLiteral l(lit.getSatVariable() - 1, lit.isNegated());
-        instr.additionData.clause.push_back(l);
+        clause.emplace_back(
+            SatLiteral(lit.getSatVariable() - 1, lit.isNegated()));
       }
 
       // Now we read the AT UP trace. It ends at the first non-(+) #
-      long int i;
+      std::vector<ClauseIdx> atTrace;
+      int64_t i;
       textualProof >> i;
       for (; i > 0; textualProof >> i)
       {
         Assert(textualProof.good());
-        instr.additionData.atTrace.push_back(i);
+        atTrace.push_back(i);
       }
 
       // For each RAT hint... (each RAT hint starts with a (-)).
+      std::vector<std::pair<ClauseIdx, LratUPTrace>> resolvants;
       for (; i<0; textualProof>> i)
       {
         Assert(textualProof.good());
         // Create an entry in the RAT hint list
-        instr.additionData.resolvants.push_back(
-            make_pair(-i, std::vector<ClauseIdx>()));
+        resolvants.emplace_back(make_pair(-i, std::vector<ClauseIdx>()));
 
         // Record the UP trace. It ends with a (-) or 0.
         textualProof >> i;
         for (; i > 0; textualProof >> i)
         {
-          instr.additionData.resolvants.back().second.push_back(i);
+          resolvants.back().second.push_back(i);
         }
       }
       // Pairs compare based on the first element, so this sorts by the
       // resolution target index
-      std::sort(instr.additionData.resolvants.begin(),
-                instr.additionData.resolvants.end());
+      std::sort(resolvants.begin(), resolvants.end());
+      d_instructions.emplace_back(
+          LratInstruction(LratAdditionData(clauseIdx,
+                                           std::move(clause),
+                                           std::move(atTrace),
+                                           std::move(resolvants))));
     }
-    Debug("pf::lrat") << "Instr: " << instr << std::endl;
-    d_instructions.push_back(instr);
+    Debug("pf::lrat") << "Instr: " << d_instructions.back() << std::endl;
   }
+}
+
+// Prints the literal as a (+) or (-) int
+// Not operator<< b/c that represents negation as ~
+inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
+{
+  if (l.isNegated())
+  {
+    o << "-";
+  }
+  return o << l.getSatVariable();
+}
+
+// Prints the clause as a space-separated list of ints
+// Not operator<< b/c that represents negation as ~
+inline std::ostream& textOut(std::ostream& o, const SatClause& c)
+{
+  for (const auto l : c)
+  {
+    textOut(o, l) << " ";
+  }
+  return o << "0";
+}
+
+// Prints the trace as a space-separated list of (+) ints with a space at the
+// end.
+inline std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
+{
+  for (const auto& i : trace)
+  {
+    o << i << " ";
+  }
+  return o;
+}
+
+// Prints the LRAT addition line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
+{
+  o << add.d_idxOfClause << " ";
+  textOut(o, add.d_clause) << " ";
+  o << add.d_atTrace;  // Inludes a space at the end.
+  for (const auto& rat : add.d_resolvants)
+  {
+    o << "-" << rat.first << " ";
+    o << rat.second;  // Includes a space at the end.
+  }
+  o << "0\n";
+  return o;
+}
+
+// Prints the LRAT addition line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
+{
+  o << del.d_idxOfClause << " d ";
+  for (const auto& idx : del.d_clauses)
+  {
+    o << idx << " ";
+  }
+  return o << "0\n";
+}
+
+// Prints the LRAT line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
+{
+  switch (i.d_kind)
+  {
+    case LRAT_ADDITION: return o << i.d_data.d_addition;
+    case LRAT_DELETION: return o << i.d_data.d_deletion;
+    default: return o;
+  }
+}
+
+inline std::ostream& operator<<(std::ostream& o, const LratProof& p)
+{
+  for (const auto& instr : p.getInstructions())
+  {
+    o << instr;
+  }
+  return o;
 }
 
 }  // namespace lrat
