@@ -1154,7 +1154,13 @@ Node SygusUnifIo::constructSol(
         {
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
-          TermDbSygus::toStreamSygus("sygus-sui-dt", *intersection.begin());
+          Node csol = ret_dt;
+          if( d_enableMinimality )
+          {
+            csol = cached_ret_dt;
+            Trace("sygus-sui-dt") << "(minimal) ";
+          }
+          TermDbSygus::toStreamSygus("sygus-sui-dt", csol);
           Trace("sygus-sui-dt") << std::endl;
         }
       }
