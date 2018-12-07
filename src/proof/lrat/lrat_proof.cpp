@@ -16,14 +16,14 @@
 
 #include "proof/lrat/lrat_proof.h"
 
-#include "base/cvc4_assert.h"
-#include "base/output.h"
-
 #include <algorithm>
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
 #include <unordered_map>
+
+#include "base/cvc4_assert.h"
+#include "base/output.h"
 
 namespace CVC4 {
 namespace proof {
