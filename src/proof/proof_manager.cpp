@@ -559,8 +559,6 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
 
 void LFSCProof::toStream(std::ostream& out) const
 {
-  Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
-
   Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
@@ -730,6 +728,7 @@ void LFSCProof::toStream(std::ostream& out) const
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
 
+  out << ";; Printing final unsat proof \n";
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
     proof::LFSCProofPrinter::printResolutionEmptyClause(
         ProofManager::getBitVectorProof()->getSatProof(), out, paren);
