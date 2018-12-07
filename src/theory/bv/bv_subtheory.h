@@ -24,6 +24,11 @@
 #include "theory/theory.h"
 
 namespace CVC4 {
+
+namespace proof {
+class ResolutionBitVectorProof;
+}
+
 namespace theory {
 
 class TheoryModel;
@@ -88,7 +93,7 @@ class SubtheorySolver {
     return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-  virtual void setProofLog(BitVectorProof* bvp) {}
+  virtual void setProofLog(proof::ResolutionBitVectorProof* bvp) {}
   AssertionQueue::const_iterator assertionsBegin() {
     return d_assertionQueue.begin();
   }
@@ -103,7 +108,7 @@ class SubtheorySolver {
   /** The bit-vector theory */
   TheoryBV* d_bv;
   /** proof log */
-  BitVectorProof* d_bvp;
+  proof::ResolutionBitVectorProof* d_bvp;
   AssertionQueue d_assertionQueue;
   context::CDO<uint32_t> d_assertionIndex;
 }; /* class SubtheorySolver */

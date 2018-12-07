@@ -1013,6 +1013,7 @@ Node SygusUnifIo::constructSol(
   bool retValMod = x.isReturnValueModified();
 
   Node ret_dt;
+  Node cached_ret_dt;
   if (nrole == role_equal)
   {
     if (!retValMod)
@@ -1094,14 +1095,14 @@ Node SygusUnifIo::constructSol(
     {
       bool firstTime = true;
       std::unordered_set<Node, NodeHashFunction> intersection;
-      std::map<size_t, std::unordered_set<Node, NodeHashFunction>>::iterator
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>::iterator
           pit;
       for (size_t i = 0, nvals = x.d_vals.size(); i < nvals; i++)
       {
         if (x.d_vals[i].getConst<bool>())
         {
-          pit = d_psolutions.find(i);
-          if (pit == d_psolutions.end())
+          pit = d_psolutions[i].find(etn);
+          if (pit == d_psolutions[i].end())
           {
             // no cached solution
             intersection.clear();
@@ -1135,12 +1136,31 @@ Node SygusUnifIo::constructSol(
       }
       if (!intersection.empty())
       {
-        ret_dt = *intersection.begin();
+        if (d_enableMinimality)
+        {
+          // if we are enabling minimality, the minimal cached solution may
+          // still not be the best solution, thus we remember it and keep it if
+          // we don't construct a better one below
+          std::vector<Node> intervec;
+          intervec.insert(
+              intervec.begin(), intersection.begin(), intersection.end());
+          cached_ret_dt = getMinimalTerm(intervec);
+        }
+        else
+        {
+          ret_dt = *intersection.begin();
+        }
         if (Trace.isOn("sygus-sui-dt"))
         {
           indent("sygus-sui-dt", ind);
           Trace("sygus-sui-dt") << "ConstructPBE: found in cache: ";
-          TermDbSygus::toStreamSygus("sygus-sui-dt", ret_dt);
+          Node csol = ret_dt;
+          if (d_enableMinimality)
+          {
+            csol = cached_ret_dt;
+            Trace("sygus-sui-dt") << "(minimal) ";
+          }
+          TermDbSygus::toStreamSygus("sygus-sui-dt", csol);
           Trace("sygus-sui-dt") << std::endl;
         }
       }
@@ -1455,6 +1475,24 @@ Node SygusUnifIo::constructSol(
     sindex++;
   }
 
+  // if there was a cached solution, process it now
+  if (!cached_ret_dt.isNull() && cached_ret_dt != ret_dt)
+  {
+    if (ret_dt.isNull())
+    {
+      // take the cached one if it is the only one
+      ret_dt = cached_ret_dt;
+    }
+    else if (d_enableMinimality)
+    {
+      Assert(ret_dt.getType() == cached_ret_dt.getType());
+      // take the cached one if it is smaller
+      std::vector<Node> retDts;
+      retDts.push_back(cached_ret_dt);
+      retDts.push_back(ret_dt);
+      ret_dt = getMinimalTerm(retDts);
+    }
+  }
   Assert(ret_dt.isNull() || ret_dt.getType() == e.getType());
   if (Trace.isOn("sygus-sui-dt"))
   {
@@ -1479,7 +1517,7 @@ Node SygusUnifIo::constructSol(
             TermDbSygus::toStreamSygus("sygus-sui-cache", ret_dt);
             Trace("sygus-sui-cache") << std::endl;
           }
-          d_psolutions[i].insert(ret_dt);
+          d_psolutions[i][etn].insert(ret_dt);
         }
       }
     }
