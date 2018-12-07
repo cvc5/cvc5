@@ -1203,7 +1203,7 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
 void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
   Debug("constraints::pf") << "impliedByIntHole(" << this;
   if (Debug.isOn("constraints::pf")) {
-    for (const ConstraintCP p : b)
+    for (const ConstraintCP& p : b)
     {
       Debug("constraints::pf") << ", " << p;
     }
@@ -1240,7 +1240,7 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
   Debug("constraints::pf") << "impliedByFarkas(" << this;
   if (Debug.isOn("constraints::pf")) {
-    for (const ConstraintCP p : a)
+    for (const ConstraintCP& p : a)
     {
       Debug("constraints::pf") << ", " << p;
     }
