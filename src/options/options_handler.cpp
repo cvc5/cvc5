@@ -1632,7 +1632,14 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when minisat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";
