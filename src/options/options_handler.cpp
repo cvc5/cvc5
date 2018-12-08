@@ -1251,10 +1251,12 @@ off (default)\n\
 + Don't push any booleans to width one bit-vectors\n\
 \n\
 ite\n\
-+ Try to turn ITEs into BITVECTOR_ITE when possible. Might fail if not all sub-formulas can be turned to bit-vectors\n\
++ Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula \n\
+  if not all sub-formulas can be turned to bit-vectors\n\
 \n\
 all\n\
-+ Force all booleans to be bit-vectors of width one except at the top level. Most aggressive mode\n\
++ Force all booleans to be bit-vectors of width one except at the top level.\n\
+  Most aggressive mode\n\
 ";
 
 preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(

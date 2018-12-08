@@ -120,7 +120,7 @@ header = "options/bv_options.h"
   long       = "bitwise-eq"
   type       = "bool"
   default    = "true"
-  help       = "lift equivalence with one-bit bitvectors to be boolean operations"
+  help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
 
 [[option]]
   name       = "bitvectorDivByZeroConst"

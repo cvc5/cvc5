@@ -27,16 +27,17 @@ namespace preprocessing {
 namespace passes {
 
 /** Enumeration of bool-to-bv modes */
-enum BoolToBVMode {
+enum BoolToBVMode
+{
   /**
    * No bool-to-bv pass
    */
   BOOL_TO_BV_OFF,
 
   /**
-   * Only lower bools in condition of ites
+   * Only lower bools in condition of ITEs
    * Tries to give more info to bit-vector solver
-   * by using bitvector-ites when possible
+   * by using bit-vector-ITEs when possible
    */
   BOOL_TO_BV_ITE,
 
@@ -46,7 +47,6 @@ enum BoolToBVMode {
    */
   BOOL_TO_BV_ALL
 };
-
 }
 }
 

@@ -49,7 +49,7 @@ class BoolToBV : public PreprocessingPass
   /* Takes an assertion and tries to create more bit-vector structure */
   Node lowerAssertion(const TNode& a);
 
-  /* Tries to lower one node to a width-one bitvector */
+  /* Tries to lower one node to a width-one bit-vector */
   void lowerNode(const TNode& n);
 
   /* Returns cached node if it exists, otherwise returns the node */

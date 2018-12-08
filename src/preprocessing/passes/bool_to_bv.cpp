@@ -262,7 +262,7 @@ BoolToBV::Statistics::Statistics()
   if (options::boolToBitvector() == BOOL_TO_BV_ALL)
   {
     // these statistics wouldn't be correct in the ITE mode,
-    // because might discard rebuilt nodes if it fails to
+    // because it might discard rebuilt nodes if it fails to
     // convert a bool to width-one bit-vector (never forces)
     smtStatisticsRegistry()->registerStat(&d_numTermsLowered);
     smtStatisticsRegistry()->registerStat(&d_numTermsForcedLowered);
