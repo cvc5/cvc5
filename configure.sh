@@ -25,6 +25,7 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
+  --static-binary          enable/disable static binaries
   --proofs                 support for proof generation
   --optimized              optimize the build
   --debug-symbols          include debug symbols
@@ -53,7 +54,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --glpk                   use GLPK simplex solver
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
-  --cryptominisat          use the CryptoMiniSat sat solver
+  --cryptominisat          use the CryptoMiniSat SAT solver
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
   --portfolio              build the multithreaded portfolio version of CVC4
@@ -122,6 +123,7 @@ portfolio=default
 proofs=default
 replay=default
 shared=default
+static_binary=default
 statistics=default
 symfpu=default
 tracing=default
@@ -197,8 +199,8 @@ do
     --debug-symbols) debug_symbols=ON;;
     --no-debug-symbols) debug_symbols=OFF;;
 
-    --debug-context-memory-manager) debug_context_mm=ON;;
-    --no-debug-context-memory-manager) debug_context_mm=OFF;;
+    --debug-context-mm) debug_context_mm=ON;;
+    --no-debug-context-mm) debug_context_mm=OFF;;
 
     --dumping) dumping=ON;;
     --no-dumping) dumping=OFF;;
@@ -230,8 +232,11 @@ do
     --replay) replay=ON;;
     --no-replay) replay=OFF;;
 
-    --static) shared=OFF;;
+    --static) shared=OFF; static_binary=ON;;
     --no-static) shared=ON;;
+
+    --static-binary) static_binary=ON;;
+    --no-static-binary) static_binary=OFF;;
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
@@ -355,6 +360,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
+[ $static_binary != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \

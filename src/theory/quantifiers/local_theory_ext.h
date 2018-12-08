@@ -17,14 +17,13 @@
 #ifndef __CVC4__THEORY__LOCAL_THEORY_EXT_H
 #define __CVC4__THEORY__LOCAL_THEORY_EXT_H
 
-#include "theory/quantifiers_engine.h"
 #include "context/cdo.h"
+#include "expr/node_trie.h"
+#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;  
 
 class LtePartialInst : public QuantifiersModule {
 private:
@@ -46,9 +45,16 @@ private:
   void reset();
   /** get instantiations */
   void getInstantiations( std::vector< Node >& lemmas );
-  void getPartialInstantiations( std::vector< Node >& conj, Node q, Node bvl,
-                                 std::vector< Node >& vars, std::vector< Node >& inst, std::vector< TypeNode >& types, TermArgTrie * curr,
-                                 unsigned pindex, unsigned paindex, unsigned iindex );
+  void getPartialInstantiations(std::vector<Node>& conj,
+                                Node q,
+                                Node bvl,
+                                std::vector<Node>& vars,
+                                std::vector<Node>& inst,
+                                std::vector<TypeNode>& types,
+                                TNodeTrie* curr,
+                                unsigned pindex,
+                                unsigned paindex,
+                                unsigned iindex);
   /** get eligible inst variables */
   void getEligibleInstVars( Node n, std::map< Node, bool >& vars );
   

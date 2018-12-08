@@ -28,6 +28,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/enum_stream_substitution.h"
+#include "theory/quantifiers/sygus/sygus_enumerator.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
@@ -77,13 +78,23 @@ void SynthConjecture::assign(Node q)
   d_quant = q;
   NodeManager* nm = NodeManager::currentNM();
 
+  // initialize the guard
+  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
+  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
+  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
+  AlwaysAssert(!d_feasible_guard.isNull());
+
   // pre-simplify the quantified formula based on the process utility
   d_simp_quant = d_ceg_proc->preSimplify(d_quant);
+
+  // compute its attributes
+  QAttributes qa;
+  QuantAttributes::computeQuantAttributes(q, qa);
 
   std::map<Node, Node> templates;
   std::map<Node, Node> templates_arg;
   // register with single invocation if applicable
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->initialize(d_simp_quant);
     d_simp_quant = d_ceg_si->getSimplifiedConjecture();
@@ -110,9 +121,18 @@ void SynthConjecture::assign(Node q)
   Trace("cegqi") << "SynthConjecture : converted to embedding : "
                  << d_embed_quant << std::endl;
 
+  Node sc = qa.d_sygusSideCondition;
+  if (!sc.isNull())
+  {
+    // convert to deep embedding
+    d_embedSideCondition = d_ceg_gc->convertToEmbedding(sc);
+    Trace("cegqi") << "SynthConjecture : side condition : "
+                   << d_embedSideCondition << std::endl;
+  }
+
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  if (d_qe->getQuantAttributes()->isSygus(q))
+  if (qa.d_sygus)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
@@ -131,6 +151,11 @@ void SynthConjecture::assign(Node q)
   // construct base instantiation
   d_base_inst = Rewriter::rewrite(d_qe->getInstantiate()->getInstantiation(
       d_embed_quant, vars, d_candidates));
+  if (!d_embedSideCondition.isNull())
+  {
+    d_embedSideCondition = d_embedSideCondition.substitute(
+        vars.begin(), vars.end(), d_candidates.begin(), d_candidates.end());
+  }
   Trace("cegqi") << "Base instantiation is :      " << d_base_inst << std::endl;
 
   // initialize the sygus constant repair utility
@@ -176,11 +201,6 @@ void SynthConjecture::assign(Node q)
     }
   }
 
-  // initialize the guard
-  d_feasible_guard = nm->mkSkolem("G", nm->booleanType());
-  d_feasible_guard = Rewriter::rewrite(d_feasible_guard);
-  d_feasible_guard = d_qe->getValuation().ensureLiteral(d_feasible_guard);
-  AlwaysAssert(!d_feasible_guard.isNull());
   // register the strategy
   d_feasible_strategy.reset(
       new DecisionStrategySingleton("sygus_feasible",
@@ -345,31 +365,42 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   {
     // get the model value of the relevant terms from the master module
     std::vector<Node> enum_values;
-    bool fullModel = getEnumeratedValues(terms, enum_values);
+    bool activeIncomplete = false;
+    bool fullModel = getEnumeratedValues(terms, enum_values, activeIncomplete);
 
     // if the master requires a full model and the model is partial, we fail
     if (!d_master->allowPartialModel() && !fullModel)
     {
       // we retain the values in d_ev_active_gen_waiting
-      Trace("cegqi-engine") << "...partial model, fail." << std::endl;
-      return true;
+      Trace("cegqi-engine-debug") << "...partial model, fail." << std::endl;
+      // if we are partial due to an active enumerator, we may still succeed
+      // on the next call
+      return !activeIncomplete;
     }
     // the waiting values are passed to the module below, clear
     d_ev_active_gen_waiting.clear();
 
-    // debug print
     Assert(terms.size() == enum_values.size());
     bool emptyModel = true;
-    Trace("cegqi-engine") << "  * Value is : ";
     for (unsigned i = 0, size = terms.size(); i < size; i++)
     {
-      Node nv = enum_values[i];
-      if (!nv.isNull())
+      if (!enum_values[i].isNull())
       {
         emptyModel = false;
       }
-      if (Trace.isOn("cegqi-engine"))
+    }
+    if (emptyModel)
+    {
+      Trace("cegqi-engine-debug") << "...empty model, fail." << std::endl;
+      return !activeIncomplete;
+    }
+    // debug print
+    if (Trace.isOn("cegqi-engine"))
+    {
+      Trace("cegqi-engine") << "  * Value is : ";
+      for (unsigned i = 0, size = terms.size(); i < size; i++)
       {
+        Node nv = enum_values[i];
         Node onv = nv.isNull() ? d_qe->getModel()->getValue(terms[i]) : nv;
         TypeNode tn = onv.getType();
         std::stringstream ss;
@@ -390,12 +421,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
           }
         }
       }
-    }
-    Trace("cegqi-engine") << std::endl;
-    if (emptyModel)
-    {
-      Trace("cegqi-engine") << "...empty model, fail." << std::endl;
-      return true;
+      Trace("cegqi-engine") << std::endl;
     }
     Assert(candidate_values.empty());
     constructed_cand = d_master->constructCandidates(
@@ -458,11 +484,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   Node lem;
   // introduce the skolem variables
   std::vector<Node> sks;
+  std::vector<Node> vars;
   if (constructed_cand)
   {
     if (inst.getKind() == NOT && inst[0].getKind() == FORALL)
     {
-      std::vector<Node> vars;
       for (const Node& v : inst[0][0])
       {
         Node sk = nm->mkSkolem("rsk", v.getType());
@@ -501,6 +527,33 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   // record the instantiation
   // this is used for remembering the solution
   recordInstantiation(candidate_values);
+
+  // check the side condition
+  Node sc;
+  if (!d_embedSideCondition.isNull() && constructed_cand)
+  {
+    sc = d_embedSideCondition.substitute(d_candidates.begin(),
+                                         d_candidates.end(),
+                                         candidate_values.begin(),
+                                         candidate_values.end());
+    sc = Rewriter::rewrite(sc);
+    Trace("cegqi-engine") << "Check side condition..." << std::endl;
+    Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
+    SmtEngine scSmt(nm->toExprManager());
+    scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
+    scSmt.assertFormula(sc.toExpr());
+    Result r = scSmt.checkSat();
+    Trace("cegqi-debug") << "...got side condition : " << r << std::endl;
+    if (r == Result::UNSAT)
+    {
+      // exclude the current solution TODO
+      excludeCurrentSolution();
+      Trace("cegqi-engine") << "...failed side condition" << std::endl;
+      return false;
+    }
+    Trace("cegqi-engine") << "...passed side condition" << std::endl;
+  }
+
   Node query = lem;
   bool success = false;
   if (query.isConst() && !query.getConst<bool>())
@@ -527,10 +580,11 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       {
         Trace("cegqi-engine") << "  * Verification lemma failed for:\n   ";
         // do not send out
-        for (const Node& v : d_ce_sk_vars)
+        for (unsigned i = 0, size = d_ce_sk_vars.size(); i < size; i++)
         {
+          Node v = d_ce_sk_vars[i];
           Node mv = Node::fromExpr(verifySmt.getValue(v.toExpr()));
-          Trace("cegqi-engine") << v << " -> " << mv << " ";
+          Trace("cegqi-engine") << vars[i] << " -> " << mv << " ";
           d_ce_sk_var_mvs.push_back(mv);
         }
         Trace("cegqi-engine") << std::endl;
@@ -648,7 +702,8 @@ void SynthConjecture::preregisterConjecture(Node q)
 }
 
 bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
-                                          std::vector<Node>& v)
+                                          std::vector<Node>& v,
+                                          bool& activeIncomplete)
 {
   std::vector<Node> ncheck = n;
   n.clear();
@@ -668,7 +723,7 @@ bool SynthConjecture::getEnumeratedValues(std::vector<Node>& n,
         continue;
       }
     }
-    Node nv = getEnumeratedValue(e);
+    Node nv = getEnumeratedValue(e, activeIncomplete);
     n.push_back(e);
     v.push_back(nv);
     ret = ret && !nv.isNull();
@@ -690,42 +745,50 @@ class EnumValGeneratorBasic : public EnumValGenerator
   /** initialize (do nothing) */
   void initialize(Node e) override {}
   /** initialize (do nothing) */
-  void addValue(Node v) override {}
+  void addValue(Node v) override { d_currTerm = *d_te; }
   /**
    * Get next returns the next (T-rewriter-unique) value based on the type
    * enumerator.
    */
-  Node getNext() override
+  bool increment() override
   {
+    ++d_te;
     if (d_te.isFinished())
     {
-      return Node::null();
+      d_currTerm = Node::null();
+      return false;
     }
-    Node next = *d_te;
-    ++d_te;
-    Node nextb = d_tds->sygusToBuiltin(next);
+    d_currTerm = *d_te;
     if (options::sygusSymBreakDynamic())
     {
+      Node nextb = d_tds->sygusToBuiltin(d_currTerm);
       nextb = d_tds->getExtRewriter()->extendedRewrite(nextb);
+      if (d_cache.find(nextb) == d_cache.end())
+      {
+        d_cache.insert(nextb);
+        // only return the current term if not unique
+      }
+      else
+      {
+        d_currTerm = Node::null();
+      }
     }
-    if (d_cache.find(nextb) == d_cache.end())
-    {
-      d_cache.insert(nextb);
-      return next;
-    }
-    return getNext();
+    return true;
   }
-
+  /** get the current term */
+  Node getCurrent() override { return d_currTerm; }
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
   /** the type enumerator */
   TypeEnumerator d_te;
+  /** the current term */
+  Node d_currTerm;
   /** cache of (enumerated) builtin values we have enumerated so far */
   std::unordered_set<Node, NodeHashFunction> d_cache;
 };
 
-Node SynthConjecture::getEnumeratedValue(Node e)
+Node SynthConjecture::getEnumeratedValue(Node e, bool& activeIncomplete)
 {
   bool isEnum = d_tds->isEnumerator(e);
 
@@ -758,7 +821,20 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     else
     {
-      d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      // Actively-generated enumerators are currently either variable agnostic
+      // or basic. The auto mode always prefers the optimized enumerator over
+      // the basic one.
+      Assert(d_tds->isBasicEnumerator(e));
+      if (options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM_BASIC)
+      {
+        d_evg[e].reset(new EnumValGeneratorBasic(d_tds, e.getType()));
+      }
+      else
+      {
+        Assert(options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_ENUM
+               || options::sygusActiveGenMode() == SYGUS_ACTIVE_GEN_AUTO);
+        d_evg[e].reset(new SygusEnumerator(d_tds, this));
+      }
     }
     Trace("sygus-active-gen")
         << "Active-gen: initialize for " << e << std::endl;
@@ -778,6 +854,7 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   // Check if there is an (abstract) value absE we were actively generating
   // values based on.
   Node absE = d_ev_curr_active_gen[e];
+  bool firstTime = false;
   if (absE.isNull())
   {
     // None currently exist. The next abstract value is the model value for e.
@@ -792,19 +869,38 @@ Node SynthConjecture::getEnumeratedValue(Node e)
     }
     d_ev_curr_active_gen[e] = absE;
     iteg->second->addValue(absE);
+    firstTime = true;
   }
-  Node v = iteg->second->getNext();
-  if (v.isNull())
+  bool inc = true;
+  if (!firstTime)
+  {
+    inc = iteg->second->increment();
+  }
+  Node v;
+  if (inc)
+  {
+    v = iteg->second->getCurrent();
+  }
+  Trace("sygus-active-gen-debug") << "...generated " << v
+                                  << ", with increment success : " << inc
+                                  << std::endl;
+  if (!inc)
   {
     // No more concrete values generated from absE.
     NodeManager* nm = NodeManager::currentNM();
     d_ev_curr_active_gen[e] = Node::null();
-    // We must block e = absE.
     std::vector<Node> exp;
-    d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
-    for (unsigned i = 0, size = exp.size(); i < size; i++)
+    // If we are a basic enumerator, a single abstract value maps to *all*
+    // concrete values of its type, thus we don't depend on the current
+    // solution.
+    if (!d_tds->isBasicEnumerator(e))
     {
-      exp[i] = exp[i].negate();
+      // We must block e = absE
+      d_tds->getExplain()->getExplanationForEquality(e, absE, exp);
+      for (unsigned i = 0, size = exp.size(); i < size; i++)
+      {
+        exp[i] = exp[i].negate();
+      }
     }
     Node g = d_tds->getActiveGuardForEnumerator(e);
     if (!g.isNull())
@@ -834,7 +930,14 @@ Node SynthConjecture::getEnumeratedValue(Node e)
   else
   {
     // We are waiting to send e -> v to the module that requested it.
-    d_ev_active_gen_waiting[e] = v;
+    if (v.isNull())
+    {
+      activeIncomplete = true;
+    }
+    else
+    {
+      d_ev_active_gen_waiting[e] = v;
+    }
     if (Trace.isOn("sygus-active-gen"))
     {
       Trace("sygus-active-gen") << "Active-gen : " << e << " : ";
@@ -910,7 +1013,11 @@ void SynthConjecture::printAndContinueStream()
   // this output stream should coincide with wherever --dump-synth is output on
   Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
   printSynthSolution(*nodeManagerOptions.getOut());
+  excludeCurrentSolution();
+}
 
+void SynthConjecture::excludeCurrentSolution()
+{
   // We will not refine the current candidate solution since it is a solution
   // thus, we clear information regarding the current refinement
   d_set_ce_sk_vars = false;
@@ -981,8 +1088,9 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
 
       bool is_unique_term = true;
 
-      if (status != 0 && (options::sygusRewSynth() || options::sygusQueryGen()
-                          || options::sygusSolFilterImplied()))
+      if (status != 0
+          && (options::sygusRewSynth() || options::sygusQueryGen()
+              || options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE))
       {
         Trace("cegqi-sol-debug") << "Run expression mining..." << std::endl;
         std::map<Node, ExpressionMinerManager>::iterator its =
@@ -999,9 +1107,16 @@ void SynthConjecture::printSynthSolution(std::ostream& out)
           {
             d_exprm[prog].enableQueryGeneration(options::sygusQueryGenThresh());
           }
-          if (options::sygusSolFilterImplied())
+          if (options::sygusFilterSolMode() != SYGUS_FILTER_SOL_NONE)
           {
-            d_exprm[prog].enableFilterImpliedSolutions();
+            if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_STRONG)
+            {
+              d_exprm[prog].enableFilterStrongSolutions();
+            }
+            else if (options::sygusFilterSolMode() == SYGUS_FILTER_SOL_WEAK)
+            {
+              d_exprm[prog].enableFilterWeakSolutions();
+            }
           }
           its = d_exprm.find(prog);
         }

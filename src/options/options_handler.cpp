@@ -508,6 +508,21 @@ trust  \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusFilterSolHelp =
+    "\
+Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
+\n\
+none (default) \n\
++ Do not filter sygus solutions.\n\
+\n\
+strong \n\
++ Filter solutions that are logically stronger than others.\n\
+\n\
+weak \n\
++ Filter solutions that are logically weaker than others.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusInvTemplHelp = "\
 Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
 \n\
@@ -530,10 +545,16 @@ none  \n\
 + Do not use actively-generated sygus enumerators.\n\
 \n\
 basic  \n\
-+ Use basic type enumerator as sygus enumerator.\n\
++ Use basic type enumerator for actively-generated sygus enumerators.\n\
+\n\
+enum  \n\
++ Use optimized enumerator for actively-generated sygus enumerators.\n\
 \n\
 var-agnostic \n\
 + Use sygus solver to enumerate terms that are agnostic to variables. \n\
+\n\
+auto (default) \n\
++ Internally decide the best policy for each enumerator. \n\
 \n\
 ";
 
@@ -945,6 +966,35 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusFilterSolMode
+OptionsHandler::stringToSygusFilterSolMode(std::string option,
+                                           std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_NONE;
+  }
+  else if (optarg == "strong")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_STRONG;
+  }
+  else if (optarg == "weak")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_WEAK;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegisSampleHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-filter-sol: `") + optarg
+        + "'.  Try --sygus-filter-sol help.");
+  }
+}
+
 theory::quantifiers::SygusInvTemplMode
 OptionsHandler::stringToSygusInvTemplMode(std::string option,
                                           std::string optarg)
@@ -974,11 +1024,19 @@ OptionsHandler::stringToSygusActiveGenMode(std::string option,
   }
   else if (optarg == "basic")
   {
-    return theory::quantifiers::SYGUS_ACTIVE_GEN_BASIC;
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_ENUM_BASIC;
+  }
+  else if (optarg == "enum")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_ENUM;
   }
   else if (optarg == "var-agnostic")
   {
     return theory::quantifiers::SYGUS_ACTIVE_GEN_VAR_AGNOSTIC;
+  }
+  else if (optarg == "auto")
+  {
+    return theory::quantifiers::SYGUS_ACTIVE_GEN_AUTO;
   }
   else if (optarg == "help")
   {
@@ -1618,7 +1676,14 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when minisat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";

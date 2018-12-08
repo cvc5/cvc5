@@ -266,10 +266,24 @@ enum SygusActiveGenMode
 {
   /** do not use actively-generated enumerators */
   SYGUS_ACTIVE_GEN_NONE,
-  /** use basic actively-generated enumerators */
-  SYGUS_ACTIVE_GEN_BASIC,
+  /** use basic enumeration for actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM_BASIC,
+  /** use optimized enumeration actively-generated enumerators */
+  SYGUS_ACTIVE_GEN_ENUM,
   /** use variable-agnostic enumerators */
   SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
+};
+
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically stronger solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weaker solutions */
+  SYGUS_FILTER_SOL_WEAK,
 };
 
 enum MacrosQuantMode {

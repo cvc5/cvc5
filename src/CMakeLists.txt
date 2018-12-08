@@ -142,6 +142,8 @@ libcvc4_add_sources(
   proof/proof_output_channel.h
   proof/proof_utils.cpp
   proof/proof_utils.h
+  proof/resolution_bitvector_proof.cpp
+  proof/resolution_bitvector_proof.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/simplify_boolean_node.cpp
@@ -202,6 +204,7 @@ libcvc4_add_sources(
   prop/sat_solver.h
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
+  prop/bv_sat_solver_notify.h
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
@@ -534,6 +537,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/sygus_enumerator.cpp
+  theory/quantifiers/sygus/sygus_enumerator.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp

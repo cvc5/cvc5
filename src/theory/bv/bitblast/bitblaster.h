@@ -24,7 +24,8 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/sat_solver.h"
+#include "prop/bv_sat_solver_notify.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
@@ -59,8 +60,6 @@ class TBitblaster
   TermDefMap d_termCache;
   ModelCache d_modelCache;
 
-  BitVectorProof* d_bvp;
-
   void initAtomBBStrategies();
   void initTermBBStrategies();
 
@@ -94,7 +93,7 @@ class TBitblaster
   void invalidateModelCache();
 };
 
-class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify
+class MinisatEmptyNotify : public prop::BVSatSolverNotify
 {
  public:
   MinisatEmptyNotify() {}
@@ -172,7 +171,7 @@ void TBitblaster<T>::initTermBBStrategies()
 }
 
 template <class T>
-TBitblaster<T>::TBitblaster() : d_termCache(), d_modelCache(), d_bvp(NULL)
+TBitblaster<T>::TBitblaster() : d_termCache(), d_modelCache()
 {
   initAtomBBStrategies();
   initTermBBStrategies();

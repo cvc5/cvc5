@@ -110,8 +110,14 @@ Node RegExpElimination::eliminateConcat(Node atom)
       else
       {
         Node curr = nm->mkNode(STRING_SUBSTR, x, currEnd, childLengths[i]);
-        Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
-        conc.push_back(currMem);
+        // We do not need to include memberships of the form
+        //   (str.substr x n 1) in re.allchar
+        // since we know that by construction, n < len( x ).
+        if (re[i].getKind() != REGEXP_SIGMA)
+        {
+          Node currMem = nm->mkNode(STRING_IN_REGEXP, curr, re[i]);
+          conc.push_back(currMem);
+        }
         currEnd = nm->mkNode(PLUS, currEnd, childLengths[i]);
         currEnd = Rewriter::rewrite(currEnd);
       }

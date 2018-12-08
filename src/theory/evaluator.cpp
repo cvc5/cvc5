@@ -441,6 +441,21 @@ EvalResult Evaluator::evalInternal(TNode n,
           break;
         }
 
+        case kind::STRING_CODE:
+        {
+          const String& s = results[currNode[0]].d_str;
+          if (s.size() == 1)
+          {
+            results[currNode] = EvalResult(
+                Rational(String::convertUnsignedIntToCode(s.getVec()[0])));
+          }
+          else
+          {
+            results[currNode] = EvalResult(Rational(-1));
+          }
+          break;
+        }
+
         case kind::CONST_BITVECTOR:
           results[currNode] = EvalResult(currNodeVal.getConst<BitVector>());
           break;

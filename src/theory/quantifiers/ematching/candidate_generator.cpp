@@ -57,7 +57,7 @@ void CandidateGeneratorQE::reset( Node eqc ){
     }else{
       eq::EqualityEngine* ee = d_qe->getEqualityQuery()->getEngine();
       if( ee->hasTerm( eqc ) ){
-        quantifiers::TermArgTrie * tat = d_qe->getTermDatabase()->getTermArgTrie( eqc, d_op );
+        TNodeTrie* tat = d_qe->getTermDatabase()->getTermArgTrie(eqc, d_op);
         if( tat ){
           //create an equivalence class iterator in eq class eqc
           Node rep = ee->getRepresentative( eqc );

@@ -31,6 +31,40 @@ namespace quantifiers {
 
 class SynthConjecture;
 
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
+{
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types);
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
+};
+
+/** role for registering an enumerator */
+enum EnumeratorRole
+{
+  /** The enumerator populates a pool of terms (e.g. for PBE). */
+  ROLE_ENUM_POOL,
+  /** The enumerator is the single solution of the problem. */
+  ROLE_ENUM_SINGLE_SOLUTION,
+  /**
+   * The enumerator is part of the solution of the problem (e.g. multiple
+   * functions to synthesize).
+   */
+  ROLE_ENUM_MULTI_SOLUTION,
+  /** The enumerator must satisfy some set of constraints */
+  ROLE_ENUM_CONSTRAINED,
+};
+std::ostream& operator<<(std::ostream& os, EnumeratorRole r);
+
 // TODO :issue #1235 split and document this class
 class TermDbSygus {
  public:
@@ -63,29 +97,32 @@ class TermDbSygus {
   //------------------------------enumerators
   /**
    * Register a variable e that we will do enumerative search on.
+   *
    * conj : the conjecture that the enumeration of e is for.
-   * f : the synth-fun that the enumeration of e is for.
-   * mkActiveGuard : whether we want to make an active guard for e
-   * (see d_enum_to_active_guard),
-   * useSymbolicCons : whether we want model values for e to include symbolic
-   * constructors like the "any constant" variable.
-   * isActiveGen : if this flag is true, the enumerator will be
-   * actively-generated based on the mode specified by --sygus-active-gen.
+   *
+   * f : the synth-fun that the enumeration of e is for.Notice that enumerator
+   * e may not be one-to-one with f in synthesis-through-unification approaches
+   * (e.g. decision tree construction for PBE synthesis).
+   *
+   * erole : the role of this enumerator (see definition of EnumeratorRole).
+   * Depending on this and the policy for actively-generated enumerators
+   * (--sygus-active-gen), the enumerator may be "actively-generated".
    * For example, if --sygus-active-gen=var-agnostic, then the enumerator will
    * only generate values whose variables are in canonical order (only x1-x2
    * and not x2-x1 will be generated, assuming x1 and x2 are in the same
    * "subclass", see getSubclassForVar).
    *
-   * Notice that enumerator e may not be one-to-one with f in
-   * synthesis-through-unification approaches (e.g. decision tree construction
-   * for PBE synthesis).
+   * useSymbolicCons : whether we want model values for e to include symbolic
+   * constructors like the "any constant" variable.
+   *
+   * An "active guard" may be allocated by this method for e based on erole
+   * and the policies for active generation.
    */
   void registerEnumerator(Node e,
                           Node f,
                           SynthConjecture* conj,
-                          bool mkActiveGuard = false,
-                          bool useSymbolicCons = false,
-                          bool isActiveGen = false);
+                          EnumeratorRole erole,
+                          bool useSymbolicCons = false);
   /** is e an enumerator registered with this class? */
   bool isEnumerator(Node e) const;
   /** return the conjecture e is associated with */
@@ -98,6 +135,13 @@ class TermDbSygus {
   bool usingSymbolicConsForEnumerator(Node e) const;
   /** is this enumerator agnostic to variables? */
   bool isVariableAgnosticEnumerator(Node e) const;
+  /** is this enumerator a "basic" enumerator.
+   *
+   * A basic enumerator is one that does not rely on the sygus extension of the
+   * datatypes solver. Basic enumerators enumerate all concrete terms for their
+   * type for a single abstract value.
+   */
+  bool isBasicEnumerator(Node e) const;
   /** is this a "passively-generated" enumerator?
    *
    * A "passively-generated" enumerator is one for which the terms it enumerates
@@ -126,12 +170,13 @@ class TermDbSygus {
    *
    * tn : the (sygus datatype) type that lem applies to, i.e. the
    * type of terms that lem blocks models for,
-   * sz : the minimum size of terms that the lem blocks.
-   *
-   * Notice that the symmetry breaking lemma template should be relative to x,
-   * where x is returned by the call to getFreeVar( tn, 0 ) in this class.
+   * sz : the minimum size of terms that the lem blocks,
+   * isTempl : if this flag is false, then lem is a (concrete) lemma.
+   * If this flag is true, then lem is a symmetry breaking lemma template
+   * over x, where x is returned by the call to getFreeVar( tn, 0 ).
    */
-  void registerSymBreakLemma(Node e, Node lem, TypeNode tn, unsigned sz);
+  void registerSymBreakLemma(
+      Node e, Node lem, TypeNode tn, unsigned sz, bool isTempl = true);
   /** Has symmetry breaking lemmas been added for any enumerator? */
   bool hasSymBreakLemmas(std::vector<Node>& enums) const;
   /** Get symmetry breaking lemmas
@@ -144,6 +189,8 @@ class TermDbSygus {
   TypeNode getTypeForSymBreakLemma(Node lem) const;
   /** Get the minimum size of terms symmetry breaking lemma lem applies to */
   unsigned getSizeForSymBreakLemma(Node lem) const;
+  /** Returns true if lem is a lemma template, false if lem is a lemma */
+  bool isSymBreakLemmaTemplate(Node lem) const;
   /** Clear information about symmetry breaking lemmas for enumerator e */
   void clearSymBreakLemmas(Node e);
   //------------------------------end enumerators
@@ -300,10 +347,14 @@ class TermDbSygus {
   std::map<Node, TypeNode> d_sb_lemma_to_type;
   /** mapping from symmetry breaking lemmas to size */
   std::map<Node, unsigned> d_sb_lemma_to_size;
+  /** mapping from symmetry breaking lemmas to whether they are templates */
+  std::map<Node, bool> d_sb_lemma_to_isTempl;
   /** enumerators to whether they are actively-generated */
   std::map<Node, bool> d_enum_active_gen;
   /** enumerators to whether they are variable agnostic */
   std::map<Node, bool> d_enum_var_agnostic;
+  /** enumerators to whether they are basic */
+  std::map<Node, bool> d_enum_basic;
   //------------------------------end enumerators
 
   //-----------------------------conversion from sygus to builtin
