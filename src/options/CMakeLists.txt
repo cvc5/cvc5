@@ -9,6 +9,8 @@ libcvc4_add_sources(
   arith_unate_lemma_mode.cpp
   arith_unate_lemma_mode.h
   base_handlers.h
+  bool_to_bv_mode.cpp
+  bool_to_bv_mode.h
   bv_bitblast_mode.cpp
   bv_bitblast_mode.h
   datatypes_modes.h

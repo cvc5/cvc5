@@ -1379,17 +1379,17 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector())
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
         throw OptionException(
-            "bool-to-bv not supported with unsat cores/proofs");
+            "bool-to-bv != off not supported with unsat cores/proofs");
       }
-      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
                << endl;
-      options::boolToBitvector.set(false);
+      setOption("boolToBitvector", SExpr("off"));
     }
 
     if (options::bvIntroducePow2())
@@ -1449,13 +1449,18 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if(options::boolToBitvector.wasSetByUser()) {
-      throw OptionException(
-          "bool-to-bv not supported with CBQI BV for quantified logics");
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    {
+      if (options::boolToBitvector.wasSetByUser())
+      {
+        throw OptionException(
+            "bool-to-bv != off not supported with CBQI BV for quantified "
+            "logics");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+               << endl;
+      setOption("boolToBitvector", SExpr("off"));
     }
-    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
-             << endl;
-    options::boolToBitvector.set(false);
   }
 
   // cases where we need produce models
@@ -1615,6 +1620,19 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+      && !d_logic.isTheoryEnabled(THEORY_BV))
+  {
+    if (options::boolToBitvector.wasSetByUser())
+    {
+      throw OptionException(
+          "bool-to-bv=all not supported for non-bitvector logics.");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
+             << d_logic.getLogicString() << std::endl;
+    setOption("boolToBitvector", SExpr("off"));
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
