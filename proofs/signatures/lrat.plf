@@ -1,7 +1,7 @@
 ; LRAT Proof signature
 ; LRAT format detailed in "Efficient Certified RAT Verification"
 ; Author: aozdemir
-; Depends On: sat.plf
+; Depends On: sat.plf, smt.plf
 
 
 ; A general note about the design of the side conditions:
@@ -14,9 +14,10 @@
 (declare cnfn cnf)
 (declare cnfc (! h clause (! t cnf cnf)))
 
-; Unit
-(declare Unit type)
-(declare unit Unit)
+; Unit (https://en.wikipedia.org/wiki/Unit_type)
+; For functions that don't return anything
+(declare Unit type) ; The type with only one value (like `void` in C)
+(declare unit Unit) ; That value
 
 ; Boolean operator (not short-circuiting)
 (program bool_or ((l bool) (r bool)) bool (match l (ff r) (tt tt)))
@@ -29,6 +30,9 @@
 
 ; Represents a CNF formula as a map from clause indices to clauses
 ; Should be sorted ascending, always!
+; Here, and for all collections, the suffix "n" denotes the empty collection and
+; the suffix "c" denotes the constructor for the collection in the style of lisp's
+; "cons cells"
 (declare CMap type)
 (declare CMapn CMap)
 (declare CMapc (! i mpz (! c clause (! r CMap CMap))))
@@ -84,21 +88,11 @@
 ; Functional programs for manipulating types ;
 ; ========================================== ;
 
-; Subtract two integers
-(program lrat_mpz_sub ((a mpz) (b mpz)) mpz
-         (mp_add a (mp_neg b)))
-
 ; Flip the polarity of the literal
 (program lit_flip ((l lit)) lit
          (match l
                 ((pos v) (neg v))
                 ((neg v) (pos v))))
-
-; Compute the variable  in the literal
-(program lit_var ((l lit)) lit
-         (match l
-                ((pos v) v)
-                ((neg v) v)))
 
 ; Are two literal equal?
 (program lit_eq ((l1 lit) (l2 lit)) bool
@@ -127,12 +121,6 @@
                 (cln (fail lit))
                 ((clc l c') l)))
 
-; append two clauses
-(program clause_concat ((c1 clause) (c2 clause)) clause
-    (match c1
-        (cln c2)
-        ((clc l c1') (clc l (clause_concat c1' c2)))))
-
 ; Does a clause contain some literal?
 (program clause_contains_lit ((c clause) (l lit)) bool
          (match c
@@ -158,7 +146,7 @@
          (match cs
                 (CMapn (CMapc i c CMapn))
                 ((CMapc i' c' r)
-                 (mp_ifneg (lrat_mpz_sub i i')
+                 (mp_ifneg (mpz_sub i i')
                         (CMapc i c cs)
                         (CMapc i' c' (CMap_insert i c r))))))
 
@@ -167,7 +155,7 @@
          (match cs
                 (CMapn (fail clause))
                 ((CMapc i' c r)
-                 (mp_ifzero (lrat_mpz_sub i i')
+                 (mp_ifzero (mpz_sub i i')
                         c
                         (CMap_get i r)))))
 
@@ -176,7 +164,7 @@
          (match cs
                 (CMapn CMapn)
                 ((CMapc i' c r)
-                 (mp_ifzero (lrat_mpz_sub i i')
+                 (mp_ifzero (mpz_sub i i')
                         r
                         (CMapc i' c (CMap_remove i r))))))
 
@@ -190,13 +178,13 @@
               cs
               (CMapn (fail CMap)) ; All deletion indices must be valid!
               ((CMapc ci c cs')
-               (mp_ifzero (lrat_mpz_sub i ci)
+               (mp_ifzero (mpz_sub i ci)
                        (CMap_remove_many is' cs')
                        (CMapc ci c (CMap_remove_many is cs'))))))))
 
 ; Given a map of clauses and a literal, return all indices in the map
 ; corresponsing to clauses that could resolve against that literal. i.e. for x,
-; return the indices of all clauses containing ~x.
+; return the indices of all clauses containing x.
 (program collect_resolution_targets_w_lit ((cs CMap) (l lit)) CIList
          (match cs
                 (CMapn CIListn)
@@ -212,6 +200,36 @@
 (program collect_resolution_targets ((cs CMap) (c clause)) CIList
          (collect_resolution_targets_w_lit cs (lit_flip (clause_head c))))
 
+; Is this clause a tautology?
+; Internally uses mark 5 to flag variables that occur (+)
+; and mark 6 to flag variables that occur (-)
+(program is_t ((c clause)) bool
+         (match
+           c
+           (cln ff)
+           ((clc l c') (match
+                         l
+                         ((pos v)
+                          (ifmarked5
+                            v
+                            (is_t c')
+                            (ifmarked6
+                              v
+                              tt
+                              (do
+                                (markvar5 v)
+                                (let r (is_t c') (do (markvar5 v) r))))))
+                         ((neg v)
+                          (ifmarked6
+                            v
+                            (is_t c')
+                            (ifmarked5
+                              v
+                              tt
+                              (do
+                                (markvar6 v)
+                                (let r (is_t c') (do (markvar6 v) r))))))))))
+
 ; ===================================================================== ;
 ; Programs for manipulating and querying the global variable assignment ;
 ; ===================================================================== ;
@@ -221,7 +239,7 @@
 ; It marks a variable with 2 if that variable is false
 ; A variable should not be marked with both!
 ; A variable may be marked with neither, indicating that variable is presently
-; unassigned.
+; unassigned, which we call "floating".
 
 ; Mark the variable within to satisfy this literal.
 ; fails is the literal is already UNSAT
@@ -235,7 +253,7 @@
                                     (ifmarked2 v unit (do (markvar2 v) unit))))))
 
 ; Mark the variable within to falsify this literal.
-; fails is the literal is already UNSAT
+; fails is the literal is already SAT
 (program lit_mk_unsat ((l lit)) Unit
          (match l
                 ((neg v) (ifmarked2 v
@@ -342,28 +360,28 @@
 ; The clause had multiple floating literals.
 (declare MRNotUnit MarkResult)
 
-; Determine wether this clause is unit, and if so, modify global assignment to
-; satisfy it.
+; Determine wether this clause is sat, unsat, unit, or not unit, and if it is
+; unit, it modifies the global assignment to satisfy the clause, and returns
+; the literal that was made SAT by the new mark.
 ;
-; Will never fail.
-;
-; Given a TAUT, where the TAUT variable is the sole floating one, marks that
-; var to satisify its first literal
-(program clause_verify_unit_and_mark ((c clause)) MarkResult
+; Fails if `c` is a TAUT
+(program clause_check_unit_and_maybe_mark ((c clause)) MarkResult
          (match (clause_is_sat c)
                 (tt MRSat)
                 (ff (match (clause_is_unsat c)
                            (tt MRUnsat)
-                           (ff ; Dedent
+                           (ff (match (is_t c)
+                                      (tt (fail MarkResult))
+                                      (ff ; Dedent
          (match (clause_has_floating c)
                 (tt (let first (clause_first_floating c)
                       (do (lit_mk_sat first)
                         (match (clause_has_floating c)
                                (tt (do (lit_un_mk_sat first) MRNotUnit))
-                               (ff (MRUnit first))))))
+                                      (ff (MRUnit first))))))
                 ; Unreachable. If clause is not floating it must have been SAT or UNSAT.
                 (ff (fail MarkResult))
-                ))))))
+                ))))))))
 
 ; The return type for the process of Trace-guided unit propegation
 (declare UPResult type)
@@ -375,17 +393,16 @@
 ;; i.e. at some point indicates that a non-unit, non-empty clause should be examined
 (declare UPR_Broken UPResult)
 
-; Execute the unit propegation  indicated by the trace. Report whether that
+; Execute the unit propegation indicated by the trace. Report whether that
 ; unit propegation succeeds and produces bottom, fails, or succeeds but does
 ; not produce bottom.
-; Will never fail.
-; If a TAUT is present, will in some cases allow a TAUT to propegate on of the
-; variables its TAUT on, to SAT that variables first literal.
+;
+; If the trace tries to propegate through a TAUT clause, fails.
 (program do_up ((cs CMap) (t Trace)) UPResult
          (match
            t
            (Tracen UPR_Ok)
-           ((Tracec i r) (match (clause_verify_unit_and_mark (CMap_get i cs))
+           ((Tracec i r) (match (clause_check_unit_and_maybe_mark (CMap_get i cs))
                                 ((MRUnit l)
                                  (let res (do_up cs r)
                                    (do (lit_un_mk_sat l) res)))
@@ -407,46 +424,19 @@
                 ((RATHintsc hint_idx t given')
                  (match computed
                         ((CIListc comp_idx computed')
-                         (mp_ifzero (lrat_mpz_sub hint_idx comp_idx)
+                         (mp_ifzero (mpz_sub hint_idx comp_idx)
                                     (resolution_targets_match computed' given')
-                                    (ff)))))))
+                                    (ff)))
+                        (CIListn ff)))))
 
-; Is this clause a tautology?
-; Internally uses mark 1 to flag variables that occur (+)
-; and mark 2 to flag variables that occur (-)
-(program is_t ((c clause)) bool
-         (match
-           c
-           (cln ff)
-           ((clc l c') (match
-                         l
-                         ((pos v)
-                          (ifmarked
-                            v
-                            (is_t c')
-                            (ifmarked2
-                              v
-                              tt
-                              (do
-                                (markvar v)
-                                (let r (is_t c') (do (markvar v) r))))))
-                         ((neg v)
-                          (ifmarked2
-                            v
-                            (is_t c')
-                            (ifmarked
-                              v
-                              tt
-                              (do
-                                (markvar2 v)
-                                (let r (is_t c') (do (markvar2 v) r))))))))))
 
 ; Determines whether `t` is a witness that `c` is an Assymetric Tautology in `cs`.
 ;
 ; Does unit propegation in the formula `cs`, beginning by falsifying
 ; all literals in `c`, and then looking at the clauses indicated by `t`.
 ; Assumes no marks, and cleans up marks afterwards.
-; Fails if `c` is TAUT or has duplicates
+;
+; Fails if `c` has duplicates
 (program is_at_trace ((cs CMap) (c clause) (t Trace)) UPResult
          (match (is_t c)
                 (ff
@@ -483,7 +473,7 @@
                 (RATHintsn CTPn)
                 ((RATHintsc i ht hints')
                  (CTPc
-                   (clause_concat c
+                   (clause_append c
                                   (clause_remove_all (lit_flip (clause_head c))
                                                      (CMap_get i cs)))
                    (Trace_concat t ht)
@@ -564,3 +554,13 @@
                   (! sc (^ (is_lrat_proof_of_bottom cm proof) tt)
                      bottom)))))
 
+
+; TODO(aozdemir) Reducing the amount of checking that resides in side-conditions.
+; Steps
+;  1. Unroll the traversal of is_lrat_proof_of_bottom into a serialized
+;     sequence of axiom applications.
+;     The axioms would likely correspond to DELETE, IS T, IS AT, IS RAT.
+;     They would manipulate a CMap by way of side-conditions.
+;  2. Unroll AT checks by manifesting the assignment in data rather than marks,
+;     and having axioms like IS_UNSAT, IS_UNIT_ON_LITERAL.
+;  3. Unroll RAT checks in a similar fashion, although more painfully.
