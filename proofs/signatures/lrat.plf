@@ -224,7 +224,7 @@
 ; unassigned.
 
 ; Mark the variable within to satisfy this literal.
-; fails is the literal is already UNSAT
+; fails if the literal is already UNSAT
 (program lit_mk_sat ((l lit)) Unit
          (match l
                 ((pos v) (ifmarked2 v
