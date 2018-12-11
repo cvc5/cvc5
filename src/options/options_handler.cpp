@@ -267,7 +267,8 @@ agg \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_mbqiModeHelp = "\
+const std::string OptionsHandler::s_mbqiModeHelp =
+    "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
@@ -277,12 +278,8 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-gen-ev \n\
-+ Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
-  model finding paper based on generalizing evaluations.\n\
-\n\
-abs \n\
-+ Use abstract MBQI algorithm (uses disjoint sets). \n\
+trust \n\
++ Do not instantiate quantified formulas (incomplete technique).\n\
 \n\
 ";
 
@@ -660,14 +657,11 @@ void OptionsHandler::checkLiteralMatchMode(
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "gen-ev") {
-    return theory::quantifiers::MBQI_GEN_EVAL;
-  } else if(optarg == "none") {
+  if (optarg == "none")
+  {
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "abs") {
-    return theory::quantifiers::MBQI_ABS;
   } else if(optarg == "trust") {
     return theory::quantifiers::MBQI_TRUST;
   } else if(optarg == "help") {

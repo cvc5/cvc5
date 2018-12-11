@@ -1809,12 +1809,6 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
   }
-  if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-    if( !d_logic.isPure(THEORY_UF) ){
-      //MBQI_ABS is only supported in pure quantified UF
-      options::mbqiMode.set( quantifiers::MBQI_FMC );
-    }
-  }
   if( options::fmfFunWellDefinedRelevant() ){
     if( !options::fmfFunWellDefined.wasSetByUser() ){
       options::fmfFunWellDefined.set( true );
@@ -1850,17 +1844,6 @@ void SmtEngine::setDefaults() {
       //instantiate only on last call
       if( options::eMatching() ){
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
-      }
-    }
-    if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      if( !options::preSkolemQuant.wasSetByUser() ){
-        options::preSkolemQuant.set( true );
-      }
-      if( !options::preSkolemQuantNested.wasSetByUser() ){
-        options::preSkolemQuantNested.set( true );
-      }
-      if( !options::fmfOneInstPerRound.wasSetByUser() ){
-        options::fmfOneInstPerRound.set( true );
       }
     }
   }

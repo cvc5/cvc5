@@ -30,7 +30,6 @@
 #include "theory/quantifiers/equality_infer.h"
 #include "theory/quantifiers/equality_query.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/ambqi_builder.h"
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
@@ -249,20 +248,14 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_model.reset(new quantifiers::fmcheck::FirstOrderModelFmc(
           this, c, "FirstOrderModelFmc"));
       d_builder.reset(new quantifiers::fmcheck::FullModelChecker(c, this));
-    }else if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      Trace("quant-engine-debug") << "...make abs mbqi builder." << std::endl;
-      d_model.reset(
-          new quantifiers::FirstOrderModelAbs(this, c, "FirstOrderModelAbs"));
-      d_builder.reset(new quantifiers::AbsMbqiBuilder(c, this));
     }else{
       Trace("quant-engine-debug") << "...make default model builder." << std::endl;
       d_model.reset(
-          new quantifiers::FirstOrderModelIG(this, c, "FirstOrderModelIG"));
-      d_builder.reset(new quantifiers::QModelBuilderDefault(c, this));
+          new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
+      d_builder.reset(new quantifiers::QModelBuilder(c, this));
     }
   }else{
-    d_model.reset(
-        new quantifiers::FirstOrderModelIG(this, c, "FirstOrderModelIG"));
+    d_model.reset(new quantifiers::FirstOrderModel(this, c, "FirstOrderModel"));
   }
 }
 
