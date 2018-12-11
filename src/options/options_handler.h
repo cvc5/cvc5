@@ -27,6 +27,7 @@
 #include "options/arith_propagation_mode.h"
 #include "options/arith_unate_lemma_mode.h"
 #include "options/base_handlers.h"
+#include "options/bool_to_bv_mode.h"
 #include "options/bv_bitblast_mode.h"
 #include "options/datatypes_modes.h"
 #include "options/decision_mode.h"
@@ -112,6 +113,8 @@ public:
       std::string option, std::string optarg);
   theory::quantifiers::CegisSampleMode stringToCegisSampleMode(
       std::string option, std::string optarg);
+  theory::quantifiers::SygusFilterSolMode stringToSygusFilterSolMode(
+      std::string option, std::string optarg);
   theory::quantifiers::SygusInvTemplMode stringToSygusInvTemplMode(
       std::string option, std::string optarg);
   theory::quantifiers::SygusActiveGenMode stringToSygusActiveGenMode(
@@ -135,6 +138,8 @@ public:
                                                 std::string optarg);
   theory::bv::BvSlicerMode stringToBvSlicerMode(std::string option,
                                                 std::string optarg);
+  preprocessing::passes::BoolToBVMode stringToBoolToBVMode(std::string option,
+                                                           std::string optarg);
   void setBitblastAig(std::string option, bool arg);
 
   theory::bv::SatSolverMode stringToSatSolver(std::string option,
@@ -227,6 +232,7 @@ public:
   static const std::string s_bvSatSolverHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
+  static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;
   static const std::string s_instFormatHelp ;
@@ -248,6 +254,7 @@ public:
   static const std::string s_cegqiSingleInvHelp;
   static const std::string s_cegqiSingleInvRconsHelp;
   static const std::string s_cegisSampleHelp;
+  static const std::string s_sygusFilterSolHelp;
   static const std::string s_sygusInvTemplHelp;
   static const std::string s_sygusActiveGenHelp;
   static const std::string s_termDbModeHelp;

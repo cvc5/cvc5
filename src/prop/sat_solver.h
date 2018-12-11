@@ -26,13 +26,13 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
+#include "prop/bv_sat_solver_notify.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
-  
-class BitVectorProof;
 
 namespace prop {
 
@@ -96,9 +96,9 @@ public:
 
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
-  
-  virtual void setProofLog( BitVectorProof * bvp ) {}
-  
+
+  virtual void setProofLog(proof::ResolutionBitVectorProof* bvp) {}
+
 };/* class SatSolver */
 
 
@@ -107,27 +107,8 @@ public:
 
   virtual ~BVSatSolverInterface() {}
   /** Interface for notifications */
-  class Notify {
-  public:
 
-    virtual ~Notify() {};
-
-    /**
-     * If the notify returns false, the solver will break out of whatever it's currently doing
-     * with an "unknown" answer.
-     */
-    virtual bool notify(SatLiteral lit) = 0;
-
-    /**
-     * Notify about a learnt clause.
-     */
-    virtual void notify(SatClause& clause) = 0;
-    virtual void spendResource(unsigned amount) = 0;
-    virtual void safePoint(unsigned amount) = 0;
-
-  };/* class BVSatSolverInterface::Notify */
-
-  virtual void setNotify(Notify* notify) = 0;
+  virtual void setNotify(BVSatSolverNotify* notify) = 0;
 
   virtual void markUnremovable(SatLiteral lit) = 0;
 

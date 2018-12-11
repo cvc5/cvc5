@@ -740,7 +740,7 @@ Node TheoryBV::ppRewrite(TNode t)
 {
   Debug("bv-pp-rewrite") << "TheoryBV::ppRewrite " << t << "\n";
   Node res = t;
-  if (RewriteRule<BitwiseEq>::applies(t)) {
+  if (options::bitwiseEq() && RewriteRule<BitwiseEq>::applies(t)) {
     Node result = RewriteRule<BitwiseEq>::run<false>(t);
     res = Rewriter::rewrite(result);
   } else if (d_isCoreTheory && t.getKind() == kind::EQUAL) {
@@ -986,9 +986,10 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
   return changed;
 }
 
-void TheoryBV::setProofLog( BitVectorProof * bvp ) {
+void TheoryBV::setResolutionProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
-    d_eagerSolver->setProofLog( bvp );
+    d_eagerSolver->setResolutionProofLog(bvp);
   }else{
     for( unsigned i=0; i< d_subtheories.size(); i++ ){
       d_subtheories[i]->setProofLog( bvp );

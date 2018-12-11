@@ -205,7 +205,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "elimination techniques for regular expressions"
 
 [[option]]

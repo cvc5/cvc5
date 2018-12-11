@@ -1293,7 +1293,7 @@ void MatchGen::reset( QuantConflictFind * p, bool tgt, QuantInfo * qi ) {
     Assert( isHandledUfTerm( d_n ) );
     TNode f = getMatchOperator( p, d_n );
     Debug("qcf-match-debug") << "       reset: Var will match operators of " << f << std::endl;
-    TermArgTrie * qni = p->getTermDatabase()->getTermArgTrie( Node::null(), f );
+    TNodeTrie* qni = p->getTermDatabase()->getTermArgTrie(Node::null(), f);
     if (qni == nullptr || qni->empty())
     {
       //inform irrelevant quantifiers
@@ -1672,7 +1672,8 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
             }else{
               //binding a variable
               d_qni_bound[index] = repVar;
-              std::map< TNode, TermArgTrie >::iterator it = d_qn[index]->d_data.begin();
+              std::map<TNode, TNodeTrie>::iterator it =
+                  d_qn[index]->d_data.begin();
               if( it != d_qn[index]->d_data.end() ) {
                 d_qni.push_back( it );
                 //set the match
@@ -1699,7 +1700,8 @@ bool MatchGen::doMatching( QuantConflictFind * p, QuantInfo * qi ) {
           }
           if( !val.isNull() ){
             //constrained by val
-            std::map< TNode, TermArgTrie >::iterator it = d_qn[index]->d_data.find( val );
+            std::map<TNode, TNodeTrie>::iterator it =
+                d_qn[index]->d_data.find(val);
             if( it!=d_qn[index]->d_data.end() ){
               Debug("qcf-match-debug") << "       Match" << std::endl;
               d_qni.push_back( it );

@@ -22,6 +22,7 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
@@ -35,11 +36,6 @@
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace strings {
 
 /**
@@ -557,7 +553,10 @@ private:
   //--------------------------------end for checkMemberships
 
  private:
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth);
 
  public:
   /** preregister term */

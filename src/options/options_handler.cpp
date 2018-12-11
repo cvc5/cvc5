@@ -508,6 +508,21 @@ trust  \n\
 \n\
 ";
 
+const std::string OptionsHandler::s_sygusFilterSolHelp =
+    "\
+Modes for filtering sygus solutions supported by --sygus-filter-sol:\n\
+\n\
+none (default) \n\
++ Do not filter sygus solutions.\n\
+\n\
+strong \n\
++ Filter solutions that are logically stronger than others.\n\
+\n\
+weak \n\
++ Filter solutions that are logically weaker than others.\n\
+\n\
+";
+
 const std::string OptionsHandler::s_sygusInvTemplHelp = "\
 Template modes for sygus invariant synthesis, supported by --sygus-inv-templ:\n\
 \n\
@@ -951,6 +966,35 @@ theory::quantifiers::CegisSampleMode OptionsHandler::stringToCegisSampleMode(
   }
 }
 
+theory::quantifiers::SygusFilterSolMode
+OptionsHandler::stringToSygusFilterSolMode(std::string option,
+                                           std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_NONE;
+  }
+  else if (optarg == "strong")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_STRONG;
+  }
+  else if (optarg == "weak")
+  {
+    return theory::quantifiers::SYGUS_FILTER_SOL_WEAK;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_cegisSampleHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --sygus-filter-sol: `") + optarg
+        + "'.  Try --sygus-filter-sol help.");
+  }
+}
+
 theory::quantifiers::SygusInvTemplMode
 OptionsHandler::stringToSygusInvTemplMode(std::string option,
                                           std::string optarg)
@@ -1254,6 +1298,50 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
                           optarg + "'.  Try --bv-eq-slicer=help.");
+  }
+}
+
+const std::string OptionsHandler::s_boolToBVModeHelp =
+    "\
+BoolToBV pass modes supported by the --bool-to-bv option:\n\
+\n\
+off (default)\n\
++ Don't push any booleans to width one bit-vectors\n\
+\n\
+ite\n\
++ Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula \n\
+  if not all sub-formulas can be turned to bit-vectors\n\
+\n\
+all\n\
++ Force all booleans to be bit-vectors of width one except at the top level.\n\
+  Most aggressive mode\n\
+";
+
+preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "off")
+  {
+    return preprocessing::passes::BOOL_TO_BV_OFF;
+  }
+  else if (optarg == "ite")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ITE;
+  }
+  else if (optarg == "all")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ALL;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_boolToBVModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bool-to-bv: `")
+                          + optarg
+                          + "'. Try --bool-to-bv=help");
   }
 }
 
@@ -1588,7 +1676,14 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when minisat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";

@@ -602,7 +602,7 @@ void ConstraintRule::print(std::ostream& out) const {
 
 bool Constraint::wellFormedFarkasProof() const {
   Assert(hasProof());
-  
+
   const ConstraintRule& cr = getConstraintRule();
   if(cr.d_constraint != this){ return false; }
   if(cr.d_proofType != FarkasAP){ return false; }
@@ -1071,6 +1071,7 @@ ConstraintP ConstraintDatabase::lookup(TNode literal) const{
 }
 
 void Constraint::setAssumption(bool nowInConflict){
+  Debug("constraints::pf") << "setAssumption(" << this << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(hasLiteral());
@@ -1113,6 +1114,7 @@ void Constraint::propagate(){
  *  1*(x <= a) + (-1)*(x > b) => (0 <= a-b)
  */
 void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByUnate(" << this << ", " << *imp << ")" << std::endl;
   Assert(!hasProof());
   Assert(imp->hasProof());
   Assert(negationHasProof() == nowInConflict);
@@ -1152,6 +1154,8 @@ void Constraint::impliedByUnate(ConstraintCP imp, bool nowInConflict){
 }
 
 void Constraint::impliedByTrichotomy(ConstraintCP a, ConstraintCP b, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByTrichotomy(" << this << ", " << *a << ", ";
+  Debug("constraints::pf") << *b << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
@@ -1180,6 +1184,7 @@ bool Constraint::allHaveProof(const ConstraintCPVec& b){
 }
 
 void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByIntHole(" << this << ", " << *a << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
@@ -1196,6 +1201,15 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
 }
 
 void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByIntHole(" << this;
+  if (Debug.isOn("constraints::pf")) {
+    for (const ConstraintCP& p : b)
+    {
+      Debug("constraints::pf") << ", " << p;
+    }
+  }
+  Debug("constraints::pf") << ")" << std::endl;
+
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(b));
@@ -1224,6 +1238,15 @@ void Constraint::impliedByIntHole(const ConstraintCPVec& b, bool nowInConflict){
  *   coeff.back() corresponds to the current constraint. 
  */
 void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coeffs, bool nowInConflict){
+  Debug("constraints::pf") << "impliedByFarkas(" << this;
+  if (Debug.isOn("constraints::pf")) {
+    for (const ConstraintCP& p : a)
+    {
+      Debug("constraints::pf") << ", " << p;
+    }
+  }
+  Debug("constraints::pf") << ", <coeffs>";
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(allHaveProof(a));
@@ -1263,6 +1286,8 @@ void Constraint::impliedByFarkas(const ConstraintCPVec& a, RationalVectorCP coef
 
 
 void Constraint::setInternalAssumption(bool nowInConflict){
+  Debug("constraints::pf") << "setInternalAssumption(" << this;
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(!assertedToTheTheory());
@@ -1277,6 +1302,8 @@ void Constraint::setInternalAssumption(bool nowInConflict){
 
 
 void Constraint::setEqualityEngineProof(){
+  Debug("constraints::pf") << "setEqualityEngineProof(" << this;
+  Debug("constraints::pf") << ")" << std::endl;
   Assert(truthIsUnknown());
   Assert(hasLiteral());
   d_database->pushConstraintRule(ConstraintRule(this, EqualityEngineAP));
