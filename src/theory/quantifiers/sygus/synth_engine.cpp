@@ -321,7 +321,8 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
       return true;
     }
 
-    Trace("cegqi-engine") << "  *** Check candidate phase..." << std::endl;
+    Trace("cegqi-engine-debug")
+        << "  *** Check candidate phase..." << std::endl;
     std::vector<Node> cclems;
     bool ret = conj->doCheck(cclems);
     bool addedLemma = false;
@@ -343,7 +344,8 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     }
     if (addedLemma)
     {
-      Trace("cegqi-engine") << "  ...check for counterexample." << std::endl;
+      Trace("cegqi-engine-debug")
+          << "  ...check for counterexample." << std::endl;
       return true;
     }
     else
@@ -358,7 +360,8 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
   }
   else
   {
-    Trace("cegqi-engine") << "  *** Refine candidate phase..." << std::endl;
+    Trace("cegqi-engine-debug")
+        << "  *** Refine candidate phase..." << std::endl;
     std::vector<Node> rlems;
     conj->doRefine(rlems);
     bool addedLemma = false;
@@ -381,7 +384,7 @@ bool SynthEngine::checkConjecture(SynthConjecture* conj)
     }
     if (addedLemma)
     {
-      Trace("cegqi-engine") << "  ...refine candidate." << std::endl;
+      Trace("cegqi-engine-debug") << "  ...refine candidate." << std::endl;
     }
   }
   return true;

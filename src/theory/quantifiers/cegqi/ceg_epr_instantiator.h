@@ -19,13 +19,12 @@
 
 #include <map>
 #include <vector>
+#include "expr/node_trie.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
 
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
-
-class TermArgTrie;
 
 /** Effectively Propositional (EPR) Instantiator
  *
@@ -93,7 +92,7 @@ class EprInstantiator : public Instantiator
                          Node pv,
                          Node catom,
                          std::vector<Node>& arg_reps,
-                         TermArgTrie* tat,
+                         TNodeTrie* tat,
                          unsigned index,
                          std::map<Node, int>& match_score);
   void computeMatchScore(CegInstantiator* ci,

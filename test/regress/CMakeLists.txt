@@ -159,7 +159,8 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
-  regress0/bv/bool-to-bv.smt2
+  regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
   regress0/bv/bug440.smt
@@ -825,6 +826,7 @@ set(regress_0_tests
   regress0/strings/norn-31.smt2
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
@@ -860,6 +862,7 @@ set(regress_0_tests
   regress0/sygus/real-si-all.sy
   regress0/sygus/strings-unconstrained.sy
   regress0/sygus/uminus_one.sy
+  regress0/sygus/univ_3-long-repeat-conflict.sy
   regress0/test11.cvc
   regress0/test9.cvc
   regress0/tptp/ARI086=1.p
@@ -1051,7 +1054,6 @@ set(regress_1_tests
   regress1/arith/mult.02.smt2
   regress1/arith/pbrewrites-test.smt2
   regress1/arith/problem__003.smt2
-  regress1/arith/real2int-test.smt2
   regress1/arrayinuf_error.smt2
   regress1/aufbv/bug580.smt2
   regress1/aufbv/fuzz10.smt
@@ -1359,6 +1361,7 @@ set(regress_1_tests
   regress1/quantifiers/quant-wf-int-ind.smt2
   regress1/quantifiers/quaternion_ds1_symm_0428.fof.smt2
   regress1/quantifiers/recfact.cvc
+  regress1/quantifiers/rel-trigger-unusable.smt2
   regress1/quantifiers/repair-const-nterm.smt2
   regress1/quantifiers/rew-to-0211-dd.smt2
   regress1/quantifiers/ricart-agrawala6.smt2
@@ -1544,6 +1547,8 @@ set(regress_1_tests
   regress1/strings/reloop.smt2
   regress1/strings/repl-empty-sem.smt2
   regress1/strings/repl-soundness-sem.smt2
+  regress1/strings/replaceall-len.smt2
+  regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/str-code-sat.smt2
@@ -1682,6 +1687,7 @@ set(regress_2_tests
   regress2/arith/pursuit-safety-11.smt
   regress2/arith/pursuit-safety-12.smt
   regress2/arith/qlock-4-10-9.base.cvc.smt2
+  regress2/arith/real2int-test.smt2
   regress2/arith/sc-7.base.cvc.smt
   regress2/arith/uart-8.base.cvc.smt
   regress2/auflia-fuzz06.smt
@@ -1724,10 +1730,14 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/extf_d_perf.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
+  regress2/strings/replaceall-diffrange.smt2
+  regress2/strings/replaceall-len-c.smt2
+  regress2/strings/small-1.smt2
   regress2/sygus/MPwL_d1s3.sy
   regress2/sygus/array_sum_dd.sy
   regress2/sygus/cegisunif-depth1-bv.sy

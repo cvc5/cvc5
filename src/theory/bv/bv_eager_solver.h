@@ -23,6 +23,7 @@
 #include <vector>
 
 #include "expr/node.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/theory_model.h"
 
@@ -47,7 +48,7 @@ class EagerBitblastSolver {
   bool isInitialized();
   void initialize();
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
  private:
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
@@ -60,7 +61,7 @@ class EagerBitblastSolver {
   bool d_useAig;
 
   TheoryBV* d_bv;
-  BitVectorProof* d_bvp;
+  proof::ResolutionBitVectorProof* d_bvp;
 };  // class EagerBitblastSolver
 
 }  // namespace bv

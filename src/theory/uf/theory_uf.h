@@ -20,24 +20,16 @@
 #ifndef __CVC4__THEORY__UF__THEORY_UF_H
 #define __CVC4__THEORY__UF__THEORY_UF_H
 
+#include "context/cdhashset.h"
+#include "context/cdo.h"
 #include "expr/node.h"
-//#include "expr/attribute.h"
-
+#include "expr/node_trie.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/symmetry_breaker.h"
 
-#include "context/cdo.h"
-#include "context/cdhashset.h"
-
-
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace uf {
 
 class UfTermDb;
@@ -313,7 +305,10 @@ private:
   }
 private:
   bool areCareDisequal(TNode x, TNode y);
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth );
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth);
 };/* class TheoryUF */
 
 }/* CVC4::theory::uf namespace */
