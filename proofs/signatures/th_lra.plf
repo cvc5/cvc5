@@ -1,4 +1,4 @@
-; Depends on th_real.plf, th_smt.plf
+; Depends on th_real.plf, smt.plf, sat.plf
 
 ; LRA proofs have the following interface:
 ;    * Given predicates between real terms
