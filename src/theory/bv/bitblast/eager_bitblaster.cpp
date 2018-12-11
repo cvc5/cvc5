@@ -99,8 +99,8 @@ void EagerBitblaster::bbFormula(TNode node)
 void EagerBitblaster::bbAtom(TNode node)
 {
   node = node.getKind() == kind::NOT ? node[0] : node;
-  if (node.getKind() == kind::BITVECTOR_BITOF) return;
-  if (hasBBAtom(node))
+  if (node.getKind() == kind::BITVECTOR_BITOF
+      || node.getKind() == kind::CONST_BOOLEAN || hasBBAtom(node))
   {
     return;
   }
