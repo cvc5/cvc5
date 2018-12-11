@@ -118,8 +118,6 @@
 
 ;; conversion to use polynomials in term formulas
 
-(declare poly_term (! p poly (term Real)))
-
 
 (declare >=0_poly (! x poly formula))
 (declare =0_poly (! x poly formula))
@@ -435,58 +433,6 @@
   (! p (poly_formula_norm ft fp)
   (! u (th_holds (not ft))
     (th_holds (not fp)))))))
-
-; form equivalence between term formula and polynomial formula
-
-(declare poly_norm_=
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (= Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_>
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (>_Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (>0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_<
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (<_Real x y))
-  (! n (poly_norm (-_Real y x) p)
-  (! u (! pn (th_holds (>0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_>=
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (>=_Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (>=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_<=
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (<=_Real x y))
-  (! n (poly_norm (-_Real y x) p)
-  (! u (! pn (th_holds (>=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
 
 (declare poly_formula_norm_>=
   (! x (term Real)
