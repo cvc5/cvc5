@@ -153,46 +153,36 @@
 
 ; Test passes if the (test_resolution_targets_match ...) application is well-typed.
 (check
-  (% v1 var
-  (% v2 var
-  (% v3 var
-  (% v4 var
-    (@ idxs_in (CIListc 0 (CIListc 4 (CIListc 5 (CIListc 6 CIListn))))
-    (@ hints_in
-       (RATHintsc 0 Tracen
-       (RATHintsc 4 Tracen
-       (RATHintsc 5 Tracen
-       (RATHintsc 6 Tracen
-       RATHintsn))))
-      (test_resolution_targets_match
-        idxs_in
-        hints_in
-        tt
-      )
-    ))
-  ))))
+  (@ idxs_in (CIListc 0 (CIListc 4 (CIListc 5 (CIListc 6 CIListn))))
+  (@ hints_in
+     (RATHintsc 0 Tracen
+     (RATHintsc 4 Tracen
+     (RATHintsc 5 Tracen
+     (RATHintsc 6 Tracen
+     RATHintsn))))
+    (test_resolution_targets_match
+      idxs_in
+      hints_in
+      tt
+    )
+  ))
 )
 
 ; Test passes if the (test_resolution_targets_match ...) application is well-typed.
 (check
-  (% v1 var
-  (% v2 var
-  (% v3 var
-  (% v4 var
-    (@ idxs_in (CIListc 0 (CIListc 2 (CIListc 5 (CIListc 6 CIListn))))
-    (@ hints_in
-       (RATHintsc 0 Tracen
-       (RATHintsc 4 Tracen
-       (RATHintsc 5 Tracen
-       (RATHintsc 6 Tracen
-       RATHintsn))))
-      (test_resolution_targets_match
-        idxs_in
-        hints_in
-        ff
-      )
-    ))
-  ))))
+  (@ idxs_in (CIListc 0 (CIListc 2 (CIListc 5 (CIListc 6 CIListn))))
+  (@ hints_in
+     (RATHintsc 0 Tracen
+     (RATHintsc 4 Tracen
+     (RATHintsc 5 Tracen
+     (RATHintsc 6 Tracen
+     RATHintsn))))
+    (test_resolution_targets_match
+      idxs_in
+      hints_in
+      ff
+    )
+  ))
 )
 
 (declare test_is_at_trace
