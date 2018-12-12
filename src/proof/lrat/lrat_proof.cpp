@@ -107,13 +107,13 @@ LratProof LratProof::fromDratProof(
   char lratFilename[] = "/tmp/cvc4-lrat-XXXXXX";
   int r;
   r = mkstemp(formulaFilename);
-  Assert(r > 0);
+  AlwaysAssert(r > 0);
   close(r);
   r = mkstemp(dratFilename);
-  Assert(r > 0);
+  AlwaysAssert(r > 0);
   close(r);
   r = mkstemp(lratFilename);
-  Assert(r > 0);
+  AlwaysAssert(r > 0);
   close(r);
   std::ofstream formStream(formulaFilename);
   size_t maxVar = 0;
@@ -203,7 +203,7 @@ LratProof::LratProof(std::istream& textualProof)
       }
       std::sort(clauses.begin(), clauses.end());
       d_instructions.emplace_back(
-          LratInstruction(LratDeletionData(clauseIdx, std::move(clauses))));
+          LratDeletionData(clauseIdx, std::move(clauses)));
     }
     else
     {
@@ -219,8 +219,7 @@ LratProof::LratProof(std::istream& textualProof)
       for (; lit != 0; textualProof >> lit)
       {
         Assert(textualProof.good());
-        clause.emplace_back(
-            SatLiteral(lit.getSatVariable() - 1, lit.isNegated()));
+        clause.emplace_back(lit.getSatVariable() - 1, lit.isNegated());
       }
 
       // Now we read the AT UP trace. It ends at the first non-(+) #
@@ -239,7 +238,7 @@ LratProof::LratProof(std::istream& textualProof)
       {
         Assert(textualProof.good());
         // Create an entry in the RAT hint list
-        resolvants.emplace_back(make_pair(-i, std::vector<ClauseIdx>()));
+        resolvants.emplace_back(i, std::vector<ClauseIdx>());
 
         // Record the UP trace. It ends with a (-) or 0.
         textualProof >> i;
@@ -251,16 +250,16 @@ LratProof::LratProof(std::istream& textualProof)
       // Pairs compare based on the first element, so this sorts by the
       // resolution target index
       std::sort(resolvants.begin(), resolvants.end());
-      d_instructions.emplace_back(
-          LratInstruction(LratAdditionData(clauseIdx,
-                                           std::move(clause),
-                                           std::move(atTrace),
-                                           std::move(resolvants))));
+      d_instructions.emplace_back(LratAdditionData(clauseIdx,
+                                                   std::move(clause),
+                                                   std::move(atTrace),
+                                                   std::move(resolvants)));
     }
     Debug("pf::lrat") << "Instr: " << d_instructions.back() << std::endl;
   }
 }
 
+namespace {
 // Prints the literal as a (+) or (-) int
 // Not operator<< b/c that represents negation as ~
 inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
@@ -338,6 +337,7 @@ inline std::ostream& operator<<(std::ostream& o, const LratProof& p)
     o << instr;
   }
   return o;
+}
 }
 
 }  // namespace lrat
