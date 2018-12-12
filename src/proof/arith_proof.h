@@ -63,6 +63,9 @@ protected:
   //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
 
+  /**
+   * @brief Where farkas proofs of lemmas are stored.
+   */
   proof::ArithProofRecorder d_recorder;
 
   bool d_realMode;
