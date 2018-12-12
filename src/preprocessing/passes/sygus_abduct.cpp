@@ -9,7 +9,8 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus inference module
+ ** \brief Implementation of sygus abduction preprocessing pass, which
+ ** transforms an arbitrary input into an abduction problem.
  **/
 
 #include "preprocessing/passes/sygus_abduct.h"

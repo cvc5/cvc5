@@ -9,16 +9,12 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief SygusAbduct
+ ** \brief Sygus abduction preprocessing pass, which transforms an arbitrary
+ ** input into an abduction problem.
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_
-#define __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_
-
-#include <map>
-#include <string>
-#include <vector>
-#include "expr/node.h"
+#ifndef __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
+#define __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
