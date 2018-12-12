@@ -33,6 +33,79 @@ using prop::SatClause;
 using prop::SatLiteral;
 using prop::SatVariable;
 
+namespace {
+// Prints the literal as a (+) or (-) int
+// Not operator<< b/c that represents negation as ~
+inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
+{
+  if (l.isNegated())
+  {
+    o << "-";
+  }
+  return o << l.getSatVariable();
+}
+
+// Prints the clause as a space-separated list of ints
+// Not operator<< b/c that represents negation as ~
+inline std::ostream& textOut(std::ostream& o, const SatClause& c)
+{
+  for (const auto l : c)
+  {
+    textOut(o, l) << " ";
+  }
+  return o << "0";
+}
+
+// Prints the trace as a space-separated list of (+) ints with a space at the
+// end.
+inline std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
+{
+  for (const auto& i : trace)
+  {
+    o << i << " ";
+  }
+  return o;
+}
+
+// Prints the LRAT addition line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
+{
+  o << add.d_idxOfClause << " ";
+  textOut(o, add.d_clause) << " ";
+  o << add.d_atTrace;  // Inludes a space at the end.
+  for (const auto& rat : add.d_resolvants)
+  {
+    o << "-" << rat.first << " ";
+    o << rat.second;  // Includes a space at the end.
+  }
+  o << "0\n";
+  return o;
+}
+
+// Prints the LRAT addition line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
+{
+  o << del.d_idxOfClause << " d ";
+  for (const auto& idx : del.d_clauses)
+  {
+    o << idx << " ";
+  }
+  return o << "0\n";
+}
+
+// Prints the LRAT line in textual format
+inline std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
+{
+  switch (i.d_kind)
+  {
+    case LRAT_ADDITION: return o << i.d_data.d_addition;
+    case LRAT_DELETION: return o << i.d_data.d_deletion;
+    default: return o;
+  }
+}
+
+}
+
 LratInstruction::LratInstruction(LratInstruction&& instr) : d_kind(instr.d_kind)
 {
   switch (d_kind)
@@ -255,78 +328,6 @@ LratProof::LratProof(std::istream& textualProof)
                                                    std::move(atTrace),
                                                    std::move(resolvants)));
     }
-    Debug("pf::lrat") << "Instr: " << d_instructions.back() << std::endl;
-  }
-}
-
-namespace {
-// Prints the literal as a (+) or (-) int
-// Not operator<< b/c that represents negation as ~
-inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
-{
-  if (l.isNegated())
-  {
-    o << "-";
-  }
-  return o << l.getSatVariable();
-}
-
-// Prints the clause as a space-separated list of ints
-// Not operator<< b/c that represents negation as ~
-inline std::ostream& textOut(std::ostream& o, const SatClause& c)
-{
-  for (const auto l : c)
-  {
-    textOut(o, l) << " ";
-  }
-  return o << "0";
-}
-
-// Prints the trace as a space-separated list of (+) ints with a space at the
-// end.
-inline std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
-{
-  for (const auto& i : trace)
-  {
-    o << i << " ";
-  }
-  return o;
-}
-
-// Prints the LRAT addition line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
-{
-  o << add.d_idxOfClause << " ";
-  textOut(o, add.d_clause) << " ";
-  o << add.d_atTrace;  // Inludes a space at the end.
-  for (const auto& rat : add.d_resolvants)
-  {
-    o << "-" << rat.first << " ";
-    o << rat.second;  // Includes a space at the end.
-  }
-  o << "0\n";
-  return o;
-}
-
-// Prints the LRAT addition line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
-{
-  o << del.d_idxOfClause << " d ";
-  for (const auto& idx : del.d_clauses)
-  {
-    o << idx << " ";
-  }
-  return o << "0\n";
-}
-
-// Prints the LRAT line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
-{
-  switch (i.d_kind)
-  {
-    case LRAT_ADDITION: return o << i.d_data.d_addition;
-    case LRAT_DELETION: return o << i.d_data.d_deletion;
-    default: return o;
   }
 }
 
@@ -337,7 +338,6 @@ inline std::ostream& operator<<(std::ostream& o, const LratProof& p)
     o << instr;
   }
   return o;
-}
 }
 
 }  // namespace lrat

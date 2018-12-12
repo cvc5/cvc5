@@ -30,7 +30,6 @@
 #include <unordered_map>
 #include <vector>
 
-#include "base/output.h"
 #include "proof/clause_id.h"
 // Included because we need operator<< for the SAT types
 #include "prop/sat_solver.h"
