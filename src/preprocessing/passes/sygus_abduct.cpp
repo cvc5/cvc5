@@ -44,7 +44,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   std::vector<Node>& asserts = assertionsToPreprocess->ref();
   std::vector<Node> assumptions;
   bool usingAssumptions = (assertionsToPreprocess->getNumAssumptions() > 0);
-  for (unsigned i = 0, size = asserts.size(); i < size; i++)
+  for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
     expr::getSymbols(asserts[i], symset);
     if (usingAssumptions && i < assertionsToPreprocess->getAssumptionsStart())
