@@ -272,6 +272,10 @@ bool SygusPbe::initialize(Node n,
         Assert(!ag.isNull());
         disj.push_back(ag.negate());
         Node lem = disj.size() == 1 ? disj[0] : nm->mkNode(OR, disj);
+        // Apply extended rewriting on the lemma. This helps utilities like
+        // SygusEnumerator more easily recognize the shape of this lemma, e.g.
+        // ( ~is-ite(x) or ( ~is-ite(x) ^ P ) ) --> ~is-ite(x).
+        lem = d_tds->getExtRewriter()->extendedRewrite(lem);
         Trace("sygus-pbe") << "  static redundant op lemma : " << lem
                            << std::endl;
         // Register as a symmetry breaking lemma with the term database.

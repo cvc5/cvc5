@@ -142,6 +142,8 @@ libcvc4_add_sources(
   proof/proof_output_channel.h
   proof/proof_utils.cpp
   proof/proof_utils.h
+  proof/resolution_bitvector_proof.cpp
+  proof/resolution_bitvector_proof.h
   proof/sat_proof.h
   proof/sat_proof_implementation.h
   proof/simplify_boolean_node.cpp
@@ -202,6 +204,7 @@ libcvc4_add_sources(
   prop/sat_solver.h
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
+  prop/bv_sat_solver_notify.h
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
@@ -472,8 +475,6 @@ libcvc4_add_sources(
   theory/quantifiers/extended_rewrite.h
   theory/quantifiers/first_order_model.cpp
   theory/quantifiers/first_order_model.h
-  theory/quantifiers/fmf/ambqi_builder.cpp
-  theory/quantifiers/fmf/ambqi_builder.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
   theory/quantifiers/fmf/full_model_check.cpp

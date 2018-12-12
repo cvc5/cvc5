@@ -194,17 +194,17 @@ Node CegGrammarConstructor::process(Node q,
                                     const std::vector<Node>& ebvl)
 {
   Assert(q[0].getNumChildren() == ebvl.size());
+  Assert(d_synth_fun_vars.empty());
 
   NodeManager* nm = NodeManager::currentNM();
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
-  std::map<Node, Node> synth_fun_vars;
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
-    synth_fun_vars[sf] = ebvl[i];
+    d_synth_fun_vars[sf] = ebvl[i];
     Node sfvl = getSygusVarList(sf);
     TypeNode tn = ebvl[i].getType();
     // check if there is a template
@@ -262,14 +262,15 @@ Node CegGrammarConstructor::process(Node q,
     qbody_subs = Rewriter::rewrite( qbody_subs );
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
-  qchildren.push_back( convertToEmbedding( qbody_subs, synth_fun_vars ) );
+  qchildren.push_back(convertToEmbedding(qbody_subs));
   if( q.getNumChildren()==3 ){
     qchildren.push_back( q[2] );
   }
   return nm->mkNode(kind::FORALL, qchildren);
 }
 
-Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
+Node CegGrammarConstructor::convertToEmbedding(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -303,8 +304,9 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
       // is the operator a synth function?
       bool makeEvalFun = false;
       if( !op.isNull() ){
-        std::map< Node, Node >::iterator its = synth_fun_vars.find( op );
-        if( its!=synth_fun_vars.end() ){
+        std::map<Node, Node>::iterator its = d_synth_fun_vars.find(op);
+        if (its != d_synth_fun_vars.end())
+        {
           children.push_back( its->second );
           makeEvalFun = true;
         }
@@ -741,9 +743,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         weights[i].push_back(-1);
       }
     }else{
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      throw LogicException(sserr.str());
+      Warning()
+          << "Warning: No implementation for default Sygus grammar of type "
+          << types[i] << std::endl;
     }
   }
   // make datatypes

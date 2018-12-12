@@ -23,6 +23,11 @@
 #include "theory/bv/bv_subtheory.h"
 
 namespace CVC4 {
+
+namespace proof {
+class ResolutionBitVectorProof;
+}
+
 namespace theory {
 namespace bv {
 
@@ -74,7 +79,7 @@ public:
   void bitblastQueue();
   void setAbstraction(AbstractionModule* module);
   uint64_t computeAtomWeight(TNode atom);
-  void setProofLog(BitVectorProof* bvp) override;
+  void setProofLog(proof::ResolutionBitVectorProof* bvp) override;
 };
 
 } /* namespace CVC4::theory::bv */
