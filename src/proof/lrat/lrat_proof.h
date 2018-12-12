@@ -16,7 +16,7 @@
  **
  ** Represents an **abstract** LRAT proof.
  ** Does **not** represent an LFSC LRAT proof, or an LRAT proof being used to
- ** prove things about bitvectors.
+ ** prove things about bit-vectors.
  **
  ** Paper on LRAT: https://www.cs.utexas.edu/~marijn/publications/lrat.pdf
  **/
