@@ -1,0 +1,71 @@
+/*********************                                                        */
+/*! \file arith_proof_recorder.cpp
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Alex Ozdemir
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief A class for saving the skeletons of a arithmetic proofs for later.
+ **/
+
+#include "proof/arith_proof_recorder.h"
+
+#include <algorithm>
+#include <vector>
+
+namespace CVC4 {
+namespace proof {
+
+ArithProofRecorder::ArithProofRecorder() : d_lemmasToFarkasCoefficients()
+{
+  // Nothing else
+}
+void ArithProofRecorder::saveFarkasCoefficients(
+    Node conflict, theory::arith::RationalVectorCP farkasCoefficients)
+{
+  Assert(conflict.getKind() == kind::AND);
+  Assert(conflict.getNumChildren() == farkasCoefficients->size());
+  Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
+  for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+  {
+    const Node& child = conflict[i];
+    const Rational& r = (*farkasCoefficients)[i];
+    Debug("pf::arith") << "  " << std::setw(8) << r;
+    Debug("pf::arith") << "  " << child << std::endl;
+  }
+
+  std::set<Node> lits;
+  std::copy(
+      conflict.begin(), conflict.end(), std::inserter(lits, lits.begin()));
+
+  d_lemmasToFarkasCoefficients[lits] =
+      std::make_pair(std::move(conflict), *farkasCoefficients);
+}
+
+bool ArithProofRecorder::hasFarkasCoefficients(
+    const std::set<Node>& conflict) const
+{
+  return d_lemmasToFarkasCoefficients.find(conflict)
+         != d_lemmasToFarkasCoefficients.end();
+}
+
+std::pair<Node, theory::arith::RationalVectorCP>
+ArithProofRecorder::getFarkasCoefficients(const std::set<Node>& conflict) const
+{
+  if (hasFarkasCoefficients(conflict))
+  {
+    return std::make_pair(d_lemmasToFarkasCoefficients.at(conflict).first,
+                          &d_lemmasToFarkasCoefficients.at(conflict).second);
+  }
+  else
+  {
+    return std::make_pair(Node(), theory::arith::RationalVectorCPSentinel);
+  }
+}
+
+}  // namespace proof
+}  // namespace CVC4
