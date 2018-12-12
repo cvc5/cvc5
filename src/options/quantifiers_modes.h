@@ -53,14 +53,10 @@ enum LiteralMatchMode {
 };
 
 enum MbqiMode {
-  /** mbqi from CADE 24 paper */
-  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** abstract mbqi algorithm */
-  MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
   MBQI_TRUST,
 };

@@ -477,8 +477,6 @@ libcvc4_add_sources(
   theory/quantifiers/extended_rewrite.h
   theory/quantifiers/first_order_model.cpp
   theory/quantifiers/first_order_model.h
-  theory/quantifiers/fmf/ambqi_builder.cpp
-  theory/quantifiers/fmf/ambqi_builder.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
   theory/quantifiers/fmf/full_model_check.cpp
