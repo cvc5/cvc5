@@ -1750,6 +1750,7 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   return d_exprMgr->mkSortConstructor(symbol, arity);
 }
 

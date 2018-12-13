@@ -26,16 +26,31 @@ class SolverBlack : public CxxTest::TestSuite
   void setUp() override;
   void tearDown() override;
 
+  void testGetBooleanSort();
+  void testGetIntegerSort();
+  void testGetRealSort();
+  void testGetRegExpSort();
+  void testGetStringSort();
+  void testGetRoundingmodeSort();
+
+  void testMkArraySort();
   void testMkBitVectorSort();
   void testMkFloatingPointSort();
   void testMkDatatypeSort();
   void testMkFunctionSort();
+  void testMkParamSort();
   void testMkPredicateSort();
+  void testMkRecordSort();
+  void testMkSetSort();
+  void testMkSortConstructorSort();
+  void testMkUninterpretedSort();
   void testMkTupleSort();
+
   void testDeclareFun();
   void testDefineFun();
   void testDefineFunRec();
   void testDefineFunsRec();
+
   void testMkRegexpEmpty();
   void testMkRegexpSigma();
 
@@ -46,6 +61,53 @@ class SolverBlack : public CxxTest::TestSuite
 void SolverBlack::setUp() {}
 
 void SolverBlack::tearDown() {}
+
+void SolverBlack::testGetBooleanSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getBooleanSort());
+}
+
+void SolverBlack::testGetIntegerSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getIntegerSort());
+}
+
+void SolverBlack::testGetRealSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getRealSort());
+}
+
+void SolverBlack::testGetRegExpSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getRegExpSort());
+}
+
+void SolverBlack::testGetStringSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getStringSort());
+}
+
+void SolverBlack::testGetRoundingmodeSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getRoundingmodeSort());
+}
+
+void SolverBlack::testMkArraySort()
+{
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort intSort = d_solver.getIntegerSort();
+  Sort realSort = d_solver.getRealSort();
+  Sort bvSort = d_solver.mkBitVectorSort(32);
+  Sort fpSort = d_solver.mkFloatingPointSort(3, 5);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(boolSort, boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(intSort, intSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(realSort, realSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(bvSort, bvSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(fpSort, fpSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(boolSort, intSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(realSort, bvSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkArraySort(bvSort, fpSort));
+}
 
 void SolverBlack::testMkBitVectorSort()
 {
@@ -99,6 +161,12 @@ void SolverBlack::testMkFunctionSort()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testMkParamSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkParamSort("T"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkParamSort(""));
+}
+
 void SolverBlack::testMkPredicateSort()
 {
   TS_ASSERT_THROWS_NOTHING(
@@ -109,6 +177,37 @@ void SolverBlack::testMkPredicateSort()
   TS_ASSERT_THROWS(
       d_solver.mkPredicateSort({d_solver.getIntegerSort(), funSort}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testMkRecordSort()
+{
+  std::vector<std::pair<std::string, Sort>> fields = {
+      std::make_pair("b", d_solver.getBooleanSort()),
+      std::make_pair("bv", d_solver.mkBitVectorSort(8)),
+      std::make_pair("i", d_solver.getIntegerSort())};
+  std::vector<std::pair<std::string, Sort>> empty;
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkRecordSort(fields));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkRecordSort(empty));
+}
+
+void SolverBlack::testMkSetSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSetSort(d_solver.getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSetSort(d_solver.getIntegerSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSetSort(d_solver.mkBitVectorSort(4)));
+}
+
+void SolverBlack::testMkUninterpretedSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkUninterpretedSort("u"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkUninterpretedSort(""));
+}
+
+void SolverBlack::testMkSortConstructorSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSortConstructorSort("s", 2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSortConstructorSort("", 2));
+  TS_ASSERT_THROWS(d_solver.mkSortConstructorSort("", 0), CVC4ApiException&);
 }
 
 void SolverBlack::testMkTupleSort()
