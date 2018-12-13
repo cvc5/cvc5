@@ -36,6 +36,8 @@ class SolverBlack : public CxxTest::TestSuite
   void testDefineFun();
   void testDefineFunRec();
   void testDefineFunsRec();
+  void testMkRegexpEmpty();
+  void testMkRegexpSigma();
 
  private:
   Solver d_solver;
@@ -227,4 +229,20 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       d_solver.defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
       CVC4ApiException&);
+}
+
+void SolverBlack::testMkRegexpEmpty()
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkVar("s", strSort);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+}
+
+void SolverBlack::testMkRegexpSigma()
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkVar("s", strSort);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
