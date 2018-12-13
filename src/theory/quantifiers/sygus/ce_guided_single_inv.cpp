@@ -236,16 +236,16 @@ void CegSingleInv::initialize(Node q)
   // store simplified version of quantified formula
   d_simp_quant = d_sip->getFullSpecification();
   std::vector<Node> new_bv;
-  for (unsigned j = 0, size = sivars.size(); j < size; j++)
+  for( const Node& v : sivars )
   {
-    new_bv.push_back(nm->mkBoundVar(sivars[j].getType()));
+    new_bv.push_back(nm->mkBoundVar(v.getType()));
   }
   d_simp_quant = d_simp_quant.substitute(
       sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end());
   Assert(q[1].getKind() == NOT && q[1][0].getKind() == FORALL);
-  for (unsigned j = 0; j < q[1][0][0].getNumChildren(); j++)
+  for (const Node& v : q[1][0][0])
   {
-    new_bv.push_back(q[1][0][0][j]);
+    new_bv.push_back(v);
   }
   d_simp_quant =
       nm->mkNode(FORALL, nm->mkNode(BOUND_VAR_LIST, new_bv), d_simp_quant)
@@ -295,7 +295,9 @@ void CegSingleInv::initialize(Node q)
           // this should be unnecessary
           templ = nm->mkNode(AND, templ, d_templ_arg[prog]);
         }
-      }else{
+      }
+      else
+      {
         Trace("cegqi-inv-auto-unfold") << "...failed initialize." << std::endl;
       }
     }
