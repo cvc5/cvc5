@@ -36,7 +36,7 @@ using prop::SatVariable;
 namespace {
 // Prints the literal as a (+) or (-) int
 // Not operator<< b/c that represents negation as ~
-inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
+std::ostream& textOut(std::ostream& o, const SatLiteral& l)
 {
   if (l.isNegated())
   {
@@ -47,7 +47,7 @@ inline std::ostream& textOut(std::ostream& o, const SatLiteral& l)
 
 // Prints the clause as a space-separated list of ints
 // Not operator<< b/c that represents negation as ~
-inline std::ostream& textOut(std::ostream& o, const SatClause& c)
+std::ostream& textOut(std::ostream& o, const SatClause& c)
 {
   for (const auto l : c)
   {
@@ -58,7 +58,7 @@ inline std::ostream& textOut(std::ostream& o, const SatClause& c)
 
 // Prints the trace as a space-separated list of (+) ints with a space at the
 // end.
-inline std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
+std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
 {
   for (const auto& i : trace)
   {
@@ -68,7 +68,7 @@ inline std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
 }
 
 // Prints the LRAT addition line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
+std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
 {
   o << add.d_idxOfClause << " ";
   textOut(o, add.d_clause) << " ";
@@ -83,7 +83,7 @@ inline std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
 }
 
 // Prints the LRAT addition line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
+std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
 {
   o << del.d_idxOfClause << " d ";
   for (const auto& idx : del.d_clauses)
@@ -94,7 +94,7 @@ inline std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
 }
 
 // Prints the LRAT line in textual format
-inline std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
+std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
 {
   switch (i.d_kind)
   {
@@ -311,7 +311,7 @@ LratProof::LratProof(std::istream& textualProof)
       {
         Assert(textualProof.good());
         // Create an entry in the RAT hint list
-        resolvants.emplace_back(i, std::vector<ClauseIdx>());
+        resolvants.emplace_back(-i, std::vector<ClauseIdx>());
 
         // Record the UP trace. It ends with a (-) or 0.
         textualProof >> i;
@@ -331,7 +331,7 @@ LratProof::LratProof(std::istream& textualProof)
   }
 }
 
-inline std::ostream& operator<<(std::ostream& o, const LratProof& p)
+std::ostream& operator<<(std::ostream& o, const LratProof& p)
 {
   for (const auto& instr : p.getInstructions())
   {

@@ -143,7 +143,7 @@ class LratProof
    */
   LratProof(std::istream& textualProof);
 
-  inline const std::vector<LratInstruction>& getInstructions() const
+  const std::vector<LratInstruction>& getInstructions() const
   {
     return d_instructions;
   }
