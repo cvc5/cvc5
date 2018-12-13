@@ -24,14 +24,19 @@
  **      which requires we save an ordering of the literals
  **      and a parallel ordering of farkas coefficients.
  **
- ** Farkas proofs have the following cocre structure:
+ ** Farkas proofs have the following core structure:
  **    For a list of affine bounds: c[i] dot x >= b[i]
+ **      (x is a vector of variables)
+ **      (c[i] is a vector of coefficients)
  **    and a list of non-negative coefficients: f[i],
  **    compute
  **
  **             sum_i{ (c[i] dot x) * f[i] }     and   sum_i{b[i]*f[i]}
  **
- **    and then verify that the left is actually < the right, a (=><=)
+ **    and then verify that the left is actually < the right, a contradiction
+ **
+ **    To be clear: this code does not check farkas proofs, it just stores the
+ **    information needed to write them.
  **/
 
 #include "cvc4_private.h"

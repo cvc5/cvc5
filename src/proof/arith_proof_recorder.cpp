@@ -29,13 +29,21 @@ void ArithProofRecorder::saveFarkasCoefficients(
 {
   Assert(conflict.getKind() == kind::AND);
   Assert(conflict.getNumChildren() == farkasCoefficients->size());
+    for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+    {
+      const Node& child = conflict[i];
+      Assert(child.getType().isBoolean() && child[0].getType().isReal());
+    }
   Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
-  for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+  if (Debug.isOn("pf::arith"))
   {
-    const Node& child = conflict[i];
-    const Rational& r = (*farkasCoefficients)[i];
-    Debug("pf::arith") << "  " << std::setw(8) << r;
-    Debug("pf::arith") << "  " << child << std::endl;
+    for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+    {
+      const Node& child = conflict[i];
+      const Rational& r = (*farkasCoefficients)[i];
+      Debug("pf::arith") << "  " << std::setw(8) << r;
+      Debug("pf::arith") << "  " << child << std::endl;
+    }
   }
 
   std::set<Node> lits;
