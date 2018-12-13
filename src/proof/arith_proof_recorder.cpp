@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A class for saving the skeletons of a arithmetic proofs for later.
+ ** \brief A class for saving the skeletons of arithmetic proofs for later.
  **/
 
 #include "proof/arith_proof_recorder.h"
