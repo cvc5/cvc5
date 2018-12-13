@@ -168,9 +168,12 @@ void CegSingleInv::initialize(Node q)
     // disabled single invocation techniques.
     if( options::cegqiSingleInvMode()!=CEGQI_SI_MODE_NONE ){
       d_single_invocation = true;
+      return;
     }
-    return;
   }
+  // We are processing without single invocation techniques, now check if 
+  // we should fix an invariant template (post-condition strengthening or
+  // pre-condition weakening).
   SygusInvTemplMode tmode = options::sygusInvTemplMode();
   if (tmode != SYGUS_INV_TEMPL_MODE_NONE)
   {
@@ -226,8 +229,7 @@ void CegSingleInv::initialize(Node q)
   std::vector< Node > new_bv;
   for (unsigned j = 0, size = sivars.size(); j < size; j++)
   {
-    new_bv.push_back(
-        nm->mkBoundVar(sivars[j].getType()));
+    new_bv.push_back(nm->mkBoundVar(sivars[j].getType()));
   }
   d_simp_quant = d_simp_quant.substitute(
       sivars.begin(), sivars.end(), new_bv.begin(), new_bv.end());
