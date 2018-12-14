@@ -12,7 +12,7 @@ cd drat2er
 
 git checkout api
 
-make build
+mkdir build
 
 cd build
 
