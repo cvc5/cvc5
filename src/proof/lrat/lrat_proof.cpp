@@ -237,7 +237,7 @@ std::istream& operator>>(std::istream& in, SatLiteral& l)
 {
   int64_t i;
   in >> i;
-  l = SatLiteral(labs(i), i < 0);
+  l = SatLiteral(std::abs(i), i < 0);
   return in;
 }
 
