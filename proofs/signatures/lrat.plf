@@ -504,7 +504,7 @@
 ; Goes through a list of clause, trace pairs and verifies that each clause is
 ; an AT via that trace.
 ; Fails if any putative AT is a TAUT or contains duplicates
-(program are_all_at (
+(program are_all_at_trace (
                      (cs CMap)
                      (l CTPairs)
                     ) UPResult
@@ -514,7 +514,7 @@
                  (match (is_at_trace cs c t)
                         (UPR_Ok UPR_Ok)
                         (UPR_Broken UPR_Broken)
-                        (UPR_Bottom (are_all_at cs l'))))))
+                        (UPR_Bottom (are_all_at_trace cs l'))))))
 
 ; Is this trace, and list of hints, proof that `c` is an Resolution Assymeytic
 ; Tautology?
@@ -532,7 +532,7 @@
                     (ff ; Res targets are bad
                       UPR_Broken)
                     (tt
-                      (are_all_at cs (construct_ct_pairs cs c t hints)))))))
+                      (are_all_at_trace cs (construct_ct_pairs cs c t hints)))))))
 
 ; Is this proof an LRAT proof of bottom?
 ; Fails if any added AT is a TAUT or contains duplicates OR if any added RAT

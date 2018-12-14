@@ -1,0 +1,215 @@
+; Depends on lrat.plf
+;
+;
+;
+; Implementation of DRAT checking.
+; Checks the specified DRAT format.
+;   Description found in http://fmv.jku.at/papers/RebolaPardoBiere-POS18.pdf
+; Does **not** check operational DRAT, so may disagree with DRAT-trim
+;
+; Uses CMap's to store multi sets of clauses so that machinery can be shared
+; with the LRAT checker. Doesn't actually use the indices though.
+
+(declare cnf_holds (! c cnf type))
+(declare cnfn_proof (cnf_holds cnfn))
+(declare cnfc_proof
+         (! c clause
+         (! deduped_c clause
+            (! rest cnf
+               (! proof_c (holds c)
+                  (! proof_rest (cnf_holds rest)
+                     (! sc (^ (clause_dedup c) deduped_c)
+                        (cnf_holds (cnfc c rest)))))))))
+
+; A DRAT proof itself: a list of addition or deletion instructions.
+(declare DRATProof type)
+(declare DRATProofn DRATProof)
+(declare DRATProofa (! c clause (! p DRATProof DRATProof)))
+(declare DRATProofd (! c clause (! p DRATProof DRATProof)))
+
+; ==================== ;
+; Functional  Programs ;
+; ==================== ;
+
+; Are two clauses equal (in the set sense)
+;
+; Since clauses are sets, it is insufficient to do list equality
+; We could sort them, but that would require defining an order on our variables,
+; and incurring the cost of sorting.
+; Instead, we do the following:
+;  1. Sweep the first clause, marking variables with flags 1 (pos) and 2 (neg)
+;  2. Sweep the second clause, erasing marks.
+;  3. Unsweep the first clause, returning FALSE on marks.
+;     Also unmarking
+; TODO(aozdemir) This implementation could be further optimized b/c once c1 is
+; drained, we need not continue to pattern match on it.
+(program clause_eq ((c1 clause) (c2 clause)) bool
+         (match
+           c1
+           (cln (match
+                  c2
+                  (cln tt)
+                  ((clc c2h c2t) (match
+                                   c2h
+                                   ((pos v) (ifmarked1
+                                              v
+                                              (do (markvar1 v) (clause_eq c1 c2t))
+                                              ff))
+                                   ((neg v) (ifmarked2
+                                              v
+                                              (do (markvar2 v) (clause_eq c1 c2t))
+                                              ff))))))
+           ((clc c1h c1t) (match
+                            c1h
+                            ((pos v) (do
+                                       (markvar1 v)
+                                       (let res (clause_eq c1t c2)
+                                         (ifmarked1
+                                           v
+                                           (do (markvar1 v) ff)
+                                           res))))
+                            ((neg v) (do
+                                       (markvar2 v)
+                                       (let res (clause_eq c1t c2)
+                                         (ifmarked2
+                                           v
+                                           (do (markvar2 v) ff)
+                                           res))))))))
+
+; Does this formula contain bottom as one of its clauses?
+(program CMap_has_bottom ((cs CMap)) bool
+         (match cs
+                (CMapn ff)
+                ((CMapc i c rest) (match c
+                                      (cln tt)
+                                      ((clc l c') (CMap_has_bottom rest))))))
+
+; Return a new CMap with one copy of this clause removed.
+(program CMap_remove_clause ((c clause) (cs CMap)) CMap
+         (match cs
+                (CMapn (fail CMap))
+                ((CMapc i c' cs')
+                 (match (clause_eq c c')
+                        (tt cs')
+                        (ff (CMapc i c' (CMap_remove_clause c cs')))))))
+
+; Turn a cnf into a CMap, where the indices start at `start` and increment
+(program CMap_from_cnf ((f cnf) (start mpz)) CMap
+         (match f
+                (cnfn CMapn)
+                ((cnfc c f') (CMapc start c (CMap_from_cnf f' (mp_add 1 start))))))
+
+
+; return (c1 union (c2 \ ~l))
+; Significant for how a RAT is defined.
+(program clause_pseudo_resolvent ((c1 clause) (l lit) (c2 clause)) clause
+         (clause_dedup (clause_append c1
+                                      (clause_remove_all (lit_flip l) c2))))
+
+; Given a formula, `cs` and a clause `c`, return all pseudo resolvants, i.e. all
+;     (c union (c' \ ~head(c)))
+;   for c' in cs, where c' contains ~head(c)
+(program collect_pseudo_resolvents ((cs CMap) (c clause)) cnf
+         (match cs
+                (CMapn cnfn)
+                ((CMapc i c' cs')
+                 (let rest_of_resolvents (collect_pseudo_resolvents cs' c)
+                   (match (clause_contains_lit c' (lit_flip (clause_head c)))
+                          (tt (cnfc (clause_pseudo_resolvent
+                                      c
+                                      (clause_head c)
+                                      c')
+                                    rest_of_resolvents))
+                          (ff rest_of_resolvents))))))
+
+; =============================================================== ;
+; Unit Propegation implementation (manipulates global assignment) ;
+; =============================================================== ;
+; See the lrat file for a description of the global assignment.
+
+(declare UnitSearchResult type)
+; There was a unit, and this is the (previoiusly floating) literal that is now satified.
+(declare USRUnit (! l lit UnitSearchResult))
+; There was an unsat clause
+(declare USRBottom UnitSearchResult)
+; There was no unit.
+(declare USRNoUnit UnitSearchResult)
+
+; Searches through the clauses, looking for a unit clause.
+;  Returns
+;    USRBottom    if there is an unsat clause
+;    (USRUnit l)  if there is a unit, with lit l
+;    USRNoUnit    if there is no unit
+(program unit_search ((cs CMap)) UnitSearchResult
+         (match cs
+                (CMapn USRNoUnit)
+                ((CMapc i c cs')
+                 (match (clause_check_unit_and_maybe_mark c)
+                        (MRSat (unit_search cs'))
+                        ((MRUnit l) (USRUnit l))
+                        (MRUnsat USRBottom)
+                        (MRNotUnit (unit_search cs'))))))
+
+
+
+(program unit_propegates_to_bottom ((cs CMap)) bool
+         (match (unit_search cs)
+                (USRBottom tt)
+                ((USRUnit l) (let result (unit_propegates_to_bottom cs)
+                               (do (lit_un_mk_sat l)
+                                 result)))
+                (USRNoUnit ff)))
+
+
+
+; ================================== ;
+; High-Level DRAT checking functions ;
+; ================================== ;
+
+; Is this clause an AT?
+(program is_at ((cs CMap) (c clause)) bool
+         (match (is_t c)
+                (tt tt)
+                (ff (do (clause_mk_all_unsat c)
+                      (let r (unit_propegates_to_bottom cs)
+                        (do (clause_un_mk_all_unsat c)
+                          r))))))
+
+; Are all of these clauses ATs?
+(program are_all_at ((cs CMap) (clauses cnf)) bool
+         (match clauses
+                (cnfn tt)
+                ((cnfc c clauses')
+                 (match (is_at cs c)
+                        (tt (are_all_at cs clauses'))
+                        (ff ff)))))
+
+; Is this clause a RAT?
+(program is_rat ((cs CMap) (c clause)) bool
+         (match (is_t c)
+                (tt tt)
+                (ff (match (is_at cs c)
+                           (tt tt)
+                           (ff (are_all_at
+                                 cs
+                                 (collect_pseudo_resolvents cs c)))))))
+
+; Is this proof a valid DRAT proof of bottom?
+(program is_drat_proof_of_bottom ((f CMap) (proof DRATProof)) bool
+         (match proof
+                (DRATProofn (CMap_has_bottom f))
+                ((DRATProofa c p) (match
+                                    (is_rat f c)
+                                    (tt (is_drat_proof_of_bottom (CMapc 0 c f) p))
+                                    (ff ff)))
+                ((DRATProofd c p)
+                 (is_drat_proof_of_bottom (CMap_remove_clause c f) p))))
+
+
+(declare drat_proof_of_bottom
+         (! f cnf
+            (! proof_of_formula (cnf_holds f)
+               (! proof DRATProof
+                  (! sc (^ (is_drat_proof_of_bottom (CMap_from_cnf f 0) proof) tt)
+                     bottom)))))
+
