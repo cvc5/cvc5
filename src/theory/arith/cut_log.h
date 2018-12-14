@@ -216,7 +216,7 @@ public:
   int getUpId() const;
 
   /**
-   * Looks up a row id to the appropraite arith variable.
+   * Looks up a row id to the appropriate arith variable.
    * Be careful these are deleted in context during replay!
    * failure returns ARITHVAR_SENTINEL */
   ArithVar lookupRowId(int rowId) const;
