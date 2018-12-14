@@ -110,7 +110,6 @@ struct LratInstruction
     LratInstructionData(){/* Empty constructor */};
   } d_data;
 
- public:
   LratInstruction(LratInstruction&& instr);
   LratInstruction(LratInstruction& instr);
   LratInstruction(LratAdditionData&& addition);
