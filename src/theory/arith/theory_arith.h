@@ -41,9 +41,6 @@ private:
 
   TimerStat d_ppRewriteTimer;
 
-  /**
-   * @brief Where to store Farkas proofs of lemmas
-   */
   proof::ArithProofRecorder * d_proofRecorder;
 
 public:

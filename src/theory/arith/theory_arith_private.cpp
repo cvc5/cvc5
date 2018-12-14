@@ -2138,6 +2138,7 @@ Node flattenAndSort(Node n){
 
 /** Outputs conflicts to the output channel. */
 void TheoryArithPrivate::outputConflicts(){
+  Debug("arith::conflict") << "outputting conflicts" << std::endl;
   Assert(anyConflict());
   static unsigned int conflicts = 0;
   
@@ -2145,13 +2146,47 @@ void TheoryArithPrivate::outputConflicts(){
     Assert(!d_conflicts.empty());
     for(size_t i = 0, i_end = d_conflicts.size(); i < i_end; ++i){
       ConstraintCP confConstraint = d_conflicts[i];
+      bool hasProof = confConstraint->hasProof();
       Assert(confConstraint->inConflict());
+      const ConstraintRule & pf = confConstraint->getConstraintRule();
+      if (Debug.isOn("arith::conflict"))
+      {
+        pf.print(std::cout);
+        std::cout << std::endl;
+      }
       Node conflict = confConstraint->externalExplainConflict();
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-        //                               << "("<<conflicts<<")"
+                               << " has proof: " << hasProof
                                << endl;
+      PROOF(
+        if (hasProof)
+        {
+          Assert(confConstraint->wellFormedFarkasProof());
+          // Assert(confConstraint->hasSimpleFarkasProof(),
+          //        "Lemmas must be provable directly from assumptions");
+
+          // For reasons I don't entirely understand the farkas coefficients
+          // and the children of `conflict` seem to be in opposite orders...
+          // There is some relevant documentation in the comment for the
+          // d_farkasCoefficients field  in "constraint.h"
+          //
+          // Anyways, we reverse the children in `conflict` here.
+          NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
+          for (size_t i = 0; i != conflict.getNumChildren(); ++i)
+          {
+            conflictInFarkasCoefficientOrder << conflict[conflict.getNumChildren() - i - 1];
+          }
+
+          if (d_containing.d_proofRecorder) {
+            Assert(conflict.getNumChildren() == pf.d_farkasCoefficients->size());
+            d_containing.d_proofRecorder->saveFarkasCoefficients(
+                conflictInFarkasCoefficientOrder,
+                pf.d_farkasCoefficients);
+          }
+        }
+      )
       if(Debug.isOn("arith::normalize::external")){
         conflict = flattenAndSort(conflict);
         Debug("arith::conflict") << "(normalized to) " << conflict << endl;
@@ -2174,7 +2209,9 @@ void TheoryArithPrivate::outputConflicts(){
     (d_containing.d_out)->conflict(bb);
   }
 }
+
 void TheoryArithPrivate::outputLemma(TNode lem) {
+  Debug("arith::lemma") << "Arith Lemma: " << lem << std::endl;
   (d_containing.d_out)->lemma(lem);
 }
 
@@ -4810,10 +4847,37 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     PROOF(d_farkasBuffer.clear());
     RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
  
+    // So apparently after invoking this:
+    //   * coeffs[0] is for implied
+    //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);
     if(d_tableau.getRowLength(ridx) <= options::arithPropAsLemmaLength()){
       Node implication = implied->externalImplication(explain);
       Node clause = flattenImplication(implication);
+      if (d_containing.d_proofRecorder) {
+        Debug("arith::prop") << "implied    : " << implied << std::endl;
+        Debug("arith::prop") << "implication: " << implication << std::endl;
+        Debug("arith::prop") << "coeff len: " << coeffs->size() << std::endl;
+        Debug("arith::prop") << "exp    : " << explain << std::endl;
+        Debug("arith::prop") << "clause : " << clause << std::endl;
+        Debug("arith::prop") << "clause len: " << clause.getNumChildren() << std::endl;
+        Debug("arith::prop") << "exp len: " << explain.size() << std::endl;
+        // Using the information from the above comment we assemble a conflict
+        // AND in coefficient order
+        NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
+        conflictInFarkasCoefficientOrder << implication[1].negate();
+        for (const Node & antecedent : implication[0])
+        {
+          Debug("arith::prop") << "  ante: " << antecedent << std::endl;
+          conflictInFarkasCoefficientOrder << antecedent;
+        }
+
+        Assert(coeffs != RationalVectorPSentinel);
+        Assert(conflictInFarkasCoefficientOrder.getNumChildren() == coeffs->size());
+        d_containing.d_proofRecorder->saveFarkasCoefficients(
+            conflictInFarkasCoefficientOrder,
+            coeffs);
+      }
       outputLemma(clause);
     }else{
       Assert(!implied->negationHasProof());

@@ -274,8 +274,8 @@ struct ConstraintRule {
    * We treat the position for NullConstraint (p-n) as the position for the farkas
    * coefficient for so we pretend c_not is ans[p-n].
    * So this correlation for the constraints we are going to use:
-   *   (c_not, ans[p-(n-1)], ... , ans[p-1], ans[p])
-   * With the coefficients at positions:
+   *   (c_not, ans[p-n+(1)], ... , ans[p-n+(n-1)], ans[p-n+(n)])
+   * Withthe coefficients at positions:
    *   (fc[0], fc[1)], ... fc[n])
    *
    * The index of the constraints in the proof are {i | i <= 0 <= n] } (with c_not being p-n).
@@ -294,7 +294,7 @@ struct ConstraintRule {
    *  + \sum_{l in L} fc[l] ans[p-n+l]
    * |= 0 < 0
    * where fc[u] > 0, fc[l] < 0, and fc[e] != 0 (i.e. it can be either +/-).
-   * 
+   *
    * There is no requirement that the proof is minimal.
    * We do however use all of the constraints by requiring non-zero coefficients.
    */
@@ -648,6 +648,12 @@ public:
   /** Returns true if the node has a Farkas' proof. */
   bool hasFarkasProof() const;
 
+  /**
+   * @brief Returns whether this constraint is provable using a Farkas
+   * proof that has input assertions as its antecedents.
+   */
+  bool hasSimpleFarkasProof() const;
+
   /** Returns true if the node has a int hole proof. */
   bool hasIntHoleProof() const;
 
@@ -896,7 +902,7 @@ public:
    */
   const ConstraintDatabase& getDatabase() const;
 
-private:
+public: // TODO(aozdemir) revert to public
 
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;

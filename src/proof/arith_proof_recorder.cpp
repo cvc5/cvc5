@@ -35,7 +35,7 @@ void ArithProofRecorder::saveFarkasCoefficients(
   for (size_t i = 0; i < conflict.getNumChildren(); ++i)
   {
     const Node& child = conflict[i];
-    Assert(child.getType().isBoolean() && child[0].getType().isReal());
+    Assert(child.getType().isBoolean());
   }
   Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
   if (Debug.isOn("pf::arith"))

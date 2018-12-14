@@ -86,6 +86,67 @@ public:
                       std::ostream& os,
                       const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
+
+
+  /**
+   * @brief Prints a value of type poly_formula_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be of the form [linear polynomial >= constant])
+   */
+  static void printLinearPolynomialPredicateNormalizer(std::ostream& o, const Node& n);
+
+  /**
+   * @brief Prints a value of type poly_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a linear polynomial)
+   */
+  static void printLinearPolynomialNormalizer(std::ostream& o, const Node& n);
+
+  /**
+   * @brief Prints a value of type poly_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a linear monomial)
+   */
+  static void printLinearMonomialNormalizer(std::ostream& o, const Node& n);
+
+  /**
+   * @brief Prints a LFSC rational
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a const rational)
+   */
+  static void printConstRational(std::ostream& o, const Node& n);
+
+  /**
+   * @brief prints the pn_var normalizer for n (type poly_norm)
+   *
+   * @param o the ostream to print to
+   * @param n the node to print (asserted to be a variable)
+   */
+  static void printVariableNormalizer(std::ostream& o, const Node& n);
+  /**
+   * @brief prints a proof of the lemma
+   *
+   * First, we print linearity witnesses, i.e. witnesses  that each literal has
+   * the form:
+   *   <linear polynomial> >= 0 OR
+   *   <linear polynomial> >  0
+   *
+   * Then we use those witnesses to prove that the above linearized constraints
+   * hold.
+   *
+   * Then we use the farkas coefficients to combine the literals into a
+   * variable-free contradiction. This bit is a bit tricky because the literals
+   * may be a mix of strict and relaxed inequalities.
+   *
+   * @param lemma the set of literals disjoined in the lemma
+   * @param os stream to print the proof to
+   * @param paren global closing stream (unused)
+   * @param map let map (unused)
+   */
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
                              std::ostream& paren,
