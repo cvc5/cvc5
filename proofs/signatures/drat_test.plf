@@ -110,58 +110,44 @@
      (% v2 var
         (% v3 var
            (% v4 var
-              (drat_proof_of_bottom _
-                (trust_cnf (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
-                      (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
-                      (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
-                      (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
-                      (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
-                      (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
-                      (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
-                      (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
-                      cnfn)))))))))
-                (DRATProofa (clc (neg v1) cln)
-                      (DRATProofa (clc (pos v2) cln)
-                      (DRATProofa cln
-                      DRATProofn)))))))))
+              (:
+                (holds cln)
+                (drat_proof_of_bottom _
+                  (trust_cnf (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+                        (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+                        (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+                        (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+                        (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+                        (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+                        (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+                        (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+                        cnfn)))))))))
+                  (DRATProofa (clc (neg v1) cln)
+                        (DRATProofa (clc (pos v2) cln)
+                        (DRATProofa cln
+                        DRATProofn))))))))))
 
 
 (check
   (% v1 var (% v2 var (% v3 var (% v4 var
-     (drat_proof_of_bottom _
-       (trust_cnf 
-       (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
-             (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
-             (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
-             (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
-             (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
-             (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
-             (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
-             (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
-             cnfn)))))))))
-       (DRATProofa (clc (neg v1) cln)
-             (DRATProofd (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
-             (DRATProofd (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
-             (DRATProofd (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
-             (DRATProofa (clc (pos v2) cln)
-             (DRATProofd (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
-             (DRATProofd (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
-             (DRATProofa cln
-              DRATProofn))))))))))))))
-; Fails
-; (check
-;   (% v1 var
-;      (% v2 var
-;         (% v3 var
-;            (% v4 var
-;               (drat_proof_of_bottom
-;                 (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
-;                       (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
-;                       (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
-;                       (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
-;                       (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
-;                       (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
-;                       (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
-;                       (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
-;                       cnfn))))))))
-; (dratpc (drat_addition (clc (neg v1) cln)) dratpn)))))))
+     (: (holds cln)
+       (drat_proof_of_bottom _
+         (trust_cnf 
+         (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+               (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+               (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+               (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+               (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+               (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+               (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+               (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+               cnfn)))))))))
+         (DRATProofa (clc (neg v1) cln)
+               (DRATProofd (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+               (DRATProofd (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+               (DRATProofd (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+               (DRATProofa (clc (pos v2) cln)
+               (DRATProofd (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+               (DRATProofd (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+               (DRATProofa cln
+                DRATProofn)))))))))))))))
