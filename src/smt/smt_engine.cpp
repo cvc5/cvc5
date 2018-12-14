@@ -767,8 +767,7 @@ class SmtEnginePrivate : public NodeManagerListener {
 
   /** Expand definitions in n. */
   Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache,
-                         bool expandOnly = false);
+                         NodeToNodeHashMap& cache);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -2651,7 +2650,7 @@ void SmtEnginePrivate::finishInit()
   }
 }
 
-Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache, bool expandOnly)
+Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   stack<std::tuple<Node, Node, bool>> worklist;
   stack<Node> result;
@@ -2774,13 +2773,12 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
                                       n.begin() + formals.size());
         Debug("expand") << "made : " << instance << endl;
 
-        Node expanded = expandDefinitions(instance, cache, expandOnly);
+        Node expanded = expandDefinitions(instance, cache);
         cache[n] = (n == expanded ? Node::null() : expanded);
         result.push(expanded);
         continue;
 
-      } else if(! expandOnly) {
-        // do not do any theory stuff if expandOnly is true
+      } else{
 
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
@@ -4056,7 +4054,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
     Dump("benchmark") << ExpandDefinitionsCommand(e);
   }
   unordered_map<Node, Node, NodeHashFunction> cache;
-  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache, /* expandOnly = */ true);
+  Node n = d_private->expandDefinitions(Node::fromExpr(e), cache);
   n = postprocess(n, TypeNode::fromType(e.getType()));
 
   return n.toExpr();
