@@ -175,8 +175,8 @@ namespace rewrite {
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
-	Node normal = NodeManager::currentNM()->mkNode(kind::EQUAL,node[1],node[0]);
-	return RewriteResponse(REWRITE_DONE, normal);
+      Node normal = NodeManager::currentNM()->mkNode(kind::EQUAL,node[1],node[0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -191,7 +191,7 @@ namespace rewrite {
 	   (k == kind::FLOATINGPOINT_MIN_TOTAL) || (k == kind::FLOATINGPOINT_MAX_TOTAL));
 #endif
     if (node[0] == node[1]) {
-      return RewriteResponse(REWRITE_DONE, node[0]);
+      return RewriteResponse(REWRITE_AGAIN_FULL, node[0]);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -204,7 +204,7 @@ namespace rewrite {
 
     if (node[0] > node[1]) {
       Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_EQ,node[1],node[0]);
-      return RewriteResponse(REWRITE_DONE, normal);
+      return RewriteResponse(REWRITE_AGAIN_FULL, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
@@ -217,7 +217,7 @@ namespace rewrite {
 
     if (node[1] > node[2]) {
       Node normal = NodeManager::currentNM()->mkNode(k,node[0],node[2],node[1]);
-      return RewriteResponse(REWRITE_DONE, normal);
+      return RewriteResponse(REWRITE_AGAIN_FULL, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
@@ -229,7 +229,7 @@ namespace rewrite {
 
     if (node[1] > node[2]) {
       Node normal = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_FMA,node[0],node[2],node[1],node[3]);
-      return RewriteResponse(REWRITE_DONE, normal);
+      return RewriteResponse(REWRITE_AGAIN_FULL, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
@@ -249,7 +249,7 @@ namespace rewrite {
 	(childKind == kind::FLOATINGPOINT_ABS)) {
 
       Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
-      return RewriteResponse(REWRITE_AGAIN, rewritten);
+      return RewriteResponse(REWRITE_AGAIN_FULL, rewritten);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
@@ -280,7 +280,11 @@ namespace rewrite {
 			   nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
     }
 
-    return RewriteResponse(REWRITE_DONE, working);
+    if( working!=node )
+    {
+      return RewriteResponse(REWRITE_AGAIN_FULL, working);
+    }
+    return RewriteResponse(REWRITE_DONE, node);
   }
 
   RewriteResponse leqId(TNode node, bool isPreRewrite)
