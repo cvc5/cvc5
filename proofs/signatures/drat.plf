@@ -194,7 +194,7 @@
                         (tt (are_all_at cs clauses'))
                         (ff ff)))))
 
-; Is this clause a RAT?
+; Is the clause `c` a RAT for the formula `cs`?
 (program is_rat ((cs cnf) (c clause)) bool
          (match (is_t c)
                 (tt tt)

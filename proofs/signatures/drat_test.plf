@@ -1,3 +1,4 @@
+;depends on drat.plf
 (declare check_rat
          (! f cnf
             (! c clause
@@ -8,8 +9,8 @@
 (declare trust_cnf (! f cnf (cnf_holds f)))
 
 ; RAT Test 1
-; Formula: -p, -a ^ -p, b ^ b, c ^ -c, a
-; Candidate RAT: p, a
+; Formula: (-p, -a) ^ (-p, b) ^( b, c) ^ (-c, a)
+; Candidate RAT: (p, a)
 ; Answer: true
 (check
   (% va var
