@@ -9,13 +9,16 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief A class for saving the skeletons of arithmetic proofs for later.
+ ** \brief A class for recording the skeletons of arithmetic proofs at solve
+ ** time so they can later be used during proof-production time.
  **/
 
 #include "proof/arith_proof_recorder.h"
 
 #include <algorithm>
 #include <vector>
+
+#include "base/map_util.h"
 
 namespace CVC4 {
 namespace proof {
@@ -64,10 +67,9 @@ bool ArithProofRecorder::hasFarkasCoefficients(
 std::pair<Node, theory::arith::RationalVectorCP>
 ArithProofRecorder::getFarkasCoefficients(const std::set<Node>& conflict) const
 {
-  if (hasFarkasCoefficients(conflict))
+  if (auto *p = FindOrNull(d_lemmasToFarkasCoefficients, conflict))
   {
-    return std::make_pair(d_lemmasToFarkasCoefficients.at(conflict).first,
-                          &d_lemmasToFarkasCoefficients.at(conflict).second);
+    return std::make_pair(p->first, &p->second);
   }
   else
   {
