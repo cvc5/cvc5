@@ -29,7 +29,6 @@
 
 namespace CVC4 {
 
-
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }

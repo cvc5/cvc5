@@ -275,7 +275,7 @@ struct ConstraintRule {
    * coefficient for so we pretend c_not is ans[p-n].
    * So this correlation for the constraints we are going to use:
    *   (c_not, ans[p-n+(1)], ... , ans[p-n+(n-1)], ans[p-n+(n)])
-   * Withthe coefficients at positions:
+   * With the coefficients at positions:
    *   (fc[0], fc[1)], ... fc[n])
    *
    * The index of the constraints in the proof are {i | i <= 0 <= n] } (with c_not being p-n).
@@ -902,10 +902,10 @@ public:
    */
   const ConstraintDatabase& getDatabase() const;
 
-public: // TODO(aozdemir) revert to public
-
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;
+
+private:
   
   inline ArithProofType getProofType() const {
     return getConstraintRule().d_proofType;

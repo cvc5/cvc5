@@ -917,6 +917,9 @@ void CvcPrinter::toStream(
     case kind::STRING_LENGTH:
       out << "LENGTH";
       break;
+    case kind::STRING_SUBSTR:
+      out << "SUBSTR";
+      break;
 
     default:
       Warning() << "Kind printing not implemented for the case of " << n.getKind() << endl;

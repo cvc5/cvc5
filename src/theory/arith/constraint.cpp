@@ -134,7 +134,7 @@ std::ostream& operator<<(std::ostream& o, const ConstraintType t){
 std::ostream& operator<<(std::ostream& o, const Constraint& c){
   o << c.getVariable() << ' ' << c.getType() << ' ' << c.getValue();
   if(c.hasLiteral()){
-    o << " ; (node " << c.getLiteral() << ')';
+    o << "(node " << c.getLiteral() << ')';
   }
   return o;
 }
@@ -608,7 +608,7 @@ void ConstraintRule::print(std::ostream& out) const {
       } else {
         out << "_";
       }
-      out << " * [ " << *antecedent << " ]" << std::endl;
+      out << " * (" << *antecedent << ")" << std::endl;
       
       Assert((coeffs == RationalVectorCPSentinel) || coeffIterator > 0);
       --p;
@@ -620,7 +620,7 @@ void ConstraintRule::print(std::ostream& out) const {
     } else {
       out << "_";
     }
-    out << " * [ " << *(d_constraint->getNegation()) << " ]";
+    out << " * (" << *(d_constraint->getNegation()) << ")";
     out << " [not d_constraint] " << endl;
   }
   out << "}";
