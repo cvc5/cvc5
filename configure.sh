@@ -418,10 +418,10 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCADICAL_DIR=$cadical_dir"
 [ "$cryptominisat_dir" != default ] \
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
-[ "$drat2er_dir" != default ] \
-  && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$cxxtest_dir" != default ] \
   && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
+[ "$drat2er_dir" != default ] \
+  && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$gmp_dir" != default ] \
