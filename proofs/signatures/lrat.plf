@@ -1,5 +1,6 @@
 ; LRAT Proof signature
 ; LRAT format detailed in "Efficient Certified RAT Verification"
+; Link: https://www.cs.utexas.edu/~marijn/publications/lrat.pdf
 ; Author: aozdemir
 ; Depends On: sat.plf, smt.plf
 
@@ -518,8 +519,8 @@
 
 ; Is this trace, and list of hints, proof that `c` is an Resolution Assymeytic
 ; Tautology?
-; Fails is the hints are empty (i.e. `c` should  be AT, and c is TAUT or contains duplicates)
-; Also fails if any of the pseudo-resolvants are TAUT or contain duplicates.
+; Fails is the hints are empty (which means `c` should  be AT) and `c` contains
+; duplicates)
 (program is_rat_trace ((cs CMap) (c clause) (t Trace) (hints RATHints)) UPResult
          (match
            (RATHints_is_empty hints)
@@ -529,7 +530,7 @@
              (match (resolution_targets_match
                       (collect_resolution_targets cs c)
                       hints)
-                    (ff ; Res targets are bad
+                    (ff ; Resolution targets disagree with hints.
                       UPR_Broken)
                     (tt
                       (are_all_at_trace cs (construct_ct_pairs cs c t hints)))))))

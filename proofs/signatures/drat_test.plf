@@ -105,6 +105,22 @@
                 ff))))))
 
 
+; DRAT Test 1 (from Example 1 @ https://www.cs.utexas.edu/~marijn/drat-trim/)
+; without deletions
+; Formula:
+;   p cnf 4 8
+;    1  2 -3 0
+;   -1 -2  3 0
+;    2  3 -4 0
+;   -2 -3  4 0
+;   -1 -3 -4 0
+;    1  3  4 0
+;   -1  2  4 0
+;    1 -2 -4
+; Proof:
+;           -1 0
+;            2 0
+;              0
 (check
   (% v1 var
      (% v2 var
@@ -128,6 +144,27 @@
                         DRATProofn))))))))))
 
 
+; DRAT Test 2 (from Example 1 @ https://www.cs.utexas.edu/~marijn/drat-trim/)
+; with deletions
+; Formula:
+;   p cnf 4 8
+;    1  2 -3 0
+;   -1 -2  3 0
+;    2  3 -4 0
+;   -2 -3  4 0
+;   -1 -3 -4 0
+;    1  3  4 0
+;   -1  2  4 0
+;    1 -2 -4
+; Proof:
+;           -1 0
+;   d -1 -2  3 0
+;   d -1 -3 -4 0
+;   d -1  2  4 0
+;            2 0
+;   d  1  2 -3 0
+;   d  2  3 -4 0
+;              0
 (check
   (% v1 var (% v2 var (% v3 var (% v4 var
      (: (holds cln)
