@@ -3,7 +3,7 @@
          (! f cnf
             (! c clause
                (! b bool
-                  (! sc (^ (is_rat (CMap_from_cnf f 0) c) b)
+                  (! sc (^ (is_rat f c) b)
                     bottom)))))
 
 (declare trust_cnf (! f cnf (cnf_holds f)))

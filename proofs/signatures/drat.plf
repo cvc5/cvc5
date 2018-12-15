@@ -80,7 +80,7 @@
                                            res))))))))
 
 ; Does this formula contain bottom as one of its clauses?
-(program cnf_has_bottom ((cs CMap)) bool
+(program cnf_has_bottom ((cs cnf)) bool
          (match cs
                 (cnfn ff)
                 ((cnfc c rest) (match c
@@ -114,7 +114,6 @@
                    (match (clause_contains_lit c' (lit_flip (clause_head c)))
                           (tt (cnfc (clause_pseudo_resolvent
                                       c
-                                      (clause_head c)
                                       c')
                                     rest_of_resolvents))
                           (ff rest_of_resolvents))))))
@@ -139,7 +138,7 @@
 ; cnf. Otherwise, returns the UnitSearchResult unmodified.
 (program USR_add_clause ((c clause) (usr UnitSearchResult)) UnitSearchResult
          (match usr
-                ((USRUnit l f) (USRUnit l (clc c f)))
+                ((USRUnit l f) (USRUnit l (cnfc c f)))
                 (USRBottom USRBottom)
                 (USRNoUnit USRNoUnit)))
 
@@ -220,6 +219,6 @@
          (! f cnf
             (! proof_of_formula (cnf_holds f)
                (! proof DRATProof
-                  (! sc (^ (is_drat_proof_of_bottom (CMap_from_cnf f 0) proof) tt)
+                  (! sc (^ (is_drat_proof_of_bottom f proof) tt)
                      bottom)))))
 
