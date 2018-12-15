@@ -175,7 +175,8 @@ namespace rewrite {
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
-      Node normal = NodeManager::currentNM()->mkNode(kind::EQUAL,node[1],node[0]);
+      Node normal =
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
       return RewriteResponse(REWRITE_AGAIN_FULL, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
@@ -280,7 +281,7 @@ namespace rewrite {
 			   nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
     }
 
-    if( working!=node )
+    if (working != node)
     {
       return RewriteResponse(REWRITE_AGAIN_FULL, working);
     }
