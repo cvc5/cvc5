@@ -635,6 +635,10 @@ class CVC4ApiExceptionStream
   CVC4_PREDICT_FALSE(cond)   \
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
 
+#define CVC4_API_CHECK_NOT_NULL                                           \
+  CVC4_API_CHECK(!isNull()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
+                            << "', expected non-null object";
+
 #define CVC4_API_KIND_CHECK(kind)     \
   CVC4_API_CHECK(isDefinedKind(kind)) \
       << "Invalid kind '" << kindToString(kind) << "'";
@@ -1166,9 +1170,17 @@ bool OpTerm::operator==(const OpTerm& t) const { return *d_expr == *t.d_expr; }
 
 bool OpTerm::operator!=(const OpTerm& t) const { return *d_expr != *t.d_expr; }
 
-Kind OpTerm::getKind() const { return intToExtKind(d_expr->getKind()); }
+Kind OpTerm::getKind() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return intToExtKind(d_expr->getKind());
+}
 
-Sort OpTerm::getSort() const { return Sort(d_expr->getType()); }
+Sort OpTerm::getSort() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return Sort(d_expr->getType());
+}
 
 bool OpTerm::isNull() const { return d_expr->isNull(); }
 
@@ -1750,6 +1762,7 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   return d_exprMgr->mkSortConstructor(symbol, arity);
 }
 

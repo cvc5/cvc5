@@ -112,7 +112,7 @@ struct OptionHandler<T, true, true> {
 
       if(!success){
         throw OptionException(option + ": failed to parse "+ optionarg +
-                              " as an integer of the appropraite type.");
+                              " as an integer of the appropriate type.");
       }
 
       // Depending in the platform unsigned numbers with '-' signs may parse.
