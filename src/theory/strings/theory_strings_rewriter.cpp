@@ -1806,18 +1806,8 @@ Node TheoryStringsRewriter::rewriteSubstr(Node node)
       }
     }
   }
-  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
-  return node;
-}
-
-Node TheoryStringsRewriter::rewriteSubstrExt(Node node)
-{
-  Assert(node.getKind() == STRING_SUBSTR);
-
-  NodeManager* nm = NodeManager::currentNM();
-
   // combine substr
-  if (node[0].getKind() == STRING_SUBSTR)
+  if (node[0].getKind() == kind::STRING_SUBSTR)
   {
     Node start_inner = node[0][1];
     Node start_outer = node[1];
@@ -1830,7 +1820,7 @@ Node TheoryStringsRewriter::rewriteSubstrExt(Node node)
       // the length of a string from the inner substr subtracts the start point
       // of the outer substr
       Node len_from_inner =
-          Rewriter::rewrite(nm->mkNode(MINUS, node[0][2], start_outer));
+          Rewriter::rewrite(nm->mkNode(kind::MINUS, node[0][2], start_outer));
       Node len_from_outer = node[2];
       Node new_len;
       // take quantity that is for sure smaller than the other
@@ -1848,13 +1838,14 @@ Node TheoryStringsRewriter::rewriteSubstrExt(Node node)
       }
       if (!new_len.isNull())
       {
-        Node new_start = nm->mkNode(PLUS, start_inner, start_outer);
-        Node ret = nm->mkNode(STRING_SUBSTR, node[0][0], new_start, new_len);
+        Node new_start = nm->mkNode(kind::PLUS, start_inner, start_outer);
+        Node ret =
+            nm->mkNode(kind::STRING_SUBSTR, node[0][0], new_start, new_len);
         return returnRewrite(node, ret, "ss-combine");
       }
     }
   }
-
+  Trace("strings-rewrite-nf") << "No rewrites for : " << node << std::endl;
   return node;
 }
 
