@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
   proof/arith_proof.h
+  proof/arith_proof_recorder.cpp
+  proof/arith_proof_recorder.h
   proof/array_proof.cpp
   proof/array_proof.h
   proof/bitvector_proof.cpp

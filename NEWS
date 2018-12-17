@@ -1,5 +1,16 @@
 This file contains a summary of important user-visible changes. 
 
+Changes since 1.6
+=================
+
+New Features:
+
+Improvements:
+
+Changes:
+* API change: Expr::iffExpr() is renamed to Expr::eqExpr() to reflect its
+              actual behavior.
+
 Changes since 1.5
 =================
 

@@ -595,7 +595,8 @@ Expr Expr::xorExpr(const Expr& e) const {
   return d_exprManager->mkExpr(XOR, *this, e);
 }
 
-Expr Expr::iffExpr(const Expr& e) const {
+Expr Expr::eqExpr(const Expr& e) const
+{
   Assert(d_exprManager != NULL,
          "Don't have an expression manager for this expression!");
   PrettyCheckArgument(d_exprManager == e.d_exprManager, e,

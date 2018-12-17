@@ -635,6 +635,10 @@ class CVC4ApiExceptionStream
   CVC4_PREDICT_FALSE(cond)   \
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
 
+#define CVC4_API_CHECK_NOT_NULL                                           \
+  CVC4_API_CHECK(!isNull()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
+                            << "', expected non-null object";
+
 #define CVC4_API_KIND_CHECK(kind)     \
   CVC4_API_CHECK(isDefinedKind(kind)) \
       << "Invalid kind '" << kindToString(kind) << "'";
@@ -1003,27 +1007,102 @@ bool Term::operator==(const Term& t) const { return *d_expr == *t.d_expr; }
 
 bool Term::operator!=(const Term& t) const { return *d_expr != *t.d_expr; }
 
-Kind Term::getKind() const { return intToExtKind(d_expr->getKind()); }
+Kind Term::getKind() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return intToExtKind(d_expr->getKind());
+}
 
-Sort Term::getSort() const { return Sort(d_expr->getType()); }
+Sort Term::getSort() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return Sort(d_expr->getType());
+}
 
 bool Term::isNull() const { return d_expr->isNull(); }
 
-Term Term::notTerm() const { return d_expr->notExpr(); }
+Term Term::notTerm() const
+{
+  try
+  {
+    return d_expr->notExpr();
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
-Term Term::andTerm(const Term& t) const { return d_expr->andExpr(*t.d_expr); }
+Term Term::andTerm(const Term& t) const
+{
+  try
+  {
+    return d_expr->andExpr(*t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
-Term Term::orTerm(const Term& t) const { return d_expr->orExpr(*t.d_expr); }
+Term Term::orTerm(const Term& t) const
+{
+  try
+  {
+    return d_expr->orExpr(*t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
-Term Term::xorTerm(const Term& t) const { return d_expr->xorExpr(*t.d_expr); }
+Term Term::xorTerm(const Term& t) const
+{
+  try
+  {
+    return d_expr->xorExpr(*t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
-Term Term::iffTerm(const Term& t) const { return d_expr->iffExpr(*t.d_expr); }
+Term Term::eqTerm(const Term& t) const
+{
+  try
+  {
+    return d_expr->eqExpr(*t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
-Term Term::impTerm(const Term& t) const { return d_expr->impExpr(*t.d_expr); }
+Term Term::impTerm(const Term& t) const
+{
+  try
+  {
+    return d_expr->impExpr(*t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
 Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
-  return d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
+  try
+  {
+    return d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 std::string Term::toString() const { return d_expr->toString(); }
@@ -1166,9 +1245,17 @@ bool OpTerm::operator==(const OpTerm& t) const { return *d_expr == *t.d_expr; }
 
 bool OpTerm::operator!=(const OpTerm& t) const { return *d_expr != *t.d_expr; }
 
-Kind OpTerm::getKind() const { return intToExtKind(d_expr->getKind()); }
+Kind OpTerm::getKind() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return intToExtKind(d_expr->getKind());
+}
 
-Sort OpTerm::getSort() const { return Sort(d_expr->getType()); }
+Sort OpTerm::getSort() const
+{
+  CVC4_API_CHECK_NOT_NULL;
+  return Sort(d_expr->getType());
+}
 
 bool OpTerm::isNull() const { return d_expr->isNull(); }
 
@@ -1750,6 +1837,7 @@ Sort Solver::mkUninterpretedSort(const std::string& symbol) const
 Sort Solver::mkSortConstructorSort(const std::string& symbol,
                                    size_t arity) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(arity > 0, arity) << "an arity > 0";
   return d_exprMgr->mkSortConstructor(symbol, arity);
 }
 
