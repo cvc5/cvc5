@@ -696,9 +696,7 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
     if (!d_realMode) {
       os << r.abs();
     } else {
-      os << r.abs().getNumerator();
-      os << "/";
-      os << r.getDenominator();
+      printRational(os, r.abs());
     }
 
     if (neg) {
@@ -842,6 +840,19 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
   }
 }
 
+void LFSCArithProof::printRational(std::ostream& o, const Rational& r)
+{
+  if (r.sgn() < 0)
+  {
+    o << "(~ " << r.getNumerator().abs() << "/" << r.getDenominator().abs()
+      << ")";
+  }
+  else
+  {
+    o << r.getNumerator() << "/" << r.getDenominator();
+  }
+}
+
 void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o, const Node& n)
 {
   switch (n.getKind())
@@ -926,17 +937,7 @@ void LFSCArithProof::printConstRational(std::ostream& o, const Node& n)
 {
   Assert(n.getKind() == kind::CONST_RATIONAL);
   const Rational value = n.getConst<Rational>();
-  if (value.sgn() > 0)
-  {
-    o << value.getNumerator() << "/" << value.getDenominator();
-  }
-  else
-  {
-    Rational abs = value.abs();
-    o << "(~ ";
-    o << abs.getNumerator() << "/" << abs.getDenominator();
-    o << ")";
-  }
+  printRational(o, value);
 }
 
 void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
@@ -979,9 +980,11 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
 
-  // Get farkas coefficients & literal order
+  // If we have Farkas coefficients stored for this lemma, use them to write a
+  // proof. Otherwise, just `trust` the lemma.
   if (d_recorder.hasFarkasCoefficients(conflictSet))
   {
+    // Get farkas coefficients & literal order
     const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
     const Node& conflict = farkasInfo.first;
     theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
@@ -1043,7 +1046,10 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
       }
     }
 
-    /* Combine linear polynomial constraints to derive a contradiction
+    /* Combine linear polynomial constraints to derive a contradiction.
+     *
+     * The linear polynomial constraints are refered to as **antecedents**,
+     * since they are antecedents to the contradiction.
      *
      * The structure of the combination is a tree
      *
@@ -1064,10 +1070,10 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
      * Where each * is a linearized antecedant being scaled by a farkas
      * coefficient and each + is the sum of inequalities. The tricky bit is that
      * each antecedent can be strict (>) or relaxed (>=) and the axiom used for
-     * each * and + depends on this... The axiom for * is a fn of the strictness
-     * of its linear polynomial input, and the axiom for + is a fn of the
-     * strictness of **both** its inputs. The contradiction axiom is also a
-     * function of the strictness of its input.
+     * each * and + depends on this... The axiom for * depends on the
+     * strictness of its linear polynomial input, and the axiom for + depends
+     * on the strictness of **both** its inputs. The contradiction axiom is
+     * also a function of the strictness of its input.
      *
      * There are n *s and +s and we precompute
      *    1. The strictness of the ith antecedant  (`ith_antecedent_is_strict`)
@@ -1104,16 +1110,14 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
     for (size_t i = 0; i != nAntecedents; ++i)
     {
       const Node& lit = conflict[i];
-      const Rational coefficient = (*farkasCoefficients)[i].abs();
       const char* ante_op = ith_antecedent_is_strict[i] ? ">" : ">=";
       const char* acc_op = ith_acc_is_strict[i] ? ">" : ">=";
       os << "\n    (lra_add_" << ante_op << "_" << acc_op << " _ _ _ ";
       os << "\n       (lra_mul_c_" << ante_op << " _ _ ";
-      os << coefficient.getNumerator() << "/" << coefficient.getDenominator()
-         << " ";
-      os << ProofManager::getLitName(lit.negate(), linearizedProofPrefix)
-         << ")";
-      os << " ; " << lit;
+      printRational(os, (*farkasCoefficients)[i].abs());
+      os << " " << ProofManager::getLitName(lit.negate(), linearizedProofPrefix)
+         << ")"
+         << " ; " << lit;
     }
 
     // The basis, at least, is always the same...
@@ -1127,7 +1131,8 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   }
   else
   {
-    os << "\n(clausify_false trust)\n";
+    os << "\n; Arithmetic proofs which use reasoning more complex than Farkas "
+          "proofs are currently unsupported\n(clausify_false trust)\n";
   }
 }
 

@@ -30,12 +30,19 @@ ArithProofRecorder::ArithProofRecorder() : d_lemmasToFarkasCoefficients()
 void ArithProofRecorder::saveFarkasCoefficients(
     Node conflict, theory::arith::RationalVectorCP farkasCoefficients)
 {
+  // Verify that the conflict is a conjuction of (possibly negated) real bounds
+  // Verify that the conflict is a conjunciton ...
   Assert(conflict.getKind() == kind::AND);
   Assert(conflict.getNumChildren() == farkasCoefficients->size());
   for (size_t i = 0; i < conflict.getNumChildren(); ++i)
   {
     const Node& child = conflict[i];
-    Assert(child.getType().isBoolean());
+    // ... of possibly negated ...
+    const Node& nonNegativeChild =
+        child.getKind() == kind::NOT ? child[0] : child;
+    // ... real bounds
+    Assert(nonNegativeChild.getType().isBoolean()
+           && nonNegativeChild[0].getType().isReal());
   }
   Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
   if (Debug.isOn("pf::arith"))

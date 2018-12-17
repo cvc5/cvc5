@@ -87,6 +87,15 @@ public:
                       const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
 
+  /**
+   * @brief Prints a rational number in LFSC format.
+   *        e.g. 5/8 or (~ 1/1)
+   *
+   * @param o ostream to print to.
+   * @param r the rational to print
+   */
+  static void printRational(std::ostream& o, const Rational& r);
+
 
   /**
    * @brief Prints a value of type poly_formula_norm
@@ -132,15 +141,15 @@ public:
    *
    * First, we print linearity witnesses, i.e. witnesses  that each literal has
    * the form:
-   *   <linear polynomial> >= 0 OR
-   *   <linear polynomial> >  0
+   *   [linear polynomial] >= 0 OR
+   *   [linear polynomial] >  0
    *
    * Then we use those witnesses to prove that the above linearized constraints
    * hold.
    *
    * Then we use the farkas coefficients to combine the literals into a
-   * variable-free contradiction. This bit is a bit tricky because the literals
-   * may be a mix of strict and relaxed inequalities.
+   * variable-free contradiction. The literals may be a mix of strict and
+   * relaxed inequalities.
    *
    * @param lemma the set of literals disjoined in the lemma
    * @param os stream to print the proof to

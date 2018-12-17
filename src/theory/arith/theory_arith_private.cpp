@@ -2164,10 +2164,9 @@ void TheoryArithPrivate::outputConflicts(){
                 && pf.d_farkasCoefficients->size()
                        == conflict.getNumChildren()) {
 
-        // For reasons I don't entirely understand the farkas coefficients
-        // and the children of `conflict` seem to be in opposite orders...
-        // There is some relevant documentation in the comment for the
-        // d_farkasCoefficients field  in "constraint.h"
+        // The Farkas coefficients and the children of `conflict` seem to be in
+        // opposite orders... There is some relevant documentation in the
+        // comment for the d_farkasCoefficients field  in "constraint.h"
         //
         // Anyways, we reverse the children in `conflict` here.
         NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
@@ -4841,7 +4840,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
     PROOF(d_farkasBuffer.clear());
     RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
  
-    // So apparently after invoking this:
+    // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
     //   * coeffs[i+1] is for explain[i]
     d_linEq.propagateRow(explain, ridx, rowUp, implied, coeffs);

@@ -503,7 +503,9 @@ bool Constraint::hasSimpleFarkasProof() const {
   Debug("constraints::hsfp") << "hasSimpleFarkasProof " << this << std::endl;
   if (!hasFarkasProof())
   {
-    Debug("constraints::hsfp") << "<= false b/c no Farkas proof" << std::endl;
+    Debug("constraints::hsfp") << "There is no simple Farkas proof because "
+                                  "there is no farkas proof."
+                               << std::endl;
     return false;
   }
   const ConstraintRule& rule = getConstraintRule();
@@ -513,7 +515,8 @@ bool Constraint::hasSimpleFarkasProof() const {
   {
     if (antecdent->getProofType() != AssumeAP)
     {
-      Debug("constraints::hsfp") << "<= false b/c antecdent w/ rule ";
+      Debug("constraints::hsfp") << "There is no simple Farkas proof b/c there "
+                                    "is an antecdent w/ rule ";
       antecdent->getConstraintRule().print(Debug("constraints::hsfp"));
       Debug("constraints::hsfp") << std::endl;
       return false;
@@ -521,7 +524,6 @@ bool Constraint::hasSimpleFarkasProof() const {
     --antId;
     antecdent = d_database->getAntecedent(antId);
   }
-  Debug("constraints::hsfp") << "<= true!" << std::endl;
   return true;
 }
 
@@ -1435,9 +1437,12 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
   Assert(!isAssumption() || assertedToTheTheory());
   Assert(!isInternalAssumption());
 
-  Debug("pf::arith") << "Explaining: " << this << " with rule ";
-  getConstraintRule().print(Debug("pf::arith"));
-  Debug("pf::arith") << std::endl;
+  if (Debug.isOn("pf::arith"))
+  {
+    Debug("pf::arith") << "Explaining: " << this << " with rule ";
+    getConstraintRule().print(Debug("pf::arith"));
+    Debug("pf::arith") << std::endl;
+  }
 
   if(assertedBefore(order)){
     nb << getWitness();
