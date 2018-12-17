@@ -277,8 +277,9 @@ namespace rewrite {
     // Lift negation out of the LHS so it can be cancelled out
     if (working[0].getKind() == kind::FLOATINGPOINT_NEG) {
       NodeManager * nm = NodeManager::currentNM();
-      working = nm->mkNode(kind::FLOATINGPOINT_NEG,
-                          nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+      working = nm->mkNode(
+          kind::FLOATINGPOINT_NEG,
+          nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
       // in contrast to other rewrites here, this requires rewrite again full
       return RewriteResponse(REWRITE_AGAIN_FULL, working);
     }
