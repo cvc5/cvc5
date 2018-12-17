@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "expr/expr.h"
+#include "proof/arith_proof_recorder.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "theory/uf/equality_engine.h"
@@ -61,6 +62,11 @@ protected:
 
   //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
+
+  /**
+   * @brief Where farkas proofs of lemmas are stored.
+   */
+  proof::ArithProofRecorder d_recorder;
 
   bool d_realMode;
   theory::TheoryId getTheoryId() override;
