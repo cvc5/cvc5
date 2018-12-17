@@ -159,21 +159,12 @@ class TheoryStringsRewriter {
   * Returns the rewritten form of node.
   */
   static Node rewriteConcat(Node node);
-
   /** rewrite substr
   * This is the entry point for post-rewriting terms node of the form
   *   str.substr( s, i1, i2 )
   * Returns the rewritten form of node.
   */
   static Node rewriteSubstr(Node node);
-
-  /** rewrite substr extended
-   * This is the entry point for extended post-rewriting terms node of the form
-   *   str.substr( s, i1, i2 )
-   * Returns the rewritten form of node.
-   */
-  static Node rewriteSubstrExt(Node node);
-
   /** rewrite contains
   * This is the entry point for post-rewriting terms node of the form
   *   str.contains( t, s )
