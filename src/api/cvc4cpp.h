@@ -607,11 +607,11 @@ class CVC4_PUBLIC Term
   Term xorTerm(const Term& t) const;
 
   /**
-   * Boolean if-and-only-if.
+   * Equality.
    * @param t a Boolean term
    * @return the Boolean equivalence of this term and the given term
    */
-  Term iffTerm(const Term& t) const;
+  Term eqTerm(const Term& t) const;
 
   /**
    * Boolean implication.
