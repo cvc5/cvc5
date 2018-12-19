@@ -391,7 +391,7 @@ public:
    * Returns the Boolean equivalence of this expression and
    * the given expression.
    */
-  Expr iffExpr(const Expr& e) const;
+  Expr eqExpr(const Expr& e) const;
 
   /**
    * Returns the implication of this expression and
