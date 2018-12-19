@@ -68,7 +68,7 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
   Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom
                   << ", " << atom_bb << " )" << std::endl;
 
-  Expr def = atom.iffExpr(atom_bb);
+  Expr def = atom.eqExpr(atom_bb);
   d_bbAtoms.insert(std::make_pair(atom, def));
   registerTerm(atom);
 
