@@ -70,8 +70,8 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Index of the abstract value
    * Create with:
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
+   *   mkConst(Kind kind, const char* arg)
+   *   mkConst(Kind kind, const std::string& arg)
    *   mkConst(Kind kind, uint32_t arg)
    *   mkConst(Kind kind, int32_t arg)
    *   mkConst(Kind kind, int64_t arg)
@@ -1922,7 +1922,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * All set variables must be interpreted as subsets of it.
    * Create with:
    *   mkUniverseSet(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
+   *   mkConst(Kind kind, Sort sort)
    */
   UNIVERSE_SET,
   /**

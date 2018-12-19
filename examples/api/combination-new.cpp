@@ -59,8 +59,8 @@ int main()
   Term p = slv.mkVar("p", intPred);
 
   // Constants
-  Term zero = slv.mkInteger(0);
-  Term one = slv.mkInteger(1);
+  Term zero = slv.mkReal(0);
+  Term one = slv.mkReal(1);
 
   // Terms
   Term f_x = slv.mkTerm(APPLY_UF, f, x);

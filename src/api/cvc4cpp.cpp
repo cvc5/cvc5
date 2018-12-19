@@ -32,6 +32,7 @@
 #include "util/result.h"
 #include "util/utility.h"
 
+#include <cstring>
 #include <sstream>
 
 namespace CVC4 {
@@ -639,6 +640,10 @@ class CVC4ApiExceptionStream
   CVC4_API_CHECK(!isNull()) << "Invalid call to '" << __PRETTY_FUNCTION__ \
                             << "', expected non-null object";
 
+#define CVC4_API_ARG_CHECK_NOT_NULL(arg) \
+  CVC4_API_CHECK(arg != nullptr)         \
+      << "Invalid null argument for '" << #arg << "'";
+
 #define CVC4_API_KIND_CHECK(kind)     \
   CVC4_API_CHECK(isDefinedKind(kind)) \
       << "Invalid kind '" << kindToString(kind) << "'";
@@ -665,12 +670,12 @@ class CVC4ApiExceptionStream
           & CVC4ApiExceptionStream().ostream()      \
                 << "Invalid size of argument '" << #arg << "', expected "
 
-#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)         \
-  CVC4_PREDICT_FALSE(cond)                                                 \
-  ? (void)0                                                                \
-  : OstreamVoider()                                                        \
-          & CVC4ApiExceptionStream().ostream()                             \
-                << "Invalid " << what << "'" << arg << "' at index" << idx \
+#define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)          \
+  CVC4_PREDICT_FALSE(cond)                                                  \
+  ? (void)0                                                                 \
+  : OstreamVoider()                                                         \
+          & CVC4ApiExceptionStream().ostream()                              \
+                << "Invalid " << what << " '" << arg << "' at index" << idx \
                 << ", expected "
 }  // namespace
 
@@ -751,11 +756,15 @@ std::ostream& operator<<(std::ostream& out, const Result& r)
 
 Sort::Sort(const CVC4::Type& t) : d_type(new CVC4::Type(t)) {}
 
+Sort::Sort() : d_type(new CVC4::Type()) {}
+
 Sort::~Sort() {}
 
 bool Sort::operator==(const Sort& s) const { return *d_type == *s.d_type; }
 
 bool Sort::operator!=(const Sort& s) const { return *d_type != *s.d_type; }
+
+bool Sort::isNull() const { return d_type->isNull(); }
 
 bool Sort::isBoolean() const { return d_type->isBoolean(); }
 
@@ -1744,6 +1753,10 @@ Sort Solver::getRoundingmodeSort(void) const
 
 Sort Solver::mkArraySort(Sort indexSort, Sort elemSort) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!indexSort.isNull(), indexSort)
+      << "non-null index sort";
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
   return d_exprMgr->mkArrayType(*indexSort.d_type, *elemSort.d_type);
 }
 
@@ -1769,6 +1782,8 @@ Sort Solver::mkDatatypeSort(DatatypeDecl dtypedecl) const
 
 Sort Solver::mkFunctionSort(Sort domain, Sort codomain) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
+      << "non-null codomain sort";
   CVC4_API_ARG_CHECK_EXPECTED(domain.isFirstClass(), domain)
       << "first-class sort as domain sort for function sort";
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
@@ -1784,9 +1799,14 @@ Sort Solver::mkFunctionSort(const std::vector<Sort>& sorts, Sort codomain) const
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        << "non-null sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
         << "first-class sort as parameter sort for function sort";
   }
+  CVC4_API_ARG_CHECK_EXPECTED(!codomain.isNull(), codomain)
+      << "non-null codomain sort";
   CVC4_API_ARG_CHECK_EXPECTED(codomain.isFirstClass(), codomain)
       << "first-class sort as codomain sort for function sort";
   Assert(!codomain.isFunction()); /* A function sort is not first-class. */
@@ -1806,6 +1826,9 @@ Sort Solver::mkPredicateSort(const std::vector<Sort>& sorts) const
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        << "non-null sort";
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         sorts[i].isFirstClass(), "parameter sort", sorts[i], i)
         << "first-class sort as parameter sort for predicate sort";
   }
@@ -1817,8 +1840,13 @@ Sort Solver::mkRecordSort(
     const std::vector<std::pair<std::string, Sort>>& fields) const
 {
   std::vector<std::pair<std::string, Type>> f;
+  size_t i = 0;
   for (const auto& p : fields)
   {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !p.second.isNull(), "parameter sort", p.second, i)
+        << "non-null sort";
+    i += 1;
     f.emplace_back(p.first, *p.second.d_type);
   }
   return d_exprMgr->mkRecordType(Record(f));
@@ -1826,6 +1854,8 @@ Sort Solver::mkRecordSort(
 
 Sort Solver::mkSetSort(Sort elemSort) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!elemSort.isNull(), elemSort)
+      << "non-null element sort";
   return d_exprMgr->mkSetType(*elemSort.d_type);
 }
 
@@ -1845,6 +1875,9 @@ Sort Solver::mkTupleSort(const std::vector<Sort>& sorts) const
 {
   for (size_t i = 0, size = sorts.size(); i < size; ++i)
   {
+    CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+        !sorts[i].isNull(), "parameter sort", sorts[i], i)
+        << "non-null sort";
     CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
         !sorts[i].isFunctionLike(), "parameter sort", sorts[i], i)
         << "non-function-like sort as parameter sort for tuple sort";
@@ -1873,328 +1906,805 @@ Term Solver::mkFalse(void) const { return d_exprMgr->mkConst<bool>(false); }
 
 Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
 
-Term Solver::mkInteger(const char* s, uint32_t base) const
-{
-  return d_exprMgr->mkConst(Rational(s, base));
-}
-
-Term Solver::mkInteger(const std::string& s, uint32_t base) const
-{
-  return d_exprMgr->mkConst(Rational(s, base));
-}
-
-Term Solver::mkInteger(int32_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(uint32_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(int64_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
-Term Solver::mkInteger(uint64_t val) const
-{
-  return d_exprMgr->mkConst(Rational(val));
-}
-
 Term Solver::mkPi() const
 {
   return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
 }
 
-Term Solver::mkReal(const char* s, uint32_t base) const
+Term Solver::mkReal(const char* s) const
 {
-  return d_exprMgr->mkConst(Rational(s, base));
+  try
+  {
+    CVC4_API_ARG_CHECK_NOT_NULL(s);
+    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+     * throws an std::invalid_argument exception. For consistency, we treat it
+     * as invalid. */
+    CVC4_API_ARG_CHECK_EXPECTED(std::string(s) != ".", s)
+        << "a string representing an integer, real or rational value.";
+    if (strchr(s, '/') != nullptr)
+    {
+      return d_exprMgr->mkConst(Rational(s));
+    }
+    Term res = d_exprMgr->mkConst(Rational::fromDecimal(s));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
-Term Solver::mkReal(const std::string& s, uint32_t base) const
+Term Solver::mkReal(const std::string& s) const
 {
-  return d_exprMgr->mkConst(Rational(s, base));
+  try
+  {
+    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+     * throws an std::invalid_argument exception. For consistency, we treat it
+     * as invalid. */
+    CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
+        << "a string representing an integer, real or rational value.";
+    Term res = s.find('/') != std::string::npos
+                   ? d_exprMgr->mkConst(Rational(s))
+                   : d_exprMgr->mkConst(Rational::fromDecimal(s));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(int32_t val) const
 {
-  return d_exprMgr->mkConst(Rational(val));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(int64_t val) const
 {
-  return d_exprMgr->mkConst(Rational(val));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(uint32_t val) const
 {
-  return d_exprMgr->mkConst(Rational(val));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(uint64_t val) const
 {
-  return d_exprMgr->mkConst(Rational(val));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(int32_t num, int32_t den) const
 {
-  return d_exprMgr->mkConst(Rational(num, den));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(num, den));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
-  return d_exprMgr->mkConst(Rational(num, den));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(num, den));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(uint32_t num, uint32_t den) const
 {
-  return d_exprMgr->mkConst(Rational(num, den));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(num, den));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkReal(uint64_t num, uint64_t den) const
 {
-  return d_exprMgr->mkConst(Rational(num, den));
+  try
+  {
+    Term res = d_exprMgr->mkConst(Rational(num, den));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkRegexpEmpty() const
 {
-  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>());
+  try
+  {
+    Term res = d_exprMgr->mkExpr(CVC4::kind::REGEXP_EMPTY, std::vector<Expr>());
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkRegexpSigma() const
 {
-  return d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>());
+  try
+  {
+    Term res = d_exprMgr->mkExpr(CVC4::kind::REGEXP_SIGMA, std::vector<Expr>());
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkEmptySet(Sort s) const
 {
-  return d_exprMgr->mkConst(EmptySet(*s.d_type));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(s.isNull() || s.isSet(), s)
+        << "null sort or set sort";
+    Term res = d_exprMgr->mkConst(EmptySet(*s.d_type));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkSepNil(Sort sort) const
 {
-  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::SEP_NIL);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkString(const char* s) const
 {
-  return d_exprMgr->mkConst(String(s));
+  try
+  {
+    Term res = d_exprMgr->mkConst(String(s));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkString(const std::string& s) const
 {
-  return d_exprMgr->mkConst(String(s));
+  try
+  {
+    Term res = d_exprMgr->mkConst(String(s));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkString(const unsigned char c) const
 {
-  return d_exprMgr->mkConst(String(std::string(1, c)));
+  try
+  {
+    Term res = d_exprMgr->mkConst(String(std::string(1, c)));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkString(const std::vector<unsigned>& s) const
 {
-  return d_exprMgr->mkConst(String(s));
+  try
+  {
+    Term res = d_exprMgr->mkConst(String(s));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkUniverseSet(Sort sort) const
 {
-  return d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res =
+        d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkBitVector(uint32_t size) const
 {
-  return d_exprMgr->mkConst(BitVector(size));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
+    Term res = d_exprMgr->mkConst(BitVector(size));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkBitVector(uint32_t size, uint32_t val) const
 {
-  return d_exprMgr->mkConst(BitVector(size, val));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
+    Term res = d_exprMgr->mkConst(BitVector(size, val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 {
-  return d_exprMgr->mkConst(BitVector(size, val));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
+    Term res = d_exprMgr->mkConst(BitVector(size, val));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkBitVector(const char* s, uint32_t base) const
 {
-  return d_exprMgr->mkConst(BitVector(s, base));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!std::string(s).empty(), s)
+        << "a non-empty string";
+    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 16, s) << "base 2 or 16";
+    Term res = d_exprMgr->mkConst(BitVector(s, base));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
-Term Solver::mkBitVector(std::string& s, uint32_t base) const
+Term Solver::mkBitVector(const std::string& s, uint32_t base) const
 {
-  return d_exprMgr->mkConst(BitVector(s, base));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
+    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 16, s) << "base 2 or 16";
+    Term res = d_exprMgr->mkConst(BitVector(s, base));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(RoundingMode rm) const
 {
-  return d_exprMgr->mkConst(s_rmodes.at(rm));
+  try
+  {
+    Term res = d_exprMgr->mkConst(s_rmodes.at(rm));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, Sort arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET, kind) << "EMPTY_SET";
-  return d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED((kind == EMPTYSET && arg.isNull()) || arg.isSet(), arg)
+        << "null sort or set sort";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET || kind == UNIVERSE_SET, kind) << "EMPTY_SET or UNIVERSE_SET";
+    Term res;
+    if (kind == EMPTYSET)
+    {
+      res = d_exprMgr->mkConst(CVC4::EmptySet(*arg.d_type));
+    }
+    else
+    {
+    res = d_exprMgr->mkNullaryOperator(*arg.d_type, extToIntKind(kind));
+    }
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == UNINTERPRETED_CONSTANT, kind)
-      << "UNINTERPRETED_CONSTANT";
-  return d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!arg1.isNull(), arg1) << "non-null sort";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == UNINTERPRETED_CONSTANT, kind)
+        << "UNINTERPRETED_CONSTANT";
+    Term res =
+        d_exprMgr->mkConst(CVC4::UninterpretedConstant(*arg1.d_type, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, bool arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind) << "CONST_BOOLEAN";
-  return d_exprMgr->mkConst<bool>(arg);
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind)
+        << "CONST_BOOLEAN";
+    Term res = d_exprMgr->mkConst<bool>(arg);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, const char* arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
-  return d_exprMgr->mkConst(CVC4::String(arg));
+  try
+  {
+    CVC4_API_ARG_CHECK_NOT_NULL(arg);
+    CVC4_API_ARG_CHECK_EXPECTED(!std::string(arg).empty(), arg)
+        << "a non-empty string";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE
+                                     || kind == CONST_RATIONAL
+                                     || kind == CONST_STRING,
+                                 kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_STRING";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg, 10)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else if (kind == CONST_RATIONAL)
+    {
+      res = mkReal(arg);
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::String(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_STRING, kind) << "CONST_STRING";
-  return d_exprMgr->mkConst(CVC4::String(arg));
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!arg.empty(), arg) << "a non-empty string";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE
+                                     || kind == CONST_RATIONAL
+                                     || kind == CONST_STRING,
+                                 kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_STRING";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg, 10)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else if (kind == CONST_RATIONAL)
+    {
+      res = mkReal(arg);
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::String(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                                   || kind == CONST_BITVECTOR,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+    CVC4_API_ARG_CHECK_NOT_NULL(arg1);
+    CVC4_API_ARG_CHECK_EXPECTED(!std::string(arg1).empty(), arg1)
+        << "a non-empty string";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+        << "CONST_BITVECTOR";
+    Term res = mkBitVector(arg1, arg2);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
   }
-  if (kind == CONST_RATIONAL)
+  catch (TypeCheckingException& e)
   {
-    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    throw CVC4ApiException(e.getMessage());
   }
-  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                                   || kind == CONST_BITVECTOR,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg1, arg2)));
+    CVC4_API_ARG_CHECK_EXPECTED(!arg1.empty(), arg1) << "a non-empty string";
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+        << "CONST_BITVECTOR";
+    Term res = mkBitVector(arg1, arg2);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
   }
-  if (kind == CONST_RATIONAL)
+  catch (TypeCheckingException& e)
   {
-    return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    throw CVC4ApiException(e.getMessage());
   }
-  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL
-                                   || kind == CONST_BITVECTOR,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+    CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE
+                                     || kind == CONST_RATIONAL
+                                     || kind == CONST_BITVECTOR,
+                                 kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_BITVECTOR";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else if (kind == CONST_RATIONAL)
+    {
+      res = d_exprMgr->mkConst(CVC4::Rational(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::BitVector(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
   }
-  if (kind == CONST_RATIONAL)
+  catch (TypeCheckingException& e)
   {
-    return d_exprMgr->mkConst(CVC4::Rational(arg));
+    throw CVC4ApiException(e.getMessage());
   }
-  return d_exprMgr->mkConst(CVC4::BitVector(arg));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+    CVC4_API_KIND_CHECK_EXPECTED(
+        kind == ABSTRACT_VALUE || kind == CONST_RATIONAL, kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::Rational(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
   }
-  return d_exprMgr->mkConst(CVC4::Rational(arg));
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+    CVC4_API_KIND_CHECK_EXPECTED(
+        kind == ABSTRACT_VALUE || kind == CONST_RATIONAL, kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::Rational(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
   }
-  return d_exprMgr->mkConst(CVC4::Rational(arg));
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
+  try
   {
-    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+    CVC4_API_KIND_CHECK_EXPECTED(
+        kind == ABSTRACT_VALUE || kind == CONST_RATIONAL, kind)
+        << "ABSTRACT_VALUE or CONST_RATIONAL";
+    Term res;
+    if (kind == ABSTRACT_VALUE)
+    {
+      res = d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    else
+    {
+      res = d_exprMgr->mkConst(CVC4::Rational(arg));
+      (void)res.d_expr->getType(true);  /* kick off type checking */
+    }
+    return res;
   }
-  return d_exprMgr->mkConst(CVC4::Rational(arg));
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+        << "CONST_RATIONAL";
+    Term res = d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+        << "CONST_RATIONAL";
+    Term res = d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+        << "CONST_RATIONAL";
+    Term res = d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  return d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
+        << "CONST_RATIONAL";
+    Term res = d_exprMgr->mkConst(CVC4::Rational(arg1, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
-      << "CONST_BITVECTOR";
-  return d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+        << "CONST_BITVECTOR";
+    Term res = d_exprMgr->mkConst(CVC4::BitVector(arg1, arg2));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
-      << "CONST_FLOATINGPOINT";
-  CVC4_API_ARG_CHECK_EXPECTED(
-      arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
-      << "bit-vector constant";
-  return d_exprMgr->mkConst(
-      CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
+        << "CONST_FLOATINGPOINT";
+    CVC4_API_ARG_CHECK_EXPECTED(arg1 > 0, arg1) << "a value > 0";
+    CVC4_API_ARG_CHECK_EXPECTED(arg2 > 0, arg2) << "a value > 0";
+    uint32_t bw = arg1 + arg2;
+    CVC4_API_ARG_CHECK_EXPECTED(bw == arg3.getSort().getBVSize(), arg3)
+        << "a bit-vector constant with bit-width '" << bw << "'";
+    CVC4_API_ARG_CHECK_EXPECTED(!arg3.isNull(), arg3) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(
+        arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
+        << "bit-vector constant";
+    Term res = d_exprMgr->mkConst(
+        CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 /* Create variables                                                           */
@@ -2202,19 +2712,62 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 
 Term Solver::mkVar(const std::string& symbol, Sort sort) const
 {
-  return d_exprMgr->mkVar(symbol, *sort.d_type);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkVar(symbol, *sort.d_type);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
-Term Solver::mkVar(Sort sort) const { return d_exprMgr->mkVar(*sort.d_type); }
+Term Solver::mkVar(Sort sort) const
+{
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkVar(*sort.d_type);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
 
 Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
 {
-  return d_exprMgr->mkBoundVar(symbol, *sort.d_type);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkBoundVar(Sort sort) const
 {
-  return d_exprMgr->mkBoundVar(*sort.d_type);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkBoundVar(*sort.d_type);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 /* Create terms                                                               */
@@ -2269,88 +2822,202 @@ void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
 
 Term Solver::mkTerm(Kind kind) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
-      << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
-  if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+  try
   {
-    CVC4::Kind k = extToIntKind(kind);
-    Assert(isDefinedIntKind(k));
-    return d_exprMgr->mkExpr(k, std::vector<Expr>());
+    CVC4_API_KIND_CHECK_EXPECTED(
+        kind == PI || kind == REGEXP_EMPTY || kind == REGEXP_SIGMA, kind)
+        << "PI or REGEXP_EMPTY or REGEXP_SIGMA";
+    Term res;
+    if (kind == REGEXP_EMPTY || kind == REGEXP_SIGMA)
+    {
+      CVC4::Kind k = extToIntKind(kind);
+      Assert(isDefinedIntKind(k));
+      res = d_exprMgr->mkExpr(k, std::vector<Expr>());
+    }
+    else
+    {
+      Assert(kind == PI);
+      res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+    }
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
   }
-  Assert(kind == PI);
-  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(Kind kind, Sort sort) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL || kind == UNIVERSE_SET, kind)
-      << "SEP_NIL or UNIVERSE_SET";
-  return d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL, kind)
+        << "SEP_NIL";
+    Term res = d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(Kind kind, Term child) const
 {
-  checkMkTerm(kind, 1);
-  return d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
+    checkMkTerm(kind, 1);
+    Term res = d_exprMgr->mkExpr(extToIntKind(kind), *child.d_expr);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
 {
-  checkMkTerm(kind, 2);
-  return d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
+    checkMkTerm(kind, 2);
+    Term res =
+        d_exprMgr->mkExpr(extToIntKind(kind), *child1.d_expr, *child2.d_expr);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
 {
-  checkMkTerm(kind, 3);
-  std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                : d_exprMgr->mkExpr(k, echildren);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
+    checkMkTerm(kind, 3);
+    std::vector<Expr> echildren{*child1.d_expr, *child2.d_expr, *child3.d_expr};
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                      : d_exprMgr->mkExpr(k, echildren);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
 {
-  checkMkTerm(kind, children.size());
-  std::vector<Expr> echildren = termVectorToExprs(children);
-  CVC4::Kind k = extToIntKind(kind);
-  Assert(isDefinedIntKind(k));
-  return kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
-                                : d_exprMgr->mkExpr(k, echildren);
-}
-
-Term Solver::mkTerm(OpTerm opTerm) const
-{
-  checkMkOpTerm(opTerm, 0);
-  return d_exprMgr->mkExpr(*opTerm.d_expr);
+  try
+  {
+    for (size_t i = 0, size = children.size(); i < size; ++i)
+    {
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          !children[i].isNull(), "parameter term", children[i], i)
+          << "non-null term";
+    }
+    checkMkTerm(kind, children.size());
+    std::vector<Expr> echildren = termVectorToExprs(children);
+    CVC4::Kind k = extToIntKind(kind);
+    Assert(isDefinedIntKind(k));
+    Term res = kind::isAssociative(k) ? d_exprMgr->mkAssociative(k, echildren)
+                                      : d_exprMgr->mkExpr(k, echildren);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child) const
 {
-  checkMkOpTerm(opTerm, 1);
-  return d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
+    checkMkOpTerm(opTerm, 1);
+    Term res = d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
 {
-  checkMkOpTerm(opTerm, 2);
-  return d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
+    checkMkOpTerm(opTerm, 2);
+    Term res =
+        d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
-  checkMkOpTerm(opTerm, 3);
-  return d_exprMgr->mkExpr(
-      *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
+    CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
+    checkMkOpTerm(opTerm, 3);
+    Term res = d_exprMgr->mkExpr(
+        *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
 {
-  checkMkOpTerm(opTerm, children.size());
-  std::vector<Expr> echildren = termVectorToExprs(children);
-  return d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
+  try
+  {
+    for (size_t i = 0, size = children.size(); i < size; ++i)
+    {
+      CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(
+          !children[i].isNull(), "parameter term", children[i], i)
+          << "non-null term";
+    }
+    checkMkOpTerm(opTerm, children.size());
+    std::vector<Expr> echildren = termVectorToExprs(children);
+    Term res = d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 std::vector<Expr> Solver::termVectorToExprs(
@@ -2369,102 +3036,136 @@ std::vector<Expr> Solver::termVectorToExprs(
 
 OpTerm Solver::mkOpTerm(Kind kind, Kind k)
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
-  return d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
+    OpTerm res = d_exprMgr->mkConst(CVC4::Chain(extToIntKind(k)));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
-      << "RECORD_UPDATE_OP";
-  return d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
+  try
+  {
+    CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
+        << "RECORD_UPDATE_OP";
+    OpTerm res = d_exprMgr->mkConst(CVC4::RecordUpdate(arg));
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
+  }
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
 {
-  CVC4_API_KIND_CHECK(kind);
-  OpTerm res;
-  switch (kind)
+  try
   {
-    case DIVISIBLE_OP: res = d_exprMgr->mkConst(CVC4::Divisible(arg)); break;
-    case BITVECTOR_REPEAT_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorRepeat(arg));
-      break;
-    case BITVECTOR_ZERO_EXTEND_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorZeroExtend(arg));
-      break;
-    case BITVECTOR_SIGN_EXTEND_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorSignExtend(arg));
-      break;
-    case BITVECTOR_ROTATE_LEFT_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorRotateLeft(arg));
-      break;
-    case BITVECTOR_ROTATE_RIGHT_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorRotateRight(arg));
-      break;
-    case INT_TO_BITVECTOR_OP:
-      res = d_exprMgr->mkConst(CVC4::IntToBitVector(arg));
-      break;
-    case FLOATINGPOINT_TO_UBV_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToUBV(arg));
-      break;
-    case FLOATINGPOINT_TO_UBV_TOTAL_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToUBVTotal(arg));
-      break;
-    case FLOATINGPOINT_TO_SBV_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToSBV(arg));
-      break;
-    case FLOATINGPOINT_TO_SBV_TOTAL_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToSBVTotal(arg));
-      break;
-    case TUPLE_UPDATE_OP:
-      res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
-      break;
-    default:
-      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
-          << "operator kind with uint32_t argument";
+    CVC4_API_KIND_CHECK(kind);
+    OpTerm res;
+    switch (kind)
+    {
+      case DIVISIBLE_OP: res = d_exprMgr->mkConst(CVC4::Divisible(arg)); break;
+      case BITVECTOR_REPEAT_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorRepeat(arg));
+        break;
+      case BITVECTOR_ZERO_EXTEND_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorZeroExtend(arg));
+        break;
+      case BITVECTOR_SIGN_EXTEND_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorSignExtend(arg));
+        break;
+      case BITVECTOR_ROTATE_LEFT_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorRotateLeft(arg));
+        break;
+      case BITVECTOR_ROTATE_RIGHT_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorRotateRight(arg));
+        break;
+      case INT_TO_BITVECTOR_OP:
+        res = d_exprMgr->mkConst(CVC4::IntToBitVector(arg));
+        break;
+      case FLOATINGPOINT_TO_UBV_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToUBV(arg));
+        break;
+      case FLOATINGPOINT_TO_UBV_TOTAL_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToUBVTotal(arg));
+        break;
+      case FLOATINGPOINT_TO_SBV_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToSBV(arg));
+        break;
+      case FLOATINGPOINT_TO_SBV_TOTAL_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToSBVTotal(arg));
+        break;
+      case TUPLE_UPDATE_OP:
+        res = d_exprMgr->mkConst(CVC4::TupleUpdate(arg));
+        break;
+      default:
+        CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+            << "operator kind with uint32_t argument";
+    }
+    Assert(!res.isNull());
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
   }
-  Assert(!res.isNull());
-  return res;
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
 {
-  CVC4_API_KIND_CHECK(kind);
-  OpTerm res;
-  switch (kind)
+  try
   {
-    case BITVECTOR_EXTRACT_OP:
-      res = d_exprMgr->mkConst(CVC4::BitVectorExtract(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
-      res =
-          d_exprMgr->mkConst(CVC4::FloatingPointToFPIEEEBitVector(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
-      res =
-          d_exprMgr->mkConst(CVC4::FloatingPointToFPFloatingPoint(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_REAL_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToFPReal(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
-      res = d_exprMgr->mkConst(
-          CVC4::FloatingPointToFPSignedBitVector(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
-      res = d_exprMgr->mkConst(
-          CVC4::FloatingPointToFPUnsignedBitVector(arg1, arg2));
-      break;
-    case FLOATINGPOINT_TO_FP_GENERIC_OP:
-      res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
-      break;
-    default:
-      CVC4_API_KIND_CHECK_EXPECTED(false, kind)
-          << "operator kind with two uint32_t arguments";
+    CVC4_API_KIND_CHECK(kind);
+    OpTerm res;
+    switch (kind)
+    {
+      case BITVECTOR_EXTRACT_OP:
+        res = d_exprMgr->mkConst(CVC4::BitVectorExtract(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP:
+        res = d_exprMgr->mkConst(
+            CVC4::FloatingPointToFPIEEEBitVector(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP:
+        res = d_exprMgr->mkConst(
+            CVC4::FloatingPointToFPFloatingPoint(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_REAL_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToFPReal(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP:
+        res = d_exprMgr->mkConst(
+            CVC4::FloatingPointToFPSignedBitVector(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP:
+        res = d_exprMgr->mkConst(
+            CVC4::FloatingPointToFPUnsignedBitVector(arg1, arg2));
+        break;
+      case FLOATINGPOINT_TO_FP_GENERIC_OP:
+        res = d_exprMgr->mkConst(CVC4::FloatingPointToFPGeneric(arg1, arg2));
+        break;
+      default:
+        CVC4_API_KIND_CHECK_EXPECTED(false, kind)
+            << "operator kind with two uint32_t arguments";
+    }
+    Assert(!res.isNull());
+    (void)res.d_expr->getType(true);  /* kick off type checking */
+    return res;
   }
-  Assert(!res.isNull());
-  return res;
+  catch (TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 /* Non-SMT-LIB commands                                                       */
