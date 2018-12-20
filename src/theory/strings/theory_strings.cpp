@@ -3903,7 +3903,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-lemma") << "Strings::Lemma STRIDOF : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
-    d_out->requirePhase(neg, true);
+    d_out->requirePhase(neg, false);
   }
 }
 
