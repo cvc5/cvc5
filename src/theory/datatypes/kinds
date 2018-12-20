@@ -91,6 +91,7 @@ constant TUPLE_UPDATE_OP \
         "util/tuple.h" \
         "operator for a tuple update; payload is an instance of the CVC4::TupleUpdate class"
 parameterized TUPLE_UPDATE TUPLE_UPDATE_OP 2 "tuple update; first parameter is a TUPLE_UPDATE_OP (which references an index), second is the tuple, third is the element to store in the tuple at the given index"
+typerule TUPLE_UPDATE_OP ::CVC4::theory::datatypes::TupleUpdateOpTypeRule
 typerule TUPLE_UPDATE ::CVC4::theory::datatypes::TupleUpdateTypeRule
 
 constant RECORD_UPDATE_OP \
@@ -99,6 +100,7 @@ constant RECORD_UPDATE_OP \
         "expr/record.h" \
         "operator for a record update; payload is an instance CVC4::RecordUpdate class"
 parameterized RECORD_UPDATE RECORD_UPDATE_OP 2 "record update; first parameter is a RECORD_UPDATE_OP (which references a field), second is a record term to update, third is the element to store in the record in the given field"
+typerule RECORD_UPDATE_OP ::CVC4::theory::datatypes::RecordUpdateOpTypeRule
 typerule RECORD_UPDATE ::CVC4::theory::datatypes::RecordUpdateTypeRule
 
 

@@ -165,8 +165,6 @@ typerule BITVECTOR_SMOD ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_SHL ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_LSHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 typerule BITVECTOR_ASHR ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ROTATE_LEFT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
-typerule BITVECTOR_ROTATE_RIGHT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
 
 typerule BITVECTOR_ULT ::CVC4::theory::bv::BitVectorPredicateTypeRule
 typerule BITVECTOR_ULE ::CVC4::theory::bv::BitVectorPredicateTypeRule
@@ -185,6 +183,7 @@ typerule BITVECTOR_ITE ::CVC4::theory::bv::BitVectorITETypeRule
 typerule BITVECTOR_REDOR ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule
 typerule BITVECTOR_REDAND ::CVC4::theory::bv::BitVectorUnaryPredicateTypeRule
 
+typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatTypeRule
 
 typerule BITVECTOR_EAGER_ATOM ::CVC4::theory::bv::BitVectorEagerAtomTypeRule
 typerule BITVECTOR_ACKERMANNIZE_UDIV ::CVC4::theory::bv::BitVectorAckermanizationUdivTypeRule
@@ -192,11 +191,18 @@ typerule BITVECTOR_ACKERMANNIZE_UREM ::CVC4::theory::bv::BitVectorAckermanizatio
 
 typerule BITVECTOR_EXTRACT_OP ::CVC4::theory::bv::BitVectorExtractOpTypeRule
 typerule BITVECTOR_EXTRACT ::CVC4::theory::bv::BitVectorExtractTypeRule
-typerule BITVECTOR_BITOF   ::CVC4::theory::bv::BitVectorBitOfTypeRule
-typerule BITVECTOR_CONCAT ::CVC4::theory::bv::BitVectorConcatTypeRule
+typerule BITVECTOR_BITOF_OP ::CVC4::theory::bv::BitVectorBitOfOpTypeRule
+typerule BITVECTOR_BITOF ::CVC4::theory::bv::BitVectorBitOfTypeRule
+typerule BITVECTOR_REPEAT_OP ::CVC4::theory::bv::BitVectorRepeatOpTypeRule
 typerule BITVECTOR_REPEAT ::CVC4::theory::bv::BitVectorRepeatTypeRule
-typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
+typerule BITVECTOR_ROTATE_LEFT_OP ::CVC4::theory::bv::BitVectorRotateLeftOpTypeRule
+typerule BITVECTOR_ROTATE_LEFT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_ROTATE_RIGHT_OP ::CVC4::theory::bv::BitVectorRotateRightOpTypeRule
+typerule BITVECTOR_ROTATE_RIGHT ::CVC4::theory::bv::BitVectorFixedWidthTypeRule
+typerule BITVECTOR_SIGN_EXTEND_OP ::CVC4::theory::bv::BitVectorSignExtendOpTypeRule
 typerule BITVECTOR_SIGN_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
+typerule BITVECTOR_ZERO_EXTEND_OP ::CVC4::theory::bv::BitVectorZeroExtendOpTypeRule
+typerule BITVECTOR_ZERO_EXTEND ::CVC4::theory::bv::BitVectorExtendTypeRule
 
 typerule BITVECTOR_TO_NAT ::CVC4::theory::bv::BitVectorConversionTypeRule
 typerule INT_TO_BITVECTOR_OP ::CVC4::theory::bv::IntToBitVectorOpTypeRule
