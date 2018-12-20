@@ -347,87 +347,8 @@ struct ConstraintRule {
 }; /* class ConstraintRule */
 
 class Constraint {
-private:
-  /** The ArithVar associated with the constraint. */
-  const ArithVar d_variable;
 
-  /** The type of the Constraint. */
-  const ConstraintType d_type;
-
-  /** The DeltaRational value with the constraint. */
-  const DeltaRational d_value;
-
-  /** A pointer to the associated database for the Constraint. */
-  ConstraintDatabase* d_database;
-
-  /**
-   * The node to be communicated with the TheoryEngine.
-   *
-   * This is not context dependent, but may be set once.
-   *
-   * This must be set if the constraint canBePropagated().
-   * This must be set if the constraint assertedToTheTheory().
-   * Otherwise, this may be null().
-   */
-  Node d_literal;
-
-  /** Pointer to the negation of the Constraint. */
-  ConstraintP d_negation;
-
-  /**
-   * This is true if the associated node can be propagated.
-   *
-   * This should be enabled if the node has been preregistered.
-   *
-   * Sat Context Dependent.
-   * This is initially false.
-   */
-  bool d_canBePropagated;
-
-  /**
-   * This is the order the constraint was asserted to the theory.
-   * If this has been set, the node can be used in conflicts.
-   * If this is c.d_assertedOrder < d.d_assertedOrder, then c can be used in the
-   * explanation of d.
-   *
-   * This should be set after the literal is dequeued by Theory::get().
-   *
-   * Sat Context Dependent.
-   * This is initially AssertionOrderSentinel.
-   */
-  AssertionOrder d_assertionOrder;
-
-  /**
-   * This is guaranteed to be on the fact queue.
-   * For example if x + y = x + 1 is on the fact queue, then use this
-   */
-  TNode d_witness;
-
-  /**
-   * The position of the constraint in the constraint rule id.
-   *
-   * Sat Context Dependent.
-   * This is initially 
-   */
-  ConstraintRuleID d_crid;
-  
-
-  /**
-   * True if the equality has been split.
-   * Only meaningful if ConstraintType == Equality.
-   *
-   * User Context Dependent.
-   * This is initially false.
-   */
-  bool d_split;
-
-  /**
-   * Position in sorted constraint set for the variable.
-   * Unset if d_type is Disequality.
-   */
-  SortedConstraintMapIterator d_variablePosition;
-
-  friend class ConstraintDatabase;
+public:
 
   /**
    * This begins construction of a minimal constraint.
@@ -444,86 +365,6 @@ private:
    * This should only be called if safeToGarbageCollect() is true.
    */
   ~Constraint();
-
-  /**  Returns true if the constraint has been initialized. */
-  bool initialized() const;
-
-  /**
-   * This initializes the fields that cannot be set in the constructor due to
-   * circular dependencies.
-   */
-  void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
-
-
-
-  class ConstraintRuleCleanup {
-  public:
-    inline void operator()(ConstraintRule* crp){
-      Assert(crp != NULL);
-      ConstraintP constraint = crp->d_constraint;
-      Assert(constraint->d_crid != ConstraintRuleIdSentinel);
-      constraint->d_crid = ConstraintRuleIdSentinel;
-      
-      PROOF(if(crp->d_farkasCoefficients != RationalVectorCPSentinel){
-              delete crp->d_farkasCoefficients;
-            });
-    }
-  };
-
-  class CanBePropagatedCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->d_canBePropagated);
-      constraint->d_canBePropagated = false;
-    }
-  };
-
-  class AssertionOrderCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->assertedToTheTheory());
-      constraint->d_assertionOrder = AssertionOrderSentinel;
-      constraint->d_witness = TNode::null();
-      Assert(!constraint->assertedToTheTheory());
-    }
-  };
-
-  class SplitCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->d_split);
-      constraint->d_split = false;
-    }
-  };
-
-  /**
-   * Returns true if the node is safe to garbage collect.
-   * Both it and its negation must have no context dependent data set.
-   */
-  bool safeToGarbageCollect() const;
-
-  /**
-   * Returns true if the constraint has no context dependent data set.
-   */
-  bool contextDependentDataIsSet() const;
-
-  /**
-   * Returns true if the node correctly corresponds to the constraint that is
-   * being set.
-   */
-  bool sanityChecking(Node n) const;
-
-  /** Returns a reference to the map for d_variable. */
-  SortedConstraintMap& constraintSet() const;
-
-  /** Returns coefficients for the proofs for farkas cancellation. */
-  static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
-
-
-public:
 
   static ConstraintType constraintTypeOfComparison(const Comparison& cmp);
 
@@ -749,22 +590,6 @@ public:
    */
   Node externalExplainConflict() const;
 
-private:
-  Node externalExplain(AssertionOrder order) const;
-
-  /**
-   * Returns an explanation of that was assertedBefore(order).
-   * The constraint must have a proof.
-   * The constraint cannot be selfExplaining().
-   *
-   * This is the minimum fringe of the implication tree
-   * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
-   */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
-
-  static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
-
-public:
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -913,7 +738,100 @@ public:
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;
 
- private:
+private:
+  friend class ConstraintDatabase;
+
+  /**  Returns true if the constraint has been initialized. */
+  bool initialized() const;
+
+  /**
+   * This initializes the fields that cannot be set in the constructor due to
+   * circular dependencies.
+   */
+  void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
+
+
+
+  class ConstraintRuleCleanup {
+  public:
+    inline void operator()(ConstraintRule* crp){
+      Assert(crp != NULL);
+      ConstraintP constraint = crp->d_constraint;
+      Assert(constraint->d_crid != ConstraintRuleIdSentinel);
+      constraint->d_crid = ConstraintRuleIdSentinel;
+      
+      PROOF(if(crp->d_farkasCoefficients != RationalVectorCPSentinel){
+              delete crp->d_farkasCoefficients;
+            });
+    }
+  };
+
+  class CanBePropagatedCleanup {
+  public:
+    inline void operator()(ConstraintP* p){
+      ConstraintP constraint = *p;
+      Assert(constraint->d_canBePropagated);
+      constraint->d_canBePropagated = false;
+    }
+  };
+
+  class AssertionOrderCleanup {
+  public:
+    inline void operator()(ConstraintP* p){
+      ConstraintP constraint = *p;
+      Assert(constraint->assertedToTheTheory());
+      constraint->d_assertionOrder = AssertionOrderSentinel;
+      constraint->d_witness = TNode::null();
+      Assert(!constraint->assertedToTheTheory());
+    }
+  };
+
+  class SplitCleanup {
+  public:
+    inline void operator()(ConstraintP* p){
+      ConstraintP constraint = *p;
+      Assert(constraint->d_split);
+      constraint->d_split = false;
+    }
+  };
+
+  /**
+   * Returns true if the node is safe to garbage collect.
+   * Both it and its negation must have no context dependent data set.
+   */
+  bool safeToGarbageCollect() const;
+
+  /**
+   * Returns true if the constraint has no context dependent data set.
+   */
+  bool contextDependentDataIsSet() const;
+
+  /**
+   * Returns true if the node correctly corresponds to the constraint that is
+   * being set.
+   */
+  bool sanityChecking(Node n) const;
+
+  /** Returns a reference to the map for d_variable. */
+  SortedConstraintMap& constraintSet() const;
+
+  /** Returns coefficients for the proofs for farkas cancellation. */
+  static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
+
+  Node externalExplain(AssertionOrder order) const;
+
+  /**
+   * Returns an explanation of that was assertedBefore(order).
+   * The constraint must have a proof.
+   * The constraint cannot be selfExplaining().
+   *
+   * This is the minimum fringe of the implication tree
+   * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
+   */
+  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+
+  static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
+
   inline ArithProofType getProofType() const {
     return getConstraintRule().d_proofType;
   }
@@ -947,7 +865,86 @@ public:
    */
 
   bool wellFormedFarkasProof() const;
+
+  /** The ArithVar associated with the constraint. */
+  const ArithVar d_variable;
+
+  /** The type of the Constraint. */
+  const ConstraintType d_type;
+
+  /** The DeltaRational value with the constraint. */
+  const DeltaRational d_value;
+
+  /** A pointer to the associated database for the Constraint. */
+  ConstraintDatabase* d_database;
+
+  /**
+   * The node to be communicated with the TheoryEngine.
+   *
+   * This is not context dependent, but may be set once.
+   *
+   * This must be set if the constraint canBePropagated().
+   * This must be set if the constraint assertedToTheTheory().
+   * Otherwise, this may be null().
+   */
+  Node d_literal;
+
+  /** Pointer to the negation of the Constraint. */
+  ConstraintP d_negation;
+
+  /**
+   * This is true if the associated node can be propagated.
+   *
+   * This should be enabled if the node has been preregistered.
+   *
+   * Sat Context Dependent.
+   * This is initially false.
+   */
+  bool d_canBePropagated;
+
+  /**
+   * This is the order the constraint was asserted to the theory.
+   * If this has been set, the node can be used in conflicts.
+   * If this is c.d_assertedOrder < d.d_assertedOrder, then c can be used in the
+   * explanation of d.
+   *
+   * This should be set after the literal is dequeued by Theory::get().
+   *
+   * Sat Context Dependent.
+   * This is initially AssertionOrderSentinel.
+   */
+  AssertionOrder d_assertionOrder;
+
+  /**
+   * This is guaranteed to be on the fact queue.
+   * For example if x + y = x + 1 is on the fact queue, then use this
+   */
+  TNode d_witness;
+
+  /**
+   * The position of the constraint in the constraint rule id.
+   *
+   * Sat Context Dependent.
+   * This is initially 
+   */
+  ConstraintRuleID d_crid;
   
+
+  /**
+   * True if the equality has been split.
+   * Only meaningful if ConstraintType == Equality.
+   *
+   * User Context Dependent.
+   * This is initially false.
+   */
+  bool d_split;
+
+  /**
+   * Position in sorted constraint set for the variable.
+   * Unset if d_type is Disequality.
+   */
+  SortedConstraintMapIterator d_variablePosition;
+
 }; /* class ConstraintValue */
 
 std::ostream& operator<<(std::ostream& o, const Constraint& c);
