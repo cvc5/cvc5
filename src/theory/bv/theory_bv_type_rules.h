@@ -58,6 +58,18 @@ class BitVectorBitOfTypeRule {
   }
 }; /* class BitVectorBitOfTypeRule */
 
+class BitVectorBitOfOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_BITOF_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorBitOfOpTypeRule */
+
 class BitVectorBVPredTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
@@ -251,6 +263,18 @@ class BitVectorConcatTypeRule {
   }
 }; /* class BitVectorConcatTypeRule */
 
+class BitVectorRepeatOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_REPEAT_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorRepeatOpTypeRule */
+
 class BitVectorRepeatTypeRule {
  public:
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
@@ -266,6 +290,30 @@ class BitVectorRepeatTypeRule {
     return nodeManager->mkBitVectorType(repeatAmount * t.getBitVectorSize());
   }
 }; /* class BitVectorRepeatTypeRule */
+
+class BitVectorZeroExtendOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_ZERO_EXTEND_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorZeroExtendOpTypeRule */
+
+class BitVectorSignExtendOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_SIGN_EXTEND_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorSignExtendOpTypeRule */
 
 class BitVectorExtendTypeRule {
  public:
@@ -285,6 +333,30 @@ class BitVectorExtendTypeRule {
     return nodeManager->mkBitVectorType(extendAmount + t.getBitVectorSize());
   }
 }; /* class BitVectorExtendTypeRule */
+
+class BitVectorRotateLeftOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_ROTATE_LEFT);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorRotateLeftOpTypeRule */
+
+class BitVectorRotateRightOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::BITVECTOR_ROTATE_RIGHT);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class BitVectorRotateRightOpTypeRule */
 
 class BitVectorConversionTypeRule {
  public:
