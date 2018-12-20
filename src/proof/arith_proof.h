@@ -64,7 +64,7 @@ protected:
   ExprSet d_declarations; // all the variable/function declarations
 
   /**
-   * @brief Where farkas proofs of lemmas are stored.
+   * Where farkas proofs of lemmas are stored.
    */
   proof::ArithProofRecorder d_recorder;
 
@@ -88,7 +88,7 @@ public:
   void printOwnedSort(Type type, std::ostream& os) override;
 
   /**
-   * @brief Prints a rational number in LFSC format.
+   * Print a rational number in LFSC format.
    *        e.g. 5/8 or (~ 1/1)
    *
    * @param o ostream to print to.
@@ -96,17 +96,17 @@ public:
    */
   static void printRational(std::ostream& o, const Rational& r);
 
-
   /**
-   * @brief Prints a value of type poly_formula_norm
+   * Print a value of type poly_formula_norm
    *
    * @param o ostream to print to
    * @param n node (asserted to be of the form [linear polynomial >= constant])
    */
-  static void printLinearPolynomialPredicateNormalizer(std::ostream& o, const Node& n);
+  static void printLinearPolynomialPredicateNormalizer(std::ostream& o,
+                                                       const Node& n);
 
   /**
-   * @brief Prints a value of type poly_norm
+   * Print a value of type poly_norm
    *
    * @param o ostream to print to
    * @param n node (asserted to be a linear polynomial)
@@ -114,7 +114,7 @@ public:
   static void printLinearPolynomialNormalizer(std::ostream& o, const Node& n);
 
   /**
-   * @brief Prints a value of type poly_norm
+   * Print a value of type poly_norm
    *
    * @param o ostream to print to
    * @param n node (asserted to be a linear monomial)
@@ -122,7 +122,7 @@ public:
   static void printLinearMonomialNormalizer(std::ostream& o, const Node& n);
 
   /**
-   * @brief Prints a LFSC rational
+   * Print a LFSC rational
    *
    * @param o ostream to print to
    * @param n node (asserted to be a const rational)
@@ -130,14 +130,14 @@ public:
   static void printConstRational(std::ostream& o, const Node& n);
 
   /**
-   * @brief prints the pn_var normalizer for n (type poly_norm)
+   * print the pn_var normalizer for n (type poly_norm)
    *
    * @param o the ostream to print to
    * @param n the node to print (asserted to be a variable)
    */
   static void printVariableNormalizer(std::ostream& o, const Node& n);
   /**
-   * @brief prints a proof of the lemma
+   * print a proof of the lemma
    *
    * First, we print linearity witnesses, i.e. witnesses  that each literal has
    * the form:

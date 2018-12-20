@@ -2148,7 +2148,7 @@ void TheoryArithPrivate::outputConflicts(){
       ConstraintCP confConstraint = d_conflicts[i];
       bool hasProof = confConstraint->hasProof();
       Assert(confConstraint->inConflict());
-      const ConstraintRule & pf = confConstraint->getConstraintRule();
+      const ConstraintRule& pf = confConstraint->getConstraintRule();
       if (Debug.isOn("arith::conflict"))
       {
         pf.print(std::cout);
@@ -2158,19 +2158,18 @@ void TheoryArithPrivate::outputConflicts(){
 
       ++conflicts;
       Debug("arith::conflict") << "d_conflicts[" << i << "] " << conflict
-                               << " has proof: " << hasProof
-                               << endl;
+                               << " has proof: " << hasProof << endl;
       PROOF(if (d_containing.d_proofRecorder && confConstraint->hasFarkasProof()
                 && pf.d_farkasCoefficients->size()
                        == conflict.getNumChildren()) {
-
         // The Farkas coefficients and the children of `conflict` seem to be in
         // opposite orders... There is some relevant documentation in the
         // comment for the d_farkasCoefficients field  in "constraint.h"
         //
         // Anyways, we reverse the children in `conflict` here.
         NodeBuilder<> conflictInFarkasCoefficientOrder(kind::AND);
-        for (size_t i = 0; i != conflict.getNumChildren(); ++i)
+        for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren;
+             ++i)
         {
           conflictInFarkasCoefficientOrder
               << conflict[conflict.getNumChildren() - i - 1];
@@ -4839,7 +4838,7 @@ bool TheoryArithPrivate::rowImplicationCanBeApplied(RowIndex ridx, bool rowUp, C
 
     PROOF(d_farkasBuffer.clear());
     RationalVectorP coeffs = NULLPROOF(&d_farkasBuffer);
- 
+
     // After invoking `propegateRow`:
     //   * coeffs[0] is for implied
     //   * coeffs[i+1] is for explain[i]

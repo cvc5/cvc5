@@ -258,7 +258,7 @@ struct PerVariableDatabase{
 struct ConstraintRule {
   ConstraintP d_constraint;
   ArithProofType d_proofType;
-  AntecedentId d_antecedentEnd;    
+  AntecedentId d_antecedentEnd;
 
   /**
    * In this comment, we abbreviate ConstraintDatabase::d_antecedents
@@ -266,28 +266,28 @@ struct ConstraintRule {
    *
    * This list is always empty if proofs are not enabled.
    *
-   * If proofs are enabled, the proof of constraint c at p in ans[p] of length n is
-   *  (NullConstraint, ans[p-(n-1)], ... , ans[p-1], ans[p])
-   * 
-   * Farkas' proofs show a contradiction with the negation of c, c_not = c->getNegation().
+   * If proofs are enabled, the proof of constraint c at p in ans[p] of length n
+   * is (NullConstraint, ans[p-(n-1)], ... , ans[p-1], ans[p])
    *
-   * We treat the position for NullConstraint (p-n) as the position for the farkas
-   * coefficient for so we pretend c_not is ans[p-n].
-   * So this correlation for the constraints we are going to use:
-   *   (c_not, ans[p-n+(1)], ... , ans[p-n+(n-1)], ans[p-n+(n)])
-   * With the coefficients at positions:
-   *   (fc[0], fc[1)], ... fc[n])
+   * Farkas' proofs show a contradiction with the negation of c, c_not =
+   * c->getNegation().
    *
-   * The index of the constraints in the proof are {i | i <= 0 <= n] } (with c_not being p-n).
-   * Partition the indices into L, U, and E, the lower bounds, the upper bounds and equalities.
+   * We treat the position for NullConstraint (p-n) as the position for the
+   * farkas coefficient for so we pretend c_not is ans[p-n]. So this correlation
+   * for the constraints we are going to use: (c_not, ans[p-n+(1)], ... ,
+   * ans[p-n+(n-1)], ans[p-n+(n)]) With the coefficients at positions: (fc[0],
+   * fc[1)], ... fc[n])
    *
-   * We standardize the proofs to be upper bound oriented following the convention:
-   *   A x <= b
-   * with the proof witness of the form
-   *  (lambda) Ax <= (lambda) b and lambda >= 0.
+   * The index of the constraints in the proof are {i | i <= 0 <= n] } (with
+   * c_not being p-n). Partition the indices into L, U, and E, the lower bounds,
+   * the upper bounds and equalities.
    *
-   * To accomplish this cleanly, the fc coefficients must be negative for lower bounds.
-   * The signs of equalities can be either positive or negative.
+   * We standardize the proofs to be upper bound oriented following the
+   * convention: A x <= b with the proof witness of the form (lambda) Ax <=
+   * (lambda) b and lambda >= 0.
+   *
+   * To accomplish this cleanly, the fc coefficients must be negative for lower
+   * bounds. The signs of equalities can be either positive or negative.
    *
    * Thus the proof corresponds to (with multiplication over inequalities):
    *    \sum_{u in U} fc[u] ans[p-n+u] + \sum_{e in E} fc[e] ans[p-n+e]
@@ -296,7 +296,8 @@ struct ConstraintRule {
    * where fc[u] > 0, fc[l] < 0, and fc[e] != 0 (i.e. it can be either +/-).
    *
    * There is no requirement that the proof is minimal.
-   * We do however use all of the constraints by requiring non-zero coefficients.
+   * We do however use all of the constraints by requiring non-zero
+   * coefficients.
    */
 #if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
@@ -912,8 +913,7 @@ public:
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;
 
-private:
-  
+ private:
   inline ArithProofType getProofType() const {
     return getConstraintRule().d_proofType;
   }

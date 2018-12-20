@@ -499,7 +499,8 @@ bool Constraint::hasFarkasProof() const {
   return getProofType() == FarkasAP;
 }
 
-bool Constraint::hasSimpleFarkasProof() const {
+bool Constraint::hasSimpleFarkasProof() const
+{
   Debug("constraints::hsfp") << "hasSimpleFarkasProof " << this << std::endl;
   if (!hasFarkasProof())
   {
@@ -596,8 +597,9 @@ void ConstraintRule::print(std::ostream& out) const {
   out << d_constraint << std::endl;
   out << "d_proofType= " << d_proofType << ", " << std::endl;
   out << "d_antecedentEnd= "<< d_antecedentEnd << std::endl;
-  
-  if(d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel){
+
+  if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
+  {
     const ConstraintDatabase& database = d_constraint->getDatabase();
     
     size_t coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffs->size()-1 : 0;
@@ -1216,7 +1218,8 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
-  Debug("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")" << std::endl;
+  Debug("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")"
+                     << std::endl;
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(a);

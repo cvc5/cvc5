@@ -34,7 +34,7 @@ void ArithProofRecorder::saveFarkasCoefficients(
   // Verify that the conflict is a conjunciton ...
   Assert(conflict.getKind() == kind::AND);
   Assert(conflict.getNumChildren() == farkasCoefficients->size());
-  for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+  for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren; ++i)
   {
     const Node& child = conflict[i];
     // ... of possibly negated ...
@@ -47,7 +47,8 @@ void ArithProofRecorder::saveFarkasCoefficients(
   Debug("pf::arith") << "Saved Farkas Coefficients:" << std::endl;
   if (Debug.isOn("pf::arith"))
   {
-    for (size_t i = 0; i < conflict.getNumChildren(); ++i)
+    for (size_t i = 0, nchildren = conflict.getNumChildren(); i < nchildren;
+         ++i)
     {
       const Node& child = conflict[i];
       const Rational& r = (*farkasCoefficients)[i];
