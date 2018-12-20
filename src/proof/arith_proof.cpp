@@ -902,6 +902,7 @@ void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o,
       msg << "Invalid operation " << n.getKind() << " in linear polynomial";
       Unreachable(msg.str().c_str());
 #endif // CVC4_ASSERTIONS
+      break;
   }
 }
 
@@ -949,6 +950,7 @@ void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
       msg << "Invalid operation " << n.getKind() << " in linear monomial";
       Unreachable(msg.str().c_str());
 #endif // CVC4_ASSERTIONS
+      break;
   }
 }
 
