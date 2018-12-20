@@ -3893,10 +3893,17 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
   else if (n.getKind() == STRING_STRIDOF)
   {
-    Node lem = nm->mkNode(OR, nm->mkNode(EQUAL, n, d_neg_one), nm->mkNode(GEQ, n, n[2]));
+    Node lower = n[2];
+    if (!TheoryStringsRewriter::checkEntailArith(lower)) {
+      lower = d_zero;
+    }
+    Node neg = Rewriter::rewrite(nm->mkNode(EQUAL, n, d_neg_one));
+    Node geq = Rewriter::rewrite(nm->mkNode(GEQ, n, lower));
+    Node lem = nm->mkNode(OR, neg, geq);
     Trace("strings-lemma") << "Strings::Lemma STRIDOF : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
+    d_out->requirePhase(neg, true);
   }
 }
 
