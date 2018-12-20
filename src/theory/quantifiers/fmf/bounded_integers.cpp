@@ -275,7 +275,7 @@ void BoundedIntegers::process( Node q, Node n, bool pol,
 
 bool BoundedIntegers::needsCheck(Theory::Effort e)
 {
-  return e == Theory::EFFORT_FULL;
+  return e == Theory::EFFORT_LAST_CALL;
 }
 
 void BoundedIntegers::check(Theory::Effort e, QEffort quant_e)

@@ -3891,6 +3891,13 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
   }
+  else if (n.getKind() == STRING_STRIDOF)
+  {
+    Node lem = nm->mkNode(OR, nm->mkNode(EQUAL, n, d_neg_one), nm->mkNode(GEQ, n, n[2]));
+    Trace("strings-lemma") << "Strings::Lemma STRIDOF : " << lem << std::endl;
+    Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+    d_out->lemma(lem);
+  }
 }
 
 void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
