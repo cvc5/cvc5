@@ -934,7 +934,7 @@ void TheoryStrings::check(Effort e) {
   Assert(d_strategy_init);
   std::map<Effort, std::pair<unsigned, unsigned> >::iterator itsr =
       d_strat_steps.find(e);
-  if (true) // !d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
+  if (!d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
   {
     Trace("strings-check") << "Theory of strings " << e << " effort check "
                            << std::endl;
@@ -3902,8 +3902,11 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Node lem = nm->mkNode(OR, neg, geq);
     Trace("strings-lemma") << "Strings::Lemma STRIDOF : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+    //d_out->lemma(lem);
+    //d_out->requirePhase(neg, true);
+
+    lem = Rewriter::rewrite(nm->mkNode(GT, nm->mkNode(STRING_LENGTH, n[0]), n));
     d_out->lemma(lem);
-    d_out->requirePhase(neg, true);
   }
 }
 
