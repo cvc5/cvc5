@@ -348,8 +348,9 @@ struct ConstraintRule {
 
 class Constraint {
 
-public:
+  friend class ConstraintDatabase;
 
+ public:
   /**
    * This begins construction of a minimal constraint.
    *
@@ -630,7 +631,6 @@ public:
    */
   ConstraintP getFloor();
 
-
   static ConstraintP makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r);
 
   const ValueCollection& getValueCollection() const;
@@ -738,9 +738,7 @@ public:
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;
 
-private:
-  friend class ConstraintDatabase;
-
+ private:
   /**  Returns true if the constraint has been initialized. */
   bool initialized() const;
 
