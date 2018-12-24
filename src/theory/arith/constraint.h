@@ -501,6 +501,13 @@ class Constraint {
    * An example of a constraint that does not have a simple Farkas proof:
    *    x <= 0 proven from x + y <= 0 and x - y <= 0.5 for integers x, y
    *       (since integer reasoning is also required!).
+   * Another example of a constraint that might be proven without a simple
+   * Farkas proof:
+   *    x < 0 proven from not(x == 0) and not(x > 0).
+   *
+   * This could be proven internally by the arithmetic theory using
+   * `TrichotomyAP` as the proof type.
+   *
    */
   bool hasSimpleFarkasProof() const;
 
