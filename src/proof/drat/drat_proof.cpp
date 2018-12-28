@@ -131,17 +131,15 @@ DratProof DratProof::fromBinary(const std::string& s)
       case 'a':
       {
         ++i;
-        DratInstruction d =
-            DratInstruction(addition, parse_binary_clause(i, end));
-        proof.d_instructions.push_back(d);
+        proof.d_instructions.emplace_back(addition,
+                                          parse_binary_clause(i, end));
         break;
       }
       case 'd':
       {
         ++i;
-        DratInstruction d =
-            DratInstruction(deletion, parse_binary_clause(i, end));
-        proof.d_instructions.push_back(d);
+        proof.d_instructions.emplace_back(deletion,
+                                          parse_binary_clause(i, end));
         break;
       }
       default:
@@ -195,7 +193,7 @@ SatClause parse_binary_clause(std::string::const_iterator& start,
     else
     {
       // If not, parse another literal
-      clause.push_back(parse_binary_literal(start, proof_end));
+      clause.emplace_back(parse_binary_literal(start, proof_end));
     }
   }
   // We've overrun the end of the byte stream.
