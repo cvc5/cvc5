@@ -52,10 +52,19 @@ enum DratInstructionKind
 
 struct DratInstruction
 {
- public:
-  DratInstructionKind kind;
-  SatClause clause;
   DratInstruction(DratInstructionKind kind, SatClause clause);
+
+  /**
+   * Write the DRAT instruction in textual format.
+   * The format is described in:
+   *    http://www.cs.utexas.edu/~marijn/publications/drat-trim.pdf
+   *
+   * @param os the stream to write to
+   */
+  void outputAsText(std::ostream& os) const;
+
+  DratInstructionKind d_kind;
+  SatClause d_clause;
 };
 
 class DratProof
@@ -103,39 +112,6 @@ class DratProof
    */
   std::vector<DratInstruction> d_instructions;
 };
-
-/**
- * Write a DRAT instruction in textual format.
- * The format is described in:
- *    http://www.cs.utexas.edu/~marijn/publications/drat-trim.pdf
- *
- * @param out the stream to write to
- * @param instr the instruction
- *
- * @return the stream written to
- */
-inline std::ostream& operator<<(std::ostream& out, const DratInstruction& instr)
-{
-  switch (instr.kind)
-  {
-    case addition:
-    {
-      out << instr.clause;
-      break;
-    }
-    case deletion:
-    {
-      out << "d " << instr.clause;
-      break;
-    }
-    default:
-    {
-      out << " unknown instruction type! ";
-      break;
-    }
-  }
-  return out;
-}
 
 }  // namespace drat
 }  // namespace proof

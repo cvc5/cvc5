@@ -47,17 +47,56 @@ SatLiteral parse_binary_literal(std::string::const_iterator& start,
 // DratInstruction implementation
 
 DratInstruction::DratInstruction(DratInstructionKind kind, SatClause clause)
-    : kind(kind), clause(clause)
+    : d_kind(kind), d_clause(clause)
 {
   // All intialized
 }
 
+void DratInstruction::outputAsText(std::ostream& os) const
+{
+  switch (d_kind)
+  {
+    case DratInstructionKind::addition:
+    {
+      for (const SatLiteral& l : d_clause)
+      {
+        if (l.isNegated())
+        {
+          Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
+        }
+        else
+        {
+          Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
+        }
+      }
+      Debug("pf::drat") << '0' << std::endl;
+      break;
+    }
+    case DratInstructionKind::deletion:
+    {
+      Debug("pf::drat") << "d ";
+      for (const SatLiteral& l : d_clause)
+      {
+        if (l.isNegated())
+        {
+          Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
+        }
+        else
+        {
+          Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
+        }
+      }
+      Debug("pf::drat") << '0' << std::endl;
+      break;
+    }
+    default: { Unreachable("Unknown DRAT instruction kind");
+    }
+  }
+}
+
 // DratProof implementation
 
-DratProof::DratProof()
-    : d_instructions()
-{
-}
+DratProof::DratProof() : d_instructions() {}
 
 // See the "binary format" section of
 // https://www.cs.utexas.edu/~marijn/drat-trim/
@@ -94,7 +133,6 @@ DratProof DratProof::fromBinary(const std::string& s)
         ++i;
         DratInstruction d =
             DratInstruction(addition, parse_binary_clause(i, end));
-        Debug("pf::drat") << d << std::endl;
         proof.d_instructions.push_back(d);
         break;
       }
@@ -103,7 +141,6 @@ DratProof DratProof::fromBinary(const std::string& s)
         ++i;
         DratInstruction d =
             DratInstruction(deletion, parse_binary_clause(i, end));
-        Debug("pf::drat") << d << std::endl;
         proof.d_instructions.push_back(d);
         break;
       }
@@ -122,47 +159,7 @@ DratProof DratProof::fromBinary(const std::string& s)
   if (Debug.isOn("pf::drat"))
   {
     Debug("pf::drat") << "Printing out DRAT in textual format:" << std::endl;
-    for (const auto& i : proof.d_instructions)
-    {
-      switch (i.kind)
-      {
-        case DratInstructionKind::addition:
-        {
-          for (const auto& l : i.clause)
-          {
-            if (l.isNegated())
-            {
-              Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
-            }
-            else
-            {
-              Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
-            }
-          }
-          Debug("pf::drat") << '0' << std::endl;
-          break;
-        }
-        case DratInstructionKind::deletion:
-        {
-          Debug("pf::drat") << "d ";
-          for (const auto& l : i.clause)
-          {
-            if (l.isNegated())
-            {
-              Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
-            }
-            else
-            {
-              Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
-            }
-          }
-          Debug("pf::drat") << '0' << std::endl;
-          break;
-        }
-        default: { throw InvalidDratProofException("???");
-        }
-      }
-    }
+    proof.outputAsText(Debug("pf::drat"));
   }
 
   return proof;
@@ -171,6 +168,15 @@ DratProof DratProof::fromBinary(const std::string& s)
 const std::vector<DratInstruction>& DratProof::getInstructions() const
 {
   return d_instructions;
+};
+
+void DratProof::outputAsText(std::ostream& os) const
+{
+  for (const DratInstruction& instruction : d_instructions)
+  {
+    instruction.outputAsText(os);
+    os << "\n";
+  }
 };
 
 SatClause parse_binary_clause(std::string::const_iterator& start,
