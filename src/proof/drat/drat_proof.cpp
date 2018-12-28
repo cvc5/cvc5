@@ -14,101 +14,119 @@
  ** Defines deserialization for DRAT proofs.
  **/
 
-#include "proof/drat_proof.h"
+#include "proof/drat/drat_proof.h"
 #include <bitset>
 
 namespace CVC4 {
 namespace proof {
 namespace drat {
 
-// Helper functions for parsing the binary DRAT format.
+// Forward-declare helper functions for parsing the binary DRAT format.
+
+/**
+ * Parses a binary clause which starts at `start` and must not go beyond `end`
+ *
+ * Leaves the iterator one past the last byte that is a part of the clause.
+ * That is, one past the null byte.
+ *
+ * If the clause overruns `end`, then raises a `InvalidDratProofException`.
+ */
 SatClause parse_binary_clause(std::string::const_iterator& start,
                               const std::string::const_iterator& proof_end);
 
+/**
+ * Parses a binary literal which starts at `start` and must not go beyond `end`
+ *
+ * Leaves the iterator one past the last byte that is a part of the clause.
+ *
+ * If the literal overruns `end`, then raises a `InvalidDratProofException`.
+ */
 SatLiteral parse_binary_literal(std::string::const_iterator& start,
                                 const std::string::const_iterator& proof_end);
 
-DRATInstruction::DRATInstruction(DRATInstructionKind kind, SatClause clause)
+// DratInstruction implementation
+
+DratInstruction::DratInstruction(DratInstructionKind kind, SatClause clause)
     : kind(kind), clause(clause)
 {
   // All intialized
 }
 
-DRATProof::DRATProof()
-    : d_instructions(), d_binary_formatted_proof(), d_parsed(false)
+// DratProof implementation
+
+DratProof::DratProof()
+    : d_instructions()
 {
 }
 
 // See the "binary format" section of
 // https://www.cs.utexas.edu/~marijn/drat-trim/
-void DRATProof::parse() const
+DratProof DratProof::fromBinary(const std::string& s)
 {
-  std::string s = d_binary_formatted_proof.str();
+  DratProof proof;
   if (Debug.isOn("pf::drat"))
   {
+    Debug("pf::drat") << "Parsing binary DRAT proof" << std::endl;
     Debug("pf::drat") << "proof length: " << s.length() << " bytes"
                       << std::endl;
-    Debug("pf::drat") << "proof as bits: ";
-    for (auto i = s.cbegin(); i != s.cend(); ++i)
+    Debug("pf::drat") << "proof as bytes: ";
+    for (char i : s)
     {
-      if (*i == 'a' || *i == 'd')
+      if (i == 'a' || i == 'd')
       {
-        Debug("pf::drat") << std::endl << "  " << std::bitset<8>(*i);
+        Debug("pf::drat") << std::endl << "  " << std::bitset<8>(i);
       }
       else
       {
-        Debug("pf::drat") << " " << std::bitset<8>(*i);
+        Debug("pf::drat") << " " << std::bitset<8>(i);
       }
     }
     Debug("pf::drat") << std::endl << "parsing proof..." << std::endl;
   }
 
-  Assert(!d_parsed, "Why are you trying to parse a DRAT proof more than once?");
-  auto end = s.cend();
   // For each instruction
-  for (auto i = s.cbegin(); i != end;)
+  for (auto i = s.cbegin(), end = s.cend(); i != end;)
   {
     switch (*i)
     {
       case 'a':
       {
         ++i;
-        DRATInstruction d =
-            DRATInstruction(addition, parse_binary_clause(i, end));
+        DratInstruction d =
+            DratInstruction(addition, parse_binary_clause(i, end));
         Debug("pf::drat") << d << std::endl;
-        d_instructions.push_back(d);
+        proof.d_instructions.push_back(d);
         break;
       }
       case 'd':
       {
         ++i;
-        DRATInstruction d =
-            DRATInstruction(deletion, parse_binary_clause(i, end));
+        DratInstruction d =
+            DratInstruction(deletion, parse_binary_clause(i, end));
         Debug("pf::drat") << d << std::endl;
-        d_instructions.push_back(d);
+        proof.d_instructions.push_back(d);
         break;
       }
       default:
       {
         std::ostringstream s;
-        s << "Invalid instruction in DRAT proof. Instruction bits: "
+        s << "Invalid instruction in Drat proof. Instruction bits: "
           << std::bitset<8>(*i)
           << ". Expected 'a' (01100001) or 'd' "
              "(01100100).";
-        throw InvalidDRATProofException(s.str());
+        throw InvalidDratProofException(s.str());
       }
     }
   }
-  d_parsed = true;
 
   if (Debug.isOn("pf::drat"))
   {
     Debug("pf::drat") << "Printing out DRAT in textual format:" << std::endl;
-    for (const auto& i : d_instructions)
+    for (const auto& i : proof.d_instructions)
     {
       switch (i.kind)
       {
-        case DRATInstructionKind::addition:
+        case DratInstructionKind::addition:
         {
           for (const auto& l : i.clause)
           {
@@ -124,7 +142,7 @@ void DRATProof::parse() const
           Debug("pf::drat") << '0' << std::endl;
           break;
         }
-        case DRATInstructionKind::deletion:
+        case DratInstructionKind::deletion:
         {
           Debug("pf::drat") << "d ";
           for (const auto& l : i.clause)
@@ -141,24 +159,17 @@ void DRATProof::parse() const
           Debug("pf::drat") << '0' << std::endl;
           break;
         }
-        default: { throw InvalidDRATProofException("???");
+        default: { throw InvalidDratProofException("???");
         }
       }
     }
   }
+
+  return proof;
 };
 
-std::ostringstream& DRATProof::getOStringStream()
+const std::vector<DratInstruction>& DratProof::getInstructions() const
 {
-  return d_binary_formatted_proof;
-};
-
-const std::vector<DRATInstruction>& DRATProof::getInstructions() const
-{
-  if (!d_parsed)
-  {
-    parse();
-  };
   return d_instructions;
 };
 
@@ -166,8 +177,10 @@ SatClause parse_binary_clause(std::string::const_iterator& start,
                               const std::string::const_iterator& proof_end)
 {
   SatClause clause;
-  for (; start != proof_end;)
+  // A clause is a 0-terminated sequence of literals
+  while (start != proof_end)
   {
+    // Is the clause done?
     if (*start == 0)
     {
       ++start;
@@ -175,22 +188,25 @@ SatClause parse_binary_clause(std::string::const_iterator& start,
     }
     else
     {
+      // If not, parse another literal
       clause.push_back(parse_binary_literal(start, proof_end));
     }
   }
-  throw InvalidDRATProofException(
+  // We've overrun the end of the byte stream.
+  throw InvalidDratProofException(
       "Clause in DRAT proof was not done when "
       "EOF was encountered");
 }
 
-// Advances `start`, parsing the binary representation of a literal
 SatLiteral parse_binary_literal(std::string::const_iterator& start,
                                 const std::string::const_iterator& proof_end)
 {
+  // lit is encoded as uint represented by a variable-length byte sequence
   uint64_t literal_represented_as_uint = 0;
   for (int shift = 0; start != proof_end; ++start, shift += 7)
   {
     unsigned char byte = *start;
+    // The MSB of the byte is an indicator of whether the sequence continues
     bool continued = (byte >> 7) & 1;
     unsigned char numeric_part = byte & 0x7f;
     literal_represented_as_uint |= numeric_part << shift;
@@ -198,13 +214,14 @@ SatLiteral parse_binary_literal(std::string::const_iterator& start,
     {
       // LSB of `literal_represented_as_uint` indicates negation.
       bool negated = literal_represented_as_uint & 1;
+      // Rest is the literal number
       SatVariable var_number = literal_represented_as_uint >> 1;
       ++start;
-      // It's not clear to me why we need to subtract 1 here..
+      // Internal clauses start at 0, external ones start at 1.
       return SatLiteral(var_number - 1, negated);
     }
   }
-  throw InvalidDRATProofException(
+  throw InvalidDratProofException(
       "Literal in DRAT proof was not done when "
       "EOF was encountered");
 }

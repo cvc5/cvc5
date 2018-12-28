@@ -13,12 +13,16 @@
  **
  ** Declares C++ types that represent a DRAT proof.
  ** Defines serialization for these types.
+ **
+ ** You can find an introduction to DRAT in the drat-trim paper:
+ **    http://www.cs.utexas.edu/~marijn/publications/drat-trim.pdf
+ **
  **/
 
-#pragma once
+#ifndef __CVC4__PROOF__DRAT__DRAT_PROOF_H
+#define __CVC4__PROOF__DRAT__DRAT_PROOF_H
 
 #include "cvc4_private.h"
-#include "proof/bitvector_proof.h"
 #include "prop/sat_solver.h"
 #include "prop/sat_solver_types.h"
 
@@ -30,37 +34,93 @@ using CVC4::prop::SatClause;
 using CVC4::prop::SatLiteral;
 using CVC4::prop::SatVariable;
 
-class CVC4_PUBLIC InvalidDRATProofException : public CVC4::Exception
+class CVC4_PUBLIC InvalidDratProofException : public CVC4::Exception
 {
  public:
-  InvalidDRATProofException() : Exception("Invalid DRAT Proof") {}
+  InvalidDratProofException() : Exception("Invalid DRAT Proof") {}
 
-  InvalidDRATProofException(const std::string& msg) : Exception(msg) {}
+  InvalidDratProofException(const std::string& msg) : Exception(msg) {}
 
-  InvalidDRATProofException(const char* msg) : Exception(msg) {}
-}; /* class InvalidDRATProofException */
+  InvalidDratProofException(const char* msg) : Exception(msg) {}
+}; /* class InvalidDratProofException */
 
-enum DRATInstructionKind
+enum DratInstructionKind
 {
   addition,
   deletion
 };
 
-struct DRATInstruction
+struct DratInstruction
 {
  public:
-  DRATInstructionKind kind;
+  DratInstructionKind kind;
   SatClause clause;
-  DRATInstruction(DRATInstructionKind kind, SatClause clause);
+  DratInstruction(DratInstructionKind kind, SatClause clause);
 };
 
-inline std::ostream& operator<<(std::ostream& out, const DRATInstruction& instr)
+class DratProof
+{
+ public:
+  DratProof(const DratProof&) = default;
+
+  DratProof(DratProof&&) = default;
+
+  ~DratProof() = default;
+
+  /**
+   * Parses a DRAT proof from the binary format.
+   * The format is described at:
+   *    https://www.cs.utexas.edu/~marijn/drat-trim/#contact
+   *
+   * @param binaryProof a string containing the bytes of the "binary" proof
+   *
+   * @return the parsed proof
+   */
+  static DratProof fromBinary(const std::string& binaryProof);
+
+  /**
+   * @return The instructions in this proof
+   */
+  const std::vector<DratInstruction>& getInstructions() const;
+
+  /**
+   * Write the DRAT proof in textual format.
+   * The format is described in:
+   *    http://www.cs.utexas.edu/~marijn/publications/drat-trim.pdf
+   *
+   * @param os the stream to write to
+   */
+  void outputAsText(std::ostream& os) const;
+
+ private:
+  /**
+   * Create an DRAT proof with no instructions.
+   */
+  DratProof();
+
+  /**
+   * The instructions of the DRAT proof.
+   */
+  std::vector<DratInstruction> d_instructions;
+};
+
+/**
+ * Write a DRAT instruction in textual format.
+ * The format is described in:
+ *    http://www.cs.utexas.edu/~marijn/publications/drat-trim.pdf
+ *
+ * @param out the stream to write to
+ * @param instr the instruction
+ *
+ * @return the stream written to
+ */
+inline std::ostream& operator<<(std::ostream& out, const DratInstruction& instr)
 {
   switch (instr.kind)
   {
     case addition:
     {
-      out << "a " << instr.clause;
+      out << instr.clause;
       break;
     }
     case deletion:
@@ -68,27 +128,17 @@ inline std::ostream& operator<<(std::ostream& out, const DRATInstruction& instr)
       out << "d " << instr.clause;
       break;
     }
-    default: { out << " unknown instruction type! ";
+    default:
+    {
+      out << " unknown instruction type! ";
+      break;
     }
   }
   return out;
 }
 
-class DRATProof
-{
- private:
-  mutable std::vector<DRATInstruction> d_instructions;
-  mutable std::ostringstream d_binary_formatted_proof;
-  mutable bool d_parsed;
-
-  void parse() const;
-
- public:
-  DRATProof();
-  std::ostringstream& getOStringStream();
-  const std::vector<DRATInstruction>& getInstructions() const;
-};
-
 }  // namespace drat
 }  // namespace proof
 }  // namespace CVC4
+
+#endif  // __CVC4__PROOF__DRAT__DRAT_PROOF_H
