@@ -73,6 +73,7 @@ bool BoolToBV::needToRebuild(TNode n) const
 Node BoolToBV::lowerAssertion(const TNode& a)
 {
   bool optionITE = options::boolToBitvector() == BOOL_TO_BV_ITE;
+  bool optionAll = options::boolToBitvector() == BOOL_TO_BV_ALL;
   NodeManager* nm = NodeManager::currentNM();
   std::vector<TNode> visit;
   visit.push_back(a);
@@ -88,13 +89,12 @@ Node BoolToBV::lowerAssertion(const TNode& a)
 
     int numChildren = n.getNumChildren();
     Kind k = n.getKind();
-    Debug("bool-to-bv") << "BoolToBV::lowerAssertion Post-traversal with " << n
-                        << " and visited = " << ContainsKey(visited, n)
+    Debug("bool-to-bv") << "BoolToBV::lowerAssertion Post-order traversal with "
+                        << n << " and visited = " << ContainsKey(visited, n)
                         << std::endl;
 
     // Mark as visited
-    /* Optimization: if it's a leaf, don't need to wait to do the work */
-    if (!ContainsKey(visited, n) && (numChildren > 0))
+    if (!ContainsKey(visited, n))
     {
       visited.insert(n);
       visit.push_back(n);
@@ -120,20 +120,20 @@ Node BoolToBV::lowerAssertion(const TNode& a)
         }
       }
     }
-    /* Optimization for ite mode */
-    else if (optionITE && !ContainsKey(ite_cond, n) && !needToRebuild(n))
+    else if (optionAll || ContainsKey(ite_cond, n) || (k == kind::ITE))
     {
-      Debug("bool-to-bv")
-          << "BoolToBV::lowerAssertion Skipping because don't need to rebuild: "
-          << n << std::endl;
-      // in ite mode, if you've already visited the node but it's not
-      // in an ite condition and doesn't need to be rebuilt, then
-      // don't need to do anything
-      continue;
+      lowerNode(n);
+    }
+    else if (needToRebuild(n))
+    {
+      // just rebuilding because of subterms, but not lowering this node
+      rebuildNode(n, n.getKind());
     }
     else
     {
-      lowerNode(n);
+      Debug("bool-to-bv")
+        << "BoolToBV::lowerAssertion Skipping because don't need to rebuild: "
+        << n << std::endl;
     }
   }
 
@@ -143,61 +143,24 @@ Node BoolToBV::lowerAssertion(const TNode& a)
   }
   else
   {
-    Assert(a == fromCache(a));
-    return a;
+    Assert(!optionAll);
+    Assert(fromCache(a).getType().isBoolean());
+    return fromCache(a);
   }
 }
 
 void BoolToBV::lowerNode(const TNode& n)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Kind k = n.getKind();
-
-  bool all_bv = true;
-  // check if it was able to convert all children to bitvectors
-  for (const Node& nn : n)
+  // easy case -- just replace boolean constant
+  if (k == kind::CONST_BOOLEAN)
   {
-    all_bv = all_bv && fromCache(nn).getType().isBitVector();
-    if (!all_bv)
-    {
-      break;
-    }
+    d_lowerCache[n] = (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
+      : bv::utils::mkZero(1);
+    return;
   }
 
-  if (!all_bv || (n.getNumChildren() == 0))
-  {
-    if ((options::boolToBitvector() == BOOL_TO_BV_ALL)
-        && n.getType().isBoolean())
-    {
-      if (k == kind::CONST_BOOLEAN)
-      {
-        d_lowerCache[n] = (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
-                                                     : bv::utils::mkZero(1);
-      }
-      else
-      {
-        d_lowerCache[n] =
-            nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
-      }
-
-      Debug("bool-to-bv") << "BoolToBV::lowerNode " << n << " =>\n"
-                          << fromCache(n) << std::endl;
-      ++(d_statistics.d_numTermsForcedLowered);
-      return;
-    }
-    else
-    {
-      // invariant
-      // either one of the children is not a bit-vector or bool
-      //   i.e. something that can't be 'forced' to a bitvector
-      // or it's in 'ite' mode which will give up on bools that
-      //   can't be converted easily
-
-      Debug("bool-to-bv") << "BoolToBV::lowerNode skipping: " << n << std::endl;
-      return;
-    }
-  }
-
+  NodeManager* nm = NodeManager::currentNM();
   Kind new_kind = k;
   switch (k)
   {
@@ -221,6 +184,54 @@ void BoolToBV::lowerNode(const TNode& n)
     default: break;
   }
 
+  // always safe to rebuild if not changing the kind
+  // even if you still need to rebuild because of subterms
+  bool safe_to_rebuild = true;
+  if (new_kind != k)
+  {
+    // attempting to lower to bv
+    // need to check that it's safe
+    Type t;
+    for (const Node& nn  : n)
+    {
+      safe_to_rebuild = safe_to_rebuild && fromCache(nn).getType().isBitVector();
+      if (!safe_to_rebuild)
+      {
+        break;
+      }
+    }
+  }
+
+  if (!safe_to_rebuild &&
+      (options::boolToBitvector() == BOOL_TO_BV_ALL) &&
+      n.getType().isBoolean())
+  {
+    // in mode "all", force booleans to be bit-vectors
+    d_lowerCache[n] =
+      nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+    Debug("bool-to-bv") << "BoolToBV::lowerNode " << n << " =>\n"
+                        << fromCache(n) << std::endl;
+    ++(d_statistics.d_numTermsForcedLowered);
+    return;
+  }
+
+  // Optimization: second condition not necessary for correctness
+  //               but doesn't rebuild unless it has to
+  if (safe_to_rebuild && ((new_kind != k) || needToRebuild(n)))
+  {
+    rebuildNode(n, new_kind);
+  }
+  else
+  {
+    Debug("bool-to-bv") << "BoolToBV::lowerNode skipping: " << n << std::endl;
+    return;
+  }
+}
+
+void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
+{
+  Kind k = n.getKind();
+  NodeManager* nm = NodeManager::currentNM();
   NodeBuilder<> builder(new_kind);
   if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && (new_kind != k))
   {
@@ -233,7 +244,7 @@ void BoolToBV::lowerNode(const TNode& n)
   }
 
   // special case IMPLIES because needs to be rewritten
-  if (k == kind::IMPLIES)
+  if ((k == kind::IMPLIES) && (new_kind != k))
   {
     builder << nm->mkNode(kind::BITVECTOR_NOT, fromCache(n[0]));
     builder << fromCache(n[1]);
@@ -246,7 +257,7 @@ void BoolToBV::lowerNode(const TNode& n)
     }
   }
 
-  Debug("bool-to-bv") << "BoolToBV::lowerNode " << n << " =>\n"
+  Debug("bool-to-bv") << "BoolToBV::rebuildNode " << n << " =>\n"
                       << builder << std::endl;
 
   d_lowerCache[n] = builder.constructNode();

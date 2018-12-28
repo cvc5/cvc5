@@ -52,6 +52,13 @@ class BoolToBV : public PreprocessingPass
   /* Tries to lower one node to a width-one bit-vector */
   void lowerNode(const TNode& n);
 
+  /** Rebuilds node using the provided kind
+   *  Note: The provided kind is not necessarily different from the
+   *        existing one, but still might need to be rebuilt because
+   *        of subterms
+   */
+  void rebuildNode(const TNode& n, Kind new_kind);
+
   /* Returns cached node if it exists, otherwise returns the node */
   Node fromCache(TNode n) const;
 
