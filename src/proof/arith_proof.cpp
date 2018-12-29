@@ -877,7 +877,8 @@ void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o,
     {
       // Since our axioms are binary, but n may be n-ary, we rig up
       // a right-associative tree.
-      for (size_t i = 0, nchildren = n.getNumChildren(); i < nchildren; ++i)
+      size_t nchildren = n.getNumChildren();
+      for (size_t i = 0; i < nchildren; ++i)
       {
         if (i < nchildren - 1)
         {
@@ -885,7 +886,7 @@ void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o,
         }
         printLinearMonomialNormalizer(o, n[i]);
       }
-      std::fill_n(std::ostream_iterator<char>(o), n.getNumChildren() - 1, ')');
+      std::fill_n(std::ostream_iterator<char>(o), nchildren - 1, ')');
       break;
     }
     case kind::MULT:
