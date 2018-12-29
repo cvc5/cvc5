@@ -46,11 +46,20 @@ class BoolToBV : public PreprocessingPass
     ~Statistics();
   };
 
-  /* Takes an assertion and tries to create more bit-vector structure */
-  Node lowerAssertion(const TNode& a);
+  /** Traverses subterms to turn booleans into bit-vectors using lowerNodeHelper
+   *  Passes the force argument to lowerNodeHelper
+   *  Returns the lowered node
+   */
+  Node lowerNode(const TNode& node, bool force = true);
 
-  /* Tries to lower one node to a width-one bit-vector */
-  void lowerNode(const TNode& n);
+  /** Tries to lower one node to a width-one bit-vector
+   *  Caches the result if successful
+   */
+  void lowerNodeHelper(const TNode& n, bool force = true);
+
+  /* Traverses formula looking for ITEs to lower to BITVECTOR_ITE using
+   * lowerNode*/
+  Node lowerIte(const TNode& node);
 
   /** Rebuilds node using the provided kind
    *  Note: The provided kind is not necessarily different from the
@@ -62,7 +71,7 @@ class BoolToBV : public PreprocessingPass
   /* Returns cached node if it exists, otherwise returns the node */
   Node fromCache(TNode n) const;
 
-  /** Checks if any of the nodes children were rebuilt,
+  /** Checks if any of the node's children were rebuilt,
    *  in which case n needs to be rebuilt as well
    */
   bool needToRebuild(TNode n) const;
