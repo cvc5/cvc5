@@ -753,36 +753,42 @@ class Constraint {
    * This initializes the fields that cannot be set in the constructor due to
    * circular dependencies.
    */
-  void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
+  void initialize(ConstraintDatabase* db,
+                  SortedConstraintMapIterator v,
+                  ConstraintP negation);
 
-
-
-  class ConstraintRuleCleanup {
-  public:
-    inline void operator()(ConstraintRule* crp){
+  class ConstraintRuleCleanup
+  {
+   public:
+    inline void operator()(ConstraintRule* crp)
+    {
       Assert(crp != NULL);
       ConstraintP constraint = crp->d_constraint;
       Assert(constraint->d_crid != ConstraintRuleIdSentinel);
       constraint->d_crid = ConstraintRuleIdSentinel;
-      
-      PROOF(if(crp->d_farkasCoefficients != RationalVectorCPSentinel){
-              delete crp->d_farkasCoefficients;
-            });
+
+      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
+        delete crp->d_farkasCoefficients;
+      });
     }
   };
 
-  class CanBePropagatedCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
+  class CanBePropagatedCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
       ConstraintP constraint = *p;
       Assert(constraint->d_canBePropagated);
       constraint->d_canBePropagated = false;
     }
   };
 
-  class AssertionOrderCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
+  class AssertionOrderCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
       ConstraintP constraint = *p;
       Assert(constraint->assertedToTheTheory());
       constraint->d_assertionOrder = AssertionOrderSentinel;
@@ -791,9 +797,11 @@ class Constraint {
     }
   };
 
-  class SplitCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
+  class SplitCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
       ConstraintP constraint = *p;
       Assert(constraint->d_split);
       constraint->d_split = false;
@@ -930,10 +938,9 @@ class Constraint {
    * The position of the constraint in the constraint rule id.
    *
    * Sat Context Dependent.
-   * This is initially 
+   * This is initially
    */
   ConstraintRuleID d_crid;
-  
 
   /**
    * True if the equality has been split.
