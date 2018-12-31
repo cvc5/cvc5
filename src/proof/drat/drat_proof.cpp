@@ -21,7 +21,42 @@ namespace CVC4 {
 namespace proof {
 namespace drat {
 
-// Forward-declare helper functions for parsing the binary DRAT format.
+// helper functions for parsing the binary DRAT format.
+
+/**
+ * Parses a binary literal which starts at `start` and must not go beyond `end`
+ *
+ * Leaves the iterator one past the last byte that is a part of the clause.
+ *
+ * If the literal overruns `end`, then raises a `InvalidDratProofException`.
+ */
+SatLiteral parse_binary_literal(std::string::const_iterator& start,
+                                const std::string::const_iterator& proof_end)
+{
+  // lit is encoded as uint represented by a variable-length byte sequence
+  uint64_t literal_represented_as_uint = 0;
+  for (int shift = 0; start != proof_end; ++start, shift += 7)
+  {
+    unsigned char byte = *start;
+    // The MSB of the byte is an indicator of whether the sequence continues
+    bool continued = (byte >> 7) & 1;
+    unsigned char numeric_part = byte & 0x7f;
+    literal_represented_as_uint |= numeric_part << shift;
+    if (!continued)
+    {
+      // LSB of `literal_represented_as_uint` indicates negation.
+      bool negated = literal_represented_as_uint & 1;
+      // Rest is the literal number
+      SatVariable var_number = literal_represented_as_uint >> 1;
+      ++start;
+      // Internal clauses start at 0, external ones start at 1.
+      return SatLiteral(var_number - 1, negated);
+    }
+  }
+  throw InvalidDratProofException(
+      "Literal in DRAT proof was not done when "
+      "EOF was encountered");
+}
 
 /**
  * Parses a binary clause which starts at `start` and must not go beyond `end`
@@ -32,17 +67,55 @@ namespace drat {
  * If the clause overruns `end`, then raises a `InvalidDratProofException`.
  */
 SatClause parse_binary_clause(std::string::const_iterator& start,
-                              const std::string::const_iterator& proof_end);
+                              const std::string::const_iterator& proof_end)
+{
+  SatClause clause;
+  // A clause is a 0-terminated sequence of literals
+  while (start != proof_end)
+  {
+    // Is the clause done?
+    if (*start == 0)
+    {
+      ++start;
+      return clause;
+    }
+    else
+    {
+      // If not, parse another literal
+      clause.emplace_back(parse_binary_literal(start, proof_end));
+    }
+  }
+  // We've overrun the end of the byte stream.
+  throw InvalidDratProofException(
+      "Clause in DRAT proof was not done when "
+      "EOF was encountered");
+}
 
 /**
- * Parses a binary literal which starts at `start` and must not go beyond `end`
+ * Writes this SAT literal in the textual DIMACS format. i.e. as a non-zero
+ * integer.
  *
- * Leaves the iterator one past the last byte that is a part of the clause.
+ * Since internally +0 and -0 are valid literals, we add one to each
+ * literal's number (SAT variable) when outputtting it.
  *
- * If the literal overruns `end`, then raises a `InvalidDratProofException`.
+ * @param os the stream to write to
+ * @param l the literal to write
  */
-SatLiteral parse_binary_literal(std::string::const_iterator& start,
-                                const std::string::const_iterator& proof_end);
+void outputLiteralAsDimacs(std::ostream& os, SatLiteral l)
+{
+  if (l.isNegated())
+  {
+    // add 1 to  convert between internal literals and their DIMACS
+    // representaations.
+    os << '-' << l.getSatVariable() + 1;
+  }
+  else
+  {
+    // add 1 to  convert between internal literals and their DIMACS
+    // representaations.
+    os << l.getSatVariable() + 1;
+  }
+}
 
 // DratInstruction implementation
 
@@ -60,33 +133,21 @@ void DratInstruction::outputAsText(std::ostream& os) const
     {
       for (const SatLiteral& l : d_clause)
       {
-        if (l.isNegated())
-        {
-          Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
-        }
-        else
-        {
-          Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
-        }
+        outputLiteralAsDimacs(os, l);
+        os << ' ';
       }
-      Debug("pf::drat") << '0' << std::endl;
+      os << '0' << std::endl;
       break;
     }
     case DratInstructionKind::deletion:
     {
-      Debug("pf::drat") << "d ";
+      os << "d ";
       for (const SatLiteral& l : d_clause)
       {
-        if (l.isNegated())
-        {
-          Debug("pf::drat") << '-' << l.getSatVariable() + 1 << ' ';
-        }
-        else
-        {
-          Debug("pf::drat") << l.getSatVariable() + 1 << ' ';
-        }
+        outputLiteralAsDimacs(os, l);
+        os << ' ';
       }
-      Debug("pf::drat") << '0' << std::endl;
+      os << '0' << std::endl;
       break;
     }
     default: { Unreachable("Unknown DRAT instruction kind");
@@ -176,59 +237,6 @@ void DratProof::outputAsText(std::ostream& os) const
     os << "\n";
   }
 };
-
-SatClause parse_binary_clause(std::string::const_iterator& start,
-                              const std::string::const_iterator& proof_end)
-{
-  SatClause clause;
-  // A clause is a 0-terminated sequence of literals
-  while (start != proof_end)
-  {
-    // Is the clause done?
-    if (*start == 0)
-    {
-      ++start;
-      return clause;
-    }
-    else
-    {
-      // If not, parse another literal
-      clause.emplace_back(parse_binary_literal(start, proof_end));
-    }
-  }
-  // We've overrun the end of the byte stream.
-  throw InvalidDratProofException(
-      "Clause in DRAT proof was not done when "
-      "EOF was encountered");
-}
-
-SatLiteral parse_binary_literal(std::string::const_iterator& start,
-                                const std::string::const_iterator& proof_end)
-{
-  // lit is encoded as uint represented by a variable-length byte sequence
-  uint64_t literal_represented_as_uint = 0;
-  for (int shift = 0; start != proof_end; ++start, shift += 7)
-  {
-    unsigned char byte = *start;
-    // The MSB of the byte is an indicator of whether the sequence continues
-    bool continued = (byte >> 7) & 1;
-    unsigned char numeric_part = byte & 0x7f;
-    literal_represented_as_uint |= numeric_part << shift;
-    if (!continued)
-    {
-      // LSB of `literal_represented_as_uint` indicates negation.
-      bool negated = literal_represented_as_uint & 1;
-      // Rest is the literal number
-      SatVariable var_number = literal_represented_as_uint >> 1;
-      ++start;
-      // Internal clauses start at 0, external ones start at 1.
-      return SatLiteral(var_number - 1, negated);
-    }
-  }
-  throw InvalidDratProofException(
-      "Literal in DRAT proof was not done when "
-      "EOF was encountered");
-}
 
 }  // namespace drat
 }  // namespace proof

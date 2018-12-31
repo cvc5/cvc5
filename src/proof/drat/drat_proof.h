@@ -77,11 +77,29 @@ class DratProof
   ~DratProof() = default;
 
   /**
-   * Parses a DRAT proof from the binary format.
+   * Parses a DRAT proof from the **binary format**.
    * The format is described at:
    *    https://www.cs.utexas.edu/~marijn/drat-trim/#contact
    *
-   * @param binaryProof a string containing the bytes of the "binary" proof
+   * What do the standard authors mean by the format being "binary"?
+   * They just mean that proofs in this format should be understood as
+   * sequences of bytes, not sequences of ASCII/Unicode/your favorite character
+   * set characters.
+   *
+   * @param binaryProof a string containing the bytes of the binary proof.
+   *        Even though the proof isn't text, its safe to store it in a string
+   *        because C++ strings don't make any gaurantees about the encoding of
+   *        their contents. This makes them (effectively) just byte sequences.
+   *
+   *        A brief aside: In languages where strings are semantically
+   *        character sequences with gaurantees about the encoding (e.g. Rust),
+   *        we wouldn't be able to use a string here. Instead we'd have to use
+   *        a byte buffer of some sort. However, in C++ a lot of useful
+   *        iostream machinery is built around strings, making `std::string` a
+   *        more convenient byte buffer than `std::vector<uint_8t>`. Between
+   *        this convenience advantage and the lack of encoding constraints on
+   *        `std::string`, `std::string` is the best choice for a byte buffer
+   *        in C++.
    *
    * @return the parsed proof
    */
