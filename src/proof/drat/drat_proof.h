@@ -91,16 +91,6 @@ class DratProof
    *        because C++ strings don't make any gaurantees about the encoding of
    *        their contents. This makes them (effectively) just byte sequences.
    *
-   *        A brief aside: In languages where strings are semantically
-   *        character sequences with gaurantees about the encoding (e.g. Rust),
-   *        we wouldn't be able to use a string here. Instead we'd have to use
-   *        a byte buffer of some sort. However, in C++ a lot of useful
-   *        iostream machinery is built around strings, making `std::string` a
-   *        more convenient byte buffer than `std::vector<uint_8t>`. Between
-   *        this convenience advantage and the lack of encoding constraints on
-   *        `std::string`, `std::string` is the best choice for a byte buffer
-   *        in C++.
-   *
    * @return the parsed proof
    */
   static DratProof fromBinary(const std::string& binaryProof);
