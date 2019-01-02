@@ -41,6 +41,7 @@ class SmtEngine;
 class Type;
 class Options;
 class Random;
+class Rational;
 class Result;
 
 namespace api {
@@ -1857,7 +1858,7 @@ class CVC4_PUBLIC Solver
   Term mkReal(int64_t val) const;
 
   /**
-   * Create an real constant from an unsigned integer.
+   * Create a real constant from an unsigned integer.
    * @param val the value of the constant
    * @return a constant of sort Integer
    */
@@ -1962,13 +1963,6 @@ class CVC4_PUBLIC Solver
    * @return the universe set constant
    */
   Term mkUniverseSet(Sort sort) const;
-
-  /**
-   * Create a bit-vector constant of given size with value 0.
-   * @param size the bit-width of the bit-vector sort
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size) const;
 
   /**
    * Create a bit-vector constant of given size and value.
@@ -2083,7 +2077,6 @@ class CVC4_PUBLIC Solver
    * Create constant of kind:
    *   - ABSTRACT_VALUE
    *   - CONST_RATIONAL (for integers, reals)
-   *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg the argument to this kind
@@ -2143,6 +2136,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create constant of kind:
    *   - CONST_RATIONAL (for rationals)
+   *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg1 the first argument to this kind
@@ -2539,6 +2533,9 @@ class CVC4_PUBLIC Solver
   void checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const;
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /* Helper for mk-functions that call d_exprMgr->mkConst(). */
+  template <typename T>
+  Term mkConstHelper(T t) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

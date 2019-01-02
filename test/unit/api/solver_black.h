@@ -351,8 +351,8 @@ void SolverBlack::testMkConst()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val2));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val3));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val4));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BITVECTOR, val2));
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val3), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val4), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val1));
@@ -368,8 +368,7 @@ void SolverBlack::testMkConst()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val2, val2));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val3, val3));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val4, val4));
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val2, val2),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BITVECTOR, val2, val2));
 
   // mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 #ifdef CVC4_USE_SYMFPU
