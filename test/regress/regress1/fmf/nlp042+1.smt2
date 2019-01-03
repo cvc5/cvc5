@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --mbqi=abs --no-check-models
+; COMMAND-LINE: --finite-model-find --no-check-models
 ; EXPECT: sat
 (set-logic UF)
 (set-info :status sat)

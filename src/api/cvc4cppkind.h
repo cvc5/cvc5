@@ -70,8 +70,8 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 1
    *   -[1]: Index of the abstract value
    * Create with:
-   *   mkConst(Kind kind, const char* s, uint32_t base = 10)
-   *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
+   *   mkConst(Kind kind, const char* arg)
+   *   mkConst(Kind kind, const std::string& arg)
    *   mkConst(Kind kind, uint32_t arg)
    *   mkConst(Kind kind, int32_t arg)
    *   mkConst(Kind kind, int64_t arg)
@@ -658,14 +658,11 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters:
    *   See mkBitVector().
    * Create with:
-   *   mkBitVector(uint32_t size)
-   *   mkBitVector(uint32_t size, uint32_t val)
    *   mkBitVector(uint32_t size, uint64_t val)
    *   mkBitVector(const char* s, uint32_t base = 2)
    *   mkBitVector(std::string& s, uint32_t base = 2)
    *   mkConst(Kind kind, const char* s, uint32_t base = 10)
    *   mkConst(Kind kind, const std::string& s, uint32_t base = 10)
-   *   mkConst(Kind kind, uint32_t arg)
    *   mkConst(Kind kind, uint32_t arg1, uint64_t arg2)
    */
   CONST_BITVECTOR,
@@ -1922,7 +1919,7 @@ enum CVC4_PUBLIC Kind : int32_t
    * All set variables must be interpreted as subsets of it.
    * Create with:
    *   mkUniverseSet(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
+   *   mkConst(Kind kind, Sort sort)
    */
   UNIVERSE_SET,
   /**

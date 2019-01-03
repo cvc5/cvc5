@@ -159,7 +159,8 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
-  regress0/bv/bool-to-bv.smt2
+  regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
   regress0/bv/bug440.smt
@@ -775,6 +776,7 @@ set(regress_0_tests
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/sets-equal.smt2
+  regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
   regress0/sets/sets-poly-int-real.smt2
@@ -1638,6 +1640,7 @@ set(regress_1_tests
   regress1/sygus/sygus-lambda-fv.sy
   regress1/sygus/sygus-uf-ex.sy
   regress1/sygus/t8.sy
+  regress1/sygus/temp_input_to_synth_ic-error-121418.sy
   regress1/sygus/tl-type-0.sy
   regress1/sygus/tl-type-4x.sy
   regress1/sygus/tl-type.sy
@@ -1729,6 +1732,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/extf_d_perf.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2

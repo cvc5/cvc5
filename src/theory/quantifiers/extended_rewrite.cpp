@@ -119,7 +119,8 @@ Node ExtendedRewriter::extendedRewrite(Node n)
     Kind k = n.getKind();
     bool childChanged = false;
     bool isNonAdditive = TermUtil::isNonAdditive(k);
-    bool isAssoc = TermUtil::isAssoc(k);
+    // We flatten associative operators below, which requires k to be n-ary.
+    bool isAssoc = TermUtil::isAssoc(k, true);
     for (unsigned i = 0; i < n.getNumChildren(); i++)
     {
       Node nc = extendedRewrite(n[i]);
@@ -1675,10 +1676,6 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   if (ret.getKind() == EQUAL)
   {
     new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
-  }
-  else if (ret.getKind() == STRING_SUBSTR)
-  {
-    new_ret = strings::TheoryStringsRewriter::rewriteSubstrExt(ret);
   }
 
   return new_ret;

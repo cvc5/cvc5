@@ -928,7 +928,11 @@ private:
   /** Return true if every element in b has a proof. */
   static bool allHaveProof(const ConstraintCPVec& b);
 
-  /** Precondition: hasFarkasProof() */
+  /** Precondition: hasFarkasProof()
+   * Computes the combination implied by the farkas coefficients. Sees if it is
+   * a contradiction.
+   */
+
   bool wellFormedFarkasProof() const;
   
 }; /* class ConstraintValue */

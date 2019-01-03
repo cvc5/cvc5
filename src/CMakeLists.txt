@@ -124,6 +124,8 @@ libcvc4_add_sources(
   printer/tptp/tptp_printer.h
   proof/arith_proof.cpp
   proof/arith_proof.h
+  proof/arith_proof_recorder.cpp
+  proof/arith_proof_recorder.h
   proof/array_proof.cpp
   proof/array_proof.h
   proof/bitvector_proof.cpp
@@ -477,8 +479,6 @@ libcvc4_add_sources(
   theory/quantifiers/extended_rewrite.h
   theory/quantifiers/first_order_model.cpp
   theory/quantifiers/first_order_model.h
-  theory/quantifiers/fmf/ambqi_builder.cpp
-  theory/quantifiers/fmf/ambqi_builder.h
   theory/quantifiers/fmf/bounded_integers.cpp
   theory/quantifiers/fmf/bounded_integers.h
   theory/quantifiers/fmf/full_model_check.cpp
@@ -740,6 +740,10 @@ endif()
 if(USE_CRYPTOMINISAT)
   target_link_libraries(cvc4 ${CryptoMiniSat_LIBRARIES})
   target_include_directories(cvc4 PUBLIC ${CryptoMiniSat_INCLUDE_DIR})
+endif()
+if(USE_DRAT2ER)
+  target_link_libraries(cvc4 ${Drat2Er_LIBRARIES})
+  target_include_directories(cvc4 PUBLIC ${Drat2Er_INCLUDE_DIR})
 endif()
 if(USE_GLPK)
   target_link_libraries(cvc4 ${GLPK_LIBRARIES})

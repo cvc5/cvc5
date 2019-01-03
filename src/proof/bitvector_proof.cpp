@@ -68,7 +68,7 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
   Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom
                   << ", " << atom_bb << " )" << std::endl;
 
-  Expr def = atom.iffExpr(atom_bb);
+  Expr def = atom.eqExpr(atom_bb);
   d_bbAtoms.insert(std::make_pair(atom, def));
   registerTerm(atom);
 
@@ -81,7 +81,9 @@ void BitVectorProof::registerTerm(Expr term) {
   Debug("pf::bv") << "BitVectorProof::registerTerm( " << term << " )"
                   << std::endl;
 
-  if (options::lfscLetification() && term.isConst()) {
+  if (options::lfscLetification() && term.isConst()
+      && term.getType().isBitVector())
+  {
     if (d_constantLetMap.find(term) == d_constantLetMap.end()) {
       std::ostringstream name;
       name << "letBvc" << d_constantLetMap.size();
@@ -623,8 +625,6 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
         << std::endl;
     std::vector<Expr>::const_iterator it = d_bbTerms.begin();
     std::vector<Expr>::const_iterator end = d_bbTerms.end();
-
-    Assert(options::bitblastMode() != theory::bv::BITBLAST_MODE_EAGER);
 
     for (; it != end; ++it) {
       if (d_usedBB.find(*it) == d_usedBB.end()) {

@@ -267,7 +267,8 @@ agg \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_mbqiModeHelp = "\
+const std::string OptionsHandler::s_mbqiModeHelp =
+    "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
@@ -277,12 +278,8 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-gen-ev \n\
-+ Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
-  model finding paper based on generalizing evaluations.\n\
-\n\
-abs \n\
-+ Use abstract MBQI algorithm (uses disjoint sets). \n\
+trust \n\
++ Do not instantiate quantified formulas (incomplete technique).\n\
 \n\
 ";
 
@@ -660,14 +657,11 @@ void OptionsHandler::checkLiteralMatchMode(
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "gen-ev") {
-    return theory::quantifiers::MBQI_GEN_EVAL;
-  } else if(optarg == "none") {
+  if (optarg == "none")
+  {
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "abs") {
-    return theory::quantifiers::MBQI_ABS;
   } else if(optarg == "trust") {
     return theory::quantifiers::MBQI_TRUST;
   } else if(optarg == "help") {
@@ -1301,6 +1295,50 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
+const std::string OptionsHandler::s_boolToBVModeHelp =
+    "\
+BoolToBV pass modes supported by the --bool-to-bv option:\n\
+\n\
+off (default)\n\
++ Don't push any booleans to width one bit-vectors\n\
+\n\
+ite\n\
++ Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula \n\
+  if not all sub-formulas can be turned to bit-vectors\n\
+\n\
+all\n\
++ Force all booleans to be bit-vectors of width one except at the top level.\n\
+  Most aggressive mode\n\
+";
+
+preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "off")
+  {
+    return preprocessing::passes::BOOL_TO_BV_OFF;
+  }
+  else if (optarg == "ite")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ITE;
+  }
+  else if (optarg == "all")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ALL;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_boolToBVModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bool-to-bv: `")
+                          + optarg
+                          + "'. Try --bool-to-bv=help");
+  }
+}
+
 void OptionsHandler::setBitblastAig(std::string option, bool arg)
 {
   if(arg) {
@@ -1632,7 +1670,14 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when minisat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";
