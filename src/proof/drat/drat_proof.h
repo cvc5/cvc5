@@ -46,8 +46,8 @@ class CVC4_PUBLIC InvalidDratProofException : public CVC4::Exception
 
 enum DratInstructionKind
 {
-  addition,
-  deletion
+  ADDITION,
+  DELETION
 };
 
 struct DratInstruction
@@ -87,7 +87,7 @@ class DratProof
    * set characters.
    *
    * @param binaryProof a string containing the bytes of the binary proof.
-   *        Even though the proof isn't text, its safe to store it in a string
+   *        Even though the proof isn't text, it's safe to store it in a string
    *        because C++ strings don't make any gaurantees about the encoding of
    *        their contents. This makes them (effectively) just byte sequences.
    *

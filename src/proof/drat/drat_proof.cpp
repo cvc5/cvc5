@@ -35,12 +35,20 @@ SatLiteral parse_binary_literal(std::string::const_iterator& start,
 {
   // lit is encoded as uint represented by a variable-length byte sequence
   uint64_t literal_represented_as_uint = 0;
-  for (int shift = 0; start != proof_end; ++start, shift += 7)
+  for (uint8_t shift = 0; start != proof_end; ++start, shift += 7)
   {
+    // Check whether shift is so large that we're going to lose some
+    // information
+    if (shift + 7 > 64)
+    {
+      throw InvalidDratProofException(
+          "While parsing a DRAT proof, encountered a literal that was too "
+          "long");
+    }
     unsigned char byte = *start;
     // The MSB of the byte is an indicator of whether the sequence continues
     bool continued = (byte >> 7) & 1;
-    unsigned char numeric_part = byte & 0x7f;
+    uint64_t numeric_part = byte & 0x7f;
     literal_represented_as_uint |= numeric_part << shift;
     if (!continued)
     {
@@ -105,16 +113,11 @@ void outputLiteralAsDimacs(std::ostream& os, SatLiteral l)
 {
   if (l.isNegated())
   {
-    // add 1 to  convert between internal literals and their DIMACS
-    // representaations.
-    os << '-' << l.getSatVariable() + 1;
+    os << '-';
   }
-  else
-  {
-    // add 1 to  convert between internal literals and their DIMACS
-    // representaations.
-    os << l.getSatVariable() + 1;
-  }
+  // add 1 to  convert between internal literals and their DIMACS
+  // representaations.
+  os << l.getSatVariable() + 1;
 }
 
 // DratInstruction implementation
@@ -129,7 +132,7 @@ void DratInstruction::outputAsText(std::ostream& os) const
 {
   switch (d_kind)
   {
-    case DratInstructionKind::addition:
+    case DratInstructionKind::ADDITION:
     {
       for (const SatLiteral& l : d_clause)
       {
@@ -139,7 +142,7 @@ void DratInstruction::outputAsText(std::ostream& os) const
       os << '0' << std::endl;
       break;
     }
-    case DratInstructionKind::deletion:
+    case DratInstructionKind::DELETION:
     {
       os << "d ";
       for (const SatLiteral& l : d_clause)
@@ -192,14 +195,14 @@ DratProof DratProof::fromBinary(const std::string& s)
       case 'a':
       {
         ++i;
-        proof.d_instructions.emplace_back(addition,
+        proof.d_instructions.emplace_back(ADDITION,
                                           parse_binary_clause(i, end));
         break;
       }
       case 'd':
       {
         ++i;
-        proof.d_instructions.emplace_back(deletion,
+        proof.d_instructions.emplace_back(DELETION,
                                           parse_binary_clause(i, end));
         break;
       }
