@@ -2241,7 +2241,7 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 }
 
 /* Split out to avoid nested API calls (problematic with API tracing). */
-Term Solver::mkConstFromIntHelper(Kind kind, int64_t a) const
+template<typename T> Term Solver::mkConstFromIntHelper(Kind kind, T a) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
                                kind)
@@ -2264,44 +2264,22 @@ Term Solver::mkConstFromIntHelper(Kind kind, int64_t a) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  return mkConstFromIntHelper(kind, static_cast<int64_t>(arg));
+  return mkConstFromIntHelper<int64_t>(kind, static_cast<int64_t>(arg));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  return mkConstFromIntHelper(kind, arg);
-}
-
-/* Split out to avoid nested API calls (problematic with API tracing). */
-Term Solver::mkConstFromIntHelper(Kind kind, uint64_t a) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
-  {
-    try
-    {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(a)));
-      // do not call getType(), for abstract values, type can not be computed
-      // until it is substituted away
-    }
-    catch (TypeCheckingException& e)
-    {
-      throw CVC4ApiException(e.getMessage());
-    }
-  }
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
+  return mkConstFromIntHelper<int64_t>(kind, arg);
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  return mkConstFromIntHelper(kind, static_cast<uint64_t>(arg));
+  return mkConstFromIntHelper<uint64_t>(kind, static_cast<uint64_t>(arg));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
 {
-  return mkConstFromIntHelper(kind, arg);
+  return mkConstFromIntHelper<uint64_t>(kind, arg);
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const

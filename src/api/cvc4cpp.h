@@ -2536,8 +2536,7 @@ class CVC4_PUBLIC Solver
   Term mkConstFromStrHelper(Kind kind, std::string s) const;
   Term mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const;
   /* Helper for mkConst functions that take an integer as argument. */
-  Term mkConstFromIntHelper(Kind kind, int64_t a) const;
-  Term mkConstFromIntHelper(Kind kind, uint64_t a) const;
+  template<typename T> Term mkConstFromIntHelper(Kind kind, T a) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
