@@ -23,6 +23,8 @@
 
 #include "theory/bv/bitblast/bitblaster.h"
 
+#include "proof/bitvector_proof.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver.h"
 
@@ -53,7 +55,7 @@ class EagerBitblaster : public TBitblaster<Node>
   bool solve();
   bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(BitVectorProof* bvp);
+  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
  private:
   context::Context* d_context;
@@ -64,6 +66,8 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
+
+  BitVectorProof* d_bvp;
 
   TheoryBV* d_bv;
   TNodeSet d_bbAtoms;

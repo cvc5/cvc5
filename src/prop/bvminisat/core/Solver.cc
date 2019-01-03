@@ -29,9 +29,9 @@ OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWA
 #include "base/output.h"
 #include "options/bv_options.h"
 #include "options/smt_options.h"
-#include "proof/bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/proof_manager.h"
+#include "proof/resolution_bitvector_proof.h"
 #include "proof/sat_proof.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/mtl/Sort.h"
@@ -1318,7 +1318,8 @@ void Solver::explain(Lit p, std::vector<Lit>& explanation) {
   }
 }
 
-void Solver::setProofLog( BitVectorProof * bvp ) {
+void Solver::setProofLog(proof::ResolutionBitVectorProof* bvp)
+{
   d_bvp = bvp;
   d_bvp->initSatProof(this);
   d_bvp->getSatProof()->registerTrueLit(mkLit(varTrue, false));

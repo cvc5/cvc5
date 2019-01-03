@@ -640,8 +640,10 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
 }
 
 ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
-  : TheoryProof(arith, pe), d_realMode(false)
-{}
+  : TheoryProof(arith, pe), d_recorder(), d_realMode(false)
+{
+  arith->setProofRecorder(&d_recorder);
+}
 
 theory::TheoryId ArithProof::getTheoryId() { return theory::THEORY_ARITH; }
 void ArithProof::registerTerm(Expr term) {

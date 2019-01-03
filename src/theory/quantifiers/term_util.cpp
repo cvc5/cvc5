@@ -654,7 +654,15 @@ bool TermUtil::isNegate(Kind k)
   return k == NOT || k == BITVECTOR_NOT || k == BITVECTOR_NEG || k == UMINUS;
 }
 
-bool TermUtil::isAssoc( Kind k ) {
+bool TermUtil::isAssoc(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
   return k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND || k == OR
          || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR
@@ -663,7 +671,15 @@ bool TermUtil::isAssoc( Kind k ) {
          || k == SEP_STAR;
 }
 
-bool TermUtil::isComm( Kind k ) {
+bool TermUtil::isComm(Kind k, bool reqNAry)
+{
+  if (reqNAry)
+  {
+    if (k == UNION || k == INTERSECTION)
+    {
+      return false;
+    }
+  }
   return k == EQUAL || k == PLUS || k == MULT || k == NONLINEAR_MULT || k == AND
          || k == OR || k == XOR || k == BITVECTOR_PLUS || k == BITVECTOR_MULT
          || k == BITVECTOR_AND || k == BITVECTOR_OR || k == BITVECTOR_XOR

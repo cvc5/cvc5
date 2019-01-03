@@ -24,8 +24,9 @@
 
 #include "cvc4_private.h"
 
-#include <string>
 #include <sstream>
+#include <string>
+#include <vector>
 
 namespace CVC4 {
 namespace prop {

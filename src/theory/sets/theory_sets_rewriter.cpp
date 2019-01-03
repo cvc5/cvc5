@@ -47,7 +47,7 @@ bool checkConstantMembership(TNode elementTerm, TNode setTerm)
 RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
   NodeManager* nm = NodeManager::currentNM();
   Kind kind = node.getKind();
-
+  Trace("sets-postrewrite") << "Process: " << node << std::endl;
 
   if(node.isConst()) {
     // Dare you touch the const and mangle it to something else.
@@ -204,6 +204,7 @@ RewriteResponse TheorySetsRewriter::postRewrite(TNode node) {
       if( rew!=node ){
         Trace("sets-rewrite") << "Sets::rewrite " << node << " -> " << rew << std::endl;
       }
+      Trace("sets-rewrite") << "...no rewrite." << std::endl;
       return RewriteResponse(REWRITE_DONE, rew);
     }
     break;

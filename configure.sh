@@ -25,6 +25,7 @@ General options;
 Features:
 The following flags enable optional features (disable with --no-<option name>).
   --static                 build static libraries and binaries [default=no]
+  --static-binary          enable/disable static binaries
   --proofs                 support for proof generation
   --optimized              optimize the build
   --debug-symbols          include debug symbols
@@ -54,6 +55,7 @@ The following flags enable optional packages (disable with --no-<option name>).
   --abc                    use the ABC AIG library
   --cadical                use the CaDiCaL SAT solver
   --cryptominisat          use the CryptoMiniSat SAT solver
+  --drat2er                use drat2er (required for eager BV proofs)
   --lfsc                   use the LFSC proof checker
   --symfpu                 use SymFPU for floating point solver
   --portfolio              build the multithreaded portfolio version of CVC4
@@ -65,6 +67,7 @@ Optional Path to Optional Packages:
   --antlr-dir=PATH         path to ANTLR C headers and libraries
   --cadical-dir=PATH       path to top level of CaDiCaL source tree
   --cryptominisat-dir=PATH path to top level of CryptoMiniSat source tree
+  --drat2er-dir=PATH       path to the top level of the drat2er installation
   --cxxtest-dir=PATH       path to CxxTest installation
   --glpk-dir=PATH          path to top level of GLPK installation
   --gmp-dir=PATH           path to top level of GMP installation
@@ -111,6 +114,7 @@ coverage=default
 cryptominisat=default
 debug_symbols=default
 debug_context_mm=default
+drat2er=default
 dumping=default
 gpl=default
 win64=default
@@ -122,6 +126,7 @@ portfolio=default
 proofs=default
 replay=default
 shared=default
+static_binary=default
 statistics=default
 symfpu=default
 tracing=default
@@ -139,6 +144,7 @@ abc_dir=default
 antlr_dir=default
 cadical_dir=default
 cryptominisat_dir=default
+drat2er_dir=default
 cxxtest_dir=default
 glpk_dir=default
 gmp_dir=default
@@ -200,6 +206,9 @@ do
     --debug-context-mm) debug_context_mm=ON;;
     --no-debug-context-mm) debug_context_mm=OFF;;
 
+    --drat2er) drat2er=ON;;
+    --no-drat2er) drat2er=OFF;;
+
     --dumping) dumping=ON;;
     --no-dumping) dumping=OFF;;
 
@@ -230,8 +239,11 @@ do
     --replay) replay=ON;;
     --no-replay) replay=OFF;;
 
-    --static) shared=OFF;;
+    --static) shared=OFF; static_binary=ON;;
     --no-static) shared=ON;;
+
+    --static-binary) static_binary=ON;;
+    --no-static-binary) static_binary=OFF;;
 
     --statistics) statistics=ON;;
     --no-statistics) statistics=OFF;;
@@ -291,6 +303,9 @@ do
 
     --cxxtest-dir) die "missing argument to $1 (try -h)" ;;
     --cxxtest-dir=*) cxxtest_dir=${1##*=} ;;
+
+    --drat2er-dir) die "missing argument to $1 (try -h)" ;;
+    --drat2er-dir=*) drat2er_dir=${1##*=} ;;
 
     --glpk-dir) die "missing argument to $1 (try -h)" ;;
     --glpk-dir=*) glpk_dir=${1##*=} ;;
@@ -355,6 +370,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DENABLE_REPLAY=$replay"
 [ $shared != default ] \
   && cmake_opts="$cmake_opts -DENABLE_SHARED=$shared"
+[ $static_binary != default ] \
+  && cmake_opts="$cmake_opts -DENABLE_STATIC_BINARY=$static_binary"
 [ $statistics != default ] \
   && cmake_opts="$cmake_opts -DENABLE_STATISTICS=$statistics"
 [ $tracing != default ] \
@@ -379,6 +396,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DUSE_CLN=$cln"
 [ $cryptominisat != default ] \
   && cmake_opts="$cmake_opts -DUSE_CRYPTOMINISAT=$cryptominisat"
+[ $drat2er != default ] \
+  && cmake_opts="$cmake_opts -DUSE_DRAT2ER=$drat2er"
 [ $glpk != default ] \
   && cmake_opts="$cmake_opts -DUSE_GLPK=$glpk"
 [ $lfsc != default ] \
@@ -401,6 +420,8 @@ cmake_opts=""
   && cmake_opts="$cmake_opts -DCRYPTOMINISAT_DIR=$cryptominisat_dir"
 [ "$cxxtest_dir" != default ] \
   && cmake_opts="$cmake_opts -DCXXTEST_DIR=$cxxtest_dir"
+[ "$drat2er_dir" != default ] \
+  && cmake_opts="$cmake_opts -DDRAT2ER_DIR=$drat2er_dir"
 [ "$glpk_dir" != default ] \
   && cmake_opts="$cmake_opts -DGLPK_DIR=$glpk_dir"
 [ "$gmp_dir" != default ] \

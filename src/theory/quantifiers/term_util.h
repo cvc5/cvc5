@@ -270,10 +270,18 @@ public:
    * double negation if applicable, e.g. mkNegate( ~, ~x ) ---> x.
    */
   static Node mkNegate(Kind notk, Node n);
-  /** is assoc */
-  static bool isAssoc( Kind k );
-  /** is k commutative? */
-  static bool isComm( Kind k );
+  /** is k associative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isAssoc(Kind k, bool reqNAry = false);
+  /** is k commutative?
+   *
+   * If flag reqNAry is true, then we additionally require that k is an
+   * n-ary operator.
+   */
+  static bool isComm(Kind k, bool reqNAry = false);
 
   /** is k non-additive?
    * Returns true if

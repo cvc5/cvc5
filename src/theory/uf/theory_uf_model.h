@@ -31,8 +31,6 @@ public:
   std::map< Node, UfModelTreeNode > d_data;
   /** the value of this tree node (if all paths lead to same value) */
   Node d_value;
-  /** has concrete argument defintion */
-  bool hasConcreteArgumentDefinition();
 public:
   //is this model tree empty?
   bool isEmpty() { return d_data.empty() && d_value.isNull(); }
@@ -40,11 +38,6 @@ public:
   void clear();
   /** setValue function */
   void setValue( TheoryModel* m, Node n, Node v, std::vector< int >& indexOrder, bool ground, int argIndex );
-  /**  getValue function */
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int& depIndex, int argIndex );
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, std::vector< int >& depIndex, int argIndex );
-  /** getConstant Value function */
-  Node getConstantValue( TheoryModel* m, Node n, std::vector< int >& indexOrder, int argIndex );
   /** getFunctionValue */
   Node getFunctionValue( std::vector< Node >& args, int index, Node argDefaultValue, bool simplify = true );
   /** update function */
@@ -92,36 +85,6 @@ public:
   void setDefaultValue( TheoryModel* m, Node v ){
     d_tree.setValue( m, Node::null(), v, d_index_order, false, 0 );
   }
-  /**  getValue function
-    *
-    *  returns val, the value of ground term n
-    *  Say n is f( t_0...t_n )
-    *    depIndex is the index for which every term of the form f( t_0 ... t_depIndex, *,... * ) is equal to val
-    *    for example, if g( x_0, x_1, x_2 ) := lambda x_0 x_1 x_2. if( x_1==a ) b else c,
-    *      then g( a, a, a ) would return b with depIndex = 1
-    *
-    */
-  Node getValue( TheoryModel* m, Node n, int& depIndex ){
-    return d_tree.getValue( m, n, d_index_order, depIndex, 0 );
-  }
-  /** -> implementation incomplete */
-  Node getValue( TheoryModel* m, Node n, std::vector< int >& depIndex ){
-    return d_tree.getValue( m, n, d_index_order, depIndex, 0 );
-  }
-  /** getConstantValue function
-    *
-    * given term n, where n may contain "all value" arguments, aka model basis arguments
-    *   if n is null, then every argument of n is considered "all value"
-    * if n is constant for the entire domain specified by n, then this function returns the value of its domain
-    * otherwise, it returns null
-    * for example, say the term e represents "all values"
-    *   if f( x_0, x_1 ) := if( x_0 = a ) b else if( x_1 = a ) a else b,
-    *     then f( a, e ) would return b, while f( e, a ) would return null
-    *  -> implementation incomplete
-    */
-  Node getConstantValue( TheoryModel* m, Node n ) {
-    return d_tree.getConstantValue( m, n, d_index_order, 0 );
-  }
   /** getFunctionValue
     *   Returns a representation of this function.
     */
@@ -136,8 +99,6 @@ public:
   void simplify() { d_tree.simplify( d_op, Node::null(), 0 ); }
   /** is this tree total? */
   bool isTotal() { return d_tree.isTotal( d_op, 0 ); }
-  /** is this function constant? */
-  bool isConstant( TheoryModel* m ) { return !getConstantValue( m, Node::null() ).isNull(); }
   /** is this tree empty? */
   bool isEmpty() { return d_tree.isEmpty(); }
 public:

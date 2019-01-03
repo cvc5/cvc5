@@ -22,7 +22,7 @@ namespace quantifiers {
 ExpressionMinerManager::ExpressionMinerManager()
     : d_doRewSynth(false),
       d_doQueryGen(false),
-      d_doFilterImplied(false),
+      d_doFilterLogicalStrength(false),
       d_use_sygus_type(false),
       d_qe(nullptr),
       d_tds(nullptr)
@@ -36,7 +36,7 @@ void ExpressionMinerManager::initialize(const std::vector<Node>& vars,
 {
   d_doRewSynth = false;
   d_doQueryGen = false;
-  d_doFilterImplied = false;
+  d_doFilterLogicalStrength = false;
   d_sygus_fun = Node::null();
   d_use_sygus_type = false;
   d_qe = nullptr;
@@ -52,7 +52,7 @@ void ExpressionMinerManager::initializeSygus(QuantifiersEngine* qe,
 {
   d_doRewSynth = false;
   d_doQueryGen = false;
-  d_doFilterImplied = false;
+  d_doFilterLogicalStrength = false;
   d_sygus_fun = f;
   d_use_sygus_type = useSygusType;
   d_qe = qe;
@@ -107,12 +107,22 @@ void ExpressionMinerManager::enableQueryGeneration(unsigned deqThresh)
   d_qg.setThreshold(deqThresh);
 }
 
-void ExpressionMinerManager::enableFilterImpliedSolutions()
+void ExpressionMinerManager::enableFilterWeakSolutions()
 {
-  d_doFilterImplied = true;
+  d_doFilterLogicalStrength = true;
   std::vector<Node> vars;
   d_sampler.getVariables(vars);
-  d_solf.initialize(vars, &d_sampler);
+  d_sols.initialize(vars, &d_sampler);
+  d_sols.setLogicallyStrong(true);
+}
+
+void ExpressionMinerManager::enableFilterStrongSolutions()
+{
+  d_doFilterLogicalStrength = true;
+  std::vector<Node> vars;
+  d_sampler.getVariables(vars);
+  d_sols.initialize(vars, &d_sampler);
+  d_sols.setLogicallyStrong(false);
 }
 
 bool ExpressionMinerManager::addTerm(Node sol,
@@ -139,10 +149,10 @@ bool ExpressionMinerManager::addTerm(Node sol,
     d_qg.addTerm(solb, out);
   }
 
-  // filter if it's implied
-  if (ret && d_doFilterImplied)
+  // filter based on logical strength
+  if (ret && d_doFilterLogicalStrength)
   {
-    ret = d_solf.addTerm(solb, out);
+    ret = d_sols.addTerm(solb, out);
   }
   return ret;
 }

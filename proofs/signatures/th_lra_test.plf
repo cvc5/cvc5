@@ -1,0 +1,167 @@
+; Depends On: th_lra.plf
+;; Proof (from predicates on linear polynomials) that the following imply bottom
+;
+; -x - 1/2 y + 2 >= 0
+;  x +     y - 8 >= 0
+;  x -     y + 0 >= 0
+;
+(check
+  ; Variables
+  (% x var_real
+  (% y var_real
+  ; linear monomials (combinations)
+  (@ m1 (lmonc (~ 1/1) x (lmonc (~ 1/2) y lmonn))
+  (@ m2 (lmonc 1/1 x (lmonc 1/1 y lmonn))
+  (@ m3 (lmonc 1/1 x (lmonc (~ 1/1) y lmonn))
+  ; linear polynomials (affine)
+  (@ p1 (polyc 2/1 m1)
+  (@ p2 (polyc (~ 8/1) m2)
+  (@ p3 (polyc 0/1 m3)
+  (% pf_nonneg_1 (th_holds (>=0_poly p1))
+  (% pf_nonneg_2 (th_holds (>=0_poly p2))
+  (% pf_nonneg_3 (th_holds (>=0_poly p3))
+     (:
+       (holds cln)
+       (lra_contra_>=
+         _
+         (lra_add_>=_>= _ _ _
+           (lra_mul_c_>= _ _ 4/1 pf_nonneg_1)
+           (lra_add_>=_>= _ _ _
+             (lra_mul_c_>= _ _ 3/1 pf_nonneg_2)
+             (lra_add_>=_>= _ _ _
+               (lra_mul_c_>= _ _ 1/1 pf_nonneg_3)
+               (lra_axiom_>= 0/1))))))
+  )))))
+  ))))
+  ))
+)
+
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+; -x - 1/2 y >= 2
+;  x +     y >= 8
+;  x -     y >= 0
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x var_real
+  (% y var_real
+  ; real predicates
+  (@ f1 (>=_Real (+_Real (*_Real (a_real (~ 1/1)) (a_var_real x)) (*_Real (a_real (~ 1/2)) (a_var_real y))) (a_real (~ 2/1)))
+  (@ f2 (>=_Real (+_Real (*_Real (a_real 1/1) (a_var_real x)) (*_Real (a_real 1/1) (a_var_real y))) (a_real 8/1))
+  (@ f3 (>=_Real (+_Real (*_Real (a_real 1/1) (a_var_real x)) (*_Real (a_real (~ 1/1)) (a_var_real y))) (a_real 0/1))
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+
+
+  ; Normalization
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_+ _ _ _ _ _
+            (pn_mul_c_L _ _ _ (~ 1/1) (pn_var x))
+            (pn_mul_c_L _ _ _ (~ 1/2) (pn_var y)))
+          (pn_const (~ 2/1))))
+  (@ n2 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_+ _ _ _ _ _
+            (pn_mul_c_L _ _ _ 1/1 (pn_var x))
+            (pn_mul_c_L _ _ _ 1/1 (pn_var y)))
+          (pn_const 8/1)))
+  (@ n3 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_+ _ _ _ _ _
+            (pn_mul_c_L _ _ _ 1/1 (pn_var x))
+            (pn_mul_c_L _ _ _ (~ 1/1) (pn_var y)))
+          (pn_const 0/1)))
+  ; proof of linear polynomial predicates
+  (@ pf_n1 (poly_form _ _ n1 pf_f1)
+  (@ pf_n2 (poly_form _ _ n2 pf_f2)
+  (@ pf_n3 (poly_form _ _ n3 pf_f3)
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (holds cln)
+      (lra_contra_>= _
+       (lra_add_>=_>= _ _ _
+         (lra_mul_c_>= _ _ 4/1 pf_n1)
+         (lra_add_>=_>= _ _ _
+           (lra_mul_c_>= _ _ 3/1 pf_n2)
+           (lra_add_>=_>= _ _ _
+             (lra_mul_c_>= _ _ 1/1 pf_n3)
+             (lra_axiom_>= 0/1))))))
+  )))
+  )))
+  )))
+  )))
+  ))
+)
+
+;; Term proof, 2 (>=), one (not >=)
+;; Proof (from predicates on real terms) that the following imply bottom
+;
+;        -x +     y >=  2
+;         x +     y >=  2
+;     not[        y >= -2] => [y < -2] => [-y > 2]
+;
+(check
+  ; Declarations
+  ; Variables
+  (% x var_real
+  (% y var_real
+  ; real predicates
+  (@ f1 (>=_Real
+          (+_Real (*_Real (a_real (~ 1/1)) (a_var_real x)) (a_var_real y))
+          (a_real 2/1))
+  (@ f2 (>=_Real
+          (+_Real (a_var_real x) (a_var_real y))
+          (a_real 2/1))
+  (@ f3 (not (>=_Real (a_var_real y) (a_real (~ 2/1))))
+
+  ; Normalization
+  ; proof of real predicates
+  (% pf_f1 (th_holds f1)
+  (% pf_f2 (th_holds f2)
+  (% pf_f3 (th_holds f3)
+  ; real term -> linear polynomial normalization witnesses
+  (@ n1 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_+ _ _ _ _ _
+            (pn_mul_c_L _ _ _ (~ 1/1) (pn_var x))
+            (pn_var y))
+          (pn_const 2/1)))
+  (@ n2 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_+ _ _ _ _ _
+            (pn_var x)
+            (pn_var y))
+          (pn_const 2/1)))
+  (@ n3 (poly_formula_norm_>=  _ _ _
+        (pn_- _ _ _ _ _
+          (pn_var y)
+          (pn_const (~ 2/1))))
+  ; proof of linear polynomial predicates
+  (@ pf_n1 (poly_form _ _ n1 pf_f1)
+  (@ pf_n2 (poly_form _ _ n2 pf_f2)
+  (@ pf_n3 (poly_flip_not_>= _ _ (poly_form_not _ _ n3 pf_f3))
+
+  ; derivation of a contradiction using farkas coefficients
+    (:
+      (holds cln)
+      (lra_contra_> _
+       (lra_add_>=_> _ _ _
+         (lra_mul_c_>= _ _ 1/1 pf_n1)
+         (lra_add_>=_> _ _ _
+           (lra_mul_c_>= _ _ 1/1 pf_n2)
+           (lra_add_>_>= _ _ _
+             (lra_mul_c_> _ _ 2/1 pf_n3)
+             (lra_axiom_>= 0/1))))))
+  )))
+  )))
+  )))
+  )))
+  ))
+)

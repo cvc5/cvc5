@@ -53,14 +53,10 @@ enum LiteralMatchMode {
 };
 
 enum MbqiMode {
-  /** mbqi from CADE 24 paper */
-  MBQI_GEN_EVAL,
   /** no mbqi */
   MBQI_NONE,
   /** default, mbqi from Section 5.4.2 of AJR thesis */
   MBQI_FMC,
-  /** abstract mbqi algorithm */
-  MBQI_ABS,
   /** mbqi trust (produce no instantiations) */
   MBQI_TRUST,
 };
@@ -272,6 +268,18 @@ enum SygusActiveGenMode
   SYGUS_ACTIVE_GEN_ENUM,
   /** use variable-agnostic enumerators */
   SYGUS_ACTIVE_GEN_VAR_AGNOSTIC,
+  /** internally decide the best policy for each enumerator */
+  SYGUS_ACTIVE_GEN_AUTO,
+};
+
+enum SygusFilterSolMode
+{
+  /** do not filter solutions */
+  SYGUS_FILTER_SOL_NONE,
+  /** filter logically stronger solutions */
+  SYGUS_FILTER_SOL_STRONG,
+  /** filter logically weaker solutions */
+  SYGUS_FILTER_SOL_WEAK,
 };
 
 enum MacrosQuantMode {

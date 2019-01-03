@@ -194,17 +194,17 @@ Node CegGrammarConstructor::process(Node q,
                                     const std::vector<Node>& ebvl)
 {
   Assert(q[0].getNumChildren() == ebvl.size());
+  Assert(d_synth_fun_vars.empty());
 
   NodeManager* nm = NodeManager::currentNM();
 
   std::vector<Node> qchildren;
   Node qbody_subs = q[1];
-  std::map<Node, Node> synth_fun_vars;
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   for (unsigned i = 0, size = q[0].getNumChildren(); i < size; i++)
   {
     Node sf = q[0][i];
-    synth_fun_vars[sf] = ebvl[i];
+    d_synth_fun_vars[sf] = ebvl[i];
     Node sfvl = getSygusVarList(sf);
     TypeNode tn = ebvl[i].getType();
     // check if there is a template
@@ -262,14 +262,15 @@ Node CegGrammarConstructor::process(Node q,
     qbody_subs = Rewriter::rewrite( qbody_subs );
     Trace("cegqi") << "...got : " << qbody_subs << std::endl;
   }
-  qchildren.push_back( convertToEmbedding( qbody_subs, synth_fun_vars ) );
+  qchildren.push_back(convertToEmbedding(qbody_subs));
   if( q.getNumChildren()==3 ){
     qchildren.push_back( q[2] );
   }
   return nm->mkNode(kind::FORALL, qchildren);
 }
 
-Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& synth_fun_vars ){
+Node CegGrammarConstructor::convertToEmbedding(Node n)
+{
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -303,8 +304,9 @@ Node CegGrammarConstructor::convertToEmbedding( Node n, std::map< Node, Node >& 
       // is the operator a synth function?
       bool makeEvalFun = false;
       if( !op.isNull() ){
-        std::map< Node, Node >::iterator its = synth_fun_vars.find( op );
-        if( its!=synth_fun_vars.end() ){
+        std::map<Node, Node>::iterator its = d_synth_fun_vars.find(op);
+        if (its != d_synth_fun_vars.end())
+        {
           children.push_back( its->second );
           makeEvalFun = true;
         }
@@ -371,6 +373,11 @@ void CegGrammarConstructor::mkSygusConstantsForType(TypeNode type,
   {
     ops.push_back(nm->mkConst(String("")));
   }
+  else if (type.isArray())
+  {
+    // TODO #2694 : generate constant array over the first element of the
+    // constituent type
+  }
   // TODO #1178 : add other missing types
 }
 
@@ -394,6 +401,15 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
                 types);
           }
         }
+      }
+      else if (range.isArray())
+      {
+        ArrayType arrayType = static_cast<ArrayType>(range.toType());
+        // add index and constituent type
+        collectSygusGrammarTypesFor(
+            TypeNode::fromType(arrayType.getIndexType()), types);
+        collectSygusGrammarTypesFor(
+            TypeNode::fromType(arrayType.getConstituentType()), types);
       }
     }
   }
@@ -638,6 +654,57 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         weights[i].push_back(-1);
       }
     }
+    else if (types[i].isArray())
+    {
+      ArrayType arrayType = static_cast<ArrayType>(types[i].toType());
+      Trace("sygus-grammar-def")
+          << "...building for array type " << arrayType << "\n";
+      Trace("sygus-grammar-def")
+          << "......finding unres type for index type "
+          << arrayType.getIndexType() << " with typenode "
+          << TypeNode::fromType(arrayType.getIndexType()) << "\n";
+      // retrieve index and constituent unresolved types
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getIndexType()))
+             != types.end());
+      unsigned i_indexType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    TypeNode::fromType(arrayType.getIndexType())));
+      Type unres_indexType = unres_types[i_indexType];
+      Assert(std::find(types.begin(),
+                       types.end(),
+                       TypeNode::fromType(arrayType.getConstituentType()))
+             != types.end());
+      unsigned i_constituentType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    TypeNode::fromType(arrayType.getConstituentType())));
+      Type unres_constituentType = unres_types[i_constituentType];
+      // add (store ArrayType IndexType ConstituentType)
+      Trace("sygus-grammar-def") << "...add for STORE\n";
+      ops[i].push_back(nm->operatorOf(STORE).toExpr());
+      cnames[i].push_back(kindToString(STORE));
+      cargs[i].push_back(std::vector<Type>());
+      cargs[i].back().push_back(unres_t);
+      cargs[i].back().push_back(unres_indexType);
+      cargs[i].back().push_back(unres_constituentType);
+      pcs[i].push_back(nullptr);
+      weights[i].push_back(-1);
+      // add to constituent type : (select ArrayType IndexType)
+      Trace("sygus-grammar-def") << "...add select for constituent type"
+                                 << unres_constituentType << "\n";
+      ops[i_constituentType].push_back(nm->operatorOf(SELECT).toExpr());
+      cnames[i_constituentType].push_back(kindToString(SELECT));
+      cargs[i_constituentType].push_back(std::vector<Type>());
+      cargs[i_constituentType].back().push_back(unres_t);
+      cargs[i_constituentType].back().push_back(unres_indexType);
+      pcs[i_constituentType].push_back(nullptr);
+      weights[i_constituentType].push_back(-1);
+    }
     else if (types[i].isDatatype())
     {
       Trace("sygus-grammar-def") << "...add for constructors" << std::endl;
@@ -676,9 +743,9 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         weights[i].push_back(-1);
       }
     }else{
-      std::stringstream sserr;
-      sserr << "No implementation for default Sygus grammar of type " << types[i] << std::endl;
-      throw LogicException(sserr.str());
+      Warning()
+          << "Warning: No implementation for default Sygus grammar of type "
+          << types[i] << std::endl;
     }
   }
   // make datatypes

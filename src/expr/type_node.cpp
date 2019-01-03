@@ -20,7 +20,6 @@
 #include "expr/node_manager_attributes.h"
 #include "expr/type_properties.h"
 #include "options/base_options.h"
-#include "options/bv_options.h"
 #include "options/expr_options.h"
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
@@ -223,7 +222,6 @@ bool TypeNode::isClosedEnumerable()
 }
 
 bool TypeNode::isFirstClass() const {
-  (void)options::bitblastMode();
   return ( getKind() != kind::FUNCTION_TYPE || options::ufHo() ) && 
          getKind() != kind::CONSTRUCTOR_TYPE &&
          getKind() != kind::SELECTOR_TYPE &&

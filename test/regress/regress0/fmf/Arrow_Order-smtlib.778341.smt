@@ -1,4 +1,4 @@
-; COMMAND-LINE: --finite-model-find --mbqi=gen-ev
+; COMMAND-LINE: --finite-model-find
 ; EXPECT: unsat
 (benchmark Isabelle
 :status sat

@@ -1,0 +1,25 @@
+#!/bin/bash
+#
+source "$(dirname "$0")/get-script-header.sh"
+if [ -e drat2er ]; then
+  echo 'error: file or directory "drat2er" exists; please move it out of the way.' >&2
+  exit 1
+fi
+
+git clone https://github.com/alex-ozdemir/drat2er.git
+
+cd drat2er
+
+git checkout api
+
+mkdir build
+
+cd build
+
+cmake .. -DCMAKE_INSTALL_PREFIX=$(pwd)/install
+
+make install
+
+echo
+echo ===================== Now configure CVC4 with =====================
+echo ./configure.sh --drat2er

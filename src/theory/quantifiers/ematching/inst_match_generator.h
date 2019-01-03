@@ -18,15 +18,13 @@
 #define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 
 #include <map>
+#include "expr/node_trie.h"
 #include "theory/quantifiers/inst_match_trie.h"
 
 namespace CVC4 {
 namespace theory {
 
 class QuantifiersEngine;
-namespace quantifiers{
-  class TermArgTrie;
-}
 
 namespace inst {
 
@@ -662,7 +660,7 @@ class InstMatchGeneratorSimple : public IMGenerator {
                          QuantifiersEngine* qe,
                          int& addedLemmas,
                          unsigned argIndex,
-                         quantifiers::TermArgTrie* tat);
+                         TNodeTrie* tat);
 };/* class InstMatchGeneratorSimple */
 }
 }

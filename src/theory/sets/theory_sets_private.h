@@ -21,18 +21,13 @@
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
-
+#include "expr/node_trie.h"
+#include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/theory_sets_rels.h"
 
 namespace CVC4 {
 namespace theory {
-
-namespace quantifiers{
-  class TermArgTrie;
-}
-
 namespace sets {
 
 /** Internal classes, forward declared here */
@@ -83,9 +78,13 @@ private:
   Node getUnivSet( TypeNode tn );
   bool hasLemmaCached( Node lem );
   bool hasProcessed();
-  
-  void addCarePairs( quantifiers::TermArgTrie * t1, quantifiers::TermArgTrie * t2, unsigned arity, unsigned depth, unsigned& n_pairs );
-  
+
+  void addCarePairs(TNodeTrie* t1,
+                    TNodeTrie* t2,
+                    unsigned arity,
+                    unsigned depth,
+                    unsigned& n_pairs);
+
   Node d_true;
   Node d_false;
   Node d_zero;
