@@ -2223,12 +2223,28 @@ Term Solver::mkConst(Kind kind, uint32_t arg) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  return mkConst(kind, (uint64_t)arg);
+  return mkConst(kind, (int64_t)arg);
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  return mkConst(kind, (uint64_t)arg);
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
+  if (kind == ABSTRACT_VALUE)
+  {
+    try
+    {
+      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    catch (TypeCheckingException& e)
+    {
+      throw CVC4ApiException(e.getMessage());
+    }
+  }
+  return mkReal(arg);
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
