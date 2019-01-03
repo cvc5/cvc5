@@ -41,7 +41,6 @@ class SmtEngine;
 class Type;
 class Options;
 class Random;
-class Rational;
 class Result;
 
 namespace api {
