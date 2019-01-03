@@ -2264,7 +2264,7 @@ Term Solver::mkConstFromIntHelper(Kind kind, int64_t a) const
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  return mkConstFromIntHelper(kind, (int64_t)arg);
+  return mkConstFromIntHelper(kind, static_cast<int64_t>(arg));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
@@ -2296,7 +2296,7 @@ Term Solver::mkConstFromIntHelper(Kind kind, uint64_t a) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg) const
 {
-  return mkConstFromIntHelper(kind, (uint64_t)arg);
+  return mkConstFromIntHelper(kind, static_cast<uint64_t>(arg));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg) const
