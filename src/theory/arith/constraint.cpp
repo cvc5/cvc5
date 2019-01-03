@@ -499,6 +499,35 @@ bool Constraint::hasFarkasProof() const {
   return getProofType() == FarkasAP;
 }
 
+bool Constraint::hasSimpleFarkasProof() const
+{
+  Debug("constraints::hsfp") << "hasSimpleFarkasProof " << this << std::endl;
+  if (!hasFarkasProof())
+  {
+    Debug("constraints::hsfp") << "There is no simple Farkas proof because "
+                                  "there is no farkas proof."
+                               << std::endl;
+    return false;
+  }
+  const ConstraintRule& rule = getConstraintRule();
+  AntecedentId antId = rule.d_antecedentEnd;
+  ConstraintCP antecdent = d_database->getAntecedent(antId);
+  while (antecdent != NullConstraint)
+  {
+    if (antecdent->getProofType() != AssumeAP)
+    {
+      Debug("constraints::hsfp") << "There is no simple Farkas proof b/c there "
+                                    "is an antecdent w/ rule ";
+      antecdent->getConstraintRule().print(Debug("constraints::hsfp"));
+      Debug("constraints::hsfp") << std::endl;
+      return false;
+    }
+    --antId;
+    antecdent = d_database->getAntecedent(antId);
+  }
+  return true;
+}
+
 bool Constraint::hasIntHoleProof() const {
   return getProofType() == IntHoleAP;
 }
@@ -568,8 +597,9 @@ void ConstraintRule::print(std::ostream& out) const {
   out << d_constraint << std::endl;
   out << "d_proofType= " << d_proofType << ", " << std::endl;
   out << "d_antecedentEnd= "<< d_antecedentEnd << std::endl;
-  
-  if(d_constraint != NullConstraint){
+
+  if (d_constraint != NullConstraint && d_antecedentEnd != AntecedentIdSentinel)
+  {
     const ConstraintDatabase& database = d_constraint->getDatabase();
     
     size_t coeffIterator = (coeffs != RationalVectorCPSentinel) ? coeffs->size()-1 : 0;
@@ -597,7 +627,7 @@ void ConstraintRule::print(std::ostream& out) const {
     out << " * (" << *(d_constraint->getNegation()) << ")";
     out << " [not d_constraint] " << endl;
   }
-  out << "}";  
+  out << "}";
 }
 
 bool Constraint::wellFormedFarkasProof() const {
@@ -1188,6 +1218,8 @@ void Constraint::impliedByIntHole(ConstraintCP a, bool nowInConflict){
   Assert(!hasProof());
   Assert(negationHasProof() == nowInConflict);
   Assert(a->hasProof());
+  Debug("pf::arith") << "impliedByIntHole(" << this << ", " << a << ")"
+                     << std::endl;
 
   d_database->d_antecedents.push_back(NullConstraint);
   d_database->d_antecedents.push_back(a);
@@ -1339,6 +1371,7 @@ Node Constraint::externalExplainByAssertions(const ConstraintCPVec& b){
 }
 
 Node Constraint::externalExplainConflict() const{
+  Debug("pf::arith") << this << std::endl;
   Assert(inConflict());
   NodeBuilder<> nb(kind::AND);
   externalExplainByAssertions(nb);
@@ -1407,6 +1440,13 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
   Assert(!isAssumption() || assertedToTheTheory());
   Assert(!isInternalAssumption());
 
+  if (Debug.isOn("pf::arith"))
+  {
+    Debug("pf::arith") << "Explaining: " << this << " with rule ";
+    getConstraintRule().print(Debug("pf::arith"));
+    Debug("pf::arith") << std::endl;
+  }
+
   if(assertedBefore(order)){
     nb << getWitness();
   }else if(hasEqualityEngineProof()){
@@ -1417,6 +1457,7 @@ void Constraint::externalExplain(NodeBuilder<>& nb, AssertionOrder order) const{
     ConstraintCP antecedent = d_database->d_antecedents[p];
 
     while(antecedent != NullConstraint){
+      Debug("pf::arith") << "Explain " << antecedent << std::endl;
       antecedent->externalExplain(nb, order);
       --p;
       antecedent = d_database->d_antecedents[p];
