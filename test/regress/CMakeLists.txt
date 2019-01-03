@@ -1640,6 +1640,7 @@ set(regress_1_tests
   regress1/sygus/sygus-lambda-fv.sy
   regress1/sygus/sygus-uf-ex.sy
   regress1/sygus/t8.sy
+  regress1/sygus/temp_input_to_synth_ic-error-121418.sy
   regress1/sygus/tl-type-0.sy
   regress1/sygus/tl-type-4x.sy
   regress1/sygus/tl-type.sy

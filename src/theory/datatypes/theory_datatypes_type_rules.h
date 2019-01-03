@@ -273,6 +273,18 @@ struct TupleUpdateTypeRule {
   }
 }; /* struct TupleUpdateTypeRule */
 
+class TupleUpdateOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::TUPLE_UPDATE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class TupleUpdateOpTypeRule */
+
 struct RecordUpdateTypeRule {
   inline static TypeNode computeType(NodeManager* nodeManager, TNode n,
                                      bool check) {
@@ -297,6 +309,18 @@ struct RecordUpdateTypeRule {
     return recordType;
   }
 }; /* struct RecordUpdateTypeRule */
+
+class RecordUpdateOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::RECORD_UPDATE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class RecordUpdateOpTypeRule */
 
 class DtSizeTypeRule {
  public:

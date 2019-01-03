@@ -1,0 +1,191 @@
+;depends on drat.plf
+(declare check_rat
+         (! f cnf
+            (! c clause
+               (! b bool
+                  (! sc (^ (is_rat f c) b)
+                    bottom)))))
+
+(declare trust_cnf (! f cnf (cnf_holds f)))
+
+; RAT Test 1
+; Formula: (-p, -a) ^ (-p, b) ^( b, c) ^ (-c, a)
+; Candidate RAT: (p, a)
+; Answer: true
+(check
+  (% va var
+     (% vb var
+        (% vc var
+           (% vp var
+              (check_rat
+                (cnfc (clc (neg vp) (clc (neg va) cln))
+                      (cnfc (clc (neg vp) (clc (pos vb) cln))
+                            (cnfc (clc (pos vb) (clc (pos vc) cln))
+                                  (cnfc (clc (neg vc) (clc (pos va) cln)) cnfn))))
+                (clc (pos vp) (clc (pos va) cln))
+                tt))))))
+
+; RAT Test 2
+; Formula:
+;  p cnf 4 8
+;  1  2 -3 0
+; -1 -2  3 0
+;  2  3 -4 0
+; -2 -3  4 0
+; -1 -3 -4 0
+;  1  3  4 0
+; -1  2  4 0
+;  1 -2 -4 0
+; Candidate RAT: -1
+(check
+  (% v1 var
+     (% v2 var
+        (% v3 var
+           (% v4 var
+              (check_rat
+                (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+                      (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+                      (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+                      (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+                      (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+                      (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+                      (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+                      (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+                      cnfn))))))))
+                (clc (neg v1) cln)
+                tt))))))
+
+; RAT Test 3
+; Formula:
+;  p cnf 4 9
+;  1  2 -3 0
+; -1 -2  3 0
+;  2  3 -4 0
+; -2 -3  4 0
+; -1 -3 -4 0
+;  1  3  4 0
+; -1  2  4 0
+;  1 -2 -4 0
+; -1 0
+; Candidate RAT: 2
+(check
+  (% v1 var
+     (% v2 var
+        (% v3 var
+           (% v4 var
+              (check_rat
+                (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+                      (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+                      (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+                      (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+                      (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+                      (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+                      (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+                      (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+                      (cnfc (clc (neg v1) cln)
+                      cnfn)))))))))
+                (clc (pos v2) cln)
+                tt))))))
+
+; RAT Test 4
+; Formula:
+;  p cnf 4 2
+;  2 -3 0
+;  1 -4 0
+; Candidate RAT: 3
+; Answer: false
+(check
+  (% v1 var
+     (% v2 var
+        (% v3 var
+           (% v4 var
+              (check_rat
+                (cnfc (clc (pos v2) (clc (neg v3) cln))
+                      (cnfc (clc (pos v1) (clc (neg v4) cln)) cnfn))
+                (clc (pos v3) cln)
+                ff))))))
+
+
+; DRAT Test 1 (from Example 1 @ https://www.cs.utexas.edu/~marijn/drat-trim/)
+; without deletions
+; Formula:
+;   p cnf 4 8
+;    1  2 -3 0
+;   -1 -2  3 0
+;    2  3 -4 0
+;   -2 -3  4 0
+;   -1 -3 -4 0
+;    1  3  4 0
+;   -1  2  4 0
+;    1 -2 -4
+; Proof:
+;           -1 0
+;            2 0
+;              0
+(check
+  (% v1 var
+     (% v2 var
+        (% v3 var
+           (% v4 var
+              (:
+                (holds cln)
+                (drat_proof_of_bottom _
+                  (trust_cnf (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+                        (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+                        (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+                        (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+                        (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+                        (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+                        (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+                        (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+                        cnfn)))))))))
+                  (DRATProofa (clc (neg v1) cln)
+                        (DRATProofa (clc (pos v2) cln)
+                        (DRATProofa cln
+                        DRATProofn))))))))))
+
+
+; DRAT Test 2 (from Example 1 @ https://www.cs.utexas.edu/~marijn/drat-trim/)
+; with deletions
+; Formula:
+;   p cnf 4 8
+;    1  2 -3 0
+;   -1 -2  3 0
+;    2  3 -4 0
+;   -2 -3  4 0
+;   -1 -3 -4 0
+;    1  3  4 0
+;   -1  2  4 0
+;    1 -2 -4
+; Proof:
+;           -1 0
+;   d -1 -2  3 0
+;   d -1 -3 -4 0
+;   d -1  2  4 0
+;            2 0
+;   d  1  2 -3 0
+;   d  2  3 -4 0
+;              0
+(check
+  (% v1 var (% v2 var (% v3 var (% v4 var
+     (: (holds cln)
+       (drat_proof_of_bottom _
+         (trust_cnf 
+         (cnfc (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+               (cnfc (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+               (cnfc (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+               (cnfc (clc (neg v2) (clc (neg v3) (clc (pos v4) cln)))
+               (cnfc (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+               (cnfc (clc (pos v1) (clc (pos v3) (clc (pos v4) cln)))
+               (cnfc (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+               (cnfc (clc (pos v1) (clc (neg v2) (clc (neg v4) cln)))
+               cnfn)))))))))
+         (DRATProofa (clc (neg v1) cln)
+               (DRATProofd (clc (neg v1) (clc (neg v2) (clc (pos v3) cln)))
+               (DRATProofd (clc (neg v1) (clc (neg v3) (clc (neg v4) cln)))
+               (DRATProofd (clc (neg v1) (clc (pos v2) (clc (pos v4) cln)))
+               (DRATProofa (clc (pos v2) cln)
+               (DRATProofd (clc (pos v1) (clc (pos v2) (clc (neg v3) cln)))
+               (DRATProofd (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
+               (DRATProofa cln
+                DRATProofn)))))))))))))))
