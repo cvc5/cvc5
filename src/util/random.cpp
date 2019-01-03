@@ -19,6 +19,8 @@
 #include "util/random.h"
 
 #include <cfloat>
+#include <random>
+
 #include "base/cvc4_assert.h"
 
 namespace CVC4 {
@@ -48,14 +50,17 @@ uint64_t Random::pick(uint64_t from, uint64_t to)
 {
   Assert(from <= to);
   Assert(to < UINT64_MAX);
-  return (Random::rand() % (to - from + 1)) + from;
+  std::uniform_int_distribution<> dis(from, to);
+  return dis(*this);
 }
 
 double Random::pickDouble(double from, double to)
 {
   Assert(from <= to);
   Assert(to <= DBL_MAX);
-  return Random::rand() * (to - from) + from;
+  std::uniform_real_distribution<> dis(
+      from, std::nextafter(to, std::numeric_limits<double>::max()));
+  return dis(*this);
 }
 
 bool Random::pickWithProb(double probability)

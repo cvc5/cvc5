@@ -1,6 +1,6 @@
 ; COMMAND-LINE:
-; SCRUBBER: sed -e 's/(not (>= (+ .* (\* (- 1) .*)) 1))$/(not (>= (+ TERMA (\* (- 1) TERMB)) 1))/'
-; EXPECT: (not (>= (+ TERMA (* (- 1) TERMB)) 1))
+; SCRUBBER: sed -e 's/(not (>= (+ [a-c] (\* (- 1) [a-c])) 1))/(not (>= (+ TERMA (\* (- 1) TERMB)) 1))/g'
+; EXPECT: (or (not (>= (+ TERMA (* (- 1) TERMB)) 1)) (not (>= (+ TERMA (* (- 1) TERMB)) 1)))
 (set-logic LIA)
 (set-info :status unsat)
 (declare-fun a () Int)
