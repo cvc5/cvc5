@@ -1926,13 +1926,8 @@ Term Solver::mkConstHelper(T t) const
   }
 }
 
-Term Solver::mkReal(const char* s) const
-{
-  CVC4_API_ARG_CHECK_NOT_NULL(s);
-  return mkReal(std::string(s));
-}
-
-Term Solver::mkReal(const std::string& s) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkRealFromStrHelper(std::string s) const
 {
   try
   {
@@ -1950,6 +1945,17 @@ Term Solver::mkReal(const std::string& s) const
   {
     throw CVC4ApiException(e.what());
   }
+}
+
+Term Solver::mkReal(const char* s) const
+{
+  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  return mkRealFromStrHelper(std::string(s));
+}
+
+Term Solver::mkReal(const std::string& s) const
+{
+  return mkRealFromStrHelper(s);
 }
 
 Term Solver::mkReal(int32_t val) const
@@ -2080,7 +2086,8 @@ Term Solver::mkUniverseSet(Sort sort) const
   }
 }
 
-Term Solver::mkBitVector(uint32_t size, uint32_t val) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
   return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
@@ -2088,17 +2095,11 @@ Term Solver::mkBitVector(uint32_t size, uint32_t val) const
 
 Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
-  return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
+  return mkBVFromIntHelper(size, val);
 }
 
-Term Solver::mkBitVector(const char* s, uint32_t base) const
-{
-  CVC4_API_ARG_CHECK_NOT_NULL(s);
-  return mkBitVector(std::string(s), base);
-}
-
-Term Solver::mkBitVector(const std::string& s, uint32_t base) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
 {
   try
   {
@@ -2110,6 +2111,17 @@ Term Solver::mkBitVector(const std::string& s, uint32_t base) const
   {
     throw CVC4ApiException(e.what());
   }
+}
+
+Term Solver::mkBitVector(const char* s, uint32_t base) const
+{
+  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  return mkBVFromStrHelper(std::string(s), base);
+}
+
+Term Solver::mkBitVector(const std::string& s, uint32_t base) const
+{
+  return mkBVFromStrHelper(s, base);
 }
 
 Term Solver::mkConst(RoundingMode rm) const
@@ -2165,15 +2177,10 @@ Term Solver::mkConst(Kind kind, bool arg) const
   return mkConstHelper<bool>(arg);
 }
 
-Term Solver::mkConst(Kind kind, const char* arg) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkConstFromStrHelper(Kind kind, std::string s) const
 {
-  CVC4_API_ARG_CHECK_NOT_NULL(arg);
-  return mkConst(kind, std::string(arg));
-}
-
-Term Solver::mkConst(Kind kind, const std::string& arg) const
-{
-  CVC4_API_ARG_CHECK_EXPECTED(!arg.empty(), arg) << "a non-empty string";
+  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
   CVC4_API_KIND_CHECK_EXPECTED(
       kind == ABSTRACT_VALUE || kind == CONST_RATIONAL || kind == CONST_STRING,
       kind)
@@ -2182,7 +2189,7 @@ Term Solver::mkConst(Kind kind, const std::string& arg) const
   {
     try
     {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg, 10)));
+      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(s, 10)));
       // do not call getType(), for abstract values, type can not be computed
       // until it is substituted away
     }
@@ -2197,57 +2204,76 @@ Term Solver::mkConst(Kind kind, const std::string& arg) const
   }
   else if (kind == CONST_RATIONAL)
   {
-    return mkReal(arg);
+    return mkRealFromStrHelper(s);
   }
-  return mkString(arg);
+  return mkConstHelper<CVC4::String>(CVC4::String(s));
+}
+
+Term Solver::mkConst(Kind kind, const char* arg) const
+{
+  CVC4_API_ARG_CHECK_NOT_NULL(arg);
+  return mkConstFromStrHelper(kind, std::string(arg));
+}
+
+Term Solver::mkConst(Kind kind, const std::string& arg) const
+{
+  return mkConstFromStrHelper(kind, arg);
+}
+
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const
+{
+  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
+      << "CONST_BITVECTOR";
+  return mkBVFromStrHelper(s, a);
 }
 
 Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
 {
   CVC4_API_ARG_CHECK_NOT_NULL(arg1);
-  return mkConst(kind, std::string(arg1), arg2);
+  return mkConstFromStrHelper(kind, std::string(arg1), arg2);
 }
 
 Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!arg1.empty(), arg1) << "a non-empty string";
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
-      << "CONST_BITVECTOR";
-  return mkBitVector(arg1, arg2);
+  return mkConstFromStrHelper(kind, arg1, arg2);
 }
 
-Term Solver::mkConst(Kind kind, uint32_t arg) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkConstFromIntHelper(Kind kind, int64_t a) const
 {
-  return mkConst(kind, (uint64_t)arg);
+  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
+                               kind)
+      << "ABSTRACT_VALUE or CONST_RATIONAL";
+  if (kind == ABSTRACT_VALUE)
+  {
+    try
+    {
+      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(a)));
+      // do not call getType(), for abstract values, type can not be computed
+      // until it is substituted away
+    }
+    catch (TypeCheckingException& e)
+    {
+      throw CVC4ApiException(e.getMessage());
+    }
+  }
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
 {
-  return mkConst(kind, (int64_t)arg);
+  return mkConstFromIntHelper(kind, (int64_t)arg);
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg) const
 {
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
-  {
-    try
-    {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
-      // do not call getType(), for abstract values, type can not be computed
-      // until it is substituted away
-    }
-    catch (TypeCheckingException& e)
-    {
-      throw CVC4ApiException(e.getMessage());
-    }
-  }
-  return mkReal(arg);
+  return mkConstFromIntHelper(kind, arg);
 }
 
-Term Solver::mkConst(Kind kind, uint64_t arg) const
+/* Split out to avoid nested API calls (problematic with API tracing). */
+Term Solver::mkConstFromIntHelper(Kind kind, uint64_t a) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
                                kind)
@@ -2256,7 +2282,7 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
   {
     try
     {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(arg)));
+      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(a)));
       // do not call getType(), for abstract values, type can not be computed
       // until it is substituted away
     }
@@ -2265,7 +2291,17 @@ Term Solver::mkConst(Kind kind, uint64_t arg) const
       throw CVC4ApiException(e.getMessage());
     }
   }
-  return mkReal(arg);
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
+}
+
+Term Solver::mkConst(Kind kind, uint32_t arg) const
+{
+  return mkConstFromIntHelper(kind, (uint64_t)arg);
+}
+
+Term Solver::mkConst(Kind kind, uint64_t arg) const
+{
+  return mkConstFromIntHelper(kind, arg);
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
@@ -2275,37 +2311,37 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
       << "CONST_BITVECTOR or CONST_RATIONAL";
   if (kind == CONST_BITVECTOR)
   {
-    return mkBitVector(arg1, arg2);
+    return mkBVFromIntHelper(arg1, arg2);
   }
-  return mkReal(arg1, arg2);
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkReal(arg1, arg2);
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkReal(arg1, arg2);
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkReal(arg1, arg2);
+  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
       << "CONST_BITVECTOR";
-  return mkBitVector(arg1, arg2);
+  return mkBVFromIntHelper(arg1, arg2);
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const

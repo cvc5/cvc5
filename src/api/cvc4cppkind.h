@@ -658,7 +658,6 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters:
    *   See mkBitVector().
    * Create with:
-   *   mkBitVector(uint32_t size, uint32_t val)
    *   mkBitVector(uint32_t size, uint64_t val)
    *   mkBitVector(const char* s, uint32_t base = 2)
    *   mkBitVector(std::string& s, uint32_t base = 2)

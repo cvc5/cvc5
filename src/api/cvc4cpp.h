@@ -1969,14 +1969,6 @@ class CVC4_PUBLIC Solver
    * @param val the value of the constant
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, uint32_t val) const;
-
-  /**
-   * Create a bit-vector constant of given size and value.
-   * @param size the bit-width of the bit-vector sort
-   * @param val the value of the constant
-   * @return the bit-vector constant
-   */
   Term mkBitVector(uint32_t size, uint64_t val) const;
 
   /**
@@ -2533,8 +2525,19 @@ class CVC4_PUBLIC Solver
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
-  template <typename T>
-  Term mkConstHelper(T t) const;
+  template <typename T> Term mkConstHelper(T t) const;
+  /* Helper for mkReal functions that take a string as argument. */
+  Term mkRealFromStrHelper(std::string s) const;
+  /* Helper for mkBitVector functions that take a string as argument. */
+  Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  /* Helper for mkBitVector functions that take an integer as argument. */
+  Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
+  /* Helper for mkConst functions that take a string as argument. */
+  Term mkConstFromStrHelper(Kind kind, std::string s) const;
+  Term mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const;
+  /* Helper for mkConst functions that take an integer as argument. */
+  Term mkConstFromIntHelper(Kind kind, int64_t a) const;
+  Term mkConstFromIntHelper(Kind kind, uint64_t a) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;
