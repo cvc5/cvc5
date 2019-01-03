@@ -2241,7 +2241,8 @@ Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
 }
 
 /* Split out to avoid nested API calls (problematic with API tracing). */
-template<typename T> Term Solver::mkConstFromIntHelper(Kind kind, T a) const
+template <typename T>
+Term Solver::mkConstFromIntHelper(Kind kind, T a) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
                                kind)
