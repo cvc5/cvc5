@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file api_guards_black.h
+/*! \file solver_black.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Aina Niemetz
@@ -9,9 +9,9 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Black box testing of the guards of the C++ API functions.
+ ** \brief Black box testing of the Solver class of the  C++ API.
  **
- ** Black box testing of the guards of the C++ API functions.
+ ** Black box testing of the Solver class of the  C++ API.
  **/
 
 #include <cxxtest/TestSuite.h>
@@ -29,10 +29,11 @@ class SolverBlack : public CxxTest::TestSuite
 
   void testGetBooleanSort();
   void testGetIntegerSort();
+  void testGetNullSort();
   void testGetRealSort();
   void testGetRegExpSort();
-  void testGetStringSort();
   void testGetRoundingmodeSort();
+  void testGetStringSort();
 
   void testMkArraySort();
   void testMkBitVectorSort();
@@ -49,20 +50,22 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkUninterpretedSort();
 
   void testMkBitVector();
-  void testMkBoundVar();
   void testMkBoolean();
+  void testMkBoundVar();
   void testMkConst();
   void testMkEmptySet();
   void testMkFalse();
+  void testMkFloatingPoint();
   void testMkPi();
   void testMkReal();
   void testMkRegexpEmpty();
   void testMkRegexpSigma();
   void testMkSepNil();
   void testMkString();
-  void testMkUniverseSet();
   void testMkTerm();
   void testMkTrue();
+  void testMkTuple();
+  void testMkUniverseSet();
   void testMkVar();
 
   void testDeclareFun();
@@ -86,6 +89,11 @@ void SolverBlack::testGetBooleanSort()
 void SolverBlack::testGetIntegerSort()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.getIntegerSort());
+}
+
+void SolverBlack::testGetNullSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getNullSort());
 }
 
 void SolverBlack::testGetRealSort()
@@ -248,6 +256,10 @@ void SolverBlack::testMkBitVector()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector(size2, val2));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector("1010", 2));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector("1010", 16));
+  TS_ASSERT_THROWS(d_solver.mkBitVector(8, "101010101", 2), CVC4ApiException&);
+  TS_ASSERT_EQUALS(d_solver.mkBitVector(8, "01010101", 2).toString(),
+                   "0bin01010101");
+  TS_ASSERT_EQUALS(d_solver.mkBitVector(8, "F", 16).toString(), "0bin00001111");
 }
 
 void SolverBlack::testMkBoundVar()
@@ -411,6 +423,26 @@ void SolverBlack::testMkFalse()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
 }
 
+void SolverBlack::testMkFloatingPoint()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNaN(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegZero(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNegInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNaN(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNegZero(3, 5), CVC4ApiException&);
+  }
+}
+
 void SolverBlack::testMkOpTerm()
 {
   // mkOpTerm(Kind kind, Kind k)
@@ -507,6 +539,10 @@ void SolverBlack::testMkString()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.mkString(""));
   TS_ASSERT_THROWS_NOTHING(d_solver.mkString("asdfasdf"));
+  TS_ASSERT_EQUALS(d_solver.mkString("asdf\\nasdf").toString(),
+                   "\"asdf\\\\nasdf\"");
+  TS_ASSERT_EQUALS(d_solver.mkString("asdf\\nasdf", true).toString(),
+                   "\"asdf\\nasdf\"");
 }
 
 void SolverBlack::testMkTerm()
@@ -599,10 +635,27 @@ void SolverBlack::testMkTrue()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkTrue());
 }
 
+void SolverBlack::testMkTuple()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
+                                            {d_solver.mkBitVector("101", 2)}));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkReal("5")}));
+
+  TS_ASSERT_THROWS(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
+                                    {d_solver.mkBitVector("101", 2)}),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
+      CVC4ApiException&);
+}
+
 void SolverBlack::testMkUniverseSet()
 {
   TS_ASSERT_THROWS(d_solver.mkUniverseSet(Sort()), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkUniverseSet(d_solver.getBooleanSort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkUniverseSet(d_solver.getBooleanSort()));
 }
 
 void SolverBlack::testMkVar()

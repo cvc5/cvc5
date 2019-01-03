@@ -1135,7 +1135,7 @@ class CVC4_PUBLIC DatatypeConstructor
   /**
    * Constructor.
    * @param ctor the internal datatype constructor to be wrapped
-   * @return thte DatatypeConstructor
+   * @return the DatatypeConstructor
    */
   DatatypeConstructor(const CVC4::DatatypeConstructor& ctor);
 
@@ -1143,6 +1143,17 @@ class CVC4_PUBLIC DatatypeConstructor
    * Destructor.
    */
   ~DatatypeConstructor();
+
+  /**
+   * @return true if this datatype constructor has been resolved.
+   */
+  bool isResolved() const;
+
+  /**
+   * Get the constructor operator of this datatype constructor.
+   * @return the constructor operator
+   */
+  Term getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1284,6 +1295,13 @@ class CVC4_PUBLIC Datatype
    * Destructor.
    */
   ~Datatype();
+
+  /**
+   * Get the datatype constructor at a given index.
+   * @param idx the index of the datatype constructor to return
+   * @return the datatype constructor with the given index
+   */
+  DatatypeConstructor operator[](size_t idx) const;
 
   /**
    * Get the datatype constructor with the given name.
@@ -1521,6 +1539,11 @@ class CVC4_PUBLIC Solver
   /* .................................................................... */
 
   /**
+   * @return sort null
+   */
+  Sort getNullSort() const;
+
+  /**
    * @return sort Boolean
    */
   Sort getBooleanSort() const;
@@ -1739,6 +1762,16 @@ class CVC4_PUBLIC Solver
    */
   Term mkTerm(OpTerm opTerm, const std::vector<Term>& children) const;
 
+  /**
+   * Create a tuple term. Terms are automatically converted if sorts are
+   * compatible.
+   * @param sorts The sorts of the elements in the tuple
+   * @param terms The elements in the tuple
+   * @return the tuple Term
+   */
+  Term mkTuple(const std::vector<Sort>& sorts,
+               const std::vector<Term>& terms) const;
+
   /* .................................................................... */
   /* Create Operator Terms                                                */
   /* .................................................................... */
@@ -1827,7 +1860,7 @@ class CVC4_PUBLIC Solver
   Term mkPi() const;
 
   /**
-   * Create a real constant.
+   * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
    * @return a constant of sort Real or Integer (if 's' represents an integer)
@@ -1835,7 +1868,7 @@ class CVC4_PUBLIC Solver
   Term mkReal(const char* s) const;
 
   /**
-   * Create a real constant.
+   * Create a real constant from a string.
    * @param s the string representation of the constant, may represent an
    *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
    * @return a constant of sort Real or Integer (if 's' represents an integer)
@@ -1931,16 +1964,20 @@ class CVC4_PUBLIC Solver
   /**
    * Create a String constant.
    * @param s the string this constant represents
+   * @param useEscSequences determines whether escape sequences in \p s should
+   * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const char* s) const;
+  Term mkString(const char* s, bool useEscSequences = false) const;
 
   /**
    * Create a String constant.
    * @param s the string this constant represents
+   * @param useEscSequences determines whether escape sequences in \p s should
+   * be converted to the corresponding character
    * @return the String constant
    */
-  Term mkString(const std::string& s) const;
+  Term mkString(const std::string& s, bool useEscSequences = false) const;
 
   /**
    * Create a String constant.
@@ -1973,19 +2010,82 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a bit-vector constant from a given string.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(const char* s, uint32_t base = 2) const;
 
   /**
    * Create a bit-vector constant from a given string.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(const std::string& s, uint32_t base = 2) const;
+
+  /**
+   * Create a bit-vector constant of a given bit-width from a given string.
+   * @param size the bit-width of the constant
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
+   * @return the bit-vector constant
+   */
+  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
+
+  /**
+   * Create a bit-vector constant of a given bit-width from a given string.
+   * @param size the bit-width of the constant
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
+   * @return the bit-vector constant
+   */
+  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
+
+  /**
+   * Create a positive infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkPosInf(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a negative infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNegInf(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNaN(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkPosZero(uint32_t exp, uint32_t sig) const;
+
+  /**
+   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
+   * @param exp Number of bits in the exponent
+   * @param sig Number of bits in the significand
+   * @return the floating-point constant
+   */
+  Term mkNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
    * Create constant of kind:
@@ -2507,6 +2607,15 @@ class CVC4_PUBLIC Solver
    */
   void setOption(const std::string& option, const std::string& value) const;
 
+  /**
+   * If needed, convert this term to a given sort. Note that the sort of the
+   * term must be convertible into the target sort. Currently only Int to Real
+   * conversions are supported.
+   * @param s the target sort
+   * @return the term wrapped into a sort conversion if needed
+   */
+  Term ensureTermSort(const Term& t, const Sort& s) const;
+
   // !!! This is only temporarily available until the parser is fully migrated
   // to the new API. !!!
   ExprManager* getExprManager(void) const;
@@ -2530,6 +2639,9 @@ class CVC4_PUBLIC Solver
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  /* Helper for mkBitVector functions that take a string and a size as
+   * arguments. */
+  Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for mkConst functions that take a string as argument. */
@@ -2538,6 +2650,14 @@ class CVC4_PUBLIC Solver
   /* Helper for mkConst functions that take an integer as argument. */
   template <typename T>
   Term mkConstFromIntHelper(Kind kind, T a) const;
+
+  /**
+   * Helper function that ensures that a given term is of sort real (as opposed
+   * to being of sort integer).
+   * @param term a term of sort integer or real
+   * @return a term of sort real
+   */
+  Term ensureRealSort(Term expr) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

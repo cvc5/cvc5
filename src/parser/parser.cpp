@@ -81,6 +81,8 @@ ExprManager* Parser::getExprManager() const
   return d_solver->getExprManager();
 }
 
+api::Solver* Parser::getSolver() const { return d_solver; }
+
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
   assert(isDeclared(name, type));

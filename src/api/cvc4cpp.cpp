@@ -1461,6 +1461,14 @@ DatatypeConstructor::DatatypeConstructor(const CVC4::DatatypeConstructor& ctor)
 
 DatatypeConstructor::~DatatypeConstructor() {}
 
+bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
+
+Term DatatypeConstructor::getConstructorTerm() const
+{
+  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
+  return Term(d_ctor->getConstructor());
+}
+
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
 {
   // CHECK: selector with name exists?
@@ -1582,6 +1590,13 @@ Datatype::Datatype(const CVC4::Datatype& dtype)
 }
 
 Datatype::~Datatype() {}
+
+DatatypeConstructor Datatype::operator[](size_t idx) const
+{
+  // CHECK (maybe): is resolved?
+  CVC4_API_CHECK(idx < getNumConstructors()) << "Index out of bounds.";
+  return (*d_dtype)[idx];
+}
 
 DatatypeConstructor Datatype::operator[](const std::string& name) const
 {
@@ -1734,6 +1749,8 @@ Solver::~Solver() {}
 
 /* Sorts Handling                                                             */
 /* -------------------------------------------------------------------------- */
+
+Sort Solver::getNullSort(void) const { return Type(); }
 
 Sort Solver::getBooleanSort(void) const { return d_exprMgr->booleanType(); }
 
@@ -2051,14 +2068,14 @@ Term Solver::mkSepNil(Sort sort) const
   }
 }
 
-Term Solver::mkString(const char* s) const
+Term Solver::mkString(const char* s, bool useEscSequences) const
 {
-  return mkConstHelper<CVC4::String>(CVC4::String(s));
+  return mkConstHelper<CVC4::String>(CVC4::String(s, useEscSequences));
 }
 
-Term Solver::mkString(const std::string& s) const
+Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
-  return mkConstHelper<CVC4::String>(CVC4::String(s));
+  return mkConstHelper<CVC4::String>(CVC4::String(s, useEscSequences));
 }
 
 Term Solver::mkString(const unsigned char c) const
@@ -2078,7 +2095,8 @@ Term Solver::mkUniverseSet(Sort sort) const
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
     Term res =
         d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
-    (void)res.d_expr->getType(true); /* kick off type checking */
+    // TODO(#2771): Reenable?
+    // (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
   catch (TypeCheckingException& e)
@@ -2105,8 +2123,31 @@ Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 16, s) << "base 2 or 16";
+    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+        << "base 2, 10, or 16";
     return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(s, base));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
+}
+
+Term Solver::mkBVFromStrHelper(uint32_t size,
+                               std::string s,
+                               uint32_t base) const
+{
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
+    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+        << "base 2, 10, or 16";
+
+    Integer val(s, base);
+    CVC4_API_CHECK(val.modByPow2(size) == val)
+        << "Overflow in bitvector construction (specified bitvector size "
+        << size << " too small to hold value " << s << ")";
+    return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
   }
   catch (std::invalid_argument& e)
   {
@@ -2123,6 +2164,57 @@ Term Solver::mkBitVector(const char* s, uint32_t base) const
 Term Solver::mkBitVector(const std::string& s, uint32_t base) const
 {
   return mkBVFromStrHelper(s, base);
+}
+
+Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const
+{
+  CVC4_API_ARG_CHECK_NOT_NULL(s);
+  return mkBVFromStrHelper(size, s, base);
+}
+
+Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
+{
+  return mkBVFromStrHelper(size, s, base);
+}
+
+Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
+  return mkConstHelper<CVC4::FloatingPoint>(
+      FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
+}
+
+Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
+  return mkConstHelper<CVC4::FloatingPoint>(
+      FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
+}
+
+Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
+  return mkConstHelper<CVC4::FloatingPoint>(
+      FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
+}
+
+Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
+  return mkConstHelper<CVC4::FloatingPoint>(
+      FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
+}
+
+Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
+{
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
+  return mkConstHelper<CVC4::FloatingPoint>(
+      FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
 }
 
 Term Solver::mkConst(RoundingMode rm) const
@@ -2653,6 +2745,23 @@ Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
   {
     throw CVC4ApiException(e.getMessage());
   }
+}
+
+Term Solver::mkTuple(const std::vector<Sort>& sorts,
+                     const std::vector<Term>& terms) const
+{
+  CVC4_API_CHECK(sorts.size() == terms.size())
+      << "Expected the same number of sorts and elements";
+  std::vector<Term> args;
+  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  {
+    args.push_back(ensureTermSort(terms[i], sorts[i]));
+  }
+
+  Sort s = mkTupleSort(sorts);
+  Datatype dt = s.getDatatype();
+  args.insert(args.begin(), dt[0].getConstructorTerm());
+  return mkTerm(APPLY_CONSTRUCTOR, args);
 }
 
 std::vector<Expr> Solver::termVectorToExprs(
@@ -3357,6 +3466,31 @@ void Solver::setOption(const std::string& option,
   // CHECK: option exists?
   // CHECK: !d_smtEngine->d_fullInited, else option can't be set
   d_smtEngine->setOption(option, value);
+}
+
+Term Solver::ensureTermSort(const Term& t, const Sort& s) const
+{
+  CVC4_API_CHECK(t.getSort() == s || (t.getSort().isInteger() && s.isReal()))
+      << "Expected conversion from Int to Real";
+
+  if (t.getSort() == s)
+  {
+    return t;
+  }
+
+  // Integers are reals, too
+  Assert(t.getSort().isReal());
+  Term res = t;
+  if (t.getSort().isInteger())
+  {
+    // Must cast to Real to ensure correct type is passed to parametric type
+    // constructors. We do this cast using division with 1. This has the
+    // advantage wrt using TO_REAL since (constant) division is always included
+    // in the theory.
+    res = mkTerm(DIVISION, *t.d_expr, mkReal(1));
+  }
+  Assert(res.getSort() == s);
+  return res;
 }
 
 /**
