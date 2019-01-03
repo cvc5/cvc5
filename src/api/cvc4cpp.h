@@ -192,6 +192,11 @@ class CVC4_PUBLIC Sort
   Sort(const CVC4::Type& t);
 
   /**
+   * Constructor.
+   */
+  Sort();
+
+  /**
    * Destructor.
    */
   ~Sort();
@@ -209,6 +214,11 @@ class CVC4_PUBLIC Sort
    * @return true if the sorts are not equal
    */
   bool operator!=(const Sort& s) const;
+
+  /**
+   * @return true if this Sort is a null sort.
+   */
+  bool isNull() const;
 
   /**
    * Is this a Boolean sort?
@@ -1691,14 +1701,6 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind, const std::vector<Term>& children) const;
 
   /**
-   * Create term with no children from a given operator term.
-   * Create operator terms with mkOpTerm().
-   * @param the operator term
-   * @return the Term
-   */
-  Term mkTerm(OpTerm opTerm) const;
-
-  /**
    * Create unary term from a given operator term.
    * Create operator terms with mkOpTerm().
    * @param the operator term
@@ -1819,128 +1821,84 @@ class CVC4_PUBLIC Solver
   Term mkBoolean(bool val) const;
 
   /**
-   * Create an Integer constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Integer constant
-   */
-  Term mkInteger(const char* s, uint32_t base = 10) const;
-
-  /**
-   * Create an Integer constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Integer constant
-   */
-  Term mkInteger(const std::string& s, uint32_t base = 10) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(int32_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(uint32_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(int64_t val) const;
-
-  /**
-   * Create an Integer constant.
-   * @param val the value of the constant
-   * @return the Integer constant
-   */
-  Term mkInteger(uint64_t val) const;
-
-  /**
    * Create a constant representing the number Pi.
    * @return a constant representing Pi
    */
   Term mkPi() const;
 
   /**
-   * Create an Real constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Real constant
+   * Create a real constant.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
+   * @return a constant of sort Real or Integer (if 's' represents an integer)
    */
-  Term mkReal(const char* s, uint32_t base = 10) const;
+  Term mkReal(const char* s) const;
 
   /**
-   * Create an Real constant.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
-   * @return the Real constant
+   * Create a real constant.
+   * @param s the string representation of the constant, may represent an
+   *          integer (e.g., "123") or real constant (e.g., "12.34" or "12/34").
+   * @return a constant of sort Real or Integer (if 's' represents an integer)
    */
-  Term mkReal(const std::string& s, uint32_t base = 10) const;
+  Term mkReal(const std::string& s) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant from an integer.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(int32_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant from an integer.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(int64_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant from an unsigned integer.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(uint32_t val) const;
 
   /**
-   * Create an Real constant.
+   * Create a real constant from an unsigned integer.
    * @param val the value of the constant
-   * @return the Real constant
+   * @return a constant of sort Integer
    */
   Term mkReal(uint64_t val) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(int32_t num, int32_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(int64_t num, int64_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(uint32_t num, uint32_t den) const;
 
   /**
-   * Create an Rational constant.
+   * Create a real constant from a rational.
    * @param num the value of the numerator
    * @param den the value of the denominator
-   * @return the Rational constant
+   * @return a constant of sort Real or Integer (if 'num' is divisible by 'den')
    */
   Term mkReal(uint64_t num, uint64_t den) const;
 
@@ -2006,21 +1964,6 @@ class CVC4_PUBLIC Solver
   Term mkUniverseSet(Sort sort) const;
 
   /**
-   * Create a bit-vector constant of given size with value 0.
-   * @param size the bit-width of the bit-vector sort
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size) const;
-
-  /**
-   * Create a bit-vector constant of given size and value.
-   * @param size the bit-width of the bit-vector sort
-   * @param val the value of the constant
-   * @return the bit-vector constant
-   */
-  Term mkBitVector(uint32_t size, uint32_t val) const;
-
-  /**
    * Create a bit-vector constant of given size and value.
    * @param size the bit-width of the bit-vector sort
    * @param val the value of the constant
@@ -2042,7 +1985,7 @@ class CVC4_PUBLIC Solver
    * @param base the base of the string representation
    * @return the bit-vector constant
    */
-  Term mkBitVector(std::string& s, uint32_t base = 2) const;
+  Term mkBitVector(const std::string& s, uint32_t base = 2) const;
 
   /**
    * Create constant of kind:
@@ -2081,6 +2024,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create constant of kind:
+   *   - ABSTRACT_VALUE
+   *   - CONST_RATIONAL (for integers, reals)
    *   - CONST_STRING
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
@@ -2090,6 +2035,8 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create constant of kind:
+   *   - ABSTRACT_VALUE
+   *   - CONST_RATIONAL (for integers, reals)
    *   - CONST_STRING
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
@@ -2099,33 +2046,28 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
    *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg1 the first argument to this kind
    * @param arg2 the second argument to this kind
    */
-  Term mkConst(Kind kind, const char* arg1, uint32_t arg2 = 10) const;
+  Term mkConst(Kind kind, const char* arg1, uint32_t arg2) const;
 
   /**
    * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
    *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg1 the first argument to this kind
    * @param arg2 the second argument to this kind
    */
-  Term mkConst(Kind kind, const std::string& arg1, uint32_t arg2 = 10) const;
+  Term mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const;
 
   /**
    * Create constant of kind:
    *   - ABSTRACT_VALUE
    *   - CONST_RATIONAL (for integers, reals)
-   *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg the argument to this kind
@@ -2185,6 +2127,7 @@ class CVC4_PUBLIC Solver
   /**
    * Create constant of kind:
    *   - CONST_RATIONAL (for rationals)
+   *   - CONST_BITVECTOR
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg1 the first argument to this kind
@@ -2581,6 +2524,20 @@ class CVC4_PUBLIC Solver
   void checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const;
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
+  /* Helper for mk-functions that call d_exprMgr->mkConst(). */
+  template <typename T> Term mkConstHelper(T t) const;
+  /* Helper for mkReal functions that take a string as argument. */
+  Term mkRealFromStrHelper(std::string s) const;
+  /* Helper for mkBitVector functions that take a string as argument. */
+  Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  /* Helper for mkBitVector functions that take an integer as argument. */
+  Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
+  /* Helper for mkConst functions that take a string as argument. */
+  Term mkConstFromStrHelper(Kind kind, std::string s) const;
+  Term mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const;
+  /* Helper for mkConst functions that take an integer as argument. */
+  template <typename T>
+  Term mkConstFromIntHelper(Kind kind, T a) const;
 
   /* The expression manager of this solver. */
   std::unique_ptr<ExprManager> d_exprMgr;

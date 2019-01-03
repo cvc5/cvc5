@@ -38,21 +38,36 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkFloatingPointSort();
   void testMkDatatypeSort();
   void testMkFunctionSort();
+  void testMkOpTerm();
   void testMkParamSort();
   void testMkPredicateSort();
   void testMkRecordSort();
   void testMkSetSort();
   void testMkSortConstructorSort();
-  void testMkUninterpretedSort();
   void testMkTupleSort();
+  void testMkUninterpretedSort();
+
+  void testMkBitVector();
+  void testMkBoundVar();
+  void testMkBoolean();
+  void testMkConst();
+  void testMkEmptySet();
+  void testMkFalse();
+  void testMkPi();
+  void testMkReal();
+  void testMkRegexpEmpty();
+  void testMkRegexpSigma();
+  void testMkSepNil();
+  void testMkString();
+  void testMkUniverseSet();
+  void testMkTerm();
+  void testMkTrue();
+  void testMkVar();
 
   void testDeclareFun();
   void testDefineFun();
   void testDefineFunRec();
   void testDefineFunsRec();
-
-  void testMkRegexpEmpty();
-  void testMkRegexpSigma();
 
  private:
   Solver d_solver;
@@ -219,6 +234,383 @@ void SolverBlack::testMkTupleSort()
                    CVC4ApiException&);
 }
 
+void SolverBlack::testMkBitVector()
+{
+  uint32_t size0 = 0, size1 = 8, size2 = 32, val1 = 2;
+  uint64_t val2 = 2;
+  TS_ASSERT_THROWS(d_solver.mkBitVector(size0, val1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkBitVector(size0, val2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkBitVector("", 2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkBitVector("10", 3), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkBitVector("20", 2), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector(size1, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector(size2, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector("1010", 2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBitVector("1010", 16));
+}
+
+void SolverBlack::testMkBoundVar()
+{
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort intSort = d_solver.getIntegerSort();
+  Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
+  TS_ASSERT_THROWS(d_solver.mkBoundVar(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoundVar(boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoundVar(funSort));
+  TS_ASSERT_THROWS(d_solver.mkBoundVar("a", Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoundVar(std::string("b"), boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoundVar("", funSort));
+}
+
+void SolverBlack::testMkBoolean()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoolean(true));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkBoolean(false));
+}
+
+void SolverBlack::testMkConst()
+{
+  // mkConst(RoundingMode rm) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(RoundingMode::ROUND_TOWARD_ZERO));
+
+  // mkConst(Kind kind, Sort arg) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(EMPTYSET, Sort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(UNIVERSE_SET, d_solver.mkSetSort(d_solver.getBooleanSort())));
+  TS_ASSERT_THROWS(d_solver.mkConst(EMPTYSET, d_solver.getBooleanSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(UNIVERSE_SET, Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(APPLY, d_solver.getBooleanSort()),
+                   CVC4ApiException&);
+
+  // mkConst(Kind kind, Sort arg1, int32_t arg2) const
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkConst(UNINTERPRETED_CONSTANT, d_solver.getBooleanSort(), 1));
+  TS_ASSERT_THROWS(d_solver.mkConst(UNINTERPRETED_CONSTANT, Sort(), 1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(EMPTYSET, d_solver.getBooleanSort(), 1),
+                   CVC4ApiException&);
+
+  // mkConst(Kind kind, bool arg) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BOOLEAN, true));
+  TS_ASSERT_THROWS(d_solver.mkConst(UNINTERPRETED_CONSTANT, true),
+                   CVC4ApiException&);
+
+  // mkConst(Kind kind, const char* arg) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, std::string("1")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_STRING, "asdf"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1/2"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1.2"));
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, nullptr), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, ""), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, std::string("1.2")),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, "1/2"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, "asdf"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, "1..2"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, "asdf"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(BITVECTOR_ULT, "asdf"), CVC4ApiException&);
+
+  // mkConst(Kind kind, const std::string& arg) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_STRING, std::string("asdf")));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkConst(CONST_RATIONAL, std::string("1/2")));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkConst(CONST_RATIONAL, std::string("1.2")));
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, nullptr), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, std::string("")),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, std::string("asdf")),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(BITVECTOR_ULT, std::string("asdf")),
+                   CVC4ApiException&);
+
+  // mkConst(Kind kind, const char* arg1, uint32_t arg2) const
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkConst(CONST_BITVECTOR, std::string("101"), 2));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkConst(CONST_BITVECTOR, std::string("10a"), 16));
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, nullptr, 1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("")),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("101", 6)),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("102", 16)),
+                   CVC4ApiException&);
+
+  // mkConst(Kind kind, int32_t arg) const
+  // mkConst(Kind kind, uint32_t arg) const
+  // mkConst(Kind kind, int64_t arg) const
+  // mkConst(Kind kind, uint64_t arg) const
+  int32_t val1 = 2;
+  uint32_t val2 = 2;
+  int64_t val3 = 2;
+  uint64_t val4 = 2;
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val4));
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val3), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val4), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val4));
+
+  // mkConst(Kind kind, int32_t arg1, int32_t arg2) const
+  // mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
+  // mkConst(Kind kind, int64_t arg1, int64_t arg2) const
+  // mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val1, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val2, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val3, val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val4, val4));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BITVECTOR, val2, val2));
+
+  // mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+#ifdef CVC4_USE_SYMFPU
+  Term t1 = d_solver.mkBitVector(8);
+  Term t2 = d_solver.mkBitVector(4);
+  Term t3 = d_solver.mkReal(2);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1));
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, Term()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, t1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 0, t1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t2),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t2),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, 3, 5, t1),
+                   CVC4ApiException&);
+#endif
+}
+
+void SolverBlack::testMkEmptySet()
+{
+  TS_ASSERT_THROWS(d_solver.mkEmptySet(d_solver.getBooleanSort()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkEmptySet(Sort()));
+}
+
+void SolverBlack::testMkFalse()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
+}
+
+void SolverBlack::testMkOpTerm()
+{
+  // mkOpTerm(Kind kind, Kind k)
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkOpTerm(CHAIN_OP, EQUAL));
+  TS_ASSERT_THROWS(d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, EQUAL),
+                   CVC4ApiException&);
+
+  // mkOpTerm(Kind kind, const std::string& arg)
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkOpTerm(RECORD_UPDATE_OP, "asdf"));
+  TS_ASSERT_THROWS(d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, "asdf"),
+                   CVC4ApiException&);
+
+  // mkOpTerm(Kind kind, uint32_t arg)
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkOpTerm(DIVISIBLE_OP, 1));
+  TS_ASSERT_THROWS(d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 1),
+                   CVC4ApiException&);
+
+  // mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 1, 1));
+  TS_ASSERT_THROWS(d_solver.mkOpTerm(DIVISIBLE_OP, 1, 2), CVC4ApiException&);
+}
+
+void SolverBlack::testMkPi() { TS_ASSERT_THROWS_NOTHING(d_solver.mkPi()); }
+
+void SolverBlack::testMkReal()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal("123"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal("1.23"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal("1/23"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal("12/3"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(".2"));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal("2."));
+  TS_ASSERT_THROWS(d_solver.mkReal(nullptr), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(""), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("asdf"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("1.2/3"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("."), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("/"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("2/"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal("/2"), CVC4ApiException&);
+
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string("123")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string("1.23")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string("1/23")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string("12/3")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string(".2")));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(std::string("2.")));
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("asdf")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("1.2/3")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string(".")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("/")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("2/")), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkReal(std::string("/2")), CVC4ApiException&);
+
+  int32_t val1 = 1;
+  int64_t val2 = -1;
+  uint32_t val3 = 1;
+  uint64_t val4 = -1;
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val4));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val4));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val1, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val2, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val3, val3));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkReal(val4, val4));
+}
+
+void SolverBlack::testMkRegexpEmpty()
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkVar("s", strSort);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
+}
+
+void SolverBlack::testMkRegexpSigma()
+{
+  Sort strSort = d_solver.getStringSort();
+  Term s = d_solver.mkVar("s", strSort);
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
+}
+
+void SolverBlack::testMkSepNil()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkSepNil(d_solver.getBooleanSort()));
+  TS_ASSERT_THROWS(d_solver.mkSepNil(Sort()), CVC4ApiException&);
+}
+
+void SolverBlack::testMkString()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkString(""));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkString("asdfasdf"));
+}
+
+void SolverBlack::testMkTerm()
+{
+  Sort bv32 = d_solver.mkBitVectorSort(32);
+  Term a = d_solver.mkVar("a", bv32);
+  Term b = d_solver.mkVar("b", bv32);
+  std::vector<Term> v1 = {a, b};
+  std::vector<Term> v2 = {a, Term()};
+  std::vector<Term> v3 = {a, d_solver.mkTrue()};
+  std::vector<Term> v4 = {d_solver.mkReal(1), d_solver.mkReal(2)};
+  std::vector<Term> v5 = {d_solver.mkReal(1), Term()};
+  OpTerm opterm1 = d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
+  OpTerm opterm2 = d_solver.mkOpTerm(DIVISIBLE_OP, 1);
+  OpTerm opterm3 = d_solver.mkOpTerm(CHAIN_OP, EQUAL);
+
+  // mkTerm(Kind kind) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(PI));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(REGEXP_EMPTY));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(REGEXP_SIGMA));
+  TS_ASSERT_THROWS(d_solver.mkTerm(CONST_BITVECTOR), CVC4ApiException&);
+
+  // mkTerm(Kind kind, Sort sort) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(SEP_NIL, d_solver.getBooleanSort()));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(SEP_NIL, Sort()));
+
+  // mkTerm(Kind kind, Term child) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(NOT, d_solver.mkTrue()));
+  TS_ASSERT_THROWS(d_solver.mkTerm(NOT, Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(NOT, a), CVC4ApiException&);
+
+  // mkTerm(Kind kind, Term child1, Term child2) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(EQUAL, a, b));
+  TS_ASSERT_THROWS(d_solver.mkTerm(EQUAL, Term(), b), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(EQUAL, a, Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(EQUAL, a, d_solver.mkTrue()),
+                   CVC4ApiException&);
+
+  // mkTerm(Kind kind, Term child1, Term child2, Term child3) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(
+      ITE, d_solver.mkTrue(), d_solver.mkTrue(), d_solver.mkTrue()));
+  TS_ASSERT_THROWS(
+      d_solver.mkTerm(ITE, Term(), d_solver.mkTrue(), d_solver.mkTrue()),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTerm(ITE, d_solver.mkTrue(), Term(), d_solver.mkTrue()),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), Term()),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTerm(ITE, d_solver.mkTrue(), d_solver.mkTrue(), b),
+      CVC4ApiException&);
+
+  // mkTerm(Kind kind, const std::vector<Term>& children) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(EQUAL, v1));
+  TS_ASSERT_THROWS(d_solver.mkTerm(EQUAL, v2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(EQUAL, v3), CVC4ApiException&);
+
+  // mkTerm(OpTerm opTerm, Term child) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(opterm1, a));
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm2, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm1, Term()), CVC4ApiException&);
+
+  // mkTerm(OpTerm opTerm, Term child1, Term child2) const
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTerm(opterm3, d_solver.mkReal(1), d_solver.mkReal(2)));
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm1, a, b), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm3, d_solver.mkReal(1), Term()),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm3, Term(), d_solver.mkReal(1)),
+                   CVC4ApiException&);
+
+  // mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(
+      opterm3, d_solver.mkReal(1), d_solver.mkReal(1), d_solver.mkReal(2)));
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm1, a, b, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTerm(opterm3, d_solver.mkReal(1), d_solver.mkReal(1), Term()),
+      CVC4ApiException&);
+
+  // mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTerm(opterm3, v4));
+  TS_ASSERT_THROWS(d_solver.mkTerm(opterm3, v5), CVC4ApiException&);
+}
+
+void SolverBlack::testMkTrue()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTrue());
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTrue());
+}
+
+void SolverBlack::testMkUniverseSet()
+{
+  TS_ASSERT_THROWS(d_solver.mkUniverseSet(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkUniverseSet(d_solver.getBooleanSort()), CVC4ApiException&);
+}
+
+void SolverBlack::testMkVar()
+{
+  Sort boolSort = d_solver.getBooleanSort();
+  Sort intSort = d_solver.getIntegerSort();
+  Sort funSort = d_solver.mkFunctionSort(intSort, boolSort);
+  TS_ASSERT_THROWS(d_solver.mkVar(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkVar(boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkVar(funSort));
+  TS_ASSERT_THROWS(d_solver.mkVar("a", Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkVar(std::string("b"), boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkVar("", funSort));
+}
+
 void SolverBlack::testDeclareFun()
 {
   Sort bvSort = d_solver.mkBitVectorSort(32);
@@ -328,20 +720,4 @@ void SolverBlack::testDefineFunsRec()
   TS_ASSERT_THROWS(
       d_solver.defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v4}),
       CVC4ApiException&);
-}
-
-void SolverBlack::testMkRegexpEmpty()
-{
-  Sort strSort = d_solver.getStringSort();
-  Term s = d_solver.mkVar("s", strSort);
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpEmpty()));
-}
-
-void SolverBlack::testMkRegexpSigma()
-{
-  Sort strSort = d_solver.getStringSort();
-  Term s = d_solver.mkVar("s", strSort);
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkTerm(STRING_IN_REGEXP, s, d_solver.mkRegexpSigma()));
 }
