@@ -2010,16 +2010,16 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a bit-vector constant from a given string.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(const char* s, uint32_t base = 2) const;
 
   /**
    * Create a bit-vector constant from a given string.
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(const std::string& s, uint32_t base = 2) const;
@@ -2027,8 +2027,8 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string.
    * @param size the bit-width of the constant
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
@@ -2036,8 +2036,8 @@ class CVC4_PUBLIC Solver
   /**
    * Create a bit-vector constant of a given bit-width from a given string.
    * @param size the bit-width of the constant
-   * @param s the string represetntation of the constant
-   * @param base the base of the string representation
+   * @param s the string representation of the constant
+   * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
    */
   Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
@@ -2639,6 +2639,9 @@ class CVC4_PUBLIC Solver
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */
   Term mkBVFromStrHelper(std::string s, uint32_t base) const;
+  /* Helper for mkBitVector functions that take a string and a size as
+   * arguments. */
+  Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
   /* Helper for mkConst functions that take a string as argument. */

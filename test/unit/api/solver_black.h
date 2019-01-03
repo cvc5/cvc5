@@ -27,13 +27,13 @@ class SolverBlack : public CxxTest::TestSuite
   void setUp() override;
   void tearDown() override;
 
-  void testGetNullSort();
   void testGetBooleanSort();
   void testGetIntegerSort();
+  void testGetNullSort();
   void testGetRealSort();
   void testGetRegExpSort();
-  void testGetStringSort();
   void testGetRoundingmodeSort();
+  void testGetStringSort();
 
   void testMkArraySort();
   void testMkBitVectorSort();
@@ -49,23 +49,23 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkTupleSort();
   void testMkUninterpretedSort();
 
-  void testMkTuple();
   void testMkBitVector();
-  void testMkFloatingPoint();
-  void testMkBoundVar();
   void testMkBoolean();
+  void testMkBoundVar();
   void testMkConst();
   void testMkEmptySet();
   void testMkFalse();
+  void testMkFloatingPoint();
   void testMkPi();
   void testMkReal();
   void testMkRegexpEmpty();
   void testMkRegexpSigma();
   void testMkSepNil();
   void testMkString();
-  void testMkUniverseSet();
   void testMkTerm();
   void testMkTrue();
+  void testMkTuple();
+  void testMkUniverseSet();
   void testMkVar();
 
   void testDeclareFun();
@@ -81,11 +81,6 @@ void SolverBlack::setUp() {}
 
 void SolverBlack::tearDown() {}
 
-void SolverBlack::testGetNullSort()
-{
-  TS_ASSERT_THROWS_NOTHING(d_solver.getNullSort());
-}
-
 void SolverBlack::testGetBooleanSort()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.getBooleanSort());
@@ -94,6 +89,11 @@ void SolverBlack::testGetBooleanSort()
 void SolverBlack::testGetIntegerSort()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.getIntegerSort());
+}
+
+void SolverBlack::testGetNullSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.getNullSort());
 }
 
 void SolverBlack::testGetRealSort()
@@ -243,22 +243,6 @@ void SolverBlack::testMkTupleSort()
                    CVC4ApiException&);
 }
 
-void SolverBlack::testMkTuple()
-{
-  TS_ASSERT_THROWS(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
-                                    {d_solver.mkBitVector("101", 2)}),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
-                                            {d_solver.mkBitVector("101", 2)}));
-  TS_ASSERT_THROWS(
-      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
-      CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkReal("5")}));
-}
-
 void SolverBlack::testMkBitVector()
 {
   uint32_t size0 = 0, size1 = 8, size2 = 32, val1 = 2;
@@ -276,26 +260,6 @@ void SolverBlack::testMkBitVector()
   TS_ASSERT_EQUALS(d_solver.mkBitVector(8, "01010101", 2).toString(),
                    "0bin01010101");
   TS_ASSERT_EQUALS(d_solver.mkBitVector(8, "F", 16).toString(), "0bin00001111");
-}
-
-void SolverBlack::testMkFloatingPoint()
-{
-  if (CVC4::Configuration::isBuiltWithSymFPU())
-  {
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegInf(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkNaN(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegZero(3, 5));
-  }
-  else
-  {
-    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkNegInf(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkNaN(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkNegZero(3, 5), CVC4ApiException&);
-  }
 }
 
 void SolverBlack::testMkBoundVar()
@@ -457,6 +421,26 @@ void SolverBlack::testMkFalse()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
   TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
+}
+
+void SolverBlack::testMkFloatingPoint()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNaN(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegZero(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNegInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNaN(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkNegZero(3, 5), CVC4ApiException&);
+  }
 }
 
 void SolverBlack::testMkOpTerm()
@@ -649,6 +633,23 @@ void SolverBlack::testMkTrue()
 {
   TS_ASSERT_THROWS_NOTHING(d_solver.mkTrue());
   TS_ASSERT_THROWS_NOTHING(d_solver.mkTrue());
+}
+
+void SolverBlack::testMkTuple()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkTuple({d_solver.mkBitVectorSort(3)},
+                                            {d_solver.mkBitVector("101", 2)}));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver.mkTuple({d_solver.getRealSort()}, {d_solver.mkReal("5")}));
+
+  TS_ASSERT_THROWS(d_solver.mkTuple({}, {d_solver.mkBitVector("101", 2)}),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkTuple({d_solver.mkBitVectorSort(4)},
+                                    {d_solver.mkBitVector("101", 2)}),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver.mkTuple({d_solver.getIntegerSort()}, {d_solver.mkReal("5.3")}),
+      CVC4ApiException&);
 }
 
 void SolverBlack::testMkUniverseSet()
