@@ -16,6 +16,7 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/configuration.h"
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/expr.h"
@@ -2325,6 +2326,8 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
       << "CONST_FLOATINGPOINT";
   CVC4_API_ARG_CHECK_EXPECTED(arg1 > 0, arg1) << "a value > 0";
