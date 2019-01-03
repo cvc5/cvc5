@@ -420,11 +420,18 @@ void SolverBlack::testMkConst()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BITVECTOR, val2, val2));
 
   // mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
-#ifdef CVC4_USE_SYMFPU
   Term t1 = d_solver.mkBitVector(8);
   Term t2 = d_solver.mkBitVector(4);
   Term t3 = d_solver.mkReal(2);
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1));
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1),
+                     CVC4ApiException&);
+  }
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, Term()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, t1),
@@ -437,7 +444,6 @@ void SolverBlack::testMkConst()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, 3, 5, t1),
                    CVC4ApiException&);
-#endif
 }
 
 void SolverBlack::testMkEmptySet()

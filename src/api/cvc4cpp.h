@@ -2006,7 +2006,7 @@ class CVC4_PUBLIC Solver
    * @param val the value of the constant
    * @return the bit-vector constant
    */
-  Term mkBitVector(uint32_t size, uint64_t val) const;
+  Term mkBitVector(uint32_t size, uint64_t val = 0) const;
 
   /**
    * Create a bit-vector constant from a given string.
@@ -2257,7 +2257,7 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create constant of kind:
-   *   - CONST_FLOATINGPOINT
+   *   - CONST_FLOATINGPOINT (requires CVC4 to be compiled with symFPU support)
    * See enum Kind for a description of the parameters.
    * @param kind the kind of the constant
    * @param arg1 the first argument to this kind
