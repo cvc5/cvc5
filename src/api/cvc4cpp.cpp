@@ -16,6 +16,7 @@
 
 #include "api/cvc4cpp.h"
 
+#include "base/configuration.h"
 #include "base/cvc4_assert.h"
 #include "base/cvc4_check.h"
 #include "expr/expr.h"
@@ -2069,12 +2070,12 @@ Term Solver::mkSepNil(Sort sort) const
 
 Term Solver::mkString(const char* s, bool useEscSequences) const
 {
-  return mkConstHelper<CVC4::String>(CVC4::String(s));
+  return mkConstHelper<CVC4::String>(CVC4::String(s, useEscSequences));
 }
 
 Term Solver::mkString(const std::string& s, bool useEscSequences) const
 {
-  return mkConstHelper<CVC4::String>(CVC4::String(s));
+  return mkConstHelper<CVC4::String>(CVC4::String(s, useEscSequences));
 }
 
 Term Solver::mkString(const unsigned char c) const
@@ -2094,7 +2095,6 @@ Term Solver::mkUniverseSet(Sort sort) const
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
     Term res =
         d_exprMgr->mkNullaryOperator(*sort.d_type, CVC4::kind::UNIVERSE_SET);
-    (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
   catch (TypeCheckingException& e)
@@ -2141,47 +2141,57 @@ Term Solver::mkBitVector(const std::string& s, uint32_t base) const
   return mkBVFromStrHelper(s, base);
 }
 
-Term Solver::mkBitVector(const char* s, uint32_t base, uint32_t sz) const
+Term Solver::mkBitVector(uint32_t size, const char* s, uint32_t base) const
 {
   std::string str(s);
-  return mkBitVector(str, base, sz);
+  return mkBitVector(size, str, base);
 }
 
-Term Solver::mkBitVector(std::string& s, uint32_t base, uint32_t sz) const
+Term Solver::mkBitVector(uint32_t size, std::string& s, uint32_t base) const
 {
   Integer val(s, base);
-  CVC4_API_CHECK(val.modByPow2(sz) == val)
-      << "Overflow in bitvector construction (specified bitvector size " << sz
+  CVC4_API_CHECK(val.modByPow2(size) == val)
+      << "Overflow in bitvector construction (specified bitvector size " << size
       << " too small to hold value " << s << ")";
-  return d_exprMgr->mkConst(BitVector(sz, val));
+  return d_exprMgr->mkConst(BitVector(size, val));
 }
 
 Term Solver::mkPosInf(uint32_t exp, uint32_t sig) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return d_exprMgr->mkConst(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), false));
 }
 
 Term Solver::mkNegInf(uint32_t exp, uint32_t sig) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return d_exprMgr->mkConst(
       FloatingPoint::makeInf(FloatingPointSize(exp, sig), true));
 }
 
 Term Solver::mkNaN(uint32_t exp, uint32_t sig) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return d_exprMgr->mkConst(
       FloatingPoint::makeNaN(FloatingPointSize(exp, sig)));
 }
 
 Term Solver::mkPosZero(uint32_t exp, uint32_t sig) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return d_exprMgr->mkConst(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), false));
 }
 
 Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 {
+  CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
+      << "Expected CVC4 to be compiled with SymFPU support";
   return d_exprMgr->mkConst(
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
 }

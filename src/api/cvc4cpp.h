@@ -2026,24 +2026,25 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create a bit-vector constant of a given bit-width from a given string.
+   * @param size the bit-width of the constant
    * @param s the string represetntation of the constant
    * @param base the base of the string representation
-   * @param sz the bit-width of the constant
    * @return the bit-vector constant
    */
-  Term mkBitVector(const char* s, uint32_t base, uint32_t sz) const;
+  Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
 
   /**
    * Create a bit-vector constant of a given bit-width from a given string.
+   * @param size the bit-width of the constant
    * @param s the string represetntation of the constant
    * @param base the base of the string representation
-   * @param sz the bit-width of the constant
    * @return the bit-vector constant
    */
-  Term mkBitVector(std::string& s, uint32_t base, uint32_t sz) const;
+  Term mkBitVector(uint32_t size, std::string& s, uint32_t base) const;
 
   /**
-   * Create a positive infinity floating-point constant.
+   * Create a positive infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -2051,7 +2052,8 @@ class CVC4_PUBLIC Solver
   Term mkPosInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative infinity floating-point constant.
+   * Create a negative infinity floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -2059,7 +2061,8 @@ class CVC4_PUBLIC Solver
   Term mkNegInf(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a not-a-number (NaN) floating-point constant.
+   * Create a not-a-number (NaN) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -2067,7 +2070,8 @@ class CVC4_PUBLIC Solver
   Term mkNaN(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a positive zero (+0.0) floating-point constant.
+   * Create a positive zero (+0.0) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant
@@ -2075,7 +2079,8 @@ class CVC4_PUBLIC Solver
   Term mkPosZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create a negative zero (-0.0) floating-point constant.
+   * Create a negative zero (-0.0) floating-point constant. Requires CVC4 to be
+   * compiled with SymFPU support.
    * @param exp Number of bits in the exponent
    * @param sig Number of bits in the significand
    * @return the floating-point constant

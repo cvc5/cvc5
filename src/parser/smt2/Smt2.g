@@ -2248,8 +2248,6 @@ termAtomic[CVC4::api::Term& atomTerm]
     }
   | DECIMAL_LITERAL
     {
-      // FIXME: This doesn't work because an SMT rational is not a
-      // valid GMP rational string
       std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
       atomTerm = SOLVER->ensureTermSort(SOLVER->mkReal(realStr),
                                         SOLVER->getRealSort());
@@ -2267,7 +2265,7 @@ termAtomic[CVC4::api::Term& atomTerm]
         {
           std::string bvStr = AntlrInput::tokenTextSubstr($bvLit, 2);
           uint32_t bvSize = AntlrInput::tokenToUnsigned($size);
-          atomTerm = SOLVER->mkBitVector(bvStr, 10, bvSize);
+          atomTerm = SOLVER->mkBitVector(bvSize, bvStr, 10);
         }
         else
         {
