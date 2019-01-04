@@ -1037,7 +1037,7 @@ Term Term::notTerm() const
   {
     return d_expr->notExpr();
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1049,7 +1049,7 @@ Term Term::andTerm(const Term& t) const
   {
     return d_expr->andExpr(*t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1061,7 +1061,7 @@ Term Term::orTerm(const Term& t) const
   {
     return d_expr->orExpr(*t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1073,7 +1073,7 @@ Term Term::xorTerm(const Term& t) const
   {
     return d_expr->xorExpr(*t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1085,7 +1085,7 @@ Term Term::eqTerm(const Term& t) const
   {
     return d_expr->eqExpr(*t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1097,7 +1097,7 @@ Term Term::impTerm(const Term& t) const
   {
     return d_expr->impExpr(*t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1109,7 +1109,7 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
   {
     return d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1933,7 +1933,7 @@ Term Solver::mkPi() const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (CVC4::TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1948,7 +1948,7 @@ Term Solver::mkConstHelper(T t) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (CVC4::TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -1969,7 +1969,7 @@ Term Solver::mkRealFromStrHelper(std::string s) const
                            : CVC4::Rational::fromDecimal(s);
     return mkConstHelper<CVC4::Rational>(r);
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -1992,7 +1992,7 @@ Term Solver::mkReal(int32_t val) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2004,7 +2004,7 @@ Term Solver::mkReal(int64_t val) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2016,7 +2016,7 @@ Term Solver::mkReal(uint32_t val) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2028,7 +2028,7 @@ Term Solver::mkReal(uint64_t val) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2040,7 +2040,7 @@ Term Solver::mkReal(int32_t num, int32_t den) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2052,7 +2052,7 @@ Term Solver::mkReal(int64_t num, int64_t den) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2064,7 +2064,7 @@ Term Solver::mkReal(uint32_t num, uint32_t den) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2076,7 +2076,7 @@ Term Solver::mkReal(uint64_t num, uint64_t den) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2091,7 +2091,7 @@ Term Solver::mkRegexpEmpty() const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2106,7 +2106,7 @@ Term Solver::mkRegexpSigma() const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2128,7 +2128,7 @@ Term Solver::mkSepNil(Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2165,7 +2165,7 @@ Term Solver::mkUniverseSet(Sort sort) const
     // (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2179,7 +2179,7 @@ Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
   {
     return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2200,7 +2200,7 @@ Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
   {
     return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(s, base));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2221,7 +2221,7 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
         << size << " too small to hold value " << s << ")";
     return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2314,7 +2314,7 @@ Term Solver::mkConst(Kind kind, Sort arg) const
       return res;
     }
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2351,11 +2351,11 @@ Term Solver::mkConstFromStrHelper(Kind kind, std::string s) const
       // do not call getType(), for abstract values, type can not be computed
       // until it is substituted away
     }
-    catch (std::invalid_argument& e)
+    catch (const std::invalid_argument& e)
     {
       throw CVC4ApiException(e.what());
     }
-    catch (TypeCheckingException& e)
+    catch (const CVC4::TypeCheckingException& e)
     {
       throw CVC4ApiException(e.getMessage());
     }
@@ -2413,11 +2413,11 @@ Term Solver::mkConstFromIntHelper(Kind kind, T a) const
       // do not call getType(), for abstract values, type can not be computed
       // until it is substituted away
     }
-    catch (std::invalid_argument& e)
+    catch (const std::invalid_argument& e)
     {
       throw CVC4ApiException(e.what());
     }
-    catch (TypeCheckingException& e)
+    catch (const CVC4::TypeCheckingException& e)
     {
       throw CVC4ApiException(e.getMessage());
     }
@@ -2426,7 +2426,7 @@ Term Solver::mkConstFromIntHelper(Kind kind, T a) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2465,7 +2465,7 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2479,7 +2479,7 @@ Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2493,7 +2493,7 @@ Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2507,7 +2507,7 @@ Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
   {
     return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
   }
-  catch (std::invalid_argument& e)
+  catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
@@ -2551,7 +2551,7 @@ Term Solver::mkVar(const std::string& symbol, Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2566,7 +2566,7 @@ Term Solver::mkVar(Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2581,7 +2581,7 @@ Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2596,7 +2596,7 @@ Term Solver::mkBoundVar(Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2674,7 +2674,7 @@ Term Solver::mkTerm(Kind kind) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2689,7 +2689,7 @@ Term Solver::mkTerm(Kind kind, Sort sort) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2705,7 +2705,7 @@ Term Solver::mkTerm(Kind kind, Term child) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2723,7 +2723,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2745,7 +2745,7 @@ Term Solver::mkTerm(Kind kind, Term child1, Term child2, Term child3) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2770,7 +2770,7 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2786,7 +2786,7 @@ Term Solver::mkTerm(OpTerm opTerm, Term child) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2804,7 +2804,7 @@ Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2823,7 +2823,7 @@ Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
@@ -2845,7 +2845,7 @@ Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
-  catch (TypeCheckingException& e)
+  catch (const CVC4::TypeCheckingException& e)
   {
     throw CVC4ApiException(e.getMessage());
   }
