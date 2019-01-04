@@ -212,15 +212,6 @@ if(NOT ENABLE_ASSERTIONS)
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
-# Never build unit tests as static binaries, otherwise we'll end up with
-# ~300MB per unit test.
-if(ENABLE_UNIT_TESTING)
-  if(NOT ENABLE_SHARED)
-    message(WARNING "Disabling static build since unit testing is enabled.")
-  endif()
-  set(ENABLE_SHARED ON)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Shared/static libraries
 #
@@ -239,6 +230,13 @@ else()
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
+
+  # Never build unit tests as static binaries, otherwise we'll end up with
+  # ~300MB per unit test.
+  if(ENABLE_UNIT_TESTING)
+    message(WARNING "Disabling unit tests since static build is enabled.")
+    set(ENABLE_UNIT_TESTING OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
