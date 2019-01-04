@@ -1926,7 +1926,17 @@ Term Solver::mkBoolean(bool val) const { return d_exprMgr->mkConst<bool>(val); }
 
 Term Solver::mkPi() const
 {
-  return d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+  try
+  {
+    Term res =
+        d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
+  }
+  catch (CVC4::TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 template <typename T>
@@ -1947,13 +1957,13 @@ Term Solver::mkConstHelper(T t) const
 /* Split out to avoid nested API calls (problematic with API tracing). */
 Term Solver::mkRealFromStrHelper(std::string s) const
 {
+  /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
+   * throws an std::invalid_argument exception. For consistency, we treat it
+   * as invalid. */
+  CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
+      << "a string representing an integer, real or rational value.";
   try
   {
-    /* CLN and GMP handle this case differently, CLN interprets it as 0, GMP
-     * throws an std::invalid_argument exception. For consistency, we treat it
-     * as invalid. */
-    CVC4_API_ARG_CHECK_EXPECTED(s != ".", s)
-        << "a string representing an integer, real or rational value.";
     CVC4::Rational r = s.find('/') != std::string::npos
                            ? CVC4::Rational(s)
                            : CVC4::Rational::fromDecimal(s);
@@ -1978,42 +1988,98 @@ Term Solver::mkReal(const std::string& s) const
 
 Term Solver::mkReal(int32_t val) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(int64_t val) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(uint32_t val) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(uint64_t val) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(val));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(int32_t num, int32_t den) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(int64_t num, int64_t den) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(uint32_t num, uint32_t den) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkReal(uint64_t num, uint64_t den) const
 {
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(num, den));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkRegexpEmpty() const
@@ -2109,7 +2175,14 @@ Term Solver::mkUniverseSet(Sort sort) const
 Term Solver::mkBVFromIntHelper(uint32_t size, uint64_t val) const
 {
   CVC4_API_ARG_CHECK_EXPECTED(size > 0, size) << "a bit-width > 0";
-  return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
+  try
+  {
+    return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(size, val));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkBitVector(uint32_t size, uint64_t val) const
@@ -2120,11 +2193,11 @@ Term Solver::mkBitVector(uint32_t size, uint64_t val) const
 /* Split out to avoid nested API calls (problematic with API tracing). */
 Term Solver::mkBVFromStrHelper(std::string s, uint32_t base) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
+  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+      << "base 2, 10, or 16";
   try
   {
-    CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
-        << "base 2, 10, or 16";
     return mkConstHelper<CVC4::BitVector>(CVC4::BitVector(s, base));
   }
   catch (std::invalid_argument& e)
@@ -2137,12 +2210,11 @@ Term Solver::mkBVFromStrHelper(uint32_t size,
                                std::string s,
                                uint32_t base) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
+  CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
+      << "base 2, 10, or 16";
   try
   {
-    CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-    CVC4_API_ARG_CHECK_EXPECTED(base == 2 || base == 10 || base == 16, s)
-        << "base 2, 10, or 16";
-
     Integer val(s, base);
     CVC4_API_CHECK(val.modByPow2(size) == val)
         << "Overflow in bitvector construction (specified bitvector size "
@@ -2219,14 +2291,7 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
 
 Term Solver::mkConst(RoundingMode rm) const
 {
-  try
-  {
-    return mkConstHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
-  }
-  catch (std::invalid_argument& e)
-  {
-    throw CVC4ApiException(e.what());
-  }
+  return mkConstHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
 }
 
 Term Solver::mkConst(Kind kind, Sort arg) const
@@ -2348,12 +2413,23 @@ Term Solver::mkConstFromIntHelper(Kind kind, T a) const
       // do not call getType(), for abstract values, type can not be computed
       // until it is substituted away
     }
+    catch (std::invalid_argument& e)
+    {
+      throw CVC4ApiException(e.what());
+    }
     catch (TypeCheckingException& e)
     {
       throw CVC4ApiException(e.getMessage());
     }
   }
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg) const
@@ -2385,28 +2461,56 @@ Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
   {
     return mkBVFromIntHelper(arg1, arg2);
   }
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
       << "CONST_RATIONAL";
-  return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  try
+  {
+    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
+  }
+  catch (std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
+  }
 }
 
 Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
