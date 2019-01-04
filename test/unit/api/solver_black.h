@@ -347,9 +347,7 @@ void SolverBlack::testMkConst()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("")),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("101", 6)),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("102", 16)),
+  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("101"), 6),
                    CVC4ApiException&);
 
   // mkConst(Kind kind, int32_t arg) const
