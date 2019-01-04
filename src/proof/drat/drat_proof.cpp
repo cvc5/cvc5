@@ -39,7 +39,7 @@ SatLiteral parse_binary_literal(std::string::const_iterator& start,
   {
     // Check whether shift is so large that we're going to lose some
     // information
-    if (shift + 7 > 64)
+    if (shift + 7 >= 64)
     {
       throw InvalidDratProofException(
           "While parsing a DRAT proof, encountered a literal that was too "
