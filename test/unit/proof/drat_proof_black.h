@@ -35,6 +35,8 @@ class DratProofBlack : public CxxTest::TestSuite
   void testParseClauseOverflow();
 
   void testParseTwo();
+
+  void testOutputTwoAsText();
 };
 
 void DratProofBlack::testParseOneAdd()
@@ -93,7 +95,8 @@ void DratProofBlack::testParseClauseOverflow()
 
 void DratProofBlack::testParseTwo()
 {
-  // a -255;
+  // d -63 -8193
+  // 129 -8191
   std::string input("\x64\x7f\x83\x80\x01\x00\x61\x82\x02\xff\x7f\x00", 12);
   DratProof proof = DratProof::fromBinary(input);
 
@@ -107,4 +110,39 @@ void DratProofBlack::testParseTwo()
   TS_ASSERT_EQUALS(proof.getInstructions()[1].d_clause.size(), 2);
   TS_ASSERT_EQUALS(proof.getInstructions()[1].d_clause[0], SatLiteral(128, false));
   TS_ASSERT_EQUALS(proof.getInstructions()[1].d_clause[1], SatLiteral(8190, true));
+}
+
+void DratProofBlack::testOutputTwoAsText()
+{
+  // d -63 -8193
+  // 129 -8191
+  std::string input("\x64\x7f\x83\x80\x01\x00\x61\x82\x02\xff\x7f\x00", 12);
+  DratProof proof = DratProof::fromBinary(input);
+
+  std::ostringstream output;
+  proof.outputAsText(output);
+
+  std::istringstream tokens(output.str());
+  std::string token;
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "d");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "-63");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "-8193");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "0");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "129");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "-8191");
+
+  tokens >> token;
+  TS_ASSERT_EQUALS(token, "0");
 }
