@@ -1203,6 +1203,48 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_bvProofFormatHelp =
+    "\
+Proof formats currently supported by the --bv-proof-format option:\n\
+\n\
+  lrat (default)\n\
+\n\
+  drat\n\
+\n\
+  er\n\
+\n\
+This option controls which underlying UNSAT proof format is used in BV proofs.\n\
+\n\
+Note: Currently this option does nothing. BV proofs are a work in progress!\
+";
+
+theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
+    std::string option, std::string optarg)
+{
+  if (optarg == "er")
+  {
+    return theory::bv::BITVECTOR_PROOF_ER;
+  }
+  else if (optarg == "lrat")
+  {
+    return theory::bv::BITVECTOR_PROOF_LRAT;
+  }
+  else if (optarg == "drat")
+  {
+    return theory::bv::BITVECTOR_PROOF_DRAT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvProofFormatHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-proof-format: `")
+                          + optarg + "'.  Try --bv-proof-format=help.");
+  }
+}
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
