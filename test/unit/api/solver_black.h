@@ -288,7 +288,8 @@ void SolverBlack::testMkConst()
 
   // mkConst(Kind kind, Sort arg) const
   TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(EMPTYSET, Sort()));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(UNIVERSE_SET, d_solver.mkSetSort(d_solver.getBooleanSort())));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(
+      UNIVERSE_SET, d_solver.mkSetSort(d_solver.getBooleanSort())));
   TS_ASSERT_THROWS(d_solver.mkConst(EMPTYSET, d_solver.getBooleanSort()),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver.mkTerm(UNIVERSE_SET, Sort()), CVC4ApiException&);
