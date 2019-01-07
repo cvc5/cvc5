@@ -1035,7 +1035,9 @@ Term Term::notTerm() const
 {
   try
   {
-    return d_expr->notExpr();
+    Term res = d_expr->notExpr();
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1047,7 +1049,9 @@ Term Term::andTerm(const Term& t) const
 {
   try
   {
-    return d_expr->andExpr(*t.d_expr);
+    Term res = d_expr->andExpr(*t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1059,7 +1063,9 @@ Term Term::orTerm(const Term& t) const
 {
   try
   {
-    return d_expr->orExpr(*t.d_expr);
+    Term res = d_expr->orExpr(*t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1071,7 +1077,9 @@ Term Term::xorTerm(const Term& t) const
 {
   try
   {
-    return d_expr->xorExpr(*t.d_expr);
+    Term res = d_expr->xorExpr(*t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1083,7 +1091,9 @@ Term Term::eqTerm(const Term& t) const
 {
   try
   {
-    return d_expr->eqExpr(*t.d_expr);
+    Term res = d_expr->eqExpr(*t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1095,7 +1105,9 @@ Term Term::impTerm(const Term& t) const
 {
   try
   {
-    return d_expr->impExpr(*t.d_expr);
+    Term res = d_expr->impExpr(*t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -1107,7 +1119,9 @@ Term Term::iteTerm(const Term& then_t, const Term& else_t) const
 {
   try
   {
-    return d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
+    Term res = d_expr->iteExpr(*then_t.d_expr, *else_t.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
   }
   catch (const CVC4::TypeCheckingException& e)
   {
