@@ -1209,7 +1209,7 @@ Proof formats currently supported by the --bv-proof-format option:\n\
 \n\
   lrat : DRAT with unit propegation hints to accelerate checking (default)\n\
 \n\
-  drat : Deletation and Resolution Asymetric Tautology Additions \n\
+  drat : Deletion and Resolution Asymetric Tautology Additions \n\
 \n\
   er : Extended Resolution, i.e. resolution with new variable defintions\n\
 \n\
