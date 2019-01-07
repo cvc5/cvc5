@@ -1,3 +1,4 @@
+; REQUIRES: symfpu
 ; EXPECT: unsat
 ; COMMAND-LINE: --sygus-out=status
 (set-logic ALL)
