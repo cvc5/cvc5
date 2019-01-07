@@ -1084,7 +1084,7 @@ class CVC4_PUBLIC DatatypeIndexConstant {
  public:
   DatatypeIndexConstant(unsigned index);
 
-  const unsigned getIndex() const { return d_index; }
+  unsigned getIndex() const { return d_index; }
   bool operator==(const DatatypeIndexConstant& uc) const
   {
     return d_index == uc.d_index;

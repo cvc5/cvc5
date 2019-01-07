@@ -125,15 +125,15 @@ inline std::ostream& operator<<(std::ostream& os, const Exception& e)
 
 template <class T> inline void CheckArgument(bool cond, const T& arg,
                                              const char* tail) CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg,
-                                             const char* tail) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED,
+                                             const char* tail CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
 }
 template <class T> inline void CheckArgument(bool cond, const T& arg)
   CVC4_PUBLIC;
-template <class T> inline void CheckArgument(bool cond, const T& arg) {
+template <class T> inline void CheckArgument(bool cond, const T& arg CVC4_UNUSED) {
   if(__builtin_expect( ( !cond ), false )) { \
     throw ::CVC4::IllegalArgumentException("", "", ""); \
   } \
