@@ -1715,22 +1715,11 @@ bool SygusSymBreakNew::checkValue(Node n,
   // ensure that the expected size bound is met
   int cindex = DatatypesRewriter::indexOf(vn.getOperator());
   Node tst = DatatypesRewriter::mkTester( n, cindex, dt );
-  bool hastst = false;
+  bool hastst = d_td->getEqualityEngine()->hasTerm(tst);
   Node tstrep;
-  if (dt.getNumConstructors() == 1)
+  if (hastst)
   {
-    // since 1-constructor datatypes have testers that are rewritten to true,
-    // we explicitly assume that this term has a tester.
-    hastst = true;
-    tstrep = d_true;
-  }
-  else
-  {
-    hastst = d_td->getEqualityEngine()->hasTerm(tst);
-    if (hastst)
-    {
-      tstrep = d_td->getEqualityEngine()->getRepresentative(tst);
-    }
+    tstrep = d_td->getEqualityEngine()->getRepresentative(tst);
   }
   if (!hastst || tstrep != d_true)
   {
