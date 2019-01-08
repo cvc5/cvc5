@@ -16,6 +16,7 @@
 
 #include "proof/lfsc_proof_printer.h"
 #include "prop/sat_solver_types.h"
+#include "proof/clause_id.h"
 
 using namespace CVC4::proof;
 using namespace CVC4::prop;
@@ -27,6 +28,7 @@ class LfscProofPrinterBlack : public CxxTest::TestSuite
   void tearDown() override {}
 
   void testPrintClause();
+  void testPrintSatInputProof();
 };
 
 void LfscProofPrinterBlack::testPrintClause()
@@ -44,4 +46,38 @@ void LfscProofPrinterBlack::testPrintClause()
       "cln)))";
 
   TS_ASSERT_EQUALS(lfsc.str(), expectedLfsc);
+}
+
+void LfscProofPrinterBlack::testPrintSatInputProof()
+{
+  std::vector<CVC4::ClauseId> ids{2, 40, 3};
+  std::ostringstream lfsc;
+
+  LFSCProofPrinter::printSatInputProof(ids, lfsc, "");
+
+  std::string expectedLfsc =
+      "(proof_of_cnfc _ _ .pb2 "
+      "(proof_of_cnfc _ _ .pb40 "
+      "(proof_of_cnfc _ _ .pb3 "
+      "proof_of_cnfn)))";
+
+  std::ostringstream lfscWithoutWhitespace;
+  for (char c : lfsc.str())
+  {
+    if (!std::isspace(c))
+    {
+      lfscWithoutWhitespace << c;
+    }
+  }
+  std::ostringstream expectedLfscWithoutWhitespace;
+  for (char c : expectedLfsc)
+  {
+    if (!std::isspace(c))
+    {
+      expectedLfscWithoutWhitespace << c;
+    }
+  }
+
+  TS_ASSERT_EQUALS(lfscWithoutWhitespace.str(),
+                   expectedLfscWithoutWhitespace.str());
 }
