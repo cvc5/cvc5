@@ -71,8 +71,6 @@ enum SatSolverMode
 /**
  * When the BV solver does eager bitblasting backed by Cryptominisat, proofs
  * can be written in a variety of formats.
- *
- * TODO: currently, this option has no effect.
  */
 enum BvProofFormat
 {
