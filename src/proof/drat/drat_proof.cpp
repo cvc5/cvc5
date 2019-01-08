@@ -15,9 +15,11 @@
  **/
 
 #include "proof/drat/drat_proof.h"
+
 #include <algorithm>
 #include <bitset>
 #include <iostream>
+
 #include "proof/proof_manager.h"
 
 namespace CVC4 {
@@ -271,7 +273,7 @@ void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
     for (const SatLiteral& l : i.d_clause)
     {
       os << "(clc (" << (l.isNegated() ? "neg " : "pos ")
-         << ProofManager::currentPM()->getVarName(l.getSatVariable()) << ") ";
+         << ProofManager::getVarName(l.getSatVariable()) << ") ";
     }
     os << "cln";
     std::fill_n(std::ostream_iterator<char>(os), i.d_clause.size(), ')');
