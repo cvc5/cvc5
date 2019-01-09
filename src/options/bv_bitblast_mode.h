@@ -69,7 +69,7 @@ enum SatSolverMode
 }; /* enum SatSolver */
 
 /**
- * When the BV solver does eager bitblasting backed by Cryptominisat, proofs
+ * When the BV solver does eager bitblasting backed by CryptoMiniSat, proofs
  * can be written in a variety of formats.
  */
 enum BvProofFormat

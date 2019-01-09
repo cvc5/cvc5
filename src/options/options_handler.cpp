@@ -1207,11 +1207,11 @@ const std::string OptionsHandler::s_bvProofFormatHelp =
     "\
 Proof formats currently supported by the --bv-proof-format option:\n\
 \n\
-  lrat : DRAT with unit propegation hints to accelerate checking (default)\n\
+  lrat : DRAT with unit propagation hints to accelerate checking (default)\n\
 \n\
-  drat : Deletion and Resolution Asymetric Tautology Additions \n\
+  drat : Deletion and Resolution Asymmetric Tautology Additions \n\
 \n\
-  er : Extended Resolution, i.e. resolution with new variable defintions\n\
+  er : Extended Resolution, i.e. resolution with new variable definitions\n\
 \n\
 This option controls which underlying UNSAT proof format is used in BV proofs.\n\
 \n\
