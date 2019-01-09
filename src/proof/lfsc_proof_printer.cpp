@@ -147,15 +147,28 @@ void LFSCProofPrinter::printResolutionEmptyClause(TSatProof<Solver>* satProof,
 }
 
 void LFSCProofPrinter::printSatInputProof(const std::vector<ClauseId>& clauses,
-                                          std::ostream& out,
-                                          const std::string& namingPrefix)
+                                      std::ostream& out,
+                                      const std::string& namingPrefix)
 {
-  for (auto i = clauses.cbegin(); i != clauses.cend(); ++i)
+  for (auto i = clauses.begin(), end = clauses.end(); i != end; ++i)
   {
-    out << "\n    (proof_of_cnfc _ _ "
+    out << "\n    (cnfc_proof _ _ _ "
         << ProofManager::getInputClauseName(*i, namingPrefix) << " ";
   }
-  out << "proof_of_cnfn";
+  out << "cnfn_proof";
+  std::fill_n(std::ostream_iterator<char>(out), clauses.size(), ')');
+}
+
+void LFSCProofPrinter::printCMapProof(const std::vector<ClauseId>& clauses,
+                                      std::ostream& out,
+                                      const std::string& namingPrefix)
+{
+  for (size_t i = 0, n = clauses.size(); i < n; ++i)
+  {
+    out << "\n    (CMapc_proof " << (i + 1) << " _ _ _ "
+        << ProofManager::getInputClauseName(clauses[i], namingPrefix) << " ";
+  }
+  out << "CMapn_proof";
   std::fill_n(std::ostream_iterator<char>(out), clauses.size(), ')');
 }
 

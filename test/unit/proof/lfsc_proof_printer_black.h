@@ -29,6 +29,7 @@ class LfscProofPrinterBlack : public CxxTest::TestSuite
 
   void testPrintClause();
   void testPrintSatInputProof();
+  void testPrintCMapProof();
 };
 
 void LfscProofPrinterBlack::testPrintClause()
@@ -56,10 +57,44 @@ void LfscProofPrinterBlack::testPrintSatInputProof()
   LFSCProofPrinter::printSatInputProof(ids, lfsc, "");
 
   std::string expectedLfsc =
-      "(proof_of_cnfc _ _ .pb2 "
-      "(proof_of_cnfc _ _ .pb40 "
-      "(proof_of_cnfc _ _ .pb3 "
-      "proof_of_cnfn)))";
+      "(cnfc_proof _ _ _ .pb2 "
+      "(cnfc_proof _ _ _ .pb40 "
+      "(cnfc_proof _ _ _ .pb3 "
+      "cnfn_proof)))";
+
+  std::ostringstream lfscWithoutWhitespace;
+  for (char c : lfsc.str())
+  {
+    if (!std::isspace(c))
+    {
+      lfscWithoutWhitespace << c;
+    }
+  }
+  std::ostringstream expectedLfscWithoutWhitespace;
+  for (char c : expectedLfsc)
+  {
+    if (!std::isspace(c))
+    {
+      expectedLfscWithoutWhitespace << c;
+    }
+  }
+
+  TS_ASSERT_EQUALS(lfscWithoutWhitespace.str(),
+                   expectedLfscWithoutWhitespace.str());
+}
+
+void LfscProofPrinterBlack::testPrintCMapProof()
+{
+  std::vector<CVC4::ClauseId> ids{2, 40, 3};
+  std::ostringstream lfsc;
+
+  LFSCProofPrinter::printCMapProof(ids, lfsc, "");
+
+  std::string expectedLfsc =
+      "(CMapc_proof 1 _ _ _ .pb2 "
+      "(CMapc_proof 2 _ _ _ .pb40 "
+      "(CMapc_proof 3 _ _ _ .pb3 "
+      "CMapn_proof)))";
 
   std::ostringstream lfscWithoutWhitespace;
   for (char c : lfsc.str())
