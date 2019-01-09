@@ -2499,6 +2499,8 @@ class CVC4_PUBLIC Solver
   Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
+  /* Helper for setLogic. */
+  void setLogicHelper(const std::string& logic) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed

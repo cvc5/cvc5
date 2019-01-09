@@ -457,6 +457,14 @@ class CVC4_PUBLIC SmtEngine {
   ~SmtEngine();
 
   /**
+   * Return true if this SmtEngine is fully initialized (post-construction).
+   * This post-construction initialization is automatically triggered by the
+   * use of the SmtEngine; e.g. when setLogic() is called, or the first
+   * assertion is made, etc.
+   */
+  bool isFullyInited() { return d_fullyInited; }
+
+  /**
    * Set the logic of the script.
    */
   void setLogic(
