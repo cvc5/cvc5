@@ -68,12 +68,33 @@ enum SatSolverMode
   SAT_SOLVER_CADICAL,
 }; /* enum SatSolver */
 
+/**
+ * When the BV solver does eager bitblasting backed by CryptoMiniSat, proofs
+ * can be written in a variety of formats.
+ */
+enum BvProofFormat
+{
+  /**
+   * Write extended resolution proofs.
+   */
+  BITVECTOR_PROOF_ER,
+  /**
+   * Write DRAT proofs.
+   */
+  BITVECTOR_PROOF_DRAT,
+  /**
+   * Write LRAT proofs.
+   */
+  BITVECTOR_PROOF_LRAT,
+};
+
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 
 std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode mode);
+std::ostream& operator<<(std::ostream& out, theory::bv::BvProofFormat format);
 
 }/* CVC4 namespace */
 

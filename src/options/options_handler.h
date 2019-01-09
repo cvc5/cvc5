@@ -145,6 +145,9 @@ public:
   theory::bv::SatSolverMode stringToSatSolver(std::string option,
                                               std::string optarg);
 
+  theory::bv::BvProofFormat stringToBvProofFormat(std::string option,
+                                                  std::string optarg);
+
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
 
@@ -230,6 +233,7 @@ public:
   /* Help strings */
   static const std::string s_bitblastingModeHelp;
   static const std::string s_bvSatSolverHelp;
+  static const std::string s_bvProofFormatHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_boolToBVModeHelp;

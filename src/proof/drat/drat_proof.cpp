@@ -15,7 +15,12 @@
  **/
 
 #include "proof/drat/drat_proof.h"
+
+#include <algorithm>
 #include <bitset>
+#include <iostream>
+
+#include "proof/proof_manager.h"
 
 namespace CVC4 {
 namespace proof {
@@ -241,6 +246,42 @@ void DratProof::outputAsText(std::ostream& os) const
   }
 };
 
+void DratProof::outputAsLfsc(std::ostream& os, uint8_t indentation) const
+{
+  for (const DratInstruction& i : d_instructions)
+  {
+    if (indentation > 0)
+    {
+      std::fill_n(std::ostream_iterator<char>(os), indentation, ' ');
+    }
+    os << "(";
+    switch (i.d_kind)
+    {
+      case ADDITION:
+      {
+        os << "DRATProofa";
+        break;
+      }
+      case DELETION:
+      {
+        os << "DRATProofd";
+        break;
+      }
+      default: { Unreachable("Unrecognized DRAT instruction kind");
+      }
+    }
+    for (const SatLiteral& l : i.d_clause)
+    {
+      os << "(clc (" << (l.isNegated() ? "neg " : "pos ")
+         << ProofManager::getVarName(l.getSatVariable()) << ") ";
+    }
+    os << "cln";
+    std::fill_n(std::ostream_iterator<char>(os), i.d_clause.size(), ')');
+    os << "\n";
+  }
+  os << "DRATProofn";
+  std::fill_n(std::ostream_iterator<char>(os), d_instructions.size(), ')');
+}
 }  // namespace drat
 }  // namespace proof
 }  // namespace CVC4
