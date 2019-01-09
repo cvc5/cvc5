@@ -109,6 +109,18 @@ class DratProof
    */
   void outputAsText(std::ostream& os) const;
 
+  /**
+   * Write the DRAT proof as an LFSC value
+   * The format is from the LFSC signature drat.plf
+   *
+   * Reads the current `ProofManager` to determine what the variables should be
+   * named.
+   *
+   * @param os the stream to write to
+   * @param indentation the number of spaces to indent each proof instruction
+   */
+  void outputAsLfsc(std::ostream& os, uint8_t indentation) const;
+
  private:
   /**
    * Create an DRAT proof with no instructions.
