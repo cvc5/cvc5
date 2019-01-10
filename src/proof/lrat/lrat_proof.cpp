@@ -20,10 +20,13 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <sstream>
 #include <unordered_map>
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "proof/lfsc_proof_printer.h"
 
 namespace CVC4 {
 namespace proof {
@@ -67,107 +70,9 @@ std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
   return o;
 }
 
-// Prints the LRAT addition line in textual format
-std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
-{
-  o << add.d_idxOfClause << " ";
-  textOut(o, add.d_clause) << " ";
-  o << add.d_atTrace;  // Inludes a space at the end.
-  for (const auto& rat : add.d_resolvants)
-  {
-    o << "-" << rat.first << " ";
-    o << rat.second;  // Includes a space at the end.
-  }
-  o << "0\n";
-  return o;
-}
+}  // namespace
 
 // Prints the LRAT addition line in textual format
-std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
-{
-  o << del.d_idxOfClause << " d ";
-  for (const auto& idx : del.d_clauses)
-  {
-    o << idx << " ";
-  }
-  return o << "0\n";
-}
-
-// Prints the LRAT line in textual format
-std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
-{
-  switch (i.d_kind)
-  {
-    case LRAT_ADDITION: return o << i.d_data.d_addition;
-    case LRAT_DELETION: return o << i.d_data.d_deletion;
-    default: return o;
-  }
-}
-
-}
-
-LratInstruction::LratInstruction(LratInstruction&& instr) : d_kind(instr.d_kind)
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition = instr.d_data.d_addition;
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion = instr.d_data.d_deletion;
-      break;
-    }
-  }
-}
-
-LratInstruction::LratInstruction(LratInstruction& instr) : d_kind(instr.d_kind)
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition = instr.d_data.d_addition;
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion = instr.d_data.d_deletion;
-      break;
-    }
-  }
-}
-
-LratInstruction::LratInstruction(LratAdditionData&& addition)
-    : d_kind(LRAT_ADDITION)
-{
-  d_data.d_addition = std::move(addition);
-}
-
-LratInstruction::LratInstruction(LratDeletionData&& deletion)
-    : d_kind(LRAT_DELETION)
-{
-  d_data.d_deletion = std::move(deletion);
-}
-
-LratInstruction::~LratInstruction()
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition.~LratAdditionData();
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion.~LratDeletionData();
-      break;
-    }
-  }
-}
 
 LratProof LratProof::fromDratProof(
     const std::unordered_map<ClauseId, SatClause*>& usedClauses,
@@ -275,8 +180,9 @@ LratProof::LratProof(std::istream& textualProof)
         clauses.push_back(di);
       }
       std::sort(clauses.begin(), clauses.end());
-      d_instructions.emplace_back(
-          LratDeletionData(clauseIdx, std::move(clauses)));
+      std::unique_ptr<LratInstruction> instr(
+          new LratDeletion(clauseIdx, std::move(clauses)));
+      d_instructions.push_back(std::move(instr));
     }
     else
     {
@@ -323,20 +229,51 @@ LratProof::LratProof(std::istream& textualProof)
       // Pairs compare based on the first element, so this sorts by the
       // resolution target index
       std::sort(resolvants.begin(), resolvants.end());
-      d_instructions.emplace_back(LratAdditionData(clauseIdx,
-                                                   std::move(clause),
-                                                   std::move(atTrace),
-                                                   std::move(resolvants)));
+      std::unique_ptr<LratInstruction> instr(
+          new LratAddition(clauseIdx,
+                           std::move(clause),
+                           std::move(atTrace),
+                           std::move(resolvants)));
+      d_instructions.push_back(std::move(instr));
     }
   }
+}
+
+void LratAddition::outputAsText(std::ostream& o) const
+{
+  o << d_idxOfClause << " ";
+  textOut(o, d_clause) << " ";
+  o << d_atTrace;  // Inludes a space at the end.
+  for (const auto& rat : d_resolvants)
+  {
+    o << "-" << rat.first << " ";
+    o << rat.second;  // Includes a space at the end.
+  }
+  o << "0\n";
+}
+
+void LratDeletion::outputAsText(std::ostream& o) const
+{
+  o << d_idxOfClause << " d ";
+  for (const auto& idx : d_clauses)
+  {
+    o << idx << " ";
+  }
+  o << "0\n";
 }
 
 std::ostream& operator<<(std::ostream& o, const LratProof& p)
 {
   for (const auto& instr : p.getInstructions())
   {
-    o << instr;
+    o << *instr;
   }
+  return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
+{
+  i.outputAsText(o);
   return o;
 }
 
