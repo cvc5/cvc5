@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file lfsc_lrat_printer_black.h
+/*! \file lrat_proof_black.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Alex Ozdemir
@@ -25,7 +25,7 @@
 using namespace CVC4::proof::lrat;
 using namespace CVC4::prop;
 
-class LfscLratPrinterBlack : public CxxTest::TestSuite
+class LfscProofBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() override {}
@@ -34,7 +34,7 @@ class LfscLratPrinterBlack : public CxxTest::TestSuite
   void testOutputThreeAsLfsc();
 };
 
-void LfscLratPrinterBlack::testOutputThreeAsLfsc()
+void LfscProofBlack::testOutputThreeAsLfsc()
 {
   std::vector<std::unique_ptr<LratInstruction>> instructions;
 
