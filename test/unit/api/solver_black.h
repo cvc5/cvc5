@@ -49,22 +49,29 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkTupleSort();
   void testMkUninterpretedSort();
 
+  void testMkAbstractValue();
   void testMkBitVector();
   void testMkBoolean();
   void testMkBoundVar();
-  void testMkConst();
   void testMkEmptySet();
   void testMkFalse();
   void testMkFloatingPoint();
+  void testMkNaN();
+  void testMkNegInf();
+  void testMkNegZero();
   void testMkPi();
+  void testMkPosInf();
+  void testMkPosZero();
   void testMkReal();
   void testMkRegexpEmpty();
   void testMkRegexpSigma();
+  void testMkRoundingMode();
   void testMkSepNil();
   void testMkString();
   void testMkTerm();
   void testMkTrue();
   void testMkTuple();
+  void testMkUninterpretedConst();
   void testMkUniverseSet();
   void testMkVar();
 
@@ -281,132 +288,58 @@ void SolverBlack::testMkBoolean()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkBoolean(false));
 }
 
-void SolverBlack::testMkConst()
+void SolverBlack::testMkRoundingMode()
 {
-  // mkConst(RoundingMode rm) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(RoundingMode::ROUND_TOWARD_ZERO));
-
-  // mkConst(Kind kind, Sort arg) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(EMPTYSET, Sort()));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(
-      UNIVERSE_SET, d_solver.mkSetSort(d_solver.getBooleanSort())));
-  TS_ASSERT_THROWS(d_solver.mkConst(EMPTYSET, d_solver.getBooleanSort()),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkTerm(UNIVERSE_SET, Sort()), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(APPLY, d_solver.getBooleanSort()),
-                   CVC4ApiException&);
-
-  // mkConst(Kind kind, Sort arg1, int32_t arg2) const
   TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkConst(UNINTERPRETED_CONSTANT, d_solver.getBooleanSort(), 1));
-  TS_ASSERT_THROWS(d_solver.mkConst(UNINTERPRETED_CONSTANT, Sort(), 1),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(EMPTYSET, d_solver.getBooleanSort(), 1),
-                   CVC4ApiException&);
+      d_solver.mkRoundingMode(RoundingMode::ROUND_TOWARD_ZERO));
+}
 
-  // mkConst(Kind kind, bool arg) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BOOLEAN, true));
-  TS_ASSERT_THROWS(d_solver.mkConst(UNINTERPRETED_CONSTANT, true),
-                   CVC4ApiException&);
-
-  // mkConst(Kind kind, const char* arg) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, std::string("1")));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_STRING, "asdf"));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1"));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1/2"));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, "1.2"));
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, nullptr), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, ""), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, std::string("1.2")),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, "1/2"), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(ABSTRACT_VALUE, "asdf"), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, "1..2"), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, "asdf"), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(BITVECTOR_ULT, "asdf"), CVC4ApiException&);
-
-  // mkConst(Kind kind, const std::string& arg) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_STRING, std::string("asdf")));
+void SolverBlack::testMkUninterpretedConst()
+{
   TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkConst(CONST_RATIONAL, std::string("1/2")));
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkConst(CONST_RATIONAL, std::string("1.2")));
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, nullptr), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_STRING, std::string("")),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_RATIONAL, std::string("asdf")),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(BITVECTOR_ULT, std::string("asdf")),
-                   CVC4ApiException&);
+      d_solver.mkUninterpretedConst(d_solver.getBooleanSort(), 1));
+  TS_ASSERT_THROWS(d_solver.mkUninterpretedConst(Sort(), 1), CVC4ApiException&);
+}
 
-  // mkConst(Kind kind, const char* arg1, uint32_t arg2) const
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkConst(CONST_BITVECTOR, std::string("101"), 2));
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver.mkConst(CONST_BITVECTOR, std::string("10a"), 16));
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, nullptr, 1),
+void SolverBlack::testMkAbstractValue()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue(std::string("1")));
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue(std::string("0")),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("")),
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue(std::string("-1")),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, std::string("101"), 6),
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue(std::string("1.2")),
                    CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue("1/2"), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue("asdf"), CVC4ApiException&);
 
-  // mkConst(Kind kind, int32_t arg) const
-  // mkConst(Kind kind, uint32_t arg) const
-  // mkConst(Kind kind, int64_t arg) const
-  // mkConst(Kind kind, uint64_t arg) const
-  int32_t val1 = 2;
-  uint32_t val2 = 2;
-  int64_t val3 = 2;
-  uint64_t val4 = 2;
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val1));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val2));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val3));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(ABSTRACT_VALUE, val4));
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val1), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val2), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val3), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, val4), CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val1));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val2));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val3));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val4));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((uint32_t)1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((int32_t)1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((uint64_t)1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((int64_t)1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((int32_t)-1));
+  TS_ASSERT_THROWS_NOTHING(d_solver.mkAbstractValue((int64_t)-1));
+  TS_ASSERT_THROWS(d_solver.mkAbstractValue(0), CVC4ApiException&);
+}
 
-  // mkConst(Kind kind, int32_t arg1, int32_t arg2) const
-  // mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
-  // mkConst(Kind kind, int64_t arg1, int64_t arg2) const
-  // mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val1, val1));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val2, val2));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val3, val3));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_RATIONAL, val4, val4));
-  TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_BITVECTOR, val2, val2));
-
-  // mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+void SolverBlack::testMkFloatingPoint()
+{
   Term t1 = d_solver.mkBitVector(8);
   Term t2 = d_solver.mkBitVector(4);
   Term t3 = d_solver.mkReal(2);
   if (CVC4::Configuration::isBuiltWithSymFPU())
   {
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1));
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkFloatingPoint(3, 5, t1));
   }
   else
   {
-    TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t1),
-                     CVC4ApiException&);
+    TS_ASSERT_THROWS(d_solver.mkFloatingPoint(3, 5, t1), CVC4ApiException&);
   }
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, Term()),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 0, 5, t1),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 0, t1),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t2),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_FLOATINGPOINT, 3, 5, t2),
-                   CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver.mkConst(CONST_BITVECTOR, 3, 5, t1),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkFloatingPoint(0, 5, Term()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkFloatingPoint(0, 5, t1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkFloatingPoint(3, 0, t1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver.mkFloatingPoint(3, 5, t2), CVC4ApiException&);
 }
 
 void SolverBlack::testMkEmptySet()
@@ -422,23 +355,63 @@ void SolverBlack::testMkFalse()
   TS_ASSERT_THROWS_NOTHING(d_solver.mkFalse());
 }
 
-void SolverBlack::testMkFloatingPoint()
+void SolverBlack::testMkNaN()
 {
   if (CVC4::Configuration::isBuiltWithSymFPU())
   {
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegInf(3, 5));
     TS_ASSERT_THROWS_NOTHING(d_solver.mkNaN(3, 5));
-    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkNaN(3, 5), CVC4ApiException&);
+  }
+}
+
+void SolverBlack::testMkNegZero()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
     TS_ASSERT_THROWS_NOTHING(d_solver.mkNegZero(3, 5));
   }
   else
   {
-    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkNegInf(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkNaN(3, 5), CVC4ApiException&);
-    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
     TS_ASSERT_THROWS(d_solver.mkNegZero(3, 5), CVC4ApiException&);
+  }
+}
+
+void SolverBlack::testMkNegInf()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkNegInf(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkNegInf(3, 5), CVC4ApiException&);
+  }
+}
+
+void SolverBlack::testMkPosInf()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosInf(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkPosInf(3, 5), CVC4ApiException&);
+  }
+}
+
+void SolverBlack::testMkPosZero()
+{
+  if (CVC4::Configuration::isBuiltWithSymFPU())
+  {
+    TS_ASSERT_THROWS_NOTHING(d_solver.mkPosZero(3, 5));
+  }
+  else
+  {
+    TS_ASSERT_THROWS(d_solver.mkPosZero(3, 5), CVC4ApiException&);
   }
 }
 
