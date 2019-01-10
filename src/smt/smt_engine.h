@@ -217,8 +217,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Whether or not this SmtEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when setLogic() is called, or the first
-   * assertion is made, etc.
+   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * to simplify() is issued, a scope is pushed, etc.
    */
   bool d_fullyInited;
 
@@ -459,8 +459,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Return true if this SmtEngine is fully initialized (post-construction).
    * This post-construction initialization is automatically triggered by the
-   * use of the SmtEngine; e.g. when setLogic() is called, or the first
-   * assertion is made, etc.
+   * use of the SmtEngine; e.g. when the first formula is asserted, a call
+   * to simplify() is issued, a scope is pushed, etc.
    */
   bool isFullyInited() { return d_fullyInited; }
 
