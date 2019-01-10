@@ -25,6 +25,9 @@
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 
+#include "drat2er_options.h"
+#include "drat_trim_interface.h"
+
 namespace CVC4 {
 namespace proof {
 namespace lrat {
@@ -221,9 +224,8 @@ LratProof LratProof::fromDratProof(
   dratStream << dratBinary;
   dratStream.close();
 
-  // TODO(aozdemir) Add invocation of DRAT trim, once I get CMake to bundle it
-  // into CVC4 correctly.
-  Unimplemented();
+  drat2er::drat_trim::CheckAndConvertToLRAT(
+      formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
 
   std::ifstream lratStream(lratFilename);
   LratProof lrat(lratStream);
