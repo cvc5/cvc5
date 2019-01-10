@@ -75,6 +75,54 @@ std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
   return o;
 }
 
+/**
+ * Print a list of clause indices to go to while doing UP.
+ *
+ * i.e. a value of type Trace
+ */
+void printTrace(std::ostream& o, const LratUPTrace& trace)
+{
+  for (ClauseIdx idx : trace)
+  {
+    o << "(Tracec " << idx << " ";
+  }
+  o << "Tracen";
+  std::fill_n(std::ostream_iterator<char>(o), trace.size(), ')');
+}
+
+/**
+ * Print the RAT hints for a clause addition.
+ *
+ * i.e. prints an LFSC value of type RATHints
+ */
+void printHints(std::ostream& o,
+                const std::vector<std::pair<ClauseIdx, LratUPTrace>>& hints)
+{
+  for (auto& hint : hints)
+  {
+    o << "\n    (RATHintsc " << hint.first << " ";
+    printTrace(o, hint.second);
+    o << " ";
+  }
+  o << "RATHintsn";
+  std::fill_n(std::ostream_iterator<char>(o), hints.size(), ')');
+}
+
+/**
+ * Print an index list
+ *
+ * i.e. prints an LFSC value of type CIList
+ */
+void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
+{
+  for (ClauseIdx idx : indices)
+  {
+    o << "(CIListc " << idx << " ";
+  }
+  o << "CIListn";
+  std::fill_n(std::ostream_iterator<char>(o), indices.size(), ')');
+}
+
 }  // namespace
 
 // Prints the LRAT addition line in textual format
@@ -248,6 +296,17 @@ LratProof::LratProof(std::istream& textualProof)
   }
 }
 
+void LratProof::outputAsLfsc(std::ostream& o) const
+{
+  std::ostringstream closeParen;
+  for (const auto& i : d_instructions)
+  {
+    i->outputAsLfsc(o, closeParen);
+  }
+  o << "LRATProofn";
+  o << closeParen.str();
+}
+
 void LratAddition::outputAsText(std::ostream& o) const
 {
   o << d_idxOfClause << " ";
@@ -261,6 +320,18 @@ void LratAddition::outputAsText(std::ostream& o) const
   o << "0\n";
 }
 
+void LratAddition::outputAsLfsc(std::ostream& o, std::ostream& closeParen) const
+{
+  o << "\n    (LRATProofa " << d_idxOfClause << " ";
+  closeParen << ")";
+  LFSCProofPrinter::printSatClause(d_clause, o, "bb");
+  o << " ";
+  printTrace(o, d_atTrace);
+  o << " ";
+  printHints(o, d_resolvants);
+  o << " ";
+}
+
 void LratDeletion::outputAsText(std::ostream& o) const
 {
   o << d_idxOfClause << " d ";
@@ -269,6 +340,14 @@ void LratDeletion::outputAsText(std::ostream& o) const
     o << idx << " ";
   }
   o << "0\n";
+}
+
+void LratDeletion::outputAsLfsc(std::ostream& o, std::ostream& closeParen) const
+{
+  o << "\n    (LRATProofd ";
+  closeParen << ")";
+  printIndices(o, d_clauses);
+  o << " ";
 }
 
 std::ostream& operator<<(std::ostream& o, const LratProof& p)
