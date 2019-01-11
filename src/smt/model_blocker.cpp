@@ -68,6 +68,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       }
       else if( catom.getKind()==OR || catom.getKind()==AND )
       {
+        // if disjunctive
         if( (catom.getKind()==OR)==cpol )
         {
           // take the first literal that is satisfied
@@ -77,7 +78,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
             Assert( vn.isConst() );
             if( vn.getConst<bool>()==cpol )
             {
-              impl = n;
+              impl = cpol ? n : n.negate();
               break;
             }
           }
