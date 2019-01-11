@@ -3,6 +3,17 @@ name   = "Bitvector theory"
 header = "options/bv_options.h"
 
 [[option]]
+  name       = "bvProofFormat"
+  category   = "expert"
+  long       = "bv-proof-format=MODE"
+  type       = "CVC4::theory::bv::BvProofFormat"
+  default    = "CVC4::theory::bv::BITVECTOR_PROOF_LRAT"
+  handler    = "stringToBvProofFormat"
+  predicates = ["satSolverEnabledBuild"]
+  includes   = ["options/bv_bitblast_mode.h"]
+  help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
+
+[[option]]
   name       = "bvSatSolver"
   smt_name   = "bv-sat-solver"
   category   = "expert"

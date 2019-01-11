@@ -428,7 +428,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
                            NodeManager::currentNM()->mkConst(result));
   }
   const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
-  if (dt.getNumConstructors() == 1)
+  if (dt.getNumConstructors() == 1 && !dt.isSygus())
   {
     // only one constructor, so it must be
     Trace("datatypes-rewrite")

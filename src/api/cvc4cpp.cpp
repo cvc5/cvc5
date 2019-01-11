@@ -2303,30 +2303,33 @@ Term Solver::mkNegZero(uint32_t exp, uint32_t sig) const
       FloatingPoint::makeZero(FloatingPointSize(exp, sig), true));
 }
 
-Term Solver::mkConst(RoundingMode rm) const
+Term Solver::mkRoundingMode(RoundingMode rm) const
 {
   return mkConstHelper<CVC4::RoundingMode>(s_rmodes.at(rm));
 }
 
-Term Solver::mkConst(Kind kind, Sort arg) const
+Term Solver::mkUninterpretedConst(Sort sort, int32_t index) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+  return mkConstHelper<CVC4::UninterpretedConstant>(
+      CVC4::UninterpretedConstant(*sort.d_type, index));
+}
+
+Term Solver::mkAbstractValue(const std::string& index) const
+{
+  CVC4_API_ARG_CHECK_EXPECTED(!index.empty(), index) << "a non-empty string";
   try
   {
-    CVC4_API_ARG_CHECK_EXPECTED(
-        (kind == EMPTYSET && arg.isNull()) || arg.isSet(), arg)
-        << "null sort or set sort";
-    CVC4_API_KIND_CHECK_EXPECTED(kind == EMPTYSET || kind == UNIVERSE_SET, kind)
-        << "EMPTY_SET or UNIVERSE_SET";
-    if (kind == EMPTYSET)
-    {
-      return mkConstHelper<CVC4::EmptySet>(CVC4::EmptySet(*arg.d_type));
-    }
-    else
-    {
-      Term res = d_exprMgr->mkNullaryOperator(*arg.d_type, extToIntKind(kind));
-      (void)res.d_expr->getType(true); /* kick off type checking */
-      return res;
-    }
+    CVC4::Integer idx(index, 10);
+    CVC4_API_ARG_CHECK_EXPECTED(idx > 0, index)
+        << "a string representing an integer > 0";
+    return d_exprMgr->mkConst(CVC4::AbstractValue(idx));
+    // do not call getType(), for abstract values, type can not be computed
+    // until it is substituted away
+  }
+  catch (const std::invalid_argument& e)
+  {
+    throw CVC4ApiException(e.what());
   }
   catch (const CVC4::TypeCheckingException& e)
   {
@@ -2334,223 +2337,40 @@ Term Solver::mkConst(Kind kind, Sort arg) const
   }
 }
 
-Term Solver::mkConst(Kind kind, Sort arg1, int32_t arg2) const
+Term Solver::mkAbstractValue(uint64_t index) const
 {
-  CVC4_API_ARG_CHECK_EXPECTED(!arg1.isNull(), arg1) << "non-null sort";
-  CVC4_API_KIND_CHECK_EXPECTED(kind == UNINTERPRETED_CONSTANT, kind)
-      << "UNINTERPRETED_CONSTANT";
-  return mkConstHelper<CVC4::UninterpretedConstant>(
-      CVC4::UninterpretedConstant(*arg1.d_type, arg2));
-}
-
-Term Solver::mkConst(Kind kind, bool arg) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BOOLEAN, kind) << "CONST_BOOLEAN";
-  return mkConstHelper<bool>(arg);
-}
-
-/* Split out to avoid nested API calls (problematic with API tracing). */
-Term Solver::mkConstFromStrHelper(Kind kind, std::string s) const
-{
-  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == ABSTRACT_VALUE || kind == CONST_RATIONAL || kind == CONST_STRING,
-      kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL or CONST_STRING";
-  if (kind == ABSTRACT_VALUE)
-  {
-    try
-    {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(s, 10)));
-      // do not call getType(), for abstract values, type can not be computed
-      // until it is substituted away
-    }
-    catch (const std::invalid_argument& e)
-    {
-      throw CVC4ApiException(e.what());
-    }
-    catch (const CVC4::TypeCheckingException& e)
-    {
-      throw CVC4ApiException(e.getMessage());
-    }
-  }
-  else if (kind == CONST_RATIONAL)
-  {
-    return mkRealFromStrHelper(s);
-  }
-  return mkConstHelper<CVC4::String>(CVC4::String(s));
-}
-
-Term Solver::mkConst(Kind kind, const char* arg) const
-{
-  CVC4_API_ARG_CHECK_NOT_NULL(arg);
-  return mkConstFromStrHelper(kind, std::string(arg));
-}
-
-Term Solver::mkConst(Kind kind, const std::string& arg) const
-{
-  return mkConstFromStrHelper(kind, arg);
-}
-
-/* Split out to avoid nested API calls (problematic with API tracing). */
-Term Solver::mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const
-{
-  CVC4_API_ARG_CHECK_EXPECTED(!s.empty(), s) << "a non-empty string";
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
-      << "CONST_BITVECTOR";
-  return mkBVFromStrHelper(s, a);
-}
-
-Term Solver::mkConst(Kind kind, const char* arg1, uint32_t arg2) const
-{
-  CVC4_API_ARG_CHECK_NOT_NULL(arg1);
-  return mkConstFromStrHelper(kind, std::string(arg1), arg2);
-}
-
-Term Solver::mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const
-{
-  return mkConstFromStrHelper(kind, arg1, arg2);
-}
-
-/* Split out to avoid nested API calls (problematic with API tracing). */
-template <typename T>
-Term Solver::mkConstFromIntHelper(Kind kind, T a) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == ABSTRACT_VALUE || kind == CONST_RATIONAL,
-                               kind)
-      << "ABSTRACT_VALUE or CONST_RATIONAL";
-  if (kind == ABSTRACT_VALUE)
-  {
-    try
-    {
-      return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(a)));
-      // do not call getType(), for abstract values, type can not be computed
-      // until it is substituted away
-    }
-    catch (const std::invalid_argument& e)
-    {
-      throw CVC4ApiException(e.what());
-    }
-    catch (const CVC4::TypeCheckingException& e)
-    {
-      throw CVC4ApiException(e.getMessage());
-    }
-  }
   try
   {
-    return mkConstHelper<CVC4::Rational>(CVC4::Rational(a));
+    CVC4_API_ARG_CHECK_EXPECTED(index > 0, index) << "an integer > 0";
+    return d_exprMgr->mkConst(CVC4::AbstractValue(Integer(index)));
+    // do not call getType(), for abstract values, type can not be computed
+    // until it is substituted away
   }
   catch (const std::invalid_argument& e)
   {
     throw CVC4ApiException(e.what());
   }
-}
-
-Term Solver::mkConst(Kind kind, int32_t arg) const
-{
-  return mkConstFromIntHelper<int64_t>(kind, static_cast<int64_t>(arg));
-}
-
-Term Solver::mkConst(Kind kind, int64_t arg) const
-{
-  return mkConstFromIntHelper<int64_t>(kind, arg);
-}
-
-Term Solver::mkConst(Kind kind, uint32_t arg) const
-{
-  return mkConstFromIntHelper<uint64_t>(kind, static_cast<uint64_t>(arg));
-}
-
-Term Solver::mkConst(Kind kind, uint64_t arg) const
-{
-  return mkConstFromIntHelper<uint64_t>(kind, arg);
-}
-
-Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(
-      kind == CONST_BITVECTOR || kind == CONST_RATIONAL, kind)
-      << "CONST_BITVECTOR or CONST_RATIONAL";
-  if (kind == CONST_BITVECTOR)
+  catch (const CVC4::TypeCheckingException& e)
   {
-    return mkBVFromIntHelper(arg1, arg2);
-  }
-  try
-  {
-    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
-  }
-  catch (const std::invalid_argument& e)
-  {
-    throw CVC4ApiException(e.what());
+    throw CVC4ApiException(e.getMessage());
   }
 }
 
-Term Solver::mkConst(Kind kind, int32_t arg1, int32_t arg2) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  try
-  {
-    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
-  }
-  catch (const std::invalid_argument& e)
-  {
-    throw CVC4ApiException(e.what());
-  }
-}
-
-Term Solver::mkConst(Kind kind, int64_t arg1, int64_t arg2) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  try
-  {
-    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
-  }
-  catch (const std::invalid_argument& e)
-  {
-    throw CVC4ApiException(e.what());
-  }
-}
-
-Term Solver::mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_RATIONAL, kind)
-      << "CONST_RATIONAL";
-  try
-  {
-    return mkConstHelper<CVC4::Rational>(CVC4::Rational(arg1, arg2));
-  }
-  catch (const std::invalid_argument& e)
-  {
-    throw CVC4ApiException(e.what());
-  }
-}
-
-Term Solver::mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const
-{
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_BITVECTOR, kind)
-      << "CONST_BITVECTOR";
-  return mkBVFromIntHelper(arg1, arg2);
-}
-
-Term Solver::mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const
+Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 {
   CVC4_API_CHECK(Configuration::isBuiltWithSymFPU())
       << "Expected CVC4 to be compiled with SymFPU support";
-  CVC4_API_KIND_CHECK_EXPECTED(kind == CONST_FLOATINGPOINT, kind)
-      << "CONST_FLOATINGPOINT";
-  CVC4_API_ARG_CHECK_EXPECTED(arg1 > 0, arg1) << "a value > 0";
-  CVC4_API_ARG_CHECK_EXPECTED(arg2 > 0, arg2) << "a value > 0";
-  uint32_t bw = arg1 + arg2;
-  CVC4_API_ARG_CHECK_EXPECTED(bw == arg3.getSort().getBVSize(), arg3)
+  CVC4_API_ARG_CHECK_EXPECTED(exp > 0, exp) << "a value > 0";
+  CVC4_API_ARG_CHECK_EXPECTED(sig > 0, sig) << "a value > 0";
+  uint32_t bw = exp + sig;
+  CVC4_API_ARG_CHECK_EXPECTED(bw == val.getSort().getBVSize(), val)
       << "a bit-vector constant with bit-width '" << bw << "'";
-  CVC4_API_ARG_CHECK_EXPECTED(!arg3.isNull(), arg3) << "non-null term";
+  CVC4_API_ARG_CHECK_EXPECTED(!val.isNull(), val) << "non-null term";
   CVC4_API_ARG_CHECK_EXPECTED(
-      arg3.getSort().isBitVector() && arg3.d_expr->isConst(), arg3)
+      val.getSort().isBitVector() && val.d_expr->isConst(), val)
       << "bit-vector constant";
   return mkConstHelper<CVC4::FloatingPoint>(
-      CVC4::FloatingPoint(arg1, arg2, arg3.d_expr->getConst<BitVector>()));
+      CVC4::FloatingPoint(exp, sig, val.d_expr->getConst<BitVector>()));
 }
 
 /* Create variables                                                           */
