@@ -70,46 +70,6 @@ void ClausalBitVectorProof::registerUsedClause(ClauseId id,
       id, std::unique_ptr<prop::SatClause>(new prop::SatClause(clause))));
 };
 
-LFSCClausalBitVectorProof::LFSCClausalBitVectorProof(
-    theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
-    : ClausalBitVectorProof(bv, proofEngine)
-{
-  // That's all!
-}
-
-std::string LFSCClausalBitVectorProof::printLRATProotLet(std::ostream& os,
-                                                         std::ostream& paren)
-{
-  Unimplemented();
-}
-
-void LFSCClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
-                                                      std::ostream& os,
-                                                      std::ostream& paren,
-                                                      const ProofLetMap& map)
-{
-  Unreachable(
-      "Clausal bitvector proofs should only be used in combination with eager "
-      "bitblasting, which **does not use theory lemmas**");
-}
-
-void LFSCClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
-                                                         std::ostream& paren,
-                                                         ProofLetMap& letMap)
-{
-  Unimplemented();
-}
-
-void LFSCClausalBitVectorProof::printEmptyClauseProof(std::ostream& os,
-                                                      std::ostream& paren)
-{
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
-
-  Unimplemented();
-}
-
 void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
 {
   if (Debug.isOn("bv::clausal"))
@@ -124,6 +84,29 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
     Debug("bv::clausal") << "Printing DRAT proof ... " << std::endl;
     dratProof.outputAsText(Debug("bv::clausal"));
   }
+  Unimplemented();
+}
+
+void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                                      std::ostream& os,
+                                                      std::ostream& paren,
+                                                      const ProofLetMap& map)
+{
+  Unreachable(
+      "Clausal bitvector proofs should only be used in combination with eager "
+      "bitblasting, which **does not use theory lemmas**");
+}
+
+void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
+                                                         std::ostream& paren,
+                                                         ProofLetMap& letMap)
+{
+  Unimplemented();
+}
+
+void LfscClausalBitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                                      std::ostream& paren)
+{
   Unimplemented();
 }
 

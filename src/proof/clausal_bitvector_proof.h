@@ -69,22 +69,18 @@ class ClausalBitVectorProof : public BitVectorProof
   std::ostringstream d_binaryDratProof;
 };
 
-class LFSCClausalBitVectorProof : public ClausalBitVectorProof
+/**
+ * A representation of a clausal proof of a bitvector problem's UNSAT nature
+ */
+class LfscClausalBitVectorProof : public ClausalBitVectorProof
 {
-  /**
-   * The SAT solver is given a list of clauses.
-   * Assuming that each clause has alreay been individually proven,
-   * defines a proof of the input to the SAT solver.
-   *
-   * Returns the name of the proof.
-   */
-  std::string printProofOfSatSolverInput(std::ostream& os, std::ostream& paren);
-
-  std::string printLRATProotLet(std::ostream& os, std::ostream& paren);
-
  public:
-  LFSCClausalBitVectorProof(theory::bv::TheoryBV* bv,
-                            TheoryProofEngine* proofEngine);
+  LfscClausalBitVectorProof(theory::bv::TheoryBV* bv,
+                            TheoryProofEngine* proofEngine)
+      : ClausalBitVectorProof(bv, proofEngine)
+  {
+    // That's all!
+  }
 
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
