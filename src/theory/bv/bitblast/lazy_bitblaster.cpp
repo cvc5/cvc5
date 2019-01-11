@@ -566,11 +566,12 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   return true;
 }
 
-void TLazyBitblaster::setProofLog(proof::ResolutionBitVectorProof* bvp)
+void TLazyBitblaster::setProofLog(proof::BitVectorProof* bvp)
 {
-  d_bvp = bvp;
-  d_satSolver->setProofLog( bvp );
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
+  THEORY_PROOF(d_bvp = bvp; bvp->attachToSatSolver(*d_satSolver);
+               prop::SatVariable t = d_satSolver->trueVar();
+               prop::SatVariable f = d_satSolver->falseVar();
+               bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get(), t, f));
 }
 
 void TLazyBitblaster::clearSolver() {

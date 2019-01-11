@@ -55,7 +55,7 @@ class EagerBitblaster : public TBitblaster<Node>
   bool solve();
   bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
+  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
   context::Context* d_context;
@@ -67,7 +67,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
   std::unique_ptr<prop::CnfStream> d_cnfStream;
 
-  BitVectorProof* d_bvp;
+  proof::BitVectorProof* d_bvp;
 
   TheoryBV* d_bv;
   TNodeSet d_bbAtoms;

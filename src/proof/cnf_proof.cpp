@@ -105,6 +105,30 @@ void CnfProof::registerConvertedClause(ClauseId clause, bool explanation) {
   setClauseDefinition(clause, current_expr);
 }
 
+void CnfProof::registerTrueUnitClause(ClauseId clauseId)
+{
+  Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
+  pushCurrentAssertion(true_node);
+  pushCurrentDefinition(true_node);
+  registerConvertedClause(clauseId);
+  popCurrentAssertion();
+  popCurrentDefinition();
+  d_cnfStream->ensureLiteral(true_node);
+  d_trueUnitClause = clauseId;
+}
+
+void CnfProof::registerFalseUnitClause(ClauseId clauseId)
+{
+  Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
+  pushCurrentAssertion(false_node);
+  pushCurrentDefinition(false_node);
+  registerConvertedClause(clauseId);
+  popCurrentAssertion();
+  popCurrentDefinition();
+  d_cnfStream->ensureLiteral(false_node);
+  d_falseUnitClause = clauseId;
+}
+
 void CnfProof::setClauseAssertion(ClauseId clause, Node expr) {
   Debug("proof:cnf") << "CnfProof::setClauseAssertion "
                      << clause << " assertion " << expr << std::endl;
