@@ -14,6 +14,7 @@
 
 #include "smt/model_blocker.h"
 
+#include "theory/quantifiers/term_util.h"
 #include "expr/node.h"
 
 using namespace CVC4::kind;
@@ -23,21 +24,39 @@ namespace CVC4 {
 Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
                               Model* m)
 {
-  if (Trace.isOn("model-blocker"))
-  {
-    Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
-    for (const Node& a : assertions)
-    {
-      Trace("model-blocker") << "  " << a << std::endl;
-    }
-  }
-
   // convert to nodes
-  std::vector<Node> asserts;
+  std::vector<Node> tlAsserts;
   for (unsigned i = 0, size = assertions.size(); i < size; i++)
   {
-    asserts.push_back(Node::fromExpr(assertions[i]));
+    Node a = Node::fromExpr(assertions[i]);
+    tlAsserts.push_back(a);
   }
+  Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
+  // optimization: filter to only top-level disjunctions
+  unsigned counter = 0;
+  std::vector<Node> asserts;
+  while( counter<tlAsserts.size() ){
+    Node cur = tlAsserts[counter];
+    counter++;
+    Node catom = cur.getKind()==NOT ? cur[0] : cur;
+    bool cpol = cur.getKind()!=NOT;
+    if( catom.getKind()==NOT ){
+      tlAsserts.push_back(catom[0]);
+    }
+    else if( catom.getKind()==AND && cpol )
+    {
+      for( const Node& c : catom ){
+        tlAsserts.push_back(c);
+      }
+    }
+    else if( theory::quantifiers::TermUtil::isBoolConnectiveTerm(catom) )
+    {
+      asserts.push_back(cur);
+      Trace("model-blocker") << "  " << cur << std::endl;
+    }
+  }
+  
+  
   NodeManager* nm = NodeManager::currentNM();
 
   Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
@@ -111,11 +130,11 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         }
         impl = nm->mkNode(AND, cond, cpol ? branch : branch.negate() );
       }
-      else if( ( cur.getKind()==EQUAL && cur[0].getType().isBoolean() ) || cur.getKind()==XOR )
+      else if( ( catom.getKind()==EQUAL && catom[0].getType().isBoolean() ) || catom.getKind()==XOR )
       {
         // based on how the children evaluate in the model
         std::vector< Node > children;
-        for (const Node& cn : cur )
+        for (const Node& cn : catom )
         {
           Node vn = Node::fromExpr(m->getValue(cn.toExpr()));
           Assert( vn.isConst() );
