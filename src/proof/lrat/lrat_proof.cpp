@@ -25,8 +25,10 @@
 #include "base/cvc4_assert.h"
 #include "base/output.h"
 
+#if CVC4_USE_DRAT2ER
 #include "drat2er_options.h"
 #include "drat_trim_interface.h"
+#endif
 
 namespace CVC4 {
 namespace proof {
@@ -224,8 +226,13 @@ LratProof LratProof::fromDratProof(
   dratStream << dratBinary;
   dratStream.close();
 
+#if CVC4_USE_DRAT2ER
   drat2er::drat_trim::CheckAndConvertToLRAT(
       formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
+#else
+  Unimplemented("LRAT proof production requires drat2er.\n"
+      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+#endif
 
   std::ifstream lratStream(lratFilename);
   LratProof lrat(lratStream);
