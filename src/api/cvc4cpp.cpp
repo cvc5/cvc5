@@ -29,6 +29,7 @@
 #include "options/options.h"
 #include "smt/model.h"
 #include "smt/smt_engine.h"
+#include "theory/logic_info.h"
 #include "util/random.h"
 #include "util/result.h"
 #include "util/utility.h"
@@ -3374,26 +3375,70 @@ void Solver::reset(void) const { d_smtEngine->reset(); }
  */
 void Solver::resetAssertions(void) const { d_smtEngine->resetAssertions(); }
 
+// TODO: issue #2781
+void Solver::setLogicHelper(const std::string& logic) const
+{
+  CVC4_API_CHECK(!d_smtEngine->isFullyInited())
+      << "Invalid call to 'setLogic', solver is already fully initialized";
+  try
+  {
+    CVC4::LogicInfo logic_info(logic);
+    d_smtEngine->setLogic(logic_info);
+  }
+  catch (CVC4::IllegalArgumentException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
+
 /**
  *  ( set-info <attribute> )
  */
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
-  // CHECK:
-  // if keyword == "cvc4-logic": value must be string
-  // if keyword == "status": must be sat, unsat or unknown
-  // if keyword == "smt-lib-version": supported?
+  bool is_cvc4_keyword = false;
+
+  /* Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_") */
+  if (keyword.length() > 5)
+  {
+    std::string prefix = keyword.substr(0, 5);
+    if (prefix == "cvc4-" || prefix == "cvc4_")
+    {
+      is_cvc4_keyword = true;
+      std::string cvc4key = keyword.substr(5);
+      CVC4_API_ARG_CHECK_EXPECTED(cvc4key == "logic", keyword)
+          << "keyword 'cvc4-logic'";
+      setLogicHelper(value);
+    }
+  }
+  if (!is_cvc4_keyword)
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(
+        keyword == "source" || keyword == "category" || keyword == "difficulty"
+            || keyword == "filename" || keyword == "license"
+            || keyword == "name" || keyword == "notes"
+            || keyword == "smt-lib-version" || keyword == "status",
+        keyword)
+        << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
+           "'notes', 'smt-lib-version' or 'status'";
+    CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
+                                    || value == "2.0" || value == "2.5"
+                                    || value == "2.6" || value == "2.6.1",
+                                value)
+        << "'2.0', '2.5', '2.6' or '2.6.1'";
+    CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
+                                    || value == "unsat" || value == "unknown",
+                                value)
+        << "'sat', 'unsat' or 'unknown'";
+  }
+
   d_smtEngine->setInfo(keyword, value);
 }
 
 /**
  *  ( set-logic <symbol> )
  */
-void Solver::setLogic(const std::string& logic) const
-{
-  // CHECK: !d_smtEngine->d_fullyInited
-  d_smtEngine->setLogic(logic);
-}
+void Solver::setLogic(const std::string& logic) const { setLogicHelper(logic); }
 
 /**
  *  ( set-option <option> )
@@ -3401,9 +3446,16 @@ void Solver::setLogic(const std::string& logic) const
 void Solver::setOption(const std::string& option,
                        const std::string& value) const
 {
-  // CHECK: option exists?
-  // CHECK: !d_smtEngine->d_fullInited, else option can't be set
-  d_smtEngine->setOption(option, value);
+  CVC4_API_CHECK(!d_smtEngine->isFullyInited())
+      << "Invalid call to 'setOption', solver is already fully initialized";
+  try
+  {
+    d_smtEngine->setOption(option, value);
+  }
+  catch (CVC4::OptionException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 Term Solver::ensureTermSort(const Term& t, const Sort& s) const
