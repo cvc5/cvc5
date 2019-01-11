@@ -24,8 +24,8 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -53,9 +53,10 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 {
  public:
   CVC4ApiException(const std::string& str) : d_msg(str) {}
-  CVC4ApiException(const std::stringstream& stream) :d_msg(stream.str()) {}
+  CVC4ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
   std::string getMessage() const { return d_msg; }
   const char* what() const noexcept override { return d_msg.c_str(); }
+
  private:
   std::string d_msg;
 };
@@ -2237,9 +2238,8 @@ class CVC4_PUBLIC Solver
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
    */
-  Sort declareDatatype(
-      const std::string& symbol,
-      const std::vector<DatatypeConstructorDecl>& ctors) const;
+  Sort declareDatatype(const std::string& symbol,
+                       const std::vector<DatatypeConstructorDecl>& ctors) const;
 
   /**
    * Declare 0-arity function symbol.
@@ -2489,7 +2489,8 @@ class CVC4_PUBLIC Solver
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
-  template <typename T> Term mkConstHelper(T t) const;
+  template <typename T>
+  Term mkConstHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */

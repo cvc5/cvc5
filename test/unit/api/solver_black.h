@@ -307,7 +307,8 @@ void SolverBlack::testMkUninterpretedConst()
 {
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkUninterpretedConst(d_solver->getBooleanSort(), 1));
-  TS_ASSERT_THROWS(d_solver->mkUninterpretedConst(Sort(), 1), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkUninterpretedConst(Sort(), 1),
+                   CVC4ApiException&);
 }
 
 void SolverBlack::testMkAbstractValue()
