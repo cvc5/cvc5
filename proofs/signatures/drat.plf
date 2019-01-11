@@ -13,17 +13,6 @@
 ;
 ; This signature checks **Specified DRAT**.
 
-(declare cnf_holds (! c cnf type))
-(declare cnfn_proof (cnf_holds cnfn))
-(declare cnfc_proof
-         (! c clause
-         (! deduped_c clause
-            (! rest cnf
-               (! proof_c (holds c)
-                  (! proof_rest (cnf_holds rest)
-                     (! sc (^ (clause_dedup c) deduped_c)
-                        (cnf_holds (cnfc c rest)))))))))
-
 ; A DRAT proof itself: a list of addition or deletion instructions.
 (declare DRATProof type)
 (declare DRATProofn DRATProof)
