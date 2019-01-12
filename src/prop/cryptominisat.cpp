@@ -119,7 +119,7 @@ ClauseId CryptoMinisatSolver::addClause(SatClause& clause, bool removable){
   std::vector<CMSat::Lit> internal_clause;
   toInternalClause(clause, internal_clause);
   bool nowOkay = d_solver->add_clause(internal_clause);
-  int freshId = ClauseId(ProofManager::currentPM()->nextId());
+  ClauseId freshId = ClauseId(ProofManager::currentPM()->nextId());
 
   THEORY_PROOF(
       // If this clause results in a conflict, then `nowOkay` may be false, but

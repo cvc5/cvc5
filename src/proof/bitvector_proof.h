@@ -29,8 +29,18 @@
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
 #include "prop/sat_solver.h"
-#include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
+
+// Since TBitblaster and BitVectorProof are cyclically dependent, we need this
+// forward declaration
+namespace CVC4 {
+namespace theory {
+namespace bv {
+template <class T>
+class TBitblaster;
+}
+}  // namespace theory
+}  // namespace CVC4
 
 namespace CVC4 {
 
@@ -212,6 +222,7 @@ class BitVectorProof : public TheoryProof
    * resolution proofs.
    *
    * TODO(aozdemir) figure out what is going on and clean this up
+   * Issue: https://github.com/CVC4/CVC4/issues/2789
    */
   virtual void finalizeConflicts(std::vector<Expr>& conflicts){};
 

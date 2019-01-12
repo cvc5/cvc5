@@ -249,14 +249,14 @@ void ResolutionBitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts)
   }
 }
 
-void LFSCResolutionBitVectorProof::printTheoryLemmaProof(
+void LfscResolutionBitVectorProof::printTheoryLemmaProof(
     std::vector<Expr>& lemma,
     std::ostream& os,
     std::ostream& paren,
     const ProofLetMap& map)
 {
   Debug("pf::bv")
-      << "(pf::bv) LFSCResolutionBitVectorProof::printTheoryLemmaProof called"
+      << "(pf::bv) LfscResolutionBitVectorProof::printTheoryLemmaProof called"
       << std::endl;
   Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
   Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
@@ -460,7 +460,7 @@ void LFSCResolutionBitVectorProof::printTheoryLemmaProof(
   }
 }
 
-void LFSCResolutionBitVectorProof::calculateAtomsInBitblastingProof()
+void LfscResolutionBitVectorProof::calculateAtomsInBitblastingProof()
 {
   // Collect the input clauses used
   IdToSatClause used_lemmas;
@@ -470,7 +470,7 @@ void LFSCResolutionBitVectorProof::calculateAtomsInBitblastingProof()
   Assert(used_lemmas.empty());
 }
 
-void LFSCResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
+void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
                                                             std::ostream& paren,
                                                             ProofLetMap& letMap)
 {
@@ -510,7 +510,7 @@ void LFSCResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
   proof::LFSCProofPrinter::printResolutions(d_resolutionProof.get(), os, paren);
 }
 
-void LFSCResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
+void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
                                                          std::ostream& paren)
 {
   Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,

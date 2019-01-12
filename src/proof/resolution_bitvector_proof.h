@@ -87,10 +87,10 @@ class ResolutionBitVectorProof : public BitVectorProof
 
 };
 
-class LFSCResolutionBitVectorProof : public ResolutionBitVectorProof
+class LfscResolutionBitVectorProof : public ResolutionBitVectorProof
 {
  public:
-  LFSCResolutionBitVectorProof(theory::bv::TheoryBV* bv,
+  LfscResolutionBitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
       : ResolutionBitVectorProof(bv, proofEngine)
   {

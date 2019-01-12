@@ -221,14 +221,6 @@ void BitVectorProof::printOwnedTerm(Expr term,
   }
 }
 
-void BitVectorProof::printEmptyClauseProof(std::ostream& os,
-                                           std::ostream& paren)
-{
-  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
-         "the BV theory should only be proving bottom directly in the eager "
-         "bitblasting mode");
-}
-
 void BitVectorProof::printBitOf(Expr term,
                                 std::ostream& os,
                                 const ProofLetMap& map)

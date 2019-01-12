@@ -66,8 +66,8 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
 void ClausalBitVectorProof::registerUsedClause(ClauseId id,
                                                prop::SatClause& clause)
 {
-  d_usedClauses.push_back(std::make_pair(
-      id, std::unique_ptr<prop::SatClause>(new prop::SatClause(clause))));
+  d_usedClauses.emplace_back(
+      id, std::unique_ptr<prop::SatClause>(new prop::SatClause(clause)));
 };
 
 void ClausalBitVectorProof::calculateAtomsInBitblastingProof()

@@ -9,12 +9,11 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Bitvector proof using the DRAT & LRAT proof formats
+ ** \brief Bitvector proof for clausal (DRAT/LRAT) formats
  **
- ** An internal string stream is hooked up to cryptominisat, which spits out a
- ** binary DRAT proof. That proof is decoded, re-encoded textually, and then
- ** fed into drat-trim, which spits out an LRAT proof. That proof is printed
- ** in LFSC.
+ ** An internal string stream is hooked up to CryptoMiniSat, which spits out a
+ ** binary DRAT proof. Depending on which kind of proof we're going to turn
+ ** that into, we process it in different ways.
  **/
 
 #include "cvc4_private.h"
@@ -33,7 +32,6 @@
 #include "proof/theory_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_types.h"
-#include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 
 namespace CVC4 {

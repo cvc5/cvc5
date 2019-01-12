@@ -47,7 +47,7 @@
 
 namespace CVC4 {
 
-using proof::LFSCResolutionBitVectorProof;
+using proof::LfscResolutionBitVectorProof;
 using proof::ResolutionBitVectorProof;
 
 unsigned CVC4::ProofLetCount::counter = 0;
@@ -81,18 +81,18 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        auto th_bv = static_cast<theory::bv::TheoryBV*>(th);
+        auto thBv = static_cast<theory::bv::TheoryBV*>(th);
         if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
             && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
         {
           proof::BitVectorProof* bvp =
-              new proof::LfscClausalBitVectorProof(th_bv, this);
+              new proof::LfscClausalBitVectorProof(thBv, this);
           d_theoryProofTable[id] = bvp;
         }
         else
         {
           proof::BitVectorProof* bvp =
-              new proof::LFSCResolutionBitVectorProof(th_bv, this);
+              new proof::LfscResolutionBitVectorProof(thBv, this);
           d_theoryProofTable[id] = bvp;
         }
         return;
