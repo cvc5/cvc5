@@ -152,7 +152,7 @@ class BitVectorProof : public TheoryProof
                                         ProofLetMap& letMap) = 0;
 
   /**
-   * Print a proof of the empty clause.
+   * Prints a proof of the empty clause.
    *
    * @param os the stream to print to
    * @param paren any parentheses to add to the end of the global proof
@@ -192,7 +192,7 @@ class BitVectorProof : public TheoryProof
   CnfProof* getCnfProof() { return d_cnfProof.get(); }
 
   /**
-   * Attaches this BVP the given SAT solver, initializing a SAT proof.
+   * Attaches this BVP to the given SAT solver, initializing a SAT proof.
    *
    * This must be invoked before `initCnfProof` because a SAT proof must already
    * exist to initialize a CNF proof.
@@ -206,8 +206,8 @@ class BitVectorProof : public TheoryProof
    * must be invoked before printing a proof of the empty clause. In lazy mode
    * the behavior and purpose are both highly unclear.
    *
-   * This exists as a virtual method of BitvectorProof, and not
-   * ResolutionBitvectorProof, because the machinery that invokes it is
+   * This exists as a virtual method of BitVectorProof, and not
+   * ResolutionBitVectorProof, because the machinery that invokes it is
    * high-level enough that it doesn't know the difference between clausal and
    * resolution proofs.
    *

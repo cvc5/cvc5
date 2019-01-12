@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -52,7 +52,7 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
   int trueClauseId = ClauseId(ProofManager::currentPM()->nextId());
   // with the CNF proof
   d_cnfProof->registerTrueUnitClause(trueClauseId);
-  // and with (this) bitvector proof
+  // and with (this) bit-vector proof
   prop::SatClause c{prop::SatLiteral(trueVar, false)};
   registerUsedClause(trueClauseId, c);
 
@@ -93,7 +93,7 @@ void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                                                       const ProofLetMap& map)
 {
   Unreachable(
-      "Clausal bitvector proofs should only be used in combination with eager "
+      "Clausal bit-vector proofs should only be used in combination with eager "
       "bitblasting, which **does not use theory lemmas**");
 }
 
