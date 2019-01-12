@@ -79,6 +79,9 @@ std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
  * Print a list of clause indices to go to while doing UP.
  *
  * i.e. a value of type Trace
+ *
+ * @param o where to print to
+ * @param trace the trace (list of clauses) to print
  */
 void printTrace(std::ostream& o, const LratUPTrace& trace)
 {
@@ -94,6 +97,9 @@ void printTrace(std::ostream& o, const LratUPTrace& trace)
  * Print the RAT hints for a clause addition.
  *
  * i.e. prints an LFSC value of type RATHints
+ *
+ * @param o where to print to
+ * @param hints the RAT hints to print
  */
 void printHints(std::ostream& o,
                 const std::vector<std::pair<ClauseIdx, LratUPTrace>>& hints)
@@ -112,6 +118,9 @@ void printHints(std::ostream& o,
  * Print an index list
  *
  * i.e. prints an LFSC value of type CIList
+ *
+ * @param o where to print to
+ * @param indices the list of indices to print
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {

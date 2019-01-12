@@ -16,8 +16,10 @@
 
 #include <cxxtest/TestSuite.h>
 
+#include <algorithm>
 #include <cctype>
 #include <iostream>
+#include <iterator>
 
 #include "proof/lrat/lrat_proof.h"
 #include "prop/sat_solver_types.h"
@@ -33,6 +35,22 @@ class LfscProofBlack : public CxxTest::TestSuite
 
   void testOutputThreeAsLfsc();
 };
+
+/**
+ * Creates a new stream with whitespace removed.
+ *
+ * @param s the source string
+ *
+ * @return a string without whitespace
+ */
+std::string filterWhitespace(const std::string& s)
+{
+  std::string out;
+  std::copy_if(s.cbegin(), s.cend(), std::inserter(out, out.end()), [](char c) {
+    return !std::isspace(c);
+  });
+  return out;
+}
 
 void LfscProofBlack::testOutputThreeAsLfsc()
 {
@@ -71,17 +89,9 @@ void LfscProofBlack::testOutputThreeAsLfsc()
 
   LratProof proof(std::move(instructions));
 
-
   std::ostringstream lfsc;
   proof.outputAsLfsc(lfsc);
-  std::ostringstream lfscWithoutWhitespace;
-  for (char c : lfsc.str())
-  {
-    if (!std::isspace(c))
-    {
-      lfscWithoutWhitespace << c;
-    }
-  }
+
   // 6   d 1 2
   // 7   1 2 0  5 2 0
   // 8   2 0  -1 3  -5 2 0
@@ -98,15 +108,6 @@ void LfscProofBlack::testOutputThreeAsLfsc()
       "    (RATHintsc 5 (Tracec 2 Tracen)"
       "    RATHintsn)) "
       "LRATProofn)))";
-  std::ostringstream expectedLfscWithoutWhitespace;
-  for (char c : expectedLfsc)
-  {
-    if (!std::isspace(c))
-    {
-      expectedLfscWithoutWhitespace << c;
-    }
-  }
 
-  TS_ASSERT_EQUALS(lfscWithoutWhitespace.str(),
-                   expectedLfscWithoutWhitespace.str());
+  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()), filterWhitespace(expectedLfsc));
 }
