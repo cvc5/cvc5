@@ -86,7 +86,7 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
             && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
         {
           proof::BitVectorProof* bvp =
-              new proof::LFSCClausalBitVectorProof(th_bv, this);
+              new proof::LfscClausalBitVectorProof(th_bv, this);
           d_theoryProofTable[id] = bvp;
         }
         else
