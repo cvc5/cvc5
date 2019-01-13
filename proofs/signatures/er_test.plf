@@ -25,12 +25,54 @@
   )))
 )
 
+; This is a circuitous proof that uses the definition introduction and
+; unrolling rules
+(check
+  (% v1 var
+  (% v2 var
+    (% pf_c1 (holds (clc (pos v1) (clc (pos v2) cln)))
+    (% pf_c2 (holds (clc (neg v1) (clc (pos v2) cln)))
+    (% pf_c3 (holds (clc (pos v1) (clc (neg v2) cln)))
+    (% pf_c4 (holds (clc (neg v1) (clc (neg v2) cln)))
+       (: (holds cln)
+          (decl_rat_elimination_def
+            (neg v1)
+            (clc (neg v2) cln)
+            (\ v3
+            (\ def3
+              (clausify_rat_elimination_def _ _ _ def3 _ _
+                (\ pf_c5 ; type: (holds (clc (pos v3) (clc (neg v2) cln)))
+                (\ pf_c6 ; type: (holds (clc (pos v3) (clc (pos v1) cln)))
+                (\ pf_cnf3 ; type: (cnf_holds (cnfc (clc (neg v2) (clc (neg v3) (clc (neg v1) cln))) cnfn))
+                  (cnfc_unroll_towards_bottom _ _ pf_cnf3
+                    (\ pf_c7 ; type: (clc (neg v2) (clc (neg v3) (clc (neg v1) cln)))
+                    (\ pf_cnfn
+                                                                          ; Clauses
+                  (satlem_simplify _ _ _ (R _ _ pf_c1 pf_c2 v1)  (\ pf_c8 ; v2
+                  (satlem_simplify _ _ _ (R _ _ pf_c8 pf_c5 v2)  (\ pf_c9 ; v3
+                  (satlem_simplify _ _ _ (R _ _ pf_c9 pf_c7 v3)  (\ pf_c10 ; ~v2  ~v1
+                  (satlem_simplify _ _ _ (Q _ _ pf_c10 pf_c8 v2)  (\ pf_c11 ; ~v1
+                  (satlem_simplify _ _ _ (Q _ _ pf_c11 pf_c3 v1)  (\ pf_c12 ; ~v2
+                  (satlem_simplify _ _ _ (Q _ _ pf_c12 pf_c8 v2)  (\ pf_c13 ; empty
+                        pf_c13
+                  ))
+                  ))
+                  ))
+                  ))
+                  ))
+                  ))
+                  )))
+                )))
+              )
+            ))
+          )
+        )
+    ))))
+  ))
+)
+
 ; This is a test of ER proof produced by drat2er on Example 1 from:
 ; https://www.cs.utexas.edu/~marijn/drat-trim/
-;
-; Unfortunately, it doesn't do a very complicated definition.
-; I've been unable to get drat2er to produce complex definitions on any small
-; inputs so far.
 (check
   (% v1 var
   (% v2 var
