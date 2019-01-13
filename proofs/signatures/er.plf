@@ -35,7 +35,7 @@
 ; Thus it witnesses that the above, when added to the formula consisting of the
 ; conjunction all the already-proven clauses, produces an equisatisfiable
 ; formula.
-(declare rat_elimination_def (! new var (! old lit (! others clause type))))
+(declare definition (! new var (! old lit (! others clause type))))
 
 ; Given `old` and `others`, this takes a continuation which expects
 ;      1. a fresh variable `new`
@@ -48,10 +48,10 @@
 ; clausification needs access to the new variable, which doesn't exist except
 ; inside the continuation, which is out-of-scope for any side-condition
 ; associated with this rule.
-(declare decl_rat_elimination_def
+(declare decl_definition
          (! old lit
             (! others clause ; List of vars
-               (! pf_continuation (! new var (! def (rat_elimination_def new old others)
+               (! pf_continuation (! new var (! def (definition new old others)
                                            (holds cln)))
                   (holds cln)))))
 
@@ -72,12 +72,12 @@
 ;                      new v l_1 v l_2 v ... v l_n
 ;                      new v ~old
 ;     for each i <= n: l_i v ~new v old              (encoded as (cnf_holds ...))
-(declare clausify_rat_elimination_def
+(declare clausify_definition
          (! new var ; elide
          (! old lit ; elide
          (! others clause ; elide
          ; Given a definition { new <-> old v (~l_1 ^ ~l_2 ^ ... ^ ~l_n) }
-         (! def (rat_elimination_def new old others)
+         (! def (definition new old others)
          (! negOld lit ; elide
          (! mkNegOld (^ (lit_flip old) negOld)
          (! provenCnf cnf ; elide
