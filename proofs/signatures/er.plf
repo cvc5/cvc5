@@ -1,6 +1,6 @@
 ; Depends on sat.plf
 
-; This file exists to support the **definition introduction**(or **extension**)
+; This file exists to support the **definition introduction** (or **extension**)
 ; rule in the paper:
 ;  "Extended Resolution Simulates DRAT"
 ; which can be found at http://www.cs.utexas.edu/~marijn/publications/ijcar18.pdf
