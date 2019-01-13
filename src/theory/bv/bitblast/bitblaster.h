@@ -61,10 +61,10 @@ class TBitblaster
   // caches and mappings
   TermDefMap d_termCache;
   ModelCache d_modelCache;
-  proof::BitVectorProof* d_bvp;
   // sat solver used for bitblasting and associated CnfStream
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
   std::unique_ptr<context::Context> d_nullContext;
+  std::unique_ptr<prop::CnfStream> d_cnfStream;
+  proof::BitVectorProof* d_bvp;
 
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -184,9 +184,9 @@ template <class T>
 TBitblaster<T>::TBitblaster()
     : d_termCache(),
       d_modelCache(),
-      d_bvp(nullptr),
+      d_nullContext(new context::Context()),
       d_cnfStream(),
-      d_nullContext(new context::Context())
+      d_bvp(nullptr)
 {
   initAtomBBStrategies();
   initTermBBStrategies();
