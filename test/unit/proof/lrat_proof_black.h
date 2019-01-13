@@ -33,7 +33,7 @@ class LfscProofBlack : public CxxTest::TestSuite
   void setUp() override {}
   void tearDown() override {}
 
-  void testOutputThreeAsLfsc();
+  void testOutputAsLfsc();
 };
 
 /**
@@ -52,7 +52,7 @@ std::string filterWhitespace(const std::string& s)
   return out;
 }
 
-void LfscProofBlack::testOutputThreeAsLfsc()
+void LfscProofBlack::testOutputAsLfsc()
 {
   std::vector<std::unique_ptr<LratInstruction>> instructions;
 

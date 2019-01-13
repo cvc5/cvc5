@@ -124,6 +124,12 @@ void printHints(std::ostream& o,
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {
+  // Verify that the indices are sorted!
+  for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
+  {
+    Assert(indices[i] < indices[i + 1]);
+  }
+
   for (ClauseIdx idx : indices)
   {
     o << "(CIListc " << idx << " ";
