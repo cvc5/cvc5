@@ -52,6 +52,15 @@ class LratInstruction
    * @param out the stream to write to
    */
   virtual void outputAsText(std::ostream& out) const = 0;
+  /**
+   * Write this LRAT instruction as an LFSC value
+   *
+   * @param out the stream to write to
+   * @param closeParen the stream to write any closing parentheses to
+   *
+   */
+  virtual void outputAsLfsc(std::ostream& o,
+                            std::ostream& closeParen) const = 0;
   virtual ~LratInstruction() = default;
 };
 
@@ -67,6 +76,7 @@ class LratDeletion : public LratInstruction
   LratDeletion() = default;
 
   void outputAsText(std::ostream& out) const override;
+  void outputAsLfsc(std::ostream& o, std::ostream& closeParen) const override;
 
  private:
   // This idx doesn't really matter, but it's in the format anyway, so we parse
@@ -97,6 +107,7 @@ class LratAddition : public LratInstruction
   }
 
   void outputAsText(std::ostream& out) const override;
+  void outputAsLfsc(std::ostream& o, std::ostream& closeParen) const override;
 
  private:
   // The idx for the new clause
@@ -152,6 +163,8 @@ class LratProof
   {
     return d_instructions;
   }
+
+  void outputAsLfsc(std::ostream& o) const;
 
  private:
   // The instructions in the proof. Each is a deletion or addition.
