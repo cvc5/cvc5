@@ -76,11 +76,8 @@ namespace rewrite {
 
   RewriteResponse compactAbs (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
-    if (node[0].getKind() == kind::FLOATINGPOINT_NEG)
-    {
-      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
-    }
-    else if (node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    if (node[0].getKind() == kind::FLOATINGPOINT_NEG ||
+        node[0].getKind() == kind::FLOATINGPOINT_ABS)
     {
       return RewriteResponse(REWRITE_AGAIN, node[0]);
     }
