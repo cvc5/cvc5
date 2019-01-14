@@ -24,8 +24,8 @@
 #include <map>
 #include <memory>
 #include <set>
-#include <string>
 #include <sstream>
+#include <string>
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
@@ -53,9 +53,10 @@ class CVC4_PUBLIC CVC4ApiException : public std::exception
 {
  public:
   CVC4ApiException(const std::string& str) : d_msg(str) {}
-  CVC4ApiException(const std::stringstream& stream) :d_msg(stream.str()) {}
+  CVC4ApiException(const std::stringstream& stream) : d_msg(stream.str()) {}
   std::string getMessage() const { return d_msg; }
   const char* what() const noexcept override { return d_msg.c_str(); }
+
  private:
   std::string d_msg;
 };
@@ -2088,183 +2089,38 @@ class CVC4_PUBLIC Solver
   Term mkNegZero(uint32_t exp, uint32_t sig) const;
 
   /**
-   * Create constant of kind:
-   *   - CONST_ROUNDINGMODE
+   * Create a roundingmode constant.
    * @param rm the floating point rounding mode this constant represents
    */
-  Term mkConst(RoundingMode rm) const;
-
-  /*
-   * Create constant of kind:
-   *   - EMPTYSET
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
-   */
-  Term mkConst(Kind kind, Sort arg) const;
+  Term mkRoundingMode(RoundingMode rm) const;
 
   /**
-   * Create constant of kind:
-   *   - UNINTERPRETED_CONSTANT
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
+   * Create uninterpreted constant.
+   * @param arg1 Sort of the constant
+   * @param arg2 Index of the constant
    */
-  Term mkConst(Kind kind, Sort arg1, int32_t arg2) const;
+  Term mkUninterpretedConst(Sort sort, int32_t index) const;
 
   /**
-   * Create constant of kind:
-   *   - BOOLEAN
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
+   * Create an abstract value constant.
+   * @param index Index of the abstract value
    */
-  Term mkConst(Kind kind, bool arg) const;
+  Term mkAbstractValue(const std::string& index) const;
 
   /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   *   - CONST_STRING
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
+   * Create an abstract value constant.
+   * @param index Index of the abstract value
    */
-  Term mkConst(Kind kind, const char* arg) const;
+  Term mkAbstractValue(uint64_t index) const;
 
   /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   *   - CONST_STRING
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
+   * Create a floating-point constant (requires CVC4 to be compiled with symFPU
+   * support).
+   * @param exp Size of the exponent
+   * @param sig Size of the significand
+   * @param val Value of the floating-point constant as a bit-vector term
    */
-  Term mkConst(Kind kind, const std::string& arg) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_BITVECTOR
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, const char* arg1, uint32_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_BITVECTOR
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, const std::string& arg1, uint32_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
-   */
-  Term mkConst(Kind kind, uint32_t arg) const;
-
-  /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
-   */
-  Term mkConst(Kind kind, int32_t arg) const;
-
-  /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
-   */
-  Term mkConst(Kind kind, int64_t arg) const;
-
-  /**
-   * Create constant of kind:
-   *   - ABSTRACT_VALUE
-   *   - CONST_RATIONAL (for integers, reals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg the argument to this kind
-   */
-  Term mkConst(Kind kind, uint64_t arg) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_RATIONAL (for rationals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, int32_t arg1, int32_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_RATIONAL (for rationals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, int64_t arg1, int64_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_RATIONAL (for rationals)
-   *   - CONST_BITVECTOR
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, uint32_t arg1, uint32_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_RATIONAL (for rationals)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, uint64_t arg1, uint64_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_BITVECTOR
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   */
-  Term mkConst(Kind kind, uint32_t arg1, uint64_t arg2) const;
-
-  /**
-   * Create constant of kind:
-   *   - CONST_FLOATINGPOINT (requires CVC4 to be compiled with symFPU support)
-   * See enum Kind for a description of the parameters.
-   * @param kind the kind of the constant
-   * @param arg1 the first argument to this kind
-   * @param arg2 the second argument to this kind
-   * @param arg3 the third argument to this kind
-   */
-  Term mkConst(Kind kind, uint32_t arg1, uint32_t arg2, Term arg3) const;
+  Term mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const;
 
   /* .................................................................... */
   /* Create Variables                                                     */
@@ -2382,9 +2238,8 @@ class CVC4_PUBLIC Solver
    * @param ctors the constructor declarations of the datatype sort
    * @return the datatype sort
    */
-  Sort declareDatatype(
-      const std::string& symbol,
-      const std::vector<DatatypeConstructorDecl>& ctors) const;
+  Sort declareDatatype(const std::string& symbol,
+                       const std::vector<DatatypeConstructorDecl>& ctors) const;
 
   /**
    * Declare 0-arity function symbol.
@@ -2634,7 +2489,8 @@ class CVC4_PUBLIC Solver
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
-  template <typename T> Term mkConstHelper(T t) const;
+  template <typename T>
+  Term mkConstHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */
@@ -2644,12 +2500,8 @@ class CVC4_PUBLIC Solver
   Term mkBVFromStrHelper(uint32_t size, std::string s, uint32_t base) const;
   /* Helper for mkBitVector functions that take an integer as argument. */
   Term mkBVFromIntHelper(uint32_t size, uint64_t val) const;
-  /* Helper for mkConst functions that take a string as argument. */
-  Term mkConstFromStrHelper(Kind kind, std::string s) const;
-  Term mkConstFromStrHelper(Kind kind, std::string s, uint32_t a) const;
-  /* Helper for mkConst functions that take an integer as argument. */
-  template <typename T>
-  Term mkConstFromIntHelper(Kind kind, T a) const;
+  /* Helper for setLogic. */
+  void setLogicHelper(const std::string& logic) const;
 
   /**
    * Helper function that ensures that a given term is of sort real (as opposed
