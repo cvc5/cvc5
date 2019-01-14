@@ -26,7 +26,7 @@
 namespace CVC4 {
 
 namespace proof {
-class ResolutionBitVectorProof;
+class BitVectorProof;
 }
 
 namespace theory {
@@ -93,7 +93,7 @@ class SubtheorySolver {
     return res;
   }
   virtual void assertFact(TNode fact) { d_assertionQueue.push_back(fact); }
-  virtual void setProofLog(proof::ResolutionBitVectorProof* bvp) {}
+  virtual void setProofLog(proof::BitVectorProof* bvp) {}
   AssertionQueue::const_iterator assertionsBegin() {
     return d_assertionQueue.begin();
   }

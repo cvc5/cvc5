@@ -22,6 +22,7 @@
 #include "options/proof_options.h"
 #include "proof/arith_proof.h"
 #include "proof/array_proof.h"
+#include "proof/clausal_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
 #include "proof/proof_manager.h"
@@ -46,7 +47,7 @@
 
 namespace CVC4 {
 
-using proof::LFSCBitVectorProof;
+using proof::LfscResolutionBitVectorProof;
 using proof::ResolutionBitVectorProof;
 
 unsigned CVC4::ProofLetCount::counter = 0;
@@ -80,9 +81,20 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
       }
 
       if (id == theory::THEORY_BV) {
-        auto bv_theory = static_cast<theory::bv::TheoryBV*>(th);
-        ResolutionBitVectorProof* bvp = new LFSCBitVectorProof(bv_theory, this);
-        d_theoryProofTable[id] = bvp;
+        auto thBv = static_cast<theory::bv::TheoryBV*>(th);
+        if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+            && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
+        {
+          proof::BitVectorProof* bvp =
+              new proof::LfscClausalBitVectorProof(thBv, this);
+          d_theoryProofTable[id] = bvp;
+        }
+        else
+        {
+          proof::BitVectorProof* bvp =
+              new proof::LfscResolutionBitVectorProof(thBv, this);
+          d_theoryProofTable[id] = bvp;
+        }
         return;
       }
 
@@ -105,10 +117,11 @@ void TheoryProofEngine::finishRegisterTheory(theory::Theory* th) {
   if (th) {
     theory::TheoryId id = th->getId();
     if (id == theory::THEORY_BV) {
+      theory::bv::TheoryBV* bv_th = static_cast<theory::bv::TheoryBV*>(th);
       Assert(d_theoryProofTable.find(id) != d_theoryProofTable.end());
-      ResolutionBitVectorProof* bvp =
-          (ResolutionBitVectorProof*)d_theoryProofTable[id];
-      ((theory::bv::TheoryBV*)th)->setResolutionProofLog(bvp);
+      proof::BitVectorProof* bvp =
+          static_cast<proof::BitVectorProof*>(d_theoryProofTable[id]);
+      bv_th->setProofLog(bvp);
       return;
     }
   }
@@ -533,9 +546,8 @@ void LFSCTheoryProofEngine::finalizeBvConflicts(const IdToSatClause& lemmas, std
     }
   }
 
-  ResolutionBitVectorProof* bv = ProofManager::getBitVectorProof();
+  proof::BitVectorProof* bv = ProofManager::getBitVectorProof();
   bv->finalizeConflicts(bv_lemmas);
-  //  bv->printResolutionProof(os, paren, letMap);
 }
 
 void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
@@ -550,7 +562,7 @@ void LFSCTheoryProofEngine::printTheoryLemmas(const IdToSatClause& lemmas,
   }
 
   //  finalizeBvConflicts(lemmas, os, paren, map);
-  ProofManager::getBitVectorProof()->printResolutionProof(os, paren, map);
+  ProofManager::getBitVectorProof()->printBBDeclarationAndCnf(os, paren, map);
 
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     Assert (lemmas.size() == 1);
