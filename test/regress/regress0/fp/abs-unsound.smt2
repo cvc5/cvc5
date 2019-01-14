@@ -1,3 +1,5 @@
+; REQUIRES: symfpu
+; EXPECT: sat
 (set-logic QF_FP)
 (set-info :status sat)
 (declare-fun x () (_ FloatingPoint 3 5))
