@@ -26,6 +26,7 @@
 #include "proof/proof_utils.h"
 #include "proof/sat_proof_implementation.h"
 #include "prop/bvminisat/bvminisat.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
@@ -54,32 +55,22 @@ void ResolutionBitVectorProof::initSatProof(CVC4::BVMinisat::Solver* solver)
   d_resolutionProof.reset(new BVSatProof(solver, &d_fakeContext, "bb", true));
 }
 
-theory::TheoryId ResolutionBitVectorProof::getTheoryId()
-{
-  return theory::THEORY_BV;
-}
-
 void ResolutionBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
-                                            context::Context* cnf)
+                                            context::Context* cnf,
+                                            prop::SatVariable trueVar,
+                                            prop::SatVariable falseVar)
 {
   Assert(d_resolutionProof != NULL);
-  BitVectorProof::initCnfProof(cnfStream, cnf);
+  Assert(d_cnfProof == nullptr);
+  d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 
-  // true and false have to be setup in a special way
-  Node true_node = NodeManager::currentNM()->mkConst<bool>(true);
-  Node false_node = NodeManager::currentNM()->mkConst<bool>(false).notNode();
+  d_cnfProof->registerTrueUnitClause(d_resolutionProof->getTrueUnit());
+  d_cnfProof->registerFalseUnitClause(d_resolutionProof->getFalseUnit());
+}
 
-  d_cnfProof->pushCurrentAssertion(true_node);
-  d_cnfProof->pushCurrentDefinition(true_node);
-  d_cnfProof->registerConvertedClause(d_resolutionProof->getTrueUnit());
-  d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
-
-  d_cnfProof->pushCurrentAssertion(false_node);
-  d_cnfProof->pushCurrentDefinition(false_node);
-  d_cnfProof->registerConvertedClause(d_resolutionProof->getFalseUnit());
-  d_cnfProof->popCurrentAssertion();
-  d_cnfProof->popCurrentDefinition();
+void ResolutionBitVectorProof::attachToSatSolver(prop::SatSolver& sat_solver)
+{
+  sat_solver.setResolutionProofLog(this);
 }
 
 BVSatProof* ResolutionBitVectorProof::getSatProof()
@@ -258,13 +249,15 @@ void ResolutionBitVectorProof::finalizeConflicts(std::vector<Expr>& conflicts)
   }
 }
 
-void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
-                                               std::ostream& os,
-                                               std::ostream& paren,
-                                               const ProofLetMap& map)
+void LfscResolutionBitVectorProof::printTheoryLemmaProof(
+    std::vector<Expr>& lemma,
+    std::ostream& os,
+    std::ostream& paren,
+    const ProofLetMap& map)
 {
-  Debug("pf::bv") << "(pf::bv) LFSCBitVectorProof::printTheoryLemmaProof called"
-                  << std::endl;
+  Debug("pf::bv")
+      << "(pf::bv) LfscResolutionBitVectorProof::printTheoryLemmaProof called"
+      << std::endl;
   Expr conflict = utils::mkSortedExpr(kind::OR, lemma);
   Debug("pf::bv") << "\tconflict = " << conflict << std::endl;
 
@@ -467,7 +460,7 @@ void LFSCBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   }
 }
 
-void LFSCBitVectorProof::calculateAtomsInBitblastingProof()
+void LfscResolutionBitVectorProof::calculateAtomsInBitblastingProof()
 {
   // Collect the input clauses used
   IdToSatClause used_lemmas;
@@ -477,9 +470,9 @@ void LFSCBitVectorProof::calculateAtomsInBitblastingProof()
   Assert(used_lemmas.empty());
 }
 
-void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
-                                              std::ostream& paren,
-                                              ProofLetMap& letMap)
+void LfscResolutionBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
+                                                            std::ostream& paren,
+                                                            ProofLetMap& letMap)
 {
   // print mapping between theory atoms and internal SAT variables
   os << std::endl << ";; BB atom mapping\n" << std::endl;
@@ -517,6 +510,16 @@ void LFSCBitVectorProof::printResolutionProof(std::ostream& os,
   proof::LFSCProofPrinter::printResolutions(d_resolutionProof.get(), os, paren);
 }
 
-} /* namespace proof */
+void LfscResolutionBitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                                         std::ostream& paren)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
+  proof::LFSCProofPrinter::printResolutionEmptyClause(
+      d_resolutionProof.get(), os, paren);
+}
+
+}  // namespace proof
 
 } /* namespace CVC4 */

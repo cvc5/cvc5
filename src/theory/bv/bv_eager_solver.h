@@ -48,7 +48,7 @@ class EagerBitblastSolver {
   bool isInitialized();
   void initialize();
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
+  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
@@ -61,7 +61,7 @@ class EagerBitblastSolver {
   bool d_useAig;
 
   TheoryBV* d_bv;
-  proof::ResolutionBitVectorProof* d_bvp;
+  proof::BitVectorProof* d_bvp;
 };  // class EagerBitblastSolver
 
 }  // namespace bv

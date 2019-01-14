@@ -1748,6 +1748,7 @@ set(regress_2_tests
   regress2/sygus/inv_gen_n_c11.sy
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
+  regress2/sygus/min_IC_1.sy
   regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy

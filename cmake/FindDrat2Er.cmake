@@ -19,13 +19,21 @@ find_library(Drat2Er_LIBRARIES
              NAMES libdrat2er.a
              PATHS ${Drat2Er_HOME}/lib
              NO_DEFAULT_PATH)
+find_library(DratTrim_LIBRARIES
+             NAMES libdrat-trim.a
+             PATHS ${Drat2Er_HOME}/lib
+             NO_DEFAULT_PATH)
 
 include(FindPackageHandleStandardArgs)
 find_package_handle_standard_args(Drat2Er
   DEFAULT_MSG
-  Drat2Er_INCLUDE_DIR Drat2Er_LIBRARIES)
+  Drat2Er_INCLUDE_DIR Drat2Er_LIBRARIES DratTrim_LIBRARIES)
 
-mark_as_advanced(Drat2Er_INCLUDE_DIR Drat2Er_LIBRARIES)
+mark_as_advanced(Drat2Er_INCLUDE_DIR Drat2Er_LIBRARIES DratTrim_LIBRARIES)
 if(Drat2Er_LIBRARIES)
   message(STATUS "Found Drat2Er libs: ${Drat2Er_LIBRARIES}")
+endif()
+if(DratTrim_LIBRARIES)
+  message(STATUS "Found DratTrim libs: ${DratTrim_LIBRARIES}")
+  list(APPEND Drat2Er_LIBRARIES ${DratTrim_LIBRARIES})
 endif()
