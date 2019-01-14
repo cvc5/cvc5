@@ -18,10 +18,13 @@
 #include "options/proof_options.h"
 #include "proof/proof_output_channel.h"
 #include "proof/theory_proof.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
+
+namespace proof {
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
     : TheoryProof(bv, proofEngine),
@@ -116,13 +119,6 @@ std::string BitVectorProof::getBBTermName(Expr expr)
   std::ostringstream os;
   os << "bt" << expr.getId();
   return os.str();
-}
-
-void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
-                                  context::Context* cnf)
-{
-  Assert(d_cnfProof == nullptr);
-  d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 }
 
 void BitVectorProof::printOwnedTerm(Expr term,
@@ -709,6 +705,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   }
 }
 
+theory::TheoryId BitVectorProof::getTheoryId() { return theory::THEORY_BV; }
+
 const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof()
 {
   return &d_atomsInBitblastingProof;
@@ -773,5 +771,7 @@ void BitVectorProof::printRewriteProof(std::ostream& os,
   d_proofEngine->printBoundTerm(n1.toExpr(), os, emptyMap);
   os << ")";
 }
+
+}  // namespace proof
 
 }  // namespace CVC4

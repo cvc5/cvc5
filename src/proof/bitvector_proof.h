@@ -24,13 +24,27 @@
 #include <unordered_map>
 #include <unordered_set>
 #include <vector>
+
 #include "expr/expr.h"
 #include "proof/cnf_proof.h"
 #include "proof/theory_proof.h"
-#include "theory/bv/bitblast/bitblaster.h"
+#include "prop/sat_solver.h"
 #include "theory/bv/theory_bv.h"
 
+// Since TBitblaster and BitVectorProof are cyclically dependent, we need this
+// forward declaration
 namespace CVC4 {
+namespace theory {
+namespace bv {
+template <class T>
+class TBitblaster;
+}
+}  // namespace theory
+}  // namespace CVC4
+
+namespace CVC4 {
+
+namespace proof {
 
 typedef std::unordered_set<Expr, ExprHashFunction> ExprSet;
 typedef std::unordered_map<Expr, ClauseId, ExprHashFunction> ExprToClauseId;
@@ -118,6 +132,8 @@ class BitVectorProof : public TheoryProof
    */
   std::unique_ptr<CnfProof> d_cnfProof;
 
+  theory::TheoryId getTheoryId() override;
+
  public:
   void printOwnedTerm(Expr term,
                       std::ostream& os,
@@ -130,6 +146,28 @@ class BitVectorProof : public TheoryProof
    * See its documentation
    */
   virtual void calculateAtomsInBitblastingProof() = 0;
+
+  /**
+   * Prints out a declaration of the bit-blasting, and the subsequent
+   * conversion of the result to CNF
+   *
+   * @param os the stream to print to
+   * @param paren a stream that will be placed at the back of the proof (for
+   *              closing parens)
+   * @param letMap The let-map, which contains information about LFSC
+   *               identifiers and the values they reference.
+   */
+  virtual void printBBDeclarationAndCnf(std::ostream& os,
+                                        std::ostream& paren,
+                                        ProofLetMap& letMap) = 0;
+
+  /**
+   * Prints a proof of the empty clause.
+   *
+   * @param os the stream to print to
+   * @param paren any parentheses to add to the end of the global proof
+   */
+  virtual void printEmptyClauseProof(std::ostream& os, std::ostream& paren) = 0;
 
   /**
    * Read the d_atomsInBitblastingProof member.
@@ -153,12 +191,40 @@ class BitVectorProof : public TheoryProof
   /**
    * This must be done before registering any terms or atoms, since the CNF
    * proof must reflect the result of bitblasting those
+   *
+   * Feeds the SAT solver's true and false variables into the CNF stream.
    */
-  virtual void initCnfProof(prop::CnfStream* cnfStream, context::Context* ctx);
+  virtual void initCnfProof(prop::CnfStream* cnfStream,
+                            context::Context* cnf,
+                            prop::SatVariable trueVar,
+                            prop::SatVariable falseVar) = 0;
 
   CnfProof* getCnfProof() { return d_cnfProof.get(); }
 
+  /**
+   * Attaches this BVP to the given SAT solver, initializing a SAT proof.
+   *
+   * This must be invoked before `initCnfProof` because a SAT proof must already
+   * exist to initialize a CNF proof.
+   */
+  virtual void attachToSatSolver(prop::SatSolver& sat_solver) = 0;
+
   void setBitblaster(theory::bv::TBitblaster<Node>* bb);
+
+  /**
+   * Kind of a mess. Used for resulution-based BVP's, where in eager mode this
+   * must be invoked before printing a proof of the empty clause. In lazy mode
+   * the behavior and purpose are both highly unclear.
+   *
+   * This exists as a virtual method of BitVectorProof, and not
+   * ResolutionBitVectorProof, because the machinery that invokes it is
+   * high-level enough that it doesn't know the difference between clausal and
+   * resolution proofs.
+   *
+   * TODO(aozdemir) figure out what is going on and clean this up
+   * Issue: https://github.com/CVC4/CVC4/issues/2789
+   */
+  virtual void finalizeConflicts(std::vector<Expr>& conflicts){};
 
  private:
   ExprToString d_exprToVariableName;
@@ -205,6 +271,8 @@ class BitVectorProof : public TheoryProof
                          const Node& n1,
                          const Node& n2) override;
 };
+
+}  // namespace proof
 
 }/* CVC4 namespace */
 

@@ -130,6 +130,8 @@ libcvc4_add_sources(
   proof/array_proof.h
   proof/bitvector_proof.cpp
   proof/bitvector_proof.h
+  proof/clausal_bitvector_proof.cpp
+  proof/clausal_bitvector_proof.h
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
