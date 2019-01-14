@@ -79,7 +79,8 @@ namespace rewrite {
     if (node[0].getKind() == kind::FLOATINGPOINT_NEG
         || node[0].getKind() == kind::FLOATINGPOINT_ABS)
     {
-      Node ret = NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS,node[0][0]);
+      Node ret =
+          NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS, node[0][0]);
       return RewriteResponse(REWRITE_AGAIN, ret);
     }
 
