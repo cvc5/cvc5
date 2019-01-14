@@ -91,8 +91,11 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         if( (catom.getKind()==OR)==cpol )
         {
           // take the first literal that is satisfied
-          for( const Node& n : catom )
+          for( Node n : catom )
           {
+            // rewrite, this ensures that e.g. the propositional value of
+            // quantified formulas can be queried
+            n = theory::Rewriter::rewrite(n);
             Node vn = Node::fromExpr(m->getValue(n.toExpr()));
             Assert( vn.isConst() );
             if( vn.getConst<bool>()==cpol )
