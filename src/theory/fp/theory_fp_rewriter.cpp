@@ -80,6 +80,10 @@ namespace rewrite {
     {
       return RewriteResponse(REWRITE_AGAIN, node[0][0]);
     }
+    else if (node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    {
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
+    }
 
     return RewriteResponse(REWRITE_DONE, node);
   }
