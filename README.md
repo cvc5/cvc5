@@ -29,7 +29,7 @@ http://cvc4.cs.stanford.edu/
 Download
 -------------------------------------------------------------------------------
 
-The latest version of CVC4 can be found on GitHub:
+The latest version of CVC4 is available on GitHub:
 https://github.com/CVC4/CVC4
 
 Source tar balls and binaries for releases and latest stable builds of the
