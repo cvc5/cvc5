@@ -1344,7 +1344,7 @@ const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
     "full (default)\n"
     "+ Perform full processing of looping word equations\n"
     "\n"
-    "simple\n"
+    "simple (default with --strings-fmf)\n"
     "+ Omit normal loop breaking\n"
     "\n"
     "simple-abort\n"

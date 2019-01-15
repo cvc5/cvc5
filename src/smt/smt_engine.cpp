@@ -68,6 +68,7 @@
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "options/strings_process_loop_mode.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -2261,6 +2262,15 @@ void SmtEngine::setDefaults() {
           "--sygus-rr-synth-input requires "
           "--sygus-expr-miner-check-use-export");
     }
+  }
+
+  if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
+  {
+    Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
+                    "--strings-fmf enabled"
+                 << endl;
+    options::stringProcessLoopMode.set(
+        theory::strings::ProcessLoopMode::SIMPLE);
   }
 }
 

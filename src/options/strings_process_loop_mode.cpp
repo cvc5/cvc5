@@ -16,6 +16,7 @@
 
 #include "options/strings_process_loop_mode.h"
 
+#include <cstdint>
 #include <iostream>
 
 namespace CVC4 {
@@ -40,7 +41,10 @@ std::ostream& operator<<(std::ostream& out,
     case theory::strings::ProcessLoopMode::ABORT:
       out << "ProcessLoopMode::ABORT";
       break;
+    default:
+      out << "ProcessLoopMode:UNKNOWN![" << static_cast<int64_t>(mode) << "]";
   }
+  return out;
 }
 
 }  // namespace CVC4
