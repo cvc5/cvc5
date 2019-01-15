@@ -4371,18 +4371,19 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
                                                             taylor_vars.end(),
                                                             taylor_subs.begin(),
                                                             taylor_subs.end());
-    tplane = nm->mkNode(
-        PLUS,
-        poly_approx_c,
-        nm->mkNode(MULT, poly_approx_c_deriv, nm->mkNode(MINUS, tf[0], c)));
+    tplane = poly_approx_c;
 
     Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
     std::vector<Node> antec;
+    int mdir = regionToMonotonicityDir(k,region);
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!bounds[i].isNull())
+      // Tangent plane is valid in the interval [c,u) if the slope of the
+      // function matches its concavity, and is valid in (l, c] otherwise.
+      Node use_bound = (mdir==concavity)==(i==0) ? c : bounds[i];
+      if (!use_bound.isNull())
       {
-        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
+        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], use_bound);
         antec.push_back(ant);
       }
     }
