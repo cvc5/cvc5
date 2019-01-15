@@ -4358,20 +4358,9 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   {
     // compute tangent plane
     // Figure 3: T( x )
-    Node tplane;
-    Node poly_approx_deriv = getDerivative(poly_approx, d_taylor_real_fv);
-    Assert(!poly_approx_deriv.isNull());
-    poly_approx_deriv = Rewriter::rewrite(poly_approx_deriv);
-    Trace("nl-ext-tftp-debug2") << "...derivative of " << poly_approx << " is "
-                                << poly_approx_deriv << std::endl;
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    Node poly_approx_c_deriv = poly_approx_deriv.substitute(taylor_vars.begin(),
-                                                            taylor_vars.end(),
-                                                            taylor_subs.begin(),
-                                                            taylor_subs.end());
-    tplane = poly_approx_c;
+    // We use zero slope tangent planes, since the concavity of the Taylor
+    // approximation cannot be easily established.
+    Node tplane = poly_approx_c;
 
     Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
     std::vector<Node> antec;
