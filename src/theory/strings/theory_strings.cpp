@@ -3492,6 +3492,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
     }
     else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
     {
+      d_out->setIncomplete();
       return ProcessLoopResult::SKIPPED;
     }
 
