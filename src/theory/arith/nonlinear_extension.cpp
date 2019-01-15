@@ -2621,8 +2621,8 @@ void NonlinearExtension::mkPi(){
     d_pi_neg = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
         MULT, d_pi, NodeManager::currentNM()->mkConst(Rational(-1))));
     //initialize bounds
-    d_pi_bound[0] = NodeManager::currentNM()->mkConst( Rational(333)/Rational(106) );
-    d_pi_bound[1] = NodeManager::currentNM()->mkConst( Rational(355)/Rational(113) );
+    d_pi_bound[0] = NodeManager::currentNM()->mkConst( Rational(103993)/Rational(33102) );
+    d_pi_bound[1] = NodeManager::currentNM()->mkConst( Rational(104348)/Rational(33215) );
   }
 }
 
