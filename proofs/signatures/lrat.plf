@@ -18,6 +18,14 @@
 (program bool_or ((l bool) (r bool)) bool (match l (ff r) (tt tt)))
 (program bool_and ((l bool) (r bool)) bool (match l (tt r) (ff ff)))
 (program bool_not ((b bool)) bool (match b (tt ff) (ff tt)))
+(program bool_eq ((l bool) (r bool)) bool
+         (match l
+                (tt (match r
+                           (tt tt)
+                           (ff ff)))
+                (ff (match r
+                           (tt ff)
+                           (ff tt)))))
 
 ; =================== ;
 ; Working CNF formula ;
