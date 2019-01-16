@@ -42,6 +42,15 @@
 ;      2. a definition witness value for:
 ;              new <=> old v (~others_1 ^ ~others_2 ^ ... ^ ~others_n)
 ;
+; Aside:
+;    In programming a **continuation** of some computation is a function that
+;    takes the results of that computation as arguments to produce a final
+;    result.
+;
+;    In proof-construction a **continuation** of some reasoning is a function
+;    that takes the results of that reasoning as arguments to proof a final
+;    result.
+;
 ; That definition witness value can be clausified using the rule below.
 ;
 ; There need to be two different rules because the side-condition for
