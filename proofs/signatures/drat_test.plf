@@ -52,8 +52,8 @@
 (check
   (% a var
   (% b var
-     (@ c1 (clc (pos a) (clc (pos a) cln))
-     (@ c2 (clc (pos a) (clc (neg b) cln))
+     (@ c1 (clc (neg b) (clc (pos a) (clc (neg a) cln)))
+     (@ c1 (clc (neg a) (clc (neg b) (clc (pos a) cln)))
         (: TestSuccess
            (test_clause_eq c1 c2 ff)))))))
 

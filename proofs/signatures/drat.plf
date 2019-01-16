@@ -25,13 +25,18 @@
 
 ; Are two clauses equal (in the set sense)
 ;
-; Since clauses are sets, it is insufficient to do list equality
+; Assumes that marks 1,2,3,4 are clear for the constituent variables, and
+; leaves them clear afterwards.
+;
+; Since clauses are sets, it is insufficient to do list equality.
 ; We could sort them, but that would require defining an order on our variables,
 ; and incurring the cost of sorting.
+;
+;
 ; Instead, we do the following:
 ;  1. Sweep the first clause, marking variables with flags 1,3 (pos) and 2,4 (neg)
-;  2. Sweep the second clause, erasing marks 1,2.
-;  3. Unsweep the first clause, returning FALSE on marks.
+;  2. Sweep the second clause, erasing marks 1,2. Returning FALSE if no mark 3,4.
+;  3. Unsweep the first clause, returning FALSE on marks 1,2.
 ;     Also unmarking 3,4, and 1,2 if needed
 ;
 ; So the mark 1 means (seen as + in c1, but not yet in c2)
