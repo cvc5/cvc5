@@ -26,13 +26,17 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "proof/resolution_bitvector_proof.h"
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
 #include "prop/bv_sat_solver_notify.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {
+
+namespace proof {
+class ClausalBitVectorProof;
+class ResolutionBitVectorProof;
+}  // namespace proof
 
 namespace prop {
 
@@ -97,7 +101,9 @@ public:
   /** Check if the solver is in an inconsistent state */
   virtual bool ok() const = 0;
 
-  virtual void setProofLog(proof::ResolutionBitVectorProof* bvp) {}
+  virtual void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp) {}
+
+  virtual void setClausalProofLog(proof::ClausalBitVectorProof* drat_proof) {}
 
 };/* class SatSolver */
 
