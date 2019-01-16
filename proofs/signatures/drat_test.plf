@@ -1,4 +1,95 @@
 ;depends on drat.plf
+(declare TestSuccess type)
+
+; Test for clause_eq
+(declare test_clause_eq
+         (! a clause
+            (! b clause
+               (! result bool
+                  (! (^
+                       (bool_and
+                           (bool_eq (clause_eq a b) result)
+                       (bool_and
+                           (bool_eq (clause_eq b a) result)
+                       (bool_and
+                           (bool_eq (clause_eq a a) tt)
+                           (bool_eq (clause_eq b b) tt))))
+                       tt)
+                        TestSuccess)))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (neg b) cln))
+     (@ c2 (clc (pos a) (clc (neg b) cln))
+        (: TestSuccess
+           (test_clause_eq c1 c2 tt)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (neg a) (clc (neg b) cln))
+     (@ c2 (clc (pos a) (clc (neg b) cln))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (pos b) cln))
+     (@ c2 (clc (pos a) (clc (neg b) cln))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (pos a) cln))
+     (@ c2 (clc (pos a) (clc (neg b) cln))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (neg b) (clc (pos a) (clc (neg a) cln)))
+     (@ c1 (clc (neg a) (clc (neg b) (clc (pos a) cln)))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (pos a) (clc (neg b) cln)))
+     (@ c2 (clc (pos a) (clc (neg b) cln))
+        (: TestSuccess
+           (test_clause_eq c1 c2 tt)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (pos a) (clc (neg b) cln)))
+     (@ c2 (clc (pos a) (clc (neg b) (clc (neg b) cln)))
+        (: TestSuccess
+           (test_clause_eq c1 c2 tt)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 (clc (pos a) (clc (pos a) (clc (neg a) cln)))
+     (@ c2 (clc (pos a) (clc (neg a) (clc (neg a) cln)))
+        (: TestSuccess
+           (test_clause_eq c1 c2 tt)))))))
+
+(check
+  (% a var
+  (% b var
+     (@ c1 cln
+     (@ c2 (clc (pos a) (clc (neg a) (clc (neg a) cln)))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
 (declare check_rat
          (! f cnf
             (! c clause

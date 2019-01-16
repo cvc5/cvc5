@@ -3234,7 +3234,7 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
         pos = new_pos + s.size();
       }
     }
-    else if (n[i].getKind() == kind::STRING_ITOS)
+    else if (n[i].getKind() == kind::STRING_ITOS && checkEntailArith(n[i][0]))
     {
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))

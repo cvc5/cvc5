@@ -225,7 +225,7 @@ if(ENABLE_SHARED)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
