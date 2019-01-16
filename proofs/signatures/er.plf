@@ -82,14 +82,14 @@
 ;                      new v ~old
 ;     for each i <= n: l_i v ~new v old              (encoded as (cnf_holds ...))
 (declare clausify_definition
-         (! new var ; elide
-         (! old lit ; elide
-         (! others clause ; elide
+         (! new var
+         (! old lit
+         (! others clause
          ; Given a definition { new <-> old v (~l_1 ^ ~l_2 ^ ... ^ ~l_n) }
          (! def (definition new old others)
-         (! negOld lit ; elide
+         (! negOld lit
          (! mkNegOld (^ (lit_flip old) negOld)
-         (! provenCnf cnf ; elide
+         (! provenCnf cnf
          (! mkProvenCnf (^ (clause_add_suffix_all
                              others
                              (clc (neg new) (clc old cln))) provenCnf)
@@ -117,8 +117,8 @@
 ;       b. proceeds to prove bottom,
 ; proves bottom.
 (declare cnfc_unroll_towards_bottom
-         (! first clause ; elide
-            (! rest cnf ; elide
+         (! first clause
+            (! rest cnf
                (! pf (cnf_holds (cnfc first rest))
                   (! pf_continuation (! r1 (holds first) (! r2 (cnf_holds rest) (holds cln)))
                     (holds cln))))))
