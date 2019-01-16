@@ -1,7 +1,7 @@
 ;depends on drat.plf
 (declare TestSuccess type)
 
-; Test for clause_add_suffix_all
+; Test for clause_eq
 (declare test_clause_eq
          (! a clause
             (! b clause
