@@ -82,6 +82,14 @@
         (: TestSuccess
            (test_clause_eq c1 c2 tt)))))))
 
+(check
+  (% a var
+  (% b var
+     (@ c1 cln
+     (@ c2 (clc (pos a) (clc (neg a) (clc (neg a) cln)))
+        (: TestSuccess
+           (test_clause_eq c1 c2 ff)))))))
+
 (declare check_rat
          (! f cnf
             (! c clause
