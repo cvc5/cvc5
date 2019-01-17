@@ -570,6 +570,8 @@ set(regress_0_tests
   regress0/preprocess/preprocess_14.cvc
   regress0/preprocess/preprocess_15.cvc
   regress0/print_lambda.cvc
+  regress0/printer/bv_consts_bin.smt2
+  regress0/printer/bv_consts_dec.smt2
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -846,10 +848,10 @@ set(regress_0_tests
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
-  regress0/sygus/array-grammar-select.sy
-  regress0/sygus/array-grammar-store.sy
   regress0/sygus/General_plus10.sy
   regress0/sygus/aig-si.sy
+  regress0/sygus/array-grammar-select.sy
+  regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/check-generic-red.sy
