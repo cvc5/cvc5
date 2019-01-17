@@ -36,7 +36,7 @@ std::ostream& textOut(std::ostream& o, const prop::SatLiteral& l)
 // Not operator<< b/c that represents negation as ~
 std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
 {
-  for (const auto l : c)
+  for (const auto& l : c)
   {
     textOut(o, l) << " ";
   }
@@ -48,9 +48,9 @@ void printDimacs(
     const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses)
 {
   size_t maxVar = 0;
-  for (auto& c : usedClauses)
+  for (const auto& c : usedClauses)
   {
-    for (auto l : c.second)
+    for (const auto& l : c.second)
     {
       if (l.getSatVariable() + 1 > maxVar)
       {
@@ -61,7 +61,7 @@ void printDimacs(
   o << "p cnf " << maxVar << " " << usedClauses.size() << '\n';
   for (const auto& idAndClause : usedClauses)
   {
-    for (auto l : idAndClause.second)
+    for (const auto& l : idAndClause.second)
     {
       if (l.isNegated())
       {

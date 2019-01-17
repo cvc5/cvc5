@@ -28,14 +28,34 @@
 namespace CVC4 {
 namespace proof {
 
-// Prints the literal as a (+) or (-) int
-// Not operator<< b/c that represents negation as ~
+/**
+ * Prints the literal as a (+) or (-) int
+ * Not operator<< b/c that represents negation as ~
+ *
+ * @param o where to print
+ * @param l the literal to print
+ *
+ * @return the original stream
+ */
 std::ostream& textOut(std::ostream& o, const prop::SatLiteral& l);
 
-// Prints the clause as a space-separated list of ints
-// Not operator<< b/c that represents negation as ~
+/**
+ * Prints the clause as a space-separated list of ints
+ * Not operator<< b/c that represents literal negation as ~
+ *
+ * @param o where to print
+ * @param c the clause to print
+ *
+ * @return the original stream
+ */
 std::ostream& textOut(std::ostream& o, const prop::SatClause& c);
 
+/**
+ * Prints a CNF formula in DIMACS format
+ *
+ * @param o where to print to
+ * @param usedClauses the CNF formula
+ */
 void printDimacs(
     std::ostream& o,
     const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses);
