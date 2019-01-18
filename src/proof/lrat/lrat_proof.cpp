@@ -26,6 +26,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "proof/dimacs_printer.h"
 #include "proof/lfsc_proof_printer.h"
 
 #if CVC4_USE_DRAT2ER
@@ -42,27 +43,6 @@ using prop::SatLiteral;
 using prop::SatVariable;
 
 namespace {
-// Prints the literal as a (+) or (-) int
-// Not operator<< b/c that represents negation as ~
-std::ostream& textOut(std::ostream& o, const SatLiteral& l)
-{
-  if (l.isNegated())
-  {
-    o << "-";
-  }
-  return o << l.getSatVariable();
-}
-
-// Prints the clause as a space-separated list of ints
-// Not operator<< b/c that represents negation as ~
-std::ostream& textOut(std::ostream& o, const SatClause& c)
-{
-  for (const auto l : c)
-  {
-    textOut(o, l) << " ";
-  }
-  return o << "0";
-}
 
 // Prints the trace as a space-separated list of (+) ints with a space at the
 // end.
@@ -143,8 +123,7 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 // Prints the LRAT addition line in textual format
 
 LratProof LratProof::fromDratProof(
-    const std::unordered_map<ClauseId, SatClause*>& usedClauses,
-    const std::vector<ClauseId>& clauseOrder,
+    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
     const std::string& dratBinary)
 {
   std::ostringstream cmd;
@@ -162,32 +141,7 @@ LratProof LratProof::fromDratProof(
   AlwaysAssert(r > 0);
   close(r);
   std::ofstream formStream(formulaFilename);
-  size_t maxVar = 0;
-  for (auto& c : usedClauses)
-  {
-    for (auto l : *(c.second))
-    {
-      if (l.getSatVariable() + 1 > maxVar)
-      {
-        maxVar = l.getSatVariable() + 1;
-      }
-    }
-  }
-  formStream << "p cnf " << maxVar << " " << usedClauses.size() << '\n';
-  for (auto ci : clauseOrder)
-  {
-    auto iterator = usedClauses.find(ci);
-    Assert(iterator != usedClauses.end());
-    for (auto l : *(iterator->second))
-    {
-      if (l.isNegated())
-      {
-        formStream << '-';
-      }
-      formStream << l.getSatVariable() + 1 << " ";
-    }
-    formStream << "0\n";
-  }
+  printDimacs(formStream, usedClauses);
   formStream.close();
 
   std::ofstream dratStream(dratFilename);
@@ -198,7 +152,8 @@ LratProof LratProof::fromDratProof(
   drat2er::drat_trim::CheckAndConvertToLRAT(
       formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
 #else
-  Unimplemented("LRAT proof production requires drat2er.\n"
+  Unimplemented(
+      "LRAT proof production requires drat2er.\n"
       "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
 
