@@ -13,17 +13,6 @@
 ;
 ; This signature checks **Specified DRAT**.
 
-(declare cnf_holds (! c cnf type))
-(declare cnfn_proof (cnf_holds cnfn))
-(declare cnfc_proof
-         (! c clause
-         (! deduped_c clause
-            (! rest cnf
-               (! proof_c (holds c)
-                  (! proof_rest (cnf_holds rest)
-                     (! sc (^ (clause_dedup c) deduped_c)
-                        (cnf_holds (cnfc c rest)))))))))
-
 ; A DRAT proof itself: a list of addition or deletion instructions.
 (declare DRATProof type)
 (declare DRATProofn DRATProof)
@@ -36,14 +25,29 @@
 
 ; Are two clauses equal (in the set sense)
 ;
-; Since clauses are sets, it is insufficient to do list equality
+; Assumes that marks 1,2,3,4 are clear for the constituent variables, and
+; leaves them clear afterwards.
+;
+; Since clauses are sets, it is insufficient to do list equality.
 ; We could sort them, but that would require defining an order on our variables,
 ; and incurring the cost of sorting.
+;
+;
 ; Instead, we do the following:
-;  1. Sweep the first clause, marking variables with flags 1 (pos) and 2 (neg)
-;  2. Sweep the second clause, erasing marks.
-;  3. Unsweep the first clause, returning FALSE on marks.
-;     Also unmarking
+;  1. Sweep the first clause, marking variables with flags 1,3 (pos) and 2,4 (neg)
+;  2. Sweep the second clause, erasing marks 1,2. Returning FALSE if no mark 3,4.
+;  3. Unsweep the first clause, returning FALSE on marks 1,2.
+;     Also unmarking 3,4, and 1,2 if needed
+;
+; So the mark 1 means (seen as + in c1, but not yet in c2)
+;    the mark 3 means (seen as + in c1)
+;    the mark 2 means (seen as - in c1, but not yet in c2)
+;    the mark 4 means (seen as - in c1)
+;
+; This implementation is robust to literal order, repeated literals, and
+; literals of opposite polarity in the same clause. It is true equality on sets
+; literals.
+;
 ; TODO(aozdemir) This implementation could be further optimized b/c once c1 is
 ; drained, we need not continue to pattern match on it.
 (program clause_eq ((c1 clause) (c2 clause)) bool
@@ -54,30 +58,51 @@
                   (cln tt)
                   ((clc c2h c2t) (match
                                    c2h
-                                   ((pos v) (ifmarked1
-                                              v
-                                              (do (markvar1 v) (clause_eq c1 c2t))
-                                              ff))
-                                   ((neg v) (ifmarked2
-                                              v
-                                              (do (markvar2 v) (clause_eq c1 c2t))
-                                              ff))))))
+                                   ((pos v)
+                                    (ifmarked1
+                                      v
+                                      (do (markvar1 v)
+                                        (clause_eq c1 c2t))
+                                      (ifmarked3
+                                        v
+                                        (clause_eq c1 c2t)
+                                        ff)))
+                                   ((neg v)
+                                    (ifmarked2
+                                      v
+                                      (do (markvar2 v)
+                                        (clause_eq c1 c2t))
+                                      (ifmarked4
+                                        v
+                                        (clause_eq c1 c2t)
+                                        ff)))))))
            ((clc c1h c1t) (match
                             c1h
-                            ((pos v) (do
-                                       (markvar1 v)
-                                       (let res (clause_eq c1t c2)
-                                         (ifmarked1
-                                           v
-                                           (do (markvar1 v) ff)
-                                           res))))
-                            ((neg v) (do
-                                       (markvar2 v)
-                                       (let res (clause_eq c1t c2)
-                                         (ifmarked2
-                                           v
-                                           (do (markvar2 v) ff)
-                                           res))))))))
+                            ((pos v)
+                             (ifmarked3
+                               v
+                               (clause_eq c1t c2)
+                               (do (markvar3 v)
+                                 (do (markvar1 v)
+                                   (let res (clause_eq c1t c2)
+                                     (do (markvar3 v)
+                                       (ifmarked1
+                                         v
+                                         (do (markvar1 v) ff)
+                                         res)))))))
+                            ((neg v)
+                             (ifmarked4
+                               v
+                               (clause_eq c1t c2)
+                               (do (markvar4 v)
+                                 (do (markvar2 v)
+                                   (let res (clause_eq c1t c2)
+                                     (do (markvar4 v)
+                                       (ifmarked2
+                                         v
+                                         (do (markvar2 v) ff)
+                                         res)))))))))))
+
 
 ; Does this formula contain bottom as one of its clauses?
 (program cnf_has_bottom ((cs cnf)) bool
