@@ -461,6 +461,19 @@ class TheoryStringsRewriter {
    */
   static Node lengthPreserveRewrite(Node n);
 
+  /**
+   * Checks whether a string term `a` is entailed to contain or not contain a
+   * string term `b`.
+   *
+   * @param a The string that is checked whether it contains `b`
+   * @param b The string that is checked whether it is contained in `a`
+   * @param fullRewriter Determines whether the function can use the full
+   * rewriter or only `rewriteContains()` (useful for avoiding loops)
+   * @return true node if it can be shown that `a` contains `b`, false node if
+   * it can be shown that `a` does not contain `b`, null node otherwise
+   */
+  static Node checkEntailContains(Node a, Node b, bool fullRewriter = false);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to
