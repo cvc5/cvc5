@@ -139,6 +139,8 @@ libcvc4_add_sources(
   proof/dimacs_printer.h
   proof/drat/drat_proof.cpp
   proof/drat/drat_proof.h
+  proof/er/er_proof.cpp
+  proof/er/er_proof.h
   proof/lemma_proof.cpp
   proof/lemma_proof.h
   proof/lfsc_proof_printer.cpp
