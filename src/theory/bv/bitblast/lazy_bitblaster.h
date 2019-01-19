@@ -77,7 +77,6 @@ class TLazyBitblaster : public TBitblaster<Node>
    * constants to equivalence classes that don't already have them
    */
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(proof::BitVectorProof* bvp);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
