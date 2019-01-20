@@ -79,7 +79,7 @@ We are always happy to hear feedback from our users:
 * if you are interested in contributing code (for example, a new
   decision procedure implementation) to the CVC4 project, please
   contact one of the [project leaders](#project_leaders).
-  We'd be happy to point you to some internals documentation to help you out.
+  We'd be happy to point you to some internal documentation to help you out.
 
 Thank you for using CVC4!
 
@@ -94,8 +94,8 @@ Project Leaders
 Authors
 -------------------------------------------------------------------------------
 
-For a full list of authors, please refer to file
-[AUTHORS](https://github.com/CVC4/CVC4/blob/master/AUTHORS).
+For a full list of authors, please refer to the
+[AUTHORS](https://github.com/CVC4/CVC4/blob/master/AUTHORS) file.
 
 History
 -------------------------------------------------------------------------------
