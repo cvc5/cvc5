@@ -1,5 +1,3 @@
-%include exception.i
-
 %{
 #include "smt/smt_engine.h"
 %}
