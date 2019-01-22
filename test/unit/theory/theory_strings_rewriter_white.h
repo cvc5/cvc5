@@ -868,10 +868,10 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     sameNormalForm(lhs, rhs);
 
     {
-      // (str.contains (str.++ x "A") (str.++ x "B")) ---> false
+      // (str.contains (str.++ x "A") (str.++ "B" x)) ---> false
       Node ctn = d_nm->mkNode(kind::STRING_STRCTN,
                               d_nm->mkNode(kind::STRING_CONCAT, x, a),
-                              d_nm->mkNode(kind::STRING_CONCAT, x, b));
+                              d_nm->mkNode(kind::STRING_CONCAT, b, x));
       sameNormalForm(ctn, f);
     }
   }
@@ -937,7 +937,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     // Same normal form for:
     //
-    // (str.prefix x (str.++ x y))
+    // (str.prefix (str.++ x y) x)
     //
     // (= y "")
     Node p_xy = d_nm->mkNode(kind::STRING_PREFIX, xy, x);
@@ -946,7 +946,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     // Same normal form for:
     //
-    // (str.suffix x (str.++ x x))
+    // (str.suffix (str.++ x x) x)
     //
     // (= x "")
     Node p_xx = d_nm->mkNode(kind::STRING_SUFFIX, xx, x);
@@ -1120,20 +1120,13 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     {
       // Same normal form for:
       //
-      // (= (str.++ "A" x) (str.++ "A"))
+      // (= (str.++ "A" x) "A")
       //
       // (= x "")
       Node lhs =
           d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, a, x), a);
       Node rhs = d_nm->mkNode(kind::EQUAL, x, empty);
       sameNormalForm(lhs, rhs);
-    }
-
-    {
-      // (= (str.++ x "A") "") ---> false
-      Node eq = d_nm->mkNode(
-          kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, x, a), empty);
-      sameNormalForm(eq, f);
     }
 
     {
@@ -1158,8 +1151,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     }
 
     {
-      // (str.contains (str.++ "AAA" (str.substr "A" 0 n)) (str.++ x "B")) --->
-      //   false
+      // (= (str.++ "AAA" (str.substr "A" 0 n)) (str.++ x "B")) ---> false
       Node eq = d_nm->mkNode(
           kind::EQUAL,
           d_nm->mkNode(

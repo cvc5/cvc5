@@ -544,9 +544,11 @@ class TheoryStringsRewriter {
    * Checks whether it is always true that `a` is a strict subset of `b` in the
    * multiset domain.
    *
-   * Example:
+   * Examples:
    *
    * a = (str.++ "A" x), b = (str.++ "A" x "B") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" x "AA") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" y "AA") ---> false
    *
    * @param a The term for which it should be checked if it is a strict subset
    * of `b` in the multiset domain

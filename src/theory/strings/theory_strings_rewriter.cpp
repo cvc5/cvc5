@@ -392,15 +392,23 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
       Assert(cn.getConst<String>().size() == 1);
       unsigned hchar = cn.getConst<String>().front();
 
+      // The operands of the concat on each side of the equality without
+      // constant strings
       std::vector<Node> trimmed[2];
+      // Counts the number of `hchar`s on each side
       size_t numHChars[2] = {0, 0};
       for (size_t j = 0; j < 2; j++)
       {
+        // Sort the operands of the concats on both sides of the equality
+        // (since both sides may only contain one char, the order does not
+        // matter)
         std::sort(c[j].begin(), c[j].end());
         for (const Node& cc : c[j])
         {
           if (cc.getKind() == CONST_STRING)
           {
+            // Count the number of `hchar`s in the string constant and make
+            // sure that all chars are `hchar`s
             std::vector<unsigned> veccc = cc.getConst<String>().getVec();
             for (size_t k = 0, size = veccc.size(); k < size; k++)
             {
@@ -423,12 +431,16 @@ Node TheoryStringsRewriter::rewriteStrEqualityExt(Node node)
         }
       }
 
+      // We have to remove the same number of `hchar`s from both sides, so the
+      // side with less `hchar`s determines how many we can remove
       size_t trimmedConst = std::min(numHChars[0], numHChars[1]);
       for (size_t j = 0; j < 2; j++)
       {
         size_t diff = numHChars[j] - trimmedConst;
         if (diff != 0)
         {
+          // Add a constant string to the side with more `hchar`s to restore
+          // the difference in number of `hchar`s
           std::vector<unsigned> vec(diff, hchar);
           trimmed[j].push_back(nm->mkConst(String(vec)));
         }
