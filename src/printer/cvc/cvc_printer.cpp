@@ -407,19 +407,26 @@ void CvcPrinter::toStream(
     case kind::APPLY_SELECTOR_TOTAL: {
         TypeNode t = n[0].getType();
         Node opn = n.getOperator();
-        if( t.isTuple() || t.isRecord() ){
+        if (t.isTuple() || t.isRecord())
+        {
           toStream(out, n[0], depth, types, true);
           const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
-          if( t.isTuple() ){
+          if (t.isTuple())
+          {
             int sindex;
-            if( n.getKind()==kind::APPLY_SELECTOR ){
+            if (n.getKind() == kind::APPLY_SELECTOR)
+            {
               sindex = Datatype::indexOf(opn.toExpr());
-            }else{
-              sindex = dt[0].getSelectorIndexInternal( opn.toExpr() );
             }
-            Assert( sindex>=0 );
+            else
+            {
+              sindex = dt[0].getSelectorIndexInternal(opn.toExpr());
+            }
+            Assert(sindex >= 0);
             out << '.' << sindex;
-          }else{
+          }
+          else
+          {
             out << '.';
             toStream(out, opn, depth, types, false);
           }
