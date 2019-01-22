@@ -371,6 +371,7 @@ set(regress_0_tests
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
+  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/datatypes/rewriter.cvc
   regress0/datatypes/sc-cdt1.smt2
   regress0/datatypes/some-boolean-tests.cvc
