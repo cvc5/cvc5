@@ -203,8 +203,31 @@ Expr OverloadedTypeTrie::getOverloadedFunctionForTypes(
       if (itc != tat->d_children.end()) {
         tat = &itc->second;
       } else {
-        // no functions match
-        return d_nullExpr;
+        Trace("parser-overloading")
+            << "Could not find overloaded function " << name << std::endl;
+        // it may be a parametric datatype
+        TypeNode tna = TypeNode::fromType(argTypes[i]);
+        if (tna.isParametricDatatype())
+        {
+          Trace("parser-overloading")
+              << "Parametric overloaded datatype selector " << name << " "
+              << tna << std::endl;
+          DatatypeType tnd = static_cast<DatatypeType>(argTypes[i]);
+          const Datatype& dt = tnd.getDatatype();
+          // tng is the "generalized" version of the instantiated parametric
+          // type tna
+          Type tng = dt.getDatatypeType();
+          itc = tat->d_children.find(tng);
+          if (itc != tat->d_children.end())
+          {
+            tat = &itc->second;
+          }
+        }
+        if (tat == nullptr)
+        {
+          // no functions match
+          return d_nullExpr;
+        }
       }
     }
     // we ensure that there is *only* one active symbol at this node
