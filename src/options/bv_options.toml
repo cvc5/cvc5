@@ -232,3 +232,11 @@ header = "options/bv_options.h"
   type       = "bool"
   default    = "true"
   help       = "algebraic inferences for extended functions"
+
+[[option]]
+  name       = "bvPrintConstsInBinary"
+  category   = "regular"
+  long       = "bv-print-consts-in-binary"
+  type       = "bool"
+  default    = "false"
+  help       = "print bit-vector constants in binary (e.g. #b0001) instead of decimal (e.g. (_ bv1 4)), applies to SMT-LIB 2.x"

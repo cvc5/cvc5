@@ -137,8 +137,7 @@ class LratProof
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
    */
   static LratProof fromDratProof(
-      const std::unordered_map<ClauseId, prop::SatClause*>& usedClauses,
-      const std::vector<ClauseId>& clauseOrder,
+      const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
       const std::string& dratBinary);
   /**
    * @brief Construct an LRAT proof from its textual representation

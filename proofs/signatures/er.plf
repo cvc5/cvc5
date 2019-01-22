@@ -1,0 +1,125 @@
+; Depends on sat.plf
+
+; This file exists to support the **definition introduction** (or **extension**)
+; rule in the paper:
+;  "Extended Resolution Simulates DRAT"
+; which can be found at http://www.cs.utexas.edu/~marijn/publications/ijcar18.pdf
+;
+; The core idea of extended resolution is that given **any** formula f
+; involving the variables from some SAT problem, one can introduce the
+; constraint
+;
+;    new <=> f
+;
+; without changing satisfiability, where "new" is a fresh variable.
+;
+; This signature does not provide axioms for facilitating full use of this
+; idea. Instead, this signature facilitates use of one specific kind of
+; extension, that of the form:
+;
+;     new <=> old v (~l_1 ^ ~l_2 ^ ... ^ ~l_n)
+;
+; which translates into the clauses:
+;
+;                      new v l_1 v l_2 v ... v l_n
+;                      new v ~old
+;     for each i <= n: l_i v ~new v old
+;
+; This kind of extension is (a) sufficient to simulate DRAT proofs and (b) easy
+; to convert to clauses, which is why we use it.
+
+; A definition witness value for:
+;              new <=> old v (~others_1 ^ ~others_2 ^ ... ^ ~others_n)
+; It witnesses the fact that new was fresh when it was defined by the above.
+;
+; Thus it witnesses that the above, when added to the formula consisting of the
+; conjunction all the already-proven clauses, produces an equisatisfiable
+; formula.
+(declare definition (! new var (! old lit (! others clause type))))
+
+; Given `old` and `others`, this takes a continuation which expects
+;      1. a fresh variable `new`
+;      2. a definition witness value for:
+;              new <=> old v (~others_1 ^ ~others_2 ^ ... ^ ~others_n)
+;
+; Aside:
+;    In programming a **continuation** of some computation is a function that
+;    takes the results of that computation as arguments to produce a final
+;    result.
+;
+;    In proof-construction a **continuation** of some reasoning is a function
+;    that takes the results of that reasoning as arguments to proof a final
+;    result.
+;
+; That definition witness value can be clausified using the rule below.
+;
+; There need to be two different rules because the side-condition for
+; clausification needs access to the new variable, which doesn't exist except
+; inside the continuation, which is out-of-scope for any side-condition
+; associated with this rule.
+(declare decl_definition
+         (! old lit
+            (! others clause ; List of vars
+               (! pf_continuation (! new var (! def (definition new old others)
+                                           (holds cln)))
+                  (holds cln)))))
+
+; Takes a `list` of literals and a clause, `suffix`, adds the suffix to each
+; literal and returns a list of clauses as a `cnf`.
+(program clause_add_suffix_all ((list clause) (suffix clause)) cnf
+         (match list
+                (cln cnfn)
+                ((clc l rest) (cnfc (clc l suffix)
+                                    (clause_add_suffix_all rest suffix)))))
+
+; This translates a definition witness value for the def:
+;
+;    new <=> old v (~l_1 ^ ~l_2 ^ ... ^ ~l_n)
+;
+; into the clauses:
+;
+;                      new v l_1 v l_2 v ... v l_n
+;                      new v ~old
+;     for each i <= n: l_i v ~new v old              (encoded as (cnf_holds ...))
+(declare clausify_definition
+         (! new var
+         (! old lit
+         (! others clause
+         ; Given a definition { new <-> old v (~l_1 ^ ~l_2 ^ ... ^ ~l_n) }
+         (! def (definition new old others)
+         (! negOld lit
+         (! mkNegOld (^ (lit_flip old) negOld)
+         (! provenCnf cnf
+         (! mkProvenCnf (^ (clause_add_suffix_all
+                             others
+                             (clc (neg new) (clc old cln))) provenCnf)
+         ; If you can prove bottom from its clausal representation
+         (! pf_continuation
+            ; new v l_1 v l_2 v ... v l_n
+            (! pf_c1 (holds (clc (pos new) others))
+               ; new v ~old
+               (! pf_c2 (holds (clc (pos new) (clc negOld cln)))
+                  ; for each i <= n: l_i v ~new v old
+                  (! pf_cs (cnf_holds provenCnf)
+                     (holds cln))))
+         ; Then you've proven bottom
+         (holds cln)))))))))))
+
+; This axiom is useful for converting a proof of some CNF formula (a value of
+; type (cnf_holds ...)) into proofs of the constituent clauses (many values of
+; type (holds ...)).
+; Given
+;    1. a proof of some cnf, first ^ rest, and
+;    2. a proof continuation that
+;       a. takes in proofs of
+;          i. first and
+;          ii. rest and
+;       b. proceeds to prove bottom,
+; proves bottom.
+(declare cnfc_unroll_towards_bottom
+         (! first clause
+            (! rest cnf
+               (! pf (cnf_holds (cnfc first rest))
+                  (! pf_continuation (! r1 (holds first) (! r2 (cnf_holds rest) (holds cln)))
+                    (holds cln))))))
+

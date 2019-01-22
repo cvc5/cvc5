@@ -135,6 +135,8 @@ libcvc4_add_sources(
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
+  proof/dimacs_printer.cpp
+  proof/dimacs_printer.h
   proof/drat/drat_proof.cpp
   proof/drat/drat_proof.h
   proof/lemma_proof.cpp

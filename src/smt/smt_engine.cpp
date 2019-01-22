@@ -1431,6 +1431,12 @@ void SmtEngine::setDefaults() {
                << endl;
       setOption("global-negate", false);
     }
+
+    if (options::bitvectorAig())
+    {
+      throw OptionException(
+          "bitblast-aig not supported with unsat cores/proofs");
+    }
   }
   else
   {

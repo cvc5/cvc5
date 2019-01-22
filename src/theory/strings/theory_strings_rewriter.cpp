@@ -238,18 +238,11 @@ Node TheoryStringsRewriter::rewriteEquality(Node node)
   // ( ~contains( s, t ) V ~contains( t, s ) ) => ( s == t ---> false )
   for (unsigned r = 0; r < 2; r++)
   {
-    Node ctn = NodeManager::currentNM()->mkNode(
-        kind::STRING_STRCTN, node[r], node[1 - r]);
     // must call rewrite contains directly to avoid infinite loop
     // we do a fix point since we may rewrite contains terms to simpler
     // contains terms.
-    Node prev;
-    do
-    {
-      prev = ctn;
-      ctn = rewriteContains(ctn);
-    } while (prev != ctn && ctn.getKind() == kind::STRING_STRCTN);
-    if (ctn.isConst())
+    Node ctn = checkEntailContains(node[r], node[1 - r], false);
+    if (!ctn.isNull())
     {
       if (!ctn.getConst<bool>())
       {
@@ -1921,9 +1914,8 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       }
       else if (node[0].getKind() == STRING_STRREPL)
       {
-        Node rplDomain = nm->mkNode(STRING_STRCTN, node[0][1], node[1]);
-        rplDomain = Rewriter::rewrite(rplDomain);
-        if (rplDomain.isConst() && !rplDomain.getConst<bool>())
+        Node rplDomain = checkEntailContains(node[0][1], node[1]);
+        if (!rplDomain.isNull() && !rplDomain.getConst<bool>())
         {
           Node d1 = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
           Node d2 =
@@ -1975,15 +1967,11 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
       // replacement does not change y. (str.contains x w) checks that if the
       // replacement changes anything in y, the w makes it impossible for it to
       // occur in x.
-      Node ctnUnchanged = nm->mkNode(kind::STRING_STRCTN, node[0], n[0]);
-      Node ctnUnchangedR = Rewriter::rewrite(ctnUnchanged);
-
-      if (ctnUnchangedR.isConst() && !ctnUnchangedR.getConst<bool>())
+      Node ctnConst = checkEntailContains(node[0], n[0]);
+      if (!ctnConst.isNull() && !ctnConst.getConst<bool>())
       {
-        Node ctnChange = nm->mkNode(kind::STRING_STRCTN, node[0], n[2]);
-        Node ctnChangeR = Rewriter::rewrite(ctnChange);
-
-        if (ctnChangeR.isConst() && !ctnChangeR.getConst<bool>())
+        Node ctnConst2 = checkEntailContains(node[0], n[2]);
+        if (!ctnConst2.isNull() && !ctnConst2.getConst<bool>())
         {
           Node res = nm->mkConst(false);
           return returnRewrite(node, res, "ctn-rpl-non-ctn");
@@ -2211,9 +2199,8 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
     // if (str.contains z w) ---> false and (str.len w) = 1
     if (checkEntailLengthOne(node[1]))
     {
-      Node ctn = Rewriter::rewrite(
-          nm->mkNode(kind::STRING_STRCTN, node[1], node[0][2]));
-      if (ctn.isConst() && !ctn.getConst<bool>())
+      Node ctn = checkEntailContains(node[1], node[0][2]);
+      if (!ctn.isNull() && !ctn.getConst<bool>())
       {
         Node empty = nm->mkConst(String(""));
         Node ret = nm->mkNode(
@@ -2353,14 +2340,13 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
     fstr = Rewriter::rewrite(fstr);
   }
 
-  Node cmp_con = nm->mkNode(kind::STRING_STRCTN, fstr, node[1]);
-  Trace("strings-rewrite-debug")
-      << "For " << node << ", check " << cmp_con << std::endl;
-  Node cmp_conr = Rewriter::rewrite(cmp_con);
+  Node cmp_conr = checkEntailContains(fstr, node[1]);
+  Trace("strings-rewrite-debug") << "For " << node << ", check contains("
+                                 << fstr << ", " << node[1] << ")" << std::endl;
   Trace("strings-rewrite-debug") << "...got " << cmp_conr << std::endl;
   std::vector<Node> children1;
   getConcat(node[1], children1);
-  if (cmp_conr.isConst())
+  if (!cmp_conr.isNull())
   {
     if (cmp_conr.getConst<bool>())
     {
@@ -2551,10 +2537,9 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
   getConcat(node[1], children1);
 
   // check if contains definitely does (or does not) hold
-  Node cmp_con =
-      NodeManager::currentNM()->mkNode(kind::STRING_STRCTN, node[0], node[1]);
+  Node cmp_con = nm->mkNode(kind::STRING_STRCTN, node[0], node[1]);
   Node cmp_conr = Rewriter::rewrite(cmp_con);
-  if (cmp_conr.isConst())
+  if (!checkEntailContains(node[0], node[1]).isNull())
   {
     if (cmp_conr.getConst<bool>())
     {
@@ -2781,9 +2766,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         return returnRewrite(node, node[0], "repl-repl2-inv-id");
       }
       bool dualReplIteSuccess = false;
-      Node cmp_con = nm->mkNode(STRING_STRCTN, node[1][0], node[1][2]);
-      cmp_con = Rewriter::rewrite(cmp_con);
-      if (cmp_con.isConst() && !cmp_con.getConst<bool>())
+      Node cmp_con = checkEntailContains(node[1][0], node[1][2]);
+      if (!cmp_con.isNull() && !cmp_con.getConst<bool>())
       {
         // str.contains( x, z ) ---> false
         //   implies
@@ -2797,13 +2781,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         //   implies
         // str.replace( x, str.replace( x, y, z ), w ) --->
         // ite( str.contains( x, y ), x, w )
-        cmp_con = nm->mkNode(STRING_STRCTN, node[1][1], node[1][2]);
-        cmp_con = Rewriter::rewrite(cmp_con);
-        if (cmp_con.isConst() && !cmp_con.getConst<bool>())
+        cmp_con = checkEntailContains(node[1][1], node[1][2]);
+        if (!cmp_con.isNull() && !cmp_con.getConst<bool>())
         {
-          cmp_con = nm->mkNode(STRING_STRCTN, node[1][2], node[1][1]);
-          cmp_con = Rewriter::rewrite(cmp_con);
-          if (cmp_con.isConst() && !cmp_con.getConst<bool>())
+          cmp_con = checkEntailContains(node[1][2], node[1][1]);
+          if (!cmp_con.isNull() && !cmp_con.getConst<bool>())
           {
             dualReplIteSuccess = true;
           }
@@ -2832,9 +2814,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
         // str.contains(y, z) ----> false and ( y == w or x == w ) implies
         //   implies
         // str.replace(x, str.replace(y, x, z), w) ---> str.replace(x, y, w)
-        Node cmp_con = nm->mkNode(STRING_STRCTN, node[1][0], node[1][2]);
-        cmp_con = Rewriter::rewrite(cmp_con);
-        invSuccess = cmp_con.isConst() && !cmp_con.getConst<bool>();
+        Node cmp_con = checkEntailContains(node[1][0], node[1][2]);
+        invSuccess = !cmp_con.isNull() && !cmp_con.getConst<bool>();
       }
     }
     else
@@ -2842,13 +2823,11 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       // str.contains(x, z) ----> false and str.contains(x, w) ----> false
       //   implies
       // str.replace(x, str.replace(y, z, w), u) ---> str.replace(x, y, u)
-      Node cmp_con = nm->mkNode(STRING_STRCTN, node[0], node[1][1]);
-      cmp_con = Rewriter::rewrite(cmp_con);
-      if (cmp_con.isConst() && !cmp_con.getConst<bool>())
+      Node cmp_con = checkEntailContains(node[0], node[1][1]);
+      if (!cmp_con.isNull() && !cmp_con.getConst<bool>())
       {
-        cmp_con = nm->mkNode(STRING_STRCTN, node[0], node[1][2]);
-        cmp_con = Rewriter::rewrite(cmp_con);
-        invSuccess = cmp_con.isConst() && !cmp_con.getConst<bool>();
+        cmp_con = checkEntailContains(node[0], node[1][2]);
+        invSuccess = !cmp_con.isNull() && !cmp_con.getConst<bool>();
       }
     }
     if (invSuccess)
@@ -2863,9 +2842,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
     {
       // str.contains( z, w ) ----> false implies
       // str.replace( x, w, str.replace( z, x, y ) ) ---> str.replace( x, w, z )
-      Node cmp_con = nm->mkNode(STRING_STRCTN, node[1], node[2][0]);
-      cmp_con = Rewriter::rewrite(cmp_con);
-      if (cmp_con.isConst() && !cmp_con.getConst<bool>())
+      Node cmp_con = checkEntailContains(node[1], node[2][0]);
+      if (!cmp_con.isNull() && !cmp_con.getConst<bool>())
       {
         Node res =
             nm->mkNode(kind::STRING_STRREPL, node[0], node[1], node[2][0]);
@@ -2884,9 +2862,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       {
         // str.contains( x, z ) ----> false implies
         // str.replace( x, y, str.replace( y, z, w ) ) ---> x
-        cmp_con = nm->mkNode(STRING_STRCTN, node[0], node[2][1]);
-        cmp_con = Rewriter::rewrite(cmp_con);
-        success = cmp_con.isConst() && !cmp_con.getConst<bool>();
+        cmp_con = checkEntailContains(node[0], node[2][1]);
+        success = !cmp_con.isNull() && !cmp_con.getConst<bool>();
       }
       if (success)
       {
@@ -2911,9 +2888,8 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
           checkLhs.end(), children0.begin(), children0.begin() + checkIndex);
       Node lhs = mkConcat(STRING_CONCAT, checkLhs);
       Node rhs = children0[checkIndex];
-      Node ctn = nm->mkNode(STRING_STRCTN, lhs, rhs);
-      ctn = Rewriter::rewrite(ctn);
-      if (ctn.isConst() && ctn.getConst<bool>())
+      Node ctn = checkEntailContains(lhs, rhs);
+      if (!ctn.isNull() && ctn.getConst<bool>())
       {
         lastLhs = lhs;
         lastCheckIndex = checkIndex;
@@ -3234,7 +3210,7 @@ bool TheoryStringsRewriter::canConstantContainConcat( Node c, Node n, int& first
         pos = new_pos + s.size();
       }
     }
-    else if (n[i].getKind() == kind::STRING_ITOS)
+    else if (n[i].getKind() == kind::STRING_ITOS && checkEntailArith(n[i][0]))
     {
       // find the first occurrence of a digit starting at pos
       while (pos < tvec.size() && !String::isDigit(tvec[pos]))
@@ -3672,12 +3648,11 @@ bool TheoryStringsRewriter::componentContainsBase(
         {
           // (str.contains (str.replace x y z) w) ---> true
           // if (str.contains x w) --> true and (str.contains z w) ---> true
-          Node xCtnW = Rewriter::rewrite(nm->mkNode(STRING_STRCTN, n1[0], n2));
-          if (xCtnW.isConst() && xCtnW.getConst<bool>())
+          Node xCtnW = checkEntailContains(n1[0], n2);
+          if (!xCtnW.isNull() && xCtnW.getConst<bool>())
           {
-            Node zCtnW =
-                Rewriter::rewrite(nm->mkNode(STRING_STRCTN, n1[2], n2));
-            if (zCtnW.isConst() && zCtnW.getConst<bool>())
+            Node zCtnW = checkEntailContains(n1[2], n2);
+            if (!zCtnW.isNull() && zCtnW.getConst<bool>())
             {
               return true;
             }
@@ -3938,6 +3913,31 @@ Node TheoryStringsRewriter::lengthPreserveRewrite(Node n)
   Node len = Rewriter::rewrite(nm->mkNode(kind::STRING_LENGTH, n));
   Node res = canonicalStrForSymbolicLength(len);
   return res.isNull() ? n : res;
+}
+
+Node TheoryStringsRewriter::checkEntailContains(Node a,
+                                                Node b,
+                                                bool fullRewriter)
+{
+  NodeManager* nm = NodeManager::currentNM();
+  Node ctn = nm->mkNode(kind::STRING_STRCTN, a, b);
+
+  if (fullRewriter)
+  {
+    ctn = Rewriter::rewrite(ctn);
+  }
+  else
+  {
+    Node prev;
+    do
+    {
+      prev = ctn;
+      ctn = rewriteContains(ctn);
+    } while (prev != ctn && ctn.getKind() == kind::STRING_STRCTN);
+  }
+
+  Assert(ctn.getType().isBoolean());
+  return ctn.isConst() ? ctn : Node::null();
 }
 
 bool TheoryStringsRewriter::checkEntailNonEmpty(Node a)
