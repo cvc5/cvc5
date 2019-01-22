@@ -377,6 +377,7 @@ set(regress_0_tests
   regress0/datatypes/some-boolean-tests.cvc
   regress0/datatypes/stream-singleton.smt2
   regress0/datatypes/tenum-bug.smt2
+  regress0/datatypes/tree-get-value.cvc
   regress0/datatypes/tuple-model.cvc
   regress0/datatypes/tuple-no-clash.cvc
   regress0/datatypes/tuple-record-bug.cvc
@@ -573,6 +574,7 @@ set(regress_0_tests
   regress0/print_lambda.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
