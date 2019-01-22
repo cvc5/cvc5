@@ -866,6 +866,14 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                        d_nm->mkNode(kind::STRING_STRREPL, x, a, empty),
                        a);
     sameNormalForm(lhs, rhs);
+
+    {
+      // (str.contains (str.++ x "A") (str.++ x "B")) ---> false
+      Node ctn = d_nm->mkNode(kind::STRING_STRCTN,
+                              d_nm->mkNode(kind::STRING_CONCAT, x, a),
+                              d_nm->mkNode(kind::STRING_CONCAT, x, b));
+      sameNormalForm(ctn, f);
+    }
   }
 
   void testInferEqsFromContains()
@@ -945,9 +953,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node empty_x = d_nm->mkNode(kind::EQUAL, x, empty);
     sameNormalForm(p_xx, empty_x);
 
-    // (str.suffix x (str.++ x x "A")) --> false
-    //
-    // (= x "")
+    // (str.suffix x (str.++ x x "A")) ---> false
     Node p_xxa = d_nm->mkNode(kind::STRING_SUFFIX, xxa, x);
     sameNormalForm(p_xxa, f);
   }
@@ -959,6 +965,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     Node empty = d_nm->mkConst(::CVC4::String(""));
     Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node aaa = d_nm->mkConst(::CVC4::String("AAA"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
@@ -1075,16 +1082,96 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node eq_x = d_nm->mkNode(kind::EQUAL, x, empty);
     sameNormalForm(eq_repl, eq_x);
 
-    // Same normal form for:
-    //
-    // (= (str.replace y "A" "B") "B")
-    //
-    // (= (str.replace y "B" "A") "A")
-    Node lhs = d_nm->mkNode(
-        kind::EQUAL, d_nm->mkNode(kind::STRING_STRREPL, x, a, b), b);
-    Node rhs = d_nm->mkNode(
-        kind::EQUAL, d_nm->mkNode(kind::STRING_STRREPL, x, b, a), a);
-    sameNormalForm(lhs, rhs);
+    {
+      // Same normal form for:
+      //
+      // (= (str.replace y "A" "B") "B")
+      //
+      // (= (str.replace y "B" "A") "A")
+      Node lhs = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_STRREPL, x, a, b), b);
+      Node rhs = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_STRREPL, x, b, a), a);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Same normal form for:
+      //
+      // (= (str.++ x "A" y) (str.++ "A" "A" (str.substr "AAA" 0 n)))
+      //
+      // (= (str.++ y x) (str.++ (str.substr "AAA" 0 n) "A"))
+      Node lhs = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(kind::STRING_CONCAT, x, a, y),
+          d_nm->mkNode(kind::STRING_CONCAT,
+                       a,
+                       a,
+                       d_nm->mkNode(kind::STRING_SUBSTR, aaa, zero, n)));
+      Node rhs = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(kind::STRING_CONCAT, x, y),
+          d_nm->mkNode(kind::STRING_CONCAT,
+                       d_nm->mkNode(kind::STRING_SUBSTR, aaa, zero, n),
+                       a));
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Same normal form for:
+      //
+      // (= (str.++ "A" x) (str.++ "A"))
+      //
+      // (= x "")
+      Node lhs =
+          d_nm->mkNode(kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, a, x), a);
+      Node rhs = d_nm->mkNode(kind::EQUAL, x, empty);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // (= (str.++ x "A") "") ---> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, x, a), empty);
+      sameNormalForm(eq, f);
+    }
+
+    {
+      // (= (str.++ x "A") "") ---> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, x, a), empty);
+      sameNormalForm(eq, f);
+    }
+
+    {
+      // (= (str.++ x "B") "AAA") ---> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, x, b), aaa);
+      sameNormalForm(eq, f);
+    }
+
+    {
+      // (= (str.++ x "AAA") "A") ---> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL, d_nm->mkNode(kind::STRING_CONCAT, x, aaa), a);
+      sameNormalForm(eq, f);
+    }
+
+    {
+      // (str.contains (str.++ "AAA" (str.substr "A" 0 n)) (str.++ x "B")) --->
+      //   false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(
+              kind::STRING_CONCAT,
+              aaa,
+              d_nm->mkNode(kind::STRING_CONCAT,
+                           a,
+                           a,
+                           d_nm->mkNode(kind::STRING_SUBSTR, x, zero, n))),
+          d_nm->mkNode(kind::STRING_CONCAT, x, b));
+      sameNormalForm(eq, f);
+    }
   }
 
  private:
