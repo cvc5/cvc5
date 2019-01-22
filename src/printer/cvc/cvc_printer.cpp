@@ -410,6 +410,7 @@ void CvcPrinter::toStream(
         if (t.isTuple() || t.isRecord())
         {
           toStream(out, n[0], depth, types, true);
+          out << '.';
           const Datatype& dt = ((DatatypeType)t.toType()).getDatatype();
           if (t.isTuple())
           {
@@ -423,11 +424,10 @@ void CvcPrinter::toStream(
               sindex = dt[0].getSelectorIndexInternal(opn.toExpr());
             }
             Assert(sindex >= 0);
-            out << '.' << sindex;
+            out << sindex;
           }
           else
           {
-            out << '.';
             toStream(out, opn, depth, types, false);
           }
           return;
