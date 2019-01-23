@@ -296,7 +296,7 @@
 
 ; Is this clause a unit clause w.r.t. the global assignment?
 ; This notion is defined as:
-;    * A clause where no literals are floating, and one is sat.
+;    * A clause where no literals are floating, and exactly one is sat.
 (program clause_is_unit_wrt_up_model ((c clause) (up_model clause)) bool
          (let c' (clause_dedup c)
          (do (clause_into_global up_model)
@@ -371,7 +371,7 @@
                 (UPCRBottom tt)
                 ((UPCRModel model) (is_operational_drat_proof_h f model pf))))
 
-; Is this a specified or operation DRAT proof of bottom for this formula?
+; Is this a specified or operational DRAT proof of bottom for this formula?
 (program is_drat_proof ((f cnf) (pf DRATProof)) bool
          (match (is_specified_drat_proof f pf)
                 (tt tt)
