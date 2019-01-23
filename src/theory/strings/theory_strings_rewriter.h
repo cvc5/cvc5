@@ -541,6 +541,52 @@ class TheoryStringsRewriter {
                                      bool isOverApprox = false);
 
   /**
+   * Checks whether it is always true that `a` is a strict subset of `b` in the
+   * multiset domain.
+   *
+   * Examples:
+   *
+   * a = (str.++ "A" x), b = (str.++ "A" x "B") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" x "AA") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" y "AA") ---> false
+   *
+   * @param a The term for which it should be checked if it is a strict subset
+   * of `b` in the multiset domain
+   * @param b The term for which it should be checked if it is a strict
+   * superset of `a` in the multiset domain
+   * @return True if it is always the case that `a` is a strict subset of `b`,
+   * false otherwise.
+   */
+  static bool checkEntailMultisetSubset(Node a, Node b);
+
+  /**
+   * Returns a character `c` if it is always the case that str.in.re(a, c*),
+   * i.e. if all possible values of `a` only consist of `c` characters, and the
+   * null node otherwise. If `a` is the empty string, the function returns an
+   * empty string.
+   *
+   * @param a The node to check for homogeneity
+   * @return If `a` is homogeneous, the only character that it may contain, the
+   * empty string if `a` is empty, and the null node otherwise
+   */
+  static Node checkEntailHomogeneousString(Node a);
+
+  /**
+   * Simplifies a given node `a` s.t. the result is a concatenation of string
+   * terms that can be interpreted as a multiset and which contains all
+   * multisets that `a` could form.
+   *
+   * Examples:
+   *
+   * (str.substr "AA" 0 n) ---> "AA"
+   * (str.replace "AAA" x "BB") ---> (str.++ "AAA" "BB")
+   *
+   * @param a The node to simplify
+   * @return A concatenation that can be interpreted as a multiset
+   */
+  static Node getMultisetApproximation(Node a);
+
+  /**
    * Checks whether assumption |= a >= 0 (if strict is false) or
    * assumption |= a > 0 (if strict is true), where assumption is an equality
    * assumption. The assumption must be in rewritten form.
