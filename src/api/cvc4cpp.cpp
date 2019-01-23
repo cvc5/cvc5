@@ -2451,16 +2451,11 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << "Only operator-style terms are created with mkTerm(), "
          "to create variables and constants see mkVar(), mkBoundVar(), "
          "and mkConst().";
-  if (nchildren)
-  {
-    const uint32_t n =
-        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
-    CVC4_API_KIND_CHECK_EXPECTED(n >= minArity(kind) && n <= maxArity(kind),
-                                 kind)
-        << "Terms with kind " << kindToString(kind) << " must have at least "
-        << minArity(kind) << " children and at most " << maxArity(kind)
-        << " children (the one under construction has " << n << ")";
-  }
+  CVC4_API_KIND_CHECK_EXPECTED(
+      nchildren >= minArity(kind) && nchildren <= maxArity(kind), kind)
+      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << minArity(kind) << " children and at most " << maxArity(kind)
+      << " children (the one under construction has " << nchildren << ")";
 }
 
 void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
@@ -2475,16 +2470,13 @@ void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
                                          == kind::metakind::PARAMETERIZED,
                               opTerm)
       << "This term constructor is for parameterized kinds only";
-  if (nchildren)
-  {
-    uint32_t min_arity = ExprManager::minArity(int_op_kind);
-    uint32_t max_arity = ExprManager::maxArity(int_op_kind);
-    CVC4_API_KIND_CHECK_EXPECTED(
-        nchildren >= min_arity && nchildren <= max_arity, kind)
-        << "Terms with kind " << kindToString(kind) << " must have at least "
-        << min_arity << " children and at most " << max_arity
-        << " children (the one under construction has " << nchildren << ")";
-  }
+  uint32_t min_arity = ExprManager::minArity(int_op_kind);
+  uint32_t max_arity = ExprManager::maxArity(int_op_kind);
+  CVC4_API_KIND_CHECK_EXPECTED(nchildren >= min_arity && nchildren <= max_arity,
+                               kind)
+      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << min_arity << " children and at most " << max_arity
+      << " children (the one under construction has " << nchildren << ")";
 }
 
 Term Solver::mkTerm(Kind kind) const
