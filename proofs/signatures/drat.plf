@@ -229,21 +229,158 @@
                                  (collect_pseudo_resolvents cs c)))))))
 
 ; Is this proof a valid DRAT proof of bottom?
-(program is_drat_proof_of_bottom ((f cnf) (proof DRATProof)) bool
+(program is_specified_drat_proof ((f cnf) (proof DRATProof)) bool
          (match proof
                 (DRATProofn (cnf_has_bottom f))
                 ((DRATProofa c p) (match
                                     (is_rat f c)
-                                    (tt (is_drat_proof_of_bottom (cnfc c f) p))
+                                    (tt (is_specified_drat_proof (cnfc c f) p))
                                     (ff ff)))
                 ((DRATProofd c p)
-                 (is_drat_proof_of_bottom (cnf_remove_clause c f) p))))
+                 (is_specified_drat_proof (cnf_remove_clause c f) p))))
 
+
+; =============================== ;
+; Operational DRAT implementation ;
+; =============================== ;
+
+; Operation DRAT is defined in the paper "Two Flavors of DRAT".
+; Below is an extension of the DRAT signature to handle it.
+
+; Notes on types.
+; For operational DRAT it is useful to manifest partial assignments in values
+; (although we still use the global assignment in some places). To this end,
+; literals are used to represent single-variable assignments ((pos v) denotes
+; {v maps to true}) and clauses are partial assignments by way of being
+; literal lists.
+
+; Copy the partial assignment represented by a clause into the global
+; assignment. Fails if that clause represents an inconsistent partial
+; assignment (e.g. v is both true and false)
+(program clause_into_global ((a clause)) Unit
+         (match a
+                (cln unit)
+                ((clc l rest)
+                 (do (lit_mk_sat l) (clause_into_global rest)))))
+
+; Remove the partial assignment represented by c from the global assignment
+(program clause_undo_into_global ((a clause)) Unit
+         (match a
+                (cln unit)
+                ((clc l rest)
+                 (do (lit_un_mk_sat l) (clause_undo_into_global rest)))))
+
+; Does this clause have no floating literals w.r.t. the global assignment?
+(program clause_no_floating ((c clause)) bool
+         (match c
+                (cln tt)
+                ((clc l rest) (match (lit_is_floating l)
+                                    (tt ff)
+                                    (ff (clause_no_floating rest))))))
+
+; Does this clause have no sat literals w.r.t. the global assignment?
+(program clause_no_sat ((c clause)) bool
+         (match c
+                (cln tt)
+                ((clc l rest) (match (lit_is_sat l)
+                                    (tt ff)
+                                    (ff (clause_no_sat rest))))))
+
+; Does this clause have one sat literal w.r.t. the global assignment?
+(program clause_one_sat ((c clause)) bool
+         (match c
+                (cln ff)
+                ((clc l rest) (match (lit_is_sat l)
+                                    (tt (clause_no_sat rest))
+                                    (ff (clause_one_sat rest))))))
+
+; Is this clause a unit clause w.r.t. the global assignment?
+; This notion is defined as:
+;    * A clause where no literals are floating, and exactly one is sat.
+(program clause_is_unit_wrt_up_model ((c clause) (up_model clause)) bool
+         (let c' (clause_dedup c)
+         (do (clause_into_global up_model)
+           (let result (match (clause_no_floating c')
+                              (tt (clause_one_sat c'))
+                              (ff ff))
+             (do (clause_undo_into_global up_model)
+               result)))))
+
+; Result from constructing a UP model (defined in "Two Flavors of DRAT")
+; Technically, we're constructing the shared UP model -- the intersection of all
+; UP models.
+; Informally, this is just the partial assignment implied by UP.
+;
+; This type is necessary, because constructing a UP model can reveal an
+; inconsistent UP model -- one which assigns some variable to true and false.
+; This would break our machinery, so we special case it.
+(declare UPConstructionResult type)
+; An actual model
+(declare UPCRModel (! up_model clause UPConstructionResult))
+; Bottom is implied!
+(declare UPCRBottom UPConstructionResult)
+
+
+; Do unit propagation on `f`, constructing a UP model for it.
+(program build_up_model ((f cnf)) clause
+         (match (unit_search f)
+                (USRBottom UPCRBottom)
+                (USRNoUnit (UPCRModel cln))
+                ((USRUnit l f')
+                 (let result (build_up_model f')
+                   (do (lit_un_mk_sat l)
+                     (match result
+                            (UPCRBottom UPCRBottom)
+                            ((UPCRModel model) (UPCRModel (clc l model)))))))))
+
+; Given some starting assignment (`up_model`), continue UP to construct a larger
+; model.
+(program extend_up_model ((f cnf) (up_model clause)) clause
+         (do (clause_into_global up_model)
+           (let result (build_up_model f)
+             (do (clause_undo_into_global up_model)
+               (match result
+                      (UPCRBottom UPCRBottom)
+                      ((UPCRModel up_model')
+                       (UPCRModel (clause_append up_model up_model'))))))))
+
+; Helper for `is_operational_drat_proof` which takes a UP model for the working
+; formula. The UP model is important for determining which clause deletions
+; actually are executed in operational DRAT. Passing the UP model along
+; prevents it from being fully recomputed everytime.
+(program is_operational_drat_proof_h ((f cnf) (up_model clause) (pf DRATProof)) bool
+         (match pf
+                (DRATProofn (cnf_has_bottom f))
+                ((DRATProofd c pf')
+                 (match (clause_is_unit_wrt_up_model c up_model)
+                        (tt (is_operational_drat_proof_h f up_model pf'))
+                        (ff (is_operational_drat_proof_h
+                              (cnf_remove_clause c f) up_model pf'))))
+                ((DRATProofa c pf')
+                 (let f' (cnfc c f)
+                   (match (is_rat f c)
+                          (tt (match (extend_up_model f' up_model)
+                                     (UPCRBottom tt)
+                                     ((UPCRModel up_model')
+                                      (is_operational_drat_proof_h f' up_model' pf'))))
+                          (ff ff))))))
+
+; Is this an operational DRAT proof of bottom for this formula?
+(program is_operational_drat_proof ((f cnf) (pf DRATProof)) bool
+         (match (build_up_model f)
+                (UPCRBottom tt)
+                ((UPCRModel model) (is_operational_drat_proof_h f model pf))))
+
+; Is this a specified or operational DRAT proof of bottom for this formula?
+(program is_drat_proof ((f cnf) (pf DRATProof)) bool
+         (match (is_specified_drat_proof f pf)
+                (tt tt)
+                (ff (is_operational_drat_proof f pf))))
 
 (declare drat_proof_of_bottom
          (! f cnf
             (! proof_of_formula (cnf_holds f)
                (! proof DRATProof
-                  (! sc (^ (is_drat_proof_of_bottom f proof) tt)
+                  (! sc (^ (is_drat_proof f proof) tt)
                      bottom)))))
 
