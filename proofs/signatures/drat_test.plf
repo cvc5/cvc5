@@ -280,3 +280,155 @@
                (DRATProofd (clc (pos v2) (clc (pos v3) (clc (neg v4) cln)))
                (DRATProofa cln
                 DRATProofn)))))))))))))))
+
+; ===================================== ;
+; Test Suite from "Two Flavors of DRAT" ;
+; ===================================== ;
+
+; The paper includes a number of proofs which explore specified and operational
+; DRAT validity.
+
+; Our test predicate for asserting the specified and operational validity of
+; DRAT proofs
+(declare spec_oper_test
+         (! f cnf
+         (! proof DRATProof
+         (! spec_validity bool
+         (! oper_validity bool
+            (! sc (^ (bool_and
+                       (bool_eq (is_specified_drat_proof f proof) spec_validity)
+                       (bool_eq (is_operational_drat_proof f proof) oper_validity)
+                     ) tt)
+         TestSuccess))))))
+
+
+(declare x var)
+(declare y var)
+(declare z var)
+(declare w var)
+(define ex_1_formula
+  (cnfc (clc (pos x) (clc (pos y) (clc (pos z) cln)))
+  (cnfc (clc (neg x) (clc (pos y) (clc (pos z) cln)))
+  (cnfc (clc (pos x) (clc (neg y) (clc (pos z) cln)))
+  (cnfc (clc (neg x) (clc (neg y) (clc (pos z) cln)))
+  (cnfc (clc (pos x) (clc (pos y) (clc (neg z) cln)))
+  (cnfc (clc (neg x) (clc (pos y) (clc (neg z) cln)))
+  (cnfc (clc (pos x) (clc (neg y) (clc (neg z) cln)))
+  (cnfc (clc (neg x) (clc (neg y) (clc (neg z) cln)))
+        cnfn)))))))))
+
+; Spec-valid, operationally-invalid
+(define ex_1_pf_pi
+  (DRATProofa (clc (pos x) (clc (pos y) cln))
+  (DRATProofa (clc (pos x) cln)
+  (DRATProofa (clc (pos w) (clc (neg x) cln))
+  (DRATProofd (clc (pos w) (clc (neg x) cln))
+  (DRATProofa (clc (neg w) (clc (neg x) cln))
+  (DRATProofa (clc (pos w) (clc (pos x) cln))
+  (DRATProofa (clc (pos y) (clc (pos w) cln))
+  (DRATProofa cln
+              DRATProofn)))))))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_1_formula ex_1_pf_pi tt ff)))
+
+; Spec-invalid, operationally valid
+(define ex_1_pf_sigma
+  (DRATProofa (clc (pos x) (clc (pos y) cln))
+  (DRATProofa (clc (pos x) cln)
+  (DRATProofd (clc (pos x) cln)
+  (DRATProofa (clc (pos w) (clc (neg y) cln))
+  (DRATProofa (clc (neg w) (clc (neg y) cln))
+  (DRATProofa (clc (pos w) cln)
+  (DRATProofa cln
+              DRATProofn))))))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_1_formula ex_1_pf_sigma ff tt)))
+
+(declare x1 var)
+(declare x2 var)
+(declare x3 var)
+(declare x4 var)
+(declare x5 var)
+(declare x6 var)
+(declare x7 var)
+(declare x8 var)
+(declare x9 var)
+(declare x10 var)
+
+(define ex_2_formula
+  (cnfc (clc (pos x1) cln)
+  (cnfc (clc (neg x1) (clc (pos x2) cln))
+  (cnfc (clc (neg x1) (clc (neg x2) (clc (pos x3) cln)))
+  (cnfc (clc (neg x1) (clc (neg x3) (clc (pos x4) cln)))
+  (cnfc (clc (pos x5) (clc (pos x6) cln))
+  (cnfc (clc (neg x2) (clc (neg x5) (clc (pos x7) cln)))
+  (cnfc (clc (neg x1) (clc (neg x5) (clc (pos x6) cln)))
+  (cnfc (clc (neg x5) (clc (neg x6) (clc (pos x4) cln)))
+  (cnfc (clc (neg x3) (clc (neg x6) (clc (pos x8) cln)))
+  (cnfc (clc (neg x6) (clc (neg x4) (clc (pos x3) cln)))
+  (cnfc (clc (neg x8) (clc (pos x5) cln))
+  (cnfc (clc (neg x3) (clc (pos x9) (clc (pos x10) cln)))
+  (cnfc (clc (neg x4) (clc (neg x9) (clc (pos x10) cln)))
+  (cnfc (clc (neg x10) (clc (pos x9) cln))
+  (cnfc (clc (neg x9) (clc (pos x7) cln))
+  (cnfc (clc (neg x7) (clc (neg x8) (clc (neg x9) (clc (neg x10) cln))))
+        cnfn)))))))))))))))))
+
+; Spec-valid, operationally-valid
+(define ex_2_pf_tau
+  (DRATProofa (clc (pos x5) cln)
+  (DRATProofa (clc (pos x4) cln)
+  (DRATProofa (clc (pos x9) cln)
+  (DRATProofa cln
+              DRATProofn)))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_2_formula ex_2_pf_tau tt tt)))
+
+; Spec-valid, operationally unspecified in the paper, but its operationally valid.
+(define ex_3_pf_tau_prime
+  (DRATProofa (clc (pos x5) cln)
+  (DRATProofd (clc (neg x1) (clc (pos x2) cln))
+  (DRATProofa (clc (pos x9) cln)
+  (DRATProofa cln
+              DRATProofn)))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_2_formula ex_3_pf_tau_prime tt tt)))
+
+; Spec-invalid, operationally-invalid
+(define ex_4_pf_pi_prime
+  (DRATProofa (clc (pos x) (clc (pos y) cln))
+  (DRATProofa (clc (pos x) cln)
+  (DRATProofa (clc (pos w) (clc (neg x) cln))
+  (DRATProofa (clc (neg w) (clc (neg x) cln))
+  (DRATProofa (clc (pos w) (clc (pos x) cln))
+  (DRATProofa (clc (pos y) (clc (pos w) cln))
+  (DRATProofa cln
+              DRATProofn))))))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_1_formula ex_4_pf_pi_prime ff ff)))
+
+
+; Spec-valid, operationally valid
+(define ex_5_pf_sigma_prime
+  (DRATProofa (clc (pos x) (clc (pos y) cln))
+  (DRATProofa (clc (pos x) cln)
+  (DRATProofa (clc (pos w) (clc (neg y) cln))
+  (DRATProofa (clc (neg w) (clc (neg y) cln))
+  (DRATProofa (clc (pos w) cln)
+  (DRATProofa cln
+              DRATProofn)))))))
+
+(check
+  (: TestSuccess
+     (spec_oper_test ex_1_formula ex_5_pf_sigma_prime tt tt)))
+
