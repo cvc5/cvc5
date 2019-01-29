@@ -1166,6 +1166,23 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     }
   }
 
+  void testStripConstantEndpoints()
+  {
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+
+    {
+      // stripConstantEndpoints({ "" }, { "a" }, {}, {}, 0) ---> false
+      std::vector<Node> n1 = {empty};
+      std::vector<Node> n2 = {a};
+      std::vector<Node> nb;
+      std::vector<Node> ne;
+      bool res =
+          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      TS_ASSERT(!res);
+    }
+  }
+
  private:
   ExprManager* d_em;
   SmtEngine* d_smt;

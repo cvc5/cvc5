@@ -3596,6 +3596,12 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
       unsigned index1 = r == 0 ? 0 : n2.size() - 1;
       bool removeComponent = false;
       Node n1cmp = n1[index0];
+
+      if (n1cmp.isConst() && n1cmp.getConst<String>().size() == 0)
+      {
+        return false;
+      }
+
       std::vector<Node> sss;
       std::vector<Node> sls;
       n1cmp = decomposeSubstrChain(n1cmp, sss, sls);
