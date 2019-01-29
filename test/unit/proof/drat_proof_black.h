@@ -81,19 +81,19 @@ void DratProofBlack::testParseLiteralIsTooBig()
 {
   std::string input("a\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\xff\x7f\x00",
                     14);
-  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException);
+  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException&);
 }
 
 void DratProofBlack::testParseLiteralOverflow()
 {
   std::string input("a\x80", 2);
-  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException);
+  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException&);
 }
 
 void DratProofBlack::testParseClauseOverflow()
 {
   std::string input("a\x80\x01", 3);
-  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException);
+  TS_ASSERT_THROWS(DratProof::fromBinary(input), InvalidDratProofException&);
 }
 
 void DratProofBlack::testParseTwo()
