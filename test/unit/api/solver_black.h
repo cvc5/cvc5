@@ -69,6 +69,7 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkSepNil();
   void testMkString();
   void testMkTerm();
+  void testMkTermFromOpTerm();
   void testMkTrue();
   void testMkTuple();
   void testMkUninterpretedConst();
@@ -537,9 +538,7 @@ void SolverBlack::testMkTerm()
   std::vector<Term> v3 = {a, d_solver->mkTrue()};
   std::vector<Term> v4 = {d_solver->mkReal(1), d_solver->mkReal(2)};
   std::vector<Term> v5 = {d_solver->mkReal(1), Term()};
-  OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
-  OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
-  OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
+  std::vector<Term> v6 = {};
 
   // mkTerm(Kind kind) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(PI));
@@ -584,33 +583,112 @@ void SolverBlack::testMkTerm()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(EQUAL, v1));
   TS_ASSERT_THROWS(d_solver->mkTerm(EQUAL, v2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkTerm(EQUAL, v3), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(DISTINCT, v6), CVC4ApiException&);
+}
 
-  // mkTerm(OpTerm opTerm, Term child) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm1, a));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm2, a), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, Term()), CVC4ApiException&);
+void SolverBlack::testMkTermFromOpTerm()
+{
+  Sort bv32 = d_solver->mkBitVectorSort(32);
+  Term a = d_solver->mkVar("a", bv32);
+  Term b = d_solver->mkVar("b", bv32);
+  std::vector<Term> v1 = {d_solver->mkReal(1), d_solver->mkReal(2)};
+  std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
+  std::vector<Term> v3 = {};
+  // simple operator terms
+  OpTerm opterm1 = d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 2, 1);
+  OpTerm opterm2 = d_solver->mkOpTerm(DIVISIBLE_OP, 1);
+  OpTerm opterm3 = d_solver->mkOpTerm(CHAIN_OP, EQUAL);
+  // list datatype
+  Sort sort = d_solver->mkParamSort("T");
+  DatatypeDecl listDecl("paramlist", sort);
+  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl nil("nil");
+  DatatypeSelectorDecl head("head", sort);
+  DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
+  cons.addSelector(head);
+  cons.addSelector(tail);
+  listDecl.addConstructor(cons);
+  listDecl.addConstructor(nil);
+  Sort listSort = d_solver->mkDatatypeSort(listDecl);
+  Sort intListSort =
+      listSort.instantiate(std::vector<Sort>{d_solver->getIntegerSort()});
+  Term c = d_solver->declareFun("c", intListSort);
+  Datatype list = listSort.getDatatype();
+  // list datatype constructor and selector operator terms
+  OpTerm consTerm1 = list.getConstructorTerm("cons");
+  OpTerm consTerm2 = list.getConstructor("cons").getConstructorTerm();
+  OpTerm nilTerm1 = list.getConstructorTerm("nil");
+  OpTerm nilTerm2 = list.getConstructor("nil").getConstructorTerm();
+  OpTerm headTerm1 = list["cons"].getSelectorTerm("head");
+  OpTerm headTerm2 = list["cons"].getSelector("head").getSelectorTerm();
+  OpTerm tailTerm1 = list["cons"].getSelectorTerm("tail");
+  OpTerm tailTerm2 = list["cons"]["tail"].getSelectorTerm();
 
-  // mkTerm(OpTerm opTerm, Term child1, Term child2) const
+  // mkTerm(Kind kind, OpTerm opTerm) const
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm2));
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm2),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_CONSTRUCTOR, opterm1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_SELECTOR, headTerm1),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(APPLY_SELECTOR, tailTerm2),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1),
+                   CVC4ApiException&);
+
+  // mkTerm(Kind kind, OpTerm opTerm, Term child) const
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a));
   TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, d_solver->mkReal(1), Term()),
+      d_solver->mkTerm(DIVISIBLE, opterm2, d_solver->mkReal(1)));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, headTerm1, c));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(APPLY_SELECTOR, tailTerm2, c));
+  TS_ASSERT_THROWS(d_solver->mkTerm(DIVISIBLE, opterm1, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(DIVISIBLE, opterm2, a), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, Term()),
                    CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, Term(), d_solver->mkReal(1)),
-                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->mkTerm(APPLY_CONSTRUCTOR, consTerm1, d_solver->mkReal(0)),
+      CVC4ApiException&);
 
-  // mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
+  // mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(
-      opterm3, d_solver->mkReal(1), d_solver->mkReal(1), d_solver->mkReal(2)));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm1, a, b, a), CVC4ApiException&);
+      CHAIN, opterm3, d_solver->mkReal(1), d_solver->mkReal(2)));
+  TS_ASSERT_THROWS_NOTHING(
+      d_solver->mkTerm(APPLY_CONSTRUCTOR,
+                       consTerm1,
+                       d_solver->mkReal(0),
+                       d_solver->mkTerm(APPLY_CONSTRUCTOR, nilTerm1)));
+  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a, b),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->mkTerm(CHAIN, opterm3, d_solver->mkReal(1), Term()),
+      CVC4ApiException&);
+  TS_ASSERT_THROWS(
+      d_solver->mkTerm(CHAIN, opterm3, Term(), d_solver->mkReal(1)),
+      CVC4ApiException&);
+
+  // mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3)
+  // const
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(CHAIN,
+                                            opterm3,
+                                            d_solver->mkReal(1),
+                                            d_solver->mkReal(1),
+                                            d_solver->mkReal(2)));
+  TS_ASSERT_THROWS(d_solver->mkTerm(BITVECTOR_EXTRACT, opterm1, a, b, a),
+                   CVC4ApiException&);
   TS_ASSERT_THROWS(
       d_solver->mkTerm(
-          opterm3, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
+          CHAIN, opterm3, d_solver->mkReal(1), d_solver->mkReal(1), Term()),
       CVC4ApiException&);
 
   // mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(opterm3, v4));
-  TS_ASSERT_THROWS(d_solver->mkTerm(opterm3, v5), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(CHAIN, opterm3, v1));
+  TS_ASSERT_THROWS(d_solver->mkTerm(CHAIN, opterm3, v2), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkTerm(CHAIN, opterm3, v3), CVC4ApiException&);
 }
 
 void SolverBlack::testMkTrue()

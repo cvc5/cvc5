@@ -24,9 +24,8 @@ using namespace CVC4::api;
 
 int main()
 {
-
   Solver slv;
-  slv.setLogic("QF_BV"); // Set the logic
+  slv.setLogic("QF_BV");  // Set the logic
 
   // The following example has been adapted from the book A Hacker's Delight by
   // Henry S. Warren.
@@ -64,8 +63,9 @@ int main()
   slv.assertFormula(assumption);
 
   // Introduce a new variable for the new value of x after assignment.
-  Term new_x = slv.mkVar("new_x", bitvector32); // x after executing code (0)
-  Term new_x_ = slv.mkVar("new_x_", bitvector32); // x after executing code (1) or (2)
+  Term new_x = slv.mkVar("new_x", bitvector32);  // x after executing code (0)
+  Term new_x_ =
+      slv.mkVar("new_x_", bitvector32);  // x after executing code (1) or (2)
 
   // Encoding code (0)
   // new_x = x == a ? b : a;
@@ -114,9 +114,9 @@ int main()
   cout << " Expect invalid. " << endl;
   cout << " CVC4: " << slv.checkValidAssuming(v) << endl;
 
-  // Assert that a is odd 
+  // Assert that a is odd
   OpTerm extract_op = slv.mkOpTerm(BITVECTOR_EXTRACT_OP, 0, 0);
-  Term  lsb_of_a = slv.mkTerm(extract_op, a);
+  Term lsb_of_a = slv.mkTerm(BITVECTOR_EXTRACT, extract_op, a);
   cout << "Sort of " << lsb_of_a << " is " << lsb_of_a.getSort() << endl;
   Term a_odd = slv.mkTerm(EQUAL, lsb_of_a, slv.mkBitVector(1u, 1u));
   cout << "Assert " << a_odd << endl;
