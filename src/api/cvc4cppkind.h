@@ -1652,27 +1652,27 @@ enum CVC4_PUBLIC Kind : int32_t
    *   -[1]: Constructor
    *   -[2]..[n]: Parameters to the constructor
    * Create with:
-   *   mkTerm(Kind kind)
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY_SELECTOR,
-  /**
-   * Datatype selector application.
-   * Parameters: 1
-   *   -[1]: Datatype term (undefined if mis-applied)
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3)
+   *   mkTerm(Kind kind, OpTerm opTerm, const std::vector<Term>& children)
    */
   APPLY_CONSTRUCTOR,
   /**
    * Datatype selector application.
    * Parameters: 1
+   *   -[1]: Datatype term (undefined if mis-applied)
+   * Create with:
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
+   */
+  APPLY_SELECTOR,
+  /**
+   * Datatype selector application.
+   * Parameters: 1
    *   -[1]: Datatype term (defined rigidly if mis-applied)
    * Create with:
-   *   mkTerm(Kind kind, Term child)
+   *   mkTerm(Kind kind, OpTerm opTerm, Term child)
    */
   APPLY_SELECTOR_TOTAL,
   /**
