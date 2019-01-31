@@ -274,7 +274,7 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
           // (@ x y) matching (@ t (@ t s))
           // where the above substitution would produce (@ x (@ x s)),
           // but the argument should be (@ t s).
-          args[k] = args[k].substitute(var,value);
+          args[k] = args[k].substitute(var, value);
           Node val = args[k];
           std::map<unsigned, Node>::iterator itf = fixed_vals.find(k);
           if (itf == fixed_vals.end())
