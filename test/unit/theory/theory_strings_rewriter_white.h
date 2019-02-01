@@ -495,6 +495,7 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
 
     Node empty = d_nm->mkConst(::CVC4::String(""));
     Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node ab = d_nm->mkConst(::CVC4::String("AB"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node c = d_nm->mkConst(::CVC4::String("C"));
     Node d = d_nm->mkConst(::CVC4::String("D"));
@@ -625,6 +626,19 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                              b);
     repl = d_nm->mkNode(kind::STRING_STRREPL, b, x, b);
     differentNormalForms(repl_repl, repl);
+
+    {
+      // Same normal form:
+      //
+      // (str.replace (str.++ "AB" x) "C" y)
+      //
+      // (str.++ "AB" (str.replace x "C" y))
+      Node lhs = d_nm->mkNode(
+          kind::STRING_STRREPL, d_nm->mkNode(kind::STRING_CONCAT, ab, x), c, y);
+      Node rhs = d_nm->mkNode(
+          kind::STRING_CONCAT, ab, d_nm->mkNode(kind::STRING_STRREPL, x, c, y));
+      sameNormalForm(lhs, rhs);
+    }
   }
 
   void testRewriteContains()

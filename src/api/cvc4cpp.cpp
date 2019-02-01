@@ -1444,6 +1444,14 @@ DatatypeSelector::DatatypeSelector(const CVC4::DatatypeConstructorArg& stor)
 
 DatatypeSelector::~DatatypeSelector() {}
 
+bool DatatypeSelector::isResolved() const { return d_stor->isResolved(); }
+
+OpTerm DatatypeSelector::getSelectorTerm() const
+{
+  CVC4_API_CHECK(isResolved()) << "Expected resolved datatype selector.";
+  return d_stor->getSelector();
+}
+
 std::string DatatypeSelector::toString() const
 {
   std::stringstream ss;
@@ -1478,10 +1486,10 @@ DatatypeConstructor::~DatatypeConstructor() {}
 
 bool DatatypeConstructor::isResolved() const { return d_ctor->isResolved(); }
 
-Term DatatypeConstructor::getConstructorTerm() const
+OpTerm DatatypeConstructor::getConstructorTerm() const
 {
   CVC4_API_CHECK(isResolved()) << "Expected resolved datatype constructor.";
-  return Term(d_ctor->getConstructor());
+  return OpTerm(d_ctor->getConstructor());
 }
 
 DatatypeSelector DatatypeConstructor::operator[](const std::string& name) const
@@ -1498,7 +1506,7 @@ DatatypeSelector DatatypeConstructor::getSelector(const std::string& name) const
   return (*d_ctor)[name];
 }
 
-Term DatatypeConstructor::getSelectorTerm(const std::string& name) const
+OpTerm DatatypeConstructor::getSelectorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
@@ -1627,7 +1635,7 @@ DatatypeConstructor Datatype::getConstructor(const std::string& name) const
   return (*d_dtype)[name];
 }
 
-Term Datatype::getConstructorTerm(const std::string& name) const
+OpTerm Datatype::getConstructorTerm(const std::string& name) const
 {
   // CHECK: cons with name exists?
   // CHECK: is resolved?
@@ -2451,40 +2459,41 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       << "Only operator-style terms are created with mkTerm(), "
          "to create variables and constants see mkVar(), mkBoundVar(), "
          "and mkConst().";
-  if (nchildren)
-  {
-    const uint32_t n =
-        nchildren - (mk == CVC4::kind::metakind::PARAMETERIZED ? 1 : 0);
-    CVC4_API_KIND_CHECK_EXPECTED(n >= minArity(kind) && n <= maxArity(kind),
-                                 kind)
-        << "Terms with kind " << kindToString(kind) << " must have at least "
-        << minArity(kind) << " children and at most " << maxArity(kind)
-        << " children (the one under construction has " << n << ")";
-  }
+  CVC4_API_KIND_CHECK_EXPECTED(
+      nchildren >= minArity(kind) && nchildren <= maxArity(kind), kind)
+      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << minArity(kind) << " children and at most " << maxArity(kind)
+      << " children (the one under construction has " << nchildren << ")";
 }
 
-void Solver::checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const
+void Solver::checkMkOpTerm(Kind kind, OpTerm opTerm, uint32_t nchildren) const
 {
-  const Kind kind = opTerm.getKind();
   Assert(isDefinedIntKind(extToIntKind(kind)));
   const CVC4::Kind int_kind = extToIntKind(kind);
-  const CVC4::Kind int_op_kind =
+  const CVC4::Kind int_op_kind = opTerm.d_expr->getKind();
+  const CVC4::Kind int_op_to_kind =
       NodeManager::operatorToKind(opTerm.d_expr->getNode());
-  CVC4_API_ARG_CHECK_EXPECTED(int_kind == kind::BUILTIN
-                                  || CVC4::kind::metaKindOf(int_op_kind)
-                                         == kind::metakind::PARAMETERIZED,
-                              opTerm)
+  CVC4_API_ARG_CHECK_EXPECTED(
+      int_kind == int_op_to_kind
+          || (kind == APPLY_CONSTRUCTOR
+              && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND)
+          || (kind == APPLY_SELECTOR
+              && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND)
+          || (kind == APPLY_UF && int_op_to_kind == CVC4::Kind::UNDEFINED_KIND),
+      kind)
+      << "kind that matches kind associated with given operator term";
+  CVC4_API_ARG_CHECK_EXPECTED(
+      int_op_kind == CVC4::kind::BUILTIN
+          || CVC4::kind::metaKindOf(int_kind) == kind::metakind::PARAMETERIZED,
+      opTerm)
       << "This term constructor is for parameterized kinds only";
-  if (nchildren)
-  {
-    uint32_t min_arity = ExprManager::minArity(int_op_kind);
-    uint32_t max_arity = ExprManager::maxArity(int_op_kind);
-    CVC4_API_KIND_CHECK_EXPECTED(
-        nchildren >= min_arity && nchildren <= max_arity, kind)
-        << "Terms with kind " << kindToString(kind) << " must have at least "
-        << min_arity << " children and at most " << max_arity
-        << " children (the one under construction has " << nchildren << ")";
-  }
+  uint32_t min_arity = ExprManager::minArity(int_kind);
+  uint32_t max_arity = ExprManager::maxArity(int_kind);
+  CVC4_API_KIND_CHECK_EXPECTED(nchildren >= min_arity && nchildren <= max_arity,
+                               kind)
+      << "Terms with kind " << kindToString(kind) << " must have at least "
+      << min_arity << " children and at most " << max_arity
+      << " children (the one under construction has " << nchildren << ")";
 }
 
 Term Solver::mkTerm(Kind kind) const
@@ -2611,13 +2620,13 @@ Term Solver::mkTerm(Kind kind, const std::vector<Term>& children) const
   }
 }
 
-Term Solver::mkTerm(OpTerm opTerm, Term child) const
+Term Solver::mkTerm(Kind kind, OpTerm opTerm) const
 {
   try
   {
-    CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
-    checkMkOpTerm(opTerm, 1);
-    Term res = d_exprMgr->mkExpr(*opTerm.d_expr, *child.d_expr);
+    checkMkOpTerm(kind, opTerm, 0);
+    const CVC4::Kind int_kind = extToIntKind(kind);
+    Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2627,15 +2636,33 @@ Term Solver::mkTerm(OpTerm opTerm, Term child) const
   }
 }
 
-Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
+Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child) const
+{
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!child.isNull(), child) << "non-null term";
+    checkMkOpTerm(kind, opTerm, 1);
+    const CVC4::Kind int_kind = extToIntKind(kind);
+    Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, *child.d_expr);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
+  }
+  catch (const CVC4::TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
+}
+
+Term Solver::mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
     CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
-    checkMkOpTerm(opTerm, 2);
-    Term res =
-        d_exprMgr->mkExpr(*opTerm.d_expr, *child1.d_expr, *child2.d_expr);
+    checkMkOpTerm(kind, opTerm, 2);
+    const CVC4::Kind int_kind = extToIntKind(kind);
+    Term res = d_exprMgr->mkExpr(
+        int_kind, *opTerm.d_expr, *child1.d_expr, *child2.d_expr);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2645,16 +2672,21 @@ Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2) const
   }
 }
 
-Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
+Term Solver::mkTerm(
+    Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!child1.isNull(), child1) << "non-null term";
     CVC4_API_ARG_CHECK_EXPECTED(!child2.isNull(), child2) << "non-null term";
     CVC4_API_ARG_CHECK_EXPECTED(!child3.isNull(), child3) << "non-null term";
-    checkMkOpTerm(opTerm, 3);
-    Term res = d_exprMgr->mkExpr(
-        *opTerm.d_expr, *child1.d_expr, *child2.d_expr, *child3.d_expr);
+    checkMkOpTerm(kind, opTerm, 3);
+    const CVC4::Kind int_kind = extToIntKind(kind);
+    Term res = d_exprMgr->mkExpr(int_kind,
+                                 *opTerm.d_expr,
+                                 *child1.d_expr,
+                                 *child2.d_expr,
+                                 *child3.d_expr);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2664,7 +2696,9 @@ Term Solver::mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const
   }
 }
 
-Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
+Term Solver::mkTerm(Kind kind,
+                    OpTerm opTerm,
+                    const std::vector<Term>& children) const
 {
   try
   {
@@ -2674,9 +2708,10 @@ Term Solver::mkTerm(OpTerm opTerm, const std::vector<Term>& children) const
           !children[i].isNull(), "parameter term", children[i], i)
           << "non-null term";
     }
-    checkMkOpTerm(opTerm, children.size());
+    checkMkOpTerm(kind, opTerm, children.size());
+    const CVC4::Kind int_kind = extToIntKind(kind);
     std::vector<Expr> echildren = termVectorToExprs(children);
-    Term res = d_exprMgr->mkExpr(*opTerm.d_expr, echildren);
+    Term res = d_exprMgr->mkExpr(int_kind, *opTerm.d_expr, echildren);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2691,16 +2726,26 @@ Term Solver::mkTuple(const std::vector<Sort>& sorts,
 {
   CVC4_API_CHECK(sorts.size() == terms.size())
       << "Expected the same number of sorts and elements";
-  std::vector<Term> args;
-  for (size_t i = 0, size = sorts.size(); i < size; i++)
+  try
   {
-    args.push_back(ensureTermSort(terms[i], sorts[i]));
-  }
+    std::vector<CVC4::Expr> args;
+    for (size_t i = 0, size = sorts.size(); i < size; i++)
+    {
+      args.push_back(*(ensureTermSort(terms[i], sorts[i])).d_expr);
+    }
 
-  Sort s = mkTupleSort(sorts);
-  Datatype dt = s.getDatatype();
-  args.insert(args.begin(), dt[0].getConstructorTerm());
-  return mkTerm(APPLY_CONSTRUCTOR, args);
+    Sort s = mkTupleSort(sorts);
+    Datatype dt = s.getDatatype();
+    Term res = d_exprMgr->mkExpr(extToIntKind(APPLY_CONSTRUCTOR),
+                                 *dt[0].getConstructorTerm().d_expr,
+                                 args);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
+  }
+  catch (const CVC4::TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 std::vector<Expr> Solver::termVectorToExprs(
@@ -3458,28 +3503,32 @@ void Solver::setOption(const std::string& option,
   }
 }
 
-Term Solver::ensureTermSort(const Term& t, const Sort& s) const
+Term Solver::ensureTermSort(const Term& term, const Sort& sort) const
 {
-  CVC4_API_CHECK(t.getSort() == s || (t.getSort().isInteger() && s.isReal()))
+  CVC4_API_CHECK(term.getSort() == sort
+                 || (term.getSort().isInteger() && sort.isReal()))
       << "Expected conversion from Int to Real";
 
-  if (t.getSort() == s)
+  Sort t = term.getSort();
+  if (term.getSort() == sort)
   {
-    return t;
+    return term;
   }
 
   // Integers are reals, too
-  Assert(t.getSort().isReal());
-  Term res = t;
-  if (t.getSort().isInteger())
+  Assert(t.isReal());
+  Term res = term;
+  if (t.isInteger())
   {
     // Must cast to Real to ensure correct type is passed to parametric type
     // constructors. We do this cast using division with 1. This has the
     // advantage wrt using TO_REAL since (constant) division is always included
     // in the theory.
-    res = mkTerm(DIVISION, *t.d_expr, mkReal(1));
+    res = Term(d_exprMgr->mkExpr(extToIntKind(DIVISION),
+                                 *res.d_expr,
+                                 d_exprMgr->mkConst(CVC4::Rational(1))));
   }
-  Assert(res.getSort() == s);
+  Assert(res.getSort() == sort);
   return res;
 }
 

@@ -2373,19 +2373,6 @@ Node TheoryStringsRewriter::rewriteReplace( Node node ) {
       {
         return returnRewrite(node, node[0], "rpl-const-nfind");
       }
-      // if no overlap, we can pull the first child
-      if (s.overlap(t) == 0)
-      {
-        std::vector<Node> spl(children0.begin() + 1, children0.end());
-        Node ret = NodeManager::currentNM()->mkNode(
-            kind::STRING_CONCAT,
-            children0[0],
-            NodeManager::currentNM()->mkNode(kind::STRING_STRREPL,
-                                             mkConcat(kind::STRING_CONCAT, spl),
-                                             node[1],
-                                             node[2]));
-        return returnRewrite(node, ret, "rpl-prefix-nfind");
-      }
     }
     else
     {
