@@ -2041,8 +2041,7 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
         if( node[0][i].isConst() ){
           CVC4::String s = node[0][i].getConst<String>();
           // if no overlap, we can split into disjunction
-          if (t.find(s) == std::string::npos && s.overlap(t) == 0
-              && t.overlap(s) == 0)
+          if (s.noOverlapWith(t))
           {
             std::vector<Node> nc0;
             getConcat(node[0], nc0);
@@ -2080,6 +2079,19 @@ Node TheoryStringsRewriter::rewriteContains( Node node ) {
   }
   else if (node[0].getKind() == kind::STRING_STRREPL)
   {
+    if (node[1].isConst() && node[0][1].isConst() && node[0][2].isConst())
+    {
+      String c = node[1].getConst<String>();
+      if (c.noOverlapWith(node[0][1].getConst<String>())
+          && c.noOverlapWith(node[0][2].getConst<String>()))
+      {
+        // (str.contains (str.replace x c1 c2) c3) ---> (str.contains x c3)
+        // if there is no overlap between c1 and c3 and none between c2 and c3
+        Node ret = nm->mkNode(STRING_STRCTN, node[0][0], node[1]);
+        return returnRewrite(node, ret, "ctn-repl-cnsts-to-ctn");
+      }
+    }
+
     if (node[0][0] == node[0][2])
     {
       // (str.contains (str.replace x y x) y) ---> (str.contains x y)
