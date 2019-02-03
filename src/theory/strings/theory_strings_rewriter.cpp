@@ -1245,8 +1245,11 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     bool allSigmaStrict = true;
     unsigned allSigmaMinSize = 0;
     Node constStr;
-    for (const Node& rc : r)
+    size_t constIdx = 0;
+    size_t nchildren = r.getNumChildren();
+    for (size_t i = 0; i < nchildren; i++)
     {
+      Node rc = r[i];
       Assert(rc.getKind() != kind::REGEXP_EMPTY);
       if (rc.getKind() == kind::REGEXP_SIGMA)
       {
@@ -1261,6 +1264,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         if (constStr.isNull())
         {
           constStr = rc[0];
+          constIdx = i;
         }
         else
         {
@@ -1284,7 +1288,8 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
         return returnRewrite(node, retNode, "re-concat-pure-allchar");
       }
-      else if (allSigmaMinSize == 0)
+      else if (allSigmaMinSize == 0 && nchildren >= 3 && constIdx != 0
+               && constIdx != nchildren - 1)
       {
         // x in re.++(_*, "abc", _*) ---> str.contains(x, "abc")
         retNode = nm->mkNode(STRING_STRCTN, x, constStr);
