@@ -650,6 +650,9 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node a = d_nm->mkConst(::CVC4::String("A"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node c = d_nm->mkConst(::CVC4::String("C"));
+    Node abc = d_nm->mkConst(::CVC4::String("ABC"));
+    Node def = d_nm->mkConst(::CVC4::String("DEF"));
+    Node ghi = d_nm->mkConst(::CVC4::String("GHI"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
     Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
@@ -887,6 +890,45 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                               d_nm->mkNode(kind::STRING_CONCAT, x, a),
                               d_nm->mkNode(kind::STRING_CONCAT, b, x));
       sameNormalForm(ctn, f);
+    }
+
+    {
+      // Same normal form for:
+      //
+      // (str.contains (str.replace x "ABC" "DEF") "GHI")
+      //
+      // (str.contains x "GHI")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, abc, def),
+                         ghi);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, ghi);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.contains (str.replace x "ABC" "DEF") "B")
+      //
+      // (str.contains x "B")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, abc, def),
+                         b);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, b);
+      differentNormalForms(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.contains (str.replace x "B" "DEF") "ABC")
+      //
+      // (str.contains x "ABC")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, b, def),
+                         abc);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      differentNormalForms(lhs, rhs);
     }
   }
 
