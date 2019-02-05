@@ -1100,7 +1100,7 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
             its = d_sampler[a].find(tn);
           }
           // check equivalent
-          its->second.checkEquivalent(bv,bvr);
+          its->second.checkEquivalent(bv, bvr);
         }
       }
 

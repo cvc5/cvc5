@@ -314,15 +314,15 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
     Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
     if (options::sygusRewVerify())
     {
-      if( bn!=bnr )
+      if (bn != bnr)
       {
-        if( !d_sampleRrVInit )
+        if (!d_sampleRrVInit)
         {
           d_sampleRrVInit = true;
           d_samplerRrV.initializeSygus(
-                d_tds, d_enum, options::sygusSamples(), false);
+              d_tds, d_enum, options::sygusSamples(), false);
         }
-        d_samplerRrV.checkEquivalent(bn,bnr);
+        d_samplerRrV.checkEquivalent(bn, bnr);
       }
     }
     // must be unique up to rewriting

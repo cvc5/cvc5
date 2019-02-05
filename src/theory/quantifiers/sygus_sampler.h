@@ -165,12 +165,13 @@ class SygusSampler : public LazyTrieEvaluator
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
   //--------------------------end queries about terms
-  /** check equivalent 
-   * 
+  /** check equivalent
+   *
    * Check whether bv and bvr are equivalent on all sample points, print
    * an error if not. Used with --sygus-rr-verify.
    */
-  void checkEquivalent( Node bv, Node bvr );
+  void checkEquivalent(Node bv, Node bvr);
+
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
