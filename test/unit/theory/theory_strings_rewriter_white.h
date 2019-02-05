@@ -1220,17 +1220,47 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
           d_nm->mkNode(kind::STRING_CONCAT, x, b));
       sameNormalForm(eq, f);
     }
+
+    {
+      // (= (str.++ "A" (int.to.str n)) "A") -/-> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(
+              kind::STRING_CONCAT, a, d_nm->mkNode(kind::STRING_ITOS, n)),
+          a);
+      differentNormalForms(eq, f);
+    }
   }
 
   void testStripConstantEndpoints()
   {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
     Node empty = d_nm->mkConst(::CVC4::String(""));
     Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node ab = d_nm->mkConst(::CVC4::String("AB"));
+    Node cd = d_nm->mkConst(::CVC4::String("CD"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node n = d_nm->mkVar("n", intType);
 
     {
-      // stripConstantEndpoints({ "" }, { "a" }, {}, {}, 0) ---> false
+      // stripConstantEndpoints({ "" }, { "A" }, {}, {}, 0) ---> false
       std::vector<Node> n1 = {empty};
       std::vector<Node> n2 = {a};
+      std::vector<Node> nb;
+      std::vector<Node> ne;
+      bool res =
+          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      TS_ASSERT(!res);
+    }
+
+    {
+      // stripConstantEndpoints({ "A" }, { "A". (int.to.str n) }, {}, {}, 0)
+      // ---> false
+      std::vector<Node> n1 = {a};
+      std::vector<Node> n2 = {a, d_nm->mkNode(kind::STRING_ITOS, n)};
       std::vector<Node> nb;
       std::vector<Node> ne;
       bool res =
