@@ -165,7 +165,10 @@ class SygusSampler : public LazyTrieEvaluator
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
   //--------------------------end queries about terms
-
+  /** check equivalent 
+   * 
+   */
+  void checkEquivalent( Node bv, Node bvr );
  protected:
   /** sygus term database of d_qe */
   TermDbSygus* d_tds;
