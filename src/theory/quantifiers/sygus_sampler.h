@@ -167,6 +167,8 @@ class SygusSampler : public LazyTrieEvaluator
   //--------------------------end queries about terms
   /** check equivalent 
    * 
+   * Check whether bv and bvr are equivalent on all sample points, print
+   * an error if not. Used with --sygus-rr-verify.
    */
   void checkEquivalent( Node bv, Node bvr );
  protected:
