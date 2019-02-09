@@ -76,7 +76,11 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkUniverseSet();
   void testMkVar();
 
+  void testDeclareConst();
+  void testDeclareDatatype();
   void testDeclareFun();
+  void testDeclareSort();
+
   void testDefineFun();
   void testDefineFunRec();
   void testDefineFunsRec();
@@ -733,6 +737,34 @@ void SolverBlack::testMkVar()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkVar("", funSort));
 }
 
+void SolverBlack::testDeclareConst()
+{
+  Sort boolSort = d_solver->getBooleanSort();
+  Sort intSort = d_solver->getIntegerSort();
+  Sort funSort = d_solver->mkFunctionSort(intSort, boolSort);
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst(std::string("b"), boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst(std::string("i"), intSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst("f", funSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst("", funSort));
+  TS_ASSERT_THROWS(d_solver->declareConst("a", Sort()), CVC4ApiException&);
+}
+
+void SolverBlack::testDeclareDatatype()
+{
+  DatatypeConstructorDecl cons("cons");
+  DatatypeConstructorDecl nil("nil");
+  std::vector<DatatypeConstructorDecl> ctors1 = {nil};
+  std::vector<DatatypeConstructorDecl> ctors2 = {cons, nil};
+  std::vector<DatatypeConstructorDecl> ctors3;
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("a"), ctors1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string("b"), ctors2));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareDatatype(std::string(""), ctors2));
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string("c"), ctors3),
+                   CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->declareDatatype(std::string(""), ctors3),
+                   CVC4ApiException&);
+}
+
 void SolverBlack::testDeclareFun()
 {
   Sort bvSort = d_solver->mkBitVectorSort(32);
@@ -746,6 +778,13 @@ void SolverBlack::testDeclareFun()
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareFun("f5", {bvSort, bvSort}, funSort),
                    CVC4ApiException&);
+}
+
+void SolverBlack::testDeclareSort()
+{
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareSort("s", 0));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareSort("s", 2));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareSort("", 2));
 }
 
 void SolverBlack::testDefineFun()
