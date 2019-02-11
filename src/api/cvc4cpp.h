@@ -1456,6 +1456,16 @@ std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl) CVC4_PUBLIC;
 
 /**
+ * Serialize a vector of datatype constructor declarations to given stream.
+ * @param out the output stream
+ * @param vector the vector of datatype constructor declarations to be
+ * serialized to the given stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<DatatypeConstructorDecl>& vector);
+
+/**
  * Serialize a datatype selector declaration to given stream.
  * @param out the output stream
  * @param stordecl the datatype selector declaration to be serialized
