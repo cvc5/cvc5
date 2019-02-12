@@ -3675,26 +3675,6 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             overlap = s.size() - ret;
           }
         }
-        else if (n2[index1].getKind() == kind::STRING_ITOS)
-        {
-          const std::vector<unsigned>& svec = s.getVec();
-          // can remove up to the first occurrence of a digit
-          unsigned svsize = svec.size();
-          for (unsigned i = 0; i < svsize; i++)
-          {
-            unsigned sindex = r == 0 ? i : (svsize - 1) - i;
-            if (String::isDigit(svec[sindex]))
-            {
-              break;
-            }
-            else if (sss.empty())  // only if not substr
-            {
-              // e.g. str.contains( str.++( "a", x ), int.to.str(y) ) -->
-              // str.contains( x, int.to.str(y) )
-              overlap--;
-            }
-          }
-        }
         else
         {
           // inconclusive
