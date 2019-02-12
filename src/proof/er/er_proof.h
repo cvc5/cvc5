@@ -67,9 +67,9 @@ using TraceCheckIdx = size_t;
 /**
  * A single line in a TRACECHECK proof.
  *
- * Consists of a new clause, the index for that clause, and the indices for
- * preceding clauses which can be combined in a resolution chain to produce
- * this new clause.
+ * Consists of the index of a new clause, the literals of that clause, and the
+ * indices for preceding clauses which can be combined in a resolution chain to
+ * produce this new clause.
  */
 struct TraceCheckLine
 {
