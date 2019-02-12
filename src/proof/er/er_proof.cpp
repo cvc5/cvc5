@@ -147,19 +147,20 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
                  });
 
   // Step one, verify the formula starts the proof
-#ifdef CVC4_ASSERTIONS
-  for (size_t i = 0, n = usedClauses.size(); i < n; ++i)
+  if (Configuration::isAssertionBuild())
   {
-    Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
-    Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
-    Assert(d_tracecheck.d_lines[i].d_clause.size()
-           == usedClauses[i].second.size());
-    for (size_t j = 0, m = usedClauses[i].second.size(); j < m; ++j)
+    for (size_t i = 0, n = usedClauses.size(); i < n; ++i)
     {
-      Assert(usedClauses[i].second[j] == d_tracecheck.d_lines[i].d_clause[j]);
+      Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
+      Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
+      Assert(d_tracecheck.d_lines[i].d_clause.size()
+             == usedClauses[i].second.size());
+      for (size_t j = 0, m = usedClauses[i].second.size(); j < m; ++j)
+      {
+        Assert(usedClauses[i].second[j] == d_tracecheck.d_lines[i].d_clause[j]);
+      }
     }
   }
-#endif
 
   // Step two, identify definitions. They correspond to lines that follow the
   // input lines, are in bounds, and have no justifying chain.
