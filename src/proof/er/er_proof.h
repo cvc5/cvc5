@@ -36,6 +36,8 @@ namespace CVC4 {
 namespace proof {
 namespace er {
 
+using ClauseUseRecord = std::vector<std::pair<ClauseId, prop::SatClause>>;
+
 /**
  * A definition of the form:
  *    newVar <-> p v (~x_1 ^ ~x_2 ^ ... ^ ~x_n)
@@ -49,7 +51,6 @@ struct ErDefinition
         d_oldLiteral(oldLiteral),
         d_otherLiterals(otherLiterals)
   {
-    // That's all!
   }
 
   // newVar
@@ -77,7 +78,6 @@ struct TraceCheckLine
                  std::vector<TraceCheckIdx>&& chain)
       : d_idx(idx), d_clause(clause), d_chain(chain)
   {
-    // That's all
   }
 
   // The index of the new clause
@@ -85,7 +85,7 @@ struct TraceCheckLine
   // The new clause
   std::vector<prop::SatLiteral> d_clause;
   /**
-   * Indices of clauses which must be resolved to produce this new clause
+   * Indices of clauses which must be resolved to produce this new clause.
    * While the TRACECHECK format does not specify the order, we require them to
    * be in resolution-order.
    */
@@ -98,10 +98,7 @@ struct TraceCheckLine
 struct TraceCheckProof
 {
   static TraceCheckProof fromText(std::istream& in);
-  TraceCheckProof() : d_lines()
-  {
-    // That's all
-  }
+  TraceCheckProof() : d_lines() {}
 
   // The lines of this proof.
   std::vector<TraceCheckLine> d_lines;
@@ -122,9 +119,8 @@ class ErProof
    * @param usedClauses The CNF formula that we're deriving bottom from.
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
    */
-  static ErProof fromBinaryDratProof(
-      const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
-      const std::string& dratBinary);
+  static ErProof fromBinaryDratProof(const ClauseUseRecord& usedClauses,
+                                     const std::string& dratBinary);
 
   /**
    * Construct an ER proof from a TRACECHECK ER proof
@@ -135,8 +131,7 @@ class ErProof
    * @param usedClauses The CNF formula that we're deriving bottom from.
    * @param tracecheck  The TRACECHECK proof, as a stream.
    */
-  ErProof(const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
-          TraceCheckProof&& tracecheck);
+  ErProof(const ClauseUseRecord& usedClauses, TraceCheckProof&& tracecheck);
 
   /**
    * Write the ER proof as an LFSC value of type (holds cln).
@@ -165,10 +160,7 @@ class ErProof
   /**
    * Creates an empy ErProof.
    */
-  ErProof() : d_inputClauseIds(), d_definitions(), d_tracecheck()
-  {
-    // That's all!
-  }
+  ErProof() : d_inputClauseIds(), d_definitions(), d_tracecheck() {}
 
   /**
    * Computes the pivots on the basis of which an in-order resolution chain is

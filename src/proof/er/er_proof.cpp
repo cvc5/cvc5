@@ -10,6 +10,14 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief ER Proof Format
+ **
+ ** Declares C++ types that represent an ER/TRACECHECK proof.
+ ** Defines serialization for these types.
+ **
+ ** You can find details about the way ER is encoded in the TRACECHECK
+ ** format at these locations:
+ **    https://github.com/benjaminkiesl/drat2er
+ **    http://www.cs.utexas.edu/users/marijn/publications/ijcar18.pdf
  **/
 
 #include "proof/er/er_proof.h"
@@ -22,6 +30,7 @@
 #include <unordered_set>
 
 #include "base/cvc4_assert.h"
+#include "base/map_util.h"
 #include "proof/dimacs_printer.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/proof_manager.h"
@@ -71,9 +80,8 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
   return pf;
 }
 
-ErProof ErProof::fromBinaryDratProof(
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
-    const std::string& dratBinary)
+ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
+                                     const std::string& dratBinary)
 {
   std::ostringstream cmd;
   char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
@@ -119,12 +127,15 @@ ErProof ErProof::fromBinaryDratProof(
   ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
   tracecheckStream.close();
 
+  unlink(tracecheckFilename);
+  unlink(formulaFilename);
+  unlink(dratFilename);
+
   return proof;
 }
 
-ErProof::ErProof(
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
-    TraceCheckProof&& tracecheck)
+ErProof::ErProof(const ClauseUseRecord& usedClauses,
+                 TraceCheckProof&& tracecheck)
     : d_inputClauseIds(), d_definitions(), d_tracecheck(tracecheck)
 {
   // Step zero, save input clause Ids for future printing
@@ -136,6 +147,7 @@ ErProof::ErProof(
                  });
 
   // Step one, verify the formula starts the proof
+#ifdef CVC4_ASSERTIONS
   for (size_t i = 0, n = usedClauses.size(); i < n; ++i)
   {
     Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
@@ -147,27 +159,23 @@ ErProof::ErProof(
       Assert(usedClauses[i].second[j] == d_tracecheck.d_lines[i].d_clause[j]);
     }
   }
+#endif
 
   // Step two, identify definitions. They correspond to lines that follow the
   // input lines, are in bounds, and have no justifying chain.
-  for (size_t i = usedClauses.size();
-       i < d_tracecheck.d_lines.size()
-       && d_tracecheck.d_lines[i].d_chain.size() == 0;
-      )
+  for (size_t i = usedClauses.size(), n = d_tracecheck.d_lines.size();
+       i < n && d_tracecheck.d_lines[i].d_chain.size() == 0;)
   {
-    Assert(d_tracecheck.d_lines[i].d_clause.size() > 0);
-    Assert(!d_tracecheck.d_lines[i].d_clause[0].isNegated());
+    prop::SatClause c = d_tracecheck.d_lines[i].d_clause;
+    Assert(c.size() > 0);
+    Assert(c[0].isNegated());
 
     // Get the new variable of the definition -- the first variable of the
     // first clause
-    prop::SatVariable newVar =
-        d_tracecheck.d_lines[i].d_clause[0].getSatVariable();
+    prop::SatVariable newVar = c[0].getSatVariable();
 
     // The rest of the literals in the clause of the 'other literals' of the def
-    std::vector<prop::SatLiteral> otherLiterals;
-    std::copy(++d_tracecheck.d_lines[i].d_clause.begin(),
-              d_tracecheck.d_lines[i].d_clause.end(),
-              std::inserter(otherLiterals, otherLiterals.end()));
+    std::vector<prop::SatLiteral> otherLiterals{++c.begin(), c.end()};
 
     size_t nLinesForThisDef = 2 + otherLiterals.size();
     // Look at the negation of the second literal in the second clause to get
@@ -269,7 +277,7 @@ void ErProof::outputAsLfsc(std::ostream& os) const
       TraceCheckIdx clauseId = chain[i + 1];
       writeIdForClauseProof(os, clauseId);
       os << " ";
-      if (newVariables.find(pivotVar) != newVariables.end())
+      if (ContainsKey(newVariables, pivotVar))
       {
         // This is a defined variable
         os << "er.v" << pivotVar;
@@ -298,11 +306,15 @@ namespace {
 /**
  * Resolves two clauses
  *
- * @param dest one of the inputs, and the output too
+ * @param dest one of the inputs, and the output too. **This is an input and
+ *             output**
  * @param src the other input
  *
- * @return the unique literal that was resolve on, polarizes per its
- * occurrence in `dest`
+ * @return the unique literal that was resolved on, with the polarization that
+ *         it originally had in `dest`.
+ *
+ * For example, if dest = (1 3 -4 5) and src = (1 -3 5), then 3 is returned and
+ * after the call dest = (1 -4 5).
  */
 prop::SatLiteral resolveModify(
     std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>& dest,
@@ -334,12 +346,9 @@ std::vector<prop::SatLiteral> ErProof::computePivotsForChain(
 {
   std::vector<prop::SatLiteral> pivots;
 
-  std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
-      runningClause;
   const prop::SatClause& first = d_tracecheck.d_lines[chain[0] - 1].d_clause;
-  std::copy(first.begin(),
-            first.end(),
-            std::inserter(runningClause, runningClause.end()));
+  std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
+      runningClause{first.begin(), first.end()};
 
   for (auto idx = ++chain.cbegin(), end = chain.cend(); idx != end; ++idx)
   {
