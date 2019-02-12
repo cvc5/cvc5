@@ -662,7 +662,8 @@ class NonlinearExtension {
    */
   void getPolynomialApproximationBounds(Kind k,
                                         unsigned d,
-                                        std::vector<Node>& pbounds);
+                                        std::vector<Node>& pbounds
+                                       );
   /** polynomial approximation bounds
    *
    * This computes polynomial approximations P_l+[x], P_l-[x], P_u+[x], P_u-[x]
@@ -674,7 +675,8 @@ class NonlinearExtension {
   void getPolynomialApproximationBoundForArg(Kind k,
                                              Node c,
                                              unsigned d,
-                                             std::vector<Node>& pbounds);
+                                             std::vector<Node>& pbounds,
+                                        int concavity);
   /** cache of the above function */
   std::map<Kind, std::map<unsigned, std::vector<Node> > > d_poly_bounds;
   /** get transcendental function model bounds
@@ -683,7 +685,7 @@ class NonlinearExtension {
    * function application tf based on Taylor of degree 2*d, which is dependent
    * on the model value of its argument.
    */
-  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d);
+  std::pair<Node, Node> getTfModelBounds(Node tf, unsigned d, int concavity);
   /** is refinable transcendental function
    *
    * A transcendental function application is not refineable if its current
