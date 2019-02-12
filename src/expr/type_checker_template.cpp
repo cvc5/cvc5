@@ -16,9 +16,10 @@
 
 #line 18 "${template}"
 
-#include "expr/type_checker.h"
 #include "expr/node_manager.h"
 #include "expr/node_manager_attributes.h"
+#include "expr/type_checker.h"
+#include "expr/type_checker_util.h"
 
 ${typechecker_includes}
 
