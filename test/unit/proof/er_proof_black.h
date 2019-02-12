@@ -25,6 +25,7 @@
 #include "proof/clause_id.h"
 #include "proof/er/er_proof.h"
 #include "prop/sat_solver_types.h"
+#include "whitespace.h"
 
 using namespace CVC4;
 using namespace CVC4::proof::er;
@@ -42,22 +43,6 @@ class ErProofBlack : public CxxTest::TestSuite
   void testErTraceCheckOutput();
   void testErTraceCheckOutputMedium();
 };
-
-/**
- * Creates a new stream with whitespace removed.
- *
- * @param s the source string
- *
- * @return a string without whitespace
- */
-std::string filterWhitespace(const std::string& s)
-{
-  std::string out;
-  std::copy_if(s.cbegin(), s.cend(), std::inserter(out, out.end()), [](char c) {
-    return !std::isspace(c);
-  });
-  return out;
-}
 
 void ErProofBlack::testTraceCheckParse1Line()
 {

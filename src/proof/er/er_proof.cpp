@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -141,7 +141,7 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
   // Step zero, save input clause Ids for future printing
   std::transform(usedClauses.begin(),
                  usedClauses.end(),
-                 std::inserter(d_inputClauseIds, d_inputClauseIds.end()),
+                 std::back_inserter(d_inputClauseIds),
                  [](const std::pair<ClauseId, prop::SatClause>& pair) {
                    return pair.first;
                  });
@@ -168,7 +168,7 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
   {
     prop::SatClause c = d_tracecheck.d_lines[i].d_clause;
     Assert(c.size() > 0);
-    Assert(c[0].isNegated());
+    Assert(!c[0].isNegated());
 
     // Get the new variable of the definition -- the first variable of the
     // first clause

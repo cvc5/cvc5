@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -68,7 +68,7 @@ using TraceCheckIdx = size_t;
  * A single line in a TRACECHECK proof.
  *
  * Consists of a new clause, the index for that clause, and the indices for
- * preceeding clauses which can be combined in a resolution chain to produce
+ * preceding clauses which can be combined in a resolution chain to produce
  * this new clause.
  */
 struct TraceCheckLine
@@ -125,7 +125,7 @@ class ErProof
   /**
    * Construct an ER proof from a TRACECHECK ER proof
    *
-   * This basically just identifies groups lines which correspond to
+   * This basically just identifies groups of lines which correspond to
    * definitions, and extracts them.
    *
    * @param usedClauses The CNF formula that we're deriving bottom from.
@@ -158,7 +158,7 @@ class ErProof
 
  private:
   /**
-   * Creates an empy ErProof.
+   * Creates an empty ErProof.
    */
   ErProof() : d_inputClauseIds(), d_definitions(), d_tracecheck() {}
 
