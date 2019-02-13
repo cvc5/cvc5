@@ -102,12 +102,12 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Write the formula
   std::ofstream formStream(formulaFilename);
   printDimacs(formStream, usedClauses);
-  formStream.close();
+  unlink(formulaFilename);
 
   // Write the (binary) DRAT proof
   std::ofstream dratStream(dratFilename);
   dratStream << dratBinary;
-  dratStream.close();
+  unlink(dratFilename);
 
   // Invoke drat2er
 #if CVC4_USE_DRAT2ER
@@ -116,6 +116,7 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
                                              tracecheckFilename,
                                              false,
                                              drat2er::options::QUIET);
+
 #else
   Unimplemented(
       "ER proof production requires drat2er.\n"
@@ -125,11 +126,13 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Parse the resulting TRACECHECK proof into an ER proof.
   std::ifstream tracecheckStream(tracecheckFilename);
   ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
+  unlink(tracecheckFilename);
+
+  formStream.close();
+  dratStream.close();
   tracecheckStream.close();
 
-  unlink(tracecheckFilename);
-  unlink(formulaFilename);
-  unlink(dratFilename);
+
 
   return proof;
 }
@@ -181,6 +184,8 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
     size_t nLinesForThisDef = 2 + otherLiterals.size();
     // Look at the negation of the second literal in the second clause to get
     // the old literal
+    AlwaysAssert(d_tracecheck.d_lines.size() > i + 1,
+        "Malformed definition in TRACECHECK proof from drat2er");
     d_definitions.emplace_back(newVar,
                                ~d_tracecheck.d_lines[i + 1].d_clause[1],
                                std::move(otherLiterals));

@@ -25,7 +25,7 @@
 #include "proof/clause_id.h"
 #include "proof/er/er_proof.h"
 #include "prop/sat_solver_types.h"
-#include "whitespace.h"
+#include "utils.h"
 
 using namespace CVC4;
 using namespace CVC4::proof::er;

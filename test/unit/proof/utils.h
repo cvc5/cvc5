@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file whitespace.h
+/*! \file utils.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Alex Ozdemir
@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Utility for whitespace-oblivious comparison.
+ ** \brief Utilities for proof testing
  **/
 
 #include <algorithm>

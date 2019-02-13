@@ -20,7 +20,7 @@
 
 #include "proof/lrat/lrat_proof.h"
 #include "prop/sat_solver_types.h"
-#include "whitespace.h"
+#include "utils.h"
 
 using namespace CVC4::proof::lrat;
 using namespace CVC4::prop;
