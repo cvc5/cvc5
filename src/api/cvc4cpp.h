@@ -1703,14 +1703,6 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind) const;
 
   /**
-   * Create 0-ary term of given kind and sort.
-   * @param kind the kind of the term
-   * @param sort the sort argument to this kind
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, Sort sort) const;
-
-  /**
    * Create a unary term of given kind.
    * @param kind the kind of the term
    * @param child the child of the term

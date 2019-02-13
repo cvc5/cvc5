@@ -550,11 +550,6 @@ void SolverBlack::testMkTerm()
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(REGEXP_SIGMA));
   TS_ASSERT_THROWS(d_solver->mkTerm(CONST_BITVECTOR), CVC4ApiException&);
 
-  // mkTerm(Kind kind, Sort sort) const
-  TS_ASSERT_THROWS_NOTHING(
-      d_solver->mkTerm(SEP_NIL, d_solver->getBooleanSort()));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(SEP_NIL, Sort()));
-
   // mkTerm(Kind kind, Term child) const
   TS_ASSERT_THROWS_NOTHING(d_solver->mkTerm(NOT, d_solver->mkTrue()));
   TS_ASSERT_THROWS(d_solver->mkTerm(NOT, Term()), CVC4ApiException&);
