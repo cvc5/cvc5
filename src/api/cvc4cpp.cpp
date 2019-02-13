@@ -3003,15 +3003,6 @@ Sort Solver::declareDatatype(
 }
 
 /**
- *  ( declare-fun <symbol> () <sort> )
- */
-Term Solver::declareFun(const std::string& symbol, Sort sort) const
-{
-  Type type = *sort.d_type;
-  return d_exprMgr->mkVar(symbol, type);
-}
-
-/**
  *  ( declare-fun <symbol> ( <sort>* ) <sort> )
  */
 Term Solver::declareFun(const std::string& symbol,

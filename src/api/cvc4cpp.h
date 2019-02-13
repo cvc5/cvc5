@@ -2271,15 +2271,6 @@ class CVC4_PUBLIC Solver
                        const std::vector<DatatypeConstructorDecl>& ctors) const;
 
   /**
-   * Declare 0-arity function symbol.
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * @param symbol the name of the function
-   * @param sort the sort of the return value of this function
-   * @return the function
-   */
-  Term declareFun(const std::string& symbol, Sort sort) const;
-
-  /**
    * Declare n-ary function symbol.
    * SMT-LIB: ( declare-fun <symbol> ( <sort>* ) <sort> )
    * @param symbol the name of the function
