@@ -611,7 +611,7 @@ void SolverBlack::testMkTermFromOpTerm()
   Sort listSort = d_solver->mkDatatypeSort(listDecl);
   Sort intListSort =
       listSort.instantiate(std::vector<Sort>{d_solver->getIntegerSort()});
-  Term c = d_solver->declareFun("c", intListSort);
+  Term c = d_solver->declareConst("c", intListSort);
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
   OpTerm consTerm1 = list.getConstructorTerm("cons");
@@ -765,10 +765,10 @@ void SolverBlack::testDeclareFun()
   Sort bvSort = d_solver->mkBitVectorSort(32);
   Sort funSort = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                           d_solver->getIntegerSort());
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareFun("f1", bvSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareFun("f2", funSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->declareFun("f1", {}, bvSort));
   TS_ASSERT_THROWS_NOTHING(
       d_solver->declareFun("f3", {bvSort, d_solver->getIntegerSort()}, bvSort));
+  TS_ASSERT_THROWS(d_solver->declareFun("f2", {}, funSort), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareFun("f4", {bvSort, funSort}, bvSort),
                    CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->declareFun("f5", {bvSort, bvSort}, funSort),
@@ -795,9 +795,9 @@ void SolverBlack::testDefineFun()
   Term v1 = d_solver->mkBoundVar("v1", bvSort);
   Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
   Term v3 = d_solver->mkVar("v3", funSort2);
-  Term f1 = d_solver->declareFun("f1", funSort1);
-  Term f2 = d_solver->declareFun("f2", funSort2);
-  Term f3 = d_solver->declareFun("f3", bvSort);
+  Term f1 = d_solver->declareConst("f1", funSort1);
+  Term f2 = d_solver->declareConst("f2", funSort2);
+  Term f3 = d_solver->declareConst("f3", bvSort);
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("f", {}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("ff", {b1, b2}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun(f1, {b1, b11}, v1));
@@ -827,9 +827,9 @@ void SolverBlack::testDefineFunRec()
   Term v1 = d_solver->mkBoundVar("v1", bvSort);
   Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
   Term v3 = d_solver->mkVar("v3", funSort2);
-  Term f1 = d_solver->declareFun("f1", funSort1);
-  Term f2 = d_solver->declareFun("f2", funSort2);
-  Term f3 = d_solver->declareFun("f3", bvSort);
+  Term f1 = d_solver->declareConst("f1", funSort1);
+  Term f2 = d_solver->declareConst("f2", funSort2);
+  Term f3 = d_solver->declareConst("f3", bvSort);
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec("f", {}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec("ff", {b1, b2}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec(f1, {b1, b11}, v1));
@@ -863,9 +863,9 @@ void SolverBlack::testDefineFunsRec()
   Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
   Term v3 = d_solver->mkVar("v3", funSort2);
   Term v4 = d_solver->mkVar("v4", uSort);
-  Term f1 = d_solver->declareFun("f1", funSort1);
-  Term f2 = d_solver->declareFun("f2", funSort2);
-  Term f3 = d_solver->declareFun("f3", bvSort);
+  Term f1 = d_solver->declareConst("f1", funSort1);
+  Term f2 = d_solver->declareConst("f2", funSort2);
+  Term f3 = d_solver->declareConst("f3", bvSort);
   TS_ASSERT_THROWS_NOTHING(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v2}));
   TS_ASSERT_THROWS(
