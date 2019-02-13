@@ -1244,8 +1244,12 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     bool allSigma = true;
     bool allSigmaStrict = true;
     unsigned allSigmaMinSize = 0;
-    for (const Node& rc : r)
+    Node constStr;
+    size_t constIdx = 0;
+    size_t nchildren = r.getNumChildren();
+    for (size_t i = 0; i < nchildren; i++)
     {
+      Node rc = r[i];
       Assert(rc.getKind() != kind::REGEXP_EMPTY);
       if (rc.getKind() == kind::REGEXP_SIGMA)
       {
@@ -1255,6 +1259,19 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
       {
         allSigmaStrict = false;
       }
+      else if (rc.getKind() == STRING_TO_REGEXP)
+      {
+        if (constStr.isNull())
+        {
+          constStr = rc[0];
+          constIdx = i;
+        }
+        else
+        {
+          allSigma = false;
+          break;
+        }
+      }
       else
       {
         allSigma = false;
@@ -1263,10 +1280,21 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     }
     if (allSigma)
     {
-      Node num = nm->mkConst(Rational(allSigmaMinSize));
-      Node lenx = nm->mkNode(STRING_LENGTH, x);
-      retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
-      return returnRewrite(node, retNode, "re-concat-pure-allchar");
+      if (constStr.isNull())
+      {
+        // x in re.++(_*, _, _) ---> str.len(x) >= 2
+        Node num = nm->mkConst(Rational(allSigmaMinSize));
+        Node lenx = nm->mkNode(STRING_LENGTH, x);
+        retNode = nm->mkNode(allSigmaStrict ? EQUAL : GEQ, lenx, num);
+        return returnRewrite(node, retNode, "re-concat-pure-allchar");
+      }
+      else if (allSigmaMinSize == 0 && nchildren >= 3 && constIdx != 0
+               && constIdx != nchildren - 1)
+      {
+        // x in re.++(_*, "abc", _*) ---> str.contains(x, "abc")
+        retNode = nm->mkNode(STRING_STRCTN, x, constStr);
+        return returnRewrite(node, retNode, "re-concat-to-contains");
+      }
     }
   }else if( r.getKind()==kind::REGEXP_INTER || r.getKind()==kind::REGEXP_UNION ){
     std::vector< Node > mvec;
