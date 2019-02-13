@@ -43,23 +43,10 @@ using namespace CVC4;
 using namespace std;
 
 namespace CVC4 {
-
 namespace proof {
-  extern const char *const plf_signatures;
-}/* CVC4::proof namespace */
-
-namespace smt {
-
-class UnlinkProofFile {
-  string d_filename;
-public:
-  UnlinkProofFile(const char* filename) : d_filename(filename) {}
-  ~UnlinkProofFile() { unlink(d_filename.c_str()); }
-};/* class UnlinkProofFile */
-
-}/* CVC4::smt namespace */
-
-}/* CVC4 namespace */
+extern const char *const plf_signatures;
+}  // namespace proof
+}  // namespace CVC4
 
 void SmtEngine::checkProof() {
 
@@ -108,8 +95,11 @@ void SmtEngine::checkProof() {
     return;
   }
 
-  // ensure this temp file is removed after
-  smt::UnlinkProofFile unlinker(pfFile);
+  // unlink() only deletes files after all processes have closed that file, so
+  // it is safe to unlink the proof file here. This ensures that the proof file
+  // is deleted even if CVC4 crashes or is terminated externally (e.g. because
+  // of a timeout).
+  unlink(pfFile);
 
   ofstream pfStream(pfFile);
   pfStream << proof::plf_signatures << endl;
