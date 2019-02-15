@@ -552,7 +552,7 @@ void TheoryDatatypes::finishInit() {
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   switch( n.getKind() ){
   case kind::APPLY_SELECTOR: {
     Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
