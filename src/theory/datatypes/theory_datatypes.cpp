@@ -552,6 +552,7 @@ void TheoryDatatypes::finishInit() {
 }
 
 Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
+  NodeManager * nm = NodeManager::currentNM();
   switch( n.getKind() ){
   case kind::APPLY_SELECTOR: {
     Trace("dt-expand") << "Dt Expand definition : " << n << std::endl;
@@ -596,16 +597,16 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     }
   }
     break;
-    case kind::TUPLE_UPDATE:
-    case kind::RECORD_UPDATE:
+    case TUPLE_UPDATE:
+    case RECORD_UPDATE:
     {
       TypeNode t = n.getType();
       Assert(t.isDatatype());
       const Datatype& dt = DatatypeType(t.toType()).getDatatype();
-      NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+      NodeBuilder<> b(APPLY_CONSTRUCTOR);
       b << Node::fromExpr(dt[0].getConstructor());
       size_t size, updateIndex;
-      if (n.getKind() == kind::TUPLE_UPDATE)
+      if (n.getKind() == TUPLE_UPDATE)
       {
         Assert(t.isTuple());
         size = t.getTupleLength();
@@ -633,8 +634,8 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         }
         else
         {
-          b << NodeManager::currentNM()->mkNode(
-              kind::APPLY_SELECTOR_TOTAL,
+          b << nm->mkNode(
+              APPLY_SELECTOR_TOTAL,
               Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
               n[0]);
           Debug("tuprec") << "arg " << i << " copies "
@@ -642,6 +643,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         }
       }
       Node n_ret = b;
+      Debug("tuprec") << "return " << n_ret << std::endl;
       return n_ret;
     }
     break;
