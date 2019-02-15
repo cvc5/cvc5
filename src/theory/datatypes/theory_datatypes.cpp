@@ -596,6 +596,41 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     }
   }
     break;
+  case kind::TUPLE_UPDATE:
+  case kind::RECORD_UPDATE: {
+    TypeNode t = n.getType();
+    Assert( t.isDatatype() );
+    const Datatype& dt = DatatypeType(t.toType()).getDatatype();
+    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+    b << Node::fromExpr(dt[0].getConstructor());
+    size_t size, updateIndex;
+    if(n.getKind() == kind::TUPLE_UPDATE) {
+      Assert( t.isTuple() );
+      size = t.getTupleLength();
+      updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
+    } else { // kind::RECORD_UPDATE
+      Assert( t.isRecord() );
+      const Record& record = t.getRecord();
+      size = record.getNumFields();
+      updateIndex = record.getIndex(n.getOperator().getConst<RecordUpdate>().getField());
+    }
+    Debug("tuprec") << "expr is " << n << std::endl;
+    Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
+    Debug("tuprec") << "t is " << t << std::endl;
+    Debug("tuprec") << "t has arity " << size << std::endl;
+    for(size_t i = 0; i < size; ++i) {
+      if(i == updateIndex) {
+        b << n[1];
+        Debug("tuprec") << "arg " << i << " gets updated to " << n[1] << std::endl;
+      } else {
+        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0].getSelectorInternal( t.toType(), i )), n[0]);
+        Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
+      }
+    }
+    Node n_ret = b;
+    return n_ret;
+  }
+    break;
   default:
     return n;
     break;
@@ -609,42 +644,6 @@ void TheoryDatatypes::presolve() {
 
 Node TheoryDatatypes::ppRewrite(TNode in) {
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
-
-  TypeNode t = in.getType();
-
-  if(in.getKind() == kind::TUPLE_UPDATE || in.getKind() == kind::RECORD_UPDATE) {
-    Assert( t.isDatatype() );
-    const Datatype& dt = DatatypeType(t.toType()).getDatatype();
-    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-    b << Node::fromExpr(dt[0].getConstructor());
-    size_t size, updateIndex;
-    if(in.getKind() == kind::TUPLE_UPDATE) {
-      Assert( t.isTuple() );
-      size = t.getTupleLength();
-      updateIndex = in.getOperator().getConst<TupleUpdate>().getIndex();
-    } else { // kind::RECORD_UPDATE
-      Assert( t.isRecord() );
-      const Record& record = t.getRecord();
-      size = record.getNumFields();
-      updateIndex = record.getIndex(in.getOperator().getConst<RecordUpdate>().getField());
-    }
-    Debug("tuprec") << "expr is " << in << std::endl;
-    Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-    Debug("tuprec") << "t is " << t << std::endl;
-    Debug("tuprec") << "t has arity " << size << std::endl;
-    for(size_t i = 0; i < size; ++i) {
-      if(i == updateIndex) {
-        b << in[1];
-        Debug("tuprec") << "arg " << i << " gets updated to " << in[1] << std::endl;
-      } else {
-        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0].getSelectorInternal( t.toType(), i )), in[0]);
-        Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
-      }
-    }
-    Debug("tuprec") << "builder says " << b << std::endl;
-    Node n = b;
-    return n;
-  }
 
   if( in.getKind()==EQUAL ){
     Node nn;
