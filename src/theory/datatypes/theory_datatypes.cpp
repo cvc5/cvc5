@@ -596,23 +596,26 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     }
   }
     break;
-  case kind::TUPLE_UPDATE:
-  case kind::RECORD_UPDATE: {
-    TypeNode t = n.getType();
-    Assert( t.isDatatype() );
-    const Datatype& dt = DatatypeType(t.toType()).getDatatype();
-    NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
-    b << Node::fromExpr(dt[0].getConstructor());
-    size_t size, updateIndex;
-    if(n.getKind() == kind::TUPLE_UPDATE) {
-      Assert( t.isTuple() );
-      size = t.getTupleLength();
-      updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
-    } else { // kind::RECORD_UPDATE
+    case kind::TUPLE_UPDATE:
+    case kind::RECORD_UPDATE:
+    {
+      TypeNode t = n.getType();
+      Assert(t.isDatatype());
+      const Datatype& dt = DatatypeType(t.toType()).getDatatype();
+      NodeBuilder<> b(kind::APPLY_CONSTRUCTOR);
+      b << Node::fromExpr(dt[0].getConstructor());
+      size_t size, updateIndex;
+      if (n.getKind() == kind::TUPLE_UPDATE)
+      {
+        Assert(t.isTuple());
+        size = t.getTupleLength();
+        updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
+      } else { // kind::RECORD_UPDATE
       Assert( t.isRecord() );
       const Record& record = t.getRecord();
       size = record.getNumFields();
-      updateIndex = record.getIndex(n.getOperator().getConst<RecordUpdate>().getField());
+      updateIndex =
+          record.getIndex(n.getOperator().getConst<RecordUpdate>().getField());
     }
     Debug("tuprec") << "expr is " << n << std::endl;
     Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
@@ -621,28 +624,32 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
     for(size_t i = 0; i < size; ++i) {
       if(i == updateIndex) {
         b << n[1];
-        Debug("tuprec") << "arg " << i << " gets updated to " << n[1] << std::endl;
+        Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
+                        << std::endl;
       } else {
-        b << NodeManager::currentNM()->mkNode(kind::APPLY_SELECTOR_TOTAL, Node::fromExpr(dt[0].getSelectorInternal( t.toType(), i )), n[0]);
+        b << NodeManager::currentNM()->mkNode(
+            kind::APPLY_SELECTOR_TOTAL,
+            Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
+            n[0]);
         Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
       }
     }
     Node n_ret = b;
     return n_ret;
-  }
+    }
     break;
-  default:
-    return n;
-    break;
+    default: return n; break;
   }
   Unreachable();
 }
 
-void TheoryDatatypes::presolve() {
+void TheoryDatatypes::presolve()
+{
   Debug("datatypes") << "TheoryDatatypes::presolve()" << endl;
 }
 
-Node TheoryDatatypes::ppRewrite(TNode in) {
+Node TheoryDatatypes::ppRewrite(TNode in)
+{
   Debug("tuprec") << "TheoryDatatypes::ppRewrite(" << in << ")" << endl;
 
   if( in.getKind()==EQUAL ){
