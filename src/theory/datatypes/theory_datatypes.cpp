@@ -610,32 +610,34 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
         Assert(t.isTuple());
         size = t.getTupleLength();
         updateIndex = n.getOperator().getConst<TupleUpdate>().getIndex();
-      } else { // kind::RECORD_UPDATE
+      } 
+      else
+      {
       Assert( t.isRecord() );
       const Record& record = t.getRecord();
       size = record.getNumFields();
       updateIndex =
           record.getIndex(n.getOperator().getConst<RecordUpdate>().getField());
-    }
-    Debug("tuprec") << "expr is " << n << std::endl;
-    Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
-    Debug("tuprec") << "t is " << t << std::endl;
-    Debug("tuprec") << "t has arity " << size << std::endl;
-    for(size_t i = 0; i < size; ++i) {
-      if(i == updateIndex) {
-        b << n[1];
-        Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
-                        << std::endl;
-      } else {
-        b << NodeManager::currentNM()->mkNode(
-            kind::APPLY_SELECTOR_TOTAL,
-            Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
-            n[0]);
-        Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
       }
-    }
-    Node n_ret = b;
-    return n_ret;
+      Debug("tuprec") << "expr is " << n << std::endl;
+      Debug("tuprec") << "updateIndex is " << updateIndex << std::endl;
+      Debug("tuprec") << "t is " << t << std::endl;
+      Debug("tuprec") << "t has arity " << size << std::endl;
+      for(size_t i = 0; i < size; ++i) {
+        if(i == updateIndex) {
+          b << n[1];
+          Debug("tuprec") << "arg " << i << " gets updated to " << n[1]
+                          << std::endl;
+        } else {
+          b << NodeManager::currentNM()->mkNode(
+              kind::APPLY_SELECTOR_TOTAL,
+              Node::fromExpr(dt[0].getSelectorInternal(t.toType(), i)),
+              n[0]);
+          Debug("tuprec") << "arg " << i << " copies " << b[b.getNumChildren() - 1] << std::endl;
+        }
+      }
+      Node n_ret = b;
+      return n_ret;
     }
     break;
     default: return n; break;
