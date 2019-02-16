@@ -1654,7 +1654,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       else
       {
         bool reduced = false;
-        if (!einfo.d_const.isNull())
+        if (!einfo.d_const.isNull() && nrc.getType().isBoolean())
         {
           Assert( effort<3 );
           einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
