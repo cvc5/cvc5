@@ -1651,22 +1651,19 @@ void TheoryStrings::checkExtfEval( int effort ) {
         }
       //if it reduces to a conjunction, infer each and reduce
       }
-      else if ((nrck == OR && einfo.d_const == d_false)
-               || (nrck == AND && einfo.d_const == d_true))
+      else
       {
-        Assert( effort<3 );
-        getExtTheory()->markReduced( n );
-        einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
-        Trace("strings-extf-debug") << "  decomposable..." << std::endl;
-        Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
-                              << ", const = " << einfo.d_const << std::endl;
-        for (const Node& nrcc : nrc)
+        if (einfo.d_const.isNull())
         {
+          Assert( effort<3 );
+          einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
+          Trace("strings-extf-debug") << "  decomposable..." << std::endl;
+          Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
+                                << ", const = " << einfo.d_const << std::endl;
           sendInternalInference(einfo.d_exp,
-                                einfo.d_const == d_false ? nrcc.negate() : nrcc,
+                                einfo.d_const == d_false ? nrc.negate() : nrc,
                                 effort == 0 ? "EXTF_d" : "EXTF_d-N");
         }
-      }else{
         to_reduce = nrc;
       }
     }else{
@@ -3932,11 +3929,13 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
                                           Node conc,
                                           const char* c)
 {
-  if (conc.getKind() == AND)
+  if (conc.getKind() == AND || (conc.getKind()==NOT && conc[0].getKind()==OR))
   {
-    for (const Node& cc : conc)
+    Node conj = conc.getKind()==AND ? conc : conc[0];
+    bool pol = conc.getKind()==AND;
+    for (const Node& cc : conj)
     {
-      sendInternalInference(exp, cc, c);
+      sendInternalInference(exp, pol ? cc : cc.negate(), c);
     }
     return;
   }
