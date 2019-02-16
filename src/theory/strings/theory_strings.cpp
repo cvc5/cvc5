@@ -1653,7 +1653,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       }
       else
       {
-        if (einfo.d_const.isNull())
+        if (!einfo.d_const.isNull())
         {
           Assert( effort<3 );
           einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
