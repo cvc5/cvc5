@@ -1653,6 +1653,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       }
       else
       {
+        bool reduced = false;
         if (!einfo.d_const.isNull())
         {
           Assert( effort<3 );
@@ -1660,11 +1661,18 @@ void TheoryStrings::checkExtfEval( int effort ) {
           Trace("strings-extf-debug") << "  decomposable..." << std::endl;
           Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
                                 << ", const = " << einfo.d_const << std::endl;
-          sendInternalInference(einfo.d_exp,
+          reduced = sendInternalInference(einfo.d_exp,
                                 einfo.d_const == d_false ? nrc.negate() : nrc,
                                 effort == 0 ? "EXTF_d" : "EXTF_d-N");
         }
-        to_reduce = nrc;
+        if( reduced )
+        {
+          getExtTheory()->markReduced( n );
+        }
+        else
+        {
+          to_reduce = nrc;
+        }
       }
     }else{
       to_reduce = sterms[i];
@@ -3925,7 +3933,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
 }
 
-void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
+bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
                                           Node conc,
                                           const char* c)
 {
@@ -3933,11 +3941,13 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
   {
     Node conj = conc.getKind()==AND ? conc : conc[0];
     bool pol = conc.getKind()==AND;
+    bool ret = true;
     for (const Node& cc : conj)
     {
-      sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      ret = ret && retc
     }
-    return;
+    return ret;
   }
   bool pol = conc.getKind() != NOT;
   Node lit = pol ? conc : conc[0];
@@ -3948,13 +3958,13 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
       if (!lit[i].isConst() && !hasTerm(lit[i]))
       {
         // introduces a new non-constant term, do not infer
-        return;
+        return false;
       }
     }
     // does it already hold?
     if (pol ? areEqual(lit[0], lit[1]) : areDisequal(lit[0], lit[1]))
     {
-      return;
+      return true;
     }
   }
   else if (lit.isConst())
@@ -3963,20 +3973,21 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
     {
       Assert(pol);
       // trivially holds
-      return;
+      return true;
     }
   }
   else if (!hasTerm(lit))
   {
     // introduces a new non-constant term, do not infer
-    return;
+    return false;
   }
   else if (areEqual(lit, pol ? d_true : d_false))
   {
     // already holds
-    return;
+    return true;
   }
   sendInference(exp, conc, c);
+  return true;
 }
 
 void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {
