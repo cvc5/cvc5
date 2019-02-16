@@ -654,8 +654,13 @@ private:
    *
    * The argument c is a string identifying the reason for the interference.
    * This string is used for debugging purposes.
+   * 
+   * Return true if the inference is complete, in the sense that we infer
+   * inferences that are equivalent to conc. This returns false e.g. if conc
+   * (or one of its conjuncts if it is a conjunction) was not inferred due
+   * to the criteria mentioned above.
    */
-  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
   // send lemma
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
