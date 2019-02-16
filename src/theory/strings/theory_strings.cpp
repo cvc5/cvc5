@@ -3945,7 +3945,7 @@ bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
     for (const Node& cc : conj)
     {
       bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
-      ret = ret && retc
+      ret = ret && retc;
     }
     return ret;
   }
