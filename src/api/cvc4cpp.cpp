@@ -2531,21 +2531,6 @@ Term Solver::mkTerm(Kind kind) const
   }
 }
 
-Term Solver::mkTerm(Kind kind, Sort sort) const
-{
-  try
-  {
-    CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL, kind) << "SEP_NIL";
-    Term res = d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
 Term Solver::mkTerm(Kind kind, Term child) const
 {
   try
@@ -3015,15 +3000,6 @@ Sort Solver::declareDatatype(
     dtdecl.addConstructor(ctor);
   }
   return d_exprMgr->mkDatatypeType(*dtdecl.d_dtype);
-}
-
-/**
- *  ( declare-fun <symbol> () <sort> )
- */
-Term Solver::declareFun(const std::string& symbol, Sort sort) const
-{
-  Type type = *sort.d_type;
-  return d_exprMgr->mkVar(symbol, type);
 }
 
 /**

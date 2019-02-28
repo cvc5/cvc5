@@ -1269,6 +1269,52 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     }
   }
 
+  void testRewriteMembership()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> vec_empty;
+    Node abc = d_nm->mkConst(::CVC4::String("ABC"));
+    Node re_abc = d_nm->mkNode(kind::STRING_TO_REGEXP, abc);
+    Node x = d_nm->mkVar("x", strType);
+
+    {
+      // Same normal form for:
+      //
+      // (str.in.re x (re.++ (re.* re.allchar)
+      //                     (re.* re.allchar)
+      //                     (str.to.re "ABC")
+      //                     (re.* re.allchar)))
+      //
+      // (str.contains x "ABC")
+      Node sig_star = d_nm->mkNode(kind::REGEXP_STAR,
+                                   d_nm->mkNode(kind::REGEXP_SIGMA, vec_empty));
+      Node lhs = d_nm->mkNode(
+          kind::STRING_IN_REGEXP,
+          x,
+          d_nm->mkNode(
+              kind::REGEXP_CONCAT, sig_star, sig_star, re_abc, sig_star));
+      Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.in.re x (re.++ (re.* re.allchar) (str.to.re "ABC")))
+      //
+      // (str.contains x "ABC")
+      Node sig_star = d_nm->mkNode(kind::REGEXP_STAR,
+                                   d_nm->mkNode(kind::REGEXP_SIGMA, vec_empty));
+      Node lhs =
+          d_nm->mkNode(kind::STRING_IN_REGEXP,
+                       x,
+                       d_nm->mkNode(kind::REGEXP_CONCAT, sig_star, re_abc));
+      Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      differentNormalForms(lhs, rhs);
+    }
+  }
+
  private:
   ExprManager* d_em;
   SmtEngine* d_smt;

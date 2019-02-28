@@ -1703,14 +1703,6 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind) const;
 
   /**
-   * Create 0-ary term of given kind and sort.
-   * @param kind the kind of the term
-   * @param sort the sort argument to this kind
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, Sort sort) const;
-
-  /**
    * Create a unary term of given kind.
    * @param kind the kind of the term
    * @param child the child of the term
@@ -2277,15 +2269,6 @@ class CVC4_PUBLIC Solver
    */
   Sort declareDatatype(const std::string& symbol,
                        const std::vector<DatatypeConstructorDecl>& ctors) const;
-
-  /**
-   * Declare 0-arity function symbol.
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * @param symbol the name of the function
-   * @param sort the sort of the return value of this function
-   * @return the function
-   */
-  Term declareFun(const std::string& symbol, Sort sort) const;
 
   /**
    * Declare n-ary function symbol.
