@@ -115,7 +115,7 @@
 ; Return a new cnf with one copy of this clause removed.
 (program cnf_remove_clause ((c clause) (cs cnf)) cnf
          (match cs
-                (cnfn (fail cnf))
+                (cnfn cnfn)
                 ((cnfc c' cs')
                  (match (clause_eq c c')
                         (tt cs')
@@ -224,9 +224,11 @@
                 (tt tt)
                 (ff (match (is_at cs c)
                            (tt tt)
-                           (ff (are_all_at
+                           (ff (match c
+                                      (cln ff)
+                                      ((clc a b) (are_all_at ; dedent
                                  cs
-                                 (collect_pseudo_resolvents cs c)))))))
+                                 (collect_pseudo_resolvents cs c)))))))))
 
 ; Is this proof a valid DRAT proof of bottom?
 (program is_specified_drat_proof ((f cnf) (proof DRATProof)) bool

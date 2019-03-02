@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dimacs_printer.h
+/*! \file dimacs.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Alex Ozdemir
@@ -11,15 +11,16 @@
  **
  ** \brief DIMACS SAT Problem Format
  **
- ** Defines serialization for SAT problems as DIMACS
+ ** Defines serialization/deserialization for SAT problems as DIMACS
  **/
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__DIMACS_PRINTER_H
-#define __CVC4__PROOF__DIMACS_PRINTER_H
+#ifndef __CVC4__PROOF__DIMACS_H
+#define __CVC4__PROOF__DIMACS_H
 
 #include <iosfwd>
+#include <map>
 #include <memory>
 
 #include "proof/clause_id.h"
@@ -58,9 +59,12 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c);
  */
 void printDimacs(
     std::ostream& o,
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses);
+    const std::map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId>& usedIndices);
+
+std::vector<prop::SatClause> parseDimacs(std::istream& i);
 
 }  // namespace proof
 }  // namespace CVC4
 
-#endif  // __CVC4__PROOF__DIMACS_PRINTER_H
+#endif  // __CVC4__PROOF__DIMACS_H

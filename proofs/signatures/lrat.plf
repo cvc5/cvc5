@@ -368,7 +368,7 @@
                 (ff (match (clause_is_unsat c)
                            (tt MRUnsat)
                            (ff (match (is_t c)
-                                      (tt (fail MarkResult))
+                                      (tt MRSat)
                                       (ff ; Dedent
          (match (clause_has_floating c)
                 (tt (let first (clause_first_floating c)

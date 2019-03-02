@@ -26,6 +26,7 @@
 #ifndef __CVC4__PROOF__ER__ER_PROOF_H
 #define __CVC4__PROOF__ER__ER_PROOF_H
 
+#include <map>
 #include <memory>
 #include <vector>
 
@@ -35,8 +36,6 @@
 namespace CVC4 {
 namespace proof {
 namespace er {
-
-using ClauseUseRecord = std::vector<std::pair<ClauseId, prop::SatClause>>;
 
 /**
  * A definition of the form:
@@ -119,8 +118,10 @@ class ErProof
    * @param usedClauses The CNF formula that we're deriving bottom from.
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
    */
-  static ErProof fromBinaryDratProof(const ClauseUseRecord& usedClauses,
-                                     const std::string& dratBinary);
+  static ErProof fromBinaryDratProof(
+      const std::map<ClauseId, prop::SatClause>& clauses,
+      const std::vector<ClauseId>& usedIds,
+      const std::string& dratBinary);
 
   /**
    * Construct an ER proof from a TRACECHECK ER proof
@@ -131,7 +132,9 @@ class ErProof
    * @param usedClauses The CNF formula that we're deriving bottom from.
    * @param tracecheck  The TRACECHECK proof, as a stream.
    */
-  ErProof(const ClauseUseRecord& usedClauses, TraceCheckProof&& tracecheck);
+  ErProof(const std::map<ClauseId, prop::SatClause>& clauses,
+          const std::vector<ClauseId>& usedIds,
+          TraceCheckProof&& tracecheck);
 
   /**
    * Write the ER proof as an LFSC value of type (holds cln).

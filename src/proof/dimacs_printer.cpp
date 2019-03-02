@@ -15,6 +15,7 @@
  **/
 
 #include "proof/dimacs_printer.h"
+#include "base/cvc4_assert.h"
 
 #include <iostream>
 
@@ -45,12 +46,14 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
 
 void printDimacs(
     std::ostream& o,
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses)
+    const std::map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId>& usedIndices)
 {
   size_t maxVar = 0;
-  for (const auto& c : usedClauses)
+  for (const ClauseId i : usedIndices)
   {
-    for (const auto& l : c.second)
+    const prop::SatClause& c = clauses.at(i);
+    for (const auto& l : c)
     {
       if (l.getSatVariable() + 1 > maxVar)
       {
@@ -58,10 +61,11 @@ void printDimacs(
       }
     }
   }
-  o << "p cnf " << maxVar << " " << usedClauses.size() << '\n';
-  for (const auto& idAndClause : usedClauses)
+  o << "p cnf " << maxVar << " " << usedIndices.size() << '\n';
+  for (const ClauseId i : usedIndices)
   {
-    for (const auto& l : idAndClause.second)
+    const prop::SatClause& c = clauses.at(i);
+    for (const auto& l : c)
     {
       if (l.isNegated())
       {
@@ -71,6 +75,44 @@ void printDimacs(
     }
     o << "0\n";
   }
+}
+
+std::vector<prop::SatClause> parseDimacs(std::istream& in)
+{
+  std::string tag;
+  int nVars, nClauses;
+
+  in >> tag;
+  Assert(in.good());
+  Assert(tag == "p");
+
+  in >> tag;
+  Assert(in.good());
+  Assert(tag == "cnf");
+
+  in >> nVars;
+  Assert(nVars >= 0);
+
+  in >> nClauses;
+  Assert(nClauses >= 0);
+
+  std::vector<prop::SatClause> cnf;
+  for (int i = 0; i < nClauses; ++i)
+  {
+    cnf.emplace_back();
+    int lit;
+    in >> lit;
+    Assert(in.good());
+    while (lit != 0)
+    {
+      cnf.back().emplace_back(std::abs(lit) - 1, lit < 0);
+      in >> lit;
+      Assert(std::abs(lit) <= nVars);
+      Assert(in.good());
+    }
+  }
+
+  return cnf;
 }
 
 }  // namespace proof
