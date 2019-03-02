@@ -164,6 +164,12 @@ public:
                            std::ostream& paren,
                            ProofLetMap &letMap) = 0;
 
+  // Actually returns std::optional<std::pair<unsigned, unsigned>>
+  // First field is true if the option is filled.
+  // Detects whether a clause has x v ~x for some x
+  // If so, returns the positive occurence's idx first, then the negative's
+  static std::tuple<bool, unsigned, unsigned> detectTrivialTautology(
+      const prop::SatClause& clause);
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
                            std::ostream& paren) = 0;

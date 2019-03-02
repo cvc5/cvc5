@@ -85,8 +85,29 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
         if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
             && options::bvSatSolver() == theory::bv::SAT_SOLVER_CRYPTOMINISAT)
         {
-          proof::BitVectorProof* bvp =
-              new proof::LfscClausalBitVectorProof(thBv, this);
+          proof::BitVectorProof* bvp = nullptr;
+          switch (options::bvProofFormat())
+          {
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
+              {
+                bvp = new proof::LfscDratBitVectorProof(thBv, this);
+                break;
+              }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
+              {
+                bvp = new proof::LfscLratBitVectorProof(thBv, this);
+                break;
+              }
+            case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
+              {
+                bvp = new proof::LfscErBitVectorProof(thBv, this);
+                break;
+              }
+            default:
+              {
+                Unreachable("Invalid BvProofFormat");
+              }
+          };
           d_theoryProofTable[id] = bvp;
         }
         else

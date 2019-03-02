@@ -349,6 +349,40 @@ void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
   }
 }
 
+// Actually returns std::optional<std::pair<unsigned, unsigned>>
+// First field is true if the option is filled.
+// Detects whether a clause has x v ~x for some x
+// If so, returns the positive occurence's idx first, then the negative's
+std::tuple<bool, unsigned, unsigned> CnfProof::detectTrivialTautology(
+    const prop::SatClause& clause)
+{
+  // a map from a SatVariable to its previous occurence's polarity and location
+  std::map<prop::SatVariable, std::pair<bool, unsigned>> varsToPolsAndIndices;
+  for (unsigned i = 0; i < clause.size(); ++i)
+  {
+    prop::SatLiteral lit = clause[i];
+    prop::SatVariable var = lit.getSatVariable();
+    bool polarity = !lit.isNegated();
+
+    // Check if this var has already occured w/ opposite polarity
+    auto iter = varsToPolsAndIndices.find(var);
+    if (iter != varsToPolsAndIndices.end() && iter->second.first != polarity)
+    {
+      if (iter->second.first)
+      {
+        return std::make_tuple(true, iter->second.second, i);
+      }
+      else
+      {
+        return std::make_tuple(true, i, iter->second.second);
+      }
+    }
+    varsToPolsAndIndices[var] = std::make_pair(polarity, i);
+  }
+  return std::make_tuple(false, 0, 0);
+}
+
+
 void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
                                     std::ostream& os,
                                     std::ostream& paren) {
@@ -430,6 +464,31 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   // return;
 
   Assert( clause->size()>0 );
+
+  // If the clause contains x v ~x, it's easy!
+  //
+  // It's important to check for this case, because our other logic for
+  // recording the location of variables in the clause assumes the clause is
+  // not tautological
+  std::tuple<bool, unsigned, unsigned> isTrivialTaut =
+      detectTrivialTautology(*clause);
+  if (std::get<0>(isTrivialTaut))
+  {
+    unsigned posIndexInClause = std::get<1>(isTrivialTaut);
+    unsigned negIndexInClause = std::get<2>(isTrivialTaut);
+    Trace("cnf-pf") << "; Indices " << posIndexInClause << " (+) and "
+                    << negIndexInClause << " (-) make this clause a taut"
+                    << std::endl;
+
+    std::string proofOfPos =
+        ProofManager::getLitName((*clause)[negIndexInClause], d_name);
+    std::string proofOfNeg =
+        ProofManager::getLitName((*clause)[posIndexInClause], d_name);
+    os << "(contra _ " << proofOfPos << " " << proofOfNeg << ")";
+  }
+  else
+  {
+
 
   Node base_assertion = getDefinitionForClause(id);
 
@@ -775,6 +834,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     }
     Trace("cnf-pf") << std::endl;
     os << "trust-bad";
+  }
   }
 
   os << ")" << clause_paren.str()
