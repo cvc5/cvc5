@@ -167,7 +167,7 @@ class BitVectorProof : public TheoryProof
    * @param os the stream to print to
    * @param paren any parentheses to add to the end of the global proof
    */
-  virtual void printEmptyClauseProof(std::ostream& os, std::ostream& paren) = 0;
+  virtual void printEmptyClauseProof(std::ostream& os, std::ostream& paren);
 
   /**
    * Read the d_atomsInBitblastingProof member.
