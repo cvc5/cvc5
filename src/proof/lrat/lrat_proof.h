@@ -130,10 +130,6 @@ class LratProof
    * @brief Construct an LRAT proof from a DRAT proof, using drat-trim
    *
    * @param usedClauses The CNF formula that we're deriving bottom from.
-   *                    It's a map because other parts of the system represent
-   *                    it this way.
-   * @param clauseOrder A record of the order in which those clauses were
-   *                    given to the SAT solver.
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
    */
   static LratProof fromDratProof(
