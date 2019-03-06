@@ -237,7 +237,6 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/smt_engine.cpp
   smt/smt_engine.h
-  smt/smt_engine_check_proof.cpp
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
   smt/smt_statistics_registry.cpp
