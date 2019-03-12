@@ -578,7 +578,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       }else{
         selector_use = selector;
       }
-      Node sel = NodeManager::currentNM()->mkNode(
+      Node sel = nm->mkNode(
           kind::APPLY_SELECTOR_TOTAL, selector_use, n[0]);
       if (options::dtRewriteErrorSel())
       {
@@ -587,7 +587,7 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
       else
       {
         Expr tester = c.getTester();
-        Node tst = NodeManager::currentNM()->mkNode(
+        Node tst = nm->mkNode(
             kind::APPLY_TESTER, Node::fromExpr(tester), n[0]);
         tst = Rewriter::rewrite(tst);
         Node n_ret;
@@ -596,15 +596,15 @@ Node TheoryDatatypes::expandDefinition(LogicRequest &logicRequest, Node n) {
           n_ret = sel;
         }else{
           mkExpDefSkolem(selector, ndt, n.getType());
-          Node sk = NodeManager::currentNM()->mkNode(
+          Node sk = nm->mkNode(
               kind::APPLY_UF, d_exp_def_skolem[ndt][selector], n[0]);
-          if (tst == NodeManager::currentNM()->mkConst(false))
+          if (tst == nm->mkConst(false))
           {
             n_ret = sk;
           }
           else
           {
-            n_ret = NodeManager::currentNM()->mkNode(kind::ITE, tst, sel, sk);
+            n_ret = nm->mkNode(kind::ITE, tst, sel, sk);
           }
         }
         // n_ret = Rewriter::rewrite( n_ret );
