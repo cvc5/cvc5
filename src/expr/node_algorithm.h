@@ -63,10 +63,13 @@ bool hasFreeVar(TNode n);
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n, adds these to fvs.
  * @param n The node under investigation
- * @param computeFv If this false is false, then we only return true/false and do not add to fvs.
+ * @param computeFv If this false is false, then we only return true/false and
+ * do not add to fvs.
  * @return true iff this node contains a free variable.
  */
-bool getFreeVariables(TNode n, std::unordered_set<Node, NodeHashFunction>& fvs, bool computeFv=true);
+bool getFreeVariables(TNode n,
+                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      bool computeFv = true);
 
 /**
  * For term n, this function collects the symbols that occur as a subterms

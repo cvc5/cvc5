@@ -160,10 +160,12 @@ bool hasBoundVar(TNode n)
 bool hasFreeVar(TNode n)
 {
   std::unordered_set<Node, NodeHashFunction> fvs;
-  return getFreeVariables(n,fvs,false);
+  return getFreeVariables(n, fvs, false);
 }
 
-bool getFreeVariables(TNode n, std::unordered_set<Node, NodeHashFunction>& fvs, bool computeFv)
+bool getFreeVariables(TNode n,
+                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      bool computeFv)
 {
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
@@ -190,7 +192,7 @@ bool getFreeVariables(TNode n, std::unordered_set<Node, NodeHashFunction>& fvs, 
       {
         if (bound_var.find(cur) == bound_var.end())
         {
-          if( computeFv )
+          if (computeFv)
           {
             fvs.insert(cur);
           }
