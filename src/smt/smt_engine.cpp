@@ -191,8 +191,8 @@ struct SmtEngineStatistics {
   IntStat d_proofsSize;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
-  /** time spent in checkProof() */
-  TimerStat d_checkProofTime;
+  /** time spent checking the proof with LFSC */
+  TimerStat d_lfscCheckProofTime;
   /** time spent in checkUnsatCore() */
   TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
@@ -215,7 +215,7 @@ struct SmtEngineStatistics {
         d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
         d_proofsSize("smt::SmtEngine::proofsSize", 0),
         d_checkModelTime("smt::SmtEngine::checkModelTime"),
-        d_checkProofTime("smt::SmtEngine::checkProofTime"),
+        d_lfscCheckProofTime("smt::SmtEngine::lfscCheckProofTime"),
         d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
         d_solveTime("smt::SmtEngine::solveTime"),
         d_pushPopTime("smt::SmtEngine::pushPopTime"),
@@ -230,7 +230,7 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
     smtStatisticsRegistry()->registerStat(&d_proofsSize);
     smtStatisticsRegistry()->registerStat(&d_checkModelTime);
-    smtStatisticsRegistry()->registerStat(&d_checkProofTime);
+    smtStatisticsRegistry()->registerStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->registerStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->registerStat(&d_solveTime);
     smtStatisticsRegistry()->registerStat(&d_pushPopTime);
@@ -247,7 +247,7 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
     smtStatisticsRegistry()->unregisterStat(&d_proofsSize);
     smtStatisticsRegistry()->unregisterStat(&d_checkModelTime);
-    smtStatisticsRegistry()->unregisterStat(&d_checkProofTime);
+    smtStatisticsRegistry()->unregisterStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->unregisterStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->unregisterStat(&d_solveTime);
     smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);
@@ -3726,7 +3726,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     // Check that UNSAT results generate a proof correctly.
     if(options::checkProofs()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
         checkProof();
       }
     }
@@ -4415,8 +4414,12 @@ void SmtEngine::checkProof()
   pf.toStream(pfStream);
   d_stats->d_proofsSize +=
       static_cast<int64_t>(pfStream.tellp()) - sizeBeforeProof;
-  lfscc_init();
-  lfscc_check_file(pfStream, false, false, false, false, false, false, false);
+
+  {
+    TimerStat::CodeTimer checkProofTimer(d_stats->d_lfscCheckProofTime);
+    lfscc_init();
+    lfscc_check_file(pfStream, false, false, false, false, false, false, false);
+  }
   // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
   // segfaults on regress0/bv/core/bitvec7.smt
   // lfscc_cleanup();
