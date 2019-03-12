@@ -72,8 +72,8 @@ script:
    makeInstallCheck() {
      cd build
      make install -j2
-     echo "#include <cvc4/cvc4.h> int main() { CVC4::ExprManager em; return 0; }" > /tmp/test_install.cpp
-     $CXX /tmp/test_install.cpp -I install/include -L install/lib -lcvc4 || exit 1
+     echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
+     $CXX /tmp/test.cpp -I install/include -L install/lib -lcvc4 || exit 1
    }
    run() {
      echo "travis_fold:start:$1"
