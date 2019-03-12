@@ -899,3 +899,9 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
         DESTINATION
           include/cvc4/util)
+
+# Fix include paths for all public headers.
+# Note: This is a temporary fix until the new C++ API is in place.
+install(CODE "execute_process(COMMAND
+                ${CMAKE_CURRENT_LIST_DIR}/fix-install-headers.sh
+                ${CMAKE_INSTALL_PREFIX})")
