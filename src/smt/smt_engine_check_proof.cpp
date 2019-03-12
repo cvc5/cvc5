@@ -15,17 +15,7 @@
  ** \todo document this file
  **/
 
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
-#include <io.h>
-#endif
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <unistd.h>
-
-#include <cstdlib>
-#include <cstring>
-#include <fstream>
+#include <sstream>
 #include <string>
 
 #include "base/configuration_private.h"
@@ -76,42 +66,14 @@ void SmtEngine::checkProof() {
     return;
   }
 
-  char *pfFile = tempnam(NULL, "cvc4_");
-  if (!pfFile) {
-    Notice() << "Error: couldn't get path from tempnam() during proof checking" << endl;
-    return;
-  }
-#if defined(_MSC_VER) || defined(__MINGW32__) || defined(__MINGW64__)
-  int fd = _open(pfFile,
-                 _O_CREAT | _O_EXCL | _O_SHORT_LIVED | _O_RDWR,
-                 _S_IREAD | _S_IWRITE);
-#else
-  mode_t openmode = S_IRUSR | S_IWUSR;
-  int fd = open(pfFile, O_CREAT | O_EXCL | O_RDWR, openmode);
-#endif
-  if (fd == -1) {
-    free(pfFile);
-    Notice() << "Error: failed to open temporary file during proof checking" << endl;
-    return;
-  }
-
-  // unlink() only deletes files after all processes have closed that file, so
-  // it is safe to unlink the proof file here. This ensures that the proof file
-  // is deleted even if CVC4 crashes or is terminated externally (e.g. because
-  // of a timeout).
-  unlink(pfFile);
-
-  ofstream pfStream(pfFile);
+  std::stringstream pfStream;
   pfStream << proof::plf_signatures << endl;
   pf.toStream(pfStream);
-  pfStream.close();
   lfscc_init();
-  lfscc_check_file(pfFile, false, false, false, false, false, false, false);
+  lfscc_check_file(pfStream, false, false, false, false, false, false, false);
   // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
   // segfaults on regress0/bv/core/bitvec7.smt
   //lfscc_cleanup();
-  free(pfFile);
-  close(fd);
 
 #else /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
   Unreachable("This version of CVC4 was built without proof support; cannot check proofs.");
