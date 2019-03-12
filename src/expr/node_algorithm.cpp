@@ -159,6 +159,12 @@ bool hasBoundVar(TNode n)
 
 bool hasFreeVar(TNode n)
 {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  return getFreeVariables(n,fvs,false);
+}
+
+bool getFreeVariables(TNode n, std::unordered_set<Node, NodeHashFunction>& fvs, bool computeFv)
+{
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::vector<TNode> visit;
@@ -184,7 +190,14 @@ bool hasFreeVar(TNode n)
       {
         if (bound_var.find(cur) == bound_var.end())
         {
-          return true;
+          if( computeFv )
+          {
+            fvs.insert(cur);
+          }
+          else
+          {
+            return true;
+          }
         }
       }
       else if (isQuant)
@@ -218,7 +231,8 @@ bool hasFreeVar(TNode n)
       visited[cur] = true;
     }
   } while (!visit.empty());
-  return false;
+
+  return !fvs.empty();
 }
 
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
