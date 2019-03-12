@@ -1,4 +1,22 @@
-; Depends on th_real.plf, th_smt.plf
+; Depends on th_real.plf, smt.plf, sat.plf
+
+; LRA proofs have the following interface:
+;    * Given predicates between real terms
+;    * Prove bottom
+;
+; However, even though the type of the interface does not express this,
+; the predicates are **linear bounds**, not arbitrary real bounds. Thus
+; LRA proofs have the following structure:
+;
+;    1. Prove that the input predicates are equivalent to a set of linear
+;       bounds.
+;    2. Use the linear bounds to prove bottom using farkas coefficients.
+;
+; Notice that the distinction between linear bounds (associated in the signature
+; with the string "poly") and real predicates (which relate "term Real"s to one
+; another) matters quite a bit. We have certain kinds of axioms for one, and
+; other axioms for the other.
+
 (program mpq_ifpos ((x mpq)) bool
   (mp_ifneg x ff (mp_ifzero x ff tt)))
 
@@ -100,61 +118,65 @@
 
 ;; conversion to use polynomials in term formulas
 
-(declare poly_term (! p poly (term Real)))
+
+(declare >=0_poly (! x poly formula))
+(declare =0_poly (! x poly formula))
+(declare >0_poly (! x poly formula))
+(declare distinct0_poly (! x poly formula))
 
 ;; create new equality out of inequality
 
 (declare lra_>=_>=_to_=
   (! p1 poly
   (! p2 poly
-  (! f1 (th_holds (>=0_Real (poly_term p1)))
-  (! f2 (th_holds (>=0_Real (poly_term p2)))
+  (! f1 (th_holds (>=0_poly p1))
+  (! f2 (th_holds (>=0_poly p2))
   (! i2 (^ (mp_ifzero (is_poly_const (poly_add p1 p2)) tt ff) tt)
-    (th_holds (=0_Real (poly_term p2)))))))))
+    (th_holds (=0_poly p2))))))))
 
 ;; axioms
 
 (declare lra_axiom_=
-   (th_holds (=0_Real (poly_term (polyc 0/1 lmonn)))))
+   (th_holds (=0_poly (polyc 0/1 lmonn))))
 
 (declare lra_axiom_>
   (! c mpq
   (! i (^ (mpq_ifpos c) tt)
-    (th_holds (>0_Real (poly_term (polyc c lmonn)))))))
+    (th_holds (>0_poly (polyc c lmonn))))))
 
 (declare lra_axiom_>=
   (! c mpq
   (! i (^ (mp_ifneg c tt ff) ff)
-    (th_holds (>=0_Real (poly_term (polyc c lmonn)))))))
+    (th_holds (>=0_poly (polyc c lmonn))))))
 
 (declare lra_axiom_distinct
   (! c mpq
   (! i (^ (mp_ifzero c tt ff) ff)
-    (th_holds (distinct0_Real (poly_term (polyc c lmonn)))))))
+    (th_holds (distinct0_poly (polyc c lmonn))))))
 
 ;; contradiction rules
 
 (declare lra_contra_=
   (! p poly
-  (! f (th_holds (=0_Real (poly_term p)))
+  (! f (th_holds (=0_poly p))
   (! i (^ (mp_ifzero (is_poly_const p) tt ff) ff)
     (holds cln)))))
 
 (declare lra_contra_>
   (! p poly
-  (! f (th_holds (>0_Real (poly_term p)))
+  (! f (th_holds (>0_poly p))
   (! i2 (^ (mpq_ifpos (is_poly_const p)) ff)
     (holds cln)))))
 
 (declare lra_contra_>=
   (! p poly
-  (! f (th_holds (>=0_Real (poly_term p)))
+  (! f (th_holds (>=0_poly p))
   (! i2 (^ (mp_ifneg (is_poly_const p) tt ff) tt)
     (holds cln)))))
 
 (declare lra_contra_distinct
   (! p poly
-  (! f (th_holds (distinct0_Real (poly_term p)))
+  (! f (th_holds (distinct0_poly p))
   (! i2 (^ (mp_ifzero (is_poly_const p) tt ff) tt)
     (holds cln)))))
 
@@ -164,33 +186,33 @@
   (! p poly
   (! p' poly
   (! c mpq
-  (! f (th_holds (=0_Real (poly_term p)))
+  (! f (th_holds (=0_poly p))
   (! i (^ (poly_mul_c p c) p')
-    (th_holds (=0_Real (poly_term p')))))))))
+    (th_holds (=0_poly p'))))))))
 
 (declare lra_mul_c_>
   (! p poly
   (! p' poly
   (! c mpq
-  (! f (th_holds (>0_Real (poly_term p)))
+  (! f (th_holds (>0_poly p))
   (! i (^ (mp_ifneg c (fail poly) (mp_ifzero c (fail poly) (poly_mul_c p c))) p')
-    (th_holds (>0_Real (poly_term p')))))))));)
+    (th_holds (>0_poly p'))))))));
 
 (declare lra_mul_c_>=
   (! p poly
   (! p' poly
   (! c mpq
-  (! f (th_holds (>=0_Real (poly_term p)))
+  (! f (th_holds (>=0_poly p))
   (! i (^ (mp_ifneg c (fail poly) (poly_mul_c p c)) p')
-    (th_holds (>=0_Real (poly_term p')))))))));)
+    (th_holds (>=0_poly p'))))))))
 
 (declare lra_mul_c_distinct
   (! p poly
   (! p' poly
   (! c mpq
-  (! f (th_holds (distinct0_Real (poly_term p)))
+  (! f (th_holds (distinct0_poly p))
   (! i (^ (mp_ifzero c (fail poly) (poly_mul_c p c)) p')
-    (th_holds (distinct0_Real (poly_term p')))))))));)
+    (th_holds (distinct0_poly p'))))))))
 
 ;; adding equations
 
@@ -198,64 +220,73 @@
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (=0_Real (poly_term p1)))
-  (! f2 (th_holds (=0_Real (poly_term p2)))
+  (! f1 (th_holds (=0_poly p1))
+  (! f2 (th_holds (=0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (=0_Real (poly_term p3))))))))))
+    (th_holds (=0_poly p3)))))))))
 
 (declare lra_add_>_>
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (>0_Real (poly_term p1)))
-  (! f2 (th_holds (>0_Real (poly_term p2)))
+  (! f1 (th_holds (>0_poly p1))
+  (! f2 (th_holds (>0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (>0_Real (poly_term p3))))))))))
+    (th_holds (>0_poly p3)))))))))
 
 (declare lra_add_>=_>=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (>=0_Real (poly_term p1)))
-  (! f2 (th_holds (>=0_Real (poly_term p2)))
+  (! f1 (th_holds (>=0_poly p1))
+  (! f2 (th_holds (>=0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (>=0_Real (poly_term p3))))))))))
+    (th_holds (>=0_poly p3)))))))))
 
 (declare lra_add_=_>
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (=0_Real (poly_term p1)))
-  (! f2 (th_holds (>0_Real (poly_term p2)))
+  (! f1 (th_holds (=0_poly p1))
+  (! f2 (th_holds (>0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (>0_Real (poly_term p3))))))))))
+    (th_holds (>0_poly p3)))))))))
 
 (declare lra_add_=_>=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (=0_Real (poly_term p1)))
-  (! f2 (th_holds (>=0_Real (poly_term p2)))
+  (! f1 (th_holds (=0_poly p1))
+  (! f2 (th_holds (>=0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (>=0_Real (poly_term p3))))))))))
+    (th_holds (>=0_poly p3)))))))))
 
 (declare lra_add_>_>=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (>0_Real (poly_term p1)))
-  (! f2 (th_holds (>=0_Real (poly_term p2)))
+  (! f1 (th_holds (>0_poly p1))
+  (! f2 (th_holds (>=0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (>0_Real (poly_term p3))))))))))
+    (th_holds (>0_poly p3)))))))))
+
+(declare lra_add_>=_>
+  (! p1 poly
+  (! p2 poly
+  (! p3 poly
+  (! f1 (th_holds (>=0_poly p1))
+  (! f2 (th_holds (>0_poly p2))
+  (! i (^ (poly_add p1 p2) p3)
+    (th_holds (>0_poly p3)))))))))
 
 (declare lra_add_=_distinct
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (=0_Real (poly_term p1)))
-  (! f2 (th_holds (distinct0_Real (poly_term p2)))
+  (! f1 (th_holds (=0_poly p1))
+  (! f2 (th_holds (distinct0_poly p2))
   (! i (^ (poly_add p1 p2) p3)
-    (th_holds (distinct0_Real (poly_term p3))))))))))
+    (th_holds (distinct0_poly p3)))))))))
 
 ;; substracting equations
 
@@ -263,37 +294,37 @@
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (=0_Real (poly_term p1)))
-  (! f2 (th_holds (=0_Real (poly_term p2)))
+  (! f1 (th_holds (=0_poly p1))
+  (! f2 (th_holds (=0_poly p2))
   (! i (^ (poly_sub p1 p2) p3)
-    (th_holds (=0_Real (poly_term p3)))))))))))
+    (th_holds (=0_poly p3)))))))))
 
 (declare lra_sub_>_=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (>0_Real (poly_term p1)))
-  (! f2 (th_holds (=0_Real (poly_term p2)))
+  (! f1 (th_holds (>0_poly p1))
+  (! f2 (th_holds (=0_poly p2))
   (! i (^ (poly_sub p1 p2) p3)
-    (th_holds (>0_Real (poly_term p3))))))))))
+    (th_holds (>0_poly p3)))))))))
 
 (declare lra_sub_>=_=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (>=0_Real (poly_term p1)))
-  (! f2 (th_holds (=0_Real (poly_term p2)))
+  (! f1 (th_holds (>=0_poly p1))
+  (! f2 (th_holds (=0_poly p2))
   (! i (^ (poly_sub p1 p2) p3)
-    (th_holds (>=0_Real (poly_term p3))))))))))
+    (th_holds (>=0_poly p3)))))))))
 
 (declare lra_sub_distinct_=
   (! p1 poly
   (! p2 poly
   (! p3 poly
-  (! f1 (th_holds (distinct0_Real (poly_term p1)))
-  (! f2 (th_holds (=0_Real (poly_term p2)))
+  (! f1 (th_holds (distinct0_poly p1))
+  (! f2 (th_holds (=0_poly p2))
   (! i (^ (poly_sub p1 p2) p3)
-    (th_holds (distinct0_Real (poly_term p3)))))))))))
+    (th_holds (distinct0_poly p3)))))))))
 
  ;; converting between terms and polynomials
 
@@ -357,6 +388,14 @@
   (! a (^ (poly_mul_c py x) pz)
     (poly_norm (*_Real y (a_real x)) pz))))))))
 
+(declare poly_flip_not_>=
+  (! p poly
+  (! p_negged poly
+  (! pf_formula (th_holds (not (>=0_poly p)))
+  (! sc (^ (poly_neg p) p_negged)
+     (th_holds (>0_poly p_negged)))))))
+
+
 ;; for polynomializing other terms, in particular ite's
 
 (declare term_atom (! v var_real (! t (term Real) type)))
@@ -395,54 +434,10 @@
   (! u (th_holds (not ft))
     (th_holds (not fp)))))))
 
-; form equivalence between term formula and polynomial formula
-
-(declare poly_norm_=
+(declare poly_formula_norm_>=
   (! x (term Real)
   (! y (term Real)
   (! p poly
-  (! h (th_holds (= Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_>
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (>_Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (>0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_<
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (<_Real x y))
   (! n (poly_norm (-_Real y x) p)
-  (! u (! pn (th_holds (>0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
+     (poly_formula_norm (>=_Real y x) (>=0_poly p)))))))
 
-(declare poly_norm_>=
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (>=_Real x y))
-  (! n (poly_norm (-_Real x y) p)
-  (! u (! pn (th_holds (>=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))
-
-(declare poly_norm_<=
-  (! x (term Real)
-  (! y (term Real)
-  (! p poly
-  (! h (th_holds (<=_Real x y))
-  (! n (poly_norm (-_Real y x) p)
-  (! u (! pn (th_holds (>=0_Real (poly_term p)))
-         (holds cln))
-    (holds cln))))))))

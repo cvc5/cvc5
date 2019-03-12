@@ -19,9 +19,13 @@
 #include <memory>
 #include <stack>
 
+#include "expr/node.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
+#include "theory/arith/constraint_forward.h"
 #include "theory/arith/theory_arith.h"
+
+#define CVC4_ARITH_VAR_TERM_PREFIX "term."
 
 namespace CVC4 {
 
@@ -640,8 +644,10 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
 }
 
 ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
-  : TheoryProof(arith, pe), d_realMode(false)
-{}
+  : TheoryProof(arith, pe), d_recorder(), d_realMode(false)
+{
+  arith->setProofRecorder(&d_recorder);
+}
 
 theory::TheoryId ArithProof::getTheoryId() { return theory::THEORY_ARITH; }
 void ArithProof::registerTerm(Expr term) {
@@ -672,151 +678,169 @@ void LFSCArithProof::printOwnedTerm(Expr term, std::ostream& os, const ProofLetM
   // !d_realMode <--> term.getType().isInteger()
 
   Assert (theory::Theory::theoryOf(term) == theory::THEORY_ARITH);
-  switch (term.getKind()) {
+  switch (term.getKind())
+  {
+    case kind::CONST_RATIONAL:
+    {
+      Assert(term.getNumChildren() == 0);
+      Assert(term.getType().isInteger() || term.getType().isReal());
 
-  case kind::CONST_RATIONAL: {
-    Assert (term.getNumChildren() == 0);
-    Assert (term.getType().isInteger() || term.getType().isReal());
+      const Rational& r = term.getConst<Rational>();
+      bool neg = (r < 0);
 
-    const Rational& r = term.getConst<Rational>();
-    bool neg = (r < 0);
+      os << (!d_realMode ? "(a_int " : "(a_real ");
 
-    os << (!d_realMode ? "(a_int " : "(a_real ");
+      if (neg)
+      {
+        os << "(~ ";
+      }
 
-    if (neg) {
-      os << "(~ ";
-    }
+      if (!d_realMode)
+      {
+        os << r.abs();
+      }
+      else
+      {
+        printRational(os, r.abs());
+      }
 
-    if (!d_realMode) {
-      os << r.abs();
-    } else {
-      os << r.abs().getNumerator();
-      os << "/";
-      os << r.getDenominator();
-    }
+      if (neg)
+      {
+        os << ") ";
+      }
 
-    if (neg) {
       os << ") ";
+      return;
     }
 
-    os << ") ";
-    return;
-  }
+    case kind::UMINUS:
+    {
+      Assert(term.getNumChildren() == 1);
+      Assert(term.getType().isInteger() || term.getType().isReal());
+      os << (!d_realMode ? "(u-_Int " : "(u-_Real ");
+      d_proofEngine->printBoundTerm(term[0], os, map);
+      os << ") ";
+      return;
+    }
 
-  case kind::UMINUS: {
-    Assert (term.getNumChildren() == 1);
-    Assert (term.getType().isInteger() || term.getType().isReal());
-    os << (!d_realMode ? "(u-_Int " : "(u-_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << ") ";
-    return;
-  }
+    case kind::PLUS:
+    {
+      Assert(term.getNumChildren() >= 2);
 
-  case kind::PLUS: {
-    Assert (term.getNumChildren() >= 2);
+      std::stringstream paren;
+      for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
+      {
+        os << (!d_realMode ? "(+_Int " : "(+_Real ");
+        d_proofEngine->printBoundTerm(term[i], os, map);
+        os << " ";
+        paren << ") ";
+      }
 
-    std::stringstream paren;
-    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
-      os << (!d_realMode ? "(+_Int " : "(+_Real ");
-      d_proofEngine->printBoundTerm(term[i], os, map);
+      d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+      os << paren.str();
+      return;
+    }
+
+    case kind::MINUS:
+    {
+      Assert(term.getNumChildren() >= 2);
+
+      std::stringstream paren;
+      for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
+      {
+        os << (!d_realMode ? "(-_Int " : "(-_Real ");
+        d_proofEngine->printBoundTerm(term[i], os, map);
+        os << " ";
+        paren << ") ";
+      }
+
+      d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+      os << paren.str();
+      return;
+    }
+
+    case kind::MULT:
+    {
+      Assert(term.getNumChildren() >= 2);
+
+      std::stringstream paren;
+      for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
+      {
+        os << (!d_realMode ? "(*_Int " : "(*_Real ");
+        d_proofEngine->printBoundTerm(term[i], os, map);
+        os << " ";
+        paren << ") ";
+      }
+
+      d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+      os << paren.str();
+      return;
+    }
+
+    case kind::DIVISION:
+    case kind::DIVISION_TOTAL:
+    {
+      Assert(term.getNumChildren() >= 2);
+
+      std::stringstream paren;
+      for (unsigned i = 0; i < term.getNumChildren() - 1; ++i)
+      {
+        os << (!d_realMode ? "(/_Int " : "(/_Real ");
+        d_proofEngine->printBoundTerm(term[i], os, map);
+        os << " ";
+        paren << ") ";
+      }
+
+      d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
+      os << paren.str();
+      return;
+    }
+
+    case kind::GT:
+      Assert(term.getNumChildren() == 2);
+      os << (!d_realMode ? "(>_Int " : "(>_Real ");
+      d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
-      paren << ") ";
-    }
+      d_proofEngine->printBoundTerm(term[1], os, map);
+      os << ") ";
+      return;
 
-    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
-    os << paren.str();
-    return;
-  }
-
-  case kind::MINUS: {
-    Assert (term.getNumChildren() >= 2);
-
-    std::stringstream paren;
-    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
-      os << (!d_realMode ? "(-_Int " : "(-_Real ");
-      d_proofEngine->printBoundTerm(term[i], os, map);
+    case kind::GEQ:
+      Assert(term.getNumChildren() == 2);
+      os << (!d_realMode ? "(>=_Int " : "(>=_Real ");
+      d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
-      paren << ") ";
-    }
+      d_proofEngine->printBoundTerm(term[1], os, map);
+      os << ") ";
+      return;
 
-    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
-    os << paren.str();
-    return;
-  }
-
-  case kind::MULT: {
-    Assert (term.getNumChildren() >= 2);
-
-    std::stringstream paren;
-    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
-      os << (!d_realMode ? "(*_Int " : "(*_Real ");
-      d_proofEngine->printBoundTerm(term[i], os, map);
+    case kind::LT:
+      Assert(term.getNumChildren() == 2);
+      os << (!d_realMode ? "(<_Int " : "(<_Real ");
+      d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
-      paren << ") ";
-    }
+      d_proofEngine->printBoundTerm(term[1], os, map);
+      os << ") ";
+      return;
 
-    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
-    os << paren.str();
-    return;
-  }
-
-  case kind::DIVISION:
-  case kind::DIVISION_TOTAL: {
-    Assert (term.getNumChildren() >= 2);
-
-    std::stringstream paren;
-    for (unsigned i = 0; i < term.getNumChildren() - 1; ++i) {
-      os << (!d_realMode ? "(/_Int " : "(/_Real ");
-      d_proofEngine->printBoundTerm(term[i], os, map);
+    case kind::LEQ:
+      Assert(term.getNumChildren() == 2);
+      os << (!d_realMode ? "(<=_Int " : "(<=_Real ");
+      d_proofEngine->printBoundTerm(term[0], os, map);
       os << " ";
-      paren << ") ";
-    }
+      d_proofEngine->printBoundTerm(term[1], os, map);
+      os << ") ";
+      return;
 
-    d_proofEngine->printBoundTerm(term[term.getNumChildren() - 1], os, map);
-    os << paren.str();
-    return;
-  }
+    case kind::VARIABLE:
+    case kind::SKOLEM:
+      os << CVC4_ARITH_VAR_TERM_PREFIX << ProofManager::sanitize(term);
+      return;
 
-  case kind::GT:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(>_Int " : "(>_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
-
-  case kind::GEQ:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(>=_Int " : "(>=_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
-
-  case kind::LT:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(<_Int " : "(<_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
-
-  case kind::LEQ:
-    Assert (term.getNumChildren() == 2);
-    os << (!d_realMode ? "(<=_Int " : "(<=_Real ");
-    d_proofEngine->printBoundTerm(term[0], os, map);
-    os << " ";
-    d_proofEngine->printBoundTerm(term[1], os, map);
-    os << ") ";
-    return;
-
-  default:
-    Debug("pf::arith") << "Default printing of term: " << term << std::endl;
-    os << term;
-    return;
+    default:
+      Debug("pf::arith") << "Default printing of term: " << term << std::endl;
+      os << term;
+      return;
   }
 }
 
@@ -831,26 +855,327 @@ void LFSCArithProof::printOwnedSort(Type type, std::ostream& os) {
   }
 }
 
-void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma, std::ostream& os, std::ostream& paren, const ProofLetMap& map) {
-  os << " ;; Arith Theory Lemma \n;;";
-  for (unsigned i = 0; i < lemma.size(); ++i) {
-    os << lemma[i] <<" ";
+void LFSCArithProof::printRational(std::ostream& o, const Rational& r)
+{
+  if (r.sgn() < 0)
+  {
+    o << "(~ " << r.getNumerator().abs() << "/" << r.getDenominator().abs()
+      << ")";
   }
-  os <<"\n";
-  //os << " (clausify_false trust)";
-  ArithProof::printTheoryLemmaProof(lemma, os, paren, map);
+  else
+  {
+    o << r.getNumerator() << "/" << r.getDenominator();
+  }
+}
+
+void LFSCArithProof::printLinearPolynomialNormalizer(std::ostream& o,
+                                                     const Node& n)
+{
+  switch (n.getKind())
+  {
+    case kind::PLUS:
+    {
+      // Since our axioms are binary, but n may be n-ary, we rig up
+      // a right-associative tree.
+      size_t nchildren = n.getNumChildren();
+      for (size_t i = 0; i < nchildren; ++i)
+      {
+        if (i < nchildren - 1)
+        {
+          o << "\n      (pn_+ _ _ _ _ _ ";
+        }
+        printLinearMonomialNormalizer(o, n[i]);
+      }
+      std::fill_n(std::ostream_iterator<char>(o), nchildren - 1, ')');
+      break;
+    }
+    case kind::MULT:
+    case kind::VARIABLE:
+    case kind::CONST_RATIONAL:
+    case kind::SKOLEM:
+    {
+      printLinearMonomialNormalizer(o, n);
+      break;
+    }
+    default:
+#ifdef CVC4_ASSERTIONS
+      std::ostringstream msg;
+      msg << "Invalid operation " << n.getKind() << " in linear polynomial";
+      Unreachable(msg.str().c_str());
+#endif  // CVC4_ASSERTIONS
+      break;
+  }
+}
+
+void LFSCArithProof::printLinearMonomialNormalizer(std::ostream& o,
+                                                   const Node& n)
+{
+  switch (n.getKind())
+  {
+    case kind::MULT: {
+#ifdef CVC4_ASSERTIONS
+      std::ostringstream s;
+      s << "node " << n << " is not a linear monomial";
+      s << " " << n[0].getKind() << " " << n[1].getKind();
+      Assert((n[0].getKind() == kind::CONST_RATIONAL
+              && (n[1].getKind() == kind::VARIABLE
+                  || n[1].getKind() == kind::SKOLEM)),
+             s.str().c_str());
+#endif  // CVC4_ASSERTIONS
+
+      o << "\n        (pn_mul_c_L _ _ _ ";
+      printConstRational(o, n[0]);
+      o << " ";
+      printVariableNormalizer(o, n[1]);
+      o << ")";
+      break;
+    }
+    case kind::CONST_RATIONAL:
+    {
+      o << "\n        (pn_const ";
+      printConstRational(o, n);
+      o << ")";
+      break;
+    }
+    case kind::VARIABLE:
+    case kind::SKOLEM:
+    {
+      o << "\n        ";
+      printVariableNormalizer(o, n);
+      break;
+    }
+    default:
+#ifdef CVC4_ASSERTIONS
+      std::ostringstream msg;
+      msg << "Invalid operation " << n.getKind() << " in linear monomial";
+      Unreachable(msg.str().c_str());
+#endif  // CVC4_ASSERTIONS
+      break;
+  }
+}
+
+void LFSCArithProof::printConstRational(std::ostream& o, const Node& n)
+{
+  Assert(n.getKind() == kind::CONST_RATIONAL);
+  const Rational value = n.getConst<Rational>();
+  printRational(o, value);
+}
+
+void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
+{
+  std::ostringstream msg;
+  msg << "Invalid variable kind " << n.getKind() << " in linear monomial";
+  Assert(n.getKind() == kind::VARIABLE || n.getKind() == kind::SKOLEM,
+         msg.str().c_str());
+  o << "(pn_var " << n << ")";
+}
+
+void LFSCArithProof::printLinearPolynomialPredicateNormalizer(std::ostream& o,
+                                                              const Node& n)
+{
+  Assert(n.getKind() == kind::GEQ,
+         "can only print normalization witnesses for (>=) nodes");
+  Assert(n[1].getKind() == kind::CONST_RATIONAL);
+  o << "(poly_formula_norm_>= _ _ _ ";
+  o << "\n    (pn_- _ _ _ _ _ ";
+  printLinearPolynomialNormalizer(o, n[0]);
+  o << "\n      (pn_const ";
+  printConstRational(o, n[1]);
+  o << ")))";
+}
+
+void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
+                                           std::ostream& os,
+                                           std::ostream& paren,
+                                           const ProofLetMap& map)
+{
+  Debug("pf::arith") << "Printing proof for lemma " << lemma << std::endl;
+  // Prefixes for the names of linearity witnesses
+  const char* linearityWitnessPrefix = "lp";
+  const char* linearizedProofPrefix = "pf_lp";
+  std::ostringstream lemmaParen;
+
+  // Construct the set of conflicting literals
+  std::set<Node> conflictSet;
+  std::transform(lemma.begin(),
+                 lemma.end(),
+                 std::inserter(conflictSet, conflictSet.begin()),
+                 [](const Expr& e) {
+                   return NodeManager::currentNM()->fromExpr(e).negate();
+                 });
+
+  // If we have Farkas coefficients stored for this lemma, use them to write a
+  // proof. Otherwise, just `trust` the lemma.
+  if (d_recorder.hasFarkasCoefficients(conflictSet))
+  {
+    // Get farkas coefficients & literal order
+    const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
+    const Node& conflict = farkasInfo.first;
+    theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
+    Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
+    Assert(conflict.getNumChildren() == farkasCoefficients->size());
+    const size_t nAntecedents = conflict.getNumChildren();
+
+    // Print proof
+    os << "\n;; Farkas Proof" << std::endl;
+
+    // Construct witness that the literals are linear polynomials
+    os << ";  Linear Polynomial Normalization Witnesses" << std::endl;
+    for (size_t i = 0; i != nAntecedents; ++i)
+    {
+      const Node& antecedent = conflict[i];
+      const Rational farkasC = (*farkasCoefficients)[i];
+      os << "\n; " << antecedent << " w/ farkas c = " << farkasC << std::endl;
+      os << "  (@ "
+         << ProofManager::getLitName(antecedent.negate(),
+                                     linearityWitnessPrefix)
+         << " ";
+      const Node& nonneg =
+          antecedent.getKind() == kind::NOT ? antecedent[0] : antecedent;
+      printLinearPolynomialPredicateNormalizer(os, nonneg);
+      lemmaParen << ")";
+    }
+
+    // Prove linear polynomial constraints
+    os << "\n;  Linear Polynomial Proof Conversions";
+    for (size_t i = 0; i != nAntecedents; ++i)
+    {
+      const Node& antecedent = conflict[i];
+      os << "\n  (@ "
+         << ProofManager::getLitName(antecedent.negate(), linearizedProofPrefix)
+         << " ";
+      lemmaParen << ")";
+      switch (conflict[i].getKind())
+      {
+        case kind::NOT:
+        {
+          Assert(conflict[i][0].getKind() == kind::GEQ);
+          os << "(poly_flip_not_>= _ _ "
+             << "(poly_form_not _ _ "
+             << ProofManager::getLitName(antecedent.negate(),
+                                         linearityWitnessPrefix)
+             << " " << ProofManager::getLitName(antecedent.negate(), "")
+             << "))";
+          break;
+        }
+        case kind::GEQ:
+        {
+          os << "(poly_form _ _ "
+             << ProofManager::getLitName(antecedent.negate(),
+                                         linearityWitnessPrefix)
+             << " " << ProofManager::getLitName(antecedent.negate(), "") << ")";
+          break;
+        }
+        default: Unreachable();
+      }
+    }
+
+    /* Combine linear polynomial constraints to derive a contradiction.
+     *
+     * The linear polynomial constraints are refered to as **antecedents**,
+     * since they are antecedents to the contradiction.
+     *
+     * The structure of the combination is a tree
+     *
+     *   (=> <=)
+     *      |
+     *      +                   0
+     *     / \
+     *    *   +                 1
+     *       / \
+     *      *   +               2
+     *         / \
+     *        *  ...            i
+     *             \
+     *              +           n-1
+     *             / \
+     *            *   (0 >= 0)
+     *
+     * Where each * is a linearized antecedant being scaled by a farkas
+     * coefficient and each + is the sum of inequalities. The tricky bit is that
+     * each antecedent can be strict (>) or relaxed (>=) and the axiom used for
+     * each * and + depends on this... The axiom for * depends on the
+     * strictness of its linear polynomial input, and the axiom for + depends
+     * on the strictness of **both** its inputs. The contradiction axiom is
+     * also a function of the strictness of its input.
+     *
+     * There are n *s and +s and we precompute
+     *    1. The strictness of the ith antecedant  (`ith_antecedent_is_strict`)
+     *    2. The strictness of the right argument of the ith sum
+     * (`ith_acc_is_strict`)
+     *    3. The strictness of the final result (`strict_contradiction`)
+     *
+     * Precomupation is helpful since
+     *    the computation is post-order,
+     *    but printing is pre-order.
+     */
+    std::vector<bool> ith_antecedent_is_strict(nAntecedents, false);
+    std::vector<bool> ith_acc_is_strict(nAntecedents, false);
+    for (int i = nAntecedents - 1; i >= 0; --i)
+    {
+      ith_antecedent_is_strict[i] = conflict[i].getKind() == kind::NOT;
+      if (i == (int)nAntecedents - 1)
+      {
+        ith_acc_is_strict[i] = false;
+      }
+      else
+      {
+        ith_acc_is_strict[i] =
+            ith_acc_is_strict[i + 1] || ith_antecedent_is_strict[i + 1];
+      }
+    }
+    bool strict_contradiction =
+        ith_acc_is_strict[0] || ith_antecedent_is_strict[0];
+
+    // Now, print the proof
+    os << "\n;  Farkas Combination";
+    // Choose the appropriate contradiction axiom
+    os << "\n  (lra_contra_" << (strict_contradiction ? ">" : ">=") << " _ ";
+    for (size_t i = 0; i != nAntecedents; ++i)
+    {
+      const Node& lit = conflict[i];
+      const char* ante_op = ith_antecedent_is_strict[i] ? ">" : ">=";
+      const char* acc_op = ith_acc_is_strict[i] ? ">" : ">=";
+      os << "\n    (lra_add_" << ante_op << "_" << acc_op << " _ _ _ ";
+      os << "\n       (lra_mul_c_" << ante_op << " _ _ ";
+      printRational(os, (*farkasCoefficients)[i].abs());
+      os << " " << ProofManager::getLitName(lit.negate(), linearizedProofPrefix)
+         << ")"
+         << " ; " << lit;
+    }
+
+    // The basis, at least, is always the same...
+    os << "\n    (lra_axiom_>= 0/1)";
+    std::fill_n(std::ostream_iterator<char>(os),
+                nAntecedents,
+                ')');  // close lra_add_*_*
+    os << ")";         // close lra_contra_*
+
+    os << lemmaParen.str();  // close normalizers and proof-normalizers
+  }
+  else
+  {
+    os << "\n; Arithmetic proofs which use reasoning more complex than Farkas "
+          "proofs are currently unsupported\n(clausify_false trust)\n";
+  }
 }
 
 void LFSCArithProof::printSortDeclarations(std::ostream& os, std::ostream& paren) {
+  // Nothing to do here at this point.
 }
 
 void LFSCArithProof::printTermDeclarations(std::ostream& os, std::ostream& paren) {
-  for (ExprSet::const_iterator it = d_declarations.begin(); it != d_declarations.end(); ++it) {
+  for (ExprSet::const_iterator it = d_declarations.begin();
+       it != d_declarations.end();
+       ++it)
+  {
     Expr term = *it;
     Assert(term.isVariable());
-    os << "(% " << ProofManager::sanitize(term) << " ";
-    os << "(term ";
-    os << term.getType() << ")\n";
+    os << "(% " << ProofManager::sanitize(term) << " var_real\n";
+    os << "(@ " << CVC4_ARITH_VAR_TERM_PREFIX << ProofManager::sanitize(term)
+       << " ";
+    os << "(a_var_real " << ProofManager::sanitize(term) << ")\n";
+    paren << ")";
     paren << ")";
   }
 }

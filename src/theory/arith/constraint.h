@@ -258,7 +258,7 @@ struct PerVariableDatabase{
 struct ConstraintRule {
   ConstraintP d_constraint;
   ArithProofType d_proofType;
-  AntecedentId d_antecedentEnd;    
+  AntecedentId d_antecedentEnd;
 
   /**
    * In this comment, we abbreviate ConstraintDatabase::d_antecedents
@@ -266,37 +266,38 @@ struct ConstraintRule {
    *
    * This list is always empty if proofs are not enabled.
    *
-   * If proofs are enabled, the proof of constraint c at p in ans[p] of length n is
-   *  (NullConstraint, ans[p-(n-1)], ... , ans[p-1], ans[p])
-   * 
-   * Farkas' proofs show a contradiction with the negation of c, c_not = c->getNegation().
+   * If proofs are enabled, the proof of constraint c at p in ans[p] of length n
+   * is (NullConstraint, ans[p-(n-1)], ... , ans[p-1], ans[p])
    *
-   * We treat the position for NullConstraint (p-n) as the position for the farkas
-   * coefficient for so we pretend c_not is ans[p-n].
-   * So this correlation for the constraints we are going to use:
-   *   (c_not, ans[p-(n-1)], ... , ans[p-1], ans[p])
-   * With the coefficients at positions:
-   *   (fc[0], fc[1)], ... fc[n])
+   * Farkas' proofs show a contradiction with the negation of c, c_not =
+   * c->getNegation().
    *
-   * The index of the constraints in the proof are {i | i <= 0 <= n] } (with c_not being p-n).
-   * Partition the indices into L, U, and E, the lower bounds, the upper bounds and equalities.
+   * We treat the position for NullConstraint (p-n) as the position for the
+   * farkas coefficient for so we pretend c_not is ans[p-n]. So this correlation
+   * for the constraints we are going to use: (c_not, ans[p-n+(1)], ... ,
+   * ans[p-n+(n-1)], ans[p-n+(n)]) With the coefficients at positions: (fc[0],
+   * fc[1)], ... fc[n])
    *
-   * We standardize the proofs to be upper bound oriented following the convention:
-   *   A x <= b
-   * with the proof witness of the form
-   *  (lambda) Ax <= (lambda) b and lambda >= 0.
+   * The index of the constraints in the proof are {i | i <= 0 <= n] } (with
+   * c_not being p-n). Partition the indices into L, U, and E, the lower bounds,
+   * the upper bounds and equalities.
    *
-   * To accomplish this cleanly, the fc coefficients must be negative for lower bounds.
-   * The signs of equalities can be either positive or negative.
+   * We standardize the proofs to be upper bound oriented following the
+   * convention: A x <= b with the proof witness of the form (lambda) Ax <=
+   * (lambda) b and lambda >= 0.
+   *
+   * To accomplish this cleanly, the fc coefficients must be negative for lower
+   * bounds. The signs of equalities can be either positive or negative.
    *
    * Thus the proof corresponds to (with multiplication over inequalities):
    *    \sum_{u in U} fc[u] ans[p-n+u] + \sum_{e in E} fc[e] ans[p-n+e]
    *  + \sum_{l in L} fc[l] ans[p-n+l]
    * |= 0 < 0
    * where fc[u] > 0, fc[l] < 0, and fc[e] != 0 (i.e. it can be either +/-).
-   * 
+   *
    * There is no requirement that the proof is minimal.
-   * We do however use all of the constraints by requiring non-zero coefficients.
+   * We do however use all of the constraints by requiring non-zero
+   * coefficients.
    */
 #if IS_PROOFS_BUILD
   RationalVectorCP d_farkasCoefficients;
@@ -346,88 +347,10 @@ struct ConstraintRule {
 }; /* class ConstraintRule */
 
 class Constraint {
-private:
-  /** The ArithVar associated with the constraint. */
-  const ArithVar d_variable;
-
-  /** The type of the Constraint. */
-  const ConstraintType d_type;
-
-  /** The DeltaRational value with the constraint. */
-  const DeltaRational d_value;
-
-  /** A pointer to the associated database for the Constraint. */
-  ConstraintDatabase* d_database;
-
-  /**
-   * The node to be communicated with the TheoryEngine.
-   *
-   * This is not context dependent, but may be set once.
-   *
-   * This must be set if the constraint canBePropagated().
-   * This must be set if the constraint assertedToTheTheory().
-   * Otherwise, this may be null().
-   */
-  Node d_literal;
-
-  /** Pointer to the negation of the Constraint. */
-  ConstraintP d_negation;
-
-  /**
-   * This is true if the associated node can be propagated.
-   *
-   * This should be enabled if the node has been preregistered.
-   *
-   * Sat Context Dependent.
-   * This is initially false.
-   */
-  bool d_canBePropagated;
-
-  /**
-   * This is the order the constraint was asserted to the theory.
-   * If this has been set, the node can be used in conflicts.
-   * If this is c.d_assertedOrder < d.d_assertedOrder, then c can be used in the
-   * explanation of d.
-   *
-   * This should be set after the literal is dequeued by Theory::get().
-   *
-   * Sat Context Dependent.
-   * This is initially AssertionOrderSentinel.
-   */
-  AssertionOrder d_assertionOrder;
-
-  /**
-   * This is guaranteed to be on the fact queue.
-   * For example if x + y = x + 1 is on the fact queue, then use this
-   */
-  TNode d_witness;
-
-  /**
-   * The position of the constraint in the constraint rule id.
-   *
-   * Sat Context Dependent.
-   * This is initially 
-   */
-  ConstraintRuleID d_crid;
-  
-
-  /**
-   * True if the equality has been split.
-   * Only meaningful if ConstraintType == Equality.
-   *
-   * User Context Dependent.
-   * This is initially false.
-   */
-  bool d_split;
-
-  /**
-   * Position in sorted constraint set for the variable.
-   * Unset if d_type is Disequality.
-   */
-  SortedConstraintMapIterator d_variablePosition;
 
   friend class ConstraintDatabase;
 
+ public:
   /**
    * This begins construction of a minimal constraint.
    *
@@ -443,86 +366,6 @@ private:
    * This should only be called if safeToGarbageCollect() is true.
    */
   ~Constraint();
-
-  /**  Returns true if the constraint has been initialized. */
-  bool initialized() const;
-
-  /**
-   * This initializes the fields that cannot be set in the constructor due to
-   * circular dependencies.
-   */
-  void initialize(ConstraintDatabase* db, SortedConstraintMapIterator v, ConstraintP negation);
-
-
-
-  class ConstraintRuleCleanup {
-  public:
-    inline void operator()(ConstraintRule* crp){
-      Assert(crp != NULL);
-      ConstraintP constraint = crp->d_constraint;
-      Assert(constraint->d_crid != ConstraintRuleIdSentinel);
-      constraint->d_crid = ConstraintRuleIdSentinel;
-      
-      PROOF(if(crp->d_farkasCoefficients != RationalVectorCPSentinel){
-              delete crp->d_farkasCoefficients;
-            });
-    }
-  };
-
-  class CanBePropagatedCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->d_canBePropagated);
-      constraint->d_canBePropagated = false;
-    }
-  };
-
-  class AssertionOrderCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->assertedToTheTheory());
-      constraint->d_assertionOrder = AssertionOrderSentinel;
-      constraint->d_witness = TNode::null();
-      Assert(!constraint->assertedToTheTheory());
-    }
-  };
-
-  class SplitCleanup {
-  public:
-    inline void operator()(ConstraintP* p){
-      ConstraintP constraint = *p;
-      Assert(constraint->d_split);
-      constraint->d_split = false;
-    }
-  };
-
-  /**
-   * Returns true if the node is safe to garbage collect.
-   * Both it and its negation must have no context dependent data set.
-   */
-  bool safeToGarbageCollect() const;
-
-  /**
-   * Returns true if the constraint has no context dependent data set.
-   */
-  bool contextDependentDataIsSet() const;
-
-  /**
-   * Returns true if the node correctly corresponds to the constraint that is
-   * being set.
-   */
-  bool sanityChecking(Node n) const;
-
-  /** Returns a reference to the map for d_variable. */
-  SortedConstraintMap& constraintSet() const;
-
-  /** Returns coefficients for the proofs for farkas cancellation. */
-  static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
-
-
-public:
 
   static ConstraintType constraintTypeOfComparison(const Comparison& cmp);
 
@@ -648,6 +491,26 @@ public:
   /** Returns true if the node has a Farkas' proof. */
   bool hasFarkasProof() const;
 
+  /**
+   * @brief Returns whether this constraint is provable using a Farkas
+   * proof that has input assertions as its antecedents.
+   *
+   * An example of a constraint that has a simple Farkas proof:
+   *    x <= 0 proven from x + y <= 0 and x - y <= 0.
+   *
+   * An example of a constraint that does not have a simple Farkas proof:
+   *    x <= 0 proven from x + y <= 0 and x - y <= 0.5 for integers x, y
+   *       (since integer reasoning is also required!).
+   * Another example of a constraint that might be proven without a simple
+   * Farkas proof:
+   *    x < 0 proven from not(x == 0) and not(x > 0).
+   *
+   * This could be proven internally by the arithmetic theory using
+   * `TrichotomyAP` as the proof type.
+   *
+   */
+  bool hasSimpleFarkasProof() const;
+
   /** Returns true if the node has a int hole proof. */
   bool hasIntHoleProof() const;
 
@@ -735,22 +598,6 @@ public:
    */
   Node externalExplainConflict() const;
 
-private:
-  Node externalExplain(AssertionOrder order) const;
-
-  /**
-   * Returns an explanation of that was assertedBefore(order).
-   * The constraint must have a proof.
-   * The constraint cannot be selfExplaining().
-   *
-   * This is the minimum fringe of the implication tree
-   * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
-   */
-  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
-
-  static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
-
-public:
 
   /** The constraint is known to be true. */
   inline bool hasProof() const {
@@ -790,7 +637,6 @@ public:
    * Esstentially this is a down branch.
    */
   ConstraintP getFloor();
-
 
   static ConstraintP makeNegation(ArithVar v, ConstraintType t, const DeltaRational& r);
 
@@ -896,11 +742,109 @@ public:
    */
   const ConstraintDatabase& getDatabase() const;
 
-private:
-
   /** Returns the constraint rule at the position. */
   const ConstraintRule& getConstraintRule() const;
-  
+
+ private:
+  /**  Returns true if the constraint has been initialized. */
+  bool initialized() const;
+
+  /**
+   * This initializes the fields that cannot be set in the constructor due to
+   * circular dependencies.
+   */
+  void initialize(ConstraintDatabase* db,
+                  SortedConstraintMapIterator v,
+                  ConstraintP negation);
+
+  class ConstraintRuleCleanup
+  {
+   public:
+    inline void operator()(ConstraintRule* crp)
+    {
+      Assert(crp != NULL);
+      ConstraintP constraint = crp->d_constraint;
+      Assert(constraint->d_crid != ConstraintRuleIdSentinel);
+      constraint->d_crid = ConstraintRuleIdSentinel;
+
+      PROOF(if (crp->d_farkasCoefficients != RationalVectorCPSentinel) {
+        delete crp->d_farkasCoefficients;
+      });
+    }
+  };
+
+  class CanBePropagatedCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
+      ConstraintP constraint = *p;
+      Assert(constraint->d_canBePropagated);
+      constraint->d_canBePropagated = false;
+    }
+  };
+
+  class AssertionOrderCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
+      ConstraintP constraint = *p;
+      Assert(constraint->assertedToTheTheory());
+      constraint->d_assertionOrder = AssertionOrderSentinel;
+      constraint->d_witness = TNode::null();
+      Assert(!constraint->assertedToTheTheory());
+    }
+  };
+
+  class SplitCleanup
+  {
+   public:
+    inline void operator()(ConstraintP* p)
+    {
+      ConstraintP constraint = *p;
+      Assert(constraint->d_split);
+      constraint->d_split = false;
+    }
+  };
+
+  /**
+   * Returns true if the node is safe to garbage collect.
+   * Both it and its negation must have no context dependent data set.
+   */
+  bool safeToGarbageCollect() const;
+
+  /**
+   * Returns true if the constraint has no context dependent data set.
+   */
+  bool contextDependentDataIsSet() const;
+
+  /**
+   * Returns true if the node correctly corresponds to the constraint that is
+   * being set.
+   */
+  bool sanityChecking(Node n) const;
+
+  /** Returns a reference to the map for d_variable. */
+  SortedConstraintMap& constraintSet() const;
+
+  /** Returns coefficients for the proofs for farkas cancellation. */
+  static std::pair<int, int> unateFarkasSigns(ConstraintCP a, ConstraintCP b);
+
+  Node externalExplain(AssertionOrder order) const;
+
+  /**
+   * Returns an explanation of that was assertedBefore(order).
+   * The constraint must have a proof.
+   * The constraint cannot be selfExplaining().
+   *
+   * This is the minimum fringe of the implication tree
+   * s.t. every constraint is assertedBefore(order) or hasEqualityEngineProof().
+   */
+  void externalExplain(NodeBuilder<>& nb, AssertionOrder order) const;
+
+  static Node externalExplain(const ConstraintCPVec& b, AssertionOrder order);
+
   inline ArithProofType getProofType() const {
     return getConstraintRule().d_proofType;
   }
@@ -928,9 +872,91 @@ private:
   /** Return true if every element in b has a proof. */
   static bool allHaveProof(const ConstraintCPVec& b);
 
-  /** Precondition: hasFarkasProof() */
+  /** Precondition: hasFarkasProof()
+   * Computes the combination implied by the farkas coefficients. Sees if it is
+   * a contradiction.
+   */
+
   bool wellFormedFarkasProof() const;
-  
+
+  /** The ArithVar associated with the constraint. */
+  const ArithVar d_variable;
+
+  /** The type of the Constraint. */
+  const ConstraintType d_type;
+
+  /** The DeltaRational value with the constraint. */
+  const DeltaRational d_value;
+
+  /** A pointer to the associated database for the Constraint. */
+  ConstraintDatabase* d_database;
+
+  /**
+   * The node to be communicated with the TheoryEngine.
+   *
+   * This is not context dependent, but may be set once.
+   *
+   * This must be set if the constraint canBePropagated().
+   * This must be set if the constraint assertedToTheTheory().
+   * Otherwise, this may be null().
+   */
+  Node d_literal;
+
+  /** Pointer to the negation of the Constraint. */
+  ConstraintP d_negation;
+
+  /**
+   * This is true if the associated node can be propagated.
+   *
+   * This should be enabled if the node has been preregistered.
+   *
+   * Sat Context Dependent.
+   * This is initially false.
+   */
+  bool d_canBePropagated;
+
+  /**
+   * This is the order the constraint was asserted to the theory.
+   * If this has been set, the node can be used in conflicts.
+   * If this is c.d_assertedOrder < d.d_assertedOrder, then c can be used in the
+   * explanation of d.
+   *
+   * This should be set after the literal is dequeued by Theory::get().
+   *
+   * Sat Context Dependent.
+   * This is initially AssertionOrderSentinel.
+   */
+  AssertionOrder d_assertionOrder;
+
+  /**
+   * This is guaranteed to be on the fact queue.
+   * For example if x + y = x + 1 is on the fact queue, then use this
+   */
+  TNode d_witness;
+
+  /**
+   * The position of the constraint in the constraint rule id.
+   *
+   * Sat Context Dependent.
+   * This is initially
+   */
+  ConstraintRuleID d_crid;
+
+  /**
+   * True if the equality has been split.
+   * Only meaningful if ConstraintType == Equality.
+   *
+   * User Context Dependent.
+   * This is initially false.
+   */
+  bool d_split;
+
+  /**
+   * Position in sorted constraint set for the variable.
+   * Unset if d_type is Disequality.
+   */
+  SortedConstraintMapIterator d_variablePosition;
+
 }; /* class ConstraintValue */
 
 std::ostream& operator<<(std::ostream& o, const Constraint& c);

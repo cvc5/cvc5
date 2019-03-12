@@ -13,7 +13,7 @@
  **
  ** Simple representation of S-expressions.
  ** These are used when a simple, and obvious interface for basic
- ** expressions is appropraite.
+ ** expressions is appropriate.
  **
  ** These are quite ineffecient.
  ** These are totally disconnected from any ExprManager.

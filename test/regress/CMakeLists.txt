@@ -159,7 +159,8 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
-  regress0/bv/bool-to-bv.smt2
+  regress0/bv/bool-to-bv-all.smt2
+  regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
   regress0/bv/bug440.smt
@@ -362,6 +363,7 @@ set(regress_0_tests
   regress0/datatypes/example-dailler-min.smt2
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
+  regress0/datatypes/issue2838.cvc
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutually-recursive.cvc
@@ -370,11 +372,13 @@ set(regress_0_tests
   regress0/datatypes/rec1.cvc
   regress0/datatypes/rec2.cvc
   regress0/datatypes/rec4.cvc
+  regress0/datatypes/repeated-selectors-2769.smt2
   regress0/datatypes/rewriter.cvc
   regress0/datatypes/sc-cdt1.smt2
   regress0/datatypes/some-boolean-tests.cvc
   regress0/datatypes/stream-singleton.smt2
   regress0/datatypes/tenum-bug.smt2
+  regress0/datatypes/tree-get-value.cvc
   regress0/datatypes/tuple-model.cvc
   regress0/datatypes/tuple-no-clash.cvc
   regress0/datatypes/tuple-record-bug.cvc
@@ -443,6 +447,8 @@ set(regress_0_tests
   regress0/fmf/sort-infer-typed-082718.smt2
   regress0/fmf/syn002-si-real-int.smt2
   regress0/fmf/tail_rec.smt2
+  regress0/fp/abs-unsound.smt2
+  regress0/fp/abs-unsound2.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/simple.smt2
   regress0/fuzz_1.smt
@@ -567,6 +573,9 @@ set(regress_0_tests
   regress0/preprocess/preprocess_14.cvc
   regress0/preprocess/preprocess_15.cvc
   regress0/print_lambda.cvc
+  regress0/printer/bv_consts_bin.smt2
+  regress0/printer/bv_consts_dec.smt2
+  regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
   regress0/push-pop/boolean/fuzz_14.smt2
@@ -775,6 +784,7 @@ set(regress_0_tests
   regress0/sets/pre-proc-univ.smt2
   regress0/sets/rec_copy_loop_check_heap_access_43_4.smt2
   regress0/sets/sets-equal.smt2
+  regress0/sets/sets-extr.smt2
   regress0/sets/sets-inter.smt2
   regress0/sets/sets-of-sets-subtypes.smt2
   regress0/sets/sets-poly-int-real.smt2
@@ -818,6 +828,7 @@ set(regress_0_tests
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/issue1189.smt2
+  regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
   regress0/strings/model001.smt2
@@ -841,10 +852,10 @@ set(regress_0_tests
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
-  regress0/sygus/array-grammar-select.sy
-  regress0/sygus/array-grammar-store.sy
   regress0/sygus/General_plus10.sy
   regress0/sygus/aig-si.sy
+  regress0/sygus/array-grammar-select.sy
+  regress0/sygus/array-grammar-store.sy
   regress0/sygus/c100.sy
   regress0/sygus/ccp16.lus.sy
   regress0/sygus/check-generic-red.sy
@@ -1638,6 +1649,7 @@ set(regress_1_tests
   regress1/sygus/sygus-lambda-fv.sy
   regress1/sygus/sygus-uf-ex.sy
   regress1/sygus/t8.sy
+  regress1/sygus/temp_input_to_synth_ic-error-121418.sy
   regress1/sygus/tl-type-0.sy
   regress1/sygus/tl-type-4x.sy
   regress1/sygus/tl-type.sy
@@ -1729,6 +1741,7 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
+  regress2/strings/extf_d_perf.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
@@ -1744,6 +1757,7 @@ set(regress_2_tests
   regress2/sygus/inv_gen_n_c11.sy
   regress2/sygus/lustre-real.sy
   regress2/sygus/max2-univ.sy
+  regress2/sygus/min_IC_1.sy
   regress2/sygus/mpg_guard1-dd.sy
   regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy

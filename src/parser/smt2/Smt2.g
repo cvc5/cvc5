@@ -100,6 +100,10 @@ namespace CVC4 {
       };/* struct myExpr */
     }/* CVC4::parser::smt2 namespace */
   }/* CVC4::parser namespace */
+
+  namespace api {
+    class Term;
+  }
 }/* CVC4 namespace */
 
 }/* @parser::includes */
@@ -112,6 +116,7 @@ namespace CVC4 {
 #include <unordered_set>
 #include <vector>
 
+#include "api/cvc4cpp.h"
 #include "base/output.h"
 #include "expr/expr.h"
 #include "expr/kind.h"
@@ -141,6 +146,8 @@ using namespace CVC4::parser;
 #define MK_EXPR EXPR_MANAGER->mkExpr
 #undef MK_CONST
 #define MK_CONST EXPR_MANAGER->mkConst
+#undef SOLVER
+#define SOLVER PARSER_STATE->getSolver()
 #define UNSUPPORTED PARSER_STATE->unimplementedFeature
 
 static bool isClosed(const Expr& e, std::set<Expr>& free, std::unordered_set<Expr, ExprHashFunction>& closedCache) {
@@ -878,7 +885,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
   std::vector< Expr > let_vars;
   bool readingLet = false;
   std::string s;
-  CVC4::Expr atomExpr;
+  CVC4::api::Term atomTerm;
 }
   : LPAREN_TOK
     //read operator
@@ -973,15 +980,16 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
         PARSER_STATE->popScope();
       }
     }
-    | termAtomic[atomExpr] {
-      Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
-                            << "expression " << atomExpr << std::endl;
-      std::stringstream ss;
-      ss << atomExpr;
-      sgt.d_expr = atomExpr;
-      sgt.d_name = ss.str();
-      sgt.d_gterm_type = SygusGTerm::gterm_op;
-    }
+    | termAtomic[atomTerm]
+      {
+        Debug("parser-sygus") << "Sygus grammar " << fun << " : atomic "
+                              << "expression " << atomTerm << std::endl;
+        std::stringstream ss;
+        ss << atomTerm;
+        sgt.d_expr = atomTerm.getExpr();
+        sgt.d_name = ss.str();
+        sgt.d_gterm_type = SygusGTerm::gterm_op;
+      }
   | symbol[name,CHECK_NONE,SYM_VARIABLE]
     { 
       if( name[0] == '-' ){  //hack for unary minus
@@ -1709,6 +1717,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Type> match_ptypes;
   Type type;
   Type type2;
+  api::Term atomTerm;
 }
   : /* a built-in operator application */
     LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
@@ -2207,19 +2216,17 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
   | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
   {
-    std::vector<Type> types;
-    for (std::vector<Expr>::const_iterator i = args.begin(); i != args.end();
-         ++i)
+    std::vector<api::Sort> sorts;
+    std::vector<api::Term> terms;
+    for (const Expr& arg : args)
     {
-      types.push_back((*i).getType());
+      sorts.emplace_back(arg.getType());
+      terms.emplace_back(arg);
     }
-    DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-    const Datatype& dt = t.getDatatype();
-    args.insert(args.begin(), dt[0].getConstructor());
-    expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    expr = SOLVER->mkTuple(sorts, terms).getExpr();
   }
   | /* an atomic term (a term with no subterms) */
-    termAtomic[expr]
+    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   ;
 
 
@@ -2227,128 +2234,145 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
  */
-termAtomic[CVC4::Expr& expr]
+termAtomic[CVC4::api::Term& atomTerm]
 @init {
-  std::vector<Expr> args;
   Type type;
   Type type2;
   std::string s;
 }
     /* constants */
   : INTEGER_LITERAL
-    { expr = MK_CONST( AntlrInput::tokenToInteger($INTEGER_LITERAL) ); }
-
+    {
+      std::string intStr = AntlrInput::tokenText($INTEGER_LITERAL);
+      atomTerm = SOLVER->mkReal(intStr);
+    }
   | DECIMAL_LITERAL
-    { // FIXME: This doesn't work because an SMT rational is not a
-      // valid GMP rational string
-      expr = MK_CONST( AntlrInput::tokenToRational($DECIMAL_LITERAL) ); 
-      if(expr.getType().isInteger()) {
-        // Must cast to Real to ensure correct type is passed to parametric type constructors.
-        // We do this cast using division with 1.
-        // This has the advantage wrt using TO_REAL since (constant) division is always included in the theory.
-        expr = MK_EXPR(kind::DIVISION, expr, MK_CONST(Rational(1)));
-      }  
+    {
+      std::string realStr = AntlrInput::tokenText($DECIMAL_LITERAL);
+      atomTerm = SOLVER->ensureTermSort(SOLVER->mkReal(realStr),
+                                        SOLVER->getRealSort());
     }
 
+  // Pi constant
+  | REAL_PI_TOK { atomTerm = SOLVER->mkPi(); }
+
+  // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
+  // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK 
     ( bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL 
-      { if(AntlrInput::tokenText($bvLit).find("bv") == 0) {
-           expr = MK_CONST( AntlrInput::tokenToBitvector($bvLit, $size) );
-        } else {
+      {
+        if(AntlrInput::tokenText($bvLit).find("bv") == 0)
+        {
+          std::string bvStr = AntlrInput::tokenTextSubstr($bvLit, 2);
+          uint32_t bvSize = AntlrInput::tokenToUnsigned($size);
+          atomTerm = SOLVER->mkBitVector(bvSize, bvStr, 10);
+        }
+        else
+        {
            PARSER_STATE->parseError("Unexpected symbol `" +
                                     AntlrInput::tokenText($bvLit) + "'");
         }
       }
-    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
-                                                                 AntlrInput::tokenToUnsigned($sb)),
-                                               false)); }
-    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint::makeInf(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
-                                                                 AntlrInput::tokenToUnsigned($sb)),
-                                               true)); }
-    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint::makeNaN(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
-                                                                 AntlrInput::tokenToUnsigned($sb)))); }
 
+    // Floating-point constants
+    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      {
+        atomTerm = SOLVER->mkPosInf(AntlrInput::tokenToUnsigned($eb),
+                                AntlrInput::tokenToUnsigned($sb));
+      }
+    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      {
+        atomTerm = SOLVER->mkNegInf(AntlrInput::tokenToUnsigned($eb),
+                                AntlrInput::tokenToUnsigned($sb));
+      }
+    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
+      {
+        atomTerm = SOLVER->mkNaN(AntlrInput::tokenToUnsigned($eb),
+                             AntlrInput::tokenToUnsigned($sb));
+      }
     | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
-                                                                AntlrInput::tokenToUnsigned($sb)),
-                                              false)); }
+      {
+        atomTerm = SOLVER->mkPosZero(AntlrInput::tokenToUnsigned($eb),
+                                 AntlrInput::tokenToUnsigned($sb));
+      }
     | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { expr = MK_CONST(FloatingPoint::makeZero(FloatingPointSize(AntlrInput::tokenToUnsigned($eb),
-                                                                AntlrInput::tokenToUnsigned($sb)),
-                                              true)); }
+      {
+        atomTerm = SOLVER->mkNegZero(AntlrInput::tokenToUnsigned($eb),
+                                 AntlrInput::tokenToUnsigned($sb));
+      }
+
+    // Empty heap constant in seperation logic
     | EMP_TOK
       sortSymbol[type,CHECK_DECLARED]
       sortSymbol[type2,CHECK_DECLARED]
       {
-        Expr v1 = PARSER_STATE->mkVar("_emp1", type);
-        Expr v2 = PARSER_STATE->mkVar("_emp2", type2);
-        expr = MK_EXPR(kind::SEP_EMP,v1,v2);
+        api::Term v1 = SOLVER->mkVar("_emp1", api::Sort(type));
+        api::Term v2 = SOLVER->mkVar("_emp2", api::Sort(type2));
+        atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
-    // NOTE: Theory parametric constants go here
 
+    // NOTE: Theory parametric constants go here
     )
     RPAREN_TOK
 
+  // Bit-vector constants
   | HEX_LITERAL
-    { assert( AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0 );
-      std::string hexString = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
-      expr = MK_CONST( BitVector(hexString, 16) ); }
-
+  {
+    assert(AntlrInput::tokenText($HEX_LITERAL).find("#x") == 0);
+    std::string hexStr = AntlrInput::tokenTextSubstr($HEX_LITERAL, 2);
+    atomTerm = SOLVER->mkBitVector(hexStr, 16);
+    }
   | BINARY_LITERAL
-    { assert( AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0 );
-      std::string binString = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
-      expr = MK_CONST( BitVector(binString, 2) ); }
-
-  | str[s,false]
-    { expr = MK_CONST( ::CVC4::String(s, true) ); }
-  | FP_RNE_TOK      { expr = MK_CONST(roundNearestTiesToEven); }
-  | FP_RNA_TOK      { expr = MK_CONST(roundNearestTiesToAway); }
-  | FP_RTP_TOK      { expr = MK_CONST(roundTowardPositive); }
-  | FP_RTN_TOK      { expr = MK_CONST(roundTowardNegative); }
-  | FP_RTZ_TOK      { expr = MK_CONST(roundTowardZero); }
-  | FP_RNE_FULL_TOK { expr = MK_CONST(roundNearestTiesToEven); }
-  | FP_RNA_FULL_TOK { expr = MK_CONST(roundNearestTiesToAway); }
-  | FP_RTP_FULL_TOK { expr = MK_CONST(roundTowardPositive); }
-  | FP_RTN_FULL_TOK { expr = MK_CONST(roundTowardNegative); }
-  | FP_RTZ_FULL_TOK { expr = MK_CONST(roundTowardZero); }
-
-  | REAL_PI_TOK {
-      expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->realType(), kind::PI);
+    {
+      assert(AntlrInput::tokenText($BINARY_LITERAL).find("#b") == 0);
+      std::string binStr = AntlrInput::tokenTextSubstr($BINARY_LITERAL, 2);
+      atomTerm = SOLVER->mkBitVector(binStr, 2);
     }
 
-  | RENOSTR_TOK
-    { std::vector< Expr > nvec;
-      expr = MK_EXPR( CVC4::kind::REGEXP_EMPTY, nvec );
-    }
+  // Floating-point rounding mode constants
+  | FP_RNE_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
+  | FP_RNA_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
+  | FP_RTP_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
+  | FP_RTN_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
+  | FP_RTZ_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
+  | FP_RNE_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
+  | FP_RNA_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
+  | FP_RTP_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
+  | FP_RTN_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
+  | FP_RTZ_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
 
-  | REALLCHAR_TOK
-    { std::vector< Expr > nvec;
-      expr = MK_EXPR( CVC4::kind::REGEXP_SIGMA, nvec );
-    }
+  // String constant
+  | str[s,false] { atomTerm = SOLVER->mkString(s, true); }
 
-  | EMPTYSET_TOK
-    { expr = MK_CONST( ::CVC4::EmptySet(Type())); }
+  // Regular expression constants
+  | RENOSTR_TOK { atomTerm = SOLVER->mkRegexpEmpty(); }
+  | REALLCHAR_TOK { atomTerm = SOLVER->mkRegexpSigma(); }
 
+  // Set constants
+  | EMPTYSET_TOK { atomTerm = SOLVER->mkEmptySet(SOLVER->getNullSort()); }
   | UNIVSET_TOK
-    { //booleanType is placeholder here since we don't have type info without type annotation
-      expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::UNIVERSE_SET); }
-
-  | NILREF_TOK
-    { //booleanType is placeholder here since we don't have type info without type annotation
-      expr = EXPR_MANAGER->mkNullaryOperator(EXPR_MANAGER->booleanType(), kind::SEP_NIL); }
-    // NOTE: Theory constants go here
-    
-  | TUPLE_CONST_TOK
-    { std::vector<Type> types;
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert(args.begin(), dt[0].getConstructor());
-      expr = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    {
+      // the Boolean sort is a placeholder here since we don't have type info
+      // without type annotation
+      atomTerm = SOLVER->mkUniverseSet(SOLVER->getBooleanSort());
     }
+
+  // Separation logic constants
+  | NILREF_TOK
+    {
+      // the Boolean sort is a placeholder here since we don't have type info
+      // without type annotation
+      atomTerm = SOLVER->mkSepNil(SOLVER->getBooleanSort());
+    }
+
+  // NOTE: Theory constants go here
     
+  // Empty tuple constant
+  | TUPLE_CONST_TOK
+    {
+      atomTerm = SOLVER->mkTuple(std::vector<api::Sort>(),
+                                 std::vector<api::Term>());
+    }
   ;
   
 /**

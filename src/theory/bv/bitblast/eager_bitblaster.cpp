@@ -19,7 +19,6 @@
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
 #include "options/bv_options.h"
-#include "proof/bitvector_proof.h"
 #include "prop/cnf_stream.h"
 #include "prop/sat_solver_factory.h"
 #include "smt/smt_statistics_registry.h"
@@ -33,10 +32,8 @@ namespace bv {
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
       d_context(c),
-      d_nullContext(new context::Context()),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
-      d_cnfStream(),
       d_bv(theory_bv),
       d_bbAtoms(),
       d_variables(),
@@ -99,8 +96,8 @@ void EagerBitblaster::bbFormula(TNode node)
 void EagerBitblaster::bbAtom(TNode node)
 {
   node = node.getKind() == kind::NOT ? node[0] : node;
-  if (node.getKind() == kind::BITVECTOR_BITOF) return;
-  if (hasBBAtom(node))
+  if (node.getKind() == kind::BITVECTOR_BITOF
+      || node.getKind() == kind::CONST_BOOLEAN || hasBBAtom(node))
   {
     return;
   }
@@ -266,12 +263,6 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
   return true;
-}
-
-void EagerBitblaster::setProofLog(BitVectorProof* bvp) {
-  d_bvp = bvp;
-  d_satSolver->setProofLog(bvp);
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {

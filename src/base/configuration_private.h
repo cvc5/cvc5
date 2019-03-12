@@ -126,6 +126,12 @@ namespace CVC4 {
 #  define IS_CRYPTOMINISAT_BUILD false
 #endif /* CVC4_USE_CRYPTOMINISAT */
 
+#if CVC4_USE_DRAT2ER
+#  define IS_DRAT2ER_BUILD true
+#else /* CVC4_USE_DRAT2ER */
+#  define IS_DRAT2ER_BUILD false
+#endif /* CVC4_USE_DRAT2ER */
+
 #if CVC4_USE_LFSC
 #define IS_LFSC_BUILD true
 #else /* CVC4_USE_LFSC */

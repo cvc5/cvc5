@@ -24,11 +24,14 @@
 #include <vector>
 
 #include "expr/node.h"
-#include "prop/sat_solver.h"
+#include "proof/bitvector_proof.h"
+#include "prop/bv_sat_solver_notify.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblast_strategies_template.h"
 #include "theory/theory_registrar.h"
 #include "theory/valuation.h"
 #include "util/resource_manager.h"
+
 
 namespace CVC4 {
 namespace theory {
@@ -58,8 +61,10 @@ class TBitblaster
   // caches and mappings
   TermDefMap d_termCache;
   ModelCache d_modelCache;
-
-  BitVectorProof* d_bvp;
+  // sat solver used for bitblasting and associated CnfStream
+  std::unique_ptr<context::Context> d_nullContext;
+  std::unique_ptr<prop::CnfStream> d_cnfStream;
+  proof::BitVectorProof* d_bvp;
 
   void initAtomBBStrategies();
   void initTermBBStrategies();
@@ -70,6 +75,8 @@ class TBitblaster
   TermBBStrategy d_termBBStrategies[kind::LAST_KIND];
   AtomBBStrategy d_atomBBStrategies[kind::LAST_KIND];
   virtual Node getModelFromSatSolver(TNode node, bool fullModel) = 0;
+  virtual prop::SatSolver* getSatSolver() = 0;
+
 
  public:
   TBitblaster();
@@ -84,6 +91,8 @@ class TBitblaster
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
   virtual void storeBBTerm(TNode term, const Bits& bits);
+  virtual void setProofLog(proof::BitVectorProof* bvp);
+
   /**
    * Return a constant representing the value of a in the  model.
    * If fullModel is true set unconstrained bits to 0. If not return
@@ -94,7 +103,7 @@ class TBitblaster
   void invalidateModelCache();
 };
 
-class MinisatEmptyNotify : public prop::BVSatSolverInterface::Notify
+class MinisatEmptyNotify : public prop::BVSatSolverNotify
 {
  public:
   MinisatEmptyNotify() {}
@@ -172,7 +181,12 @@ void TBitblaster<T>::initTermBBStrategies()
 }
 
 template <class T>
-TBitblaster<T>::TBitblaster() : d_termCache(), d_modelCache(), d_bvp(NULL)
+TBitblaster<T>::TBitblaster()
+    : d_termCache(),
+      d_modelCache(),
+      d_nullContext(new context::Context()),
+      d_cnfStream(),
+      d_bvp(nullptr)
 {
   initAtomBBStrategies();
   initTermBBStrategies();
@@ -200,6 +214,20 @@ template <class T>
 void TBitblaster<T>::invalidateModelCache()
 {
   d_modelCache.clear();
+}
+
+template <class T>
+void TBitblaster<T>::setProofLog(proof::BitVectorProof* bvp)
+{
+  if (THEORY_PROOF_ON())
+  {
+    d_bvp = bvp;
+    prop::SatSolver* satSolver = getSatSolver();
+    bvp->attachToSatSolver(*satSolver);
+    prop::SatVariable t = satSolver->trueVar();
+    prop::SatVariable f = satSolver->falseVar();
+    bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get(), t, f);
+  }
 }
 
 template <class T>

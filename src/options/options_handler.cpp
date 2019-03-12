@@ -267,7 +267,8 @@ agg \n\
 \n\
 ";
 
-const std::string OptionsHandler::s_mbqiModeHelp = "\
+const std::string OptionsHandler::s_mbqiModeHelp =
+    "\
 Model-based quantifier instantiation modes currently supported by the --mbqi option:\n\
 \n\
 default \n\
@@ -277,12 +278,8 @@ default \n\
 none \n\
 + Disable model-based quantifier instantiation.\n\
 \n\
-gen-ev \n\
-+ Use model-based quantifier instantiation algorithm from CADE 24 finite\n\
-  model finding paper based on generalizing evaluations.\n\
-\n\
-abs \n\
-+ Use abstract MBQI algorithm (uses disjoint sets). \n\
+trust \n\
++ Do not instantiate quantified formulas (incomplete technique).\n\
 \n\
 ";
 
@@ -660,14 +657,11 @@ void OptionsHandler::checkLiteralMatchMode(
 theory::quantifiers::MbqiMode OptionsHandler::stringToMbqiMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "gen-ev") {
-    return theory::quantifiers::MBQI_GEN_EVAL;
-  } else if(optarg == "none") {
+  if (optarg == "none")
+  {
     return theory::quantifiers::MBQI_NONE;
   } else if(optarg == "default" || optarg ==  "fmc") {
     return theory::quantifiers::MBQI_FMC;
-  } else if(optarg == "abs") {
-    return theory::quantifiers::MBQI_ABS;
   } else if(optarg == "trust") {
     return theory::quantifiers::MBQI_TRUST;
   } else if(optarg == "help") {
@@ -1209,6 +1203,48 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_bvProofFormatHelp =
+    "\
+Proof formats currently supported by the --bv-proof-format option:\n\
+\n\
+  lrat : DRAT with unit propagation hints to accelerate checking (default)\n\
+\n\
+  drat : Deletion and Resolution Asymmetric Tautology Additions \n\
+\n\
+  er : Extended Resolution, i.e. resolution with new variable definitions\n\
+\n\
+This option controls which underlying UNSAT proof format is used in BV proofs.\n\
+\n\
+Note: Currently this option does nothing. BV proofs are a work in progress!\
+";
+
+theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
+    std::string option, std::string optarg)
+{
+  if (optarg == "er")
+  {
+    return theory::bv::BITVECTOR_PROOF_ER;
+  }
+  else if (optarg == "lrat")
+  {
+    return theory::bv::BITVECTOR_PROOF_LRAT;
+  }
+  else if (optarg == "drat")
+  {
+    return theory::bv::BITVECTOR_PROOF_DRAT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvProofFormatHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-proof-format: `")
+                          + optarg + "'.  Try --bv-proof-format=help.");
+  }
+}
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -1298,6 +1334,105 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
                           optarg + "'.  Try --bv-eq-slicer=help.");
+  }
+}
+
+const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+    "Loop processing modes supported by the --strings-process-loop-mode "
+    "option:\n"
+    "\n"
+    "full (default)\n"
+    "+ Perform full processing of looping word equations\n"
+    "\n"
+    "simple (default with --strings-fmf)\n"
+    "+ Omit normal loop breaking\n"
+    "\n"
+    "simple-abort\n"
+    "+ Abort when normal loop breaking is required\n"
+    "\n"
+    "none\n"
+    "+ Omit loop processing\n"
+    "\n"
+    "abort\n"
+    "+ Abort if looping word equations are encountered\n";
+
+theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "full")
+  {
+    return theory::strings::ProcessLoopMode::FULL;
+  }
+  else if (optarg == "simple")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE;
+  }
+  else if (optarg == "simple-abort")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE_ABORT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::ProcessLoopMode::NONE;
+  }
+  else if (optarg == "abort")
+  {
+    return theory::strings::ProcessLoopMode::ABORT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --strings-process-loop-mode: `")
+        + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_boolToBVModeHelp =
+    "\
+BoolToBV pass modes supported by the --bool-to-bv option:\n\
+\n\
+off (default)\n\
++ Don't push any booleans to width one bit-vectors\n\
+\n\
+ite\n\
++ Try to turn ITEs into BITVECTOR_ITE when possible. It can fail per-formula \n\
+  if not all sub-formulas can be turned to bit-vectors\n\
+\n\
+all\n\
++ Force all booleans to be bit-vectors of width one except at the top level.\n\
+  Most aggressive mode\n\
+";
+
+preprocessing::passes::BoolToBVMode OptionsHandler::stringToBoolToBVMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "off")
+  {
+    return preprocessing::passes::BOOL_TO_BV_OFF;
+  }
+  else if (optarg == "ite")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ITE;
+  }
+  else if (optarg == "all")
+  {
+    return preprocessing::passes::BOOL_TO_BV_ALL;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_boolToBVModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bool-to-bv: `")
+                          + optarg
+                          + "'. Try --bool-to-bv=help");
   }
 }
 
@@ -1632,7 +1767,14 @@ void OptionsHandler::setProduceAssertions(std::string option, bool value)
 
 void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
-#ifndef CVC4_PROOF
+#ifdef CVC4_PROOF
+  if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+  {
+    throw OptionException(
+        "Eager BV proofs only supported when minisat is used");
+  }
+#else
   if(value) {
     std::stringstream ss;
     ss << "option `" << option << "' requires a proofs-enabled build of CVC4; this binary was not built with proof support";

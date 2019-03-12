@@ -107,6 +107,7 @@ typerule ABS ::CVC4::theory::arith::IntOperatorTypeRule
 typerule INTS_DIVISION ::CVC4::theory::arith::IntOperatorTypeRule
 typerule INTS_MODULUS ::CVC4::theory::arith::IntOperatorTypeRule
 typerule DIVISIBLE ::CVC4::theory::arith::IntUnaryPredicateTypeRule
+typerule DIVISIBLE_OP ::CVC4::theory::arith::DivisibleOpTypeRule
 
 typerule DIVISION_TOTAL ::CVC4::theory::arith::ArithOperatorTypeRule
 typerule INTS_DIVISION_TOTAL ::CVC4::theory::arith::IntOperatorTypeRule

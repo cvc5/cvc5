@@ -68,4 +68,17 @@ std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode solver) {
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out, theory::bv::BvProofFormat format)
+{
+  switch (format)
+  {
+    case theory::bv::BITVECTOR_PROOF_ER: out << "BITVECTOR_PROOF_ER"; break;
+    case theory::bv::BITVECTOR_PROOF_DRAT: out << "BITVECTOR_PROOF_DRAT"; break;
+    case theory::bv::BITVECTOR_PROOF_LRAT: out << "BITVECTOR_PROOF_LRAT"; break;
+    default: out << "BvProofFormat:UNKNOWN![" << unsigned(format) << "]";
+  }
+
+  return out;
+}
+
 }/* CVC4 namespace */

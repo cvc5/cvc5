@@ -31,6 +31,14 @@
 #include "util/hash.h"
 #include "util/statistics_registry.h"
 
+// Forward declarations, needed because the BV theory and the BV Proof classes
+// are cyclically dependent
+namespace CVC4 {
+namespace proof {
+class BitVectorProof;
+}
+}  // namespace CVC4
+
 namespace CVC4 {
 namespace theory {
 namespace bv {
@@ -104,9 +112,9 @@ public:
 
   bool applyAbstraction(const std::vector<Node>& assertions, std::vector<Node>& new_assertions);
 
-  void setProofLog( BitVectorProof * bvp );
+  void setProofLog(proof::BitVectorProof* bvp);
 
-private:
+ private:
 
   class Statistics {
   public:

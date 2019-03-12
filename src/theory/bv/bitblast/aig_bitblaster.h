@@ -20,6 +20,7 @@
 #define __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
+#include "prop/sat_solver.h"
 
 class Abc_Obj_t_;
 typedef Abc_Obj_t_ Abc_Obj_t;
@@ -82,6 +83,14 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
   Node getModelFromSatSolver(TNode a, bool fullModel) override
   {
     Unreachable();
+  }
+
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
+
+  void setProofLog(proof::BitVectorProof* bvp) override
+  {
+    // Proofs are currently not supported with ABC
+    Unimplemented();
   }
 
   class Statistics

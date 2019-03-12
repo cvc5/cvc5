@@ -159,21 +159,12 @@ class TheoryStringsRewriter {
   * Returns the rewritten form of node.
   */
   static Node rewriteConcat(Node node);
-
   /** rewrite substr
   * This is the entry point for post-rewriting terms node of the form
   *   str.substr( s, i1, i2 )
   * Returns the rewritten form of node.
   */
   static Node rewriteSubstr(Node node);
-
-  /** rewrite substr extended
-   * This is the entry point for extended post-rewriting terms node of the form
-   *   str.substr( s, i1, i2 )
-   * Returns the rewritten form of node.
-   */
-  static Node rewriteSubstrExt(Node node);
-
   /** rewrite contains
   * This is the entry point for post-rewriting terms node of the form
   *   str.contains( t, s )
@@ -470,6 +461,19 @@ class TheoryStringsRewriter {
    */
   static Node lengthPreserveRewrite(Node n);
 
+  /**
+   * Checks whether a string term `a` is entailed to contain or not contain a
+   * string term `b`.
+   *
+   * @param a The string that is checked whether it contains `b`
+   * @param b The string that is checked whether it is contained in `a`
+   * @param fullRewriter Determines whether the function can use the full
+   * rewriter or only `rewriteContains()` (useful for avoiding loops)
+   * @return true node if it can be shown that `a` contains `b`, false node if
+   * it can be shown that `a` does not contain `b`, null node otherwise
+   */
+  static Node checkEntailContains(Node a, Node b, bool fullRewriter = false);
+
   /** entail non-empty
    *
    * Checks whether string a is entailed to be non-empty. Is equivalent to
@@ -535,6 +539,52 @@ class TheoryStringsRewriter {
   static void getArithApproximations(Node a,
                                      std::vector<Node>& approx,
                                      bool isOverApprox = false);
+
+  /**
+   * Checks whether it is always true that `a` is a strict subset of `b` in the
+   * multiset domain.
+   *
+   * Examples:
+   *
+   * a = (str.++ "A" x), b = (str.++ "A" x "B") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" x "AA") ---> true
+   * a = (str.++ "A" x), b = (str.++ "B" y "AA") ---> false
+   *
+   * @param a The term for which it should be checked if it is a strict subset
+   * of `b` in the multiset domain
+   * @param b The term for which it should be checked if it is a strict
+   * superset of `a` in the multiset domain
+   * @return True if it is always the case that `a` is a strict subset of `b`,
+   * false otherwise.
+   */
+  static bool checkEntailMultisetSubset(Node a, Node b);
+
+  /**
+   * Returns a character `c` if it is always the case that str.in.re(a, c*),
+   * i.e. if all possible values of `a` only consist of `c` characters, and the
+   * null node otherwise. If `a` is the empty string, the function returns an
+   * empty string.
+   *
+   * @param a The node to check for homogeneity
+   * @return If `a` is homogeneous, the only character that it may contain, the
+   * empty string if `a` is empty, and the null node otherwise
+   */
+  static Node checkEntailHomogeneousString(Node a);
+
+  /**
+   * Simplifies a given node `a` s.t. the result is a concatenation of string
+   * terms that can be interpreted as a multiset and which contains all
+   * multisets that `a` could form.
+   *
+   * Examples:
+   *
+   * (str.substr "AA" 0 n) ---> "AA"
+   * (str.replace "AAA" x "BB") ---> (str.++ "AAA" "BB")
+   *
+   * @param a The node to simplify
+   * @return A concatenation that can be interpreted as a multiset
+   */
+  static Node getMultisetApproximation(Node a);
 
   /**
    * Checks whether assumption |= a >= 0 (if strict is false) or

@@ -68,6 +68,7 @@
 #include "options/set_language.h"
 #include "options/smt_options.h"
 #include "options/strings_options.h"
+#include "options/strings_process_loop_mode.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -1071,21 +1072,24 @@ SmtEngine::~SmtEngine()
     //destroy all passes before destroying things that they refer to
     d_private->cleanupPreprocessingPasses();
 
+    // d_proofManager is always created when proofs are enabled at configure
+    // time.  Because of this, this code should not be wrapped in PROOF() which
+    // additionally checks flags such as options::proof().
+    //
+    // Note: the proof manager must be destroyed before the theory engine.
+    // Because the destruction of the proofs depends on contexts owned be the
+    // theory solvers.
+#ifdef CVC4_PROOF
+    delete d_proofManager;
+    d_proofManager = NULL;
+#endif
+
     delete d_theoryEngine;
     d_theoryEngine = NULL;
     delete d_propEngine;
     d_propEngine = NULL;
     delete d_decisionEngine;
     d_decisionEngine = NULL;
-
-
-// d_proofManager is always created when proofs are enabled at configure time.
-// Becuase of this, this code should not be wrapped in PROOF() which
-// additionally checks flags such as options::proof().
-#ifdef CVC4_PROOF
-    delete d_proofManager;
-    d_proofManager = NULL;
-#endif
 
     delete d_stats;
     d_stats = NULL;
@@ -1376,17 +1380,17 @@ void SmtEngine::setDefaults() {
       options::bitvectorToBool.set(false);
     }
 
-    if (options::boolToBitvector())
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
     {
       if (options::boolToBitvector.wasSetByUser())
       {
         throw OptionException(
-            "bool-to-bv not supported with unsat cores/proofs");
+            "bool-to-bv != off not supported with unsat cores/proofs");
       }
-      Notice() << "SmtEngine: turning off bool-to-bitvector to support unsat "
+      Notice() << "SmtEngine: turning off bool-to-bv to support unsat "
                   "cores/proofs"
                << endl;
-      options::boolToBitvector.set(false);
+      setOption("boolToBitvector", SExpr("off"));
     }
 
     if (options::bvIntroducePow2())
@@ -1427,6 +1431,12 @@ void SmtEngine::setDefaults() {
                << endl;
       setOption("global-negate", false);
     }
+
+    if (options::bitvectorAig())
+    {
+      throw OptionException(
+          "bitblast-aig not supported with unsat cores/proofs");
+    }
   }
   else
   {
@@ -1446,13 +1456,18 @@ void SmtEngine::setDefaults() {
 
   if (options::cbqiBv() && d_logic.isQuantified())
   {
-    if(options::boolToBitvector.wasSetByUser()) {
-      throw OptionException(
-          "bool-to-bv not supported with CBQI BV for quantified logics");
+    if (options::boolToBitvector() != preprocessing::passes::BOOL_TO_BV_OFF)
+    {
+      if (options::boolToBitvector.wasSetByUser())
+      {
+        throw OptionException(
+            "bool-to-bv != off not supported with CBQI BV for quantified "
+            "logics");
+      }
+      Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
+               << endl;
+      setOption("boolToBitvector", SExpr("off"));
     }
-    Notice() << "SmtEngine: turning off bool-to-bitvector to support CBQI BV"
-             << endl;
-    options::boolToBitvector.set(false);
   }
 
   // cases where we need produce models
@@ -1612,6 +1627,19 @@ void SmtEngine::setDefaults() {
       Notice() << "SmtEngine: turning off check-models to support unconstrainedSimp" << endl;
       setOption("check-models", SExpr("false"));
     }
+  }
+
+  if (options::boolToBitvector() == preprocessing::passes::BOOL_TO_BV_ALL
+      && !d_logic.isTheoryEnabled(THEORY_BV))
+  {
+    if (options::boolToBitvector.wasSetByUser())
+    {
+      throw OptionException(
+          "bool-to-bv=all not supported for non-bitvector logics.");
+    }
+    Notice() << "SmtEngine: turning off bool-to-bv for non-bv logic: "
+             << d_logic.getLogicString() << std::endl;
+    setOption("boolToBitvector", SExpr("off"));
   }
 
   if (! options::bvEagerExplanations.wasSetByUser() &&
@@ -1788,12 +1816,6 @@ void SmtEngine::setDefaults() {
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
   }
-  if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-    if( !d_logic.isPure(THEORY_UF) ){
-      //MBQI_ABS is only supported in pure quantified UF
-      options::mbqiMode.set( quantifiers::MBQI_FMC );
-    }
-  }
   if( options::fmfFunWellDefinedRelevant() ){
     if( !options::fmfFunWellDefined.wasSetByUser() ){
       options::fmfFunWellDefined.set( true );
@@ -1829,17 +1851,6 @@ void SmtEngine::setDefaults() {
       //instantiate only on last call
       if( options::eMatching() ){
         options::instWhenMode.set( quantifiers::INST_WHEN_LAST_CALL );
-      }
-    }
-    if( options::mbqiMode()==quantifiers::MBQI_ABS ){
-      if( !options::preSkolemQuant.wasSetByUser() ){
-        options::preSkolemQuant.set( true );
-      }
-      if( !options::preSkolemQuantNested.wasSetByUser() ){
-        options::preSkolemQuantNested.set( true );
-      }
-      if( !options::fmfOneInstPerRound.wasSetByUser() ){
-        options::fmfOneInstPerRound.set( true );
       }
     }
   }
@@ -1938,13 +1949,14 @@ void SmtEngine::setDefaults() {
       // Streaming is incompatible with techniques that focus the search towards
       // finding a single solution. This currently includes the PBE solver and
       // static template inference for invariant synthesis.
-      if (!options::sygusSymBreakPbe.wasSetByUser())
-      {
-        options::sygusSymBreakPbe.set(false);
-      }
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
+        // also disable PBE-specific symmetry breaking unless PBE was enabled
+        if (!options::sygusSymBreakPbe.wasSetByUser())
+        {
+          options::sygusSymBreakPbe.set(false);
+        }
       }
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
@@ -2256,6 +2268,15 @@ void SmtEngine::setDefaults() {
           "--sygus-rr-synth-input requires "
           "--sygus-expr-miner-check-use-export");
     }
+  }
+
+  if (options::stringFMF() && !options::stringProcessLoopMode.wasSetByUser())
+  {
+    Trace("smt") << "settting stringProcessLoopMode to 'simple' since "
+                    "--strings-fmf enabled"
+                 << endl;
+    options::stringProcessLoopMode.set(
+        theory::strings::ProcessLoopMode::SIMPLE);
   }
 }
 

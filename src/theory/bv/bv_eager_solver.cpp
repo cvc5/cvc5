@@ -17,7 +17,6 @@
 #include "theory/bv/bv_eager_solver.h"
 
 #include "options/bv_options.h"
-#include "proof/bitvector_proof.h"
 #include "theory/bv/bitblast/aig_bitblaster.h"
 #include "theory/bv/bitblast/eager_bitblaster.h"
 
@@ -128,7 +127,10 @@ bool EagerBitblastSolver::collectModelInfo(TheoryModel* m, bool fullModel)
   return d_bitblaster->collectModelInfo(m, fullModel);
 }
 
-void EagerBitblastSolver::setProofLog(BitVectorProof* bvp) { d_bvp = bvp; }
+void EagerBitblastSolver::setProofLog(proof::BitVectorProof* bvp)
+{
+  d_bvp = bvp;
+}
 
 }  // namespace bv
 }  // namespace theory

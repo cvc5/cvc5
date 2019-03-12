@@ -19,6 +19,7 @@
 
 #include "theory/theory.h"
 #include "expr/node.h"
+#include "proof/arith_proof_recorder.h"
 #include "theory/arith/theory_arith_private_forward.h"
 
 
@@ -39,6 +40,11 @@ private:
   TheoryArithPrivate* d_internal;
 
   TimerStat d_ppRewriteTimer;
+
+  /**
+   * @brief Where to store Farkas proofs of lemmas
+   */
+  proof::ArithProofRecorder * d_proofRecorder;
 
 public:
   TheoryArith(context::Context* c, context::UserContext* u, OutputChannel& out,
@@ -89,6 +95,11 @@ public:
       TNode lit,
       const EntailmentCheckParameters* params,
       EntailmentCheckSideEffects* out) override;
+
+  void setProofRecorder(proof::ArithProofRecorder * proofRecorder)
+  {
+    d_proofRecorder = proofRecorder;
+  }
 
 };/* class TheoryArith */
 

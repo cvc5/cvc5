@@ -1662,9 +1662,9 @@ void TheoryStrings::checkExtfEval( int effort ) {
                               << ", const = " << einfo.d_const << std::endl;
         for (const Node& nrcc : nrc)
         {
-          sendInference(einfo.d_exp,
-                        einfo.d_const == d_false ? nrcc.negate() : nrcc,
-                        effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          sendInternalInference(einfo.d_exp,
+                                einfo.d_const == d_false ? nrcc.negate() : nrcc,
+                                effort == 0 ? "EXTF_d" : "EXTF_d-N");
         }
       }else{
         to_reduce = nrc;
@@ -3083,15 +3083,29 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
             Trace("strings-solve-debug") << "Non-simple Case 2 : must compare strings" << std::endl;
             int loop_in_i = -1;
             int loop_in_j = -1;
+            ProcessLoopResult plr = ProcessLoopResult::SKIPPED;
             if( detectLoop( normal_forms, i, j, index, loop_in_i, loop_in_j, rproc ) ){
               if( !isRev ){  //FIXME
               getExplanationVectorForPrefixEq( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, -1, -1, isRev, info.d_ant );
               //set info
-              if( processLoop( normal_forms, normal_form_src, i, j, loop_in_i!=-1 ? i : j, loop_in_i!=-1 ? j : i, loop_in_i!=-1 ? loop_in_i : loop_in_j, index, info ) ){
+              plr = processLoop(normal_forms,
+                                normal_form_src,
+                                i,
+                                j,
+                                loop_in_i != -1 ? i : j,
+                                loop_in_i != -1 ? j : i,
+                                loop_in_i != -1 ? loop_in_i : loop_in_j,
+                                index,
+                                info);
+              if (plr == ProcessLoopResult::INFERENCE)
+              {
                 info_valid = true;
               }
               }
-            }else{
+            }
+
+            if (plr == ProcessLoopResult::SKIPPED)
+            {
               //AJR: length entailment here?
               if( normal_forms[i][index].getKind() == kind::CONST_STRING || normal_forms[j][index].getKind() == kind::CONST_STRING ){
                 unsigned const_k = normal_forms[i][index].getKind() == kind::CONST_STRING ? i : j;
@@ -3311,18 +3325,27 @@ bool TheoryStrings::detectLoop( std::vector< std::vector< Node > > &normal_forms
 }
 
 //xs(zy)=t(yz)xr
-bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                 int i, int j, int loop_n_index, int other_n_index, int loop_index, int index, InferInfo& info ){
-  if( options::stringAbortLoop() ){
-    std::stringstream ss;
-    ss << "Looping word equation encountered." << std::endl;
-    throw LogicException(ss.str());
+TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
+    const std::vector<std::vector<Node> >& normal_forms,
+    const std::vector<Node>& normal_form_src,
+    int i,
+    int j,
+    int loop_n_index,
+    int other_n_index,
+    int loop_index,
+    int index,
+    InferInfo& info)
+{
+  if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
+  {
+    throw LogicException("Looping word equation encountered.");
   }
-  if (!options::stringProcessLoop())
+  else if (options::stringProcessLoopMode() == ProcessLoopMode::NONE)
   {
     d_out->setIncomplete();
-    return false;
+    return ProcessLoopResult::SKIPPED;
   }
+
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   Trace("strings-loop") << "Detected possible loop for "
@@ -3331,12 +3354,12 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
                         << std::endl;
 
   Trace("strings-loop") << " ... T(Y.Z)= ";
-  std::vector<Node>& veci = normal_forms[loop_n_index];
+  const std::vector<Node>& veci = normal_forms[loop_n_index];
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
   Node t_yz = mkConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
-  std::vector<Node>& vecoi = normal_forms[other_n_index];
+  const std::vector<Node>& vecoi = normal_forms[other_n_index];
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
   Node s_zy = mkConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
@@ -3366,7 +3389,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
       sendInference(info.d_ant, conc, "Loop Conflict", true);
-      return false;
+      return ProcessLoopResult::CONFLICT;
     }
   }
 
@@ -3384,7 +3407,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
         info.d_id = INFER_LEN_SPLIT_EMP;
-        return true;
+        return ProcessLoopResult::INFERENCE;
       }
       else
       {
@@ -3464,6 +3487,16 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   }
   else
   {
+    if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE_ABORT)
+    {
+      throw LogicException("Normal looping word equation encountered.");
+    }
+    else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
+    {
+      d_out->setIncomplete();
+      return ProcessLoopResult::SKIPPED;
+    }
+
     Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking."
                           << std::endl;
     // right
@@ -3505,7 +3538,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   info.d_id = INFER_FLOOP;
   info.d_nf_pair[0] = normal_form_src[i];
   info.d_nf_pair[1] = normal_form_src[j];
-  return true;
+  return ProcessLoopResult::INFERENCE;
 }
 
 //return true for lemma, false if we succeed

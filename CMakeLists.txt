@@ -93,6 +93,7 @@ cvc4_option(USE_READLINE "Use readline for better interactive support")
 #    > for options where we don't need to detect if set by user (default: OFF)
 option(USE_CADICAL       "Use CaDiCaL SAT solver")
 option(USE_CRYPTOMINISAT "Use CryptoMiniSat SAT solver")
+option(USE_DRAT2ER       "Include drat2er for making eager BV proofs")
 option(USE_LFSC          "Use LFSC proof checker")
 option(USE_SYMFPU        "Use SymFPU for floating point support")
 option(USE_PYTHON2       "Prefer using Python 2 (for Python bindings)")
@@ -108,6 +109,7 @@ set(ANTLR_DIR         "" CACHE STRING "Set ANTLR3 install directory")
 set(CADICAL_DIR       "" CACHE STRING "Set CaDiCaL install directory")
 set(CRYPTOMINISAT_DIR "" CACHE STRING "Set CryptoMiniSat install directory")
 set(CXXTEST_DIR       "" CACHE STRING "Set CxxTest install directory")
+set(DRAT2ER_DIR       "" CACHE STRING "Set drat2er install directory")
 set(GLPK_DIR          "" CACHE STRING "Set GLPK install directory")
 set(GMP_DIR           "" CACHE STRING "Set GMP install directory")
 set(LFSC_DIR          "" CACHE STRING "Set LFSC install directory")
@@ -210,15 +212,6 @@ if(NOT ENABLE_ASSERTIONS)
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
-# Never build unit tests as static binaries, otherwise we'll end up with
-# ~300MB per unit test.
-if(ENABLE_UNIT_TESTING)
-  if(NOT ENABLE_SHARED)
-    message(WARNING "Disabling static build since unit testing is enabled.")
-  endif()
-  set(ENABLE_SHARED ON)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Shared/static libraries
 #
@@ -232,11 +225,18 @@ if(ENABLE_SHARED)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
+
+  # Never build unit tests as static binaries, otherwise we'll end up with
+  # ~300MB per unit test.
+  if(ENABLE_UNIT_TESTING)
+    message(WARNING "Disabling unit tests since static build is enabled.")
+    set(ENABLE_UNIT_TESTING OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -410,6 +410,12 @@ if(USE_CRYPTOMINISAT)
   add_definitions(-DCVC4_USE_CRYPTOMINISAT)
 endif()
 
+if(USE_DRAT2ER)
+  set(Drat2Er_HOME ${DRAT2ER_DIR})
+  find_package(Drat2Er REQUIRED)
+  add_definitions(-DCVC4_USE_DRAT2ER)
+endif()
+
 if(USE_GLPK)
   set(GPL_LIBS "${GPL_LIBS} glpk")
   set(GLPK_HOME ${GLPK_DIR})
@@ -523,6 +529,7 @@ message("")
 print_config("ABC                  :" USE_ABC)
 print_config("CaDiCaL              :" USE_CADICAL)
 print_config("CryptoMiniSat        :" USE_CRYPTOMINISAT)
+print_config("drat2er              :" USE_DRAT2ER)
 print_config("GLPK                 :" USE_GLPK)
 print_config("LFSC                 :" USE_LFSC)
 
@@ -545,6 +552,9 @@ if(CADICAL_DIR)
 endif()
 if(CRYPTOMINISAT_DIR)
   message("CRYPTOMINISAT dir    : ${CRYPTOMINISAT_DIR}")
+endif()
+if(DRAT2ER_DIR)
+  message("DRAT2ER dir          : ${DRAT2ER_DIR}")
 endif()
 if(GLPK_DIR)
   message("GLPK dir             : ${GLPK_DIR}")

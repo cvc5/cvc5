@@ -36,6 +36,7 @@ TheoryArith::TheoryArith(context::Context* c, context::UserContext* u,
     : Theory(THEORY_ARITH, c, u, out, valuation, logicInfo)
     , d_internal(new TheoryArithPrivate(*this, c, u, out, valuation, logicInfo))
     , d_ppRewriteTimer("theory::arith::ppRewriteTimer")
+    , d_proofRecorder(nullptr)
 {
   smtStatisticsRegistry()->registerStat(&d_ppRewriteTimer);
   if (options::nlExt()) {

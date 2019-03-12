@@ -79,19 +79,22 @@ void CnfStream::assertClause(TNode node, SatClause& c) {
     }
   }
 
-  PROOF(if (d_cnfProof) d_cnfProof->pushCurrentDefinition(node););
+  if (PROOF_ON() && d_cnfProof)
+  {
+    d_cnfProof->pushCurrentDefinition(node);
+  }
 
   ClauseId clause_id = d_satSolver->addClause(c, d_removable);
   if (clause_id == ClauseIdUndef) return; // nothing to store (no clause was added)
 
-  PROOF
-    (
-     if (d_cnfProof) {
-       Assert (clause_id != ClauseIdError);
-       d_cnfProof->registerConvertedClause(clause_id);
-       d_cnfProof->popCurrentDefinition();
-     }
-    );
+  if (PROOF_ON() && d_cnfProof)
+  {
+    if (clause_id != ClauseIdError)
+    {
+      d_cnfProof->registerConvertedClause(clause_id);
+    }
+    d_cnfProof->popCurrentDefinition();
+  };
 }
 
 void CnfStream::assertClause(TNode node, SatLiteral a) {

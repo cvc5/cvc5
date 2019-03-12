@@ -3,6 +3,17 @@ name   = "Bitvector theory"
 header = "options/bv_options.h"
 
 [[option]]
+  name       = "bvProofFormat"
+  category   = "expert"
+  long       = "bv-proof-format=MODE"
+  type       = "CVC4::theory::bv::BvProofFormat"
+  default    = "CVC4::theory::bv::BITVECTOR_PROOF_LRAT"
+  handler    = "stringToBvProofFormat"
+  predicates = ["satSolverEnabledBuild"]
+  includes   = ["options/bv_bitblast_mode.h"]
+  help       = "choose which UNSAT proof format to use, see --bv-sat-solver=help"
+
+[[option]]
   name       = "bvSatSolver"
   smt_name   = "bv-sat-solver"
   category   = "expert"
@@ -105,11 +116,22 @@ header = "options/bv_options.h"
 
 [[option]]
   name       = "boolToBitvector"
+  smt_name   = "bool-to-bv"
   category   = "regular"
-  long       = "bool-to-bv"
+  long       = "bool-to-bv=MODE"
+  type       = "CVC4::preprocessing::passes::BoolToBVMode"
+  default    = "CVC4::preprocessing::passes::BOOL_TO_BV_OFF"
+  handler    = "stringToBoolToBVMode"
+  includes   = ["options/bool_to_bv_mode.h"]
+  help       = "convert booleans to bit-vectors of size 1 at various levels of aggressiveness, see --bool-to-bv=help"
+
+[[option]]
+  name       = "bitwiseEq"
+  category   = "regular"
+  long       = "bitwise-eq"
   type       = "bool"
-  default    = "false"
-  help       = "convert booleans to bit-vectors of size 1 when possible"
+  default    = "true"
+  help       = "lift equivalence with one-bit bit-vectors to be boolean operations"
 
 [[option]]
   name       = "bitvectorDivByZeroConst"
@@ -210,3 +232,11 @@ header = "options/bv_options.h"
   type       = "bool"
   default    = "true"
   help       = "algebraic inferences for extended functions"
+
+[[option]]
+  name       = "bvPrintConstsInBinary"
+  category   = "regular"
+  long       = "bv-print-consts-in-binary"
+  type       = "bool"
+  default    = "false"
+  help       = "print bit-vector constants in binary (e.g. #b0001) instead of decimal (e.g. (_ bv1 4)), applies to SMT-LIB 2.x"

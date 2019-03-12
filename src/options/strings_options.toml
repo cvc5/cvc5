@@ -129,22 +129,14 @@ header = "options/strings_options.h"
   help       = "check entailment between length terms to reduce splitting"
 
 [[option]]
-  name       = "stringProcessLoop"
-  category   = "regular"
-  long       = "strings-process-loop"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "reduce looping word equations to regular expressions"
-
-[[option]]
-  name       = "stringAbortLoop"
-  category   = "regular"
-  long       = "strings-abort-loop"
-  type       = "bool"
-  default    = "false"
-  read_only  = true
-  help       = "abort when a looping word equation is encountered"
+  name       = "stringProcessLoopMode"
+  category   = "expert"
+  long       = "strings-process-loop-mode=MODE"
+  type       = "CVC4::theory::strings::ProcessLoopMode"
+  default    = "CVC4::theory::strings::ProcessLoopMode::FULL"
+  handler    = "stringToStringsProcessLoopMode"
+  includes   = ["options/strings_process_loop_mode.h"]
+  help       = "choose how to process looping string equations, see --strings-process-loop-mode=help for details"
 
 [[option]]
   name       = "stringInferAsLemmas"
@@ -205,7 +197,7 @@ header = "options/strings_options.h"
   category   = "regular"
   long       = "re-elim"
   type       = "bool"
-  default    = "false"
+  default    = "true"
   help       = "elimination techniques for regular expressions"
 
 [[option]]
