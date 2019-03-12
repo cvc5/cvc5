@@ -88,7 +88,7 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
     dratProof.outputAsText(Debug("bv::clausal"));
   }
 
-  // Empty any old record of which atoms for used
+  // Empty any old record of which atoms were used
   d_atomsInBitblastingProof.clear();
 
   // For each used clause, ask the CNF proof which atoms are used in it

@@ -477,7 +477,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     unsigned posIndexInClause = isTrivialTaut.value().first;
     unsigned negIndexInClause = isTrivialTaut.value().second;
     Trace("cnf-pf") << "; Indices " << posIndexInClause << " (+) and "
-                    << negIndexInClause << " (-) make this clause a taut"
+                    << negIndexInClause << " (-) make this clause a tautology"
                     << std::endl;
 
     std::string proofOfPos =

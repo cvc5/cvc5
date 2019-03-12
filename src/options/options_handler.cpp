@@ -1773,7 +1773,7 @@ void OptionsHandler::proofEnabledBuild(std::string option, bool value)
       && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
   {
     throw OptionException(
-        "Eager BV proofs only supported when minisat is used");
+        "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");
   }
 #else
   if(value) {

@@ -88,7 +88,7 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
 };
 
 /**
- * A DRAT proof for a bitvector problem
+ * A DRAT proof for a bit-vector problem
  */
 class LfscDratBitVectorProof : public LfscClausalBitVectorProof
 {
@@ -103,7 +103,7 @@ class LfscDratBitVectorProof : public LfscClausalBitVectorProof
 };
 
 /**
- * An LRAT proof for a bitvector problem
+ * An LRAT proof for a bit-vector problem
  */
 class LfscLratBitVectorProof : public LfscClausalBitVectorProof
 {
@@ -118,7 +118,7 @@ class LfscLratBitVectorProof : public LfscClausalBitVectorProof
 };
 
 /**
- * An Extended Resolution proof for a bitvector problem
+ * An Extended Resolution proof for a bit-vector problem
  */
 class LfscErBitVectorProof : public LfscClausalBitVectorProof
 {
