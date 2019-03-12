@@ -73,7 +73,7 @@ script:
      cd build
      make install -j2
      echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
-     $CXX /tmp/test.cpp -I install/include -L install/lib -lcvc4 || exit 1
+     $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4 || exit 1
    }
    run() {
      echo "travis_fold:start:$1"
