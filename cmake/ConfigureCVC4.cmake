@@ -2,6 +2,7 @@ include(CheckCXXSourceCompiles)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckSymbolExists)
+include(CheckLibraryExists)
 
 # Check whether "long" and "int64_t" are distinct types w.r.t. overloading.
 # Even if they have the same size, they can be distinct, and some platforms
@@ -53,7 +54,7 @@ if(CVC4_WINDOWS_BUILD)
     add_c_cxx_flag(-pthread)
   endif()
 else()
-  check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+  check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
 endif()
 check_symbol_exists(ffs "strings.h" HAVE_FFS)
 check_symbol_exists(optreset "getopt.h" HAVE_DECL_OPTRESET)
