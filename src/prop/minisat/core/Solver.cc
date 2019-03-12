@@ -688,6 +688,7 @@ Lit Solver::pickBranchLit()
       // org-mode tracing, including propagations is a separate trace
       Trace("dtview") << std::string(context->getLevel() - (options::incrementalSolving() ? 1 : 0), '*') << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)) << " :DE-DECISION:" << std::endl;
       Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+      return decisionLit;
     }
 }
 
