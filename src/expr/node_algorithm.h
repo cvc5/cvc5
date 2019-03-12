@@ -63,7 +63,7 @@ bool hasFreeVar(TNode n);
  * Get the free variables in n, that is, the subterms of n of kind
  * BOUND_VARIABLE that are not bound in n, adds these to fvs.
  * @param n The node under investigation
- * @param computeFv If this false is false, then we only return true/false and
+ * @param computeFv If this flag is false, then we only return true/false and
  * do not add to fvs.
  * @return true iff this node contains a free variable.
  */
