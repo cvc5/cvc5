@@ -56,7 +56,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-     ./configure.sh --name=build --unit-testing $TRAVIS_CVC4_CONFIG
+     ./configure.sh --name=build --prefix=$(pwd)/build/install --unit-testing $TRAVIS_CVC4_CONFIG
    }
    error() {
      echo;
@@ -73,7 +73,7 @@ script:
      cd build
      make install -j2
      echo "#include <cvc4/cvc4.h> int main() { CVC4::ExprManager em; return 0; }" > /tmp/test_install.cpp
-     $CXX /tmp/test_install.cpp -lcvc4 || exit 1
+     $CXX /tmp/test_install.cpp -I install/include -L install/lib -lcvc4 || exit 1
    }
    run() {
      echo "travis_fold:start:$1"
