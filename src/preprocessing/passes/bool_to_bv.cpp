@@ -241,16 +241,14 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
 
     if (!safe_to_rebuild && force && n.getType().isBoolean())
     {
-      Node rebuilt;
       if (needToRebuild(n))
       {
         // need to rebuild to keep changes made to descendants
         // since we're forcing, we can always rebuild without changing the kind
         rebuildNode(n, k);
-        rebuilt = d_lowerCache[n];
       }
       d_lowerCache[n] =
-          nm->mkNode(kind::ITE, rebuilt, bv::utils::mkOne(1), bv::utils::mkZero(1));
+        nm->mkNode(kind::ITE, fromCache(n), bv::utils::mkOne(1), bv::utils::mkZero(1));
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;
@@ -263,6 +261,18 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     // always safe to rebuild if not changing the kind
     Assert(k == new_kind);
     rebuildNode(n, k);
+  }
+  else if (force && fromCache(n).getType().isBoolean())
+  {
+    // force booleans (which haven't already been converted) to bit-vector
+    // needed maintain the invariant that all boolean children
+    // have been converted (even constants and variables)
+    d_lowerCache[n] =
+      nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+    Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
+                        << " =>\n"
+                        << fromCache(n) << std::endl;
+    ++(d_statistics.d_numTermsForcedLowered);
   }
   else
   {
