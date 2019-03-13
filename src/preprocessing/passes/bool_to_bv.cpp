@@ -45,7 +45,7 @@ PreprocessingPassResult BoolToBV::applyInternal(
   {
     for (unsigned i = 0; i < size; ++i)
     {
-      Node newAssertion = lowerNode((*assertionsToPreprocess)[i]);
+      Node newAssertion = lowerNode((*assertionsToPreprocess)[i], true);
       // mode all should always succeed
       Assert(newAssertion.getType().isBitVector());
       newAssertion = nm->mkNode(kind::EQUAL, newAssertion, bv::utils::mkOne(1));
@@ -152,7 +152,7 @@ Node BoolToBV::lowerIte(const TNode& node)
       {
         Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
                             << " to set of ite conditions" << std::endl;
-        Node loweredNode = lowerNode(n);
+        Node loweredNode = lowerNode(n, false);
         // some of the lowered nodes might appear elsewhere but not in an ITE
         // reset cache, but put the lowered ITE back in
         d_lowerCache.clear();
@@ -241,8 +241,16 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
 
     if (!safe_to_rebuild && force && n.getType().isBoolean())
     {
+      Node rebuilt;
+      if (needToRebuild(n))
+      {
+        // need to rebuild to keep changes made to descendants
+        // since we're forcing, we can always rebuild without changing the kind
+        rebuildNode(n, k);
+        rebuilt = d_lowerCache[n];
+      }
       d_lowerCache[n] =
-          nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+          nm->mkNode(kind::ITE, rebuilt, bv::utils::mkOne(1), bv::utils::mkZero(1));
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;

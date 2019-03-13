@@ -50,12 +50,16 @@ class BoolToBV : public PreprocessingPass
    *  Passes the force argument to lowerNodeHelper
    *  Returns the lowered node
    */
-  Node lowerNode(const TNode& node, bool force = true);
+  Node lowerNode(const TNode& node, bool force = false);
 
   /** Tries to lower one node to a width-one bit-vector
    *  Caches the result if successful
+   *
+   *  force = true causes booleans to be converted to bit-vectors using an ITE
+   *     this is only used by mode ALL currently, but could conceivably be used
+   *     in new modes.
    */
-  void lowerNodeHelper(const TNode& n, bool force = true);
+  void lowerNodeHelper(const TNode& n, bool force = false);
 
   /* Traverses formula looking for ITEs to lower to BITVECTOR_ITE using
    * lowerNode*/
