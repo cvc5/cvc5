@@ -97,11 +97,6 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_using_sygus;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
-  /**
-   * Cache of skolems for each free variable that appears in a synthesis check
-   * (for --sygus-rr-synth-check).
-   */
-  std::map<Node, Node> d_fv_to_skolem;
   /** the cache for results of addTerm */
   std::unordered_map<Node, bool, NodeHashFunction> d_add_term_cache;
   /** if true, we silence the output of candidate rewrites */
