@@ -129,60 +129,6 @@ Node BoolToBV::lowerNode(const TNode& node, bool force)
   return fromCache(node);
 }
 
-Node BoolToBV::lowerIte(const TNode& node)
-{
-  std::vector<TNode> visit;
-  visit.push_back(node);
-  std::unordered_set<TNode, TNodeHashFunction> visited;
-
-  while (!visit.empty())
-  {
-    TNode n = visit.back();
-    visit.pop_back();
-    Kind k = n.getKind();
-
-    Debug("bool-to-bv") << "BoolToBV::lowerIte: Post-order traversal with " << n
-                        << " and visited = " << ContainsKey(visited, n)
-                        << std::endl;
-
-    // Look for ITEs and mark visited
-    if (!ContainsKey(visited, n))
-    {
-      if ((k == kind::ITE) && n[1].getType().isBitVector())
-      {
-        Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
-                            << " to set of ite conditions" << std::endl;
-        Node loweredNode = lowerNode(n, false);
-        // some of the lowered nodes might appear elsewhere but not in an ITE
-        // reset cache, but put the lowered ITE back in
-        d_lowerCache.clear();
-        d_lowerCache[n] = loweredNode;
-      }
-      else
-      {
-        visit.push_back(n);
-        visited.insert(n);
-        // insert in reverse order so that they're processed in order
-        for (int i = n.getNumChildren() - 1; i >= 0; --i)
-        {
-          visit.push_back(n[i]);
-        }
-      }
-    }
-    else if (needToRebuild(n))
-    {
-      rebuildNode(n, n.getKind());
-    }
-    else
-    {
-      Debug("bool-to-bv")
-          << "BoolToBV::lowerIte Skipping because don't need to rebuild: " << n
-          << std::endl;
-    }
-  }
-  return fromCache(node);
-}
-
 void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
 {
   Kind k = n.getKind();
@@ -279,6 +225,60 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper skipping: " << n
                         << std::endl;
   }
+}
+
+Node BoolToBV::lowerIte(const TNode& node)
+{
+  std::vector<TNode> visit;
+  visit.push_back(node);
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+
+  while (!visit.empty())
+  {
+    TNode n = visit.back();
+    visit.pop_back();
+    Kind k = n.getKind();
+
+    Debug("bool-to-bv") << "BoolToBV::lowerIte: Post-order traversal with " << n
+                        << " and visited = " << ContainsKey(visited, n)
+                        << std::endl;
+
+    // Look for ITEs and mark visited
+    if (!ContainsKey(visited, n))
+    {
+      if ((k == kind::ITE) && n[1].getType().isBitVector())
+      {
+        Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
+                            << " to set of ite conditions" << std::endl;
+        Node loweredNode = lowerNode(n, false);
+        // some of the lowered nodes might appear elsewhere but not in an ITE
+        // reset cache, but put the lowered ITE back in
+        d_lowerCache.clear();
+        d_lowerCache[n] = loweredNode;
+      }
+      else
+      {
+        visit.push_back(n);
+        visited.insert(n);
+        // insert in reverse order so that they're processed in order
+        for (int i = n.getNumChildren() - 1; i >= 0; --i)
+        {
+          visit.push_back(n[i]);
+        }
+      }
+    }
+    else if (needToRebuild(n))
+    {
+      rebuildNode(n, n.getKind());
+    }
+    else
+    {
+      Debug("bool-to-bv")
+          << "BoolToBV::lowerIte Skipping because don't need to rebuild: " << n
+          << std::endl;
+    }
+  }
+  return fromCache(node);
 }
 
 void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
