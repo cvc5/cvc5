@@ -898,8 +898,7 @@ bool NonlinearExtension::checkModel(const std::vector<Node>& assertions,
       else if (isRefineableTfFun(tf))
       {
         d_used_approx = true;
-        // don't care about concavity here
-        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree,0);
+        std::pair<Node, Node> bounds = getTfModelBounds(tf, d_taylor_degree);
         success = addCheckModelBound(atf, bounds.first, bounds.second);
       }
       if (!success)
@@ -4280,7 +4279,7 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   // compute whether this is a tangent refinement or a secant refinement
   bool is_tangent = false;
   bool is_secant = false;
-  std::pair<Node, Node> mvb = getTfModelBounds(tf, d, concavity);
+  std::pair<Node, Node> mvb = getTfModelBounds(tf, d);
   for (unsigned r = 0; r < 2; r++)
   {
     Node pab = poly_approx_bounds[r][csign];
@@ -4359,31 +4358,21 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   {
     // compute tangent plane
     // Figure 3: T( x )
-    Node tplane;
-    Node poly_approx_deriv = getDerivative(poly_approx, d_taylor_real_fv);
-    Assert(!poly_approx_deriv.isNull());
-    poly_approx_deriv = Rewriter::rewrite(poly_approx_deriv);
-    Trace("nl-ext-tftp-debug2") << "...derivative of " << poly_approx << " is "
-                                << poly_approx_deriv << std::endl;
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    Node poly_approx_c_deriv = poly_approx_deriv.substitute(taylor_vars.begin(),
-                                                            taylor_vars.end(),
-                                                            taylor_subs.begin(),
-                                                            taylor_subs.end());
-    tplane = nm->mkNode(
-        PLUS,
-        poly_approx_c,
-        nm->mkNode(MULT, poly_approx_c_deriv, nm->mkNode(MINUS, tf[0], c)));
+    // We use zero slope tangent planes, since the concavity of the Taylor
+    // approximation cannot be easily established.
+    Node tplane = poly_approx_c;
 
     Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
     std::vector<Node> antec;
+    int mdir = regionToMonotonicityDir(k,region);
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!bounds[i].isNull())
+      // Tangent plane is valid in the interval [c,u) if the slope of the
+      // function matches its concavity, and is valid in (l, c] otherwise.
+      Node use_bound = (mdir==concavity)==(i==0) ? c : bounds[i];
+      if (!use_bound.isNull())
       {
-        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
+        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], use_bound);
         antec.push_back(ant);
       }
     }
@@ -4885,23 +4874,23 @@ void NonlinearExtension::getPolynomialApproximationBounds(
 }
 
 void NonlinearExtension::getPolynomialApproximationBoundForArg(
-    Kind k, Node c, unsigned d, std::vector<Node>& pbounds, int concavity)
+    Kind k, Node c, unsigned d, std::vector<Node>& pbounds)
 {
   getPolynomialApproximationBounds(k, d, pbounds);
   Assert(c.isConst());
-  unsigned ds = d;
-  NodeManager* nm = NodeManager::currentNM();
-  Node tft = nm->mkNode(k, d_zero);
-  bool success = false;
-  TNode ttrf = d_taylor_real_fv;
-  TNode tc = c;
-  do
+  if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
   {
-    success = true;
-    unsigned n = 2 * ds;
-    std::pair<Node, Node> taylor = getTaylor(tft, n);
-    if (k == EXPONENTIAL && c.getConst<Rational>().sgn() == 1)
+    NodeManager* nm = NodeManager::currentNM();
+    Node tft = nm->mkNode(k, d_zero);
+    bool success = false;
+    unsigned ds = d;
+    TNode ttrf = d_taylor_real_fv;
+    TNode tc = c;
+    do
     {
+      success = true;
+      unsigned n = 2 * ds;
+      std::pair<Node, Node> taylor = getTaylor(tft, n);
       // check that 1-c^{n+1}/(n+1)! > 0
       Node ru = nm->mkNode(DIVISION, taylor.second[1], taylor.second[0][1]);
       Node rus = ru.substitute(ttrf, tc);
@@ -4912,28 +4901,21 @@ void NonlinearExtension::getPolynomialApproximationBoundForArg(
         success = false;
         ds = ds + 1;
       }
-    }
-    // also check that the 2nd derivative at this point matches the concavity FIXME
-    if( concavity!=0 )
+    } while (!success);
+    if (ds > d)
     {
-      for( unsigned r=0; r<2; r++ ){
-        //Node poly_approx_deriv = getDerivative(pbounds[r], d_taylor_real_fv);
-      }
+      Trace("nl-ext-exp-taylor")
+          << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
+          << k << " " << c << ")" << std::endl;
+      // must use sound upper bound
+      std::vector<Node> pboundss;
+      getPolynomialApproximationBounds(k, ds, pboundss);
+      pbounds[2] = pboundss[2];
     }
-  } while (!success);
-  if (ds > d)
-  {
-    Trace("nl-ext-exp-taylor")
-        << "*** Increase Taylor bound to " << ds << " > " << d << " for ("
-        << k << " " << c << ")" << std::endl;
-    // must use sound upper bound
-    std::vector<Node> pboundss;
-    getPolynomialApproximationBounds(k, ds, pboundss);
-    pbounds[2] = pboundss[2];
   }
 }
 
-std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d, int concavity)
+std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d)
 {
   // compute the model value of the argument
   Node c = computeModelValue(tf[0], 1);
@@ -4943,7 +4925,7 @@ std::pair<Node, Node> NonlinearExtension::getTfModelBounds(Node tf, unsigned d, 
   bool isNeg = csign == -1;
 
   std::vector<Node> pbounds;
-  getPolynomialApproximationBoundForArg(tf.getKind(), c, d, pbounds, concavity);
+  getPolynomialApproximationBoundForArg(tf.getKind(), c, d, pbounds);
 
   std::vector<Node> bounds;
   TNode tfv = d_taylor_real_fv;
