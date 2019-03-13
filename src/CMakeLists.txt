@@ -791,27 +791,27 @@ install(FILES
           api/cvc4cpp.h
           api/cvc4cppkind.h
         DESTINATION
-          include/api)
+          include/cvc4/api)
 install(FILES
           base/configuration.h
           base/exception.h
           base/listener.h
           base/modal_exception.h
         DESTINATION
-          include/base)
+          include/cvc4/base)
 install(FILES
           context/cdhashmap_forward.h
           context/cdhashset_forward.h
           context/cdinsert_hashmap_forward.h
           context/cdlist_forward.h
         DESTINATION
-          include/context)
+          include/cvc4/context)
 install(FILES
           include/cvc4.h
           include/cvc4_public.h
           include/cvc4parser_public.h
         DESTINATION
-          include)
+          include/cvc4)
 install(FILES
           expr/array.h
           expr/array_store_all.h
@@ -831,7 +831,7 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/expr/kind.h
           ${CMAKE_CURRENT_BINARY_DIR}/expr/expr_manager.h
         DESTINATION
-          include/expr)
+          include/cvc4/expr)
 install(FILES
           options/argument_extender.h
           options/arith_heuristic_pivot_rule.h
@@ -848,38 +848,38 @@ install(FILES
           options/sygus_out_mode.h
           options/theoryof_mode.h
         DESTINATION
-          include/options)
+          include/cvc4/options)
 install(FILES
           parser/input.h
           parser/parser.h
           parser/parser_builder.h
           parser/parser_exception.h
         DESTINATION
-          include/parser)
+          include/cvc4/parser)
 install(FILES
           printer/sygus_print_callback.h
         DESTINATION
-          include/printer)
+          include/cvc4/printer)
 install(FILES
           proof/unsat_core.h
         DESTINATION
-          include/proof)
+          include/cvc4/proof)
 install(FILES
           smt/command.h
           smt/logic_exception.h
           smt/smt_engine.h
         DESTINATION
-          include/smt)
+          include/cvc4/smt)
 install(FILES
           smt_util/lemma_channels.h
           smt_util/lemma_input_channel.h
           smt_util/lemma_output_channel.h
         DESTINATION
-          include/smt_util)
+          include/cvc4/smt_util)
 install(FILES
           theory/logic_info.h
         DESTINATION
-          include/theory)
+          include/cvc4/theory)
 install(FILES
           util/abstract_value.h
           util/bitvector.h
@@ -906,4 +906,10 @@ install(FILES
           ${CMAKE_CURRENT_BINARY_DIR}/util/integer.h
           ${CMAKE_CURRENT_BINARY_DIR}/util/rational.h
         DESTINATION
-          include/util)
+          include/cvc4/util)
+
+# Fix include paths for all public headers.
+# Note: This is a temporary fix until the new C++ API is in place.
+install(CODE "execute_process(COMMAND
+                ${CMAKE_CURRENT_LIST_DIR}/fix-install-headers.sh
+                ${CMAKE_INSTALL_PREFIX})")
