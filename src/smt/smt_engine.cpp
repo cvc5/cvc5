@@ -3545,8 +3545,10 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
-  Assert(!assumption.isNull());
-  return checkSatisfiability(assumption, inUnsatCore, true);
+  return checkSatisfiability(
+      assumption.isNull() ? d_exprManager->mkConst<bool>(false) : assumption,
+      inUnsatCore,
+      true);
 }
 
 Result SmtEngine::query(const vector<Expr>& assumptions, bool inUnsatCore)
