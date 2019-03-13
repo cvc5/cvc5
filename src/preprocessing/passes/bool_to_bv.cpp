@@ -135,8 +135,8 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   // easy case -- just replace boolean constant
   if (k == kind::CONST_BOOLEAN)
   {
-    d_lowerCache[n] = (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
-      : bv::utils::mkZero(1);
+    d_lowerCache[n] =
+        (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1);
     return;
   }
 
@@ -170,9 +170,10 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     // need to check that it's safe
     bool safe_to_rebuild = true;
     Type t;
-    for (const Node& nn  : n)
+    for (const Node& nn : n)
     {
-      safe_to_rebuild = safe_to_rebuild && fromCache(nn).getType().isBitVector();
+      safe_to_rebuild =
+          safe_to_rebuild && fromCache(nn).getType().isBitVector();
       if (!safe_to_rebuild)
       {
         break;
