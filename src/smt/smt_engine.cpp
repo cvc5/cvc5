@@ -111,6 +111,10 @@
 #include "util/random.h"
 #include "util/resource_manager.h"
 
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+#include "lfscc.h"
+#endif
+
 using namespace std;
 using namespace CVC4;
 using namespace CVC4::smt;
@@ -120,6 +124,11 @@ using namespace CVC4::context;
 using namespace CVC4::theory;
 
 namespace CVC4 {
+
+namespace proof {
+extern const char* const plf_signatures;
+}  // namespace proof
+
 namespace smt {
 
 struct DeleteCommandFunction : public std::unary_function<const Command*, void>
@@ -178,10 +187,12 @@ struct SmtEngineStatistics {
   IntStat d_numAssertionsPre;
   /** Num of assertions after ite removal */
   IntStat d_numAssertionsPost;
+  /** Size of all proofs generated */
+  IntStat d_proofsSize;
   /** time spent in checkModel() */
   TimerStat d_checkModelTime;
-  /** time spent in checkProof() */
-  TimerStat d_checkProofTime;
+  /** time spent checking the proof with LFSC */
+  TimerStat d_lfscCheckProofTime;
   /** time spent in checkUnsatCore() */
   TimerStat d_checkUnsatCoreTime;
   /** time spent in PropEngine::checkSat() */
@@ -196,28 +207,30 @@ struct SmtEngineStatistics {
   /** Number of resource units spent. */
   ReferenceStat<uint64_t> d_resourceUnitsUsed;
 
-  SmtEngineStatistics() :
-    d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
-    d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
-    d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
-    d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
-    d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
-    d_checkModelTime("smt::SmtEngine::checkModelTime"),
-    d_checkProofTime("smt::SmtEngine::checkProofTime"),
-    d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
-    d_solveTime("smt::SmtEngine::solveTime"),
-    d_pushPopTime("smt::SmtEngine::pushPopTime"),
-    d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
-    d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
-    d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
- {
+  SmtEngineStatistics()
+      : d_definitionExpansionTime("smt::SmtEngine::definitionExpansionTime"),
+        d_numConstantProps("smt::SmtEngine::numConstantProps", 0),
+        d_cnfConversionTime("smt::SmtEngine::cnfConversionTime"),
+        d_numAssertionsPre("smt::SmtEngine::numAssertionsPreITERemoval", 0),
+        d_numAssertionsPost("smt::SmtEngine::numAssertionsPostITERemoval", 0),
+        d_proofsSize("smt::SmtEngine::proofsSize", 0),
+        d_checkModelTime("smt::SmtEngine::checkModelTime"),
+        d_lfscCheckProofTime("smt::SmtEngine::lfscCheckProofTime"),
+        d_checkUnsatCoreTime("smt::SmtEngine::checkUnsatCoreTime"),
+        d_solveTime("smt::SmtEngine::solveTime"),
+        d_pushPopTime("smt::SmtEngine::pushPopTime"),
+        d_processAssertionsTime("smt::SmtEngine::processAssertionsTime"),
+        d_simplifiedToFalse("smt::SmtEngine::simplifiedToFalse", 0),
+        d_resourceUnitsUsed("smt::SmtEngine::resourceUnitsUsed")
+  {
     smtStatisticsRegistry()->registerStat(&d_definitionExpansionTime);
     smtStatisticsRegistry()->registerStat(&d_numConstantProps);
     smtStatisticsRegistry()->registerStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->registerStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->registerStat(&d_proofsSize);
     smtStatisticsRegistry()->registerStat(&d_checkModelTime);
-    smtStatisticsRegistry()->registerStat(&d_checkProofTime);
+    smtStatisticsRegistry()->registerStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->registerStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->registerStat(&d_solveTime);
     smtStatisticsRegistry()->registerStat(&d_pushPopTime);
@@ -232,8 +245,9 @@ struct SmtEngineStatistics {
     smtStatisticsRegistry()->unregisterStat(&d_cnfConversionTime);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPre);
     smtStatisticsRegistry()->unregisterStat(&d_numAssertionsPost);
+    smtStatisticsRegistry()->unregisterStat(&d_proofsSize);
     smtStatisticsRegistry()->unregisterStat(&d_checkModelTime);
-    smtStatisticsRegistry()->unregisterStat(&d_checkProofTime);
+    smtStatisticsRegistry()->unregisterStat(&d_lfscCheckProofTime);
     smtStatisticsRegistry()->unregisterStat(&d_checkUnsatCoreTime);
     smtStatisticsRegistry()->unregisterStat(&d_solveTime);
     smtStatisticsRegistry()->unregisterStat(&d_pushPopTime);
@@ -3712,7 +3726,6 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
     // Check that UNSAT results generate a proof correctly.
     if(options::checkProofs()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
-        TimerStat::CodeTimer checkProofTimer(d_stats->d_checkProofTime);
         checkProof();
       }
     }
@@ -4366,6 +4379,57 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
 
 Expr SmtEngine::getSepNilExpr() { return getSepHeapAndNilExpr().second; }
+
+void SmtEngine::checkProof()
+{
+#if (IS_LFSC_BUILD && IS_PROOFS_BUILD)
+
+  Chat() << "generating proof..." << endl;
+
+  const Proof& pf = getProof();
+
+  Chat() << "checking proof..." << endl;
+
+  std::string logicString = d_logic.getLogicString();
+
+  if (!(
+          // Pure logics
+          logicString == "QF_UF" || logicString == "QF_AX"
+          || logicString == "QF_BV" ||
+          // Non-pure logics
+          logicString == "QF_AUF" || logicString == "QF_UFBV"
+          || logicString == "QF_ABV" || logicString == "QF_AUFBV"))
+  {
+    // This logic is not yet supported
+    Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
+             << endl;
+    return;
+  }
+
+  std::stringstream pfStream;
+
+  pfStream << proof::plf_signatures << endl;
+  int64_t sizeBeforeProof = static_cast<int64_t>(pfStream.tellp());
+
+  pf.toStream(pfStream);
+  d_stats->d_proofsSize +=
+      static_cast<int64_t>(pfStream.tellp()) - sizeBeforeProof;
+
+  {
+    TimerStat::CodeTimer checkProofTimer(d_stats->d_lfscCheckProofTime);
+    lfscc_init();
+    lfscc_check_file(pfStream, false, false, false, false, false, false, false);
+  }
+  // FIXME: we should actually call lfscc_cleanup here, but lfscc_cleanup
+  // segfaults on regress0/bv/core/bitvec7.smt
+  // lfscc_cleanup();
+
+#else  /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
+  Unreachable(
+      "This version of CVC4 was built without proof support; cannot check "
+      "proofs.");
+#endif /* (IS_LFSC_BUILD && IS_PROOFS_BUILD) */
+}
 
 UnsatCore SmtEngine::getUnsatCoreInternal()
 {
