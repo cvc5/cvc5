@@ -130,9 +130,17 @@ libcvc4_add_sources(
   proof/array_proof.h
   proof/bitvector_proof.cpp
   proof/bitvector_proof.h
+  proof/clausal_bitvector_proof.cpp
+  proof/clausal_bitvector_proof.h
   proof/clause_id.h
   proof/cnf_proof.cpp
   proof/cnf_proof.h
+  proof/dimacs_printer.cpp
+  proof/dimacs_printer.h
+  proof/drat/drat_proof.cpp
+  proof/drat/drat_proof.h
+  proof/er/er_proof.cpp
+  proof/er/er_proof.h
   proof/lemma_proof.cpp
   proof/lemma_proof.h
   proof/lfsc_proof_printer.cpp

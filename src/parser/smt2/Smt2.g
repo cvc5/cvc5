@@ -2330,16 +2330,16 @@ termAtomic[CVC4::api::Term& atomTerm]
     }
 
   // Floating-point rounding mode constants
-  | FP_RNE_TOK      { atomTerm = SOLVER->mkConst(api::ROUND_NEAREST_TIES_TO_EVEN); }
-  | FP_RNA_TOK      { atomTerm = SOLVER->mkConst(api::ROUND_NEAREST_TIES_TO_AWAY); }
-  | FP_RTP_TOK      { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_POSITIVE); }
-  | FP_RTN_TOK      { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_NEGATIVE); }
-  | FP_RTZ_TOK      { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_ZERO); }
-  | FP_RNE_FULL_TOK { atomTerm = SOLVER->mkConst(api::ROUND_NEAREST_TIES_TO_EVEN); }
-  | FP_RNA_FULL_TOK { atomTerm = SOLVER->mkConst(api::ROUND_NEAREST_TIES_TO_AWAY); }
-  | FP_RTP_FULL_TOK { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_POSITIVE); }
-  | FP_RTN_FULL_TOK { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_NEGATIVE); }
-  | FP_RTZ_FULL_TOK { atomTerm = SOLVER->mkConst(api::ROUND_TOWARD_ZERO); }
+  | FP_RNE_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
+  | FP_RNA_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
+  | FP_RTP_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
+  | FP_RTN_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
+  | FP_RTZ_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
+  | FP_RNE_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
+  | FP_RNA_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
+  | FP_RTP_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
+  | FP_RTN_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
+  | FP_RTZ_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
 
   // String constant
   | str[s,false] { atomTerm = SOLVER->mkString(s, true); }

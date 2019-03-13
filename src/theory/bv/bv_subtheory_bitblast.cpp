@@ -276,7 +276,7 @@ void BitblastSolver::setConflict(TNode conflict) {
   d_bv->setConflict(final_conflict);
 }
 
-void BitblastSolver::setProofLog(proof::ResolutionBitVectorProof* bvp)
+void BitblastSolver::setProofLog(proof::BitVectorProof* bvp)
 {
   d_bitblaster->setProofLog( bvp );
   bvp->setBitblaster(d_bitblaster.get());

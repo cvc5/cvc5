@@ -64,10 +64,8 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
       d_bv(bv),
-      d_bvp(nullptr),
       d_ctx(c),
       d_nullRegistrar(new prop::NullRegistrar()),
-      d_nullContext(new context::Context()),
       d_assertedAtoms(new (true) context::CDList<prop::SatLiteral>(c)),
       d_explanations(new (true) ExplanationMap(c)),
       d_variables(),
@@ -564,13 +562,6 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
   return true;
-}
-
-void TLazyBitblaster::setProofLog(proof::ResolutionBitVectorProof* bvp)
-{
-  d_bvp = bvp;
-  d_satSolver->setProofLog( bvp );
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
 }
 
 void TLazyBitblaster::clearSolver() {

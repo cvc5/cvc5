@@ -20,10 +20,19 @@
 #include <cstdlib>
 #include <fstream>
 #include <iostream>
+#include <memory>
+#include <sstream>
 #include <unordered_map>
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
+#include "proof/dimacs_printer.h"
+#include "proof/lfsc_proof_printer.h"
+
+#if CVC4_USE_DRAT2ER
+#include "drat2er_options.h"
+#include "drat_trim_interface.h"
+#endif
 
 namespace CVC4 {
 namespace proof {
@@ -34,27 +43,6 @@ using prop::SatLiteral;
 using prop::SatVariable;
 
 namespace {
-// Prints the literal as a (+) or (-) int
-// Not operator<< b/c that represents negation as ~
-std::ostream& textOut(std::ostream& o, const SatLiteral& l)
-{
-  if (l.isNegated())
-  {
-    o << "-";
-  }
-  return o << l.getSatVariable();
-}
-
-// Prints the clause as a space-separated list of ints
-// Not operator<< b/c that represents negation as ~
-std::ostream& textOut(std::ostream& o, const SatClause& c)
-{
-  for (const auto l : c)
-  {
-    textOut(o, l) << " ";
-  }
-  return o << "0";
-}
 
 // Prints the trace as a space-separated list of (+) ints with a space at the
 // end.
@@ -67,111 +55,75 @@ std::ostream& operator<<(std::ostream& o, const LratUPTrace& trace)
   return o;
 }
 
+/**
+ * Print a list of clause indices to go to while doing UP.
+ *
+ * i.e. a value of type Trace
+ *
+ * @param o where to print to
+ * @param trace the trace (list of clauses) to print
+ */
+void printTrace(std::ostream& o, const LratUPTrace& trace)
+{
+  for (ClauseIdx idx : trace)
+  {
+    o << "(Tracec " << idx << " ";
+  }
+  o << "Tracen";
+  std::fill_n(std::ostream_iterator<char>(o), trace.size(), ')');
+}
+
+/**
+ * Print the RAT hints for a clause addition.
+ *
+ * i.e. prints an LFSC value of type RATHints
+ *
+ * @param o where to print to
+ * @param hints the RAT hints to print
+ */
+void printHints(std::ostream& o,
+                const std::vector<std::pair<ClauseIdx, LratUPTrace>>& hints)
+{
+  for (auto& hint : hints)
+  {
+    o << "\n    (RATHintsc " << hint.first << " ";
+    printTrace(o, hint.second);
+    o << " ";
+  }
+  o << "RATHintsn";
+  std::fill_n(std::ostream_iterator<char>(o), hints.size(), ')');
+}
+
+/**
+ * Print an index list
+ *
+ * i.e. prints an LFSC value of type CIList
+ *
+ * @param o where to print to
+ * @param indices the list of indices to print
+ */
+void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
+{
+  // Verify that the indices are sorted!
+  for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
+  {
+    Assert(indices[i] < indices[i + 1]);
+  }
+
+  for (ClauseIdx idx : indices)
+  {
+    o << "(CIListc " << idx << " ";
+  }
+  o << "CIListn";
+  std::fill_n(std::ostream_iterator<char>(o), indices.size(), ')');
+}
+
+}  // namespace
+
 // Prints the LRAT addition line in textual format
-std::ostream& operator<<(std::ostream& o, const LratAdditionData& add)
-{
-  o << add.d_idxOfClause << " ";
-  textOut(o, add.d_clause) << " ";
-  o << add.d_atTrace;  // Inludes a space at the end.
-  for (const auto& rat : add.d_resolvants)
-  {
-    o << "-" << rat.first << " ";
-    o << rat.second;  // Includes a space at the end.
-  }
-  o << "0\n";
-  return o;
-}
-
-// Prints the LRAT addition line in textual format
-std::ostream& operator<<(std::ostream& o, const LratDeletionData& del)
-{
-  o << del.d_idxOfClause << " d ";
-  for (const auto& idx : del.d_clauses)
-  {
-    o << idx << " ";
-  }
-  return o << "0\n";
-}
-
-// Prints the LRAT line in textual format
-std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
-{
-  switch (i.d_kind)
-  {
-    case LRAT_ADDITION: return o << i.d_data.d_addition;
-    case LRAT_DELETION: return o << i.d_data.d_deletion;
-    default: return o;
-  }
-}
-
-}
-
-LratInstruction::LratInstruction(LratInstruction&& instr) : d_kind(instr.d_kind)
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition = instr.d_data.d_addition;
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion = instr.d_data.d_deletion;
-      break;
-    }
-  }
-}
-
-LratInstruction::LratInstruction(LratInstruction& instr) : d_kind(instr.d_kind)
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition = instr.d_data.d_addition;
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion = instr.d_data.d_deletion;
-      break;
-    }
-  }
-}
-
-LratInstruction::LratInstruction(LratAdditionData&& addition)
-    : d_kind(LRAT_ADDITION)
-{
-  d_data.d_addition = std::move(addition);
-}
-
-LratInstruction::LratInstruction(LratDeletionData&& deletion)
-    : d_kind(LRAT_DELETION)
-{
-  d_data.d_deletion = std::move(deletion);
-}
-
-LratInstruction::~LratInstruction()
-{
-  switch (d_kind)
-  {
-    case LRAT_ADDITION:
-    {
-      d_data.d_addition.~LratAdditionData();
-      break;
-    }
-    case LRAT_DELETION:
-    {
-      d_data.d_deletion.~LratDeletionData();
-      break;
-    }
-  }
-}
 
 LratProof LratProof::fromDratProof(
-    const std::unordered_map<ClauseId, SatClause*>& usedClauses,
-    const std::vector<ClauseId>& clauseOrder,
+    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
     const std::string& dratBinary)
 {
   std::ostringstream cmd;
@@ -189,41 +141,21 @@ LratProof LratProof::fromDratProof(
   AlwaysAssert(r > 0);
   close(r);
   std::ofstream formStream(formulaFilename);
-  size_t maxVar = 0;
-  for (auto& c : usedClauses)
-  {
-    for (auto l : *(c.second))
-    {
-      if (l.getSatVariable() + 1 > maxVar)
-      {
-        maxVar = l.getSatVariable() + 1;
-      }
-    }
-  }
-  formStream << "p cnf " << maxVar << " " << usedClauses.size() << '\n';
-  for (auto ci : clauseOrder)
-  {
-    auto iterator = usedClauses.find(ci);
-    Assert(iterator != usedClauses.end());
-    for (auto l : *(iterator->second))
-    {
-      if (l.isNegated())
-      {
-        formStream << '-';
-      }
-      formStream << l.getSatVariable() + 1 << " ";
-    }
-    formStream << "0\n";
-  }
+  printDimacs(formStream, usedClauses);
   formStream.close();
 
   std::ofstream dratStream(dratFilename);
   dratStream << dratBinary;
   dratStream.close();
 
-  // TODO(aozdemir) Add invocation of DRAT trim, once I get CMake to bundle it
-  // into CVC4 correctly.
-  Unimplemented();
+#if CVC4_USE_DRAT2ER
+  drat2er::drat_trim::CheckAndConvertToLRAT(
+      formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
+#else
+  Unimplemented(
+      "LRAT proof production requires drat2er.\n"
+      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+#endif
 
   std::ifstream lratStream(lratFilename);
   LratProof lrat(lratStream);
@@ -275,8 +207,9 @@ LratProof::LratProof(std::istream& textualProof)
         clauses.push_back(di);
       }
       std::sort(clauses.begin(), clauses.end());
-      d_instructions.emplace_back(
-          LratDeletionData(clauseIdx, std::move(clauses)));
+      std::unique_ptr<LratInstruction> instr(
+          new LratDeletion(clauseIdx, std::move(clauses)));
+      d_instructions.push_back(std::move(instr));
     }
     else
     {
@@ -323,20 +256,82 @@ LratProof::LratProof(std::istream& textualProof)
       // Pairs compare based on the first element, so this sorts by the
       // resolution target index
       std::sort(resolvants.begin(), resolvants.end());
-      d_instructions.emplace_back(LratAdditionData(clauseIdx,
-                                                   std::move(clause),
-                                                   std::move(atTrace),
-                                                   std::move(resolvants)));
+      std::unique_ptr<LratInstruction> instr(
+          new LratAddition(clauseIdx,
+                           std::move(clause),
+                           std::move(atTrace),
+                           std::move(resolvants)));
+      d_instructions.push_back(std::move(instr));
     }
   }
+}
+
+void LratProof::outputAsLfsc(std::ostream& o) const
+{
+  std::ostringstream closeParen;
+  for (const auto& i : d_instructions)
+  {
+    i->outputAsLfsc(o, closeParen);
+  }
+  o << "LRATProofn";
+  o << closeParen.str();
+}
+
+void LratAddition::outputAsText(std::ostream& o) const
+{
+  o << d_idxOfClause << " ";
+  textOut(o, d_clause) << " ";
+  o << d_atTrace;  // Inludes a space at the end.
+  for (const auto& rat : d_resolvants)
+  {
+    o << "-" << rat.first << " ";
+    o << rat.second;  // Includes a space at the end.
+  }
+  o << "0\n";
+}
+
+void LratAddition::outputAsLfsc(std::ostream& o, std::ostream& closeParen) const
+{
+  o << "\n    (LRATProofa " << d_idxOfClause << " ";
+  closeParen << ")";
+  LFSCProofPrinter::printSatClause(d_clause, o, "bb");
+  o << " ";
+  printTrace(o, d_atTrace);
+  o << " ";
+  printHints(o, d_resolvants);
+  o << " ";
+}
+
+void LratDeletion::outputAsText(std::ostream& o) const
+{
+  o << d_idxOfClause << " d ";
+  for (const auto& idx : d_clauses)
+  {
+    o << idx << " ";
+  }
+  o << "0\n";
+}
+
+void LratDeletion::outputAsLfsc(std::ostream& o, std::ostream& closeParen) const
+{
+  o << "\n    (LRATProofd ";
+  closeParen << ")";
+  printIndices(o, d_clauses);
+  o << " ";
 }
 
 std::ostream& operator<<(std::ostream& o, const LratProof& p)
 {
   for (const auto& instr : p.getInstructions())
   {
-    o << instr;
+    o << *instr;
   }
+  return o;
+}
+
+std::ostream& operator<<(std::ostream& o, const LratInstruction& i)
+{
+  i.outputAsText(o);
   return o;
 }
 

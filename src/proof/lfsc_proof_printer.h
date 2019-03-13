@@ -74,7 +74,56 @@ class LFSCProofPrinter
                                          std::ostream& out,
                                          std::ostream& paren);
 
+  /**
+   * The SAT solver is given a list of clauses.
+   * Assuming that each clause has alreay been individually proven,
+   * defines a proof of the input to the SAT solver.
+   *
+   * Prints an LFSC value corresponding to the proof, i.e. a value of type
+   * (cnf_holds ...)
+   *
+   * @param clauses The clauses to print a proof of
+   * @param out The stream to print to
+   * @param namingPrefix The prefix for LFSC names
+   */
+  static void printSatInputProof(const std::vector<ClauseId>& clauses,
+                                 std::ostream& out,
+                                 const std::string& namingPrefix);
+
+  /**
+   * The LRAT proof signature uses the concept of a _clause map_ (CMap), which
+   * represents an indexed collection of (conjoined) clauses.
+   *
+   * Specifically, the signatures rely on a proof that a CMap containing the
+   * clauses given to the SAT solver hold.
+   *
+   * Assuming that the individual clauses already have proofs, this function
+   * prints a proof of the CMap mapping 1 to the first clause, 2 to the second,
+   * and so on.
+   *
+   * That is, it prints a value of type (CMap_holds ...)
+   *
+   * @param clauses The clauses to print a proof of
+   * @param out The stream to print to
+   * @param namingPrefix The prefix for LFSC names
+   */
+  static void printCMapProof(const std::vector<ClauseId>& clauses,
+                             std::ostream& out,
+                             const std::string& namingPrefix);
+
+  /**
+   * Prints a clause
+   *
+   * @param clause The clause to print
+   * @param out The stream to print to
+   * @param namingPrefix The prefix for LFSC names
+   */
+  static void printSatClause(const prop::SatClause& clause,
+                             std::ostream& out,
+                             const std::string& namingPrefix);
+
  private:
+
   /**
    * Maps a clause id to a string identifier used in the LFSC proof.
    *
