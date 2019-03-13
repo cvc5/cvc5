@@ -1100,6 +1100,17 @@ class CVC4_PUBLIC DatatypeSelector
   ~DatatypeSelector();
 
   /**
+   * @return true if this datatype selector has been resolved.
+   */
+  bool isResolved() const;
+
+  /**
+   * Get the selector operator of this datatype selector.
+   * @return the selector operator
+   */
+  OpTerm getSelectorTerm() const;
+
+  /**
    * @return a string representation of this datatype selector
    */
   std::string toString() const;
@@ -1154,7 +1165,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * Get the constructor operator of this datatype constructor.
    * @return the constructor operator
    */
-  Term getConstructorTerm() const;
+  OpTerm getConstructorTerm() const;
 
   /**
    * Get the datatype selector with the given name.
@@ -1173,7 +1184,7 @@ class CVC4_PUBLIC DatatypeConstructor
    * @param name the name of the datatype selector
    * @return a term representing the datatype selector with the given name
    */
-  Term getSelectorTerm(const std::string& name) const;
+  OpTerm getSelectorTerm(const std::string& name) const;
 
   /**
    * @return a string representation of this datatype constructor
@@ -1320,7 +1331,7 @@ class CVC4_PUBLIC Datatype
    * similarly-named constructors, the
    * first is returned.
    */
-  Term getConstructorTerm(const std::string& name) const;
+  OpTerm getConstructorTerm(const std::string& name) const;
 
   /** Get the number of constructors for this Datatype. */
   size_t getNumConstructors() const;
@@ -1443,6 +1454,16 @@ std::ostream& operator<<(std::ostream& out,
  */
 std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl) CVC4_PUBLIC;
+
+/**
+ * Serialize a vector of datatype constructor declarations to given stream.
+ * @param out the output stream
+ * @param vector the vector of datatype constructor declarations to be
+ * serialized to the given stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<DatatypeConstructorDecl>& vector);
 
 /**
  * Serialize a datatype selector declaration to given stream.
@@ -1682,14 +1703,6 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind) const;
 
   /**
-   * Create 0-ary term of given kind and sort.
-   * @param kind the kind of the term
-   * @param sort the sort argument to this kind
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, Sort sort) const;
-
-  /**
    * Create a unary term of given kind.
    * @param kind the kind of the term
    * @param child the child of the term
@@ -1725,43 +1738,59 @@ class CVC4_PUBLIC Solver
   Term mkTerm(Kind kind, const std::vector<Term>& children) const;
 
   /**
-   * Create unary term from a given operator term.
+   * Create nullary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
+   * @param kind the kind of the term
+   * @param the operator term
+   * @return the Term
+   */
+  Term mkTerm(Kind kind, OpTerm opTerm) const;
+
+  /**
+   * Create unary term of given kind from a given operator term.
+   * Create operator terms with mkOpTerm().
+   * @param kind the kind of the term
    * @param the operator term
    * @child the child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child) const;
+  Term mkTerm(Kind kind, OpTerm opTerm, Term child) const;
 
   /**
-   * Create binary term from a given operator term.
+   * Create binary term of given kind from a given operator term.
+   * @param kind the kind of the term
    * Create operator terms with mkOpTerm().
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child1, Term child2) const;
+  Term mkTerm(Kind kind, OpTerm opTerm, Term child1, Term child2) const;
 
   /**
-   * Create ternary term from a given operator term.
+   * Create ternary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
+   * @param kind the kind of the term
    * @param the operator term
    * @child1 the first child of the term
    * @child2 the second child of the term
    * @child3 the third child of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, Term child1, Term child2, Term child3) const;
+  Term mkTerm(
+      Kind kind, OpTerm opTerm, Term child1, Term child2, Term child3) const;
 
   /**
-   * Create n-ary term from a given operator term.
+   * Create n-ary term of given kind from a given operator term.
    * Create operator terms with mkOpTerm().
+   * @param kind the kind of the term
    * @param the operator term
    * @children the children of the term
    * @return the Term
    */
-  Term mkTerm(OpTerm opTerm, const std::vector<Term>& children) const;
+  Term mkTerm(Kind kind,
+              OpTerm opTerm,
+              const std::vector<Term>& children) const;
 
   /**
    * Create a tuple term. Terms are automatically converted if sorts are
@@ -2242,15 +2271,6 @@ class CVC4_PUBLIC Solver
                        const std::vector<DatatypeConstructorDecl>& ctors) const;
 
   /**
-   * Declare 0-arity function symbol.
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * @param symbol the name of the function
-   * @param sort the sort of the return value of this function
-   * @return the function
-   */
-  Term declareFun(const std::string& symbol, Sort sort) const;
-
-  /**
    * Declare n-ary function symbol.
    * SMT-LIB: ( declare-fun <symbol> ( <sort>* ) <sort> )
    * @param symbol the name of the function
@@ -2485,7 +2505,7 @@ class CVC4_PUBLIC Solver
   /* Helper to convert a vector of sorts to internal types. */
   std::vector<Expr> termVectorToExprs(const std::vector<Term>& vector) const;
   /* Helper to check for API misuse in mkTerm functions. */
-  void checkMkOpTerm(OpTerm opTerm, uint32_t nchildren) const;
+  void checkMkOpTerm(Kind kind, OpTerm opTerm, uint32_t nchildren) const;
   /* Helper to check for API misuse in mkOpTerm functions. */
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */

@@ -409,6 +409,7 @@ private:
     LENGTH_ONE,
     LENGTH_GEQ_ONE
   };
+
   /** register length
    *
    * This method is called on non-constant string terms n. It sends a lemma
@@ -520,8 +521,31 @@ private:
   void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
   bool detectLoop( std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
-  bool processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                    int i, int j, int loop_n_index, int other_n_index,int loop_index, int index, InferInfo& info );
+
+  /**
+   * Result of processLoop() below.
+   */
+  enum class ProcessLoopResult
+  {
+    /** Loop processing made an inference */
+    INFERENCE,
+    /** Loop processing detected a conflict */
+    CONFLICT,
+    /** Loop not processed or no loop detected */
+    SKIPPED,
+  };
+
+  ProcessLoopResult processLoop(
+      const std::vector<std::vector<Node> >& normal_forms,
+      const std::vector<Node>& normal_form_src,
+      int i,
+      int j,
+      int loop_n_index,
+      int other_n_index,
+      int loop_index,
+      int index,
+      InferInfo& info);
+
   void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
                     std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
   void processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 

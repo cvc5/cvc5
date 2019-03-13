@@ -91,7 +91,7 @@ class TBitblaster
   bool hasBBTerm(TNode node) const;
   void getBBTerm(TNode node, Bits& bits) const;
   virtual void storeBBTerm(TNode term, const Bits& bits);
-  void setProofLog(proof::BitVectorProof* bvp);
+  virtual void setProofLog(proof::BitVectorProof* bvp);
 
   /**
    * Return a constant representing the value of a in the  model.

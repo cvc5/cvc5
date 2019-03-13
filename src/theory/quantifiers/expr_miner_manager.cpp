@@ -15,6 +15,8 @@
 #include "theory/quantifiers/expr_miner_manager.h"
 #include "theory/quantifiers_engine.h"
 
+#include "options/quantifiers_options.h"
+
 namespace CVC4 {
 namespace theory {
 namespace quantifiers {
@@ -140,7 +142,7 @@ bool ExpressionMinerManager::addTerm(Node sol,
   bool ret = true;
   if (d_doRewSynth)
   {
-    ret = d_crd.addTerm(sol, out, rew_print);
+    ret = d_crd.addTerm(sol, options::sygusRewSynthRec(), out, rew_print);
   }
 
   // a unique term, let's try the query generator

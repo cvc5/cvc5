@@ -28,6 +28,7 @@
 extern "C" {
 #include "base/abc/abc.h"
 #include "base/main/main.h"
+#include "prop/cnf_stream.h"
 #include "sat/cnf/cnf.h"
 
 extern Aig_Man_t* Abc_NtkToDar(Abc_Ntk_t* pNtk, int fExors, int fRegisters);

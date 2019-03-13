@@ -37,6 +37,8 @@ libcvc4_add_sources(
   set_language.h
   smt_modes.cpp
   smt_modes.h
+  strings_process_loop_mode.cpp
+  strings_process_loop_mode.h
   sygus_out_mode.h
   theoryof_mode.cpp
   theoryof_mode.h

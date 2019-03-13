@@ -1337,6 +1337,61 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
+const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+    "Loop processing modes supported by the --strings-process-loop-mode "
+    "option:\n"
+    "\n"
+    "full (default)\n"
+    "+ Perform full processing of looping word equations\n"
+    "\n"
+    "simple (default with --strings-fmf)\n"
+    "+ Omit normal loop breaking\n"
+    "\n"
+    "simple-abort\n"
+    "+ Abort when normal loop breaking is required\n"
+    "\n"
+    "none\n"
+    "+ Omit loop processing\n"
+    "\n"
+    "abort\n"
+    "+ Abort if looping word equations are encountered\n";
+
+theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "full")
+  {
+    return theory::strings::ProcessLoopMode::FULL;
+  }
+  else if (optarg == "simple")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE;
+  }
+  else if (optarg == "simple-abort")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE_ABORT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::ProcessLoopMode::NONE;
+  }
+  else if (optarg == "abort")
+  {
+    return theory::strings::ProcessLoopMode::ABORT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --strings-process-loop-mode: `")
+        + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
 const std::string OptionsHandler::s_boolToBVModeHelp =
     "\
 BoolToBV pass modes supported by the --bool-to-bv option:\n\

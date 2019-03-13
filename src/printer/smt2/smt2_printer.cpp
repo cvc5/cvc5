@@ -22,6 +22,7 @@
 #include <vector>
 
 #include "expr/node_manager_attributes.h"
+#include "options/bv_options.h"
 #include "options/language.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
@@ -160,11 +161,14 @@ void Smt2Printer::toStream(std::ostream& out,
       const BitVector& bv = n.getConst<BitVector>();
       const Integer& x = bv.getValue();
       unsigned n = bv.getSize();
-      if(d_variant == sygus_variant ){
+      if (d_variant == sygus_variant || options::bvPrintConstsInBinary())
+      {
         out << "#b" << bv.toString();
-      }else{
+      }
+      else
+      {
         out << "(_ ";
-        out << "bv" << x <<" " << n;
+        out << "bv" << x << " " << n;
         out << ")";
       }
 
