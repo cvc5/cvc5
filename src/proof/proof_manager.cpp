@@ -30,6 +30,7 @@
 #include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/output_channel.h"
@@ -559,6 +560,9 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
 
 void LFSCProof::toStream(std::ostream& out) const
 {
+  TimerStat::CodeTimer proofProductionTimer(
+      *ProofManager::currentPM()->getProofProductionTime());
+
   Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
@@ -1069,4 +1073,16 @@ void ProofManager::printTrustedTerm(Node term,
   tpe->printTheoryTerm(term.toExpr(), os, globalLetMap);
   if (tpe->printsAsBool(term)) os << ")";
 }
+
+ProofManager::ProofManagerStatistics::ProofManagerStatistics()
+    : d_proofProductionTime("proof::ProofManager::proofProductionTime")
+{
+  smtStatisticsRegistry()->registerStat(&d_proofProductionTime);
+}
+
+ProofManager::ProofManagerStatistics::~ProofManagerStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_proofProductionTime);
+}
+
 } /* CVC4  namespace */
