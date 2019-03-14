@@ -887,9 +887,9 @@ void TheoryStrings::preRegisterTerm(TNode n) {
         }
         // Set d_functionsTerms stores all function applications that are
         // relevant to theory combination. Notice that this is a subset of
-        // the kinds that are function kinds in the equality engine. This
-        // means it does not include others like re.++, which are not
-        // function kinds in the equality engine.
+        // the applications whose kinds are function kinds in the equality
+        // engine. This means it does not include applications of operators
+        // like re.++, which is not a function kind in the equality engine.
         // Concatenation terms do not need to be considered here because
         // their arguments have string type and do not introduce any shared
         // terms.
