@@ -239,9 +239,17 @@ class NodeTemplate {
 
 public:
 
+  /**
+   * Cache-aware, recursive version of substituteCaptureAvoiding() used by the
+   * public member function with a similar signature.
+   */
   Node substituteCaptureAvoiding(Node node, Node replacement,
                   std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
 
+  /**
+   * Cache-aware, recursive version of substituteCaptureAvoiding() used by the
+   * public member function with a similar signature.
+   */
   Node substituteCaptureAvoiding(
       std::vector<Node> source,
       std::vector<Node> dest,
@@ -467,7 +475,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  
+
   /**
    * Returns true if this node represents a nullary operator
    */
@@ -475,7 +483,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
-  
+
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA ||
@@ -532,8 +540,16 @@ public:
    */
   TypeNode getType(bool check = false) const;
 
+  /**
+   * Substitution of Nodes in a capture avoiding way.
+   */
   Node substituteCaptureAvoiding(Node node, Node replacement) const;
 
+  /**
+   * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
+   * source will be replaced by their corresponding element in dest.  Both
+   * vectors should have the same size.
+   */
   Node substituteCaptureAvoiding(std::vector<Node> source,
                                  std::vector<Node> dest) const;
 
@@ -1388,8 +1404,8 @@ Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
     std::unordered_map<Node, Node, NodeHashFunction>& cache) const
 {
   // in cache?
-  typename std::unordered_map<Node, Node, NodeHashFunction>::const_iterator
-      i = cache.find(*this);
+  typename std::unordered_map<Node, Node, NodeHashFunction>::const_iterator i =
+      cache.find(*this);
   if (i != cache.end())
   {
     return (*i).second;
@@ -1402,83 +1418,58 @@ Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
   auto it = std::find(source.begin(), source.end(), (*this));
   if (it != source.end())
   {
-    // Debug("sub-capavoid") << ".. found " << (*this) << " in pos " << (*j2) << "\n";
     Assert(std::distance(source.begin(), it) >= 0
            && std::distance(source.begin(), it) < dest.size());
     Node n = dest[std::distance(source.begin(), it)];
     cache[*this] = n;
     return n;
   }
-  else if (getNumChildren() == 0)
+  if (getNumChildren() == 0)
   {
     cache[*this] = *this;
     return *this;
   }
-  else
+  bool binder = isClosure();
+  // if binder, rename variables to avoid capture
+  if (binder)
   {
-    // if binder, rename variables to avoid capture
-    Kind k = getKind();
-    bool binder = false;
+    std::vector<Node> vars;
+    std::vector<Node> renames;
 
-    if (k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
-        || k == kind::CHOICE)
+    NodeManager* nm = NodeManager::currentNM();
+    for (const Node& v : (*this)[0])
     {
-      binder = true;
-      std::vector<Node> vars;
-      std::vector<Node> renames;
-
-      NodeManager* nm = NodeManager::currentNM();
-      for (const Node& v : (*this)[0])
-      {
-        vars.push_back(v);
-        renames.push_back(nm->mkBoundVar(v.getType()));
-      }
-      // have new vars -> renames subs in the beginning of current sub
-      source.insert(source.begin(), vars.begin(), vars.end());
-      dest.insert(dest.begin(), renames.begin(), renames.end());
-
-      Debug("sub-capavoid") << "Substitution after:\n";
-      for (unsigned i = 0, size = source.size(); i < size; ++i)
-      {
-        Debug("sub-capavoid")
-            << ".. " << source[i] << " --> " << dest[i] << "\n";
-      }
+      vars.push_back(v);
+      renames.push_back(nm->mkBoundVar(v.getType()));
     }
-    NodeBuilder<> nb(getKind());
-    if (getMetaKind() == kind::metakind::PARAMETERIZED)
-    {
-      // push the operator
-      nb << getOperator().substituteCaptureAvoiding(source, dest, cache);
-    }
-    for (const_iterator i = begin(), iend = end(); i != iend; ++i)
-    {
-      nb << (*i).substituteCaptureAvoiding(source, dest, cache);
-    }
-    Node n = nb;
-    cache[*this] = n;
-
-    // remove renaming
-    if (binder)
-    {
-      // remove beginning of sub which correspond to renaming of variables in
-      // this binder
-      unsigned nchildren = (*this)[0].getNumChildren();
-      source.erase(source.begin(), source.begin() + nchildren);
-      dest.erase(dest.begin(), dest.begin() + nchildren);
-
-      Debug("sub-capavoid") << "Recovering sub after going out of " << (*this)
-                            << " with result " << n << ":\n";
-      for (unsigned i = 0, size = source.size(); i < size; ++i)
-      {
-        Debug("sub-capavoid")
-            << ".. " << source[i] << " --> " << dest[i] << "\n";
-      }
-    }
-    return n;
+    // have new vars -> renames subs in the beginning of current sub
+    source.insert(source.begin(), vars.begin(), vars.end());
+    dest.insert(dest.begin(), renames.begin(), renames.end());
   }
+  NodeBuilder<> nb(getKind());
+  if (getMetaKind() == kind::metakind::PARAMETERIZED)
+  {
+    // push the operator
+    nb << getOperator().substituteCaptureAvoiding(source, dest, cache);
+  }
+  for (const_iterator i = begin(), iend = end(); i != iend; ++i)
+  {
+    nb << (*i).substituteCaptureAvoiding(source, dest, cache);
+  }
+  Node n = nb;
+  cache[*this] = n;
+
+  // remove renaming
+  if (binder)
+  {
+    // remove beginning of sub which correspond to renaming of variables in
+    // this binder
+    unsigned nchildren = (*this)[0].getNumChildren();
+    source.erase(source.begin(), source.begin() + nchildren);
+    dest.erase(dest.begin(), dest.begin() + nchildren);
+  }
+  return n;
 }
-
-
 
 template <bool ref_count>
 inline Node
