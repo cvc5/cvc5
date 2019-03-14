@@ -170,7 +170,7 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
       }
     }
     // do not recurse under nested closures
-    if( !n[i].isClosure() )
+    if (!n[i].isClosure())
     {
       bool newHasPol;
       bool newPol;
