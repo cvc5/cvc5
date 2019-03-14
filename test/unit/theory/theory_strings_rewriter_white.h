@@ -650,6 +650,9 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
     Node a = d_nm->mkConst(::CVC4::String("A"));
     Node b = d_nm->mkConst(::CVC4::String("B"));
     Node c = d_nm->mkConst(::CVC4::String("C"));
+    Node abc = d_nm->mkConst(::CVC4::String("ABC"));
+    Node def = d_nm->mkConst(::CVC4::String("DEF"));
+    Node ghi = d_nm->mkConst(::CVC4::String("GHI"));
     Node x = d_nm->mkVar("x", strType);
     Node y = d_nm->mkVar("y", strType);
     Node xy = d_nm->mkNode(kind::STRING_CONCAT, x, y);
@@ -887,6 +890,45 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                               d_nm->mkNode(kind::STRING_CONCAT, x, a),
                               d_nm->mkNode(kind::STRING_CONCAT, b, x));
       sameNormalForm(ctn, f);
+    }
+
+    {
+      // Same normal form for:
+      //
+      // (str.contains (str.replace x "ABC" "DEF") "GHI")
+      //
+      // (str.contains x "GHI")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, abc, def),
+                         ghi);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, ghi);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.contains (str.replace x "ABC" "DEF") "B")
+      //
+      // (str.contains x "B")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, abc, def),
+                         b);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, b);
+      differentNormalForms(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.contains (str.replace x "B" "DEF") "ABC")
+      //
+      // (str.contains x "ABC")
+      lhs = d_nm->mkNode(kind::STRING_STRCTN,
+                         d_nm->mkNode(kind::STRING_STRREPL, x, b, def),
+                         abc);
+      rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      differentNormalForms(lhs, rhs);
     }
   }
 
@@ -1177,6 +1219,99 @@ class TheoryStringsRewriterWhite : public CxxTest::TestSuite
                            d_nm->mkNode(kind::STRING_SUBSTR, x, zero, n))),
           d_nm->mkNode(kind::STRING_CONCAT, x, b));
       sameNormalForm(eq, f);
+    }
+
+    {
+      // (= (str.++ "A" (int.to.str n)) "A") -/-> false
+      Node eq = d_nm->mkNode(
+          kind::EQUAL,
+          d_nm->mkNode(
+              kind::STRING_CONCAT, a, d_nm->mkNode(kind::STRING_ITOS, n)),
+          a);
+      differentNormalForms(eq, f);
+    }
+  }
+
+  void testStripConstantEndpoints()
+  {
+    TypeNode intType = d_nm->integerType();
+    TypeNode strType = d_nm->stringType();
+
+    Node empty = d_nm->mkConst(::CVC4::String(""));
+    Node a = d_nm->mkConst(::CVC4::String("A"));
+    Node ab = d_nm->mkConst(::CVC4::String("AB"));
+    Node cd = d_nm->mkConst(::CVC4::String("CD"));
+    Node x = d_nm->mkVar("x", strType);
+    Node y = d_nm->mkVar("y", strType);
+    Node n = d_nm->mkVar("n", intType);
+
+    {
+      // stripConstantEndpoints({ "" }, { "A" }, {}, {}, 0) ---> false
+      std::vector<Node> n1 = {empty};
+      std::vector<Node> n2 = {a};
+      std::vector<Node> nb;
+      std::vector<Node> ne;
+      bool res =
+          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      TS_ASSERT(!res);
+    }
+
+    {
+      // stripConstantEndpoints({ "A" }, { "A". (int.to.str n) }, {}, {}, 0)
+      // ---> false
+      std::vector<Node> n1 = {a};
+      std::vector<Node> n2 = {a, d_nm->mkNode(kind::STRING_ITOS, n)};
+      std::vector<Node> nb;
+      std::vector<Node> ne;
+      bool res =
+          TheoryStringsRewriter::stripConstantEndpoints(n1, n2, nb, ne, 0);
+      TS_ASSERT(!res);
+    }
+  }
+
+  void testRewriteMembership()
+  {
+    TypeNode strType = d_nm->stringType();
+
+    std::vector<Node> vec_empty;
+    Node abc = d_nm->mkConst(::CVC4::String("ABC"));
+    Node re_abc = d_nm->mkNode(kind::STRING_TO_REGEXP, abc);
+    Node x = d_nm->mkVar("x", strType);
+
+    {
+      // Same normal form for:
+      //
+      // (str.in.re x (re.++ (re.* re.allchar)
+      //                     (re.* re.allchar)
+      //                     (str.to.re "ABC")
+      //                     (re.* re.allchar)))
+      //
+      // (str.contains x "ABC")
+      Node sig_star = d_nm->mkNode(kind::REGEXP_STAR,
+                                   d_nm->mkNode(kind::REGEXP_SIGMA, vec_empty));
+      Node lhs = d_nm->mkNode(
+          kind::STRING_IN_REGEXP,
+          x,
+          d_nm->mkNode(
+              kind::REGEXP_CONCAT, sig_star, sig_star, re_abc, sig_star));
+      Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      sameNormalForm(lhs, rhs);
+    }
+
+    {
+      // Different normal forms for:
+      //
+      // (str.in.re x (re.++ (re.* re.allchar) (str.to.re "ABC")))
+      //
+      // (str.contains x "ABC")
+      Node sig_star = d_nm->mkNode(kind::REGEXP_STAR,
+                                   d_nm->mkNode(kind::REGEXP_SIGMA, vec_empty));
+      Node lhs =
+          d_nm->mkNode(kind::STRING_IN_REGEXP,
+                       x,
+                       d_nm->mkNode(kind::REGEXP_CONCAT, sig_star, re_abc));
+      Node rhs = d_nm->mkNode(kind::STRING_STRCTN, x, abc);
+      differentNormalForms(lhs, rhs);
     }
   }
 
