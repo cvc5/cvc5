@@ -885,8 +885,15 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
         }
-        //concat terms do not contribute to theory combination?  TODO: verify
-        if (n.hasOperator() && kindToTheoryId(k) == THEORY_STRINGS
+        // Set d_functionsTerms stores all function applications that are
+        // relevant to theory combination. Notice that this is a subset of
+        // the applications whose kinds are function kinds in the equality
+        // engine. This means it does not include applications of operators
+        // like re.++, which is not a function kind in the equality engine.
+        // Concatenation terms do not need to be considered here because
+        // their arguments have string type and do not introduce any shared
+        // terms.
+        if (n.hasOperator() && d_equalityEngine.isFunctionKind(k)
             && k != kind::STRING_CONCAT)
         {
           d_functionsTerms.push_back( n );
