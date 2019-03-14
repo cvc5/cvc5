@@ -145,7 +145,8 @@ SygusEnumerator::TermCache::TermCache()
       d_isSygusType(false),
       d_numConClasses(0),
       d_sizeEnum(0),
-      d_isComplete(false)
+      d_isComplete(false),
+      d_sampleRrVInit(false)
 {
 }
 void SygusEnumerator::TermCache::initialize(Node e,
@@ -311,6 +312,19 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   {
     Node bn = d_tds->sygusToBuiltin(n);
     Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
+    if (options::sygusRewVerify())
+    {
+      if (bn != bnr)
+      {
+        if (!d_sampleRrVInit)
+        {
+          d_sampleRrVInit = true;
+          d_samplerRrV.initializeSygus(
+              d_tds, d_enum, options::sygusSamples(), false);
+        }
+        d_samplerRrV.checkEquivalent(bn, bnr);
+      }
+    }
     // must be unique up to rewriting
     if (d_bterms.find(bnr) != d_bterms.end())
     {

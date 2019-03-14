@@ -179,6 +179,10 @@ class SygusEnumerator : public EnumValGenerator
     unsigned d_sizeEnum;
     /** whether this term cache is complete */
     bool d_isComplete;
+    /** sampler (for --sygus-rr-verify) */
+    quantifiers::SygusSampler d_samplerRrV;
+    /** is the above sampler initialized? */
+    bool d_sampleRrVInit;
   };
   /** above cache for each sygus type */
   std::map<TypeNode, TermCache> d_tcache;
