@@ -169,7 +169,9 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
         computeRelevantDomainOpCh( rf, n[i] );
       }
     }
-    if( n[i].getKind()!=FORALL ){
+    // do not recurse under nested closures
+    if (!n[i].isClosure())
+    {
       bool newHasPol;
       bool newPol;
       QuantPhaseReq::getPolarity( n, i, hasPol, pol, newHasPol, newPol );
