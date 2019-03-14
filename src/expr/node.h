@@ -239,6 +239,14 @@ class NodeTemplate {
 
 public:
 
+  Node substituteCaptureAvoiding(Node node, Node replacement,
+                  std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
+
+  Node substituteCaptureAvoiding(
+      std::vector<Node> source,
+      std::vector<Node> dest,
+      std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
+
   /**
    * Cache-aware, recursive version of substitute() used by the public
    * member function with a similar signature.
@@ -523,6 +531,11 @@ public:
    * (default: false)
    */
   TypeNode getType(bool check = false) const;
+
+  Node substituteCaptureAvoiding(Node node, Node replacement) const;
+
+  Node substituteCaptureAvoiding(std::vector<Node> source,
+                                 std::vector<Node> dest) const;
 
   /**
    * Substitution of Nodes.
@@ -1330,6 +1343,142 @@ TypeNode NodeTemplate<ref_count>::getType(bool check) const
 
   return NodeManager::currentNM()->getType(*this, check);
 }
+
+template <bool ref_count>
+inline Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
+    Node node, Node replacement) const
+{
+  if (node == *this)
+  {
+    return replacement;
+  }
+  std::vector<Node> source;
+  std::vector<Node> dest;
+  source.push_back(node);
+  dest.push_back(replacement);
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  return substituteCaptureAvoiding(source, dest, cache);
+}
+
+template <bool ref_count>
+Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
+    Node node,
+    Node replacement,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache) const
+{
+  std::vector<Node> source;
+  std::vector<Node> dest;
+  source.push_back(node);
+  dest.push_back(replacement);
+  return substituteCaptureAvoiding(source, dest, cache);
+}
+
+template <bool ref_count>
+inline Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
+    std::vector<Node> source, std::vector<Node> dest) const
+{
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  return substituteCaptureAvoiding(source, dest, cache);
+}
+
+template <bool ref_count>
+Node NodeTemplate<ref_count>::substituteCaptureAvoiding(
+    std::vector<Node> source,
+    std::vector<Node> dest,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache) const
+{
+  // in cache?
+  typename std::unordered_map<Node, Node, NodeHashFunction>::const_iterator
+      i = cache.find(*this);
+  if (i != cache.end())
+  {
+    return (*i).second;
+  }
+
+  // otherwise compute
+  Assert(source.size() == dest.size(),
+         "Substitution domain and range must be equal size");
+
+  auto it = std::find(source.begin(), source.end(), (*this));
+  if (it != source.end())
+  {
+    // Debug("sub-capavoid") << ".. found " << (*this) << " in pos " << (*j2) << "\n";
+    Assert(std::distance(source.begin(), it) >= 0
+           && std::distance(source.begin(), it) < dest.size());
+    Node n = dest[std::distance(source.begin(), it)];
+    cache[*this] = n;
+    return n;
+  }
+  else if (getNumChildren() == 0)
+  {
+    cache[*this] = *this;
+    return *this;
+  }
+  else
+  {
+    // if binder, rename variables to avoid capture
+    Kind k = getKind();
+    bool binder = false;
+
+    if (k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
+        || k == kind::CHOICE)
+    {
+      binder = true;
+      std::vector<Node> vars;
+      std::vector<Node> renames;
+
+      NodeManager* nm = NodeManager::currentNM();
+      for (const Node& v : (*this)[0])
+      {
+        vars.push_back(v);
+        renames.push_back(nm->mkBoundVar(v.getType()));
+      }
+      // have new vars -> renames subs in the beginning of current sub
+      source.insert(source.begin(), vars.begin(), vars.end());
+      dest.insert(dest.begin(), renames.begin(), renames.end());
+
+      Debug("sub-capavoid") << "Substitution after:\n";
+      for (unsigned i = 0, size = source.size(); i < size; ++i)
+      {
+        Debug("sub-capavoid")
+            << ".. " << source[i] << " --> " << dest[i] << "\n";
+      }
+    }
+    NodeBuilder<> nb(getKind());
+    if (getMetaKind() == kind::metakind::PARAMETERIZED)
+    {
+      // push the operator
+      nb << getOperator().substituteCaptureAvoiding(source, dest, cache);
+    }
+    for (const_iterator i = begin(), iend = end(); i != iend; ++i)
+    {
+      nb << (*i).substituteCaptureAvoiding(source, dest, cache);
+    }
+    Node n = nb;
+    cache[*this] = n;
+
+    // remove renaming
+    if (binder)
+    {
+      // remove beginning of sub which correspond to renaming of variables in
+      // this binder
+      unsigned nchildren = (*this)[0].getNumChildren();
+      source.erase(source.begin(), source.begin() + nchildren);
+      dest.erase(dest.begin(), dest.begin() + nchildren);
+
+      Debug("sub-capavoid") << "Recovering sub after going out of " << (*this)
+                            << " with result " << n << ":\n";
+      for (unsigned i = 0, size = source.size(); i < size; ++i)
+      {
+        Debug("sub-capavoid")
+            << ".. " << source[i] << " --> " << dest[i] << "\n";
+      }
+    }
+    return n;
+  }
+}
+
+
 
 template <bool ref_count>
 inline Node
