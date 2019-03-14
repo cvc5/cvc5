@@ -273,7 +273,7 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-Node substituteCaptureAvoiding(Node node, Node replacement) const
+Node substituteCaptureAvoiding(Node node, Node replacement)
 {
   if (node == *this)
   {
@@ -290,7 +290,7 @@ Node substituteCaptureAvoiding(Node node, Node replacement) const
 Node substituteCaptureAvoiding(
     Node node,
     Node replacement,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache) const
+    std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   std::vector<Node> source;
   std::vector<Node> dest;
@@ -300,7 +300,7 @@ Node substituteCaptureAvoiding(
 }
 
 Node substituteCaptureAvoiding(std::vector<Node>& source,
-                               std::vector<Node>& dest) const
+                               std::vector<Node>& dest)
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   return substituteCaptureAvoiding(source, dest, cache);
@@ -309,7 +309,7 @@ Node substituteCaptureAvoiding(std::vector<Node>& source,
 Node substituteCaptureAvoiding(
     std::vector<Node>& source,
     std::vector<Node>& dest,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache) const
+    std::unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   // in cache?
   typename std::unordered_map<Node, Node, NodeHashFunction>::const_iterator i =
