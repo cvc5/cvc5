@@ -56,7 +56,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
-     ./configure.sh --name=build --unit-testing $TRAVIS_CVC4_CONFIG
+     ./configure.sh --name=build --prefix=$(pwd)/build/install --unit-testing $TRAVIS_CVC4_CONFIG
    }
    error() {
      echo;
@@ -69,6 +69,12 @@ script:
      make -j2 check ARGS='-LE regress[1-4]' CVC4_REGRESSION_ARGS='--no-early-exit' || error "BUILD/UNIT/SYSTEM/REGRESSION TEST FAILED"
      ctest -j2 -L example || error "RUNNING EXAMPLES FAILED"
    }
+   makeInstallCheck() {
+     cd build
+     make install -j2
+     echo -e "#include <cvc4/cvc4.h>\nint main() { CVC4::ExprManager em; return 0; }" > /tmp/test.cpp
+     $CXX -std=c++11 /tmp/test.cpp -I install/include -L install/lib -lcvc4 -lcln || exit 1
+   }
    run() {
      echo "travis_fold:start:$1"
      echo "Running $1"
@@ -77,7 +83,7 @@ script:
    }
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
-   [ -n "$TRAVIS_CVC4" ] && run makeCheck
+   [ -n "$TRAVIS_CVC4" ] && run makeCheck && run makeInstallCheck
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
