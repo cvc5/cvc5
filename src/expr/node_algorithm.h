@@ -83,33 +83,35 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
-  /**
-   * Substitution of Nodes in a capture avoiding way.
-   */
-  Node substituteCaptureAvoiding(Node node, Node replacement) const;
+/**
+ * Substitution of Nodes in a capture avoiding way.
+ */
+Node substituteCaptureAvoiding(Node node, Node replacement) const;
 
-  /**
-   * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
-   * source will be replaced by their corresponding element in dest.  Both
-   * vectors should have the same size.
-   */
-  Node substituteCaptureAvoiding(std::vector<Node>& source,
-                                 std::vector<Node>& dest) const;
+/**
+ * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
+ * source will be replaced by their corresponding element in dest.  Both
+ * vectors should have the same size.
+ */
+Node substituteCaptureAvoiding(std::vector<Node>& source,
+                               std::vector<Node>& dest) const;
 
-  /**
-   * Cache-aware, recursive version of substituteCaptureAvoiding()
-   */
-  Node substituteCaptureAvoiding(Node node, Node replacement,
-                  std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
+/**
+ * Cache-aware, recursive version of substituteCaptureAvoiding()
+ */
+Node substituteCaptureAvoiding(
+    Node node,
+    Node replacement,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
 
-  /**
-   * Cache-aware, recursive version of the simultaneous substituteCaptureAvoiding()
-   */
-  Node substituteCaptureAvoiding(
-      std::vector<Node>& source,
-      std::vector<Node>& dest,
-      std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
-
+/**
+ * Cache-aware, recursive version of the simultaneous
+ * substituteCaptureAvoiding()
+ */
+Node substituteCaptureAvoiding(
+    std::vector<Node>& source,
+    std::vector<Node>& dest,
+    std::unordered_map<Node, Node, NodeHashFunction>& cache) const;
 
 }  // namespace expr
 }  // namespace CVC4

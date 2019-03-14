@@ -273,8 +273,7 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-Node substituteCaptureAvoiding(
-    Node node, Node replacement) const
+Node substituteCaptureAvoiding(Node node, Node replacement) const
 {
   if (node == *this)
   {
@@ -300,8 +299,8 @@ Node substituteCaptureAvoiding(
   return substituteCaptureAvoiding(source, dest, cache);
 }
 
-Node substituteCaptureAvoiding(
-    std::vector<Node>& source, std::vector<Node>& dest) const
+Node substituteCaptureAvoiding(std::vector<Node>& source,
+                               std::vector<Node>& dest) const
 {
   std::unordered_map<Node, Node, NodeHashFunction> cache;
   return substituteCaptureAvoiding(source, dest, cache);
