@@ -102,12 +102,12 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Write the formula
   std::ofstream formStream(formulaFilename);
   printDimacs(formStream, usedClauses);
-  unlink(formulaFilename);
+  formStream.close();
 
   // Write the (binary) DRAT proof
   std::ofstream dratStream(dratFilename);
   dratStream << dratBinary;
-  unlink(dratFilename);
+  dratStream.close();
 
   // Invoke drat2er
 #if CVC4_USE_DRAT2ER
@@ -115,7 +115,8 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
                                              dratFilename,
                                              tracecheckFilename,
                                              false,
-                                             drat2er::options::QUIET);
+                                             drat2er::options::QUIET,
+                                             false);
 
 #else
   Unimplemented(
@@ -126,11 +127,11 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Parse the resulting TRACECHECK proof into an ER proof.
   std::ifstream tracecheckStream(tracecheckFilename);
   ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
-  unlink(tracecheckFilename);
-
-  formStream.close();
-  dratStream.close();
   tracecheckStream.close();
+
+  unlink(formulaFilename);
+  unlink(dratFilename);
+  unlink(tracecheckFilename);
 
   return proof;
 }

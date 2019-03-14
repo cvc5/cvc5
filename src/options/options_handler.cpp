@@ -1939,6 +1939,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());
