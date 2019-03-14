@@ -363,6 +363,7 @@ set(regress_0_tests
   regress0/datatypes/example-dailler-min.smt2
   regress0/datatypes/is_test.smt2
   regress0/datatypes/issue1433.smt2
+  regress0/datatypes/issue2838.cvc
   regress0/datatypes/jsat-2.6.smt2
   regress0/datatypes/model-subterms-min.smt2
   regress0/datatypes/mutually-recursive.cvc
@@ -876,6 +877,7 @@ set(regress_0_tests
   regress0/test9.cvc
   regress0/tptp/ARI086=1.p
   regress0/tptp/DAT001=1.p
+  regress0/tptp/is_rat_simple.p
   regress0/tptp/KRS018+1.p
   regress0/tptp/KRS063+1.p
   regress0/tptp/MGT019+2.p
