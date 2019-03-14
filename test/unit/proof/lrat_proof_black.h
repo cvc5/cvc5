@@ -16,13 +16,11 @@
 
 #include <cxxtest/TestSuite.h>
 
-#include <algorithm>
-#include <cctype>
 #include <iostream>
-#include <iterator>
 
 #include "proof/lrat/lrat_proof.h"
 #include "prop/sat_solver_types.h"
+#include "utils.h"
 
 using namespace CVC4::proof::lrat;
 using namespace CVC4::prop;
@@ -35,22 +33,6 @@ class LfscProofBlack : public CxxTest::TestSuite
 
   void testOutputAsLfsc();
 };
-
-/**
- * Creates a new stream with whitespace removed.
- *
- * @param s the source string
- *
- * @return a string without whitespace
- */
-std::string filterWhitespace(const std::string& s)
-{
-  std::string out;
-  std::copy_if(s.cbegin(), s.cend(), std::inserter(out, out.end()), [](char c) {
-    return !std::isspace(c);
-  });
-  return out;
-}
 
 void LfscProofBlack::testOutputAsLfsc()
 {

@@ -1755,7 +1755,6 @@ enum CVC4_PUBLIC Kind : int32_t
    * Parameters: 0
    * Create with:
    *   mkSepNil(Sort sort)
-   *   mkTerm(Kind kind, Sort sort)
    */
   SEP_NIL,
   /**
