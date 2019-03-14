@@ -129,9 +129,9 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
   tracecheckStream.close();
 
-  unlink(formulaFilename);
-  unlink(dratFilename);
-  unlink(tracecheckFilename);
+  remove(formulaFilename);
+  remove(dratFilename);
+  remove(tracecheckFilename);
 
   return proof;
 }
