@@ -1090,8 +1090,6 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
       {
         if (bv != bvr)
         {
-          Trace("sygus-rr-verify")
-              << "Testing rewrite rule " << bv << " ---> " << bvr << std::endl;
           // add to the sampler database object
           std::map<TypeNode, quantifiers::SygusSampler>::iterator its =
               d_sampler[a].find(tn);
@@ -1101,55 +1099,8 @@ Node SygusSymBreakNew::registerSearchValue(Node a,
                 d_tds, nv, options::sygusSamples(), false);
             its = d_sampler[a].find(tn);
           }
-          // see if they evaluate to same thing on all sample points
-          bool ptDisequal = false;
-          unsigned pt_index = 0;
-          Node bve, bvre;
-          for (unsigned i = 0, npoints = its->second.getNumSamplePoints();
-               i < npoints;
-               i++)
-          {
-            bve = its->second.evaluate(bv, i);
-            bvre = its->second.evaluate(bvr, i);
-            if (bve != bvre)
-            {
-              ptDisequal = true;
-              pt_index = i;
-              break;
-            }
-          }
-          // bv and bvr should be equivalent under examples
-          if (ptDisequal)
-          {
-            // we have detected unsoundness in the rewriter
-            Options& nodeManagerOptions =
-                NodeManager::currentNM()->getOptions();
-            std::ostream* out = nodeManagerOptions.getOut();
-            (*out) << "(unsound-rewrite " << bv << " " << bvr << ")"
-                   << std::endl;
-            // debugging information
-            (*out) << "; unsound: are not equivalent for : " << std::endl;
-            std::vector<Node> vars;
-            its->second.getVariables(vars);
-            std::vector<Node> pt;
-            its->second.getSamplePoint(pt_index, pt);
-            Assert(vars.size() == pt.size());
-            for (unsigned i = 0, size = pt.size(); i < size; i++)
-            {
-              (*out) << "; unsound:    " << vars[i] << " -> " << pt[i]
-                     << std::endl;
-            }
-            Assert(bve != bvre);
-            (*out) << "; unsound: where they evaluate to " << bve << " and "
-                   << bvre << std::endl;
-
-            if (options::sygusRewVerifyAbort())
-            {
-              AlwaysAssert(
-                  false,
-                  "--sygus-rr-verify detected unsoundness in the rewriter!");
-            }
-          }
+          // check equivalent
+          its->second.checkEquivalent(bv, bvr);
         }
       }
 
