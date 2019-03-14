@@ -351,12 +351,12 @@ void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
 
 // Detects whether a clause has x v ~x for some x
 // If so, returns the positive occurence's idx first, then the negative's
-Maybe<std::pair<unsigned, unsigned>> CnfProof::detectTrivialTautology(
+Maybe<std::pair<size_t, size_t>> CnfProof::detectTrivialTautology(
     const prop::SatClause& clause)
 {
   // a map from a SatVariable to its previous occurence's polarity and location
-  std::map<prop::SatVariable, std::pair<bool, unsigned>> varsToPolsAndIndices;
-  for (unsigned i = 0; i < clause.size(); ++i)
+  std::map<prop::SatVariable, std::pair<bool, size_t>> varsToPolsAndIndices;
+  for (size_t i = 0; i < clause.size(); ++i)
   {
     prop::SatLiteral lit = clause[i];
     prop::SatVariable var = lit.getSatVariable();
@@ -368,18 +368,18 @@ Maybe<std::pair<unsigned, unsigned>> CnfProof::detectTrivialTautology(
     {
       if (iter->second.first)
       {
-        return Maybe<std::pair<unsigned, unsigned>>{
+        return Maybe<std::pair<size_t, size_t>>{
             std::make_pair(iter->second.second, i)};
       }
       else
       {
-        return Maybe<std::pair<unsigned, unsigned>>{
+        return Maybe<std::pair<size_t, size_t>>{
             std::make_pair(i, iter->second.second)};
       }
     }
     varsToPolsAndIndices[var] = std::make_pair(polarity, i);
   }
-  return Maybe<std::pair<unsigned,unsigned>>{};
+  return Maybe<std::pair<size_t,size_t>>{};
 }
 
 
@@ -470,12 +470,12 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
   // It's important to check for this case, because our other logic for
   // recording the location of variables in the clause assumes the clause is
   // not tautological
-  Maybe<std::pair<unsigned, unsigned>> isTrivialTaut =
+  Maybe<std::pair<size_t, size_t>> isTrivialTaut =
       detectTrivialTautology(*clause);
   if (isTrivialTaut.just())
   {
-    unsigned posIndexInClause = isTrivialTaut.value().first;
-    unsigned negIndexInClause = isTrivialTaut.value().second;
+    size_t posIndexInClause = isTrivialTaut.value().first;
+    size_t negIndexInClause = isTrivialTaut.value().second;
     Trace("cnf-pf") << "; Indices " << posIndexInClause << " (+) and "
                     << negIndexInClause << " (-) make this clause a tautology"
                     << std::endl;

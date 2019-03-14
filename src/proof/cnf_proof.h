@@ -167,7 +167,7 @@ public:
 
   // Detects whether a clause has x v ~x for some x
   // If so, returns the positive occurence's idx first, then the negative's
-  static Maybe<std::pair<unsigned, unsigned>> detectTrivialTautology(
+  static Maybe<std::pair<size_t, size_t>> detectTrivialTautology(
       const prop::SatClause& clause);
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,

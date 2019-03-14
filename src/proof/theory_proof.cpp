@@ -89,24 +89,22 @@ void TheoryProofEngine::registerTheory(theory::Theory* th) {
           switch (options::bvProofFormat())
           {
             case theory::bv::BvProofFormat::BITVECTOR_PROOF_DRAT:
-              {
-                bvp = new proof::LfscDratBitVectorProof(thBv, this);
-                break;
-              }
+            {
+              bvp = new proof::LfscDratBitVectorProof(thBv, this);
+              break;
+            }
             case theory::bv::BvProofFormat::BITVECTOR_PROOF_LRAT:
-              {
-                bvp = new proof::LfscLratBitVectorProof(thBv, this);
-                break;
-              }
+            {
+              bvp = new proof::LfscLratBitVectorProof(thBv, this);
+              break;
+            }
             case theory::bv::BvProofFormat::BITVECTOR_PROOF_ER:
-              {
-                bvp = new proof::LfscErBitVectorProof(thBv, this);
-                break;
-              }
-            default:
-              {
-                Unreachable("Invalid BvProofFormat");
-              }
+            {
+              bvp = new proof::LfscErBitVectorProof(thBv, this);
+              break;
+            }
+            default: { Unreachable("Invalid BvProofFormat");
+            }
           };
           d_theoryProofTable[id] = bvp;
         }
