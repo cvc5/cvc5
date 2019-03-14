@@ -1,0 +1,7 @@
+(set-logic QF_S)
+(set-info :status sat)
+(declare-fun A () String)
+(declare-fun D () String)
+(declare-fun I () String)
+(assert (= (str.++  "dbebgddbecfcbb" A "adeeaec" A "gebegeecafegebdbagddaadbddcaeeebfabfefabfacdg" A "gaabgegagf")  (str.++  "dbebgddbe" A "fcbb" A "a" I "egee" A "a" D "egagf") ))
+(check-sat)

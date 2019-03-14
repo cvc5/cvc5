@@ -1514,6 +1514,7 @@ set(regress_1_tests
   regress1/strings/cmu-substr-rw.smt2
   regress1/strings/code-sequence.smt2
   regress1/strings/crash-1019.smt2
+  regress1/strings/crash-031419.smt2
   regress1/strings/csp-prefix-exp-bug.smt2
   regress1/strings/double-replace.smt2
   regress1/strings/fmf001.smt2
