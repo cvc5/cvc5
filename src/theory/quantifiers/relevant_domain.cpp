@@ -169,8 +169,8 @@ void RelevantDomain::computeRelevantDomain( Node q, Node n, bool hasPol, bool po
         computeRelevantDomainOpCh( rf, n[i] );
       }
     }
-    // do not recurse under nested quantifiers/lambdas
-    if (n[i].getKind() != FORALL && n[i].getKind() != LAMBDA)
+    // do not recurse under nested closures
+    if( !n[i].isClosure() )
     {
       bool newHasPol;
       bool newPol;
