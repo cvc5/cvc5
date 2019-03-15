@@ -83,6 +83,19 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+/**
+ * Substitution of Nodes in a capture avoiding way.
+ */
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
+
+/**
+ * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
+ * source will be replaced by their corresponding element in dest.  Both
+ * vectors should have the same size.
+ */
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest);
 
 }  // namespace expr
 }  // namespace CVC4
