@@ -69,9 +69,29 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
+                                       bool rec,
                                        std::ostream& out,
                                        bool& rew_print)
 {
+  // have we added this term before?
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator itac =
+      d_add_term_cache.find(sol);
+  if (itac != d_add_term_cache.end())
+  {
+    return itac->second;
+  }
+
+  if (rec)
+  {
+    // if recursive, we first add all subterms
+    for (const Node& solc : sol)
+    {
+      // whether a candidate rewrite is printed for any subterm is irrelevant
+      bool rew_printc = false;
+      addTerm(solc, rec, out, rew_printc);
+    }
+  }
+  // register the term
   bool is_unique_term = true;
   Node eq_sol = d_sampler->registerTerm(sol);
   // eq_sol is a candidate solution that is equivalent to sol
@@ -252,13 +272,18 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
     // it discards it as a redundant candidate rewrite rule before
     // checking its correctness.
   }
+  d_add_term_cache[sol] = is_unique_term;
   return is_unique_term;
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
 {
   bool rew_print = false;
-  return addTerm(sol, out, rew_print);
+  return addTerm(sol, rec, out, rew_print);
+}
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+{
+  return addTerm(sol, false, out);
 }
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
@@ -298,7 +323,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }
   Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, out);
+  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */
