@@ -1209,6 +1209,12 @@ void SmtEngine::setDefaults() {
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
   }else if (options::solveIntAsBV() > 0) {
+    if (!(d_logic <= LogicInfo("QF_NIA")))
+    {
+      throw OptionException(
+          "--solve-int-as-bv=X only supported for pure integer logics (QF_NIA, "
+          "QF_LIA, QF_IDL)");
+    }
     d_logic = LogicInfo("QF_BV");
   }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
     d_logic = LogicInfo("QF_NIA");
