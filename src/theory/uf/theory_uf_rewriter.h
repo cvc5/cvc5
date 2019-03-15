@@ -51,8 +51,9 @@ public:
         Trace("uf-ho-beta")
           << "uf-ho-beta : beta-reducing all args of : " << node << "\n";
         TNode lambda = node.getOperator();
-        // for now build separate subs
         Node ret;
+        // build capture-avoiding substitution since in HOL shadowing may have
+        // been introduced
         if (options::ufHo())
         {
           std::vector<Node> vars;
@@ -90,19 +91,8 @@ public:
           {
             subs.push_back(s);
           }
-          if (Trace.isOn("uf-ho-beta"))
-          {
-            Trace("uf-ho-beta") << "uf-ho-beta: ..sub of " << subs.size()
-                                << " vars into " << subs.size() << " terms :\n";
-            for (unsigned i = 0, size = subs.size(); i < size; ++i)
-            {
-              Trace("uf-ho-beta") << "uf-ho-beta: .... " << vars[i] << " |-> "
-                                  << subs[i] << "\n";
-            }
-          }
           ret = lambda[1].substitute(
               vars.begin(), vars.end(), subs.begin(), subs.end());
-          Trace("uf-ho-beta") << "uf-ho-beta : ..result : " << ret << "\n";
         }
         return RewriteResponse(REWRITE_AGAIN_FULL, ret);
       }else if( !canUseAsApplyUfOperator( node.getOperator() ) ){
@@ -130,7 +120,8 @@ public:
             << "uf-ho-beta : ....new lambda : " << new_body << "\n";
         }
 
-        // for now build separate subs
+        // build capture-avoiding substitution since in HOL shadowing may have
+        // been introduced
         if (options::ufHo())
         {
           Node arg = Rewriter::rewrite(node[1]);
