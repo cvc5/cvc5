@@ -309,13 +309,14 @@ Node substituteCaptureAvoiding(TNode n,
 
     if (it == visited.end())
     {
-      auto itt = std::find(src.begin(), src.end(), curr);
-      if (itt != src.end())
+      auto itt = std::find(src.rbegin(), src.rend(), curr);
+      if (itt != src.rend())
       {
-        Assert(std::distance(src.begin(), itt) >= 0
-               && static_cast<unsigned>(std::distance(src.begin(), itt))
-                      < dest.size());
-        Node n = dest[std::distance(src.begin(), itt)];
+        Assert(
+            (std::distance(src.begin(), itt.base()) - 1) >= 0
+            && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
+                   < dest.size());
+        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
         visited[curr] = n;
         continue;
       }
@@ -329,18 +330,13 @@ Node substituteCaptureAvoiding(TNode n,
       // if binder, rename variables to avoid capture
       if (curr.isClosure())
       {
-        std::vector<Node> vars;
-        std::vector<Node> renames;
-
         NodeManager* nm = NodeManager::currentNM();
+        // have new vars -> renames subs in the end of current sub
         for (const Node& v : curr[0])
         {
-          vars.push_back(v);
-          renames.push_back(nm->mkBoundVar(v.getType()));
+          src.push_back(v);
+          dest.push_back(nm->mkBoundVar(v.getType()));
         }
-        // have new vars -> renames subs in the beginning of current sub
-        src.insert(src.begin(), vars.begin(), vars.end());
-        dest.insert(dest.begin(), renames.begin(), renames.end());
       }
       // save for post-visit
       visit.push_back(curr);
@@ -380,8 +376,8 @@ Node substituteCaptureAvoiding(TNode n,
         // remove beginning of sub which correspond to renaming of variables in
         // this binder
         unsigned nchildren = curr[0].getNumChildren();
-        src.erase(src.begin(), src.begin() + nchildren);
-        dest.erase(dest.begin(), dest.begin() + nchildren);
+        src.resize(src.size() - nchildren);
+        dest.resize(dest.size() - nchildren);
       }
     }
   } while (!visit.empty());
