@@ -273,110 +273,116 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-Node substituteCaptureAvoiding(Node node, Node replacement)
+Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest)
 {
-  if (node == *this)
+  if (n == src)
   {
-    return replacement;
+    return dest;
   }
-  std::vector<Node> source;
-  std::vector<Node> dest;
-  source.push_back(node);
-  dest.push_back(replacement);
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return substituteCaptureAvoiding(source, dest, cache);
-}
-
-Node substituteCaptureAvoiding(
-    Node node,
-    Node replacement,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache)
-{
-  std::vector<Node> source;
-  std::vector<Node> dest;
-  source.push_back(node);
-  dest.push_back(replacement);
-  return substituteCaptureAvoiding(source, dest, cache);
-}
-
-Node substituteCaptureAvoiding(std::vector<Node>& source,
-                               std::vector<Node>& dest)
-{
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  return substituteCaptureAvoiding(source, dest, cache);
-}
-
-Node substituteCaptureAvoiding(
-    std::vector<Node>& source,
-    std::vector<Node>& dest,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache)
-{
-  // in cache?
-  typename std::unordered_map<Node, Node, NodeHashFunction>::const_iterator i =
-      cache.find(*this);
-  if (i != cache.end())
+  if (src == dest)
   {
-    return (*i).second;
-  }
-
-  // otherwise compute
-  Assert(source.size() == dest.size(),
-         "Substitution domain and range must be equal size");
-
-  auto it = std::find(source.begin(), source.end(), (*this));
-  if (it != source.end())
-  {
-    Assert(std::distance(source.begin(), it) >= 0
-           && std::distance(source.begin(), it) < dest.size());
-    Node n = dest[std::distance(source.begin(), it)];
-    cache[*this] = n;
     return n;
   }
-  if (getNumChildren() == 0)
-  {
-    cache[*this] = *this;
-    return *this;
-  }
-  bool binder = isClosure();
-  // if binder, rename variables to avoid capture
-  if (binder)
-  {
-    std::vector<Node> vars;
-    std::vector<Node> renames;
+  std::vector<TNode> srcs;
+  std::vector<TNode> dests;
+  srcs.push_back(src);
+  dests.push_back(dest);
+  return substituteCaptureAvoiding(n, srcs, dests);
+}
 
-    NodeManager* nm = NodeManager::currentNM();
-    for (const Node& v : (*this)[0])
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<TNode>& src,
+                               std::vector<TNode>& dest)
+{
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode curr;
+  visit.push_back(n);
+  Assert(src.size() == dest.size(),
+         "Substitution domain and range must be equal size");
+  do
+  {
+    curr = visit.back();
+    visit.pop_back();
+    it = visited.find(curr);
+
+    if (it == visited.end())
     {
-      vars.push_back(v);
-      renames.push_back(nm->mkBoundVar(v.getType()));
-    }
-    // have new vars -> renames subs in the beginning of current sub
-    source.insert(source.begin(), vars.begin(), vars.end());
-    dest.insert(dest.begin(), renames.begin(), renames.end());
-  }
-  NodeBuilder<> nb(getKind());
-  if (getMetaKind() == kind::metakind::PARAMETERIZED)
-  {
-    // push the operator
-    nb << getOperator().substituteCaptureAvoiding(source, dest, cache);
-  }
-  for (const_iterator i = begin(), iend = end(); i != iend; ++i)
-  {
-    nb << (*i).substituteCaptureAvoiding(source, dest, cache);
-  }
-  Node n = nb;
-  cache[*this] = n;
+      auto itt = std::find(src.begin(), src.end(), curr);
+      if (itt != src.end())
+      {
+        Assert(std::distance(src.begin(), itt) >= 0
+               && static_cast<unsigned>(std::distance(src.begin(), itt))
+                      < dest.size());
+        Node n = dest[std::distance(src.begin(), itt)];
+        visited[curr] = n;
+        continue;
+      }
+      if (curr.getNumChildren() == 0)
+      {
+        visited[curr] = curr;
+        continue;
+      }
 
-  // remove renaming
-  if (binder)
-  {
-    // remove beginning of sub which correspond to renaming of variables in
-    // this binder
-    unsigned nchildren = (*this)[0].getNumChildren();
-    source.erase(source.begin(), source.begin() + nchildren);
-    dest.erase(dest.begin(), dest.begin() + nchildren);
-  }
-  return n;
+      visited[curr] = Node::null();
+      // if binder, rename variables to avoid capture
+      if (curr.isClosure())
+      {
+        std::vector<TNode> vars;
+        std::vector<TNode> renames;
+
+        NodeManager* nm = NodeManager::currentNM();
+        for (const TNode& v : curr[0])
+        {
+          vars.push_back(v);
+          TNode rename = nm->mkBoundVar(v.getType());
+          renames.push_back(rename);
+        }
+        // have new vars -> renames subs in the beginning of current sub
+        src.insert(src.begin(), vars.begin(), vars.end());
+        dest.insert(dest.begin(), renames.begin(), renames.end());
+      }
+      // save for post-visit
+      visit.push_back(curr);
+      // visit children
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        visit.push_back(curr[i]);
+      }
+    }
+    else if (!it->second.isNull())
+    {
+      // build node
+      NodeBuilder<> nb(curr.getKind());
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        Assert(visited.find(curr.getOperator()) != visited.end());
+        nb << visited[curr.getOperator()];
+      }
+      // collect substituted children
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        Assert(visited.find(curr[i]) != visited.end());
+        nb << visited[curr[i]];
+      }
+      Node n = nb;
+      visited[curr] = n;
+
+      // remove renaming
+      if (curr.isClosure())
+      {
+        // remove beginning of sub which correspond to renaming of variables in
+        // this binder
+        unsigned nchildren = curr[0].getNumChildren();
+        src.erase(src.begin(), src.begin() + nchildren);
+        dest.erase(dest.begin(), dest.begin() + nchildren);
+      }
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  return visited[n];
 }
 
 }  // namespace expr

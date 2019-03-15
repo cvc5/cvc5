@@ -86,32 +86,16 @@ void getSymbols(TNode n,
 /**
  * Substitution of Nodes in a capture avoiding way.
  */
-Node substituteCaptureAvoiding(Node node, Node replacement);
+Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest);
 
 /**
  * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
  * source will be replaced by their corresponding element in dest.  Both
  * vectors should have the same size.
  */
-Node substituteCaptureAvoiding(std::vector<Node>& source,
-                               std::vector<Node>& dest);
-
-/**
- * Cache-aware, recursive version of substituteCaptureAvoiding()
- */
-Node substituteCaptureAvoiding(
-    Node node,
-    Node replacement,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache);
-
-/**
- * Cache-aware, recursive version of the simultaneous
- * substituteCaptureAvoiding()
- */
-Node substituteCaptureAvoiding(
-    std::vector<Node>& source,
-    std::vector<Node>& dest,
-    std::unordered_map<Node, Node, NodeHashFunction>& cache);
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<TNode>& src,
+                               std::vector<TNode>& dest);
 
 }  // namespace expr
 }  // namespace CVC4
