@@ -345,12 +345,17 @@ Node substituteCaptureAvoiding(TNode n,
       // save for post-visit
       visit.push_back(curr);
       // visit children
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        visit.push_back(curr.getOperator());
+      }
       for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
       {
         visit.push_back(curr[i]);
       }
     }
-    else if (!it->second.isNull())
+    else if (it->second.isNull())
     {
       // build node
       NodeBuilder<> nb(curr.getKind());
