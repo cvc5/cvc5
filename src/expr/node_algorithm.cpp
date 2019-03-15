@@ -273,7 +273,7 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest)
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest)
 {
   if (n == src)
   {
@@ -283,16 +283,16 @@ Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest)
   {
     return n;
   }
-  std::vector<TNode> srcs;
-  std::vector<TNode> dests;
+  std::vector<Node> srcs;
+  std::vector<Node> dests;
   srcs.push_back(src);
   dests.push_back(dest);
   return substituteCaptureAvoiding(n, srcs, dests);
 }
 
 Node substituteCaptureAvoiding(TNode n,
-                               std::vector<TNode>& src,
-                               std::vector<TNode>& dest)
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest)
 {
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
   std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
@@ -329,15 +329,14 @@ Node substituteCaptureAvoiding(TNode n,
       // if binder, rename variables to avoid capture
       if (curr.isClosure())
       {
-        std::vector<TNode> vars;
-        std::vector<TNode> renames;
+        std::vector<Node> vars;
+        std::vector<Node> renames;
 
         NodeManager* nm = NodeManager::currentNM();
-        for (const TNode& v : curr[0])
+        for (const Node& v : curr[0])
         {
           vars.push_back(v);
-          TNode rename = nm->mkBoundVar(v.getType());
-          renames.push_back(rename);
+          renames.push_back(nm->mkBoundVar(v.getType()));
         }
         // have new vars -> renames subs in the beginning of current sub
         src.insert(src.begin(), vars.begin(), vars.end());

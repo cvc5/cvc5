@@ -86,7 +86,7 @@ void getSymbols(TNode n,
 /**
  * Substitution of Nodes in a capture avoiding way.
  */
-Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest);
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
 
 /**
  * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
@@ -94,8 +94,8 @@ Node substituteCaptureAvoiding(TNode n, TNode src, TNode dest);
  * vectors should have the same size.
  */
 Node substituteCaptureAvoiding(TNode n,
-                               std::vector<TNode>& src,
-                               std::vector<TNode>& dest);
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest);
 
 }  // namespace expr
 }  // namespace CVC4
