@@ -459,7 +459,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  
+
   /**
    * Returns true if this node represents a nullary operator
    */
@@ -467,13 +467,11 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
-  
+
   inline bool isClosure() const {
     assertTNodeNotExpired();
-    return getKind() == kind::LAMBDA ||
-           getKind() == kind::FORALL ||
-           getKind() == kind::EXISTS ||
-           getKind() == kind::REWRITE_RULE;
+    return getKind() == kind::LAMBDA || getKind() == kind::FORALL
+           || getKind() == kind::EXISTS || getKind() == kind::CHOICE;
   }
 
   /**

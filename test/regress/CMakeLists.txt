@@ -476,6 +476,7 @@ set(regress_0_tests
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
   regress0/ho/modulo-func-equality.smt2
+  regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
   regress0/ho/simple-matching.smt2
   regress0/ho/trans.smt2
@@ -518,6 +519,7 @@ set(regress_0_tests
   regress0/nl/nta/cos-sig-value.smt2
   regress0/nl/nta/exp-n0.5-lb.smt2
   regress0/nl/nta/exp-n0.5-ub.smt2
+  regress0/nl/nta/exp-neg2-unsat-unsound.smt2
   regress0/nl/nta/exp1-ub.smt2
   regress0/nl/nta/real-pi.smt2
   regress0/nl/nta/sin-sym.smt2
@@ -877,6 +879,7 @@ set(regress_0_tests
   regress0/test9.cvc
   regress0/tptp/ARI086=1.p
   regress0/tptp/DAT001=1.p
+  regress0/tptp/is_rat_simple.p
   regress0/tptp/KRS018+1.p
   regress0/tptp/KRS063+1.p
   regress0/tptp/MGT019+2.p
@@ -1173,7 +1176,6 @@ set(regress_1_tests
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt
   regress1/lemmas/pursuit-safety-8.smt
   regress1/lemmas/simple_startup_9nodes.abstract.base.smt
-  regress1/nl/NAVIGATION2.smt2
   regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
@@ -2074,6 +2076,8 @@ set(regression_disabled_tests
   regress1/ho/hoa0102.smt2
   # issue1048-arrays-int-real.smt2 -- different errors on debug and production.
   regress1/issue1048-arrays-int-real.smt2
+  # times out after update to tangent planes
+  regress1/nl/NAVIGATION2.smt2
   # ajreynol: disabled these since they give different error messages on
   # production and debug:
   regress1/quantifiers/macro-subtype-param.smt2

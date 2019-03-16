@@ -250,6 +250,8 @@ bool Configuration::isBuiltWithCryptominisat() {
   return IS_CRYPTOMINISAT_BUILD;
 }
 
+bool Configuration::isBuiltWithDrat2Er() { return IS_DRAT2ER_BUILD; }
+
 bool Configuration::isBuiltWithReadline() {
   return IS_READLINE_BUILD;
 }
