@@ -1769,10 +1769,11 @@ void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
 #ifdef CVC4_PROOF
   if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
   {
     throw OptionException(
-        "Eager BV proofs only supported when minisat is used");
+        "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");
   }
 #else
   if(value) {
@@ -1938,6 +1939,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());

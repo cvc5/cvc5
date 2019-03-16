@@ -102,12 +102,12 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Write the formula
   std::ofstream formStream(formulaFilename);
   printDimacs(formStream, usedClauses);
-  unlink(formulaFilename);
+  formStream.close();
 
   // Write the (binary) DRAT proof
   std::ofstream dratStream(dratFilename);
   dratStream << dratBinary;
-  unlink(dratFilename);
+  dratStream.close();
 
   // Invoke drat2er
 #if CVC4_USE_DRAT2ER
@@ -115,7 +115,8 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
                                              dratFilename,
                                              tracecheckFilename,
                                              false,
-                                             drat2er::options::QUIET);
+                                             drat2er::options::QUIET,
+                                             false);
 
 #else
   Unimplemented(
@@ -126,13 +127,11 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   // Parse the resulting TRACECHECK proof into an ER proof.
   std::ifstream tracecheckStream(tracecheckFilename);
   ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
-  unlink(tracecheckFilename);
-
-  formStream.close();
-  dratStream.close();
   tracecheckStream.close();
 
-
+  remove(formulaFilename);
+  remove(dratFilename);
+  remove(tracecheckFilename);
 
   return proof;
 }
@@ -154,6 +153,15 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
   {
     for (size_t i = 0, n = usedClauses.size(); i < n; ++i)
     {
+      Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
+      Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
+      std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
+          traceCheckClause{d_tracecheck.d_lines[i].d_clause.begin(),
+                           d_tracecheck.d_lines[i].d_clause.end()};
+      std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
+          originalClause{usedClauses[i].second.begin(),
+                         usedClauses[i].second.end()};
+      Assert(traceCheckClause == originalClause);
       Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
       Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
       Assert(d_tracecheck.d_lines[i].d_clause.size()
@@ -185,7 +193,7 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
     // Look at the negation of the second literal in the second clause to get
     // the old literal
     AlwaysAssert(d_tracecheck.d_lines.size() > i + 1,
-        "Malformed definition in TRACECHECK proof from drat2er");
+                 "Malformed definition in TRACECHECK proof from drat2er");
     d_definitions.emplace_back(newVar,
                                ~d_tracecheck.d_lines[i + 1].d_clause[1],
                                std::move(otherLiterals));
