@@ -61,8 +61,7 @@ class ClausalBitVectorProof : public BitVectorProof
 
  protected:
   // A list of all clauses and their ids which are passed into the SAT solver
-  std::vector<std::pair<ClauseId, std::unique_ptr<prop::SatClause>>>
-      d_usedClauses;
+  std::vector<std::pair<ClauseId, prop::SatClause>> d_usedClauses;
   // Stores the proof recieved from the SAT solver.
   std::ostringstream d_binaryDratProof;
 };
@@ -77,7 +76,6 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
                             TheoryProofEngine* proofEngine)
       : ClausalBitVectorProof(bv, proofEngine)
   {
-    // That's all!
   }
 
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -87,6 +85,49 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
   void printBBDeclarationAndCnf(std::ostream& os,
                                 std::ostream& paren,
                                 ProofLetMap& letMap) override;
+};
+
+/**
+ * A DRAT proof for a bit-vector problem
+ */
+class LfscDratBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscDratBitVectorProof(theory::bv::TheoryBV* bv,
+                         TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
+  void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
+};
+
+/**
+ * An LRAT proof for a bit-vector problem
+ */
+class LfscLratBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscLratBitVectorProof(theory::bv::TheoryBV* bv,
+                         TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
+  void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
+};
+
+/**
+ * An Extended Resolution proof for a bit-vector problem
+ */
+class LfscErBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscErBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
   void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
 };
 

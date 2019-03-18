@@ -19,10 +19,13 @@
 #include <algorithm>
 #include <iterator>
 #include <set>
+
 #include "options/bv_options.h"
 #include "proof/clausal_bitvector_proof.h"
 #include "proof/drat/drat_proof.h"
+#include "proof/er/er_proof.h"
 #include "proof/lfsc_proof_printer.h"
+#include "proof/lrat/lrat_proof.h"
 #include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
@@ -66,12 +69,12 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
 void ClausalBitVectorProof::registerUsedClause(ClauseId id,
                                                prop::SatClause& clause)
 {
-  d_usedClauses.emplace_back(
-      id, std::unique_ptr<prop::SatClause>(new prop::SatClause(clause)));
+  d_usedClauses.emplace_back(id, clause);
 };
 
 void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
 {
+  // Debug dump of DRAT Proof
   if (Debug.isOn("bv::clausal"))
   {
     std::string serializedDratProof = d_binaryDratProof.str();
@@ -84,7 +87,16 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
     Debug("bv::clausal") << "Printing DRAT proof ... " << std::endl;
     dratProof.outputAsText(Debug("bv::clausal"));
   }
-  Unimplemented();
+
+  // Empty any old record of which atoms were used
+  d_atomsInBitblastingProof.clear();
+
+  // For each used clause, ask the CNF proof which atoms are used in it
+  for (const auto& usedIndexAndClause : d_usedClauses)
+  {
+    d_cnfProof->collectAtoms(&usedIndexAndClause.second,
+                             d_atomsInBitblastingProof);
+  }
 }
 
 void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -101,13 +113,91 @@ void LfscClausalBitVectorProof::printBBDeclarationAndCnf(std::ostream& os,
                                                          std::ostream& paren,
                                                          ProofLetMap& letMap)
 {
-  Unimplemented();
+  os << "\n;; Bitblasting mappings\n";
+  printBitblasting(os, paren);
+
+  os << "\n;; BB-CNF mappings\n";
+  d_cnfProof->printAtomMapping(d_atomsInBitblastingProof, os, paren, letMap);
+
+  os << "\n;; BB-CNF proofs\n";
+  for (const auto& idAndClause : d_usedClauses)
+  {
+    d_cnfProof->printCnfProofForClause(
+        idAndClause.first, &idAndClause.second, os, paren);
+  }
 }
 
-void LfscClausalBitVectorProof::printEmptyClauseProof(std::ostream& os,
-                                                      std::ostream& paren)
+void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                                   std::ostream& paren)
 {
-  Unimplemented();
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
+
+  os << "\n;; Proof of input to SAT solver\n";
+  os << "(@ proofOfSatInput ";
+  paren << ")";
+  std::vector<ClauseId> usedIds;
+  usedIds.reserve(d_usedClauses.size());
+  for (const auto& idAnd : d_usedClauses)
+  {
+    usedIds.push_back(idAnd.first);
+  };
+  LFSCProofPrinter::printSatInputProof(usedIds, os, "bb");
+
+  os << "\n;; DRAT Proof Value\n";
+  os << "(@ dratProof ";
+  paren << ")";
+  drat::DratProof::fromBinary(d_binaryDratProof.str()).outputAsLfsc(os, 2);
+  os << "\n";
+
+  os << "\n;; Verification of DRAT Proof\n";
+  os << "(drat_proof_of_bottom _ proofOfSatInput dratProof "
+     << "\n)";
+}
+
+void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                                   std::ostream& paren)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
+
+  os << "\n;; Proof of input to SAT solver\n";
+  os << "(@ proofOfCMap ";
+  paren << ")";
+  std::vector<ClauseId> usedIds;
+  usedIds.reserve(d_usedClauses.size());
+  for (const auto& idAnd : d_usedClauses)
+  {
+    usedIds.push_back(idAnd.first);
+  };
+  LFSCProofPrinter::printCMapProof(usedIds, os, "bb");
+
+  os << "\n;; DRAT Proof Value\n";
+  os << "(@ lratProof ";
+  paren << ")";
+  lrat::LratProof pf =
+      lrat::LratProof::fromDratProof(d_usedClauses, d_binaryDratProof.str());
+  pf.outputAsLfsc(os);
+  os << "\n";
+
+  os << "\n;; Verification of DRAT Proof\n";
+  os << "(lrat_proof_of_bottom _ proofOfCMap lratProof "
+     << "\n)";
+}
+
+void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                                 std::ostream& paren)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
+
+  er::ErProof pf =
+      er::ErProof::fromBinaryDratProof(d_usedClauses, d_binaryDratProof.str());
+
+  pf.outputAsLfsc(os);
 }
 
 }  // namespace proof
