@@ -609,8 +609,17 @@ Lit Solver::pickBranchLit()
         decisions++;
 
         // org-mode tracing, including propagations is a separate trace
-        Trace("dtview") << std::string(context->getLevel()  - (options::incrementalSolving() ? 1 : 0), '*') << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)) << " :THEORY-DECISION:" << std::endl;
-        Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+        Trace("dtview")
+            << std::string(context->getLevel()
+                               - (options::incrementalSolving() ? 1 : 0),
+                           '*')
+            << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit))
+            << " :THEORY-DECISION:" << std::endl;
+        Trace("dtview::prop")
+            << std::string(context->getLevel() + 1
+                               - (options::incrementalSolving() ? 1 : 0),
+                           '*')
+            << " /Propagations [Last Decision Repeated]/" << std::endl;
 
         return nextLit;
       } else {
@@ -639,8 +648,18 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing, including propagations is a separate trace
-      Trace("dtview") << std::string(context->getLevel() - (options::incrementalSolving() ? 1 : 0), '*')<< " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)) << " :DE-DECISION:" << std::endl;
-      Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+      Trace("dtview") << std::string(
+                             context->getLevel()
+                                 - (options::incrementalSolving() ? 1 : 0),
+                             '*')
+                      << " "
+                      << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit))
+                      << " :DE-DECISION:" << std::endl;
+      Trace("dtview::prop")
+          << std::string(context->getLevel() + 1
+                             - (options::incrementalSolving() ? 1 : 0),
+                         '*')
+          << " /Propagations [Last Decision Repeated]/" << std::endl;
       return nextLit;
     }
 
@@ -678,16 +697,27 @@ Lit Solver::pickBranchLit()
       Lit decisionLit;
       if(dec_pol != l_Undef) {
         Assert(dec_pol == l_True || dec_pol == l_False);
-        decisionLit = mkLit(next, (dec_pol == l_True) );
+        decisionLit = mkLit(next, (dec_pol == l_True));
       }
-      else {
+      else
+      {
         // If it can't use internal heuristic to do that
-        decisionLit = mkLit(next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
+        decisionLit = mkLit(
+            next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
       }
 
       // org-mode tracing, including propagations is a separate trace
-      Trace("dtview") << std::string(context->getLevel() - (options::incrementalSolving() ? 1 : 0), '*') << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)) << " :DE-DECISION:" << std::endl;
-      Trace("dtview::prop") << std::string(context->getLevel() + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+      Trace("dtview")
+          << std::string(
+                 context->getLevel() - (options::incrementalSolving() ? 1 : 0),
+                 '*')
+          << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit))
+          << " :DE-DECISION:" << std::endl;
+      Trace("dtview::prop")
+          << std::string(context->getLevel() + 1
+                             - (options::incrementalSolving() ? 1 : 0),
+                         '*')
+          << " /Propagations [Last Decision Repeated]/" << std::endl;
       return decisionLit;
     }
 }

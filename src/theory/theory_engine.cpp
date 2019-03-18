@@ -1362,7 +1362,8 @@ void TheoryEngine::assertFact(TNode literal)
     return;
   }
 
-  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal << endl;
+  Trace("dtview::prop") << std::string(d_context->getLevel(), ' ') << literal
+                        << endl;
 
   // Get the atom
   bool polarity = literal.getKind() != kind::NOT;
