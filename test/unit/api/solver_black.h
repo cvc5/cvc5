@@ -295,12 +295,12 @@ void SolverBlack::testMkBoundVar()
   Sort boolSort = d_solver->getBooleanSort();
   Sort intSort = d_solver->getIntegerSort();
   Sort funSort = d_solver->mkFunctionSort(intSort, boolSort);
-  TS_ASSERT_THROWS(d_solver->mkBoundVar(Sort()), CVC4ApiException&);
   TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(boolSort));
   TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(funSort));
-  TS_ASSERT_THROWS(d_solver->mkBoundVar("a", Sort()), CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(std::string("b"), boolSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar("", funSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(boolSort, std::string("b")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(funSort, ""));
+  TS_ASSERT_THROWS(d_solver->mkBoundVar(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkBoundVar(Sort(), "a"), CVC4ApiException&);
 }
 
 void SolverBlack::testMkBoolean()
@@ -795,12 +795,12 @@ void SolverBlack::testDefineFun()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                            d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar("b1", bvSort);
-  Term b11 = d_solver->mkBoundVar("b1", bvSort);
-  Term b2 = d_solver->mkBoundVar("b2", d_solver->getIntegerSort());
-  Term b3 = d_solver->mkBoundVar("b3", funSort2);
-  Term v1 = d_solver->mkBoundVar("v1", bvSort);
-  Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
+  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
+  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
+  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
   Term v3 = d_solver->mkVar(funSort2, "v3");
   Term f1 = d_solver->declareConst("f1", funSort1);
   Term f2 = d_solver->declareConst("f2", funSort2);
@@ -827,12 +827,12 @@ void SolverBlack::testDefineFunRec()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                            d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar("b1", bvSort);
-  Term b11 = d_solver->mkBoundVar("b1", bvSort);
-  Term b2 = d_solver->mkBoundVar("b2", d_solver->getIntegerSort());
-  Term b3 = d_solver->mkBoundVar("b3", funSort2);
-  Term v1 = d_solver->mkBoundVar("v1", bvSort);
-  Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
+  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
+  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
+  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
   Term v3 = d_solver->mkVar(funSort2, "v3");
   Term f1 = d_solver->declareConst("f1", funSort1);
   Term f2 = d_solver->declareConst("f2", funSort2);
@@ -861,13 +861,13 @@ void SolverBlack::testDefineFunsRec()
   Sort bvSort = d_solver->mkBitVectorSort(32);
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar("b1", bvSort);
-  Term b11 = d_solver->mkBoundVar("b1", bvSort);
-  Term b2 = d_solver->mkBoundVar("b2", d_solver->getIntegerSort());
-  Term b3 = d_solver->mkBoundVar("b3", funSort2);
-  Term b4 = d_solver->mkBoundVar("b4", uSort);
-  Term v1 = d_solver->mkBoundVar("v1", bvSort);
-  Term v2 = d_solver->mkBoundVar("v2", d_solver->getIntegerSort());
+  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
+  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
+  Term b4 = d_solver->mkBoundVar(uSort, "b4");
+  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
+  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
   Term v3 = d_solver->mkVar(funSort2, "v3");
   Term v4 = d_solver->mkVar(uSort, "v4");
   Term f1 = d_solver->declareConst("f1", funSort1);
