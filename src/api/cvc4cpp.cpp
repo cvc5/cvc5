@@ -2408,27 +2408,13 @@ Term Solver::mkVar(Sort sort, const std::string& symbol) const
   }
 }
 
-Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
+Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkBoundVar(Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(*sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkBoundVar(*sort.d_type)
+                              : d_exprMgr->mkBoundVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
