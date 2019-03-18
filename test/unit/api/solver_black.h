@@ -267,16 +267,23 @@ void SolverBlack::testMkBitVector()
 {
   uint32_t size0 = 0, size1 = 8, size2 = 32, val1 = 2;
   uint64_t val2 = 2;
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector(size1, val1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector(size2, val2));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 2));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 10));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1234", 10));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 16));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("a09f", 16));
   TS_ASSERT_THROWS(d_solver->mkBitVector(size0, val1), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector(size0, val2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("", 2), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("10", 3), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->mkBitVector("20", 2), CVC4ApiException&);
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector(size1, val1));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector(size2, val2));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 2));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBitVector("1010", 16));
   TS_ASSERT_THROWS(d_solver->mkBitVector(8, "101010101", 2), CVC4ApiException&);
+  TS_ASSERT_EQUALS(d_solver->mkBitVector("1010", 2),
+                   d_solver->mkBitVector("10", 10));
+  TS_ASSERT_EQUALS(d_solver->mkBitVector("1010", 2),
+                   d_solver->mkBitVector("a", 16));
   TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "01010101", 2).toString(),
                    "0bin01010101");
   TS_ASSERT_EQUALS(d_solver->mkBitVector(8, "F", 16).toString(),
