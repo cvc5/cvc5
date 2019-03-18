@@ -2392,27 +2392,13 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const std::string& symbol, Sort sort) const
+Term Solver::mkVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(symbol, *sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkVar(Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(*sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkVar(*sort.d_type)
+                              : d_exprMgr->mkVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
