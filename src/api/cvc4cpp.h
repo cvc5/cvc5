@@ -2167,18 +2167,11 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create variable.
+   * @param sort the sort of the variable
    * @param symbol the name of the variable
-   * @param sort the sort of the variable
    * @return the variable
    */
-  Term mkVar(const std::string& symbol, Sort sort) const;
-
-  /**
-   * Create variable.
-   * @param sort the sort of the variable
-   * @return the variable
-   */
-  Term mkVar(Sort sort) const;
+  Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
    * Create bound variable.
