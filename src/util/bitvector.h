@@ -72,8 +72,8 @@ class CVC4_PUBLIC BitVector
    * The value of the bit-vector is passed in as string of base 2, 10 or 16.
    * The size of resulting bit-vector is
    * - base  2: the size of the binary string
-   * - base 10: the minimum size required to represent the decimal as bit-vector
-   * - base 16: the maximum size required to represent the hexadecimal as
+   * - base 10: the min. size required to represent the decimal as a bit-vector
+   * - base 16: the max. size required to represent the hexadecimal as a
    *            bit-vector (4 * size of the given value string)
    *
    * @param num The value of the bit-vector in string representation.
