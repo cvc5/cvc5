@@ -322,14 +322,15 @@ class SygusEnumerator : public EnumValGenerator
      * return false.
      */
     bool increment() override;
-    /** set size limit 
-     * 
+    /** set size limit
+     *
      * This indicates that this enumerator should not generate terms that
      * have size that are greater than u.
      */
-    void setSizeLimit( unsigned u );
+    void setSizeLimit(unsigned u);
     /** clear the size limit on this enumerator */
     void clearSizeLimit();
+
    private:
     /** are we currently inside a increment() call? */
     bool d_isIncrementing;

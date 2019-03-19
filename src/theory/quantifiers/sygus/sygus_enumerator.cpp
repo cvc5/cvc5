@@ -479,7 +479,7 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
     // if the size of the master is larger than the size limit, then
     // there is no use continuing, since there are no more terms that this
     // slave enumerator can return.
-    if( d_master->getCurrentSize()>d_sizeLim )
+    if (d_master->getCurrentSize() > d_sizeLim)
     {
       return false;
     }
@@ -664,11 +664,14 @@ bool SygusEnumerator::TermEnumMaster::increment()
   {
     return false;
   }
-  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: increment " << d_tn << "..." << std::endl;
+  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: increment "
+                              << d_tn << "..." << std::endl;
   d_isIncrementing = true;
   bool ret = incrementInternal();
   d_isIncrementing = false;
-  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: finished increment " << d_tn << std::endl;
+  Trace("sygus-enum-summary")
+      << "SygusEnumerator::TermEnumMaster: finished increment " << d_tn
+      << std::endl;
   return ret;
 }
 
@@ -892,7 +895,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   return incrementInternal();
 }
 
-void SygusEnumerator::TermEnumMaster::setSizeLimit( unsigned u )
+void SygusEnumerator::TermEnumMaster::setSizeLimit(unsigned u)
 {
   d_isSizeLimit = true;
   d_sizeLimit = u;
