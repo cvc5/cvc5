@@ -476,6 +476,13 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   {
     Assert(d_index == tc.getNumTerms());
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
+    // if the size of the master is larger than the size limit, then
+    // there is no use continuing, since there are no more terms that this
+    // slave enumerator can return.
+    if( d_master->getCurrentSize()>d_sizeLim )
+    {
+      return false;
+    }
     // must push the master index
     if (!d_master->increment())
     {
@@ -775,12 +782,6 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     }
 
     // increment the size bound
-    if( d_isSizeLimit && d_currSize>=d_sizeLimit )
-    {
-      // If we are at the bounds, we are done. We return true to indicate
-      // that there may be more terms to enumerate.
-      return true;
-    }
     d_currSize++;
     Trace("sygus-enum-debug2") << "master(" << d_tn
                                << "): size++ : " << d_currSize << "\n";
@@ -799,7 +800,15 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
 
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
-    return incrementInternal();
+
+    // We break for a round: return the null term when we cross a size
+    // boundary. This ensures that the necessary breaks are taken, e.g.
+    // in slave enumerators who may instead want to abandon this call to
+    // increment master when the size of the master makes their increment
+    // infeasible.
+    d_currTermSet = true;
+    d_currTerm = Node::null();
+    return true;
   }
 
   bool incSuccess = false;
@@ -829,6 +838,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
           // the term was not unique based on rewriting
           Trace("sygus-enum-debug2") << "master(" << d_tn
                                      << "): failed addTerm\n";
+          // we will return null (d_currTermSet is true at this point)
           d_currTerm = Node::null();
         }
       }
