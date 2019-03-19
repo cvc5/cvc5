@@ -130,8 +130,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   iplc.push_back(instAttr);
   if (!axioms.empty())
   {
-    Node aconj =
-        axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
+    Node aconj = axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
     aconj =
         aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
     Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
