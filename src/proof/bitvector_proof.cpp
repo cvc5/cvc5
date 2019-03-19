@@ -18,10 +18,13 @@
 #include "options/proof_options.h"
 #include "proof/proof_output_channel.h"
 #include "proof/theory_proof.h"
+#include "prop/sat_solver_types.h"
 #include "theory/bv/bitblast/bitblaster.h"
 #include "theory/bv/theory_bv.h"
 
 namespace CVC4 {
+
+namespace proof {
 BitVectorProof::BitVectorProof(theory::bv::TheoryBV* bv,
                                TheoryProofEngine* proofEngine)
     : TheoryProof(bv, proofEngine),
@@ -68,7 +71,7 @@ void BitVectorProof::registerAtomBB(Expr atom, Expr atom_bb) {
   Debug("pf::bv") << "BitVectorProof::registerAtomBB( " << atom
                   << ", " << atom_bb << " )" << std::endl;
 
-  Expr def = atom.iffExpr(atom_bb);
+  Expr def = atom.eqExpr(atom_bb);
   d_bbAtoms.insert(std::make_pair(atom, def));
   registerTerm(atom);
 
@@ -116,13 +119,6 @@ std::string BitVectorProof::getBBTermName(Expr expr)
   std::ostringstream os;
   os << "bt" << expr.getId();
   return os.str();
-}
-
-void BitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
-                                  context::Context* cnf)
-{
-  Assert(d_cnfProof == nullptr);
-  d_cnfProof.reset(new LFSCCnfProof(cnfStream, cnf, "bb"));
 }
 
 void BitVectorProof::printOwnedTerm(Expr term,
@@ -223,6 +219,14 @@ void BitVectorProof::printOwnedTerm(Expr term,
   default:
     Unreachable();
   }
+}
+
+void BitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                           std::ostream& paren)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
 }
 
 void BitVectorProof::printBitOf(Expr term,
@@ -709,6 +713,8 @@ void BitVectorProof::printBitblasting(std::ostream& os, std::ostream& paren)
   }
 }
 
+theory::TheoryId BitVectorProof::getTheoryId() { return theory::THEORY_BV; }
+
 const std::set<Node>* BitVectorProof::getAtomsInBitblastingProof()
 {
   return &d_atomsInBitblastingProof;
@@ -773,5 +779,7 @@ void BitVectorProof::printRewriteProof(std::ostream& os,
   d_proofEngine->printBoundTerm(n1.toExpr(), os, emptyMap);
   os << ")";
 }
+
+}  // namespace proof
 
 }  // namespace CVC4

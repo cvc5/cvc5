@@ -43,9 +43,9 @@ int main()
   Term ab  = slv.mkString(str_ab);
   Term abc = slv.mkString("abc");
   // String variables
-  Term x = slv.mkVar("x", string);
-  Term y = slv.mkVar("y", string);
-  Term z = slv.mkVar("z", string);
+  Term x = slv.mkVar(string, "x");
+  Term y = slv.mkVar(string, "y");
+  Term z = slv.mkVar(string, "z");
 
   // String concatenation: x.ab.y
   Term lhs = slv.mkTerm(STRING_CONCAT, x, ab, y);
@@ -57,7 +57,7 @@ int main()
   // Length of y: |y|
   Term leny = slv.mkTerm(STRING_LENGTH, y);
   // |y| >= 0
-  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkInteger(0));
+  Term formula2 = slv.mkTerm(GEQ, leny, slv.mkReal(0));
 
   // Regular expression: (ab[c-e]*f)|g|h
   Term r = slv.mkTerm(REGEXP_UNION,
@@ -70,8 +70,8 @@ int main()
     slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
   // String variables
-  Term s1 = slv.mkVar("s1", string);
-  Term s2 = slv.mkVar("s2", string);
+  Term s1 = slv.mkVar(string, "s1");
+  Term s2 = slv.mkVar(string, "s2");
   // String concatenation: s1.s2
   Term s = slv.mkTerm(STRING_CONCAT, s1, s2);
 

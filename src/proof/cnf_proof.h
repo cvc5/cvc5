@@ -29,6 +29,7 @@
 #include "proof/clause_id.h"
 #include "proof/lemma_proof.h"
 #include "proof/sat_proof.h"
+#include "util/maybe.h"
 #include "util/proof.h"
 
 namespace CVC4 {
@@ -78,6 +79,11 @@ protected:
 
   ClauseIdSet d_explanations;
 
+  // The clause ID of the unit clause defining the true SAT literal.
+  ClauseId d_trueUnitClause;
+  // The clause ID of the unit clause defining the false SAT literal.
+  ClauseId d_falseUnitClause;
+
   bool isDefinition(Node node);
 
   Node getDefinitionForClause(ClauseId clause);
@@ -109,6 +115,14 @@ public:
   // if it is an explanation, it does not have a CNF proof since it is
   // already in CNF
   void registerConvertedClause(ClauseId clause, bool explanation=false);
+
+  // The CNF proof has a special relationship to true and false.
+  // In particular, it need to know the identity of clauses defining
+  // canonical true and false literals in the underlying SAT solver.
+  void registerTrueUnitClause(ClauseId clauseId);
+  void registerFalseUnitClause(ClauseId clauseId);
+  inline ClauseId getTrueUnitClause() { return d_trueUnitClause; };
+  inline ClauseId getFalseUnitClause() { return d_falseUnitClause; };
 
   /** Clause is one of the clauses defining the node expression*/
   void setClauseDefinition(ClauseId clause, Node node);
@@ -151,6 +165,10 @@ public:
                            std::ostream& paren,
                            ProofLetMap &letMap) = 0;
 
+  // Detects whether a clause has x v ~x for some x
+  // If so, returns the positive occurence's idx first, then the negative's
+  static Maybe<std::pair<size_t, size_t>> detectTrivialTautology(
+      const prop::SatClause& clause);
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
                            std::ostream& paren) = 0;

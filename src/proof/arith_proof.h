@@ -23,6 +23,7 @@
 #include <unordered_set>
 
 #include "expr/expr.h"
+#include "proof/arith_proof_recorder.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "theory/uf/equality_engine.h"
@@ -62,6 +63,11 @@ protected:
   //   TypeSet d_sorts;        // all the uninterpreted sorts in this theory
   ExprSet d_declarations; // all the variable/function declarations
 
+  /**
+   * Where farkas proofs of lemmas are stored.
+   */
+  proof::ArithProofRecorder d_recorder;
+
   bool d_realMode;
   theory::TheoryId getTheoryId() override;
 
@@ -80,6 +86,76 @@ public:
                       std::ostream& os,
                       const ProofLetMap& map) override;
   void printOwnedSort(Type type, std::ostream& os) override;
+
+  /**
+   * Print a rational number in LFSC format.
+   *        e.g. 5/8 or (~ 1/1)
+   *
+   * @param o ostream to print to.
+   * @param r the rational to print
+   */
+  static void printRational(std::ostream& o, const Rational& r);
+
+  /**
+   * Print a value of type poly_formula_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be of the form [linear polynomial >= constant])
+   */
+  static void printLinearPolynomialPredicateNormalizer(std::ostream& o,
+                                                       const Node& n);
+
+  /**
+   * Print a value of type poly_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a linear polynomial)
+   */
+  static void printLinearPolynomialNormalizer(std::ostream& o, const Node& n);
+
+  /**
+   * Print a value of type poly_norm
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a linear monomial)
+   */
+  static void printLinearMonomialNormalizer(std::ostream& o, const Node& n);
+
+  /**
+   * Print a LFSC rational
+   *
+   * @param o ostream to print to
+   * @param n node (asserted to be a const rational)
+   */
+  static void printConstRational(std::ostream& o, const Node& n);
+
+  /**
+   * print the pn_var normalizer for n (type poly_norm)
+   *
+   * @param o the ostream to print to
+   * @param n the node to print (asserted to be a variable)
+   */
+  static void printVariableNormalizer(std::ostream& o, const Node& n);
+  /**
+   * print a proof of the lemma
+   *
+   * First, we print linearity witnesses, i.e. witnesses  that each literal has
+   * the form:
+   *   [linear polynomial] >= 0 OR
+   *   [linear polynomial] >  0
+   *
+   * Then we use those witnesses to prove that the above linearized constraints
+   * hold.
+   *
+   * Then we use the farkas coefficients to combine the literals into a
+   * variable-free contradiction. The literals may be a mix of strict and
+   * relaxed inequalities.
+   *
+   * @param lemma the set of literals disjoined in the lemma
+   * @param os stream to print the proof to
+   * @param paren global closing stream (unused)
+   * @param map let map (unused)
+   */
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
                              std::ostream& os,
                              std::ostream& paren,

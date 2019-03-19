@@ -1,5 +1,22 @@
 This file contains a summary of important user-visible changes. 
 
+Changes since 1.6
+=================
+
+New Features:
+* Strings: Support for `str.replaceall` operator.
+
+Improvements:
+
+Changes:
+* API change: Expr::iffExpr() is renamed to Expr::eqExpr() to reflect its
+              actual behavior.
+* Compiling the language bindings now requires SWIG 3 instead of SWIG 2.
+* The CVC3 compatibility layer has been removed.
+* The build system now uses CMake instead of Autotools. Please refer to
+* [INSTALL.md](https://github.com/CVC4/CVC4/blob/master/INSTALL.md) for
+  up-to-date instructions on how to build CVC4.
+
 Changes since 1.5
 =================
 

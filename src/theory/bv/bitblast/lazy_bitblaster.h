@@ -77,7 +77,6 @@ class TLazyBitblaster : public TBitblaster<Node>
    * constants to equivalence classes that don't already have them
    */
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setProofLog(proof::ResolutionBitVectorProof* bvp);
 
   typedef TNodeSet::const_iterator vars_iterator;
   vars_iterator beginVars() { return d_variables.begin(); }
@@ -126,15 +125,11 @@ class TLazyBitblaster : public TBitblaster<Node>
   };
 
   TheoryBV* d_bv;
-  proof::ResolutionBitVectorProof* d_bvp;
   context::Context* d_ctx;
 
   std::unique_ptr<prop::NullRegistrar> d_nullRegistrar;
-  std::unique_ptr<context::Context> d_nullContext;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::BVSatSolverInterface> d_satSolver;
   std::unique_ptr<prop::BVSatSolverNotify> d_satSolverNotify;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
 
   AssertionList*
       d_assertedAtoms;            /**< context dependent list storing the atoms
@@ -155,6 +150,7 @@ class TLazyBitblaster : public TBitblaster<Node>
   void addAtom(TNode atom);
   bool hasValue(TNode a);
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
 
   class Statistics
   {

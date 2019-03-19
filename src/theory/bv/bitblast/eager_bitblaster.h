@@ -55,19 +55,13 @@ class EagerBitblaster : public TBitblaster<Node>
   bool solve();
   bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
  private:
   context::Context* d_context;
-  std::unique_ptr<context::Context> d_nullContext;
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
-
-  BitVectorProof* d_bvp;
 
   TheoryBV* d_bv;
   TNodeSet d_bbAtoms;
@@ -77,6 +71,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
   bool isSharedTerm(TNode node);
 };
 

@@ -169,6 +169,18 @@ public:
   }
 };/* class RealNullaryOperatorTypeRule */
 
+class DivisibleOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::DIVISIBLE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class DivisibleOpTypeRule */
+
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */

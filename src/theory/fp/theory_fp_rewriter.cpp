@@ -76,9 +76,12 @@ namespace rewrite {
 
   RewriteResponse compactAbs (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
-    if (node[0].getKind() == kind::FLOATINGPOINT_NEG ||
-	node[0].getKind() == kind::FLOATINGPOINT_ABS) {
-      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    if (node[0].getKind() == kind::FLOATINGPOINT_NEG
+        || node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    {
+      Node ret =
+          NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN, ret);
     }
 
     return RewriteResponse(REWRITE_DONE, node);
@@ -175,8 +178,9 @@ namespace rewrite {
     if (node[0] == node[1]) {
       return RewriteResponse(REWRITE_DONE, NodeManager::currentNM()->mkConst(true));
     } else if (!isPreRewrite && (node[0] > node[1])) {
-	Node normal = NodeManager::currentNM()->mkNode(kind::EQUAL,node[1],node[0]);
-	return RewriteResponse(REWRITE_DONE, normal);
+      Node normal =
+          NodeManager::currentNM()->mkNode(kind::EQUAL, node[1], node[0]);
+      return RewriteResponse(REWRITE_DONE, normal);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -191,7 +195,7 @@ namespace rewrite {
 	   (k == kind::FLOATINGPOINT_MIN_TOTAL) || (k == kind::FLOATINGPOINT_MAX_TOTAL));
 #endif
     if (node[0] == node[1]) {
-      return RewriteResponse(REWRITE_DONE, node[0]);
+      return RewriteResponse(REWRITE_AGAIN, node[0]);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     }
@@ -249,7 +253,7 @@ namespace rewrite {
 	(childKind == kind::FLOATINGPOINT_ABS)) {
 
       Node rewritten = NodeManager::currentNM()->mkNode(node.getKind(),node[0][0]);
-      return RewriteResponse(REWRITE_AGAIN, rewritten);
+      return RewriteResponse(REWRITE_AGAIN_FULL, rewritten);
     } else {
       return RewriteResponse(REWRITE_DONE, node);
     } 
@@ -276,8 +280,11 @@ namespace rewrite {
     // Lift negation out of the LHS so it can be cancelled out
     if (working[0].getKind() == kind::FLOATINGPOINT_NEG) {
       NodeManager * nm = NodeManager::currentNM();
-      working = nm->mkNode(kind::FLOATINGPOINT_NEG,
-			   nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+      working = nm->mkNode(
+          kind::FLOATINGPOINT_NEG,
+          nm->mkNode(kind::FLOATINGPOINT_REM, working[0][0], working[1]));
+      // in contrast to other rewrites here, this requires rewrite again full
+      return RewriteResponse(REWRITE_AGAIN_FULL, working);
     }
 
     return RewriteResponse(REWRITE_DONE, working);

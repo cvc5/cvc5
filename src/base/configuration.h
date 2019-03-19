@@ -97,6 +97,8 @@ public:
 
   static bool isBuiltWithCryptominisat();
 
+  static bool isBuiltWithDrat2Er();
+
   static bool isBuiltWithReadline();
 
   static bool isBuiltWithLfsc();
