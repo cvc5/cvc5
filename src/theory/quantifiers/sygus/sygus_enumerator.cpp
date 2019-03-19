@@ -583,6 +583,8 @@ SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
       d_isIncrementing(false),
       d_currTermSet(false),
+      d_isSizeLimit(false),
+      d_sizeLimit(0),
       d_consClassNum(0),
       d_ccWeight(0),
       d_consNum(0),
@@ -655,9 +657,11 @@ bool SygusEnumerator::TermEnumMaster::increment()
   {
     return false;
   }
+  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: increment " << d_tn << "..." << std::endl;
   d_isIncrementing = true;
   bool ret = incrementInternal();
   d_isIncrementing = false;
+  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: finished increment " << d_tn << std::endl;
   return ret;
 }
 
@@ -771,6 +775,12 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
     }
 
     // increment the size bound
+    if( d_isSizeLimit && d_currSize>=d_sizeLimit )
+    {
+      // If we are at the bounds, we are done. We return true to indicate
+      // that there may be more terms to enumerate.
+      return true;
+    }
     d_currSize++;
     Trace("sygus-enum-debug2") << "master(" << d_tn
                                << "): size++ : " << d_currSize << "\n";
@@ -870,6 +880,18 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   d_ccCons.clear();
   d_ccTypes.clear();
   return incrementInternal();
+}
+
+void SygusEnumerator::TermEnumMaster::setSizeLimit( unsigned u )
+{
+  d_isSizeLimit = true;
+  d_sizeLimit = u;
+}
+
+void SygusEnumerator::TermEnumMaster::clearSizeLimit()
+{
+  d_isSizeLimit = false;
+  d_sizeLimit = 0;
 }
 
 bool SygusEnumerator::TermEnumMaster::initializeChildren()
