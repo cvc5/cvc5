@@ -840,6 +840,7 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
           Trace("sygus-enum-debug2") << "master(" << d_tn
                                      << "): failed addTerm\n";
           // we will return null (d_currTermSet is true at this point)
+          Assert(d_currTermSet);
           d_currTerm = Node::null();
         }
       }
