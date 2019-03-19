@@ -1,3 +1,9 @@
+; REQUIRES: cryptominisat
+; REQUIRES: drat2er
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=lrat --check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=drat --check-proofs --no-check-unsat-cores
+; COMMAND-LINE: --bitblast=eager --bv-sat-solver=cryptominisat --bv-proof-format=er --check-proofs --no-check-unsat-cores
+; EXPECT: unsat
 (benchmark slice
   :status unsat
   :logic QF_BV

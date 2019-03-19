@@ -36,8 +36,8 @@ int main()
   Sort integer = slv.getIntegerSort();
 
   // Variables
-  Term x = slv.mkVar("x", integer);
-  Term y = slv.mkVar("y", real);
+  Term x = slv.mkVar(integer, "x");
+  Term y = slv.mkVar(real, "y");
 
   // Constants
   Term three = slv.mkReal(3);
