@@ -43,12 +43,12 @@ namespace passes {
  * while filtering stronger solutions (sygus-filter-sol=strong). These options
  * are enabled by default when this preprocessing class is used (sygus-abduct).
  *
- * If the input F( x ) is partitioned into assumptions and negated conjecture
+ * If the input F( x ) is partitioned into axioms Fa and negated conjecture Fc
  * Fa( x ) ^ Fc( x ), then the sygus conjecture we construct is:
  *
  * exists A. ( exists y. A( y ) ^ Fa( y ) ) ^ forall x. ( A( x ) => ~F( x ) )
  *
- * In other words, A( y ) must be consistent with our assumptions and imply
+ * In other words, A( y ) must be consistent with our axioms Fa and imply
  * ~F( x ). We encode this conjecture using SygusSideConditionAttribute.
  */
 class SygusAbduct : public PreprocessingPass

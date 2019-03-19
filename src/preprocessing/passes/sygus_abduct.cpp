@@ -43,14 +43,22 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Trace("sygus-abduct-debug") << "Collect symbols..." << std::endl;
   std::unordered_set<Node, NodeHashFunction> symset;
   std::vector<Node>& asserts = assertionsToPreprocess->ref();
-  std::vector<Node> assumptions;
+  // do we have any assumptions, e.g. via check-sat-assuming?
   bool usingAssumptions = (assertionsToPreprocess->getNumAssumptions() > 0);
+  // The following is our set of "axioms". We construct this set only when the
+  // usingAssumptions (above) is true. In this case, our input formula is
+  // partitioned into Fa ^ Fc as described in the header of this class, where:
+  // - The conjunction of assertions marked as assumptions are the negated
+  // conjecture Fc, and
+  // - The conjunction of all other assertions are the axioms Fa.
+  std::vector<Node> axioms;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
     expr::getSymbols(asserts[i], symset);
+    // if we are not an assumption, add it to the set of axioms
     if (usingAssumptions && i < assertionsToPreprocess->getAssumptionsStart())
     {
-      assumptions.push_back(asserts[i]);
+      axioms.push_back(asserts[i]);
     }
   }
   Trace("sygus-abduct-debug")
@@ -120,10 +128,10 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Node instAttr = nm->mkNode(INST_ATTRIBUTE, sygusVar);
   std::vector<Node> iplc;
   iplc.push_back(instAttr);
-  if (!assumptions.empty())
+  if (!axioms.empty())
   {
     Node aconj =
-        assumptions.size() == 1 ? assumptions[0] : nm->mkNode(AND, assumptions);
+        axioms.size() == 1 ? axioms[0] : nm->mkNode(AND, axioms);
     aconj =
         aconj.substitute(syms.begin(), syms.end(), vars.begin(), vars.end());
     Trace("sygus-abduct") << "---> Assumptions: " << aconj << std::endl;
@@ -134,8 +142,9 @@ PreprocessingPassResult SygusAbduct::applyInternal(
     sygusScVar.setAttribute(theory::SygusSideConditionAttribute(), sc);
     instAttr = nm->mkNode(INST_ATTRIBUTE, sygusScVar);
     // build in the side condition
-    //   exists x. A( x ) ^ input_assumptions( x )
-    // as an additional annotation on the sygus conjecture
+    //   exists x. A( x ) ^ input_axioms( x )
+    // as an additional annotation on the sygus conjecture. In other words,
+    // the abducts A we procedure must be consistent with our axioms.
     iplc.push_back(instAttr);
   }
   Node instAttrList = nm->mkNode(INST_PATTERN_LIST, iplc);
