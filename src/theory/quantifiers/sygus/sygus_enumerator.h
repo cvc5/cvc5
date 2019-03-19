@@ -322,14 +322,6 @@ class SygusEnumerator : public EnumValGenerator
      * return false.
      */
     bool increment() override;
-    /** set size limit
-     *
-     * This indicates that this enumerator should not generate terms that
-     * have size that are greater than u.
-     */
-    void setSizeLimit(unsigned u);
-    /** clear the size limit on this enumerator */
-    void clearSizeLimit();
 
    private:
     /** are we currently inside a increment() call? */
@@ -338,10 +330,6 @@ class SygusEnumerator : public EnumValGenerator
     Node d_currTerm;
     /** is d_currTerm set */
     bool d_currTermSet;
-    /** is a size limit currently imposed on this enumerator? */
-    bool d_isSizeLimit;
-    /** the size limit current imposed on this enumerator */
-    unsigned d_sizeLimit;
     //----------------------------- current constructor class information
     /** the next constructor class we are using */
     unsigned d_consClassNum;

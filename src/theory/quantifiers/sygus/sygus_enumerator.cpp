@@ -590,8 +590,6 @@ SygusEnumerator::TermEnumMaster::TermEnumMaster()
     : TermEnum(),
       d_isIncrementing(false),
       d_currTermSet(false),
-      d_isSizeLimit(false),
-      d_sizeLimit(0),
       d_consClassNum(0),
       d_ccWeight(0),
       d_consNum(0),
@@ -893,18 +891,6 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
   d_ccCons.clear();
   d_ccTypes.clear();
   return incrementInternal();
-}
-
-void SygusEnumerator::TermEnumMaster::setSizeLimit(unsigned u)
-{
-  d_isSizeLimit = true;
-  d_sizeLimit = u;
-}
-
-void SygusEnumerator::TermEnumMaster::clearSizeLimit()
-{
-  d_isSizeLimit = false;
-  d_sizeLimit = 0;
 }
 
 bool SygusEnumerator::TermEnumMaster::initializeChildren()
