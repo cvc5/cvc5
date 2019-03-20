@@ -24,7 +24,7 @@ using namespace CVC4::api;
 int main()
 {
   Solver slv;
-  Term helloworld = slv.mkVar("Hello World!", slv.getBooleanSort());
+  Term helloworld = slv.mkVar(slv.getBooleanSort(), "Hello World!");
   std::cout << helloworld << " is " << slv.checkValidAssuming(helloworld)
             << std::endl;
   return 0;

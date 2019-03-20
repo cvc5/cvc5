@@ -165,14 +165,16 @@ class CandidateRewriteFilter
    * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
-  /** Match trie storing all terms in the domain of d_pairs.
+  /**
+   * For each (builtin) type, a match trie storing all terms in the domain of
+   * d_pairs.
    *
    * Notice that we store d_drewrite->toInternal(t) instead of t, for each
    * term t, so that polymorphism is handled properly. In particular, this
    * prevents matches between terms select( x, y ) and select( z, y ) where
    * the type of x and z are different.
    */
-  MatchTrie d_match_trie;
+  std::map<TypeNode, MatchTrie> d_match_trie;
   /** Notify class */
   class CandidateRewriteFilterNotifyMatch : public NotifyMatch
   {

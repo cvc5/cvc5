@@ -115,7 +115,7 @@ void test(Solver& slv, Sort& consListSort)
     }
   }
 
-  Term a = slv.declareFun("a", paramConsIntListSort);
+  Term a = slv.declareConst("a", paramConsIntListSort);
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
   Term head_a = slv.mkTerm(

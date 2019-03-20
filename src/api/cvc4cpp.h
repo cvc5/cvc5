@@ -1456,6 +1456,16 @@ std::ostream& operator<<(std::ostream& out,
                          const DatatypeConstructorDecl& ctordecl) CVC4_PUBLIC;
 
 /**
+ * Serialize a vector of datatype constructor declarations to given stream.
+ * @param out the output stream
+ * @param vector the vector of datatype constructor declarations to be
+ * serialized to the given stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<DatatypeConstructorDecl>& vector);
+
+/**
  * Serialize a datatype selector declaration to given stream.
  * @param out the output stream
  * @param stordecl the datatype selector declaration to be serialized
@@ -1691,14 +1701,6 @@ class CVC4_PUBLIC Solver
    * @return the Term
    */
   Term mkTerm(Kind kind) const;
-
-  /**
-   * Create 0-ary term of given kind and sort.
-   * @param kind the kind of the term
-   * @param sort the sort argument to this kind
-   * @return the Term
-   */
-  Term mkTerm(Kind kind, Sort sort) const;
 
   /**
    * Create a unary term of given kind.
@@ -2045,7 +2047,14 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(const char* s, uint32_t base = 2) const;
 
   /**
-   * Create a bit-vector constant from a given string.
+   * Create a bit-vector constant from a given string of base 2, 10 or 16.
+   *
+   * The size of resulting bit-vector is
+   * - base  2: the size of the binary string
+   * - base 10: the min. size required to represent the decimal as a bit-vector
+   * - base 16: the max. size required to represent the hexadecimal as a
+   *            bit-vector (4 * size of the given value string)
+   *
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
    * @return the bit-vector constant
@@ -2053,7 +2062,9 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(const std::string& s, uint32_t base = 2) const;
 
   /**
-   * Create a bit-vector constant of a given bit-width from a given string.
+   * Create a bit-vector constant of a given bit-width from a given string of
+   * base 2, 10 or 16.
+   *
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
@@ -2062,7 +2073,8 @@ class CVC4_PUBLIC Solver
   Term mkBitVector(uint32_t size, const char* s, uint32_t base) const;
 
   /**
-   * Create a bit-vector constant of a given bit-width from a given string.
+   * Create a bit-vector constant of a given bit-width from a given string of
+   * base 2, 10 or 16.
    * @param size the bit-width of the constant
    * @param s the string representation of the constant
    * @param base the base of the string representation (2, 10, or 16)
@@ -2155,33 +2167,19 @@ class CVC4_PUBLIC Solver
 
   /**
    * Create variable.
+   * @param sort the sort of the variable
    * @param symbol the name of the variable
-   * @param sort the sort of the variable
    * @return the variable
    */
-  Term mkVar(const std::string& symbol, Sort sort) const;
-
-  /**
-   * Create variable.
-   * @param sort the sort of the variable
-   * @return the variable
-   */
-  Term mkVar(Sort sort) const;
-
-  /**
-   * Create bound variable.
-   * @param symbol the name of the variable
-   * @param sort the sort of the variable
-   * @return the variable
-   */
-  Term mkBoundVar(const std::string& symbol, Sort sort) const;
+  Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /**
    * Create bound variable.
    * @param sort the sort of the variable
+   * @param symbol the name of the variable
    * @return the variable
    */
-  Term mkBoundVar(Sort sort) const;
+  Term mkBoundVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -2267,15 +2265,6 @@ class CVC4_PUBLIC Solver
    */
   Sort declareDatatype(const std::string& symbol,
                        const std::vector<DatatypeConstructorDecl>& ctors) const;
-
-  /**
-   * Declare 0-arity function symbol.
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * @param symbol the name of the function
-   * @param sort the sort of the return value of this function
-   * @return the function
-   */
-  Term declareFun(const std::string& symbol, Sort sort) const;
 
   /**
    * Declare n-ary function symbol.

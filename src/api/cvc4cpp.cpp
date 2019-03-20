@@ -1373,6 +1373,13 @@ std::ostream& operator<<(std::ostream& out,
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out,
+                         const std::vector<DatatypeConstructorDecl>& vector)
+{
+  container_to_stream(out, vector);
+  return out;
+}
+
 /* DatatypeDecl ------------------------------------------------------------- */
 
 DatatypeDecl::DatatypeDecl(const std::string& name, bool isCoDatatype)
@@ -2385,12 +2392,13 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const std::string& symbol, Sort sort) const
+Term Solver::mkVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(symbol, *sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkVar(*sort.d_type)
+                              : d_exprMgr->mkVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2400,42 +2408,13 @@ Term Solver::mkVar(const std::string& symbol, Sort sort) const
   }
 }
 
-Term Solver::mkVar(Sort sort) const
+Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(*sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkBoundVar(Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(*sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkBoundVar(*sort.d_type)
+                              : d_exprMgr->mkBoundVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2515,21 +2494,6 @@ Term Solver::mkTerm(Kind kind) const
       Assert(kind == PI);
       res = d_exprMgr->mkNullaryOperator(d_exprMgr->realType(), CVC4::kind::PI);
     }
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkTerm(Kind kind, Sort sort) const
-{
-  try
-  {
-    CVC4_API_KIND_CHECK_EXPECTED(kind == SEP_NIL, kind) << "SEP_NIL";
-    Term res = d_exprMgr->mkNullaryOperator(*sort.d_type, extToIntKind(kind));
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2980,7 +2944,17 @@ Result Solver::checkSatAssuming(const std::vector<Term>& assumptions) const
  */
 Term Solver::declareConst(const std::string& symbol, Sort sort) const
 {
-  return d_exprMgr->mkVar(symbol, *sort.d_type);
+  try
+  {
+    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
+    Term res = d_exprMgr->mkVar(symbol, *sort.d_type);
+    (void)res.d_expr->getType(true); /* kick off type checking */
+    return res;
+  }
+  catch (const CVC4::TypeCheckingException& e)
+  {
+    throw CVC4ApiException(e.getMessage());
+  }
 }
 
 /**
@@ -2990,21 +2964,14 @@ Sort Solver::declareDatatype(
     const std::string& symbol,
     const std::vector<DatatypeConstructorDecl>& ctors) const
 {
+  CVC4_API_ARG_CHECK_EXPECTED(ctors.size() > 0, ctors)
+      << "a datatype declaration with at least one constructor";
   DatatypeDecl dtdecl(symbol);
   for (const DatatypeConstructorDecl& ctor : ctors)
   {
     dtdecl.addConstructor(ctor);
   }
-  return mkDatatypeSort(dtdecl);
-}
-
-/**
- *  ( declare-fun <symbol> () <sort> )
- */
-Term Solver::declareFun(const std::string& symbol, Sort sort) const
-{
-  Type type = *sort.d_type;
-  return d_exprMgr->mkVar(symbol, type);
+  return d_exprMgr->mkDatatypeType(*dtdecl.d_dtype);
 }
 
 /**
