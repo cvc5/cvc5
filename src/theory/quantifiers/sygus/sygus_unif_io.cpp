@@ -642,7 +642,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       {
         Node res = itsr->second[j];
         Trace("sygus-sui-enum") << "res(" << res << ")" << std::endl;
-        if( !res.isConst() )
+        if (!res.isConst())
         {
           AlwaysAssert(false);
         }
@@ -664,7 +664,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         {
           if (resb.getType().isBoolean())
           {
-            if( resb.isConst() )
+            if (resb.isConst())
             {
               Assert(false);
             }
