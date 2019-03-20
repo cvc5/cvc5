@@ -161,7 +161,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Node trueNode = nm->mkConst(true);
 
   assertionsToPreprocess->replace(0, res);
-  for (unsigned i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
+  for (size_t i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
   {
     assertionsToPreprocess->replace(i, trueNode);
   }
