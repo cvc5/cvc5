@@ -13,6 +13,9 @@ New Features:
     operators, resulting in better performance on regular expression benchmarks
     (enabled by default).
 * SyGuS:
+  * Support for abduction (`--sygus-abduct`). Given a formula, this option uses
+    CVC4's SyGuS solver to find a sufficient condition such that the
+    conjunction of the condition and the formula is unsatisfiable.
   * Support for two new term enumerator strategies: variable agnostic
     (`--sygus-active-gen=var-agnostic`) and fast (`--sygus-active-gen=enum`).
     By default, CVC4 tries to choose the best term enumerator strategy
@@ -20,7 +23,9 @@ New Features:
 
 Improvements:
 * Strings:
-  * Significantly better performance on common string benchmarks.
+  * Significantly better performance on string benchmarks over the core theory
+    and those with extended string functions like substring, contains, and
+    replace.
 
 Changes:
 * API change: Expr::iffExpr() is renamed to Expr::eqExpr() to reflect its
