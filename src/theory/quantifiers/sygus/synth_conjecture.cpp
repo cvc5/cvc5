@@ -540,6 +540,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     Trace("cegqi-engine") << "Check side condition..." << std::endl;
     Trace("cegqi-debug") << "Check side condition : " << sc << std::endl;
     SmtEngine scSmt(nm->toExprManager());
+    scSmt.setIsInternalSubsolver();
     scSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
     scSmt.assertFormula(sc.toExpr());
     Result r = scSmt.checkSat();
@@ -572,6 +573,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     {
       Trace("cegqi-engine") << "  *** Verify with subcall..." << std::endl;
       SmtEngine verifySmt(nm->toExprManager());
+      verifySmt.setIsInternalSubsolver();
       verifySmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
       verifySmt.assertFormula(query.toExpr());
       Result r = verifySmt.checkSat();
