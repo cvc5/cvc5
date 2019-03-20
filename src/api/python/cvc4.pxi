@@ -25,11 +25,11 @@ from cvc4 cimport RoundingMode as c_RoundingMode
 from cvc4 cimport OpTerm as c_OpTerm
 from cvc4 cimport Solver as c_Solver
 from cvc4 cimport Sort as c_Sort
-from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE, \
-    ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
+from cvc4 cimport ROUND_NEAREST_TIES_TO_EVEN, ROUND_TOWARD_POSITIVE
+from cvc4 cimport ROUND_TOWARD_ZERO, ROUND_NEAREST_TIES_TO_AWAY
 from cvc4 cimport Term as c_Term
 
-from kinds cimport Kind as c_Kind
+from cvc4kinds cimport Kind as c_Kind
 
 ################################## DECORATORS #################################
 def expand_list_arg(num_req_args=0):

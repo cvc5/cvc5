@@ -72,7 +72,7 @@ cvc4_add_example(translator "" "${EXAMPLES_LINK_LIBS}" ""
     # argument to binary (for testing)
     ${CMAKE_CURRENT_SOURCE_DIR}/translator-example-input.smt2)
 
-if(BUILD_BINDINGS_JAVA)
+if(BUILD_SWIG_BINDINGS_JAVA)
   find_package(Java REQUIRED)
   set(EXAMPLES_JAVA_CLASSPATH "${CMAKE_BINARY_DIR}/src/bindings/java/CVC4.jar")
   add_custom_target(SimpleVCjava

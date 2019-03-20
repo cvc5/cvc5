@@ -40,20 +40,20 @@ replacements        = {
 CDEF_KIND = "    cdef Kind "
 
 KINDS_PXD_TOP = \
-r"""cdef extern from "cvc4cppkind.h" namespace "CVC4::api":
+r"""cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api":
     cdef cppclass Kind:
         pass
 
 
 # Kind declarations: See cvc4cppkind.h for additional information
-cdef extern from "cvc4cppkind.h" namespace "CVC4::api::Kind":
+cdef extern from "api/cvc4cppkind.h" namespace "CVC4::api::Kind":
 """
 
 KINDS_PXI_TOP = \
 r"""# distutils: language = c++
 # distutils: extra_compile_args = -std=c++11
 
-from kinds cimport *
+from cvc4kinds cimport *
 import sys
 from types import ModuleType
 

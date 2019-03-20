@@ -4,7 +4,7 @@ from libc.stdint cimport int32_t, int64_t, uint32_t, uint64_t
 from libcpp.string cimport string
 from libcpp.vector cimport vector
 from libcpp.pair cimport pair
-from kinds cimport Kind
+from cvc4kinds cimport Kind
 
 
 cdef extern from "<iostream>" namespace "std":
@@ -13,16 +13,12 @@ cdef extern from "<iostream>" namespace "std":
     ostream cout
 
 
-cdef extern from "cvc4cpp.cpp":
-    pass
-
-
-cdef extern from "cvc4cpp.h" namespace "CVC4":
+cdef extern from "api/cvc4cpp.h" namespace "CVC4":
     cdef cppclass Options:
         pass
 
 
-cdef extern from "cvc4cpp.h" namespace "CVC4::api":
+cdef extern from "api/cvc4cpp.h" namespace "CVC4::api":
     cdef cppclass Datatype:
         Datatype() except +
         DatatypeConstructor operator[](const string& name) except +
@@ -269,7 +265,7 @@ cdef extern from "cvc4cpp.h" namespace "CVC4::api":
         const_iterator end() except +
 
 
-cdef extern from "cvc4cpp.h" namespace "CVC4::api::RoundingMode":
+cdef extern from "api/cvc4cpp.h" namespace "CVC4::api::RoundingMode":
     cdef RoundingMode ROUND_NEAREST_TIES_TO_EVEN,
     cdef RoundingMode ROUND_TOWARD_POSITIVE,
     cdef RoundingMode ROUND_TOWARD_NEGATIVE,

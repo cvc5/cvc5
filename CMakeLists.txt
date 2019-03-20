@@ -1,4 +1,4 @@
-cmake_minimum_required(VERSION 3.1)
+cmake_minimum_required(VERSION 3.3)
 
 #-----------------------------------------------------------------------------#
 # Project configuration
@@ -118,9 +118,12 @@ set(SYMFPU_DIR        "" CACHE STRING "Set SymFPU install directory")
 # Prepend binaries with prefix on make install
 set(PROGRAM_PREFIX    "" CACHE STRING "Program prefix on make install")
 
-# Supported language bindings
-option(BUILD_BINDINGS_JAVA   "Build Java bindings")
-option(BUILD_BINDINGS_PYTHON "Build Python bindings")
+# Supported SWIG language bindings
+option(BUILD_SWIG_BINDINGS_JAVA   "Build Java bindings with SWIG")
+option(BUILD_SWIG_BINDINGS_PYTHON "Build Python bindings with SWIG")
+
+# Supprted language bindings based on new C++ API
+option(BUILD_BINDINGS_PYTHON "Build Python bindings based on new C++ API ")
 
 #-----------------------------------------------------------------------------#
 # Internal cmake variables
@@ -477,8 +480,12 @@ add_subdirectory(examples EXCLUDE_FROM_ALL)  # excluded from all target
 add_subdirectory(src)
 add_subdirectory(test)
 
-if(BUILD_BINDINGS_JAVA OR BUILD_BINDINGS_PYTHON)
+if(BUILD_SWIG_BINDINGS_JAVA OR BUILD_SWIG_BINDINGS_PYTHON)
   add_subdirectory(src/bindings)
+endif()
+
+if(BUILD_BINDINGS_PYTHON)
+  add_subdirectory(src/api/python)
 endif()
 
 #-----------------------------------------------------------------------------#
@@ -519,7 +526,8 @@ print_config("Valgrind             :" ENABLE_VALGRIND)
 message("")
 print_config("Shared libs          :" ENABLE_SHARED)
 print_config("Static binary        :" ENABLE_STATIC_BINARY)
-print_config("Java bindings        :" BUILD_BINDINGS_JAVA)
+print_config("Java bindings        :" BUILD_SWIG_BINDINGS_JAVA)
+print_config("Python bindings      :" BUILD_SWIG_BINDINGS_PYTHON)
 print_config("Python bindings      :" BUILD_BINDINGS_PYTHON)
 print_config("Python2              :" USE_PYTHON2)
 print_config("Python3              :" USE_PYTHON3)

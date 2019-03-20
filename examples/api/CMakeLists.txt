@@ -25,6 +25,6 @@ foreach(example ${CVC4_EXAMPLES_API})
     "" "${EXAMPLES_API_LINK_LIBS}" "api")
 endforeach()
 
-if(BUILD_BINDINGS_JAVA)
+if(BUILD_SWIG_BINDINGS_JAVA)
   add_subdirectory(java)
 endif()
