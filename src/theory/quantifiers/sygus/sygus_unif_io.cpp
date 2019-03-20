@@ -641,11 +641,6 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
         Node res = itsr->second[j];
-        Trace("sygus-sui-enum") << "res(" << res << ")" << std::endl;
-        if (!res.isConst())
-        {
-          AlwaysAssert(false);
-        }
         Assert(res.isConst());
         Node resb;
         if (eiv.getRole() == enum_io)
@@ -664,10 +659,6 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         {
           if (resb.getType().isBoolean())
           {
-            if (resb.isConst())
-            {
-              Assert(false);
-            }
             Trace("sygus-sui-enum") << (resb == d_true ? "1" : "0");
           }
           else
