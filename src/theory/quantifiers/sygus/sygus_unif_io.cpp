@@ -646,7 +646,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         Node resb;
         // If the result is not constant, then we cannot determine its value
         // on this point. In this case, resb remains null.
-        if(res.isConst())
+        if (res.isConst())
         {
           if (eiv.getRole() == enum_io)
           {
@@ -663,7 +663,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         results.push_back(resb);
         if (Trace.isOn("sygus-sui-enum"))
         {
-          if( resb.isNull() )
+          if (resb.isNull())
           {
             Trace("sygus-sui-enum") << "_";
           }
