@@ -32,7 +32,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (k == kind::APPLY_SELECTOR_TOTAL)
+  else if (k == kind::APPLY_SELECTOR_TOTAL || k==kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
@@ -331,6 +331,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 {
+  Kind k = in.getKind();
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
     // Have to be careful not to rewrite well-typed expressions
@@ -348,7 +349,17 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     Trace("datatypes-rewrite-debug") << ", cindex = " << constructorIndex
                                      << ", selector is " << selector
                                      << std::endl;
-    int selectorIndex = c.getSelectorIndexInternal(selector.toExpr());
+    int selectorIndex;
+    if( k==kind::APPLY_SELECTOR_TOTAL )
+    {
+      // the argument index of internal selectors is obtained by getSelectorIndexInternal
+      selectorIndex = c.getSelectorIndexInternal(selector.toExpr());
+    }
+    else
+    {
+      // the argument index of external selectors (applications of APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
+      selectorIndex = Datatype::indexOf(selector.toExpr());
+    }
     Trace("datatypes-rewrite-debug") << "Internal selector index is "
                                      << selectorIndex << std::endl;
     if (selectorIndex >= 0)
@@ -374,7 +385,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
     }
-    else
+    else if( k==kind::APPLY_SELECTOR_TOTAL )
     {
       Node gt;
       bool useTe = true;
