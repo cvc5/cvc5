@@ -687,6 +687,9 @@ class CVC4ApiExceptionStream
 
 Result::Result(const CVC4::Result& r) : d_result(new CVC4::Result(r)) {}
 
+// Nullary constructor for Cython
+Result::Result() {}
+
 bool Result::isSat(void) const
 {
   return d_result->getType() == CVC4::Result::TYPE_SAT
@@ -1545,6 +1548,9 @@ DatatypeConstructor::const_iterator::const_iterator(
   d_idx = begin ? 0 : sels->size();
 }
 
+// Nullary constructor for Cython
+DatatypeConstructor::const_iterator::const_iterator() {}
+
 DatatypeConstructor::const_iterator& DatatypeConstructor::const_iterator::
 operator=(const DatatypeConstructor::const_iterator& it)
 {
@@ -1619,6 +1625,9 @@ Datatype::Datatype(const CVC4::Datatype& dtype)
 {
 }
 
+// Nullary constructor for Cython
+Datatype::Datatype() {}
+
 Datatype::~Datatype() {}
 
 DatatypeConstructor Datatype::operator[](size_t idx) const
@@ -1656,6 +1665,8 @@ size_t Datatype::getNumConstructors() const
 
 bool Datatype::isParametric() const { return d_dtype->isParametric(); }
 
+std::string Datatype::toString() const { return d_dtype->getName(); }
+
 Datatype::const_iterator Datatype::begin() const
 {
   return Datatype::const_iterator(*d_dtype, true);
@@ -1683,6 +1694,9 @@ Datatype::const_iterator::const_iterator(const CVC4::Datatype& dtype,
   }
   d_idx = begin ? 0 : cons->size();
 }
+
+// Nullary constructor for Cython
+Datatype::const_iterator::const_iterator() {}
 
 Datatype::const_iterator& Datatype::const_iterator::operator=(
     const Datatype::const_iterator& it)
