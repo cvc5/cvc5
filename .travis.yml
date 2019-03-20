@@ -56,6 +56,7 @@ script:
    normal="$(echo -e '\033[0m')" red="$normal$(echo -e '\033[01;31m')" green="$normal$(echo -e '\033[01;32m')"
    configureCVC4() {
      echo "CVC4 config - $TRAVIS_CVC4_CONFIG";
+     export CPLUS_INCLUDE_PATH=$(pwd)/build/install:$CPLUS_INCLUDE_PATH
      ./configure.sh --name=build --prefix=$(pwd)/build/install --unit-testing $TRAVIS_CVC4_CONFIG
    }
    error() {
