@@ -1604,6 +1604,7 @@ set(regress_1_tests
   regress1/sygus/crci-ssb-unk.sy
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/crcy-si.sy
+  regress1/sygus/cube-nia.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
   regress1/sygus/fg_polynomial3.sy
