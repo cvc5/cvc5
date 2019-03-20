@@ -339,28 +339,39 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     // e.g. "pred(zero)".
     TypeNode tn = in.getType();
     TypeNode argType = in[0].getType();
-    TNode selector = in.getOperator();
+    Expr selector = in.getOperator().toExpr();
     TNode constructor = in[0].getOperator();
     size_t constructorIndex = indexOf(constructor);
-    const Datatype& dt = Datatype::datatypeOf(selector.toExpr());
+    const Datatype& dt = Datatype::datatypeOf(selector);
     const DatatypeConstructor& c = dt[constructorIndex];
     Trace("datatypes-rewrite-debug") << "Rewriting collapsable selector : "
                                      << in;
     Trace("datatypes-rewrite-debug") << ", cindex = " << constructorIndex
                                      << ", selector is " << selector
                                      << std::endl;
-    int selectorIndex;
+    // The argument that the selector extracts, or -1 if the selector is
+    // is wrongly applied.
+    int selectorIndex = -1;
     if (k == kind::APPLY_SELECTOR_TOTAL)
     {
-      // the argument index of internal selectors is obtained by
-      // getSelectorIndexInternal
-      selectorIndex = c.getSelectorIndexInternal(selector.toExpr());
+      // The argument index of internal selectors is obtained by
+      // getSelectorIndexInternal.
+      selectorIndex = c.getSelectorIndexInternal(selector);
     }
     else
     {
-      // the argument index of external selectors (applications of
+      // The argument index of external selectors (applications of
       // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
-      selectorIndex = Datatype::indexOf(selector.toExpr());
+      // The argument is only valid if it is the proper constructor.
+      selectorIndex = Datatype::indexOf(selector);
+      if( selectorIndex<0 || selectorIndex>c.getNumArgs() )
+      {
+        selectorIndex = -1;
+      }
+      else if( c[selectorIndex].getSelector()!=selector )
+      {
+        selectorIndex = -1;
+      }
     }
     Trace("datatypes-rewrite-debug") << "Internal selector index is "
                                      << selectorIndex << std::endl;
