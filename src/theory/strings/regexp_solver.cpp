@@ -39,8 +39,7 @@ RegExpSolver::RegExpSolver(TheoryStrings& p, context::Context* c,
       d_neg_memberships(c),
       d_inter_cache(c),
       d_inter_index(c),
-      d_processed_memberships(c),
-      d_regexp_ant(c)
+      d_processed_memberships(c)
 {
   d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
   std::vector< Node > nvec;
@@ -68,13 +67,8 @@ Node RegExpSolver::getMembership( Node n, bool isPos, unsigned i ) {
   return isPos ? d_pos_memberships_data[n][i] : d_neg_memberships_data[n][i];
 }
 
-Node RegExpSolver::mkRegExpAntec(Node atom, Node ant) {
-  if(d_regexp_ant.find(atom) == d_regexp_ant.end()) {
-    return NodeManager::currentNM()->mkNode(kind::AND, ant, atom);
-  } else {
-    Node n = d_regexp_ant[atom];
-    return NodeManager::currentNM()->mkNode(kind::AND, ant, n);
-  }
+Node RegExpSolver::mkAnd(Node c1, Node c2) {
+  return NodeManager::currentNM()->mkNode(kind::AND, c1, c2);
 }
 
 void RegExpSolver::check() {
@@ -186,7 +180,7 @@ void RegExpSolver::check() {
           }
           else if (tmp == d_false)
           {
-            Node antec = mkRegExpAntec(assertion, d_parent.mkExplain(rnfexp));
+            Node antec = mkAnd(assertion, d_parent.mkExplain(rnfexp));
             Node conc = Node::null();
             d_parent.sendLemma(antec, conc, "REGEXP NF Conflict");
             addedLemma = true;
@@ -216,25 +210,8 @@ void RegExpSolver::check() {
           {
             d_regexp_opr.simplify(atom, nvec, polarity);
           }
-          Node antec = assertion;
-          if (d_regexp_ant.find(assertion) != d_regexp_ant.end())
-          {
-            antec = d_regexp_ant[assertion];
-            for (std::vector<Node>::const_iterator itr = nvec.begin();
-                 itr < nvec.end();
-                 itr++)
-            {
-              if (itr->getKind() == kind::STRING_IN_REGEXP)
-              {
-                if (d_regexp_ant.find(*itr) == d_regexp_ant.end())
-                {
-                  d_regexp_ant[*itr] = antec;
-                }
-              }
-            }
-          }
-          antec = NodeManager::currentNM()->mkNode(
-              kind::AND, antec, d_parent.mkExplain(rnfexp));
+          Node antec = NodeManager::currentNM()->mkNode(
+              kind::AND, assertion, d_parent.mkExplain(rnfexp));
           Node conc = nvec.size() == 1
                           ? nvec[0]
                           : NodeManager::currentNM()->mkNode(kind::AND, nvec);
@@ -279,7 +256,7 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
     Node exp;
     switch(d_regexp_opr.delta(r, exp)) {
       case 0: {
-        Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
+        Node antec = mkAnd(atom, x.eqNode(d_emptyString));
         antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
         d_parent.sendLemma(antec, exp, "RegExp Delta");
         addedLemma = true;
@@ -291,7 +268,7 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
         break;
       }
       case 2: {
-        Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
+        Node antec = mkAnd(atom, x.eqNode(d_emptyString));
         antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
         Node conc = Node::null();
         d_parent.sendLemma(antec, conc, "RegExp Delta CONFLICT");
@@ -312,7 +289,7 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
         d_regexp_ccached.insert(atom);
         return false;
       } else if(nn == d_false) {
-        Node antec = mkRegExpAntec(atom, x.eqNode(xr));
+        Node antec = mkAnd(atom, x.eqNode(xr));
         Node conc = Node::null();
         sendLemma(antec, conc, "RegExp Delta CONFLICT");
         addedLemma = true;
@@ -320,7 +297,7 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
         return false;
       }
     }*/
-    Node sREant = mkRegExpAntec(atom, d_true);
+    Node sREant = mkAnd(atom, d_true);
     sREant = NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf);
     if(deriveRegExp( x, r, sREant )) {
       addedLemma = true;

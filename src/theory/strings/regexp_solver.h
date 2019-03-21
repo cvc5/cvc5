@@ -64,7 +64,7 @@ private:
   TheoryStrings& d_parent;
   //--------------------------------for checkMemberships
   // check membership constraints
-  Node mkRegExpAntec(Node atom, Node ant);
+  Node mkAnd(Node c1, Node c2);
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
   Node getMembership( Node n, bool isPos, unsigned i );
   unsigned getNumMemberships( Node n, bool isPos );
@@ -89,8 +89,6 @@ private:
   NodeIntMap d_inter_index;
   // processed memberships
   NodeSet d_processed_memberships;
-  // antecedant for why regexp membership must be true
-  NodeNodeMap d_regexp_ant;
   /** regular expression operation module */
   RegExpOpr d_regexp_opr;
 };/* class TheoryStrings */

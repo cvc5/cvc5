@@ -3516,7 +3516,6 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
                      nm->mkNode(kind::REGEXP_STAR,
                                 nm->mkNode(kind::STRING_TO_REGEXP, restr))));
       cc = cc == d_true ? conc2 : nm->mkNode(kind::AND, cc, conc2);
-      //d_regexp_ant[conc2] = ant;
       vconc.push_back(cc);
     }
     conc = vconc.size() == 0 ? Node::null() : vconc.size() == 1
@@ -3566,11 +3565,6 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
     conc = nm->mkNode(kind::AND, vec_conc);
   }  // normal case
 
-  // set its antecedant to ant, to say when it is relevant
-  //if (!str_in_re.isNull())
-  //{
-  //  d_regexp_ant[str_in_re] = ant;
-  //}
   // we will be done
   info.d_conc = conc;
   info.d_id = INFER_FLOOP;

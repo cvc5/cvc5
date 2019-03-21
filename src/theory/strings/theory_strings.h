@@ -663,21 +663,68 @@ public: //FIXME
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the interference.
+   * The argument c is a string identifying the reason for the inference.
    * This string is used for debugging purposes.
    */
   void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  // send lemma
+  /** send inference 
+   * 
+   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * contains literals that are explainable by this class, i.e. those that
+   * hold in the equality engine of this class. On the other hand, the set
+   * exp_n ("explanations new") contain nodes that are not explainable by this
+   * class. This method will either:
+   * 
+   * [1] (No-op) Do nothing if eq is true,
+   * 
+   * [2] (Infer) Indicate that eq should be added to the equality engine of this
+   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
+   * explanation of the node in exp in terms of the literals asserted to this
+   * class,
+   * 
+   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should be
+   * sent on the output channel of this class, or
+   * 
+   * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
+   * channel of this class.
+   * 
+   * Determining which case to apply depends on the form of eq and whether
+   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
+   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   * 
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   * 
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of an inference whenever applicable.
+   */
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** same as above, but where exp_n is empty */
   void sendInference(std::vector<Node>& exp,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
-  void sendLemma(Node ant, Node conc, const char* c);
+  /** 
+   * Indicates that ant => conc should be sent on the output channel of this
+   * class. This will either trigger an immediate call to the conflict
+   * method of the output channel of this class of conc is false, or adds the
+   * above lemma to the lemma cache d_lemma_cache, which may be flushed
+   * later within the current call to TheoryStrings::check.
+   * 
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   */
+  void sendLemma(Node ant, Node conc, const char* c);  
+  /** 
+   * Indicates that conc should be added to the equality engine of this class
+   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
+   * of) literals that each are explainable, i.e. they already hold in the
+   * equality engine of this class.
+   */
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   bool inConflict() const { return d_conflict; }
