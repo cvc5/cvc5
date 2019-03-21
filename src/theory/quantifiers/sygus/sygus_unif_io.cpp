@@ -641,23 +641,33 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
       for (unsigned j = 0, size = itsr->second.size(); j < size; j++)
       {
         Node res = itsr->second[j];
-        Assert(res.isConst());
+        // The value of this term for this example, or the truth value of
+        // the I/O pair if the role of this enumerator is enum_io.
         Node resb;
-        if (eiv.getRole() == enum_io)
+        // If the result is not constant, then we cannot determine its value
+        // on this point. In this case, resb remains null.
+        if (res.isConst())
         {
-          Node out = d_examples_out[j];
-          Assert(out.isConst());
-          resb = res == out ? d_true : d_false;
-        }
-        else
-        {
-          resb = res;
+          if (eiv.getRole() == enum_io)
+          {
+            Node out = d_examples_out[j];
+            Assert(out.isConst());
+            resb = res == out ? d_true : d_false;
+          }
+          else
+          {
+            resb = res;
+          }
         }
         cond_vals[resb] = true;
         results.push_back(resb);
         if (Trace.isOn("sygus-sui-enum"))
         {
-          if (resb.getType().isBoolean())
+          if (resb.isNull())
+          {
+            Trace("sygus-sui-enum") << "_";
+          }
+          else if (resb.getType().isBoolean())
           {
             Trace("sygus-sui-enum") << (resb == d_true ? "1" : "0");
           }
