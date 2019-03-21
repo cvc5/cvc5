@@ -3566,7 +3566,7 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
   return checkSatisfiability(
-      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr> {assumption},
+      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
       inUnsatCore,
       true);
 }
