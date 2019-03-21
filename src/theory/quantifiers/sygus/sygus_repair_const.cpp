@@ -115,6 +115,7 @@ void SygusRepairConst::initializeChecker(std::unique_ptr<SmtEngine>& checker,
     try
     {
       checker.reset(new SmtEngine(&em));
+      checker->setIsInternalSubsolver();
       checker->setTimeLimit(options::sygusRepairConstTimeout(), true);
       checker->setLogic(smt::currentSmtEngine()->getLogicInfo());
       // renable options disabled by sygus
