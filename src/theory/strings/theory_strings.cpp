@@ -5108,7 +5108,7 @@ void TheoryStrings::addMembership(Node assertion) {
   if(polarity) {
     int index = 0;
     NodeIntMap::const_iterator it = d_pos_memberships.find( x );
-    if( it!=d_nf_pairs.end() ){
+    if( it!=d_pos_memberships.end() ){
       index = (*it).second;
       for( int k=0; k<index; k++ ){
         if( k<(int)d_pos_memberships_data[x].size() ){
@@ -5134,7 +5134,7 @@ void TheoryStrings::addMembership(Node assertion) {
     }*/
     int index = 0;
     NodeIntMap::const_iterator it = d_neg_memberships.find( x );
-    if( it!=d_nf_pairs.end() ){
+    if( it!=d_neg_memberships.end() ){
       index = (*it).second;
       for( int k=0; k<index; k++ ){
         if( k<(int)d_neg_memberships_data[x].size() ){
