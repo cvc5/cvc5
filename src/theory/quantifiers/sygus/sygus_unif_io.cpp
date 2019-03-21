@@ -653,7 +653,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           // of the good behavior of the current term, that is, we only
           // produce solutions whose values are fully evaluatable on all input
           // points.
-          resb = ( res.isConst() && res == out) ? d_true : d_false;
+          resb = (res.isConst() && res == out) ? d_true : d_false;
         }
         else
         {
@@ -687,7 +687,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           std::vector<Node> subsume;
           if (cond_vals.find(d_false) == cond_vals.end())
           {
-            Assert( cond_vals.size()==1 );
+            Assert(cond_vals.size() == 1);
             // it is the entire solution, we are done
             Trace("sygus-sui-enum")
                 << "  ...success, full solution added to PBE pool : "
