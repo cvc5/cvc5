@@ -973,6 +973,7 @@ void LFSCArithProof::printVariableNormalizer(std::ostream& o, const Node& n)
 void LFSCArithProof::printLinearPolynomialPredicateNormalizer(std::ostream& o,
                                                               const Node& n)
 {
+  std::cout << "panda " << n.getKind() << std::endl;
   Assert(n.getKind() == kind::GEQ,
          "can only print normalization witnesses for (>=) nodes");
   Assert(n[1].getKind() == kind::CONST_RATIONAL);
