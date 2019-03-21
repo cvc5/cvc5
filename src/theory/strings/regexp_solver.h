@@ -26,10 +26,10 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 class TheoryStrings;
 
-class RegExpSolver 
+class RegExpSolver
 {
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
@@ -39,24 +39,25 @@ class RegExpSolver
 
  public:
   RegExpSolver(TheoryStrings& p, context::Context* c, context::UserContext* u);
-  ~RegExpSolver(){}
-  
+  ~RegExpSolver() {}
+
   /** add membership
-   * 
+   *
    * This informs this class that assertion is asserted in the current context.
    * We expect that assertion is a (possibly negated) regular expression
    * membership.
    */
   void addMembership(Node assertion);
   /** check
-   * 
+   *
    * Tells this solver to check whether the regular expressions asserted to it
    * are consistent. If they are not, then this class will call the
    * sendInference method of its parent TheoryString object, indicating that
    * it requires a conflict or lemma to be processed.
    */
   void check();
-private:
+
+ private:
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;
@@ -66,24 +67,25 @@ private:
   TheoryStrings& d_parent;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
-  bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
-  Node getMembership( Node n, bool isPos, unsigned i );
-  unsigned getNumMemberships( Node n, bool isPos );
-  CVC4::String getHeadConst( Node x );
-  bool deriveRegExp( Node x, Node r, Node atom, std::vector< Node >& ant );
-  Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
+  bool checkPDerivative(
+      Node x, Node r, Node atom, bool& addedLemma, std::vector<Node>& nf_exp);
+  Node getMembership(Node n, bool isPos, unsigned i);
+  unsigned getNumMemberships(Node n, bool isPos);
+  CVC4::String getHeadConst(Node x);
+  bool deriveRegExp(Node x, Node r, Node atom, std::vector<Node>& ant);
+  Node getNormalSymRegExp(Node r, std::vector<Node>& nf_exp);
   // regular expression memberships
   NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
   // stored assertions
   NodeIntMap d_pos_memberships;
-  std::map< Node, std::vector< Node > > d_pos_memberships_data;
+  std::map<Node, std::vector<Node> > d_pos_memberships_data;
   NodeIntMap d_neg_memberships;
-  std::map< Node, std::vector< Node > > d_neg_memberships_data;
+  std::map<Node, std::vector<Node> > d_neg_memberships_data;
   // semi normal forms for symbolic expression
-  std::map< Node, Node > d_nf_regexps;
-  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
+  std::map<Node, Node> d_nf_regexps;
+  std::map<Node, std::vector<Node> > d_nf_regexps_exp;
   // intersection
   NodeNodeMap d_inter_cache;
   NodeIntMap d_inter_index;
@@ -91,10 +93,10 @@ private:
   NodeSet d_processed_memberships;
   /** regular expression operation module */
   RegExpOpr d_regexp_opr;
-};/* class TheoryStrings */
+}; /* class TheoryStrings */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

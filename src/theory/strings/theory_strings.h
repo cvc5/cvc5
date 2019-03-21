@@ -245,7 +245,8 @@ private:
   Node d_one;
   Node d_neg_one;
   unsigned d_card_size;
-public: //FIXME
+
+ public:  // FIXME
   // Helper functions
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
@@ -256,16 +257,16 @@ public: //FIXME
   Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
   Node getLength( Node t, std::vector< Node >& exp );
   /** get normal string
-   * 
+   *
    * This method returns the node that is equivalent to the normal form of x,
-   * and adds the corresponding explanation to nf_exp. 
+   * and adds the corresponding explanation to nf_exp.
    *
    * For example, if x = y ++ z is an assertion in the current context, then
-   * this method returns the term y ++ z and adds x = y ++ z to nf_exp. 
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
    */
-  Node getNormalString(Node x, std::vector<Node> &nf_exp);
+  Node getNormalString(Node x, std::vector<Node>& nf_exp);
 
-private:
+ private:
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -651,7 +652,7 @@ private:
    */
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
-public: //FIXME
+ public:  // FIXME
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -667,35 +668,35 @@ public: //FIXME
    * This string is used for debugging purposes.
    */
   void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  /** send inference 
-   * 
+  /** send inference
+   *
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp
    * contains literals that are explainable by this class, i.e. those that
    * hold in the equality engine of this class. On the other hand, the set
    * exp_n ("explanations new") contain nodes that are not explainable by this
    * class. This method may call sendInfer or sendLemma. Overall, the result
    * of this method is one of the following:
-   * 
+   *
    * [1] (No-op) Do nothing if eq is true,
-   * 
+   *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
    * class with explanation EXPLAIN(exp), where EXPLAIN returns the
    * explanation of the node in exp in terms of the literals asserted to this
    * class,
-   * 
+   *
    * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
    * be sent on the output channel of this class, or
-   * 
+   *
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
    * channel of this class.
-   * 
+   *
    * Determining which case to apply depends on the form of eq and whether
    * exp_n is empty. In particular, lemmas must be used whenever exp_n is
    * non-empty, conflicts are used when exp_n is empty and eq is false.
-   * 
+   *
    * The argument c is a string identifying the reason for inference, used for
    * debugging.
-   * 
+   *
    * If the flag asLemma is true, then this method will send a lemma instead
    * of an inference whenever applicable.
    */
@@ -709,24 +710,25 @@ public: //FIXME
                      Node eq,
                      const char* c,
                      bool asLemma = false);
-  /** 
+  /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
    */
   bool inConflict() const { return d_conflict; }
-protected:
-  /** 
+
+ protected:
+  /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
    * method of the output channel of this class of conc is false, or adds the
    * above lemma to the lemma cache d_lemma_cache, which may be flushed
    * later within the current call to TheoryStrings::check.
-   * 
+   *
    * The argument c is a string identifying the reason for inference, used for
    * debugging.
    */
-  void sendLemma(Node ant, Node conc, const char* c);  
-  /** 
+  void sendLemma(Node ant, Node conc, const char* c);
+  /**
    * Indicates that conc should be added to the equality engine of this class
    * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
    * of) literals that each are explainable, i.e. they already hold in the
@@ -745,7 +747,8 @@ protected:
   /** mkExplain **/
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
-protected:
+
+ protected:
   /** mkAnd **/
   Node mkAnd(std::vector<Node>& a);
   /** get concat vector */

@@ -121,7 +121,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
-      d_regexp_solver(*this,c,u),
+      d_regexp_solver(*this, c, u),
       d_input_vars(u),
       d_input_var_lsum(u),
       d_cardinality_lits(u),
@@ -248,23 +248,33 @@ Node TheoryStrings::getLength( Node t, std::vector< Node >& exp ) {
   return getLengthExp( t, exp, t );
 }
 
-Node TheoryStrings::getNormalString( Node x, std::vector< Node >& nf_exp ){
-  if( !x.isConst() ){
-    Node xr = getRepresentative( x );
-    if( d_normal_forms.find( xr ) != d_normal_forms.end() ){
-      Node ret = mkConcat( d_normal_forms[xr] );
-      nf_exp.insert( nf_exp.end(), d_normal_forms_exp[xr].begin(), d_normal_forms_exp[xr].end() );
-      addToExplanation( x, d_normal_forms_base[xr], nf_exp );
-      Trace("strings-debug") << "Term: " << x << " has a normal form " << ret << std::endl;
+Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
+{
+  if (!x.isConst())
+  {
+    Node xr = getRepresentative(x);
+    if (d_normal_forms.find(xr) != d_normal_forms.end())
+    {
+      Node ret = mkConcat(d_normal_forms[xr]);
+      nf_exp.insert(nf_exp.end(),
+                    d_normal_forms_exp[xr].begin(),
+                    d_normal_forms_exp[xr].end());
+      addToExplanation(x, d_normal_forms_base[xr], nf_exp);
+      Trace("strings-debug")
+          << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
-    } else {
-      if(x.getKind() == kind::STRING_CONCAT) {
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<x.getNumChildren(); i++) {
-          Node nc = getNormalString( x[i], nf_exp );
-          vec_nodes.push_back( nc );
+    }
+    else
+    {
+      if (x.getKind() == kind::STRING_CONCAT)
+      {
+        std::vector<Node> vec_nodes;
+        for (unsigned i = 0; i < x.getNumChildren(); i++)
+        {
+          Node nc = getNormalString(x[i], nf_exp);
+          vec_nodes.push_back(nc);
         }
-        return mkConcat( vec_nodes );
+        return mkConcat(vec_nodes);
       }
     }
   }
@@ -1043,19 +1053,25 @@ void TheoryStrings::checkExtfReductions( int effort ) {
   }
 }
 
-void TheoryStrings::checkMemberships() {
-  //add the memberships
+void TheoryStrings::checkMemberships()
+{
+  // add the memberships
   std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
-  for (unsigned i = 0; i < mems.size(); i++) {
+  for (unsigned i = 0; i < mems.size(); i++)
+  {
     Node n = mems[i];
-    Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
+    Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
     if (!d_extf_info_tmp[n].d_const.isNull())
     {
       bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
-      Trace("strings-process-debug") << "  add membership : " << n << ", pol = " << pol << std::endl;
-      d_regexp_solver.addMembership( pol ? n : n.negate() );
-    }else{
-      Trace("strings-process-debug") << "  irrelevant (non-asserted) membership : " << n << std::endl;
+      Trace("strings-process-debug")
+          << "  add membership : " << n << ", pol = " << pol << std::endl;
+      d_regexp_solver.addMembership(pol ? n : n.negate());
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "  irrelevant (non-asserted) membership : " << n << std::endl;
     }
   }
   d_regexp_solver.check();
