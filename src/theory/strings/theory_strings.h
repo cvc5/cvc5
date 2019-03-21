@@ -236,25 +236,41 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-private:
-  // Constants
-  Node d_emptyString;
-  Node d_true;
-  Node d_false;
-  Node d_zero;
-  Node d_one;
-  Node d_neg_one;
-  unsigned d_card_size;
-
- public:  // FIXME
-  // Helper functions
+  //--------------------------- equality engine 
+  /** 
+   * Get the representative of t in the equality engine of this class, or t
+   * itself if it is not registered as a term.
+   */
   Node getRepresentative( Node t );
+  /** Is t registered as a term in the equality engine of this class? */
   bool hasTerm( Node a );
+  /** 
+   * Are a and b equal according to the equality engine of this class? Also
+   * returns true if a and b are identical.
+   */
   bool areEqual( Node a, Node b );
+  /** 
+   * Are a and b disequal according to the equality engine of this class? Also
+   * returns true if the representative of a and b are distinct constants.
+   */
   bool areDisequal( Node a, Node b );
-  bool areCareDisequal( TNode x, TNode y );
-  // t is representative, te = t, add lt = te to explanation exp
+  //--------------------------- end equality engine 
+  
+  //--------------------------- helper functions
+  /** get length with explanation
+   * 
+   * If possible, this returns an arithmetic term that exists in the current
+   * context that is equal to the length of te, or otherwise returns the
+   * length of t. It adds to exp literals that hold in the current context that
+   * explain why that term is equal to the length of t. For example, if
+   * we have assertions:
+   *   len( x ) = 5 ^ z = x ^ x = y,
+   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
+   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
+   * adds nothing to exp.
+   */
   Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
+  /** shorthand for getLengthExp(t, exp, t) */
   Node getLength( Node t, std::vector< Node >& exp );
   /** get normal string
    *
@@ -265,8 +281,18 @@ private:
    * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
    */
   Node getNormalString(Node x, std::vector<Node>& nf_exp);
+  //-------------------------- end helper functions
 
  private:
+  // Constants
+  Node d_emptyString;
+  Node d_true;
+  Node d_false;
+  Node d_zero;
+  Node d_one;
+  Node d_neg_one;
+  /** the cardinality of the alphabet */
+  unsigned d_card_size;
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -618,6 +644,11 @@ private:
  protected:
   /** compute care graph */
   void computeCareGraph() override;
+  /** 
+   * Are x and y shared terms that are not equal? This is used for constructing
+   * the care graph in the above function. 
+   */
+  bool areCareDisequal( TNode x, TNode y );
 
   // do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
@@ -652,7 +683,7 @@ private:
    */
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
- public:  // FIXME
+ public:
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
