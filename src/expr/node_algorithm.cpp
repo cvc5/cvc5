@@ -273,5 +273,117 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest)
+{
+  if (n == src)
+  {
+    return dest;
+  }
+  if (src == dest)
+  {
+    return n;
+  }
+  std::vector<Node> srcs;
+  std::vector<Node> dests;
+  srcs.push_back(src);
+  dests.push_back(dest);
+  return substituteCaptureAvoiding(n, srcs, dests);
+}
+
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest)
+{
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode curr;
+  visit.push_back(n);
+  Assert(src.size() == dest.size(),
+         "Substitution domain and range must be equal size");
+  do
+  {
+    curr = visit.back();
+    visit.pop_back();
+    it = visited.find(curr);
+
+    if (it == visited.end())
+    {
+      auto itt = std::find(src.rbegin(), src.rend(), curr);
+      if (itt != src.rend())
+      {
+        Assert(
+            (std::distance(src.begin(), itt.base()) - 1) >= 0
+            && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
+                   < dest.size());
+        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
+        visited[curr] = n;
+        continue;
+      }
+      if (curr.getNumChildren() == 0)
+      {
+        visited[curr] = curr;
+        continue;
+      }
+
+      visited[curr] = Node::null();
+      // if binder, rename variables to avoid capture
+      if (curr.isClosure())
+      {
+        NodeManager* nm = NodeManager::currentNM();
+        // have new vars -> renames subs in the end of current sub
+        for (const Node& v : curr[0])
+        {
+          src.push_back(v);
+          dest.push_back(nm->mkBoundVar(v.getType()));
+        }
+      }
+      // save for post-visit
+      visit.push_back(curr);
+      // visit children
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        visit.push_back(curr.getOperator());
+      }
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        visit.push_back(curr[i]);
+      }
+    }
+    else if (it->second.isNull())
+    {
+      // build node
+      NodeBuilder<> nb(curr.getKind());
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        Assert(visited.find(curr.getOperator()) != visited.end());
+        nb << visited[curr.getOperator()];
+      }
+      // collect substituted children
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        Assert(visited.find(curr[i]) != visited.end());
+        nb << visited[curr[i]];
+      }
+      Node n = nb;
+      visited[curr] = n;
+
+      // remove renaming
+      if (curr.isClosure())
+      {
+        // remove beginning of sub which correspond to renaming of variables in
+        // this binder
+        unsigned nchildren = curr[0].getNumChildren();
+        src.resize(src.size() - nchildren);
+        dest.resize(dest.size() - nchildren);
+      }
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  return visited[n];
+}
+
 }  // namespace expr
 }  // namespace CVC4

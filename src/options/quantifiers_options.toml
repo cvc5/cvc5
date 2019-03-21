@@ -877,6 +877,15 @@ header = "options/quantifiers_options.h"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
+  name       = "sygusAbduct"
+  category   = "regular"
+  long       = "sygus-abduct"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "compute abductions using sygus"
+
+[[option]]
   name       = "ceGuidedInst"
   category   = "regular"
   long       = "cegqi"
@@ -1428,6 +1437,7 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"

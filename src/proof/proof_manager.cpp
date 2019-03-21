@@ -734,8 +734,7 @@ void LFSCProof::toStream(std::ostream& out) const
 
   out << ";; Printing final unsat proof \n";
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    proof::LFSCProofPrinter::printResolutionEmptyClause(
-        ProofManager::getBitVectorProof()->getSatProof(), out, paren);
+    ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);
   } else {
     // print actual resolution proof
     proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);

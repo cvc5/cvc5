@@ -170,8 +170,8 @@ void DratProofBlack::testOutputTwoAsLfsc()
     }
   }
   std::string expectedLfsc =
-      "(DRATProofd (clc (neg .v62)  (clc (neg .v8192) cln))"
-      "(DRATProofa (clc (pos .v128) (clc (neg .v8190) cln))"
+      "(DRATProofd (clc (neg bb.v62)  (clc (neg bb.v8192) cln))"
+      "(DRATProofa (clc (pos bb.v128) (clc (neg bb.v8190) cln))"
       "DRATProofn))";
   std::ostringstream expectedLfscWithoutWhitespace;
   for (char c : expectedLfsc)
