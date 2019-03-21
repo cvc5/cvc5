@@ -26,6 +26,7 @@
 #include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
@@ -238,13 +239,13 @@ class TheoryStrings : public Theory {
 private:
   // Constants
   Node d_emptyString;
-  Node d_emptyRegexp;
   Node d_true;
   Node d_false;
   Node d_zero;
   Node d_one;
   Node d_neg_one;
   unsigned d_card_size;
+public: //FIXME
   // Helper functions
   Node getRepresentative( Node t );
   bool hasTerm( Node a );
@@ -254,6 +255,15 @@ private:
   // t is representative, te = t, add lt = te to explanation exp
   Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
   Node getLength( Node t, std::vector< Node >& exp );
+  /** get normal string
+   * 
+   * This method returns the node that is equivalent to the normal form of x,
+   * and adds the corresponding explanation to nf_exp. 
+   *
+   * For example, if x = y ++ z is an assertion in the current context, then
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp. 
+   */
+  Node getNormalString(Node x, std::vector<Node> &nf_exp);
 
 private:
   /** The notify class */
@@ -641,6 +651,7 @@ private:
    */
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
+public: //FIXME
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -669,6 +680,8 @@ private:
   void sendLemma(Node ant, Node conc, const char* c);
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
+  bool inConflict() const { return d_conflict; }
+protected:
   //-------------------------------------end send inferences
 
   /** mkConcat **/
@@ -678,8 +691,10 @@ private:
   inline Node mkLength(Node n);
 
   /** mkExplain **/
+public: // FIXME
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
+protected:
   /** mkAnd **/
   Node mkAnd(std::vector<Node>& a);
   /** get concat vector */
@@ -711,38 +726,10 @@ private:
 
   // Symbolic Regular Expression
  private:
-  // regular expression memberships
-  NodeList d_regexp_memberships;
-  NodeSet d_regexp_ucached;
-  NodeSet d_regexp_ccached;
-  // stored assertions
-  NodeIntMap d_pos_memberships;
-  std::map< Node, std::vector< Node > > d_pos_memberships_data;
-  NodeIntMap d_neg_memberships;
-  std::map< Node, std::vector< Node > > d_neg_memberships_data;
-  unsigned getNumMemberships( Node n, bool isPos );
-  Node getMembership( Node n, bool isPos, unsigned i );
-  // semi normal forms for symbolic expression
-  std::map< Node, Node > d_nf_regexps;
-  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
-  // intersection
-  NodeNodeMap d_inter_cache;
-  NodeIntMap d_inter_index;
-  // processed memberships
-  NodeSet d_processed_memberships;
-  // antecedant for why regexp membership must be true
-  NodeNodeMap d_regexp_ant;
-  /** regular expression operation module */
-  RegExpOpr d_regexp_opr;
+  /** regular expression solver module */
+  RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
-
-  CVC4::String getHeadConst( Node x );
-  bool deriveRegExp( Node x, Node r, Node ant );
-  void addMembership(Node assertion);
-  Node getNormalString(Node x, std::vector<Node> &nf_exp);
-  Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
-
 
   // Finite Model Finding
  private:
