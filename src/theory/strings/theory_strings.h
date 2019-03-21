@@ -673,7 +673,8 @@ public: //FIXME
    * contains literals that are explainable by this class, i.e. those that
    * hold in the equality engine of this class. On the other hand, the set
    * exp_n ("explanations new") contain nodes that are not explainable by this
-   * class. This method will either:
+   * class. This method may call sendInfer or sendLemma. Overall, the result
+   * of this method is one of the following:
    * 
    * [1] (No-op) Do nothing if eq is true,
    * 

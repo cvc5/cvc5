@@ -51,7 +51,9 @@ class RegExpSolver
   /** check
    * 
    * Tells this solver to check whether the regular expressions asserted to it
-   * are consistent. If they are not, then this class will FIXME
+   * are consistent. If they are not, then this class will call the
+   * sendInference method of its parent TheoryString object, indicating that
+   * it requires a conflict or lemma to be processed.
    */
   void check();
 private:
@@ -62,7 +64,6 @@ private:
   Node d_false;
   /** the parent of this object */
   TheoryStrings& d_parent;
-  //--------------------------------for checkMemberships
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   bool checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp);
@@ -71,7 +72,6 @@ private:
   CVC4::String getHeadConst( Node x );
   bool deriveRegExp( Node x, Node r, Node atom, std::vector< Node >& ant );
   Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
-  //--------------------------------end for checkMemberships
   // regular expression memberships
   NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
