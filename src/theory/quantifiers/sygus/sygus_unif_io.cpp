@@ -644,20 +644,20 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         // The value of this term for this example, or the truth value of
         // the I/O pair if the role of this enumerator is enum_io.
         Node resb;
-        // If the result is not constant, then we cannot determine its value
-        // on this point. In this case, resb remains null.
-        if (res.isConst())
+        if (eiv.getRole() == enum_io)
         {
-          if (eiv.getRole() == enum_io)
-          {
-            Node out = d_examples_out[j];
-            Assert(out.isConst());
-            resb = res == out ? d_true : d_false;
-          }
-          else
-          {
-            resb = res;
-          }
+          Node out = d_examples_out[j];
+          Assert(out.isConst());
+          // If the result is not constant, then we assume that it does
+          // not satisfy the example. This is a safe underapproximation
+          // of the good behavior of the current term, that is, we only
+          // produce solutions whose values are fully evaluatable on all input
+          // points.
+          resb = ( res.isConst() && res == out) ? d_true : d_false;
+        }
+        else
+        {
+          resb = res;
         }
         cond_vals[resb] = true;
         results.push_back(resb);
@@ -687,6 +687,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           std::vector<Node> subsume;
           if (cond_vals.find(d_false) == cond_vals.end())
           {
+            Assert( cond_vals.size()==1 );
             // it is the entire solution, we are done
             Trace("sygus-sui-enum")
                 << "  ...success, full solution added to PBE pool : "
