@@ -1661,16 +1661,26 @@ void TheoryStrings::checkExtfEval( int effort ) {
       else
       {
         bool reduced = false;
+        //if ((nrck == OR && einfo.d_const == d_false)
+        //       || (nrck == AND && einfo.d_const == d_true))
         if (!einfo.d_const.isNull() && nrc.getType().isBoolean())
         {
+          bool pol = einfo.d_const == d_true;
+          Node nrcAssert = pol ? nrc : nrc.negate();
+          Node nAssert = pol ? n : n.negate();
           Assert( effort<3 );
-          einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
+          einfo.d_exp.push_back(nAssert);
           Trace("strings-extf-debug") << "  decomposable..." << std::endl;
           Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
                                 << ", const = " << einfo.d_const << std::endl;
           reduced = sendInternalInference(einfo.d_exp,
-                                einfo.d_const == d_false ? nrc.negate() : nrc,
-                                effort == 0 ? "EXTF_d" : "EXTF_d-N");
+                                nrcAssert,
+                                effort == 0 ? "EXTF_d" : "EXTF_d-N");         
+          if( !reduced )
+          {
+            Trace("strings-extf") << "EXT: could not fully reduce ";
+            Trace("strings-extf") << nAssert << " via " << nrcAssert << std::endl;
+          }
         }
         if( reduced )
         {
