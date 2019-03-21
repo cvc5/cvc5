@@ -1582,6 +1582,7 @@ set(regress_1_tests
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
+  regress1/sygus-abduct-test.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array_search_2.sy
@@ -1604,8 +1605,10 @@ set(regress_1_tests
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
+  regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/extract.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
   regress1/sygus/hd-01-d1-prog.sy

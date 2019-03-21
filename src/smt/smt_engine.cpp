@@ -879,6 +879,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
+      d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
       d_problemExtended(false),
@@ -1264,16 +1265,20 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference() || options::sygusRewSynthInput())
+  if (!d_isInternalSubsolver)
   {
-    d_logic = d_logic.getUnlockedCopy();
-    // sygus requires arithmetic, datatypes and quantifiers
-    d_logic.enableTheory(THEORY_ARITH);
-    d_logic.enableTheory(THEORY_DATATYPES);
-    d_logic.enableTheory(THEORY_QUANTIFIERS);
-    d_logic.lock();
-    // since we are trying to recast as sygus, we assume the input is sygus
-    is_sygus = true;
+    if (options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusAbduct())
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      // sygus requires arithmetic, datatypes and quantifiers
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.enableTheory(THEORY_DATATYPES);
+      d_logic.enableTheory(THEORY_QUANTIFIERS);
+      d_logic.lock();
+      // since we are trying to recast as sygus, we assume the input is sygus
+      is_sygus = true;
+    }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -1958,8 +1963,16 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
+    if (options::sygusAbduct())
+    {
+      // if doing abduction, we should filter strong solutions
+      if (!options::sygusFilterSolMode.wasSetByUser())
+      {
+        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
+      }
+    }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen())
+        || options::sygusQueryGen() || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -1967,8 +1980,9 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution. This currently includes the PBE solver and
-      // static template inference for invariant synthesis.
+      // finding a single solution. This currently includes the PBE solver,
+      // static template inference for invariant synthesis, and single
+      // invocation techniques.
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
@@ -1981,6 +1995,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
         options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+      }
+      if (!options::cegqiSingleInvMode.wasSetByUser())
+      {
+        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
       }
     }
     //do not allow partial functions
@@ -2282,11 +2300,13 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput())
+    if (options::sygusRewSynthInput() || options::sygusAbduct())
     {
-      throw OptionException(
-          "--sygus-rr-synth-input requires "
-          "--sygus-expr-miner-check-use-export");
+      std::stringstream ss;
+      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
+                                           : "--sygus-abduct");
+      ss << "requires --sygus-expr-miner-check-use-export";
+      throw OptionException(ss.str());
     }
   }
 
@@ -3314,10 +3334,6 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&d_assertions);
-    }
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
@@ -3328,10 +3344,22 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
-  if (options::sygusRewSynthInput())
+  // rephrasing normal inputs as sygus problems
+  if (!d_smt.d_isInternalSubsolver)
   {
-    // do candidate rewrite rule synthesis
-    d_passes["synth-rr"]->apply(&d_assertions);
+    if (options::sygusInference())
+    {
+      d_passes["sygus-infer"]->apply(&d_assertions);
+    }
+    else if (options::sygusAbduct())
+    {
+      d_passes["sygus-abduct"]->apply(&d_assertions);
+    }
+    else if (options::sygusRewSynthInput())
+    {
+      // do candidate rewrite rule synthesis
+      d_passes["synth-rr"]->apply(&d_assertions);
+    }
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -5297,6 +5325,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   nodeManagerOptions.setOption(key, optionarg);
 }
 
+void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(d_nodeManager);
