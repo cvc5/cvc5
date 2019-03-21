@@ -180,9 +180,10 @@ void RegExpSolver::check() {
           }
           else if (tmp == d_false)
           {
-            Node antec = mkAnd(assertion, d_parent.mkExplain(rnfexp));
+            std::vector< Node > exp_n;
+            exp_n.push_back(assertion);
             Node conc = Node::null();
-            d_parent.sendLemma(antec, conc, "REGEXP NF Conflict");
+            d_parent.sendInference(rnfexp,exp_n, conc, "REGEXP NF Conflict");
             addedLemma = true;
             break;
           }
@@ -210,13 +211,13 @@ void RegExpSolver::check() {
           {
             d_regexp_opr.simplify(atom, nvec, polarity);
           }
-          Node antec = NodeManager::currentNM()->mkNode(
-              kind::AND, assertion, d_parent.mkExplain(rnfexp));
+          std::vector< Node > exp_n;
+          exp_n.push_back(assertion);
           Node conc = nvec.size() == 1
                           ? nvec[0]
                           : NodeManager::currentNM()->mkNode(kind::AND, nvec);
           conc = Rewriter::rewrite(conc);
-          d_parent.sendLemma(antec, conc, "REGEXP_Unfold");
+          d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
           addedLemma = true;
           if (changed)
           {
@@ -249,16 +250,14 @@ void RegExpSolver::check() {
 }
 
 bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp ) {
-  
-  Node antnf = d_parent.mkExplain(nf_exp);
-
   if(d_parent.areEqual(x, d_emptyString)) {
     Node exp;
     switch(d_regexp_opr.delta(r, exp)) {
       case 0: {
-        Node antec = mkAnd(atom, x.eqNode(d_emptyString));
-        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
-        d_parent.sendLemma(antec, exp, "RegExp Delta");
+        std::vector< Node > exp_n;
+        exp_n.push_back(atom);
+        exp_n.push_back(x.eqNode(d_emptyString));
+        d_parent.sendInference(nf_exp,exp_n,exp,"RegExp Delta");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -268,10 +267,11 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
         break;
       }
       case 2: {
-        Node antec = mkAnd(atom, x.eqNode(d_emptyString));
-        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
-        Node conc = Node::null();
-        d_parent.sendLemma(antec, conc, "RegExp Delta CONFLICT");
+        std::vector< Node > exp_n;
+        exp_n.push_back(atom);
+        exp_n.push_back(x.eqNode(d_emptyString));
+        Node conc;
+        d_parent.sendInference(nf_exp,exp_n,conc,"RegExp Delta CONFLICT");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -297,9 +297,7 @@ bool RegExpSolver::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma
         return false;
       }
     }*/
-    Node sREant = mkAnd(atom, d_true);
-    sREant = NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf);
-    if(deriveRegExp( x, r, sREant )) {
+    if(deriveRegExp( x, r, atom, nf_exp )) {
       addedLemma = true;
       d_regexp_ccached.insert(atom);
       return false;
@@ -322,7 +320,7 @@ CVC4::String RegExpSolver::getHeadConst( Node x ) {
   }
 }
 
-bool RegExpSolver::deriveRegExp( Node x, Node r, Node ant ) {
+bool RegExpSolver::deriveRegExp( Node x, Node r, Node atom, std::vector< Node >& ant ) {
   // TODO cstr in vre
   Assert(x != d_emptyString);
   Trace("regexp-derive") << "RegExpSolver::deriveRegExp: x=" << x << ", r= " << r << std::endl;
@@ -376,7 +374,9 @@ bool RegExpSolver::deriveRegExp( Node x, Node r, Node ant ) {
         }*/
       }
     }
-    d_parent.sendLemma(ant, conc, "RegExp-Derive");
+    std::vector< Node > exp_n;
+    exp_n.push_back(atom);
+    d_parent.sendInference(ant,exp_n, conc, "RegExp-Derive");
     return true;
   } else {
     return false;

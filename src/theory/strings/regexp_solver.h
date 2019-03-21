@@ -69,7 +69,7 @@ private:
   Node getMembership( Node n, bool isPos, unsigned i );
   unsigned getNumMemberships( Node n, bool isPos );
   CVC4::String getHeadConst( Node x );
-  bool deriveRegExp( Node x, Node r, Node ant );
+  bool deriveRegExp( Node x, Node r, Node atom, std::vector< Node >& ant );
   Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
   //--------------------------------end for checkMemberships
   // regular expression memberships

@@ -682,8 +682,8 @@ public: //FIXME
    * explanation of the node in exp in terms of the literals asserted to this
    * class,
    * 
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should be
-   * sent on the output channel of this class, or
+   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
+   * be sent on the output channel of this class, or
    * 
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
    * channel of this class.
@@ -709,6 +709,12 @@ public: //FIXME
                      const char* c,
                      bool asLemma = false);
   /** 
+   * Are we in conflict? This returns true if this theory has called its output
+   * channel's conflict method in the current SAT context.
+   */
+  bool inConflict() const { return d_conflict; }
+protected:
+  /** 
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
    * method of the output channel of this class of conc is false, or adds the
@@ -727,8 +733,6 @@ public: //FIXME
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  bool inConflict() const { return d_conflict; }
-protected:
   //-------------------------------------end send inferences
 
   /** mkConcat **/
@@ -738,7 +742,6 @@ protected:
   inline Node mkLength(Node n);
 
   /** mkExplain **/
-public: // FIXME
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
 protected:
