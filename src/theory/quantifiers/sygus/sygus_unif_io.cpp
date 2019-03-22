@@ -448,20 +448,33 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
          ++it)
     {
       int new_status = status;
-      // if the current value is true
+      bool success = true;
+      // if the current value is true, we must consider the value of this child
       if (curr_val_true)
       {
         if (status != 0)
         {
-          Assert(it->first.isConst() && it->first.getType().isBoolean());
-          new_status = (it->first.getConst<bool>() ? 1 : -1);
-          if (status != -2 && new_status != status)
+          if( it->first.isNull() )
           {
-            new_status = 0;
+            // The value of this child is unknown on this point, hence we
+            // ignore it.
+            success = false;
+          }
+          else
+          {
+            Assert(it->first.getType().isBoolean());
+            new_status = (it->first.getConst<bool>() ? 1 : -1);
+            if (status != -2 && new_status != status)
+            {
+              new_status = 0;
+            }
           }
         }
       }
-      it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
+      if( success )
+      {
+        it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
+      }
     }
   }
 }
@@ -652,12 +665,20 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
           // not satisfy the example. This is a safe underapproximation
           // of the good behavior of the current term, that is, we only
           // produce solutions whose values are fully evaluatable on all input
-          // points.
+          // points. Notice that terms may be used as leaves of decision
+          // trees that are fully evaluatable on points in that branch, but
+          // are not evaluatable on others, e.g. (head x) in the solution:
+          //   (ite ((_ is cons) x) (head x) 5)
           resb = (res.isConst() && res == out) ? d_true : d_false;
         }
         else
         {
-          resb = res;
+          // We only set resb if it is constant, otherwise it remains null.
+          // This indicates its value cannot be determined.
+          if( res.isConst() )
+          {
+            resb = res;
+          }
         }
         cond_vals[resb] = true;
         results.push_back(resb);
