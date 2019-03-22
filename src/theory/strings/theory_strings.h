@@ -654,7 +654,7 @@ private:
    *
    * The argument c is a string identifying the reason for the interference.
    * This string is used for debugging purposes.
-   * 
+   *
    * Return true if the inference is complete, in the sense that we infer
    * inferences that are equivalent to conc. This returns false e.g. if conc
    * (or one of its conjuncts if it is a conjunction) was not inferred due

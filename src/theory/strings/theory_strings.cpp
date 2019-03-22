@@ -1665,23 +1665,23 @@ void TheoryStrings::checkExtfEval( int effort ) {
           bool pol = einfo.d_const == d_true;
           Node nrcAssert = pol ? nrc : nrc.negate();
           Node nAssert = pol ? n : n.negate();
-          Assert( effort<3 );
+          Assert(effort < 3);
           einfo.d_exp.push_back(nAssert);
           Trace("strings-extf-debug") << "  decomposable..." << std::endl;
           Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
                                 << ", const = " << einfo.d_const << std::endl;
-          reduced = sendInternalInference(einfo.d_exp,
-                                nrcAssert,
-                                effort == 0 ? "EXTF_d" : "EXTF_d-N");         
-          if( !reduced )
+          reduced = sendInternalInference(
+              einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          if (!reduced)
           {
             Trace("strings-extf") << "EXT: could not fully reduce ";
-            Trace("strings-extf") << nAssert << " via " << nrcAssert << std::endl;
+            Trace("strings-extf")
+                << nAssert << " via " << nrcAssert << std::endl;
           }
         }
-        if( reduced )
+        if (reduced)
         {
-          getExtTheory()->markReduced( n );
+          getExtTheory()->markReduced(n);
         }
         else
         {
@@ -3951,10 +3951,11 @@ bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
                                           Node conc,
                                           const char* c)
 {
-  if (conc.getKind() == AND || (conc.getKind()==NOT && conc[0].getKind()==OR))
+  if (conc.getKind() == AND
+      || (conc.getKind() == NOT && conc[0].getKind() == OR))
   {
-    Node conj = conc.getKind()==AND ? conc : conc[0];
-    bool pol = conc.getKind()==AND;
+    Node conj = conc.getKind() == AND ? conc : conc[0];
+    bool pol = conc.getKind() == AND;
     bool ret = true;
     for (const Node& cc : conj)
     {
