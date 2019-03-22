@@ -472,7 +472,7 @@ class TheoryStringsRewriter {
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  static Node checkEntailContains(Node a, Node b, bool fullRewriter = false);
+  static Node checkEntailContains(Node a, Node b, bool fullRewriter = true);
 
   /** entail non-empty
    *
