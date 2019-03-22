@@ -151,30 +151,73 @@ Node bvToInt(TNode n, NodeMap& cache)
     {
       // Children have been processed, so rebuild this node
       vector<Node> children;
-
-      kind::Kind_t newKind = current.getKind();
-      switch (newKind)
+      kind::Kind_t oldKind = current.getKind();
+      switch (oldKind)
       {
-        case kind::BITVECTOR_PLUS:
+        case kind::BITVECTOR_PLUS: 
+	{
           Assert(children.size() == 2);
-          newKind = kind::PLUS;
-          break;
-        case kind::BITVECTOR_MULT:
+	  uint32_t bvsize = children[0].getType().getBitVectorSize();
+	  NodeBuilder<> powBuilder(kind::POW);
+	  Node two_const = nm->mkConst<Rational>(2);
+	  Node bvsize_const = nm->mkConst<Rational>(bvsize);
+	  powBuilder << two_const;
+	  powBuilder << bvsize_const;
+	  Node pow = powBuilder; 
+      	  NodeBuilder<> plusBuilder(kind::PLUS);
+      	  for (unsigned i = 0; i < children.size(); ++i)
+      	  {
+      	    plusBuilder << children[i];
+      	  }
+      	  Node plus = plusBuilder;
+          plus = Rewriter::rewrite(plus);
+	  NodeBuilder<> modBuilder(kind::INTS_MODULUS_TOTAL);
+	  modBuilder << plus;
+	  modBuilder << pow;
+	  Node mod = modBuilder;
+	  mod = Rewriter::rewrite(mod);
+          cache[current] = mod;
+          toVisit.pop_back();
+	  break;
+	}
+        case kind::BITVECTOR_MULT: 
+	{
           Assert(children.size() == 2);
-          newKind = kind::MULT;
+	  Assert(false);
           break;
+	}
         case kind::BITVECTOR_SUB:
+	{
           Assert(children.size() == 2);
-          newKind = kind::MINUS;
+	  Assert(false);
           break;
-        case kind::UMINUS:
+	}
+        case kind::UMINUS: 
+	{
           Assert(children.size() == 1);
-          newKind = kind::BITVECTOR_NEG;
+	  Assert(false);
           break;
-        case kind::BITVECTOR_ULT: newKind = kind::LT; break;
-        case kind::BITVECTOR_ULE: newKind = kind::LEQ; break;
-        case kind::BITVECTOR_UGT: newKind = kind::GT; break;
-        case kind::BITVECTOR_UGE: newKind = kind::GEQ; break;
+	}  
+        case kind::BITVECTOR_ULT: 
+	{
+	  Assert(false);
+	  break;
+	}
+        case kind::BITVECTOR_ULE: 
+	{
+	  Assert(false);
+	  break;
+	}
+        case kind::BITVECTOR_UGT: 
+	{
+	  Assert(false);
+	  break;
+	}
+        case kind::BITVECTOR_UGE: 
+	{
+	  Assert(false);
+	  break;
+	}
         case kind::EQUAL:
         case kind::ITE: break;
         default:
@@ -186,20 +229,11 @@ Node bvToInt(TNode n, NodeMap& cache)
               current.toExpr(),
               string("Cannot translate to BV: ") + current.toString());
       }
-      NodeBuilder<> builder(newKind);
-      for (unsigned i = 0; i < children.size(); ++i)
-      {
-        builder << children[i];
-      }
-      // Mark the substitution and continue
-      Node result = builder;
-
-      result = Rewriter::rewrite(result);
-      cache[current] = result;
-      toVisit.pop_back();
     }
     else
     {
+      //why should this ever happen?
+      Assert(false);
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {
@@ -223,10 +257,10 @@ Node bvToInt(TNode n, NodeMap& cache)
         Node result = current;
         if (current.isVar())
         {
-          if (current.getType() == nm->BVType())
+          if (current.getType().isBitVector())
           {
             result = nm->mkSkolem("__bvToInt_var",
-                                  nm->mkIntType,
+                                  nm->integerType(),
                                   "Variable introduced in bvToInt pass");
           }
           else
@@ -238,11 +272,11 @@ Node bvToInt(TNode n, NodeMap& cache)
         {
           switch (current.getKind())
           {
-            case kind::CONST_BV:
+            case kind::CONST_BITVECTOR:
             {
-              BitVector constant = current.getConst<BitVector>();
+              BitVector constant(current.getConst<BitVector>());
 	      Integer c = constant.toInteger();
-              result = nm->mkConst(c);
+              result = nm->mkConst<Rational>(c);
               break;
             }
             case kind::CONST_BOOLEAN: break;
