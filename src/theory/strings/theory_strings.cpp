@@ -2643,21 +2643,21 @@ void TheoryStrings::NormalForm::splitConstant(unsigned index,
   // notice this is not critical for soundness: not doing the below incrementing
   // will only lead to overapproximating when antecedants are required in
   // explanations
-  for (std::map<Node, std::map<bool, int> >::iterator itnd = d_exp_dep.begin();
+  for (std::map<Node, std::map<bool, unsigned> >::iterator itnd = d_exp_dep.begin();
        itnd != d_exp_dep.end();
        ++itnd)
   {
-    for (std::map<bool, int>::iterator itnd2 = itnd->second.begin();
+    for (std::map<bool, unsigned>::iterator itnd2 = itnd->second.begin();
          itnd2 != itnd->second.end();
          ++itnd2)
     {
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.
-      Assert(itnd2->second >= 0 && itnd2->second <= (int)d_nf.size());
+      Assert(itnd2->second >= 0 && itnd2->second <= d_nf.size());
       bool increment =
           (itnd2->first == isRev)
-              ? itnd2->second > (int)index
-              : ((int)d_nf.size() - 1 - itnd2->second) < (int)index;
+              ? itnd2->second > index
+              : (d_nf.size() - 1 - itnd2->second) < index;
       if (increment)
       {
         d_exp_dep[itnd->first][itnd2->first] = itnd2->second + 1;
@@ -2667,16 +2667,16 @@ void TheoryStrings::NormalForm::splitConstant(unsigned index,
 }
 
 void TheoryStrings::NormalForm::addToExplanation(Node exp,
-                                                 int new_val,
-                                                 int new_rev_val)
+                                                 unsigned new_val,
+                                                 unsigned new_rev_val)
 {
   if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
   {
     d_exp.push_back(exp);
   }
   for( unsigned k=0; k<2; k++ ){
-    int val = k==0 ? new_val : new_rev_val;
-    std::map<bool, int>::iterator itned = d_exp_dep[exp].find(k == 1);
+    unsigned val = k==0 ? new_val : new_rev_val;
+    std::map<bool, unsigned>::iterator itned = d_exp_dep[exp].find(k == 1);
     if (itned == d_exp_dep[exp].end())
     {
       Trace("strings-process-debug") << "Deps : set dependency on " << exp << " to " << val << " isRev=" << (k==0) << std::endl;
@@ -2703,7 +2703,7 @@ void TheoryStrings::NormalForm::getExplanation(int index,
   }
   for (const Node& exp : d_exp)
   {
-    int dep = d_exp_dep[exp][isRev];
+    int dep = static_cast<int>(d_exp_dep[exp][isRev]);
     if (dep <= index)
     {
       curr_exp.push_back(exp);
@@ -2809,8 +2809,9 @@ void TheoryStrings::getNormalForms(Node eqc,
           }
           // Now that we are finished with the loop, we convert forward indices
           // to reverse indices in the explanation dependency information
+          //nf_curr.finalizeExpDep();
           int total_size = nf_curr.d_nf.size();
-          for (std::map<Node, std::map<bool, int> >::iterator it =
+          for (std::map<Node, std::map<bool, unsigned> >::iterator it =
                    nf_curr.d_exp_dep.begin();
                it != nf_curr.d_exp_dep.end();
                ++it)

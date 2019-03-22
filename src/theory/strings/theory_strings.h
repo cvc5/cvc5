@@ -323,7 +323,7 @@ private:
      * that does not include u = u1 ++ u2, because the conflict only pertains
      * to the last position in the normal form of y.
      */
-    std::map<Node, std::map<bool, int> > d_exp_dep;
+    std::map<Node, std::map<bool, unsigned> > d_exp_dep;
     /** reverse the normal form 
      * 
      * This operation is done in contexts where the normal form is being scanned
@@ -341,11 +341,12 @@ private:
      *
      * This adds exp to the explanation vector d_exp with new forward and
      * backwards dependency indices new_val and new_rev_val.
+     * 
      * If exp already has dependencies, we update the forward dependency
      * index to the minimum of the previous value and the new value, and
      * similarly update the backwards dependency index to the maximum.
      */
-    void addToExplanation(Node exp, int new_val, int new_rev_val);
+    void addToExplanation(Node exp, unsigned new_val, unsigned new_rev_val);
     /** get explanation
      * 
      * This gets the explanation for the prefix (resp. suffix) of the normal
