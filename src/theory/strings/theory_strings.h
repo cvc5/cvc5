@@ -324,14 +324,14 @@ private:
      * to the last position in the normal form of y.
      */
     std::map<Node, std::map<bool, int> > d_exp_dep;
-    /** reverse the normal form 
-     * 
+    /** reverse the normal form
+     *
      * This operation is done in contexts where the normal form is being scanned
      * in reverse order.
      */
     void reverse() { std::reverse(d_nf.begin(), d_nf.end()); }
     /** split constant
-     * 
+     *
      * Splits the constant in d_nf at index to constants c1 and c2.
      */
     void splitConstant(unsigned index, Node c1, Node c2, bool isRev);
@@ -345,22 +345,22 @@ private:
      */
     void addToExplanation(Node exp, int new_val, int new_rev_val);
     /** get explanation
-     * 
+     *
      * This gets the explanation for the prefix (resp. suffix) of the normal
      * form up to index when isRev is false (resp. true). In particular;
-     * 
+     *
      * If index is -1, then this method adds all literals in d_exp to curr_exp.
-     * 
+     *
      * If index>=0, this method adds all literals in d_exp to curr_exp whose
      * forward (resp. backwards) dependency index is less than index
      * when isRev is false (resp. true).
      */
-    void getExplanation(int index, bool isRev, std::vector< Node >& curr_exp);
+    void getExplanation(int index, bool isRev, std::vector<Node>& curr_exp);
   };
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
-  NormalForm& getNormalForm( Node n );
+  NormalForm& getNormalForm(Node n);
   //map of pairs of terms that have the same normal form
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
