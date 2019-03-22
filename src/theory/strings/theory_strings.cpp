@@ -1656,13 +1656,10 @@ void TheoryStrings::checkExtfEval( int effort ) {
             einfo.d_model_active = false;
           }
         }
-      //if it reduces to a conjunction, infer each and reduce
       }
       else
       {
         bool reduced = false;
-        //if ((nrck == OR && einfo.d_const == d_false)
-        //       || (nrck == AND && einfo.d_const == d_true))
         if (!einfo.d_const.isNull() && nrc.getType().isBoolean())
         {
           bool pol = einfo.d_const == d_true;
