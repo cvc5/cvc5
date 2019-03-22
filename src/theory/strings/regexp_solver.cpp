@@ -142,8 +142,8 @@ void RegExpSolver::check()
             for (unsigned kk = 0; kk <= k; kk++)
             {
               Node rr = getMembership(x, true, kk);
-              Node n = NodeManager::currentNM()->mkNode(
-                  STRING_IN_REGEXP, x, rr);
+              Node n =
+                  NodeManager::currentNM()->mkNode(STRING_IN_REGEXP, x, rr);
               vec_nodes.push_back(n);
             }
             Node conc;
@@ -208,8 +208,7 @@ void RegExpSolver::check()
                                    << x << " IN " << r << std::endl;
         if (changed)
         {
-          Node tmp =
-              Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, x, r));
+          Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, x, r));
           if (!polarity)
           {
             tmp = tmp.negate();
@@ -258,9 +257,7 @@ void RegExpSolver::check()
           }
           std::vector<Node> exp_n;
           exp_n.push_back(assertion);
-          Node conc = nvec.size() == 1
-                          ? nvec[0]
-                          : nm->mkNode(AND, nvec);
+          Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
           conc = Rewriter::rewrite(conc);
           d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
           addedLemma = true;
@@ -414,8 +411,7 @@ bool RegExpSolver::deriveRegExp(Node x,
         }
         Node left = TheoryStringsRewriter::mkConcat(STRING_CONCAT, vec_nodes);
         left = Rewriter::rewrite(left);
-        conc =
-            NodeManager::currentNM()->mkNode(STRING_IN_REGEXP, left, dc);
+        conc = NodeManager::currentNM()->mkNode(STRING_IN_REGEXP, left, dc);
       }
     }
     std::vector<Node> exp_n;
