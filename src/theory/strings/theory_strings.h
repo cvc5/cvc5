@@ -350,6 +350,8 @@ private:
   };
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
+  /** get normal form */
+  NormalForm& getNormalForm( Node n );
   //map of pairs of terms that have the same normal form
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;

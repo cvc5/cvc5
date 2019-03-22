@@ -377,14 +377,14 @@ bool TheoryStrings::getCurrentSubstitution( int effort, std::vector< Node >& var
         }
       }else if( effort>=1 && effort<3 && n.getType().isString() ){
         //normal forms
-        NormalForm& nf = d_normal_form[nr];
-        Node ns = getNormalString(nf.d_base, exp[n]);
+        NormalForm& nfnr = getNormalForm(nr);
+        Node ns = getNormalString(nfnr.d_base, exp[n]);
         subs.push_back( ns );
-        Trace("strings-subs") << "   normal eqc : " << ns << " " << nf.d_base
+        Trace("strings-subs") << "   normal eqc : " << ns << " " << nfnr.d_base
                               << " " << nr << std::endl;
-        if (!nf.d_base.isNull())
+        if (!nfnr.d_base.isNull())
         {
-          addToExplanation(n, nf.d_base, exp[n]);
+          addToExplanation(n, nfnr.d_base, exp[n]);
         }
       }else{
         //representative?
@@ -651,8 +651,8 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
       //check if col[i][j] has only variables
       if (!eqc.isConst())
       {
-        Assert(d_normal_form.find(eqc) != d_normal_form.end());
-        if (d_normal_form[eqc].d_nf.size() == 1)
+        NormalForm& nfe = getNormalForm(eqc);
+        if (nfe.d_nf.size() == 1)
         {
           // does it have a code and the length of these equivalence classes are
           // one?
@@ -775,8 +775,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   //step 4 : assign constants to all other equivalence classes
   for( unsigned i=0; i<nodes.size(); i++ ){
     if( processed.find( nodes[i] )==processed.end() ){
-      Assert(d_normal_form.find(nodes[i]) != d_normal_form.end());
-      NormalForm& nf = d_normal_form[nodes[i]];
+      NormalForm& nf = getNormalForm(nodes[i]);
       if (Trace.isOn("strings-model"))
       {
         Trace("strings-model")
@@ -2454,12 +2453,12 @@ void TheoryStrings::checkNormalFormsEq()
     {
       return;
     }
-    NormalForm& nfe = d_normal_form[eqc];
+    NormalForm& nfe = getNormalForm(eqc);
     Node nf_term = mkConcat(nfe.d_nf);
     std::map<Node, Node>::iterator itn = nf_to_eqc.find(nf_term);
     if (itn != nf_to_eqc.end())
     {
-      NormalForm& nfe_eq = d_normal_form[itn->second];
+      NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
       std::vector<Node> nf_exp;
       nf_exp.push_back(mkAnd(nfe.d_exp));
@@ -2486,8 +2485,9 @@ void TheoryStrings::checkNormalFormsEq()
          it != eqc_to_exp.end();
          ++it)
     {
+      NormalForm& nf = getNormalForm(it->first);
       Trace("strings-nf") << "  N[" << it->first << "] (base "
-                          << d_normal_form[it->first].d_base
+                          << nf.d_base
                           << ") = " << eqc_to_nf[it->first] << std::endl;
       Trace("strings-nf") << "     exp: " << it->second << std::endl;
     }
@@ -2510,7 +2510,7 @@ void TheoryStrings::checkCodes()
     std::vector<Node> const_codes;
     for (const Node& eqc : d_strings_eqc)
     {
-      NormalForm& nfe = d_normal_form[eqc];
+      NormalForm& nfe = getNormalForm(eqc);
       if (nfe.d_nf.size() == 1 && nfe.d_nf[0].isConst())
       {
         Node c = nfe.d_nf[0];
@@ -2678,6 +2678,18 @@ void TheoryStrings::NormalForm::getExplanation(
   }
 }
 
+TheoryStrings::NormalForm& TheoryStrings::getNormalForm( Node n )
+{
+  std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
+  if( itn==d_normal_form.end() )
+  {
+    Trace("strings-warn") << "WARNING: returning empty normal form for " << n << std::endl;
+    Assert(false);
+    return d_normal_form[n];
+  }
+  return itn->second;
+}
+
 void TheoryStrings::getNormalForms(Node eqc,
                                    std::vector<NormalForm>& normal_forms,
                                    std::map<Node, unsigned>& term_to_nf_index)
@@ -2705,8 +2717,7 @@ void TheoryStrings::getNormalForms(Node eqc,
           for( unsigned i=0; i<n.getNumChildren(); i++ ) {
             Node nr = d_equalityEngine.getRepresentative( n[i] );
             // get the normal form for the component
-            Assert(d_normal_form.find(nr) != d_normal_form.end());
-            NormalForm& nfr = d_normal_form[nr];
+            NormalForm& nfr = getNormalForm(nr);
             std::vector<Node>& nfrv = nfr.d_nf;
             Trace("strings-process-debug") << "Normalizing subterm " << n[i] << " = "  << nr << std::endl;
             unsigned orig_size = nf_curr.d_nf.size();
@@ -3683,8 +3694,8 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
   //Assert( areDisequal( ni, nj ) );
-  NormalForm& nfni = d_normal_form[ni];
-  NormalForm& nfnj = d_normal_form[nj];
+  NormalForm& nfni = getNormalForm(ni);
+  NormalForm& nfnj = getNormalForm(nj);
   if (nfni.d_nf.size() > 1 || nfnj.d_nf.size() > 1)
   {
     std::vector< Node > nfi;
@@ -3860,8 +3871,8 @@ int TheoryStrings::processSimpleDeq( std::vector< Node >& nfi, std::vector< Node
       }
     }
   }
-  NormalForm& nfni = d_normal_form[ni];
-  NormalForm& nfnj = d_normal_form[nj];
+  NormalForm& nfni = getNormalForm(ni);
+  NormalForm& nfnj = getNormalForm(nj);
   while( index<nfi.size() || index<nfj.size() ) {
     if( index>=nfi.size() || index>=nfj.size() ){
       Trace("strings-solve-debug") << "Disequality normalize empty" << std::endl;
@@ -4511,20 +4522,26 @@ void TheoryStrings::checkNormalFormsDeq()
     separateByLength( d_strings_eqc, cols, lts );
     for( unsigned i=0; i<cols.size(); i++ ){
       if( cols[i].size()>1 && d_lemma_cache.empty() ){
-        Trace("strings-solve") << "- Verify disequalities are processed for " << cols[i][0] << ", normal form : ";
-        printConcat(d_normal_form[cols[i][0]].d_nf, "strings-solve");
-        Trace("strings-solve")  << "... #eql = " << cols[i].size() << std::endl;
+        if( Trace.isOn("strings-solve") )
+        {
+          Trace("strings-solve") << "- Verify disequalities are processed for " << cols[i][0] << ", normal form : ";
+          printConcat(getNormalForm(cols[i][0]).d_nf, "strings-solve");
+          Trace("strings-solve")  << "... #eql = " << cols[i].size() << std::endl;
+        }
         //must ensure that normal forms are disequal
         for( unsigned j=0; j<cols[i].size(); j++ ){
           for( unsigned k=(j+1); k<cols[i].size(); k++ ){
             //for strings that are disequal, but have the same length
             if( areDisequal( cols[i][j], cols[i][k] ) ){
               Assert( !d_conflict );
-              Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-              printConcat(d_normal_form[cols[i][j]].d_nf, "strings-solve");
-              Trace("strings-solve") << " against " << cols[i][k] << " ";
-              printConcat(d_normal_form[cols[i][k]].d_nf, "strings-solve");
-              Trace("strings-solve")  << "..." << std::endl;
+              if( Trace.isOn("strings-solve") )
+              {
+                Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
+                printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                Trace("strings-solve") << " against " << cols[i][k] << " ";
+                printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                Trace("strings-solve")  << "..." << std::endl;
+              }
               processDeq( cols[i][j], cols[i][k] );
               if( hasProcessed() ){
                 return;
@@ -4540,7 +4557,7 @@ void TheoryStrings::checkNormalFormsDeq()
 void TheoryStrings::checkLengthsEqc() {
   if( options::stringLenNorm() ){
     for( unsigned i=0; i<d_strings_eqc.size(); i++ ){
-      NormalForm& nfi = d_normal_form[d_strings_eqc[i]];
+      NormalForm& nfi = getNormalForm(d_strings_eqc[i]);
       Trace("strings-process-debug") << "Process length constraints for " << d_strings_eqc[i] << std::endl;
       //check if there is a length term for this equivalence class
       EqcInfo* ei = getOrMakeEqcInfo( d_strings_eqc[i], false );
