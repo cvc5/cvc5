@@ -1703,25 +1703,37 @@ void TheoryStrings::checkExtfEval( int effort ) {
             einfo.d_model_active = false;
           }
         }
-      //if it reduces to a conjunction, infer each and reduce
       }
-      else if ((nrck == OR && einfo.d_const == d_false)
-               || (nrck == AND && einfo.d_const == d_true))
+      else
       {
-        Assert( effort<3 );
-        getExtTheory()->markReduced( n );
-        einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
-        Trace("strings-extf-debug") << "  decomposable..." << std::endl;
-        Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
-                              << ", const = " << einfo.d_const << std::endl;
-        for (const Node& nrcc : nrc)
+        bool reduced = false;
+        if (!einfo.d_const.isNull() && nrc.getType().isBoolean())
         {
-          sendInternalInference(einfo.d_exp,
-                                einfo.d_const == d_false ? nrcc.negate() : nrcc,
-                                effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          bool pol = einfo.d_const == d_true;
+          Node nrcAssert = pol ? nrc : nrc.negate();
+          Node nAssert = pol ? n : n.negate();
+          Assert(effort < 3);
+          einfo.d_exp.push_back(nAssert);
+          Trace("strings-extf-debug") << "  decomposable..." << std::endl;
+          Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
+                                << ", const = " << einfo.d_const << std::endl;
+          reduced = sendInternalInference(
+              einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          if (!reduced)
+          {
+            Trace("strings-extf") << "EXT: could not fully reduce ";
+            Trace("strings-extf")
+                << nAssert << " via " << nrcAssert << std::endl;
+          }
         }
-      }else{
-        to_reduce = nrc;
+        if (reduced)
+        {
+          getExtTheory()->markReduced(n);
+        }
+        else
+        {
+          to_reduce = nrc;
+        }
       }
     }else{
       to_reduce = sterms[i];
@@ -3976,17 +3988,22 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
 }
 
-void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
+bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
                                           Node conc,
                                           const char* c)
 {
-  if (conc.getKind() == AND)
+  if (conc.getKind() == AND
+      || (conc.getKind() == NOT && conc[0].getKind() == OR))
   {
-    for (const Node& cc : conc)
+    Node conj = conc.getKind() == AND ? conc : conc[0];
+    bool pol = conc.getKind() == AND;
+    bool ret = true;
+    for (const Node& cc : conj)
     {
-      sendInternalInference(exp, cc, c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      ret = ret && retc;
     }
-    return;
+    return ret;
   }
   bool pol = conc.getKind() != NOT;
   Node lit = pol ? conc : conc[0];
@@ -3997,13 +4014,13 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
       if (!lit[i].isConst() && !hasTerm(lit[i]))
       {
         // introduces a new non-constant term, do not infer
-        return;
+        return false;
       }
     }
     // does it already hold?
     if (pol ? areEqual(lit[0], lit[1]) : areDisequal(lit[0], lit[1]))
     {
-      return;
+      return true;
     }
   }
   else if (lit.isConst())
@@ -4012,20 +4029,21 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
     {
       Assert(pol);
       // trivially holds
-      return;
+      return true;
     }
   }
   else if (!hasTerm(lit))
   {
     // introduces a new non-constant term, do not infer
-    return;
+    return false;
   }
   else if (areEqual(lit, pol ? d_true : d_false))
   {
     // already holds
-    return;
+    return true;
   }
   sendInference(exp, conc, c);
+  return true;
 }
 
 void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {
