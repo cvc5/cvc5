@@ -29,9 +29,9 @@
 #include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "theory/uf/theory_uf_strong_solver.h"
-#include "theory/uf/ho_extension.h"
 
 using namespace std;
 
@@ -83,10 +83,10 @@ void TheoryUF::finishInit() {
   {
     d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
   }
-  if( options::ufHo() )
+  if (options::ufHo())
   {
     d_equalityEngine.addFunctionKind(kind::HO_APPLY);
-    d_ho = new HoExtension(*this,getSatContext(), getUserContext());
+    d_ho = new HoExtension(*this, getSatContext(), getUserContext());
   }
 }
 
@@ -145,7 +145,7 @@ void TheoryUF::check(Effort level) {
       if( options::ufHo() && options::ufHoExt() ){
         if( !polarity && !d_conflict && atom[0].getType().isFunction() ){
           // apply extensionality eagerly using the ho extension
-          d_ho->applyExtensionality( fact );
+          d_ho->applyExtensionality(fact);
         }
       }
     } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
@@ -201,7 +201,8 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
 }
 
 Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
-  Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : " << node << std::endl;
+  Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
+                      << node << std::endl;
   if( node.getKind()==kind::HO_APPLY ){
     if( !options::ufHo() ){
       std::stringstream ss;
@@ -209,9 +210,10 @@ Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
       throw LogicException(ss.str());
     }
     Node ret = d_ho->expandDefinition(node);
-    if( ret!=node )
+    if (ret != node)
     {
-      Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: " << node << " to " << ret << std::endl;
+      Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
+                          << node << " to " << ret << std::endl;
       return ret;
     }
   }

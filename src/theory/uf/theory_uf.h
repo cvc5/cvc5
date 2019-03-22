@@ -133,7 +133,7 @@ private:
   Node d_conflictNode;
 
   /** the higher-order solver extension */
-  HoExtension * d_ho;
+  HoExtension* d_ho;
 
   /** node for true */
   Node d_true;
@@ -176,8 +176,7 @@ private:
   /** called when two equivalence classes are made disequal */
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 
- private: 
-
+ private:
   /** get the operator for this node (node should be either APPLY_UF or
    * HO_APPLY)
    */
@@ -224,7 +223,8 @@ private:
   }
   /** are we in conflict? */
   bool inConflict() const { return d_conflict; }
-private:
+
+ private:
   bool areCareDisequal(TNode x, TNode y);
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,

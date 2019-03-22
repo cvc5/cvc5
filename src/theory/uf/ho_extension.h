@@ -28,51 +28,50 @@ namespace theory {
 namespace uf {
 
 class TheoryUF;
-  
+
 /** The higher-order extension of the theory of uninterpreted functions
- * 
+ *
  * This extension is capable of handling UF constraints involving partial
  * applications via the applicative encoding (kind HO_APPLY), and
  * (dis)equalities involving function sorts. It uses a lazy applicative
  * encoding and implements two axiom schemes, at a high level:
- * 
+ *
  * (1) Extensionality, where disequalities between functions witnessed by
  * arguments where the two functions differ,
- * 
+ *
  * (2) App-Encode, where full applications of UF (kind APPLY_UF) are equated
  * with curried applications (kind HO_APPLY).
- * 
+ *
  * For more details, see "Extending SMT Solvers to Higher-Order", Barbosa et al.
  */
-class HoExtension {
-
+class HoExtension
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
 
  public:
-  HoExtension(TheoryUF& p, context::Context* c,
-                   context::UserContext* u);
-  
-  /** expand definition 
-   * 
+  HoExtension(TheoryUF& p, context::Context* c, context::UserContext* u);
+
+  /** expand definition
+   *
    * This returns the expanded form of node.
-   * 
+   *
    * In particular, this function will convert applications of HO_APPLY
    * to applications of APPLY_UF if they are fully applied, and introduce
    * function variables for function heads that are not variables via the
    * getApplyUfForHoApply method below.
    */
-  Node expandDefinition( Node node );
-  
+  Node expandDefinition(Node node);
+
   /** check higher order
    *
    * This is called at full effort and infers facts and sends lemmas
    * based on higher-order reasoning (specifically, extentionality and
    * app completion). It returns the number of lemmas plus facts
    * added to the equality engine.
-  */
+   */
   unsigned check();
-  
+
   /** applyExtensionality
    *
    * Given disequality deq f != g, if not already cached, this sends a lemma of
@@ -85,42 +84,43 @@ class HoExtension {
    */
   unsigned applyExtensionality(TNode deq);
 
-  /** collect model info 
-   * 
+  /** collect model info
+   *
    * This method adds the necessary equalities to the model m such that
    * model construction is possible if this method returns true. These
-   * equalities may include HO_APPLY versions of all APPLY_UF terms. 
-   * 
+   * equalities may include HO_APPLY versions of all APPLY_UF terms.
+   *
    * The argument termSet is the set of relevant terms that the parent TheoryUF
    * object has added to m that belong to TheoryUF.
-   * 
+   *
    * This method ensures that the function variables in termSet
    * respect extensionality. If some pair does not, then this method adds an
    * extensionality lemma on the output channel of its parent TheoryUF object
    * and returns false.
-   * 
+   *
    * In more detail, functions f and g do not respect extensionality if f and g
    * are not equal in the model, and there is not a pair of unequal witness
-   * terms f(k), g(k). In this case, we add the extensionality lemma 
+   * terms f(k), g(k). In this case, we add the extensionality lemma
    *    f = g V f(k') != g(k')
    * for fresh (tuple) of variables k'.
-   * 
+   *
    * If this method returns true, then all pairs of functions that are in
    * distinct equivalence classes will be guaranteed to be assigned different
    * values in m.
    */
-  bool collectModelInfoHo( std::set< Node >& termSet, TheoryModel * m );
+  bool collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m);
+
  protected:
   /** get apply uf for ho apply
-   * 
+   *
    * This returns the APPLY_UF equivalent for the HO_APPLY term node, where
    * node has non-functional return type (that is, it corresponds to a fully
    * applied function term).
    * This call may introduce a skolem for the head operator and send out a lemma
    * specifying the definition.
-  */
+   */
   Node getApplyUfForHoApply(Node node);
-   
+
   /** get extensionality disequality
    *
    * Given disequality deq f != g, this returns the disequality:
@@ -184,10 +184,10 @@ class HoExtension {
 
   /** map from non-standard operators to their skolems */
   NodeNodeMap d_uf_std_skolem;
-};/* class TheoryUF */
+}; /* class TheoryUF */
 
-}/* CVC4::theory::uf namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace uf
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* __CVC4__THEORY__UF__HO_EXTENSION_H */
