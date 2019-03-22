@@ -33,6 +33,7 @@ class RegExpSolver
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
+  typedef context::CDHashMap<Node, unsigned, NodeHashFunction> NodeUIntMap;
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeNodeMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
@@ -78,9 +79,9 @@ class RegExpSolver
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
   // stored assertions
-  NodeIntMap d_pos_memberships;
+  NodeUIntMap d_pos_memberships;
   std::map<Node, std::vector<Node> > d_pos_memberships_data;
-  NodeIntMap d_neg_memberships;
+  NodeUIntMap d_neg_memberships;
   std::map<Node, std::vector<Node> > d_neg_memberships_data;
   // semi normal forms for symbolic expression
   std::map<Node, Node> d_nf_regexps;

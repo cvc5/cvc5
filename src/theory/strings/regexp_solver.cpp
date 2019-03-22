@@ -55,7 +55,7 @@ unsigned RegExpSolver::getNumMemberships(Node n, bool isPos)
 {
   if (isPos)
   {
-    NodeIntMap::const_iterator it = d_pos_memberships.find(n);
+    NodeUIntMap::const_iterator it = d_pos_memberships.find(n);
     if (it != d_pos_memberships.end())
     {
       return (*it).second;
@@ -63,7 +63,7 @@ unsigned RegExpSolver::getNumMemberships(Node n, bool isPos)
   }
   else
   {
-    NodeIntMap::const_iterator it = d_neg_memberships.find(n);
+    NodeUIntMap::const_iterator it = d_neg_memberships.find(n);
     if (it != d_neg_memberships.end())
     {
       return (*it).second;
@@ -90,7 +90,7 @@ void RegExpSolver::check()
   std::vector<Node> cprocessed;
 
   Trace("regexp-debug") << "Checking Memberships ... " << std::endl;
-  for (NodeIntMap::const_iterator itr_xr = d_pos_memberships.begin();
+  for (NodeUIntMap::const_iterator itr_xr = d_pos_memberships.begin();
        itr_xr != d_pos_memberships.end();
        ++itr_xr)
   {
@@ -430,14 +430,14 @@ void RegExpSolver::addMembership(Node assertion)
   Node r = atom[1];
   if (polarity)
   {
-    int index = 0;
-    NodeIntMap::const_iterator it = d_pos_memberships.find(x);
+    unsigned index = 0;
+    NodeUIntMap::const_iterator it = d_pos_memberships.find(x);
     if (it != d_pos_memberships.end())
     {
       index = (*it).second;
-      for (int k = 0; k < index; k++)
+      for (unsigned k = 0; k < index; k++)
       {
-        if (k < (int)d_pos_memberships_data[x].size())
+        if (k < d_pos_memberships_data[x].size())
         {
           if (d_pos_memberships_data[x][k] == r)
           {
@@ -451,7 +451,7 @@ void RegExpSolver::addMembership(Node assertion)
       }
     }
     d_pos_memberships[x] = index + 1;
-    if (index < (int)d_pos_memberships_data[x].size())
+    if (index < d_pos_memberships_data[x].size())
     {
       d_pos_memberships_data[x][index] = r;
     }
@@ -462,14 +462,14 @@ void RegExpSolver::addMembership(Node assertion)
   }
   else if (!options::stringIgnNegMembership())
   {
-    int index = 0;
-    NodeIntMap::const_iterator it = d_neg_memberships.find(x);
+    unsigned index = 0;
+    NodeUIntMap::const_iterator it = d_neg_memberships.find(x);
     if (it != d_neg_memberships.end())
     {
       index = (*it).second;
-      for (int k = 0; k < index; k++)
+      for (unsigned k = 0; k < index; k++)
       {
-        if (k < (int)d_neg_memberships_data[x].size())
+        if (k < d_neg_memberships_data[x].size())
         {
           if (d_neg_memberships_data[x][k] == r)
           {
@@ -483,7 +483,7 @@ void RegExpSolver::addMembership(Node assertion)
       }
     }
     d_neg_memberships[x] = index + 1;
-    if (index < (int)d_neg_memberships_data[x].size())
+    if (index < d_neg_memberships_data[x].size())
     {
       d_neg_memberships_data[x][index] = r;
     }
