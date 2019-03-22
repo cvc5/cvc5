@@ -2656,6 +2656,28 @@ void TheoryStrings::NormalForm::addToExplanation(Node exp,
   }
 }
 
+void TheoryStrings::NormalForm::getExplanation(
+    int index,
+    bool isRev,
+    std::vector<Node>& curr_exp)
+{
+  if( index==-1 || !options::stringMinPrefixExplain() ){
+    curr_exp.insert(curr_exp.end(), d_exp.begin(), d_exp.end());
+    return;
+  }
+  for (const Node& exp : d_exp)
+  {
+    int dep = d_exp_dep[exp][isRev];
+    if( dep<=index ){
+      curr_exp.push_back( exp );
+      Trace("strings-explain-prefix-debug") << "  include : ";
+    }else{
+      Trace("strings-explain-prefix-debug") << "  exclude : ";
+    }
+    Trace("strings-explain-prefix-debug") << exp << std::endl;
+  }
+}
+
 void TheoryStrings::getNormalForms(Node eqc,
                                    std::vector<NormalForm>& normal_forms,
                                    std::map<Node, unsigned>& term_to_nf_index)
@@ -2863,30 +2885,6 @@ void TheoryStrings::getNormalForms(Node eqc,
   }
 }
 
-void TheoryStrings::getExplanationVectorForPrefix(
-    std::vector<NormalForm>& normal_forms,
-    unsigned i,
-    int index,
-    bool isRev,
-    std::vector<Node>& curr_exp)
-{
-  NormalForm& nf = normal_forms[i];
-  if( index==-1 || !options::stringMinPrefixExplain() ){
-    curr_exp.insert(curr_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
-  }else{
-    for (const Node& exp : nf.d_exp)
-    {
-      int dep = nf.d_exp_dep[exp][isRev];
-      if( dep<=index ){
-        curr_exp.push_back( exp );
-        Trace("strings-explain-prefix-debug") << "  include : " << exp << std::endl;
-      }else{
-        Trace("strings-explain-prefix-debug") << "  exclude : " << exp << std::endl;
-      }
-    }
-  }
-}
-
 void TheoryStrings::getExplanationVectorForPrefixEq(
     std::vector<NormalForm>& normal_forms,
     unsigned i,
@@ -2897,13 +2895,9 @@ void TheoryStrings::getExplanationVectorForPrefixEq(
     std::vector<Node>& curr_exp)
 {
   Trace("strings-explain-prefix") << "Get explanation for prefix " << index_i << ", " << index_j << " of normal forms " << i << " and " << j << ", reverse = " << isRev << std::endl;
-  for( unsigned r=0; r<2; r++ ){
-    getExplanationVectorForPrefix(normal_forms,
-                                  r == 0 ? i : j,
-                                  r == 0 ? index_i : index_j,
-                                  isRev,
-                                  curr_exp);
-  }
+  // get explanations
+  normal_forms[i].getExplanation(index_i,isRev,curr_exp);
+  normal_forms[j].getExplanation(index_j,isRev,curr_exp);
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
       << (normal_forms[i].d_exp.size() + normal_forms[j].d_exp.size())

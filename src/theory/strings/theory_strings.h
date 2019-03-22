@@ -304,7 +304,7 @@ private:
      * - true maps to an (ideally maximal) index relative to the end of d_nf
      * such that L is required for explaining why d_base has a suffix that
      * includes the term at that index.
-     * We call these the forward and backwards dependcy indices.
+     * We call these the forward and backwards dependency indices.
      *
      * In the above example:
      *   y = u ++ v   : false -> 0, true -> 0
@@ -335,6 +335,18 @@ private:
      * similarly update the backwards dependency index to the maximum.
      */
     void addToExplanation(Node exp, int new_val, int new_rev_val);
+    /** get explanation
+     * 
+     * This gets the explanation for the prefix (resp. suffix) of the normal
+     * form up to index when isRev is false (resp. true). In particular;
+     * 
+     * If index is -1, then this method adds all literals in d_exp to curr_exp.
+     * 
+     * If index>=0, this method adds all literals in d_exp to curr_exp whose
+     * forward (resp. backwards) dependency index is less than index
+     * when isRev is false (resp. true).
+     */
+    void getExplanation(int index, bool isRev, std::vector< Node >& curr_exp);
   };
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
@@ -642,17 +654,6 @@ private:
                         bool isRev,
                         unsigned rproc,
                         std::vector<InferInfo>& pinfer);
-  //--------------------------end for checkNormalFormsEq
-
-  //--------------------------for checkNormalFormsDeq
-  void processDeq( Node n1, Node n2 );
-  int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
-  int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-  void getExplanationVectorForPrefix(std::vector<NormalForm>& normal_forms,
-                                     unsigned i,
-                                     int index,
-                                     bool isRev,
-                                     std::vector<Node>& curr_exp);
   void getExplanationVectorForPrefixEq(std::vector<NormalForm>& normal_forms,
                                        unsigned i,
                                        unsigned j,
@@ -660,6 +661,12 @@ private:
                                        int index_j,
                                        bool isRev,
                                        std::vector<Node>& curr_exp);
+  //--------------------------end for checkNormalFormsEq
+
+  //--------------------------for checkNormalFormsDeq
+  void processDeq( Node n1, Node n2 );
+  int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
+  int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
   //--------------------------end for checkNormalFormsDeq
 
   //--------------------------------for checkMemberships
