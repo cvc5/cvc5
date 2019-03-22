@@ -196,11 +196,11 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
     //needsBuilder = true;
   }  
   //finite model finding
-  if( options::finiteModelFind() ){
-    if( options::fmfBound() ){
-      d_bint.reset(new quantifiers::BoundedIntegers(c, this));
-      d_modules.push_back(d_bint.get());
-    }
+  if( options::fmfBound() ){
+    d_bint.reset(new quantifiers::BoundedIntegers(c, this));
+    d_modules.push_back(d_bint.get());
+  }
+  if( options::finiteModelFind() || options::fmfBound() ){
     d_model_engine.reset(new quantifiers::ModelEngine(c, this));
     d_modules.push_back(d_model_engine.get());
     //finite model finder has special ways of building the model

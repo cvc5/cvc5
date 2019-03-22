@@ -1822,8 +1822,6 @@ void SmtEngine::setDefaults() {
   //now have determined whether fmfBoundInt is on/off
   //apply fmfBoundInt options
   if( options::fmfBound() ){
-    //must have finite model finding on
-    options::finiteModelFind.set( true );
     if (!options::mbqiMode.wasSetByUser()
         || (options::mbqiMode() != quantifiers::MBQI_NONE
             && options::mbqiMode() != quantifiers::MBQI_FMC))
