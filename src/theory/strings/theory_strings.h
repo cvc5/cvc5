@@ -580,8 +580,8 @@ private:
   //--------------------------end for checkCycles
 
   //--------------------------for checkNormalFormsEq
-  /** normalize equivalence class 
-   * 
+  /** normalize equivalence class
+   *
    * This method attempts to build a "normal form" for the equivalence class
    * of string term n (for more details on normal forms, see checkNormalFormsEq
    * or see Liang et al CAV 2014). In particular, this method checks whether the
@@ -593,7 +593,7 @@ private:
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
-   * index in normal_forms where its normal form data is located. 
+   * index in normal_forms where its normal form data is located.
    */
   void getNormalForms(Node eqc,
                       std::vector<NormalForm>& normal_forms,
