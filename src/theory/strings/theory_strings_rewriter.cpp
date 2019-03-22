@@ -2323,7 +2323,7 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
         if (stripConstantEndpoints(children0, children1, nb, ne, 1))
         {
           // str.indexof(str.++("AB", x, "C"), "C", 0) --->
-          // str.indexof(str.++(x, "C"), "C", 0)
+          // 2 + str.indexof(str.++(x, "C"), "C", 0)
           Node ret =
               nm->mkNode(kind::PLUS,
                          nm->mkNode(kind::STRING_LENGTH,
