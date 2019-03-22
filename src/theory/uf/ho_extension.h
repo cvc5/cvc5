@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief This is the interface to TheoryUF implementations
+ ** \brief The higher-order extension of TheoryUF.
  **/
 
 #include "cvc4_private.h"
