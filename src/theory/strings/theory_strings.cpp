@@ -2629,6 +2629,33 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
         << std::endl;
   }
 }
+  
+void TheoryStrings::NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
+{
+  Assert( Rewriter::rewrite(NodeManager::currentNM()->mkNode(STRING_CONCAT,isRev ? c2 : c1, isRev ? c1 : c2))==d_nf[index] );
+  d_nf.insert(d_nf.begin() + index + 1, c2);
+  d_nf[index] = c1;
+  // update the dependency indices
+  // notice this is not critical for soundness: not doing the below incrementing will only lead to overapproximating when antecedants are required in explanations
+  for (std::map<Node, std::map<bool, int> >::iterator itnd =
+            d_exp_dep.begin();
+        itnd != d_exp_dep.end();
+        ++itnd)
+  {
+    for( std::map< bool, int >::iterator itnd2 = itnd->second.begin(); itnd2 != itnd->second.end(); ++itnd2 ){
+      // See if this can be incremented: it can if this literal is not relevant
+      // to the current index, and hence it is not relevant for both c1 and c2.
+      Assert(itnd2->second >= 0 && itnd2->second <= (int)d_nf.size());
+      bool increment =
+          (itnd2->first == isRev)
+              ? itnd2->second > (int)index
+              : ((int)d_nf.size() - 1 - itnd2->second) < (int)index;
+      if( increment ){
+       d_exp_dep[itnd->first][itnd2->first] = itnd2->second + 1;
+      }
+    }
+  }
+}
 
 void TheoryStrings::NormalForm::addToExplanation(Node exp,
                                                  int new_val,
@@ -3145,25 +3172,6 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
             int l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? j : i;
             NormalForm& nfl = normal_forms[l];
             std::vector<Node>& nflv = nfl.d_nf;
-            //update the nf exp dependencies
-            //notice this is not critical for soundness: not doing the below incrementing will only lead to overapproximating when antecedants are required in explanations
-            for (std::map<Node, std::map<bool, int> >::iterator itnd =
-                     nfl.d_exp_dep.begin();
-                 itnd != nfl.d_exp_dep.end();
-                 ++itnd)
-            {
-              for( std::map< bool, int >::iterator itnd2 = itnd->second.begin(); itnd2 != itnd->second.end(); ++itnd2 ){
-                //see if this can be incremented: it can if it is not relevant to the current index
-                Assert(itnd2->second >= 0 && itnd2->second <= (int)nflv.size());
-                bool increment =
-                    (itnd2->first == isRev)
-                        ? itnd2->second > (int)index
-                        : ((int)nflv.size() - 1 - itnd2->second) < (int)index;
-                if( increment ){
-                  nfl.d_exp_dep[itnd->first][itnd2->first] = itnd2->second + 1;
-                }
-              }
-            }
             Node remainderStr;
             if( isRev ){
               int new_len = nflv[index].getConst<String>().size() - len_short;
@@ -3176,8 +3184,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
             Trace("strings-solve-debug-test")
                 << "Break normal form of " << nflv[index] << " into "
                 << nfkv[index] << ", " << remainderStr << std::endl;
-            nflv.insert(nflv.begin() + index + 1, remainderStr);
-            nflv[index] = nfkv[index];
+            nfl.splitConstant(index,nfkv[index], remainderStr, isRev);
             index++;
             success = true;
           }else{

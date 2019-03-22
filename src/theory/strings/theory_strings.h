@@ -324,8 +324,17 @@ private:
      * to the last position in the normal form of y.
      */
     std::map<Node, std::map<bool, int> > d_exp_dep;
-    /** reverse */
+    /** reverse the normal form 
+     * 
+     * This operation is done in contexts where the normal form is being scanned
+     * in reverse order.
+     */
     void reverse() { std::reverse(d_nf.begin(), d_nf.end()); }
+    /** split constant
+     * 
+     * Splits the constant in d_nf at index to constants c1 and c2.
+     */
+    void splitConstant(unsigned index, Node c1, Node c2, bool isRev);
     /** add to explanation
      *
      * This adds exp to the explanation vector d_exp with new forward and
