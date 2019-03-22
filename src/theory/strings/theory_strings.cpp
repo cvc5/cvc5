@@ -773,7 +773,7 @@ bool TheoryStrings::collectModelInfo(TheoryModel* m)
   //step 4 : assign constants to all other equivalence classes
   for( unsigned i=0; i<nodes.size(); i++ ){
     if( processed.find( nodes[i] )==processed.end() ){
-      Assert( d_normal_forms.find( nodes[i] )!=d_normal_forms.end() );
+      Assert( d_normal_form.find( nodes[i] )!=d_normal_form.end() );
       NormalForm& nf = d_normal_form[nodes[i]];
       if( Trace.isOn("strings-model") )
       {
@@ -2681,7 +2681,7 @@ void TheoryStrings::getNormalForms( Node &eqc, std::vector< NormalForm > &normal
                     Trace("strings-error") << std::endl;
                   }
                 }
-                Assert( nfrv[r].getKind()!=kind::STRING_CONCAT );
+                Assert( nn.getKind()!=kind::STRING_CONCAT );
               }
 #endif
               nf_curr.d_nf.insert( nf_curr.d_nf.end(), nfrv.begin(), nfrv.end() );
