@@ -266,7 +266,8 @@ void ModelEngine::exhaustiveInstantiate( Node f, int effort ){
     }
     d_triedLemmas += mb->getNumTriedLemmas()-prev_tlem;
     d_addedLemmas += mb->getNumAddedLemmas()-prev_alem;
-    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi += (mb->getNumAddedLemmas()-prev_alem);
+    d_quantEngine->d_statistics.d_instantiations_fmf_mbqi +=
+        (mb->getNumAddedLemmas() - prev_alem);
   }else{
     if( Trace.isOn("fmf-exh-inst-debug") ){
       Trace("fmf-exh-inst-debug") << "   Instantiation Constants: ";
