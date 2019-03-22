@@ -3613,6 +3613,8 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
 {
   Assert(nb.empty());
   Assert(ne.empty());
+
+  NodeManager* nm = NodeManager::currentNM();
   bool changed = false;
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
@@ -3693,15 +3695,13 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             // component
             if (r == 0)
             {
-              nb.push_back(
-                  NodeManager::currentNM()->mkConst(s.prefix(overlap)));
-              n1[index0] = NodeManager::currentNM()->mkConst(s.suffix(overlap));
+              nb.push_back(nm->mkConst(s.prefix(s.size() - overlap)));
+              n1[index0] = nm->mkConst(s.suffix(overlap));
             }
             else
             {
-              ne.push_back(
-                  NodeManager::currentNM()->mkConst(s.suffix(overlap)));
-              n1[index0] = NodeManager::currentNM()->mkConst(s.prefix(overlap));
+              ne.push_back(nm->mkConst(s.suffix(s.size() - overlap)));
+              n1[index0] = nm->mkConst(s.prefix(overlap));
             }
           }
         }
