@@ -429,6 +429,6 @@ bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
   return true;
 }
 
-}  // namespace uf
-}  // namespace theory
-} /* namespace CVC4 */
+}
+}
+}

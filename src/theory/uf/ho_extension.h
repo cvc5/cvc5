@@ -95,18 +95,21 @@ class HoExtension
    *
    * This method ensures that the function variables in termSet
    * respect extensionality. If some pair does not, then this method adds an
-   * extensionality lemma on the output channel of its parent TheoryUF object
-   * and returns false.
+   * extensionality equality directly to the equality engine of m.
    *
    * In more detail, functions f and g do not respect extensionality if f and g
    * are not equal in the model, and there is not a pair of unequal witness
-   * terms f(k), g(k). In this case, we add the extensionality lemma
-   *    f = g V f(k') != g(k')
-   * for fresh (tuple) of variables k'.
+   * terms f(k), g(k). In this case, we add the disequality
+   *    f(k') != g(k')
+   * for fresh (tuple) of variables k' to the equality engine of m. Notice
+   * this is done only for functions whose type has infinite cardinality,
+   * since all functions with finite cardinality are ensured to respect
+   * extensionality by this point due to our extentionality inference schema.
    *
    * If this method returns true, then all pairs of functions that are in
    * distinct equivalence classes will be guaranteed to be assigned different
-   * values in m.
+   * values in m. It returns false if any (dis)equality added to m led to
+   * an inconsistency in m.
    */
   bool collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m);
 
