@@ -2696,7 +2696,7 @@ void TheoryStrings::getNormalForms(Node& eqc,
               for (const Node& nn : nfrv)
               {
                 if( Trace.isOn("strings-error") ) {
-                  if (nn.getKind() == kind::STRING_CONCAT)
+                  if (nn.getKind() == STRING_CONCAT)
                   {
                     Trace("strings-error") << "Strings::Error: From eqc = " << eqc << ", " << n << " index " << i << ", bad normal form : ";
                     for (unsigned rr = 0; rr < nfrv.size(); rr++)
@@ -2749,18 +2749,21 @@ void TheoryStrings::getNormalForms(Node& eqc,
         //if not equal to self
         std::vector<Node>& currv = nf_curr.d_nf;
         if (currv.size() > 1
-            || (currv.size() == 1 && currv[0].getKind() == kind::CONST_STRING))
+            || (currv.size() == 1 && currv[0].getKind() == CONST_STRING))
         {
 #ifdef CVC4_ASSERTIONS
-          for (unsigned i = 0; i < currv.size(); i++)
+          if( currv.size() > 1 )
           {
-            if (Trace.isOn("strings-error"))
+            for (unsigned i = 0; i < currv.size(); i++)
             {
-              Trace("strings-error") << "Cycle for normal form ";
-              printConcat(currv, "strings-error");
-              Trace("strings-error") << "..." << currv[i] << std::endl;
+              if (Trace.isOn("strings-error"))
+              {
+                Trace("strings-error") << "Cycle for normal form ";
+                printConcat(currv, "strings-error");
+                Trace("strings-error") << "..." << currv[i] << std::endl;
+              }
+              Assert(!areEqual(currv[i], n));
             }
-            Assert(!areEqual(currv[i], n));
           }
 #endif
           term_to_nf_index[n] = normal_forms.size();
