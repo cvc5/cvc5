@@ -295,8 +295,8 @@ private:
     std::vector<Node> d_exp;
     /**
      * Map from literals in the vector d_exp to integers indicating indices in
-     * d_nf for which that literal L is relevant for explaining d_base = d_nf. 
-     * 
+     * d_nf for which that literal L is relevant for explaining d_base = d_nf.
+     *
      * In particular:
      * - false maps to an (ideally maximal) index relative to the start of d_nf
      * such that L is required for explaining why d_base has a prefix that
@@ -305,7 +305,7 @@ private:
      * such that L is required for explaining why d_base has a suffix that
      * includes the term at that index.
      * We call these the forward and backwards dependcy indices.
-     * 
+     *
      * In the above example:
      *   y = u ++ v   : false -> 0, true -> 0
      *   u = u1 ++ u2 : false -> 0, true -> 1
@@ -315,7 +315,7 @@ private:
      * that v is a suffix of y, since its reverse index in this map is 1,
      * indicating that "u2" is the first position in u1 ++ u2 ++ v that it is
      * required for explaining.
-     * 
+     *
      * This information is used to minimize explanations when conflicts arise.
      * For example, say u ++ v = y = x = u ++ w and w != v, using this
      * dependency information, we could construct a conflict:
@@ -331,7 +331,7 @@ private:
      * This adds exp to the explanation vector d_exp with new forward and
      * backwards dependency indices new_val and new_rev_val.
      * If exp already has dependencies, we update the forward dependency
-     * index to the minimum of the previous value and the new value, and 
+     * index to the minimum of the previous value and the new value, and
      * similarly update the backwards dependency index to the maximum.
      */
     void addToExplanation(Node exp, int new_val, int new_rev_val);

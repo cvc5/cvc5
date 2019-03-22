@@ -2752,7 +2752,7 @@ void TheoryStrings::getNormalForms(Node& eqc,
             || (currv.size() == 1 && currv[0].getKind() == CONST_STRING))
         {
 #ifdef CVC4_ASSERTIONS
-          if( currv.size() > 1 )
+          if (currv.size() > 1)
           {
             for (unsigned i = 0; i < currv.size(); i++)
             {
@@ -3292,7 +3292,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
                     }
                     if( p>1 ){
                       if( start_index_nc_k==index+1 ){
-                        info.d_ant.push_back( xnz );
+                        info.d_ant.push_back(xnz);
                         getExplanationVectorForPrefixEq(normal_forms,
                                                         const_k,
                                                         nconst_k,
