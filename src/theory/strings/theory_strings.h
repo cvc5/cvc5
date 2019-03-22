@@ -557,7 +557,7 @@ private:
 
   //--------------------------for checkNormalFormsEq
   void normalizeEquivalenceClass( Node n );
-  void getNormalForms( Node &eqc, std::vector< NormalForm > &normal_forms );
+  void getNormalForms( Node &eqc, std::vector< NormalForm > &normal_forms,std::map< Node, unsigned >& term_to_nf_index);
   bool detectLoop( std::vector< NormalForm > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
 
   /**
