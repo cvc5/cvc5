@@ -454,7 +454,7 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
       {
         if (status != 0)
         {
-          if( it->first.isNull() )
+          if (it->first.isNull())
           {
             // The value of this child is unknown on this point, hence we
             // ignore it.
@@ -471,7 +471,7 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
           }
         }
       }
-      if( success )
+      if (success)
       {
         it->second.getLeavesInternal(vals, pol, v, index + 1, new_status);
       }
@@ -675,7 +675,7 @@ void SygusUnifIo::notifyEnumeration(Node e, Node v, std::vector<Node>& lemmas)
         {
           // We only set resb if it is constant, otherwise it remains null.
           // This indicates its value cannot be determined.
-          if( res.isConst() )
+          if (res.isConst())
           {
             resb = res;
           }
