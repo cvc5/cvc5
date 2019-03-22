@@ -270,11 +270,50 @@ private:
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
-  /** normal forms */
-  std::map< Node, Node > d_normal_forms_base;
-  std::map< Node, std::vector< Node > > d_normal_forms;
-  std::map< Node, std::vector< Node > > d_normal_forms_exp;
-  std::map< Node, std::map< Node, std::map< bool, int > > > d_normal_forms_exp_depend;
+  /** normal forms 
+   * 
+   * Stores information regarding the "normal form" of terms t in the current
+   * context. In the following we use example where assertions are:
+   *   { x = y, y = z, y = u ++ v, u = u1 ++ u2 }
+   * and equivalence class [x] = { x, y, z }, whose normal form is (u1, u2, v).
+   */
+  class NormalForm
+  {
+  public:
+    /** 
+     * The "base" of the normal form. This is some term in the equivalence
+     * class of t that the normal form is based on. In the above, example, the
+     * base of [x] is y.
+     */
+    Node d_base;
+    /** the normal form, (u1, u2, v) in the above example */
+    std::vector< Node > d_nf;
+    /** 
+     * The explanation for the normal form. In the above example, this is the
+     * set of equalities { y = u ++ v, u = u1 ++ u2 }.
+     */
+    std::vector< Node > d_exp;
+    /** 
+     * Map from equalities in the above vector to the starting and ending
+     * position in d_nf that they are relevant for explaining, where start is
+     * indexed by true and end is indexed by false. In the above example:
+     *   y = u ++ v   :  true -> 0, false -> 
+     *   u = u1 ++ u2 :  
+     */
+    std::map< Node, std::map< bool, int > > d_exp_dep;
+    /** reverse */
+    void reverse()
+    {
+      std::reverse( d_nf.begin(), d_nf.end() );
+    }
+    /** add to explanation
+     * 
+     * FIXME
+     */
+    void addToExplanation( Node exp, int new_val, int new_rev_val );
+  };
+  /** map from terms to their normal forms */
+  std::map< Node, NormalForm > d_normal_form;
   //map of pairs of terms that have the same normal form
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
@@ -518,9 +557,8 @@ private:
 
   //--------------------------for checkNormalFormsEq
   void normalizeEquivalenceClass( Node n );
-  void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
-  bool detectLoop( std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
+  void getNormalForms( Node &eqc, std::vector< NormalForm > &normal_forms );
+  bool detectLoop( std::vector< NormalForm > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
 
   /**
    * Result of processLoop() below.
@@ -536,8 +574,7 @@ private:
   };
 
   ProcessLoopResult processLoop(
-      const std::vector<std::vector<Node> >& normal_forms,
-      const std::vector<Node>& normal_form_src,
+      const std::vector<NormalForm >& normal_forms,
       int i,
       int j,
       int loop_n_index,
@@ -546,13 +583,10 @@ private:
       int index,
       InferInfo& info);
 
-  void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
-  void processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
-                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
+  void processNEqc( std::vector< NormalForm > &normal_forms );
+  void processReverseNEq( std::vector< NormalForm > &normal_forms, 
                           unsigned i, unsigned j, unsigned& index, unsigned rproc, std::vector< InferInfo >& pinfer );
-  void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
-                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
+  void processSimpleNEq( std::vector< NormalForm > &normal_forms, 
                          unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
   //--------------------------end for checkNormalFormsEq
 
@@ -560,10 +594,9 @@ private:
   void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+  void getExplanationVectorForPrefix( std::vector< NormalForm > &normal_forms,
                                       unsigned i, int index, bool isRev, std::vector< Node >& curr_exp );
-  void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
+  void getExplanationVectorForPrefixEq( std::vector< NormalForm > &normal_forms,
                                         unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
   //--------------------------end for checkNormalFormsDeq
 
