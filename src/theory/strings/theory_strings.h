@@ -580,8 +580,22 @@ private:
   //--------------------------end for checkCycles
 
   //--------------------------for checkNormalFormsEq
+  /** normalize equivalence class 
+   * 
+   * This method attempts to build a "normal form" for the equivalence class
+   * of string term n (for more details on normal forms, see checkNormalFormsEq
+   * or see Liang et al CAV 2014). In particular, this method checks whether the
+   * current normal form for each term in this equivalence class is identical.
+   * If it is not, then we add an inference via sendInference and abort the
+   * call.
+   */
   void normalizeEquivalenceClass( Node n );
-  void getNormalForms(Node& eqc,
+  /**
+   * For each term in the equivalence class of eqc, this adds data regarding its
+   * normal form to normal_forms. The map term_to_nf_index maps terms to the
+   * index in normal_forms where its normal form data is located. 
+   */
+  void getNormalForms(Node eqc,
                       std::vector<NormalForm>& normal_forms,
                       std::map<Node, unsigned>& term_to_nf_index);
   bool detectLoop(std::vector<NormalForm>& normal_forms,

@@ -2656,7 +2656,7 @@ void TheoryStrings::NormalForm::addToExplanation(Node exp,
   }
 }
 
-void TheoryStrings::getNormalForms(Node& eqc,
+void TheoryStrings::getNormalForms(Node eqc,
                                    std::vector<NormalForm>& normal_forms,
                                    std::map<Node, unsigned>& term_to_nf_index)
 {
