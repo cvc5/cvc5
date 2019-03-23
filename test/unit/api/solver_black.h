@@ -451,6 +451,8 @@ void SolverBlack::testMkOpTerm()
 
   // mkOpTerm(Kind kind, uint32_t arg)
   TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(DIVISIBLE_OP, 1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_LEFT_OP, 1));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkOpTerm(BITVECTOR_ROTATE_RIGHT_OP, 1));
   TS_ASSERT_THROWS(d_solver->mkOpTerm(BITVECTOR_EXTRACT_OP, 1),
                    CVC4ApiException&);
 
