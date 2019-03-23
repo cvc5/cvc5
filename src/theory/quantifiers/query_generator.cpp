@@ -185,9 +185,9 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     NodeManager* nm = NodeManager::currentNM();
     // make the satisfiability query
     bool needExport = false;
-    ExprManagerMapCollection varMap;
     ExprManager em(nm->getOptions());
     std::unique_ptr<SmtEngine> queryChecker;
+    ExprManagerMapCollection varMap;
     initializeChecker(queryChecker, em, varMap, qy, needExport);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;
