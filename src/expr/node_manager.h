@@ -276,6 +276,17 @@ class NodeManager {
       Debug("gc") << (d_inReclaimZombies ? " [CURRENTLY-RECLAIMING]" : "")
                   << std::endl;
     }
+
+    // `d_zombies` uses the node id to hash and compare nodes. If `d_zombies`
+    // already contains a node value with the same id as `nv`, but the pointers
+    // are different, then the wrong `NodeManager` was in scope for one of the
+    // two nodes when it reached refcount zero. This can happen for example if
+    // you create a node with a `NodeManager` n1 and then call `Node::toExpr()`
+    // on that node while a different `NodeManager` n2 is in scope. When that
+    // `Expr` is deleted and the node reaches refcount zero in the `Expr`'s
+    // destructor, then `markForDeletion()` will be called on n2.
+    Assert(d_zombies.find(nv) == d_zombies.end() || *d_zombies.find(nv) == nv);
+
     d_zombies.insert(nv);  // FIXME multithreading
 
     if(safeToReclaimZombies()) {
