@@ -264,18 +264,18 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
           << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
     }
-    else
+    // if x does not have a normal form, then it should not occur in the
+    // equality engine and hence should be its own representative.
+    Assert( xr==x );
+    if (x.getKind() == kind::STRING_CONCAT)
     {
-      if (x.getKind() == kind::STRING_CONCAT)
+      std::vector<Node> vec_nodes;
+      for (unsigned i = 0; i < x.getNumChildren(); i++)
       {
-        std::vector<Node> vec_nodes;
-        for (unsigned i = 0; i < x.getNumChildren(); i++)
-        {
-          Node nc = getNormalString(x[i], nf_exp);
-          vec_nodes.push_back(nc);
-        }
-        return mkConcat(vec_nodes);
+        Node nc = getNormalString(x[i], nf_exp);
+        vec_nodes.push_back(nc);
       }
+      return mkConcat(vec_nodes);
     }
   }
   return x;

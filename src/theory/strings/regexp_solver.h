@@ -20,7 +20,11 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
+#include "context/context.h"
 #include "theory/strings/regexp_operation.h"
+#include "util/regexp.h"
+#include "expr/node.h"
+#include <map>
 
 namespace CVC4 {
 namespace theory {

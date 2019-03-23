@@ -10,7 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of the regular expression solver for the theory of
- *strings.
+ ** strings.
  **
  **/
 
