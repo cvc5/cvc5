@@ -629,6 +629,8 @@ libcvc4_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
+  theory/strings/regexp_solver.cpp
+  theory/strings/regexp_solver.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/theory_strings.cpp

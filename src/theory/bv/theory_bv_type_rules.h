@@ -348,7 +348,7 @@ class BitVectorRotateLeftOpTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_LEFT);
+    Assert(n.getKind() == kind::BITVECTOR_ROTATE_LEFT_OP);
     return nodeManager->builtinOperatorType();
   }
 }; /* class BitVectorRotateLeftOpTypeRule */
@@ -360,7 +360,7 @@ class BitVectorRotateRightOpTypeRule
                                      TNode n,
                                      bool check)
   {
-    Assert(n.getKind() == kind::BITVECTOR_ROTATE_RIGHT);
+    Assert(n.getKind() == kind::BITVECTOR_ROTATE_RIGHT_OP);
     return nodeManager->builtinOperatorType();
   }
 }; /* class BitVectorRotateRightOpTypeRule */

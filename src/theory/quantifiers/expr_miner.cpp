@@ -131,9 +131,9 @@ Result ExprMiner::doCheck(Node query)
   }
   NodeManager* nm = NodeManager::currentNM();
   bool needExport = false;
-  ExprManagerMapCollection varMap;
   ExprManager em(nm->getOptions());
   std::unique_ptr<SmtEngine> smte;
+  ExprManagerMapCollection varMap;
   initializeChecker(smte, em, varMap, queryr, needExport);
   return smte->checkSat();
 }

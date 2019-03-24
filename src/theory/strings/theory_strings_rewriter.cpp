@@ -2318,6 +2318,22 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
           Node ret = nm->mkNode(kind::STRING_STRIDOF, nn, node[1], node[2]);
           return returnRewrite(node, ret, "idof-def-ctn");
         }
+
+        // Strip components from the beginning that are guaranteed not to match
+        if (stripConstantEndpoints(children0, children1, nb, ne, 1))
+        {
+          // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+          // 2 + str.indexof(str.++(x, "C"), "C", 0)
+          Node ret =
+              nm->mkNode(kind::PLUS,
+                         nm->mkNode(kind::STRING_LENGTH,
+                                    mkConcat(kind::STRING_CONCAT, nb)),
+                         nm->mkNode(kind::STRING_STRIDOF,
+                                    mkConcat(kind::STRING_CONCAT, children0),
+                                    node[1],
+                                    node[2]));
+          return returnRewrite(node, ret, "idof-strip-cnst-endpts");
+        }
       }
 
       // strip symbolic length
@@ -3663,6 +3679,14 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
               // e.g. str.contains( str.++( "abc", x ), str.++( "cd", y ) ) -->
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r == 0 ? s.overlap(t) : t.overlap(s);
+            }
+            else
+            {
+              // if we are looking at a substring, we can remove the component
+              // if there is no overlap
+              //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
+              //        --> str.contains( x, "a" )
+              removeComponent = ((r == 0 ? s.overlap(t) : t.overlap(s)) == 0);
             }
           }
           else if (sss.empty())  // only if not substr
