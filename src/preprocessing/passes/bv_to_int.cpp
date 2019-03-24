@@ -43,25 +43,25 @@ struct bvToInt_stack_element
   bvToInt_stack_element(TNode node) : node(node), children_added(false) {}
 }; /* struct bvToInt_stack_element */
 
-Node pow2(uint32_t k)
-{
-	  Node two_const = nm->mkConst<Rational>(2);
-	  Node k_const = nm->mkConst<Rational>(k);
-	  vector<Node> children{ two_const, k_const };
-	  Node result = getNode(kind::POW, children);
-	  return result;
-}
-
-Node getNode(kind::kind_t nodeKind, vector<Node> children) {
+Node getNode(kind::Kind_t nodeKind, vector<Node> children) {
 	NodeBuilder<> builder(nodeKind);
 	uint32_t num_of_children = children.size();
 	for (uint32_t i=0; i < num_of_children; i++) {
 		builder << children[i];
 	}
 	Node result = builder;
-	result = rewriter::rewrite(result);
+	result = Rewriter::rewrite(result);
 	return result;
 
+}
+
+Node pow2(uint32_t k, NodeManager* nm)
+{
+	  Node two_const = nm->mkConst<Rational>(2);
+	  Node k_const = nm->mkConst<Rational>(k);
+	  vector<Node> children{ two_const, k_const };
+	  Node result = getNode(kind::POW, children);
+	  return result;
 }
 
 Node bvToIntMakeBinary(TNode n, NodeMap& cache)
@@ -182,15 +182,16 @@ Node bvToInt(TNode n, NodeMap& cache)
       }
 
       kind::Kind_t oldKind = current.getKind();
+      Node intized_node = current;
       switch (oldKind)
       {
         case kind::BITVECTOR_PLUS: 
 	{
           Assert(children.size() == 2);
 	  uint32_t bvsize = current.getType().getBitVectorSize();
-	  Node pow = pow2(bvsize);
+	  Node pow = pow2(bvsize, nm);
       	  Node plus = getNode(kind::PLUS, children);
-	  Node intized_node = getNode(king::INTS_MODULUS_TOTAL, {plus, pow});
+	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {plus, pow});
 	  break;
 	}
         case kind::BITVECTOR_MULT: 
