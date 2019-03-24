@@ -19,7 +19,7 @@
 #ifndef __CVC4__API__CVC4CPP_H
 #define __CVC4__API__CVC4CPP_H
 
-#include "cvc4cppkind.h"
+#include "api/cvc4cppkind.h"
 
 #include <map>
 #include <memory>
