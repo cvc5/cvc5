@@ -43,6 +43,27 @@ struct bvToInt_stack_element
   bvToInt_stack_element(TNode node) : node(node), children_added(false) {}
 }; /* struct bvToInt_stack_element */
 
+Node pow2(uint32_t k)
+{
+	  Node two_const = nm->mkConst<Rational>(2);
+	  Node k_const = nm->mkConst<Rational>(k);
+	  vector<Node> children{ two_const, k_const };
+	  Node result = getNode(kind::POW, children);
+	  return result;
+}
+
+Node getNode(kind::kind_t nodeKind, vector<Node> children) {
+	NodeBuilder<> builder(nodeKind);
+	uint32_t num_of_children = children.size();
+	for (uint32_t i=0; i < num_of_children; i++) {
+		builder << children[i];
+	}
+	Node result = builder;
+	result = rewriter::rewrite(result);
+	return result;
+
+}
+
 Node bvToIntMakeBinary(TNode n, NodeMap& cache)
 {
   // Do a topological sort of the subexpressions and substitute them
@@ -130,7 +151,8 @@ Node bvToInt(TNode n, NodeMap& cache)
   NodeMap binaryCache;
   Node n_binary = bvToIntMakeBinary(n, binaryCache);
   toVisit.push_back(TNode(n_binary));
-
+  vector<Node> children;
+  
   while (!toVisit.empty())
   {
     // The current node we are processing
@@ -150,7 +172,7 @@ Node bvToInt(TNode n, NodeMap& cache)
     if (stackHead.children_added)
     {
       // Children have been processed, so rebuild this node
-      vector<Node> children;
+      children.clear();
 
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
@@ -166,26 +188,9 @@ Node bvToInt(TNode n, NodeMap& cache)
 	{
           Assert(children.size() == 2);
 	  uint32_t bvsize = current.getType().getBitVectorSize();
-	  NodeBuilder<> powBuilder(kind::POW);
-	  Node two_const = nm->mkConst<Rational>(2);
-	  Node bvsize_const = nm->mkConst<Rational>(bvsize);
-	  powBuilder << two_const;
-	  powBuilder << bvsize_const;
-	  Node pow = powBuilder; 
-      	  NodeBuilder<> plusBuilder(kind::PLUS);
-      	  for (unsigned i = 0; i < children.size(); ++i)
-      	  {
-      	    plusBuilder << children[i];
-      	  }
-      	  Node plus = plusBuilder;
-          //plus = Rewriter::rewrite(plus);
-	  NodeBuilder<> modBuilder(kind::INTS_MODULUS_TOTAL);
-	  modBuilder << plus;
-	  modBuilder << pow;
-	  Node mod = modBuilder;
-	  //mod = Rewriter::rewrite(mod);
-          cache[current] = mod;
-          toVisit.pop_back();
+	  Node pow = pow2(bvsize);
+      	  Node plus = getNode(kind::PLUS, children);
+	  Node intized_node = getNode(king::INTS_MODULUS_TOTAL, {plus, pow});
 	  break;
 	}
         case kind::BITVECTOR_MULT: 
@@ -253,6 +258,8 @@ Node bvToInt(TNode n, NodeMap& cache)
               current.toExpr(),
               string("Cannot translate to BV: ") + current.toString());
       }
+      toVisit.pop_back();
+      cache[current] = intized_node;
     }
     else
     {
