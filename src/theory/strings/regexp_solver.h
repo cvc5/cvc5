@@ -18,13 +18,13 @@
 #ifndef __CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
 #define __CVC4__THEORY__STRINGS__REGEXP_SOLVER_H
 
+#include <map>
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "context/context.h"
+#include "expr/node.h"
 #include "theory/strings/regexp_operation.h"
 #include "util/regexp.h"
-#include "expr/node.h"
-#include <map>
 
 namespace CVC4 {
 namespace theory {

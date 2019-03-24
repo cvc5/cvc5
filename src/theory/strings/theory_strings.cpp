@@ -266,7 +266,7 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
     }
     // if x does not have a normal form, then it should not occur in the
     // equality engine and hence should be its own representative.
-    Assert( xr==x );
+    Assert(xr == x);
     if (x.getKind() == kind::STRING_CONCAT)
     {
       std::vector<Node> vec_nodes;
