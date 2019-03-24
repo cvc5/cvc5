@@ -137,9 +137,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
         bool needExport = false;
-        ExprManagerMapCollection varMap;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
+        ExprManagerMapCollection varMap;
         initializeChecker(rrChecker, em, varMap, crr, needExport);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
