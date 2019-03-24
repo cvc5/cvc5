@@ -151,13 +151,21 @@ Node bvToInt(TNode n, NodeMap& cache)
     {
       // Children have been processed, so rebuild this node
       vector<Node> children;
+
+      for (unsigned i = 0; i < current.getNumChildren(); ++i)
+      {
+        Assert(cache.find(current[i]) != cache.end());
+        TNode childRes = cache[current[i]];
+        children.push_back(childRes);
+      }
+
       kind::Kind_t oldKind = current.getKind();
       switch (oldKind)
       {
         case kind::BITVECTOR_PLUS: 
 	{
           Assert(children.size() == 2);
-	  uint32_t bvsize = children[0].getType().getBitVectorSize();
+	  uint32_t bvsize = current.getType().getBitVectorSize();
 	  NodeBuilder<> powBuilder(kind::POW);
 	  Node two_const = nm->mkConst<Rational>(2);
 	  Node bvsize_const = nm->mkConst<Rational>(bvsize);
@@ -170,12 +178,12 @@ Node bvToInt(TNode n, NodeMap& cache)
       	    plusBuilder << children[i];
       	  }
       	  Node plus = plusBuilder;
-          plus = Rewriter::rewrite(plus);
+          //plus = Rewriter::rewrite(plus);
 	  NodeBuilder<> modBuilder(kind::INTS_MODULUS_TOTAL);
 	  modBuilder << plus;
 	  modBuilder << pow;
 	  Node mod = modBuilder;
-	  mod = Rewriter::rewrite(mod);
+	  //mod = Rewriter::rewrite(mod);
           cache[current] = mod;
           toVisit.pop_back();
 	  break;
@@ -219,10 +227,26 @@ Node bvToInt(TNode n, NodeMap& cache)
 	  break;
 	}
         case kind::EQUAL:
+	{
+      	  NodeBuilder<> builder(oldKind);
+      	  for (unsigned i = 0; i < children.size(); ++i)
+      	  {
+      	    builder << children[i];
+      	  }
+      	  // Mark the substitution and continue
+      	  Node result = builder;
+
+      	  result = Rewriter::rewrite(result);
+      	  cache[current] = result;
+      	  toVisit.pop_back();
+	  break;
+	}
         case kind::ITE: break;
         default:
+	  std::cout << "panda " << current << " " << Theory::theoryOf(current) << std::endl;
           if (Theory::theoryOf(current) == THEORY_BOOL)
           {
+	    toVisit.pop_back();
             break;
           }
           throw TypeCheckingException(
@@ -232,8 +256,6 @@ Node bvToInt(TNode n, NodeMap& cache)
     }
     else
     {
-      //why should this ever happen?
-      Assert(false);
       // Mark that we have added the children if any
       if (current.getNumChildren() > 0)
       {

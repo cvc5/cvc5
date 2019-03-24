@@ -1204,9 +1204,7 @@ void SmtEngine::setDefaults() {
           "QF_LIA, QF_IDL)");
     }
     d_logic = LogicInfo("QF_BV");
-  }
-  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
-  {
+  }else if ((d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) || (d_logic.getLogicString() == "QF_BV" && options::solveBVAsInt() > 0)) {
     d_logic = LogicInfo("QF_NIA");
   }
   else if ((d_logic.getLogicString() == "QF_UFBV"
@@ -3191,6 +3189,10 @@ void SmtEnginePrivate::processAssertions() {
 
   if (options::solveRealAsInt()) {
     d_passes["real-to-int"]->apply(&d_assertions);
+  }
+  
+  if (options::solveBVAsInt()) { 
+        d_passes["bv-to-int"]->apply(&d_assertions);
   }
 
   if (options::solveIntAsBV() > 0)
