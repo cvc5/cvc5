@@ -301,7 +301,7 @@ Node intToBV(TNode n, NodeMap& cache)
               throw TypeCheckingException(
                   current.toExpr(),
                   string("Cannot translate const to BV: ")
-                      + current.toString());
+                      + current.toString() + " " + current.getType().toString());
           }
         }
         else
