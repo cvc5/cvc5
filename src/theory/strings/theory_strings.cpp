@@ -248,34 +248,26 @@ Node TheoryStrings::getLength( Node t, std::vector< Node >& exp ) {
   return getLengthExp( t, exp, t );
 }
 
-Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
-{
-  if (!x.isConst())
-  {
-    Node xr = getRepresentative(x);
-    if (d_normal_forms.find(xr) != d_normal_forms.end())
+Node TheoryStrings::getNormalString( Node x, std::vector< Node >& nf_exp ){
+  if( !x.isConst() ){
+    Node xr = getRepresentative( x );
+    std::map<Node, NormalForm>::iterator it = d_normal_form.find(xr);
+    if (it != d_normal_form.end())
     {
-      Node ret = mkConcat(d_normal_forms[xr]);
-      nf_exp.insert(nf_exp.end(),
-                    d_normal_forms_exp[xr].begin(),
-                    d_normal_forms_exp[xr].end());
-      addToExplanation(x, d_normal_forms_base[xr], nf_exp);
-      Trace("strings-debug")
-          << "Term: " << x << " has a normal form " << ret << std::endl;
+      NormalForm& nf = it->second;
+      Node ret = mkConcat(nf.d_nf);
+      nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
+      addToExplanation(x, nf.d_base, nf_exp);
+      Trace("strings-debug") << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
-    }
-    // if x does not have a normal form, then it should not occur in the
-    // equality engine and hence should be its own representative.
-    Assert(xr == x);
-    if (x.getKind() == kind::STRING_CONCAT)
-    {
-      std::vector<Node> vec_nodes;
-      for (unsigned i = 0; i < x.getNumChildren(); i++)
-      {
-        Node nc = getNormalString(x[i], nf_exp);
-        vec_nodes.push_back(nc);
+    } 
+    if(x.getKind() == kind::STRING_CONCAT) {
+      std::vector< Node > vec_nodes;
+      for(unsigned i=0; i<x.getNumChildren(); i++) {
+        Node nc = getNormalString( x[i], nf_exp );
+        vec_nodes.push_back( nc );
       }
-      return mkConcat(vec_nodes);
+      return mkConcat( vec_nodes );
     }
   }
   return x;
