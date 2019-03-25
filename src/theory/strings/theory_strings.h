@@ -825,8 +825,6 @@ private:
  protected:
   /** mkAnd **/
   Node mkAnd(std::vector<Node>& a);
-  /** get concat vector */
-  void getConcatVec(Node n, std::vector<Node>& c);
 
   /** get equivalence classes
    *

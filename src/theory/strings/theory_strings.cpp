@@ -4473,18 +4473,6 @@ Node TheoryStrings::mkAnd( std::vector< Node >& a ) {
   }
 }
 
-void TheoryStrings::getConcatVec( Node n, std::vector< Node >& c ) {
-  if( n.getKind()==kind::STRING_CONCAT ) {
-    for( unsigned i=0; i<n.getNumChildren(); i++ ) {
-      if( !areEqual( n[i], d_emptyString ) ) {
-        c.push_back( n[i] );
-      }
-    }
-  }else{
-    c.push_back( n );
-  }
-}
-
 void TheoryStrings::checkNormalFormsDeq()
 {
   std::vector< std::vector< Node > > cols;
