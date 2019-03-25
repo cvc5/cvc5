@@ -364,7 +364,8 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
       // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
       // The argument is only valid if it is the proper constructor.
       selectorIndex = Datatype::indexOf(selector);
-      if (selectorIndex < 0 || selectorIndex >= static_cast<int>(c.getNumArgs()))
+      if (selectorIndex < 0
+          || selectorIndex >= static_cast<int>(c.getNumArgs()))
       {
         selectorIndex = -1;
       }
