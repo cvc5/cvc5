@@ -134,19 +134,19 @@ class NormalForm
    * when isRev is false (resp. true).
    */
   void getExplanation(int index, bool isRev, std::vector<Node>& curr_exp);
-  /** get explanation for prefix equality 
-   * 
+  /** get explanation for prefix equality
+   *
    * This adds to curr_exp the reason why the prefix of nfi up to index index_i
    * is equivalent to the prefix of nfj up to index_j. The flag isRev is whether
    * the normal forms are in reverse direction, which affects which dependency
    * index to use in the calls to getExplanation above.
    */
   static void getExplanationForPrefixEq(NormalForm& nfi,
-                                       NormalForm& nfj,
-                                       int index_i,
-                                       int index_j,
-                                       bool isRev,
-                                       std::vector<Node>& curr_exp);
+                                        NormalForm& nfj,
+                                        int index_i,
+                                        int index_j,
+                                        bool isRev,
+                                        std::vector<Node>& curr_exp);
 };
 
 }  // namespace strings

@@ -2915,7 +2915,6 @@ void TheoryStrings::getNormalForms(Node eqc,
   }
 }
 
-
 void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
 {
   //the possible inferences
@@ -3042,7 +3041,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         unsigned index_k = index;
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
-        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, isRev, curr_exp);
+        NormalForm::getExplanationForPrefixEq(
+            nfi, nfj, -1, -1, isRev, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
         {
           //can infer that this string must be empty
@@ -3262,11 +3262,11 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       if( start_index_nc_k==index+1 ){
                         info.d_ant.push_back(xnz);
                         NormalForm::getExplanationForPrefixEq(nfc,
-                                                        nfnc,
-                                                        index_c_k,
-                                                        index_nc_k,
-                                                        isRev,
-                                                        info.d_ant);
+                                                              nfnc,
+                                                              index_c_k,
+                                                              index_nc_k,
+                                                              isRev,
+                                                              info.d_ant);
                         Node prea = p==stra.size() ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( p ) : stra.prefix( p ) );
                         Node sk = d_sk_cache.mkSkolemCached(
                             other_str,
