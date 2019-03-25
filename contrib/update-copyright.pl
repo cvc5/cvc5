@@ -35,14 +35,15 @@
 
 my $excluded_directories = '^(CVS|generated)$';
 my $excluded_paths = '^(';
+# note: first excluded path regexp must not start with a '|'
 # different license
-$excluded_paths .= '|src/util/channel.h';
+$excluded_paths .= 'src/util/channel.h';
 # minisat license
 $excluded_paths .= '|src/prop/(bv)?minisat/core/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/mtl/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/simp/.*';
 $excluded_paths .= '|src/prop/(bv)?minisat/utils/.*';
-$excluded_paths .= '$)';
+$excluded_paths .= ')$';
 
 # Years of copyright for the template.  E.g., the string
 # "1985, 1987, 1992, 1997, 2008" or "2006-2009" or whatever.
