@@ -234,25 +234,14 @@ Node bvToInt(TNode n, NodeMap& cache)
 	}
         case kind::EQUAL:
 	{
-      	  NodeBuilder<> builder(oldKind);
-      	  for (unsigned i = 0; i < children.size(); ++i)
-      	  {
-      	    builder << children[i];
-      	  }
-      	  // Mark the substitution and continue
-      	  Node result = builder;
-
-      	  result = Rewriter::rewrite(result);
-      	  cache[current] = result;
-      	  toVisit.pop_back();
+	  intized_node = getNode(kind::EQUAL, children);
 	  break;
 	}
         case kind::ITE: break;
         default:
-	  std::cout << "panda " << current << " " << Theory::theoryOf(current) << std::endl;
           if (Theory::theoryOf(current) == THEORY_BOOL)
           {
-	    toVisit.pop_back();
+	    intized_node = getNode(oldKind, children);
             break;
           }
           throw TypeCheckingException(
@@ -327,6 +316,10 @@ Node bvToInt(TNode n, NodeMap& cache)
         toVisit.pop_back();
       }
     }
+  }
+  std::cout << "panda n_binary" << n_binary << std::endl;
+  for (auto const& pair : cache) {
+	std::cout << "panda {" << pair.first << ":" << pair.second << "}" << std::endl;
   }
   return cache[n_binary];
 }
