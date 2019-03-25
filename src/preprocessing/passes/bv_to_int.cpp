@@ -317,10 +317,6 @@ Node bvToInt(TNode n, NodeMap& cache)
       }
     }
   }
-  std::cout << "panda n_binary" << n_binary << std::endl;
-  for (auto const& pair : cache) {
-	std::cout << "panda {" << pair.first << ":" << pair.second << "}" << std::endl;
-  }
   return cache[n_binary];
 }
 }  // namespace
