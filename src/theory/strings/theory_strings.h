@@ -572,35 +572,6 @@ private:
   void getNormalForms(Node eqc,
                       std::vector<NormalForm>& normal_forms,
                       std::map<Node, unsigned>& term_to_nf_index);
-  bool detectLoop(std::vector<NormalForm>& normal_forms,
-                  int i,
-                  int j,
-                  int index,
-                  int& loop_in_i,
-                  int& loop_in_j,
-                  unsigned rproc);
-
-  /**
-   * Result of processLoop() below.
-   */
-  enum class ProcessLoopResult
-  {
-    /** Loop processing made an inference */
-    INFERENCE,
-    /** Loop processing detected a conflict */
-    CONFLICT,
-    /** Loop not processed or no loop detected */
-    SKIPPED,
-  };
-
-  ProcessLoopResult processLoop(const std::vector<NormalForm>& normal_forms,
-                                int i,
-                                int j,
-                                int loop_n_index,
-                                int other_n_index,
-                                int loop_index,
-                                int index,
-                                InferInfo& info);
   /** process normalize equivalence class
    *
    * This is called when an equivalence class contains a set of terms that
@@ -635,6 +606,38 @@ private:
                                        bool isRev,
                                        std::vector<Node>& curr_exp);
   //--------------------------end for checkNormalFormsEq
+  
+  //--------------------------for checkNormalFormsEq with loops
+  bool detectLoop(std::vector<NormalForm>& normal_forms,
+                  int i,
+                  int j,
+                  int index,
+                  int& loop_in_i,
+                  int& loop_in_j,
+                  unsigned rproc);
+
+  /**
+   * Result of processLoop() below.
+   */
+  enum class ProcessLoopResult
+  {
+    /** Loop processing made an inference */
+    INFERENCE,
+    /** Loop processing detected a conflict */
+    CONFLICT,
+    /** Loop not processed or no loop detected */
+    SKIPPED,
+  };
+
+  ProcessLoopResult processLoop(const std::vector<NormalForm>& normal_forms,
+                                int i,
+                                int j,
+                                int loop_n_index,
+                                int other_n_index,
+                                int loop_index,
+                                int index,
+                                InferInfo& info);
+  //--------------------------end for checkNormalFormsEq with loops
 
   //--------------------------for checkNormalFormsDeq
   void processDeq( Node n1, Node n2 );
