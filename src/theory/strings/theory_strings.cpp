@@ -3116,15 +3116,11 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           if( isSameFix ) {
             //same prefix/suffix
             bool constCmp = const_str.getConst<String>().size()
-                                      < other_str.getConst<String>().size();
+                            < other_str.getConst<String>().size();
             //k is the index of the string that is shorter
-            NormalForm& nfk = constCmp
-                                  ? nfi
-                                  : nfj;
+            NormalForm& nfk = constCmp ? nfi : nfj;
             std::vector<Node>& nfkv = nfk.d_nf;
-            NormalForm& nfl = constCmp
-                                  ? nfj
-                                  : nfi;
+            NormalForm& nfl = constCmp ? nfj : nfi;
             std::vector<Node>& nflv = nfl.d_nf;
             Node remainderStr;
             if( isRev ){
@@ -3165,8 +3161,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           //split on equality between string lengths (note that splitting on equality between strings is worse since it is harder to process)
           if (!areDisequal(length_term_i, length_term_j)
               && !areEqual(length_term_i, length_term_j)
-              && !nfiv[index].isConst()
-              && !nfjv[index].isConst())
+              && !nfiv[index].isConst() && !nfjv[index].isConst())
           {  // AJR: remove the latter 2 conditions?
             Trace("strings-solve-debug") << "Non-simple Case 1 : string lengths neither equal nor disequal" << std::endl;
             //try to make the lengths equal via splitting on demand
