@@ -2680,95 +2680,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
   }
 }
 
-void TheoryStrings::NormalForm::splitConstant(unsigned index,
-                                              Node c1,
-                                              Node c2,
-                                              bool isRev)
-{
-  Assert(Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-             STRING_CONCAT, isRev ? c2 : c1, isRev ? c1 : c2))
-         == d_nf[index]);
-  d_nf.insert(d_nf.begin() + index + 1, c2);
-  d_nf[index] = c1;
-  // update the dependency indices
-  // notice this is not critical for soundness: not doing the below incrementing
-  // will only lead to overapproximating when antecedants are required in
-  // explanations
-  for (std::map<Node, std::map<bool, unsigned> >::iterator itnd =
-           d_exp_dep.begin();
-       itnd != d_exp_dep.end();
-       ++itnd)
-  {
-    for (std::map<bool, unsigned>::iterator itnd2 = itnd->second.begin();
-         itnd2 != itnd->second.end();
-         ++itnd2)
-    {
-      // See if this can be incremented: it can if this literal is not relevant
-      // to the current index, and hence it is not relevant for both c1 and c2.
-      Assert(itnd2->second >= 0 && itnd2->second <= d_nf.size());
-      bool increment = (itnd2->first == isRev)
-                           ? itnd2->second > index
-                           : (d_nf.size() - 1 - itnd2->second) < index;
-      if (increment)
-      {
-        d_exp_dep[itnd->first][itnd2->first] = itnd2->second + 1;
-      }
-    }
-  }
-}
-
-void TheoryStrings::NormalForm::addToExplanation(Node exp,
-                                                 unsigned new_val,
-                                                 unsigned new_rev_val)
-{
-  if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
-  {
-    d_exp.push_back(exp);
-  }
-  for( unsigned k=0; k<2; k++ ){
-    unsigned val = k == 0 ? new_val : new_rev_val;
-    std::map<bool, unsigned>::iterator itned = d_exp_dep[exp].find(k == 1);
-    if (itned == d_exp_dep[exp].end())
-    {
-      Trace("strings-process-debug") << "Deps : set dependency on " << exp << " to " << val << " isRev=" << (k==0) << std::endl;
-      d_exp_dep[exp][k == 1] = val;
-    }else{
-      Trace("strings-process-debug") << "Deps : Multiple dependencies on " << exp << " : " << itned->second << " " << val << " isRev=" << (k==0) << std::endl;
-      //if we already have a dependency (in the case of non-linear string equalities), it is min/max
-      bool cmp = val > itned->second;
-      if( cmp==(k==1) ){
-        d_exp_dep[exp][k == 1] = val;
-      }
-    }
-  }
-}
-
-void TheoryStrings::NormalForm::getExplanation(int index,
-                                               bool isRev,
-                                               std::vector<Node>& curr_exp)
-{
-  if (index == -1 || !options::stringMinPrefixExplain())
-  {
-    curr_exp.insert(curr_exp.end(), d_exp.begin(), d_exp.end());
-    return;
-  }
-  for (const Node& exp : d_exp)
-  {
-    int dep = static_cast<int>(d_exp_dep[exp][isRev]);
-    if (dep <= index)
-    {
-      curr_exp.push_back(exp);
-      Trace("strings-explain-prefix-debug") << "  include : ";
-    }
-    else
-    {
-      Trace("strings-explain-prefix-debug") << "  exclude : ";
-    }
-    Trace("strings-explain-prefix-debug") << exp << std::endl;
-  }
-}
-
-TheoryStrings::NormalForm& TheoryStrings::getNormalForm(Node n)
+NormalForm& TheoryStrings::getNormalForm(Node n)
 {
   std::map<Node, NormalForm>::iterator itn = d_normal_form.find(n);
   if (itn == d_normal_form.end())
@@ -2989,23 +2901,22 @@ void TheoryStrings::getNormalForms(Node eqc,
 }
 
 void TheoryStrings::getExplanationVectorForPrefixEq(
-    std::vector<NormalForm>& normal_forms,
-    unsigned i,
-    unsigned j,
+    NormalForm& nfi,
+    NormalForm& nfj,
     int index_i,
     int index_j,
     bool isRev,
     std::vector<Node>& curr_exp)
 {
-  Trace("strings-explain-prefix") << "Get explanation for prefix " << index_i << ", " << index_j << " of normal forms " << i << " and " << j << ", reverse = " << isRev << std::endl;
+  Trace("strings-explain-prefix") << "Get explanation for prefix " << index_i << ", " << index_j << ", reverse = " << isRev << std::endl;
   // get explanations
-  normal_forms[i].getExplanation(index_i, isRev, curr_exp);
-  normal_forms[j].getExplanation(index_j, isRev, curr_exp);
+  nfi.getExplanation(index_i, isRev, curr_exp);
+  nfj.getExplanation(index_j, isRev, curr_exp);
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
-      << (normal_forms[i].d_exp.size() + normal_forms[j].d_exp.size())
+      << (nfi.d_exp.size() + nfj.d_exp.size())
       << std::endl;
-  addToExplanation(normal_forms[i].d_base, normal_forms[j].d_base, curr_exp);
+  addToExplanation(nfi.d_base, nfj.d_base, curr_exp);
 }
 
 void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
@@ -3150,7 +3061,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
         getExplanationVectorForPrefixEq(
-            normal_forms, i, j, -1, -1, isRev, curr_exp);
+            nfi, nfj, -1, -1, isRev, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
         {
           //can infer that this string must be empty
@@ -3182,7 +3093,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           Node length_eq = length_term_i.eqNode( length_term_j );
           //temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
           getExplanationVectorForPrefixEq(
-              normal_forms, i, j, index, index, isRev, temp_exp);
+              nfi, nfj, index, index, isRev, temp_exp);
           temp_exp.push_back(length_eq);
           sendInference( temp_exp, eq, "N_Unify" );
           return;
@@ -3196,7 +3107,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           std::vector< Node > antec;
           //antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
           getExplanationVectorForPrefixEq(
-              normal_forms, i, j, -1, -1, isRev, antec);
+              nfi, nfj, -1, -1, isRev, antec);
           std::vector< Node > eqn;
           for( unsigned r=0; r<2; r++ ) {
             int k = r==0 ? i : j;
@@ -3256,7 +3167,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
             //conflict
             std::vector< Node > antec;
             getExplanationVectorForPrefixEq(
-                normal_forms, i, j, index, index, isRev, antec);
+                nfi, nfj, index, index, isRev, antec);
             sendInference( antec, d_false, "N_Const", true );
             return;
           }
@@ -3296,7 +3207,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
             if( detectLoop( normal_forms, i, j, index, loop_in_i, loop_in_j, rproc ) ){
               if( !isRev ){  //FIXME
                 getExplanationVectorForPrefixEq(
-                    normal_forms, i, j, -1, -1, isRev, info.d_ant);
+                    nfi, nfj, -1, -1, isRev, info.d_ant);
                 // set info
                 plr = processLoop(normal_forms,
                                   i,
@@ -3321,10 +3232,12 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
               {
                 unsigned const_k =
                     nfiv[index].getKind() == kind::CONST_STRING ? i : j;
-                std::vector<Node>& nfcv = normal_forms[const_k].d_nf;
+                NormalForm& nfc = normal_forms[const_k];
+                std::vector<Node>& nfcv = nfc.d_nf;
                 unsigned nconst_k =
                     nfiv[index].getKind() == kind::CONST_STRING ? j : i;
-                std::vector<Node>& nfncv = normal_forms[nconst_k].d_nf;
+                NormalForm& nfnc = normal_forms[nconst_k];
+                std::vector<Node>& nfncv = nfnc.d_nf;
                 Node other_str = nfncv[index];
                 Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
                 Assert( other_str.getKind()!=kind::STRING_CONCAT, "Other string is not CONCAT." );
@@ -3370,9 +3283,8 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
                     if( p>1 ){
                       if( start_index_nc_k==index+1 ){
                         info.d_ant.push_back(xnz);
-                        getExplanationVectorForPrefixEq(normal_forms,
-                                                        const_k,
-                                                        nconst_k,
+                        getExplanationVectorForPrefixEq(nfc,
+                                                        nfnc,
                                                         index_c_k,
                                                         index_nc_k,
                                                         isRev,
@@ -3397,7 +3309,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
                     info.d_ant.push_back( xnz );
                     Node const_str = nfcv[index];
                     getExplanationVectorForPrefixEq(
-                        normal_forms, i, j, index, index, isRev, info.d_ant);
+                        nfi, nfj, index, index, isRev, info.d_ant);
                     CVC4::String stra = const_str.getConst<String>();
                     if( options::stringBinaryCsp() && stra.size()>3 ){
                       //split string in half
@@ -3459,7 +3371,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
                 }
 
                 getExplanationVectorForPrefixEq(
-                    normal_forms, i, j, index, index, isRev, info.d_ant);
+                    nfi, nfj, index, index, isRev, info.d_ant);
                 //x!=e /\ y!=e
                 for(unsigned xory=0; xory<2; xory++) {
                   Node x = xory == 0 ? nfiv[index] : nfjv[index];
