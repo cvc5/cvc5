@@ -207,32 +207,142 @@ Node bvToInt(TNode n, NodeMap& cache)
 	  Assert(false);
           break;
 	}
+        case kind::BITVECTOR_UDIV:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_UREM:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_UDIV_TOTAL:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_UREM_TOTAL:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_SDIV:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_SREM:
+	{
+	  Assert(false);
+          break;
+	}
+        case kind::BITVECTOR_SMOD:
+	{
+	  Assert(false);
+          break;
+	}
         case kind::BITVECTOR_NEG: 
 	{
 	  Assert(false);
           break;
 	}  
-        case kind::BITVECTOR_NOT: 
-	{
-	  Assert(false);
-          break;
-	}  
-        case kind::BITVECTOR_ULT: 
-	{
-	  intized_node = getNode(kind::LT, children);
-	  break;
-	}
-        case kind::BITVECTOR_ULE: 
+	case kind::BITVECTOR_AND:
 	{
 	  Assert(false);
 	  break;
 	}
-        case kind::BITVECTOR_UGT: 
+	case kind::BITVECTOR_OR:
 	{
 	  Assert(false);
 	  break;
 	}
-        case kind::BITVECTOR_UGE: 
+	case kind::BITVECTOR_XOR:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_XNOR:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_NAND:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_NOR:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_SHL:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_LSHR:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ASHR:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ITE:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_CONCAT:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_EXTRACT:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_REPEAT:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ZERO_EXTEND:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_SIGN_EXTEND:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ROTATE_RIGHT:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ROTATE_LEFT:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_COMP:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_ULTBV:
+	{
+	  Assert(false);
+	  break;
+	}
+	case kind::BITVECTOR_SLTBV:
 	{
 	  Assert(false);
 	  break;
