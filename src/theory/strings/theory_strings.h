@@ -24,12 +24,12 @@
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/normal_form.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/normal_form.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 

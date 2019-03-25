@@ -248,9 +248,11 @@ Node TheoryStrings::getLength( Node t, std::vector< Node >& exp ) {
   return getLengthExp( t, exp, t );
 }
 
-Node TheoryStrings::getNormalString( Node x, std::vector< Node >& nf_exp ){
-  if( !x.isConst() ){
-    Node xr = getRepresentative( x );
+Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
+{
+  if (!x.isConst())
+  {
+    Node xr = getRepresentative(x);
     std::map<Node, NormalForm>::iterator it = d_normal_form.find(xr);
     if (it != d_normal_form.end())
     {
@@ -258,16 +260,19 @@ Node TheoryStrings::getNormalString( Node x, std::vector< Node >& nf_exp ){
       Node ret = mkConcat(nf.d_nf);
       nf_exp.insert(nf_exp.end(), nf.d_exp.begin(), nf.d_exp.end());
       addToExplanation(x, nf.d_base, nf_exp);
-      Trace("strings-debug") << "Term: " << x << " has a normal form " << ret << std::endl;
+      Trace("strings-debug")
+          << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
-    } 
-    if(x.getKind() == kind::STRING_CONCAT) {
-      std::vector< Node > vec_nodes;
-      for(unsigned i=0; i<x.getNumChildren(); i++) {
-        Node nc = getNormalString( x[i], nf_exp );
-        vec_nodes.push_back( nc );
+    }
+    if (x.getKind() == kind::STRING_CONCAT)
+    {
+      std::vector<Node> vec_nodes;
+      for (unsigned i = 0; i < x.getNumChildren(); i++)
+      {
+        Node nc = getNormalString(x[i], nf_exp);
+        vec_nodes.push_back(nc);
       }
-      return mkConcat( vec_nodes );
+      return mkConcat(vec_nodes);
     }
   }
   return x;
@@ -2900,22 +2905,22 @@ void TheoryStrings::getNormalForms(Node eqc,
   }
 }
 
-void TheoryStrings::getExplanationVectorForPrefixEq(
-    NormalForm& nfi,
-    NormalForm& nfj,
-    int index_i,
-    int index_j,
-    bool isRev,
-    std::vector<Node>& curr_exp)
+void TheoryStrings::getExplanationVectorForPrefixEq(NormalForm& nfi,
+                                                    NormalForm& nfj,
+                                                    int index_i,
+                                                    int index_j,
+                                                    bool isRev,
+                                                    std::vector<Node>& curr_exp)
 {
-  Trace("strings-explain-prefix") << "Get explanation for prefix " << index_i << ", " << index_j << ", reverse = " << isRev << std::endl;
+  Trace("strings-explain-prefix")
+      << "Get explanation for prefix " << index_i << ", " << index_j
+      << ", reverse = " << isRev << std::endl;
   // get explanations
   nfi.getExplanation(index_i, isRev, curr_exp);
   nfj.getExplanation(index_j, isRev, curr_exp);
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
-      << (nfi.d_exp.size() + nfj.d_exp.size())
-      << std::endl;
+      << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
   addToExplanation(nfi.d_base, nfj.d_base, curr_exp);
 }
 
@@ -3060,8 +3065,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
         std::vector<Node>& nfkv = normal_forms[k].d_nf;
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
-        getExplanationVectorForPrefixEq(
-            nfi, nfj, -1, -1, isRev, curr_exp);
+        getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
         {
           //can infer that this string must be empty
@@ -3106,8 +3110,7 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           Trace("strings-solve-debug") << "Simple Case 3 : at endpoint" << std::endl;
           std::vector< Node > antec;
           //antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
-          getExplanationVectorForPrefixEq(
-              nfi, nfj, -1, -1, isRev, antec);
+          getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, antec);
           std::vector< Node > eqn;
           for( unsigned r=0; r<2; r++ ) {
             int k = r==0 ? i : j;

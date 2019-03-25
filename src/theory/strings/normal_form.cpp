@@ -25,15 +25,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-void NormalForm::reverse() { 
-  std::reverse(d_nf.begin(), d_nf.end()); 
-  
-}
-  
-void NormalForm::splitConstant(unsigned index,
-                                              Node c1,
-                                              Node c2,
-                                              bool isRev)
+void NormalForm::reverse() { std::reverse(d_nf.begin(), d_nf.end()); }
+
+void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
 {
   Assert(Rewriter::rewrite(NodeManager::currentNM()->mkNode(
              STRING_CONCAT, isRev ? c2 : c1, isRev ? c1 : c2))
@@ -68,25 +62,34 @@ void NormalForm::splitConstant(unsigned index,
 }
 
 void NormalForm::addToExplanation(Node exp,
-                                                 unsigned new_val,
-                                                 unsigned new_rev_val)
+                                  unsigned new_val,
+                                  unsigned new_rev_val)
 {
   if (std::find(d_exp.begin(), d_exp.end(), exp) == d_exp.end())
   {
     d_exp.push_back(exp);
   }
-  for( unsigned k=0; k<2; k++ ){
+  for (unsigned k = 0; k < 2; k++)
+  {
     unsigned val = k == 0 ? new_val : new_rev_val;
     std::map<bool, unsigned>::iterator itned = d_exp_dep[exp].find(k == 1);
     if (itned == d_exp_dep[exp].end())
     {
-      Trace("strings-process-debug") << "Deps : set dependency on " << exp << " to " << val << " isRev=" << (k==0) << std::endl;
+      Trace("strings-process-debug")
+          << "Deps : set dependency on " << exp << " to " << val
+          << " isRev=" << (k == 0) << std::endl;
       d_exp_dep[exp][k == 1] = val;
-    }else{
-      Trace("strings-process-debug") << "Deps : Multiple dependencies on " << exp << " : " << itned->second << " " << val << " isRev=" << (k==0) << std::endl;
-      //if we already have a dependency (in the case of non-linear string equalities), it is min/max
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "Deps : Multiple dependencies on " << exp << " : " << itned->second
+          << " " << val << " isRev=" << (k == 0) << std::endl;
+      // if we already have a dependency (in the case of non-linear string
+      // equalities), it is min/max
       bool cmp = val > itned->second;
-      if( cmp==(k==1) ){
+      if (cmp == (k == 1))
+      {
         d_exp_dep[exp][k == 1] = val;
       }
     }
@@ -94,8 +97,8 @@ void NormalForm::addToExplanation(Node exp,
 }
 
 void NormalForm::getExplanation(int index,
-                                               bool isRev,
-                                               std::vector<Node>& curr_exp)
+                                bool isRev,
+                                std::vector<Node>& curr_exp)
 {
   if (index == -1 || !options::stringMinPrefixExplain())
   {
@@ -118,6 +121,6 @@ void NormalForm::getExplanation(int index,
   }
 }
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
