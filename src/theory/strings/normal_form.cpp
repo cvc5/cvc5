@@ -25,6 +25,22 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
+void NormalForm::init(Node base)
+{
+  Assert( base.getType().isString() );
+  Assert( base.getKind()!=STRING_CONCAT );
+  d_base = base;
+  d_nf.clear();
+  d_exp.clear();
+  d_exp_dep.clear();
+  
+  // add to normal form 
+  if( !base.isConst() || !base.getConst<String>().isEmptyString() )
+  {
+    d_nf.push_back(base);
+  }
+}
+
 void NormalForm::reverse() { std::reverse(d_nf.begin(), d_nf.end()); }
 
 void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
@@ -38,24 +54,20 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
   // notice this is not critical for soundness: not doing the below incrementing
   // will only lead to overapproximating when antecedants are required in
   // explanations
-  for (std::map<Node, std::map<bool, unsigned> >::iterator itnd =
-           d_exp_dep.begin();
-       itnd != d_exp_dep.end();
-       ++itnd)
+
+  for( const std::pair< Node, std::map<bool, unsigned> >& pe : d_exp_dep )
   {
-    for (std::map<bool, unsigned>::iterator itnd2 = itnd->second.begin();
-         itnd2 != itnd->second.end();
-         ++itnd2)
+    for( const std::pair< bool, unsigned >& pep : pe.second )
     {
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.
-      Assert(itnd2->second >= 0 && itnd2->second <= d_nf.size());
-      bool increment = (itnd2->first == isRev)
-                           ? itnd2->second > index
-                           : (d_nf.size() - 1 - itnd2->second) < index;
+      Assert(pep.second >= 0 && pep.second <= d_nf.size());
+      bool increment = (pep.first == isRev)
+                           ? pep.second > index
+                           : (d_nf.size() - 1 - pep.second) < index;
       if (increment)
       {
-        d_exp_dep[itnd->first][itnd2->first] = itnd2->second + 1;
+        d_exp_dep[pe.first][pep.first] = pep.second + 1;
       }
     }
   }

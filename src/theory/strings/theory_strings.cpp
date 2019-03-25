@@ -264,6 +264,9 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
           << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
     }
+    // if x does not have a normal form, then it should not occur in the	
+    // equality engine and hence should be its own representative.	
+    Assert(xr == x);
     if (x.getKind() == kind::STRING_CONCAT)
     {
       std::vector<Node> vec_nodes;
@@ -2637,10 +2640,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
 #endif
     //do nothing
     Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : empty." << std::endl;
-    d_normal_form[eqc].d_base = d_emptyString;
-    d_normal_form[eqc].d_nf.clear();
-    d_normal_form[eqc].d_exp.clear();
-    d_normal_form[eqc].d_exp_dep.clear();
+    d_normal_form[eqc].init( d_emptyString );
   } else {
     Assert(d_normal_form.find(eqc) == d_normal_form.end());
     //phi => t = s1 * ... * sn
@@ -2713,15 +2713,15 @@ void TheoryStrings::getNormalForms(Node eqc,
       {
         Trace("strings-process-debug") << "Get Normal Form : Process term " << n << " in eqc " << eqc << std::endl;
         NormalForm nf_curr;
-        nf_curr.d_base = n;
         if (n.getKind() == CONST_STRING)
         {
-          if( n!=d_emptyString ) {
-            nf_curr.d_nf.push_back(n);
-          }
+          nf_curr.init(n);
         }
         else if (n.getKind() == STRING_CONCAT)
         {
+          // set the base to n, we construct the other poritions of nf_curr in
+          // the following.
+          nf_curr.d_base = n;
           for( unsigned i=0; i<n.getNumChildren(); i++ ) {
             Node nr = d_equalityEngine.getRepresentative( n[i] );
             // get the normal form for the component
@@ -2824,10 +2824,20 @@ void TheoryStrings::getNormalForms(Node eqc,
 
   if( normal_forms.empty() ) {
     Trace("strings-solve-debug2") << "construct the normal form" << std::endl;
-    //do not choose a concat here use "eqc_non_c" (in this case they have non-trivial explanation why they normalize to self)
+    // This case happens when there are no non-trivial normal forms for this
+    // equivalence class. For example, given assertions:
+    //   { x = y ++ z, x = y, z = "" }
+    // The equivalence class of { x, y, y ++ z } is such that the normal form
+    // of all terms is a variable (either x or y) in the equivalence class
+    // itself. Thus, the normal form of this equivalence class can be assigned
+    // to one of these variables. 
+    // We use a non-concatentation term among the terms in this equivalence
+    // class, which is stored in eqc_non_c. The reason is this does not require
+    // an explanation, whereas e.g. y ++ z would require the explanation z = ""
+    // to justify its normal form is y.
+    Assert( eqc_non_c.getKind()!=STRING_CONCAT );
     NormalForm nf_triv;
-    nf_triv.d_base = eqc_non_c;
-    getConcatVec(eqc_non_c, nf_triv.d_nf);
+    nf_triv.init(eqc_non_c);
     normal_forms.push_back(nf_triv);
   }else{
     if(Trace.isOn("strings-solve")) {

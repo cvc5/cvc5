@@ -92,6 +92,13 @@ class NormalForm
    * to the last position in the normal form of y.
    */
   std::map<Node, std::map<bool, unsigned> > d_exp_dep;
+  /** initialize
+   * 
+   * Initialize the normal form with base node base. If base is not the empty
+   * string, then d_nf is set to the singleton list containing base, otherwise
+   * d_nf is empty.
+   */
+  void init(Node base);
   /** reverse the content of normal form d_nf
    *
    * This operation is done in contexts where the normal form is being scanned
