@@ -2952,7 +2952,11 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
       }else{
         //process the reverse direction first (check for easy conflicts and inferences)
         unsigned rindex = 0;
-        processReverseNEq(nfi, nfj, rindex, 0, pinfer);
+        nfi.reverse();
+        nfj.reverse();
+        processSimpleNEq(nfi, nfj, rindex, true, 0, pinfer);
+        nfi.reverse();
+        nfj.reverse();
         if( hasProcessed() ){
           return;
         }else if( !pinfer.empty() && pinfer.back().d_id==1 ){
@@ -3026,23 +3030,6 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
 
 bool TheoryStrings::InferInfo::sendAsLemma() {
   return true;
-}
-
-void TheoryStrings::processReverseNEq(NormalForm& nfi,
-                  NormalForm& nfj,
-                                      unsigned& index,
-                                      unsigned rproc,
-                                      std::vector<InferInfo>& pinfer)
-{
-  //reverse normal form of i, j
-  nfi.reverse();
-  nfj.reverse();
-
-  processSimpleNEq(nfi, nfj, index, true, rproc, pinfer);
-
-  //reverse normal form of i, j
-  nfi.reverse();
-  nfj.reverse();
 }
 
 //rproc is the # is the size of suffix that is identical
@@ -3186,6 +3173,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           InferInfo info;
           info.d_index = index;
           //for debugging
+          info.d_i = nfi.d_base;
+          info.d_j = nfj.d_base;
           info.d_rev = isRev;
           bool info_valid = false;
           Assert(index < nfiv.size() - rproc && index < nfjv.size() - rproc);

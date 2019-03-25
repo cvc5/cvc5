@@ -468,8 +468,14 @@ private:
   class InferInfo
   {
    public:
-    unsigned d_i;
-    unsigned d_j;
+    /** for debugging
+     * 
+     * The base pair of strings d_i/d_j that led to the inference, and whether
+     * (d_rev) we were processing the normal forms of these strings in reverse
+     * direction.
+     */
+    Node d_i;
+    Node d_j;
     bool d_rev;
     std::vector<Node> d_ant;
     std::vector<Node> d_antn;
@@ -583,14 +589,32 @@ private:
    * inferences, at most two for each pair of distinct normal forms,
    * corresponding to processing the normal form pair in the (forward, reverse)
    * directions. Once all possible inferences are recorded, it executes the
-   * one with highest priority based on the enumeration type Inference above.
+   * one with highest priority based on the enumeration type Inference.
    */
   void processNEqc(std::vector<NormalForm>& normal_forms);
-  void processReverseNEq(NormalForm& nfi,
-                         NormalForm& nfj,
-                         unsigned& index,
-                         unsigned rproc,
-                         std::vector<InferInfo>& pinfer);
+  /** process simple normal equality 
+   * 
+   * This method is called when two equal terms have normal forms nfi and nfj.
+   * It adds (typically at most one) possible inference to the vector pinfer.
+   * This inference is in the form of an InferInfo object, which stores the
+   * necessary information regarding how to process the inference.
+   * 
+   * index: The index in the normal form vectors (nfi.d_nf and nfj.d_nf) that
+   *   we are currently checking. This method will increment this index until
+   *   it finds an index where these vectors differ, or until it reaches the
+   *   end of these vectors.
+   * isRev: Whether we are processing the normal forms in reverse direction.
+   *   Notice in this case the normal form vectors have been reversed, hence,
+   *   many operations are identical to the forward case, e.g. index is
+   *   incremented not decremented, while others require special care, e.g.
+   *   constant strings "ABC" in the normal form vectors are not reversed to
+   *   "CBA" and hence all operations should assume a flipped semantics when
+   *   isRev is true,
+   * rproc: the number of indices on the suffix of that were already processed.
+   *   This is used when using fowards/backwards traversals of normal forms to
+   *   ensure that duplicate inferences are not processed.
+   * pinfer: the set of possible inferences we add to. 
+   */
   void processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
                         unsigned& index,
