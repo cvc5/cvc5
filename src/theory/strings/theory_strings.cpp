@@ -3108,7 +3108,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, antec);
           std::vector< Node > eqn;
           for( unsigned r=0; r<2; r++ ) {
-            NormalForm& nfk = r==0 ? nfi : nfj;
+            NormalForm& nfk = r == 0 ? nfi : nfj;
             std::vector<Node>& nfkv = nfk.d_nf;
             std::vector< Node > eqnc;
             for (unsigned index_l = index, size = (nfkv.size() - rproc);
@@ -3141,9 +3141,15 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           if( isSameFix ) {
             //same prefix/suffix
             //k is the index of the string that is shorter
-            NormalForm& nfk = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? nfi : nfj;
+            NormalForm& nfk = const_str.getConst<String>().size()
+                                      < other_str.getConst<String>().size()
+                                  ? nfi
+                                  : nfj;
             std::vector<Node>& nfkv = nfk.d_nf;
-            NormalForm& nfl = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? nfj : nfi;
+            NormalForm& nfl = const_str.getConst<String>().size()
+                                      < other_str.getConst<String>().size()
+                                  ? nfj
+                                  : nfi;
             std::vector<Node>& nflv = nfl.d_nf;
             Node remainderStr;
             if( isRev ){
@@ -3201,7 +3207,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
             int loop_in_i = -1;
             int loop_in_j = -1;
             ProcessLoopResult plr = ProcessLoopResult::SKIPPED;
-            if( detectLoop( nfi, nfj, index, loop_in_i, loop_in_j, rproc ) ){
+            if (detectLoop(nfi, nfj, index, loop_in_i, loop_in_j, rproc))
+            {
               if( !isRev ){  //FIXME
                 getExplanationVectorForPrefixEq(
                     nfi, nfj, -1, -1, isRev, info.d_ant);
@@ -3221,8 +3228,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
             if (plr == ProcessLoopResult::SKIPPED)
             {
               //AJR: length entailment here?
-              if (nfiv[index].isConst()
-                  || nfjv[index].isConst())
+              if (nfiv[index].isConst() || nfjv[index].isConst())
               {
                 NormalForm& nfc = nfiv[index].isConst() ? nfi : nfj;
                 std::vector<Node>& nfcv = nfc.d_nf;
@@ -3427,8 +3433,8 @@ bool TheoryStrings::detectLoop(NormalForm& nfi,
   int has_loop[2] = { -1, -1 };
   if( options::stringLB() != 2 ) {
     for( unsigned r=0; r<2; r++ ) {
-      NormalForm& nf = r==0 ? nfi : nfj;
-      NormalForm& nfo = r==0 ? nfj : nfi;
+      NormalForm& nf = r == 0 ? nfi : nfj;
+      NormalForm& nfo = r == 0 ? nfj : nfi;
       std::vector<Node>& nfv = nf.d_nf;
       std::vector<Node>& nfov = nfo.d_nf;
       if (!nfov[index].isConst())
@@ -3455,12 +3461,11 @@ bool TheoryStrings::detectLoop(NormalForm& nfi,
 }
 
 //xs(zy)=t(yz)xr
-TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
-    NormalForm& nfi,
-    NormalForm& nfj,
-    int loop_index,
-    int index,
-    InferInfo& info)
+TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
+                                                            NormalForm& nfj,
+                                                            int loop_index,
+                                                            int index,
+                                                            InferInfo& info)
 {
   if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
   {

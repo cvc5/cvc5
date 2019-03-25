@@ -469,7 +469,7 @@ private:
   {
    public:
     /** for debugging
-     * 
+     *
      * The base pair of strings d_i/d_j that led to the inference, and whether
      * (d_rev) we were processing the normal forms of these strings in reverse
      * direction.
@@ -592,13 +592,13 @@ private:
    * one with highest priority based on the enumeration type Inference.
    */
   void processNEqc(std::vector<NormalForm>& normal_forms);
-  /** process simple normal equality 
-   * 
+  /** process simple normal equality
+   *
    * This method is called when two equal terms have normal forms nfi and nfj.
    * It adds (typically at most one) possible inference to the vector pinfer.
    * This inference is in the form of an InferInfo object, which stores the
    * necessary information regarding how to process the inference.
-   * 
+   *
    * index: The index in the normal form vectors (nfi.d_nf and nfj.d_nf) that
    *   we are currently checking. This method will increment this index until
    *   it finds an index where these vectors differ, or until it reaches the
@@ -613,7 +613,7 @@ private:
    * rproc: the number of indices on the suffix of that were already processed.
    *   This is used when using fowards/backwards traversals of normal forms to
    *   ensure that duplicate inferences are not processed.
-   * pinfer: the set of possible inferences we add to. 
+   * pinfer: the set of possible inferences we add to.
    */
   void processSimpleNEq(NormalForm& nfi,
                         NormalForm& nfj,
@@ -628,7 +628,7 @@ private:
                                        bool isRev,
                                        std::vector<Node>& curr_exp);
   //--------------------------end for checkNormalFormsEq
-  
+
   //--------------------------for checkNormalFormsEq with loops
   bool detectLoop(NormalForm& nfi,
                   NormalForm& nfj,
