@@ -146,7 +146,7 @@ Node bvToIntMakeBinary(TNode n, NodeMap& cache)
 Node bvToInt(TNode n, NodeMap& cache)
 {
   AlwaysAssert(!options::incrementalSolving());
-
+  NodeManager* nm = NodeManager::currentNM();
   vector<bvToInt_stack_element> toVisit;
   NodeMap binaryCache;
   Node n_binary = bvToIntMakeBinary(n, binaryCache);
@@ -168,12 +168,11 @@ Node bvToInt(TNode n, NodeMap& cache)
     }
 
     // Not yet substituted, so process
-    NodeManager* nm = NodeManager::currentNM();
     if (stackHead.children_added)
     {
-      // Children have been processed, so rebuild this node
+      // Children have been processed, so rebuild this node.
+      // First, save the rewritten children from the cache.
       children.clear();
-
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
@@ -197,24 +196,30 @@ Node bvToInt(TNode n, NodeMap& cache)
         case kind::BITVECTOR_MULT: 
 	{
           Assert(children.size() == 2);
-	  Assert(false);
-          break;
+	  uint32_t bvsize = current.getType().getBitVectorSize();
+	  Node pow = pow2(bvsize, nm);
+      	  Node mul = getNode(kind::MULT, children);
+	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {mul, pow});
+	  break;
 	}
         case kind::BITVECTOR_SUB:
 	{
-          Assert(children.size() == 2);
 	  Assert(false);
           break;
 	}
-        case kind::UMINUS: 
+        case kind::BITVECTOR_NEG: 
 	{
-          Assert(children.size() == 1);
+	  Assert(false);
+          break;
+	}  
+        case kind::BITVECTOR_NOT: 
+	{
 	  Assert(false);
           break;
 	}  
         case kind::BITVECTOR_ULT: 
 	{
-	  Assert(false);
+	  intized_node = getNode(kind::LT, children);
 	  break;
 	}
         case kind::BITVECTOR_ULE: 
