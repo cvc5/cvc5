@@ -2642,16 +2642,13 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
     Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : empty." << std::endl;
     d_normal_form[eqc].init(d_emptyString);
   } else {
+    // should not have computed the normal form of this equivalence class yet
     Assert(d_normal_form.find(eqc) == d_normal_form.end());
-    //phi => t = s1 * ... * sn
-    // normal form for each non-variable term in this eqc (s1...sn)
-    // explanation for each normal form (phi)
-    // dependency information 
-    // record terms for each normal form (t)
+    // Normal forms for the relevant terms in the equivalence class of eqc
     std::vector<NormalForm> normal_forms;
-    // map to indices
+    // map each term to its index in the above vector
     std::map<Node, unsigned> term_to_nf_index;
-    // get normal forms
+    // get the normal forms
     getNormalForms(eqc, normal_forms, term_to_nf_index);
     if( hasProcessed() ){
       return;
@@ -2674,10 +2671,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
     {
       nf_index = it->second;
     }
-    Trace("strings-solve-debug2")
-        << "take normal form " << nf_index << std::endl;
     d_normal_form[eqc] = normal_forms[nf_index];
-    Trace("strings-solve-debug2") << "take normal form ... done" << std::endl;
     Trace("strings-process-debug")
         << "Return process equivalence class " << eqc
         << " : returned, size = " << d_normal_form[eqc].d_nf.size()
@@ -3013,7 +3007,6 @@ bool TheoryStrings::InferInfo::sendAsLemma() {
   return true;
 }
 
-//rproc is the # is the size of suffix that is identical
 void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                                      NormalForm& nfj,
                                      unsigned& index,
@@ -3122,14 +3115,14 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           bool isSameFix = isRev ? const_str.getConst<String>().rstrncmp(other_str.getConst<String>(), len_short): const_str.getConst<String>().strncmp(other_str.getConst<String>(), len_short);
           if( isSameFix ) {
             //same prefix/suffix
+            bool constCmp = const_str.getConst<String>().size()
+                                      < other_str.getConst<String>().size();
             //k is the index of the string that is shorter
-            NormalForm& nfk = const_str.getConst<String>().size()
-                                      < other_str.getConst<String>().size()
+            NormalForm& nfk = constCmp
                                   ? nfi
                                   : nfj;
             std::vector<Node>& nfkv = nfk.d_nf;
-            NormalForm& nfl = const_str.getConst<String>().size()
-                                      < other_str.getConst<String>().size()
+            NormalForm& nfl = constCmp
                                   ? nfj
                                   : nfi;
             std::vector<Node>& nflv = nfl.d_nf;
@@ -3172,8 +3165,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           //split on equality between string lengths (note that splitting on equality between strings is worse since it is harder to process)
           if (!areDisequal(length_term_i, length_term_j)
               && !areEqual(length_term_i, length_term_j)
-              && nfiv[index].getKind() != kind::CONST_STRING
-              && nfjv[index].getKind() != kind::CONST_STRING)
+              && !nfiv[index].isConst()
+              && !nfjv[index].isConst())
           {  // AJR: remove the latter 2 conditions?
             Trace("strings-solve-debug") << "Non-simple Case 1 : string lengths neither equal nor disequal" << std::endl;
             //try to make the lengths equal via splitting on demand

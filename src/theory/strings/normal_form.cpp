@@ -54,7 +54,6 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
   // notice this is not critical for soundness: not doing the below incrementing
   // will only lead to overapproximating when antecedants are required in
   // explanations
-
   for (const std::pair<Node, std::map<bool, unsigned> >& pe : d_exp_dep)
   {
     for (const std::pair<bool, unsigned>& pep : pe.second)
