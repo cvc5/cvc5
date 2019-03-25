@@ -608,8 +608,8 @@ private:
    *   many operations are identical to the forward case, e.g. index is
    *   incremented not decremented, while others require special care, e.g.
    *   constant strings "ABC" in the normal form vectors are not reversed to
-   *   "CBA" and hence all operations should assume a flipped semantics when
-   *   isRev is true,
+   *   "CBA" and hence all operations should assume a flipped semantics for
+   *   constants when isRev is true,
    * rproc: the number of indices on the suffix of that were already processed.
    *   This is used when using fowards/backwards traversals of normal forms to
    *   ensure that duplicate inferences are not processed.
