@@ -601,13 +601,13 @@ private:
                                 int loop_index,
                                 int index,
                                 InferInfo& info);
-  /** process normalize equivalence class 
-   * 
+  /** process normalize equivalence class
+   *
    * This is called when an equivalence class contains a set of terms that
    * have normal forms given by the argument normal_forms. It either
    * verifies that all normal forms in this vector are identical, or otherwise
    * adds a conflict, lemma, or inference via the sendInference method.
-   * 
+   *
    * To prioritize one inference versus another, it builds a set of possible
    * inferences, at most two for each pair of distinct normal forms,
    * corresponding to processing the normal form pair in the (forward, reverse)

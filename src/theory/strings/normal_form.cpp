@@ -27,15 +27,15 @@ namespace strings {
 
 void NormalForm::init(Node base)
 {
-  Assert( base.getType().isString() );
-  Assert( base.getKind()!=STRING_CONCAT );
+  Assert(base.getType().isString());
+  Assert(base.getKind() != STRING_CONCAT);
   d_base = base;
   d_nf.clear();
   d_exp.clear();
   d_exp_dep.clear();
-  
-  // add to normal form 
-  if( !base.isConst() || !base.getConst<String>().isEmptyString() )
+
+  // add to normal form
+  if (!base.isConst() || !base.getConst<String>().isEmptyString())
   {
     d_nf.push_back(base);
   }
@@ -55,9 +55,9 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
   // will only lead to overapproximating when antecedants are required in
   // explanations
 
-  for( const std::pair< Node, std::map<bool, unsigned> >& pe : d_exp_dep )
+  for (const std::pair<Node, std::map<bool, unsigned> >& pe : d_exp_dep)
   {
-    for( const std::pair< bool, unsigned >& pep : pe.second )
+    for (const std::pair<bool, unsigned>& pep : pe.second)
     {
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.

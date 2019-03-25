@@ -264,8 +264,8 @@ Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
           << "Term: " << x << " has a normal form " << ret << std::endl;
       return ret;
     }
-    // if x does not have a normal form, then it should not occur in the	
-    // equality engine and hence should be its own representative.	
+    // if x does not have a normal form, then it should not occur in the
+    // equality engine and hence should be its own representative.
     Assert(xr == x);
     if (x.getKind() == kind::STRING_CONCAT)
     {
@@ -2640,7 +2640,7 @@ void TheoryStrings::normalizeEquivalenceClass( Node eqc ) {
 #endif
     //do nothing
     Trace("strings-process-debug") << "Return process equivalence class " << eqc << " : empty." << std::endl;
-    d_normal_form[eqc].init( d_emptyString );
+    d_normal_form[eqc].init(d_emptyString);
   } else {
     Assert(d_normal_form.find(eqc) == d_normal_form.end());
     //phi => t = s1 * ... * sn
@@ -2830,12 +2830,12 @@ void TheoryStrings::getNormalForms(Node eqc,
     // The equivalence class of { x, y, y ++ z } is such that the normal form
     // of all terms is a variable (either x or y) in the equivalence class
     // itself. Thus, the normal form of this equivalence class can be assigned
-    // to one of these variables. 
+    // to one of these variables.
     // We use a non-concatentation term among the terms in this equivalence
     // class, which is stored in eqc_non_c. The reason is this does not require
     // an explanation, whereas e.g. y ++ z would require the explanation z = ""
     // to justify its normal form is y.
-    Assert( eqc_non_c.getKind()!=STRING_CONCAT );
+    Assert(eqc_non_c.getKind() != STRING_CONCAT);
     NormalForm nf_triv;
     nf_triv.init(eqc_non_c);
     normal_forms.push_back(nf_triv);

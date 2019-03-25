@@ -93,7 +93,7 @@ class NormalForm
    */
   std::map<Node, std::map<bool, unsigned> > d_exp_dep;
   /** initialize
-   * 
+   *
    * Initialize the normal form with base node base. If base is not the empty
    * string, then d_nf is set to the singleton list containing base, otherwise
    * d_nf is empty.
