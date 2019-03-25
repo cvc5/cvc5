@@ -30,8 +30,8 @@ namespace strings {
  * Stores information regarding the "normal form" of terms t in the current
  * context. Normal forms can be associated with terms, or with string
  * equivalence classes. For the latter, the normal form of an equivalence class
- * exists if all terms in that class that have normal forms have the same
- * normal form.
+ * exists if exactly one unique normal form is assigned to a subset of its
+ * terms.
  *
  * In the following we use example where assertions are:
  *   { x = y, y = z, y = u ++ v, u = u1 ++ u2 }
