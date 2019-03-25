@@ -3223,7 +3223,7 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["real-to-int"]->apply(&d_assertions);
   }
   
-  if (options::solveBVAsInt()) { 
+  if (options::solveBVAsInt() > 0) { 
         d_passes["bv-to-int"]->apply(&d_assertions);
   }
 
