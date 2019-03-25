@@ -2942,15 +2942,17 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
   for(unsigned i=0; i<normal_forms.size()-1; i++) {
     //unify each normalform[j] with normal_forms[i]
     for(unsigned j=i+1; j<normal_forms.size(); j++ ) {
+      NormalForm& nfi = normal_forms[i];
+      NormalForm& nfj = normal_forms[j];
       //ensure that normal_forms[i] and normal_forms[j] are the same modulo equality, add to pinfer if not
       Trace("strings-solve") << "Strings: Process normal form #" << i << " against #" << j << "..." << std::endl;
-      if (isNormalFormPair(normal_forms[i].d_base, normal_forms[j].d_base))
+      if (isNormalFormPair(nfi.d_base, nfj.d_base))
       {
         Trace("strings-solve") << "Strings: Already cached." << std::endl;
       }else{
         //process the reverse direction first (check for easy conflicts and inferences)
         unsigned rindex = 0;
-        processReverseNEq(normal_forms, i, j, rindex, 0, pinfer);
+        processReverseNEq(nfi, nfj, rindex, 0, pinfer);
         if( hasProcessed() ){
           return;
         }else if( !pinfer.empty() && pinfer.back().d_id==1 ){
@@ -2960,7 +2962,7 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
         //rindex = 0;
 
         unsigned index = 0;
-        processSimpleNEq(normal_forms, i, j, index, false, rindex, pinfer);
+        processSimpleNEq(nfi, nfj, index, false, rindex, pinfer);
         if( hasProcessed() ){
           return;
         }else if( !pinfer.empty() && pinfer.back().d_id==1 ){
@@ -3026,35 +3028,31 @@ bool TheoryStrings::InferInfo::sendAsLemma() {
   return true;
 }
 
-void TheoryStrings::processReverseNEq(std::vector<NormalForm>& normal_forms,
-                                      unsigned i,
-                                      unsigned j,
+void TheoryStrings::processReverseNEq(NormalForm& nfi,
+                  NormalForm& nfj,
                                       unsigned& index,
                                       unsigned rproc,
                                       std::vector<InferInfo>& pinfer)
 {
   //reverse normal form of i, j
-  normal_forms[i].reverse();
-  normal_forms[j].reverse();
+  nfi.reverse();
+  nfj.reverse();
 
-  processSimpleNEq(normal_forms, i, j, index, true, rproc, pinfer);
+  processSimpleNEq(nfi, nfj, index, true, rproc, pinfer);
 
   //reverse normal form of i, j
-  normal_forms[i].reverse();
-  normal_forms[j].reverse();
+  nfi.reverse();
+  nfj.reverse();
 }
 
 //rproc is the # is the size of suffix that is identical
-void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
-                                     unsigned i,
-                                     unsigned j,
+void TheoryStrings::processSimpleNEq(NormalForm& nfi,
+                                     NormalForm& nfj,
                                      unsigned& index,
                                      bool isRev,
                                      unsigned rproc,
                                      std::vector<InferInfo>& pinfer)
 {
-  NormalForm& nfi = normal_forms[i];
-  NormalForm& nfj = normal_forms[j];
   std::vector<Node>& nfiv = nfi.d_nf;
   std::vector<Node>& nfjv = nfj.d_nf;
   NodeManager* nm = NodeManager::currentNM();
@@ -3070,9 +3068,9 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
         //we're done
       }else{
         //the remainder must be empty
-        unsigned k = index == (nfiv.size() - rproc) ? j : i;
+        NormalForm& nfk = index == (nfiv.size() - rproc) ? nfj : nfi;
+        std::vector<Node>& nfkv = nfk.d_nf;
         unsigned index_k = index;
-        std::vector<Node>& nfkv = normal_forms[k].d_nf;
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
         getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, curr_exp);
@@ -3123,8 +3121,8 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, antec);
           std::vector< Node > eqn;
           for( unsigned r=0; r<2; r++ ) {
-            int k = r==0 ? i : j;
-            std::vector<Node>& nfkv = normal_forms[k].d_nf;
+            NormalForm& nfk = r==0 ? nfi : nfj;
+            std::vector<Node>& nfkv = nfk.d_nf;
             std::vector< Node > eqnc;
             for (unsigned index_l = index, size = (nfkv.size() - rproc);
                  index_l < size;
@@ -3156,10 +3154,9 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           if( isSameFix ) {
             //same prefix/suffix
             //k is the index of the string that is shorter
-            int k = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? i : j;
-            std::vector<Node>& nfkv = normal_forms[k].d_nf;
-            int l = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? j : i;
-            NormalForm& nfl = normal_forms[l];
+            NormalForm& nfk = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? nfi : nfj;
+            std::vector<Node>& nfkv = nfk.d_nf;
+            NormalForm& nfl = const_str.getConst<String>().size()<other_str.getConst<String>().size() ? nfj : nfi;
             std::vector<Node>& nflv = nfl.d_nf;
             Node remainderStr;
             if( isRev ){
@@ -3189,8 +3186,6 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
           InferInfo info;
           info.d_index = index;
           //for debugging
-          info.d_i = i;
-          info.d_j = j;
           info.d_rev = isRev;
           bool info_valid = false;
           Assert(index < nfiv.size() - rproc && index < nfjv.size() - rproc);
@@ -3217,39 +3212,32 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
             int loop_in_i = -1;
             int loop_in_j = -1;
             ProcessLoopResult plr = ProcessLoopResult::SKIPPED;
-            if( detectLoop( normal_forms, i, j, index, loop_in_i, loop_in_j, rproc ) ){
+            if( detectLoop( nfi, nfj, index, loop_in_i, loop_in_j, rproc ) ){
               if( !isRev ){  //FIXME
                 getExplanationVectorForPrefixEq(
                     nfi, nfj, -1, -1, isRev, info.d_ant);
                 // set info
-                plr = processLoop(normal_forms,
-                                  i,
-                                  j,
-                                  loop_in_i != -1 ? i : j,
-                                  loop_in_i != -1 ? j : i,
+                plr = processLoop(loop_in_i != -1 ? nfi : nfj,
+                                  loop_in_i != -1 ? nfj : nfi,
                                   loop_in_i != -1 ? loop_in_i : loop_in_j,
                                   index,
                                   info);
                 if (plr == ProcessLoopResult::INFERENCE)
                 {
                   info_valid = true;
-              }
+                }
               }
             }
 
             if (plr == ProcessLoopResult::SKIPPED)
             {
               //AJR: length entailment here?
-              if (nfiv[index].getKind() == kind::CONST_STRING
-                  || nfjv[index].getKind() == kind::CONST_STRING)
+              if (nfiv[index].isConst()
+                  || nfjv[index].isConst())
               {
-                unsigned const_k =
-                    nfiv[index].getKind() == kind::CONST_STRING ? i : j;
-                NormalForm& nfc = normal_forms[const_k];
+                NormalForm& nfc = nfiv[index].isConst() ? nfi : nfj;
                 std::vector<Node>& nfcv = nfc.d_nf;
-                unsigned nconst_k =
-                    nfiv[index].getKind() == kind::CONST_STRING ? j : i;
-                NormalForm& nfnc = normal_forms[nconst_k];
+                NormalForm& nfnc = nfiv[index].isConst() ? nfj : nfi;
                 std::vector<Node>& nfncv = nfnc.d_nf;
                 Node other_str = nfncv[index];
                 Assert( other_str.getKind()!=kind::CONST_STRING, "Other string is not constant." );
@@ -3440,9 +3428,8 @@ void TheoryStrings::processSimpleNEq(std::vector<NormalForm>& normal_forms,
   }while( success );
 }
 
-bool TheoryStrings::detectLoop(std::vector<NormalForm>& normal_forms,
-                               int i,
-                               int j,
+bool TheoryStrings::detectLoop(NormalForm& nfi,
+                               NormalForm& nfj,
                                int index,
                                int& loop_in_i,
                                int& loop_in_j,
@@ -3451,13 +3438,15 @@ bool TheoryStrings::detectLoop(std::vector<NormalForm>& normal_forms,
   int has_loop[2] = { -1, -1 };
   if( options::stringLB() != 2 ) {
     for( unsigned r=0; r<2; r++ ) {
-      std::vector<Node>& nf = normal_forms[r == 0 ? i : j].d_nf;
-      std::vector<Node>& othernf = normal_forms[r == 0 ? j : i].d_nf;
-      if (othernf[index].getKind() != kind::CONST_STRING)
+      NormalForm& nf = r==0 ? nfi : nfj;
+      NormalForm& nfo = r==0 ? nfj : nfi;
+      std::vector<Node>& nfv = nf.d_nf;
+      std::vector<Node>& nfov = nfo.d_nf;
+      if (!nfov[index].isConst())
       {
-        for (unsigned lp = index + 1; lp < nf.size() - rproc; lp++)
+        for (unsigned lp = index + 1; lp < nfv.size() - rproc; lp++)
         {
-          if (nf[lp] == othernf[index])
+          if (nfv[lp] == nfov[index])
           {
             has_loop[r] = lp;
             break;
@@ -3478,11 +3467,8 @@ bool TheoryStrings::detectLoop(std::vector<NormalForm>& normal_forms,
 
 //xs(zy)=t(yz)xr
 TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
-    const std::vector<NormalForm>& normal_forms,
-    int i,
-    int j,
-    int loop_n_index,
-    int other_n_index,
+    NormalForm& nfi,
+    NormalForm& nfj,
     int loop_index,
     int index,
     InferInfo& info)
@@ -3499,8 +3485,8 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
 
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
-  const std::vector<Node>& veci = normal_forms[loop_n_index].d_nf;
-  const std::vector<Node>& vecoi = normal_forms[other_n_index].d_nf;
+  const std::vector<Node>& veci = nfi.d_nf;
+  const std::vector<Node>& vecoi = nfj.d_nf;
 
   Trace("strings-loop") << "Detected possible loop for " << veci[loop_index]
                         << std::endl;
@@ -3677,8 +3663,8 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
   // we will be done
   info.d_conc = conc;
   info.d_id = INFER_FLOOP;
-  info.d_nf_pair[0] = normal_forms[i].d_base;
-  info.d_nf_pair[1] = normal_forms[j].d_base;
+  info.d_nf_pair[0] = nfi.d_base;
+  info.d_nf_pair[1] = nfj.d_base;
   return ProcessLoopResult::INFERENCE;
 }
 

@@ -586,15 +586,13 @@ private:
    * one with highest priority based on the enumeration type Inference above.
    */
   void processNEqc(std::vector<NormalForm>& normal_forms);
-  void processReverseNEq(std::vector<NormalForm>& normal_forms,
-                         unsigned i,
-                         unsigned j,
+  void processReverseNEq(NormalForm& nfi,
+                         NormalForm& nfj,
                          unsigned& index,
                          unsigned rproc,
                          std::vector<InferInfo>& pinfer);
-  void processSimpleNEq(std::vector<NormalForm>& normal_forms,
-                        unsigned i,
-                        unsigned j,
+  void processSimpleNEq(NormalForm& nfi,
+                        NormalForm& nfj,
                         unsigned& index,
                         bool isRev,
                         unsigned rproc,
@@ -608,9 +606,8 @@ private:
   //--------------------------end for checkNormalFormsEq
   
   //--------------------------for checkNormalFormsEq with loops
-  bool detectLoop(std::vector<NormalForm>& normal_forms,
-                  int i,
-                  int j,
+  bool detectLoop(NormalForm& nfi,
+                  NormalForm& nfj,
                   int index,
                   int& loop_in_i,
                   int& loop_in_j,
@@ -629,11 +626,8 @@ private:
     SKIPPED,
   };
 
-  ProcessLoopResult processLoop(const std::vector<NormalForm>& normal_forms,
-                                int i,
-                                int j,
-                                int loop_n_index,
-                                int other_n_index,
+  ProcessLoopResult processLoop(NormalForm& nfi,
+                                NormalForm& nfj,
                                 int loop_index,
                                 int index,
                                 InferInfo& info);
