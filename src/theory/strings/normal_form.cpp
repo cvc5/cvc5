@@ -133,6 +133,30 @@ void NormalForm::getExplanation(int index,
   }
 }
 
+void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
+                                                    NormalForm& nfj,
+                                                    int index_i,
+                                                    int index_j,
+                                                    bool isRev,
+                                                    std::vector<Node>& curr_exp)
+{
+  Trace("strings-explain-prefix")
+      << "Get explanation for prefix " << index_i << ", " << index_j
+      << ", reverse = " << isRev << std::endl;
+  // get explanations
+  nfi.getExplanation(index_i, isRev, curr_exp);
+  nfj.getExplanation(index_j, isRev, curr_exp);
+  Trace("strings-explain-prefix")
+      << "Included " << curr_exp.size() << " / "
+      << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
+  if( nfi.d_base!=nfj.d_base )
+  {
+    Node eq = nfi.d_base.eqNode(nfj.d_base);
+    curr_exp.push_back(eq);
+  }
+}
+
+
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4

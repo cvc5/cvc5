@@ -2915,24 +2915,6 @@ void TheoryStrings::getNormalForms(Node eqc,
   }
 }
 
-void TheoryStrings::getExplanationVectorForPrefixEq(NormalForm& nfi,
-                                                    NormalForm& nfj,
-                                                    int index_i,
-                                                    int index_j,
-                                                    bool isRev,
-                                                    std::vector<Node>& curr_exp)
-{
-  Trace("strings-explain-prefix")
-      << "Get explanation for prefix " << index_i << ", " << index_j
-      << ", reverse = " << isRev << std::endl;
-  // get explanations
-  nfi.getExplanation(index_i, isRev, curr_exp);
-  nfj.getExplanation(index_j, isRev, curr_exp);
-  Trace("strings-explain-prefix")
-      << "Included " << curr_exp.size() << " / "
-      << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
-  addToExplanation(nfi.d_base, nfj.d_base, curr_exp);
-}
 
 void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
 {
@@ -3060,7 +3042,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         unsigned index_k = index;
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
-        getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, curr_exp);
+        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, isRev, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
         {
           //can infer that this string must be empty
@@ -3091,7 +3073,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           //eq = Rewriter::rewrite( eq );
           Node length_eq = length_term_i.eqNode( length_term_j );
           //temp_exp.insert(temp_exp.end(), curr_exp.begin(), curr_exp.end() );
-          getExplanationVectorForPrefixEq(
+          NormalForm::getExplanationForPrefixEq(
               nfi, nfj, index, index, isRev, temp_exp);
           temp_exp.push_back(length_eq);
           sendInference( temp_exp, eq, "N_Unify" );
@@ -3105,7 +3087,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           Trace("strings-solve-debug") << "Simple Case 3 : at endpoint" << std::endl;
           std::vector< Node > antec;
           //antec.insert(antec.end(), curr_exp.begin(), curr_exp.end() );
-          getExplanationVectorForPrefixEq(nfi, nfj, -1, -1, isRev, antec);
+          NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, isRev, antec);
           std::vector< Node > eqn;
           for( unsigned r=0; r<2; r++ ) {
             NormalForm& nfk = r == 0 ? nfi : nfj;
@@ -3169,7 +3151,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
           }else{
             //conflict
             std::vector< Node > antec;
-            getExplanationVectorForPrefixEq(
+            NormalForm::getExplanationForPrefixEq(
                 nfi, nfj, index, index, isRev, antec);
             sendInference( antec, d_false, "N_Const", true );
             return;
@@ -3210,7 +3192,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
             if (detectLoop(nfi, nfj, index, loop_in_i, loop_in_j, rproc))
             {
               if( !isRev ){  //FIXME
-                getExplanationVectorForPrefixEq(
+                NormalForm::getExplanationForPrefixEq(
                     nfi, nfj, -1, -1, isRev, info.d_ant);
                 // set info
                 plr = processLoop(loop_in_i != -1 ? nfi : nfj,
@@ -3279,7 +3261,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     if( p>1 ){
                       if( start_index_nc_k==index+1 ){
                         info.d_ant.push_back(xnz);
-                        getExplanationVectorForPrefixEq(nfc,
+                        NormalForm::getExplanationForPrefixEq(nfc,
                                                         nfnc,
                                                         index_c_k,
                                                         index_nc_k,
@@ -3304,7 +3286,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                   if( !info_valid ){
                     info.d_ant.push_back( xnz );
                     Node const_str = nfcv[index];
-                    getExplanationVectorForPrefixEq(
+                    NormalForm::getExplanationForPrefixEq(
                         nfi, nfj, index, index, isRev, info.d_ant);
                     CVC4::String stra = const_str.getConst<String>();
                     if( options::stringBinaryCsp() && stra.size()>3 ){
@@ -3366,7 +3348,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                   }
                 }
 
-                getExplanationVectorForPrefixEq(
+                NormalForm::getExplanationForPrefixEq(
                     nfi, nfj, index, index, isRev, info.d_ant);
                 //x!=e /\ y!=e
                 for(unsigned xory=0; xory<2; xory++) {

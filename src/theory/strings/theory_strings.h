@@ -563,7 +563,7 @@ private:
   /** normalize equivalence class
    *
    * This method attempts to build a "normal form" for the equivalence class
-   * of string term n (for more details on normal forms, see checkNormalFormsEq
+   * of string term n (for more details on normal forms, see normal_form.h
    * or see Liang et al CAV 2014). In particular, this method checks whether the
    * current normal form for each term in this equivalence class is identical.
    * If it is not, then we add an inference via sendInference and abort the
@@ -621,12 +621,6 @@ private:
                         bool isRev,
                         unsigned rproc,
                         std::vector<InferInfo>& pinfer);
-  void getExplanationVectorForPrefixEq(NormalForm& nfi,
-                                       NormalForm& nfj,
-                                       int index_i,
-                                       int index_j,
-                                       bool isRev,
-                                       std::vector<Node>& curr_exp);
   //--------------------------end for checkNormalFormsEq
 
   //--------------------------for checkNormalFormsEq with loops
