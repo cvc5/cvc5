@@ -1748,30 +1748,9 @@ relationBinopTerm[CVC4::Expr& f]
   std::vector<unsigned> operators;
   unsigned op;
 }
-  : relationTerm[f] { expressions.push_back(f); }
-    ( relationBinop[op] relationTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+  : postfixTerm[f] { expressions.push_back(f); }
+    ( relationBinop[op] postfixTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
     { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
-  ;
-
-relationTerm[CVC4::Expr& f]
-    /* relation terms */
-  : TRANSPOSE_TOK LPAREN relationBinopTerm[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK LPAREN relationBinopTerm[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN relationBinopTerm[f] RPAREN
-    { std::vector<Type> types;
-      std::vector<Expr> args;
-      args.push_back(f);
-	    types.push_back(f.getType());
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }
-  | IDEN_TOK LPAREN relationBinopTerm[f] RPAREN
-    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
-  | postfixTerm[f]
   ;
 
 /**
@@ -1791,7 +1770,7 @@ postfixTerm[CVC4::Expr& f]
   std::string id;
   Type t;
 }
-  : ( bvTerm[f]
+  : ( relationTerm[f]
     ( /* array select / bitvector extract */
       LBRACKET
         ( formula[f2] { extract = false; }
@@ -1899,7 +1878,28 @@ postfixTerm[CVC4::Expr& f]
       }
     )?
   ;
-
+  
+relationTerm[CVC4::Expr& f]
+    /* relation terms */
+  : TRANSPOSE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
+  | TRANSCLOSURE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
+  | TUPLE_TOK LPAREN formula[f] RPAREN
+    { std::vector<Type> types;
+      std::vector<Expr> args;
+      args.push_back(f);
+	    types.push_back(f.getType());
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert( args.begin(), dt[0].getConstructor() );
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  | IDEN_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
+  | bvTerm[f]
+  ;
+  
 bvTerm[CVC4::Expr& f]
 @init {
   Expr f2;
