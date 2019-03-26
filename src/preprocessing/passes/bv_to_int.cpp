@@ -153,8 +153,8 @@ Node bvToInt(TNode n, NodeMap& cache)
   NodeMap binaryCache;
   Node n_binary = bvToIntMakeBinary(n, binaryCache);
   toVisit.push_back(TNode(n_binary));
-  vector<Node> children;
-  
+  vector<Node> intized_children;
+  Node one_const = nm->mkConst<Rational>(1);
   while (!toVisit.empty())
   {
     // The current node we are processing
@@ -174,191 +174,219 @@ Node bvToInt(TNode n, NodeMap& cache)
     {
       // Children have been processed, so rebuild this node.
       // First, save the rewritten children from the cache.
-      children.clear();
+      intized_children.clear();
       for (unsigned i = 0; i < current.getNumChildren(); ++i)
       {
         Assert(cache.find(current[i]) != cache.end());
         TNode childRes = cache[current[i]];
-        children.push_back(childRes);
+        intized_children.push_back(childRes);
       }
 
       kind::Kind_t oldKind = current.getKind();
       Node intized_node = current;
+      uint32_t bvsize = current.getType().getBitVectorSize();
+      Node pow2_bvsize = pow2(bvsize, nm);
       switch (oldKind)
       {
         case kind::BITVECTOR_PLUS: 
 	{
-          Assert(children.size() == 2);
-	  uint32_t bvsize = current.getType().getBitVectorSize();
-	  Node pow = pow2(bvsize, nm);
-      	  Node plus = getNode(kind::PLUS, children);
-	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {plus, pow});
+          Assert(intized_children.size() == 2);
+      	  Node plus = getNode(kind::PLUS, intized_children);
+	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {plus, pow2_bvsize});
 	  break;
 	}
         case kind::BITVECTOR_MULT: 
 	{
-          Assert(children.size() == 2);
-	  uint32_t bvsize = current.getType().getBitVectorSize();
-	  Node pow = pow2(bvsize, nm);
-      	  Node mul = getNode(kind::MULT, children);
-	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {mul, pow});
+          Assert(intized_children.size() == 2);
+      	  Node mul = getNode(kind::MULT, intized_children);
+	  intized_node = getNode(kind::INTS_MODULUS_TOTAL, {mul, pow2_bvsize});
 	  break;
 	}
         case kind::BITVECTOR_SUB:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_UDIV:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_UREM:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_UDIV_TOTAL:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_UREM_TOTAL:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_SDIV:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_SREM:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_SMOD:
 	{
-	  Assert(false);
+	  Unimplemented();
           break;
 	}
         case kind::BITVECTOR_NEG: 
 	{
-	  Assert(false);
+	  Assert(intized_children.size() == 1);
+	  intized_node = getNode(kind::MINUS, {pow2_bvsize, intized_children[0]});
+          break;
+	}  
+        case kind::BITVECTOR_NOT: 
+	{
+	  Assert(intized_children.size() == 1);
+	  Node max = getNode(kind::MINUS, {pow2_bvsize, one_const});
+	  intized_node = getNode(kind::MINUS, {pow2_bvsize, intized_children[0]});
           break;
 	}  
 	case kind::BITVECTOR_AND:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_OR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_XOR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_XNOR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_NAND:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_NOR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_SHL:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_LSHR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ASHR:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ITE:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_CONCAT:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_EXTRACT:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_REPEAT:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ZERO_EXTEND:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_SIGN_EXTEND:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ROTATE_RIGHT:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ROTATE_LEFT:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_COMP:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_ULTBV:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
 	case kind::BITVECTOR_SLTBV:
 	{
-	  Assert(false);
+	  Unimplemented();
 	  break;
 	}
         case kind::EQUAL:
 	{
-	  intized_node = getNode(kind::EQUAL, children);
+	  intized_node = getNode(kind::EQUAL, intized_children);
 	  break;
 	}
-        case kind::ITE: break;
+        case kind::BITVECTOR_ULT:
+	{
+	  intized_node = getNode(kind::LT, intized_children);
+	  break;
+	}
+        case kind::BITVECTOR_ULE:
+	{
+	  intized_node = getNode(kind::LEQ, intized_children);
+	  break;
+	}
+        case kind::BITVECTOR_UGT:
+	{
+	  intized_node = getNode(kind::GT, intized_children);
+	  break;
+	}
+        case kind::BITVECTOR_UGE:
+	{
+	  intized_node = getNode(kind::GEQ, intized_children);
+	  break;
+	}
+        case kind::ITE:
+	    intized_node = getNode(oldKind, intized_children);
+	    break;
         default:
           if (Theory::theoryOf(current) == THEORY_BOOL)
           {
-	    intized_node = getNode(oldKind, children);
+	    intized_node = getNode(oldKind, intized_children);
             break;
           }
           throw TypeCheckingException(
