@@ -145,6 +145,8 @@ Node bvToIntMakeBinary(TNode n, NodeMap& cache)
 
 Node bvToInt(TNode n, NodeMap& cache)
 {
+  //first we rewrite n to eliminate some bv operators.
+  n = Rewriter::rewrite(n);
   AlwaysAssert(!options::incrementalSolving());
   NodeManager* nm = NodeManager::currentNM();
   vector<bvToInt_stack_element> toVisit;
