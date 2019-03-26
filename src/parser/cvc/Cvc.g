@@ -1705,9 +1705,8 @@ uminusTerm[CVC4::Expr& f]
   unsigned minusCount = 0;
 }
     /* Unary minus */
-  : (MINUS_TOK { ++minusCount; })+ bvBinaryOpTerm[f]
+  : (MINUS_TOK { ++minusCount; })* bvBinaryOpTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
-  | bvBinaryOpTerm[f]
   ;
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
