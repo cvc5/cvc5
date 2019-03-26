@@ -41,9 +41,10 @@ while [ $# -gt 0 ]; do
     # (1) #include
     # (2) namespace
     # (3) } ... namespace ...
+    # (4) empty lines
     #
     awk -F ')' \
-      '$2 !~ /^[ \t]*(#include|namespace|}.*namespace.*)/ {print $1}' | \
+      '$2 !~ /^[ \t]*(#include|namespace|}.*namespace.*|[ \t]*$)/ {print $1}' | \
 
     # Keep author names only, remove the last 4 columns in ( ... )
     awk 'NF{NF-=4};1' | \
