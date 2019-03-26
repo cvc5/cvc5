@@ -1552,9 +1552,6 @@ booleanBinop[unsigned& op]
   | OR_TOK
   | XOR_TOK
   | AND_TOK
-  | JOIN_TOK
-  | PRODUCT_TOK
-  | JOIN_IMAGE_TOK  
   ;
 
 comparison[CVC4::Expr& f]
@@ -1733,16 +1730,36 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = f.getType().isSet() ? MK_EXPR(CVC4::kind::COMPLEMENT, f) : MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | relationTerm[f]
+  | relationBinopTerm[f]
+  ;
+
+relationBinop[unsigned& op]
+@init {
+  op = LT(1)->getType(LT(1));
+}
+  : JOIN_TOK
+  | PRODUCT_TOK
+  | JOIN_IMAGE_TOK
+  ;
+
+relationBinopTerm[CVC4::Expr& f]
+@init {
+  std::vector<CVC4::Expr> expressions;
+  std::vector<unsigned> operators;
+  unsigned op;
+}
+  : relationTerm[f] { expressions.push_back(f); }
+    ( relationBinop[op] relationTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 
 relationTerm[CVC4::Expr& f]
     /* relation terms */
-  : TRANSPOSE_TOK relationTerm[f]
+  : TRANSPOSE_TOK LPAREN relationBinopTerm[f] RPAREN
     { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK relationTerm[f]
+  | TRANSCLOSURE_TOK LPAREN relationBinopTerm[f] RPAREN
     { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN relationTerm[f] RPAREN
+  | TUPLE_TOK LPAREN relationBinopTerm[f] RPAREN
     { std::vector<Type> types;
       std::vector<Expr> args;
       args.push_back(f);
@@ -1752,7 +1769,7 @@ relationTerm[CVC4::Expr& f]
       args.insert( args.begin(), dt[0].getConstructor() );
       f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
     }
-  | IDEN_TOK relationTerm[f]
+  | IDEN_TOK LPAREN relationBinopTerm[f] RPAREN
     { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
   | postfixTerm[f]
   ;
