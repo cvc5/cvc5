@@ -1626,7 +1626,6 @@ void TheoryStrings::checkExtfEval( int effort ) {
       einfo.d_exp.insert(einfo.d_exp.end(), exp[i].begin(), exp[i].end());
       // inference is rewriting the substituted node
       Node nrc = Rewriter::rewrite( sn );
-      Kind nrck = nrc.getKind();
       //if rewrites to a constant, then do the inference and mark as reduced
       if( nrc.isConst() ){
         if( effort<3 ){
