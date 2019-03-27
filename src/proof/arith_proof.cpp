@@ -24,6 +24,7 @@
 #include "proof/theory_proof.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/theory_arith.h"
+#include "theory/arith/normal_form.h"
 
 #define CVC4_ARITH_VAR_TERM_PREFIX "term."
 
@@ -33,7 +34,7 @@ inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
 
-inline static bool all_children_geq(const Node& conflict) {
+inline static bool allChildrenGeq(const Node& conflict) {
 	bool result = true;
 	size_t nChildren = conflict.getNumChildren();
 	for (size_t i=0; i < nChildren; i++) {
@@ -47,6 +48,17 @@ inline static bool all_children_geq(const Node& conflict) {
 	  }
 	}
 	return result;
+}
+
+inline static bool hasContradiction(const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients) {
+  const size_t n = conflict.getNumChildren();
+  NodeBuilder<> left(kind::PLUS), right(kind::PLUS);
+  for (size_t i = 0; i != n; ++i)
+  {
+    const Node& lem = conflict[i];
+    const Rational c = (*farkasCoefficients)[i];
+  }
+  return true;
 }
 
 // congrence matching term helper
@@ -1017,6 +1029,16 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                  [](const Expr& e) {
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
+  std::cout << std::endl << "panda lemmas" << std::endl;
+  for (Expr e : lemma) {
+	std::cout << "panda lemma " << e.toString() << std::endl;
+  }
+
+  std::cout << std::endl << "panda conflicts" << std::endl;
+  for (Node n : conflictSet) {
+	std::cout << "panda conflict " << n.toString() << std::endl;
+	
+  }
 
   // If we have Farkas coefficients stored for this lemma, use them to write a
   // proof. Otherwise, just `trust` the lemma.
@@ -1024,8 +1046,14 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
   const Node& conflict = farkasInfo.first;
   theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
+  
+  
+  for (const TNode& c : conflict) {
+	  theory::arith::Comparison comparison = theory::arith::Comparison::parseNormalForm(c);
+  }
+
   const size_t nAntecedents = conflict.getNumChildren();
-  if (d_recorder.hasFarkasCoefficients(conflictSet) && all_children_geq(conflict))
+  if (d_recorder.hasFarkasCoefficients(conflictSet) && allChildrenGeq(conflict) && hasContradiction(conflict, farkasCoefficients))
   {
       Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
       Assert(conflict.getNumChildren() == farkasCoefficients->size());
