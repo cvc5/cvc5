@@ -25,10 +25,12 @@
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/theory_arith.h"
 #include "theory/arith/normal_form.h"
+#include "theory/rewriter.h"
 
 #define CVC4_ARITH_VAR_TERM_PREFIX "term."
 
 namespace CVC4 {
+using namespace CVC4::theory;
 
 inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
@@ -51,14 +53,46 @@ inline static bool allChildrenGeq(const Node& conflict) {
 }
 
 inline static bool hasContradiction(const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients) {
+  NodeManager* nm = NodeManager::currentNM();
   const size_t n = conflict.getNumChildren();
-  NodeBuilder<> left(kind::PLUS), right(kind::PLUS);
+  NodeBuilder<> leftBuilder(kind::PLUS), rightBuilder(kind::PLUS);
+  Node currentLeft;
+  Node currentRight;
+  bool hasStrictIneq = false;
+  Node falseNode = nm->mkConst(false);
   for (size_t i = 0; i != n; ++i)
   {
     const Node& lem = conflict[i];
-    const Rational c = (*farkasCoefficients)[i];
+    Rational c = (*farkasCoefficients)[i].abs();
+    if (lem.getKind() == kind::NOT) {
+	hasStrictIneq = true;
+	currentLeft = lem[0][0];
+	Assert(lem[0].getKind() == kind::GEQ);
+	currentRight = lem[0][1];
+	c = c * (-1);
+    } else {
+	Assert(lem.getKind() == kind::GEQ);
+	currentLeft = lem[0];
+	currentRight = lem[1];
+    }
+    Node cNode = nm->mkConst(c);
+    NodeBuilder<> currentLeftBuilder(kind::MULT), currentRightBuilder(kind::MULT);
+    currentLeftBuilder << cNode << currentLeft;
+    currentRightBuilder << cNode << currentRight;
+    currentLeft = currentLeftBuilder;
+    currentRight = currentRightBuilder;
+    leftBuilder << currentLeft;
+    rightBuilder << currentRight;
   }
-  return true;
+  Node leftNode = leftBuilder;
+  Node rightNode = rightBuilder;
+  leftNode = Rewriter::rewrite(leftNode);
+  rightNode = Rewriter::rewrite(rightNode);
+  NodeBuilder<> simplifiedBuilder(hasStrictIneq ? kind::GT : kind::GEQ);
+  simplifiedBuilder << leftNode << rightNode;
+  Node simplifiedNode = simplifiedBuilder;
+  simplifiedNode = Rewriter::rewrite(simplifiedNode);
+  return simplifiedNode == falseNode;
 }
 
 // congrence matching term helper
@@ -1029,16 +1063,8 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                  [](const Expr& e) {
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
-  std::cout << std::endl << "panda lemmas" << std::endl;
-  for (Expr e : lemma) {
-	std::cout << "panda lemma " << e.toString() << std::endl;
-  }
 
-  std::cout << std::endl << "panda conflicts" << std::endl;
-  for (Node n : conflictSet) {
-	std::cout << "panda conflict " << n.toString() << std::endl;
-	
-  }
+  
 
   // If we have Farkas coefficients stored for this lemma, use them to write a
   // proof. Otherwise, just `trust` the lemma.
