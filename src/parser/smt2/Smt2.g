@@ -1679,15 +1679,9 @@ symbolicExpr[CVC4::SExpr& sexpr]
  * @return the expression representing the formula
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
-@init {
-  std::string name;
-}
 : termNonVariable[expr, expr2]
     /* a variable */
-  | symbol[name,CHECK_DECLARED,SYM_VARIABLE]
-    { expr = PARSER_STATE->getExpressionForName(name); 
-      assert( !expr.isNull() );
-    }
+  | qualIdentifier[expr]
   ;
 
 /**
@@ -1712,7 +1706,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector< std::pair<std::string, Expr> > binders;
   bool isBuiltinOperator = false;
   bool isOverloadedFunction = false;
-  bool readVariable = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
   Type type;
@@ -1759,48 +1752,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       } else {
         PARSER_STATE->checkOperator(kind, args.size());
         expr = MK_EXPR(kind, args);
-      }
-    }
-  | LPAREN_TOK AS_TOK ( termNonVariable[f, f2] | symbol[name,CHECK_DECLARED,SYM_VARIABLE] { readVariable = true; } ) 
-    sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
-    {
-      if(readVariable) {
-        Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
-        // get the variable expression for the type
-        f = PARSER_STATE->getExpressionForNameAndType(name, type); 
-        assert( !f.isNull() );
-      }
-      if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
-        // could be a parametric type constructor or just an overloaded constructor
-        if(((DatatypeType)type).isParametric()) {
-          std::vector<CVC4::Expr> v;
-          Expr e = f.getOperator();
-          const DatatypeConstructor& dtc =
-              Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
-          v.insert(v.end(), f.begin(), f.end());
-          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
-        }else{
-          expr = f;
-        }
-      } else if(f.getKind() == CVC4::kind::EMPTYSET) {
-        Debug("parser") << "Empty set encountered: " << f << " "
-                          << f2 << " " << type <<  std::endl;
-        expr = MK_CONST( ::CVC4::EmptySet(type) );
-      } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
-        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
-      } else if(f.getKind() == CVC4::kind::SEP_NIL) {
-        //We don't want the nil reference to be a constant: for instance, it
-        //could be of type Int but is not a const rational. However, the
-        //expression has 0 children. So we convert to a SEP_NIL variable.
-        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
-      } else {
-        if(f.getType() != type) {
-          PARSER_STATE->parseError("Type ascription not satisfied.");
-        }else{
-          expr = f;
-        }
       }
     }
   | LPAREN_TOK quantOp[kind]
@@ -1850,10 +1801,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
         expr = PARSER_STATE->getVariable(name);
         if(!expr.isNull()) {
-          //hack to allow constants with parentheses (disabled for now)
-          //if( PARSER_STATE->sygus() && !PARSER_STATE->isFunctionLike(expr) ){
-          //  op = PARSER_STATE->getVariable(name);
-          //}else{
           PARSER_STATE->checkFunctionLike(expr);
           kind = PARSER_STATE->getKindForFunction(expr);
           args.push_back(expr);
@@ -1862,7 +1809,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     }
-    //(termList[args,expr])? RPAREN_TOK
     termList[args,expr] RPAREN_TOK
     { Debug("parser") << "args has size " << args.size() << std::endl
                       << "expr is " << expr << std::endl;
@@ -2229,7 +2175,74 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   ;
 
+/**
+ * Matches a qualified indentifier.
+ */
+qualIdentifier[CVC4::Expr& expr]
+@init {
+  Expr f;
+  std::string name;
+}
+: qualIdentifierInternal[name,f]
+  { 
+    if( f.isNull() )
+    {
+      f = PARSER_STATE->getExpressionForName(name);
+    }
+    expr = f;
+    assert( !expr.isNull() );
+  }
+  ;
 
+qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
+@init {
+  Expr f, f2;
+  Type type;
+}
+: symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+  | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
+    {
+      if(f.isNull()) {
+        Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
+        // get the variable expression for the type
+        f = PARSER_STATE->getExpressionForNameAndType(name, type); 
+        assert( !f.isNull() );
+      }
+      if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
+        // could be a parametric type constructor or just an overloaded constructor
+        if(((DatatypeType)type).isParametric()) {
+          std::vector<CVC4::Expr> v;
+          Expr e = f.getOperator();
+          const DatatypeConstructor& dtc =
+              Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+          v.insert(v.end(), f.begin(), f.end());
+          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+        }else{
+          expr = f;
+        }
+      } else if(f.getKind() == CVC4::kind::EMPTYSET) {
+        Debug("parser") << "Empty set encountered: " << f << " "
+                          << f2 << " " << type <<  std::endl;
+        expr = MK_CONST( ::CVC4::EmptySet(type) );
+      } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
+        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
+      } else if(f.getKind() == CVC4::kind::SEP_NIL) {
+        //We don't want the nil reference to be a constant: for instance, it
+        //could be of type Int but is not a const rational. However, the
+        //expression has 0 children. So we convert to a SEP_NIL variable.
+        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
+      } else {
+        if(f.getType() != type) {
+          PARSER_STATE->parseError("Type ascription not satisfied.");
+        }else{
+          expr = f;
+        }
+      }
+    }
+  ;
+  
 /**
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
