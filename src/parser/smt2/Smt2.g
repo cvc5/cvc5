@@ -2171,8 +2171,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
     expr = SOLVER->mkTuple(sorts, terms).getExpr();
   }
-  | /* an atomic term (a term with no subterms) */
-    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   ;
 
 /**
@@ -2184,7 +2182,7 @@ qualIdentifier[CVC4::Expr& expr]
   std::string name;
 }
 : qualIdentifierInternal[name,f]
-  { 
+  {
     if( f.isNull() )
     {
       f = PARSER_STATE->getExpressionForName(name);
@@ -2198,14 +2196,17 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
 @init {
   Expr f, f2;
   Type type;
+  api::Term atomTerm;
 }
 : symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+  | /* an atomic term (a term with no subterms) */
+    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
       if(f.isNull()) {
         Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
         // get the variable expression for the type
-        f = PARSER_STATE->getExpressionForNameAndType(name, type); 
+        f = PARSER_STATE->getExpressionForNameAndType(name, type);
         assert( !f.isNull() );
       }
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
@@ -2242,7 +2243,7 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
       }
     }
   ;
-  
+
 /**
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
