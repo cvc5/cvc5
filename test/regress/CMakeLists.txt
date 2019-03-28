@@ -18,6 +18,7 @@ set(regress_0_tests
   regress0/arith/fuzz_3-eq.smt
   regress0/arith/integers/arith-int-042.cvc
   regress0/arith/integers/arith-int-042.min.cvc
+  regress0/arith/issue1799.smt2
   regress0/arith/leq.01.smt
   regress0/arith/miplib.cvc
   regress0/arith/miplib2.cvc
