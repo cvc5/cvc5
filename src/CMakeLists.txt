@@ -773,7 +773,9 @@ target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 # Add rt library
 # Note: for glibc >= 2.17 this is not necessary because rt is already included
 #       in that case RT_LIBRARIES will be empty
-target_link_libraries(cvc4 ${RT_LIBRARIES})
+if(REQUIRE_RT_LIBRARY)
+  target_link_libraries(cvc4 rt)
+endif()
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc4. For target main, we have
