@@ -738,8 +738,8 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
   else if (dIsConstant && d.getConst<Rational>().sgn() < 0)
   {
     // pull negation
-    //   div x -c ---> -( div x c )
-    //   mod x -c ---> mod x c
+    //   (div x (- c)) ---> (- (div x c))
+    //   (mod x (- c)) ---> (mod x c)
     NodeManager* nm = NodeManager::currentNM();
     Node nn = nm->mkNode(k, t[0], nm->mkConst(-t[1].getConst<Rational>()));
     Node ret = k == kind::INTS_DIVISION ? nm->mkNode(kind::UMINUS, nn) : nn;
