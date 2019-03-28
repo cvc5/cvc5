@@ -771,7 +771,7 @@ target_link_libraries(cvc4 ${GMP_LIBRARIES})
 target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 
 # Add rt library
-# Note: for glibc >= 2.17 this is not necessary because rt is already included
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
 #       in that case RT_LIBRARIES will be empty
 if(REQUIRE_RT_LIBRARY)
   target_link_libraries(cvc4 rt)
