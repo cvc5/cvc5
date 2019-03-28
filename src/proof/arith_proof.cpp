@@ -24,7 +24,6 @@
 #include "proof/theory_proof.h"
 #include "theory/arith/constraint_forward.h"
 #include "theory/arith/theory_arith.h"
-#include "theory/arith/normal_form.h"
 #include "theory/rewriter.h"
 
 #define CVC4_ARITH_VAR_TERM_PREFIX "term."
@@ -1064,25 +1063,18 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                    return NodeManager::currentNM()->fromExpr(e).negate();
                  });
 
-  
-
-  // If we have Farkas coefficients stored for this lemma, use them to write a
-  // proof. Otherwise, just `trust` the lemma.
   // Get farkas coefficients & literal order
   const auto& farkasInfo = d_recorder.getFarkasCoefficients(conflictSet);
   const Node& conflict = farkasInfo.first;
   theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
-  
-  
-  for (const TNode& c : conflict) {
-	  theory::arith::Comparison comparison = theory::arith::Comparison::parseNormalForm(c);
-  }
-
-  const size_t nAntecedents = conflict.getNumChildren();
+  // If we have Farkas coefficients stored for this lemma, use them to write a
+  // proof. Otherwise, just `trust` the lemma.
   if (d_recorder.hasFarkasCoefficients(conflictSet) && allChildrenGeq(conflict) && hasContradiction(conflict, farkasCoefficients))
   {
       Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
       Assert(conflict.getNumChildren() == farkasCoefficients->size());
+      const size_t nAntecedents = conflict.getNumChildren();
+
       // Print proof
       os << "\n;; Farkas Proof" << std::endl;
 
