@@ -1889,7 +1889,7 @@ relationTerm[CVC4::Expr& f]
     { std::vector<Type> types;
       std::vector<Expr> args;
       args.push_back(f);
-	    types.push_back(f.getType());
+      types.push_back(f.getType());
       DatatypeType t = EXPR_MANAGER->mkTupleType(types);
       const Datatype& dt = t.getDatatype();
       args.insert( args.begin(), dt[0].getConstructor() );
