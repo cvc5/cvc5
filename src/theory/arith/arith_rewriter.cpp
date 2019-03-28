@@ -734,12 +734,14 @@ RewriteResponse ArithRewriter::rewriteIntsDivModTotal(TNode t, bool pre){
       Assert(k == kind::INTS_DIVISION || k == kind::INTS_DIVISION_TOTAL);
       return RewriteResponse(REWRITE_AGAIN, n);
     }
-  }else if(dIsConstant && d.getConst<Rational>().sgn()<0 ){
+  }
+  else if (dIsConstant && d.getConst<Rational>().sgn() < 0)
+  {
     // pull negation
     //   div x -c ---> -( div x c )
     //   mod x -c ---> mod x c
-    NodeManager * nm = NodeManager::currentNM();
-    Node nn = nm->mkNode(k,t[0],nm->mkConst(-t[1].getConst<Rational>()));
+    NodeManager* nm = NodeManager::currentNM();
+    Node nn = nm->mkNode(k, t[0], nm->mkConst(-t[1].getConst<Rational>()));
     Node ret = k == kind::INTS_DIVISION ? nm->mkNode(kind::UMINUS, nn) : nn;
     return RewriteResponse(REWRITE_AGAIN, nn);
   }else if(dIsConstant && n.getKind() == kind::CONST_RATIONAL){
