@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,6 +26,7 @@
 #include "theory/decision_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
@@ -235,27 +236,63 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-private:
+  //--------------------------- equality engine
+  /**
+   * Get the representative of t in the equality engine of this class, or t
+   * itself if it is not registered as a term.
+   */
+  Node getRepresentative(Node t);
+  /** Is t registered as a term in the equality engine of this class? */
+  bool hasTerm(Node a);
+  /**
+   * Are a and b equal according to the equality engine of this class? Also
+   * returns true if a and b are identical.
+   */
+  bool areEqual(Node a, Node b);
+  /**
+   * Are a and b disequal according to the equality engine of this class? Also
+   * returns true if the representative of a and b are distinct constants.
+   */
+  bool areDisequal(Node a, Node b);
+  //--------------------------- end equality engine
+
+  //--------------------------- helper functions
+  /** get length with explanation
+   *
+   * If possible, this returns an arithmetic term that exists in the current
+   * context that is equal to the length of te, or otherwise returns the
+   * length of t. It adds to exp literals that hold in the current context that
+   * explain why that term is equal to the length of t. For example, if
+   * we have assertions:
+   *   len( x ) = 5 ^ z = x ^ x = y,
+   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
+   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
+   * adds nothing to exp.
+   */
+  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
+  /** shorthand for getLengthExp(t, exp, t) */
+  Node getLength(Node t, std::vector<Node>& exp);
+  /** get normal string
+   *
+   * This method returns the node that is equivalent to the normal form of x,
+   * and adds the corresponding explanation to nf_exp.
+   *
+   * For example, if x = y ++ z is an assertion in the current context, then
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
+   */
+  Node getNormalString(Node x, std::vector<Node>& nf_exp);
+  //-------------------------- end helper functions
+
+ private:
   // Constants
   Node d_emptyString;
-  Node d_emptyRegexp;
   Node d_true;
   Node d_false;
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** the cardinality of the alphabet */
   unsigned d_card_size;
-  // Helper functions
-  Node getRepresentative( Node t );
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  bool areCareDisequal( TNode x, TNode y );
-  // t is representative, te = t, add lt = te to explanation exp
-  Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
-  Node getLength( Node t, std::vector< Node >& exp );
-
-private:
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -607,6 +644,11 @@ private:
  protected:
   /** compute care graph */
   void computeCareGraph() override;
+  /**
+   * Are x and y shared terms that are not equal? This is used for constructing
+   * the care graph in the above function.
+   */
+  bool areCareDisequal(TNode x, TNode y);
 
   // do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
@@ -641,6 +683,7 @@ private:
    */
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
+ public:
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -652,21 +695,81 @@ private:
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the interference.
+   * The argument c is a string identifying the reason for the inference.
    * This string is used for debugging purposes.
+   *
+   * Return true if the inference is complete, in the sense that we infer
+   * inferences that are equivalent to conc. This returns false e.g. if conc
+   * (or one of its conjuncts if it is a conjunction) was not inferred due
+   * to the criteria mentioned above.
    */
-  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  // send lemma
+  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  /** send inference
+   *
+   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * contains literals that are explainable by this class, i.e. those that
+   * hold in the equality engine of this class. On the other hand, the set
+   * exp_n ("explanations new") contain nodes that are not explainable by this
+   * class. This method may call sendInfer or sendLemma. Overall, the result
+   * of this method is one of the following:
+   *
+   * [1] (No-op) Do nothing if eq is true,
+   *
+   * [2] (Infer) Indicate that eq should be added to the equality engine of this
+   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
+   * explanation of the node in exp in terms of the literals asserted to this
+   * class,
+   *
+   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
+   * be sent on the output channel of this class, or
+   *
+   * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
+   * channel of this class.
+   *
+   * Determining which case to apply depends on the form of eq and whether
+   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
+   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   *
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   *
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of an inference whenever applicable.
+   */
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** same as above, but where exp_n is empty */
   void sendInference(std::vector<Node>& exp,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /**
+   * Are we in conflict? This returns true if this theory has called its output
+   * channel's conflict method in the current SAT context.
+   */
+  bool inConflict() const { return d_conflict; }
+
+ protected:
+  /**
+   * Indicates that ant => conc should be sent on the output channel of this
+   * class. This will either trigger an immediate call to the conflict
+   * method of the output channel of this class of conc is false, or adds the
+   * above lemma to the lemma cache d_lemma_cache, which may be flushed
+   * later within the current call to TheoryStrings::check.
+   *
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   */
   void sendLemma(Node ant, Node conc, const char* c);
+  /**
+   * Indicates that conc should be added to the equality engine of this class
+   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
+   * of) literals that each are explainable, i.e. they already hold in the
+   * equality engine of this class.
+   */
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   //-------------------------------------end send inferences
@@ -680,6 +783,8 @@ private:
   /** mkExplain **/
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
+
+ protected:
   /** mkAnd **/
   Node mkAnd(std::vector<Node>& a);
   /** get concat vector */
@@ -711,38 +816,10 @@ private:
 
   // Symbolic Regular Expression
  private:
-  // regular expression memberships
-  NodeList d_regexp_memberships;
-  NodeSet d_regexp_ucached;
-  NodeSet d_regexp_ccached;
-  // stored assertions
-  NodeIntMap d_pos_memberships;
-  std::map< Node, std::vector< Node > > d_pos_memberships_data;
-  NodeIntMap d_neg_memberships;
-  std::map< Node, std::vector< Node > > d_neg_memberships_data;
-  unsigned getNumMemberships( Node n, bool isPos );
-  Node getMembership( Node n, bool isPos, unsigned i );
-  // semi normal forms for symbolic expression
-  std::map< Node, Node > d_nf_regexps;
-  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
-  // intersection
-  NodeNodeMap d_inter_cache;
-  NodeIntMap d_inter_index;
-  // processed memberships
-  NodeSet d_processed_memberships;
-  // antecedant for why regexp membership must be true
-  NodeNodeMap d_regexp_ant;
-  /** regular expression operation module */
-  RegExpOpr d_regexp_opr;
+  /** regular expression solver module */
+  RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
-
-  CVC4::String getHeadConst( Node x );
-  bool deriveRegExp( Node x, Node r, Node ant );
-  void addMembership(Node assertion);
-  Node getNormalString(Node x, std::vector<Node> &nf_exp);
-  Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
-
 
   // Finite Model Finding
  private:

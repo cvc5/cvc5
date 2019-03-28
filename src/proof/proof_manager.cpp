@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Guy Katz, Liana Hadarean, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,6 +30,7 @@
 #include "proof/theory_proof.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "smt_util/node_visitor.h"
 #include "theory/arrays/theory_arrays.h"
 #include "theory/output_channel.h"
@@ -559,6 +560,9 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
 
 void LFSCProof::toStream(std::ostream& out) const
 {
+  TimerStat::CodeTimer proofProductionTimer(
+      *ProofManager::currentPM()->getProofProductionTime());
+
   Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
@@ -730,8 +734,7 @@ void LFSCProof::toStream(std::ostream& out) const
 
   out << ";; Printing final unsat proof \n";
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
-    proof::LFSCProofPrinter::printResolutionEmptyClause(
-        ProofManager::getBitVectorProof()->getSatProof(), out, paren);
+    ProofManager::getBitVectorProof()->printEmptyClauseProof(out, paren);
   } else {
     // print actual resolution proof
     proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);
@@ -1069,4 +1072,16 @@ void ProofManager::printTrustedTerm(Node term,
   tpe->printTheoryTerm(term.toExpr(), os, globalLetMap);
   if (tpe->printsAsBool(term)) os << ")";
 }
+
+ProofManager::ProofManagerStatistics::ProofManagerStatistics()
+    : d_proofProductionTime("proof::ProofManager::proofProductionTime")
+{
+  smtStatisticsRegistry()->registerStat(&d_proofProductionTime);
+}
+
+ProofManager::ProofManagerStatistics::~ProofManagerStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_proofProductionTime);
+}
+
 } /* CVC4  namespace */
