@@ -1481,6 +1481,7 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
               }
             }
           }
+          //should never get here
           success = false;
         }
       }
@@ -1496,10 +1497,14 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
       if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set))
       {
         split(eqc.eqNode(emp_set));
+        success = false;
       }
-      //normal form is this equivalence class
-      d_nf[eqc].push_back( eqc );
-      Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
+      else
+      {
+        //normal form is this equivalence class
+        d_nf[eqc].push_back( eqc );
+        Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
+      }
     }
     if( success ){
       //send to parents
