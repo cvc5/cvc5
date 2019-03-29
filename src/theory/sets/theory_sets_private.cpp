@@ -1501,9 +1501,10 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
       }
       else
       {
-        //normal form is this equivalence class
-        d_nf[eqc].push_back( eqc );
-        Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
+        // normal form is this equivalence class
+        d_nf[eqc].push_back(eqc);
+        Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }"
+                         << std::endl;
       }
     }
     if( success ){
