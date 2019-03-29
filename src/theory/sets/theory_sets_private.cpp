@@ -1481,7 +1481,6 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
               }
             }
           }
-          //should never get here
           success = false;
         }
       }
@@ -1491,7 +1490,6 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
         Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
       }else{
         Trace("sets-nf") << "failed to build N " << eqc << std::endl;
-        Assert( false );
       }
     }else{
       // must ensure disequal from empty
