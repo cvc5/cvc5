@@ -1380,8 +1380,8 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
 
     Assert( d_nf.find( eqc )==d_nf.end() );
     bool success = true;
+    Node emp_set = getEmptySet( tn );
     if( !base.isNull() ){
-      Node emp_set = getEmptySet( tn );
       for( unsigned j=0; j<comps.size(); j++ ){
         //compare if equal
         std::vector< Node > c;
@@ -1494,6 +1494,10 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
         Assert( false );
       }
     }else{
+      // must ensure disequal from empty 
+      if( !eqc.isConst() && !ee_areDisequal( eqc, emp_set ) ){
+        split( eqc.eqNode(emp_set));
+      }
       //normal form is this equivalence class
       d_nf[eqc].push_back( eqc );
       Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
