@@ -1541,8 +1541,6 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
           }
         }
       }
-    }else{
-      Assert( hasProcessed() );
     }
   }
 }
