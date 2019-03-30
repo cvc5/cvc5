@@ -1084,6 +1084,40 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
     {
       return false;
     }
+
+    if (Configuration::isAssertionBuild() && node.isVar()
+        && node.getType().isFloatingPoint())
+    {
+      // Check that the equality engine has asssigned values to all the
+      // components of `node` except `(sign node)` (the sign component is
+      // assignable, meaning that the model builder can pick an arbitrary value
+      // for it if it hasn't been assigned in the equality engine) and
+      // `(significand node)` if `(inf node)` and `(nan node)` are both false.
+      NodeManager* nm = NodeManager::currentNM();
+      Node zero = nm->mkConst(BitVector(1U, 0U));
+      Node compNaN = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, node);
+      Node compInf = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_INF, node);
+      Node compZero = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_ZERO, node);
+      Node compExponent =
+          nm->mkNode(kind::FLOATINGPOINT_COMPONENT_EXPONENT, node);
+      Node compSignificand =
+          nm->mkNode(kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND, node);
+
+      eq::EqualityEngine* ee = m->getEqualityEngine();
+      Assert(ee->hasTerm(compNaN) && ee->getRepresentative(compNaN).isConst());
+      Assert(ee->hasTerm(compInf) && ee->getRepresentative(compInf).isConst());
+      Assert(ee->hasTerm(compZero)
+             && ee->getRepresentative(compZero).isConst());
+      Assert(ee->hasTerm(compExponent)
+             && ee->getRepresentative(compExponent).isConst());
+
+      Assert(ee->hasTerm(compSignificand));
+      if (ee->getRepresentative(compNaN) != zero
+          && ee->getRepresentative(compInf) != zero)
+      {
+        Assert(ee->getRepresentative(compSignificand).isConst());
+      }
+    }
   }
 
   return true;
