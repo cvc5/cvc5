@@ -1,4 +1,4 @@
-; REQUIRE: symfpu
+; REQUIRES: symfpu
 ; EXPECT: sat
 
 ; NOTE: the (set-logic ALL) is on purpose because the problem was not triggered
