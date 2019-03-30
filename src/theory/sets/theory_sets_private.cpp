@@ -700,10 +700,11 @@ void TheorySetsPrivate::fullEffortCheck(){
           checkUpwardsClosure( lemmas );
           flushLemmas( lemmas );
           if( !hasProcessed() ){
-            checkDisequalities( lemmas );
-            flushLemmas( lemmas );
-            if( !hasProcessed() && d_card_enabled ){
-              //for cardinality
+            checkDisequalities(lemmas);
+            flushLemmas(lemmas);
+            if (!hasProcessed() && d_card_enabled)
+            {
+              // for cardinality
               checkCardBuildGraph( lemmas );
               flushLemmas( lemmas );
               if( !hasProcessed() ){
@@ -713,16 +714,18 @@ void TheorySetsPrivate::fullEffortCheck(){
                   checkCardCycles( lemmas );
                   flushLemmas( lemmas );
                   if( !hasProcessed() ){
-                    std::vector< Node > intro_sets;
+                    std::vector<Node> intro_sets;
                     checkNormalForms( lemmas, intro_sets );
                     flushLemmas( lemmas );
-                    if( !hasProcessed() && !intro_sets.empty() ){
-                      Assert( intro_sets.size()==1 );
-                      Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
+                    if (!hasProcessed() && !intro_sets.empty())
+                    {
+                      Assert(intro_sets.size() == 1);
+                      Trace("sets-intro")
+                          << "Introduce term : " << intro_sets[0] << std::endl;
                       Trace("sets-intro") << "  Actual Intro : ";
-                      debugPrintSet( intro_sets[0], "sets-nf" );
+                      debugPrintSet(intro_sets[0], "sets-nf");
                       Trace("sets-nf") << std::endl;
-                      Node k = getProxy( intro_sets[0] );
+                      Node k = getProxy(intro_sets[0]);
                       d_sentLemma = true;
                     }
                   }
@@ -1489,7 +1492,9 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
       }
     }else{
       // must ensure disequal from empty
-      if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set) && ( d_pol_mems[0].find( eqc )==d_pol_mems[0].end() || d_pol_mems[0][eqc].empty() ))
+      if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set)
+          && (d_pol_mems[0].find(eqc) == d_pol_mems[0].end()
+              || d_pol_mems[0][eqc].empty()))
       {
         Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;
         split(eqc.eqNode(emp_set));
