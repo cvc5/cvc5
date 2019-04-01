@@ -1495,6 +1495,7 @@ set(regress_1_tests
   regress1/sets/fuzz31811.smt2
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
+  regress1/sets/issue2904.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1749,7 +1750,6 @@ set(regress_2_tests
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
-  regress2/strings/extf_d_perf.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
@@ -1798,6 +1798,7 @@ set(regress_3_tests
   regress3/pp-regfile.smt
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
   regress3/sixfuncs.sy
+  regress3/strings/extf_d_perf.smt2
 )
 
 #-----------------------------------------------------------------------------#
