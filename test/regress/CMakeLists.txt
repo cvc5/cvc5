@@ -1494,6 +1494,7 @@ set(regress_1_tests
   regress1/sets/fuzz31811.smt2
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
+  regress1/sets/issue2904.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1605,8 +1606,10 @@ set(regress_1_tests
   regress1/sygus/crcy-si-rcons.sy
   regress1/sygus/crcy-si.sy
   regress1/sygus/cube-nia.sy
+  regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/extract.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
   regress1/sygus/hd-01-d1-prog.sy
@@ -1654,6 +1657,7 @@ set(regress_1_tests
   regress1/sygus/sygus-uf-ex.sy
   regress1/sygus/t8.sy
   regress1/sygus/temp_input_to_synth_ic-error-121418.sy
+  regress1/sygus/tester.sy
   regress1/sygus/tl-type-0.sy
   regress1/sygus/tl-type-4x.sy
   regress1/sygus/tl-type.sy

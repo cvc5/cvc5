@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -3594,7 +3594,7 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
   return checkSatisfiability(
-      assumption.isNull() ? d_exprManager->mkConst<bool>(false) : assumption,
+      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
       inUnsatCore,
       true);
 }
@@ -3609,7 +3609,7 @@ Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool isQuery)
 {
   return checkSatisfiability(
-      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
       inUnsatCore,
       isQuery);
 }
