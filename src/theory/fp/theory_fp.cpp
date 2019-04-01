@@ -1091,10 +1091,8 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
       // Check that the equality engine has asssigned values to all the
       // components of `node` except `(sign node)` (the sign component is
       // assignable, meaning that the model builder can pick an arbitrary value
-      // for it if it hasn't been assigned in the equality engine) and
-      // `(significand node)` if `(inf node)` and `(nan node)` are both false.
+      // for it if it hasn't been assigned in the equality engine).
       NodeManager* nm = NodeManager::currentNM();
-      Node zero = nm->mkConst(BitVector(1U, 0U));
       Node compNaN = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_NAN, node);
       Node compInf = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_INF, node);
       Node compZero = nm->mkNode(kind::FLOATINGPOINT_COMPONENT_ZERO, node);
@@ -1110,13 +1108,16 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
              && ee->getRepresentative(compZero).isConst());
       Assert(ee->hasTerm(compExponent)
              && ee->getRepresentative(compExponent).isConst());
-
       Assert(ee->hasTerm(compSignificand));
-      if (ee->getRepresentative(compNaN) != zero
-          && ee->getRepresentative(compInf) != zero)
-      {
-        Assert(ee->getRepresentative(compSignificand).isConst());
-      }
+      Assert(ee->getRepresentative(compSignificand).isConst());
+
+      // At most one of the flags (NaN, inf, zero) can be set
+      Node one = nm->mkConst(BitVector(1U, 1U));
+      size_t numFlags = 0;
+      numFlags += ee->getRepresentative(compNaN) == one ? 1 : 0;
+      numFlags += ee->getRepresentative(compInf) == one ? 1 : 0;
+      numFlags += ee->getRepresentative(compZero) == one ? 1 : 0;
+      Assert(numFlags <= 1);
     }
   }
 

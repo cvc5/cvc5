@@ -47,12 +47,12 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       return !n.getType().isFunction();
     }
   }
-  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN
-           || n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGNIFICAND)
+  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN)
   {
-    // Extracting the components of a floating-point number acts similar to a
-    // selector on a datatype. E.g. if `(sign x)` wasn't assigned a value, we
-    // can pick an arbitrary one.
+    // Extracting the sign of a floating-point number acts similar to a
+    // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
+    // can pick an arbitrary one. Note that the other components of a
+    // floating-point number should always be assigned a value.
     return true;
   }
   else
