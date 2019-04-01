@@ -1085,7 +1085,7 @@ bool TheoryFp::collectModelInfo(TheoryModel *m)
       return false;
     }
 
-    if (Configuration::isAssertionBuild() && node.isVar()
+    if (Configuration::isAssertionBuild() && isLeaf(node) && !node.isConst()
         && node.getType().isFloatingPoint())
     {
       // Check that the equality engine has asssigned values to all the
