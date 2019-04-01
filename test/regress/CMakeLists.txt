@@ -451,6 +451,7 @@ set(regress_0_tests
   regress0/fp/abs-unsound2.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/simple.smt2
+  regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smt
   regress0/fuzz_3.smt
   regress0/get-value-incremental.smt2
