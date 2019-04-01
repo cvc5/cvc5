@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Guy Katz, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -24,9 +24,9 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include "expr/node.h"
-#include "context/cdhashset.h"
 #include "context/cdhashmap.h"
+#include "context/cdhashset.h"
+#include "expr/node.h"
 #include "proof/clause_id.h"
 #include "proof/proof.h"
 #include "proof/proof_utils.h"
@@ -34,7 +34,7 @@
 #include "theory/logic_info.h"
 #include "theory/substitutions.h"
 #include "util/proof.h"
-
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 
@@ -298,9 +298,26 @@ public:
                          std::ostream& out,
                          std::ostringstream& paren);
 
-private:
+  TimerStat* getProofProductionTime() { return &d_stats.d_proofProductionTime; }
+
+ private:
   void constructSatProof();
   std::set<Node> satClauseToNodeSet(prop::SatClause* clause);
+
+  struct ProofManagerStatistics
+  {
+    ProofManagerStatistics();
+    ~ProofManagerStatistics();
+
+    /**
+     * Time spent producing proofs (i.e. generating the proof from the logging
+     * information)
+     */
+    TimerStat d_proofProductionTime;
+  }; /* struct ProofManagerStatistics */
+
+  ProofManagerStatistics d_stats;
+
 };/* class ProofManager */
 
 class LFSCProof : public Proof

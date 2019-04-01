@@ -88,6 +88,8 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/sygus_abduct.cpp
+  preprocessing/passes/sygus_abduct.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/symmetry_breaker.cpp
@@ -237,7 +239,6 @@ libcvc4_add_sources(
   smt/model_core_builder.h
   smt/smt_engine.cpp
   smt/smt_engine.h
-  smt/smt_engine_check_proof.cpp
   smt/smt_engine_scope.cpp
   smt/smt_engine_scope.h
   smt/smt_statistics_registry.cpp
@@ -628,6 +629,8 @@ libcvc4_add_sources(
   theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
+  theory/strings/regexp_solver.cpp
+  theory/strings/regexp_solver.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/theory_strings.cpp

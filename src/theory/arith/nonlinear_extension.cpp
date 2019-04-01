@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2621,8 +2621,10 @@ void NonlinearExtension::mkPi(){
     d_pi_neg = Rewriter::rewrite(NodeManager::currentNM()->mkNode(
         MULT, d_pi, NodeManager::currentNM()->mkConst(Rational(-1))));
     //initialize bounds
-    d_pi_bound[0] = NodeManager::currentNM()->mkConst( Rational(333)/Rational(106) );
-    d_pi_bound[1] = NodeManager::currentNM()->mkConst( Rational(355)/Rational(113) );
+    d_pi_bound[0] =
+        NodeManager::currentNM()->mkConst(Rational(103993) / Rational(33102));
+    d_pi_bound[1] =
+        NodeManager::currentNM()->mkConst(Rational(104348) / Rational(33215));
   }
 }
 
@@ -4358,31 +4360,21 @@ bool NonlinearExtension::checkTfTangentPlanesFun(Node tf,
   {
     // compute tangent plane
     // Figure 3: T( x )
-    Node tplane;
-    Node poly_approx_deriv = getDerivative(poly_approx, d_taylor_real_fv);
-    Assert(!poly_approx_deriv.isNull());
-    poly_approx_deriv = Rewriter::rewrite(poly_approx_deriv);
-    Trace("nl-ext-tftp-debug2") << "...derivative of " << poly_approx << " is "
-                                << poly_approx_deriv << std::endl;
-    std::vector<Node> taylor_subs;
-    taylor_subs.push_back(c);
-    Assert(taylor_vars.size() == taylor_subs.size());
-    Node poly_approx_c_deriv = poly_approx_deriv.substitute(taylor_vars.begin(),
-                                                            taylor_vars.end(),
-                                                            taylor_subs.begin(),
-                                                            taylor_subs.end());
-    tplane = nm->mkNode(
-        PLUS,
-        poly_approx_c,
-        nm->mkNode(MULT, poly_approx_c_deriv, nm->mkNode(MINUS, tf[0], c)));
+    // We use zero slope tangent planes, since the concavity of the Taylor
+    // approximation cannot be easily established.
+    Node tplane = poly_approx_c;
 
     Node lem = nm->mkNode(concavity == 1 ? GEQ : LEQ, tf, tplane);
     std::vector<Node> antec;
+    int mdir = regionToMonotonicityDir(k, region);
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!bounds[i].isNull())
+      // Tangent plane is valid in the interval [c,u) if the slope of the
+      // function matches its concavity, and is valid in (l, c] otherwise.
+      Node use_bound = (mdir == concavity) == (i == 0) ? c : bounds[i];
+      if (!use_bound.isNull())
       {
-        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], bounds[i]);
+        Node ant = nm->mkNode(i == 0 ? GEQ : LEQ, tf[0], use_bound);
         antec.push_back(ant);
       }
     }

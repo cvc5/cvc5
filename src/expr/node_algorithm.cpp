@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -159,6 +159,14 @@ bool hasBoundVar(TNode n)
 
 bool hasFreeVar(TNode n)
 {
+  std::unordered_set<Node, NodeHashFunction> fvs;
+  return getFreeVariables(n, fvs, false);
+}
+
+bool getFreeVariables(TNode n,
+                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      bool computeFv)
+{
   std::unordered_set<TNode, TNodeHashFunction> bound_var;
   std::unordered_map<TNode, bool, TNodeHashFunction> visited;
   std::vector<TNode> visit;
@@ -184,7 +192,14 @@ bool hasFreeVar(TNode n)
       {
         if (bound_var.find(cur) == bound_var.end())
         {
-          return true;
+          if (computeFv)
+          {
+            fvs.insert(cur);
+          }
+          else
+          {
+            return true;
+          }
         }
       }
       else if (isQuant)
@@ -218,7 +233,8 @@ bool hasFreeVar(TNode n)
       visited[cur] = true;
     }
   } while (!visit.empty());
-  return false;
+
+  return !fvs.empty();
 }
 
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
@@ -255,6 +271,118 @@ void getSymbols(TNode n,
       }
     }
   } while (!visit.empty());
+}
+
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest)
+{
+  if (n == src)
+  {
+    return dest;
+  }
+  if (src == dest)
+  {
+    return n;
+  }
+  std::vector<Node> srcs;
+  std::vector<Node> dests;
+  srcs.push_back(src);
+  dests.push_back(dest);
+  return substituteCaptureAvoiding(n, srcs, dests);
+}
+
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest)
+{
+  std::unordered_map<TNode, Node, TNodeHashFunction> visited;
+  std::unordered_map<TNode, Node, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode curr;
+  visit.push_back(n);
+  Assert(src.size() == dest.size(),
+         "Substitution domain and range must be equal size");
+  do
+  {
+    curr = visit.back();
+    visit.pop_back();
+    it = visited.find(curr);
+
+    if (it == visited.end())
+    {
+      auto itt = std::find(src.rbegin(), src.rend(), curr);
+      if (itt != src.rend())
+      {
+        Assert(
+            (std::distance(src.begin(), itt.base()) - 1) >= 0
+            && static_cast<unsigned>(std::distance(src.begin(), itt.base()) - 1)
+                   < dest.size());
+        Node n = dest[std::distance(src.begin(), itt.base()) - 1];
+        visited[curr] = n;
+        continue;
+      }
+      if (curr.getNumChildren() == 0)
+      {
+        visited[curr] = curr;
+        continue;
+      }
+
+      visited[curr] = Node::null();
+      // if binder, rename variables to avoid capture
+      if (curr.isClosure())
+      {
+        NodeManager* nm = NodeManager::currentNM();
+        // have new vars -> renames subs in the end of current sub
+        for (const Node& v : curr[0])
+        {
+          src.push_back(v);
+          dest.push_back(nm->mkBoundVar(v.getType()));
+        }
+      }
+      // save for post-visit
+      visit.push_back(curr);
+      // visit children
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        visit.push_back(curr.getOperator());
+      }
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        visit.push_back(curr[i]);
+      }
+    }
+    else if (it->second.isNull())
+    {
+      // build node
+      NodeBuilder<> nb(curr.getKind());
+      if (curr.getMetaKind() == kind::metakind::PARAMETERIZED)
+      {
+        // push the operator
+        Assert(visited.find(curr.getOperator()) != visited.end());
+        nb << visited[curr.getOperator()];
+      }
+      // collect substituted children
+      for (unsigned i = 0, size = curr.getNumChildren(); i < size; ++i)
+      {
+        Assert(visited.find(curr[i]) != visited.end());
+        nb << visited[curr[i]];
+      }
+      Node n = nb;
+      visited[curr] = n;
+
+      // remove renaming
+      if (curr.isClosure())
+      {
+        // remove beginning of sub which correspond to renaming of variables in
+        // this binder
+        unsigned nchildren = curr[0].getNumChildren();
+        src.resize(src.size() - nchildren);
+        dest.resize(dest.size() - nchildren);
+      }
+    }
+  } while (!visit.empty());
+  Assert(visited.find(n) != visited.end());
+  return visited[n];
 }
 
 }  // namespace expr

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -270,6 +270,11 @@ bool HigherOrderTrigger::sendInstantiation(InstMatch& m)
         // Assert( f==value );
         for (unsigned k = 0, size = args.size(); k < size; k++)
         {
+          // must now subsitute back, to handle cases like
+          // (@ x y) matching (@ t (@ t s))
+          // where the above substitution would produce (@ x (@ x s)),
+          // but the argument should be (@ t s).
+          args[k] = args[k].substitute(var, value);
           Node val = args[k];
           std::map<unsigned, Node>::iterator itf = fixed_vals.find(k);
           if (itf == fixed_vals.end())

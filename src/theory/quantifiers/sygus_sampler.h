@@ -2,9 +2,9 @@
 /*! \file sygus_sampler.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, FabianWolff, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -165,6 +165,12 @@ class SygusSampler : public LazyTrieEvaluator
    */
   bool containsFreeVariables(Node a, Node b, bool strict = false);
   //--------------------------end queries about terms
+  /** check equivalent
+   *
+   * Check whether bv and bvr are equivalent on all sample points, print
+   * an error if not. Used with --sygus-rr-verify.
+   */
+  void checkEquivalent(Node bv, Node bvr);
 
  protected:
   /** sygus term database of d_qe */

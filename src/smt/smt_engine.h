@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -208,6 +208,9 @@ class CVC4_PUBLIC SmtEngine {
    * Keep a copy of the original option settings (for reset()).
    */
   Options d_originalOptions;
+
+  /** whether this is an internal subsolver */
+  bool d_isInternalSubsolver;
 
   /**
    * Number of internal pops that have been deferred.
@@ -501,6 +504,15 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
+
+  /** Set is internal subsolver.
+   *
+   * This function is called on SmtEngine objects that are created internally.
+   * It is used to mark that this SmtEngine should not perform preprocessing
+   * passes that rephrase the input, such as --sygus-rr-synth-input or
+   * --sygus-abduct.
+   */
+  void setIsInternalSubsolver();
 
   /** sets the input name */
   void setFilename(std::string filename);

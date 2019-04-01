@@ -2,9 +2,9 @@
 /*! \file cvc4cpp.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2392,12 +2392,13 @@ Term Solver::mkFloatingPoint(uint32_t exp, uint32_t sig, Term val) const
 /* Create variables                                                           */
 /* -------------------------------------------------------------------------- */
 
-Term Solver::mkVar(const std::string& symbol, Sort sort) const
+Term Solver::mkVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(symbol, *sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkVar(*sort.d_type)
+                              : d_exprMgr->mkVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }
@@ -2407,42 +2408,13 @@ Term Solver::mkVar(const std::string& symbol, Sort sort) const
   }
 }
 
-Term Solver::mkVar(Sort sort) const
+Term Solver::mkBoundVar(Sort sort, const std::string& symbol) const
 {
   try
   {
     CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkVar(*sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkBoundVar(const std::string& symbol, Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(symbol, *sort.d_type);
-    (void)res.d_expr->getType(true); /* kick off type checking */
-    return res;
-  }
-  catch (const CVC4::TypeCheckingException& e)
-  {
-    throw CVC4ApiException(e.getMessage());
-  }
-}
-
-Term Solver::mkBoundVar(Sort sort) const
-{
-  try
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(!sort.isNull(), sort) << "non-null sort";
-    Term res = d_exprMgr->mkBoundVar(*sort.d_type);
+    Term res = symbol.empty() ? d_exprMgr->mkBoundVar(*sort.d_type)
+                              : d_exprMgr->mkBoundVar(symbol, *sort.d_type);
     (void)res.d_expr->getType(true); /* kick off type checking */
     return res;
   }

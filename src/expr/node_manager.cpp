@@ -2,9 +2,9 @@
 /*! \file node_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -363,7 +363,10 @@ void NodeManager::reclaimZombies() {
 std::vector<NodeValue*> NodeManager::TopologicalSort(
     const std::vector<NodeValue*>& roots) {
   std::vector<NodeValue*> order;
+  // The stack of nodes to visit. The Boolean value is false when visiting the
+  // node in preorder and true when visiting it in postorder.
   std::vector<std::pair<bool, NodeValue*> > stack;
+  // Nodes that have been visited in both pre- and postorder
   NodeValueIDSet visited;
   const NodeValueIDSet root_set(roots.begin(), roots.end());
 
@@ -382,16 +385,19 @@ std::vector<NodeValue*> NodeManager::TopologicalSort(
           order.push_back(current);
         }
         stack.pop_back();
-      } else {
+      }
+      else if (visited.find(current) == visited.end())
+      {
         stack.back().first = true;
-        Assert(visited.count(current) == 0);
         visited.insert(current);
         for (unsigned i = 0; i < current->getNumChildren(); ++i) {
           expr::NodeValue* child = current->getChild(i);
-          if (visited.find(child) == visited.end()) {
-            stack.push_back(std::make_pair(false, child));
-          }
+          stack.push_back(std::make_pair(false, child));
         }
+      }
+      else
+      {
+        stack.pop_back();
       }
     }
   }
