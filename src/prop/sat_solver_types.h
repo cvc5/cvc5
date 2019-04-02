@@ -27,6 +27,7 @@
 #include <sstream>
 #include <string>
 #include <vector>
+#include <unordered_set>
 
 namespace CVC4 {
 namespace prop {
@@ -166,6 +167,17 @@ struct SatLiteralHashFunction {
  * A SAT clause is a vector of literals.
  */
 typedef std::vector<SatLiteral> SatClause;
+
+struct SatClauseSetHashFunction {
+  inline size_t operator() (const std::unordered_set<SatLiteral, SatLiteralHashFunction>& clause) const {
+    size_t acc = 0;
+    for (const auto& l : clause)
+    {
+        acc ^= l.hash();
+    }
+    return acc;
+  }
+};
 
 /**
  * Each object in the SAT solver, such as as variables and clauses, can be assigned a life span,
