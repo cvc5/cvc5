@@ -520,7 +520,12 @@ private:
    * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
    * else.
    */
-  void getExplanation(EqualityEdgeId t1Id, EqualityNodeId t2Id, std::vector<TNode>& equalities, EqProof* eqp) const;
+  void getExplanation(
+      EqualityEdgeId t1Id,
+      EqualityNodeId t2Id,
+      std::vector<TNode>& equalities,
+      std::map<EqualityEdgeId, std::vector<EqualityEdgeId>>& cache,
+      EqProof* eqp) const;
 
   /**
    * Print the equality graph.
