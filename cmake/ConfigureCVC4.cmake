@@ -2,6 +2,7 @@ include(CheckCXXSourceCompiles)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckSymbolExists)
+include(CheckLibraryExists)
 
 # Check whether "long" and "int64_t" are distinct types w.r.t. overloading.
 # Even if they have the same size, they can be distinct, and some platforms
@@ -53,28 +54,11 @@ if(CVC4_WINDOWS_BUILD)
     add_c_cxx_flag(-pthread)
   endif()
 else()
-  set(CHECK_RT_SRC
-   "
-    #include <time.h>
-    int main(void)
-    {
-      struct timespec s;
-      (void) clock_gettime(CLOCK_MONOTONIC, &s);
-      return 0;
-    }
-    "
-  )
-  check_c_source_compiles("${CHECK_RT_SRC}" HAVE_CLOCK_GETTIME)
-
+  check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
   if(NOT HAVE_CLOCK_GETTIME)
-    set(CMAKE_REQUIRED_LIBRARIES rt)
-    # remove variable from cache to force it to re-check
     unset(HAVE_CLOCK_GETTIME CACHE)
-    check_c_source_compiles("${CHECK_RT_SRC}" HAVE_CLOCK_GETTIME)
-    unset(CMAKE_REQUIRED_LIBRARIES)
-    if(HAVE_CLOCK_GETTIME)
-      set(REQUIRE_RT_LIBRARY TRUE)
-    endif()
+    check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+    find_library(RT_LIBRARIES NAMES rt)
   endif()
 endif()
 check_symbol_exists(ffs "strings.h" HAVE_FFS)
