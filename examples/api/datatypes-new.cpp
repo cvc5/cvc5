@@ -15,9 +15,10 @@
  **/
 
 #include <iostream>
-//#include <cvc4/cvc4.h> // To follow the wiki
 
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
+
 using namespace CVC4::api;
 
 void test(Solver& slv, Sort& consListSort)

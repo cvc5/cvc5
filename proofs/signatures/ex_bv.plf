@@ -24,9 +24,9 @@
 (decl_bblast _ _ _ (bv_bbl_bvand 4 _ _ _ _ _ bt1 bt3) (\ bt5
 
 ; bitblasting formulas
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bt1 bt2) (\ bf1
+(th_let_pf _ (bv_bbl_= _ _ _ _ _ _ bt1 bt2) (\ bf1
 (th_let_pf _ (bv_bbl_bvult _ _ _ _ _ _ bt1 bt5) (\ bf2
-(th_let_pf _ (bv_bbl_eq _ _ _ _ _ _ bt2 bt4) (\ bf3
+(th_let_pf _ (bv_bbl_= _ _ _ _ _ _ bt2 bt4) (\ bf3
 
 ; CNFication
 ; a.4 V ~b.4
@@ -44,7 +44,7 @@
   trust
 ))) (\ C3
 
-; b.4 
+; b.4
 (satlem _ _
 (asf _ _ _ a2 (\ l2
 (clausify_false
@@ -52,7 +52,7 @@
 ))) (\ C6
 
 
-(satlem_simplify _ _ _ 
+(satlem_simplify _ _ _
 (R _ _ (R _ _ C6 C2 v2) C3 v1) (\ x x))
 
 )))))))))))))))))))))))))))))))))))))))))))))

@@ -10,6 +10,6 @@ zt : IntPair;
 ASSERT zt = (2,1);
 ASSERT (x = y);
 ASSERT z IS_IN x;
-ASSERT NOT (zt IS_IN (TRANSPOSE y));
+ASSERT NOT (zt IS_IN TRANSPOSE(y));
 
 CHECKSAT;
