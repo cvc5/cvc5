@@ -95,15 +95,15 @@ enum BvProofFormat
 enum BvOptimizeSatProof
 {
   /**
-   * Write extended resolution proofs.
+   * Do not optimize the SAT proof.
    */
   BITVECTOR_OPTIMIZE_SAT_PROOF_NONE = 0,
   /**
-   * Write DRAT proofs.
+   * Optimize the SAT proof, but do not shrink the formula
    */
   BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF = 1,
   /**
-   * Write LRAT proofs.
+   * Optimize the SAT proof and shrink the formula
    */
   BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA = 2,
 };
