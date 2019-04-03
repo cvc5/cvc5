@@ -161,9 +161,10 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      if(!vals[j].isConst())
+      if (!vals[j].isConst())
       {
-        // the value is unknown, thus we cannot use it to increment the strings position
+        // the value is unknown, thus we cannot use it to increment the strings
+        // position
         return false;
       }
       String mystr = vals[j].getConst<String>();
@@ -203,7 +204,7 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      if(!vals[j].isConst())
+      if (!vals[j].isConst())
       {
         // value is unknown, thus it does not solve
         return false;
@@ -957,9 +958,9 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
-      // If the result is not constant, then it is worthless. It does not 
+      // If the result is not constant, then it is worthless. It does not
       // impact whether the term is excluded.
-      if(results[i].isConst())
+      if (results[i].isConst())
       {
         Assert(d_examples_out[i].isConst());
         Trace("sygus-sui-cterm-debug")
