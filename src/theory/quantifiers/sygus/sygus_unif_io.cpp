@@ -949,23 +949,27 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
-      Assert(results[i].isConst());
-      Assert(d_examples_out[i].isConst());
-      Trace("sygus-sui-cterm-debug")
-          << "  " << results[i] << " <> " << d_examples_out[i];
-      Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
-      Node contr = Rewriter::rewrite(cont);
-      if (contr == d_false)
+      // If the result is not constant, then it is worthless. It does not 
+      // impact whether the term is excluded.
+      if(results[i].isConst())
       {
-        cmp_indices.push_back(i);
-        Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
-      }
-      else
-      {
-        Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
-        if (isConditional)
+        Assert(d_examples_out[i].isConst());
+        Trace("sygus-sui-cterm-debug")
+            << "  " << results[i] << " <> " << d_examples_out[i];
+        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node contr = Rewriter::rewrite(cont);
+        if (contr == d_false)
         {
-          return false;
+          cmp_indices.push_back(i);
+          Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
+        }
+        else
+        {
+          Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
+          if (isConditional)
+          {
+            return false;
+          }
         }
       }
     }
