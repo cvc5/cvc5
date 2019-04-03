@@ -35,6 +35,7 @@ inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
 
+//Proofs are supported only for contraints of the form __ <= __ .
 inline static bool allChildrenGeq(const Node& conflict) {
 	bool result = true;
 	size_t nChildren = conflict.getNumChildren();
@@ -51,18 +52,23 @@ inline static bool allChildrenGeq(const Node& conflict) {
 	return result;
 }
 
+//Verify that that the farkas coefficients indeed create a contradiction
 inline static bool hasContradiction(const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients) {
   NodeManager* nm = NodeManager::currentNM();
-  const size_t n = conflict.getNumChildren();
-  NodeBuilder<> leftBuilder(kind::PLUS), rightBuilder(kind::PLUS);
+  NodeBuilder<> leftBuilder(kind::PLUS);
+  NodeBuilder<> rightBuilder(kind::PLUS);
   Node currentLeft;
   Node currentRight;
   bool hasStrictIneq = false;
-  Node falseNode = nm->mkConst(false);
-  for (size_t i = 0; i != n; ++i)
+  //add all inequalities after they are multiplied with their Farkas coefficients
+  const size_t n = conflict.getNumChildren();
+  for (size_t i = 0; i != n; i++)
   {
     const Node& lem = conflict[i];
     Rational c = (*farkasCoefficients)[i].abs();
+    // if lem has the form ~(x <= y), this is equivalent to x > y.
+    // Hence the Farkas coefficient is multiplied by -1, to keep the inequality in the right direction.
+    // Also, the resulting inequality will be strict.
     if (lem.getKind() == kind::NOT) {
 	hasStrictIneq = true;
 	currentLeft = lem[0][0];
@@ -74,24 +80,14 @@ inline static bool hasContradiction(const Node& conflict, theory::arith::Rationa
 	currentLeft = lem[0];
 	currentRight = lem[1];
     }
-    Node cNode = nm->mkConst(c);
-    NodeBuilder<> currentLeftBuilder(kind::MULT), currentRightBuilder(kind::MULT);
-    currentLeftBuilder << cNode << currentLeft;
-    currentRightBuilder << cNode << currentRight;
-    currentLeft = currentLeftBuilder;
-    currentRight = currentRightBuilder;
-    leftBuilder << currentLeft;
-    rightBuilder << currentRight;
+    leftBuilder << nm->mkNode(kind::MULT, nm->mkConst(c), currentLeft);
+    rightBuilder << nm->mkNode(kind::MULT, nm->mkConst(c), currentRight);
   }
   Node leftNode = leftBuilder;
   Node rightNode = rightBuilder;
-  leftNode = Rewriter::rewrite(leftNode);
-  rightNode = Rewriter::rewrite(rightNode);
-  NodeBuilder<> simplifiedBuilder(hasStrictIneq ? kind::GT : kind::GEQ);
-  simplifiedBuilder << leftNode << rightNode;
-  Node simplifiedNode = simplifiedBuilder;
-  simplifiedNode = Rewriter::rewrite(simplifiedNode);
-  return simplifiedNode == falseNode;
+  //The resulting constraint should yield a contradiction.
+  Node node = nm->mkNode(hasStrictIneq ? kind::GT : kind::GEQ, leftNode, rightNode);
+  return Rewriter::rewrite(node) == nm->mkConst(false);
 }
 
 // congrence matching term helper
