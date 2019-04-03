@@ -1,3 +1,11 @@
 id     = "FP"
 name   = "Fp"
 header = "options/fp_options.h"
+
+[[option]]
+  name       = "symfpuAllSizes"
+  category   = "regular"
+  long       = "symfpu-all-sizes"
+  type       = "bool"
+  default    = "false"
+  help       = "Allow SymFPU solver for all sizes, rather than only 8/24 or 11/53 (experimental)"

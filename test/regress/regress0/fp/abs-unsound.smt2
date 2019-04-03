@@ -1,4 +1,5 @@
 ; REQUIRES: symfpu
+; COMMAND-LINE: --symfpu-all-sizes
 ; EXPECT: sat
 (set-logic QF_FP)
 (set-info :status sat)
