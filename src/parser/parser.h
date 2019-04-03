@@ -137,9 +137,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The API Solver object. */
- api::Solver* d_solver;
-
  /** The resource manager associated with this expr manager */
  ResourceManager* d_resourceManager;
 
@@ -244,6 +241,9 @@ private:
  Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
  /**
   * Create a parser state.
   *

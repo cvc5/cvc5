@@ -47,8 +47,7 @@ Parser::Parser(api::Solver* solver,
                Input* input,
                bool strictMode,
                bool parseOnly)
-    : d_solver(solver),
-      d_resourceManager(d_solver->getExprManager()->getResourceManager()),
+    : d_resourceManager(solver->getExprManager()->getResourceManager()),
       d_input(input),
       d_symtabAllocated(),
       d_symtab(&d_symtabAllocated),
@@ -61,7 +60,8 @@ Parser::Parser(api::Solver* solver,
       d_parseOnly(parseOnly),
       d_canIncludeFile(true),
       d_logicIsForced(false),
-      d_forcedLogic()
+      d_forcedLogic(),
+      d_solver(solver)
 {
   d_input->setParser(*this);
 }
