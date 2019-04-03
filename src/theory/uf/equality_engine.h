@@ -524,7 +524,7 @@ private:
       EqualityEdgeId t1Id,
       EqualityNodeId t2Id,
       std::vector<TNode>& equalities,
-      std::map<EqualityEdgeId, std::vector<EqualityEdgeId>>& cache,
+      std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>& cache,
       EqProof* eqp) const;
 
   /**

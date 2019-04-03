@@ -929,7 +929,7 @@ std::string EqualityEngine::edgesToString(EqualityEdgeId edgeId) const {
 void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                                      std::vector<TNode>& equalities,
                                      EqProof* eqp) const {
-  Debug("equality") << d_name << "::eq::explainEquality(" << t1 << ", " << t2
+  Debug("pf::ee") << d_name << "::eq::explainEquality(" << t1 << ", " << t2
                     << ", " << (polarity ? "true" : "false") << ")"
                     << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
@@ -940,7 +940,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   EqualityNodeId t1Id = getNodeId(t1);
   EqualityNodeId t2Id = getNodeId(t2);
 
-  std::map<EqualityNodeId, std::vector<EqualityNodeId>> cache;
+  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>> cache;
   if (polarity) {
     // Get the explanation
     getExplanation(t1Id, t2Id, equalities, cache, eqp);
@@ -1026,7 +1026,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
                     << std::endl;
   // Must have the term
   Assert(hasTerm(p));
-  std::map<EqualityNodeId, std::vector<EqualityNodeId>> cache;
+  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>> cache;
   // Get the explanation
   getExplanation(
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
@@ -1036,20 +1036,24 @@ void EqualityEngine::getExplanation(
     EqualityNodeId t1Id,
     EqualityNodeId t2Id,
     std::vector<TNode>& equalities,
-    std::map<EqualityNodeId, std::vector<EqualityNodeId>>& cache,
+    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>& cache,
     EqProof* eqp) const
 {
   Trace("eq-exp") << d_name << "::eq::getExplanation(" << d_nodes[t1Id] << ","
                   << d_nodes[t2Id] << ")" << std::endl;
   if (!eqp)
   {
-    if (std::find(cache[t1Id].begin(), cache[t1Id].end(), t2Id)
-        != cache[t1Id].end())
+    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 = cache.find(t1Id);
+    if( it1!=cache.end() )
     {
-      return;
+      std::map<EqualityNodeId, EqProof*>::iterator it2 = it1->second.find(t2Id);
+      if( it2!=it1->second.end() )
+      {
+        return;
+      }
     }
-    cache[t1Id].push_back(t2Id);
-    cache[t2Id].push_back(t1Id);
+    cache[t1Id][t2Id] = nullptr;
+    cache[t2Id][t1Id] = nullptr;
   }
 
   // We can only explain the nodes that got merged
