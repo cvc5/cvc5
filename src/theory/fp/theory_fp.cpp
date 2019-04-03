@@ -15,10 +15,12 @@
  ** \todo document this file
  **/
 
+
 #include "options/fp_options.h"
-#include "theory/fp/theory_fp.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/fp/theory_fp.h"
+
 
 #include <set>
 #include <stack>
@@ -307,7 +309,7 @@ Node TheoryFp::toRealUF(Node node) {
     std::vector<TypeNode> args(1);
     args[0] = t;
     fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-           nm->mkFunctionType(args, nm->realType()),
+                       nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
@@ -876,7 +878,6 @@ void TheoryFp::registerTerm(TNode node) {
 bool TheoryFp::isRegistered(TNode node) {
   return !(d_registeredTerms.find(node) == d_registeredTerms.end());
 }
-
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
