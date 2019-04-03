@@ -161,7 +161,11 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if(!vals[j].isConst())
+      {
+        // the value is unknown, thus we cannot use it to increment the strings position
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       ival = mystr.size();
       if (mystr.size() <= ex_vals[j].size())
@@ -199,7 +203,11 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if(!vals[j].isConst())
+      {
+        // value is unknown, thus it does not solve
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       if (ex_vals[j] != mystr)
       {
