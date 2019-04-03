@@ -891,7 +891,7 @@ void TheoryFp::preRegisterTerm(TNode node)
     {
       std::stringstream ss;
       ss << "FP types with sizes other than 8/24 or 11/53 are not supported in "
-            "default mode, try the experimental solver via --symfpu-all-widths";
+            "default mode, try the experimental solver via --symfpu-all-sizes";
       throw LogicException(ss.str());
     }
   }
