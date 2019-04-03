@@ -4428,13 +4428,7 @@ void SmtEngine::checkProof()
 
   std::string logicString = d_logic.getLogicString();
 
-  if (!(
-          // Pure logics
-          logicString == "QF_UF" || logicString == "QF_AX"
-          || logicString == "QF_BV" || logicString == "QF_LRA" ||
-          // Non-pure logics
-          logicString == "QF_AUF" || logicString == "QF_UFBV"
-          || logicString == "QF_ABV" || logicString == "QF_AUFBV"))
+  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
   {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
