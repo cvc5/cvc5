@@ -930,8 +930,8 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
                                      std::vector<TNode>& equalities,
                                      EqProof* eqp) const {
   Debug("pf::ee") << d_name << "::eq::explainEquality(" << t1 << ", " << t2
-                    << ", " << (polarity ? "true" : "false") << ")"
-                    << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
+                  << ", " << (polarity ? "true" : "false") << ")"
+                  << ", proof = " << (eqp ? "ON" : "OFF") << std::endl;
 
   // The terms must be there already
   Assert(hasTerm(t1) && hasTerm(t2));;
@@ -1043,11 +1043,12 @@ void EqualityEngine::getExplanation(
                   << d_nodes[t2Id] << ")" << std::endl;
   if (!eqp)
   {
-    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 = cache.find(t1Id);
-    if( it1!=cache.end() )
+    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 =
+        cache.find(t1Id);
+    if (it1 != cache.end())
     {
       std::map<EqualityNodeId, EqProof*>::iterator it2 = it1->second.find(t2Id);
-      if( it2!=it1->second.end() )
+      if (it2 != it1->second.end())
       {
         return;
       }
