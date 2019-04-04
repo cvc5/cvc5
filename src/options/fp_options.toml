@@ -1,3 +1,11 @@
 id     = "FP"
 name   = "Fp"
 header = "options/fp_options.h"
+
+[[option]]
+  name       = "fpExp"
+  category   = "regular"
+  long       = "fp-exp"
+  type       = "bool"
+  default    = "false"
+  help       = "Allow floating-point sorts of all sizes, rather than only Float32 (8/24) or Float64 (11/53) (experimental)"

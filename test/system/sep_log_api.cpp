@@ -2,7 +2,7 @@
 /*! \file sep_log_api.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   ayveejay, Paul Meng, Morgan Deters
+ **   Andrew V. Jones
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
