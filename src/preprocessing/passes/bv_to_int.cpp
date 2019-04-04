@@ -156,7 +156,7 @@ Node eliminationPass(TNode n) {
   while (!toVisit.empty()) {
     Node current = toVisit.back();
     toVisit.pop_back();
-    if (cache.find(current) != cache.end()) {
+    if (cache.find(current) == cache.end()) {
       //work
       Kind k = current.getKind();
       switch (k)
@@ -183,16 +183,6 @@ Node eliminationPass(TNode n) {
           break;
 	}
 	case kind::BITVECTOR_ITE:
-	{
-	  Unimplemented();
-	  break;
-	}
-	case kind::BITVECTOR_CONCAT:
-	{
-	  Unimplemented();
-	  break;
-	}
-	case kind::BITVECTOR_EXTRACT:
 	{
 	  Unimplemented();
 	  break;
@@ -249,10 +239,14 @@ Node eliminationPass(TNode n) {
 	  cache.insert(newNode);
           break;
 	}
-	default: Assert(false);  
+	default: break;  
       }
+      std::cout << "panda " << n << std::endl;
+      std::cout << "panda " << current << std::endl;
       if (current == n) {
+	std::cout << "panda " << n << std::endl;
 	n = newNode;
+	std::cout << "panda " << n << std::endl;
       }
       size_t numChildren = current.getNumChildren();
       for (size_t i = 0; i < numChildren; i++) {

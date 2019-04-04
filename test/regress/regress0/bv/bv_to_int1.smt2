@@ -3,6 +3,6 @@
 (declare-fun y () (_ BitVec 4))
 (assert (= x (_ bv3 4)))
 (assert (= y (_ bv3 4)))
-(assert (not (= (bvadd x y) (_ bv6 4))))
+(assert (not (bvsle (bvadd x y) (_ bv6 4))))
 (check-sat)
 
