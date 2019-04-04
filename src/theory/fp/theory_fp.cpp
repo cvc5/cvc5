@@ -15,9 +15,12 @@
  ** \todo document this file
  **/
 
-#include "theory/fp/theory_fp.h"
+
+#include "options/fp_options.h"
 #include "theory/rewriter.h"
 #include "theory/theory_model.h"
+#include "theory/fp/theory_fp.h"
+
 
 #include <set>
 #include <stack>
@@ -306,7 +309,7 @@ Node TheoryFp::toRealUF(Node node) {
     std::vector<TypeNode> args(1);
     args[0] = t;
     fun = nm->mkSkolem("floatingpoint_to_real_infinity_and_NaN_case",
-		       nm->mkFunctionType(args, nm->realType()),
+                       nm->mkFunctionType(args, nm->realType()),
                        "floatingpoint_to_real_infinity_and_NaN_case",
                        NodeManager::SKOLEM_EXACT_NAME);
     d_toRealMap.insert(t, fun);
@@ -876,7 +879,21 @@ bool TheoryFp::isRegistered(TNode node) {
   return !(d_registeredTerms.find(node) == d_registeredTerms.end());
 }
 
-void TheoryFp::preRegisterTerm(TNode node) {
+void TheoryFp::preRegisterTerm(TNode node)
+{
+  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
+  {
+    TypeNode tn = node.getType();
+    unsigned exp_sz = tn.getFloatingPointExponentSize();
+    unsigned sig_sz = tn.getFloatingPointSignificandSize();
+    if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
+    {
+      std::stringstream ss;
+      ss << "FP types with sizes other than 8/24 or 11/53 are not supported in "
+            "default mode, try the experimental solver via --fp-exp";
+      throw LogicException(ss.str());
+    }
+  }
   Trace("fp-preRegisterTerm")
       << "TheoryFp::preRegisterTerm(): " << node << std::endl;
   registerTerm(node);
