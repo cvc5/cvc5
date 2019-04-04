@@ -1,5 +1,5 @@
 ; REQUIRES: symfpu
-; COMMAND-LINE: --symfpu-all-sizes
+; COMMAND-LINE: --fp-exp
 ; EXPECT: sat
 
 ; NOTE: the (set-logic ALL) is on purpose because the problem was not triggered

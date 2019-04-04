@@ -882,7 +882,7 @@ bool TheoryFp::isRegistered(TNode node) {
 void TheoryFp::preRegisterTerm(TNode node)
 {
 #ifdef CVC4_USE_SYMFPU
-  if (!options::symfpuAllSizes())
+  if (!options::fpExp())
   {
     TypeNode tn = node.getType();
     unsigned exp_sz = tn.getFloatingPointExponentSize();
@@ -891,7 +891,7 @@ void TheoryFp::preRegisterTerm(TNode node)
     {
       std::stringstream ss;
       ss << "FP types with sizes other than 8/24 or 11/53 are not supported in "
-            "default mode, try the experimental solver via --symfpu-all-sizes";
+            "default mode, try the experimental solver via --fp-exp";
       throw LogicException(ss.str());
     }
   }
