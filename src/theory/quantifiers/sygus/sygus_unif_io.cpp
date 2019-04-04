@@ -161,7 +161,12 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // the value is unknown, thus we cannot use it to increment the strings
+        // position
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       ival = mystr.size();
       if (mystr.size() <= ex_vals[j].size())
@@ -199,7 +204,11 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // value is unknown, thus it does not solve
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       if (ex_vals[j] != mystr)
       {
@@ -949,23 +958,27 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
-      Assert(results[i].isConst());
-      Assert(d_examples_out[i].isConst());
-      Trace("sygus-sui-cterm-debug")
-          << "  " << results[i] << " <> " << d_examples_out[i];
-      Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
-      Node contr = Rewriter::rewrite(cont);
-      if (contr == d_false)
+      // If the result is not constant, then it is worthless. It does not
+      // impact whether the term is excluded.
+      if (results[i].isConst())
       {
-        cmp_indices.push_back(i);
-        Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
-      }
-      else
-      {
-        Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
-        if (isConditional)
+        Assert(d_examples_out[i].isConst());
+        Trace("sygus-sui-cterm-debug")
+            << "  " << results[i] << " <> " << d_examples_out[i];
+        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node contr = Rewriter::rewrite(cont);
+        if (contr == d_false)
         {
-          return false;
+          cmp_indices.push_back(i);
+          Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
+        }
+        else
+        {
+          Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
+          if (isConditional)
+          {
+            return false;
+          }
         }
       }
     }
