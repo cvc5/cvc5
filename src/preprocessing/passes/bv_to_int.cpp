@@ -24,6 +24,8 @@
 
 #include "expr/node.h"
 #include "theory/rewriter.h"
+#include "theory/bv/theory_bv_rewriter.h"
+#include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -31,8 +33,10 @@ namespace preprocessing {
 namespace passes {
 
 using namespace CVC4::theory;
+using namespace CVC4::theory::bv;
 
 using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+using NodeSet = std::unordered_set<Node, NodeHashFunction>;
 
 namespace {
 
@@ -143,6 +147,122 @@ Node bvToIntMakeBinary(TNode n, NodeMap& cache)
   return cache[n];
 }
 
+//eliminate many bit-vector operators before the translation to integers.
+Node eliminationPass(TNode n) {
+  std::vector<Node> toVisit;
+  NodeSet cache;
+  toVisit.push_back(n);
+  Node newNode;
+  while (!toVisit.empty()) {
+    Node current = toVisit.back();
+    toVisit.pop_back();
+    if (cache.find(current) != cache.end()) {
+      //work
+      Kind k = current.getKind();
+      switch (k)
+      {
+        case kind::BITVECTOR_SDIV:
+	{
+	  Assert(RewriteRule<SdivEliminate>::applies(current));
+	  newNode = RewriteRule<SdivEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+        case kind::BITVECTOR_SREM:
+	{
+	  Assert(RewriteRule<SremEliminate>::applies(current));
+	  newNode = RewriteRule<SremEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+        case kind::BITVECTOR_SMOD:
+	{
+	  Assert(RewriteRule<SmodEliminate>::applies(current));
+	  newNode = RewriteRule<SmodEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_ITE:
+	{
+	  Unimplemented();
+	  break;
+	}
+	case kind::BITVECTOR_CONCAT:
+	{
+	  Unimplemented();
+	  break;
+	}
+	case kind::BITVECTOR_EXTRACT:
+	{
+	  Unimplemented();
+	  break;
+	}
+	case kind::BITVECTOR_REPEAT:
+	{
+	  Assert(RewriteRule<RepeatEliminate>::applies(current));
+	  newNode = RewriteRule<RepeatEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_SIGN_EXTEND:
+	{
+	  Assert(RewriteRule<SignExtendEliminate>::applies(current));
+	  newNode = RewriteRule<SignExtendEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_ROTATE_RIGHT:
+	{
+	  Assert(RewriteRule<RotateRightEliminate>::applies(current));
+	  newNode = RewriteRule<RotateRightEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_ROTATE_LEFT:
+	{
+	  Assert(RewriteRule<RotateLeftEliminate>::applies(current));
+	  newNode = RewriteRule<RotateLeftEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_COMP:
+	{
+	  Assert(RewriteRule<CompEliminate>::applies(current));
+	  newNode = RewriteRule<CompEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	case kind::BITVECTOR_ULTBV:
+	{
+	  Unimplemented();
+	  break;
+	}
+	case kind::BITVECTOR_SLTBV:
+	{
+	  Unimplemented();
+	  break;
+	}
+	case kind::BITVECTOR_SLE:
+	{
+	  Assert(RewriteRule<SleEliminate>::applies(current));
+	  newNode = RewriteRule<SleEliminate>::run<false>(current);
+	  cache.insert(newNode);
+          break;
+	}
+	default: Assert(false);  
+      }
+      if (current == n) {
+	n = newNode;
+      }
+      size_t numChildren = current.getNumChildren();
+      for (size_t i = 0; i < numChildren; i++) {
+        toVisit.push_back(current[i]);
+      }
+    }
+  }
+  return n;
+}
+
 Node bvToInt(TNode n, NodeMap& cache)
 {
   //first we rewrite n to eliminate some bv operators.
@@ -152,7 +272,8 @@ Node bvToInt(TNode n, NodeMap& cache)
   vector<bvToInt_stack_element> toVisit;
   NodeMap binaryCache;
   Node n_binary = bvToIntMakeBinary(n, binaryCache);
-  toVisit.push_back(TNode(n_binary));
+  Node n_eliminated = eliminationPass(n_binary);
+  toVisit.push_back(TNode(n_eliminated));
   vector<Node> intized_children;
   Node one_const = nm->mkConst<Rational>(1);
   while (!toVisit.empty())
