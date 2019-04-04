@@ -880,21 +880,25 @@ void LFSCTheoryProofEngine::printCoreTerm(Expr term, std::ostream& os, const Pro
   switch(k) {
   case kind::ITE: {
     bool isBooleanTerm = term.getType().isBoolean();
-    if (isBooleanTerm) {
-	    os << "(ifte ";
-    } else {
-	    os << "(ite _ ";
+    if (isBooleanTerm)
+    {
+      os << "(ifte ";
+    }
+    else
+    {
+      os << "(ite _ ";
     }
     Assert(term[0].getType().isBoolean());
     if (printsAsBool(term[0])) os << "(p_app ";
     printBoundTerm(term[0], os, map);
     if (printsAsBool(term[0])) os << ")";
     os << " ";
-    for (size_t i=1; i<=2; i++) {
-        if (isBooleanTerm && printsAsBool(term[i])) os << "(p_app ";
-        printBoundTerm(term[i], os, map);
-        if (isBooleanTerm && printsAsBool(term[i])) os << ")";
-        os << " ";
+    for (size_t i = 1; i <= 2; i++)
+    {
+      if (isBooleanTerm && printsAsBool(term[i])) os << "(p_app ";
+      printBoundTerm(term[i], os, map);
+      if (isBooleanTerm && printsAsBool(term[i])) os << ")";
+      os << " ";
     }
     os << ")";
     return;

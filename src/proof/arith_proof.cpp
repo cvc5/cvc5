@@ -35,58 +35,70 @@ inline static Node eqNode(TNode n1, TNode n2) {
   return NodeManager::currentNM()->mkNode(kind::EQUAL, n1, n2);
 }
 
-//Proofs are supported only for contraints of the form __ <= __ .
-inline static bool allChildrenGeq(const Node& conflict) {
-	bool result = true;
-	size_t nChildren = conflict.getNumChildren();
-	for (size_t i=0; i < nChildren; i++) {
-	  const Node& n = conflict[i];
-	  const Node& nonneg = n.getKind() == kind::NOT ? n[0] : n;
-	  if (nonneg.getKind() == kind::GEQ) {
-	    continue;
-	  } else {
-	    result = false;
-	    break;
-	  }
-	}
-	return result;
+// Proofs are supported only for contraints of the form __ <= __ .
+inline static bool allChildrenGeq(const Node& conflict)
+{
+  bool result = true;
+  size_t nChildren = conflict.getNumChildren();
+  for (size_t i = 0; i < nChildren; i++)
+  {
+    const Node& n = conflict[i];
+    const Node& nonneg = n.getKind() == kind::NOT ? n[0] : n;
+    if (nonneg.getKind() == kind::GEQ)
+    {
+      continue;
+    }
+    else
+    {
+      result = false;
+      break;
+    }
+  }
+  return result;
 }
 
-//Verify that that the farkas coefficients indeed create a contradiction
-inline static bool hasContradiction(const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients) {
+// Verify that that the farkas coefficients indeed create a contradiction
+inline static bool hasContradiction(
+    const Node& conflict, theory::arith::RationalVectorCP farkasCoefficients)
+{
   NodeManager* nm = NodeManager::currentNM();
   NodeBuilder<> leftBuilder(kind::PLUS);
   NodeBuilder<> rightBuilder(kind::PLUS);
   Node currentLeft;
   Node currentRight;
   bool hasStrictIneq = false;
-  //add all inequalities after they are multiplied with their Farkas coefficients
+  // add all inequalities after they are multiplied with their Farkas
+  // coefficients
   const size_t n = conflict.getNumChildren();
   for (size_t i = 0; i != n; i++)
   {
     const Node& lem = conflict[i];
     Rational c = (*farkasCoefficients)[i].abs();
     // if lem has the form ~(x <= y), this is equivalent to x > y.
-    // Hence the Farkas coefficient is multiplied by -1, to keep the inequality in the right direction.
-    // Also, the resulting inequality will be strict.
-    if (lem.getKind() == kind::NOT) {
-	hasStrictIneq = true;
-	currentLeft = lem[0][0];
-	Assert(lem[0].getKind() == kind::GEQ);
-	currentRight = lem[0][1];
-	c = c * (-1);
-    } else {
-	Assert(lem.getKind() == kind::GEQ);
-	currentLeft = lem[0];
-	currentRight = lem[1];
+    // Hence the Farkas coefficient is multiplied by -1, to keep the inequality
+    // in the right direction. Also, the resulting inequality will be strict.
+    if (lem.getKind() == kind::NOT)
+    {
+      hasStrictIneq = true;
+      currentLeft = lem[0][0];
+      Assert(lem[0].getKind() == kind::GEQ);
+      currentRight = lem[0][1];
+      c = c * (-1);
+    }
+    else
+    {
+      Assert(lem.getKind() == kind::GEQ);
+      currentLeft = lem[0];
+      currentRight = lem[1];
     }
     leftBuilder << nm->mkNode(kind::MULT, nm->mkConst(c), currentLeft);
     rightBuilder << nm->mkNode(kind::MULT, nm->mkConst(c), currentRight);
   }
   Node leftNode = leftBuilder;
   Node rightNode = rightBuilder;
-  //The resulting constraint should yield a contradiction.
-  Node node = nm->mkNode(hasStrictIneq ? kind::GT : kind::GEQ, leftNode, rightNode);
+  // The resulting constraint should yield a contradiction.
+  Node node =
+      nm->mkNode(hasStrictIneq ? kind::GT : kind::GEQ, leftNode, rightNode);
   return Rewriter::rewrite(node) == nm->mkConst(false);
 }
 
@@ -1065,64 +1077,65 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
   theory::arith::RationalVectorCP farkasCoefficients = farkasInfo.second;
   // If we have Farkas coefficients stored for this lemma, use them to write a
   // proof. Otherwise, just `trust` the lemma.
-  if (d_recorder.hasFarkasCoefficients(conflictSet) && allChildrenGeq(conflict) && hasContradiction(conflict, farkasCoefficients))
+  if (d_recorder.hasFarkasCoefficients(conflictSet) && allChildrenGeq(conflict)
+      && hasContradiction(conflict, farkasCoefficients))
   {
-      Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
-      Assert(conflict.getNumChildren() == farkasCoefficients->size());
-      const size_t nAntecedents = conflict.getNumChildren();
+    Assert(farkasCoefficients != theory::arith::RationalVectorCPSentinel);
+    Assert(conflict.getNumChildren() == farkasCoefficients->size());
+    const size_t nAntecedents = conflict.getNumChildren();
 
-      // Print proof
-      os << "\n;; Farkas Proof" << std::endl;
+    // Print proof
+    os << "\n;; Farkas Proof" << std::endl;
 
-      // Construct witness that the literals are linear polynomials
-      os << ";  Linear Polynomial Normalization Witnesses" << std::endl;
-      for (size_t i = 0; i != nAntecedents; ++i)
+    // Construct witness that the literals are linear polynomials
+    os << ";  Linear Polynomial Normalization Witnesses" << std::endl;
+    for (size_t i = 0; i != nAntecedents; ++i)
+    {
+      const Node& antecedent = conflict[i];
+      const Rational farkasC = (*farkasCoefficients)[i];
+      os << "\n; " << antecedent << " w/ farkas c = " << farkasC << std::endl;
+      os << "  (@ "
+         << ProofManager::getLitName(antecedent.negate(),
+                                     linearityWitnessPrefix)
+         << " ";
+      const Node& nonneg =
+          antecedent.getKind() == kind::NOT ? antecedent[0] : antecedent;
+      printLinearPolynomialPredicateNormalizer(os, nonneg);
+      lemmaParen << ")";
+    }
+
+    // Prove linear polynomial constraints
+    os << "\n;  Linear Polynomial Proof Conversions";
+    for (size_t i = 0; i != nAntecedents; ++i)
+    {
+      const Node& antecedent = conflict[i];
+      os << "\n  (@ "
+         << ProofManager::getLitName(antecedent.negate(), linearizedProofPrefix)
+         << " ";
+      lemmaParen << ")";
+      switch (conflict[i].getKind())
       {
-        const Node& antecedent = conflict[i];
-        const Rational farkasC = (*farkasCoefficients)[i];
-        os << "\n; " << antecedent << " w/ farkas c = " << farkasC << std::endl;
-        os << "  (@ "
-           << ProofManager::getLitName(antecedent.negate(),
-                                       linearityWitnessPrefix)
-           << " ";
-        const Node& nonneg =
-            antecedent.getKind() == kind::NOT ? antecedent[0] : antecedent;
-        printLinearPolynomialPredicateNormalizer(os, nonneg);
-        lemmaParen << ")";
-      }
-
-      // Prove linear polynomial constraints
-      os << "\n;  Linear Polynomial Proof Conversions";
-      for (size_t i = 0; i != nAntecedents; ++i)
-      {
-        const Node& antecedent = conflict[i];
-        os << "\n  (@ "
-           << ProofManager::getLitName(antecedent.negate(), linearizedProofPrefix)
-           << " ";
-        lemmaParen << ")";
-        switch (conflict[i].getKind())
+        case kind::NOT:
         {
-          case kind::NOT:
-          {
-            Assert(conflict[i][0].getKind() == kind::GEQ);
-            os << "(poly_flip_not_>= _ _ "
-               << "(poly_form_not _ _ "
-               << ProofManager::getLitName(antecedent.negate(),
-                                           linearityWitnessPrefix)
-               << " " << ProofManager::getLitName(antecedent.negate(), "")
-               << "))";
-            break;
-          }
-          case kind::GEQ:
-          {
-            os << "(poly_form _ _ "
-               << ProofManager::getLitName(antecedent.negate(),
-                                           linearityWitnessPrefix)
-               << " " << ProofManager::getLitName(antecedent.negate(), "") << ")";
-            break;
-          }
-          default: Unreachable();
+          Assert(conflict[i][0].getKind() == kind::GEQ);
+          os << "(poly_flip_not_>= _ _ "
+             << "(poly_form_not _ _ "
+             << ProofManager::getLitName(antecedent.negate(),
+                                         linearityWitnessPrefix)
+             << " " << ProofManager::getLitName(antecedent.negate(), "")
+             << "))";
+          break;
         }
+        case kind::GEQ:
+        {
+          os << "(poly_form _ _ "
+             << ProofManager::getLitName(antecedent.negate(),
+                                         linearityWitnessPrefix)
+             << " " << ProofManager::getLitName(antecedent.negate(), "") << ")";
+          break;
+        }
+        default: Unreachable();
+      }
       }
 
       /* Combine linear polynomial constraints to derive a contradiction.
@@ -1147,15 +1160,15 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
        *            *   (0 >= 0)
        *
        * Where each * is a linearized antecedant being scaled by a farkas
-       * coefficient and each + is the sum of inequalities. The tricky bit is that
-       * each antecedent can be strict (>) or relaxed (>=) and the axiom used for
-       * each * and + depends on this... The axiom for * depends on the
+       * coefficient and each + is the sum of inequalities. The tricky bit is
+       * that each antecedent can be strict (>) or relaxed (>=) and the axiom
+       * used for each * and + depends on this... The axiom for * depends on the
        * strictness of its linear polynomial input, and the axiom for + depends
        * on the strictness of **both** its inputs. The contradiction axiom is
        * also a function of the strictness of its input.
        *
        * There are n *s and +s and we precompute
-       *    1. The strictness of the ith antecedant  (`ith_antecedent_is_strict`)
+       *    1. The strictness of the ith antecedant (`ith_antecedent_is_strict`)
        *    2. The strictness of the right argument of the ith sum
        * (`ith_acc_is_strict`)
        *    3. The strictness of the final result (`strict_contradiction`)
@@ -1194,7 +1207,8 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
         os << "\n    (lra_add_" << ante_op << "_" << acc_op << " _ _ _ ";
         os << "\n       (lra_mul_c_" << ante_op << " _ _ ";
         printRational(os, (*farkasCoefficients)[i].abs());
-        os << " " << ProofManager::getLitName(lit.negate(), linearizedProofPrefix)
+        os << " "
+           << ProofManager::getLitName(lit.negate(), linearizedProofPrefix)
            << ")"
            << " ; " << lit;
       }
@@ -1206,7 +1220,7 @@ void LFSCArithProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
                   ')');  // close lra_add_*_*
       os << ")";         // close lra_contra_*
 
-      os << lemmaParen.str();  // close normalizers and proof-normalizers 
+      os << lemmaParen.str();  // close normalizers and proof-normalizers
   }
   else
   {
