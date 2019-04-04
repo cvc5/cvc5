@@ -881,8 +881,7 @@ bool TheoryFp::isRegistered(TNode node) {
 
 void TheoryFp::preRegisterTerm(TNode node)
 {
-#ifdef CVC4_USE_SYMFPU
-  if (!options::fpExp())
+  if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
   {
     TypeNode tn = node.getType();
     unsigned exp_sz = tn.getFloatingPointExponentSize();
@@ -895,7 +894,6 @@ void TheoryFp::preRegisterTerm(TNode node)
       throw LogicException(ss.str());
     }
   }
-#endif
   Trace("fp-preRegisterTerm")
       << "TheoryFp::preRegisterTerm(): " << node << std::endl;
   registerTerm(node);
