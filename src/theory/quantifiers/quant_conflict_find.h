@@ -132,7 +132,6 @@ public:
   void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
   bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
   bool isBaseMatchComplete();
-  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -272,6 +271,18 @@ public:
   Statistics d_statistics;
   /** Identify this module */
   std::string identify() const override { return "QcfEngine"; }
+  /** is n a propagating instance?
+   *
+   * A propagating instance is any formula that consists of Boolean connectives,
+   * equality, quantified formulas, and terms that existing in the current
+   * context (those in the master equality engine).
+   *
+   * Notice the distinction that quantified formulas that do not appear in the
+   * current context are considered to be legal in propagating instances. This
+   * choice is significant for TPTP, where a net of 200 benchmarks are gained
+   * or so.
+   */
+  bool isPropagatingInstance(Node n);
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
