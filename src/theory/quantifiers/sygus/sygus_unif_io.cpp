@@ -458,25 +458,26 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
     {
       int new_status = status;
       bool success = true;
-      // if the current value is true, we must consider the value of this child
+      // If the current value is true, then this is a relevant point.
+      // We must consider the value of this child.
       if (curr_val_true)
       {
-        if (status != 0)
+        if (it->first.isNull())
         {
-          if (it->first.isNull())
+          // The value of this child is unknown on this point, hence we
+          // do not recurse
+          success = false;
+        }
+        else if (status != 0)
+        {
+          // if the status is not zero (indicating that we have a mix of T/F),
+          // then we must compute the new status.
+          Assert(it->first.getType().isBoolean());
+          Assert(it->first.isConst());
+          new_status = (it->first.getConst<bool>() ? 1 : -1);
+          if (status != -2 && new_status != status)
           {
-            // The value of this child is unknown on this point, hence we
-            // ignore it.
-            success = false;
-          }
-          else
-          {
-            Assert(it->first.getType().isBoolean());
-            new_status = (it->first.getConst<bool>() ? 1 : -1);
-            if (status != -2 && new_status != status)
-            {
-              new_status = 0;
-            }
+            new_status = 0;
           }
         }
       }
