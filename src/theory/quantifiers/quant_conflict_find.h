@@ -286,7 +286,7 @@ public:
    * after conflicting instances and are used as a second effort in the
    * algorithm performed by this class.
    */
-  bool isPropagatingInstance(Node n);
+  bool isPropagatingInstance(Node n) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);
