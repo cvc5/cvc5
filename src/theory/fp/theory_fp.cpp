@@ -884,14 +884,20 @@ void TheoryFp::preRegisterTerm(TNode node)
   if (Configuration::isBuiltWithSymFPU() && !options::fpExp())
   {
     TypeNode tn = node.getType();
-    unsigned exp_sz = tn.getFloatingPointExponentSize();
-    unsigned sig_sz = tn.getFloatingPointSignificandSize();
-    if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
+    if (tn.isFloatingPoint())
     {
-      std::stringstream ss;
-      ss << "FP types with sizes other than 8/24 or 11/53 are not supported in "
-            "default mode, try the experimental solver via --fp-exp";
-      throw LogicException(ss.str());
+      unsigned exp_sz = tn.getFloatingPointExponentSize();
+      unsigned sig_sz = tn.getFloatingPointSignificandSize();
+      if (!((exp_sz == 8 && sig_sz == 24) || (exp_sz == 11 && sig_sz == 53)))
+      {
+        std::stringstream ss;
+        ss << "FP term " << node << " with type whose size is " << exp_sz << "/"
+           << sig_sz
+           << " is not supported, only Float32 (8/24) or Float64 (11/53) types "
+              "are supported in default mode. Try the experimental solver via "
+              "--fp-exp";
+        throw LogicException(ss.str());
+      }
     }
   }
   Trace("fp-preRegisterTerm")
