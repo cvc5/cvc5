@@ -192,7 +192,11 @@ class TermDb : public QuantifiersUtil {
    *
    * If reqHasTerm, then we require that the returned term is a Boolean
    * combination of terms that exist in the equality engine used by this call.
-   * If no such term is constructable, this call returns null.
+   * If no such term is constructable, this call returns null. The motivation
+   * for setting this to true is to "fail fast" if we require the return value
+   * of this function to only involve existing terms. This is used e.g. in
+   * the "propagating instances" portion of conflict-based instantiation
+   * (quant_conflict_find.h).
    */
   Node evaluateTerm(TNode n,
                     std::vector<Node>& exp,
