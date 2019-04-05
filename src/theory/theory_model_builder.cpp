@@ -2,7 +2,7 @@
 /*! \file theory_model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Clark Barrett, Morgan Deters
+ **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
