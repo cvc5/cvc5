@@ -279,8 +279,12 @@ public:
    *
    * Notice the distinction that quantified formulas that do not appear in the
    * current context are considered to be legal in propagating instances. This
-   * choice is significant for TPTP, where a net of 200 benchmarks are gained
-   * or so.
+   * choice is significant for TPTP, where a net of ~200 benchmarks are gained
+   * due to this decision.
+   *
+   * Propagating instances are the second most useful kind of instantiation
+   * after conflicting instances and are used as a second effort in the
+   * algorithm performed by this class.
    */
   bool isPropagatingInstance(Node n);
 };
