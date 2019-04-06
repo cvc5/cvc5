@@ -2226,10 +2226,6 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
             << "...not propagating instance because of " << n << std::endl;
         return false;
       }
-      for (const Node& cn : cur)
-      {
-        visit.push_back(cn);
-      }
     }
   } while (!visit.empty());
   return true;
