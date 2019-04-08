@@ -69,13 +69,6 @@ void TheoryQuantifiers::preRegisterTerm(TNode n) {
     return;
   }
   Debug("quantifiers-prereg") << "TheoryQuantifiers::preRegisterTerm() " << n << endl;
-  if (options::cbqi() && !options::recurseCbqi()
-      && TermUtil::hasInstConstAttr(n))
-  {
-    Debug("quantifiers-prereg")
-        << "TheoryQuantifiers::preRegisterTerm() done, unused " << n << endl;
-    return;
-  }
   // Preregister the quantified formula.
   // This initializes the modules used for handling n in this user context.
   getQuantifiersEngine()->preRegisterQuantifier(n);
