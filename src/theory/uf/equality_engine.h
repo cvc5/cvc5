@@ -516,9 +516,17 @@ private:
   bool d_inPropagate;
 
   /**
-   * Get an explanation of the equality t1 = t2. Returns the asserted equalities that
-   * imply t1 = t2. Returns TNodes as the assertion equalities should be hashed somewhere
-   * else.
+   * Get an explanation of the equality t1 = t2. Returns the asserted equalities
+   * that imply t1 = t2. Returns TNodes as the assertion equalities should be
+   * hashed somewhere else.
+   *
+   * This call refers to terms t1 and t2 by their ids t1Id and t2Id.
+   *
+   * If eqp is non-null, then this method populates eqp's information and
+   * children such that it is a proof of t1 = t2.
+   *
+   * We cache results of this call in cache, where cache[t1Id][t2Id] stores
+   * a proof of t1 = t2.
    */
   void getExplanation(
       EqualityEdgeId t1Id,
