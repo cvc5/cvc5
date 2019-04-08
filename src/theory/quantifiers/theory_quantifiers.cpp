@@ -38,8 +38,6 @@ using namespace CVC4::theory::quantifiers;
 TheoryQuantifiers::TheoryQuantifiers(Context* c, context::UserContext* u, OutputChannel& out, Valuation valuation, const LogicInfo& logicInfo) :
     Theory(THEORY_QUANTIFIERS, c, u, out, valuation, logicInfo)
 {
-  d_numInstantiations = 0;
-  d_baseDecLevel = -1;
   out.handleUserAttribute( "axiom", this );
   out.handleUserAttribute( "conjecture", this );
   out.handleUserAttribute( "fun-def", this );
@@ -135,7 +133,7 @@ void TheoryQuantifiers::check(Effort e) {
     Trace("quantifiers-assert") << "quantifiers::assert(): " << assertion << std::endl;
     switch(assertion.getKind()) {
     case kind::FORALL:
-      assertUniversal( assertion );
+      getQuantifiersEngine()->assertQuantifier(assertion, true);
       break;
     case kind::INST_CLOSURE:
       getQuantifiersEngine()->addTermToDatabase( assertion[0], false, true );
@@ -150,7 +148,7 @@ void TheoryQuantifiers::check(Effort e) {
       {
         switch( assertion[0].getKind()) {
         case kind::FORALL:
-          assertExistential( assertion );
+          getQuantifiersEngine()->assertQuantifier(assertion[0], false);
           break;
         case kind::EQUAL:
           //do nothing
@@ -169,20 +167,6 @@ void TheoryQuantifiers::check(Effort e) {
   }
   // call the quantifiers engine to check
   getQuantifiersEngine()->check( e );
-}
-
-void TheoryQuantifiers::assertUniversal( Node n ){
-  Assert( n.getKind()==FORALL );
-  if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n) ){
-    getQuantifiersEngine()->assertQuantifier( n, true );
-  }
-}
-
-void TheoryQuantifiers::assertExistential( Node n ){
-  Assert( n.getKind()== NOT && n[0].getKind()==FORALL );
-  if( !options::cbqi() || options::recurseCbqi() || !TermUtil::hasInstConstAttr(n[0]) ){
-    getQuantifiersEngine()->assertQuantifier( n[0], false );
-  }
 }
 
 void TheoryQuantifiers::setUserAttribute(const std::string& attr, Node n, std::vector<Node> node_values, std::string str_value){
