@@ -946,7 +946,18 @@ public:
   unsigned d_id;
   Node d_node;
   std::vector<std::shared_ptr<EqProof>> d_children;
+  /**
+   * Debug print this proof on debug trace c with tabulation tb and pretty
+   * printer prettyPrinter.
+   */
   void debug_print(const char* c, unsigned tb = 0,
+                   PrettyPrinter* prettyPrinter = nullptr) const;
+  /**
+   * Debug print this proof on output stream os with tabulation tb and pretty
+   * printer prettyPrinter.
+   */
+  void debug_print(std::ostream& os,
+                   unsigned tb = 0,
                    PrettyPrinter* prettyPrinter = nullptr) const;
 };/* class EqProof */
 

@@ -1040,22 +1040,38 @@ void EqualityEngine::getExplanation(
     EqProof* eqp) const
 {
   Trace("eq-exp") << d_name << "::eq::getExplanation(" << d_nodes[t1Id] << ","
-                  << d_nodes[t2Id] << ")" << std::endl;
-  if (!eqp)
+                  << d_nodes[t2Id] << ") size = " << cache.size() << std::endl;
+
+  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 =
+      cache.find(t1Id);
+  if (it1 != cache.end())
   {
-    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 =
-        cache.find(t1Id);
-    if (it1 != cache.end())
+    std::map<EqualityNodeId, EqProof*>::iterator it2 = it1->second.find(t2Id);
+    if (it2 != it1->second.end())
     {
-      std::map<EqualityNodeId, EqProof*>::iterator it2 = it1->second.find(t2Id);
-      if (it2 != it1->second.end())
+      // copy one level
+      if (eqp)
       {
-        return;
+        if (it2->second)
+        {
+          eqp->d_node = it2->second->d_node;
+          eqp->d_id = it2->second->d_id;
+          eqp->d_children.insert(eqp->d_children.end(),
+                                 it2->second->d_children.begin(),
+                                 it2->second->d_children.end());
+        }
+        else
+        {
+          Assert(d_nodes[t1Id] == d_nodes[t2Id]);
+          Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
+          eqp->d_node = d_nodes[t1Id];
+        }
       }
+      return;
     }
-    cache[t1Id][t2Id] = nullptr;
-    cache[t2Id][t1Id] = nullptr;
   }
+  cache[t1Id][t2Id] = eqp;
+  cache[t2Id][t1Id] = eqp;
 
   // We can only explain the nodes that got merged
 #ifdef CVC4_ASSERTIONS
@@ -2261,27 +2277,48 @@ bool EqClassIterator::isFinished() const {
 }
 
 void EqProof::debug_print(const char* c, unsigned tb, PrettyPrinter* prettyPrinter) const {
-  for(unsigned i=0; i<tb; i++) { Debug( c ) << "  "; }
+  std::stringstream ss;
+  debug_print(ss, tb, prettyPrinter);
+  Debug(c) << ss.str();
+}
+void EqProof::debug_print(std::ostream& os,
+                          unsigned tb,
+                          PrettyPrinter* prettyPrinter) const
+{
+  for (unsigned i = 0; i < tb; i++)
+  {
+    os << "  ";
+  }
 
   if (prettyPrinter)
-    Debug( c ) << prettyPrinter->printTag(d_id);
+  {
+    os << prettyPrinter->printTag(d_id);
+  }
   else
-    Debug( c ) << d_id;
+  {
+    os << d_id;
+  }
 
-  Debug( c ) << "(";
+  os << "(";
   if( !d_children.empty() || !d_node.isNull() ){
     if( !d_node.isNull() ){
-      Debug( c ) << std::endl;
-      for( unsigned i=0; i<tb+1; i++ ) { Debug( c ) << "  "; }
-      Debug( c ) << d_node;
+      os << std::endl;
+      for (unsigned i = 0; i < tb + 1; i++)
+      {
+        os << "  ";
+      }
+      os << d_node;
     }
     for( unsigned i=0; i<d_children.size(); i++ ){
-      if( i>0 || !d_node.isNull() ) Debug( c ) << ",";
-      Debug( c ) << std::endl;
-      d_children[i]->debug_print( c, tb+1, prettyPrinter );
+      if (i > 0 || !d_node.isNull())
+      {
+        os << ",";
+      }
+      os << std::endl;
+      d_children[i]->debug_print(os, tb + 1, prettyPrinter);
     }
   }
-  Debug( c ) << ")" << std::endl;
+  os << ")" << std::endl;
 }
 
 } // Namespace uf
