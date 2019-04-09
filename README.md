@@ -68,7 +68,7 @@ We are always happy to hear feedback from our users:
 * if you need to report a bug with CVC4, or make a feature request, please
   visit our bugtracker at our
   [GitHub issues](https://github.com/CVC4/CVC4/issues) page or write to the
-  cvc-bugs@cs.stanford.edu mailing list.  We are very grateful for bug reports,
+  cvc4-bugs@cs.stanford.edu mailing list.  We are very grateful for bug reports,
   as they help us improve CVC4, and patches are generally reviewed and accepted
   quickly.
 
