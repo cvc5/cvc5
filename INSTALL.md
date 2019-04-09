@@ -1,4 +1,4 @@
-CVC4 prerelease version 1.7.
+CVC4 release version 1.7.
 ============================
 
 ## Building CVC4
