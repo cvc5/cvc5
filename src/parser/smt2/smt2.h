@@ -126,7 +126,7 @@ class Smt2 : public Parser
    *         not valid.
    */
   api::Term mkIndexedConstant(const std::string& name,
-                              const std::vector<uint64_t> numerals);
+                              const std::vector<uint64_t>& numerals);
 
   /**
    * Creates an indexed operator term, e.g. (_ extract 5 0).
@@ -137,7 +137,7 @@ class Smt2 : public Parser
    *         error if the name is not valid.
    */
   api::OpTerm mkIndexedOp(const std::string& name,
-                          const std::vector<uint64_t> numerals);
+                          const std::vector<uint64_t>& numerals);
 
   /**
    * Returns the expression that name should be interpreted as.

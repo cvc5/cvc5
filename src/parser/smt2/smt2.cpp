@@ -503,7 +503,7 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
-                                  const std::vector<uint64_t> numerals)
+                                  const std::vector<uint64_t>& numerals)
 {
   if (isTheoryEnabled(THEORY_FP))
   {
@@ -542,7 +542,7 @@ api::Term Smt2::mkIndexedConstant(const std::string& name,
 }
 
 api::OpTerm Smt2::mkIndexedOp(const std::string& name,
-                              const std::vector<uint64_t> numerals)
+                              const std::vector<uint64_t>& numerals)
 {
   const auto& kIt = d_indexedOpKindMap.find(name);
   if (kIt != d_indexedOpKindMap.end())

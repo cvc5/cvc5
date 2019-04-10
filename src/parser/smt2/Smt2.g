@@ -1788,7 +1788,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   | LPAREN_TOK functionName[name, CHECK_NONE]
     { isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
       if(isBuiltinOperator) {
-        /* A built-in operator not already handled by the lexer */
+        /* A built-in operator */
         kind = PARSER_STATE->getOperatorKind(name);
       } else {
         /* A non-built-in function application */
@@ -1828,17 +1828,68 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
-      Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
-      if (args.size() >= 2)
+
+      bool done = false;
+      if (isBuiltinOperator)
       {
-        if (kind == CVC4::kind::INTS_DIVISION || kind == CVC4::kind::XOR
-            || kind == CVC4::kind::MINUS || kind == CVC4::kind::DIVISION)
+        if (args.size() > 2)
         {
-          // Builtin operators that are not tokenized, are left associative,
-          // but not internally variadic must set this.
-          lassocKind = kind;
+          if (kind == CVC4::kind::INTS_DIVISION || kind == CVC4::kind::XOR
+              || kind == CVC4::kind::MINUS || kind == CVC4::kind::DIVISION)
+          {
+            // Builtin operators that are not tokenized, are left associative,
+            // but not internally variadic must set this.
+            expr =
+                EXPR_MANAGER->mkLeftAssociative(kind, args);
+            done = true;
+          }
+          else if (kind == CVC4::kind::IMPLIES)
+          {
+            /* right-associative, but CVC4 internally only supports 2 args */
+            expr = EXPR_MANAGER->mkRightAssociative(kind, args);
+            done = true;
+          }
+          else if (kind == CVC4::kind::EQUAL || kind == CVC4::kind::LT
+                   || kind == CVC4::kind::GT || kind == CVC4::kind::LEQ
+                   || kind == CVC4::kind::GEQ)
+          {
+            /* "chainable", but CVC4 internally only supports 2 args */
+            expr = MK_EXPR(MK_CONST(Chain(kind)), args);
+            done = true;
+          }
         }
-        else if (!isBuiltinOperator)
+
+        if (!done)
+        {
+          if (CVC4::kind::isAssociative(kind)
+              && args.size() > EXPR_MANAGER->maxArity(kind))
+          {
+            /* Special treatment for associative operators with lots of children
+             */
+            expr = EXPR_MANAGER->mkAssociative(kind, args);
+          }
+          else if (!PARSER_STATE->strictModeEnabled()
+                   && (kind == CVC4::kind::AND || kind == CVC4::kind::OR)
+                   && args.size() == 1)
+          {
+            /* Unary AND/OR can be replaced with the argument.
+             * It just so happens expr should already be the only argument. */
+            assert(expr == args[0]);
+          }
+          else if (kind == CVC4::kind::MINUS && args.size() == 1)
+          {
+            expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
+          }
+          else
+          {
+            PARSER_STATE->checkOperator(kind, args.size());
+            expr = MK_EXPR(kind, args);
+          }
+        }
+      }
+      else
+      {
+        if (args.size() >= 2)
         {
           // may be partially applied function, in this case we use HO_APPLY
           Type argt = args[0].getType();
@@ -1851,53 +1902,17 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
               Debug("parser") << " : #argTypes = " << arity;
               Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
               // must curry the partial application
-              lassocKind = CVC4::kind::HO_APPLY;
+              expr =
+                  EXPR_MANAGER->mkLeftAssociative(CVC4::kind::HO_APPLY, args);
+              done = true;
             }
           }
         }
-      }
-      if (lassocKind != CVC4::kind::UNDEFINED_KIND)
-      {
-        expr = EXPR_MANAGER->mkLeftAssociative(lassocKind, args);
-      }
-      else if (CVC4::kind::isAssociative(kind)
-               && args.size() > EXPR_MANAGER->maxArity(kind))
-      {
-        /* Special treatment for associative operators with lots of children */
-        expr = EXPR_MANAGER->mkAssociative(kind, args);
-      }
-      else if (!PARSER_STATE->strictModeEnabled()
-               && (kind == CVC4::kind::AND || kind == CVC4::kind::OR)
-               && args.size() == 1)
-      {
-        /* Unary AND/OR can be replaced with the argument.
-         * It just so happens expr should already be the only argument. */
-        assert(expr == args[0]);
-      }
-      else if (kind == CVC4::kind::MINUS && args.size() == 1)
-      {
-        expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
-      }
-      else if (kind == CVC4::kind::IMPLIES && args.size() > 2)
-      {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        expr = EXPR_MANAGER->mkRightAssociative(kind, args);
-      }
-      else if ((kind == CVC4::kind::EQUAL || kind == CVC4::kind::LT
-                || kind == CVC4::kind::GT || kind == CVC4::kind::LEQ
-                || kind == CVC4::kind::GEQ)
-               && args.size() > 2)
-      {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        expr = MK_EXPR(MK_CONST(Chain(kind)), args);
-      }
-      else
-      {
-        if (isBuiltinOperator)
+
+        if (!done)
         {
-          PARSER_STATE->checkOperator(kind, args.size());
+          expr = MK_EXPR(kind, args);
         }
-        expr = MK_EXPR(kind, args);
       }
     }
   | LPAREN_TOK
