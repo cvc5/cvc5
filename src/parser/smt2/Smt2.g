@@ -1687,10 +1687,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
   Expr op;
-  std::string name, name2;
+  std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2, f3, f4;
+  Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -2014,9 +2014,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           }
           binders.push_back(std::make_pair(name, expr)); } )+ )
     { // now implement these bindings
-      for(std::vector< std::pair<std::string, Expr> >::iterator
-            i = binders.begin(); i != binders.end(); ++i) {
-        PARSER_STATE->defineVar((*i).first, (*i).second);
+      for (const std::pair<std::string, Expr>& binder : binders)
+      {
+        {
+          PARSER_STATE->defineVar(binder.first, binder.second);
+        }
       }
     }
     RPAREN_TOK
@@ -2868,7 +2870,7 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
-CONST_TOK : 'const';
+CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
 DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-codatatype';
@@ -2898,14 +2900,14 @@ GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
-SYNTH_FUN_TOK : 'synth-fun';
-SYNTH_INV_TOK : 'synth-inv';
-CHECK_SYNTH_TOK : 'check-synth';
-DECLARE_VAR_TOK : 'declare-var';
-DECLARE_PRIMED_VAR_TOK : 'declare-primed-var';
-CONSTRAINT_TOK : 'constraint';
-INV_CONSTRAINT_TOK : 'inv-constraint';
-SET_OPTIONS_TOK : 'set-options';
+SYNTH_FUN_TOK : { PARSER_STATE->sygus() }? 'synth-fun';
+SYNTH_INV_TOK : { PARSER_STATE->sygus() }? 'synth-inv';
+CHECK_SYNTH_TOK : { PARSER_STATE->sygus() }? 'check-synth';
+DECLARE_VAR_TOK : { PARSER_STATE->sygus() }? 'declare-var';
+DECLARE_PRIMED_VAR_TOK : { PARSER_STATE->sygus() }? 'declare-primed-var';
+CONSTRAINT_TOK : { PARSER_STATE->sygus() }? 'constraint';
+INV_CONSTRAINT_TOK : { PARSER_STATE->sygus() }? 'inv-constraint';
+SET_OPTIONS_TOK : { PARSER_STATE->sygus() }? 'set-options';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 SYGUS_INPUT_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'InputVariable';
@@ -2919,8 +2921,6 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
-AMPERSAND_TOK     : '&';
-AT_TOK            : '@';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
 
