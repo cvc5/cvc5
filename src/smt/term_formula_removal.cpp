@@ -84,9 +84,12 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   TypeNode nodeType = node.getType();
   Node skolem;
   Node newAssertion;
-  if(node.getKind() == kind::ITE) {
-    // If an ITE, replace it
-    if (!nodeType.isBoolean() && (!inQuant || !expr::hasBoundVar(node)))
+  // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
+  // in the "non-variable Boolean term within term" case below.
+  if(node.getKind() == kind::ITE && !nodeType.isBoolean()) {
+    // Here, we eliminate the ITE if we are not Boolean and if we do not contain
+    // a bound variable.
+    if (!inQuant || !expr::hasBoundVar(node))
     {
       skolem = getSkolemForNode(node);
       if (skolem.isNull())
@@ -163,13 +166,15 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
            && inTerm
            && !inQuant)
   {
-    // if a non-variable Boolean term, replace it
+    // if a non-variable Boolean term within another term, replace it
     skolem = getSkolemForNode(node);
     if (skolem.isNull())
     {
       // Make the skolem to represent the Boolean term
-      // skolem = nodeManager->mkSkolem("termBT", nodeType, "a variable
-      // introduced due to Boolean term removal");
+      // Skolems introduced for Boolean formulas appearing in terms have a
+      // special kind (BOOLEAN_TERM_VARIABLE) that ensures they are handled
+      // properly in theory combination. We must use this kind here instead of a
+      // generic skolem.
       skolem = nodeManager->mkBooleanTermVariable();
       d_skolem_cache.insert(node, skolem);
 
