@@ -86,7 +86,8 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
   Node newAssertion;
   // Handle non-Boolean ITEs here. Boolean ones (within terms) are handled
   // in the "non-variable Boolean term within term" case below.
-  if(node.getKind() == kind::ITE && !nodeType.isBoolean()) {
+  if (node.getKind() == kind::ITE && !nodeType.isBoolean())
+  {
     // Here, we eliminate the ITE if we are not Boolean and if we do not contain
     // a bound variable.
     if (!inQuant || !expr::hasBoundVar(node))
