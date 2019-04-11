@@ -969,9 +969,11 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
           toExplain.first, toExplain.second, equalities, cache, eqpc.get());
 
       if (eqpc) {
-        Debug("pf::ee") << "Child proof is:" << std::endl;
-        eqpc->debug_print("pf::ee", 1);
-
+        if (Debug.isOn("pf::ee"))
+        {
+          Debug("pf::ee") << "Child proof is:" << std::endl;
+          eqpc->debug_print("pf::ee", 1);
+        }
         if (eqpc->d_id == eq::MERGED_THROUGH_TRANS) {
           std::vector<std::shared_ptr<EqProof>> orderedChildren;
           bool nullCongruenceFound = false;
@@ -989,8 +991,13 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
 
           if (nullCongruenceFound) {
             eqpc->d_children = orderedChildren;
-            Debug("pf::ee") << "Child proof's children have been reordered. It is now:" << std::endl;
-            eqpc->debug_print("pf::ee", 1);
+            if (Debug.isOn("pf::ee"))
+            {
+              Debug("pf::ee")
+                  << "Child proof's children have been reordered. It is now:"
+                  << std::endl;
+              eqpc->debug_print("pf::ee", 1);
+            }
           }
         }
 
@@ -1013,8 +1020,11 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
         *eqp = *temp;
       }
 
-      Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
-      eqp->debug_print("pf::ee", 1);
+      if (Debug.isOn("pf::ee"))
+      {
+        Debug("pf::ee") << "Disequality explanation final proof: " << std::endl;
+        eqp->debug_print("pf::ee", 1);
+      }
     }
   }
 }
@@ -1257,9 +1267,13 @@ void EqualityEngine::getExplanation(
                                eqpcc.get());
                 if( eqpc ) {
                   eqpc->d_children.push_back( eqpcc );
-
-                  Debug("pf::ee") << "MERGED_THROUGH_CONSTANTS. Dumping the child proof" << std::endl;
-                  eqpc->debug_print("pf::ee", 1);
+                  if (Debug.isOn("pf::ee"))
+                  {
+                    Debug("pf::ee")
+                        << "MERGED_THROUGH_CONSTANTS. Dumping the child proof"
+                        << std::endl;
+                    eqpc->debug_print("pf::ee", 1);
+                  }
                 }
               }
 
@@ -1329,8 +1343,10 @@ void EqualityEngine::getExplanation(
               eqp->d_children.insert( eqp->d_children.end(), eqp_trans.begin(), eqp_trans.end() );
               eqp->d_node = NodeManager::currentNM()->mkNode(kind::EQUAL, d_nodes[t1Id], d_nodes[t2Id]);
             }
-
-            eqp->debug_print("pf::ee", 1);
+            if (Debug.isOn("pf::ee"))
+            {
+              eqp->debug_print("pf::ee", 1);
+            }
           }
 
           // Done
