@@ -940,7 +940,7 @@ void EqualityEngine::explainEquality(TNode t1, TNode t2, bool polarity,
   EqualityNodeId t1Id = getNodeId(t1);
   EqualityNodeId t2Id = getNodeId(t2);
 
-  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>> cache;
+  std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   if (polarity) {
     // Get the explanation
     getExplanation(t1Id, t2Id, equalities, cache, eqp);
@@ -1036,7 +1036,7 @@ void EqualityEngine::explainPredicate(TNode p, bool polarity,
                     << std::endl;
   // Must have the term
   Assert(hasTerm(p));
-  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>> cache;
+  std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*> cache;
   // Get the explanation
   getExplanation(
       getNodeId(p), polarity ? d_trueId : d_falseId, assertions, cache, eqp);
@@ -1046,42 +1046,41 @@ void EqualityEngine::getExplanation(
     EqualityNodeId t1Id,
     EqualityNodeId t2Id,
     std::vector<TNode>& equalities,
-    std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>& cache,
+    std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>& cache,
     EqProof* eqp) const
 {
   Trace("eq-exp") << d_name << "::eq::getExplanation(" << d_nodes[t1Id] << ","
                   << d_nodes[t2Id] << ") size = " << cache.size() << std::endl;
 
-  std::map<EqualityNodeId, std::map<EqualityNodeId, EqProof*>>::iterator it1 =
-      cache.find(t1Id);
-  if (it1 != cache.end())
+  // We order the ids, since explaining t1 = t2 is the same as explaining
+  // t2 = t1.
+  std::pair<EqualityNodeId, EqualityNodeId> cacheKey = std::minmax(t1Id, t2Id);
+  std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>::iterator it =
+      cache.find(cacheKey);
+  if (it != cache.end())
   {
-    std::map<EqualityNodeId, EqProof*>::iterator it2 = it1->second.find(t2Id);
-    if (it2 != it1->second.end())
+    // copy one level
+    if (eqp)
     {
-      // copy one level
-      if (eqp)
+      if (it->second)
       {
-        if (it2->second)
-        {
-          eqp->d_node = it2->second->d_node;
-          eqp->d_id = it2->second->d_id;
-          eqp->d_children.insert(eqp->d_children.end(),
-                                 it2->second->d_children.begin(),
-                                 it2->second->d_children.end());
-        }
-        else
-        {
-          Assert(d_nodes[t1Id] == d_nodes[t2Id]);
-          Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
-          eqp->d_node = d_nodes[t1Id];
-        }
+        eqp->d_node = it->second->d_node;
+        eqp->d_id = it->second->d_id;
+        eqp->d_children.insert(eqp->d_children.end(),
+                               it->second->d_children.begin(),
+                               it->second->d_children.end());
       }
-      return;
+      else
+      {
+        // We may have cached null in its place, create the trivial proof now.
+        Assert(d_nodes[t1Id] == d_nodes[t2Id]);
+        Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
+        eqp->d_node = d_nodes[t1Id];
+      }
     }
+    return;
   }
-  cache[t1Id][t2Id] = eqp;
-  cache[t2Id][t1Id] = eqp;
+  cache[cacheKey] = eqp;
 
   // We can only explain the nodes that got merged
 #ifdef CVC4_ASSERTIONS
