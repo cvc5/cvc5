@@ -933,6 +933,7 @@ set(regress_0_tests
   regress0/uf/euf_simp12.smt
   regress0/uf/euf_simp13.smt
   regress0/uf/iso_brn001.smt
+  regress0/uf/issue2947.smt2
   regress0/uf/pred.smt
   regress0/uf/simple.01.cvc
   regress0/uf/simple.02.cvc
@@ -1625,6 +1626,7 @@ set(regress_1_tests
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
   regress1/sygus/issue2914.sy
+  regress1/sygus/issue2935.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
