@@ -2959,8 +2959,8 @@ KEYWORD
  * digit, and is not the special reserved symbols '!' or '_'.
  */
 SIMPLE_SYMBOL
-  : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)+
-  | ALPHA
+  : ALPHA (ALPHA | DIGIT | SYMBOL_CHAR)*
+  | SYMBOL_CHAR (ALPHA | DIGIT | SYMBOL_CHAR)+
   | SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
   ;
 
