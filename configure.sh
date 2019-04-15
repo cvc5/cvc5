@@ -74,7 +74,6 @@ Optional Path to Optional Packages:
   --lfsc-dir=PATH          path to top level of LFSC source tree
   --symfpu-dir=PATH        path to top level of SymFPU source tree
 
-Report bugs to <cvc4-bugs@cs.stanford.edu>.
 EOF
   exit 0
 }
