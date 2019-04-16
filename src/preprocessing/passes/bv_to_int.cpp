@@ -35,222 +35,166 @@ namespace passes {
 using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
-using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
-using NodeSet = std::unordered_set<Node, NodeHashFunction>;
 
-namespace {
-
-Node getNode(kind::Kind_t nodeKind, vector<Node> children) {
-	NodeBuilder<> builder(nodeKind);
-	uint32_t num_of_children = children.size();
-	for (uint32_t i=0; i < num_of_children; i++) {
-		builder << children[i];
-	}
-	Node result = builder;
-	result = Rewriter::rewrite(result);
-	return result;
-
+Node BVToInt::mkRangeConstraint(Node newVar, size_t k) {
+  Node lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), newVar);
+  Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
+  Node result = d_nm->mkNode(kind::AND, lower, upper);
+  return result;
 }
 
-Node pow2(uint32_t k, NodeManager* nm)
+Node BVToInt::pow2(Node n) {
+	  Node two_const = d_nm->mkConst<Rational>(2);
+    Node result = d_nm->mkNode(kind::POW, two_const, n);
+    return result;
+}
+
+Node BVToInt::pow2(size_t k)
 {
-	  Node two_const = nm->mkConst<Rational>(2);
-	  Node k_const = nm->mkConst<Rational>(k);
-	  vector<Node> children{ two_const, k_const };
-	  Node result = getNode(kind::POW, children);
+	  Node twoConst = d_nm->mkConst<Rational>(2);
+	  Node k_const = d_nm->mkConst<Rational>(k);
+	  Node result = d_nm->mkNode(kind::POW, twoConst, k_const);
 	  return result;
 }
 
-Node makeBinary(Node n, NodeMap binarizeCache)
+Node BVToInt::makeBinary(Node n)
 {
   vector<Node> toVisit;
   toVisit.push_back(n);
-  Node result = n;
   while (!toVisit.empty())
   {
     // The current node we are processing
     Node current = toVisit.back();
-    if (binarizeCache.find(current) == binarizeCache.end()) {
-      binarizeCache[current] = Node();
-      if (current.getNumChildren() > 0)
+    size_t numChildren = current.getNumChildren();
+    if (d_binarizeCache.find(current) == d_binarizeCache.end()) {
+      d_binarizeCache[current] = Node();
+      for (size_t i=0; i<numChildren; i++) 
       {
-        for (Node::iterator child_it = current.begin();
-             child_it != current.end();
-             ++child_it)
-        {
-          Node childNode = *child_it;
-	  toVisit.push_back(childNode);
-        }
+	      toVisit.push_back(current[i]);
       }
     }
-    else if (binarizeCache[current].isNull())
+    else if (d_binarizeCache[current].isNull())
     {
-      NodeBuilder<> builder(current.getKind());
-      for (unsigned i = 0; i < current.getNumChildren(); ++i)
-      {
-        builder << current[i];
-      }
-      if (current == n) {
-        result = builder;
-      }
-      binarizeCache[current] = result;
       toVisit.pop_back();
+      kind::Kind_t k = current.getKind();
+      if ((numChildren > 2)  && (k == kind::BITVECTOR_PLUS ||
+            k == kind::BITVECTOR_MULT ||
+            k == kind::BITVECTOR_AND ||
+            k == kind::BITVECTOR_OR)) {
+        Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
+        Node result = d_binarizeCache[current[0]];
+        for (unsigned i = 1; i < numChildren; i++)
+        {
+          Assert(d_binarizeCache.find(current[i]) != d_binarizeCache.end());
+          Node child = d_binarizeCache[current[i]];
+          result = d_nm->mkNode(current.getKind(), result, child);
+        }
+        d_binarizeCache[current] = result;
+      } else {
+        d_binarizeCache[current] = current;
+      }
     }
     else
     {
+      toVisit.pop_back();
       continue;
     }
   }
-  return result;
+  return d_binarizeCache[n];
 }
 
 //eliminate many bit-vector operators before the translation to integers.
-Node eliminationPass(Node n, NodeMap& eliminationCache){
+Node BVToInt::eliminationPass(Node n) {
   std::vector<Node> toVisit;
   toVisit.push_back(n);
+  Node current;
+  Node currentEliminated;
   while (!toVisit.empty()) {
-    Node current = toVisit.back();
+    current = toVisit.back();
     toVisit.pop_back();
-    if (eliminationCache.find(current) == eliminationCache.end()) {
-      //work
-      Kind k = current.getKind();
-
-
-
-
-      switch (k)
-      {
-        case kind::BITVECTOR_SDIV:
-	{
-	  Assert(RewriteRule<SdivEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SdivEliminate>::run<false>(current);
-          break;
-	}
-        case kind::BITVECTOR_SREM:
-	{
-	  Assert(RewriteRule<SremEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SremEliminate>::run<false>(current);
-          break;
-	}
-        case kind::BITVECTOR_SMOD:
-	{
-	  Assert(RewriteRule<SmodEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SmodEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_ITE:
-	{
-	  Unimplemented();
-	  break;
-	}
-	case kind::BITVECTOR_REPEAT:
-	{
-	  Assert(RewriteRule<RepeatEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<RepeatEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_SIGN_EXTEND:
-	{
-	  Assert(RewriteRule<SignExtendEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SignExtendEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_ROTATE_RIGHT:
-	{
-	  Assert(RewriteRule<RotateRightEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<RotateRightEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_ROTATE_LEFT:
-	{
-	  Assert(RewriteRule<RotateLeftEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<RotateLeftEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_COMP:
-	{
-	  Assert(RewriteRule<CompEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<CompEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_ULTBV:
-	{
-	  Unimplemented();
-	  break;
-	}
-	case kind::BITVECTOR_SLTBV:
-	{
-	  Unimplemented();
-	  break;
-	}
-	case kind::BITVECTOR_SLE:
-	{
-	  Assert(RewriteRule<SleEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SleEliminate>::run<false>(current);
-          break;
-	}
-	case kind::BITVECTOR_SLT:
-	{
-	  Assert(RewriteRule<SltEliminate>::applies(current));
-	  eliminationCache[current] = RewriteRule<SltEliminate>::run<false>(current);
-          break;
-	}
-	default: 
-	{
-	  eliminationCache[current] = current;
-	  break;  
-	}
-      }
-      if (eliminationCache.find(current) != eliminationCache.end() && current != eliminationCache[current]) {
-	toVisit.push_back(eliminationCache[current]);
+    if (current.isNull()) {
+      currentEliminated = toVisit.back();
+      toVisit.pop_back();
+      current = toVisit.back();
+      toVisit.pop_back();
+      size_t numChildren = currentEliminated.getNumChildren();
+      if (numChildren == 0) {
+        d_eliminationCache[current] = currentEliminated;
       } else {
-        size_t numChildren = eliminationCache[current].getNumChildren();
-        for (size_t i = 0; i < numChildren; i++) {
-          toVisit.push_back(eliminationCache[current][i]);
+        vector<Node> children;
+        for (size_t i=0; i<numChildren; i++) {
+          Assert(d_eliminationCache.find(currentEliminated[i]) != d_eliminationCache.end());
+          children.push_back(d_eliminationCache[currentEliminated[i]]);
         }
+        d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children);
       }
+    } else {
+        if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
+          continue;
+        } else {
+            currentEliminated = FixpointRewriteStrategy<
+            	 RewriteRule<SdivEliminate>,
+            	 RewriteRule<SremEliminate>,
+            	 RewriteRule<SmodEliminate>,
+            	 RewriteRule<RepeatEliminate>,
+            	 RewriteRule<SignExtendEliminate>,
+            	 RewriteRule<RotateRightEliminate>,
+            	 RewriteRule<RotateLeftEliminate>,
+            	 RewriteRule<CompEliminate>,
+            	 RewriteRule<SleEliminate>,
+            	 RewriteRule<SltEliminate>
+	            >::apply(current);
+            toVisit.push_back(current);
+            toVisit.push_back(currentEliminated);
+            toVisit.push_back(Node());
+            size_t numChildren = currentEliminated.getNumChildren();
+            for (size_t i = 0; i < numChildren; i++) {
+              toVisit.push_back(currentEliminated[i]);
+            }
+        }
     }
   }
-  return eliminationCache[n];
+  return d_eliminationCache[n];
 }
 
-Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap& bvToIntCache)
+Node BVToInt::bvToInt(Node n)
 {
-  NodeManager* nm = NodeManager::currentNM();
-  n = makeBinary(n, binarizeCache);
-  n = eliminationPass(n, eliminationCache);
+  n = makeBinary(n);
+  n = eliminationPass(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
-  Node one_const = nm->mkConst<Rational>(1);
+  Node one_const = d_nm->mkConst<Rational>(1);
+
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
     size_t currentNumChildren = current.getNumChildren();
-    if (bvToIntCache.find(current) == bvToIntCache.end()) {
-      bvToIntCache[current] = Node();
+    if (d_bvToIntCache.find(current) == d_bvToIntCache.end()) {
+      d_bvToIntCache[current] = Node();
       for (size_t i=0; i < currentNumChildren; i++) {
-	toVisit.push_back(current[i]);
+	      toVisit.push_back(current[i]);
       }
     } else {
-      if (!bvToIntCache[current].isNull()) {
-	//int version already computed. Do nothing.
-	toVisit.pop_back();
+      if (!d_bvToIntCache[current].isNull()) {
+	      toVisit.pop_back();
       } else {
-	//do actual work
         kind::Kind_t oldKind = current.getKind();
         if (currentNumChildren == 0) {
           if (current.isVar())
           {
             if (current.getType().isBitVector())
             {
-              bvToIntCache[current] = nm->mkSkolem("__bvToInt_var",
-                                    nm->integerType(),
-                                    "Variable introduced in bvToInt pass instead of original variable" + current.toString());
+              Node newVar = d_nm->mkSkolem("__bvToInt_var",
+                                    d_nm->integerType(),
+                                    "Variable introduced in bvToInt pass instead of original variable " + current.toString());
+
+              d_bvToIntCache[current] = newVar;
+              d_rangeAssertions.push_back(mkRangeConstraint(newVar, current.getType().getBitVectorSize()));
             }
             else
             {
-              AlwaysAssert(current.getType() == nm->booleanType());
-	      bvToIntCache[current] = current;
+              AlwaysAssert(current.getType() == d_nm->booleanType());
+	      d_bvToIntCache[current] = current;
             }
           }
           else if (current.isConst())
@@ -261,12 +205,12 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
               {
                 BitVector constant(current.getConst<BitVector>());
 	        Integer c = constant.toInteger();
-                bvToIntCache[current] = nm->mkConst<Rational>(c);
+                d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
                 break;
               }
               case kind::CONST_BOOLEAN: 
 	      {
-                bvToIntCache[current] = current;
+                d_bvToIntCache[current] = current;
 	        break;
 	      }
               default:
@@ -286,29 +230,35 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
 	} else {
 	  vector<Node> intized_children;
 	  for (size_t i=0; i<currentNumChildren; i++) {
-	    intized_children.push_back(bvToIntCache[current[i]]);
+	    intized_children.push_back(d_bvToIntCache[current[i]]);
 	  }
 	  switch (oldKind)
           {
             case kind::BITVECTOR_PLUS: 
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2_bvsize = pow2(bvsize, nm);
-              Node plus = getNode(kind::PLUS, intized_children);
-              bvToIntCache[current] = getNode(kind::INTS_MODULUS_TOTAL, {plus, pow2_bvsize});
+              Node pow2BvSize = pow2(bvsize);
+              Node plus = d_nm->mkNode(kind::PLUS, intized_children);
+              vector<Node> children = {plus, pow2BvSize};
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
               break;
             }
             case kind::BITVECTOR_MULT: 
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2_bvsize = pow2(bvsize, nm);
-              Node mul = getNode(kind::MULT, intized_children);
-              bvToIntCache[current] = getNode(kind::INTS_MODULUS_TOTAL, {mul, pow2_bvsize});
+              Node pow2BvSize = pow2(bvsize);
+              Node mul = d_nm->mkNode(kind::MULT, intized_children);
+              vector<Node> children = {mul, pow2BvSize};
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
               break;
             }
             case kind::BITVECTOR_SUB:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              Node pow2BvSize = pow2(bvsize);
+              Node sub = d_nm->mkNode(kind::MINUS, intized_children);
+              vector<Node> children = {sub, pow2BvSize};
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
               break;
             }
             case kind::BITVECTOR_UDIV:
@@ -331,34 +281,22 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
               Unimplemented();
               break;
             }
-            case kind::BITVECTOR_SDIV:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_SREM:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_SMOD:
-            {
-              Unimplemented();
-              break;
-            }
             case kind::BITVECTOR_NEG: 
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2_bvsize = pow2(bvsize, nm);
-              bvToIntCache[current] = getNode(kind::MINUS, {pow2_bvsize, intized_children[0]});
+              Node pow2BvSize = pow2(bvsize);
+              vector<Node> children = {pow2BvSize, intized_children[0]};
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::MINUS, children));
               break;
             }  
             case kind::BITVECTOR_NOT: 
             {
        	      uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2_bvsize = pow2(bvsize, nm);
-              Node max = getNode(kind::MINUS, {pow2_bvsize, one_const});
-              bvToIntCache[current] = getNode(kind::MINUS, {pow2_bvsize, intized_children[0]});
+              Node pow2BvSize = pow2(bvsize);
+              vector<Node> children = {pow2BvSize, one_const};
+              Node max = d_nm->mkNode(kind::MINUS, children);
+              children = {pow2BvSize, intized_children[0]};
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::MINUS, children));
               break;
             }  
             case kind::BITVECTOR_AND:
@@ -413,17 +351,31 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
             }
             case kind::BITVECTOR_CONCAT:
             {
-              Unimplemented();
+              size_t bvsizeRight = current[1].getType().getBitVectorSize();
+              Node pow2BvSizeRight = pow2(bvsizeRight);
+              Node a = d_nm->mkNode(kind::MULT, intized_children[0], pow2BvSizeRight);
+              Node b = intized_children[1];
+              Node sum = d_nm->mkNode(kind::PLUS, a, b);
+              d_bvToIntCache[current] = Rewriter::rewrite(sum);
               break;
             }
             case kind::BITVECTOR_EXTRACT:
             {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_REPEAT:
-            {
-              Unimplemented();
+              //current = a[i:j]
+              Node a = current[0];
+              Node i = current[1];
+              Node j = current[2];
+              if (i.isConst() && j.isConst()) {
+                Assert(d_bvToIntCache.find(a) != d_bvToIntCache.end());
+                Node div = d_nm->mkNode(kind::INTS_DIVISION, d_bvToIntCache[a], pow2(j));
+                Node difference = d_nm->mkNode(kind::MINUS, i, j);
+                Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
+                Node pow = pow2(plus);
+                Node mod = d_nm->mkNode(kind::INTS_MODULUS, div, pow);
+                d_bvToIntCache[current] = Rewriter::rewrite(mod);
+              } else {
+                Unimplemented();
+              }
               break;
             }
             case kind::BITVECTOR_ZERO_EXTEND:
@@ -432,21 +384,6 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
               break;
             }
             case kind::BITVECTOR_SIGN_EXTEND:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_ROTATE_RIGHT:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_ROTATE_LEFT:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_COMP:
             {
               Unimplemented();
               break;
@@ -463,39 +400,39 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
             }
             case kind::EQUAL:
             {
-              bvToIntCache[current] = getNode(kind::EQUAL, intized_children);
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, intized_children));
               break;
             }
             case kind::BITVECTOR_ULT:
             {
-              bvToIntCache[current] = getNode(kind::LT, intized_children);
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::LT, intized_children));
               break;
             }
             case kind::BITVECTOR_ULE:
             {
-              bvToIntCache[current] = getNode(kind::LEQ, intized_children);
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::LEQ, intized_children));
               break;
             }
             case kind::BITVECTOR_UGT:
             {
-              bvToIntCache[current] = getNode(kind::GT, intized_children);
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::GT, intized_children));
               break;
             }
             case kind::BITVECTOR_UGE:
             {
-              bvToIntCache[current] = getNode(kind::GEQ, intized_children);
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::GEQ, intized_children));
               break;
             }
             case kind::ITE:
 	    {
-                bvToIntCache[current] = getNode(oldKind, intized_children);
+                d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(oldKind, intized_children));
                 break;
 	    }
             default:
 	    {
               if (Theory::theoryOf(current) == THEORY_BOOL)
               {
-                bvToIntCache[current] = getNode(oldKind, intized_children);
+                d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(oldKind, intized_children));
                 break;
               } else {
                 throw TypeCheckingException(
@@ -509,25 +446,30 @@ Node bvToInt(Node n, NodeMap& binarizeCache, NodeMap& eliminationCache, NodeMap&
       }
     }
   }
-  return bvToIntCache[n];
+  std::cout << "panda 1 " << n.toString() << std::endl;
+  std::cout << "panda 2 " << d_bvToIntCache[n].toString() << std::endl;
+  return d_bvToIntCache[n];
 }
-}  // namespace
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "bv-to-int"){};
+    : PreprocessingPass(preprocContext, "bv-to-int"),
+      d_binarizeCache(),
+      d_eliminationCache(),
+      d_bvToIntCache(),
+      d_rangeAssertions()
+{d_nm = NodeManager::currentNM();};
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
   AlwaysAssert(!options::incrementalSolving());
-  NodeMap binarizeCache;
-  NodeMap eliminationCache;
-  NodeMap bvToIntCache;
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, bvToInt((*assertionsToPreprocess)[i], binarizeCache, eliminationCache, bvToIntCache));
+        i, bvToInt((*assertionsToPreprocess)[i]));
   }
+  Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, d_rangeAssertions));
+  assertionsToPreprocess->push_back(rangeAssertions);
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
