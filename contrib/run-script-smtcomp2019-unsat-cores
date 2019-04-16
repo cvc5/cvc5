@@ -1,0 +1,83 @@
+#!/bin/bash
+
+cvc4=./cvc4
+bench="$1"
+
+logic=$(expr "$(grep -m1 '^[^;]*set-logic' "$bench")" : ' *(set-logic  *\([A-Z_]*\) *) *$')
+
+# use: finishwith [params..]
+# to run cvc4 and let it output whatever it will to stdout.
+function finishwith {
+  $cvc4 -L smt2.6 --no-incremental --no-checking --no-interactive "$@" $bench
+}
+
+case "$logic" in
+
+QF_LRA)
+  finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
+  ;;
+QF_LIA)
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  ;;
+QF_NIA)
+  finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
+  ;;
+QF_NRA)
+  finishwith --nl-ext --nl-ext-tplanes
+  ;;
+# all logics with UF + quantifiers should either fall under this or special cases below
+ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
+  finishwith --full-saturate-quant
+  ;;
+UFBV)
+  finishwith --finite-model-find
+  ;;
+BV)
+  finishwith --full-saturate-quant --decision=internal
+  ;;
+LIA|LRA)
+  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
+  ;;
+NIA|NRA)
+  finishwith --full-saturate-quant --cbqi-nested-qe --decision=internal
+  ;;
+QF_AUFBV)
+  finishwith --decision=justification-stoponly
+  ;;
+QF_ABV)
+  finishwith --ite-simp --simp-with-care --arrays-weak-equiv
+  ;;
+QF_UFBV)
+  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
+  ;;
+QF_BV)
+  finishwith --bv-div-zero-const --bv-eq-slicer=auto --no-bv-abstraction
+  ;;
+QF_AUFLIA)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
+  ;;
+QF_AX)
+  finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=internal
+  ;;
+QF_AUFNIA)
+  finishwith --decision=justification --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_ALIA)
+  finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
+  ;;
+QF_ABVFP)
+  finishwith
+  ;;
+QF_BVFP)
+  finishwith
+  ;;
+QF_FP)
+  finishwith
+  ;;
+*)
+  # just run the default
+  finishwith
+  ;;
+
+esac
+

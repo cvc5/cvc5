@@ -1474,15 +1474,6 @@ header = "options/quantifiers_options.h"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
 
 [[option]]
-  name       = "recurseCbqi"
-  category   = "regular"
-  long       = "cbqi-recurse"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "turns on recursive counterexample-based quantifier instantiation"
-
-[[option]]
   name       = "cbqiSat"
   category   = "regular"
   long       = "cbqi-sat"
