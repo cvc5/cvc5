@@ -3225,6 +3225,9 @@ void SmtEnginePrivate::processAssertions() {
   
   if (options::solveBVAsInt() > 0) { 
         d_passes["bv-to-int"]->apply(&d_assertions);
+        //bv-to-int may introduce nodes that need to be substitued.
+        //For example, it introduces div nodes for arithmetics.
+        d_passes["apply-substs"]->apply(&d_assertions);
   }
 
   if (options::solveIntAsBV() > 0)

@@ -28,14 +28,30 @@ namespace CVC4 {
 namespace preprocessing {
 namespace passes {
 
+
+using NodeMap = std::unordered_map<Node, Node, NodeHashFunction>;
+
 class BVToInt : public PreprocessingPass
 {
  public:
   BVToInt(PreprocessingPassContext* preprocContext);
 
  protected:
-  PreprocessingPassResult applyInternal(
+    PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+
+    Node bvToInt(Node n);
+    Node mkRangeConstraint(Node newVar, size_t k);
+    Node eliminationPass(Node n);
+    Node makeBinary(Node n);
+    Node pow2(size_t k);
+    Node pow2(Node n);
+
+    NodeMap d_binarizeCache;
+    NodeMap d_eliminationCache;
+    NodeMap d_bvToIntCache;
+    NodeManager* d_nm;
+    vector<Node> d_rangeAssertions;
 };
 
 }  // namespace passes
