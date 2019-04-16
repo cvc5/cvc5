@@ -126,11 +126,8 @@ private: //for completing match
   void getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
   //optimization: number of variables set, to track when we can stop
   std::map< int, bool > d_vars_set;
-  std::map< Node, bool > d_ground_terms;
   std::vector< Node > d_extra_var;
 public:
-  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
-  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
   bool isBaseMatchComplete();
 public:
   QuantInfo();

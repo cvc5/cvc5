@@ -1031,7 +1031,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
             else
             {
               d_qni_gterm[i] = d_n[i];
-              qi->setGroundSubterm(d_n[i]);
             }
           }
           d_type = d_n.getKind() == EQUAL ? typ_eq : typ_tconstraint;
@@ -1042,7 +1041,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
       //we will just evaluate
       d_n = n;
       d_type = typ_ground;
-      qi->setGroundSubterm( d_n );
     }
   }
   Trace("qcf-qregister-debug")  << "Done make match gen " << n << ", type = ";
