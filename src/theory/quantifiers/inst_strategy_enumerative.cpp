@@ -240,13 +240,13 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
       {
         while (index >= 0 && index < (int)f[0].getNumChildren())
         {
-          if (index == (int)childIndex.size())
+          if (index == static_cast<int>(childIndex.size()))
           {
             childIndex.push_back(-1);
           }
           else
           {
-            Assert(index == (int)(childIndex.size()) - 1);
+            Assert(index == static_cast<int>(childIndex.size()) - 1);
             unsigned nv = childIndex[index] + 1;
             if (nv < maxs[index] && nv <= max_i)
             {
@@ -263,15 +263,18 @@ bool InstStrategyEnum::process(Node f, bool fullEffort, bool isRd)
         success = index >= 0;
         if (success)
         {
-          Trace("inst-alg-rd") << "Try instantiation { ";
-          for (unsigned j = 0; j < childIndex.size(); j++)
+          if (Trace.isOn("inst-alg-rd"))
           {
-            Trace("inst-alg-rd") << childIndex[j] << " ";
+            Trace("inst-alg-rd") << "Try instantiation { ";
+            for (unsigned i : childIndex)
+            {
+              Trace("inst-alg-rd") << i << " ";
+            }
+            Trace("inst-alg-rd") << "}" << std::endl;
           }
-          Trace("inst-alg-rd") << "}" << std::endl;
           // try instantiation
           std::vector<Node> terms;
-          for (unsigned i = 0; i < f[0].getNumChildren(); i++)
+          for (unsigned i = 0, nchild = f[0].getNumChildren(); i < nchild; i++)
           {
             if (max_zero[i])
             {
