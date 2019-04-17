@@ -47,8 +47,7 @@ DagificationVisitor::~DagificationVisitor() {
 
 bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   Kind ck = current.getKind();
-  if (ck == kind::FORALL || ck == kind::EXISTS || ck == kind::LAMBDA
-      || ck == kind::CHOICE)
+  if (current.isClosure())
   {
     // for quantifiers, we visit them but we don't recurse on them
     visit(current, parent);

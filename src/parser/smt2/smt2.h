@@ -319,15 +319,25 @@ private:
     // that CVC4 permits as N-ary but the standard requires is binary
     if(strictModeEnabled()) {
       switch(kind) {
-      case kind::BITVECTOR_CONCAT:
       case kind::BITVECTOR_AND:
-      case kind::BITVECTOR_OR:
-      case kind::BITVECTOR_XOR:
       case kind::BITVECTOR_MULT:
+      case kind::BITVECTOR_OR:
       case kind::BITVECTOR_PLUS:
+      case kind::BITVECTOR_XOR:
+        if (numArgs != 2 && !v2_6())
+        {
+          parseError(
+              "Operator requires exactly 2 arguments in strict SMT-LIB "
+              "compliance mode (for versions <2.6): "
+              + kindToString(kind));
+        }
+        break;
+      case kind::BITVECTOR_CONCAT:
         if(numArgs != 2) {
-          parseError("Operator requires exact 2 arguments in strict SMT-LIB "
-                     "compliance mode: " + kindToString(kind));
+          parseError(
+              "Operator requires exactly 2 arguments in strict SMT-LIB "
+              "compliance mode: "
+              + kindToString(kind));
         }
         break;
       default:

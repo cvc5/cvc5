@@ -2,7 +2,7 @@
 /*! \file bool_to_bv_mode.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Makai Mann, Tim King, Morgan Deters
+ **   Makai Mann
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.

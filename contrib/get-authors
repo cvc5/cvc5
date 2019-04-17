@@ -66,6 +66,7 @@ while [ $# -gt 0 ]; do
     sed 's/Martin/Martin Brain/' | \
     sed 's/justinxu421/Justin Xu/' | \
     sed 's/yoni206/Yoni Zohar/' | \
+    sed 's/ayveejay/Andrew V. Jones/' | \
 
     # Remove first columns from uniq -c (number of lines)
     awk '{$1=""; print}' | \

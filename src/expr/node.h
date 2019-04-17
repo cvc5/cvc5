@@ -468,6 +468,10 @@ public:
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
 
+  /**
+   * Returns true if this node represents a closure, that is an expression
+   * that binds variables.
+   */
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
