@@ -2,9 +2,9 @@
 /*! \file cnf_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Tim King
+ **   Liana Hadarean, Guy Katz, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -29,6 +29,7 @@
 #include "proof/clause_id.h"
 #include "proof/lemma_proof.h"
 #include "proof/sat_proof.h"
+#include "util/maybe.h"
 #include "util/proof.h"
 
 namespace CVC4 {
@@ -164,6 +165,10 @@ public:
                            std::ostream& paren,
                            ProofLetMap &letMap) = 0;
 
+  // Detects whether a clause has x v ~x for some x
+  // If so, returns the positive occurence's idx first, then the negative's
+  static Maybe<std::pair<size_t, size_t>> detectTrivialTautology(
+      const prop::SatClause& clause);
   virtual void printClause(const prop::SatClause& clause,
                            std::ostream& os,
                            std::ostream& paren) = 0;

@@ -2,9 +2,9 @@
 /*! \file theory_model_builder.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Clark Barrett, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -46,6 +46,14 @@ bool TheoryEngineModelBuilder::isAssignable(TNode n)
       // might be a function field
       return !n.getType().isFunction();
     }
+  }
+  else if (n.getKind() == kind::FLOATINGPOINT_COMPONENT_SIGN)
+  {
+    // Extracting the sign of a floating-point number acts similar to a
+    // selector on a datatype, i.e. if `(sign x)` wasn't assigned a value, we
+    // can pick an arbitrary one. Note that the other components of a
+    // floating-point number should always be assigned a value.
+    return true;
   }
   else
   {

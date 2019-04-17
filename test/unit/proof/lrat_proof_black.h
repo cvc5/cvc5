@@ -91,5 +91,6 @@ void LfscProofBlack::testOutputAsLfsc()
       "    RATHintsn)) "
       "LRATProofn)))";
 
-  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()), filterWhitespace(expectedLfsc));
+  TS_ASSERT_EQUALS(filterWhitespace(lfsc.str()),
+                   filterWhitespace(expectedLfsc));
 }

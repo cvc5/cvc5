@@ -2,9 +2,9 @@
 /*! \file bitvector.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Dejan Jovanovic, Liana Hadarean
+ **   Aina Niemetz, Dejan Jovanovic, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -66,11 +66,29 @@ class CVC4_PUBLIC BitVector
   {
   }
 
+  /**
+   * BitVector constructor.
+   *
+   * The value of the bit-vector is passed in as string of base 2, 10 or 16.
+   * The size of resulting bit-vector is
+   * - base  2: the size of the binary string
+   * - base 10: the min. size required to represent the decimal as a bit-vector
+   * - base 16: the max. size required to represent the hexadecimal as a
+   *            bit-vector (4 * size of the given value string)
+   *
+   * @param num The value of the bit-vector in string representation.
+   * @param base The base of the string representation.
+   */
   BitVector(const std::string& num, unsigned base = 2)
   {
-    CheckArgument(base == 2 || base == 16, base);
-    d_size = base == 2 ? num.size() : num.size() * 4;
+    CheckArgument(base == 2 || base == 10 || base == 16, base);
     d_value = Integer(num, base);
+    switch (base)
+    {
+      case 10: d_size = d_value.length(); break;
+      case 16: d_size = num.size() * 4; break;
+      default: d_size = num.size();
+    }
   }
 
   ~BitVector() {}

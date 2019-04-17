@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file strings.cpp
+/*! \file strings-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Clark Barrett, Paul Meng, Tim King
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2017 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace CVC4::api;
@@ -43,9 +43,9 @@ int main()
   Term ab  = slv.mkString(str_ab);
   Term abc = slv.mkString("abc");
   // String variables
-  Term x = slv.mkVar("x", string);
-  Term y = slv.mkVar("y", string);
-  Term z = slv.mkVar("z", string);
+  Term x = slv.mkVar(string, "x");
+  Term y = slv.mkVar(string, "y");
+  Term z = slv.mkVar(string, "z");
 
   // String concatenation: x.ab.y
   Term lhs = slv.mkTerm(STRING_CONCAT, x, ab, y);
@@ -70,8 +70,8 @@ int main()
     slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
   // String variables
-  Term s1 = slv.mkVar("s1", string);
-  Term s2 = slv.mkVar("s2", string);
+  Term s1 = slv.mkVar(string, "s1");
+  Term s2 = slv.mkVar(string, "s2");
   // String concatenation: s1.s2
   Term s = slv.mkTerm(STRING_CONCAT, s1, s2);
 

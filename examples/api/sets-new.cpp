@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file sets.cpp
+/*! \file sets-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Kshitij Bansal
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace std;
@@ -40,9 +40,9 @@ int main()
   // Verify union distributions over intersection
   // (A union B) intersection C = (A intersection C) union (B intersection C)
   {
-    Term A = slv.mkVar("A", set);
-    Term B = slv.mkVar("B", set);
-    Term C = slv.mkVar("C", set);
+    Term A = slv.mkVar(set, "A");
+    Term B = slv.mkVar(set, "B");
+    Term C = slv.mkVar(set, "C");
 
     Term unionAB = slv.mkTerm(UNION, A, B);
     Term lhs = slv.mkTerm(INTERSECTION, unionAB, C);
@@ -59,7 +59,7 @@ int main()
 
   // Verify emptset is a subset of any set
   {
-    Term A = slv.mkVar("A", set);
+    Term A = slv.mkVar(set, "A");
     Term emptyset = slv.mkEmptySet(set);
 
     Term theorem = slv.mkTerm(SUBSET, emptyset, A);
@@ -81,7 +81,7 @@ int main()
     Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
     Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);
 
-    Term x = slv.mkVar("x", integer);
+    Term x = slv.mkVar(integer, "x");
 
     Term e = slv.mkTerm(MEMBER, x, intersection);
 

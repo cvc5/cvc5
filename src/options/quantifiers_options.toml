@@ -456,6 +456,15 @@ header = "options/quantifiers_options.h"
   help       = "interleave full saturate instantiation with other techniques"
 
 [[option]]
+  name       = "fullSaturateStratify"
+  category   = "regular"
+  long       = "fs-stratify"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
+
+[[option]]
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
@@ -875,6 +884,15 @@ header = "options/quantifiers_options.h"
   default    = "false"
   read_only  = false
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
+
+[[option]]
+  name       = "sygusAbduct"
+  category   = "regular"
+  long       = "sygus-abduct"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "compute abductions using sygus"
 
 [[option]]
   name       = "ceGuidedInst"
@@ -1428,6 +1446,7 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
@@ -1453,15 +1472,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "recurseCbqi"
-  category   = "regular"
-  long       = "cbqi-recurse"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "turns on recursive counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cbqiSat"

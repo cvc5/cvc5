@@ -2,9 +2,9 @@
 /*! \file Cvc.g
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Christopher L. Conway, Andrew Reynolds
+ **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1552,9 +1552,6 @@ booleanBinop[unsigned& op]
   | OR_TOK
   | XOR_TOK
   | AND_TOK
-  | JOIN_TOK
-  | PRODUCT_TOK
-  | JOIN_IMAGE_TOK  
   ;
 
 comparison[CVC4::Expr& f]
@@ -1705,9 +1702,8 @@ uminusTerm[CVC4::Expr& f]
   unsigned minusCount = 0;
 }
     /* Unary minus */
-  : (MINUS_TOK { ++minusCount; })+ bvBinaryOpTerm[f]
+  : (MINUS_TOK { ++minusCount; })* bvBinaryOpTerm[f]
     { while(minusCount > 0) { --minusCount; f = MK_EXPR(CVC4::kind::UMINUS, f); } }
-  | bvBinaryOpTerm[f]
   ;
 
 /** Parses bitvectors.  Starts with binary operators @, &, and |. */
@@ -1734,28 +1730,27 @@ bvNegTerm[CVC4::Expr& f]
     /* BV neg */
   : BVNEG_TOK bvNegTerm[f]
     { f = f.getType().isSet() ? MK_EXPR(CVC4::kind::COMPLEMENT, f) : MK_EXPR(CVC4::kind::BITVECTOR_NOT, f); }
-  | relationTerm[f]
+  | relationBinopTerm[f]
   ;
 
-relationTerm[CVC4::Expr& f]
-    /* relation terms */
-  : TRANSPOSE_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
-  | TRANSCLOSURE_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
-  | TUPLE_TOK LPAREN relationTerm[f] RPAREN
-    { std::vector<Type> types;
-      std::vector<Expr> args;
-      args.push_back(f);
-	    types.push_back(f.getType());
-      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
-      const Datatype& dt = t.getDatatype();
-      args.insert( args.begin(), dt[0].getConstructor() );
-      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
-    }
-  | IDEN_TOK relationTerm[f]
-    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
-  | postfixTerm[f]
+relationBinop[unsigned& op]
+@init {
+  op = LT(1)->getType(LT(1));
+}
+  : JOIN_TOK
+  | PRODUCT_TOK
+  | JOIN_IMAGE_TOK
+  ;
+
+relationBinopTerm[CVC4::Expr& f]
+@init {
+  std::vector<CVC4::Expr> expressions;
+  std::vector<unsigned> operators;
+  unsigned op;
+}
+  : postfixTerm[f] { expressions.push_back(f); }
+    ( relationBinop[op] postfixTerm[f] { operators.push_back(op); expressions.push_back(f); } )*
+    { f = createPrecedenceTree(PARSER_STATE, EXPR_MANAGER, expressions, operators); }
   ;
 
 /**
@@ -1775,7 +1770,7 @@ postfixTerm[CVC4::Expr& f]
   std::string id;
   Type t;
 }
-  : ( bvTerm[f]
+  : ( relationTerm[f]
     ( /* array select / bitvector extract */
       LBRACKET
         ( formula[f2] { extract = false; }
@@ -1883,7 +1878,28 @@ postfixTerm[CVC4::Expr& f]
       }
     )?
   ;
-
+  
+relationTerm[CVC4::Expr& f]
+    /* relation terms */
+  : TRANSPOSE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TRANSPOSE, f); } 
+  | TRANSCLOSURE_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::TCLOSURE, f); }
+  | TUPLE_TOK LPAREN formula[f] RPAREN
+    { std::vector<Type> types;
+      std::vector<Expr> args;
+      args.push_back(f);
+      types.push_back(f.getType());
+      DatatypeType t = EXPR_MANAGER->mkTupleType(types);
+      const Datatype& dt = t.getDatatype();
+      args.insert( args.begin(), dt[0].getConstructor() );
+      f = MK_EXPR(kind::APPLY_CONSTRUCTOR, args);
+    }
+  | IDEN_TOK LPAREN formula[f] RPAREN
+    { f = MK_EXPR(CVC4::kind::IDEN, f); }                 
+  | bvTerm[f]
+  ;
+  
 bvTerm[CVC4::Expr& f]
 @init {
   Expr f2;

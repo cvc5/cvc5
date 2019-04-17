@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -472,7 +472,7 @@ class TheoryStringsRewriter {
    * @return true node if it can be shown that `a` contains `b`, false node if
    * it can be shown that `a` does not contain `b`, null node otherwise
    */
-  static Node checkEntailContains(Node a, Node b, bool fullRewriter = false);
+  static Node checkEntailContains(Node a, Node b, bool fullRewriter = true);
 
   /** entail non-empty
    *

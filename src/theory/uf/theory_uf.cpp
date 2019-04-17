@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -19,17 +19,18 @@
 
 #include <memory>
 
+#include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
 #include "options/smt_options.h"
+#include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "proof/proof_manager.h"
 #include "proof/theory_proof.h"
 #include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
-#include "theory/uf/theory_uf_strong_solver.h"
-#include "options/theory_options.h"
 #include "theory/uf/theory_uf_rewriter.h"
+#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 
@@ -186,22 +187,67 @@ Node TheoryUF::getApplyUfForHoApply( Node node ) {
   std::vector< TNode > args;
   Node f = TheoryUfRewriter::decomposeHoApply( node, args, true );
   Node new_f = f;
+  NodeManager* nm = NodeManager::currentNM();
   if( !TheoryUfRewriter::canUseAsApplyUfOperator( f ) ){
     NodeNodeMap::const_iterator itus = d_uf_std_skolem.find( f );
     if( itus==d_uf_std_skolem.end() ){
-      // introduce skolem to make a standard APPLY_UF
-      new_f = NodeManager::currentNM()->mkSkolem( "app_uf", f.getType() );
-      Node lem = new_f.eqNode( f );
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(f, fvs);
+      Node lem;
+      if (!fvs.empty())
+      {
+        std::vector<TypeNode> newTypes;
+        std::vector<Node> vs;
+        std::vector<Node> nvs;
+        for (const Node& v : fvs)
+        {
+          TypeNode vt = v.getType();
+          newTypes.push_back(vt);
+          Node nv = nm->mkBoundVar(vt);
+          vs.push_back(v);
+          nvs.push_back(nv);
+        }
+        TypeNode ft = f.getType();
+        std::vector<TypeNode> argTypes = ft.getArgTypes();
+        TypeNode rangeType = ft.getRangeType();
+
+        newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
+        TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
+        new_f = nm->mkSkolem("app_uf", nft);
+        for (const Node& v : vs)
+        {
+          new_f = nm->mkNode(kind::HO_APPLY, new_f, v);
+        }
+        Assert(new_f.getType() == f.getType());
+        Node eq = new_f.eqNode(f);
+        Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
+        lem = nm->mkNode(
+            kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, nvs), seq);
+      }
+      else
+      {
+        // introduce skolem to make a standard APPLY_UF
+        new_f = nm->mkSkolem("app_uf", f.getType());
+        lem = new_f.eqNode(f);
+      }
       Trace("uf-ho-lemma") << "uf-ho-lemma : Skolem definition for apply-conversion : " << lem << std::endl;
       d_out->lemma( lem );
       d_uf_std_skolem[f] = new_f;
     }else{
       new_f = (*itus).second;
     }
+    // unroll the HO_APPLY, adding to the first argument position
+    // Note arguments in the vector args begin at position 1.
+    while (new_f.getKind() == kind::HO_APPLY)
+    {
+      args.insert(args.begin() + 1, new_f[1]);
+      new_f = new_f[0];
+    }
   }
   Assert( TheoryUfRewriter::canUseAsApplyUfOperator( new_f ) );
   args[0] = new_f;
-  Node ret = NodeManager::currentNM()->mkNode( kind::APPLY_UF, args );
+  Node ret = nm->mkNode(kind::APPLY_UF, args);
+  Assert(ret.getType() == node.getType());
   return ret;
 }
 

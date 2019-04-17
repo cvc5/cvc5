@@ -2,9 +2,9 @@
 /*! \file options_template.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Mathias Preiner
+ **   Tim King, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -446,7 +446,7 @@ Languages currently supported as arguments to the -L / --lang option:\n\
   smt2.5 | smtlib2.5             SMT-LIB format 2.5\n\
   smt2.6 | smtlib2.6             SMT-LIB format 2.6\n\
   smt2.6.1 | smtlib2.6.1         SMT-LIB format 2.6 with support for the strings standard\n\
-  tptp                           TPTP format (cnf and fof)\n\
+  tptp                           TPTP format (cnf, fof and tff)\n\
   sygus                          SyGuS format\n\
 \n\
 Languages currently supported as arguments to the --output-lang option:\n\

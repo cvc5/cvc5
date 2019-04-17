@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -459,7 +459,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::VARIABLE;
   }
-  
+
   /**
    * Returns true if this node represents a nullary operator
    */
@@ -467,6 +467,7 @@ public:
     assertTNodeNotExpired();
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
+
   /**
    * Returns true if this node represents a closure, that is an expression
    * that binds variables.

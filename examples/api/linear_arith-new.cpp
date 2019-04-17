@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file linear_arith.cpp
+/*! \file linear_arith-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Aina Niemetz
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,7 +17,7 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace std;
@@ -36,8 +36,8 @@ int main()
   Sort integer = slv.getIntegerSort();
 
   // Variables
-  Term x = slv.mkVar("x", integer);
-  Term y = slv.mkVar("y", real);
+  Term x = slv.mkVar(integer, "x");
+  Term y = slv.mkVar(real, "y");
 
   // Constants
   Term three = slv.mkReal(3);

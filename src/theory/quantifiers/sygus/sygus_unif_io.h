@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -218,7 +218,24 @@ class SubsumeTrie
                        int status,
                        bool checkExistsOnly,
                        bool checkSubsume);
-  /** helper function for above functions */
+  /** helper function for above functions
+   *
+   * This adds to v[-1], v[0], v[1] the children of the trie that occur
+   * along paths that contain only false (v[-1]), a mix of true/false (v[0]),
+   * and only true (v[1]) values for respectively for relevant points.
+   *
+   * vals/pol is used to determine the relevant points, which impacts which
+   * paths of the trie to traverse on this call.
+   * In particular, all points such that (pol ? vals[index] : !vals[index])
+   * are relevant.
+   *
+   * Paths that contain an unknown value for any relevant point are not
+   * traversed. In the larger picture, this ensures that terms are not used in a
+   * way such that their unknown value is relevant to the overall behavior of
+   * a synthesis solution.
+   *
+   * status holds the current value of v (0,1,-1) that we will be adding to.
+   */
   void getLeavesInternal(const std::vector<Node>& vals,
                          bool pol,
                          std::map<int, std::vector<Node>>& v,
