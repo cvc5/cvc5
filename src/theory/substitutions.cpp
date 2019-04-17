@@ -57,7 +57,8 @@ Node SubstitutionMap::internalSubstitute(TNode t, NodeCache& cache) {
       continue;
     }
 
-    if (!d_substituteUnderQuantifiers && current.isClosure()) {
+    if (!d_substituteUnderQuantifiers && current.isClosure())
+    {
       Debug("substitution::internal") << "--not substituting under quantifier" << endl;
       cache[current] = current;
       toVisit.pop_back();
