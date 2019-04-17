@@ -1720,7 +1720,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
           // However, we do not make a determination whether n can be marked
           // reduced since this argument may be circular: we may infer than n
           // can be reduced to something else, but that thing may argue that it
-          // can be reduced to n, in theory).
+          // can be reduced to n, in theory.
           sendInternalInference(
               einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
         }
