@@ -603,10 +603,12 @@ Node TermDb::evaluateTerm2(TNode n,
     }
     else
     {
+      // get the (indexed) operator of n, if it exists
       TNode f = getMatchOperator(n);
       // if it is an indexed term, return the congruent term
       if (!f.isNull())
       {
+        // if f is congruent to a term indexed by this class
         TNode nn = qy->getCongruentTerm(f, args);
         Trace("term-db-eval") << "  got congruent term " << nn
                               << " from DB for " << n << std::endl;

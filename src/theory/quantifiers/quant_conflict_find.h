@@ -271,7 +271,7 @@ public:
   /** is n a propagating instance?
    *
    * A propagating instance is any formula that consists of Boolean connectives,
-   * equality, quantified formulas, and terms that existing in the current
+   * equality, quantified formulas, and terms that exist in the current
    * context (those in the master equality engine).
    *
    * Notice the distinction that quantified formulas that do not appear in the

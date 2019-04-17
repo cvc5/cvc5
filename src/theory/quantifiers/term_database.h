@@ -180,11 +180,12 @@ class TermDb : public QuantifiersUtil {
    *
    * Returns a term n' such that n = n' is entailed based on the equality
    * information qy.  This function may generate new terms. In particular,
-   * we typically rewrite maximal subterms of n to terms that exist in the
-   * equality engine specified by qy.
+   * we typically rewrite subterms of n of maximal size to terms that exist in
+   * the equality engine specified by qy.
    *
-   * useEntailmentTests is whether to use the theory engine's entailmentCheck
-   * call, for increased precision. This is not frequently used.
+   * useEntailmentTests is whether to call the theory engine's entailmentTest
+   * on literals n for which this call fails to find a term n' that is
+   * equivalent to n, for increased precision. This is not frequently used.
    *
    * The vector exp stores the explanation for why n evaluates to that term,
    * that is, if this call returns a non-null node n', then:
