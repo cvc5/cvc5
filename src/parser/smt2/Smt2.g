@@ -1835,7 +1835,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         if (args.size() > 2)
         {
           if (kind == CVC4::kind::INTS_DIVISION || kind == CVC4::kind::XOR
-              || kind == CVC4::kind::MINUS || kind == CVC4::kind::DIVISION)
+              || kind == CVC4::kind::MINUS || kind == CVC4::kind::DIVISION
+              || (kind == CVC4::kind::BITVECTOR_XNOR && PARSER_STATE->v2_6()))
           {
             // Builtin operators that are not tokenized, are left associative,
             // but not internally variadic must set this.
