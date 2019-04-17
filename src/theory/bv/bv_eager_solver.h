@@ -2,9 +2,9 @@
 /*! \file bv_eager_solver.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King, Mathias Preiner
+ **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -48,7 +48,7 @@ class EagerBitblastSolver {
   bool isInitialized();
   void initialize();
   bool collectModelInfo(theory::TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
+  void setProofLog(proof::BitVectorProof* bvp);
 
  private:
   context::CDHashSet<Node, NodeHashFunction> d_assertionSet;
@@ -61,7 +61,7 @@ class EagerBitblastSolver {
   bool d_useAig;
 
   TheoryBV* d_bv;
-  proof::ResolutionBitVectorProof* d_bvp;
+  proof::BitVectorProof* d_bvp;
 };  // class EagerBitblastSolver
 
 }  // namespace bv

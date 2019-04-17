@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -391,7 +391,7 @@ public:
    * Returns the Boolean equivalence of this expression and
    * the given expression.
    */
-  Expr iffExpr(const Expr& e) const;
+  Expr eqExpr(const Expr& e) const;
 
   /**
    * Returns the implication of this expression and
@@ -612,7 +612,7 @@ private:
 
 ${getConst_instantiations}
 
-#line 613 "${template}"
+#line 616 "${template}"
 
 inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
   return (size_t) e.getId();

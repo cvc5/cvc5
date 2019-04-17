@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -149,6 +149,22 @@ class CVC4_PUBLIC String {
 
   String prefix(std::size_t i) const { return substr(0, i); }
   String suffix(std::size_t i) const { return substr(size() - i, i); }
+
+  /**
+   * Checks if there is any overlap between this string and another string. This
+   * corresponds to checking whether one string contains the other and wether a
+   * substring of one is a prefix of the other and vice-versa.
+   *
+   * @param y The other string
+   * @return True if there is an overlap, false otherwise
+   */
+  bool noOverlapWith(const String& y) const
+  {
+    return y.find(*this) == std::string::npos
+           && this->find(y) == std::string::npos && this->overlap(y) == 0
+           && y.overlap(*this) == 0;
+  }
+
   /** string overlap
   *
   * if overlap returns m>0,

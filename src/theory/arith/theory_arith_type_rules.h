@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Dejan Jovanovic, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -168,6 +168,18 @@ public:
     return realType;
   }
 };/* class RealNullaryOperatorTypeRule */
+
+class DivisibleOpTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
+  {
+    Assert(n.getKind() == kind::DIVISIBLE_OP);
+    return nodeManager->builtinOperatorType();
+  }
+}; /* class DivisibleOpTypeRule */
 
 }/* CVC4::theory::arith namespace */
 }/* CVC4::theory namespace */

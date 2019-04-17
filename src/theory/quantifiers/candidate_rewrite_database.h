@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -71,9 +71,13 @@ class CandidateRewriteDatabase : public ExprMiner
    * cause a candidate-rewrite to be printed on the output stream out.
    * We return true if the term sol is distinct (up to equivalence) with
    * all previous terms added to this class. The argument rew_print is set to
-   * true if this class printed a rewrite.
+   * true if this class printed a rewrite involving sol.
+   *
+   * If the flag rec is true, then we also recursively add all subterms of sol
+   * to this class as well.
    */
-  bool addTerm(Node sol, std::ostream& out, bool& rew_print);
+  bool addTerm(Node sol, bool rec, std::ostream& out, bool& rew_print);
+  bool addTerm(Node sol, bool rec, std::ostream& out);
   bool addTerm(Node sol, std::ostream& out) override;
   /** sets whether this class should output candidate rewrites it finds */
   void setSilent(bool flag);
@@ -93,6 +97,8 @@ class CandidateRewriteDatabase : public ExprMiner
   bool d_using_sygus;
   /** candidate rewrite filter */
   CandidateRewriteFilter d_crewrite_filter;
+  /** the cache for results of addTerm */
+  std::unordered_map<Node, bool, NodeHashFunction> d_add_term_cache;
   /** if true, we silence the output of candidate rewrites */
   bool d_silent;
 };
@@ -115,7 +121,8 @@ class CandidateRewriteDatabaseGen
    * This registers term n with this class. We generate the candidate rewrite
    * database of the appropriate type (if not allocated already), and register
    * n with this database. This may result in "candidate-rewrite" being
-   * printed on the output stream out.
+   * printed on the output stream out. We return true if the term sol is
+   * distinct (up to equivalence) with all previous terms added to this class.
    */
   bool addTerm(Node n, std::ostream& out);
 

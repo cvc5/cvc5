@@ -2,9 +2,9 @@
 /*! \file term_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Francois Bobot
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -228,7 +228,7 @@ void TermDb::addTerm(Node n,
     d_iclosure_processed.insert(n);
     rec = true;
   }
-  if (rec && n.getKind() != FORALL)
+  if (rec && !n.isClosure())
   {
     for (const Node& nc : n)
     {

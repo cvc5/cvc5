@@ -1,5 +1,6 @@
 ; LRAT Proof signature
 ; LRAT format detailed in "Efficient Certified RAT Verification"
+; Link: https://www.cs.utexas.edu/~marijn/publications/lrat.pdf
 ; Author: aozdemir
 ; Depends On: sat.plf, smt.plf
 
@@ -7,12 +8,6 @@
 ; A general note about the design of the side conditions:
 ;  Some side-conditions make use of a _global assignment_ encoded in
 ;  0 (true) / 1 (false) marks on variables.
-
-; A list of clauses, CNF if interpretted as a formula,
-; but also sometimes just a list
-(declare cnf type)
-(declare cnfn cnf)
-(declare cnfc (! h clause (! t cnf cnf)))
 
 ; Unit (https://en.wikipedia.org/wiki/Unit_type)
 ; For functions that don't return anything
@@ -23,6 +18,14 @@
 (program bool_or ((l bool) (r bool)) bool (match l (ff r) (tt tt)))
 (program bool_and ((l bool) (r bool)) bool (match l (tt r) (ff ff)))
 (program bool_not ((b bool)) bool (match b (tt ff) (ff tt)))
+(program bool_eq ((l bool) (r bool)) bool
+         (match l
+                (tt (match r
+                           (tt tt)
+                           (ff ff)))
+                (ff (match r
+                           (tt ff)
+                           (ff tt)))))
 
 ; =================== ;
 ; Working CNF formula ;
@@ -88,12 +91,6 @@
 ; Functional programs for manipulating types ;
 ; ========================================== ;
 
-; Flip the polarity of the literal
-(program lit_flip ((l lit)) lit
-         (match l
-                ((pos v) (neg v))
-                ((neg v) (pos v))))
-
 ; Are two literal equal?
 (program lit_eq ((l1 lit) (l2 lit)) bool
          (match l1
@@ -128,28 +125,6 @@
                                     (tt tt)
                                     (ff (clause_contains_lit c' l))))
                 (cln ff)))
-
-; Returns a copy of `c` with any duplicate literals removed.
-; Never fails.
-; Uses marks 3 & 4. Expects them to be clear before hand, and leaves them clear
-; afterwards.
-(program clause_dedup ((c clause)) clause
-         (match c
-                (cln cln)
-                ((clc l rest)
-                 (match l
-                        ((pos v) (ifmarked3
-                                   v
-                                   (clause_dedup rest)
-                                   (do (markvar3 v)
-                                     (let result (clc (pos v) (clause_dedup rest))
-                                       (do (markvar3 v) result)))))
-                        ((neg v) (ifmarked4
-                                   v
-                                   (clause_dedup rest)
-                                   (do (markvar4 v)
-                                     (let result (clc (neg v) (clause_dedup rest))
-                                       (do (markvar4 v) result)))))))))
 
 ; Append two traces
 (program Trace_concat ((t1 Trace) (t2 Trace)) Trace
@@ -504,7 +479,7 @@
 ; Goes through a list of clause, trace pairs and verifies that each clause is
 ; an AT via that trace.
 ; Fails if any putative AT is a TAUT or contains duplicates
-(program are_all_at (
+(program are_all_at_trace (
                      (cs CMap)
                      (l CTPairs)
                     ) UPResult
@@ -514,12 +489,12 @@
                  (match (is_at_trace cs c t)
                         (UPR_Ok UPR_Ok)
                         (UPR_Broken UPR_Broken)
-                        (UPR_Bottom (are_all_at cs l'))))))
+                        (UPR_Bottom (are_all_at_trace cs l'))))))
 
 ; Is this trace, and list of hints, proof that `c` is an Resolution Assymeytic
 ; Tautology?
-; Fails is the hints are empty (i.e. `c` should  be AT, and c is TAUT or contains duplicates)
-; Also fails if any of the pseudo-resolvants are TAUT or contain duplicates.
+; Fails is the hints are empty (which means `c` should  be AT) and `c` contains
+; duplicates)
 (program is_rat_trace ((cs CMap) (c clause) (t Trace) (hints RATHints)) UPResult
          (match
            (RATHints_is_empty hints)
@@ -529,10 +504,10 @@
              (match (resolution_targets_match
                       (collect_resolution_targets cs c)
                       hints)
-                    (ff ; Res targets are bad
+                    (ff ; Resolution targets disagree with hints.
                       UPR_Broken)
                     (tt
-                      (are_all_at cs (construct_ct_pairs cs c t hints)))))))
+                      (are_all_at_trace cs (construct_ct_pairs cs c t hints)))))))
 
 ; Is this proof an LRAT proof of bottom?
 ; Fails if any added AT is a TAUT or contains duplicates OR if any added RAT

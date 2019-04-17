@@ -2,9 +2,9 @@
 /*! \file lfsc_proof_printer.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Andres Noetzli, Alex Ozdemir, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,9 @@
 
 #include "proof/lfsc_proof_printer.h"
 
+#include <algorithm>
 #include <iostream>
+#include <iterator>
 
 #include "prop/bvminisat/core/Solver.h"
 #include "prop/minisat/core/Solver.h"
@@ -142,6 +144,45 @@ void LFSCProofPrinter::printResolutionEmptyClause(TSatProof<Solver>* satProof,
                                                   std::ostream& paren)
 {
   printResolution(satProof, satProof->getEmptyClauseId(), out, paren);
+}
+
+void LFSCProofPrinter::printSatInputProof(const std::vector<ClauseId>& clauses,
+                                      std::ostream& out,
+                                      const std::string& namingPrefix)
+{
+  for (auto i = clauses.begin(), end = clauses.end(); i != end; ++i)
+  {
+    out << "\n    (cnfc_proof _ _ _ "
+        << ProofManager::getInputClauseName(*i, namingPrefix) << " ";
+  }
+  out << "cnfn_proof";
+  std::fill_n(std::ostream_iterator<char>(out), clauses.size(), ')');
+}
+
+void LFSCProofPrinter::printCMapProof(const std::vector<ClauseId>& clauses,
+                                      std::ostream& out,
+                                      const std::string& namingPrefix)
+{
+  for (size_t i = 0, n = clauses.size(); i < n; ++i)
+  {
+    out << "\n    (CMapc_proof " << (i + 1) << " _ _ _ "
+        << ProofManager::getInputClauseName(clauses[i], namingPrefix) << " ";
+  }
+  out << "CMapn_proof";
+  std::fill_n(std::ostream_iterator<char>(out), clauses.size(), ')');
+}
+
+void LFSCProofPrinter::printSatClause(const prop::SatClause& clause,
+                                      std::ostream& out,
+                                      const std::string& namingPrefix)
+{
+  for (auto i = clause.cbegin(); i != clause.cend(); ++i)
+  {
+    out << "(clc " << (i->isNegated() ? "(neg " : "(pos ")
+        << ProofManager::getVarName(i->getSatVariable(), namingPrefix) << ") ";
+  }
+  out << "cln";
+  std::fill_n(std::ostream_iterator<char>(out), clause.size(), ')');
 }
 
 // Template specializations

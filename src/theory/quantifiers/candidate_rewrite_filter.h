@@ -2,9 +2,9 @@
 /*! \file candidate_rewrite_filter.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -165,14 +165,16 @@ class CandidateRewriteFilter
    * detail, if (t,s) is a relevant pair, then t in d_pairs[s].
    */
   std::map<Node, std::unordered_set<Node, NodeHashFunction> > d_pairs;
-  /** Match trie storing all terms in the domain of d_pairs.
+  /**
+   * For each (builtin) type, a match trie storing all terms in the domain of
+   * d_pairs.
    *
    * Notice that we store d_drewrite->toInternal(t) instead of t, for each
    * term t, so that polymorphism is handled properly. In particular, this
    * prevents matches between terms select( x, y ) and select( z, y ) where
    * the type of x and z are different.
    */
-  MatchTrie d_match_trie;
+  std::map<TypeNode, MatchTrie> d_match_trie;
   /** Notify class */
   class CandidateRewriteFilterNotifyMatch : public NotifyMatch
   {

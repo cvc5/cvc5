@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -185,9 +185,9 @@ void QueryGenerator::checkQuery(Node qy, unsigned spIndex)
     NodeManager* nm = NodeManager::currentNM();
     // make the satisfiability query
     bool needExport = false;
-    ExprManagerMapCollection varMap;
     ExprManager em(nm->getOptions());
     std::unique_ptr<SmtEngine> queryChecker;
+    ExprManagerMapCollection varMap;
     initializeChecker(queryChecker, em, varMap, qy, needExport);
     Result r = queryChecker->checkSat();
     Trace("sygus-qgen-check") << "  query: ...got : " << r << std::endl;

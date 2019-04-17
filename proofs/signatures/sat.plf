@@ -8,9 +8,21 @@
 (declare pos (! x var lit))
 (declare neg (! x var lit))
 
+; Flip the polarity of the literal
+(program lit_flip ((l lit)) lit
+         (match l
+                ((pos v) (neg v))
+                ((neg v) (pos v))))
+
 (declare clause type)
 (declare cln clause)
 (declare clc (! x lit (! c clause clause)))
+
+; A list of clauses, CNF if interpretted as a formula,
+; but also sometimes just a list
+(declare cnf type)
+(declare cnfn cnf)
+(declare cnfc (! h clause (! t cnf cnf)))
 
 ; constructs for general clauses for R, Q, satlem
 
@@ -106,6 +118,40 @@
   (! u (holds c)
   (! u2 (! v (holds c) (holds c2))
     (holds c2))))))
+
+
+; Returns a copy of `c` with any duplicate literals removed.
+; Never fails.
+; Uses marks 3 & 4. Expects them to be clear before hand, and leaves them clear
+; afterwards.
+(program clause_dedup ((c clause)) clause
+         (match c
+                (cln cln)
+                ((clc l rest)
+                 (match l
+                        ((pos v) (ifmarked3
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar3 v)
+                                     (let result (clc (pos v) (clause_dedup rest))
+                                       (do (markvar3 v) result)))))
+                        ((neg v) (ifmarked4
+                                   v
+                                   (clause_dedup rest)
+                                   (do (markvar4 v)
+                                     (let result (clc (neg v) (clause_dedup rest))
+                                       (do (markvar4 v) result)))))))))
+
+(declare cnf_holds (! c cnf type))
+(declare cnfn_proof (cnf_holds cnfn))
+(declare cnfc_proof
+         (! c clause
+         (! deduped_c clause
+            (! rest cnf
+               (! proof_c (holds c)
+                  (! proof_rest (cnf_holds rest)
+                     (! sc (^ (clause_dedup c) deduped_c)
+                        (cnf_holds (cnfc c rest)))))))))
 
 ; A little example to demonstrate simplify_clause.
 ; It can handle nested clr's of both polarities,

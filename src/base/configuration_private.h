@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Christopher L. Conway, Morgan Deters, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -125,6 +125,12 @@ namespace CVC4 {
 #else /* CVC4_USE_CRYPTOMINISAT */
 #  define IS_CRYPTOMINISAT_BUILD false
 #endif /* CVC4_USE_CRYPTOMINISAT */
+
+#if CVC4_USE_DRAT2ER
+#  define IS_DRAT2ER_BUILD true
+#else /* CVC4_USE_DRAT2ER */
+#  define IS_DRAT2ER_BUILD false
+#endif /* CVC4_USE_DRAT2ER */
 
 #if CVC4_USE_LFSC
 #define IS_LFSC_BUILD true

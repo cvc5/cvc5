@@ -2,9 +2,9 @@
 /*! \file bv_bitblast_mode.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -63,6 +63,19 @@ std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode solver) {
     break;
   default:
     out << "SatSolverMode:UNKNOWN![" << unsigned(solver) << "]";
+  }
+
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out, theory::bv::BvProofFormat format)
+{
+  switch (format)
+  {
+    case theory::bv::BITVECTOR_PROOF_ER: out << "BITVECTOR_PROOF_ER"; break;
+    case theory::bv::BITVECTOR_PROOF_DRAT: out << "BITVECTOR_PROOF_DRAT"; break;
+    case theory::bv::BITVECTOR_PROOF_LRAT: out << "BITVECTOR_PROOF_LRAT"; break;
+    default: out << "BvProofFormat:UNKNOWN![" << unsigned(format) << "]";
   }
 
   return out;

@@ -2,9 +2,9 @@
 /*! \file node_algorithm.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Andres Noetzli, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -60,6 +60,19 @@ bool hasBoundVar(TNode n);
 bool hasFreeVar(TNode n);
 
 /**
+ * Get the free variables in n, that is, the subterms of n of kind
+ * BOUND_VARIABLE that are not bound in n, adds these to fvs.
+ * @param n The node under investigation
+ * @param fvs The set which free variables are added to
+ * @param computeFv If this flag is false, then we only return true/false and
+ * do not add to fvs.
+ * @return true iff this node contains a free variable.
+ */
+bool getFreeVariables(TNode n,
+                      std::unordered_set<Node, NodeHashFunction>& fvs,
+                      bool computeFv = true);
+
+/**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
  * @param n The node under investigation
@@ -70,6 +83,19 @@ void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
+/**
+ * Substitution of Nodes in a capture avoiding way.
+ */
+Node substituteCaptureAvoiding(TNode n, Node src, Node dest);
+
+/**
+ * Simultaneous substitution of Nodes in a capture avoiding way.  Elements in
+ * source will be replaced by their corresponding element in dest.  Both
+ * vectors should have the same size.
+ */
+Node substituteCaptureAvoiding(TNode n,
+                               std::vector<Node>& src,
+                               std::vector<Node>& dest);
 
 }  // namespace expr
 }  // namespace CVC4

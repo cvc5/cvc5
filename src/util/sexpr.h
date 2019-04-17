@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -13,7 +13,7 @@
  **
  ** Simple representation of S-expressions.
  ** These are used when a simple, and obvious interface for basic
- ** expressions is appropraite.
+ ** expressions is appropriate.
  **
  ** These are quite ineffecient.
  ** These are totally disconnected from any ExprManager.

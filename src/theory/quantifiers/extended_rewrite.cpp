@@ -2,9 +2,9 @@
 /*! \file extended_rewrite.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1676,10 +1676,6 @@ Node ExtendedRewriter::extendedRewriteStrings(Node ret)
   if (ret.getKind() == EQUAL)
   {
     new_ret = strings::TheoryStringsRewriter::rewriteEqualityExt(ret);
-  }
-  else if (ret.getKind() == STRING_SUBSTR)
-  {
-    new_ret = strings::TheoryStringsRewriter::rewriteSubstrExt(ret);
   }
 
   return new_ret;

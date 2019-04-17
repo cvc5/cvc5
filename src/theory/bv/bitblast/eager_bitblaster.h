@@ -2,9 +2,9 @@
 /*! \file eager_bitblaster.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner, Andres Noetzli
+ **   Mathias Preiner, Liana Hadarean, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -55,19 +55,13 @@ class EagerBitblaster : public TBitblaster<Node>
   bool solve();
   bool solve(const std::vector<Node>& assumptions);
   bool collectModelInfo(TheoryModel* m, bool fullModel);
-  void setResolutionProofLog(proof::ResolutionBitVectorProof* bvp);
 
  private:
   context::Context* d_context;
-  std::unique_ptr<context::Context> d_nullContext;
 
   typedef std::unordered_set<TNode, TNodeHashFunction> TNodeSet;
-  // sat solver used for bitblasting and associated CnfStream
   std::unique_ptr<prop::SatSolver> d_satSolver;
   std::unique_ptr<BitblastingRegistrar> d_bitblastingRegistrar;
-  std::unique_ptr<prop::CnfStream> d_cnfStream;
-
-  BitVectorProof* d_bvp;
 
   TheoryBV* d_bv;
   TNodeSet d_bbAtoms;
@@ -77,6 +71,7 @@ class EagerBitblaster : public TBitblaster<Node>
   std::unique_ptr<MinisatEmptyNotify> d_notify;
 
   Node getModelFromSatSolver(TNode a, bool fullModel) override;
+  prop::SatSolver* getSatSolver() override { return d_satSolver.get(); }
   bool isSharedTerm(TNode node);
 };
 

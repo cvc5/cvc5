@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -121,15 +121,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_functionsTerms(c),
       d_has_extf(c, false),
       d_has_str_code(false),
-      d_regexp_memberships(c),
-      d_regexp_ucached(u),
-      d_regexp_ccached(c),
-      d_pos_memberships(c),
-      d_neg_memberships(c),
-      d_inter_cache(c),
-      d_inter_index(c),
-      d_processed_memberships(c),
-      d_regexp_ant(c),
+      d_regexp_solver(*this, c, u),
       d_input_vars(u),
       d_input_var_lsum(u),
       d_cardinality_lits(u),
@@ -169,8 +161,6 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
   d_neg_one = NodeManager::currentNM()->mkConst(Rational(-1));
   d_emptyString = NodeManager::currentNM()->mkConst( ::CVC4::String("") );
-  std::vector< Node > nvec;
-  d_emptyRegexp = NodeManager::currentNM()->mkNode( kind::REGEXP_EMPTY, nvec );
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
 
@@ -256,6 +246,39 @@ Node TheoryStrings::getLengthExp( Node t, std::vector< Node >& exp, Node te ){
 
 Node TheoryStrings::getLength( Node t, std::vector< Node >& exp ) {
   return getLengthExp( t, exp, t );
+}
+
+Node TheoryStrings::getNormalString(Node x, std::vector<Node>& nf_exp)
+{
+  if (!x.isConst())
+  {
+    Node xr = getRepresentative(x);
+    if (d_normal_forms.find(xr) != d_normal_forms.end())
+    {
+      Node ret = mkConcat(d_normal_forms[xr]);
+      nf_exp.insert(nf_exp.end(),
+                    d_normal_forms_exp[xr].begin(),
+                    d_normal_forms_exp[xr].end());
+      addToExplanation(x, d_normal_forms_base[xr], nf_exp);
+      Trace("strings-debug")
+          << "Term: " << x << " has a normal form " << ret << std::endl;
+      return ret;
+    }
+    // if x does not have a normal form, then it should not occur in the
+    // equality engine and hence should be its own representative.
+    Assert(xr == x);
+    if (x.getKind() == kind::STRING_CONCAT)
+    {
+      std::vector<Node> vec_nodes;
+      for (unsigned i = 0; i < x.getNumChildren(); i++)
+      {
+        Node nc = getNormalString(x[i], nf_exp);
+        vec_nodes.push_back(nc);
+      }
+      return mkConcat(vec_nodes);
+    }
+  }
+  return x;
 }
 
 void TheoryStrings::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -885,8 +908,15 @@ void TheoryStrings::preRegisterTerm(TNode n) {
           // Function applications/predicates
           d_equalityEngine.addTerm(n);
         }
-        //concat terms do not contribute to theory combination?  TODO: verify
-        if (n.hasOperator() && kindToTheoryId(k) == THEORY_STRINGS
+        // Set d_functionsTerms stores all function applications that are
+        // relevant to theory combination. Notice that this is a subset of
+        // the applications whose kinds are function kinds in the equality
+        // engine. This means it does not include applications of operators
+        // like re.++, which is not a function kind in the equality engine.
+        // Concatenation terms do not need to be considered here because
+        // their arguments have string type and do not introduce any shared
+        // terms.
+        if (n.hasOperator() && d_equalityEngine.isFunctionKind(k)
             && k != kind::STRING_CONCAT)
         {
           d_functionsTerms.push_back( n );
@@ -1021,6 +1051,30 @@ void TheoryStrings::checkExtfReductions( int effort ) {
       }
     }
   }
+}
+
+void TheoryStrings::checkMemberships()
+{
+  // add the memberships
+  std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
+  for (unsigned i = 0; i < mems.size(); i++)
+  {
+    Node n = mems[i];
+    Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
+    if (!d_extf_info_tmp[n].d_const.isNull())
+    {
+      bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
+      Trace("strings-process-debug")
+          << "  add membership : " << n << ", pol = " << pol << std::endl;
+      d_regexp_solver.addMembership(pol ? n : n.negate());
+    }
+    else
+    {
+      Trace("strings-process-debug")
+          << "  irrelevant (non-asserted) membership : " << n << std::endl;
+    }
+  }
+  d_regexp_solver.check();
 }
 
 TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
@@ -1572,7 +1626,6 @@ void TheoryStrings::checkExtfEval( int effort ) {
       einfo.d_exp.insert(einfo.d_exp.end(), exp[i].begin(), exp[i].end());
       // inference is rewriting the substituted node
       Node nrc = Rewriter::rewrite( sn );
-      Kind nrck = nrc.getKind();
       //if rewrites to a constant, then do the inference and mark as reduced
       if( nrc.isConst() ){
         if( effort<3 ){
@@ -1649,24 +1702,28 @@ void TheoryStrings::checkExtfEval( int effort ) {
             einfo.d_model_active = false;
           }
         }
-      //if it reduces to a conjunction, infer each and reduce
       }
-      else if ((nrck == OR && einfo.d_const == d_false)
-               || (nrck == AND && einfo.d_const == d_true))
+      else
       {
-        Assert( effort<3 );
-        getExtTheory()->markReduced( n );
-        einfo.d_exp.push_back(einfo.d_const == d_false ? n.negate() : n);
-        Trace("strings-extf-debug") << "  decomposable..." << std::endl;
-        Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
-                              << ", const = " << einfo.d_const << std::endl;
-        for (const Node& nrcc : nrc)
+        // if this was a predicate which changed after substitution + rewriting
+        if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
         {
-          sendInternalInference(einfo.d_exp,
-                                einfo.d_const == d_false ? nrcc.negate() : nrcc,
-                                effort == 0 ? "EXTF_d" : "EXTF_d-N");
+          bool pol = einfo.d_const == d_true;
+          Node nrcAssert = pol ? nrc : nrc.negate();
+          Node nAssert = pol ? n : n.negate();
+          Assert(effort < 3);
+          einfo.d_exp.push_back(nAssert);
+          Trace("strings-extf-debug") << "  decomposable..." << std::endl;
+          Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
+                                << ", const = " << einfo.d_const << std::endl;
+          // We send inferences internal here, which may help show unsat.
+          // However, we do not make a determination whether n can be marked
+          // reduced since this argument may be circular: we may infer than n
+          // can be reduced to something else, but that thing may argue that it
+          // can be reduced to n, in theory.
+          sendInternalInference(
+              einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
         }
-      }else{
         to_reduce = nrc;
       }
     }else{
@@ -3083,15 +3140,29 @@ void TheoryStrings::processSimpleNEq( std::vector< std::vector< Node > > &normal
             Trace("strings-solve-debug") << "Non-simple Case 2 : must compare strings" << std::endl;
             int loop_in_i = -1;
             int loop_in_j = -1;
+            ProcessLoopResult plr = ProcessLoopResult::SKIPPED;
             if( detectLoop( normal_forms, i, j, index, loop_in_i, loop_in_j, rproc ) ){
               if( !isRev ){  //FIXME
               getExplanationVectorForPrefixEq( normal_forms, normal_form_src, normal_forms_exp, normal_forms_exp_depend, i, j, -1, -1, isRev, info.d_ant );
               //set info
-              if( processLoop( normal_forms, normal_form_src, i, j, loop_in_i!=-1 ? i : j, loop_in_i!=-1 ? j : i, loop_in_i!=-1 ? loop_in_i : loop_in_j, index, info ) ){
+              plr = processLoop(normal_forms,
+                                normal_form_src,
+                                i,
+                                j,
+                                loop_in_i != -1 ? i : j,
+                                loop_in_i != -1 ? j : i,
+                                loop_in_i != -1 ? loop_in_i : loop_in_j,
+                                index,
+                                info);
+              if (plr == ProcessLoopResult::INFERENCE)
+              {
                 info_valid = true;
               }
               }
-            }else{
+            }
+
+            if (plr == ProcessLoopResult::SKIPPED)
+            {
               //AJR: length entailment here?
               if( normal_forms[i][index].getKind() == kind::CONST_STRING || normal_forms[j][index].getKind() == kind::CONST_STRING ){
                 unsigned const_k = normal_forms[i][index].getKind() == kind::CONST_STRING ? i : j;
@@ -3311,18 +3382,27 @@ bool TheoryStrings::detectLoop( std::vector< std::vector< Node > > &normal_forms
 }
 
 //xs(zy)=t(yz)xr
-bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                 int i, int j, int loop_n_index, int other_n_index, int loop_index, int index, InferInfo& info ){
-  if( options::stringAbortLoop() ){
-    std::stringstream ss;
-    ss << "Looping word equation encountered." << std::endl;
-    throw LogicException(ss.str());
+TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(
+    const std::vector<std::vector<Node> >& normal_forms,
+    const std::vector<Node>& normal_form_src,
+    int i,
+    int j,
+    int loop_n_index,
+    int other_n_index,
+    int loop_index,
+    int index,
+    InferInfo& info)
+{
+  if (options::stringProcessLoopMode() == ProcessLoopMode::ABORT)
+  {
+    throw LogicException("Looping word equation encountered.");
   }
-  if (!options::stringProcessLoop())
+  else if (options::stringProcessLoopMode() == ProcessLoopMode::NONE)
   {
     d_out->setIncomplete();
-    return false;
+    return ProcessLoopResult::SKIPPED;
   }
+
   NodeManager* nm = NodeManager::currentNM();
   Node conc;
   Trace("strings-loop") << "Detected possible loop for "
@@ -3331,12 +3411,12 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
                         << std::endl;
 
   Trace("strings-loop") << " ... T(Y.Z)= ";
-  std::vector<Node>& veci = normal_forms[loop_n_index];
+  const std::vector<Node>& veci = normal_forms[loop_n_index];
   std::vector<Node> vec_t(veci.begin() + index, veci.begin() + loop_index);
   Node t_yz = mkConcat(vec_t);
   Trace("strings-loop") << " (" << t_yz << ")" << std::endl;
   Trace("strings-loop") << " ... S(Z.Y)= ";
-  std::vector<Node>& vecoi = normal_forms[other_n_index];
+  const std::vector<Node>& vecoi = normal_forms[other_n_index];
   std::vector<Node> vec_s(vecoi.begin() + index + 1, vecoi.end());
   Node s_zy = mkConcat(vec_s);
   Trace("strings-loop") << s_zy << std::endl;
@@ -3366,7 +3446,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
       Trace("strings-loop") << "Strings::Loop: tails are different."
                             << std::endl;
       sendInference(info.d_ant, conc, "Loop Conflict", true);
-      return false;
+      return ProcessLoopResult::CONFLICT;
     }
   }
 
@@ -3384,7 +3464,7 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
         // try to make t equal to empty to avoid loop
         info.d_conc = nm->mkNode(kind::OR, split_eq, split_eq.negate());
         info.d_id = INFER_LEN_SPLIT_EMP;
-        return true;
+        return ProcessLoopResult::INFERENCE;
       }
       else
       {
@@ -3455,7 +3535,6 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
                      nm->mkNode(kind::REGEXP_STAR,
                                 nm->mkNode(kind::STRING_TO_REGEXP, restr))));
       cc = cc == d_true ? conc2 : nm->mkNode(kind::AND, cc, conc2);
-      d_regexp_ant[conc2] = ant;
       vconc.push_back(cc);
     }
     conc = vconc.size() == 0 ? Node::null() : vconc.size() == 1
@@ -3464,6 +3543,16 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
   }
   else
   {
+    if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE_ABORT)
+    {
+      throw LogicException("Normal looping word equation encountered.");
+    }
+    else if (options::stringProcessLoopMode() == ProcessLoopMode::SIMPLE)
+    {
+      d_out->setIncomplete();
+      return ProcessLoopResult::SKIPPED;
+    }
+
     Trace("strings-loop") << "Strings::Loop: Normal Loop Breaking."
                           << std::endl;
     // right
@@ -3495,17 +3584,12 @@ bool TheoryStrings::processLoop( std::vector< std::vector< Node > > &normal_form
     conc = nm->mkNode(kind::AND, vec_conc);
   }  // normal case
 
-  // set its antecedant to ant, to say when it is relevant
-  if (!str_in_re.isNull())
-  {
-    d_regexp_ant[str_in_re] = ant;
-  }
   // we will be done
   info.d_conc = conc;
   info.d_id = INFER_FLOOP;
   info.d_nf_pair[0] = normal_form_src[i];
   info.d_nf_pair[1] = normal_form_src[j];
-  return true;
+  return ProcessLoopResult::INFERENCE;
 }
 
 //return true for lemma, false if we succeed
@@ -3895,17 +3979,22 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   }
 }
 
-void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
+bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
                                           Node conc,
                                           const char* c)
 {
-  if (conc.getKind() == AND)
+  if (conc.getKind() == AND
+      || (conc.getKind() == NOT && conc[0].getKind() == OR))
   {
-    for (const Node& cc : conc)
+    Node conj = conc.getKind() == AND ? conc : conc[0];
+    bool pol = conc.getKind() == AND;
+    bool ret = true;
+    for (const Node& cc : conj)
     {
-      sendInternalInference(exp, cc, c);
+      bool retc = sendInternalInference(exp, pol ? cc : cc.negate(), c);
+      ret = ret && retc;
     }
-    return;
+    return ret;
   }
   bool pol = conc.getKind() != NOT;
   Node lit = pol ? conc : conc[0];
@@ -3916,13 +4005,13 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
       if (!lit[i].isConst() && !hasTerm(lit[i]))
       {
         // introduces a new non-constant term, do not infer
-        return;
+        return false;
       }
     }
     // does it already hold?
     if (pol ? areEqual(lit[0], lit[1]) : areDisequal(lit[0], lit[1]))
     {
-      return;
+      return true;
     }
   }
   else if (lit.isConst())
@@ -3931,20 +4020,21 @@ void TheoryStrings::sendInternalInference(std::vector<Node>& exp,
     {
       Assert(pol);
       // trivially holds
-      return;
+      return true;
     }
   }
   else if (!hasTerm(lit))
   {
     // introduces a new non-constant term, do not infer
-    return;
+    return false;
   }
   else if (areEqual(lit, pol ? d_true : d_false))
   {
     // already holds
-    return;
+    return true;
   }
   sendInference(exp, conc, c);
+  return true;
 }
 
 void TheoryStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {
@@ -4662,525 +4752,6 @@ TheoryStrings::Statistics::~Statistics(){
   smtStatisticsRegistry()->unregisterStat(&d_eq_splits);
   smtStatisticsRegistry()->unregisterStat(&d_deq_splits);
   smtStatisticsRegistry()->unregisterStat(&d_loop_lemmas);
-}
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-//// Regular Expressions
-
-
-unsigned TheoryStrings::getNumMemberships( Node n, bool isPos ) {
-  if( isPos ){
-    NodeIntMap::const_iterator it = d_pos_memberships.find( n );
-    if( it!=d_pos_memberships.end() ){
-      return (*it).second;
-    }
-  }else{
-    NodeIntMap::const_iterator it = d_neg_memberships.find( n );
-    if( it!=d_neg_memberships.end() ){
-      return (*it).second;
-    }
-  }
-  return 0;
-}
-
-Node TheoryStrings::getMembership( Node n, bool isPos, unsigned i ) {
-  return isPos ? d_pos_memberships_data[n][i] : d_neg_memberships_data[n][i];
-}
-
-Node TheoryStrings::mkRegExpAntec(Node atom, Node ant) {
-  if(d_regexp_ant.find(atom) == d_regexp_ant.end()) {
-    return NodeManager::currentNM()->mkNode(kind::AND, ant, atom);
-  } else {
-    Node n = d_regexp_ant[atom];
-    return NodeManager::currentNM()->mkNode(kind::AND, ant, n);
-  }
-}
-
-void TheoryStrings::checkMemberships() {
-  //add the memberships
-  std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
-  for (unsigned i = 0; i < mems.size(); i++) {
-    Node n = mems[i];
-    Assert( d_extf_info_tmp.find( n )!=d_extf_info_tmp.end() );
-    if (!d_extf_info_tmp[n].d_const.isNull())
-    {
-      bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
-      Trace("strings-process-debug") << "  add membership : " << n << ", pol = " << pol << std::endl;
-      addMembership( pol ? n : n.negate() );
-    }else{
-      Trace("strings-process-debug") << "  irrelevant (non-asserted) membership : " << n << std::endl;
-    }
-  }
-
-  bool addedLemma = false;
-  bool changed = false;
-  std::vector< Node > processed;
-  std::vector< Node > cprocessed;
-
-  Trace("regexp-debug") << "Checking Memberships ... " << std::endl;
-  //if(options::stringEIT()) {
-    //TODO: Opt for normal forms
-    for( NodeIntMap::const_iterator itr_xr = d_pos_memberships.begin(); itr_xr != d_pos_memberships.end(); ++itr_xr ){
-      bool spflag = false;
-      Node x = (*itr_xr).first;
-      Trace("regexp-debug") << "Checking Memberships for " << x << std::endl;
-      if(d_inter_index.find(x) == d_inter_index.end()) {
-        d_inter_index[x] = 0;
-      }
-      int cur_inter_idx = d_inter_index[x];
-      unsigned n_pmem = (*itr_xr).second;
-      Assert( getNumMemberships( x, true )==n_pmem );
-      if( cur_inter_idx != (int)n_pmem ) {
-        if( n_pmem == 1) {
-          d_inter_cache[x] = getMembership( x, true, 0 );
-          d_inter_index[x] = 1;
-          Trace("regexp-debug") << "... only one choice " << std::endl;
-        } else if(n_pmem > 1) {
-          Node r;
-          if(d_inter_cache.find(x) != d_inter_cache.end()) {
-            r = d_inter_cache[x];
-          }
-          if(r.isNull()) {
-            r = getMembership( x, true, 0 );
-            cur_inter_idx = 1;
-          }
-
-          unsigned k_start = cur_inter_idx;
-          Trace("regexp-debug") << "... staring from : " << cur_inter_idx << ", we have " << n_pmem << std::endl;
-          for(unsigned k = k_start; k<n_pmem; k++) {
-            Node r2 = getMembership( x, true, k );
-            r = d_regexp_opr.intersect(r, r2, spflag);
-            if(spflag) {
-              break;
-            } else if(r == d_emptyRegexp) {
-              std::vector< Node > vec_nodes;
-              for( unsigned kk=0; kk<=k; kk++ ){
-                Node rr = getMembership( x, true, kk );
-                Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, rr);
-                vec_nodes.push_back( n );
-              }
-              Node conc;
-              sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
-              addedLemma = true;
-              break;
-            }
-            if(d_conflict) {
-              break;
-            }
-          }
-          //updates
-          if(!d_conflict && !spflag) {
-            d_inter_cache[x] = r;
-            d_inter_index[x] = (int)n_pmem;
-          }
-        }
-      }
-    }
-  //}
-
-  Trace("regexp-debug") << "... No Intersect Conflict in Memberships, addedLemma: " << addedLemma << std::endl;
-  if(!addedLemma) {
-    NodeManager* nm = NodeManager::currentNM();
-    for( unsigned i=0; i<d_regexp_memberships.size(); i++ ) {
-      //check regular expression membership
-      Node assertion = d_regexp_memberships[i];
-      Trace("regexp-debug") << "Check : " << assertion << " " << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " " << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end()) << std::endl;
-      if( d_regexp_ucached.find(assertion) == d_regexp_ucached.end()
-        && d_regexp_ccached.find(assertion) == d_regexp_ccached.end() ) {
-        Trace("strings-regexp") << "We have regular expression assertion : " << assertion << std::endl;
-        Node atom = assertion.getKind()==kind::NOT ? assertion[0] : assertion;
-        bool polarity = assertion.getKind()!=kind::NOT;
-        bool flag = true;
-        Node x = atom[0];
-        Node r = atom[1];
-        std::vector< Node > rnfexp;
-
-        if (!x.isConst())
-        {
-          x = getNormalString(x, rnfexp);
-          changed = true;
-        }
-        if (!d_regexp_opr.checkConstRegExp(r))
-        {
-          r = getNormalSymRegExp(r, rnfexp);
-          changed = true;
-        }
-        Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
-                                   << x << " IN " << r << std::endl;
-        if (changed)
-        {
-          Node tmp =
-              Rewriter::rewrite(nm->mkNode(kind::STRING_IN_REGEXP, x, r));
-          if (!polarity)
-          {
-            tmp = tmp.negate();
-          }
-          if (tmp == d_true)
-          {
-            d_regexp_ccached.insert(assertion);
-            continue;
-          }
-          else if (tmp == d_false)
-          {
-            Node antec = mkRegExpAntec(assertion, mkExplain(rnfexp));
-            Node conc = Node::null();
-            sendLemma(antec, conc, "REGEXP NF Conflict");
-            addedLemma = true;
-            break;
-          }
-        }
-
-        if( polarity ) {
-          flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
-        } else {
-          if(! options::stringExp()) {
-            throw LogicException("Strings Incomplete (due to Negative Membership) by default, try --strings-exp option.");
-          }
-        }
-        if(flag) {
-          //check if the term is atomic
-          Node xr = getRepresentative( x );
-          //Trace("strings-regexp") << xr << " is rep of " << x << std::endl;
-          //Assert( d_normal_forms.find( xr )!=d_normal_forms.end() );
-          Trace("strings-regexp")
-              << "Unroll/simplify membership of atomic term " << xr
-              << std::endl;
-          // if so, do simple unrolling
-          std::vector<Node> nvec;
-
-          if (nvec.empty())
-          {
-            d_regexp_opr.simplify(atom, nvec, polarity);
-          }
-          Node antec = assertion;
-          if (d_regexp_ant.find(assertion) != d_regexp_ant.end())
-          {
-            antec = d_regexp_ant[assertion];
-            for (std::vector<Node>::const_iterator itr = nvec.begin();
-                 itr < nvec.end();
-                 itr++)
-            {
-              if (itr->getKind() == kind::STRING_IN_REGEXP)
-              {
-                if (d_regexp_ant.find(*itr) == d_regexp_ant.end())
-                {
-                  d_regexp_ant[*itr] = antec;
-                }
-              }
-            }
-          }
-          antec = NodeManager::currentNM()->mkNode(
-              kind::AND, antec, mkExplain(rnfexp));
-          Node conc = nvec.size() == 1
-                          ? nvec[0]
-                          : NodeManager::currentNM()->mkNode(kind::AND, nvec);
-          conc = Rewriter::rewrite(conc);
-          sendLemma(antec, conc, "REGEXP_Unfold");
-          addedLemma = true;
-          if (changed)
-          {
-            cprocessed.push_back(assertion);
-          }
-          else
-          {
-            processed.push_back(assertion);
-          }
-          // d_regexp_ucached[assertion] = true;
-        }
-      }
-      if(d_conflict) {
-        break;
-      }
-    }
-  }
-  if( addedLemma ) {
-    if( !d_conflict ){
-      for( unsigned i=0; i<processed.size(); i++ ) {
-        Trace("strings-regexp") << "...add " << processed[i] << " to u-cache." << std::endl;
-        d_regexp_ucached.insert(processed[i]);
-      }
-      for( unsigned i=0; i<cprocessed.size(); i++ ) {
-        Trace("strings-regexp") << "...add " << cprocessed[i] << " to c-cache." << std::endl;
-        d_regexp_ccached.insert(cprocessed[i]);
-      }
-    }
-  }
-}
-
-bool TheoryStrings::checkPDerivative( Node x, Node r, Node atom, bool &addedLemma, std::vector< Node > &nf_exp ) {
-  
-  Node antnf = mkExplain(nf_exp);
-
-  if(areEqual(x, d_emptyString)) {
-    Node exp;
-    switch(d_regexp_opr.delta(r, exp)) {
-      case 0: {
-        Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
-        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
-        sendLemma(antec, exp, "RegExp Delta");
-        addedLemma = true;
-        d_regexp_ccached.insert(atom);
-        return false;
-      }
-      case 1: {
-        d_regexp_ccached.insert(atom);
-        break;
-      }
-      case 2: {
-        Node antec = mkRegExpAntec(atom, x.eqNode(d_emptyString));
-        antec = NodeManager::currentNM()->mkNode(kind::AND, antec, antnf);
-        Node conc = Node::null();
-        sendLemma(antec, conc, "RegExp Delta CONFLICT");
-        addedLemma = true;
-        d_regexp_ccached.insert(atom);
-        return false;
-      }
-      default:
-        //Impossible
-        break;
-    }
-  } else {
-    /*Node xr = getRepresentative( x );
-    if(x != xr) {
-      Node n = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, xr, r);
-      Node nn = Rewriter::rewrite( n );
-      if(nn == d_true) {
-        d_regexp_ccached.insert(atom);
-        return false;
-      } else if(nn == d_false) {
-        Node antec = mkRegExpAntec(atom, x.eqNode(xr));
-        Node conc = Node::null();
-        sendLemma(antec, conc, "RegExp Delta CONFLICT");
-        addedLemma = true;
-        d_regexp_ccached.insert(atom);
-        return false;
-      }
-    }*/
-    Node sREant = mkRegExpAntec(atom, d_true);
-    sREant = NodeManager::currentNM()->mkNode(kind::AND, sREant, antnf);
-    if(deriveRegExp( x, r, sREant )) {
-      addedLemma = true;
-      d_regexp_ccached.insert(atom);
-      return false;
-    }
-  }
-  return true;
-}
-
-CVC4::String TheoryStrings::getHeadConst( Node x ) {
-  if( x.isConst() ) {
-    return x.getConst< String >();
-  } else if( x.getKind() == kind::STRING_CONCAT ) {
-    if( x[0].isConst() ) {
-      return x[0].getConst< String >();
-    } else {
-      return d_emptyString.getConst< String >();
-    }
-  } else {
-    return d_emptyString.getConst< String >();
-  }
-}
-
-bool TheoryStrings::deriveRegExp( Node x, Node r, Node ant ) {
-  // TODO cstr in vre
-  Assert(x != d_emptyString);
-  Trace("regexp-derive") << "TheoryStrings::deriveRegExp: x=" << x << ", r= " << r << std::endl;
-  //if(x.isConst()) {
-  //  Node n = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, x, r );
-  //  Node r = Rewriter::rewrite( n );
-  //  if(n != r) {
-  //    sendLemma(ant, r, "REGEXP REWRITE");
-  //    return true;
-  //  }
-  //}
-  CVC4::String s = getHeadConst( x );
-  if( !s.isEmptyString() && d_regexp_opr.checkConstRegExp( r ) ) {
-    Node conc = Node::null();
-    Node dc = r;
-    bool flag = true;
-    for(unsigned i=0; i<s.size(); ++i) {
-      CVC4::String c = s.substr(i, 1);
-      Node dc2;
-      int rt = d_regexp_opr.derivativeS(dc, c, dc2);
-      dc = dc2;
-      if(rt == 0) {
-        //TODO
-      } else if(rt == 2) {
-        // CONFLICT
-        flag = false;
-        break;
-      }
-    }
-    // send lemma
-    if(flag) {
-      if(x.isConst()) {
-        Assert(false, "Impossible: TheoryStrings::deriveRegExp: const string in const regular expression.");
-        return false;
-      } else {
-        Assert( x.getKind() == kind::STRING_CONCAT );
-        std::vector< Node > vec_nodes;
-        for(unsigned int i=1; i<x.getNumChildren(); ++i ) {
-          vec_nodes.push_back( x[i] );
-        }
-        Node left =  mkConcat( vec_nodes );
-        left = Rewriter::rewrite( left );
-        conc = NodeManager::currentNM()->mkNode( kind::STRING_IN_REGEXP, left, dc );
-
-        /*std::vector< Node > sdc;
-        d_regexp_opr.simplify(conc, sdc, true);
-        if(sdc.size() == 1) {
-          conc = sdc[0];
-        } else {
-          conc = Rewriter::rewrite(NodeManager::currentNM()->mkNode(kind::AND, conc));
-        }*/
-      }
-    }
-    sendLemma(ant, conc, "RegExp-Derive");
-    return true;
-  } else {
-    return false;
-  }
-}
-
-void TheoryStrings::addMembership(Node assertion) {
-  bool polarity = assertion.getKind() != kind::NOT;
-  TNode atom = polarity ? assertion : assertion[0];
-  Node x = atom[0];
-  Node r = atom[1];
-  if(polarity) {
-    int index = 0;
-    NodeIntMap::const_iterator it = d_pos_memberships.find( x );
-    if( it!=d_nf_pairs.end() ){
-      index = (*it).second;
-      for( int k=0; k<index; k++ ){
-        if( k<(int)d_pos_memberships_data[x].size() ){
-          if( d_pos_memberships_data[x][k]==r ){
-            return;
-          }
-        }else{
-          break;
-        }
-      }
-    }
-    d_pos_memberships[x] = index + 1;
-    if( index<(int)d_pos_memberships_data[x].size() ){
-      d_pos_memberships_data[x][index] = r;
-    }else{
-      d_pos_memberships_data[x].push_back( r );
-    }
-  } else if(!options::stringIgnNegMembership()) {
-    /*if(options::stringEIT() && d_regexp_opr.checkConstRegExp(r)) {
-      int rt;
-      Node r2 = d_regexp_opr.complement(r, rt);
-      Node a = NodeManager::currentNM()->mkNode(kind::STRING_IN_REGEXP, x, r2);
-    }*/
-    int index = 0;
-    NodeIntMap::const_iterator it = d_neg_memberships.find( x );
-    if( it!=d_nf_pairs.end() ){
-      index = (*it).second;
-      for( int k=0; k<index; k++ ){
-        if( k<(int)d_neg_memberships_data[x].size() ){
-          if( d_neg_memberships_data[x][k]==r ){
-            return;
-          }
-        }else{
-          break;
-        }
-      }
-    }
-    d_neg_memberships[x] = index + 1;
-    if( index<(int)d_neg_memberships_data[x].size() ){
-      d_neg_memberships_data[x][index] = r;
-    }else{
-      d_neg_memberships_data[x].push_back( r );
-    }
-  }
-  // old
-  if(polarity || !options::stringIgnNegMembership()) {
-    d_regexp_memberships.push_back( assertion );
-  }
-}
-
-Node TheoryStrings::getNormalString( Node x, std::vector< Node >& nf_exp ){
-  if( !x.isConst() ){
-    Node xr = getRepresentative( x );
-    if( d_normal_forms.find( xr ) != d_normal_forms.end() ){
-      Node ret = mkConcat( d_normal_forms[xr] );
-      nf_exp.insert( nf_exp.end(), d_normal_forms_exp[xr].begin(), d_normal_forms_exp[xr].end() );
-      addToExplanation( x, d_normal_forms_base[xr], nf_exp );
-      Trace("strings-debug") << "Term: " << x << " has a normal form " << ret << std::endl;
-      return ret;
-    } else {
-      if(x.getKind() == kind::STRING_CONCAT) {
-        std::vector< Node > vec_nodes;
-        for(unsigned i=0; i<x.getNumChildren(); i++) {
-          Node nc = getNormalString( x[i], nf_exp );
-          vec_nodes.push_back( nc );
-        }
-        return mkConcat( vec_nodes );
-      }
-    }
-  }
-  return x;
-}
-
-Node TheoryStrings::getNormalSymRegExp(Node r, std::vector<Node> &nf_exp) {
-  Node ret = r;
-  switch( r.getKind() ) {
-    case kind::REGEXP_EMPTY:
-    case kind::REGEXP_SIGMA:
-      break;
-    case kind::STRING_TO_REGEXP: {
-      if(!r[0].isConst()) {
-        Node tmp = getNormalString( r[0], nf_exp );
-        if(tmp != r[0]) {
-          ret = NodeManager::currentNM()->mkNode(kind::STRING_TO_REGEXP, tmp);
-        }
-      }
-      break;
-    }
-    case kind::REGEXP_CONCAT:
-    case kind::REGEXP_UNION:
-    case kind::REGEXP_INTER:
-    case kind::REGEXP_STAR:
-    {
-      std::vector< Node > vec_nodes;
-      for (const Node& cr : r)
-      {
-        vec_nodes.push_back(getNormalSymRegExp(cr, nf_exp));
-      }
-      ret = Rewriter::rewrite(
-          NodeManager::currentNM()->mkNode(r.getKind(), vec_nodes));
-      break;
-    }
-    //case kind::REGEXP_PLUS:
-    //case kind::REGEXP_OPT:
-    //case kind::REGEXP_RANGE:
-    default: {
-      Trace("strings-error") << "Unsupported term: " << r << " in normalization SymRegExp." << std::endl;
-      Assert( false );
-      //return Node::null();
-    }
-  }
-  return ret;
 }
 
 /** run the given inference step */

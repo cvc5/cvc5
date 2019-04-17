@@ -1,6 +1,5 @@
-; REQUIRES: no-asan
 ; REQUIRES: symfpu
-; COMMAND-LINE: --sygus-rr --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break
+; COMMAND-LINE: --sygus-rr --sygus-samples=0 --sygus-rr-synth-check --sygus-abort-size=1 --sygus-rr-verify-abort --no-sygus-sym-break --fp-exp
 ; EXPECT: (error "Maximum term size (1) for enumerative SyGuS exceeded.")
 ; SCRUBBER: grep -v -E '(\(define-fun|\(rewrite)'
 ; EXIT: 1

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Mathias Preiner, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,11 +32,8 @@ namespace bv {
 EagerBitblaster::EagerBitblaster(TheoryBV* theory_bv, context::Context* c)
     : TBitblaster<Node>(),
       d_context(c),
-      d_nullContext(new context::Context()),
       d_satSolver(),
       d_bitblastingRegistrar(new BitblastingRegistrar(this)),
-      d_cnfStream(),
-      d_bvp(nullptr),
       d_bv(theory_bv),
       d_bbAtoms(),
       d_variables(),
@@ -266,13 +263,6 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
   return true;
-}
-
-void EagerBitblaster::setResolutionProofLog(
-    proof::ResolutionBitVectorProof* bvp)
-{
-  THEORY_PROOF(d_bvp = bvp; d_satSolver->setProofLog(bvp);
-               bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());)
 }
 
 bool EagerBitblaster::isSharedTerm(TNode node) {
