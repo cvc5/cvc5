@@ -1706,7 +1706,7 @@ void TheoryStrings::checkExtfEval( int effort ) {
       else
       {
         // if this was a predicate which changed after substitution + rewriting
-        if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc!=n)
+        if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
         {
           bool pol = einfo.d_const == d_true;
           Node nrcAssert = pol ? nrc : nrc.negate();
