@@ -781,8 +781,7 @@ class SmtEnginePrivate : public NodeManagerListener {
                   bool isAssumption = false);
 
   /** Expand definitions in n. */
-  Node expandDefinitions(TNode n,
-                         NodeToNodeHashMap& cache);
+  Node expandDefinitions(TNode n, NodeToNodeHashMap& cache);
 
   /**
    * Simplify node "in" by expanding definitions and applying any
@@ -2706,7 +2705,8 @@ void SmtEnginePrivate::finishInit()
   }
 }
 
-Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, NodeHashFunction>& cache)
+Node SmtEnginePrivate::expandDefinitions(
+    TNode n, unordered_map<Node, Node, NodeHashFunction>& cache)
 {
   stack<std::tuple<Node, Node, bool>> worklist;
   stack<Node> result;
@@ -2833,9 +2833,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         cache[n] = (n == expanded ? Node::null() : expanded);
         result.push(expanded);
         continue;
-
-      } else{
-
+      }
+      else
+      {
         theory::Theory* t = d_smt.d_theoryEngine->theoryOf(node);
 
         Assert(t != NULL);
