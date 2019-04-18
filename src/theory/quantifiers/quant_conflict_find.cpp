@@ -22,7 +22,6 @@
 #include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/inst_explain.h"
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/term_database.h"
