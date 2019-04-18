@@ -551,20 +551,8 @@ int Trigger::getTriggerWeight( Node n ) {
   else if (isAtomicTrigger(n))
   {
     return 1;
-  }else{
-    /*
-    if( options::relationalTriggers() ){
-      if( isRelationalTrigger( n ) ){
-        for( unsigned i=0; i<2; i++ ){
-          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermUtil::hasInstConstAttr( n[1-i] ) ){
-            return 0;
-          }
-        }
-      }
-    }
-    */
-    return 2;
   }
+  return 2;
 }
 
 bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms ) {

@@ -103,10 +103,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }
     if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
       // We are one of the following cases:
-      //   f(x)=a, f(x)=y, x=a, x=y
-      // If we are the first case, we ensure that f(x) is on the left hand side
-      // of the equality. If we are the third case, we take x as the match
-      // pattern. In the other two cases, we leave the match pattern unchanged.
+      //   f(x)~a, f(x)~y, x~a, x~y
+      // If we are the first or third case, we ensure that f(x)/x is on the left
+      // hand side of the relation d_pattern, d_match_pattern is f(x)/x and
+      // d_eq_class_rel (indicating the equivalence class that we are related
+      // to) is set to a.
       for( unsigned i=0; i<2; i++ ){
         Node mp = d_match_pattern[i];
         Node mpo = d_match_pattern[1 - i];
@@ -114,25 +115,17 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         if (quantifiers::TermUtil::hasInstConstAttr(mp)
             && !quantifiers::TermUtil::hasInstConstAttr(mpo))
         {
-          if( mp.getKind()!=INST_CONSTANT ){
-            if (i == 1)
-            {
-              if( d_match_pattern.getKind()==GEQ ){
-                d_pattern = NodeManager::currentNM()->mkNode( kind::GT, mp, mpo );
-                d_pattern = d_pattern.negate();
-              }else{
-                d_pattern = NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), mp, mpo );
-              }
-            }
-            d_eq_class_rel = mpo;
-            d_match_pattern = mp;
-          }
-          else
+          if (i == 1)
           {
-            // use it as the pattern and the match pattern
-            d_pattern = mp;
-            d_match_pattern = mp;
+            if( d_match_pattern.getKind()==GEQ ){
+              d_pattern = NodeManager::currentNM()->mkNode( kind::GT, mp, mpo );
+              d_pattern = d_pattern.negate();
+            }else{
+              d_pattern = NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), mp, mpo );
+            }
           }
+          d_eq_class_rel = mpo;
+          d_match_pattern = mp;
           // we won't find a term in the other direction
           break;
         }
@@ -225,8 +218,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }else{
         d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
       }
-    }else if( d_match_pattern.getKind()==EQUAL &&
-              d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
+    }else if( d_match_pattern.getKind()==EQUAL ){
       //we will be producing candidates via literal matching heuristics
       if (d_pattern.getKind() == NOT)
       {
