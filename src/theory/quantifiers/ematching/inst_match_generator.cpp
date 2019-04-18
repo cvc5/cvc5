@@ -134,7 +134,6 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
             d_match_pattern = mp;
           }
           // we won't find a term in the other direction
-          success = true;
           break;
         }
       }
