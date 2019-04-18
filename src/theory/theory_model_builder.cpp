@@ -80,7 +80,7 @@ void TheoryEngineModelBuilder::addAssignableSubterms(TNode n,
                                                      TheoryModel* tm,
                                                      NodeSet& cache)
 {
-  if (n.getKind() == FORALL || n.getKind() == EXISTS)
+  if (n.isClosure())
   {
     return;
   }
