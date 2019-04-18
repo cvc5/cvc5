@@ -1069,7 +1069,9 @@ void EqualityEngine::getExplanation(
   else
   {
     // If proofs are enabled, note that proofs are sensitive to the order of t1
-    // and t2, so we don't sort the ids in this case.
+    // and t2, so we don't sort the ids in this case. Depending on how issue
+    // #2965 is resolved, we may be able to revisit this, if it is the case
+    // that proof/uf_proof.h,cpp is robust to equality ordering.
     cacheKey = std::pair<EqualityNodeId, EqualityNodeId>(t1Id, t2Id);
     it = cache.find(cacheKey);
     if (it != cache.end())
