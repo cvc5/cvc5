@@ -102,9 +102,12 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       d_match_pattern = d_pattern[0];
     }
     if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
-      //make sure the matching portion of the equality is on the LHS of d_pattern
-      //  and record what d_match_pattern is
-      Node newMp;
+      // We are one of the following cases:
+      //   f(x)=a, f(x)=y, x=a, x=y
+      // If we are the first case, we ensure that f(x) is on the left hand side
+      // of the equality. If we are the third case, we take x as the match
+      // pattern. In the other two cases, we leave the match pattern unchanged.
+      bool success = false;
       for( unsigned i=0; i<2; i++ ){
         Node mp = d_match_pattern[i];
         Node mpo = d_match_pattern[1-i];
@@ -121,15 +124,17 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
             }
             d_eq_class_rel = mpo;
             d_match_pattern = mp;
-            break;
           }
-          newMp = mp;
+          else
+          {
+            // use it as the pattern and the match pattern
+            d_pattern = mp;
+            d_match_pattern = mp;
+          }
+          // we won't find a term in the other direction
+          success = true;
+          break;
         }
-      }
-      if( !newMp.isNull() )
-      {
-        d_pattern = newMp;
-        d_match_pattern = newMp;
       }
     }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && 
               options::purifyDtTriggers() && !options::dtSharedSelectors() ){
@@ -186,9 +191,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       {
         // 1-constructors have a trivial way of generating candidates in a
         // given equivalence class
-        const Datatype& dt =
-            static_cast<DatatypeType>(d_match_pattern.getType().toType())
-                .getDatatype();
+        const Datatype& dt = d_match_pattern.getType().getDatatype();
         if (dt.getNumConstructors() == 1)
         {
           d_cg = new inst::CandidateGeneratorConsExpand(qe, d_match_pattern);
@@ -196,14 +199,15 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }
       if (d_cg == nullptr)
       {
-        // we will be scanning lists trying to find
-        // d_match_pattern.getOperator()
-        d_cg = new inst::CandidateGeneratorQE(qe, d_match_pattern);
-      }
-      //if matching on disequality, inform the candidate generator not to match on eqc
-      if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){
-        ((inst::CandidateGeneratorQE*)d_cg)->excludeEqc( d_eq_class_rel );
-        d_eq_class_rel = Node::null();
+        CandidateGeneratorQE * cg = new CandidateGeneratorQE(qe, d_match_pattern);
+        // we will be scanning lists trying to find ground terms whose operator
+        // is the same as d_match_operator's.
+        d_cg = cg;
+        //if matching on disequality, inform the candidate generator not to match on eqc
+        if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){
+          cg->excludeEqc( d_eq_class_rel );
+          d_eq_class_rel = Node::null();
+        }
       }
     }else if( d_match_pattern.getKind()==INST_CONSTANT ){
       if( d_pattern.getKind()==APPLY_SELECTOR_TOTAL ){
@@ -220,9 +224,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
-      Assert(d_pattern.getKind() == NOT);
-      // candidates will be all disequalities
-      d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
+      if(d_pattern.getKind() == NOT)
+      {
+        // candidates will be all disequalities
+        d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
+      }
     }else{
       Trace("inst-match-gen-warn") << "(?) Unknown matching pattern is " << d_match_pattern << std::endl;
     }

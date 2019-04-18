@@ -1,5 +1,6 @@
 ; COMMAND-LINE: --relational-triggers
 ; EXPECT: unsat
+(set-logic ALL)
 (declare-sort U 0)
 (declare-fun a () U)
 (declare-fun P (U U) Bool)
