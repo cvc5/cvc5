@@ -1,5 +1,5 @@
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status --nl-ext-tplanes
+; COMMAND-LINE: --sygus-out=status
 (set-logic BV)
 (define-sort BV () (_ BitVec 8))
 (synth-fun IC ((s BV) (t BV)) Bool
