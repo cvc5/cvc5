@@ -1070,7 +1070,7 @@ void EqualityEngine::getExplanation(
   {
     // Proofs are sensitive to the order of t1 and t2, so we don't sort the ids
     // in this case.
-    cacheKey = std::pair<EqualityNodeId, EqualityNodeId>(t1Id,t2Id);
+    cacheKey = std::pair<EqualityNodeId, EqualityNodeId>(t1Id, t2Id);
     it = cache.find(cacheKey);
     if (it != cache.end())
     {
@@ -1078,8 +1078,8 @@ void EqualityEngine::getExplanation(
       {
         eqp->d_id = it->second->d_id;
         eqp->d_children.insert(eqp->d_children.end(),
-                              it->second->d_children.begin(),
-                              it->second->d_children.end());
+                               it->second->d_children.begin(),
+                               it->second->d_children.end());
         eqp->d_node = it->second->d_node;
       }
       else
