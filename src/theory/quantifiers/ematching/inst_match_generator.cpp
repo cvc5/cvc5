@@ -110,11 +110,14 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       bool success = false;
       for( unsigned i=0; i<2; i++ ){
         Node mp = d_match_pattern[i];
-        Node mpo = d_match_pattern[1-i];
+        Node mpo = d_match_pattern[1 - i];
         // if this side has free variables and the other does not
-        if( quantifiers::TermUtil::hasInstConstAttr(mp) && !quantifiers::TermUtil::hasInstConstAttr(mpo) ){
+        if (quantifiers::TermUtil::hasInstConstAttr(mp)
+            && !quantifiers::TermUtil::hasInstConstAttr(mpo))
+        {
           if( mp.getKind()!=INST_CONSTANT ){
-            if( i==1 ){
+            if (i == 1)
+            {
               if( d_match_pattern.getKind()==GEQ ){
                 d_pattern = NodeManager::currentNM()->mkNode( kind::GT, mp, mpo );
                 d_pattern = d_pattern.negate();
@@ -199,13 +202,16 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }
       if (d_cg == nullptr)
       {
-        CandidateGeneratorQE * cg = new CandidateGeneratorQE(qe, d_match_pattern);
+        CandidateGeneratorQE* cg =
+            new CandidateGeneratorQE(qe, d_match_pattern);
         // we will be scanning lists trying to find ground terms whose operator
         // is the same as d_match_operator's.
         d_cg = cg;
-        //if matching on disequality, inform the candidate generator not to match on eqc
-        if( d_pattern.getKind()==NOT && d_pattern[0].getKind()==EQUAL ){
-          cg->excludeEqc( d_eq_class_rel );
+        // if matching on disequality, inform the candidate generator not to
+        // match on eqc
+        if (d_pattern.getKind() == NOT && d_pattern[0].getKind() == EQUAL)
+        {
+          cg->excludeEqc(d_eq_class_rel);
           d_eq_class_rel = Node::null();
         }
       }
@@ -224,7 +230,7 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }else if( d_match_pattern.getKind()==EQUAL &&
               d_match_pattern[0].getKind()==INST_CONSTANT && d_match_pattern[1].getKind()==INST_CONSTANT ){
       //we will be producing candidates via literal matching heuristics
-      if(d_pattern.getKind() == NOT)
+      if (d_pattern.getKind() == NOT)
       {
         // candidates will be all disequalities
         d_cg = new inst::CandidateGeneratorQELitDeq(qe, d_match_pattern);
