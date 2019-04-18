@@ -1057,8 +1057,8 @@ void EqualityEngine::getExplanation(
   std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>::iterator it;
   if (!eqp)
   {
-    // We order the ids, since explaining t1 = t2 is the same as explaining
-    // t2 = t1.
+    // If proofs are disabled, we order the ids, since explaining t1 = t2 is the
+    // same as explaining t2 = t1.
     cacheKey = std::minmax(t1Id, t2Id);
     it = cache.find(cacheKey);
     if (it != cache.end())
@@ -1068,8 +1068,8 @@ void EqualityEngine::getExplanation(
   }
   else
   {
-    // Proofs are sensitive to the order of t1 and t2, so we don't sort the ids
-    // in this case.
+    // If proofs are enabled, note that proofs are sensitive to the order of t1
+    // and t2, so we don't sort the ids in this case.
     cacheKey = std::pair<EqualityNodeId, EqualityNodeId>(t1Id, t2Id);
     it = cache.find(cacheKey);
     if (it != cache.end())
