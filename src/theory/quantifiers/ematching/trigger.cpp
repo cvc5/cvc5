@@ -232,7 +232,7 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
                          << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger") << "...got " << ho_apps.size()
+  Trace("trigger-debug") << "...got " << ho_apps.size()
                    << " higher-order applications." << std::endl;
   Trigger* t;
   if (!ho_apps.empty())
@@ -552,6 +552,7 @@ int Trigger::getTriggerWeight( Node n ) {
   {
     return 1;
   }else{
+    /*
     if( options::relationalTriggers() ){
       if( isRelationalTrigger( n ) ){
         for( unsigned i=0; i<2; i++ ){
@@ -561,6 +562,7 @@ int Trigger::getTriggerWeight( Node n ) {
         }
       }
     }
+    */
     return 2;
   }
 }
