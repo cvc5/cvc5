@@ -176,7 +176,7 @@ public:
   bool setMatch( QuantConflictFind * p, int v, TNode n, bool isGroundRep, bool isGround );
   void unsetMatch( QuantConflictFind * p, int v );
   bool isMatchSpurious( QuantConflictFind * p );
-  bool isTConstraintSpurious( QuantConflictFind* p, std::vector<Node>& terms );
+  bool isTConstraintSpurious( QuantConflictFind * p, std::vector< Node >& terms );
   bool entailmentTest( QuantConflictFind * p, Node lit, bool chEnt = true );
   bool completeMatch( QuantConflictFind * p, std::vector< int >& assigned, bool doContinue = false );
   void revertMatch( QuantConflictFind * p, std::vector< int >& assigned );
