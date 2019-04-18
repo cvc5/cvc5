@@ -1827,8 +1827,7 @@ QuantConflictFind::QuantConflictFind(QuantifiersEngine* qe, context::Context* c)
       d_conflict(c, false),
       d_true(NodeManager::currentNM()->mkConst<bool>(true)),
       d_false(NodeManager::currentNM()->mkConst<bool>(false)),
-      d_effort(EFFORT_INVALID),
-      d_needs_computeRelEqr()
+      d_effort(EFFORT_INVALID)
 {
 }
 
@@ -1899,7 +1898,25 @@ bool QuantConflictFind::needsCheck( Theory::Effort level ) {
 }
 
 void QuantConflictFind::reset_round( Theory::Effort level ) {
-  d_needs_computeRelEqr = true;
+  Trace("qcf-check") << "QuantConflictFind::reset_round" << std::endl;
+  Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
+  d_eqcs.clear();
+
+  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(getEqualityEngine());
+  TermDb* tdb = getTermDatabase();
+  while (!eqcs_i.isFinished())
+  {
+    Node r = (*eqcs_i);
+    if (tdb->hasTermCurrent(r))
+    {
+      TypeNode rtn = r.getType();
+      if (!options::cbqi() || !TermUtil::hasInstConstAttr(r))
+      {
+        d_eqcs[rtn].push_back(r);
+      }
+    }
+    ++eqcs_i;
+  }
 }
 
 void QuantConflictFind::setIrrelevantFunction( TNode f ) {
@@ -1962,8 +1979,6 @@ void QuantConflictFind::check(Theory::Effort level, QEffort quant_e)
     Trace("qcf-engine") << "---Conflict Find Engine Round, effort = " << level
                         << "---" << std::endl;
   }
-  // compute the relevant equivalence classes
-  computeRelevantEqr();
 
   // reset the round-specific information
   d_irr_func.clear();
@@ -2168,26 +2183,6 @@ void QuantConflictFind::checkQuantifiedFormula(Node q,
     d_tempCache.clear();
   }
   Trace("qcf-check") << "Done, conflict = " << d_conflict << std::endl;
-}
-
-void QuantConflictFind::computeRelevantEqr() {
-  if( d_needs_computeRelEqr ){
-    d_needs_computeRelEqr = false;
-    Trace("qcf-check") << "Compute relevant equivalence classes..." << std::endl;
-    d_eqcs.clear();
-
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( getEqualityEngine() );
-    while( !eqcs_i.isFinished() ){
-      Node r = (*eqcs_i);
-      if( getTermDatabase()->hasTermCurrent( r ) ){
-        TypeNode rtn = r.getType();
-        if( !options::cbqi() || !TermUtil::hasInstConstAttr( r ) ){
-          d_eqcs[rtn].push_back( r );
-        }
-      }
-      ++eqcs_i;
-    }
-  }
 }
 
 //-------------------------------------------------- debugging

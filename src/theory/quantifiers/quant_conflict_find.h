@@ -251,11 +251,7 @@ public:
    */
   void check(Theory::Effort level, QEffort quant_e) override;
 
-  /** compute relevant equivalence classes */
-  void computeRelevantEqr();
-
  private:
-  bool d_needs_computeRelEqr;
   /** check quantified formula
    *
    * This method is called by the above check method for each quantified
