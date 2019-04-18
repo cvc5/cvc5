@@ -104,12 +104,14 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
       //make sure the matching portion of the equality is on the LHS of d_pattern
       //  and record what d_match_pattern is
+      Node newMp;
       for( unsigned i=0; i<2; i++ ){
-        if( !quantifiers::TermUtil::hasInstConstAttr(d_match_pattern[i]) || d_match_pattern[i].getKind()==INST_CONSTANT ){
-          Node mp = d_match_pattern[1-i];
-          Node mpo = d_match_pattern[i];
+        Node mp = d_match_pattern[i];
+        Node mpo = d_match_pattern[1-i];
+        // if this side has free variables and the other does not
+        if( quantifiers::TermUtil::hasInstConstAttr(mp) && !quantifiers::TermUtil::hasInstConstAttr(mpo) ){
           if( mp.getKind()!=INST_CONSTANT ){
-            if( i==0 ){
+            if( i==1 ){
               if( d_match_pattern.getKind()==GEQ ){
                 d_pattern = NodeManager::currentNM()->mkNode( kind::GT, mp, mpo );
                 d_pattern = d_pattern.negate();
@@ -119,9 +121,15 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
             }
             d_eq_class_rel = mpo;
             d_match_pattern = mp;
+            break;
           }
-          break;
+          newMp = mp;
         }
+      }
+      if( !newMp.isNull() )
+      {
+        d_pattern = newMp;
+        d_match_pattern = newMp;
       }
     }else if( d_match_pattern.getKind()==APPLY_SELECTOR_TOTAL && d_match_pattern[0].getKind()==INST_CONSTANT && 
               options::purifyDtTriggers() && !options::dtSharedSelectors() ){

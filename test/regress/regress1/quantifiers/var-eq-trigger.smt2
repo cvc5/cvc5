@@ -1,3 +1,5 @@
+; COMMAND-LINE: --relational-triggers
+; EXPECT: unsat
 (set-logic UFNIA)
 (set-info :source |Benchmarks from the paper: "Extending Sledgehammer with SMT Solvers" by Jasmin Blanchette, Sascha Bohme, and Lawrence C. Paulson, CADE 2011.  Translated to SMT2 by Andrew Reynolds and Morgan Deters.|)
 (set-info :smt-lib-version 2.0)
