@@ -23,7 +23,6 @@
 #include "context/cdhashmap.h"
 #include "context/cdlist.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers/inst_explain_db.h"
 #include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
