@@ -117,11 +117,15 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         {
           if (i == 1)
           {
-            if( d_match_pattern.getKind()==GEQ ){
-              d_pattern = NodeManager::currentNM()->mkNode( kind::GT, mp, mpo );
+            if (d_match_pattern.getKind() == GEQ)
+            {
+              d_pattern = NodeManager::currentNM()->mkNode(kind::GT, mp, mpo);
               d_pattern = d_pattern.negate();
-            }else{
-              d_pattern = NodeManager::currentNM()->mkNode( d_match_pattern.getKind(), mp, mpo );
+            }
+            else
+            {
+              d_pattern = NodeManager::currentNM()->mkNode(
+                  d_match_pattern.getKind(), mp, mpo);
             }
           }
           d_eq_class_rel = mpo;
@@ -218,7 +222,9 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       }else{
         d_cg = new CandidateGeneratorQEAll( qe, d_match_pattern );
       }
-    }else if( d_match_pattern.getKind()==EQUAL ){
+    }
+    else if (d_match_pattern.getKind() == EQUAL)
+    {
       //we will be producing candidates via literal matching heuristics
       if (d_pattern.getKind() == NOT)
       {

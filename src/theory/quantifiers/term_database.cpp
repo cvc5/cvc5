@@ -907,7 +907,8 @@ bool TermDb::hasTermCurrent( Node n, bool useMode ) {
   }
 }
 
-bool TermDb::isTermEligibleForInstantiation( TNode n, TNode f ) {
+bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
+{
   if( options::lteRestrictInstClosure() ){
     //has to be both in inst closure and in ground assertions
     if( !isInstClosure( n ) ){
@@ -949,10 +950,12 @@ Node TermDb::getEligibleTermInEqc( TNode r ) {
       Node h;
       eq::EqualityEngine* ee = d_quantEngine->getActiveEqualityEngine();
       eq::EqClassIterator eqc_i = eq::EqClassIterator( r, ee );
-      while( !eqc_i.isFinished() ){
+      while (!eqc_i.isFinished())
+      {
         TNode n = (*eqc_i);
         ++eqc_i;
-        if( isTermEligibleForInstantiation( n, TNode::null() ) ){
+        if (isTermEligibleForInstantiation(n, TNode::null()))
+        {
           h = n;
           break;
         }
