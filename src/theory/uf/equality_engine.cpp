@@ -1052,23 +1052,37 @@ void EqualityEngine::getExplanation(
   Trace("eq-exp") << d_name << "::eq::getExplanation(" << d_nodes[t1Id] << ","
                   << d_nodes[t2Id] << ") size = " << cache.size() << std::endl;
 
-  // We order the ids, since explaining t1 = t2 is the same as explaining
-  // t2 = t1.
-  std::pair<EqualityNodeId, EqualityNodeId> cacheKey = std::minmax(t1Id, t2Id);
-  std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>::iterator it =
-      cache.find(cacheKey);
-  if (it != cache.end())
+  // determine if we have already computed the explanation.
+  std::pair<EqualityNodeId, EqualityNodeId> cacheKey;
+  std::map<std::pair<EqualityNodeId, EqualityNodeId>, EqProof*>::iterator it;
+  if (!eqp)
   {
-    // copy one level
-    if (eqp)
+    // If proofs are disabled, we order the ids, since explaining t1 = t2 is the
+    // same as explaining t2 = t1.
+    cacheKey = std::minmax(t1Id, t2Id);
+    it = cache.find(cacheKey);
+    if (it != cache.end())
+    {
+      return;
+    }
+  }
+  else
+  {
+    // If proofs are enabled, note that proofs are sensitive to the order of t1
+    // and t2, so we don't sort the ids in this case. TODO: Depending on how
+    // issue #2965 is resolved, we may be able to revisit this, if it is the
+    // case that proof/uf_proof.h,cpp is robust to equality ordering.
+    cacheKey = std::pair<EqualityNodeId, EqualityNodeId>(t1Id, t2Id);
+    it = cache.find(cacheKey);
+    if (it != cache.end())
     {
       if (it->second)
       {
-        eqp->d_node = it->second->d_node;
         eqp->d_id = it->second->d_id;
         eqp->d_children.insert(eqp->d_children.end(),
                                it->second->d_children.begin(),
                                it->second->d_children.end());
+        eqp->d_node = it->second->d_node;
       }
       else
       {
@@ -1077,8 +1091,8 @@ void EqualityEngine::getExplanation(
         Assert(eqp->d_id == MERGED_THROUGH_REFLEXIVITY);
         eqp->d_node = d_nodes[t1Id];
       }
+      return;
     }
-    return;
   }
   cache[cacheKey] = eqp;
 
