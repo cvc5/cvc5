@@ -107,7 +107,6 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       // If we are the first case, we ensure that f(x) is on the left hand side
       // of the equality. If we are the third case, we take x as the match
       // pattern. In the other two cases, we leave the match pattern unchanged.
-      bool success = false;
       for( unsigned i=0; i<2; i++ ){
         Node mp = d_match_pattern[i];
         Node mpo = d_match_pattern[1 - i];
