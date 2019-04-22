@@ -938,6 +938,8 @@ bool TermDb::isTermEligibleForInstantiation(TNode n, TNode f)
       }
     }
   }
+  // it cannot have instantiation constants, which originate from
+  // counterexample-guided instantiation strategies.
   return !TermUtil::hasInstConstAttr(n);
 }
 
