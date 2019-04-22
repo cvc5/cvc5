@@ -98,10 +98,20 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
   if( !d_pattern.isNull() ){
     Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern << std::endl;
     if( d_match_pattern.getKind()==NOT ){
+      Assert( d_pattern.getKind()==NOT );
       //we want to add the children of the NOT
-      d_match_pattern = d_pattern[0];
+      d_match_pattern = d_match_pattern[0];
     }
-    if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ ){
+    
+    if( d_pattern.getKind()==NOT && 
+      d_match_pattern.getKind()==EQUAL && d_match_pattern[0][0].getKind()==INST_CONSTANT &&
+        d_match_pattern[0][0].getKind()==INST_CONSTANT )
+    {
+      // special case: disequalities between variables x != y will match ground
+      // disequalities.
+    }
+    else if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ )
+    {
       // We are one of the following cases:
       //   f(x)~a, f(x)~y, x~a, x~y
       // If we are the first or third case, we ensure that f(x)/x is on the left
@@ -111,9 +121,11 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
       for( unsigned i=0; i<2; i++ ){
         Node mp = d_match_pattern[i];
         Node mpo = d_match_pattern[1 - i];
-        // if this side has free variables and the other does not
+        // If this side has free variables, and the other side does not or
+        // it is a free variable, then we will match on this side of the
+        // relation.
         if (quantifiers::TermUtil::hasInstConstAttr(mp)
-            && !quantifiers::TermUtil::hasInstConstAttr(mpo))
+            && ( !quantifiers::TermUtil::hasInstConstAttr(mpo) || mpo.getKind()==INST_CONSTANT ) )
         {
           if (i == 1)
           {
@@ -304,8 +316,9 @@ int InstMatchGenerator::getMatch(
           prev.push_back(d_children_types[0]);
         }
       }
+    }
     //for relational matching
-    }else if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()==INST_CONSTANT ){
+    if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()==INST_CONSTANT ){
       int v = d_eq_class_rel.getAttribute(InstVarNumAttribute());
       //also must fit match to equivalence class
       bool pol = d_pattern.getKind()!=NOT;
