@@ -104,8 +104,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
     }
 
     if (d_pattern.getKind() == NOT && d_match_pattern.getKind() == EQUAL
-        && d_match_pattern[0][0].getKind() == INST_CONSTANT
-        && d_match_pattern[0][0].getKind() == INST_CONSTANT)
+        && d_match_pattern[0].getKind() == INST_CONSTANT
+        && d_match_pattern[1].getKind() == INST_CONSTANT)
     {
       // special case: disequalities between variables x != y will match ground
       // disequalities.
