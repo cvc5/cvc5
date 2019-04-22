@@ -98,19 +98,20 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
   if( !d_pattern.isNull() ){
     Trace("inst-match-gen") << "Initialize, pattern term is " << d_pattern << std::endl;
     if( d_match_pattern.getKind()==NOT ){
-      Assert( d_pattern.getKind()==NOT );
+      Assert(d_pattern.getKind() == NOT);
       //we want to add the children of the NOT
       d_match_pattern = d_match_pattern[0];
     }
-    
-    if( d_pattern.getKind()==NOT && 
-      d_match_pattern.getKind()==EQUAL && d_match_pattern[0][0].getKind()==INST_CONSTANT &&
-        d_match_pattern[0][0].getKind()==INST_CONSTANT )
+
+    if (d_pattern.getKind() == NOT && d_match_pattern.getKind() == EQUAL
+        && d_match_pattern[0][0].getKind() == INST_CONSTANT
+        && d_match_pattern[0][0].getKind() == INST_CONSTANT)
     {
       // special case: disequalities between variables x != y will match ground
       // disequalities.
     }
-    else if( d_match_pattern.getKind()==EQUAL || d_match_pattern.getKind()==GEQ )
+    else if (d_match_pattern.getKind() == EQUAL
+             || d_match_pattern.getKind() == GEQ)
     {
       // We are one of the following cases:
       //   f(x)~a, f(x)~y, x~a, x~y
@@ -125,7 +126,8 @@ void InstMatchGenerator::initialize( Node q, QuantifiersEngine* qe, std::vector<
         // it is a free variable, then we will match on this side of the
         // relation.
         if (quantifiers::TermUtil::hasInstConstAttr(mp)
-            && ( !quantifiers::TermUtil::hasInstConstAttr(mpo) || mpo.getKind()==INST_CONSTANT ) )
+            && (!quantifiers::TermUtil::hasInstConstAttr(mpo)
+                || mpo.getKind() == INST_CONSTANT))
         {
           if (i == 1)
           {
@@ -318,7 +320,8 @@ int InstMatchGenerator::getMatch(
       }
     }
     //for relational matching
-    if( !d_eq_class_rel.isNull() && d_eq_class_rel.getKind()==INST_CONSTANT ){
+    if (!d_eq_class_rel.isNull() && d_eq_class_rel.getKind() == INST_CONSTANT)
+    {
       int v = d_eq_class_rel.getAttribute(InstVarNumAttribute());
       //also must fit match to equivalence class
       bool pol = d_pattern.getKind()!=NOT;
