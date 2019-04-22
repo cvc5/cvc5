@@ -1249,7 +1249,7 @@ const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
     "\
 Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
 \n\
-  none    : Do not optimize that SAT proof\n\
+  none    : Do not optimize the SAT proof\n\
 \n\
   proof   : Use drat-trim to shrink the SAT proof\n\
 \n\

@@ -89,7 +89,7 @@ enum BvProofFormat
 };
 
 /**
- * When the BV solver does eager bitblasting backed by CryptoMiniSat, proofs
+ * When the BV solver does eager bit-blasting backed by DRAT-producing SAT solvers, proofs
  * can be written in a variety of formats.
  */
 enum BvOptimizeSatProof
