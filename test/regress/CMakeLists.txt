@@ -451,6 +451,7 @@ set(regress_0_tests
   regress0/fp/abs-unsound2.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/simple.smt2
+  regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smt
   regress0/fuzz_3.smt
   regress0/get-value-incremental.smt2
@@ -533,6 +534,7 @@ set(regress_0_tests
   regress0/options/invalid_dump.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
+  regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
@@ -830,6 +832,7 @@ set(regress_0_tests
   regress0/strings/ilc-like.smt2
   regress0/strings/indexof-sym-simp.smt2
   regress0/strings/issue1189.smt2
+  regress0/strings/issue2958.smt2
   regress0/strings/itos-entail.smt2
   regress0/strings/leadingzero001.smt2
   regress0/strings/loop001.smt2
@@ -932,6 +935,7 @@ set(regress_0_tests
   regress0/uf/euf_simp12.smt
   regress0/uf/euf_simp13.smt
   regress0/uf/iso_brn001.smt
+  regress0/uf/issue2947.smt2
   regress0/uf/pred.smt
   regress0/uf/simple.01.cvc
   regress0/uf/simple.02.cvc
@@ -1494,6 +1498,7 @@ set(regress_1_tests
   regress1/sets/fuzz31811.smt2
   regress1/sets/insert_invariant_37_2.smt2
   regress1/sets/issue2568.smt2
+  regress1/sets/issue2904.smt2
   regress1/sets/lemmabug-ListElts317minimized.smt2
   regress1/sets/remove_check_free_31_6.smt2
   regress1/sets/sets-disequal.smt2
@@ -1622,6 +1627,8 @@ set(regress_1_tests
   regress1/sygus/inv-example.sy
   regress1/sygus/inv-missed-sol-true.sy
   regress1/sygus/inv-unused.sy
+  regress1/sygus/issue2914.sy
+  regress1/sygus/issue2935.sy
   regress1/sygus/large-const-simp.sy
   regress1/sygus/let-bug-simp.sy
   regress1/sygus/list-head-x.sy
@@ -1743,12 +1750,12 @@ set(regress_2_tests
   regress2/quantifiers/mutualrec2.cvc
   regress2/quantifiers/net-policy-no-time.smt2
   regress2/quantifiers/nunchaku2309663.nun.min.smt2
+  regress2/quantifiers/syn874-1.smt2
   regress2/simplify.javafe.ast.ArrayInit.35_without_quantification2.smt2
   regress2/strings/cmu-dis-0707-3.smt2
   regress2/strings/cmu-disagree-0707-dd.smt2
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
-  regress2/strings/extf_d_perf.smt2
   regress2/strings/issue918.smt2
   regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
@@ -1797,6 +1804,7 @@ set(regress_3_tests
   regress3/pp-regfile.smt
   regress3/qwh.35.405.shuffled-as.sat03-1651.smt
   regress3/sixfuncs.sy
+  regress3/strings/extf_d_perf.smt2
 )
 
 #-----------------------------------------------------------------------------#

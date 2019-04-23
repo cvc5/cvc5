@@ -775,6 +775,11 @@ endif()
 target_link_libraries(cvc4 ${GMP_LIBRARIES})
 target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
 
+# Add rt library
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
+#       RT_LIBRARIES should be empty for glibc >= 2.17
+target_link_libraries(cvc4 ${RT_LIBRARIES})
+
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc4. For target main, we have
 # to manually add library dependencies since we can't use

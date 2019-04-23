@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1719,8 +1719,8 @@ void TheoryStrings::checkExtfEval( int effort ) {
       }
       else
       {
-        bool reduced = false;
-        if (!einfo.d_const.isNull() && nrc.getType().isBoolean())
+        // if this was a predicate which changed after substitution + rewriting
+        if (!einfo.d_const.isNull() && nrc.getType().isBoolean() && nrc != n)
         {
           bool pol = einfo.d_const == d_true;
           Node nrcAssert = pol ? nrc : nrc.negate();
@@ -1730,23 +1730,15 @@ void TheoryStrings::checkExtfEval( int effort ) {
           Trace("strings-extf-debug") << "  decomposable..." << std::endl;
           Trace("strings-extf") << "  resolve extf : " << sn << " -> " << nrc
                                 << ", const = " << einfo.d_const << std::endl;
-          reduced = sendInternalInference(
+          // We send inferences internal here, which may help show unsat.
+          // However, we do not make a determination whether n can be marked
+          // reduced since this argument may be circular: we may infer than n
+          // can be reduced to something else, but that thing may argue that it
+          // can be reduced to n, in theory.
+          sendInternalInference(
               einfo.d_exp, nrcAssert, effort == 0 ? "EXTF_d" : "EXTF_d-N");
-          if (!reduced)
-          {
-            Trace("strings-extf") << "EXT: could not fully reduce ";
-            Trace("strings-extf")
-                << nAssert << " via " << nrcAssert << std::endl;
-          }
         }
-        if (reduced)
-        {
-          getExtTheory()->markReduced(n);
-        }
-        else
-        {
-          to_reduce = nrc;
-        }
+        to_reduce = nrc;
       }
     }else{
       to_reduce = sterms[i];

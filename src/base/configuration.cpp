@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -114,7 +114,7 @@ std::string Configuration::getVersionExtra() {
 
 std::string Configuration::copyright() {
   std::stringstream ss;
-  ss << "Copyright (c) 2009-2018 by the authors and their institutional\n"
+  ss << "Copyright (c) 2009-2019 by the authors and their institutional\n"
      << "affiliations listed at http://cvc4.cs.stanford.edu/authors\n\n";
 
   if (Configuration::licenseIsGpl()) {
@@ -130,7 +130,7 @@ std::string Configuration::copyright() {
 
   ss << "THIS SOFTWARE IS PROVIDED AS-IS, WITHOUT ANY WARRANTIES.\n"
      << "USE AT YOUR OWN RISK.\n\n";
- 
+
   ss << "CVC4 incorporates code from ANTLR3 (http://www.antlr.org).\n"
      << "See licenses/antlr3-LICENSE for copyright and licensing information."
      << "\n\n";

@@ -2,9 +2,9 @@
 /*! \file node_algorithm.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Haniel Barbosa, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -182,8 +182,7 @@ bool getFreeVariables(TNode n,
       continue;
     }
     Kind k = cur.getKind();
-    bool isQuant = k == kind::FORALL || k == kind::EXISTS || k == kind::LAMBDA
-                   || k == kind::CHOICE;
+    bool isQuant = cur.isClosure();
     std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
