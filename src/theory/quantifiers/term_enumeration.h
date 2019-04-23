@@ -56,6 +56,14 @@ class TermEnumeration
    */
   static bool mayComplete(TypeNode tn, unsigned cardMax);
 
+  /** get domain
+   *
+   * If tn is a type such that mayComplete(tn) returns true, this method
+   * adds all domain elements of tn to dom and returns true. Otherwise, this
+   * method returns false.
+   */
+  bool getDomain(TypeNode tn, std::vector<Node>& dom);
+
  private:
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>

@@ -26,6 +26,7 @@
 
 #include <sstream>
 #include <string>
+#include <unordered_set>
 #include <vector>
 #include <unordered_set>
 
@@ -168,12 +169,16 @@ struct SatLiteralHashFunction {
  */
 typedef std::vector<SatLiteral> SatClause;
 
-struct SatClauseSetHashFunction {
-  inline size_t operator() (const std::unordered_set<SatLiteral, SatLiteralHashFunction>& clause) const {
+struct SatClauseSetHashFunction
+{
+  inline size_t operator()(
+      const std::unordered_set<SatLiteral, SatLiteralHashFunction>& clause)
+      const
+  {
     size_t acc = 0;
     for (const auto& l : clause)
     {
-        acc ^= l.hash();
+      acc ^= l.hash();
     }
     return acc;
   }

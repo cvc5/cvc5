@@ -56,13 +56,6 @@ class TheoryQuantifiers : public Theory {
                         std::vector<Node> node_values,
                         std::string str_value) override;
 
- private:
-  void assertUniversal( Node n );
-  void assertExistential( Node n );
-  /** number of instantiations */
-  int d_numInstantiations;
-  int d_baseDecLevel;
-
 };/* class TheoryQuantifiers */
 
 }/* CVC4::theory::quantifiers namespace */
