@@ -2686,6 +2686,9 @@ NormalForm& TheoryStrings::getNormalForm(Node n)
   {
     Trace("strings-warn") << "WARNING: returning empty normal form for " << n
                           << std::endl;
+    // Shouln't ask for normal forms of strings that weren't computed. This
+    // likely means that n is not a representative or not a term in the current
+    // context. We simply return a default normal form here in this case.
     Assert(false);
     return d_normal_form[n];
   }
@@ -2727,23 +2730,26 @@ void TheoryStrings::getNormalForms(Node eqc,
             //if not the empty string, add to current normal form
             if (!nfrv.empty())
             {
-#ifdef CVC4_ASSERTIONS
-              for (const Node& nn : nfrv)
+              // if in a build with assertions, we run the following block,
+              // which checks that normal forms do not have concat terms.
+              if( Configuration::isAssertionBuild() )
               {
-                if( Trace.isOn("strings-error") ) {
-                  if (nn.getKind() == STRING_CONCAT)
-                  {
-                    Trace("strings-error") << "Strings::Error: From eqc = " << eqc << ", " << n << " index " << i << ", bad normal form : ";
-                    for (unsigned rr = 0; rr < nfrv.size(); rr++)
+                for (const Node& nn : nfrv)
+                {
+                  if( Trace.isOn("strings-error") ) {
+                    if (nn.getKind() == STRING_CONCAT)
                     {
-                      Trace("strings-error") << nfrv[rr] << " ";
+                      Trace("strings-error") << "Strings::Error: From eqc = " << eqc << ", " << n << " index " << i << ", bad normal form : ";
+                      for (unsigned rr = 0; rr < nfrv.size(); rr++)
+                      {
+                        Trace("strings-error") << nfrv[rr] << " ";
+                      }
+                      Trace("strings-error") << std::endl;
                     }
-                    Trace("strings-error") << std::endl;
                   }
+                  Assert(nn.getKind() != kind::STRING_CONCAT);
                 }
-                Assert(nn.getKind() != kind::STRING_CONCAT);
               }
-#endif
               nf_curr.d_nf.insert(nf_curr.d_nf.end(), nfrv.begin(), nfrv.end());
             }
             // Track explanation for the normal form. This is in two parts.
@@ -2756,8 +2762,8 @@ void TheoryStrings::getNormalForms(Node eqc,
               // placement in the normal form of n.
               nf_curr.addToExplanation(
                   exp,
-                  orig_size + nfr.d_exp_dep[exp][false],
-                  orig_size + (add_size - nfr.d_exp_dep[exp][true]));
+                  orig_size + nfr.d_expDep[exp][false],
+                  orig_size + (add_size - nfr.d_expDep[exp][true]));
             }
             // Second, must explain that the component n[i] is equal to the
             // base of the normal form for nr.
@@ -2771,15 +2777,11 @@ void TheoryStrings::getNormalForms(Node eqc,
           }
           // Now that we are finished with the loop, we convert forward indices
           // to reverse indices in the explanation dependency information
-          // nf_curr.finalizeExpDep();
           int total_size = nf_curr.d_nf.size();
-          for (std::map<Node, std::map<bool, unsigned> >::iterator it =
-                   nf_curr.d_exp_dep.begin();
-               it != nf_curr.d_exp_dep.end();
-               ++it)
+          for( std::pair< const Node, std::map<bool, unsigned> >& ed : nf_curr.d_expDep )
           {
-            it->second[true] = total_size - it->second[true];
-            Assert( it->second[true]>=0 );
+            ed.second[true] = total_size - ed.second[true];
+            Assert( ed.second[true]>=0 );
           }
         }
         //if not equal to self
@@ -2787,21 +2789,23 @@ void TheoryStrings::getNormalForms(Node eqc,
         if (currv.size() > 1
             || (currv.size() == 1 && currv[0].getKind() == CONST_STRING))
         {
-#ifdef CVC4_ASSERTIONS
-          if (currv.size() > 1)
+          // if in a build with assertions, check that normal form is acyclic
+          if( Configuration::isAssertionBuild() )
           {
-            for (unsigned i = 0; i < currv.size(); i++)
+            if (currv.size() > 1)
             {
-              if (Trace.isOn("strings-error"))
+              for (unsigned i = 0; i < currv.size(); i++)
               {
-                Trace("strings-error") << "Cycle for normal form ";
-                printConcat(currv, "strings-error");
-                Trace("strings-error") << "..." << currv[i] << std::endl;
+                if (Trace.isOn("strings-error"))
+                {
+                  Trace("strings-error") << "Cycle for normal form ";
+                  printConcat(currv, "strings-error");
+                  Trace("strings-error") << "..." << currv[i] << std::endl;
+                }
+                Assert(!areEqual(currv[i], n));
               }
-              Assert(!areEqual(currv[i], n));
             }
           }
-#endif
           term_to_nf_index[n] = normal_forms.size();
           normal_forms.push_back(nf_curr);
         }else{
@@ -2866,8 +2870,8 @@ void TheoryStrings::getNormalForms(Node eqc,
           {
             Node exp = nf.d_exp[j];
             Trace("strings-solve") << "   " << exp << " -> ";
-            Trace("strings-solve") << nf.d_exp_dep[exp][false] << ",";
-            Trace("strings-solve") << nf.d_exp_dep[exp][true] << std::endl;
+            Trace("strings-solve") << nf.d_expDep[exp][false] << ",";
+            Trace("strings-solve") << nf.d_expDep[exp][true] << std::endl;
           }
         }
         Trace("strings-solve") << std::endl;

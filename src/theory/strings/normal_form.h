@@ -91,7 +91,7 @@ class NormalForm
    * that does not include u = u1 ++ u2, because the conflict only pertains
    * to the last position in the normal form of y.
    */
-  std::map<Node, std::map<bool, unsigned> > d_exp_dep;
+  std::map<Node, std::map<bool, unsigned> > d_expDep;
   /** initialize
    *
    * Initialize the normal form with base node base. If base is not the empty

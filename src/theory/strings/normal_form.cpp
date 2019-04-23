@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the normal form data structure for the theory of
+ ** \brief Implementation of normal form data structure for the theory of
  **  strings.
  **/
 
@@ -32,7 +32,7 @@ void NormalForm::init(Node base)
   d_base = base;
   d_nf.clear();
   d_exp.clear();
-  d_exp_dep.clear();
+  d_expDep.clear();
 
   // add to normal form
   if (!base.isConst() || !base.getConst<String>().isEmptyString())
@@ -54,7 +54,7 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
   // notice this is not critical for soundness: not doing the below incrementing
   // will only lead to overapproximating when antecedants are required in
   // explanations
-  for (const std::pair<Node, std::map<bool, unsigned> >& pe : d_exp_dep)
+  for (const std::pair<Node, std::map<bool, unsigned> >& pe : d_expDep)
   {
     for (const std::pair<bool, unsigned>& pep : pe.second)
     {
@@ -66,7 +66,7 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
                            : (d_nf.size() - 1 - pep.second) < index;
       if (increment)
       {
-        d_exp_dep[pe.first][pep.first] = pep.second + 1;
+        d_expDep[pe.first][pep.first] = pep.second + 1;
       }
     }
   }
@@ -83,13 +83,13 @@ void NormalForm::addToExplanation(Node exp,
   for (unsigned k = 0; k < 2; k++)
   {
     unsigned val = k == 0 ? new_val : new_rev_val;
-    std::map<bool, unsigned>::iterator itned = d_exp_dep[exp].find(k == 1);
-    if (itned == d_exp_dep[exp].end())
+    std::map<bool, unsigned>::iterator itned = d_expDep[exp].find(k == 1);
+    if (itned == d_expDep[exp].end())
     {
       Trace("strings-process-debug")
           << "Deps : set dependency on " << exp << " to " << val
           << " isRev=" << (k == 0) << std::endl;
-      d_exp_dep[exp][k == 1] = val;
+      d_expDep[exp][k == 1] = val;
     }
     else
     {
@@ -101,7 +101,7 @@ void NormalForm::addToExplanation(Node exp,
       bool cmp = val > itned->second;
       if (cmp == (k == 1))
       {
-        d_exp_dep[exp][k == 1] = val;
+        d_expDep[exp][k == 1] = val;
       }
     }
   }
@@ -118,7 +118,7 @@ void NormalForm::getExplanation(int index,
   }
   for (const Node& exp : d_exp)
   {
-    int dep = static_cast<int>(d_exp_dep[exp][isRev]);
+    int dep = static_cast<int>(d_expDep[exp][isRev]);
     if (dep <= index)
     {
       curr_exp.push_back(exp);

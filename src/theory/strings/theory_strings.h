@@ -610,9 +610,10 @@ private:
    *   constant strings "ABC" in the normal form vectors are not reversed to
    *   "CBA" and hence all operations should assume a flipped semantics for
    *   constants when isRev is true,
-   * rproc: the number of indices on the suffix of that were already processed.
-   *   This is used when using fowards/backwards traversals of normal forms to
-   *   ensure that duplicate inferences are not processed.
+   * rproc: the number of string components on the suffix of the normal form of
+   *   nfi and nfj that were already processed. This is used when using
+   *   fowards/backwards traversals of normal forms to ensure that duplicate
+   *   inferences are not processed.
    * pinfer: the set of possible inferences we add to.
    */
   void processSimpleNEq(NormalForm& nfi,
