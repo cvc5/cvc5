@@ -148,6 +148,8 @@ public:
 
   theory::bv::BvProofFormat stringToBvProofFormat(std::string option,
                                                   std::string optarg);
+  theory::bv::BvOptimizeSatProof stringToBvOptimizeSatProof(std::string option,
+                                                            std::string optarg);
 
   theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
       std::string option, std::string optarg);
@@ -238,6 +240,7 @@ public:
   static const std::string s_bitblastingModeHelp;
   static const std::string s_bvSatSolverHelp;
   static const std::string s_bvProofFormatHelp;
+  static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
   static const std::string s_stringToStringsProcessLoopModeHelp;

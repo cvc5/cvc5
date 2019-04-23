@@ -88,6 +88,27 @@ enum BvProofFormat
   BITVECTOR_PROOF_LRAT,
 };
 
+/**
+ * When the BV solver does eager bit-blasting backed by DRAT-producing SAT solvers, proofs
+ * can be written in a variety of formats.
+ */
+enum BvOptimizeSatProof
+{
+  /**
+   * Do not optimize the SAT proof.
+   */
+  BITVECTOR_OPTIMIZE_SAT_PROOF_NONE = 0,
+  /**
+   * Optimize the SAT proof, but do not shrink the formula
+   */
+  BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF = 1,
+  /**
+   * Optimize the SAT proof and shrink the formula
+   */
+  BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA = 2,
+};
+
+
 }/* CVC4::theory::bv namespace */
 }/* CVC4::theory namespace */
 
@@ -95,6 +116,7 @@ std::ostream& operator<<(std::ostream& out, theory::bv::BitblastMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::BvSlicerMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::SatSolverMode mode);
 std::ostream& operator<<(std::ostream& out, theory::bv::BvProofFormat format);
+std::ostream& operator<<(std::ostream& out, theory::bv::BvOptimizeSatProof level);
 
 }/* CVC4 namespace */
 
