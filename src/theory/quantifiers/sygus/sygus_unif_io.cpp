@@ -161,7 +161,12 @@ bool UnifContextIo::getStringIncrement(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // the value is unknown, thus we cannot use it to increment the strings
+        // position
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       ival = mystr.size();
       if (mystr.size() <= ex_vals[j].size())
@@ -199,7 +204,11 @@ bool UnifContextIo::isStringSolved(SygusUnifIo* sui,
     if (d_vals[j] == sui->d_true)
     {
       // example is active in this context
-      Assert(vals[j].isConst());
+      if (!vals[j].isConst())
+      {
+        // value is unknown, thus it does not solve
+        return false;
+      }
       String mystr = vals[j].getConst<String>();
       if (ex_vals[j] != mystr)
       {
@@ -449,25 +458,26 @@ void SubsumeTrie::getLeavesInternal(const std::vector<Node>& vals,
     {
       int new_status = status;
       bool success = true;
-      // if the current value is true, we must consider the value of this child
+      // If the current value is true, then this is a relevant point.
+      // We must consider the value of this child.
       if (curr_val_true)
       {
-        if (status != 0)
+        if (it->first.isNull())
         {
-          if (it->first.isNull())
+          // The value of this child is unknown on this point, hence we
+          // do not recurse
+          success = false;
+        }
+        else if (status != 0)
+        {
+          // if the status is not zero (indicating that we have a mix of T/F),
+          // then we must compute the new status.
+          Assert(it->first.getType().isBoolean());
+          Assert(it->first.isConst());
+          new_status = (it->first.getConst<bool>() ? 1 : -1);
+          if (status != -2 && new_status != status)
           {
-            // The value of this child is unknown on this point, hence we
-            // ignore it.
-            success = false;
-          }
-          else
-          {
-            Assert(it->first.getType().isBoolean());
-            new_status = (it->first.getConst<bool>() ? 1 : -1);
-            if (status != -2 && new_status != status)
-            {
-              new_status = 0;
-            }
+            new_status = 0;
           }
         }
       }
@@ -949,23 +959,27 @@ bool SygusUnifIo::getExplanationForEnumeratorExclude(
     std::vector<unsigned> cmp_indices;
     for (unsigned i = 0, size = results.size(); i < size; i++)
     {
-      Assert(results[i].isConst());
-      Assert(d_examples_out[i].isConst());
-      Trace("sygus-sui-cterm-debug")
-          << "  " << results[i] << " <> " << d_examples_out[i];
-      Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
-      Node contr = Rewriter::rewrite(cont);
-      if (contr == d_false)
+      // If the result is not constant, then it is worthless. It does not
+      // impact whether the term is excluded.
+      if (results[i].isConst())
       {
-        cmp_indices.push_back(i);
-        Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
-      }
-      else
-      {
-        Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
-        if (isConditional)
+        Assert(d_examples_out[i].isConst());
+        Trace("sygus-sui-cterm-debug")
+            << "  " << results[i] << " <> " << d_examples_out[i];
+        Node cont = nm->mkNode(STRING_STRCTN, d_examples_out[i], results[i]);
+        Node contr = Rewriter::rewrite(cont);
+        if (contr == d_false)
         {
-          return false;
+          cmp_indices.push_back(i);
+          Trace("sygus-sui-cterm-debug") << "...not contained." << std::endl;
+        }
+        else
+        {
+          Trace("sygus-sui-cterm-debug") << "...contained." << std::endl;
+          if (isConditional)
+          {
+            return false;
+          }
         }
       }
     }

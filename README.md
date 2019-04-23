@@ -56,32 +56,27 @@ We recommend that you visit our CVC4 tutorials online at:
 
 for help getting started using CVC4.
 
+If you need help with using CVC4, please refer to
+[http://cvc4.stanford.edu/#Technical_Support](http://cvc4.stanford.edu/#Technical_Support).
+
+If you are using CVC4 in your work, or incorporating it into software of your
+own, we'd like to invite you to leave a description and link to your
+project/software on our [Third Party
+Applications](http://cvc4.cs.stanford.edu/wiki/Public:Third_Party_Applications).
+
+
+Bug Reports
+-------------------------------------------------------------------------------
+
+If you need to report a bug with CVC4, or make a feature request, please visit
+our bugtracker at our [GitHub issues](https://github.com/CVC4/CVC4/issues)
+page. We are very grateful for bug reports,  as they help us improve CVC4.
+
 
 Contributing
 -------------------------------------------------------------------------------
 
-We are always happy to hear feedback from our users:
-
-* if you need help with using CVC4, please refer to
-  [http://cvc4.stanford.edu/#Technical_Support](http://cvc4.stanford.edu/#Technical_Support).
-
-* if you need to report a bug with CVC4, or make a feature request, please
-  visit our bugtracker at our
-  [GitHub issues](https://github.com/CVC4/CVC4/issues) page or write to the
-  cvc-bugs@cs.stanford.edu mailing list.  We are very grateful for bug reports,
-  as they help us improve CVC4, and patches are generally reviewed and accepted
-  quickly.
-
-* if you are using CVC4 in your work, or incorporating it into software of your
-  own, we'd like to invite you to leave a description and link to your
-  project/software on our [Third Party Applications](http://cvc4.cs.stanford.edu/wiki/Public:Third_Party_Applications).
-
-* if you are interested in contributing code (for example, a new
-  decision procedure implementation) to the CVC4 project, please
-  contact one of the [project leaders](#project_leaders).
-  We'd be happy to point you to some internal documentation to help you out.
-
-Thank you for using CVC4!
+Please refer to our [contributing guidelines](CONTRIBUTING.md).
 
 
 Project Leaders
