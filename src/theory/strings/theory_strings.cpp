@@ -2713,7 +2713,7 @@ void TheoryStrings::getNormalForms(Node eqc,
         }
         else if (n.getKind() == STRING_CONCAT)
         {
-          // set the base to n, we construct the other poritions of nf_curr in
+          // set the base to n, we construct the other portions of nf_curr in
           // the following.
           nf_curr.d_base = n;
           for( unsigned i=0; i<n.getNumChildren(); i++ ) {
