@@ -2825,7 +2825,7 @@ void TheoryStrings::getNormalForms(Node eqc,
     // of all terms is a variable (either x or y) in the equivalence class
     // itself. Thus, the normal form of this equivalence class can be assigned
     // to one of these variables.
-    // We use a non-concatentation term among the terms in this equivalence
+    // We use a non-concatenation term among the terms in this equivalence
     // class, which is stored in eqc_non_c. The reason is this does not require
     // an explanation, whereas e.g. y ++ z would require the explanation z = ""
     // to justify its normal form is y.
