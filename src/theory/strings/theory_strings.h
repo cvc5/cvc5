@@ -573,7 +573,7 @@ private:
   /**
    * For each term in the equivalence class of eqc, this adds data regarding its
    * normal form to normal_forms. The map term_to_nf_index maps terms to the
-   * index in normal_forms where its normal form data is located.
+   * index in normal_forms where their normal form data is located.
    */
   void getNormalForms(Node eqc,
                       std::vector<NormalForm>& normal_forms,
