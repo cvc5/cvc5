@@ -41,6 +41,7 @@ namespace strings {
 class NormalForm
 {
  public:
+  NormalForm() : d_isRev(false){}
   /**
    * The "base" of the normal form. This is some term in the equivalence
    * class of t that the normal form is based on. This is an arbitrary term
@@ -50,6 +51,8 @@ class NormalForm
   Node d_base;
   /** the normal form, (u1, u2, v), in the above example */
   std::vector<Node> d_nf;
+  /** is the normal form d_nf stored in reverse order? */
+  bool d_isRev;
   /**
    * The explanation for the normal form, this is a set of literals such that
    *   d_exp => d_base = d_nf
@@ -107,11 +110,12 @@ class NormalForm
   void reverse();
   /** split constant
    *
-   * Splits the constant in d_nf at index to constants c1 and c2. The flag
-   * isRev indicates whether the normal form has been reversed (this impacts
-   * how the dependency indices are updated).
+   * Splits the constant in d_nf at index to constants c1 and c2.
+   *
+   * Notice this function depends on whether the normal form has been reversed 
+   * d_isRev, as this impacts how the dependency indices are updated.
    */
-  void splitConstant(unsigned index, Node c1, Node c2, bool isRev);
+  void splitConstant(unsigned index, Node c1, Node c2);
   /** add to explanation
    *
    * This adds exp to the explanation vector d_exp with new forward and
@@ -125,7 +129,7 @@ class NormalForm
   /** get explanation
    *
    * This gets the explanation for the prefix (resp. suffix) of the normal
-   * form up to index when isRev is false (resp. true). In particular;
+   * form up to index when d_isRev is false (resp. true). In particular;
    *
    * If index is -1, then this method adds all literals in d_exp to curr_exp.
    *
@@ -133,19 +137,18 @@ class NormalForm
    * forward (resp. backwards) dependency index is less than index
    * when isRev is false (resp. true).
    */
-  void getExplanation(int index, bool isRev, std::vector<Node>& curr_exp);
+  void getExplanation(int index, std::vector<Node>& curr_exp);
   /** get explanation for prefix equality
    *
    * This adds to curr_exp the reason why the prefix of nfi up to index index_i
-   * is equivalent to the prefix of nfj up to index_j. The flag isRev is whether
-   * the normal forms are in reverse direction, which affects which dependency
-   * index to use in the calls to getExplanation above.
+   * is equivalent to the prefix of nfj up to index_j. The values of
+   * nfi.d_isRev and nfj.d_isRev affect how dependency indices are updated
+   * during this call.
    */
   static void getExplanationForPrefixEq(NormalForm& nfi,
                                         NormalForm& nfj,
                                         int index_i,
                                         int index_j,
-                                        bool isRev,
                                         std::vector<Node>& curr_exp);
 };
 

@@ -31,6 +31,7 @@ void NormalForm::init(Node base)
   Assert(base.getKind() != STRING_CONCAT);
   d_base = base;
   d_nf.clear();
+  d_isRev = false;
   d_exp.clear();
   d_expDep.clear();
 
@@ -41,12 +42,15 @@ void NormalForm::init(Node base)
   }
 }
 
-void NormalForm::reverse() { std::reverse(d_nf.begin(), d_nf.end()); }
+void NormalForm::reverse() { 
+  std::reverse(d_nf.begin(), d_nf.end()); 
+  d_isRev = !d_isRev;
+}
 
-void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
+void NormalForm::splitConstant(unsigned index, Node c1, Node c2)
 {
   Assert(Rewriter::rewrite(NodeManager::currentNM()->mkNode(
-             STRING_CONCAT, isRev ? c2 : c1, isRev ? c1 : c2))
+             STRING_CONCAT, d_isRev ? c2 : c1, d_isRev ? c1 : c2))
          == d_nf[index]);
   d_nf.insert(d_nf.begin() + index + 1, c2);
   d_nf[index] = c1;
@@ -61,7 +65,7 @@ void NormalForm::splitConstant(unsigned index, Node c1, Node c2, bool isRev)
       // See if this can be incremented: it can if this literal is not relevant
       // to the current index, and hence it is not relevant for both c1 and c2.
       Assert(pep.second >= 0 && pep.second <= d_nf.size());
-      bool increment = (pep.first == isRev)
+      bool increment = (pep.first == d_isRev)
                            ? pep.second > index
                            : (d_nf.size() - 1 - pep.second) < index;
       if (increment)
@@ -108,7 +112,6 @@ void NormalForm::addToExplanation(Node exp,
 }
 
 void NormalForm::getExplanation(int index,
-                                bool isRev,
                                 std::vector<Node>& curr_exp)
 {
   if (index == -1 || !options::stringMinPrefixExplain())
@@ -118,7 +121,7 @@ void NormalForm::getExplanation(int index,
   }
   for (const Node& exp : d_exp)
   {
-    int dep = static_cast<int>(d_expDep[exp][isRev]);
+    int dep = static_cast<int>(d_expDep[exp][d_isRev]);
     if (dep <= index)
     {
       curr_exp.push_back(exp);
@@ -136,15 +139,15 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
                                            NormalForm& nfj,
                                            int index_i,
                                            int index_j,
-                                           bool isRev,
                                            std::vector<Node>& curr_exp)
 {
+  Assert( nfi.d_isRev==nfj.d_isRev );
   Trace("strings-explain-prefix")
       << "Get explanation for prefix " << index_i << ", " << index_j
-      << ", reverse = " << isRev << std::endl;
+      << ", reverse = " << nfi.d_isRev << std::endl;
   // get explanations
-  nfi.getExplanation(index_i, isRev, curr_exp);
-  nfj.getExplanation(index_j, isRev, curr_exp);
+  nfi.getExplanation(index_i, curr_exp);
+  nfj.getExplanation(index_j, curr_exp);
   Trace("strings-explain-prefix")
       << "Included " << curr_exp.size() << " / "
       << (nfi.d_exp.size() + nfj.d_exp.size()) << std::endl;
