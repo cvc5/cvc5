@@ -42,8 +42,9 @@ void NormalForm::init(Node base)
   }
 }
 
-void NormalForm::reverse() { 
-  std::reverse(d_nf.begin(), d_nf.end()); 
+void NormalForm::reverse()
+{
+  std::reverse(d_nf.begin(), d_nf.end());
   d_isRev = !d_isRev;
 }
 
@@ -111,8 +112,7 @@ void NormalForm::addToExplanation(Node exp,
   }
 }
 
-void NormalForm::getExplanation(int index,
-                                std::vector<Node>& curr_exp)
+void NormalForm::getExplanation(int index, std::vector<Node>& curr_exp)
 {
   if (index == -1 || !options::stringMinPrefixExplain())
   {
@@ -141,7 +141,7 @@ void NormalForm::getExplanationForPrefixEq(NormalForm& nfi,
                                            int index_j,
                                            std::vector<Node>& curr_exp)
 {
-  Assert( nfi.d_isRev==nfj.d_isRev );
+  Assert(nfi.d_isRev == nfj.d_isRev);
   Trace("strings-explain-prefix")
       << "Get explanation for prefix " << index_i << ", " << index_j
       << ", reverse = " << nfi.d_isRev << std::endl;

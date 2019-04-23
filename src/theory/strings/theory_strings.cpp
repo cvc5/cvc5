@@ -2723,14 +2723,17 @@ void TheoryStrings::getNormalForms(Node eqc,
             {
               // if in a build with assertions, we run the following block,
               // which checks that normal forms do not have concat terms.
-              if( Configuration::isAssertionBuild() )
+              if (Configuration::isAssertionBuild())
               {
                 for (const Node& nn : nfrv)
                 {
-                  if( Trace.isOn("strings-error") ) {
+                  if (Trace.isOn("strings-error"))
+                  {
                     if (nn.getKind() == STRING_CONCAT)
                     {
-                      Trace("strings-error") << "Strings::Error: From eqc = " << eqc << ", " << n << " index " << i << ", bad normal form : ";
+                      Trace("strings-error")
+                          << "Strings::Error: From eqc = " << eqc << ", " << n
+                          << " index " << i << ", bad normal form : ";
                       for (unsigned rr = 0; rr < nfrv.size(); rr++)
                       {
                         Trace("strings-error") << nfrv[rr] << " ";
@@ -2769,10 +2772,11 @@ void TheoryStrings::getNormalForms(Node eqc,
           // Now that we are finished with the loop, we convert forward indices
           // to reverse indices in the explanation dependency information
           int total_size = nf_curr.d_nf.size();
-          for( std::pair< const Node, std::map<bool, unsigned> >& ed : nf_curr.d_expDep )
+          for (std::pair<const Node, std::map<bool, unsigned> >& ed :
+               nf_curr.d_expDep)
           {
             ed.second[true] = total_size - ed.second[true];
-            Assert( ed.second[true]>=0 );
+            Assert(ed.second[true] >= 0);
           }
         }
         //if not equal to self
@@ -2781,7 +2785,7 @@ void TheoryStrings::getNormalForms(Node eqc,
             || (currv.size() == 1 && currv[0].getKind() == CONST_STRING))
         {
           // if in a build with assertions, check that normal form is acyclic
-          if( Configuration::isAssertionBuild() )
+          if (Configuration::isAssertionBuild())
           {
             if (currv.size() > 1)
             {
@@ -3029,8 +3033,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         unsigned index_k = index;
         //Node eq_exp = mkAnd( curr_exp );
         std::vector< Node > curr_exp;
-        NormalForm::getExplanationForPrefixEq(
-            nfi, nfj, -1, -1, curr_exp);
+        NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
         {
           //can infer that this string must be empty
@@ -3244,11 +3247,8 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                     if( p>1 ){
                       if( start_index_nc_k==index+1 ){
                         info.d_ant.push_back(xnz);
-                        NormalForm::getExplanationForPrefixEq(nfc,
-                                                              nfnc,
-                                                              index_c_k,
-                                                              index_nc_k,
-                                                              info.d_ant);
+                        NormalForm::getExplanationForPrefixEq(
+                            nfc, nfnc, index_c_k, index_nc_k, info.d_ant);
                         Node prea = p==stra.size() ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( p ) : stra.prefix( p ) );
                         Node sk = d_sk_cache.mkSkolemCached(
                             other_str,

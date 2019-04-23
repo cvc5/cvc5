@@ -41,7 +41,7 @@ namespace strings {
 class NormalForm
 {
  public:
-  NormalForm() : d_isRev(false){}
+  NormalForm() : d_isRev(false) {}
   /**
    * The "base" of the normal form. This is some term in the equivalence
    * class of t that the normal form is based on. This is an arbitrary term
@@ -112,7 +112,7 @@ class NormalForm
    *
    * Splits the constant in d_nf at index to constants c1 and c2.
    *
-   * Notice this function depends on whether the normal form has been reversed 
+   * Notice this function depends on whether the normal form has been reversed
    * d_isRev, as this impacts how the dependency indices are updated.
    */
   void splitConstant(unsigned index, Node c1, Node c2);
