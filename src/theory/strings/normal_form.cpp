@@ -9,7 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of normal form data structure for the theory of
+ ** \brief Implementation of the normal form data structure for the theory of
  **  strings.
  **/
 
