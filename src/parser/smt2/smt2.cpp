@@ -1131,14 +1131,13 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
             std::vector<Expr> largs;
             Expr lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
             largs.insert(largs.begin(), ops[i]);
-            Expr body = getExprManager()->mkExpr(kind::APPLY, largs);
+            Expr body = getExprManager()->mkExpr(kind::APPLY_UF, largs);
             ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }
           else
           {
-            ops[i] = getExprManager()->mkExpr(kind::APPLY, ops[i]);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }

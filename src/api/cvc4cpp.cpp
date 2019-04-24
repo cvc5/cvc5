@@ -52,8 +52,6 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     /* Builtin ------------------------------------------------------------- */
     {UNINTERPRETED_CONSTANT, CVC4::Kind::UNINTERPRETED_CONSTANT},
     {ABSTRACT_VALUE, CVC4::Kind::ABSTRACT_VALUE},
-    {FUNCTION, CVC4::Kind::FUNCTION},
-    {APPLY, CVC4::Kind::APPLY},
     {EQUAL, CVC4::Kind::EQUAL},
     {DISTINCT, CVC4::Kind::DISTINCT},
     {VARIABLE, CVC4::Kind::VARIABLE},
@@ -300,8 +298,6 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         /* Builtin --------------------------------------------------------- */
         {CVC4::Kind::UNINTERPRETED_CONSTANT, UNINTERPRETED_CONSTANT},
         {CVC4::Kind::ABSTRACT_VALUE, ABSTRACT_VALUE},
-        {CVC4::Kind::FUNCTION, FUNCTION},
-        {CVC4::Kind::APPLY, APPLY},
         {CVC4::Kind::EQUAL, EQUAL},
         {CVC4::Kind::DISTINCT, DISTINCT},
         {CVC4::Kind::VARIABLE, VARIABLE},

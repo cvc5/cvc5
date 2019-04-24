@@ -2764,11 +2764,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // otherwise expand it
       bool doExpand = false;
-      if (k == kind::APPLY)
-      {
-        doExpand = true;
-      }
-      else if (k == kind::APPLY_UF)
+      if (k == kind::APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
@@ -3976,7 +3972,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
       children.insert(children.end(), vars.begin(), vars.end());
     }
     terms[i] =
-        d_nodeManager->mkNode(i == 0 ? kind::APPLY_UF : kind::APPLY, children);
+        d_nodeManager->mkNode(kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
@@ -4226,8 +4222,8 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   Node n = e.getNode();
   // must be an APPLY of a zero-ary defined function, or a variable
   PrettyCheckArgument(
-      ( ( n.getKind() == kind::APPLY &&
-          ( d_definedFunctions->find(n.getOperator()) !=
+      ( ( 
+          ( d_definedFunctions->find(n) !=
             d_definedFunctions->end() ) &&
           n.getNumChildren() == 0 ) ||
         n.isVar() ), e,
@@ -4301,8 +4297,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      Assert(as.getKind() == kind::APPLY || as.isVar());
-      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      //Assert(as.getKind() == kind::APPLY || as.isVar());
+      //Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
