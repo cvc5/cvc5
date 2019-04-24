@@ -18,6 +18,7 @@
 
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <iterator>
 #include <unordered_map>
 #include <unordered_set>
