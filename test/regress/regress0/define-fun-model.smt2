@@ -1,5 +1,11 @@
+; SCRUBBER: sed -e 's/BOUND_VARIABLE_.*)$/BOUND_VARIABLE)/'
+; EXPECT: sat
+; EXPECT: (((f 4) 7))
+; EXPECT: ((g (lambda ((BOUND_VARIABLE)) 7)))
+; EXPECT: ((f (lambda ((BOUND_VARIABLE)) 7)))
 (set-logic UFLIA)
-(define-fun f ((x Int)) Int (ite (= x 3) 4 5))
+(set-option :produce-models true)
+(define-fun f ((x Int)) Int 7)
 (declare-fun g (Int) Int)
 
 (assert (= (g 5) (f 5)))

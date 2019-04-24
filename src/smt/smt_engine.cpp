@@ -2735,6 +2735,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
           Node f = (*i).second.getFormula();
+          // must expand its definition
           Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
@@ -4219,7 +4220,7 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
       "expected Boolean-typed variable or function application "
       "in addToAssignment()" );
   Node n = e.getNode();
-  // must be an APPLY of a zero-ary defined function, or a variable
+  // must be a defined constant, or a variable
   PrettyCheckArgument(
       (((d_definedFunctions->find(n) != d_definedFunctions->end())
         && n.getNumChildren() == 0)
@@ -4296,8 +4297,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      // Assert(as.getKind() == kind::APPLY || as.isVar());
-      // Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      Assert(as.isVar());
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
