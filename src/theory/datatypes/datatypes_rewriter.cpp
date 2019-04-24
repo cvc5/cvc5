@@ -247,7 +247,7 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Kind ok = NodeManager::operatorToKind(op);
   if (ok != UNDEFINED_KIND)
   {
-    if( ok==APPLY_UF && schildren.size()==1 )
+    if (ok == APPLY_UF && schildren.size() == 1)
     {
       // This case is triggered for defined constant symbols. In this case,
       // we return the operator itself instead of an APPLY_UF node.

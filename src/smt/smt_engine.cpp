@@ -3971,8 +3971,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
     {
       children.insert(children.end(), vars.begin(), vars.end());
     }
-    terms[i] =
-        d_nodeManager->mkNode(kind::APPLY_UF, children);
+    terms[i] = d_nodeManager->mkNode(kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
@@ -4222,13 +4221,13 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
   Node n = e.getNode();
   // must be an APPLY of a zero-ary defined function, or a variable
   PrettyCheckArgument(
-      ( ( 
-          ( d_definedFunctions->find(n) !=
-            d_definedFunctions->end() ) &&
-          n.getNumChildren() == 0 ) ||
-        n.isVar() ), e,
+      (((d_definedFunctions->find(n) != d_definedFunctions->end())
+        && n.getNumChildren() == 0)
+       || n.isVar()),
+      e,
       "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s", e.toString().c_str() );
+      "in addToAssignment(),\ngot %s",
+      e.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -4297,8 +4296,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      //Assert(as.getKind() == kind::APPLY || as.isVar());
-      //Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      // Assert(as.getKind() == kind::APPLY || as.isVar());
+      // Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }

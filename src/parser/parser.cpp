@@ -129,7 +129,8 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   // now, post-process the expression
   assert( !expr.isNull() );
   Type te = expr.getType();
-  if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
+  if (te.isConstructor() && ConstructorType(te).getArity() == 0)
+  {
     // nullary constructors have APPLY_CONSTRUCTOR kind with no children
     expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
   }
