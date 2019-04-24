@@ -5,10 +5,12 @@ CVC4 is distributed under the terms of the modified BSD license (see
 submitting a contribution you automatically accept the conditions described in
 [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
 Additionally, we ask you to certify that you have the right to submit such
-contributions.  To manage this process we use a mechanism known as [Developer
-Certificate of Origin](https://developercertificate.org), which can be
-acknowledged by signing-off your commits with `git commit -s`.  We require all
-pull requests to be squashed into a single commit and signed-off.
+contributions.  We do this by requiring all pull requests to be signed using
+`git commit -s`.  By signing your pull request, you acknowledge that you are
+doing so in accordance with the terms laid out in the [Developer Certificate of
+    Origin](https://developercertificate.org), which is reproduced below.
+We also require all pull requests to be squashed into a single commit before
+being submitted.
 
 ```
 Developer Certificate of Origin
