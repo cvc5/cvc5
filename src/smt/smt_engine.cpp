@@ -2738,7 +2738,11 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
           Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
-            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()),fe));
+            result.push(d_smt.d_nodeManager->mkNode(
+                kind::LAMBDA,
+                d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                            (*i).second.getFormals()),
+                fe));
             continue;
           }
           // don't bother putting in the cache

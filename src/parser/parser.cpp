@@ -130,8 +130,9 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   assert( !expr.isNull() );
   if(isDefinedFunction(expr)) {
     // defined functions/constants are wrapped in an APPLY so that they are
-    // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
-    //expr = getExprManager()->mkExpr(CVC4::kind::APPLY, expr);
+    // expanded into their definition, e.g. during
+    // SmtEnginePrivate::expandDefinitions
+    // expr = getExprManager()->mkExpr(CVC4::kind::APPLY, expr);
   }else{
     Type te = expr.getType();
     if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
