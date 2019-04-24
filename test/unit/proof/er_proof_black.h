@@ -113,40 +113,49 @@ void ErProofBlack::testErTraceCheckParse()
   std::istringstream stream(tracecheckText);
   TraceCheckProof tc = TraceCheckProof::fromText(stream);
 
-  std::vector<std::pair<ClauseId, SatClause>> usedClauses;
-  usedClauses.emplace_back(
+  std::map<ClauseId, SatClause> clauses;
+  clauses.emplace(
       1,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, false), SatLiteral(2, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       2,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, true), SatLiteral(2, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       3,
       std::vector<SatLiteral>{
           SatLiteral(1, false), SatLiteral(2, false), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       4,
       std::vector<SatLiteral>{
           SatLiteral(1, true), SatLiteral(2, true), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       5,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       6,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(2, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       7,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       8,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, true), SatLiteral(3, true)});
-  ErProof pf(usedClauses, std::move(tc));
+  std::vector<ClauseId> usedIds;
+  usedIds.push_back(1);
+  usedIds.push_back(2);
+  usedIds.push_back(3);
+  usedIds.push_back(4);
+  usedIds.push_back(5);
+  usedIds.push_back(6);
+  usedIds.push_back(7);
+  usedIds.push_back(8);
+  ErProof pf(clauses, usedIds, std::move(tc));
 
   TS_ASSERT_EQUALS(pf.getInputClauseIds()[0], 1);
   TS_ASSERT_EQUALS(pf.getInputClauseIds()[7], 8);
@@ -198,40 +207,49 @@ void ErProofBlack::testErTraceCheckOutput()
   std::istringstream stream(tracecheckText);
   TraceCheckProof tc = TraceCheckProof::fromText(stream);
 
-  std::vector<std::pair<ClauseId, SatClause>> usedClauses;
-  usedClauses.emplace_back(
+  std::map<ClauseId, SatClause> clauses;
+  clauses.emplace(
       1,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, false), SatLiteral(2, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       2,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, true), SatLiteral(2, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       3,
       std::vector<SatLiteral>{
           SatLiteral(1, false), SatLiteral(2, false), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       4,
       std::vector<SatLiteral>{
           SatLiteral(1, true), SatLiteral(2, true), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       5,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       6,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(2, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       7,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       8,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, true), SatLiteral(3, true)});
-  ErProof pf(usedClauses, std::move(tc));
+  std::vector<ClauseId> usedIds;
+  usedIds.push_back(1);
+  usedIds.push_back(2);
+  usedIds.push_back(3);
+  usedIds.push_back(4);
+  usedIds.push_back(5);
+  usedIds.push_back(6);
+  usedIds.push_back(7);
+  usedIds.push_back(8);
+  ErProof pf(clauses, usedIds, std::move(tc));
 
   std::ostringstream lfsc;
   pf.outputAsLfsc(lfsc);
@@ -309,40 +327,49 @@ void ErProofBlack::testErTraceCheckOutputMedium()
   std::istringstream stream(tracecheckText);
   TraceCheckProof tc = TraceCheckProof::fromText(stream);
 
-  std::vector<std::pair<ClauseId, SatClause>> usedClauses;
-  usedClauses.emplace_back(
+  std::map<ClauseId, SatClause> clauses;
+  clauses.emplace(
       1,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, false), SatLiteral(2, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       2,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, true), SatLiteral(2, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       3,
       std::vector<SatLiteral>{
           SatLiteral(1, false), SatLiteral(2, false), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       4,
       std::vector<SatLiteral>{
           SatLiteral(1, true), SatLiteral(2, true), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       5,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       6,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(2, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       7,
       std::vector<SatLiteral>{
           SatLiteral(0, true), SatLiteral(1, false), SatLiteral(3, false)});
-  usedClauses.emplace_back(
+  clauses.emplace(
       8,
       std::vector<SatLiteral>{
           SatLiteral(0, false), SatLiteral(1, true), SatLiteral(3, true)});
-  ErProof pf(usedClauses, std::move(tc));
+  std::vector<ClauseId> usedIds;
+  usedIds.push_back(1);
+  usedIds.push_back(2);
+  usedIds.push_back(3);
+  usedIds.push_back(4);
+  usedIds.push_back(5);
+  usedIds.push_back(6);
+  usedIds.push_back(7);
+  usedIds.push_back(8);
+  ErProof pf(clauses, usedIds, std::move(tc));
 
   std::ostringstream lfsc;
   pf.outputAsLfsc(lfsc);
