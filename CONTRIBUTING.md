@@ -1,14 +1,19 @@
 # Contributing
 
-CVC4 is distributed under the terms of the modified BSD license (see
-    [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING) file).  By
-submitting a contribution you automatically accept the conditions described in
-[COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
-Additionally, we ask you to certify that you have the right to submit such
-contributions.  To manage this process we use a mechanism known as [Developer
-Certificate of Origin](https://developercertificate.org), which can be
-acknowledged by signing-off your commits with `git commit -s`.  We require all
-pull requests to be squashed into a single commit and signed-off.
+External contributions to CVC4 may be proposed using git's standard pull request
+mechanism.  The following terms apply to all such contributions:
+
+- We require all pull requests to be squashed into a single commit before
+  being submitted and to be signed using `git commit -s`.
+
+- CVC4 is distributed under the terms of the modified BSD license (see
+  [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING) file).  By
+  submitting a signed contribution, you automatically agree to accept the conditions
+  described in [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
+
+- By submitting a signed contribution, you additionally automatically agree
+  that the [Developer Certificate of Origin](https://developercertificate.org)
+  shown below applies to your contribution.
 
 ```
 Developer Certificate of Origin
@@ -50,7 +55,7 @@ By making a contribution to this project, I certify that:
     this project or the open source license(s) involved.
 ```
 
-If you are interested in becoming a long term contributor to the CVC4 project,
+If you are interested in becoming a long-term contributor to the CVC4 project,
 please contact one of the
 [project leaders](https://cvc4.github.io/people.html#project-leaders).  
 We'd be happy to point you to some internal documentation to help you out.
