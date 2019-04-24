@@ -18,7 +18,6 @@
 
 #include <algorithm>
 #include <iostream>
-#include <sstream>
 #include <iterator>
 #include <unordered_map>
 #include <unordered_set>
@@ -163,7 +162,7 @@ void ClausalBitVectorProof::optimizeDratProof()
         "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
 
-    d_binaryDratProof = std::ostringstream{};
+    d_binaryDratProof.str("");
     Assert(d_binaryDratProof.str().size() == 0);
 
     std::ifstream lratStream(optDratFilename);
