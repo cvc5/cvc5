@@ -1,16 +1,19 @@
 # Contributing
 
-CVC4 is distributed under the terms of the modified BSD license (see
-    [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING) file).  By
-submitting a contribution you automatically accept the conditions described in
-[COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
-Additionally, we ask you to certify that you have the right to submit such
-contributions.  We do this by requiring all pull requests to be signed using
-`git commit -s`.  By signing your pull request, you acknowledge that you are
-doing so in accordance with the terms laid out in the [Developer Certificate of
-    Origin](https://developercertificate.org), which is reproduced below.
-We also require all pull requests to be squashed into a single commit before
-being submitted.
+External contributions to CVC4 may be proposed using git's standard pull request
+mechanism.  The following terms and guidelines apply:
+
+- We require all pull requests to be squashed into a single commit before
+  being submitted and to be signed using `git commit -s`.
+
+- CVC4 is distributed under the terms of the modified BSD license (see
+  [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING) file).  By
+  submitting a signed contribution, you automatically agree to accept the conditions
+  described in [COPYING](https://github.com/CVC4/CVC4/blob/master/COPYING).
+
+- By submitting a signed contribution, you additionally automatically agree
+  that the [Developer Certificate of Origin](https://developercertificate.org)
+  shown below applies to your contribution.
 
 ```
 Developer Certificate of Origin
