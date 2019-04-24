@@ -113,6 +113,7 @@
                                       ((clc l c') (cnf_has_bottom rest))))))
 
 ; Return a new cnf with one copy of this clause removed.
+; If the clause is absent, returns the original cnf.
 (program cnf_remove_clause ((c clause) (cs cnf)) cnf
          (match cs
                 (cnfn cnfn)
