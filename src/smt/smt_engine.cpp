@@ -2775,7 +2775,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         {
           doExpand = true;
         }
-        else if (options::macrosQuant() || options::sygusInference())
+        else
         {
           // The above options assign substitutions to APPLY_UF, thus we check
           // here and expand if this operator corresponds to a defined function.
