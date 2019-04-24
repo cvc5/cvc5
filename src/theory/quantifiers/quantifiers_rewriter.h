@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
 #include "theory/rewriter.h"
 #include "theory/quantifiers_engine.h"
@@ -188,6 +188,6 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
 
 

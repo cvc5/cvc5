@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
+#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H
 
 #include <iostream>
 #include <map>
@@ -370,4 +370,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */
+#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_H */

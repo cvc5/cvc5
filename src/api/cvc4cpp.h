@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPP_H
-#define __CVC4__API__CVC4CPP_H
+#ifndef CVC4__API__CVC4CPP_H
+#define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
 

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
@@ -1166,4 +1166,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H
-#define __CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H
+#ifndef CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H
+#define CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H
 
 #include <unordered_map>
 
@@ -48,4 +48,4 @@ class ApplyToConst : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H */
+#endif /* CVC4__PREPROCESSING__PASSES__APPLY_TO_CONST_H */

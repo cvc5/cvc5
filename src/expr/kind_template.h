@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__KIND_H
-#define __CVC4__KIND_H
+#ifndef CVC4__KIND_H
+#define CVC4__KIND_H
 
 #include <iosfwd>
 
@@ -104,4 +104,4 @@ std::string getStatsPrefix(TheoryId theoryId) CVC4_PUBLIC;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__KIND_H */
+#endif /* CVC4__KIND_H */

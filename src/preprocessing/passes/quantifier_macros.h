@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
-#define __CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#ifndef CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
+#define CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H
 
 #include <map>
 #include <string>
@@ -86,4 +86,4 @@ class QuantifierMacros : public PreprocessingPass
 }  // preprocessing
 }  // CVC4
 
-#endif /*__CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */
+#endif /*CVC4__PREPROCESSING__PASSES__QUANTIFIER_MACROS_H */

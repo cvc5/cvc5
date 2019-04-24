@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__THEORY_BV_H
-#define __CVC4__THEORY__BV__THEORY_BV_H
+#ifndef CVC4__THEORY__BV__THEORY_BV_H
+#define CVC4__THEORY__BV__THEORY_BV_H
 
 #include <unordered_map>
 #include <unordered_set>
@@ -273,4 +273,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BV__THEORY_BV_H */
+#endif /* CVC4__THEORY__BV__THEORY_BV_H */

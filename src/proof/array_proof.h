@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__ARRAY__PROOF_H
-#define __CVC4__ARRAY__PROOF_H
+#ifndef CVC4__ARRAY__PROOF_H
+#define CVC4__ARRAY__PROOF_H
 
 #include <memory>
 #include <unordered_set>
@@ -117,4 +117,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__ARRAY__PROOF_H */
+#endif /* CVC4__ARRAY__PROOF_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR__NODE_SELF_ITERATOR_H
-#define __CVC4__EXPR__NODE_SELF_ITERATOR_H
+#ifndef CVC4__EXPR__NODE_SELF_ITERATOR_H
+#define CVC4__EXPR__NODE_SELF_ITERATOR_H
 
 #include <iterator>
 
@@ -125,4 +125,4 @@ inline bool NodeSelfIterator::operator!=(NodeSelfIterator i) const {
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__NODE_SELF_ITERATOR_H */
+#endif /* CVC4__EXPR__NODE_SELF_ITERATOR_H */

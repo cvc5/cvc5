@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__MODEL_H
-#define __CVC4__MODEL_H
+#ifndef CVC4__MODEL_H
+#define CVC4__MODEL_H
 
 #include <iosfwd>
 #include <vector>
@@ -107,4 +107,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MODEL_H */
+#endif  /* CVC4__MODEL_H */

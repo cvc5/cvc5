@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PRINTER__DAGIFICATION_VISITOR_H
-#define __CVC4__PRINTER__DAGIFICATION_VISITOR_H
+#ifndef CVC4__PRINTER__DAGIFICATION_VISITOR_H
+#define CVC4__PRINTER__DAGIFICATION_VISITOR_H
 
 #include <string>
 #include <unordered_map>
@@ -175,4 +175,4 @@ public:
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__DAGIFICATION_VISITOR_H */
+#endif /* CVC4__PRINTER__DAGIFICATION_VISITOR_H */

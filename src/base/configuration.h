@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CONFIGURATION_H
-#define __CVC4__CONFIGURATION_H
+#ifndef CVC4__CONFIGURATION_H
+#define CVC4__CONFIGURATION_H
 
 #include <string>
 
@@ -132,4 +132,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONFIGURATION_H */
+#endif /* CVC4__CONFIGURATION_H */

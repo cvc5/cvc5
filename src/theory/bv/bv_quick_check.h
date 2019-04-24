@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BV_QUICK_CHECK_H
-#define __CVC4__BV_QUICK_CHECK_H
+#ifndef CVC4__BV_QUICK_CHECK_H
+#define CVC4__BV_QUICK_CHECK_H
 
 #include <vector>
 #include <unordered_set>
@@ -172,4 +172,4 @@ public:
 } /* theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__BV_QUICK_CHECK_H */
+#endif /* CVC4__BV_QUICK_CHECK_H */

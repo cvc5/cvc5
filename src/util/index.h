@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INDEX_H
-#define __CVC4__INDEX_H
+#ifndef CVC4__INDEX_H
+#define CVC4__INDEX_H
 
 #include <cstdint>
 
@@ -28,4 +28,4 @@ using Index = uint32_t;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__INDEX_H */
+#endif /* CVC4__INDEX_H */

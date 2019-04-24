@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__ITE_UTILITIES_H
-#define __CVC4__ITE_UTILITIES_H
+#ifndef CVC4__ITE_UTILITIES_H
+#define CVC4__ITE_UTILITIES_H
 
 #include <unordered_map>
 #include <vector>

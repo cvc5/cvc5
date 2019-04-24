@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UPDATE_OSTREAM_H
-#define __CVC4__UPDATE_OSTREAM_H
+#ifndef CVC4__UPDATE_OSTREAM_H
+#define CVC4__UPDATE_OSTREAM_H
 
 #include <ostream>
 
@@ -121,4 +121,4 @@ class TraceOstreamUpdate : public OstreamUpdate {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UPDATE_OSTREAM_H */
+#endif /* CVC4__UPDATE_OSTREAM_H */

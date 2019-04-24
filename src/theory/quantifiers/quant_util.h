@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_UTIL_H
-#define __CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC4__THEORY__QUANT_UTIL_H
+#define CVC4__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
@@ -237,4 +237,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC4__THEORY__QUANT_UTIL_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H
 
 #include <unordered_map>
 #include "theory/quantifiers/bv_inverter.h"
@@ -211,4 +211,4 @@ class BvInstantiatorPreprocess : public InstantiatorPreprocess
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_BV_INSTANTIATOR_H */

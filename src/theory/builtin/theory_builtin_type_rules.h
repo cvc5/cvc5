@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
-#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
+#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H
 
 #include "expr/node.h"
 #include "expr/type_node.h"
@@ -375,4 +375,4 @@ class SExprProperties {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */
+#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_TYPE_RULES_H */

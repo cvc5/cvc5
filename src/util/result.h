@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__RESULT_H
-#define __CVC4__RESULT_H
+#ifndef CVC4__RESULT_H
+#define CVC4__RESULT_H
 
 #include <iostream>
 #include <string>
@@ -151,4 +151,4 @@ bool operator!=(enum Result::Validity v, const Result& r) CVC4_PUBLIC;
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__RESULT_H */
+#endif /* CVC4__RESULT_H */

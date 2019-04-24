@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SKOLEMIZATION_MANAGER_H
-#define __CVC4__SKOLEMIZATION_MANAGER_H
+#ifndef CVC4__SKOLEMIZATION_MANAGER_H
+#define CVC4__SKOLEMIZATION_MANAGER_H
 
 #include <iostream>
 #include <unordered_map>
@@ -52,4 +52,4 @@ private:
 
 
 
-#endif /* __CVC4__SKOLEMIZATION_MANAGER_H */
+#endif /* CVC4__SKOLEMIZATION_MANAGER_H */

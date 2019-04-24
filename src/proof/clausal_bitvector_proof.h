@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
-#define __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#ifndef CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#define CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
 
 #include <iostream>
 #include <sstream>
@@ -135,4 +135,4 @@ class LfscErBitVectorProof : public LfscClausalBitVectorProof
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */
+#endif /* CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */

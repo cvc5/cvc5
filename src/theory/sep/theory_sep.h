@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SEP__THEORY_SEP_H
-#define __CVC4__THEORY__SEP__THEORY_SEP_H
+#ifndef CVC4__THEORY__SEP__THEORY_SEP_H
+#define CVC4__THEORY__SEP__THEORY_SEP_H
 
 #include "context/cdhashmap.h"
 #include "context/cdhashset.h"
@@ -331,4 +331,4 @@ class TheorySep : public Theory {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SEP__THEORY_SEP_H */
+#endif /* CVC4__THEORY__SEP__THEORY_SEP_H */

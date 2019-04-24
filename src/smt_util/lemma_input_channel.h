@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LEMMA_INPUT_CHANNEL_H
-#define __CVC4__LEMMA_INPUT_CHANNEL_H
+#ifndef CVC4__LEMMA_INPUT_CHANNEL_H
+#define CVC4__LEMMA_INPUT_CHANNEL_H
 
 #include "expr/expr.h"
 
@@ -35,4 +35,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LEMMA_INPUT_CHANNEL_H */
+#endif /* CVC4__LEMMA_INPUT_CHANNEL_H */

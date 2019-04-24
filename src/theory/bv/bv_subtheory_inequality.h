@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
-#define __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#ifndef CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
+#define CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H
 
 #include <unordered_set>
 
@@ -83,4 +83,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */
+#endif /* CVC4__THEORY__BV__BV_SUBTHEORY__INEQUALITY_H */
