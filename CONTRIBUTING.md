@@ -50,7 +50,7 @@ By making a contribution to this project, I certify that:
     this project or the open source license(s) involved.
 ```
 
-If you are interested in becoming a long term contributor (for example, a new
-decision procedure implementation) to the CVC4 project, please contact one of
-the [project leaders](#project_leaders).  We'd be happy to point you to some
-internal documentation to help you out.
+If you are interested in becoming a long term contributor to the CVC4 project,
+please contact one of the
+[project leaders](https://cvc4.github.io/people.html#project-leaders).  
+We'd be happy to point you to some internal documentation to help you out.
