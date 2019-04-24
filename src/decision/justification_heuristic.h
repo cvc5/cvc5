@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DECISION__JUSTIFICATION_HEURISTIC
-#define __CVC4__DECISION__JUSTIFICATION_HEURISTIC
+#ifndef CVC4__DECISION__JUSTIFICATION_HEURISTIC
+#define CVC4__DECISION__JUSTIFICATION_HEURISTIC
 
 #include <unordered_set>
 
@@ -181,4 +181,4 @@ public:
 }/* namespace decision */
 }/* namespace CVC4 */
 
-#endif /* __CVC4__DECISION__JUSTIFICATION_HEURISTIC */
+#endif /* CVC4__DECISION__JUSTIFICATION_HEURISTIC */

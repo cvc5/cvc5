@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_ENGINE_H
-#define __CVC4__THEORY_ENGINE_H
+#ifndef CVC4__THEORY_ENGINE_H
+#define CVC4__THEORY_ENGINE_H
 
 #include <deque>
 #include <memory>
@@ -932,4 +932,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_ENGINE_H */
+#endif /* CVC4__THEORY_ENGINE_H */

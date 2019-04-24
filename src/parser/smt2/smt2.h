@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT2_H
-#define __CVC4__PARSER__SMT2_H
+#ifndef CVC4__PARSER__SMT2_H
+#define CVC4__PARSER__SMT2_H
 
 #include <sstream>
 #include <stack>
@@ -414,4 +414,4 @@ private:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT2_H */
+#endif /* CVC4__PARSER__SMT2_H */

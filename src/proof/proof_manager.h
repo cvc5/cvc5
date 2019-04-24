@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF_MANAGER_H
-#define __CVC4__PROOF_MANAGER_H
+#ifndef CVC4__PROOF_MANAGER_H
+#define CVC4__PROOF_MANAGER_H
 
 #include <iosfwd>
 #include <memory>
@@ -351,4 +351,4 @@ std::ostream& operator<<(std::ostream& out, CVC4::ProofRule k);
 
 
 
-#endif /* __CVC4__PROOF_MANAGER_H */
+#endif /* CVC4__PROOF_MANAGER_H */

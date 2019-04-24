@@ -13,8 +13,8 @@
  ** input into an abduction problem.
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
-#define __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
+#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
+#define CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -69,4 +69,4 @@ class SygusAbduct : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_ */
+#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_ */

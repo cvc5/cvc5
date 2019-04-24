@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__REGISTRAR_H
-#define __CVC4__PROP__REGISTRAR_H
+#ifndef CVC4__PROP__REGISTRAR_H
+#define CVC4__PROP__REGISTRAR_H
 
 namespace CVC4 {
 namespace prop {
@@ -42,4 +42,4 @@ public:
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__REGISTRAR_H */
+#endif /* CVC4__PROP__REGISTRAR_H */

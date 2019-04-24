@@ -15,8 +15,8 @@
  ** \todo document this file
  **/
 
-#ifndef __CVC4__PARSER__ANTLR_TRACING_H
-#define __CVC4__PARSER__ANTLR_TRACING_H
+#ifndef CVC4__PARSER__ANTLR_TRACING_H
+#define CVC4__PARSER__ANTLR_TRACING_H
 
 // only enable the hack with -DCVC4_TRACE_ANTLR
 #ifdef CVC4_TRACE_ANTLR
@@ -83,4 +83,4 @@ static struct __Cvc4System {
 
 #endif /* CVC4_TRACE_ANTLR */
 
-#endif /* __CVC4__PARSER__ANTLR_TRACING_H */
+#endif /* CVC4__PARSER__ANTLR_TRACING_H */

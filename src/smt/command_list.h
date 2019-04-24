@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SMT__COMMAND_LIST_H
-#define __CVC4__SMT__COMMAND_LIST_H
+#ifndef CVC4__SMT__COMMAND_LIST_H
+#define CVC4__SMT__COMMAND_LIST_H
 
 #include "context/cdlist.h"
 
@@ -36,4 +36,4 @@ typedef context::CDList<Command*, CommandCleanup> CommandList;
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__COMMAND_LIST_H */
+#endif /* CVC4__SMT__COMMAND_LIST_H */

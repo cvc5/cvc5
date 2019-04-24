@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__FIRST_ORDER_MODEL_H
-#define __CVC4__FIRST_ORDER_MODEL_H
+#ifndef CVC4__FIRST_ORDER_MODEL_H
+#define CVC4__FIRST_ORDER_MODEL_H
 
 #include "theory/theory_model.h"
 #include "theory/uf/theory_uf_model.h"
@@ -218,4 +218,4 @@ class FirstOrderModelFmc : public FirstOrderModel
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__FIRST_ORDER_MODEL_H */
+#endif /* CVC4__FIRST_ORDER_MODEL_H */

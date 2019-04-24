@@ -12,8 +12,8 @@
  ** \brief Symmetry breaker for theories
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
-#define __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
+#ifndef CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
+#define CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_
 
 #include <map>
 #include <string>
@@ -106,4 +106,4 @@ class SymBreakerPass : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_ */
+#endif /* CVC4__PREPROCESSING__PASSES__SYMMETRY_BREAKER_H_ */

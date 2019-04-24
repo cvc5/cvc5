@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR_MANAGER_SCOPE_H
-#define __CVC4__EXPR_MANAGER_SCOPE_H
+#ifndef CVC4__EXPR_MANAGER_SCOPE_H
+#define CVC4__EXPR_MANAGER_SCOPE_H
 
 #include "expr/expr.h"
 #include "expr/node_manager.h"
@@ -66,4 +66,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_SCOPE_H */
+#endif /* CVC4__EXPR_MANAGER_SCOPE_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BOOL_H
-#define __CVC4__BOOL_H
+#ifndef CVC4__BOOL_H
+#define CVC4__BOOL_H
 
 namespace CVC4 {
 
@@ -29,4 +29,4 @@ struct BoolHashFunction {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BOOL_H */
+#endif /* CVC4__BOOL_H */

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__LEMMA_PROOF_H
-#define __CVC4__LEMMA_PROOF_H
+#ifndef CVC4__LEMMA_PROOF_H
+#define CVC4__LEMMA_PROOF_H
 
 #include "expr/expr.h"
 #include "proof/clause_id.h"
@@ -112,4 +112,4 @@ std::ostream& operator<<(std::ostream & out, const LemmaProofRecipe & recipe);
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__LEMMA_PROOF_H */
+#endif /* CVC4__LEMMA_PROOF_H */

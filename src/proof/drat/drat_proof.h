@@ -19,8 +19,8 @@
  **
  **/
 
-#ifndef __CVC4__PROOF__DRAT__DRAT_PROOF_H
-#define __CVC4__PROOF__DRAT__DRAT_PROOF_H
+#ifndef CVC4__PROOF__DRAT__DRAT_PROOF_H
+#define CVC4__PROOF__DRAT__DRAT_PROOF_H
 
 #include "cvc4_private.h"
 #include "prop/sat_solver.h"
@@ -137,4 +137,4 @@ class DratProof
 }  // namespace proof
 }  // namespace CVC4
 
-#endif  // __CVC4__PROOF__DRAT__DRAT_PROOF_H
+#endif  // CVC4__PROOF__DRAT__DRAT_PROOF_H

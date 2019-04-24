@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__OPTIONS__ARGUMENT_EXTENDER_H
-#define __CVC4__OPTIONS__ARGUMENT_EXTENDER_H
+#ifndef CVC4__OPTIONS__ARGUMENT_EXTENDER_H
+#define CVC4__OPTIONS__ARGUMENT_EXTENDER_H
 
 #include <cstddef>
 
@@ -82,4 +82,4 @@ public:
 }/* CVC4::options namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__ARGUMENT_EXTENDER_H */
+#endif /* CVC4__OPTIONS__ARGUMENT_EXTENDER_H */

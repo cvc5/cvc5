@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
-#define __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
+#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
+#define CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H
 
 #include "context/cdo.h"
 #include "context/context.h"
@@ -121,4 +121,4 @@ class PreprocessingPassContext
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */
+#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_CONTEXT_H */

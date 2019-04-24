@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTIL__RANDOM_H
-#define __CVC4__UTIL__RANDOM_H
+#ifndef CVC4__UTIL__RANDOM_H
+#define CVC4__UTIL__RANDOM_H
 
 namespace CVC4 {
 

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SMT__SMT_ENGINE_SCOPE_H
-#define __CVC4__SMT__SMT_ENGINE_SCOPE_H
+#ifndef CVC4__SMT__SMT_ENGINE_SCOPE_H
+#define CVC4__SMT__SMT_ENGINE_SCOPE_H
 
 #include "expr/node_manager.h"
 
@@ -56,4 +56,4 @@ public:
 }/* CVC4::smt namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__SMT_ENGINE_SCOPE_H */
+#endif /* CVC4__SMT__SMT_ENGINE_SCOPE_H */

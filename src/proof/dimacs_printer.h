@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__DIMACS_PRINTER_H
-#define __CVC4__PROOF__DIMACS_PRINTER_H
+#ifndef CVC4__PROOF__DIMACS_PRINTER_H
+#define CVC4__PROOF__DIMACS_PRINTER_H
 
 #include <iosfwd>
 #include <memory>
@@ -63,4 +63,4 @@ void printDimacs(
 }  // namespace proof
 }  // namespace CVC4
 
-#endif  // __CVC4__PROOF__DIMACS_PRINTER_H
+#endif  // CVC4__PROOF__DIMACS_PRINTER_H

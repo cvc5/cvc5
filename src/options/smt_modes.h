@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__MODES_H
-#define __CVC4__SMT__MODES_H
+#ifndef CVC4__SMT__MODES_H
+#define CVC4__SMT__MODES_H
 
 #include <iosfwd>
 
@@ -55,4 +55,4 @@ enum ModelCoresMode
 
 }  // namespace CVC4
 
-#endif /* __CVC4__SMT__MODES_H */
+#endif /* CVC4__SMT__MODES_H */

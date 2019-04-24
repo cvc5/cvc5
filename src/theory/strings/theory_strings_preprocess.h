@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__PREPROCESS_H
-#define __CVC4__THEORY__STRINGS__PREPROCESS_H
+#ifndef CVC4__THEORY__STRINGS__PREPROCESS_H
+#define CVC4__THEORY__STRINGS__PREPROCESS_H
 
 #include <vector>
 #include "context/cdhashmap.h"
@@ -86,4 +86,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__PREPROCESS_H */
+#endif /* CVC4__THEORY__STRINGS__PREPROCESS_H */

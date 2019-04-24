@@ -34,8 +34,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CHECK_H
-#define __CVC4__CHECK_H
+#ifndef CVC4__CHECK_H
+#define CVC4__CHECK_H
 
 #include <ostream>
 
@@ -143,4 +143,4 @@ class OstreamVoider
 
 }  // namespace CVC4
 
-#endif /* __CVC4__CHECK_H */
+#endif /* CVC4__CHECK_H */

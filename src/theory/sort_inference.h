@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SORT_INFERENCE_H
-#define __CVC4__SORT_INFERENCE_H
+#ifndef CVC4__SORT_INFERENCE_H
+#define CVC4__SORT_INFERENCE_H
 
 #include <iostream>
 #include <string>

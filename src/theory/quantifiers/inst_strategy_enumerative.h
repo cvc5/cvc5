@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define __CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
+#define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"

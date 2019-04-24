@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR__NODE_MANAGER_LISTENERS_H
-#define __CVC4__EXPR__NODE_MANAGER_LISTENERS_H
+#ifndef CVC4__EXPR__NODE_MANAGER_LISTENERS_H
+#define CVC4__EXPR__NODE_MANAGER_LISTENERS_H
 
 #include "base/listener.h"
 #include "util/resource_manager.h"
@@ -64,4 +64,4 @@ class RlimitPerListener : public Listener {
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__NODE_MANAGER_LISTENERS_H */
+#endif /* CVC4__EXPR__NODE_MANAGER_LISTENERS_H */

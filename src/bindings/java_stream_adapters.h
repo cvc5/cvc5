@@ -37,8 +37,8 @@
 #include <string>
 #include <jni.h>
 
-#ifndef __CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H
-#define __CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H
+#ifndef CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H
+#define CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H
 
 namespace CVC4 {
 
@@ -105,4 +105,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H */
+#endif /* CVC4__BINDINGS__JAVA_STREAM_ADAPTERS_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
-#define __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#ifndef CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
+#define CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H
 
 #include "expr/matcher.h"
 //#include "expr/attribute.h"
@@ -433,4 +433,4 @@ class DtSyguEvalTypeRule
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */
+#endif /* CVC4__THEORY__DATATYPES__THEORY_DATATYPES_TYPE_RULES_H */
