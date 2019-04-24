@@ -2734,13 +2734,15 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       if(n.isVar()) {
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
+          Node f = (*i).second.getFormula();
+          Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
-            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()), (*i).second.getFormula()));
+            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()),fe));
             continue;
           }
           // don't bother putting in the cache
-          result.push((*i).second.getFormula());
+          result.push(fe);
           continue;
         }
         // don't bother putting in the cache

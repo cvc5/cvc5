@@ -2091,7 +2091,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
              // however, we need to apply partial version since we don't have the internal selector available
              aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR, dtc[i].getSelector(), expr ) );
            }
-           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY, aargs ) );
+           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY_UF, aargs ) );
            patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK 
