@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT2_INPUT_H
-#define __CVC4__PARSER__SMT2_INPUT_H
+#ifndef CVC4__PARSER__SMT2_INPUT_H
+#define CVC4__PARSER__SMT2_INPUT_H
 
 #include "parser/antlr_input.h"
 #include "parser/smt2/Smt2Lexer.h"
@@ -83,4 +83,4 @@ class Smt2Input : public AntlrInput {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT2_INPUT_H */
+#endif /* CVC4__PARSER__SMT2_INPUT_H */

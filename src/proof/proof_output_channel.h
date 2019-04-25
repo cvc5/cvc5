@@ -13,8 +13,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF_OUTPUT_CHANNEL_H
-#define __CVC4__PROOF_OUTPUT_CHANNEL_H
+#ifndef CVC4__PROOF_OUTPUT_CHANNEL_H
+#define CVC4__PROOF_OUTPUT_CHANNEL_H
 
 #include <memory>
 #include <set>
@@ -74,4 +74,4 @@ public:
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__PROOF_OUTPUT_CHANNEL_H */
+#endif /* CVC4__PROOF_OUTPUT_CHANNEL_H */

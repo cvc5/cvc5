@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
-#define __CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
+#ifndef CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
+#define CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H
 
 #include <map>
 #include "theory/quantifiers/sygus/term_database_sygus.h"
@@ -104,4 +104,4 @@ class SygusSimpleSymBreak
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */
+#endif /* CVC4__THEORY__DATATYPES__SIMPLE_SYM_BREAK_H */

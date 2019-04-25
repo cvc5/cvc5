@@ -16,8 +16,8 @@
  ** minimize interaction between header files.
  **/
 
-#ifndef __CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
-#define __CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#ifndef CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
+#define CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H
 
 #include "cvc4_private.h"
 #include <vector>
@@ -46,4 +46,4 @@ static const RationalVectorP RationalVectorPSentinel = NULL;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H */
+#endif /* CVC4__THEORY__ARITH__CONSTRAINT_FORWARD_H */

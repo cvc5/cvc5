@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H
-#define __CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H
+#ifndef CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H
+#define CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H
 
 #include <cstddef>
 #include <list>
@@ -112,4 +112,4 @@ class ArgumentExtenderImplementation : public ArgumentExtender {
 }/* CVC4::options namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H */
+#endif /* CVC4__OPTIONS__ARGUMENT_EXTENDER_IMPLEMENTATION_H */

@@ -25,8 +25,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT_UTIL__LEMMA_CHANNELS_H
-#define __CVC4__SMT_UTIL__LEMMA_CHANNELS_H
+#ifndef CVC4__SMT_UTIL__LEMMA_CHANNELS_H
+#define CVC4__SMT_UTIL__LEMMA_CHANNELS_H
 
 #include <iosfwd>
 #include <string>
@@ -74,4 +74,4 @@ class CVC4_PUBLIC LemmaChannels {
 
 } /* namespace CVC4 */
 
-#endif /* __CVC4__SMT_UTIL__LEMMA_CHANNELS_H */
+#endif /* CVC4__SMT_UTIL__LEMMA_CHANNELS_H */

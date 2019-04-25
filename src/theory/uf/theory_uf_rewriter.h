@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__THEORY_UF_REWRITER_H
-#define __CVC4__THEORY__UF__THEORY_UF_REWRITER_H
+#ifndef CVC4__THEORY__UF__THEORY_UF_REWRITER_H
+#define CVC4__THEORY__UF__THEORY_UF_REWRITER_H
 
 #include "expr/node_algorithm.h"
 #include "theory/rewriter.h"
@@ -213,4 +213,4 @@ public: //conversion between HO_APPLY AND APPLY_UF
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__THEORY_UF_REWRITER_H */
+#endif /* CVC4__THEORY__UF__THEORY_UF_REWRITER_H */

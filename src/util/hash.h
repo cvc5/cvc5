@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__HASH_H
-#define __CVC4__HASH_H
+#ifndef CVC4__HASH_H
+#define CVC4__HASH_H
 
 #include <cstdint>
 #include <functional>
@@ -67,4 +67,4 @@ struct PairHashFunction {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__HASH_H */
+#endif /* CVC4__HASH_H */

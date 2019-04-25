@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H
-#define __CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H
+#ifndef CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H
+#define CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H
 
 #include <unordered_map>
 #include <vector>
@@ -49,4 +49,4 @@ class RealToInt : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H */
+#endif /* CVC4__PREPROCESSING__PASSES__REAL_TO_INT_H */

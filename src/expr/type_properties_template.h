@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__TYPE_PROPERTIES_H
-#define __CVC4__TYPE_PROPERTIES_H
+#ifndef CVC4__TYPE_PROPERTIES_H
+#define CVC4__TYPE_PROPERTIES_H
 
 #line 23 "${template}"
 
@@ -138,4 +138,4 @@ ${type_groundterms}
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__TYPE_PROPERTIES_H */
+#endif /* CVC4__TYPE_PROPERTIES_H */

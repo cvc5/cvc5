@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ASSERTION_H
-#define __CVC4__THEORY__ASSERTION_H
+#ifndef CVC4__THEORY__ASSERTION_H
+#define CVC4__THEORY__ASSERTION_H
 
 #include "expr/node.h"
 
@@ -49,4 +49,4 @@ std::ostream& operator<<(std::ostream& out, const Assertion& a);
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ASSERTION_H */
+#endif /* CVC4__THEORY__ASSERTION_H */

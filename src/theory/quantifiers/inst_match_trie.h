@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
-#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
+#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_TRIE_H
 
 #include <map>
 
@@ -436,4 +436,4 @@ class InstMatchTrieOrdered
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */

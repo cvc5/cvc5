@@ -12,8 +12,8 @@
  ** \brief An additional layer between commands and invoking them.
  **/
 
-#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_H
-#define __CVC4__MAIN__COMMAND_EXECUTOR_H
+#ifndef CVC4__MAIN__COMMAND_EXECUTOR_H
+#define CVC4__MAIN__COMMAND_EXECUTOR_H
 
 #include <iosfwd>
 #include <string>
@@ -104,4 +104,4 @@ bool smtEngineInvoke(SmtEngine* smt, Command* cmd, std::ostream *out);
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_H */
+#endif  /* CVC4__MAIN__COMMAND_EXECUTOR_H */

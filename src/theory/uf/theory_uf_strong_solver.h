@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_STRONG_SOLVER_H
-#define __CVC4__THEORY_UF_STRONG_SOLVER_H
+#ifndef CVC4__THEORY_UF_STRONG_SOLVER_H
+#define CVC4__THEORY_UF_STRONG_SOLVER_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
@@ -476,4 +476,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_UF_STRONG_SOLVER_H */
+#endif /* CVC4__THEORY_UF_STRONG_SOLVER_H */

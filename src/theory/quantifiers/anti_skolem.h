@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
-#define __CVC4__THEORY__QUANT_ANTI_SKOLEM_H
+#ifndef CVC4__THEORY__QUANT_ANTI_SKOLEM_H
+#define CVC4__THEORY__QUANT_ANTI_SKOLEM_H
 
 #include <map>
 #include <vector>

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SAT__PROOF_IMPLEMENTATION_H
-#define __CVC4__SAT__PROOF_IMPLEMENTATION_H
+#ifndef CVC4__SAT__PROOF_IMPLEMENTATION_H
+#define CVC4__SAT__PROOF_IMPLEMENTATION_H
 
 #include "proof/clause_id.h"
 #include "proof/cnf_proof.h"
@@ -1081,4 +1081,4 @@ inline std::ostream& operator<<(std::ostream& out, CVC4::ClauseKind k) {
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__SAT__PROOF_IMPLEMENTATION_H */
+#endif /* CVC4__SAT__PROOF_IMPLEMENTATION_H */

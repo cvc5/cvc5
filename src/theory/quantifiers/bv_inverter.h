@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BV_INVERTER_H
-#define __CVC4__BV_INVERTER_H
+#ifndef CVC4__BV_INVERTER_H
+#define CVC4__BV_INVERTER_H
 
 #include <map>
 #include <unordered_map>
@@ -130,4 +130,4 @@ class BvInverter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__BV_INVERTER_H */
+#endif /* CVC4__BV_INVERTER_H */

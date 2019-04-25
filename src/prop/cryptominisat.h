@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CRYPTOMINISAT_H
-#define __CVC4__PROP__CRYPTOMINISAT_H
+#ifndef CVC4__PROP__CRYPTOMINISAT_H
+#define CVC4__PROP__CRYPTOMINISAT_H
 
 #ifdef CVC4_USE_CRYPTOMINISAT
 
@@ -95,4 +95,4 @@ public:
 }  // namespace CVC4
 
 #endif  // CVC4_USE_CRYPTOMINISAT
-#endif  // __CVC4__PROP__CRYPTOMINISAT_H
+#endif  // CVC4__PROP__CRYPTOMINISAT_H

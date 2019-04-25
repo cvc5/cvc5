@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__THEORY__THEORY_TEST_UTILS_H
-#define __CVC4__THEORY__THEORY_TEST_UTILS_H
+#ifndef CVC4__THEORY__THEORY_TEST_UTILS_H
+#define CVC4__THEORY__THEORY_TEST_UTILS_H
 
 #include <iostream>
 #include <memory>
@@ -124,4 +124,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_TEST_UTILS_H */
+#endif /* CVC4__THEORY__THEORY_TEST_UTILS_H */

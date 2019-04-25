@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__THEORY_UF_H
-#define __CVC4__THEORY__UF__THEORY_UF_H
+#ifndef CVC4__THEORY__UF__THEORY_UF_H
+#define CVC4__THEORY__UF__THEORY_UF_H
 
 #include "context/cdhashset.h"
 #include "context/cdo.h"
@@ -315,4 +315,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__THEORY_UF_H */
+#endif /* CVC4__THEORY__UF__THEORY_UF_H */

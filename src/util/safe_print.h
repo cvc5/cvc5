@@ -29,8 +29,8 @@
 
 #include "cvc4_private_library.h"
 
-#ifndef __CVC4__SAFE_PRINT_H
-#define __CVC4__SAFE_PRINT_H
+#ifndef CVC4__SAFE_PRINT_H
+#define CVC4__SAFE_PRINT_H
 
 #if __cplusplus >= 201103L
 // For c++11 and newer
@@ -96,4 +96,4 @@ void safe_print_right_aligned(int fd, uint64_t i, ssize_t width);
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__SAFE_PRINT_H */
+#endif /* CVC4__SAFE_PRINT_H */
