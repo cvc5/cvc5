@@ -240,7 +240,9 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node plus = d_nm->mkNode(kind::PLUS, intized_children);
               vector<Node> children = {plus, pow2BvSize};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
+              Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
+              mod = Rewriter::rewrite(mod);
+              d_bvToIntCache[current] = mod;
               break;
             }
             case kind::BITVECTOR_MULT: 
@@ -249,7 +251,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node mul = d_nm->mkNode(kind::MULT, intized_children);
               vector<Node> children = {mul, pow2BvSize};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children));
               break;
             }
             case kind::BITVECTOR_SUB:
@@ -258,7 +260,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node sub = d_nm->mkNode(kind::MINUS, intized_children);
               vector<Node> children = {sub, pow2BvSize};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS, children));
+              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children));
               break;
             }
             case kind::BITVECTOR_UDIV:
@@ -371,7 +373,7 @@ Node BVToInt::bvToInt(Node n)
                 Node difference = d_nm->mkNode(kind::MINUS, i, j);
                 Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
                 Node pow = pow2(plus);
-                Node mod = d_nm->mkNode(kind::INTS_MODULUS, div, pow);
+                Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, div, pow);
                 d_bvToIntCache[current] = Rewriter::rewrite(mod);
               } else {
                 Unimplemented();
@@ -446,8 +448,6 @@ Node BVToInt::bvToInt(Node n)
       }
     }
   }
-  std::cout << "panda 1 " << n.toString() << std::endl;
-  std::cout << "panda 2 " << d_bvToIntCache[n].toString() << std::endl;
   return d_bvToIntCache[n];
 }
 
