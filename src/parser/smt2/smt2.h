@@ -299,7 +299,8 @@ private:
       return;
     }else{
       //it is allowable in sygus
-      if( sygus_v1() && name[0]=='-' ){
+      if (sygus_v1() && name[0] == '-')
+      {
         //do not check anything
         return;
       }

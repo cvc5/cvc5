@@ -105,9 +105,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
-  case LANG_SYGUS_V2:
-    out << "LANG_SYGUS_V2";
-    break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   default:
     out << "undefined_input_language";
   }
@@ -193,9 +191,7 @@ inline std::ostream& operator<<(std::ostream& out, Language lang) {
   case LANG_SYGUS:
     out << "LANG_SYGUS";
     break;
-  case LANG_SYGUS_V2:
-    out << "LANG_SYGUS_V2";
-    break;
+  case LANG_SYGUS_V2: out << "LANG_SYGUS_V2"; break;
   case LANG_AST:
     out << "LANG_AST";
     break;

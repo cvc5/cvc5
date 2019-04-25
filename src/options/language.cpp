@@ -157,7 +157,9 @@ OutputLanguage toOutputLanguage(std::string language) {
     return output::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return output::LANG_SYGUS;
-  } else if(language == "sygus2" || language == "LANG_SYGUS_V2") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
     return output::LANG_SYGUS_V2;
   } else if(language == "ast" || language == "LANG_AST") {
     return output::LANG_AST;
@@ -199,7 +201,9 @@ InputLanguage toInputLanguage(std::string language) {
     return input::LANG_Z3STR;
   } else if(language == "sygus" || language == "LANG_SYGUS") {
     return input::LANG_SYGUS;
-  } else if(language == "sygus2" || language == "LANG_SYGUS_V2") {
+  }
+  else if (language == "sygus2" || language == "LANG_SYGUS_V2")
+  {
     return input::LANG_SYGUS_V2;
   } else if(language == "auto" || language == "LANG_AUTO") {
     return input::LANG_AUTO;

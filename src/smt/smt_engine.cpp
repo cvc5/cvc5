@@ -1177,7 +1177,7 @@ void SmtEngine::setDefaults() {
   }
   bool is_sygus = false;
   if (options::inputLanguage() == language::input::LANG_SYGUS
-        || options::inputLanguage() == language::input::LANG_SYGUS_V2)
+      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
   {
     is_sygus = true;
   }
