@@ -126,7 +126,7 @@ Node BVToInt::eliminationPass(Node n) {
           Assert(d_eliminationCache.find(currentEliminated[i]) != d_eliminationCache.end());
           children.push_back(d_eliminationCache[currentEliminated[i]]);
         }
-        d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children);
+        d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getOperator(), children);
       }
     } else {
         if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
@@ -365,19 +365,15 @@ Node BVToInt::bvToInt(Node n)
             {
               //current = a[i:j]
               Node a = current[0];
-              Node i = current[1];
-              Node j = current[2];
-              if (i.isConst() && j.isConst()) {
-                Assert(d_bvToIntCache.find(a) != d_bvToIntCache.end());
-                Node div = d_nm->mkNode(kind::INTS_DIVISION, d_bvToIntCache[a], pow2(j));
-                Node difference = d_nm->mkNode(kind::MINUS, i, j);
-                Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
-                Node pow = pow2(plus);
-                Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, div, pow);
-                d_bvToIntCache[current] = Rewriter::rewrite(mod);
-              } else {
-                Unimplemented();
-              }
+              size_t i = bv::utils::getExtractHigh(current);
+              size_t j = bv::utils::getExtractLow(current);
+              Assert(d_bvToIntCache.find(a) != d_bvToIntCache.end());
+              Node div = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, d_bvToIntCache[a], pow2(j));
+              Node difference = d_nm->mkNode(kind::MINUS, d_nm->mkConst<Rational>(i), d_nm->mkConst<Rational>(j));
+              Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
+              Node pow = pow2(plus);
+              Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, div, pow);
+              d_bvToIntCache[current] = Rewriter::rewrite(mod);
               break;
             }
             case kind::BITVECTOR_ZERO_EXTEND:
@@ -457,7 +453,11 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
       d_eliminationCache(),
       d_bvToIntCache(),
       d_rangeAssertions()
-{d_nm = NodeManager::currentNM();};
+{
+  d_nm = NodeManager::currentNM();
+  //TODO the following line is a hack because the mkNode may complain
+  d_rangeAssertions.push_back(d_nm->mkConst<bool>(true));
+};
 
 PreprocessingPassResult BVToInt::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
