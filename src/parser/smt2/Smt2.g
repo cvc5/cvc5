@@ -2307,8 +2307,8 @@ termAtomic[CVC4::api::Term& atomTerm]
       sortSymbol[type,CHECK_DECLARED]
       sortSymbol[type2,CHECK_DECLARED]
       {
-        api::Term v1 = SOLVER->mkVar(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkVar(api::Sort(type2), "_emp2");
+        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
+        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
         atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
 

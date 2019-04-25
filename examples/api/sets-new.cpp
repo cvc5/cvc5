@@ -40,9 +40,9 @@ int main()
   // Verify union distributions over intersection
   // (A union B) intersection C = (A intersection C) union (B intersection C)
   {
-    Term A = slv.mkVar(set, "A");
-    Term B = slv.mkVar(set, "B");
-    Term C = slv.mkVar(set, "C");
+    Term A = slv.mkConst(set, "A");
+    Term B = slv.mkConst(set, "B");
+    Term C = slv.mkConst(set, "C");
 
     Term unionAB = slv.mkTerm(UNION, A, B);
     Term lhs = slv.mkTerm(INTERSECTION, unionAB, C);
@@ -59,7 +59,7 @@ int main()
 
   // Verify emptset is a subset of any set
   {
-    Term A = slv.mkVar(set, "A");
+    Term A = slv.mkConst(set, "A");
     Term emptyset = slv.mkEmptySet(set);
 
     Term theorem = slv.mkTerm(SUBSET, emptyset, A);
@@ -81,7 +81,7 @@ int main()
     Term two_three = slv.mkTerm(UNION, singleton_two, singleton_three);
     Term intersection = slv.mkTerm(INTERSECTION, one_two, two_three);
 
-    Term x = slv.mkVar(integer, "x");
+    Term x = slv.mkConst(integer, "x");
 
     Term e = slv.mkTerm(MEMBER, x, intersection);
 

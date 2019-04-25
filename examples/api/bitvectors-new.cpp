@@ -50,9 +50,9 @@ int main()
   Sort bitvector32 = slv.mkBitVectorSort(32);
 
   // Variables
-  Term x = slv.mkVar(bitvector32, "x");
-  Term a = slv.mkVar(bitvector32, "a");
-  Term b = slv.mkVar(bitvector32, "b");
+  Term x = slv.mkConst(bitvector32, "x");
+  Term a = slv.mkConst(bitvector32, "a");
+  Term b = slv.mkConst(bitvector32, "b");
 
   // First encode the assumption that x must be equal to a or b
   Term x_eq_a = slv.mkTerm(EQUAL, x, a);
@@ -63,9 +63,9 @@ int main()
   slv.assertFormula(assumption);
 
   // Introduce a new variable for the new value of x after assignment.
-  Term new_x = slv.mkVar(bitvector32, "new_x");  // x after executing code (0)
+  Term new_x = slv.mkConst(bitvector32, "new_x");  // x after executing code (0)
   Term new_x_ =
-      slv.mkVar(bitvector32, "new_x_");  // x after executing code (1) or (2)
+      slv.mkConst(bitvector32, "new_x_");  // x after executing code (1) or (2)
 
   // Encoding code (0)
   // new_x = x == a ? b : a;
