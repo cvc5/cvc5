@@ -180,7 +180,10 @@ void Datatype::addSygusConstructor(Expr op,
 {
   Debug("dt-sygus") << "--> Add constructor " << cname << " to " << getName() << std::endl;
   Debug("dt-sygus") << "    sygus op : " << op << std::endl;
-  std::string name = getName() + "_" + cname;
+  // avoid name clashes
+  std::stringstream ss;
+  ss << getName() << "_" << getNumConstructors() << "_" << cname;
+  std::string name = ss.str();
   std::string testerId("is-");
   testerId.append(name);
   unsigned cweight = weight >= 0 ? weight : (cargs.empty() ? 0 : 1);

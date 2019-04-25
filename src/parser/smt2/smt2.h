@@ -280,7 +280,16 @@ private:
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
-
+  
+  void addSygusConstructorTerm( Datatype& dt, Expr term,
+                                std::map<Expr, Type>& ntsToUnres ) const;
+  Expr purifySygusGTerm(Expr term,
+                      std::map<Expr, Type>& ntsToUnres,
+                      std::vector<Expr>& args,
+                      std::vector<Type>& cargs) const;
+  void addSygusConstructorVariables( Datatype& dt, std::vector<Expr>& sygusVars, Type type ) const;
+  
+  
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
    * same as the base, but with some more helpful errors.

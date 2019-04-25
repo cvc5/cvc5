@@ -1233,6 +1233,72 @@ Expr Smt2::makeSygusBoundVarList(Datatype& dt,
   return getExprManager()->mkExpr(kind::BOUND_VAR_LIST, lvars);
 }
 
+void Smt2::addSygusConstructorTerm( Datatype& dt, Expr term,
+                              std::map<Expr, Type>& ntsToUnres ) const
+{
+  // purify each occurrence of a non-terminal symbol in term, replace by
+  // free variables. These become arguments to constructors. Notice we must do
+  // a tree traversal in this function, since unique paths to the same term
+  // should be treated as distinct terms.
+  // Notice that let expressions are forbidden in the input syntax of term, so
+  // this does not lead to exponential behavior with respect to input size.
+  std::vector<Expr> args;
+  std::vector<Type> cargs;
+  Expr op = purifySygusGTerm(term,ntsToUnres,args,cargs);
+  
+  if( !args.empty() )
+  {
+    Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
+    op = getExprManager()->mkExpr(kind::LAMBDA,op);
+  }
+  std::stringstream ss;
+  ss << op.getKind();
+  dt.addSygusConstructor(op,ss.str(),cargs);
+}
+
+Expr Smt2::purifySygusGTerm(Expr term,
+                      std::map<Expr, Type>& ntsToUnres,
+                      std::vector<Expr>& args,
+                      std::vector<Type>& cargs) const
+{
+  std::map< Expr, Type >::iterator itn = ntsToUnres.find(term);
+  if( itn!=ntsToUnres.end() )
+  {
+    Expr ret = getExprManager()->mkBoundVar(term.getType());
+    args.push_back(ret);
+    cargs.push_back(itn->second);
+    return ret;
+  }
+  std::vector< Expr > pchildren;
+  // FIXME: operator??
+  bool childChanged = false;
+  for( unsigned i, size=term.getNumChildren(); i<size; i++ )
+  {
+    Expr ptermc = purifySygusGTerm(term[i],ntsToUnres,args,cargs);
+    pchildren.push_back(ptermc);
+    childChanged = childChanged || ptermc!=term[i];
+  }
+  if( !childChanged )
+  {
+    return term;
+  }
+  return getExprManager()->mkExpr( term.getKind(), pchildren );
+}
+  
+void Smt2::addSygusConstructorVariables( Datatype& dt, std::vector<Expr>& sygusVars, Type type ) const
+{
+  // each variable of appropriate type becomes a sygus constructor in dt.
+  for( unsigned i=0, size = sygusVars.size(); i<size; i++ ){
+    Expr v = sygusVars[i];
+    if( v.getType()==type ){
+      std::stringstream ss;
+      ss << v;
+      std::vector< CVC4::Type > cargs;
+      dt.addSygusConstructor(v,ss.str(),cargs);
+    }
+  }
+}
+
 InputLanguage Smt2::getLanguage() const
 {
   ExprManager* em = getExprManager();
