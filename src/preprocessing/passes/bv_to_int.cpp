@@ -126,7 +126,11 @@ Node BVToInt::eliminationPass(Node n) {
           Assert(d_eliminationCache.find(currentEliminated[i]) != d_eliminationCache.end());
           children.push_back(d_eliminationCache[currentEliminated[i]]);
         }
-        d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getOperator(), children);
+        if (currentEliminated.getMetaKind() == kind::metakind::PARAMETERIZED) {
+          d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getOperator(), children); 
+        } else {
+          d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children); 
+        }
       }
     } else {
         if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
