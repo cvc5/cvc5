@@ -379,9 +379,9 @@ bool Smt2::logicIsSet() {
 }
 
 Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
-  if(sygus() && name[0]=='-' && 
+  if(sygus_v1() && name[0]=='-' && 
     name.find_first_not_of("0123456789", 1) == std::string::npos) {
-    //allow unary minus in sygus
+    //allow unary minus in sygus version 1
     return getExprManager()->mkConst(Rational(name));
   }else if(isAbstractValue(name)) {
     return mkAbstractValue(name);
@@ -451,7 +451,7 @@ void Smt2::resetAssertions() {
 
 void Smt2::setLogic(std::string name) {
 
-  if(sygus()) {
+  if(sygus_v1()) {
     // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
     if(name == "Arrays") {
       name = "A";
@@ -543,6 +543,17 @@ void Smt2::setLogic(std::string name) {
   }
   
 }/* Smt2::setLogic() */
+
+
+bool Smt2::sygus() const { 
+  InputLanguage ilang = getLanguage();
+  return ilang == language::input::LANG_SYGUS || ilang == language::input::LANG_SYGUS_V2; 
+}
+bool Smt2::sygus_v1() const
+{
+  return getLanguage() == language::input::LANG_SYGUS;
+}
+
 
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???

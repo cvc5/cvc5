@@ -181,7 +181,8 @@ private:
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
 
-  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
+  bool sygus() const;
+  bool sygus_v1() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -298,7 +299,7 @@ private:
       return;
     }else{
       //it is allowable in sygus
-      if( sygus() && name[0]=='-' ){
+      if( sygus_v1() && name[0]=='-' ){
         //do not check anything
         return;
       }
