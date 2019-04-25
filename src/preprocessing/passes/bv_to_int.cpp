@@ -457,6 +457,7 @@ BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
   d_nm = NodeManager::currentNM();
   //TODO the following line is a hack because the mkNode may complain
   d_rangeAssertions.push_back(d_nm->mkConst<bool>(true));
+  d_rangeAssertions.push_back(d_nm->mkConst<bool>(true));
 };
 
 PreprocessingPassResult BVToInt::applyInternal(
