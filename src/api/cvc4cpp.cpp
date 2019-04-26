@@ -56,8 +56,8 @@ const static std::unordered_map<Kind, CVC4::Kind, KindHashFunction> s_kinds{
     {APPLY, CVC4::Kind::APPLY},
     {EQUAL, CVC4::Kind::EQUAL},
     {DISTINCT, CVC4::Kind::DISTINCT},
-    {VARIABLE, CVC4::Kind::VARIABLE},
-    {BOUND_VARIABLE, CVC4::Kind::BOUND_VARIABLE},
+    {CONSTANT, CVC4::Kind::VARIABLE},
+    {VARIABLE, CVC4::Kind::BOUND_VARIABLE},
     {LAMBDA, CVC4::Kind::LAMBDA},
     {CHOICE, CVC4::Kind::CHOICE},
     {CHAIN, CVC4::Kind::CHAIN},
@@ -304,8 +304,8 @@ const static std::unordered_map<CVC4::Kind, Kind, CVC4::kind::KindHashFunction>
         {CVC4::Kind::APPLY, APPLY},
         {CVC4::Kind::EQUAL, EQUAL},
         {CVC4::Kind::DISTINCT, DISTINCT},
-        {CVC4::Kind::VARIABLE, VARIABLE},
-        {CVC4::Kind::BOUND_VARIABLE, BOUND_VARIABLE},
+        {CVC4::Kind::VARIABLE, CONSTANT},
+        {CVC4::Kind::BOUND_VARIABLE, VARIABLE},
         {CVC4::Kind::LAMBDA, LAMBDA},
         {CVC4::Kind::CHOICE, CHOICE},
         {CVC4::Kind::CHAIN, CHAIN},
@@ -2439,8 +2439,9 @@ void Solver::checkMkTerm(Kind kind, uint32_t nchildren) const
       mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
       kind)
       << "Only operator-style terms are created with mkTerm(), "
-         "to create variables and constants see mkConst(), mkVar(), "
-         "and mkConst().";
+         "to create variables, constants and values see mkVar(), mkConst() "
+         "and the respective theory-specific functions to create values, "
+         "e.g., mkBitVector().";
   CVC4_API_KIND_CHECK_EXPECTED(
       nchildren >= minArity(kind) && nchildren <= maxArity(kind), kind)
       << "Terms with kind " << kindToString(kind) << " must have at least "
