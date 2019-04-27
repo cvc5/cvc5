@@ -293,6 +293,12 @@ void Smt2::addTheory(Theory theory) {
     defineType("String", getExprManager()->stringType());
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
+
+    defineVar("re.all",
+              getSolver()
+                  ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma())
+                  .getExpr());
+
     addStringOperators();
     break;
 
