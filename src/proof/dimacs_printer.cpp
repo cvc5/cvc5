@@ -44,10 +44,9 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
   return o << "0";
 }
 
-void printDimacs(
-    std::ostream& o,
-    const std::map<ClauseId, prop::SatClause>& clauses,
-    const std::vector<ClauseId>& usedIndices)
+void printDimacs(std::ostream& o,
+                 const std::map<ClauseId, prop::SatClause>& clauses,
+                 const std::vector<ClauseId>& usedIndices)
 {
   size_t maxVar = 0;
   for (const ClauseId i : usedIndices)

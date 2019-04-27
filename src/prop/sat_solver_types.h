@@ -28,7 +28,6 @@
 #include <string>
 #include <unordered_set>
 #include <vector>
-#include <unordered_set>
 
 namespace CVC4 {
 namespace prop {

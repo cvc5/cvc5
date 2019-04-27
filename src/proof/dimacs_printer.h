@@ -57,10 +57,9 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c);
  * @param o where to print to
  * @param usedClauses the CNF formula
  */
-void printDimacs(
-    std::ostream& o,
-    const std::map<ClauseId, prop::SatClause>& clauses,
-    const std::vector<ClauseId>& usedIndices);
+void printDimacs(std::ostream& o,
+                 const std::map<ClauseId, prop::SatClause>& clauses,
+                 const std::vector<ClauseId>& usedIndices);
 
 std::vector<prop::SatClause> parseDimacs(std::istream& i);
 

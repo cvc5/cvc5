@@ -149,12 +149,11 @@ ErProof::ErProof(const std::map<ClauseId, prop::SatClause>& clauses,
 
   // Make a list of (idx, clause pairs), the used ones.
   std::vector<std::pair<ClauseId, prop::SatClause>> usedClauses;
-  std::transform(usedIds.begin(),
-                 usedIds.end(),
-                 std::back_inserter(usedClauses),
-                 [&](const ClauseId& i) {
-                   return make_pair(i, clauses.at(i));
-                 });
+  std::transform(
+      usedIds.begin(),
+      usedIds.end(),
+      std::back_inserter(usedClauses),
+      [&](const ClauseId& i) { return make_pair(i, clauses.at(i)); });
 
   // Step one, verify the formula starts the proof
   if (Configuration::isAssertionBuild())
