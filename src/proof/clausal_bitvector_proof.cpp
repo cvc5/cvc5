@@ -178,7 +178,7 @@ void ClausalBitVectorProof::optimizeDratProof()
       optFormulaStream.close();
 
       // Now we need to compute the clause indices for the UNSAT core. This is a
-      // bit difficulut because drat-trim may have reordered clauses, and/or
+      // bit difficult because drat-trim may have reordered clauses, and/or
       // removed duplicate literals. We use literal sets as the canonical clause
       // form.
       std::unordered_map<
