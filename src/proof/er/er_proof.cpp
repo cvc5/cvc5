@@ -31,7 +31,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/map_util.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/proof_manager.h"
 
@@ -81,7 +81,7 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
 }
 
 ErProof ErProof::fromBinaryDratProof(
-    const std::map<ClauseId, prop::SatClause>& clauses,
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId>& usedIds,
     const std::string& dratBinary)
 {
@@ -139,7 +139,7 @@ ErProof ErProof::fromBinaryDratProof(
   return proof;
 }
 
-ErProof::ErProof(const std::map<ClauseId, prop::SatClause>& clauses,
+ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
                  const std::vector<ClauseId>& usedIds,
                  TraceCheckProof&& tracecheck)
     : d_inputClauseIds(), d_definitions(), d_tracecheck(tracecheck)

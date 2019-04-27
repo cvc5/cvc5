@@ -26,7 +26,7 @@
 #ifndef __CVC4__PROOF__ER__ER_PROOF_H
 #define __CVC4__PROOF__ER__ER_PROOF_H
 
-#include <map>
+#include <unordered_map>
 #include <memory>
 #include <vector>
 
@@ -115,11 +115,12 @@ class ErProof
   /**
    * Construct an ER proof from a DRAT proof, using drat2er
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
-   * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
+   * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream
    */
   static ErProof fromBinaryDratProof(
-      const std::map<ClauseId, prop::SatClause>& clauses,
+      const std::unordered_map<ClauseId, prop::SatClause>& clauses,
       const std::vector<ClauseId>& usedIds,
       const std::string& dratBinary);
 
@@ -129,10 +130,11 @@ class ErProof
    * This basically just identifies groups of lines which correspond to
    * definitions, and extracts them.
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
    * @param tracecheck  The TRACECHECK proof, as a stream.
    */
-  ErProof(const std::map<ClauseId, prop::SatClause>& clauses,
+  ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
           const std::vector<ClauseId>& usedIds,
           TraceCheckProof&& tracecheck);
 

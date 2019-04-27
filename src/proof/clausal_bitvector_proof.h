@@ -61,10 +61,10 @@ class ClausalBitVectorProof : public BitVectorProof
 
  protected:
   // A list of all clauses and their ids which are passed into the SAT solver
-  std::map<ClauseId, prop::SatClause> d_clauses;
+  std::unordered_map<ClauseId, prop::SatClause> d_clauses{};
   std::vector<ClauseId> d_originalClauseIndices{};
   // Stores the proof recieved from the SAT solver.
-  std::ostringstream d_binaryDratProof;
+  std::ostringstream d_binaryDratProof{};
   std::vector<ClauseId> d_coreClauseIndices{};
 
  private:

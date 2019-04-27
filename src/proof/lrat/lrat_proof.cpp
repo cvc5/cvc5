@@ -26,7 +26,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 
 #if CVC4_USE_DRAT2ER
@@ -124,7 +124,7 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 // Prints the LRAT addition line in textual format
 
 LratProof LratProof::fromDratProof(
-    const std::map<ClauseId, prop::SatClause>& clauses,
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId> usedIds,
     const std::string& dratBinary)
 {
@@ -208,9 +208,9 @@ LratProof::LratProof(std::istream& textualProof)
         }
         clauses.push_back(di);
       }
-      std::sort(clauses.begin(), clauses.end());
       if (clauses.size() > 0)
       {
+        std::sort(clauses.begin(), clauses.end());
         std::unique_ptr<LratInstruction> instr(
             new LratDeletion(clauseIdx, std::move(clauses)));
         d_instructions.push_back(std::move(instr));

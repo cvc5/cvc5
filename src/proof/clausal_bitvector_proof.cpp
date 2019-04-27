@@ -19,12 +19,11 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <unordered_map>
 #include <unordered_set>
 
 #include "options/bv_options.h"
 #include "proof/clausal_bitvector_proof.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/drat/drat_proof.h"
 #include "proof/er/er_proof.h"
 #include "proof/lfsc_proof_printer.h"
@@ -101,7 +100,7 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
                          << std::endl;
   }
 
-  // Empty any old record of which atoms for used
+  // Empty any old record of which atoms were used
   d_atomsInBitblastingProof.clear();
   Assert(d_atomsInBitblastingProof.size() == 0);
 
@@ -195,12 +194,14 @@ void ClausalBitVectorProof::optimizeDratProof()
       }
 
       d_coreClauseIndices.clear();
+      std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
+          coreClauseCanonical;
       for (const prop::SatClause& coreClause : core)
       {
-        std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
-            coreClauseCanonical{coreClause.begin(), coreClause.end()};
+        coreClauseCanonical.insert(coreClause.begin(), coreClause.end());
         d_coreClauseIndices.push_back(
             cannonicalClausesToIndices.at(coreClauseCanonical));
+        coreClauseCanonical.clear();
       }
       Debug("bv::clausal") << "Optimizing the DRAT proof and the formula"
                            << std::endl;

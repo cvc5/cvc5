@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file dimacs_printer.cpp
+/*! \file dimacs.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Alex Ozdemir
@@ -14,8 +14,8 @@
  ** Defines serialization for SAT problems as DIMACS
  **/
 
-#include "proof/dimacs_printer.h"
 #include "base/cvc4_assert.h"
+#include "proof/dimacs.h"
 
 #include <iostream>
 
@@ -45,7 +45,7 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
 }
 
 void printDimacs(std::ostream& o,
-                 const std::map<ClauseId, prop::SatClause>& clauses,
+                 const std::unordered_map<ClauseId, prop::SatClause>& clauses,
                  const std::vector<ClauseId>& usedIndices)
 {
   size_t maxVar = 0;
@@ -79,7 +79,9 @@ void printDimacs(std::ostream& o,
 std::vector<prop::SatClause> parseDimacs(std::istream& in)
 {
   std::string tag;
-  int nVars, nClauses;
+  uint64_t nVars;
+  uint64_t nClauses;
+
 
   in >> tag;
   Assert(in.good());
@@ -96,17 +98,17 @@ std::vector<prop::SatClause> parseDimacs(std::istream& in)
   Assert(nClauses >= 0);
 
   std::vector<prop::SatClause> cnf;
-  for (int i = 0; i < nClauses; ++i)
+  for (uint64_t i = 0; i < nClauses; ++i)
   {
     cnf.emplace_back();
-    int lit;
+    int64_t lit;
     in >> lit;
     Assert(in.good());
     while (lit != 0)
     {
       cnf.back().emplace_back(std::abs(lit) - 1, lit < 0);
       in >> lit;
-      Assert(std::abs(lit) <= nVars);
+      Assert(uint64_t(std::abs(lit)) <= nVars);
       Assert(in.good());
     }
   }

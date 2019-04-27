@@ -20,7 +20,7 @@
 #define __CVC4__PROOF__DIMACS_H
 
 #include <iosfwd>
-#include <map>
+#include <unordered_map>
 #include <memory>
 
 #include "proof/clause_id.h"
@@ -58,7 +58,7 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c);
  * @param usedClauses the CNF formula
  */
 void printDimacs(std::ostream& o,
-                 const std::map<ClauseId, prop::SatClause>& clauses,
+                 const std::unordered_map<ClauseId, prop::SatClause>& clauses,
                  const std::vector<ClauseId>& usedIndices);
 
 std::vector<prop::SatClause> parseDimacs(std::istream& i);
