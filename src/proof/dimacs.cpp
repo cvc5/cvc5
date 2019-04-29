@@ -108,7 +108,7 @@ std::vector<prop::SatClause> parseDimacs(std::istream& in)
     {
       cnf.back().emplace_back(std::abs(lit) - 1, lit < 0);
       in >> lit;
-      Assert(uint64_t(std::abs(lit)) <= nVars);
+      Assert(static_cast<uint64_t>(std::abs(lit)) <= nVars);
       Assert(in.good());
     }
   }
