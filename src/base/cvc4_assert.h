@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__ASSERT_H
-#define __CVC4__ASSERT_H
+#ifndef CVC4__ASSERT_H
+#define CVC4__ASSERT_H
 
 #include <cstdarg>
 #include <cstdio>
@@ -317,4 +317,4 @@ void debugAssertionFailed(const AssertionException& thisException,
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__ASSERT_H */
+#endif /* CVC4__ASSERT_H */

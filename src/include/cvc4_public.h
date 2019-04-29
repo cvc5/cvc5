@@ -16,8 +16,8 @@
  ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef __CVC4_PUBLIC_H
-#define __CVC4_PUBLIC_H
+#ifndef CVC4_PUBLIC_H
+#define CVC4_PUBLIC_H
 
 #include <stdint.h>
 
@@ -52,4 +52,4 @@
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#endif /* __CVC4_PUBLIC_H */
+#endif /* CVC4_PUBLIC_H */

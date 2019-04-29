@@ -20,8 +20,8 @@
 #  error expr/attribute_internals.h should only be included by expr/attribute.h
 #endif /* CVC4_ATTRIBUTE_H__INCLUDING__ATTRIBUTE_INTERNALS_H */
 
-#ifndef __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
-#define __CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#ifndef CVC4__EXPR__ATTRIBUTE_INTERNALS_H
+#define CVC4__EXPR__ATTRIBUTE_INTERNALS_H
 
 #include <cstdint>
 #include <unordered_map>
@@ -486,4 +486,4 @@ const uint64_t Attribute<T, bool, context_dep>::s_id =
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__ATTRIBUTE_INTERNALS_H */
+#endif /* CVC4__EXPR__ATTRIBUTE_INTERNALS_H */

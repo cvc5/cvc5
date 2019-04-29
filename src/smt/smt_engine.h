@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT_ENGINE_H
-#define __CVC4__SMT_ENGINE_H
+#ifndef CVC4__SMT_ENGINE_H
+#define CVC4__SMT_ENGINE_H
 
 #include <string>
 #include <vector>
@@ -1064,4 +1064,4 @@ class CVC4_PUBLIC SmtEngine {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT_ENGINE_H */
+#endif /* CVC4__SMT_ENGINE_H */

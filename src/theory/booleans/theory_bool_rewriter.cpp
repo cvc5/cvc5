@@ -77,7 +77,7 @@ RewriteResponse flattenNode(TNode n, TNode trivialNode, TNode skipNode)
 
   /* Trickery to stay under number of children possible in a node */
   NodeManager* nodeManager = NodeManager::currentNM();
-  static const unsigned MAX_CHILDREN = (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
+  static const unsigned MAX_CHILDREN = (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN ) - 1;
   if (childList.size() < MAX_CHILDREN) {
     Node retNode = nodeManager->mkNode(k, childList);
     return RewriteResponse(REWRITE_DONE, retNode);

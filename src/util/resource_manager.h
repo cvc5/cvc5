@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__RESOURCE_MANAGER_H
-#define __CVC4__RESOURCE_MANAGER_H
+#ifndef CVC4__RESOURCE_MANAGER_H
+#define CVC4__RESOURCE_MANAGER_H
 
 #include <cstddef>
 #include <sys/time.h>
@@ -197,4 +197,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RESOURCE_MANAGER_H */
+#endif /* CVC4__RESOURCE_MANAGER_H */

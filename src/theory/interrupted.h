@@ -26,8 +26,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__INTERRUPTED_H
-#define __CVC4__THEORY__INTERRUPTED_H
+#ifndef CVC4__THEORY__INTERRUPTED_H
+#define CVC4__THEORY__INTERRUPTED_H
 
 #include "base/exception.h"
 
@@ -40,4 +40,4 @@ class Interrupted : public CVC4::Exception {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__INTERRUPTED_H */
+#endif /* CVC4__THEORY__INTERRUPTED_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
-#define __CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
+#ifndef CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
+#define CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
 
 #include <iosfwd>
 
@@ -52,4 +52,4 @@ std::ostream& operator<<(std::ostream& out,
 
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__BV__BITBLAST_MODE_H */
+#endif /* CVC4__THEORY__BV__BITBLAST_MODE_H */

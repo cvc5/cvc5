@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DECISION_MANAGER__H
-#define __CVC4__THEORY__DECISION_MANAGER__H
+#ifndef CVC4__THEORY__DECISION_MANAGER__H
+#define CVC4__THEORY__DECISION_MANAGER__H
 
 #include <map>
 #include "theory/decision_strategy.h"
@@ -116,4 +116,4 @@ class DecisionManager
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__DECISION_MANAGER__H */
+#endif /* CVC4__THEORY__DECISION_MANAGER__H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H
-#define __CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H
+#ifndef CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H
+#define CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H
 
 #include <iosfwd>
 
@@ -54,4 +54,4 @@ std::ostream& operator<<(std::ostream& out, preprocessing::passes::BoolToBVMode 
 
 }
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H */
+#endif /* CVC4__PREPROCESSING__PASSES__BOOL_TO_BV_MODE_H */

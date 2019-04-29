@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
-#define __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
+#ifndef CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
+#define CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H
 
 #include "theory/uf/equality_engine.h"
 
@@ -56,4 +56,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H */
+#endif /* CVC4__THEORY__ARRAYS__ARRAY_PROOF_RECONSTRUCTION_H */

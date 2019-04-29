@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
 #include <unordered_set>
@@ -409,4 +409,4 @@ class TermDb : public QuantifiersUtil {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

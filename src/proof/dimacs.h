@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__DIMACS_H
-#define __CVC4__PROOF__DIMACS_H
+#ifndef CVC4__PROOF__DIMACS_H
+#define CVC4__PROOF__DIMACS_H
 
 #include <iosfwd>
 #include <memory>
@@ -66,4 +66,4 @@ std::vector<prop::SatClause> parseDimacs(std::istream& i);
 }  // namespace proof
 }  // namespace CVC4
 
-#endif  // __CVC4__PROOF__DIMACS_H
+#endif  // CVC4__PROOF__DIMACS_H

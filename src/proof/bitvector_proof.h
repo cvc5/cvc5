@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BITVECTOR_PROOF_H
-#define __CVC4__BITVECTOR_PROOF_H
+#ifndef CVC4__BITVECTOR_PROOF_H
+#define CVC4__BITVECTOR_PROOF_H
 
 #include <set>
 #include <unordered_map>
@@ -276,4 +276,4 @@ class BitVectorProof : public TheoryProof
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BITVECTOR__PROOF_H */
+#endif /* CVC4__BITVECTOR__PROOF_H */

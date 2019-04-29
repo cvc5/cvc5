@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
-#define __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
+#define CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H
 
 #include "theory/quantifiers_engine.h"
 #include "theory/theory_model_builder.h"
@@ -60,4 +60,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__MODEL_BUILDER_H */

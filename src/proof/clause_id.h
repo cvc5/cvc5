@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__CLAUSE_ID_H
-#define __CVC4__PROOF__CLAUSE_ID_H
+#ifndef CVC4__PROOF__CLAUSE_ID_H
+#define CVC4__PROOF__CLAUSE_ID_H
 
 namespace CVC4 {
 
@@ -30,4 +30,4 @@ typedef unsigned ClauseId;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROOF__CLAUSE_ID_H */
+#endif /* CVC4__PROOF__CLAUSE_ID_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
-#define __CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
+#ifndef CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
+#define CVC4__UTIL_FLOATINGPOINT_SAMPLER_H
 
 #include "util/floatingpoint.h"
 #include "util/random.h"
@@ -55,4 +55,4 @@ class Sampler
 
 }  // namespace CVC4
 
-#endif /* __CVC4__UTIL_FLOATINGPOINT_SAMPLER_H */
+#endif /* CVC4__UTIL_FLOATINGPOINT_SAMPLER_H */

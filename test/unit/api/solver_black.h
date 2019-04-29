@@ -76,7 +76,6 @@ class SolverBlack : public CxxTest::TestSuite
   void testMkUniverseSet();
   void testMkVar();
 
-  void testDeclareConst();
   void testDeclareDatatype();
   void testDeclareFun();
   void testDeclareSort();
@@ -295,12 +294,12 @@ void SolverBlack::testMkBoundVar()
   Sort boolSort = d_solver->getBooleanSort();
   Sort intSort = d_solver->getIntegerSort();
   Sort funSort = d_solver->mkFunctionSort(intSort, boolSort);
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(boolSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(funSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(boolSort, std::string("b")));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkBoundVar(funSort, ""));
-  TS_ASSERT_THROWS(d_solver->mkBoundVar(Sort()), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkBoundVar(Sort(), "a"), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(funSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(boolSort, std::string("b")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(funSort, ""));
+  TS_ASSERT_THROWS(d_solver->mkVar(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkVar(Sort(), "a"), CVC4ApiException&);
 }
 
 void SolverBlack::testMkBoolean()
@@ -512,7 +511,7 @@ void SolverBlack::testMkReal()
 void SolverBlack::testMkRegexpEmpty()
 {
   Sort strSort = d_solver->getStringSort();
-  Term s = d_solver->mkVar(strSort, "s");
+  Term s = d_solver->mkConst(strSort, "s");
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkTerm(STRING_IN_REGEXP, s, d_solver->mkRegexpEmpty()));
 }
@@ -520,7 +519,7 @@ void SolverBlack::testMkRegexpEmpty()
 void SolverBlack::testMkRegexpSigma()
 {
   Sort strSort = d_solver->getStringSort();
-  Term s = d_solver->mkVar(strSort, "s");
+  Term s = d_solver->mkConst(strSort, "s");
   TS_ASSERT_THROWS_NOTHING(
       d_solver->mkTerm(STRING_IN_REGEXP, s, d_solver->mkRegexpSigma()));
 }
@@ -544,8 +543,8 @@ void SolverBlack::testMkString()
 void SolverBlack::testMkTerm()
 {
   Sort bv32 = d_solver->mkBitVectorSort(32);
-  Term a = d_solver->mkVar(bv32, "a");
-  Term b = d_solver->mkVar(bv32, "b");
+  Term a = d_solver->mkConst(bv32, "a");
+  Term b = d_solver->mkConst(bv32, "b");
   std::vector<Term> v1 = {a, b};
   std::vector<Term> v2 = {a, Term()};
   std::vector<Term> v3 = {a, d_solver->mkTrue()};
@@ -597,8 +596,8 @@ void SolverBlack::testMkTerm()
 void SolverBlack::testMkTermFromOpTerm()
 {
   Sort bv32 = d_solver->mkBitVectorSort(32);
-  Term a = d_solver->mkVar(bv32, "a");
-  Term b = d_solver->mkVar(bv32, "b");
+  Term a = d_solver->mkConst(bv32, "a");
+  Term b = d_solver->mkConst(bv32, "b");
   std::vector<Term> v1 = {d_solver->mkReal(1), d_solver->mkReal(2)};
   std::vector<Term> v2 = {d_solver->mkReal(1), Term()};
   std::vector<Term> v3 = {};
@@ -620,7 +619,7 @@ void SolverBlack::testMkTermFromOpTerm()
   Sort listSort = d_solver->mkDatatypeSort(listDecl);
   Sort intListSort =
       listSort.instantiate(std::vector<Sort>{d_solver->getIntegerSort()});
-  Term c = d_solver->declareConst("c", intListSort);
+  Term c = d_solver->mkConst(intListSort, "c");
   Datatype list = listSort.getDatatype();
   // list datatype constructor and selector operator terms
   OpTerm consTerm1 = list.getConstructorTerm("cons");
@@ -733,24 +732,14 @@ void SolverBlack::testMkVar()
   Sort boolSort = d_solver->getBooleanSort();
   Sort intSort = d_solver->getIntegerSort();
   Sort funSort = d_solver->mkFunctionSort(intSort, boolSort);
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(boolSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(funSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(boolSort, std::string("b")));
-  TS_ASSERT_THROWS_NOTHING(d_solver->mkVar(funSort, ""));
-  TS_ASSERT_THROWS(d_solver->mkVar(Sort()), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->mkVar(Sort(), "a"), CVC4ApiException&);
-}
-
-void SolverBlack::testDeclareConst()
-{
-  Sort boolSort = d_solver->getBooleanSort();
-  Sort intSort = d_solver->getIntegerSort();
-  Sort funSort = d_solver->mkFunctionSort(intSort, boolSort);
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst(std::string("b"), boolSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst(std::string("i"), intSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst("f", funSort));
-  TS_ASSERT_THROWS_NOTHING(d_solver->declareConst("", funSort));
-  TS_ASSERT_THROWS(d_solver->declareConst("a", Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(boolSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(funSort));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(boolSort, std::string("b")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(intSort, std::string("i")));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(funSort, "f"));
+  TS_ASSERT_THROWS_NOTHING(d_solver->mkConst(funSort, ""));
+  TS_ASSERT_THROWS(d_solver->mkConst(Sort()), CVC4ApiException&);
+  TS_ASSERT_THROWS(d_solver->mkConst(Sort(), "a"), CVC4ApiException&);
 }
 
 void SolverBlack::testDeclareDatatype()
@@ -797,16 +786,16 @@ void SolverBlack::testDefineFun()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                            d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
-  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
-  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
-  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
-  Term v3 = d_solver->mkVar(funSort2, "v3");
-  Term f1 = d_solver->declareConst("f1", funSort1);
-  Term f2 = d_solver->declareConst("f2", funSort2);
-  Term f3 = d_solver->declareConst("f3", bvSort);
+  Term b1 = d_solver->mkVar(bvSort, "b1");
+  Term b11 = d_solver->mkVar(bvSort, "b1");
+  Term b2 = d_solver->mkVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkVar(funSort2, "b3");
+  Term v1 = d_solver->mkVar(bvSort, "v1");
+  Term v2 = d_solver->mkVar(d_solver->getIntegerSort(), "v2");
+  Term v3 = d_solver->mkConst(funSort2, "v3");
+  Term f1 = d_solver->mkConst(funSort1, "f1");
+  Term f2 = d_solver->mkConst(funSort2, "f2");
+  Term f3 = d_solver->mkConst(bvSort, "f3");
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("f", {}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun("ff", {b1, b2}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFun(f1, {b1, b11}, v1));
@@ -829,16 +818,16 @@ void SolverBlack::testDefineFunRec()
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(d_solver->mkUninterpretedSort("u"),
                                            d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
-  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
-  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
-  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
-  Term v3 = d_solver->mkVar(funSort2, "v3");
-  Term f1 = d_solver->declareConst("f1", funSort1);
-  Term f2 = d_solver->declareConst("f2", funSort2);
-  Term f3 = d_solver->declareConst("f3", bvSort);
+  Term b1 = d_solver->mkVar(bvSort, "b1");
+  Term b11 = d_solver->mkVar(bvSort, "b1");
+  Term b2 = d_solver->mkVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkVar(funSort2, "b3");
+  Term v1 = d_solver->mkVar(bvSort, "v1");
+  Term v2 = d_solver->mkVar(d_solver->getIntegerSort(), "v2");
+  Term v3 = d_solver->mkConst(funSort2, "v3");
+  Term f1 = d_solver->mkConst(funSort1, "f1");
+  Term f2 = d_solver->mkConst(funSort2, "f2");
+  Term f3 = d_solver->mkConst(bvSort, "f3");
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec("f", {}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec("ff", {b1, b2}, bvSort, v1));
   TS_ASSERT_THROWS_NOTHING(d_solver->defineFunRec(f1, {b1, b11}, v1));
@@ -863,18 +852,18 @@ void SolverBlack::testDefineFunsRec()
   Sort bvSort = d_solver->mkBitVectorSort(32);
   Sort funSort1 = d_solver->mkFunctionSort({bvSort, bvSort}, bvSort);
   Sort funSort2 = d_solver->mkFunctionSort(uSort, d_solver->getIntegerSort());
-  Term b1 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b11 = d_solver->mkBoundVar(bvSort, "b1");
-  Term b2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "b2");
-  Term b3 = d_solver->mkBoundVar(funSort2, "b3");
-  Term b4 = d_solver->mkBoundVar(uSort, "b4");
-  Term v1 = d_solver->mkBoundVar(bvSort, "v1");
-  Term v2 = d_solver->mkBoundVar(d_solver->getIntegerSort(), "v2");
-  Term v3 = d_solver->mkVar(funSort2, "v3");
-  Term v4 = d_solver->mkVar(uSort, "v4");
-  Term f1 = d_solver->declareConst("f1", funSort1);
-  Term f2 = d_solver->declareConst("f2", funSort2);
-  Term f3 = d_solver->declareConst("f3", bvSort);
+  Term b1 = d_solver->mkVar(bvSort, "b1");
+  Term b11 = d_solver->mkVar(bvSort, "b1");
+  Term b2 = d_solver->mkVar(d_solver->getIntegerSort(), "b2");
+  Term b3 = d_solver->mkVar(funSort2, "b3");
+  Term b4 = d_solver->mkVar(uSort, "b4");
+  Term v1 = d_solver->mkVar(bvSort, "v1");
+  Term v2 = d_solver->mkVar(d_solver->getIntegerSort(), "v2");
+  Term v3 = d_solver->mkConst(funSort2, "v3");
+  Term v4 = d_solver->mkConst(uSort, "v4");
+  Term f1 = d_solver->mkConst(funSort1, "f1");
+  Term f2 = d_solver->mkConst(funSort2, "f2");
+  Term f3 = d_solver->mkConst(bvSort, "f3");
   TS_ASSERT_THROWS_NOTHING(
       d_solver->defineFunsRec({f1, f2}, {{b1, b11}, {b4}}, {v1, v2}));
   TS_ASSERT_THROWS(

@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H
-#define __CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H
+#ifndef CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H
+#define CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -42,4 +42,4 @@ class BvIntroPow2 : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H */
+#endif /* CVC4__PREPROCESSING__PASSES__BV_INTRO_POW2_H */

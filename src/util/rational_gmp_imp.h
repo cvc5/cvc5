@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__RATIONAL_H
-#define __CVC4__RATIONAL_H
+#ifndef CVC4__RATIONAL_H
+#define CVC4__RATIONAL_H
 
 /*
  * Older versions of GMP in combination with newer versions of GCC and C++11
@@ -358,4 +358,4 @@ CVC4_PUBLIC std::ostream& operator<<(std::ostream& os, const Rational& n);
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__RATIONAL_H */
+#endif /* CVC4__RATIONAL_H */

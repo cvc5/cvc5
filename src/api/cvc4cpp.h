@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPP_H
-#define __CVC4__API__CVC4CPP_H
+#ifndef CVC4__API__CVC4CPP_H
+#define CVC4__API__CVC4CPP_H
 
 #include "api/cvc4cppkind.h"
 
@@ -2166,20 +2166,23 @@ class CVC4_PUBLIC Solver
   /* .................................................................... */
 
   /**
-   * Create variable.
+   * Create (first-order) constant (0-arity function symbol).
+   * SMT-LIB: ( declare-const <symbol> <sort> )
+   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
+   *
+   * @param sort the sort of the constant
+   * @param symbol the name of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+
+  /**
+   * Create (bound) variable.
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
-
-  /**
-   * Create bound variable.
-   * @param sort the sort of the variable
-   * @param symbol the name of the variable
-   * @return the variable
-   */
-  Term mkBoundVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -2246,17 +2249,6 @@ class CVC4_PUBLIC Solver
   Result checkValidAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Declare first-order constant (0-arity function symbol).
-   * SMT-LIB: ( declare-const <symbol> <sort> )
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * This command corresponds to mkVar().
-   * @param symbol the name of the first-order constant
-   * @param sort the sort of the first-order constant
-   * @return the first-order constant
-   */
-  Term declareConst(const std::string& symbol, Sort sort) const;
-
-  /**
    * Create datatype sort.
    * SMT-LIB: ( declare-datatype <symbol> <datatype_decl> )
    * @param symbol the name of the datatype sort
@@ -2303,7 +2295,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define n-ary function.
    * SMT-LIB: ( define-fun <function_def> )
-   * Create parameter 'fun' with mkVar().
+   * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
@@ -2330,7 +2322,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define recursive function.
    * SMT-LIB: ( define-fun-rec <function_def> )
-   * Create parameter 'fun' with mkVar().
+   * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
@@ -2343,7 +2335,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define recursive functions.
    * SMT-LIB: ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
-   * Create elements of parameter 'funs' with mkVar().
+   * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
    * @param term the list of function bodies of the functions
@@ -2506,7 +2498,7 @@ class CVC4_PUBLIC Solver
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
   template <typename T>
-  Term mkConstHelper(T t) const;
+  Term mkValHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */

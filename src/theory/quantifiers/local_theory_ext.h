@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__LOCAL_THEORY_EXT_H
-#define __CVC4__THEORY__LOCAL_THEORY_EXT_H
+#ifndef CVC4__THEORY__LOCAL_THEORY_EXT_H
+#define CVC4__THEORY__LOCAL_THEORY_EXT_H
 
 #include "context/cdo.h"
 #include "expr/node_trie.h"

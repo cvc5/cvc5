@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__LINE_BUFFER_H
-#define __CVC4__PARSER__LINE_BUFFER_H
+#ifndef CVC4__PARSER__LINE_BUFFER_H
+#define CVC4__PARSER__LINE_BUFFER_H
 
 #include <cstdlib>
 #include <istream>
@@ -73,4 +73,4 @@ class LineBuffer {
 }  // namespace parser
 }  // namespace CVC4
 
-#endif /* __CVC4__PARSER__LINE_BUFFER_H */
+#endif /* CVC4__PARSER__LINE_BUFFER_H */
