@@ -29,7 +29,7 @@ int main()
 
   Sort bitvector32 = slv.mkBitVectorSort(32);
 
-  Term x = slv.mkVar(bitvector32, "a");
+  Term x = slv.mkConst(bitvector32, "a");
 
   OpTerm ext_31_1 = slv.mkOpTerm(BITVECTOR_EXTRACT_OP, 31, 1);
   Term x_31_1 = slv.mkTerm(BITVECTOR_EXTRACT, ext_31_1, x);

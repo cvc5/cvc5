@@ -123,8 +123,18 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DISTINCT,
   /**
-   * Variable.
+   * First-order constant.
    * Not permitted in bindings (forall, exists, ...).
+   * Parameters:
+   *   See mkConst().
+   * Create with:
+   *   mkConst(const std::string& symbol, Sort sort)
+   *   mkConst(Sort sort)
+   */
+  CONSTANT,
+  /**
+   * (Bound) variable.
+   * Permitted in bindings and in the lambda and quantifier bodies only.
    * Parameters:
    *   See mkVar().
    * Create with:
@@ -132,16 +142,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkVar(Sort sort)
    */
   VARIABLE,
-  /**
-   * Bound variable.
-   * Permitted in bindings and in the lambda and quantifier bodies only.
-   * Parameters:
-   *   See mkBoundVar().
-   * Create with:
-   *   mkBoundVar(const std::string& symbol, Sort sort)
-   *   mkBoundVar(Sort sort)
-   */
-  BOUND_VARIABLE,
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,
