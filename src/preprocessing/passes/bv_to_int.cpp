@@ -137,6 +137,7 @@ Node BVToInt::eliminationPass(Node n) {
           continue;
         } else {
             currentEliminated = FixpointRewriteStrategy<
+               RewriteRule<UdivZero>,
             	 RewriteRule<SdivEliminate>,
             	 RewriteRule<SremEliminate>,
             	 RewriteRule<SmodEliminate>,
