@@ -20,8 +20,8 @@
 #define __CVC4__PROOF__DIMACS_H
 
 #include <iosfwd>
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"

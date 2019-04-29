@@ -26,8 +26,8 @@
 #ifndef __CVC4__PROOF__ER__ER_PROOF_H
 #define __CVC4__PROOF__ER__ER_PROOF_H
 
-#include <unordered_map>
 #include <memory>
+#include <unordered_map>
 #include <vector>
 
 #include "proof/clause_id.h"

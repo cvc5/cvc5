@@ -262,12 +262,11 @@ void ErProofBlack::testErTraceCheckOutput()
       4,
       std::vector<SatLiteral>{
           SatLiteral(1, true), SatLiteral(2, true), SatLiteral(3, false)});
-  addClause(
-      clauses,
-      usedIds,
-      5,
-      std::vector<SatLiteral>{
-          SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
+  addClause(clauses,
+            usedIds,
+            5,
+            std::vector<SatLiteral>{
+                SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
   addClause(
       clauses,
       usedIds,
@@ -390,12 +389,11 @@ void ErProofBlack::testErTraceCheckOutputMedium()
       4,
       std::vector<SatLiteral>{
           SatLiteral(1, true), SatLiteral(2, true), SatLiteral(3, false)});
-  addClause(
-      clauses,
-      usedIds,
-      5,
-      std::vector<SatLiteral>{
-          SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
+  addClause(clauses,
+            usedIds,
+            5,
+            std::vector<SatLiteral>{
+                SatLiteral(0, true), SatLiteral(2, true), SatLiteral(3, true)});
   addClause(
       clauses,
       usedIds,

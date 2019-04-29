@@ -14,8 +14,9 @@
  ** Defines serialization for SAT problems as DIMACS
  **/
 
-#include "base/cvc4_assert.h"
 #include "proof/dimacs.h"
+
+#include "base/cvc4_assert.h"
 
 #include <iostream>
 
@@ -81,7 +82,6 @@ std::vector<prop::SatClause> parseDimacs(std::istream& in)
   std::string tag;
   uint64_t nVars;
   uint64_t nClauses;
-
 
   in >> tag;
   Assert(in.good());
