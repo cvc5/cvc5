@@ -1237,6 +1237,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                                    Expr term,
                                    std::map<Expr, Type>& ntsToUnres) const
 {
+  Trace("parser-sygus2") << "Add sygus cons term " << term << std::endl;
   // purify each occurrence of a non-terminal symbol in term, replace by
   // free variables. These become arguments to constructors. Notice we must do
   // a tree traversal in this function, since unique paths to the same term
@@ -1252,6 +1253,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
     op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
   }
+  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
   std::stringstream ss;
   ss << op.getKind();
   dt.addSygusConstructor(op, ss.str(), cargs);
@@ -1271,7 +1273,11 @@ Expr Smt2::purifySygusGTerm(Expr term,
     return ret;
   }
   std::vector<Expr> pchildren;
-  // FIXME: operator??
+  // FIXME: this is probably wrong
+  if( term.hasOperator() && !term.getOperator().isConst() )
+  {
+    pchildren.push_back(term.getOperator());
+  }
   bool childChanged = false;
   for (unsigned i, size = term.getNumChildren(); i < size; i++)
   {
