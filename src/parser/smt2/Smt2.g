@@ -1148,11 +1148,11 @@ sygusGrammar[CVC4::Type & ret,
         // add term as constructor to datatype
         PARSER_STATE->addSygusConstructorTerm(datatypes[dtProcessed],e,ntsToUnres);
       }
-      | LPAREN_TOK SYGUS_CONSTANT_TOK sortSymbol[t, CHECK_DECLARED] {
+      | LPAREN_TOK SYGUS_CONSTANT_TOK sortSymbol[t, CHECK_DECLARED] RPAREN_TOK {
         // allow constants in datatypes[dtProcessed]
         allowConst.insert(dtProcessed);
       }
-      | LPAREN_TOK SYGUS_VARIABLE_TOK sortSymbol[t, CHECK_DECLARED] {
+      | LPAREN_TOK SYGUS_VARIABLE_TOK sortSymbol[t, CHECK_DECLARED] RPAREN_TOK {
         // add variable constructors to datatype
         PARSER_STATE->addSygusConstructorVariables(datatypes[dtProcessed],sygusVars,t);
       }

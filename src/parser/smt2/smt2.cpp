@@ -1250,7 +1250,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   if (!args.empty())
   {
     Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
-    op = getExprManager()->mkExpr(kind::LAMBDA, op);
+    op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
   }
   std::stringstream ss;
   ss << op.getKind();
