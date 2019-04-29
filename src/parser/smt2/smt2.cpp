@@ -1248,15 +1248,19 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   std::vector<Type> cargs;
   Expr op = purifySygusGTerm(term, ntsToUnres, args, cargs);
 
+  std::shared_ptr<SygusPrintCallback> spc;
   if (!args.empty())
   {
     Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
+    // callback prints as the expression
+    spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
+    // its operator is a lambda
     op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
   }
   Trace("parser-sygus2") << "Generated operator " << op << std::endl;
   std::stringstream ss;
   ss << op.getKind();
-  dt.addSygusConstructor(op, ss.str(), cargs);
+  dt.addSygusConstructor(op, ss.str(), cargs, spc);
 }
 
 Expr Smt2::purifySygusGTerm(Expr term,
