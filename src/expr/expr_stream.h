@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXPR_STREAM_H
-#define __CVC4__EXPR_STREAM_H
+#ifndef CVC4__EXPR_STREAM_H
+#define CVC4__EXPR_STREAM_H
 
 #include "expr/expr.h"
 
@@ -41,5 +41,5 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_STREAM_H */
+#endif /* CVC4__EXPR_STREAM_H */
 

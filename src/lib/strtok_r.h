@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__LIB__STRTOK_R_H
-#define __CVC4__LIB__STRTOK_R_H
+#ifndef CVC4__LIB__STRTOK_R_H
+#define CVC4__LIB__STRTOK_R_H
 
 #ifdef HAVE_STRTOK_R
 
@@ -39,4 +39,4 @@ char* strtok_r(char *str, const char *delim, char **saveptr);
 #endif /* __cplusplus */
 
 #endif /* HAVE_STRTOK_R */
-#endif /* __CVC4__LIB__STRTOK_R_H */
+#endif /* CVC4__LIB__STRTOK_R_H */

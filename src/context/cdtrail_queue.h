@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDTRAIL_QUEUE_H
-#define __CVC4__CONTEXT__CDTRAIL_QUEUE_H
+#ifndef CVC4__CONTEXT__CDTRAIL_QUEUE_H
+#define CVC4__CONTEXT__CDTRAIL_QUEUE_H
 
 #include "context/context.h"
 #include "context/cdlist.h"
@@ -92,4 +92,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDTRAIL_QUEUE_H */
+#endif /* CVC4__CONTEXT__CDTRAIL_QUEUE_H */

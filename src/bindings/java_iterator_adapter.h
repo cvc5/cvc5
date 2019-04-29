@@ -27,8 +27,8 @@
 #  error This should only be included from the Java bindings layer.
 #endif /* SWIGJAVA */
 
-#ifndef __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
-#define __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
+#ifndef CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
+#define CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
 
 namespace CVC4 {
 
@@ -56,4 +56,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H */
+#endif /* CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H */

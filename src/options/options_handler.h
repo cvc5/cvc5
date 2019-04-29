@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__OPTIONS__OPTIONS_HANDLER_H
-#define __CVC4__OPTIONS__OPTIONS_HANDLER_H
+#ifndef CVC4__OPTIONS__OPTIONS_HANDLER_H
+#define CVC4__OPTIONS__OPTIONS_HANDLER_H
 
 #include <ostream>
 #include <string>
@@ -286,4 +286,4 @@ public:
 }/* CVC4::options namespace */
 }/* CVC4 namespace */
 
-#endif /*  __CVC4__OPTIONS__OPTIONS_HANDLER_H */
+#endif /*  CVC4__OPTIONS__OPTIONS_HANDLER_H */

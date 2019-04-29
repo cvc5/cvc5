@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H
 
 #include <unordered_map>
 #include <vector>
@@ -300,4 +300,4 @@ class NegContainsSygusInvarianceTest : public SygusInvarianceTest
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_INVARIANCE_H */

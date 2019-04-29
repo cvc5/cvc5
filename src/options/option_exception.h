@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__OPTION_EXCEPTION_H
-#define __CVC4__OPTION_EXCEPTION_H
+#ifndef CVC4__OPTION_EXCEPTION_H
+#define CVC4__OPTION_EXCEPTION_H
 
 #include "base/exception.h"
 
@@ -64,4 +64,4 @@ class CVC4_PUBLIC UnrecognizedOptionException : public CVC4::OptionException {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTION_EXCEPTION_H */
+#endif /* CVC4__OPTION_EXCEPTION_H */

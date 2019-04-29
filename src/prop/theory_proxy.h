@@ -16,12 +16,12 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__SAT_H
-#define __CVC4__PROP__SAT_H
+#ifndef CVC4__PROP__SAT_H
+#define CVC4__PROP__SAT_H
 
 // Just defining this for now, since there's no other SAT solver bindings.
 // Optional blocks below will be unconditionally included
-#define __CVC4_USE_MINISAT
+#define CVC4_USE_MINISAT
 
 #include <iosfwd>
 #include <unordered_set>
@@ -152,4 +152,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP__SAT_H */
+#endif /* CVC4__PROP__SAT_H */

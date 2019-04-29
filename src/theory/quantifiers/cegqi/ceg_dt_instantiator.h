@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
@@ -93,4 +93,4 @@ class DtInstantiator : public Instantiator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_DT_INSTANTIATOR_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BASE__UFSS_MODE_H
-#define __CVC4__BASE__UFSS_MODE_H
+#ifndef CVC4__BASE__UFSS_MODE_H
+#define CVC4__BASE__UFSS_MODE_H
 
 namespace CVC4 {
 namespace theory {
@@ -36,4 +36,4 @@ enum UfssMode{
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__UFSS_MODE_H */
+#endif /* CVC4__BASE__UFSS_MODE_H */

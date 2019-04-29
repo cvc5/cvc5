@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__NODE_H
-#define __CVC4__NODE_H
+#ifndef CVC4__NODE_H
+#define CVC4__NODE_H
 
 #include <stdint.h>
 
@@ -1570,4 +1570,4 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

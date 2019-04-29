@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__ER__ER_PROOF_H
-#define __CVC4__PROOF__ER__ER_PROOF_H
+#ifndef CVC4__PROOF__ER__ER_PROOF_H
+#define CVC4__PROOF__ER__ER_PROOF_H
 
 #include <memory>
 #include <vector>
@@ -205,4 +205,4 @@ class ErProof
 }  // namespace proof
 }  // namespace CVC4
 
-#endif  // __CVC4__PROOF__ER__ER_PROOF_H
+#endif  // CVC4__PROOF__ER__ER_PROOF_H

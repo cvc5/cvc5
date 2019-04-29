@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP_ENGINE_H
-#define __CVC4__PROP_ENGINE_H
+#ifndef CVC4__PROP_ENGINE_H
+#define CVC4__PROP_ENGINE_H
 
 #include <sys/time.h>
 
@@ -248,4 +248,4 @@ public:
 }/* CVC4::prop namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROP_ENGINE_H */
+#endif /* CVC4__PROP_ENGINE_H */

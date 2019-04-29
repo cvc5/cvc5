@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__NORMAL_FORM_H
-#define __CVC4__THEORY__ARITH__NORMAL_FORM_H
+#ifndef CVC4__THEORY__ARITH__NORMAL_FORM_H
+#define CVC4__THEORY__ARITH__NORMAL_FORM_H
 
 #include <algorithm>
 #include <list>
@@ -1393,4 +1393,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__NORMAL_FORM_H */
+#endif /* CVC4__THEORY__ARITH__NORMAL_FORM_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__UNSAT_CORE_H
-#define __CVC4__UNSAT_CORE_H
+#ifndef CVC4__UNSAT_CORE_H
+#define CVC4__UNSAT_CORE_H
 
 #include <iosfwd>
 #include <vector>
@@ -71,4 +71,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UNSAT_CORE_H */
+#endif /* CVC4__UNSAT_CORE_H */

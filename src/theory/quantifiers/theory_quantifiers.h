@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
-#define __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
+#define CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H
 
 #include "context/cdhashmap.h"
 #include "context/context.h"
@@ -62,4 +62,4 @@ class TheoryQuantifiers : public Theory {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__THEORY_QUANTIFIERS_H */

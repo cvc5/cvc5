@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
-#define __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
+#ifndef CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
+#define CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H
 
 #include "context/cdo.h"
 #include "context/context.h"
@@ -120,4 +120,4 @@ class EqualityQueryQuantifiersEngine : public EqualityQuery
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H */
+#endif /* CVC4__THEORY__QUANTIFIERS_EQUALITY_QUERY_H */
