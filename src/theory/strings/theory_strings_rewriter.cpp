@@ -600,7 +600,7 @@ Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
   Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
 
   // cases where we can solve the equality
-  
+
   // notice we cannot rewrite str.to.int(x)=n to x="n" due to leading zeroes.
 
   return node;
