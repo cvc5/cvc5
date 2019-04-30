@@ -414,6 +414,7 @@ set(regress_0_tests
   regress0/decision/wchains010ue.delta02.smt
   regress0/declare-fun-is-match.smt2
   regress0/declare-funs.smt2
+  regress0/define-fun-model.smt2
   regress0/distinct.smt
   regress0/expect/scrub.01.smt
   regress0/expect/scrub.02.smt

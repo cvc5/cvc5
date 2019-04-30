@@ -79,31 +79,6 @@ enum CVC4_PUBLIC Kind : int32_t
   BUILTIN,
 #endif
   /**
-   * Defined function.
-   * Parameters: 3 (4)
-   *   See defineFun().
-   * Create with:
-   *   defineFun(const std::string& symbol,
-   *             const std::vector<Term>& bound_vars,
-   *             Sort sort,
-   *             Term term)
-   *   defineFun(Term fun,
-   *             const std::vector<Term>& bound_vars,
-   *             Term term)
-   */
-  FUNCTION,
-  /**
-   * Application of a defined function.
-   * Parameters: n > 1
-   *   -[1]..[n]: Function argument instantiation Terms
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY,
-  /**
    * Equality.
    * Parameters: 2
    *   -[1]..[2]: Terms with same sort
