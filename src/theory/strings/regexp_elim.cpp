@@ -347,10 +347,10 @@ Node RegExpElimination::eliminateConcat(Node atom)
   for (unsigned r = 0; r < 2; r++)
   {
     unsigned index = r == 0 ? 0 : nchildren - 1;
-    Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
     Node c = children[index];
     if (c.getKind() == STRING_TO_REGEXP)
     {
+      Assert(children[index + (r == 0 ? 1 : -1)].getKind() != STRING_TO_REGEXP);
       Node s = c[0];
       Node lens = nm->mkNode(STRING_LENGTH, s);
       Node sss = r == 0 ? d_zero : nm->mkNode(MINUS, lenx, lens);
@@ -375,9 +375,9 @@ Node RegExpElimination::eliminateConcat(Node atom)
       rexpElimChildren.push_back(c);
     }
   }
-  Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
   if (!sConstraints.empty())
   {
+    Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
     Assert(!rexpElimChildren.empty());
     Node regElim =
@@ -412,7 +412,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
         Node bound =
             nm->mkNode(AND,
                        nm->mkNode(LEQ, d_zero, k),
-                       nm->mkNode(LT, k, nm->mkNode(MINUS, lenx, lens)));
+                       nm->mkNode(LEQ, k, nm->mkNode(MINUS, lenx, lens)));
         echildren.push_back(bound);
       }
       Node substrEq = nm->mkNode(STRING_SUBSTR, x, k, lens).eqNode(s);
