@@ -846,7 +846,6 @@ set(regress_0_tests
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
-  regress0/strings/stoi-solve.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
@@ -1537,6 +1536,7 @@ set(regress_1_tests
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
   regress1/strings/issue2429-code.smt2
+  regress1/strings/issue2981.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1569,6 +1569,7 @@ set(regress_1_tests
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/stoi-400million.smt2
+  regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
   regress1/strings/str-code-unsat-2.smt2
   regress1/strings/str-code-unsat-3.smt2
