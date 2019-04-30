@@ -5,8 +5,11 @@
 
 set(core_signature_files
     sat.plf
+    er.plf
     smt.plf
     th_base.plf
+    lrat.plf
+    drat.plf
     th_arrays.plf
     th_bv.plf
     th_bv_bitblast.plf

@@ -2,9 +2,9 @@
 /*! \file theory_bv_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Dejan Jovanovic, Morgan Deters
+ **   Liana Hadarean, Aina Niemetz, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -173,12 +173,19 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
                             RewriteRule<BvIteConstCond>,
                             RewriteRule<BvIteEqualChildren>,
                             RewriteRule<BvIteConstChildren>,
-                            RewriteRule<BvIteEqualCond>,
-                            RewriteRule<BvIteMergeThenIf>,
+                            RewriteRule<BvIteEqualCond>>::apply(node);
+  if (resultNode != node)
+  {
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<BvIteMergeThenIf>,
                             RewriteRule<BvIteMergeElseIf>,
                             RewriteRule<BvIteMergeThenElse>,
                             RewriteRule<BvIteMergeElseElse>>::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode);
+  return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){

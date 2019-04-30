@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tianyi Liang, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,16 +16,18 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_H
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
+#include "theory/strings/normal_form.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
 #include "theory/theory.h"
@@ -235,27 +237,63 @@ class TheoryStrings : public Theory {
     }
   };/* class TheoryStrings::NotifyClass */
 
-private:
+  //--------------------------- equality engine
+  /**
+   * Get the representative of t in the equality engine of this class, or t
+   * itself if it is not registered as a term.
+   */
+  Node getRepresentative(Node t);
+  /** Is t registered as a term in the equality engine of this class? */
+  bool hasTerm(Node a);
+  /**
+   * Are a and b equal according to the equality engine of this class? Also
+   * returns true if a and b are identical.
+   */
+  bool areEqual(Node a, Node b);
+  /**
+   * Are a and b disequal according to the equality engine of this class? Also
+   * returns true if the representative of a and b are distinct constants.
+   */
+  bool areDisequal(Node a, Node b);
+  //--------------------------- end equality engine
+
+  //--------------------------- helper functions
+  /** get length with explanation
+   *
+   * If possible, this returns an arithmetic term that exists in the current
+   * context that is equal to the length of te, or otherwise returns the
+   * length of t. It adds to exp literals that hold in the current context that
+   * explain why that term is equal to the length of t. For example, if
+   * we have assertions:
+   *   len( x ) = 5 ^ z = x ^ x = y,
+   * then getLengthExp( z, exp, y ) returns len( x ) and adds { z = x } to
+   * exp. On the other hand, getLengthExp( z, exp, x ) returns len( x ) and
+   * adds nothing to exp.
+   */
+  Node getLengthExp(Node t, std::vector<Node>& exp, Node te);
+  /** shorthand for getLengthExp(t, exp, t) */
+  Node getLength(Node t, std::vector<Node>& exp);
+  /** get normal string
+   *
+   * This method returns the node that is equivalent to the normal form of x,
+   * and adds the corresponding explanation to nf_exp.
+   *
+   * For example, if x = y ++ z is an assertion in the current context, then
+   * this method returns the term y ++ z and adds x = y ++ z to nf_exp.
+   */
+  Node getNormalString(Node x, std::vector<Node>& nf_exp);
+  //-------------------------- end helper functions
+
+ private:
   // Constants
   Node d_emptyString;
-  Node d_emptyRegexp;
   Node d_true;
   Node d_false;
   Node d_zero;
   Node d_one;
   Node d_neg_one;
+  /** the cardinality of the alphabet */
   unsigned d_card_size;
-  // Helper functions
-  Node getRepresentative( Node t );
-  bool hasTerm( Node a );
-  bool areEqual( Node a, Node b );
-  bool areDisequal( Node a, Node b );
-  bool areCareDisequal( TNode x, TNode y );
-  // t is representative, te = t, add lt = te to explanation exp
-  Node getLengthExp( Node t, std::vector< Node >& exp, Node te );
-  Node getLength( Node t, std::vector< Node >& exp );
-
-private:
   /** The notify class */
   NotifyClass d_notify;
   /** Equaltity engine */
@@ -270,11 +308,10 @@ private:
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
-  /** normal forms */
-  std::map< Node, Node > d_normal_forms_base;
-  std::map< Node, std::vector< Node > > d_normal_forms;
-  std::map< Node, std::vector< Node > > d_normal_forms_exp;
-  std::map< Node, std::map< Node, std::map< bool, int > > > d_normal_forms_exp_depend;
+  /** map from terms to their normal forms */
+  std::map<Node, NormalForm> d_normal_form;
+  /** get normal form */
+  NormalForm& getNormalForm(Node n);
   //map of pairs of terms that have the same normal form
   NodeIntMap d_nf_pairs;
   std::map< Node, std::vector< Node > > d_nf_pairs_data;
@@ -431,8 +468,14 @@ private:
   class InferInfo
   {
    public:
-    unsigned d_i;
-    unsigned d_j;
+    /** for debugging
+     *
+     * The base pair of strings d_i/d_j that led to the inference, and whether
+     * (d_rev) we were processing the normal forms of these strings in reverse
+     * direction.
+     */
+    Node d_i;
+    Node d_j;
     bool d_rev;
     std::vector<Node> d_ant;
     std::vector<Node> d_antn;
@@ -517,10 +560,77 @@ private:
   //--------------------------end for checkCycles
 
   //--------------------------for checkNormalFormsEq
+  /** normalize equivalence class
+   *
+   * This method attempts to build a "normal form" for the equivalence class
+   * of string term n (for more details on normal forms, see normal_form.h
+   * or see Liang et al CAV 2014). In particular, this method checks whether the
+   * current normal form for each term in this equivalence class is identical.
+   * If it is not, then we add an inference via sendInference and abort the
+   * call.
+   */
   void normalizeEquivalenceClass( Node n );
-  void getNormalForms( Node &eqc, std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                       std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
-  bool detectLoop( std::vector< std::vector< Node > > &normal_forms, int i, int j, int index, int &loop_in_i, int &loop_in_j, unsigned rproc );
+  /**
+   * For each term in the equivalence class of eqc, this adds data regarding its
+   * normal form to normal_forms. The map term_to_nf_index maps terms to the
+   * index in normal_forms where their normal form data is located.
+   */
+  void getNormalForms(Node eqc,
+                      std::vector<NormalForm>& normal_forms,
+                      std::map<Node, unsigned>& term_to_nf_index);
+  /** process normalize equivalence class
+   *
+   * This is called when an equivalence class contains a set of terms that
+   * have normal forms given by the argument normal_forms. It either
+   * verifies that all normal forms in this vector are identical, or otherwise
+   * adds a conflict, lemma, or inference via the sendInference method.
+   *
+   * To prioritize one inference versus another, it builds a set of possible
+   * inferences, at most two for each pair of distinct normal forms,
+   * corresponding to processing the normal form pair in the (forward, reverse)
+   * directions. Once all possible inferences are recorded, it executes the
+   * one with highest priority based on the enumeration type Inference.
+   */
+  void processNEqc(std::vector<NormalForm>& normal_forms);
+  /** process simple normal equality
+   *
+   * This method is called when two equal terms have normal forms nfi and nfj.
+   * It adds (typically at most one) possible inference to the vector pinfer.
+   * This inference is in the form of an InferInfo object, which stores the
+   * necessary information regarding how to process the inference.
+   *
+   * index: The index in the normal form vectors (nfi.d_nf and nfj.d_nf) that
+   *   we are currently checking. This method will increment this index until
+   *   it finds an index where these vectors differ, or until it reaches the
+   *   end of these vectors.
+   * isRev: Whether we are processing the normal forms in reverse direction.
+   *   Notice in this case the normal form vectors have been reversed, hence,
+   *   many operations are identical to the forward case, e.g. index is
+   *   incremented not decremented, while others require special care, e.g.
+   *   constant strings "ABC" in the normal form vectors are not reversed to
+   *   "CBA" and hence all operations should assume a flipped semantics for
+   *   constants when isRev is true,
+   * rproc: the number of string components on the suffix of the normal form of
+   *   nfi and nfj that were already processed. This is used when using
+   *   fowards/backwards traversals of normal forms to ensure that duplicate
+   *   inferences are not processed.
+   * pinfer: the set of possible inferences we add to.
+   */
+  void processSimpleNEq(NormalForm& nfi,
+                        NormalForm& nfj,
+                        unsigned& index,
+                        bool isRev,
+                        unsigned rproc,
+                        std::vector<InferInfo>& pinfer);
+  //--------------------------end for checkNormalFormsEq
+
+  //--------------------------for checkNormalFormsEq with loops
+  bool detectLoop(NormalForm& nfi,
+                  NormalForm& nfj,
+                  int index,
+                  int& loop_in_i,
+                  int& loop_in_j,
+                  unsigned rproc);
 
   /**
    * Result of processLoop() below.
@@ -535,36 +645,17 @@ private:
     SKIPPED,
   };
 
-  ProcessLoopResult processLoop(
-      const std::vector<std::vector<Node> >& normal_forms,
-      const std::vector<Node>& normal_form_src,
-      int i,
-      int j,
-      int loop_n_index,
-      int other_n_index,
-      int loop_index,
-      int index,
-      InferInfo& info);
-
-  void processNEqc( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                    std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend );
-  void processReverseNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
-                          std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                          unsigned i, unsigned j, unsigned& index, unsigned rproc, std::vector< InferInfo >& pinfer );
-  void processSimpleNEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src, 
-                         std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend, 
-                         unsigned i, unsigned j, unsigned& index, bool isRev, unsigned rproc, std::vector< InferInfo >& pinfer );
-  //--------------------------end for checkNormalFormsEq
+  ProcessLoopResult processLoop(NormalForm& nfi,
+                                NormalForm& nfj,
+                                int loop_index,
+                                int index,
+                                InferInfo& info);
+  //--------------------------end for checkNormalFormsEq with loops
 
   //--------------------------for checkNormalFormsDeq
   void processDeq( Node n1, Node n2 );
   int processReverseDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj );
   int processSimpleDeq( std::vector< Node >& nfi, std::vector< Node >& nfj, Node ni, Node nj, unsigned& index, bool isRev );
-  void getExplanationVectorForPrefix( std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
-                                      unsigned i, int index, bool isRev, std::vector< Node >& curr_exp );
-  void getExplanationVectorForPrefixEq( std::vector< std::vector< Node > > &normal_forms, std::vector< Node > &normal_form_src,
-                                        std::vector< std::vector< Node > > &normal_forms_exp, std::vector< std::map< Node, std::map< bool, int > > >& normal_forms_exp_depend,
-                                        unsigned i, unsigned j, int index_i, int index_j, bool isRev, std::vector< Node >& curr_exp );
   //--------------------------end for checkNormalFormsDeq
 
   //--------------------------------for checkMemberships
@@ -607,6 +698,11 @@ private:
  protected:
   /** compute care graph */
   void computeCareGraph() override;
+  /**
+   * Are x and y shared terms that are not equal? This is used for constructing
+   * the care graph in the above function.
+   */
+  bool areCareDisequal(TNode x, TNode y);
 
   // do pending merges
   void assertPendingFact(Node atom, bool polarity, Node exp);
@@ -641,6 +737,7 @@ private:
    */
   void registerTerm(Node n, int effort);
   //-------------------------------------send inferences
+ public:
   /** send internal inferences
    *
    * This is called when we have inferred exp => conc, where exp is a set
@@ -652,21 +749,81 @@ private:
    * sendInference below in that it does not introduce any new non-constant
    * terms to the state.
    *
-   * The argument c is a string identifying the reason for the interference.
+   * The argument c is a string identifying the reason for the inference.
    * This string is used for debugging purposes.
+   *
+   * Return true if the inference is complete, in the sense that we infer
+   * inferences that are equivalent to conc. This returns false e.g. if conc
+   * (or one of its conjuncts if it is a conjunction) was not inferred due
+   * to the criteria mentioned above.
    */
-  void sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  // send lemma
+  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
+  /** send inference
+   *
+   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
+   * contains literals that are explainable by this class, i.e. those that
+   * hold in the equality engine of this class. On the other hand, the set
+   * exp_n ("explanations new") contain nodes that are not explainable by this
+   * class. This method may call sendInfer or sendLemma. Overall, the result
+   * of this method is one of the following:
+   *
+   * [1] (No-op) Do nothing if eq is true,
+   *
+   * [2] (Infer) Indicate that eq should be added to the equality engine of this
+   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
+   * explanation of the node in exp in terms of the literals asserted to this
+   * class,
+   *
+   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
+   * be sent on the output channel of this class, or
+   *
+   * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
+   * channel of this class.
+   *
+   * Determining which case to apply depends on the form of eq and whether
+   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
+   * non-empty, conflicts are used when exp_n is empty and eq is false.
+   *
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   *
+   * If the flag asLemma is true, then this method will send a lemma instead
+   * of an inference whenever applicable.
+   */
   void sendInference(std::vector<Node>& exp,
                      std::vector<Node>& exp_n,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** same as above, but where exp_n is empty */
   void sendInference(std::vector<Node>& exp,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /**
+   * Are we in conflict? This returns true if this theory has called its output
+   * channel's conflict method in the current SAT context.
+   */
+  bool inConflict() const { return d_conflict; }
+
+ protected:
+  /**
+   * Indicates that ant => conc should be sent on the output channel of this
+   * class. This will either trigger an immediate call to the conflict
+   * method of the output channel of this class of conc is false, or adds the
+   * above lemma to the lemma cache d_lemma_cache, which may be flushed
+   * later within the current call to TheoryStrings::check.
+   *
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   */
   void sendLemma(Node ant, Node conc, const char* c);
+  /**
+   * Indicates that conc should be added to the equality engine of this class
+   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
+   * of) literals that each are explainable, i.e. they already hold in the
+   * equality engine of this class.
+   */
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   //-------------------------------------end send inferences
@@ -680,10 +837,10 @@ private:
   /** mkExplain **/
   Node mkExplain(std::vector<Node>& a);
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
+
+ protected:
   /** mkAnd **/
   Node mkAnd(std::vector<Node>& a);
-  /** get concat vector */
-  void getConcatVec(Node n, std::vector<Node>& c);
 
   /** get equivalence classes
    *
@@ -711,38 +868,10 @@ private:
 
   // Symbolic Regular Expression
  private:
-  // regular expression memberships
-  NodeList d_regexp_memberships;
-  NodeSet d_regexp_ucached;
-  NodeSet d_regexp_ccached;
-  // stored assertions
-  NodeIntMap d_pos_memberships;
-  std::map< Node, std::vector< Node > > d_pos_memberships_data;
-  NodeIntMap d_neg_memberships;
-  std::map< Node, std::vector< Node > > d_neg_memberships_data;
-  unsigned getNumMemberships( Node n, bool isPos );
-  Node getMembership( Node n, bool isPos, unsigned i );
-  // semi normal forms for symbolic expression
-  std::map< Node, Node > d_nf_regexps;
-  std::map< Node, std::vector< Node > > d_nf_regexps_exp;
-  // intersection
-  NodeNodeMap d_inter_cache;
-  NodeIntMap d_inter_index;
-  // processed memberships
-  NodeSet d_processed_memberships;
-  // antecedant for why regexp membership must be true
-  NodeNodeMap d_regexp_ant;
-  /** regular expression operation module */
-  RegExpOpr d_regexp_opr;
+  /** regular expression solver module */
+  RegExpSolver d_regexp_solver;
   /** regular expression elimination module */
   RegExpElimination d_regexp_elim;
-
-  CVC4::String getHeadConst( Node x );
-  bool deriveRegExp( Node x, Node r, Node ant );
-  void addMembership(Node assertion);
-  Node getNormalString(Node x, std::vector<Node> &nf_exp);
-  Node getNormalSymRegExp(Node r, std::vector<Node> &nf_exp);
-
 
   // Finite Model Finding
  private:
@@ -1037,4 +1166,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

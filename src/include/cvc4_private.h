@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
  ** warning when the file is included improperly.
  **/
 
-#ifndef __CVC4_PRIVATE_H
-#define __CVC4_PRIVATE_H
+#ifndef CVC4_PRIVATE_H
+#define CVC4_PRIVATE_H
 
 #if ! (defined(__BUILDING_CVC4LIB) || defined(__BUILDING_CVC4LIB_UNIT_TEST))
 #  error A private CVC4 header was included when not building the library or private unit test code.
@@ -27,4 +27,4 @@
 #include "cvc4_public.h"
 #include "cvc4autoconfig.h"
 
-#endif /* __CVC4_PRIVATE_H */
+#endif /* CVC4_PRIVATE_H */

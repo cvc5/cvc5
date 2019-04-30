@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT2_H
-#define __CVC4__PARSER__SMT2_H
+#ifndef CVC4__PARSER__SMT2_H
+#define CVC4__PARSER__SMT2_H
 
 #include <sstream>
 #include <stack>
@@ -319,15 +319,25 @@ private:
     // that CVC4 permits as N-ary but the standard requires is binary
     if(strictModeEnabled()) {
       switch(kind) {
-      case kind::BITVECTOR_CONCAT:
       case kind::BITVECTOR_AND:
-      case kind::BITVECTOR_OR:
-      case kind::BITVECTOR_XOR:
       case kind::BITVECTOR_MULT:
+      case kind::BITVECTOR_OR:
       case kind::BITVECTOR_PLUS:
+      case kind::BITVECTOR_XOR:
+        if (numArgs != 2 && !v2_6())
+        {
+          parseError(
+              "Operator requires exactly 2 arguments in strict SMT-LIB "
+              "compliance mode (for versions <2.6): "
+              + kindToString(kind));
+        }
+        break;
+      case kind::BITVECTOR_CONCAT:
         if(numArgs != 2) {
-          parseError("Operator requires exact 2 arguments in strict SMT-LIB "
-                     "compliance mode: " + kindToString(kind));
+          parseError(
+              "Operator requires exactly 2 arguments in strict SMT-LIB "
+              "compliance mode: "
+              + kindToString(kind));
         }
         break;
       default:
@@ -404,4 +414,4 @@ private:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT2_H */
+#endif /* CVC4__PARSER__SMT2_H */

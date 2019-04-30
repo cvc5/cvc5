@@ -22,8 +22,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CHANNEL_H
-#define __CVC4__CHANNEL_H
+#ifndef CVC4__CHANNEL_H
+#define CVC4__CHANNEL_H
 
 #include <boost/circular_buffer.hpp>
 #include <boost/thread/mutex.hpp>
@@ -118,4 +118,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CHANNEL_H */
+#endif /* CVC4__CHANNEL_H */

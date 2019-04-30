@@ -6,7 +6,7 @@ y : SET OF IntPair;
 z : SET OF IntPair;
 w : SET OF IntPair;
 
-ASSERT z = (TCLOSURE x);
+ASSERT z = TCLOSURE(x);
 ASSERT w = (x JOIN y);
 ASSERT (2, 2) IS_IN z;
 ASSERT (0,3) IS_IN y;

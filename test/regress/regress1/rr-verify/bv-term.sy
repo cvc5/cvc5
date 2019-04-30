@@ -1,4 +1,3 @@
-; REQUIRES: no-asan
 ; COMMAND-LINE: --sygus-rr --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --no-sygus-sym-break
 ; COMMAND-LINE: --sygus-rr-synth --sygus-samples=1000 --sygus-abort-size=2 --sygus-rr-verify-abort --sygus-rr-synth-check
 ; EXPECT: (error "Maximum term size (2) for enumerative SyGuS exceeded.")

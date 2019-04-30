@@ -2,9 +2,9 @@
 /*! \file quant_conflict_find.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Mathias Preiner
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -126,13 +126,9 @@ private: //for completing match
   void getPropagateVars( QuantConflictFind * p, std::vector< TNode >& vars, TNode n, bool pol, std::map< TNode, bool >& visited );
   //optimization: number of variables set, to track when we can stop
   std::map< int, bool > d_vars_set;
-  std::map< Node, bool > d_ground_terms;
   std::vector< Node > d_extra_var;
 public:
-  void setGroundSubterm( Node t ) { d_ground_terms[t] = true; }
-  bool isGroundSubterm( Node t ) { return d_ground_terms.find( t )!=d_ground_terms.end(); }
   bool isBaseMatchComplete();
-  bool isPropagatingInstance( QuantConflictFind * p, Node n );
 public:
   QuantInfo();
   ~QuantInfo();
@@ -272,6 +268,22 @@ public:
   Statistics d_statistics;
   /** Identify this module */
   std::string identify() const override { return "QcfEngine"; }
+  /** is n a propagating instance?
+   *
+   * A propagating instance is any formula that consists of Boolean connectives,
+   * equality, quantified formulas, and terms that exist in the current
+   * context (those in the master equality engine).
+   *
+   * Notice the distinction that quantified formulas that do not appear in the
+   * current context are considered to be legal in propagating instances. This
+   * choice is significant for TPTP, where a net of ~200 benchmarks are gained
+   * due to this decision.
+   *
+   * Propagating instances are the second most useful kind of instantiation
+   * after conflicting instances and are used as a second effort in the
+   * algorithm performed by this class.
+   */
+  bool isPropagatingInstance(Node n) const;
 };
 
 std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e);

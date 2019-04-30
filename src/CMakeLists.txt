@@ -90,6 +90,8 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
+  preprocessing/passes/sygus_abduct.cpp
+  preprocessing/passes/sygus_abduct.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/symmetry_breaker.cpp
@@ -625,10 +627,14 @@ libcvc4_add_sources(
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/normal_form.cpp
+  theory/strings/normal_form.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
   theory/strings/regexp_operation.h
+  theory/strings/regexp_solver.cpp
+  theory/strings/regexp_solver.h
   theory/strings/skolem_cache.cpp
   theory/strings/skolem_cache.h
   theory/strings/theory_strings.cpp
@@ -770,6 +776,11 @@ endif()
 # depends on GMP.
 target_link_libraries(cvc4 ${GMP_LIBRARIES})
 target_include_directories(cvc4 PUBLIC ${GMP_INCLUDE_DIR})
+
+# Add rt library
+# Note: For glibc < 2.17 we have to additionally link against rt (man clock_gettime).
+#       RT_LIBRARIES should be empty for glibc >= 2.17
+target_link_libraries(cvc4 ${RT_LIBRARIES})
 
 #-----------------------------------------------------------------------------#
 # Visit main subdirectory after creating target cvc4. For target main, we have

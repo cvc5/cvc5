@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -2318,6 +2318,22 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
           Node ret = nm->mkNode(kind::STRING_STRIDOF, nn, node[1], node[2]);
           return returnRewrite(node, ret, "idof-def-ctn");
         }
+
+        // Strip components from the beginning that are guaranteed not to match
+        if (stripConstantEndpoints(children0, children1, nb, ne, 1))
+        {
+          // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+          // 2 + str.indexof(str.++(x, "C"), "C", 0)
+          Node ret =
+              nm->mkNode(kind::PLUS,
+                         nm->mkNode(kind::STRING_LENGTH,
+                                    mkConcat(kind::STRING_CONCAT, nb)),
+                         nm->mkNode(kind::STRING_STRIDOF,
+                                    mkConcat(kind::STRING_CONCAT, children0),
+                                    node[1],
+                                    node[2]));
+          return returnRewrite(node, ret, "idof-strip-cnst-endpts");
+        }
       }
 
       // strip symbolic length
@@ -3613,6 +3629,8 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
 {
   Assert(nb.empty());
   Assert(ne.empty());
+
+  NodeManager* nm = NodeManager::currentNM();
   bool changed = false;
   // for ( forwards, backwards ) direction
   for (unsigned r = 0; r < 2; r++)
@@ -3662,6 +3680,14 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r == 0 ? s.overlap(t) : t.overlap(s);
             }
+            else
+            {
+              // if we are looking at a substring, we can remove the component
+              // if there is no overlap
+              //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
+              //        --> str.contains( x, "a" )
+              removeComponent = ((r == 0 ? s.overlap(t) : t.overlap(s)) == 0);
+            }
           }
           else if (sss.empty())  // only if not substr
           {
@@ -3693,15 +3719,13 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
             // component
             if (r == 0)
             {
-              nb.push_back(
-                  NodeManager::currentNM()->mkConst(s.prefix(overlap)));
-              n1[index0] = NodeManager::currentNM()->mkConst(s.suffix(overlap));
+              nb.push_back(nm->mkConst(s.prefix(s.size() - overlap)));
+              n1[index0] = nm->mkConst(s.suffix(overlap));
             }
             else
             {
-              ne.push_back(
-                  NodeManager::currentNM()->mkConst(s.suffix(overlap)));
-              n1[index0] = NodeManager::currentNM()->mkConst(s.prefix(overlap));
+              ne.push_back(nm->mkConst(s.suffix(s.size() - overlap)));
+              n1[index0] = nm->mkConst(s.prefix(overlap));
             }
           }
         }

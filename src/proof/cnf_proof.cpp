@@ -2,9 +2,9 @@
 /*! \file cnf_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Andrew Reynolds, Guy Katz
+ **   Liana Hadarean, Andrew Reynolds, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -349,6 +349,39 @@ void CnfProof::collectAssertionsForClauses(const IdToSatClause& clauses,
   }
 }
 
+// Detects whether a clause has x v ~x for some x
+// If so, returns the positive occurence's idx first, then the negative's
+Maybe<std::pair<size_t, size_t>> CnfProof::detectTrivialTautology(
+    const prop::SatClause& clause)
+{
+  // a map from a SatVariable to its previous occurence's polarity and location
+  std::map<prop::SatVariable, std::pair<bool, size_t>> varsToPolsAndIndices;
+  for (size_t i = 0; i < clause.size(); ++i)
+  {
+    prop::SatLiteral lit = clause[i];
+    prop::SatVariable var = lit.getSatVariable();
+    bool polarity = !lit.isNegated();
+
+    // Check if this var has already occured w/ opposite polarity
+    auto iter = varsToPolsAndIndices.find(var);
+    if (iter != varsToPolsAndIndices.end() && iter->second.first != polarity)
+    {
+      if (iter->second.first)
+      {
+        return Maybe<std::pair<size_t, size_t>>{
+            std::make_pair(iter->second.second, i)};
+      }
+      else
+      {
+        return Maybe<std::pair<size_t, size_t>>{
+            std::make_pair(i, iter->second.second)};
+      }
+    }
+    varsToPolsAndIndices[var] = std::make_pair(polarity, i);
+  }
+  return Maybe<std::pair<size_t, size_t>>{};
+}
+
 void LFSCCnfProof::printAtomMapping(const std::set<Node>& atoms,
                                     std::ostream& os,
                                     std::ostream& paren) {
@@ -431,61 +464,98 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
 
   Assert( clause->size()>0 );
 
-  Node base_assertion = getDefinitionForClause(id);
+  // If the clause contains x v ~x, it's easy!
+  //
+  // It's important to check for this case, because our other logic for
+  // recording the location of variables in the clause assumes the clause is
+  // not tautological
+  Maybe<std::pair<size_t, size_t>> isTrivialTaut =
+      detectTrivialTautology(*clause);
+  if (isTrivialTaut.just())
+  {
+    size_t posIndexInClause = isTrivialTaut.value().first;
+    size_t negIndexInClause = isTrivialTaut.value().second;
+    Trace("cnf-pf") << "; Indices " << posIndexInClause << " (+) and "
+                    << negIndexInClause << " (-) make this clause a tautology"
+                    << std::endl;
 
-  //get the assertion for the clause id
-  std::map<Node, unsigned > childIndex;
-  std::map<Node, bool > childPol;
-  Node assertion = clauseToNode( *clause, childIndex, childPol );
-  //if there is no reason, construct assertion directly.   This can happen for unit clauses.
-  if( base_assertion.isNull() ){
-    base_assertion = assertion;
+    std::string proofOfPos =
+        ProofManager::getLitName((*clause)[negIndexInClause], d_name);
+    std::string proofOfNeg =
+        ProofManager::getLitName((*clause)[posIndexInClause], d_name);
+    os << "(contra _ " << proofOfPos << " " << proofOfNeg << ")";
   }
-  //os_base is proof of base_assertion
-  std::stringstream os_base;
+  else
+  {
+    Node base_assertion = getDefinitionForClause(id);
 
-  // checks if tautological definitional clause or top-level clause
-  // and prints the proof of the top-level formula
-  bool is_input = printProofTopLevel(base_assertion, os_base);
-
-  if (is_input) {
-    Debug("cnf-pf") << std::endl << "; base assertion is input. proof: " << os_base.str() << std::endl;
-  }
-
-  //get base assertion with polarity
-  bool base_pol = base_assertion.getKind()!=kind::NOT;
-  base_assertion = base_assertion.getKind()==kind::NOT ? base_assertion[0] : base_assertion;
-
-  std::map< Node, unsigned >::iterator itci = childIndex.find( base_assertion );
-  bool is_in_clause = itci!=childIndex.end();
-  unsigned base_index = is_in_clause ? itci->second : 0;
-  Trace("cnf-pf") << std::endl;
-  Trace("cnf-pf") << "; input = " << is_input << ", is_in_clause = " << is_in_clause << ", id = " << id << ", assertion = " << assertion << ", base assertion = " << base_assertion << std::endl;
-  if (!is_input){
-    Assert(is_in_clause);
-    prop::SatLiteral blit = (*clause)[ base_index ];
-    os_base << ProofManager::getLitName(blit, d_name);
-    base_pol = !childPol[base_assertion]; // WHY? if the case is =>
-  }
-  Trace("cnf-pf") << "; polarity of base assertion = " << base_pol << std::endl;
-  Trace("cnf-pf") << "; proof of base : " << os_base.str() << std::endl;
-
-  bool success = false;
-  if( is_input &&
-      is_in_clause &&
-      childPol[base_assertion]==base_pol ){
-    //if both in input and in clause, the proof is trivial.  this is the case for unit clauses.
-    Trace("cnf-pf") << "; trivial" << std::endl;
-    os << "(contra _ ";
-    success = true;
-    prop::SatLiteral lit = (*clause)[itci->second];
-    if( base_pol ){
-      os << os_base.str() << " " << ProofManager::getLitName(lit, d_name);
-    }else{
-      os << ProofManager::getLitName(lit, d_name) << " " << os_base.str();
+    // get the assertion for the clause id
+    std::map<Node, unsigned> childIndex;
+    std::map<Node, bool> childPol;
+    Node assertion = clauseToNode(*clause, childIndex, childPol);
+    // if there is no reason, construct assertion directly.   This can happen
+    // for unit clauses.
+    if (base_assertion.isNull())
+    {
+      base_assertion = assertion;
     }
-    os << ")";
-  } else if ((base_assertion.getKind()==kind::AND && !base_pol) ||
+    // os_base is proof of base_assertion
+    std::stringstream os_base;
+
+    // checks if tautological definitional clause or top-level clause
+    // and prints the proof of the top-level formula
+    bool is_input = printProofTopLevel(base_assertion, os_base);
+
+    if (is_input)
+    {
+      Debug("cnf-pf") << std::endl
+                      << "; base assertion is input. proof: " << os_base.str()
+                      << std::endl;
+    }
+
+    // get base assertion with polarity
+    bool base_pol = base_assertion.getKind() != kind::NOT;
+    base_assertion = base_assertion.getKind() == kind::NOT ? base_assertion[0]
+                                                           : base_assertion;
+
+    std::map<Node, unsigned>::iterator itci = childIndex.find(base_assertion);
+    bool is_in_clause = itci != childIndex.end();
+    unsigned base_index = is_in_clause ? itci->second : 0;
+    Trace("cnf-pf") << std::endl;
+    Trace("cnf-pf") << "; input = " << is_input
+                    << ", is_in_clause = " << is_in_clause << ", id = " << id
+                    << ", assertion = " << assertion
+                    << ", base assertion = " << base_assertion << std::endl;
+    if (!is_input)
+    {
+      Assert(is_in_clause);
+      prop::SatLiteral blit = (*clause)[base_index];
+      os_base << ProofManager::getLitName(blit, d_name);
+      base_pol = !childPol[base_assertion];  // WHY? if the case is =>
+    }
+    Trace("cnf-pf") << "; polarity of base assertion = " << base_pol
+                    << std::endl;
+    Trace("cnf-pf") << "; proof of base : " << os_base.str() << std::endl;
+
+    bool success = false;
+    if (is_input && is_in_clause && childPol[base_assertion] == base_pol)
+    {
+      // if both in input and in clause, the proof is trivial.  this is the case
+      // for unit clauses.
+      Trace("cnf-pf") << "; trivial" << std::endl;
+      os << "(contra _ ";
+      success = true;
+      prop::SatLiteral lit = (*clause)[itci->second];
+      if (base_pol)
+      {
+        os << os_base.str() << " " << ProofManager::getLitName(lit, d_name);
+      }
+      else
+      {
+        os << ProofManager::getLitName(lit, d_name) << " " << os_base.str();
+      }
+      os << ")";
+    } else if ((base_assertion.getKind()==kind::AND && !base_pol) ||
            ((base_assertion.getKind()==kind::OR ||
              base_assertion.getKind()==kind::IMPLIES) && base_pol)) {
     Trace("cnf-pf") << "; and/or case 1" << std::endl;
@@ -775,6 +845,7 @@ void LFSCCnfProof::printCnfProofForClause(ClauseId id,
     }
     Trace("cnf-pf") << std::endl;
     os << "trust-bad";
+  }
   }
 
   os << ")" << clause_paren.str()

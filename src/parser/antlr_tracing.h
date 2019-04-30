@@ -2,9 +2,9 @@
 /*! \file antlr_tracing.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,8 @@
  ** \todo document this file
  **/
 
-#ifndef __CVC4__PARSER__ANTLR_TRACING_H
-#define __CVC4__PARSER__ANTLR_TRACING_H
+#ifndef CVC4__PARSER__ANTLR_TRACING_H
+#define CVC4__PARSER__ANTLR_TRACING_H
 
 // only enable the hack with -DCVC4_TRACE_ANTLR
 #ifdef CVC4_TRACE_ANTLR
@@ -83,4 +83,4 @@ static struct __Cvc4System {
 
 #endif /* CVC4_TRACE_ANTLR */
 
-#endif /* __CVC4__PARSER__ANTLR_TRACING_H */
+#endif /* CVC4__PARSER__ANTLR_TRACING_H */

@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1245,6 +1245,45 @@ theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
   }
 }
 
+const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
+    "\
+Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
+\n\
+  none    : Do not optimize the SAT proof\n\
+\n\
+  proof   : Use drat-trim to shrink the SAT proof\n\
+\n\
+  formula : Use drat-trim to shrink the SAT proof and formula (default)\
+";
+
+theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
+  }
+  else if (optarg == "proof")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
+  }
+  else if (optarg == "formula")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvOptimizeSatProofHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
+                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
+  }
+}
+
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -1769,10 +1808,11 @@ void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
 #ifdef CVC4_PROOF
   if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
   {
     throw OptionException(
-        "Eager BV proofs only supported when minisat is used");
+        "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");
   }
 #else
   if(value) {
@@ -1938,6 +1978,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());

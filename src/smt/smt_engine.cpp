@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -879,6 +879,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_defineCommands(),
       d_logic(),
       d_originalOptions(),
+      d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
       d_problemExtended(false),
@@ -1209,6 +1210,12 @@ void SmtEngine::setDefaults() {
   if(options::forceLogicString.wasSetByUser()) {
     d_logic = LogicInfo(options::forceLogicString());
   }else if (options::solveIntAsBV() > 0) {
+    if (!(d_logic <= LogicInfo("QF_NIA")))
+    {
+      throw OptionException(
+          "--solve-int-as-bv=X only supported for pure integer logics (QF_NIA, "
+          "QF_LIA, QF_IDL)");
+    }
     d_logic = LogicInfo("QF_BV");
   }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
     d_logic = LogicInfo("QF_NIA");
@@ -1258,16 +1265,20 @@ void SmtEngine::setDefaults() {
   }
 
   // sygus inference may require datatypes
-  if (options::sygusInference() || options::sygusRewSynthInput())
+  if (!d_isInternalSubsolver)
   {
-    d_logic = d_logic.getUnlockedCopy();
-    // sygus requires arithmetic, datatypes and quantifiers
-    d_logic.enableTheory(THEORY_ARITH);
-    d_logic.enableTheory(THEORY_DATATYPES);
-    d_logic.enableTheory(THEORY_QUANTIFIERS);
-    d_logic.lock();
-    // since we are trying to recast as sygus, we assume the input is sygus
-    is_sygus = true;
+    if (options::sygusInference() || options::sygusRewSynthInput()
+        || options::sygusAbduct())
+    {
+      d_logic = d_logic.getUnlockedCopy();
+      // sygus requires arithmetic, datatypes and quantifiers
+      d_logic.enableTheory(THEORY_ARITH);
+      d_logic.enableTheory(THEORY_DATATYPES);
+      d_logic.enableTheory(THEORY_QUANTIFIERS);
+      d_logic.lock();
+      // since we are trying to recast as sygus, we assume the input is sygus
+      is_sygus = true;
+    }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
@@ -1952,8 +1963,16 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
+    if (options::sygusAbduct())
+    {
+      // if doing abduction, we should filter strong solutions
+      if (!options::sygusFilterSolMode.wasSetByUser())
+      {
+        options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
+      }
+    }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen())
+        || options::sygusQueryGen() || options::sygusAbduct())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -1961,8 +1980,9 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution. This currently includes the PBE solver and
-      // static template inference for invariant synthesis.
+      // finding a single solution. This currently includes the PBE solver,
+      // static template inference for invariant synthesis, and single
+      // invocation techniques.
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
@@ -1975,6 +1995,10 @@ void SmtEngine::setDefaults() {
       if (!options::sygusInvTemplMode.wasSetByUser())
       {
         options::sygusInvTemplMode.set(quantifiers::SYGUS_INV_TEMPL_MODE_NONE);
+      }
+      if (!options::cegqiSingleInvMode.wasSetByUser())
+      {
+        options::cegqiSingleInvMode.set(quantifiers::CEGQI_SI_MODE_NONE);
       }
     }
     //do not allow partial functions
@@ -2276,11 +2300,13 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput())
+    if (options::sygusRewSynthInput() || options::sygusAbduct())
     {
-      throw OptionException(
-          "--sygus-rr-synth-input requires "
-          "--sygus-expr-miner-check-use-export");
+      std::stringstream ss;
+      ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
+                                           : "--sygus-abduct");
+      ss << "requires --sygus-expr-miner-check-use-export";
+      throw OptionException(ss.str());
     }
   }
 
@@ -2708,13 +2734,20 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       if(n.isVar()) {
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
+          Node f = (*i).second.getFormula();
+          // must expand its definition
+          Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
-            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()), (*i).second.getFormula()));
+            result.push(d_smt.d_nodeManager->mkNode(
+                kind::LAMBDA,
+                d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                            (*i).second.getFormals()),
+                fe));
             continue;
           }
           // don't bother putting in the cache
-          result.push((*i).second.getFormula());
+          result.push(fe);
           continue;
         }
         // don't bother putting in the cache
@@ -2732,11 +2765,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // otherwise expand it
       bool doExpand = false;
-      if (k == kind::APPLY)
-      {
-        doExpand = true;
-      }
-      else if (k == kind::APPLY_UF)
+      if (k == kind::APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
@@ -2749,10 +2778,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         {
           doExpand = true;
         }
-        else if (options::macrosQuant() || options::sygusInference())
+        else
         {
-          // The above options assign substitutions to APPLY_UF, thus we check
-          // here and expand if this operator corresponds to a defined function.
+          // We always check if this operator corresponds to a defined function.
           doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
@@ -3308,10 +3336,6 @@ void SmtEnginePrivate::processAssertions() {
         d_smt.d_fmfRecFunctionsDefined->push_back( f );
       }
     }
-    if (options::sygusInference())
-    {
-      d_passes["sygus-infer"]->apply(&d_assertions);
-    }
   }
 
   if( options::sortInference() || options::ufssFairnessMonotone() ){
@@ -3322,10 +3346,22 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["pseudo-boolean-processor"]->apply(&d_assertions);
   }
 
-  if (options::sygusRewSynthInput())
+  // rephrasing normal inputs as sygus problems
+  if (!d_smt.d_isInternalSubsolver)
   {
-    // do candidate rewrite rule synthesis
-    d_passes["synth-rr"]->apply(&d_assertions);
+    if (options::sygusInference())
+    {
+      d_passes["sygus-infer"]->apply(&d_assertions);
+    }
+    else if (options::sygusAbduct())
+    {
+      d_passes["sygus-abduct"]->apply(&d_assertions);
+    }
+    else if (options::sygusRewSynthInput())
+    {
+      // do candidate rewrite rule synthesis
+      d_passes["synth-rr"]->apply(&d_assertions);
+    }
   }
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() : pre-simplify" << endl;
@@ -3560,7 +3596,7 @@ Result SmtEngine::checkSat(const vector<Expr>& assumptions, bool inUnsatCore)
 Result SmtEngine::query(const Expr& assumption, bool inUnsatCore)
 {
   return checkSatisfiability(
-      assumption.isNull() ? d_exprManager->mkConst<bool>(false) : assumption,
+      assumption.isNull() ? std::vector<Expr>() : std::vector<Expr>{assumption},
       inUnsatCore,
       true);
 }
@@ -3575,7 +3611,7 @@ Result SmtEngine::checkSatisfiability(const Expr& expr,
                                       bool isQuery)
 {
   return checkSatisfiability(
-      expr.isNull() ? vector<Expr>() : vector<Expr>{expr},
+      expr.isNull() ? std::vector<Expr>() : std::vector<Expr>{expr},
       inUnsatCore,
       isQuery);
 }
@@ -3935,8 +3971,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
     {
       children.insert(children.end(), vars.begin(), vars.end());
     }
-    terms[i] =
-        d_nodeManager->mkNode(i == 0 ? kind::APPLY_UF : kind::APPLY, children);
+    terms[i] = d_nodeManager->mkNode(kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
@@ -4184,15 +4219,15 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
       "expected Boolean-typed variable or function application "
       "in addToAssignment()" );
   Node n = e.getNode();
-  // must be an APPLY of a zero-ary defined function, or a variable
+  // must be a defined constant, or a variable
   PrettyCheckArgument(
-      ( ( n.getKind() == kind::APPLY &&
-          ( d_definedFunctions->find(n.getOperator()) !=
-            d_definedFunctions->end() ) &&
-          n.getNumChildren() == 0 ) ||
-        n.isVar() ), e,
+      (((d_definedFunctions->find(n) != d_definedFunctions->end())
+        && n.getNumChildren() == 0)
+       || n.isVar()),
+      e,
       "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s", e.toString().c_str() );
+      "in addToAssignment(),\ngot %s",
+      e.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -4261,8 +4296,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      Assert(as.getKind() == kind::APPLY || as.isVar());
-      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      Assert(as.isVar());
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
@@ -5291,6 +5325,7 @@ void SmtEngine::setOption(const std::string& key, const CVC4::SExpr& value)
   nodeManagerOptions.setOption(key, optionarg);
 }
 
+void SmtEngine::setIsInternalSubsolver() { d_isInternalSubsolver = true; }
 CVC4::SExpr SmtEngine::getOption(const std::string& key) const
 {
   NodeManagerScope nms(d_nodeManager);

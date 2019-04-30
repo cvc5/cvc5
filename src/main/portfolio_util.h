@@ -2,9 +2,9 @@
 /*! \file portfolio_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Tim King, Morgan Deters
+ **   Morgan Deters, Kshitij Bansal, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,8 +12,8 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
-#ifndef __CVC4__PORTFOLIO_UTIL_H
-#define __CVC4__PORTFOLIO_UTIL_H
+#ifndef CVC4__PORTFOLIO_UTIL_H
+#define CVC4__PORTFOLIO_UTIL_H
 
 #include <queue>
 
@@ -177,4 +177,4 @@ void sharingManager(unsigned numThreads,
 
 }/* CVC4 namespace */
 
-#endif   /* __CVC4__PORTFOLIO_UTIL_H */
+#endif   /* CVC4__PORTFOLIO_UTIL_H */
