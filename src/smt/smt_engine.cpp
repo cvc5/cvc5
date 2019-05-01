@@ -3380,6 +3380,11 @@ void SmtEnginePrivate::processAssertions() {
     d_passes["sym-break"]->apply(&d_assertions);
   }
 
+  if (options::fpIcPre())
+  {
+    d_passes["fp-ic"]->apply(&d_assertions);
+  }  
+  
   if(options::doStaticLearning()) {
     d_passes["static-learning"]->apply(&d_assertions);
   }

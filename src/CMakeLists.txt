@@ -58,6 +58,8 @@ libcvc4_add_sources(
   preprocessing/passes/bv_to_bool.h
   preprocessing/passes/extended_rewriter_pass.cpp
   preprocessing/passes/extended_rewriter_pass.h
+  preprocessing/passes/fp_ic_pass.cpp
+  preprocessing/passes/fp_ic_pass.h
   preprocessing/passes/global_negate.cpp
   preprocessing/passes/global_negate.h
   preprocessing/passes/int_to_bv.cpp
