@@ -548,10 +548,11 @@ Node RegExpElimination::eliminateStar(Node atom)
         lens = Rewriter::rewrite(lens);
         Assert(lens.isConst());
         std::vector<Node> conj;
+        // lens is a constant, so it is safe to use total div/mod here.
         Node bound = nm->mkNode(
             AND,
             nm->mkNode(LEQ, d_zero, index),
-            nm->mkNode(LT, index, nm->mkNode(INTS_DIVISION, lenx, lens)));
+            nm->mkNode(LT, index, nm->mkNode(INTS_DIVISION_TOTAL, lenx, lens)));
         Node conc =
             nm->mkNode(STRING_SUBSTR, x, nm->mkNode(MULT, index, lens), lens)
                 .eqNode(s);
@@ -559,7 +560,7 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
-            AND, nm->mkNode(INTS_MODULUS, lenx, lens).eqNode(d_zero), res);
+            AND, nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(d_zero), res);
         // e.g.
         //    x in ("abc")* --->
         //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^
