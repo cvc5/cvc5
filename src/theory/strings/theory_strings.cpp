@@ -3967,6 +3967,13 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq
                            << std::endl;
     d_proxy_var[n] = sk;
+    // if we are introducing a proxy for a constant, we do not need to send
+    // lemmas about its length, since its length is already known.
+    if( n.isConst() )
+    {
+      // add to length lemma cache, i.e. do not send length lemma for sk.
+      d_length_lemma_terms_cache.insert(sk);
+    }
     Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
     d_out->lemma(eq);
     Node skl = nm->mkNode(STRING_LENGTH, sk);
