@@ -14,4 +14,3 @@
 (assert (> (str.len x)  1) )
 
 (check-sat)
-(get-model)
