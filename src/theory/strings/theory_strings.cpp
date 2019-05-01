@@ -146,16 +146,16 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_CODE);
-  if( options::stringLazyPreproc() ){
-    d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
-    d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
-    d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  }
+  
+  // extended functions
+  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
+  d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
+  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+  d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
+  d_equalityEngine.addFunctionKind(kind::STRING_STOI);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -484,16 +484,13 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
   }
   else
   {
-    if (options::stringLazyPreproc())
+    if (k == STRING_SUBSTR)
     {
-      if (k == STRING_SUBSTR)
-      {
-        r_effort = 1;
-      }
-      else if (k != STRING_IN_REGEXP)
-      {
-        r_effort = 2;
-      }
+      r_effort = 1;
+    }
+    else if (k != STRING_IN_REGEXP)
+    {
+      r_effort = 2;
     }
   }
   if (effort != r_effort)
