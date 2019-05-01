@@ -547,8 +547,9 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node lens = nm->mkNode(STRING_LENGTH, s);
         lens = Rewriter::rewrite(lens);
         Assert(lens.isConst());
+        Assert(lens.sgn()>0);
         std::vector<Node> conj;
-        // lens is a constant, so it is safe to use total div/mod here.
+        // lens is a positive constant, so it is safe to use total div/mod here.
         Node bound = nm->mkNode(
             AND,
             nm->mkNode(LEQ, d_zero, index),
