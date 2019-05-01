@@ -146,7 +146,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_CODE);
-  
+
   // extended functions
   d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
   d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
@@ -3967,7 +3967,7 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     // If we are introducing a proxy for a constant or concat term, we do not
     // need to send lemmas about its length, since its length is already
     // implied.
-    if( n.isConst() || n.getKind()==STRING_CONCAT )
+    if (n.isConst() || n.getKind() == STRING_CONCAT)
     {
       // add to length lemma cache, i.e. do not send length lemma for sk.
       d_length_lemma_terms_cache.insert(sk);
