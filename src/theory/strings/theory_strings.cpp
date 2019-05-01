@@ -3964,9 +3964,10 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq
                            << std::endl;
     d_proxy_var[n] = sk;
-    // if we are introducing a proxy for a constant, we do not need to send
-    // lemmas about its length, since its length is already known.
-    if( n.isConst() )
+    // If we are introducing a proxy for a constant or concat term, we do not
+    // need to send lemmas about its length, since its length is already
+    // implied.
+    if( n.isConst() || n.getKind()==STRING_CONCAT )
     {
       // add to length lemma cache, i.e. do not send length lemma for sk.
       d_length_lemma_terms_cache.insert(sk);
