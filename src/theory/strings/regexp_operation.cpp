@@ -814,20 +814,21 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         // The following simplification states that
         //    ~( s in R1 ++ R2 )
         // is equivalent to
-        //    forall x. 
+        //    forall x.
         //      0 <= x <= len(s) =>
-        //        ~( substr(s,0,x) in R1 ) OR ~( substr(s,x,len(s)-x) in R2)        
+        //        ~( substr(s,0,x) in R1 ) OR ~( substr(s,x,len(s)-x) in R2)
         Node lens = nm->mkNode(STRING_LENGTH, s);
         Node b1;
         Node b1v;
         Node reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[0]);
         Node guard;
-        if( reLength.isNull() )
+        if (reLength.isNull())
         {
           b1 = nm->mkBoundVar(nm->integerType());
           b1v = nm->mkNode(BOUND_VAR_LIST, b1);
-          guard = nm->mkNode( AND, nm->mkNode(GEQ, b1, d_zero),
-              nm->mkNode( GEQ, nm->mkNode(STRING_LENGTH, s), b1 ) );
+          guard = nm->mkNode(AND,
+                             nm->mkNode(GEQ, b1, d_zero),
+                             nm->mkNode(GEQ, nm->mkNode(STRING_LENGTH, s), b1));
         }
         else
         {
@@ -836,9 +837,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         Node s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
         Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
         Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[0]).negate();
-        if(r[0].getKind() == STRING_TO_REGEXP) {
+        if (r[0].getKind() == STRING_TO_REGEXP)
+        {
           s1r1 = s1.eqNode(r[0][0]).negate();
-        } else if(r[0].getKind() == REGEXP_EMPTY) {
+        }
+        else if (r[0].getKind() == REGEXP_EMPTY)
+        {
           s1r1 = d_true;
         }
         Node r2 = r[1];
@@ -851,13 +855,16 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         r2 = Rewriter::rewrite(r2);
         Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
-        if(r2.getKind() == STRING_TO_REGEXP) {
+        if (r2.getKind() == STRING_TO_REGEXP)
+        {
           s2r2 = s2.eqNode(r2[0]).negate();
-        } else if(r2.getKind() == REGEXP_EMPTY) {
+        }
+        else if (r2.getKind() == REGEXP_EMPTY)
+        {
           s2r2 = d_true;
         }
         conc = nm->mkNode(OR, s1r1, s2r2);
-        if( !b1v.isNull() )
+        if (!b1v.isNull())
         {
           conc = nm->mkNode(OR, guard.negate(), conc);
           conc = nm->mkNode(FORALL, b1v, conc);

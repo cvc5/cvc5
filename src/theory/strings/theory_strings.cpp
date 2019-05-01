@@ -4516,8 +4516,9 @@ void TheoryStrings::checkLengthsEqc() {
           Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
           Node lcr = Rewriter::rewrite( lc );
           Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          if( !areEqual(llt,lcr) ){
-            Node eq = llt.eqNode( lcr );
+          if (!areEqual(llt, lcr))
+          {
+            Node eq = llt.eqNode(lcr);
             ei->d_normalized_length.set( eq );
             sendInference( ant, eq, "LEN-NORM", true );
           }
