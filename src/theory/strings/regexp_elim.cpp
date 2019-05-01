@@ -560,7 +560,9 @@ Node RegExpElimination::eliminateStar(Node atom)
         Node bvl = nm->mkNode(BOUND_VAR_LIST, index);
         Node res = nm->mkNode(FORALL, bvl, body);
         res = nm->mkNode(
-            AND, nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(d_zero), res);
+            AND,
+            nm->mkNode(INTS_MODULUS_TOTAL, lenx, lens).eqNode(d_zero),
+            res);
         // e.g.
         //    x in ("abc")* --->
         //    forall k. 0 <= k < (len( x ) div 3) => substr(x,3*k,3) = "abc" ^
