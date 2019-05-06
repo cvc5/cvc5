@@ -414,6 +414,7 @@ set(regress_0_tests
   regress0/decision/wchains010ue.delta02.smt
   regress0/declare-fun-is-match.smt2
   regress0/declare-funs.smt2
+  regress0/define-fun-model.smt2
   regress0/distinct.smt
   regress0/expect/scrub.01.smt
   regress0/expect/scrub.02.smt
@@ -846,7 +847,6 @@ set(regress_0_tests
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
   regress0/strings/std2.6.1.smt2
-  regress0/strings/stoi-solve.smt2
   regress0/strings/str003.smt2
   regress0/strings/str004.smt2
   regress0/strings/str005.smt2
@@ -1537,6 +1537,8 @@ set(regress_1_tests
   regress1/strings/issue1684-regex.smt2
   regress1/strings/issue2060.smt2
   regress1/strings/issue2429-code.smt2
+  regress1/strings/issue2981.smt2
+  regress1/strings/issue2982.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1557,6 +1559,8 @@ set(regress_1_tests
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/re-agg-total1.smt2
+  regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
@@ -1569,6 +1573,7 @@ set(regress_1_tests
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
   regress1/strings/stoi-400million.smt2
+  regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
   regress1/strings/str-code-unsat-2.smt2
   regress1/strings/str-code-unsat-3.smt2

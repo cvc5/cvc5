@@ -489,7 +489,7 @@ public:
 
   /**
    * Returns a node representing the operator of this expression.
-   * If this is an APPLY, then the operator will be a functional term.
+   * If this is an APPLY_UF, then the operator will be a functional term.
    * Otherwise, it will be a node with kind BUILTIN.
    */
   NodeTemplate<true> getOperator() const;
@@ -1273,7 +1273,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 
 /**
  * Returns a node representing the operator of this expression.
- * If this is an APPLY, then the operator will be a functional term.
+ * If this is an APPLY_UF, then the operator will be a functional term.
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>

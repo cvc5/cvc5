@@ -146,16 +146,16 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_CODE);
-  if( options::stringLazyPreproc() ){
-    d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
-    d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
-    d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  }
+
+  // extended functions
+  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
+  d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
+  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+  d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
+  d_equalityEngine.addFunctionKind(kind::STRING_STOI);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -484,16 +484,13 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
   }
   else
   {
-    if (options::stringLazyPreproc())
+    if (k == STRING_SUBSTR)
     {
-      if (k == STRING_SUBSTR)
-      {
-        r_effort = 1;
-      }
-      else if (k != STRING_IN_REGEXP)
-      {
-        r_effort = 2;
-      }
+      r_effort = 1;
+    }
+    else if (k != STRING_IN_REGEXP)
+    {
+      r_effort = 2;
     }
   }
   if (effort != r_effort)
@@ -3967,6 +3964,14 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq
                            << std::endl;
     d_proxy_var[n] = sk;
+    // If we are introducing a proxy for a constant or concat term, we do not
+    // need to send lemmas about its length, since its length is already
+    // implied.
+    if (n.isConst() || n.getKind() == STRING_CONCAT)
+    {
+      // add to length lemma cache, i.e. do not send length lemma for sk.
+      d_length_lemma_terms_cache.insert(sk);
+    }
     Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
     d_out->lemma(eq);
     Node skl = nm->mkNode(STRING_LENGTH, sk);
@@ -4516,8 +4521,9 @@ void TheoryStrings::checkLengthsEqc() {
           Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
           Node lcr = Rewriter::rewrite( lc );
           Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          Node eq = llt.eqNode( lcr );
-          if( llt!=lcr ){
+          if (!areEqual(llt, lcr))
+          {
+            Node eq = llt.eqNode(lcr);
             ei->d_normalized_length.set( eq );
             sendInference( ant, eq, "LEN-NORM", true );
           }
