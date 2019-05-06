@@ -122,6 +122,11 @@ void Smt2::addBitvectorOperators() {
 }
 
 void Smt2::addStringOperators() {
+  defineVar("re.all",
+            getSolver()
+                ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma())
+                .getExpr());
+
   addOperator(kind::STRING_CONCAT, "str.++");
   addOperator(kind::STRING_LENGTH, "str.len");
   addOperator(kind::STRING_SUBSTR, "str.substr" );
