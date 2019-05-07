@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 (benchmark pursuit_safety_11.smt
   :source {
 SAL benchmark suite.  Created at SRI by Bruno Dutertre, John Rushby, Maria

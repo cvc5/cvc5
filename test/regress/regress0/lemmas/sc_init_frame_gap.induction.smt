@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 (benchmark sc_init_frame_gap.induction.smt
   :source {
 The Formal Verification of a Reintegration Protocol. Author: Lee Pike. Website: http://www.cs.indiana.edu/~lepike/pub_pages/emsoft.html.

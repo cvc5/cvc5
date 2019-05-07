@@ -1,4 +1,3 @@
-; COMMAND-LINE: --no-check-proofs
 (benchmark mathsat
 :source { MathSat group }
 :logic QF_UFLRA
