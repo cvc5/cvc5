@@ -26,6 +26,7 @@
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/theory.h"
 
 namespace CVC4 {
@@ -126,7 +127,7 @@ Node BVToInt::eliminationPass(Node n) {
           Assert(d_eliminationCache.find(currentEliminated[i]) != d_eliminationCache.end());
           children.push_back(d_eliminationCache[currentEliminated[i]]);
         }
-        if (currentEliminated.getMetaKind() == kind::metakind::PARAMETERIZED) {
+        if (currentEliminated.getKind() == kind::BITVECTOR_EXTRACT) {
           d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getOperator(), children); 
         } else {
           d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children); 
