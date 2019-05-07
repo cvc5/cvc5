@@ -1013,13 +1013,16 @@ void TheoryStrings::check(Effort e) {
     unsigned send = itsr->second.second;
     bool addedLemma = false;
     bool addedFact;
+    Trace("ajr-temp") << "Full effort check..." << std::endl;
     do{
+      Trace("ajr-temp") << "...run" << std::endl;
       runStrategy(sbegin, send);
       // flush the facts
       addedFact = !d_pending.empty();
       addedLemma = !d_lemma_cache.empty();
       doPendingFacts();
       doPendingLemmas();
+      Trace("ajr-temp") << "...finish run" << std::endl;
       // repeat if we did not add a lemma or conflict
     }while( !d_conflict && !addedLemma && addedFact );
 
@@ -4475,7 +4478,6 @@ void TheoryStrings::checkNormalFormsDeq()
             }
             else
             {
-              Trace("ajr-temp") << "Check disequal " << cols[i][j] << " " << cols[i][k] << std::endl;
               if( areDisequal( cols[i][j], cols[i][k] ) ){
                 Assert( !d_conflict );
                 if (Trace.isOn("strings-solve"))
