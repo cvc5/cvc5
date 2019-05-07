@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__LOGIC_INFO_H
-#define __CVC4__LOGIC_INFO_H
+#ifndef CVC4__LOGIC_INFO_H
+#define CVC4__LOGIC_INFO_H
 
 #include <string>
 #include <vector>
@@ -279,4 +279,4 @@ std::ostream& operator<<(std::ostream& out, const LogicInfo& logic) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LOGIC_INFO_H */
+#endif /* CVC4__LOGIC_INFO_H */

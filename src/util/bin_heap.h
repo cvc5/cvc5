@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__BIN_HEAP_H
-#define __CVC4__BIN_HEAP_H
+#ifndef CVC4__BIN_HEAP_H
+#define CVC4__BIN_HEAP_H
 
 #include <limits>
 #include <functional>
@@ -365,4 +365,4 @@ const size_t BinaryHeap<Elem,CmpFcn>::MAX_SIZE = (std::numeric_limits<size_t>::m
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BIN_HEAP_H */
+#endif /* CVC4__BIN_HEAP_H */

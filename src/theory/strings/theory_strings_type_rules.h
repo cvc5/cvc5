@@ -17,8 +17,8 @@
 #include "cvc4_private.h"
 #include "options/strings_options.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -490,4 +490,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_TYPE_RULES_H */

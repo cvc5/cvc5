@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
 #include <unordered_set>
@@ -178,17 +178,37 @@ class TermDb : public QuantifiersUtil {
   bool inRelevantDomain(TNode f, unsigned i, TNode r);
   /** evaluate term
    *
-  * Returns a term n' such that n = n' is entailed based on the equality
-  * information qy.  This function may generate new terms. In particular,
-  * we typically rewrite maximal
-  * subterms of n to terms that exist in the equality engine specified by qy.
-  *
-  * useEntailmentTests is whether to use the theory engine's entailmentCheck
-  * call, for increased precision. This is not frequently used.
-  */
+   * Returns a term n' such that n = n' is entailed based on the equality
+   * information qy.  This function may generate new terms. In particular,
+   * we typically rewrite subterms of n of maximal size to terms that exist in
+   * the equality engine specified by qy.
+   *
+   * useEntailmentTests is whether to call the theory engine's entailmentTest
+   * on literals n for which this call fails to find a term n' that is
+   * equivalent to n, for increased precision. This is not frequently used.
+   *
+   * The vector exp stores the explanation for why n evaluates to that term,
+   * that is, if this call returns a non-null node n', then:
+   *   exp => n = n'
+   *
+   * If reqHasTerm, then we require that the returned term is a Boolean
+   * combination of terms that exist in the equality engine used by this call.
+   * If no such term is constructable, this call returns null. The motivation
+   * for setting this to true is to "fail fast" if we require the return value
+   * of this function to only involve existing terms. This is used e.g. in
+   * the "propagating instances" portion of conflict-based instantiation
+   * (quant_conflict_find.h).
+   */
+  Node evaluateTerm(TNode n,
+                    std::vector<Node>& exp,
+                    EqualityQuery* qy = NULL,
+                    bool useEntailmentTests = false,
+                    bool reqHasTerm = false);
+  /** same as above, without exp */
   Node evaluateTerm(TNode n,
                     EqualityQuery* qy = NULL,
-                    bool useEntailmentTests = false);
+                    bool useEntailmentTests = false,
+                    bool reqHasTerm = false);
   /** get entailed term
    *
   * If possible, returns a term n' such that:
@@ -307,7 +327,13 @@ class TermDb : public QuantifiersUtil {
   /** set has term */
   void setHasTerm( Node n );
   /** helper for evaluate term */
-  Node evaluateTerm2( TNode n, std::map< TNode, Node >& visited, EqualityQuery * qy, bool useEntailmentTests );
+  Node evaluateTerm2(TNode n,
+                     std::map<TNode, Node>& visited,
+                     std::vector<Node>& exp,
+                     EqualityQuery* qy,
+                     bool useEntailmentTests,
+                     bool computeExp,
+                     bool reqHasTerm);
   /** helper for get entailed term */
   TNode getEntailedTerm2( TNode n, std::map< TNode, TNode >& subs, bool subsRep, bool hasSubs, EqualityQuery * qy );
   /** helper for is entailed */
@@ -383,4 +409,4 @@ class TermDb : public QuantifiersUtil {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

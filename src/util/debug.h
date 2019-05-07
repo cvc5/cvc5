@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DEBUG_H
-#define __CVC4__DEBUG_H
+#ifndef CVC4__DEBUG_H
+#define CVC4__DEBUG_H
 
 #include <cassert>
 
@@ -34,4 +34,4 @@
 #  define cvc4assert(x) /*__builtin_expect( ( x ), true )*/
 #endif /* CVC4_ASSERTIONS */
 
-#endif /* __CVC4__DEBUG_H */
+#endif /* CVC4__DEBUG_H */

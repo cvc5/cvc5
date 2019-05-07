@@ -1245,6 +1245,45 @@ theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
   }
 }
 
+const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
+    "\
+Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
+\n\
+  none    : Do not optimize the SAT proof\n\
+\n\
+  proof   : Use drat-trim to shrink the SAT proof\n\
+\n\
+  formula : Use drat-trim to shrink the SAT proof and formula (default)\
+";
+
+theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
+  }
+  else if (optarg == "proof")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
+  }
+  else if (optarg == "formula")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvOptimizeSatProofHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
+                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
+  }
+}
+
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\

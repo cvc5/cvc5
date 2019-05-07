@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__LRAT__LRAT_PROOF_H
-#define __CVC4__PROOF__LRAT__LRAT_PROOF_H
+#ifndef CVC4__PROOF__LRAT__LRAT_PROOF_H
+#define CVC4__PROOF__LRAT__LRAT_PROOF_H
 
 #include <iosfwd>
 #include <string>

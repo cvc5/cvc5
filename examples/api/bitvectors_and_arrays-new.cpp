@@ -53,7 +53,7 @@ int main()
   Sort arraySort = slv.mkArraySort(indexSort, elementSort);
 
   // Variables
-  Term current_array = slv.mkVar(arraySort, "current_array");
+  Term current_array = slv.mkConst(arraySort, "current_array");
 
   // Making a bit-vector constant
   Term zero = slv.mkBitVector(index_size, 0u);

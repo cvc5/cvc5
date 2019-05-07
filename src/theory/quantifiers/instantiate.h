@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
-#define __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
+#define CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H
 
 #include <map>
 
@@ -374,4 +374,4 @@ class Instantiate : public QuantifiersUtil
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__INSTANTIATE_H */

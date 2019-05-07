@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
-#define __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
+#define CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H
 
 #include <map>
 #include <vector>
@@ -294,4 +294,4 @@ class SingleInvocationPartition
 } /* namespace CVC4::theory */
 } /* namespace CVC4 */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SINGLE_INV_PARTITION_H */

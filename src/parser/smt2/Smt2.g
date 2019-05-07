@@ -1886,7 +1886,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
       if (args.size() >= 2)
       {
-        if (kind == CVC4::kind::INTS_DIVISION)
+        if (kind == CVC4::kind::INTS_DIVISION
+            || (kind == CVC4::kind::BITVECTOR_XNOR && PARSER_STATE->v2_6()))
         {
           // Builtin operators that are not tokenized, are left associative,
           // but not internally variadic must set this.
@@ -2090,7 +2091,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
              // however, we need to apply partial version since we don't have the internal selector available
              aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR, dtc[i].getSelector(), expr ) );
            }
-           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY, aargs ) );
+           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY_UF, aargs ) );
            patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK 
@@ -2306,8 +2307,8 @@ termAtomic[CVC4::api::Term& atomTerm]
       sortSymbol[type,CHECK_DECLARED]
       sortSymbol[type2,CHECK_DECLARED]
       {
-        api::Term v1 = SOLVER->mkVar(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkVar(api::Sort(type2), "_emp2");
+        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
+        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
         atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
 

@@ -42,8 +42,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__ARITH_PROOF_RECORDER_H
-#define __CVC4__PROOF__ARITH_PROOF_RECORDER_H
+#ifndef CVC4__PROOF__ARITH_PROOF_RECORDER_H
+#define CVC4__PROOF__ARITH_PROOF_RECORDER_H
 
 #include <map>
 #include <set>

@@ -22,8 +22,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CNF_STREAM_H
-#define __CVC4__PROP__CNF_STREAM_H
+#ifndef CVC4__PROP__CNF_STREAM_H
+#define CVC4__PROP__CNF_STREAM_H
 
 #include "context/cdinsert_hashmap.h"
 #include "context/cdlist.h"
@@ -338,4 +338,4 @@ class TseitinCnfStream : public CnfStream {
 } /* CVC4::prop namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__PROP__CNF_STREAM_H */
+#endif /* CVC4__PROP__CNF_STREAM_H */

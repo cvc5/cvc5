@@ -51,12 +51,12 @@ int main()
   Sort intPred = slv.mkFunctionSort(integer, boolean);
 
   // Variables
-  Term x = slv.mkVar(u, "x");
-  Term y = slv.mkVar(u, "y");
+  Term x = slv.mkConst(u, "x");
+  Term y = slv.mkConst(u, "y");
 
   // Functions
-  Term f = slv.mkVar(uToInt, "f");
-  Term p = slv.mkVar(intPred, "p");
+  Term f = slv.mkConst(uToInt, "f");
+  Term p = slv.mkConst(intPred, "p");
 
   // Constants
   Term zero = slv.mkReal(0);

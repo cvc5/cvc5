@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__BVSATSOLVERNOTIFY_H
-#define __CVC4__PROP__BVSATSOLVERNOTIFY_H
+#ifndef CVC4__PROP__BVSATSOLVERNOTIFY_H
+#define CVC4__PROP__BVSATSOLVERNOTIFY_H
 
 #include "prop/sat_solver_types.h"
 

@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H
-#define __CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H
+#ifndef CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H
+#define CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H
 
 #include <iostream>
 
@@ -35,4 +35,4 @@ std::ostream& operator<<(std::ostream& out, ArithPropagationMode rule) CVC4_PUBL
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H */
+#endif /* CVC4__THEORY__ARITH__ARITH_PROPAGATION_MODE_H */

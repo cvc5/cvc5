@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_PROOF_H
-#define __CVC4__THEORY_PROOF_H
+#ifndef CVC4__THEORY_PROOF_H
+#define CVC4__THEORY_PROOF_H
 
 #include <iosfwd>
 #include <unordered_map>
@@ -401,4 +401,4 @@ public:
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY_PROOF_H */
+#endif /* CVC4__THEORY_PROOF_H */

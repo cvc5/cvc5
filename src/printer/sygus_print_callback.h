@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
-#define __CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
+#ifndef CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
+#define CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H
 
 #include <vector>
 
@@ -172,4 +172,4 @@ class CVC4_PUBLIC SygusEmptyPrintCallback : public SygusPrintCallback
 } /* CVC4::printer namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H */
+#endif /* CVC4__PRINTER__SYGUS_PRINT_CALLBACK_H */

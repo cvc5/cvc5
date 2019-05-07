@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTILITY_H
-#define __CVC4__UTILITY_H
+#ifndef CVC4__UTILITY_H
+#define CVC4__UTILITY_H
 
 #include <algorithm>
 #include <utility>
@@ -87,4 +87,4 @@ void container_to_stream(std::ostream& out,
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UTILITY_H */
+#endif /* CVC4__UTILITY_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SUBS_MINIMIZE_H
-#define __CVC4__THEORY__SUBS_MINIMIZE_H
+#ifndef CVC4__THEORY__SUBS_MINIMIZE_H
+#define CVC4__THEORY__SUBS_MINIMIZE_H
 
 #include <vector>
 
@@ -97,4 +97,4 @@ class SubstitutionMinimize
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__SUBS_MINIMIZE_H */
+#endif /* CVC4__THEORY__SUBS_MINIMIZE_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H
 
 #include <unordered_map>
 #include <vector>
@@ -56,6 +56,14 @@ class TermEnumeration
    */
   static bool mayComplete(TypeNode tn, unsigned cardMax);
 
+  /** get domain
+   *
+   * If tn is a type such that mayComplete(tn) returns true, this method
+   * adds all domain elements of tn to dom and returns true. Otherwise, this
+   * method returns false.
+   */
+  bool getDomain(TypeNode tn, std::vector<Node>& dom);
+
  private:
   /** ground terms enumerated for types */
   std::unordered_map<TypeNode, std::vector<Node>, TypeNodeHashFunction>
@@ -74,4 +82,4 @@ class TermEnumeration
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_ENUMERATION_H */

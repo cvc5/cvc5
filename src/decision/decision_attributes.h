@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DECISION__DECISION_ATTRIBUTES_H
-#define __CVC4__DECISION__DECISION_ATTRIBUTES_H
+#ifndef CVC4__DECISION__DECISION_ATTRIBUTES_H
+#define CVC4__DECISION__DECISION_ATTRIBUTES_H
 
 #include "options/decision_weight.h"
 #include "expr/attribute.h"
@@ -33,4 +33,4 @@ typedef expr::Attribute<attr::DecisionWeightTag, DecisionWeight> DecisionWeightA
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DECISION__DECISION_ATTRIBUTES_H */
+#endif /* CVC4__DECISION__DECISION_ATTRIBUTES_H */

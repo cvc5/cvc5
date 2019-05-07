@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SAT__PROOF_H
-#define __CVC4__SAT__PROOF_H
+#ifndef CVC4__SAT__PROOF_H
+#define CVC4__SAT__PROOF_H
 
 #include <stdint.h>
 
@@ -373,4 +373,4 @@ void toSatClause(const typename Solver::TClause& minisat_cl,
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__SAT__PROOF_H */
+#endif /* CVC4__SAT__PROOF_H */
