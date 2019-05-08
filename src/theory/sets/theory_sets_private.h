@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
 
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
@@ -334,4 +334,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */
+#endif /* CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H */

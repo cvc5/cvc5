@@ -20,8 +20,8 @@
 // This is only needed for checking that components are only applied to leaves.
 #include "theory/theory.h"
 
-#ifndef __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
-#define __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
+#ifndef CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
+#define CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H
 
 namespace CVC4 {
 namespace theory {
@@ -806,4 +806,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_TYPE_RULES_H */

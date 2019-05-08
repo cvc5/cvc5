@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
-#define __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
+#ifndef CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
+#define CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H
 
 #include "theory/sets/normal_form.h"
 
@@ -428,4 +428,4 @@ struct SetsProperties {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */
+#endif /* CVC4__THEORY__SETS__THEORY_SETS_TYPE_RULES_H */

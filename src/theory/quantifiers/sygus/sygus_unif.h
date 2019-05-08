@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H
 
 #include <map>
 #include "expr/node.h"
@@ -196,4 +196,4 @@ class SygusUnif
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_UNIF_H */

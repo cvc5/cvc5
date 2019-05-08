@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DUMP_H
-#define __CVC4__DUMP_H
+#ifndef CVC4__DUMP_H
+#define CVC4__DUMP_H
 
 #include "base/output.h"
 #include "smt/command.h"
@@ -110,4 +110,4 @@ extern DumpC DumpChannel CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DUMP_H */
+#endif /* CVC4__DUMP_H */

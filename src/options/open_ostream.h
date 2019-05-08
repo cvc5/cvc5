@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__OPEN_OSTREAM_H
-#define __CVC4__OPEN_OSTREAM_H
+#ifndef CVC4__OPEN_OSTREAM_H
+#define CVC4__OPEN_OSTREAM_H
 
 #include <map>
 #include <ostream>
@@ -59,4 +59,4 @@ std::string cvc4_errno_failreason();
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPEN_OSTREAM_H */
+#endif /* CVC4__OPEN_OSTREAM_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
-#define __CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
+#define CVC4__THEORY__QUANTIFIERS__EQUALITY_INFER_H
 
 #include <iostream>
 #include <map>

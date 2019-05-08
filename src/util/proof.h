@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PROOF_H
-#define __CVC4__PROOF_H
+#ifndef CVC4__PROOF_H
+#define CVC4__PROOF_H
 
 #include <iosfwd>
 #include <unordered_map>
@@ -41,4 +41,4 @@ class CVC4_PUBLIC Proof
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PROOF_H */
+#endif /* CVC4__PROOF_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXCEPTION_H
-#define __CVC4__EXCEPTION_H
+#ifndef CVC4__EXCEPTION_H
+#define CVC4__EXCEPTION_H
 
 #include <cstdarg>
 #include <cstdlib>
@@ -166,4 +166,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXCEPTION_H */
+#endif /* CVC4__EXCEPTION_H */

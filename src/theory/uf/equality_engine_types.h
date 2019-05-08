@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
-#define __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#ifndef CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
+#define CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H
 
 #include <string>
 #include <iostream>
@@ -360,4 +360,4 @@ struct TriggerInfo {
 } // namespace theory
 } // namespace CVC4
 
-#endif /* __CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */
+#endif /* CVC4__THEORY__UF__EQUALITY_ENGINE_TYPES_H */

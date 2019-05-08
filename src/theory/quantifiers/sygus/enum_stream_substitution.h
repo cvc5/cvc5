@@ -14,8 +14,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS__ENUM_STREAM_SUBSTITUTION_H
 
 #include "expr/node.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"

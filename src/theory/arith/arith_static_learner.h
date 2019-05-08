@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
-#define __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#ifndef CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
+#define CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H
 
 #include <set>
 
@@ -72,4 +72,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */
+#endif /* CVC4__THEORY__ARITH__ARITH_STATIC_LEARNER_H */

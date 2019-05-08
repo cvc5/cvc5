@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__VALUATION_H
-#define __CVC4__THEORY__VALUATION_H
+#ifndef CVC4__THEORY__VALUATION_H
+#define CVC4__THEORY__VALUATION_H
 
 #include "expr/node.h"
 #include "options/theoryof_mode.h"
@@ -151,4 +151,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__VALUATION_H */
+#endif /* CVC4__THEORY__VALUATION_H */

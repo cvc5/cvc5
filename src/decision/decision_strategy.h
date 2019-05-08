@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DECISION__DECISION_STRATEGY_H
-#define __CVC4__DECISION__DECISION_STRATEGY_H
+#ifndef CVC4__DECISION__DECISION_STRATEGY_H
+#define CVC4__DECISION__DECISION_STRATEGY_H
 
 #include "preprocessing/assertion_pipeline.h"
 #include "prop/sat_solver_types.h"
@@ -75,4 +75,4 @@ public:
 }/* CVC4::decision namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DECISION__DECISION_STRATEGY_H */
+#endif /* CVC4__DECISION__DECISION_STRATEGY_H */

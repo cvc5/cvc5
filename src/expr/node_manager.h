@@ -25,8 +25,8 @@
 #include "expr/expr.h"
 #include "expr/expr_manager.h"
 
-#ifndef __CVC4__NODE_MANAGER_H
-#define __CVC4__NODE_MANAGER_H
+#ifndef CVC4__NODE_MANAGER_H
+#define CVC4__NODE_MANAGER_H
 
 #include <vector>
 #include <string>
@@ -1215,9 +1215,9 @@ inline TypeNode NodeManager::fromType(Type t) {
 
 }/* CVC4 namespace */
 
-#define __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#define CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 #include "expr/metakind.h"
-#undef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#undef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 #include "expr/node_builder.h"
 
@@ -1559,4 +1559,4 @@ NodeClass NodeManager::mkConstInternal(const T& val) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_MANAGER_H */
+#endif /* CVC4__NODE_MANAGER_H */
