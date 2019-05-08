@@ -488,10 +488,14 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
           // if child was not already removed
           if( tinfo.find( added2[i] )!=tinfo.end() ){
             if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
-              //discard all subterms
-              Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
-              visited[ added2[i] ].clear();
-              tinfo.erase( added2[i] );
+              // discard all subterms
+              // do not remove if it has smaller weight
+              if( tinfo[nu].d_weight <= tinfo[added2[i]].d_weight )
+              {
+                Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
+                visited[ added2[i] ].clear();
+                tinfo.erase( added2[i] );
+              }
             }else{
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
                 if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
@@ -544,11 +548,11 @@ bool Trigger::isPureTheoryTrigger( Node n ) {
 }
 
 int Trigger::getTriggerWeight( Node n ) {
-  if (n.getKind() == APPLY_UF)
+  if( n.getKind()==APPLY_UF )
   {
     return 0;
   }
-  else if (isAtomicTrigger(n))
+  if (isAtomicTrigger(n))
   {
     return 1;
   }

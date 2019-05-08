@@ -319,9 +319,12 @@ class Trigger {
   static bool isPureTheoryTrigger( Node n );
   /** get trigger weight
    *
-   * Returns 0 for triggers that are easy to process and 1 otherwise.
-   * A trigger is easy to process if it is an atomic trigger, or a relational
-   * trigger of the form x ~ g for ~ \in { =, >=, > }.
+   * Intutively, this function classifies how difficult it is to handle the
+   * trigger term n, where the smaller the value, the easier.
+   *
+   * Returns 0 for triggers that are APPLY_UF terms.
+   * Returns 1 for other triggers whose kind is atomic.
+   * Returns 2 otherwise.
    */
   static int getTriggerWeight( Node n );
   /** Returns whether n is a trigger term with a local theory extension
