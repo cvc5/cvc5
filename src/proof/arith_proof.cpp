@@ -713,7 +713,7 @@ Node ProofArith::toStreamRecLFSC(std::ostream& out,
 }
 
 ArithProof::ArithProof(theory::arith::TheoryArith* arith, TheoryProofEngine* pe)
-  : TheoryProof(arith, pe), d_recorder(), d_realMode(false)
+  : TheoryProof(arith, pe), d_recorder(), d_realMode(true)
 {
   arith->setProofRecorder(&d_recorder);
 }
@@ -722,12 +722,6 @@ theory::TheoryId ArithProof::getTheoryId() { return theory::THEORY_ARITH; }
 void ArithProof::registerTerm(Expr term) {
   Debug("pf::arith") << "Arith register term: " << term << ". Kind: " << term.getKind()
                             << ". Type: " << term.getType() << std::endl;
-
-  if (term.getType().isReal() && !term.getType().isInteger()) {
-    Debug("pf::arith") << "Entering real mode" << std::endl;
-    d_realMode = true;
-  }
-
   if (term.isVariable() && !ProofManager::getSkolemizationManager()->isSkolem(term)) {
     d_declarations.insert(term);
   }
