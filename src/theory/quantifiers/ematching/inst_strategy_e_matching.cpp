@@ -326,7 +326,9 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
       }
       int curr_w = Trigger::getTriggerWeight( patTermsF[i] );
       // triggers whose value is maximum (2) are considered expendable.
-      if( ntrivTriggers && !newVar && last_weight!=-1 && curr_w>last_weight && curr_w>=2 ){
+      if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
+          && curr_w >= 2)
+      {
         Trace("auto-gen-trigger-debug") << "...exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
         rmPatTermsF[patTermsF[i]] = true;
       }else{
