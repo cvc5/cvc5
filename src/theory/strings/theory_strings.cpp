@@ -1660,7 +1660,12 @@ void TheoryStrings::checkExtfEval( int effort ) {
           //    x = "" => str.replace( x, x, x ) == ""
           //    y = "" => str.replace( y, y, y ) == ""
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
-          Node nrs = getSymbolicDefinition( sn, exps );
+          Node nrs;
+          // only if option do we use symbolic definitions
+          if( options::stringSymDef() )
+          {
+            nrs = getSymbolicDefinition( sn, exps );
+          }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
             Node nrsr = Rewriter::rewrite(nrs);
