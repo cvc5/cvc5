@@ -221,7 +221,7 @@ bool Instantiate::addInstantiation(
   {
     for (Node& t : terms)
     {
-      if (!d_term_db->isTermEligibleForInstantiation(t, q, true))
+      if (!d_term_db->isTermEligibleForInstantiation(t, q))
       {
         return false;
       }
