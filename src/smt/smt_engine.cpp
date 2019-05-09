@@ -3224,11 +3224,15 @@ void SmtEnginePrivate::processAssertions() {
   }
   
   if (options::solveBVAsInt() > 0) { 
-        d_passes["apply-substs"]->apply(&d_assertions);
-        d_passes["bv-to-int"]->apply(&d_assertions);
-        //bv-to-int may introduce nodes that need to be substitued.
-        //For example, it introduces div nodes for arithmetics.
-        d_passes["apply-substs"]->apply(&d_assertions);
+        if (options::incrementalSolving()) {
+          throw ModalException("solving bitvectors as integers is currently not supported incrementally.");
+        } else {
+          d_passes["apply-substs"]->apply(&d_assertions);
+          d_passes["bv-to-int"]->apply(&d_assertions);
+          //bv-to-int may introduce nodes that need to be substitued.
+          //For example, it introduces div nodes for arithmetics.
+          d_passes["apply-substs"]->apply(&d_assertions);
+        }
   }
 
   if (options::solveIntAsBV() > 0)

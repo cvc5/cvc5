@@ -208,6 +208,11 @@ Node BVToInt::bvToInt(Node n)
           {
             switch (current.getKind())
             {
+              case kind::CONST_RATIONAL:
+              {
+                d_bvToIntCache[current] = Rewriter::rewrite(current);
+                break;
+              }
               case kind::CONST_BITVECTOR:
               {
                 BitVector constant(current.getConst<BitVector>());
@@ -308,7 +313,12 @@ Node BVToInt::bvToInt(Node n)
               children = {pow2BvSize, intized_children[0]};
               d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::MINUS, children));
               break;
-            }  
+            }
+            case kind::BITVECTOR_TO_NAT:
+            {
+              d_bvToIntCache[current] = Rewriter::rewrite(intized_children[0]);
+              break;
+            }
             case kind::BITVECTOR_AND:
             {
               Unimplemented();
@@ -427,6 +437,26 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_UGE:
             {
               d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::GEQ, intized_children));
+              break;
+            }
+            case kind::LT:
+            {
+              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              break;
+            }
+            case kind::LEQ:
+            {
+              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              break;
+            }
+            case kind::GT:
+            {
+              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              break;
+            }
+            case kind::GEQ:
+            {
+              d_bvToIntCache[current] = Rewriter::rewrite(current);
               break;
             }
             case kind::ITE:
