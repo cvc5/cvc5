@@ -123,15 +123,14 @@ Node BVToInt::eliminationPass(Node n) {
         d_eliminationCache[current] = currentEliminated;
       } else {
         vector<Node> children;
+        if (currentEliminated.getKind() == kind::BITVECTOR_EXTRACT || currentEliminated.getKind() == kind::APPLY_UF) {
+          children.push_back(currentEliminated.getOperator());
+        }
         for (size_t i=0; i<numChildren; i++) {
           Assert(d_eliminationCache.find(currentEliminated[i]) != d_eliminationCache.end());
           children.push_back(d_eliminationCache[currentEliminated[i]]);
         }
-        if (currentEliminated.getKind() == kind::BITVECTOR_EXTRACT) {
-          d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getOperator(), children); 
-        } else {
-          d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children); 
-        }
+        d_eliminationCache[current] = d_nm->mkNode(currentEliminated.getKind(), children); 
       }
     } else {
         if (d_eliminationCache.find(current) != d_eliminationCache.end()) {
@@ -220,6 +219,7 @@ Node BVToInt::bvToInt(Node n)
 	        break;
 	      }
               default:
+                cout << "panda " << current.toString() << " " << current.getKind() << std::endl;
                 throw TypeCheckingException(
                     current.toExpr(),
                     string("Cannot translate const: ")
@@ -432,6 +432,11 @@ Node BVToInt::bvToInt(Node n)
                 d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(oldKind, intized_children));
                 break;
 	    }
+            case kind::APPLY_UF:
+            {
+              Unimplemented();
+              break;
+            }
             default:
 	    {
               if (Theory::theoryOf(current) == THEORY_BOOL)
