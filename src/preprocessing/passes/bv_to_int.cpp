@@ -147,7 +147,9 @@ Node BVToInt::eliminationPass(Node n) {
             	 RewriteRule<RotateLeftEliminate>,
             	 RewriteRule<CompEliminate>,
             	 RewriteRule<SleEliminate>,
-            	 RewriteRule<SltEliminate>
+            	 RewriteRule<SltEliminate>,
+            	 RewriteRule<SgtEliminate>,
+            	 RewriteRule<SgeEliminate>
 	            >::apply(current);
             toVisit.push_back(current);
             toVisit.push_back(currentEliminated);
