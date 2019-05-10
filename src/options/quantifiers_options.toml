@@ -247,7 +247,7 @@ header = "options/quantifiers_options.h"
   category   = "regular"
   long       = "relational-triggers"
   type       = "bool"
-  default    = "true"
+  default    = "false"
   read_only  = true
   help       = "choose relational triggers such as x = f(y), x >= f(y)"
 
