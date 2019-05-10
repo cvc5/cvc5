@@ -599,7 +599,7 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
         Trace("qcf-instance-check") << "...spurious." << std::endl;
         return true;
       }else{
-        Assert(p->isPropagatingInstance(inst_eval));
+        AlwaysAssert(p->isPropagatingInstance(inst_eval));
         Trace("qcf-instance-check") << "...not spurious." << std::endl;
       }
     }
@@ -2221,7 +2221,7 @@ bool QuantConflictFind::isPropagatingInstance(Node n) const
       else if (!getEqualityEngine()->hasTerm(cur))
       {
         Trace("qcf-instance-check-debug")
-            << "...not propagating instance because of " << n << std::endl;
+            << "...not propagating instance because of " << cur << " " << ck << std::endl;
         return false;
       }
     }
