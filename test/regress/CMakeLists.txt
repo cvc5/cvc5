@@ -161,6 +161,7 @@ set(regress_0_tests
   regress0/bv/ackermann4.smt2
   regress0/bv/bool-to-bv-all.smt2
   regress0/bv/bool-to-bv-ite.smt2
+  regress0/bv/bool-model.smt2
   regress0/bv/bug260a.smt
   regress0/bv/bug260b.smt
   regress0/bv/bug440.smt
