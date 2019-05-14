@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CADICAL_H
-#define __CVC4__PROP__CADICAL_H
+#ifndef CVC4__PROP__CADICAL_H
+#define CVC4__PROP__CADICAL_H
 
 #ifdef CVC4_USE_CADICAL
 
@@ -87,4 +87,4 @@ class CadicalSolver : public SatSolver
 }  // namespace CVC4
 
 #endif  // CVC4_USE_CADICAL
-#endif  // __CVC4__PROP__CADICAL_H
+#endif  // CVC4__PROP__CADICAL_H

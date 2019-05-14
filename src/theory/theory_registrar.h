@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__THEORY_REGISTRAR_H
-#define __CVC4__THEORY__THEORY_REGISTRAR_H
+#ifndef CVC4__THEORY__THEORY_REGISTRAR_H
+#define CVC4__THEORY__THEORY_REGISTRAR_H
 
 #include "prop/registrar.h"
 #include "theory/theory_engine.h"
@@ -44,4 +44,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__THEORY_REGISTRAR_H */
+#endif /* CVC4__THEORY__THEORY_REGISTRAR_H */

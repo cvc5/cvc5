@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BASE__DATATYPES_MODES_H
-#define __CVC4__BASE__DATATYPES_MODES_H
+#ifndef CVC4__BASE__DATATYPES_MODES_H
+#define CVC4__BASE__DATATYPES_MODES_H
 
 #include <iostream>
 
@@ -41,4 +41,4 @@ enum SygusFairMode {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__DATATYPES_MODES_H */
+#endif /* CVC4__BASE__DATATYPES_MODES_H */

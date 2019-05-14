@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
-#define __CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
+#ifndef CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
+#define CVC4__PROOF__RESOLUTION_BITVECTOR_PROOF_H
 
 #include <iosfwd>
 
@@ -110,4 +110,4 @@ class LfscResolutionBitVectorProof : public ResolutionBitVectorProof
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */
+#endif /* CVC4__PROOF__RESOLUTIONBITVECTORPROOF_H */

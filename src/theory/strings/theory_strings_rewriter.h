@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
-#define __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H
 
 #include <utility>
 #include <vector>
@@ -751,4 +751,4 @@ class TheoryStringsRewriter {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */
+#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_REWRITER_H */

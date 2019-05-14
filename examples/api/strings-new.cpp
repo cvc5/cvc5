@@ -43,9 +43,9 @@ int main()
   Term ab  = slv.mkString(str_ab);
   Term abc = slv.mkString("abc");
   // String variables
-  Term x = slv.mkVar(string, "x");
-  Term y = slv.mkVar(string, "y");
-  Term z = slv.mkVar(string, "z");
+  Term x = slv.mkConst(string, "x");
+  Term y = slv.mkConst(string, "y");
+  Term z = slv.mkConst(string, "z");
 
   // String concatenation: x.ab.y
   Term lhs = slv.mkTerm(STRING_CONCAT, x, ab, y);
@@ -70,8 +70,8 @@ int main()
     slv.mkTerm(STRING_TO_REGEXP, slv.mkString("h")));
 
   // String variables
-  Term s1 = slv.mkVar(string, "s1");
-  Term s2 = slv.mkVar(string, "s2");
+  Term s1 = slv.mkConst(string, "s1");
+  Term s2 = slv.mkConst(string, "s2");
   // String concatenation: s1.s2
   Term s = slv.mkTerm(STRING_CONCAT, s1, s2);
 

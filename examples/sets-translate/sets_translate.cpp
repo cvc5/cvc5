@@ -204,7 +204,7 @@ class Mapper {
     } else {
       vector<Expr> children = e.getChildren();
       children.insert(children.begin(), setoperators[ make_pair(t, e.getKind()) ]);
-      ret = em->mkExpr(kind::APPLY, children);
+      ret = em->mkExpr(kind::APPLY_UF, children);
     }
     // cout << "returning " << ret  << endl;
     return ret;

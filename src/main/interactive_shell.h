@@ -12,8 +12,8 @@
  ** \brief Interactive shell for CVC4
  **/
 
-#ifndef __CVC4__INTERACTIVE_SHELL_H
-#define __CVC4__INTERACTIVE_SHELL_H
+#ifndef CVC4__INTERACTIVE_SHELL_H
+#define CVC4__INTERACTIVE_SHELL_H
 
 #include <iosfwd>
 #include <string>
@@ -72,4 +72,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__INTERACTIVE_SHELL_H */
+#endif /* CVC4__INTERACTIVE_SHELL_H */

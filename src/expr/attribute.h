@@ -21,8 +21,8 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-#ifndef __CVC4__EXPR__ATTRIBUTE_H
-#define __CVC4__EXPR__ATTRIBUTE_H
+#ifndef CVC4__EXPR__ATTRIBUTE_H
+#define CVC4__EXPR__ATTRIBUTE_H
 
 #include <string>
 #include <stdint.h>
@@ -578,4 +578,4 @@ NodeManager::setAttribute(TypeNode n, const AttrKind&,
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__ATTRIBUTE_H */
+#endif /* CVC4__EXPR__ATTRIBUTE_H */

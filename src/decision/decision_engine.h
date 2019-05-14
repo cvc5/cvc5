@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__DECISION__DECISION_ENGINE_H
-#define __CVC4__DECISION__DECISION_ENGINE_H
+#ifndef CVC4__DECISION__DECISION_ENGINE_H
+#define CVC4__DECISION__DECISION_ENGINE_H
 
 #include <vector>
 
@@ -219,4 +219,4 @@ private:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DECISION__DECISION_ENGINE_H */
+#endif /* CVC4__DECISION__DECISION_ENGINE_H */

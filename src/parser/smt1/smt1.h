@@ -14,8 +14,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__SMT1_H
-#define __CVC4__PARSER__SMT1_H
+#ifndef CVC4__PARSER__SMT1_H
+#define CVC4__PARSER__SMT1_H
 
 #include <string>
 #include <unordered_map>
@@ -130,4 +130,4 @@ private:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__SMT1_H */
+#endif /* CVC4__PARSER__SMT1_H */

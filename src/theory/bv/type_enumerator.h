@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__BV__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__BV__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__BV__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -63,4 +63,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BV__TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__BV__TYPE_ENUMERATOR_H */

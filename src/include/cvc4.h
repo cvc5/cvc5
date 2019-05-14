@@ -15,8 +15,8 @@
  ** most-commonly used CVC4 public-facing class interfaces.
  **/
 
-#ifndef __CVC4__CVC4_H
-#define __CVC4__CVC4_H
+#ifndef CVC4__CVC4_H
+#define CVC4__CVC4_H
 
 #include <cvc4/base/configuration.h>
 #include <cvc4/base/exception.h>
@@ -31,4 +31,4 @@
 #include <cvc4/util/integer.h>
 #include <cvc4/util/rational.h>
 
-#endif /* __CVC4__CVC4_H */
+#endif /* CVC4__CVC4_H */

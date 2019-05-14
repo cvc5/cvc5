@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY_UF_MODEL_H
-#define __CVC4__THEORY_UF_MODEL_H
+#ifndef CVC4__THEORY_UF_MODEL_H
+#define CVC4__THEORY_UF_MODEL_H
 
 #include "theory/theory_model.h"
 

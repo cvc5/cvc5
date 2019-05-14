@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXPR_MANAGER_H
-#define __CVC4__EXPR_MANAGER_H
+#ifndef CVC4__EXPR_MANAGER_H
+#define CVC4__EXPR_MANAGER_H
 
 #include <vector>
 
@@ -586,4 +586,4 @@ ${mkConst_instantiations}
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_MANAGER_H */
+#endif /* CVC4__EXPR_MANAGER_H */

@@ -79,7 +79,6 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       {
         Trace("srs-input-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
-        Kind k = cur.getKind();
         bool isQuant = cur.isClosure();
         // we recurse on this node if it is not a quantified formula
         if (!isQuant)

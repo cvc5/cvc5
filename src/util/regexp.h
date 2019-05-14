@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__REGEXP_H
-#define __CVC4__REGEXP_H
+#ifndef CVC4__REGEXP_H
+#define CVC4__REGEXP_H
 
 #include <cstddef>
 #include <functional>
@@ -246,4 +246,4 @@ std::ostream& operator<<(std::ostream& os, const String& s) CVC4_PUBLIC;
 
 }  // namespace CVC4
 
-#endif /* __CVC4__REGEXP_H */
+#endif /* CVC4__REGEXP_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SMT__DECISION_MODE_H
-#define __CVC4__SMT__DECISION_MODE_H
+#ifndef CVC4__SMT__DECISION_MODE_H
+#define CVC4__SMT__DECISION_MODE_H
 
 #include <iosfwd>
 
@@ -61,4 +61,4 @@ std::ostream& operator<<(std::ostream& out, decision::DecisionMode mode);
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT__DECISION_MODE_H */
+#endif /* CVC4__SMT__DECISION_MODE_H */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
-#define __CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
+#ifndef CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
+#define CVC4__THEORY__BUILTIN__TYPE_ENUMERATOR_H
 
 #include "expr/kind.h"
 #include "expr/type_node.h"
@@ -108,4 +108,4 @@ class FunctionEnumerator : public TypeEnumeratorBase<FunctionEnumerator>
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BUILTIN_TYPE_ENUMERATOR_H */
+#endif /* CVC4__THEORY__BUILTIN_TYPE_ENUMERATOR_H */

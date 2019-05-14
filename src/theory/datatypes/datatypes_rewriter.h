@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
-#define __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#ifndef CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
+#define CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H
 
 #include "expr/node_manager_attributes.h"
 #include "options/datatypes_options.h"
@@ -258,4 +258,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */
+#endif /* CVC4__THEORY__DATATYPES__DATATYPES_REWRITER_H */

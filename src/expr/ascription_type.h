@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__ASCRIPTION_TYPE_H
-#define __CVC4__ASCRIPTION_TYPE_H
+#ifndef CVC4__ASCRIPTION_TYPE_H
+#define CVC4__ASCRIPTION_TYPE_H
 
 #include "expr/type.h"
 
@@ -63,4 +63,4 @@ inline std::ostream& operator<<(std::ostream& out, AscriptionType at) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__ASCRIPTION_TYPE_H */
+#endif /* CVC4__ASCRIPTION_TYPE_H */

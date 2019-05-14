@@ -191,8 +191,6 @@ Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
   Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
   {
-    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
-    // does beta-reduction but does not for APPLY
     return APPLY_UF;
   }
   TypeNode tn = op.getType();
@@ -247,7 +245,16 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Kind ok = NodeManager::operatorToKind(op);
   if (ok != UNDEFINED_KIND)
   {
-    ret = NodeManager::currentNM()->mkNode(ok, schildren);
+    if (ok == APPLY_UF && schildren.size() == 1)
+    {
+      // This case is triggered for defined constant symbols. In this case,
+      // we return the operator itself instead of an APPLY_UF node.
+      ret = schildren[0];
+    }
+    else
+    {
+      ret = NodeManager::currentNM()->mkNode(ok, schildren);
+    }
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__CARE_GRAPH_H
-#define __CVC4__THEORY__CARE_GRAPH_H
+#ifndef CVC4__THEORY__CARE_GRAPH_H
+#define CVC4__THEORY__CARE_GRAPH_H
 
 #include <set>
 
@@ -59,4 +59,4 @@ typedef std::set<CarePair> CareGraph;
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__CARE_GRAPH_H */
+#endif /* CVC4__THEORY__CARE_GRAPH_H */

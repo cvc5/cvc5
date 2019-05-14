@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__EXPR__EXPR_IOMANIP_H
-#define __CVC4__EXPR__EXPR_IOMANIP_H
+#ifndef CVC4__EXPR__EXPR_IOMANIP_H
+#define CVC4__EXPR__EXPR_IOMANIP_H
 
 #include <iosfwd>
 
@@ -236,4 +236,4 @@ std::ostream& operator<<(std::ostream& out, ExprSetDepth sd) CVC4_PUBLIC;
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__EXPR_IOMANIP_H */
+#endif /* CVC4__EXPR__EXPR_IOMANIP_H */

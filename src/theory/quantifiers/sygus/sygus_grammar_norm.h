@@ -14,8 +14,8 @@
  **/
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
-#define __CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_NORM_H
 
 #include <map>
 #include <memory>

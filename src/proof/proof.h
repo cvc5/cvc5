@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__PROOF_H
-#define __CVC4__PROOF__PROOF_H
+#ifndef CVC4__PROOF__PROOF_H
+#define CVC4__PROOF__PROOF_H
 
 #include "options/smt_options.h"
 
@@ -67,4 +67,4 @@
 # define PSTATS(x)
 #endif /* CVC4_PROOF_STATS */
 
-#endif /* __CVC4__PROOF__PROOF_H */
+#endif /* CVC4__PROOF__PROOF_H */
