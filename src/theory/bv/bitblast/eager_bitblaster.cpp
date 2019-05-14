@@ -271,25 +271,12 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
   d_cnfStream->getBooleanVariables(vars);
   for (TNode var : vars)
   {
-    Node const_value;
-
-    if (d_cnfStream->hasLiteral(var))
-    {
-      prop::SatLiteral bit = d_cnfStream->getLiteral(var);
-      prop::SatValue bit_value = d_satSolver->value(bit);
-      Assert(bit_value != prop::SAT_VALUE_UNKNOWN);
-      const_value = nm->mkConst(bit_value == prop::SAT_VALUE_TRUE);
-    }
-    else
-    {
-      if (!fullModel)
-      {
-        continue;
-      }
-      const_value = nm->mkConst(false);
-    }
-
-    if (!m->assertEquality(var, const_value, true))
+    Assert(d_cnfStream->hasLiteral(var));
+    prop::SatLiteral bit = d_cnfStream->getLiteral(var);
+    prop::SatValue value = d_satSolver->value(bit);
+    Assert(value != prop::SAT_VALUE_UNKNOWN);
+    if (!m->assertEquality(
+            var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
     {
       return false;
     }
