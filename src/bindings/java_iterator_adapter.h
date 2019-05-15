@@ -40,8 +40,10 @@ class JavaIteratorAdapter
  public:
   JavaIteratorAdapter(const T& t) : d_t(t), d_it(d_t.begin())
   {
-    static_assert(std::is_convertible<typename T::const_iterator::value_type,
-                                      value_type>());
+    static_assert(
+        std::is_convertible<typename T::const_iterator::value_type,
+                            value_type>(),
+        "value_type must be convertible from T::const_iterator::value_type");
   }
 
   bool hasNext() { return d_it != d_t.end(); }
