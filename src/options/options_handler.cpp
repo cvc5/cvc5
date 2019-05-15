@@ -1329,12 +1329,6 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     if (!options::bitvectorToBool.wasSetByUser()) {
       options::bitvectorToBool.set(true);
     }
-
-    if (!options::bvAbstraction.wasSetByUser() &&
-        !options::skolemizeArguments.wasSetByUser()) {
-      options::bvAbstraction.set(true);
-      options::skolemizeArguments.set(true);
-    }
     return theory::bv::BITBLAST_MODE_EAGER;
   } else if(optarg == "help") {
     puts(s_bitblastingModeHelp.c_str());
