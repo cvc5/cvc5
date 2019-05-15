@@ -3330,12 +3330,17 @@ std::vector<Term> Solver::getValue(const std::vector<Term>& terms) const
  */
 void Solver::pop(uint32_t nscopes) const
 {
-  // CHECK: incremental enabled?
-  // CHECK: nscopes <= d_smtEngine->d_userLevels.size()
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(d_smtEngine->getOption("incremental").toString() == "true")
+      << "Cannot pop when not solving incrementally (use --incremental)";
+  CVC4_API_CHECK(nscopes <= d_smtEngine->getNumUserLevels())
+      << "Cannot pop beyond first pushed context";
+
   for (uint32_t n = 0; n < nscopes; ++n)
   {
     d_smtEngine->pop();
   }
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 void Solver::printModel(std::ostream& out) const
@@ -3349,11 +3354,15 @@ void Solver::printModel(std::ostream& out) const
  */
 void Solver::push(uint32_t nscopes) const
 {
-  // CHECK: incremental enabled?
+  CVC4_API_SOLVER_TRY_CATCH_BEGIN;
+  CVC4_API_CHECK(d_smtEngine->getOption("incremental").toString() == "true")
+      << "Cannot push when not solving incrementally (use --incremental)";
+
   for (uint32_t n = 0; n < nscopes; ++n)
   {
     d_smtEngine->push();
   }
+  CVC4_API_SOLVER_TRY_CATCH_END;
 }
 
 /**
