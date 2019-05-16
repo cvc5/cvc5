@@ -171,9 +171,14 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalITEBv>,
                             RewriteRule<BvIteConstCond>,
-                            RewriteRule<BvIteEqualChildren>,
-                            RewriteRule<BvIteConstChildren>,
-                            RewriteRule<BvIteEqualCond>>::apply(node);
+                            RewriteRule<BvIteEqualChildren>>::apply(node);
+  if (resultNode != node)
+  {
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
+
+  resultNode = LinearRewriteStrategy<RewriteRule<BvIteConstChildren>,
+                                     RewriteRule<BvIteEqualCond>>::apply(node);
   if (resultNode != node)
   {
     return RewriteResponse(REWRITE_AGAIN, resultNode);
