@@ -1257,7 +1257,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     // its operator is a lambda
     op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
   }
-  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
+  Trace("parser-sygus2") << "Generated operator " << op << ", #args/cargs=" << args.size() << "/" << cargs.size() << std::endl;
   std::stringstream ss;
   ss << op.getKind();
   dt.addSygusConstructor(op, ss.str(), cargs, spc);
@@ -1268,10 +1268,12 @@ Expr Smt2::purifySygusGTerm(Expr term,
                             std::vector<Expr>& args,
                             std::vector<Type>& cargs) const
 {
+  Trace("parser-sygus2-debug") << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren() << std::endl;
   std::map<Expr, Type>::iterator itn = ntsToUnres.find(term);
   if (itn != ntsToUnres.end())
   {
     Expr ret = getExprManager()->mkBoundVar(term.getType());
+    Trace("parser-sygus2-debug") << "...unresolved non-terminal, intro " << ret << std::endl;
     args.push_back(ret);
     cargs.push_back(itn->second);
     return ret;
@@ -1283,17 +1285,21 @@ Expr Smt2::purifySygusGTerm(Expr term,
     pchildren.push_back(term.getOperator());
   }
   bool childChanged = false;
-  for (unsigned i, size = term.getNumChildren(); i < size; i++)
+  for (unsigned i=0, nchild = term.getNumChildren(); i < nchild; i++)
   {
+    Trace("parser-sygus2-debug") << "......purify child " << i << " : " << term[i] << std::endl;
     Expr ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
     pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != term[i];
   }
   if (!childChanged)
   {
+    Trace("parser-sygus2-debug") << "...no child changed" << std::endl;
     return term;
   }
-  return getExprManager()->mkExpr(term.getKind(), pchildren);
+  Expr nret = getExprManager()->mkExpr(term.getKind(), pchildren);
+  Trace("parser-sygus2-debug") << "...child changed, return " << nret << std::endl;
+  return nret;
 }
 
 void Smt2::addSygusConstructorVariables(Datatype& dt,
