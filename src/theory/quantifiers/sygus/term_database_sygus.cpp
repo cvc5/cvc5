@@ -411,6 +411,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
             Trace("sygus-db") << ", kind = " << sk;
             d_kinds[tn][sk] = i;
             d_arg_kind[tn][i] = sk;
+            if( sk==ITE )
+            {
+              // mark that this type has an ITE
+              d_hasIte[tn] = true;
+            }
           }
           else if (sop.isConst() && dt[i].getNumArgs() == 0)
           {
@@ -431,6 +436,11 @@ void TermDbSygus::registerSygusType( TypeNode tn ) {
                   << "In sygus datatype " << dt.getName()
                   << ", argument to a lambda constructor is not " << lat
                   << std::endl;
+            }
+            if( sop[0].getKind()==ITE )
+            {
+              // mark that this type has an ITE
+              d_hasIte[tn] = true;
             }
           }
           // symbolic constructors
@@ -602,7 +612,7 @@ void TermDbSygus::registerEnumerator(Node e,
         // solution" clauses.
         const Datatype& dt = et.getDatatype();
         if (options::sygusStream()
-            || (!hasKind(et, ITE) && !dt.getSygusType().isBoolean()))
+            || (!hasIte(et) && !dt.getSygusType().isBoolean()))
         {
           isActiveGen = true;
         }
@@ -1002,6 +1012,9 @@ int TermDbSygus::getOpConsNum( TypeNode tn, Node n ) {
 
 bool TermDbSygus::hasKind( TypeNode tn, Kind k ) {
   return getKindConsNum( tn, k )!=-1;
+}
+bool TermDbSygus::hasIte( TypeNode tn ) const {
+  return d_hasIte.find(tn)!=d_hasIte.end();
 }
 bool TermDbSygus::hasConst( TypeNode tn, Node n ) {
   return getConstConsNum( tn, n )!=-1;
