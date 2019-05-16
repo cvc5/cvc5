@@ -142,6 +142,7 @@ Node BVToInt::eliminationPass(Node n) {
             	 RewriteRule<SremEliminate>,
             	 RewriteRule<SmodEliminate>,
             	 RewriteRule<RepeatEliminate>,
+               RewriteRule<ZeroExtendEliminate>,
             	 RewriteRule<SignExtendEliminate>,
             	 RewriteRule<RotateRightEliminate>,
             	 RewriteRule<RotateLeftEliminate>,
@@ -278,12 +279,14 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_UDIV:
             {
-              Unimplemented();
+              cout << "panda this should have been eliminated" << std::endl;
+              Assert(false);
               break;
             }
             case kind::BITVECTOR_UREM:
             {
-              Unimplemented();
+              cout << "panda this should have been eliminated" << std::endl;
+              Assert(false);
               break;
             }
             case kind::BITVECTOR_UDIV_TOTAL:
@@ -394,16 +397,6 @@ Node BVToInt::bvToInt(Node n)
               d_bvToIntCache[current] = Rewriter::rewrite(mod);
               break;
             }
-            case kind::BITVECTOR_ZERO_EXTEND:
-            {
-              Unimplemented();
-              break;
-            }
-            case kind::BITVECTOR_SIGN_EXTEND:
-            {
-              Unimplemented();
-              break;
-            }
             case kind::BITVECTOR_ULTBV:
             {
               Unimplemented();
@@ -466,6 +459,7 @@ Node BVToInt::bvToInt(Node n)
 	    }
             case kind::APPLY_UF:
             {
+              std::cout << "panda I do not expect to be here" << std::endl;
               Unimplemented();
               break;
             }
