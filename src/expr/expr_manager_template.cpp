@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Christopher L. Conway, Dejan Jovanovic
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -301,21 +301,30 @@ Expr ExprManager::mkExpr(Kind kind, Expr child1, Expr child2, Expr child3,
   }
 }
 
-Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children) {
+Expr ExprManager::mkExpr(Kind kind, const std::vector<Expr>& children)
+{
+  const size_t nchildren = children.size();
   const kind::MetaKind mk = kind::metaKindOf(kind);
-  const unsigned n = children.size() - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
   PrettyCheckArgument(
-      mk == kind::metakind::PARAMETERIZED ||
-      mk == kind::metakind::OPERATOR, kind,
+      mk == kind::metakind::PARAMETERIZED || mk == kind::metakind::OPERATOR,
+      kind,
       "Only operator-style expressions are made with mkExpr(); "
       "to make variables and constants, see mkVar(), mkBoundVar(), "
       "and mkConst().");
   PrettyCheckArgument(
-      n >= minArity(kind) && n <= maxArity(kind), kind,
-      "Exprs with kind %s must have at least %u children and "
-      "at most %u children (the one under construction has %u)",
-      kind::kindToString(kind).c_str(),
-      minArity(kind), maxArity(kind), n);
+      mk != kind::metakind::PARAMETERIZED || nchildren > 0,
+      kind,
+      "Terms with kind %s must have an operator expression as first argument",
+      kind::kindToString(kind).c_str());
+  const size_t n = nchildren - (mk == kind::metakind::PARAMETERIZED ? 1 : 0);
+  PrettyCheckArgument(n >= minArity(kind) && n <= maxArity(kind),
+                      kind,
+                      "Exprs with kind %s must have at least %u children and "
+                      "at most %u children (the one under construction has %u)",
+                      kind::kindToString(kind).c_str(),
+                      minArity(kind),
+                      maxArity(kind),
+                      n);
 
   NodeManagerScope nms(d_nodeManager);
 

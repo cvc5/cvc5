@@ -2,9 +2,9 @@
 /*! \file datatypes_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -32,7 +32,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   {
     return rewriteConstructor(in);
   }
-  else if (k == kind::APPLY_SELECTOR_TOTAL)
+  else if (k == kind::APPLY_SELECTOR_TOTAL || k == kind::APPLY_SELECTOR)
   {
     return rewriteSelector(in);
   }
@@ -191,8 +191,6 @@ Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
   Assert(op.getKind() != BUILTIN);
   if (op.getKind() == LAMBDA)
   {
-    // we use APPLY_UF instead of APPLY, since the rewriter for APPLY_UF
-    // does beta-reduction but does not for APPLY
     return APPLY_UF;
   }
   TypeNode tn = op.getType();
@@ -247,7 +245,16 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Kind ok = NodeManager::operatorToKind(op);
   if (ok != UNDEFINED_KIND)
   {
-    ret = NodeManager::currentNM()->mkNode(ok, schildren);
+    if (ok == APPLY_UF && schildren.size() == 1)
+    {
+      // This case is triggered for defined constant symbols. In this case,
+      // we return the operator itself instead of an APPLY_UF node.
+      ret = schildren[0];
+    }
+    else
+    {
+      ret = NodeManager::currentNM()->mkNode(ok, schildren);
+    }
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }
@@ -331,6 +338,7 @@ RewriteResponse DatatypesRewriter::rewriteConstructor(TNode in)
 
 RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
 {
+  Kind k = in.getKind();
   if (in[0].getKind() == kind::APPLY_CONSTRUCTOR)
   {
     // Have to be careful not to rewrite well-typed expressions
@@ -338,17 +346,41 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
     // e.g. "pred(zero)".
     TypeNode tn = in.getType();
     TypeNode argType = in[0].getType();
-    TNode selector = in.getOperator();
+    Expr selector = in.getOperator().toExpr();
     TNode constructor = in[0].getOperator();
     size_t constructorIndex = indexOf(constructor);
-    const Datatype& dt = Datatype::datatypeOf(selector.toExpr());
+    const Datatype& dt = Datatype::datatypeOf(selector);
     const DatatypeConstructor& c = dt[constructorIndex];
     Trace("datatypes-rewrite-debug") << "Rewriting collapsable selector : "
                                      << in;
     Trace("datatypes-rewrite-debug") << ", cindex = " << constructorIndex
                                      << ", selector is " << selector
                                      << std::endl;
-    int selectorIndex = c.getSelectorIndexInternal(selector.toExpr());
+    // The argument that the selector extracts, or -1 if the selector is
+    // is wrongly applied.
+    int selectorIndex = -1;
+    if (k == kind::APPLY_SELECTOR_TOTAL)
+    {
+      // The argument index of internal selectors is obtained by
+      // getSelectorIndexInternal.
+      selectorIndex = c.getSelectorIndexInternal(selector);
+    }
+    else
+    {
+      // The argument index of external selectors (applications of
+      // APPLY_SELECTOR) is given by an attribute and obtained via indexOf below
+      // The argument is only valid if it is the proper constructor.
+      selectorIndex = Datatype::indexOf(selector);
+      if (selectorIndex < 0
+          || selectorIndex >= static_cast<int>(c.getNumArgs()))
+      {
+        selectorIndex = -1;
+      }
+      else if (c[selectorIndex].getSelector() != selector)
+      {
+        selectorIndex = -1;
+      }
+    }
     Trace("datatypes-rewrite-debug") << "Internal selector index is "
                                      << selectorIndex << std::endl;
     if (selectorIndex >= 0)
@@ -374,7 +406,7 @@ RewriteResponse DatatypesRewriter::rewriteSelector(TNode in)
         return RewriteResponse(REWRITE_DONE, in[0][selectorIndex]);
       }
     }
-    else
+    else if (k == kind::APPLY_SELECTOR_TOTAL)
     {
       Node gt;
       bool useTe = true;
@@ -428,7 +460,7 @@ RewriteResponse DatatypesRewriter::rewriteTester(TNode in)
                            NodeManager::currentNM()->mkConst(result));
   }
   const Datatype& dt = static_cast<DatatypeType>(in[0].getType().toType()).getDatatype();
-  if (dt.getNumConstructors() == 1)
+  if (dt.getNumConstructors() == 1 && !dt.isSygus())
   {
     // only one constructor, so it must be
     Trace("datatypes-rewrite")

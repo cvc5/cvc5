@@ -1,5 +1,18 @@
-CVC4 prerelease version 1.7.
+CVC4 prerelease version 1.8.
 ============================
+
+## Building CVC4
+
+    ./contrib/get-antlr-3.4  # download and build ANTLR
+    ./configure.sh   # use --prefix to specify a prefix (default: /usr/local)
+                     # use --name=<PATH> for custom build directory
+    cd <build_dir>   # default is ./build
+    make             # use -jN for parallel build with N threads
+    make check       # to run default set of tests
+    make install     # to install into the prefix specified above
+
+All binaries are built into `<build_dir>/bin`, the CVC4 library is built into
+`<build_dir>/src`.
 
 ## Supported Operating Systems
 
@@ -23,13 +36,14 @@ compatible.
 - [Python >= 2.7](https://www.python.org)
 - [GMP v4.2 (GNU Multi-Precision arithmetic library)](https://gmplib.org)
 - [libantlr3c v3.2 or v3.4 (ANTLR parser generator C support library)](http://www.antlr3.org/)
+- [Java >= 1.6](https://www.java.com)
 
 Some features, such as the theory of floating-point numbers, require
 [optional dependencies](optional-dependencies) (see below).
 
 ### Installing libantlr3c: ANTLR parser generator C support library
 
-For libantlr3c, you can use the script contrib/get-antlr-3.4.
+For libantlr3c, you can use the script `contrib/get-antlr-3.4`.
 This will download, patch, and install libantlr3c.
 
 If you're on a 32-bit machine, or if you have difficulty building
@@ -154,18 +168,6 @@ provided with CVC4.
 (included with the distribution). 
 See [Testing CVC4](#Testing-CVC4) below for more details.
 
-
-## Building CVC4
-
-    ./configure.sh   # use --prefix to specify a prefix (default: /usr/local)
-                     # use --name=<PATH> for custom build directory
-    cd <build_dir>   # default is ./build
-    make             # use -jN for parallel build with N threads
-    make check       # to run default set of tests
-    make install     # to install into the prefix specified above
-
-All binaries are built into `<build_dir>/bin`, the CVC4 library is built into
-`<build_dir>/src`.
 
 ## Language bindings
 

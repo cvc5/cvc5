@@ -9,12 +9,6 @@
 ;  Some side-conditions make use of a _global assignment_ encoded in
 ;  0 (true) / 1 (false) marks on variables.
 
-; A list of clauses, CNF if interpretted as a formula,
-; but also sometimes just a list
-(declare cnf type)
-(declare cnfn cnf)
-(declare cnfc (! h clause (! t cnf cnf)))
-
 ; Unit (https://en.wikipedia.org/wiki/Unit_type)
 ; For functions that don't return anything
 (declare Unit type) ; The type with only one value (like `void` in C)
@@ -24,6 +18,14 @@
 (program bool_or ((l bool) (r bool)) bool (match l (ff r) (tt tt)))
 (program bool_and ((l bool) (r bool)) bool (match l (tt r) (ff ff)))
 (program bool_not ((b bool)) bool (match b (tt ff) (ff tt)))
+(program bool_eq ((l bool) (r bool)) bool
+         (match l
+                (tt (match r
+                           (tt tt)
+                           (ff ff)))
+                (ff (match r
+                           (tt ff)
+                           (ff tt)))))
 
 ; =================== ;
 ; Working CNF formula ;
@@ -89,12 +91,6 @@
 ; Functional programs for manipulating types ;
 ; ========================================== ;
 
-; Flip the polarity of the literal
-(program lit_flip ((l lit)) lit
-         (match l
-                ((pos v) (neg v))
-                ((neg v) (pos v))))
-
 ; Are two literal equal?
 (program lit_eq ((l1 lit) (l2 lit)) bool
          (match l1
@@ -129,28 +125,6 @@
                                     (tt tt)
                                     (ff (clause_contains_lit c' l))))
                 (cln ff)))
-
-; Returns a copy of `c` with any duplicate literals removed.
-; Never fails.
-; Uses marks 3 & 4. Expects them to be clear before hand, and leaves them clear
-; afterwards.
-(program clause_dedup ((c clause)) clause
-         (match c
-                (cln cln)
-                ((clc l rest)
-                 (match l
-                        ((pos v) (ifmarked3
-                                   v
-                                   (clause_dedup rest)
-                                   (do (markvar3 v)
-                                     (let result (clc (pos v) (clause_dedup rest))
-                                       (do (markvar3 v) result)))))
-                        ((neg v) (ifmarked4
-                                   v
-                                   (clause_dedup rest)
-                                   (do (markvar4 v)
-                                     (let result (clc (neg v) (clause_dedup rest))
-                                       (do (markvar4 v) result)))))))))
 
 ; Append two traces
 (program Trace_concat ((t1 Trace) (t2 Trace)) Trace

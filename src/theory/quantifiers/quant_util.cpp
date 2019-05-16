@@ -2,9 +2,9 @@
 /*! \file quant_util.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -30,27 +30,38 @@ QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
   return QEFFORT_NONE;
 }
 
-eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
+eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
+{
   return d_quantEngine->getActiveEqualityEngine();
 }
 
-bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
+bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
+{
   return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
 }
 
-bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
+bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
+{
   return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
 }
 
-TNode QuantifiersModule::getRepresentative( TNode n ) {
+TNode QuantifiersModule::getRepresentative(TNode n) const
+{
   return d_quantEngine->getEqualityQuery()->getRepresentative( n );
 }
 
-quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
+QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const
+{
+  return d_quantEngine;
+}
+
+quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
+{
   return d_quantEngine->getTermDatabase();
 }
 
-quantifiers::TermUtil * QuantifiersModule::getTermUtil() {
+quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
+{
   return d_quantEngine->getTermUtil();
 }
 

@@ -2,9 +2,9 @@
 /*! \file term_database_sygus.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Haniel Barbosa, Aina Niemetz
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1633,6 +1633,33 @@ Node TermDbSygus::evaluateWithUnfolding(
     while (ret.getKind() == DT_SYGUS_EVAL
            && ret[0].getKind() == APPLY_CONSTRUCTOR)
     {
+      if (ret == n && ret[0].isConst())
+      {
+        Trace("dt-eval-unfold-debug")
+            << "Optimize: evaluate constant head " << ret << std::endl;
+        // can just do direct evaluation here
+        std::vector<Node> args;
+        bool success = true;
+        for (unsigned i = 1, nchild = ret.getNumChildren(); i < nchild; i++)
+        {
+          if (!ret[i].isConst())
+          {
+            success = false;
+            break;
+          }
+          args.push_back(ret[i]);
+        }
+        if (success)
+        {
+          TypeNode rt = ret[0].getType();
+          Node bret = sygusToBuiltin(ret[0], rt);
+          Node rete = evaluateBuiltin(rt, bret, args);
+          visited[n] = rete;
+          Trace("dt-eval-unfold-debug")
+              << "Return " << rete << " for " << n << std::endl;
+          return rete;
+        }
+      }
       ret = unfold( ret );
     }    
     if( ret.getNumChildren()>0 ){

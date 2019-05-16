@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -145,7 +145,8 @@ SygusEnumerator::TermCache::TermCache()
       d_isSygusType(false),
       d_numConClasses(0),
       d_sizeEnum(0),
-      d_isComplete(false)
+      d_isComplete(false),
+      d_sampleRrVInit(false)
 {
 }
 void SygusEnumerator::TermCache::initialize(Node e,
@@ -311,6 +312,19 @@ bool SygusEnumerator::TermCache::addTerm(Node n)
   {
     Node bn = d_tds->sygusToBuiltin(n);
     Node bnr = d_tds->getExtRewriter()->extendedRewrite(bn);
+    if (options::sygusRewVerify())
+    {
+      if (bn != bnr)
+      {
+        if (!d_sampleRrVInit)
+        {
+          d_sampleRrVInit = true;
+          d_samplerRrV.initializeSygus(
+              d_tds, d_enum, options::sygusSamples(), false);
+        }
+        d_samplerRrV.checkEquivalent(bn, bnr);
+      }
+    }
     // must be unique up to rewriting
     if (d_bterms.find(bnr) != d_bterms.end())
     {
@@ -462,6 +476,13 @@ bool SygusEnumerator::TermEnumSlave::validateIndex()
   {
     Assert(d_index == tc.getNumTerms());
     Trace("sygus-enum-debug2") << "slave(" << d_tn << ") : force master...\n";
+    // if the size of the master is larger than the size limit, then
+    // there is no use continuing, since there are no more terms that this
+    // slave enumerator can return.
+    if (d_master->getCurrentSize() > d_sizeLim)
+    {
+      return false;
+    }
     // must push the master index
     if (!d_master->increment())
     {
@@ -641,9 +662,14 @@ bool SygusEnumerator::TermEnumMaster::increment()
   {
     return false;
   }
+  Trace("sygus-enum-summary") << "SygusEnumerator::TermEnumMaster: increment "
+                              << d_tn << "..." << std::endl;
   d_isIncrementing = true;
   bool ret = incrementInternal();
   d_isIncrementing = false;
+  Trace("sygus-enum-summary")
+      << "SygusEnumerator::TermEnumMaster: finished increment " << d_tn
+      << std::endl;
   return ret;
 }
 
@@ -775,7 +801,15 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
 
     // restart with constructor class one (skip nullary constructors)
     d_consClassNum = 1;
-    return incrementInternal();
+
+    // We break for a round: return the null term when we cross a size
+    // boundary. This ensures that the necessary breaks are taken, e.g.
+    // in slave enumerators who may instead want to abandon this call to
+    // increment master when the size of the master makes their increment
+    // infeasible.
+    d_currTermSet = true;
+    d_currTerm = Node::null();
+    return true;
   }
 
   bool incSuccess = false;
@@ -805,6 +839,8 @@ bool SygusEnumerator::TermEnumMaster::incrementInternal()
           // the term was not unique based on rewriting
           Trace("sygus-enum-debug2") << "master(" << d_tn
                                      << "): failed addTerm\n";
+          // we will return null (d_currTermSet is true at this point)
+          Assert(d_currTermSet);
           d_currTerm = Node::null();
         }
       }

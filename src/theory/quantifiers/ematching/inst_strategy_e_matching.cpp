@@ -2,9 +2,9 @@
 /*! \file inst_strategy_e_matching.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Morgan Deters
+ **   Andrew Reynolds, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -325,7 +325,10 @@ void InstStrategyAutoGenTriggers::generateTriggers( Node f ){
         }
       }
       int curr_w = Trigger::getTriggerWeight( patTermsF[i] );
-      if( ntrivTriggers && !newVar && last_weight!=-1 && curr_w>last_weight ){
+      // triggers whose value is maximum (2) are considered expendable.
+      if (ntrivTriggers && !newVar && last_weight != -1 && curr_w > last_weight
+          && curr_w >= 2)
+      {
         Trace("auto-gen-trigger-debug") << "...exclude expendible non-trivial trigger : " << patTermsF[i] << std::endl;
         rmPatTermsF[patTermsF[i]] = true;
       }else{

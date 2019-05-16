@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -12,8 +12,8 @@
  ** \brief SygusInference
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
-#define __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
+#define CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_
 
 #include <map>
 #include <string>
@@ -68,4 +68,4 @@ class SygusInference : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */
+#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_INFERENCE_H_ */

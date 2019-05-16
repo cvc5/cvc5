@@ -6,14 +6,14 @@ cmake_minimum_required(VERSION 3.1)
 project(cvc4)
 
 set(CVC4_MAJOR   1) # Major component of the version of CVC4.
-set(CVC4_MINOR   7) # Minor component of the version of CVC4.
+set(CVC4_MINOR   8) # Minor component of the version of CVC4.
 set(CVC4_RELEASE 0) # Release component of the version of CVC4.
 
 # Extraversion component of the version of CVC4.
 set(CVC4_EXTRAVERSION "-prerelease")
 
 # Shared library versioning. Increment SOVERSION for every new CVC4 release.
-set(CVC4_SOVERSION 5)
+set(CVC4_SOVERSION 6)
 
 # Full release string for CVC4.
 if(CVC4_RELEASE)
@@ -212,15 +212,6 @@ if(NOT ENABLE_ASSERTIONS)
   set(ENABLE_UNIT_TESTING OFF)
 endif()
 
-# Never build unit tests as static binaries, otherwise we'll end up with
-# ~300MB per unit test.
-if(ENABLE_UNIT_TESTING)
-  if(NOT ENABLE_SHARED)
-    message(WARNING "Disabling static build since unit testing is enabled.")
-  endif()
-  set(ENABLE_SHARED ON)
-endif()
-
 #-----------------------------------------------------------------------------#
 # Shared/static libraries
 #
@@ -234,11 +225,18 @@ if(ENABLE_SHARED)
     message(WARNING "Disabling static binary since shared build is enabled.")
   endif()
 else()
-  set(CMAKE_FIND_LIBRARY_SUFFIXES ".a ${CMAKE_FIND_LIBRARY_SUFFIXES}")
+  set(CMAKE_FIND_LIBRARY_SUFFIXES .a ${CMAKE_FIND_LIBRARY_SUFFIXES})
   set(BUILD_SHARED_LIBS OFF)
   # This is required to force find_package(Boost) to use static libraries.
   set(Boost_USE_STATIC_LIBS ON)
   cvc4_set_option(ENABLE_STATIC_BINARY ON)
+
+  # Never build unit tests as static binaries, otherwise we'll end up with
+  # ~300MB per unit test.
+  if(ENABLE_UNIT_TESTING)
+    message(WARNING "Disabling unit tests since static build is enabled.")
+    set(ENABLE_UNIT_TESTING OFF)
+  endif()
 endif()
 
 #-----------------------------------------------------------------------------#

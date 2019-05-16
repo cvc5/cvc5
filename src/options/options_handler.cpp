@@ -2,9 +2,9 @@
 /*! \file options_handler.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Aina Niemetz
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1203,6 +1203,87 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_bvProofFormatHelp =
+    "\
+Proof formats currently supported by the --bv-proof-format option:\n\
+\n\
+  lrat : DRAT with unit propagation hints to accelerate checking (default)\n\
+\n\
+  drat : Deletion and Resolution Asymmetric Tautology Additions \n\
+\n\
+  er : Extended Resolution, i.e. resolution with new variable definitions\n\
+\n\
+This option controls which underlying UNSAT proof format is used in BV proofs.\n\
+\n\
+Note: Currently this option does nothing. BV proofs are a work in progress!\
+";
+
+theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
+    std::string option, std::string optarg)
+{
+  if (optarg == "er")
+  {
+    return theory::bv::BITVECTOR_PROOF_ER;
+  }
+  else if (optarg == "lrat")
+  {
+    return theory::bv::BITVECTOR_PROOF_LRAT;
+  }
+  else if (optarg == "drat")
+  {
+    return theory::bv::BITVECTOR_PROOF_DRAT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvProofFormatHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-proof-format: `")
+                          + optarg + "'.  Try --bv-proof-format=help.");
+  }
+}
+
+const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
+    "\
+Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
+\n\
+  none    : Do not optimize the SAT proof\n\
+\n\
+  proof   : Use drat-trim to shrink the SAT proof\n\
+\n\
+  formula : Use drat-trim to shrink the SAT proof and formula (default)\
+";
+
+theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
+  }
+  else if (optarg == "proof")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
+  }
+  else if (optarg == "formula")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvOptimizeSatProofHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
+                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
+  }
+}
+
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -1217,26 +1298,34 @@ eager\n\
 theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "lazy") {
-    if (!options::bitvectorPropagate.wasSetByUser()) {
+  if (optarg == "lazy")
+  {
+    if (!options::bitvectorPropagate.wasSetByUser())
+    {
       options::bitvectorPropagate.set(true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser()) {
+    if (!options::bitvectorEqualitySolver.wasSetByUser())
+    {
       options::bitvectorEqualitySolver.set(true);
     }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      if (options::incrementalSolving() ||
-          options::produceModels()) {
+    if (!options::bitvectorEqualitySlicer.wasSetByUser())
+    {
+      if (options::incrementalSolving() || options::produceModels())
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_OFF);
-      } else {
+      }
+      else
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_AUTO);
       }
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser()) {
+    if (!options::bitvectorInequalitySolver.wasSetByUser())
+    {
       options::bitvectorInequalitySolver.set(true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
+    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
+    {
       options::bitvectorAlgebraicSolver.set(true);
     }
     if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
@@ -1244,23 +1333,24 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       throwLazyBBUnsupported(options::bvSatSolver());
     }
     return theory::bv::BITBLAST_MODE_LAZY;
-  } else if(optarg == "eager") {
-    if (!options::bitvectorToBool.wasSetByUser()) {
+  }
+  else if (optarg == "eager")
+  {
+    if (!options::bitvectorToBool.wasSetByUser())
+    {
       options::bitvectorToBool.set(true);
     }
-
-    if (!options::bvAbstraction.wasSetByUser() &&
-        !options::skolemizeArguments.wasSetByUser()) {
-      options::bvAbstraction.set(true);
-      options::skolemizeArguments.set(true);
-    }
     return theory::bv::BITBLAST_MODE_EAGER;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_bitblastingModeHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bitblast: `") +
-                          optarg + "'.  Try --bitblast=help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bitblast: `")
+                          + optarg + "'.  Try --bitblast=help.");
   }
 }
 
@@ -1292,6 +1382,61 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   } else {
     throw OptionException(std::string("unknown option for --bv-eq-slicer: `") +
                           optarg + "'.  Try --bv-eq-slicer=help.");
+  }
+}
+
+const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+    "Loop processing modes supported by the --strings-process-loop-mode "
+    "option:\n"
+    "\n"
+    "full (default)\n"
+    "+ Perform full processing of looping word equations\n"
+    "\n"
+    "simple (default with --strings-fmf)\n"
+    "+ Omit normal loop breaking\n"
+    "\n"
+    "simple-abort\n"
+    "+ Abort when normal loop breaking is required\n"
+    "\n"
+    "none\n"
+    "+ Omit loop processing\n"
+    "\n"
+    "abort\n"
+    "+ Abort if looping word equations are encountered\n";
+
+theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "full")
+  {
+    return theory::strings::ProcessLoopMode::FULL;
+  }
+  else if (optarg == "simple")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE;
+  }
+  else if (optarg == "simple-abort")
+  {
+    return theory::strings::ProcessLoopMode::SIMPLE_ABORT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::ProcessLoopMode::NONE;
+  }
+  else if (optarg == "abort")
+  {
+    return theory::strings::ProcessLoopMode::ABORT;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --strings-process-loop-mode: `")
+        + optarg + "'.  Try --strings-process-loop-mode=help.");
   }
 }
 
@@ -1672,10 +1817,11 @@ void OptionsHandler::proofEnabledBuild(std::string option, bool value)
 {
 #ifdef CVC4_PROOF
   if (value && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER
-      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT
+      && options::bvSatSolver() != theory::bv::SAT_SOLVER_CRYPTOMINISAT)
   {
     throw OptionException(
-        "Eager BV proofs only supported when minisat is used");
+        "Eager BV proofs only supported when MiniSat or CryptoMiniSat is used");
   }
 #else
   if(value) {
@@ -1841,6 +1987,7 @@ void OptionsHandler::showConfiguration(std::string option) {
   print_config_cond("glpk", Configuration::isBuiltWithGlpk());
   print_config_cond("cadical", Configuration::isBuiltWithCadical());
   print_config_cond("cryptominisat", Configuration::isBuiltWithCryptominisat());
+  print_config_cond("drat2er", Configuration::isBuiltWithDrat2Er());
   print_config_cond("gmp", Configuration::isBuiltWithGmp());
   print_config_cond("lfsc", Configuration::isBuiltWithLfsc());
   print_config_cond("readline", Configuration::isBuiltWithReadline());

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -290,6 +290,12 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
   // ----- check rewriting redundancy
   if (keep && options::sygusRewSynthFilterCong())
   {
+    // When using sygus types, this filtering applies to the builtin versions
+    // of n and eq_n. This means that we may filter out a rewrite rule for one
+    // sygus type based on another, e.g. we won't report x=x+0 for both A and B
+    // in:
+    //   A -> x | 0 | A+A
+    //   B -> x | 0 | B+B
     Trace("cr-filter-debug") << "Check equal rewrite pair..." << std::endl;
     if (d_drewrite->areEqual(bn, beq_n))
     {
@@ -309,7 +315,9 @@ bool CandidateRewriteFilter::filterPair(Node n, Node eq_n)
     Node bni = d_drewrite->toInternal(bn);
     if (!bni.isNull())
     {
-      if (!d_match_trie.getMatches(bni, &d_ssenm))
+      // as with congruence filtering, we cache based on the builtin type
+      TypeNode tn = bn.getType();
+      if (!d_match_trie[tn].getMatches(bni, &d_ssenm))
       {
         keep = false;
         Trace("cr-filter") << "...redundant (matchable)" << std::endl;
@@ -357,6 +365,8 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
   }
   if (options::sygusRewSynthFilterMatch())
   {
+    // cache based on the builtin type
+    TypeNode tn = bn.getType();
     // add to match information
     for (unsigned r = 0; r < 2; r++)
     {
@@ -369,7 +379,7 @@ void CandidateRewriteFilter::registerRelevantPair(Node n, Node eq_n)
         Node ti = d_drewrite->toInternal(t);
         if (!ti.isNull())
         {
-          d_match_trie.addTerm(ti);
+          d_match_trie[tn].addTerm(ti);
         }
       }
       d_pairs[t].insert(to);

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_STATE_H
-#define __CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_STATE_H
+#define CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
 #include <set>
@@ -268,6 +268,9 @@ public:
 
   /** Get the associated <code>ExprManager</code>. */
   ExprManager* getExprManager() const;
+
+  /** Get the associated solver. */
+  api::Solver* getSolver() const;
 
   /** Get the associated input. */
   inline Input* getInput() const {
@@ -832,4 +835,4 @@ public:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_STATE_H */
+#endif /* CVC4__PARSER__PARSER_STATE_H */

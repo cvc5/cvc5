@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file datatypes.cpp
+/*! \file datatypes-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Morgan Deters, Tim King
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,9 +15,10 @@
  **/
 
 #include <iostream>
-//#include <cvc4/cvc4.h> // To follow the wiki
 
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
+
 using namespace CVC4::api;
 
 void test(Solver& slv, Sort& consListSort)
@@ -39,7 +40,7 @@ void test(Solver& slv, Sort& consListSort)
   Term t = slv.mkTerm(
       APPLY_CONSTRUCTOR,
       consList.getConstructorTerm("cons"),
-      slv.mkInteger(0),
+      slv.mkReal(0),
       slv.mkTerm(APPLY_CONSTRUCTOR, consList.getConstructorTerm("nil")));
 
   std::cout << "t is " << t << std::endl
@@ -57,18 +58,15 @@ void test(Solver& slv, Sort& consListSort)
       slv.mkTerm(APPLY_SELECTOR, consList["cons"].getSelectorTerm("head"), t);
 
   std::cout << "t2 is " << t2 << std::endl
-            << "simplify(t2) is " << slv.simplify(t2)
-            << std::endl << std::endl;
+            << "simplify(t2) is " << slv.simplify(t2) << std::endl
+            << std::endl;
 
   // You can also iterate over a Datatype to get all its constructors,
   // and over a DatatypeConstructor to get all its "args" (selectors)
-  for (Datatype::const_iterator i = consList.begin();
-       i != consList.end();
-       ++i)
+  for (Datatype::const_iterator i = consList.begin(); i != consList.end(); ++i)
   {
     std::cout << "ctor: " << *i << std::endl;
-    for (DatatypeConstructor::const_iterator j = (*i).begin();
-         j != (*i).end();
+    for (DatatypeConstructor::const_iterator j = (*i).begin(); j != (*i).end();
          ++j)
     {
       std::cout << " + arg: " << *j << std::endl;
@@ -91,7 +89,8 @@ void test(Solver& slv, Sort& consListSort)
   // This example builds a simple parameterized list of sort T, with one
   // constructor "cons".
   Sort sort = slv.mkParamSort("T");
-  DatatypeDecl paramConsListSpec("paramlist", sort); // give the datatype a name
+  DatatypeDecl paramConsListSpec("paramlist",
+                                 sort);  // give the datatype a name
   DatatypeConstructorDecl paramCons("cons");
   DatatypeConstructorDecl paramNil("nil");
   DatatypeSelectorDecl paramHead("head", sort);
@@ -117,17 +116,17 @@ void test(Solver& slv, Sort& consListSort)
     }
   }
 
-  Term a = slv.declareFun("a", paramConsIntListSort);
+  Term a = slv.mkConst(paramConsIntListSort, "a");
   std::cout << "term " << a << " is of sort " << a.getSort() << std::endl;
 
   Term head_a = slv.mkTerm(
       APPLY_SELECTOR, paramConsList["cons"].getSelectorTerm("head"), a);
-  std::cout << "head_a is " << head_a << " of sort " << head_a.getSort() 
+  std::cout << "head_a is " << head_a << " of sort " << head_a.getSort()
             << std::endl
             << "sort of cons is "
             << paramConsList.getConstructorTerm("cons").getSort() << std::endl
             << std::endl;
-  Term assertion = slv.mkTerm(GT, head_a, slv.mkInteger(50));
+  Term assertion = slv.mkTerm(GT, head_a, slv.mkReal(50));
   std::cout << "Assert " << assertion << std::endl;
   slv.assertFormula(assertion);
   std::cout << "Expect sat." << std::endl;
@@ -145,7 +144,7 @@ int main()
   // Second, it is "resolved" to an actual sort, at which point function
   // symbols are assigned to its constructors, selectors, and testers.
 
-  DatatypeDecl consListSpec("list"); // give the datatype a name
+  DatatypeDecl consListSpec("list");  // give the datatype a name
   DatatypeConstructorDecl cons("cons");
   DatatypeSelectorDecl head("head", slv.getIntegerSort());
   DatatypeSelectorDecl tail("tail", DatatypeDeclSelfSort());
@@ -155,8 +154,7 @@ int main()
   DatatypeConstructorDecl nil("nil");
   consListSpec.addConstructor(nil);
 
-  std::cout << "spec is:" << std::endl
-            << consListSpec << std::endl;
+  std::cout << "spec is:" << std::endl << consListSpec << std::endl;
 
   // Keep in mind that "DatatypeDecl" is the specification class for
   // datatypes---"DatatypeDecl" is not itself a CVC4 Sort.
@@ -168,13 +166,13 @@ int main()
 
   test(slv, consListSort);
 
-  std::cout << std::endl << ">>> Alternatively, use declareDatatype" << std::endl;
+  std::cout << std::endl
+            << ">>> Alternatively, use declareDatatype" << std::endl;
   std::cout << std::endl;
 
-  std::vector<DatatypeConstructorDecl> ctors = { cons, nil };
+  std::vector<DatatypeConstructorDecl> ctors = {cons, nil};
   Sort consListSort2 = slv.declareDatatype("list2", ctors);
   test(slv, consListSort2);
-
 
   return 0;
 }

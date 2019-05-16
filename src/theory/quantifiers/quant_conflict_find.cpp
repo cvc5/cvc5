@@ -2,9 +2,9 @@
 /*! \file quant_conflict_find.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King, Morgan Deters
+ **   Andrew Reynolds, Tim King, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -583,7 +583,9 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
     }else{
       Node inst =
           p->d_quantEngine->getInstantiate()->getInstantiation(d_q, terms);
-      Node inst_eval = p->getTermDatabase()->evaluateTerm( inst, NULL, options::qcfTConstraint() );
+      inst = Rewriter::rewrite(inst);
+      Node inst_eval = p->getTermDatabase()->evaluateTerm(
+          inst, nullptr, options::qcfTConstraint(), true);
       if( Trace.isOn("qcf-instance-check") ){
         Trace("qcf-instance-check") << "Possible propagating instance for " << d_q << " : " << std::endl;
         for( unsigned i=0; i<terms.size(); i++ ){
@@ -591,10 +593,13 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
         }
         Trace("qcf-instance-check") << "...evaluates to " << inst_eval << std::endl;
       }
-      if( inst_eval.isNull() || inst_eval==p->getTermUtil()->d_true || !isPropagatingInstance( p, inst_eval ) ){
+      if (inst_eval.isNull()
+          || (inst_eval.isConst() && inst_eval.getConst<bool>()))
+      {
         Trace("qcf-instance-check") << "...spurious." << std::endl;
         return true;
       }else{
+        Assert(p->isPropagatingInstance(inst_eval));
         Trace("qcf-instance-check") << "...not spurious." << std::endl;
       }
     }
@@ -613,27 +618,6 @@ bool QuantInfo::isTConstraintSpurious( QuantConflictFind * p, std::vector< Node 
   }
   // spurious if quantifiers engine is in conflict
   return p->d_quantEngine->inConflict();
-}
-
-bool QuantInfo::isPropagatingInstance( QuantConflictFind * p, Node n ) {
-  if( n.getKind()==FORALL ){
-    //TODO?
-    return true;
-  }else if( n.getKind()==NOT || n.getKind()==AND || n.getKind()==OR || n.getKind()==EQUAL || n.getKind()==ITE || 
-            ( n.getKind()==EQUAL && n[0].getType().isBoolean() ) ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      if( !isPropagatingInstance( p, n[i] ) ){
-        return false;
-      }
-    }
-    return true;
-  }else{
-    if( p->getEqualityEngine()->hasTerm( n ) || isGroundSubterm( n ) ){
-      return true;
-    }
-  }
-  Trace("qcf-instance-check-debug") << "...not propagating instance because of " << n << std::endl;
-  return false;
 }
 
 bool QuantInfo::entailmentTest( QuantConflictFind * p, Node lit, bool chEnt ) {
@@ -1047,7 +1031,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
             else
             {
               d_qni_gterm[i] = d_n[i];
-              qi->setGroundSubterm(d_n[i]);
             }
           }
           d_type = d_n.getKind() == EQUAL ? typ_eq : typ_tconstraint;
@@ -1058,7 +1041,6 @@ MatchGen::MatchGen( QuantInfo * qi, Node n, bool isVar )
       //we will just evaluate
       d_n = n;
       d_type = typ_ground;
-      qi->setGroundSubterm( d_n );
     }
   }
   Trace("qcf-qregister-debug")  << "Done make match gen " << n << ", type = ";
@@ -2209,6 +2191,42 @@ std::ostream& operator<<(std::ostream& os, const QuantConflictFind::Effort& e) {
       break;
   }
   return os;
+}
+
+bool QuantConflictFind::isPropagatingInstance(Node n) const
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    if (visited.find(cur) == visited.end())
+    {
+      visited.insert(cur);
+      Kind ck = cur.getKind();
+      if (ck == FORALL)
+      {
+        // do nothing
+      }
+      else if (TermUtil::isBoolConnective(ck))
+      {
+        for (TNode cc : cur)
+        {
+          visit.push_back(cc);
+        }
+      }
+      else if (!getEqualityEngine()->hasTerm(cur))
+      {
+        Trace("qcf-instance-check-debug")
+            << "...not propagating instance because of " << n << std::endl;
+        return false;
+      }
+    }
+  } while (!visit.empty());
+  return true;
 }
 
 } /* namespace CVC4::theory::quantifiers */

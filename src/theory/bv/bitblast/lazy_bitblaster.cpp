@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Aina Niemetz, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -64,10 +64,8 @@ TLazyBitblaster::TLazyBitblaster(context::Context* c,
                                  bool emptyNotify)
     : TBitblaster<Node>(),
       d_bv(bv),
-      d_bvp(nullptr),
       d_ctx(c),
       d_nullRegistrar(new prop::NullRegistrar()),
-      d_nullContext(new context::Context()),
       d_assertedAtoms(new (true) context::CDList<prop::SatLiteral>(c)),
       d_explanations(new (true) ExplanationMap(c)),
       d_variables(),
@@ -564,13 +562,6 @@ bool TLazyBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
     }
   }
   return true;
-}
-
-void TLazyBitblaster::setProofLog(proof::ResolutionBitVectorProof* bvp)
-{
-  d_bvp = bvp;
-  d_satSolver->setProofLog( bvp );
-  bvp->initCnfProof(d_cnfStream.get(), d_nullContext.get());
 }
 
 void TLazyBitblaster::clearSolver() {

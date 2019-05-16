@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Liana Hadarean, Andrew Reynolds, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -986,10 +986,10 @@ bool TheoryBV::applyAbstraction(const std::vector<Node>& assertions, std::vector
   return changed;
 }
 
-void TheoryBV::setResolutionProofLog(proof::ResolutionBitVectorProof* bvp)
+void TheoryBV::setProofLog(proof::BitVectorProof* bvp)
 {
   if( options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER ){
-    d_eagerSolver->setResolutionProofLog(bvp);
+    d_eagerSolver->setProofLog(bvp);
   }else{
     for( unsigned i=0; i< d_subtheories.size(); i++ ){
       d_subtheories[i]->setProofLog( bvp );

@@ -165,6 +165,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/Statistic.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__api__Solver.java
@@ -241,5 +242,12 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/vectorVectorExpr.java
 )
 
-add_jar(cvc4jar SOURCES ${gen_java_files} OUTPUT_NAME CVC4)
+set(CMAKE_JNI_TARGET TRUE)
+add_jar(cvc4jar
+        SOURCES ${gen_java_files}
+        VERSION ${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}
+        OUTPUT_NAME CVC4)
 add_dependencies(cvc4jar cvc4jni)
+install_jar(cvc4jar DESTINATION share/java/cvc4)
+install_jni_symlink(cvc4jar DESTINATION share/java/cvc4)
+install(TARGETS cvc4jni DESTINATION lib)

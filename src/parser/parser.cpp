@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,6 +81,8 @@ ExprManager* Parser::getExprManager() const
   return d_solver->getExprManager();
 }
 
+api::Solver* Parser::getSolver() const { return d_solver; }
+
 Expr Parser::getSymbol(const std::string& name, SymbolType type) {
   checkDeclaration(name, CHECK_DECLARED, type);
   assert(isDeclared(name, type));
@@ -126,23 +128,18 @@ Expr Parser::getExpressionForNameAndType(const std::string& name, Type t) {
   }
   // now, post-process the expression
   assert( !expr.isNull() );
-  if(isDefinedFunction(expr)) {
-    // defined functions/constants are wrapped in an APPLY so that they are
-    // expanded into their definition, e.g. during SmtEnginePrivate::expandDefinitions
-    expr = getExprManager()->mkExpr(CVC4::kind::APPLY, expr);
-  }else{
-    Type te = expr.getType();
-    if(te.isConstructor() && ConstructorType(te).getArity() == 0) {
-      // nullary constructors have APPLY_CONSTRUCTOR kind with no children
-      expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
-    }
+  Type te = expr.getType();
+  if (te.isConstructor() && ConstructorType(te).getArity() == 0)
+  {
+    // nullary constructors have APPLY_CONSTRUCTOR kind with no children
+    expr = getExprManager()->mkExpr(CVC4::kind::APPLY_CONSTRUCTOR, expr);
   }
   return expr;
 }
 
 Kind Parser::getKindForFunction(Expr fun) {
   if(isDefinedFunction(fun)) {
-    return APPLY;
+    return APPLY_UF;
   }
   Type t = fun.getType();
   if(t.isConstructor()) {

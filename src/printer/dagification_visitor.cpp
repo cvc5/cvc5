@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -47,8 +47,7 @@ DagificationVisitor::~DagificationVisitor() {
 
 bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   Kind ck = current.getKind();
-  if (ck == kind::FORALL || ck == kind::EXISTS || ck == kind::LAMBDA
-      || ck == kind::CHOICE)
+  if (current.isClosure())
   {
     // for quantifiers, we visit them but we don't recurse on them
     visit(current, parent);
