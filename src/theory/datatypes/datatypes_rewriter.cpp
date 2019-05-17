@@ -275,6 +275,12 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   Assert(!dt[i].getSygusOp().isNull());
   std::vector<Node> schildren;
   Node op = Node::fromExpr(dt[i].getSygusOp());
+  Trace("dt-sygus-util") << "Operator is " << op << std::endl;
+  if( children.empty() )
+  {
+    // no children, return immediately
+    return op;
+  }
   // if it is the any constant, we simply return the child
   if (op.getAttribute(SygusAnyConstAttribute()))
   {
@@ -294,18 +300,13 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
     return ret;
   }
   Kind ok = NodeManager::operatorToKind(op);
+  Trace("dt-sygus-util") << "operator kind is " << ok << std::endl;
   if (ok != UNDEFINED_KIND)
   {
-    if (ok == APPLY_UF && schildren.size() == 1)
-    {
-      // This case is triggered for defined constant symbols. In this case,
-      // we return the operator itself instead of an APPLY_UF node.
-      ret = schildren[0];
-    }
-    else
-    {
-      ret = NodeManager::currentNM()->mkNode(ok, schildren);
-    }
+    // If it is an APPLY_UF operator, we should have at least an operator and
+    // a child.
+    Assert(ok != APPLY_UF || schildren.size() != 1);
+    ret = NodeManager::currentNM()->mkNode(ok, schildren);
     Trace("dt-sygus-util") << "...return (op) " << ret << std::endl;
     return ret;
   }

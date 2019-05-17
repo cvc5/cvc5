@@ -1253,8 +1253,12 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   std::vector<Expr> args;
   std::vector<Type> cargs;
   Expr op = purifySygusGTerm(term, ntsToUnres, args, cargs);
-
-  std::shared_ptr<SygusPrintCallback> spc;
+  Trace("parser-sygus2") << "Purified operator " << op
+                         << ", #args/cargs=" << args.size() << "/"
+                         << cargs.size() << std::endl;
+  std::shared_ptr<SygusPrintCallback> spc;    
+  // callback prints as the expression
+  spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
   if (!args.empty())
   {
     bool pureVar = true;
@@ -1266,6 +1270,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
         break;
       }
     }
+    Trace("parser-sygus2") << "Pure var is " << pureVar << ", hasOp=" << op.hasOperator() << std::endl;
     if (pureVar && op.hasOperator())
     {
       // optimization: just use the operator if it an application to only vars
@@ -1274,15 +1279,11 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
     else
     {
       Expr lbvl = getExprManager()->mkExpr(kind::BOUND_VAR_LIST, args);
-      // callback prints as the expression
-      spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
       // its operator is a lambda
       op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
     }
   }
-  Trace("parser-sygus2") << "Generated operator " << op
-                         << ", #args/cargs=" << args.size() << "/"
-                         << cargs.size() << std::endl;
+  Trace("parser-sygus2") << "Generated operator " << op << std::endl;
   std::stringstream ss;
   ss << op.getKind();
   dt.addSygusConstructor(op, ss.str(), cargs, spc);
