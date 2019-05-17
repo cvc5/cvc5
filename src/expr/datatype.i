@@ -95,8 +95,11 @@
 // iterator() method on the Java side that returns a Java-style
 // Iterator.
 %extend CVC4::Datatype {
-  CVC4::JavaIteratorAdapter<CVC4::Datatype> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::Datatype>(*$self);
+  CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor>
+  iterator()
+  {
+    return CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor>(
+        *$self);
   }
 
   std::string toString() const {
@@ -106,8 +109,12 @@
   }
 }
 %extend CVC4::DatatypeConstructor {
-  CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor>(*$self);
+  CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor,
+                            CVC4::DatatypeConstructorArg>
+  iterator()
+  {
+    return CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor,
+                                     CVC4::DatatypeConstructorArg>(*$self);
   }
 
   std::string toString() const {
@@ -129,12 +136,12 @@
 %typemap(javainterfaces) CVC4::DatatypeConstructor "java.lang.Iterable<DatatypeConstructorArg>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Datatype> "class";
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Datatype> "java.util.Iterator<DatatypeConstructor>";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor> "java.util.Iterator<DatatypeConstructorArg>";
+%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor> "class";
+%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor, CVC4::DatatypeConstructorArg> "class";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor> "java.util.Iterator<DatatypeConstructor>";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor, CVC4::DatatypeConstructorArg> "java.util.Iterator<DatatypeConstructorArg>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Datatype> "
+%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
@@ -147,7 +154,7 @@
     }
   }
 "
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor> "
+%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor, CVC4::DatatypeConstructorArg> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
@@ -161,18 +168,8 @@
   }
 "
 // getNext() just allows C++ iterator access from Java-side next(), make it private
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Datatype>::getNext() "private";
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor>::getNext() "private";
-
-// map the types appropriately.
-%typemap(jni) CVC4::Datatype::iterator::value_type "jobject";
-%typemap(jtype) CVC4::Datatype::iterator::value_type "edu.nyu.acsys.CVC4.DatatypeConstructor";
-%typemap(jstype) CVC4::Datatype::iterator::value_type "edu.nyu.acsys.CVC4.DatatypeConstructor";
-%typemap(javaout) CVC4::Datatype::iterator::value_type { return $jnicall; }
-%typemap(jni) CVC4::DatatypeConstructor::iterator::value_type "jobject";
-%typemap(jtype) CVC4::DatatypeConstructor::iterator::value_type "edu.nyu.acsys.CVC4.DatatypeConstructorArg";
-%typemap(jstype) CVC4::DatatypeConstructor::iterator::value_type "edu.nyu.acsys.CVC4.DatatypeConstructorArg";
-%typemap(javaout) CVC4::DatatypeConstructor::iterator::value_type { return $jnicall; }
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor>::getNext() "private";
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor, CVC4::DatatypeConstructorArg>::getNext() "private";
 
 #endif /* SWIGJAVA */
 
@@ -183,7 +180,7 @@
 %include "bindings/java_iterator_adapter.h"
 %include "bindings/java_stream_adapters.h"
 
-%template(JavaIteratorAdapter_Datatype) CVC4::JavaIteratorAdapter<CVC4::Datatype>;
-%template(JavaIteratorAdapter_DatatypeConstructor) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor>;
+%template(JavaIteratorAdapter_Datatype) CVC4::JavaIteratorAdapter<CVC4::Datatype, CVC4::DatatypeConstructor>;
+%template(JavaIteratorAdapter_DatatypeConstructor) CVC4::JavaIteratorAdapter<CVC4::DatatypeConstructor, CVC4::DatatypeConstructorArg>;
 
 #endif /* SWIGJAVA */

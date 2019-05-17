@@ -241,6 +241,9 @@ Node EagerBitblaster::getModelFromSatSolver(TNode a, bool fullModel) {
 
 bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
 {
+  NodeManager* nm = NodeManager::currentNM();
+
+  // Collect the values for the bit-vector variables
   TNodeSet::iterator it = d_variables.begin();
   for (; it != d_variables.end(); ++it) {
     TNode var = *it;
@@ -260,6 +263,22 @@ bool EagerBitblaster::collectModelInfo(TheoryModel* m, bool fullModel)
           return false;
         }
       }
+    }
+  }
+
+  // Collect the values for the Boolean variables
+  std::vector<TNode> vars;
+  d_cnfStream->getBooleanVariables(vars);
+  for (TNode var : vars)
+  {
+    Assert(d_cnfStream->hasLiteral(var));
+    prop::SatLiteral bit = d_cnfStream->getLiteral(var);
+    prop::SatValue value = d_satSolver->value(bit);
+    Assert(value != prop::SAT_VALUE_UNKNOWN);
+    if (!m->assertEquality(
+            var, nm->mkConst(value == prop::SAT_VALUE_TRUE), true))
+    {
+      return false;
     }
   }
   return true;

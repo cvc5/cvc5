@@ -159,6 +159,7 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
+  regress0/bv/bool-model.smt2
   regress0/bv/bool-to-bv-all.smt2
   regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
@@ -450,6 +451,7 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/simple.smt2
   regress0/fp/wrong-model.smt2
@@ -1786,6 +1788,7 @@ set(regress_2_tests
   regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
+  regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy
