@@ -16,6 +16,8 @@
 
 #include "theory/datatypes/datatypes_rewriter.h"
 
+#include "expr/node_algorithm.h"
+
 using namespace CVC4;
 using namespace CVC4::kind;
 
@@ -115,8 +117,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
     if (ev.getKind() == APPLY_CONSTRUCTOR)
     {
       Trace("dt-sygus-util") << "Rewrite " << in << " by unfolding...\n";
-      const Datatype& dt =
-          static_cast<DatatypeType>(ev.getType().toType()).getDatatype();
+      const Datatype& dt = ev.getType().getDatatype();
       unsigned i = indexOf(ev.getOperator());
       Node op = Node::fromExpr(dt[i].getSygusOp());
       // if it is the "any constant" constructor, return its argument
@@ -148,6 +149,54 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         int vn = ret.getAttribute(SygusVarNumAttribute());
         Assert(Node::fromExpr(dt.getSygusVarList())[vn] == ret);
         ret = args[vn];
+      }
+      else
+      {
+        TNode val;
+        if( !op.hasAttribute(SygusVarFreeAttribute()) )
+        {
+          std::unordered_set<Node, NodeHashFunction> fvs;
+          if( expr::getFreeVariables(op,fvs) )
+          {
+            if( fvs.size()==1 )
+            {
+              for( const Node& v : fvs )
+              {
+                val = v;
+              }
+            }
+            else
+            {
+              val = op;
+            }
+          }
+          Trace("dt-sygus-fv") << "Free var in " << op << " : " << val << std::endl;
+          op.setAttribute(SygusVarFreeAttribute(),val);
+        }
+        else
+        {
+          val = op.getAttribute(SygusVarFreeAttribute());
+        }
+        if( !val.isNull() )
+        {
+          if( val.getKind()==BOUND_VARIABLE )
+          {
+            int vn = val.getAttribute(SygusVarNumAttribute());
+            TNode sub = args[vn];
+            ret = ret.substitute(val,sub);
+          }
+          else
+          {
+            // do the full substitution
+            std::vector< Node > vars;
+            Node bvl = Node::fromExpr( dt.getSygusVarList() );
+            for( unsigned i=0, nvars = bvl.getNumChildren(); i<nvars; i++ )
+            {
+              vars.push_back( bvl[i] );
+            }
+            ret = ret.substitute(vars.begin(),vars.end(),args.begin(),args.end());
+          }
+        }
       }
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);

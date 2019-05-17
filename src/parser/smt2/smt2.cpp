@@ -1260,7 +1260,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
         break;
       }
     }
-    if( pureVar )
+    if( pureVar && op.hasOperator() )
     {
       // optimization: just use the operator if it an application to only vars
       op = op.getOperator();
