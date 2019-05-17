@@ -109,6 +109,14 @@ header = "options/smt_options.h"
   help       = "mode for producing model cores"
 
 [[option]]
+  name       = "blockModels"
+  category   = "regular"
+  long       = "block-models"
+  type       = "bool"
+  read_only  = true
+  help       = "add assertion that blocks the current model when get-model is called"
+
+[[option]]
   name       = "proof"
   smt_name   = "produce-proofs"
   category   = "regular"

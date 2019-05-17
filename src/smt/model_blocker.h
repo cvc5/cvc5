@@ -1,0 +1,62 @@
+/*********************                                                        */
+/*! \file model_blocker.h
+ ** \verbatim
+ ** Top contributors (to current version):
+ **   Andrew Reynolds
+ ** This file is part of the CVC4 project.
+ ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** in the top-level source directory) and their institutional affiliations.
+ ** All rights reserved.  See the file COPYING in the top-level source
+ ** directory for licensing information.\endverbatim
+ **
+ ** \brief Utility for blocking the current model
+ **/
+
+#include "cvc4_private.h"
+
+#ifndef __CVC4__THEORY__MODEL_BLOCKER_H
+#define __CVC4__THEORY__MODEL_BLOCKER_H
+
+#include <vector>
+
+#include "expr/expr.h"
+#include "options/smt_options.h"
+#include "smt/model.h"
+
+namespace CVC4 {
+
+/**
+ * A utility for blocking the current model.
+ */
+class ModelBlocker
+{
+ public:
+  /** get model blocker
+   *
+   * This function updates model m so that it has information regarding its
+   * "model core". A model core for m is a substitution of the form
+   *    { s1 -> m(s1), ..., sn -> m(sn) }
+   *
+   * The criteria for what consistutes a model core given by mode. For
+   * example, if mode is MODEL_CORES_SIMPLE, then a model core corresponds to a
+   * subset of assignments from the model that suffice to show that the set of
+   * assertions, interpreted conjunctively, evaluates to true under the
+   * substitution corresponding to the model core.
+   *
+   * The model core is recorded on the model object m via calls to
+   * m->setUsingModelCore, m->recordModelCoreSymbol, for details see
+   * smt/model.h. In particular, we call:
+   *   m->usingModelCore();
+   *   m->recordModelCoreSymbol(s1); ... m->recordModelCoreSymbol(sn);
+   * such that { s1 -> m(s1), ..., sn -> m(sn) } is the model core computed
+   * by this class.
+   *
+   * If m is not a model for assertions, this method returns null.
+   */
+  static Expr getModelBlocker(const std::vector<Expr>& assertions,
+                              Model* m);
+}; /* class TheoryModelCoreBuilder */
+
+}  // namespace CVC4
+
+#endif /* __CVC4__THEORY__MODEL_BLOCKER_H */

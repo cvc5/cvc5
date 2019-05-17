@@ -85,6 +85,7 @@
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
 #include "smt/model_core_builder.h"
+#include "smt/model_blocker.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -1282,11 +1283,12 @@ void SmtEngine::setDefaults() {
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::modelCoresMode() != MODEL_CORES_NONE)
+       || options::modelCoresMode() != MODEL_CORES_NONE
+       || options::blockModels())
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
-             << "check-models, check-synth-sol or produce-model-cores." << endl;
+             << "option requiring assertions." << endl;
     setOption("produce-assertions", SExpr("true"));
   }
 
@@ -4370,7 +4372,7 @@ Model* SmtEngine::getModel() {
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
   d_theoryEngine->setEagerModelBuilding();
 
-  if (options::modelCoresMode() != MODEL_CORES_NONE)
+  if (options::modelCoresMode() != MODEL_CORES_NONE || options::blockModels())
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
@@ -4384,7 +4386,15 @@ Model* SmtEngine::getModel() {
       Node eae = d_private->expandDefinitions(ea, cache);
       eassertsProc.push_back(eae.toExpr());
     }
-    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
+    if( options::modelCoresMode() != MODEL_CORES_NONE )
+    {
+      ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
+    }
+    if( options::blockModels() )
+    {
+      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m);
+      assertFormula(eblocker);
+    }
   }
   m->d_inputName = d_filename;
   return m;
