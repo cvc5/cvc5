@@ -2,9 +2,9 @@
 /*! \file candidate_rewrite_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,9 +69,29 @@ void CandidateRewriteDatabase::initializeSygus(const std::vector<Node>& vars,
 }
 
 bool CandidateRewriteDatabase::addTerm(Node sol,
+                                       bool rec,
                                        std::ostream& out,
                                        bool& rew_print)
 {
+  // have we added this term before?
+  std::unordered_map<Node, bool, NodeHashFunction>::iterator itac =
+      d_add_term_cache.find(sol);
+  if (itac != d_add_term_cache.end())
+  {
+    return itac->second;
+  }
+
+  if (rec)
+  {
+    // if recursive, we first add all subterms
+    for (const Node& solc : sol)
+    {
+      // whether a candidate rewrite is printed for any subterm is irrelevant
+      bool rew_printc = false;
+      addTerm(solc, rec, out, rew_printc);
+    }
+  }
+  // register the term
   bool is_unique_term = true;
   Node eq_sol = d_sampler->registerTerm(sol);
   // eq_sol is a candidate solution that is equivalent to sol
@@ -117,9 +137,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
         bool needExport = false;
-        ExprManagerMapCollection varMap;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
+        ExprManagerMapCollection varMap;
         initializeChecker(rrChecker, em, varMap, crr, needExport);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;
@@ -252,13 +272,18 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
     // it discards it as a redundant candidate rewrite rule before
     // checking its correctness.
   }
+  d_add_term_cache[sol] = is_unique_term;
   return is_unique_term;
 }
 
-bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+bool CandidateRewriteDatabase::addTerm(Node sol, bool rec, std::ostream& out)
 {
   bool rew_print = false;
-  return addTerm(sol, out, rew_print);
+  return addTerm(sol, rec, out, rew_print);
+}
+bool CandidateRewriteDatabase::addTerm(Node sol, std::ostream& out)
+{
+  return addTerm(sol, false, out);
 }
 
 void CandidateRewriteDatabase::setSilent(bool flag) { d_silent = flag; }
@@ -298,7 +323,7 @@ bool CandidateRewriteDatabaseGen::addTerm(Node n, std::ostream& out)
     Trace("synth-rr-dbg") << "...finish." << std::endl;
   }
   Trace("synth-rr-dbg") << "Add term " << nr << " for " << tn << std::endl;
-  return itc->second.addTerm(nr, out);
+  return itc->second.addTerm(nr, false, out);
 }
 
 } /* CVC4::theory::quantifiers namespace */

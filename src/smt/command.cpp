@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Tim King, Morgan Deters, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -1358,8 +1358,7 @@ void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine)
   this->DefineFunctionCommand::invoke(smtEngine);
   if (!d_func.isNull() && d_func.getType().isBoolean())
   {
-    smtEngine->addToAssignment(
-        d_func.getExprManager()->mkExpr(kind::APPLY, d_func));
+    smtEngine->addToAssignment(d_func);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1751,14 +1750,7 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
     for (const auto& p : assignments)
     {
       vector<SExpr> v;
-      if (p.first.getKind() == kind::APPLY)
-      {
-        v.emplace_back(SExpr::Keyword(p.first.getOperator().toString()));
-      }
-      else
-      {
-        v.emplace_back(SExpr::Keyword(p.first.toString()));
-      }
+      v.emplace_back(SExpr::Keyword(p.first.toString()));
       v.emplace_back(SExpr::Keyword(p.second.toString()));
       sexprs.emplace_back(v);
     }

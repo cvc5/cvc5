@@ -2,9 +2,9 @@
 /*! \file memory_mapped_input_buffer.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Christopher L. Conway, Morgan Deters
+ **   Morgan Deters, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
-#define __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
+#ifndef CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
+#define CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H
 
 #include <antlr3input.h>
 #include <string>
@@ -39,4 +39,4 @@ MemoryMappedInputBufferNew(const std::string& filename);
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */
+#endif /* CVC4__PARSER__MEMORY_MAPPED_INPUT_BUFFER_H */

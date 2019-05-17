@@ -2,9 +2,9 @@
 /*! \file cadical.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Mathias Preiner
+ **   Mathias Preiner, Liana Hadarean
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROP__CADICAL_H
-#define __CVC4__PROP__CADICAL_H
+#ifndef CVC4__PROP__CADICAL_H
+#define CVC4__PROP__CADICAL_H
 
 #ifdef CVC4_USE_CADICAL
 
@@ -87,4 +87,4 @@ class CadicalSolver : public SatSolver
 }  // namespace CVC4
 
 #endif  // CVC4_USE_CADICAL
-#endif  // __CVC4__PROP__CADICAL_H
+#endif  // CVC4__PROP__CADICAL_H

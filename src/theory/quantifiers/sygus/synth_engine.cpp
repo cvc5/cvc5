@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -159,6 +159,7 @@ void SynthEngine::assignConjecture(Node q)
     {
       // create new smt engine to do quantifier elimination
       SmtEngine smt_qe(nm->toExprManager());
+      smt_qe.setIsInternalSubsolver();
       smt_qe.setLogic(smt::currentSmtEngine()->getLogicInfo());
       Trace("cegqi-qep") << "Property is non-ground single invocation, run "
                             "QE to obtain single invocation."

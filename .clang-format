@@ -15,5 +15,5 @@ BraceWrapping:
   BeforeCatch: true
   BeforeElse: true
 BreakBeforeBraces: Custom
+DerivePointerAlignment: false
 ...
-

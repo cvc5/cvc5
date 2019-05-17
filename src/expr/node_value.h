@@ -2,9 +2,9 @@
 /*! \file node_value.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King, Dejan Jovanovic
+ **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,8 +23,8 @@
 // circular dependency
 #include "expr/metakind.h"
 
-#ifndef __CVC4__EXPR__NODE_VALUE_H
-#define __CVC4__EXPR__NODE_VALUE_H
+#ifndef CVC4__EXPR__NODE_VALUE_H
+#define CVC4__EXPR__NODE_VALUE_H
 
 #include <stdint.h>
 
@@ -59,10 +59,10 @@ namespace kind {
 
 namespace expr {
 
-#if __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__ID + \
-    __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
+#if CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT + \
+    CVC4__EXPR__NODE_VALUE__NBITS__KIND + \
+    CVC4__EXPR__NODE_VALUE__NBITS__ID + \
+    CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN != 96
 #  error NodeValue header bit assignment does not sum to 96 !
 #endif /* sum != 96 */
 
@@ -71,10 +71,10 @@ namespace expr {
  */
 class NodeValue {
 
-  static const unsigned NBITS_REFCOUNT = __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
-  static const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
-  static const unsigned NBITS_ID = __CVC4__EXPR__NODE_VALUE__NBITS__ID;
-  static const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
+  static const unsigned NBITS_REFCOUNT = CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT;
+  static const unsigned NBITS_KIND = CVC4__EXPR__NODE_VALUE__NBITS__KIND;
+  static const unsigned NBITS_ID = CVC4__EXPR__NODE_VALUE__NBITS__ID;
+  static const unsigned NBITS_NCHILDREN = CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
 
   /** Maximum reference count possible.  Used for sticky
    *  reference-counting.  Should be (1 << num_bits(d_rc)) - 1 */
@@ -549,4 +549,4 @@ static void __attribute__((used)) debugPrintRawNodeValue(const expr::NodeValue* 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR__NODE_VALUE_H */
+#endif /* CVC4__EXPR__NODE_VALUE_H */

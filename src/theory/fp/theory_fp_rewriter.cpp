@@ -2,10 +2,10 @@
 /*! \file theory_fp_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Martin Brain, Clark Barrett, Andrew Reynolds
+ **   Martin Brain, Martin Brain, Andrew Reynolds
  ** Copyright (c) 2013  University of Oxford
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -76,9 +76,12 @@ namespace rewrite {
 
   RewriteResponse compactAbs (TNode node, bool) {
     Assert(node.getKind() == kind::FLOATINGPOINT_ABS);
-    if (node[0].getKind() == kind::FLOATINGPOINT_NEG ||
-	node[0].getKind() == kind::FLOATINGPOINT_ABS) {
-      return RewriteResponse(REWRITE_AGAIN, node[0][0]);
+    if (node[0].getKind() == kind::FLOATINGPOINT_NEG
+        || node[0].getKind() == kind::FLOATINGPOINT_ABS)
+    {
+      Node ret =
+          NodeManager::currentNM()->mkNode(kind::FLOATINGPOINT_ABS, node[0][0]);
+      return RewriteResponse(REWRITE_AGAIN, ret);
     }
 
     return RewriteResponse(REWRITE_DONE, node);

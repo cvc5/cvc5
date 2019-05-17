@@ -456,6 +456,15 @@ header = "options/quantifiers_options.h"
   help       = "interleave full saturate instantiation with other techniques"
 
 [[option]]
+  name       = "fullSaturateStratify"
+  category   = "regular"
+  long       = "fs-stratify"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "stratify effort levels in enumerative instantiation, which favors speed over fairness"
+
+[[option]]
   name       = "literalMatchMode"
   category   = "regular"
   long       = "literal-matching=MODE"
@@ -877,6 +886,15 @@ header = "options/quantifiers_options.h"
   help       = "attempt to preprocess arbitrary inputs to sygus conjectures"
 
 [[option]]
+  name       = "sygusAbduct"
+  category   = "regular"
+  long       = "sygus-abduct"
+  type       = "bool"
+  default    = "false"
+  read_only  = false
+  help       = "compute abductions using sygus"
+
+[[option]]
   name       = "ceGuidedInst"
   category   = "regular"
   long       = "cegqi"
@@ -1240,7 +1258,7 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "use sygus to enumerate and verify correctness of rewrite rules via sampling"
+  help       = "use sygus to enumerate and verify correctness of rewrite rules"
 
 [[option]]
   name       = "sygusRewSynth"
@@ -1248,7 +1266,7 @@ header = "options/quantifiers_options.h"
   long       = "sygus-rr-synth"
   type       = "bool"
   default    = "false"
-  help       = "use sygus to enumerate candidate rewrite rules via sampling"
+  help       = "use sygus to enumerate candidate rewrite rules"
 
 [[option]]
   name       = "sygusRewSynthFilterOrder"
@@ -1369,6 +1387,14 @@ header = "options/quantifiers_options.h"
   long       = "sygus-expr-miner-check-timeout=N"
   type       = "unsigned long"
   help       = "timeout (in milliseconds) for satisfiability checks in expression miners"
+  
+[[option]]
+  name       = "sygusRewSynthRec"
+  category   = "regular"
+  long       = "sygus-rr-synth-rec"
+  type       = "bool"
+  default    = "false"
+  help       = "synthesize rewrite rules over all sygus grammar types recursively"
 
 [[option]]
   name       = "sygusQueryGen"
@@ -1420,6 +1446,7 @@ header = "options/quantifiers_options.h"
   default    = "false"
   help       = "compute backwards filtering to compute whether previous solutions are filtered based on later ones"
 
+  
 [[option]]
   name       = "sygusExprMinerCheckUseExport"
   category   = "expert"
@@ -1445,15 +1472,6 @@ header = "options/quantifiers_options.h"
   type       = "bool"
   default    = "false"
   help       = "turns on full effort counterexample-based quantifier instantiation, which may resort to model-value instantiation"
-
-[[option]]
-  name       = "recurseCbqi"
-  category   = "regular"
-  long       = "cbqi-recurse"
-  type       = "bool"
-  default    = "true"
-  read_only  = true
-  help       = "turns on recursive counterexample-based quantifier instantiation"
 
 [[option]]
   name       = "cbqiSat"

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -85,6 +85,26 @@ bool TermEnumeration::mayComplete(TypeNode tn, unsigned maxCard)
     }
   }
   return mc;
+}
+
+bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
+{
+  if (!mayComplete(tn))
+  {
+    return false;
+  }
+  Node curre;
+  unsigned counter = 0;
+  do
+  {
+    curre = getEnumerateTerm(tn, counter);
+    counter++;
+    if (!curre.isNull())
+    {
+      dom.push_back(curre);
+    }
+  } while (!curre.isNull());
+  return true;
 }
 
 } /* CVC4::theory::quantifiers namespace */

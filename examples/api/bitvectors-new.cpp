@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file bitvectors.cpp
+/*! \file bitvectors-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz, Liana Hadarean, Morgan Deters
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,7 +16,7 @@
 
 #include <iostream>
 
-//#include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace std;
@@ -24,9 +24,8 @@ using namespace CVC4::api;
 
 int main()
 {
-
   Solver slv;
-  slv.setLogic("QF_BV"); // Set the logic
+  slv.setLogic("QF_BV");  // Set the logic
 
   // The following example has been adapted from the book A Hacker's Delight by
   // Henry S. Warren.
@@ -51,9 +50,9 @@ int main()
   Sort bitvector32 = slv.mkBitVectorSort(32);
 
   // Variables
-  Term x = slv.mkVar("x", bitvector32);
-  Term a = slv.mkVar("a", bitvector32);
-  Term b = slv.mkVar("b", bitvector32);
+  Term x = slv.mkConst(bitvector32, "x");
+  Term a = slv.mkConst(bitvector32, "a");
+  Term b = slv.mkConst(bitvector32, "b");
 
   // First encode the assumption that x must be equal to a or b
   Term x_eq_a = slv.mkTerm(EQUAL, x, a);
@@ -64,8 +63,9 @@ int main()
   slv.assertFormula(assumption);
 
   // Introduce a new variable for the new value of x after assignment.
-  Term new_x = slv.mkVar("new_x", bitvector32); // x after executing code (0)
-  Term new_x_ = slv.mkVar("new_x_", bitvector32); // x after executing code (1) or (2)
+  Term new_x = slv.mkConst(bitvector32, "new_x");  // x after executing code (0)
+  Term new_x_ =
+      slv.mkConst(bitvector32, "new_x_");  // x after executing code (1) or (2)
 
   // Encoding code (0)
   // new_x = x == a ? b : a;
@@ -114,9 +114,9 @@ int main()
   cout << " Expect invalid. " << endl;
   cout << " CVC4: " << slv.checkValidAssuming(v) << endl;
 
-  // Assert that a is odd 
+  // Assert that a is odd
   OpTerm extract_op = slv.mkOpTerm(BITVECTOR_EXTRACT_OP, 0, 0);
-  Term  lsb_of_a = slv.mkTerm(extract_op, a);
+  Term lsb_of_a = slv.mkTerm(BITVECTOR_EXTRACT, extract_op, a);
   cout << "Sort of " << lsb_of_a << " is " << lsb_of_a.getSort() << endl;
   Term a_odd = slv.mkTerm(EQUAL, lsb_of_a, slv.mkBitVector(1u, 1u));
   cout << "Assert " << a_odd << endl;

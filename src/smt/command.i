@@ -28,8 +28,10 @@
 %ignore CVC4::CommandSequence::begin() const;
 %ignore CVC4::CommandSequence::end() const;
 %extend CVC4::CommandSequence {
-  CVC4::JavaIteratorAdapter<CVC4::CommandSequence> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::CommandSequence>(*$self);
+  CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> iterator()
+  {
+    return CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*>(
+        *$self);
   }
 }
 
@@ -37,10 +39,10 @@
 %typemap(javainterfaces) CVC4::CommandSequence "java.lang.Iterable<edu.nyu.acsys.CVC4.Command>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::CommandSequence> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::CommandSequence> "java.util.Iterator<edu.nyu.acsys.CVC4.Command>";
+%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "class";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "java.util.Iterator<edu.nyu.acsys.CVC4.Command>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::CommandSequence> "
+%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
@@ -54,13 +56,7 @@
   }
 "
 // getNext() just allows C++ iterator access from Java-side next(), make it private
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::CommandSequence>::getNext() "private";
-
-// map the types appropriately
-%typemap(jni) CVC4::CommandSequence::const_iterator::value_type "jobject";
-%typemap(jtype) CVC4::CommandSequence::const_iterator::value_type "edu.nyu.acsys.CVC4.Command";
-%typemap(jstype) CVC4::CommandSequence::const_iterator::value_type "edu.nyu.acsys.CVC4.Command";
-%typemap(javaout) CVC4::CommandSequence::const_iterator::value_type { return $jnicall; }
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*>::getNext() "private";
 
 #endif /* SWIGJAVA */
 
@@ -71,6 +67,6 @@
 %include "bindings/java_iterator_adapter.h"
 %include "bindings/java_stream_adapters.h"
 
-%template(JavaIteratorAdapter_CommandSequence) CVC4::JavaIteratorAdapter<CVC4::CommandSequence>;
+%template(JavaIteratorAdapter_CommandSequence) CVC4::JavaIteratorAdapter<CVC4::CommandSequence, CVC4::Command*>;
 
 #endif /* SWIGJAVA */

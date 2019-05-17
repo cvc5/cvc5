@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -700,9 +700,11 @@ void TheorySetsPrivate::fullEffortCheck(){
           checkUpwardsClosure( lemmas );
           flushLemmas( lemmas );
           if( !hasProcessed() ){
-            std::vector< Node > intro_sets;
-            //for cardinality
-            if( d_card_enabled ){
+            checkDisequalities(lemmas);
+            flushLemmas(lemmas);
+            if (!hasProcessed() && d_card_enabled)
+            {
+              // for cardinality
               checkCardBuildGraph( lemmas );
               flushLemmas( lemmas );
               if( !hasProcessed() ){
@@ -712,25 +714,21 @@ void TheorySetsPrivate::fullEffortCheck(){
                   checkCardCycles( lemmas );
                   flushLemmas( lemmas );
                   if( !hasProcessed() ){
+                    std::vector<Node> intro_sets;
                     checkNormalForms( lemmas, intro_sets );
                     flushLemmas( lemmas );
+                    if (!hasProcessed() && !intro_sets.empty())
+                    {
+                      Assert(intro_sets.size() == 1);
+                      Trace("sets-intro")
+                          << "Introduce term : " << intro_sets[0] << std::endl;
+                      Trace("sets-intro") << "  Actual Intro : ";
+                      debugPrintSet(intro_sets[0], "sets-nf");
+                      Trace("sets-nf") << std::endl;
+                      Node k = getProxy(intro_sets[0]);
+                      d_sentLemma = true;
+                    }
                   }
-                }
-              }
-            }
-            if( !hasProcessed() ){
-              checkDisequalities( lemmas );
-              flushLemmas( lemmas );
-              if( !hasProcessed() ){
-                //introduce splitting on venn regions (absolute last resort)
-                if( d_card_enabled && !hasProcessed() && !intro_sets.empty() ){
-                  Assert( intro_sets.size()==1 );
-                  Trace("sets-intro") << "Introduce term : " << intro_sets[0] << std::endl;
-                  Trace("sets-intro") << "  Actual Intro : ";
-                  debugPrintSet( intro_sets[0], "sets-nf" );
-                  Trace("sets-nf") << std::endl;
-                  Node k = getProxy( intro_sets[0] );
-                  d_sentLemma = true;
                 }
               }
             }
@@ -1380,8 +1378,8 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
 
     Assert( d_nf.find( eqc )==d_nf.end() );
     bool success = true;
+    Node emp_set = getEmptySet(tn);
     if( !base.isNull() ){
-      Node emp_set = getEmptySet( tn );
       for( unsigned j=0; j<comps.size(); j++ ){
         //compare if equal
         std::vector< Node > c;
@@ -1491,12 +1489,24 @@ void TheorySetsPrivate::checkNormalForm( Node eqc, std::vector< Node >& intro_se
         Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
       }else{
         Trace("sets-nf") << "failed to build N " << eqc << std::endl;
-        Assert( false );
       }
     }else{
-      //normal form is this equivalence class
-      d_nf[eqc].push_back( eqc );
-      Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }" << std::endl;
+      // must ensure disequal from empty
+      if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set)
+          && (d_pol_mems[0].find(eqc) == d_pol_mems[0].end()
+              || d_pol_mems[0][eqc].empty()))
+      {
+        Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;
+        split(eqc.eqNode(emp_set));
+        success = false;
+      }
+      else
+      {
+        // normal form is this equivalence class
+        d_nf[eqc].push_back(eqc);
+        Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }"
+                         << std::endl;
+      }
     }
     if( success ){
       //send to parents
