@@ -1517,13 +1517,8 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   }
   Node ret = mkGeneric(dt, i, pre);
   // if it is a variable, apply the substitution
-  if (ret.getKind() == kind::BOUND_VARIABLE)
-  {
-    Assert(ret.hasAttribute(SygusVarNumAttribute()));
-    int i = ret.getAttribute(SygusVarNumAttribute());
-    Assert(Node::fromExpr(dt.getSygusVarList())[i] == ret);
-    return args[i];
-  }
+  ret = datatypes::DatatypesRewriter::applySygusArgs(dt,sop,ret,args);
+  // rewrite
   ret = Rewriter::rewrite(ret);
   return ret;
 }

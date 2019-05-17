@@ -143,63 +143,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       Node ret = mkSygusTerm(dt, i, children);
       // if it is a variable, apply the substitution
-      if (ret.getKind() == BOUND_VARIABLE)
-      {
-        Assert(ret.hasAttribute(SygusVarNumAttribute()));
-        int vn = ret.getAttribute(SygusVarNumAttribute());
-        Assert(Node::fromExpr(dt.getSygusVarList())[vn] == ret);
-        ret = args[vn];
-      }
-      else
-      {
-        TNode val;
-        if (!op.hasAttribute(SygusVarFreeAttribute()))
-        {
-          std::unordered_set<Node, NodeHashFunction> fvs;
-          if (expr::getFreeVariables(op, fvs))
-          {
-            if (fvs.size() == 1)
-            {
-              for (const Node& v : fvs)
-              {
-                val = v;
-              }
-            }
-            else
-            {
-              val = op;
-            }
-          }
-          Trace("dt-sygus-fv")
-              << "Free var in " << op << " : " << val << std::endl;
-          op.setAttribute(SygusVarFreeAttribute(), val);
-        }
-        else
-        {
-          val = op.getAttribute(SygusVarFreeAttribute());
-        }
-        if (!val.isNull())
-        {
-          if (val.getKind() == BOUND_VARIABLE)
-          {
-            int vn = val.getAttribute(SygusVarNumAttribute());
-            TNode sub = args[vn];
-            ret = ret.substitute(val, sub);
-          }
-          else
-          {
-            // do the full substitution
-            std::vector<Node> vars;
-            Node bvl = Node::fromExpr(dt.getSygusVarList());
-            for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
-            {
-              vars.push_back(bvl[i]);
-            }
-            ret = ret.substitute(
-                vars.begin(), vars.end(), args.begin(), args.end());
-          }
-        }
-      }
+      ret = applySygusArgs(dt,op,ret,args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
@@ -237,6 +181,67 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
+Node DatatypesRewriter::applySygusArgs(const Datatype& dt,Node op,
+                                      Node n,
+                                      const std::vector<Node>& args)
+{
+  if (n.getKind() == BOUND_VARIABLE)
+  {
+    Assert(n.hasAttribute(SygusVarNumAttribute()));
+    int vn = n.getAttribute(SygusVarNumAttribute());
+    Assert(Node::fromExpr(dt.getSygusVarList())[vn] == n);
+    return args[vn];
+  }
+  // n is an application of operator op.
+  // We must compute the free variables in op to determine if there are
+  // any substitutions we need to make to n. 
+  TNode val;
+  if (!op.hasAttribute(SygusVarFreeAttribute()))
+  {
+    std::unordered_set<Node, NodeHashFunction> fvs;
+    if (expr::getFreeVariables(op, fvs))
+    {
+      if (fvs.size() == 1)
+      {
+        for (const Node& v : fvs)
+        {
+          val = v;
+        }
+      }
+      else
+      {
+        val = op;
+      }
+    }
+    Trace("dt-sygus-fv")
+        << "Free var in " << op << " : " << val << std::endl;
+    op.setAttribute(SygusVarFreeAttribute(), val);
+  }
+  else
+  {
+    val = op.getAttribute(SygusVarFreeAttribute());
+  }
+  if (val.isNull())
+  {
+    return n;
+  }
+  if (val.getKind() == BOUND_VARIABLE)
+  {
+    int vn = val.getAttribute(SygusVarNumAttribute());
+    TNode sub = args[vn];
+    return n.substitute(val, sub);
+  }
+  // do the full substitution
+  std::vector<Node> vars;
+  Node bvl = Node::fromExpr(dt.getSygusVarList());
+  for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
+  {
+    vars.push_back(bvl[i]);
+  }
+  return n.substitute(vars.begin(), vars.end(), args.begin(), args.end());
+}
+ 
+ 
 Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
 {
   Assert(op.getKind() != BUILTIN);

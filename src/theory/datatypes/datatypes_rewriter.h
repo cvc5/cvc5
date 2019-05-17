@@ -157,6 +157,15 @@ public:
  static Node mkSygusTerm(const Datatype& dt,
                          unsigned i,
                          const std::vector<Node>& children);
+ /** 
+  * n is a builtin term that is an application of operator op.
+  * 
+  * This returns an n' such that (eval n args) is n', where n' is a instance of
+  * n for the appropriate substitution.
+  */
+ static Node applySygusArgs(const Datatype& dt,Node op,
+                            Node n,
+                            const std::vector<Node>& args);
  /**
   * Get the builtin sygus operator for constructor term n of sygus datatype
   * type. For example, if n is the term C_+( d1, d2 ) where C_+ is a sygus
