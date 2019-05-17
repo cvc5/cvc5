@@ -1175,14 +1175,16 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
+#ifndef CVC4_INCREMENTAL_CADICAL
     if (options::incrementalSolving()
         && options::incrementalSolving.wasSetByUser())
     {
-      throw OptionException(
-          std::string("CaDiCaL does not support incremental mode. \n\
-                         Try --bv-sat-solver=cryptominisat or "
-                      "--bv-sat-solver=minisat"));
+      throw OptionException(std::string(
+          "CaDiCaL version used does not support incremental mode. \n\
+                       Update CaDiCal or Try --bv-sat-solver=cryptominisat or "
+          "--bv-sat-solver=minisat"));
     }
+#endif
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
