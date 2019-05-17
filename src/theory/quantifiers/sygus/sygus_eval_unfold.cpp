@@ -134,12 +134,12 @@ void SygusEvalUnfold::registerModelValue(Node a,
         if (options::sygusEvalUnfoldBool())
         {
           Node bTermUse = bTerm;
-          if( bTerm.getKind()==APPLY_UF )
+          if (bTerm.getKind() == APPLY_UF)
           {
             // if the builtin term is non-beta-reduced application of lambda,
             // we look at the body of the lambda.
             Node bTermOp = bTerm.getOperator();
-            if( bTermOp.getKind()==LAMBDA )
+            if (bTermOp.getKind() == LAMBDA)
             {
               bTermUse = bTermOp[0];
             }

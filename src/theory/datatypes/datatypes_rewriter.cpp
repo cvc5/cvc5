@@ -153,14 +153,14 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       else
       {
         TNode val;
-        if( !op.hasAttribute(SygusVarFreeAttribute()) )
+        if (!op.hasAttribute(SygusVarFreeAttribute()))
         {
           std::unordered_set<Node, NodeHashFunction> fvs;
-          if( expr::getFreeVariables(op,fvs) )
+          if (expr::getFreeVariables(op, fvs))
           {
-            if( fvs.size()==1 )
+            if (fvs.size() == 1)
             {
-              for( const Node& v : fvs )
+              for (const Node& v : fvs)
               {
                 val = v;
               }
@@ -170,31 +170,33 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
               val = op;
             }
           }
-          Trace("dt-sygus-fv") << "Free var in " << op << " : " << val << std::endl;
-          op.setAttribute(SygusVarFreeAttribute(),val);
+          Trace("dt-sygus-fv")
+              << "Free var in " << op << " : " << val << std::endl;
+          op.setAttribute(SygusVarFreeAttribute(), val);
         }
         else
         {
           val = op.getAttribute(SygusVarFreeAttribute());
         }
-        if( !val.isNull() )
+        if (!val.isNull())
         {
-          if( val.getKind()==BOUND_VARIABLE )
+          if (val.getKind() == BOUND_VARIABLE)
           {
             int vn = val.getAttribute(SygusVarNumAttribute());
             TNode sub = args[vn];
-            ret = ret.substitute(val,sub);
+            ret = ret.substitute(val, sub);
           }
           else
           {
             // do the full substitution
-            std::vector< Node > vars;
-            Node bvl = Node::fromExpr( dt.getSygusVarList() );
-            for( unsigned i=0, nvars = bvl.getNumChildren(); i<nvars; i++ )
+            std::vector<Node> vars;
+            Node bvl = Node::fromExpr(dt.getSygusVarList());
+            for (unsigned i = 0, nvars = bvl.getNumChildren(); i < nvars; i++)
             {
-              vars.push_back( bvl[i] );
+              vars.push_back(bvl[i]);
             }
-            ret = ret.substitute(vars.begin(),vars.end(),args.begin(),args.end());
+            ret = ret.substitute(
+                vars.begin(), vars.end(), args.begin(), args.end());
           }
         }
       }

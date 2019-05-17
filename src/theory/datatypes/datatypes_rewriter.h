@@ -51,15 +51,14 @@ struct SygusSymBreakOkAttributeId
 typedef expr::Attribute<SygusSymBreakOkAttributeId, bool>
     SygusSymBreakOkAttribute;
 
-
 /** sygus var free
- * 
+ *
  */
 struct SygusVarFreeAttributeId
 {
 };
-typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;    
-    
+typedef expr::Attribute<SygusVarFreeAttributeId, Node> SygusVarFreeAttribute;
+
 namespace datatypes {
 
 class DatatypesRewriter {

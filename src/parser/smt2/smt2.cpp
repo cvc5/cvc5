@@ -1258,15 +1258,15 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   if (!args.empty())
   {
     bool pureVar = true;
-    for( unsigned i=0, nchild = op.getNumChildren(); i<nchild; i++ )
+    for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
     {
-      if( std::find( args.begin(), args.end(), op[i] )==args.end() )
+      if (std::find(args.begin(), args.end(), op[i]) == args.end())
       {
         pureVar = false;
         break;
       }
     }
-    if( pureVar && op.hasOperator() )
+    if (pureVar && op.hasOperator())
     {
       // optimization: just use the operator if it an application to only vars
       op = op.getOperator();
@@ -1280,7 +1280,9 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
       op = getExprManager()->mkExpr(kind::LAMBDA, lbvl, op);
     }
   }
-  Trace("parser-sygus2") << "Generated operator " << op << ", #args/cargs=" << args.size() << "/" << cargs.size() << std::endl;
+  Trace("parser-sygus2") << "Generated operator " << op
+                         << ", #args/cargs=" << args.size() << "/"
+                         << cargs.size() << std::endl;
   std::stringstream ss;
   ss << op.getKind();
   dt.addSygusConstructor(op, ss.str(), cargs, spc);
@@ -1291,26 +1293,30 @@ Expr Smt2::purifySygusGTerm(Expr term,
                             std::vector<Expr>& args,
                             std::vector<Type>& cargs) const
 {
-  Trace("parser-sygus2-debug") << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren() << std::endl;
+  Trace("parser-sygus2-debug")
+      << "purifySygusGTerm: " << term << " #nchild=" << term.getNumChildren()
+      << std::endl;
   std::map<Expr, Type>::iterator itn = ntsToUnres.find(term);
   if (itn != ntsToUnres.end())
   {
     Expr ret = getExprManager()->mkBoundVar(term.getType());
-    Trace("parser-sygus2-debug") << "...unresolved non-terminal, intro " << ret << std::endl;
+    Trace("parser-sygus2-debug")
+        << "...unresolved non-terminal, intro " << ret << std::endl;
     args.push_back(ret);
     cargs.push_back(itn->second);
     return ret;
   }
   std::vector<Expr> pchildren;
   // FIXME: this is probably wrong
-  if( term.hasOperator() && !term.getOperator().isConst() )
+  if (term.hasOperator() && !term.getOperator().isConst())
   {
     pchildren.push_back(term.getOperator());
   }
   bool childChanged = false;
-  for (unsigned i=0, nchild = term.getNumChildren(); i < nchild; i++)
+  for (unsigned i = 0, nchild = term.getNumChildren(); i < nchild; i++)
   {
-    Trace("parser-sygus2-debug") << "......purify child " << i << " : " << term[i] << std::endl;
+    Trace("parser-sygus2-debug")
+        << "......purify child " << i << " : " << term[i] << std::endl;
     Expr ptermc = purifySygusGTerm(term[i], ntsToUnres, args, cargs);
     pchildren.push_back(ptermc);
     childChanged = childChanged || ptermc != term[i];
@@ -1321,7 +1327,8 @@ Expr Smt2::purifySygusGTerm(Expr term,
     return term;
   }
   Expr nret = getExprManager()->mkExpr(term.getKind(), pchildren);
-  Trace("parser-sygus2-debug") << "...child changed, return " << nret << std::endl;
+  Trace("parser-sygus2-debug")
+      << "...child changed, return " << nret << std::endl;
   return nret;
 }
 
