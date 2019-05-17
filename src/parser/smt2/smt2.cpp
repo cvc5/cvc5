@@ -122,6 +122,11 @@ void Smt2::addBitvectorOperators() {
 }
 
 void Smt2::addStringOperators() {
+  defineVar("re.all",
+            getSolver()
+                ->mkTerm(api::REGEXP_STAR, getSolver()->mkRegexpSigma())
+                .getExpr());
+
   addOperator(kind::STRING_CONCAT, "str.++");
   addOperator(kind::STRING_LENGTH, "str.len");
   addOperator(kind::STRING_SUBSTR, "str.substr" );
@@ -871,7 +876,9 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
           children.push_back( it->second );
         }
       }
-      Kind sk = sop.getKind() != kind::BUILTIN ? kind::APPLY : getExprManager()->operatorToKind(sop);
+      Kind sk = sop.getKind() != kind::BUILTIN
+                    ? kind::APPLY_UF
+                    : getExprManager()->operatorToKind(sop);
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
       Expr e = getExprManager()->mkExpr( sk, children );
       Debug("parser-sygus") << ": constructed " << e << ", which has type " << e.getType() << std::endl;
@@ -1084,7 +1091,7 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
         }
         children.insert(children.end(), largs.begin(), largs.end());
         Kind sk = ops[i].getKind() != kind::BUILTIN
-                      ? kind::APPLY
+                      ? kind::APPLY_UF
                       : getExprManager()->operatorToKind(ops[i]);
         Expr body = getExprManager()->mkExpr(sk, children);
         // replace by lambda
@@ -1143,14 +1150,13 @@ void Smt2::mkSygusDatatype( CVC4::Datatype& dt, std::vector<CVC4::Expr>& ops,
             std::vector<Expr> largs;
             Expr lbvl = makeSygusBoundVarList(dt, i, ftypes, largs);
             largs.insert(largs.begin(), ops[i]);
-            Expr body = getExprManager()->mkExpr(kind::APPLY, largs);
+            Expr body = getExprManager()->mkExpr(kind::APPLY_UF, largs);
             ops[i] = getExprManager()->mkExpr(kind::LAMBDA, lbvl, body);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }
           else
           {
-            ops[i] = getExprManager()->mkExpr(kind::APPLY, ops[i]);
             Debug("parser-sygus") << "  ...replace op : " << ops[i]
                                   << std::endl;
           }

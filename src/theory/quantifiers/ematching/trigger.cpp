@@ -232,8 +232,8 @@ Trigger* Trigger::mkTrigger( QuantifiersEngine* qe, Node f, std::vector< Node >&
                          << std::endl;
   std::map<Node, std::vector<Node> > ho_apps;
   HigherOrderTrigger::collectHoVarApplyTerms(f, trNodes, ho_apps);
-  Trace("trigger") << "...got " << ho_apps.size()
-                   << " higher-order applications." << std::endl;
+  Trace("trigger-debug") << "...got " << ho_apps.size()
+                         << " higher-order applications." << std::endl;
   Trigger* t;
   if (!ho_apps.empty())
   {
@@ -488,10 +488,15 @@ void Trigger::collectPatTerms2( Node q, Node n, std::map< Node, std::vector< Nod
           // if child was not already removed
           if( tinfo.find( added2[i] )!=tinfo.end() ){
             if( tstrt==quantifiers::TRIGGER_SEL_MAX || ( tstrt==quantifiers::TRIGGER_SEL_MIN_SINGLE_MAX && !nu_single ) ){
-              //discard all subterms
-              Trace("auto-gen-trigger-debug2") << "......remove it." << std::endl;
-              visited[ added2[i] ].clear();
-              tinfo.erase( added2[i] );
+              // discard all subterms
+              // do not remove if it has smaller weight
+              if (tinfo[nu].d_weight <= tinfo[added2[i]].d_weight)
+              {
+                Trace("auto-gen-trigger-debug2")
+                    << "......remove it." << std::endl;
+                visited[added2[i]].clear();
+                tinfo.erase(added2[i]);
+              }
             }else{
               if( tinfo[ nu ].d_fv.size()==tinfo[ added2[i] ].d_fv.size() ){
                 if (tinfo[nu].d_weight >= tinfo[added2[i]].d_weight)
@@ -548,21 +553,11 @@ int Trigger::getTriggerWeight( Node n ) {
   {
     return 0;
   }
-  else if (isAtomicTrigger(n))
+  if (isAtomicTrigger(n))
   {
     return 1;
-  }else{
-    if( options::relationalTriggers() ){
-      if( isRelationalTrigger( n ) ){
-        for( unsigned i=0; i<2; i++ ){
-          if( n[i].getKind()==INST_CONSTANT && !quantifiers::TermUtil::hasInstConstAttr( n[1-i] ) ){
-            return 0;
-          }
-        }
-      }
-    }
-    return 2;
   }
+  return 2;
 }
 
 bool Trigger::isLocalTheoryExt( Node n, std::vector< Node >& vars, std::vector< Node >& patTerms ) {

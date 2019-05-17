@@ -92,8 +92,9 @@ namespace CVC4 {
 %ignore CVC4::Expr::begin() const;
 %ignore CVC4::Expr::end() const;
 %extend CVC4::Expr {
-  CVC4::JavaIteratorAdapter<CVC4::Expr> iterator() {
-    return CVC4::JavaIteratorAdapter<CVC4::Expr>(*$self);
+  CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> iterator()
+  {
+    return CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>(*$self);
   }
 }
 
@@ -101,10 +102,10 @@ namespace CVC4 {
 %typemap(javainterfaces) CVC4::Expr "java.lang.Iterable<edu.nyu.acsys.CVC4.Expr>";
 
 // the JavaIteratorAdapter should not be public, and implements Iterator
-%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Expr> "class";
-%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr> "java.util.Iterator<edu.nyu.acsys.CVC4.Expr>";
+%typemap(javaclassmodifiers) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "class";
+%typemap(javainterfaces) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "java.util.Iterator<edu.nyu.acsys.CVC4.Expr>";
 // add some functions to the Java side (do it here because there's no way to do these in C++)
-%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Expr> "
+%typemap(javacode) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr> "
   public void remove() {
     throw new java.lang.UnsupportedOperationException();
   }
@@ -118,13 +119,7 @@ namespace CVC4 {
   }
 "
 // getNext() just allows C++ iterator access from Java-side next(), make it private
-%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Expr>::getNext() "private";
-
-// map the types appropriately
-%typemap(jni) CVC4::Expr::const_iterator::value_type "jobject";
-%typemap(jtype) CVC4::Expr::const_iterator::value_type "edu.nyu.acsys.CVC4.Expr";
-%typemap(jstype) CVC4::Expr::const_iterator::value_type "edu.nyu.acsys.CVC4.Expr";
-%typemap(javaout) CVC4::Expr::const_iterator::value_type { return $jnicall; }
+%javamethodmodifiers CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>::getNext() "private";
 
 #endif /* SWIGJAVA */
 
@@ -161,7 +156,7 @@ namespace CVC4 {
 %include "bindings/java_iterator_adapter.h"
 %include "bindings/java_stream_adapters.h"
 
-%template(JavaIteratorAdapter_Expr) CVC4::JavaIteratorAdapter<CVC4::Expr>;
+%template(JavaIteratorAdapter_Expr) CVC4::JavaIteratorAdapter<CVC4::Expr, CVC4::Expr>;
 
 #endif /* SWIGJAVA */
 
