@@ -276,10 +276,10 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   std::vector<Node> schildren;
   Node op = Node::fromExpr(dt[i].getSygusOp());
   Trace("dt-sygus-util") << "Operator is " << op << std::endl;
-  if( children.empty() )
+  if (children.empty())
   {
     // no children, return immediately
-    Trace("dt-sygus-util") << "...return direct op"<< std::endl;
+    Trace("dt-sygus-util") << "...return direct op" << std::endl;
     return op;
   }
   // if it is the any constant, we simply return the child

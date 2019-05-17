@@ -1256,7 +1256,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   Trace("parser-sygus2") << "Purified operator " << op
                          << ", #args/cargs=" << args.size() << "/"
                          << cargs.size() << std::endl;
-  std::shared_ptr<SygusPrintCallback> spc;    
+  std::shared_ptr<SygusPrintCallback> spc;
   // callback prints as the expression
   spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
   if (!args.empty())
@@ -1270,7 +1270,8 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
         break;
       }
     }
-    Trace("parser-sygus2") << "Pure var is " << pureVar << ", hasOp=" << op.hasOperator() << std::endl;
+    Trace("parser-sygus2") << "Pure var is " << pureVar
+                           << ", hasOp=" << op.hasOperator() << std::endl;
     if (pureVar && op.hasOperator())
     {
       // optimization: just use the operator if it an application to only vars
