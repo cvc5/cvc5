@@ -32,14 +32,13 @@ class ModelBlocker
 {
  public:
   /** get model blocker
-   * 
+   *
    * This returns a disjunction of literals ~L1 V ... V ~Ln with the following
    * properties:
    * (1) L1 ... Ln hold in the current model (given by argument m),
    * (2) L1 ... Ln are literals that occur in assertions.
    */
-  static Expr getModelBlocker(const std::vector<Expr>& assertions,
-                              Model* m);
+  static Expr getModelBlocker(const std::vector<Expr>& assertions, Model* m);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4
