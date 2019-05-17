@@ -279,6 +279,7 @@ Node DatatypesRewriter::mkSygusTerm(const Datatype& dt,
   if( children.empty() )
   {
     // no children, return immediately
+    Trace("dt-sygus-util") << "...return direct op"<< std::endl;
     return op;
   }
   // if it is the any constant, we simply return the child
