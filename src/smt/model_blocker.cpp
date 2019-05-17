@@ -55,9 +55,13 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       Trace("model-blocker") << "  " << cur << std::endl;
     }
   }
-  
-  
   NodeManager* nm = NodeManager::currentNM();
+  if( asserts.empty() )
+  {
+    Node blockTriv = nm->mkConst(false);
+    Trace("model-blocker") << "...model blocker is (trivially) " << blockTriv << std::endl;
+    return blockTriv.toExpr();
+  }
 
   Node formula = asserts.size() > 1? nm->mkNode(AND, asserts) : asserts[0];
   std::unordered_map<TNode, Node, TNodeHashFunction> visited;
