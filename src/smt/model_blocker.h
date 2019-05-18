@@ -33,28 +33,12 @@ class ModelBlocker
  public:
   /** get model blocker
    *
-   * This function updates model m so that it has information regarding its
-   * "model core". A model core for m is a substitution of the form
-   *    { s1 -> m(s1), ..., sn -> m(sn) }
-   *
-   * The criteria for what consistutes a model core given by mode. For
-   * example, if mode is MODEL_CORES_SIMPLE, then a model core corresponds to a
-   * subset of assignments from the model that suffice to show that the set of
-   * assertions, interpreted conjunctively, evaluates to true under the
-   * substitution corresponding to the model core.
-   *
-   * The model core is recorded on the model object m via calls to
-   * m->setUsingModelCore, m->recordModelCoreSymbol, for details see
-   * smt/model.h. In particular, we call:
-   *   m->usingModelCore();
-   *   m->recordModelCoreSymbol(s1); ... m->recordModelCoreSymbol(sn);
-   * such that { s1 -> m(s1), ..., sn -> m(sn) } is the model core computed
-   * by this class.
-   *
-   * If m is not a model for assertions, this method returns null.
+   * This returns a disjunction of literals ~L1 V ... V ~Ln with the following
+   * properties:
+   * (1) L1 ... Ln hold in the current model (given by argument m),
+   * (2) L1 ... Ln are literals that occur in assertions.
    */
-  static Expr getModelBlocker(const std::vector<Expr>& assertions,
-                              Model* m);
+  static Expr getModelBlocker(const std::vector<Expr>& assertions, Model* m);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4

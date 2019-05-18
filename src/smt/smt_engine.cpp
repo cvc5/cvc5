@@ -84,8 +84,8 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
-#include "smt/model_core_builder.h"
 #include "smt/model_blocker.h"
+#include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
 #include "smt/update_ostream.h"
@@ -4386,11 +4386,12 @@ Model* SmtEngine::getModel() {
       Node eae = d_private->expandDefinitions(ea, cache);
       eassertsProc.push_back(eae.toExpr());
     }
-    if( options::modelCoresMode() != MODEL_CORES_NONE )
+    if (options::modelCoresMode() != MODEL_CORES_NONE)
     {
-      ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
+      ModelCoreBuilder::setModelCore(
+          eassertsProc, m, options::modelCoresMode());
     }
-    if( options::blockModels() )
+    if (options::blockModels())
     {
       Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m);
       assertFormula(eblocker);
