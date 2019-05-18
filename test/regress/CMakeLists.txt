@@ -451,6 +451,7 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
   regress0/fp/rti_3_5_bug.smt2
   regress0/fp/rti_3_5_bug_report.smt2
