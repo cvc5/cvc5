@@ -135,9 +135,9 @@ QF_ALIA)
   trywith 70 --decision=justification --arrays-weak-equiv
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
-QF_SLIA)
-  trywith 500 --strings-exp --rewrite-divk --lang=smt2.6.1
-  finishwith --strings-exp --rewrite-divk --lang=smt2.6.1 --strings-fmf
+QF_S|QF_SLIA)
+  trywith 300 --strings-exp --rewrite-divk --lang=smt2.6.1 --strings-fmf
+  finishwith --strings-exp --rewrite-divk --lang=smt2.6.1
   ;;
 QF_ABVFP)
   finishwith
