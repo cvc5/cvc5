@@ -4021,23 +4021,6 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
   }
-  else if (n.getKind() == STRING_STRIDOF)
-  {
-    Node lower = n[2];
-    if (!TheoryStringsRewriter::checkEntailArith(lower)) {
-      lower = d_zero;
-    }
-    Node neg = Rewriter::rewrite(nm->mkNode(EQUAL, n, d_neg_one));
-    Node geq = Rewriter::rewrite(nm->mkNode(GEQ, n, lower));
-    Node lem = nm->mkNode(OR, neg, geq);
-    Trace("strings-lemma") << "Strings::Lemma STRIDOF : " << lem << std::endl;
-    Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
-    //d_out->lemma(lem);
-    //d_out->requirePhase(neg, true);
-
-    lem = Rewriter::rewrite(nm->mkNode(GT, nm->mkNode(STRING_LENGTH, n[0]), n));
-    d_out->lemma(lem);
-  }
 }
 
 bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
