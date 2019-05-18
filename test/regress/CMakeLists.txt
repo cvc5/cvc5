@@ -1768,7 +1768,6 @@ set(regress_2_tests
   regress2/strings/cmu-prereg-fmf.smt2
   regress2/strings/cmu-repl-len-nterm.smt2
   regress2/strings/issue918.smt2
-  regress2/strings/non_termination_regular_expression6.smt2
   regress2/strings/norn-dis-0707-3.smt2
   regress2/strings/repl-repl.smt2
   regress2/strings/replaceall-diffrange.smt2
@@ -2142,6 +2141,9 @@ set(regression_disabled_tests
   regress2/quantifiers/small-bug1-fixpoint-3.smt2
   regress2/xs-11-20-5-2-5-3.smt
   regress2/xs-11-20-5-2-5-3.smt2
+  # This test does not seem to terminate with aggressive skolem sharing (PR
+  # #2761)
+  regress2/strings/non_termination_regular_expression6.smt2
 )
 
 #-----------------------------------------------------------------------------#
