@@ -9,7 +9,7 @@
 (set-info :status unsat)
 
 (declare-fun r () (_ FloatingPoint 5 9))
-(declare-fun rr () (_ FloatingPoint 5 9) ((_ to_fp 5 9) RNA (fp #b1 #b00000 #b1111111110)))
+(define-fun rr () (_ FloatingPoint 5 9) ((_ to_fp 5 9) RNA (fp #b1 #b00000 #b1111111110)))
 
 ; Let's work out this one out manually
 ; #b1111111110 is an significand of
