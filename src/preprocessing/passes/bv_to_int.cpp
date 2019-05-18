@@ -324,7 +324,25 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_AND:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Assert(granularity > 0);
+              if (granularity > bvsize) {
+                granularity = bvsize;
+              } else {
+                while (bvsize % granularity != 0) {
+                  granularity = granularity - 1;
+                }
+              }
+              Node new_node = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](int x, int y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    return x * y;
+                  }
+                  );
               break;
             }
             case kind::BITVECTOR_OR:
@@ -509,6 +527,19 @@ PreprocessingPassResult BVToInt::applyInternal(
   Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, d_rangeAssertions));
   assertionsToPreprocess->push_back(rangeAssertions);
   return PreprocessingPassResult::NO_CONFLICT;
+}
+
+BVToInt::createBitwiseNode(vector<Node> children, uint32_t bvsize, unit32_t granularity, std::function f) {
+  vector<Node> sumElems;
+
+  for (uint32_t i=0; i < (2 ^ granularity); i++) {
+    for (uint32_t j=0; i < (2 ^ granularity); j++) {
+      
+    }
+  }
+  uint32_t sumSize = bvsize / granularity;
+  for (uint32_t exponent=granularity-1; exponent < bvsize; exponent+=granularity) {
+    Node current = d_nm->mkNode(kind::MULT, ite, pow2(exponent));
 }
 
 
