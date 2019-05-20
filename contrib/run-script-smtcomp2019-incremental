@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=./cvc4-application
+cvc4=./cvc4
 
 line=""
 while [[ -z "$line" ]]; do
