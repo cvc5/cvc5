@@ -117,6 +117,23 @@ SatValue CadicalSolver::solve(long unsigned int&)
   Unimplemented("Setting limits for CaDiCaL not supported yet");
 };
 
+SatValue CadicalSolver::solve(const std::vector<SatLiteral>& assumptions)
+{
+#ifdef CVC4_INCREMENTAL_CADICAL
+  TimerStat::CodeTimer codeTimer(d_statistics.d_solveTime);
+  for (const SatLiteral& lit : assumptions)
+  {
+    d_solver->assume(toCadicalLit(lit));
+  }
+  SatValue res = toSatValue(d_solver->solve());
+  d_okay = (res == SAT_VALUE_TRUE);
+  ++d_statistics.d_numSatCalls;
+  return res;
+#else
+  Unimplemented("CaDiCaL version used does not support incremental solving");
+#endif
+}
+
 void CadicalSolver::interrupt() { d_solver->terminate(); }
 
 SatValue CadicalSolver::value(SatLiteral l)

@@ -475,7 +475,6 @@ void Smt2Printer::toStream(std::ostream& out,
   }
   switch(Kind k = n.getKind()) {
     // builtin theory
-  case kind::APPLY: break;
   case kind::EQUAL:
   case kind::DISTINCT:
     out << smtKindString(k, d_variant) << " ";
@@ -965,7 +964,6 @@ static string smtKindString(Kind k, Variant v)
 {
   switch(k) {
     // builtin theory
-  case kind::APPLY: break;
   case kind::EQUAL: return "=";
   case kind::DISTINCT: return "distinct";
   case kind::CHAIN: break;
@@ -1045,6 +1043,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_NEG: return "bvneg";
   case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
+  case kind::BITVECTOR_UREM_TOTAL:
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
   case kind::BITVECTOR_SREM: return "bvsrem";

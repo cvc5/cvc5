@@ -277,7 +277,7 @@ class TermDb : public QuantifiersUtil {
   */
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
-  bool isTermEligibleForInstantiation(TNode n, TNode f, bool print = false);
+  bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
   /** is r a inst closure node?

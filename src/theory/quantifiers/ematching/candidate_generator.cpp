@@ -173,16 +173,18 @@ void CandidateGeneratorQEAll::reset( Node eqc ) {
 }
 
 Node CandidateGeneratorQEAll::getNextCandidate() {
+  quantifiers::TermDb* tdb = d_qe->getTermDatabase();
   while( !d_eq.isFinished() ){
     TNode n = (*d_eq);
     ++d_eq;
     if( n.getType().isComparableTo( d_match_pattern_type ) ){
-      TNode nh = d_qe->getTermDatabase()->getEligibleTermInEqc( n );
+      TNode nh = tdb->getEligibleTermInEqc(n);
       if( !nh.isNull() ){
         if( options::instMaxLevel()!=-1 || options::lteRestrictInstClosure() ){
           nh = d_qe->getInternalRepresentative( nh, d_f, d_index );
           //don't consider this if already the instantiation is ineligible
-          if( !d_qe->getTermDatabase()->isTermEligibleForInstantiation( nh, d_f, false ) ){
+          if (!tdb->isTermEligibleForInstantiation(nh, d_f))
+          {
             nh = Node::null();
           }
         }

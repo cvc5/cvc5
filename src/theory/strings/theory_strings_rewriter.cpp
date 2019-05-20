@@ -599,30 +599,9 @@ Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
 
-  NodeManager* nm = NodeManager::currentNM();
-
   // cases where we can solve the equality
-  for (unsigned i = 0; i < 2; i++)
-  {
-    if (node[i].isConst())
-    {
-      Node on = node[1 - i];
-      Kind onk = on.getKind();
-      if (onk == STRING_STOI)
-      {
-        Rational r = node[i].getConst<Rational>();
-        int sgn = r.sgn();
-        Node onEq;
-        std::stringstream ss;
-        if (sgn >= 0)
-        {
-          ss << r.getNumerator();
-        }
-        Node new_ret = on[0].eqNode(nm->mkConst(String(ss.str())));
-        return returnRewrite(node, new_ret, "stoi-solve");
-      }
-    }
-  }
+
+  // notice we cannot rewrite str.to.int(x)=n to x="n" due to leading zeroes.
 
   return node;
 }
@@ -1490,7 +1469,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       if(s.isNumber()) {
         retNode = nm->mkConst(s.toNumber());
       } else {
-        retNode = nm->mkConst(::CVC4::Rational(-1));
+        retNode = nm->mkConst(Rational(-1));
       }
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
