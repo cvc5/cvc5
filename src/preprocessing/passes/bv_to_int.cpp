@@ -336,6 +336,8 @@ Node BVToInt::bvToInt(Node n)
                     if (x == 0 && y == 1) return (uint32_t)0;
                     if (x == 1 && y == 0) return (uint32_t)0;
                     if (x == 1 && y == 1) return (uint32_t)1;
+                    Assert(false);
+                    //TODO to the compiler it looks like an incomplete function. what to do?
                   }
                   );
               d_bvToIntCache[current] = Rewriter::rewrite(newNode);
