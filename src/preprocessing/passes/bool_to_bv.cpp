@@ -186,7 +186,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
       return;
     }
 
-    if (!safe_to_rebuild && force && n.getType().isBoolean())
+    if (!safe_to_rebuild && force && fromCache(n).getType().isBoolean())
     {
       if (needToRebuild(n))
       {
@@ -212,7 +212,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   else if (force && fromCache(n).getType().isBoolean())
   {
     // force booleans (which haven't already been converted) to bit-vector
-    // needed maintain the invariant that all boolean children
+    // needed to maintain the invariant that all boolean children
     // have been converted (even constants and variables)
     d_lowerCache[n] =
       nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
@@ -287,6 +287,11 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   Kind k = n.getKind();
   NodeManager* nm = NodeManager::currentNM();
   NodeBuilder<> builder(new_kind);
+
+  Debug("bool-to-bv") << "BoolToBV::rebuildNode with " << n
+                      << " and new_kind = " << kindToString(new_kind)
+                      << std::endl;
+
   if ((options::boolToBitvector() == BOOL_TO_BV_ALL) && (new_kind != k))
   {
     ++(d_statistics.d_numTermsLowered);
