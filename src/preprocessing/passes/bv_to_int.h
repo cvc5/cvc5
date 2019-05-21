@@ -39,6 +39,9 @@ class BVToInt : public PreprocessingPass
  protected:
     PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
+    Node createBitwiseNode(vector<Node> children, uint32_t bvsize, uint32_t granularity, uint32_t (*f)(uint32_t, uint32_t));
+Node createITEFromTable(Node x, Node y, uint32_t granularity, std::map<std::pair<uint32_t, uint32_t>, uint32_t> table);
+
 
     Node bvToInt(Node n);
     Node mkRangeConstraint(Node newVar, size_t k);
