@@ -21,6 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
+#include <math.h>
 
 #include "expr/node.h"
 #include "theory/rewriter.h"
@@ -227,7 +228,6 @@ Node BVToInt::bvToInt(Node n)
 	        break;
 	      }
               default:
-                cout << "panda " << current.toString() << " " << current.getKind() << std::endl;
                 throw TypeCheckingException(
                     current.toExpr(),
                     string("Cannot translate const: ")
@@ -326,48 +326,119 @@ Node BVToInt::bvToInt(Node n)
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
-              Assert(granularity > 0);
-              if (granularity > bvsize) {
-                granularity = bvsize;
-              } else {
-                while (bvsize % granularity != 0) {
-                  granularity = granularity - 1;
-                }
-              }
-              Node new_node = createBitwiseNode(
+              Node newNode = createBitwiseNode(
                   intized_children, 
                   bvsize, 
                   granularity, 
-                  [](int x, int y) {
+                  [](uint32_t x, uint32_t y) {
                     Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
-                    return x * y;
+                    if (x == 0 && y == 0) return (uint32_t)0;
+                    if (x == 0 && y == 1) return (uint32_t)0;
+                    if (x == 1 && y == 0) return (uint32_t)0;
+                    if (x == 1 && y == 1) return (uint32_t)1;
                   }
                   );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_OR:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Node newNode = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](uint32_t x, uint32_t y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    if (x == 0 && y == 0) return (uint32_t) 0;
+                    if (x == 0 && y == 1) return (uint32_t) 1;
+                    if (x == 1 && y == 0) return (uint32_t) 1;
+                    if (x == 1 && y == 1) return (uint32_t) 1;
+                    Assert(false);
+                  }
+                  );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_XOR:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Node newNode = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](uint32_t x, uint32_t y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    if (x == 0 && y == 0) return (uint32_t) 1;
+                    if (x == 0 && y == 1) return (uint32_t) 0;
+                    if (x == 1 && y == 0) return (uint32_t) 0;
+                    if (x == 1 && y == 1) return (uint32_t) 1;
+                    Assert(false);
+                  }
+                  );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_XNOR:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Node newNode = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](uint32_t x, uint32_t y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    if (x == 0 && y == 0) return (uint32_t) 1;
+                    if (x == 0 && y == 1) return (uint32_t) 0;
+                    if (x == 1 && y == 0) return (uint32_t) 0;
+                    if (x == 1 && y == 1) return (uint32_t) 1;
+                    Assert(false);
+                  }
+                  );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_NAND:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Node newNode = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](uint32_t x, uint32_t y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    if (x == 0 && y == 0) return (uint32_t) 1;
+                    if (x == 0 && y == 1) return (uint32_t) 1;
+                    if (x == 1 && y == 0) return (uint32_t) 1;
+                    if (x == 1 && y == 1) return (uint32_t) 0;
+                    Assert(false);
+                  }
+                  );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_NOR:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              uint32_t granularity = options::solveBVAsInt();
+              Node newNode = createBitwiseNode(
+                  intized_children, 
+                  bvsize, 
+                  granularity, 
+                  [](uint32_t x, uint32_t y) {
+                    Assert((x >= 0 && y >= 0 && x <= 1 && y <= 1));
+                    if (x == 0 && y == 0) return (uint32_t) 1;
+                    if (x == 0 && y == 1) return (uint32_t) 0;
+                    if (x == 1 && y == 0) return (uint32_t) 0;
+                    if (x == 1 && y == 1) return (uint32_t) 0;
+                    Assert(false);
+                  }
+                  );
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_SHL:
@@ -529,18 +600,75 @@ PreprocessingPassResult BVToInt::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-BVToInt::createBitwiseNode(vector<Node> children, uint32_t bvsize, unit32_t granularity, std::function f) {
-  vector<Node> sumElems;
-
-  for (uint32_t i=0; i < (2 ^ granularity); i++) {
-    for (uint32_t j=0; i < (2 ^ granularity); j++) {
-      
+Node BVToInt::createITEFromTable(Node x, Node y, uint32_t granularity, std::map<std::pair<uint32_t, uint32_t>, uint32_t> table) {
+  Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
+  for (uint32_t i=0; i < pow(2, granularity); i++) {
+    for (uint32_t j=0; j < pow(2, granularity); j++) {
+      if ((i == 0) && (j == 0)) {
+        continue;
+      }
+      ite = d_nm->mkNode(
+          kind::ITE, 
+          d_nm->mkNode(kind::AND, 
+            d_nm->mkNode(kind::EQUAL, x, d_nm->mkConst<Rational>(i)), 
+            d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(j))), 
+          d_nm->mkConst<Rational>(table[std::make_pair(i,j)]), 
+          ite);
     }
   }
-  uint32_t sumSize = bvsize / granularity;
-  for (uint32_t exponent=granularity-1; exponent < bvsize; exponent+=granularity) {
-    Node current = d_nm->mkNode(kind::MULT, ite, pow2(exponent));
+  return ite;
 }
+
+Node BVToInt::createBitwiseNode(vector<Node> children, uint32_t bvsize, uint32_t granularity, uint32_t (*f)(uint32_t, uint32_t)) {
+  Assert(granularity > 0);
+  if (granularity > bvsize) {
+    granularity = bvsize;
+  } else {
+    while (bvsize % granularity != 0) {
+      granularity = granularity - 1;
+    }
+  }
+  Assert(children.size() == 2);
+  Node x = children[0];
+  Node y = children[1];
+ 
+  //transform f into a table
+  std::map<std::pair<uint32_t, uint32_t>, uint32_t> table;
+  for (uint32_t i=0; i < pow(2, granularity); i++) {
+    for (uint32_t j=0; j < pow(2, granularity); j++) {
+      uint32_t sum = 0;
+      for (uint32_t n=0; n < granularity; n++) {
+        sum += f(((uint32_t) (i / pow(2, n))) % 2 , ((uint32_t) ( j / pow(2, n))) % 2) * pow(2,n);
+      }
+      table[std::make_pair(i, j)] = sum;      
+    }
+  }
+  //transform the table into an ite
+  
+  //create the big sum
+  uint32_t sumSize = bvsize / granularity;
+  Node sumNode = d_nm->mkConst<Rational>(0);
+  //extract definition
+  //(define-fun intextract ((k Int) (i Int) (j Int) (a Int)) Int 
+  //  (mod (div a (two_to_the j)) (two_to_the (+ (- i j) 1))))
+  for (uint32_t i = 0; i < sumSize; i++) {
+    Node xExtract = d_nm->mkNode(
+        kind::INTS_MODULUS_TOTAL,
+        d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(i*granularity)), 
+        pow2(granularity));
+    Node yExtract = d_nm->mkNode(
+        kind::INTS_MODULUS_TOTAL, 
+        d_nm->mkNode(kind::INTS_DIVISION_TOTAL, y, pow2(i*granularity)), 
+        pow2(granularity));
+    Node ite = createITEFromTable(xExtract, yExtract, granularity, table);
+    sumNode = d_nm->mkNode(
+        kind::PLUS,
+        sumNode,
+        d_nm->mkNode(kind::MULT, pow2(i), ite));
+  }
+  return sumNode;
+}
+
 
 
 }  // namespace passes
