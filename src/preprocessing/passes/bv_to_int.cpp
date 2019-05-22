@@ -620,19 +620,19 @@ PreprocessingPassResult BVToInt::applyInternal(
 Node BVToInt::createShiftNode(vector<Node> children, uint32_t bvsize, bool isLeftShift) {
   Node x = children[0];
   Node y = children[1];
-  Node ite = d_nm->mkConst<Rational>(0);
+  Node ite = pow2(d_nm->mkConst<Rational>(0));
   for (uint32_t i=1; i < pow(2, bvsize); i++) {
-    ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), d_nm->mkConst<Rational>(i), ite);
+    ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), pow2(d_nm->mkConst<Rational>(i)), ite);
   }
   //from smtlib:
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
   Node result;
   if (isLeftShift) {
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, pow2(ite)) , pow2(bvsize));
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize));
   } else {
     //logical right shift
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(ite)) , pow2(bvsize));
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize));
   }
   return result;
 }
