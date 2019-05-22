@@ -138,6 +138,7 @@ Node BVToInt::eliminationPass(Node n) {
           continue;
         } else {
             currentEliminated = FixpointRewriteStrategy<
+               RewriteRule<AshrEliminate>,
                RewriteRule<UdivZero>,
             	 RewriteRule<SdivEliminate>,
             	 RewriteRule<SremEliminate>,
@@ -291,12 +292,20 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_UDIV_TOTAL:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              Node pow2BvSize = pow2(bvsize);
+              Node divNode = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)),d_nm->mkNode(kind::INTS_MODULUS_TOTAL, divNode, pow2BvSize));
+              d_bvToIntCache[current] = Rewriter::rewrite(ite);
               break;
             }
             case kind::BITVECTOR_UREM_TOTAL:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              Node pow2BvSize = pow2(bvsize);
+              Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0],d_nm->mkNode(kind::INTS_MODULUS_TOTAL, modNode, pow2BvSize));
+              d_bvToIntCache[current] = Rewriter::rewrite(ite);
               break;
             }
             case kind::BITVECTOR_NEG: 
@@ -445,22 +454,28 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_SHL:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              Node newNode = createShiftNode(intized_children, bvsize, true);
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_LSHR:
             {
-              Unimplemented();
+              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              Node newNode = createShiftNode(intized_children, bvsize, false);
+              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
               break;
             }
             case kind::BITVECTOR_ASHR:
             {
-              Unimplemented();
+              std::cout << "panda not supposed to be here" << std::endl;
+              Assert(false);
               break;
             }
             case kind::BITVECTOR_ITE:
             {
-              Unimplemented();
+              std::cout << "panda not supposed to be here" << std::endl;
+              Assert(false);
               break;
             }
             case kind::BITVECTOR_CONCAT:
@@ -551,7 +566,7 @@ Node BVToInt::bvToInt(Node n)
             case kind::APPLY_UF:
             {
               std::cout << "panda I do not expect to be here" << std::endl;
-              Unimplemented();
+              Assert(false);
               break;
             }
             default:
@@ -602,10 +617,30 @@ PreprocessingPassResult BVToInt::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
-Node BVToInt::createITEFromTable(Node x, Node y, uint32_t granularity, std::map<std::pair<uint32_t, uint32_t>, uint32_t> table) {
+Node BVToInt::createShiftNode(vector<Node> children, uint32_t bvsize, bool isLeftShift) {
+  Node x = children[0];
+  Node y = children[1];
+  Node ite = d_nm->mkConst<Rational>(0);
+  for (uint32_t i=1; i < pow(2, bvsize); i++) {
+    ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), d_nm->mkConst<Rational>(i), ite);
+  }
+  //from smtlib:
+  //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
+  // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
+  Node result;
+  if (isLeftShift) {
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, pow2(ite)) , pow2(bvsize));
+  } else {
+    //logical right shift
+    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, pow2(ite)) , pow2(bvsize));
+  }
+  return result;
+}
+
+Node BVToInt::createITEFromTable(Node x, Node y, uint32_t bitwidth, std::map<std::pair<uint32_t, uint32_t>, uint32_t> table) {
   Node ite = d_nm->mkConst<Rational>(table[std::make_pair(0, 0)]);
-  for (uint32_t i=0; i < pow(2, granularity); i++) {
-    for (uint32_t j=0; j < pow(2, granularity); j++) {
+  for (uint32_t i=0; i < pow(2, bitwidth); i++) {
+    for (uint32_t j=0; j < pow(2, bitwidth); j++) {
       if ((i == 0) && (j == 0)) {
         continue;
       }
@@ -635,6 +670,7 @@ Node BVToInt::createBitwiseNode(vector<Node> children, uint32_t bvsize, uint32_t
   Node y = children[1];
  
   //transform f into a table
+  //f is defined over 1 bit, while the table is defined over `granularity` bits
   std::map<std::pair<uint32_t, uint32_t>, uint32_t> table;
   for (uint32_t i=0; i < pow(2, granularity); i++) {
     for (uint32_t j=0; j < pow(2, granularity); j++) {
