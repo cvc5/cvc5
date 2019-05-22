@@ -38,6 +38,12 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::bv;
 
 
+void printCache(NodeMap m) {
+      for (auto const& pair: m) {
+        std::cout << "{" << pair.first.toString() << ": "  << pair.second.toString() << "}\n";
+    }
+}
+
 Node BVToInt::mkRangeConstraint(Node newVar, size_t k) {
   Node lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), newVar);
   Node upper = d_nm->mkNode(kind::LT, newVar, pow2(k));
@@ -93,8 +99,17 @@ Node BVToInt::makeBinary(Node n)
           result = d_nm->mkNode(current.getKind(), result, child);
         }
         d_binarizeCache[current] = result;
+      } else if (numChildren > 0) {
+          vector<Node> binarized_children;
+          if (current.getKind() == kind::BITVECTOR_EXTRACT) { 
+            binarized_children.push_back(current.getOperator());
+          }
+          for (uint i = 0; i < numChildren; i++) {
+            binarized_children.push_back(d_binarizeCache[current[i]]);
+          }
+          d_binarizeCache[current] = d_nm->mkNode(k, binarized_children);
       } else {
-        d_binarizeCache[current] = current;
+          d_binarizeCache[current] = current;
       }
     }
     else
@@ -214,7 +229,7 @@ Node BVToInt::bvToInt(Node n)
             {
               case kind::CONST_RATIONAL:
               {
-                d_bvToIntCache[current] = Rewriter::rewrite(current);
+                d_bvToIntCache[current] = current;
                 break;
               }
               case kind::CONST_BITVECTOR:
@@ -257,7 +272,6 @@ Node BVToInt::bvToInt(Node n)
               Node plus = d_nm->mkNode(kind::PLUS, intized_children);
               vector<Node> children = {plus, pow2BvSize};
               Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
-              mod = Rewriter::rewrite(mod);
               d_bvToIntCache[current] = mod;
               break;
             }
@@ -267,7 +281,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node mul = d_nm->mkNode(kind::MULT, intized_children);
               vector<Node> children = {mul, pow2BvSize};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
               break;
             }
             case kind::BITVECTOR_SUB:
@@ -276,7 +290,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node sub = d_nm->mkNode(kind::MINUS, intized_children);
               vector<Node> children = {sub, pow2BvSize};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
               break;
             }
             case kind::BITVECTOR_UDIV:
@@ -297,7 +311,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node divNode = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
               Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)),d_nm->mkNode(kind::INTS_MODULUS_TOTAL, divNode, pow2BvSize));
-              d_bvToIntCache[current] = Rewriter::rewrite(ite);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_UREM_TOTAL:
@@ -306,7 +320,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
               Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0],d_nm->mkNode(kind::INTS_MODULUS_TOTAL, modNode, pow2BvSize));
-              d_bvToIntCache[current] = Rewriter::rewrite(ite);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_NEG: 
@@ -314,7 +328,7 @@ Node BVToInt::bvToInt(Node n)
               uint32_t bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, intized_children[0]};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::MINUS, children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
               break;
             }  
             case kind::BITVECTOR_NOT: 
@@ -324,12 +338,12 @@ Node BVToInt::bvToInt(Node n)
               vector<Node> children = {pow2BvSize, one_const};
               Node max = d_nm->mkNode(kind::MINUS, children);
               children = {pow2BvSize, intized_children[0]};
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::MINUS, children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
               break;
             }
             case kind::BITVECTOR_TO_NAT:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(intized_children[0]);
+              d_bvToIntCache[current] = intized_children[0];
               break;
             }
             case kind::BITVECTOR_AND:
@@ -350,7 +364,7 @@ Node BVToInt::bvToInt(Node n)
                     //TODO to the compiler it looks like an incomplete function. what to do?
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_OR:
@@ -370,7 +384,7 @@ Node BVToInt::bvToInt(Node n)
                     Assert(false);
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_XOR:
@@ -390,7 +404,7 @@ Node BVToInt::bvToInt(Node n)
                     Assert(false);
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_XNOR:
@@ -410,7 +424,7 @@ Node BVToInt::bvToInt(Node n)
                     Assert(false);
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_NAND:
@@ -430,7 +444,7 @@ Node BVToInt::bvToInt(Node n)
                     Assert(false);
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_NOR:
@@ -450,21 +464,21 @@ Node BVToInt::bvToInt(Node n)
                     Assert(false);
                   }
                   );
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_SHL:
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, true);
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_LSHR:
             {
               uint32_t bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, false);
-              d_bvToIntCache[current] = Rewriter::rewrite(newNode);
+              d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_ASHR:
@@ -486,7 +500,7 @@ Node BVToInt::bvToInt(Node n)
               Node a = d_nm->mkNode(kind::MULT, intized_children[0], pow2BvSizeRight);
               Node b = intized_children[1];
               Node sum = d_nm->mkNode(kind::PLUS, a, b);
-              d_bvToIntCache[current] = Rewriter::rewrite(sum);
+              d_bvToIntCache[current] = sum;
               break;
             }
             case kind::BITVECTOR_EXTRACT:
@@ -501,7 +515,7 @@ Node BVToInt::bvToInt(Node n)
               Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
               Node pow = pow2(plus);
               Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, div, pow);
-              d_bvToIntCache[current] = Rewriter::rewrite(mod);
+              d_bvToIntCache[current] = mod;
               break;
             }
             case kind::BITVECTOR_ULTBV:
@@ -516,52 +530,52 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::EQUAL:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::EQUAL, intized_children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::EQUAL, intized_children);
               break;
             }
             case kind::BITVECTOR_ULT:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::LT, intized_children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::LT, intized_children);
               break;
             }
             case kind::BITVECTOR_ULE:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::LEQ, intized_children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::LEQ, intized_children);
               break;
             }
             case kind::BITVECTOR_UGT:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::GT, intized_children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::GT, intized_children);
               break;
             }
             case kind::BITVECTOR_UGE:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(kind::GEQ, intized_children));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::GEQ, intized_children);
               break;
             }
             case kind::LT:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              d_bvToIntCache[current] = current;
               break;
             }
             case kind::LEQ:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              d_bvToIntCache[current] = current;
               break;
             }
             case kind::GT:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              d_bvToIntCache[current] = current;
               break;
             }
             case kind::GEQ:
             {
-              d_bvToIntCache[current] = Rewriter::rewrite(current);
+              d_bvToIntCache[current] = current;
               break;
             }
             case kind::ITE:
 	    {
-                d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(oldKind, intized_children));
+                d_bvToIntCache[current] = d_nm->mkNode(oldKind, intized_children);
                 break;
 	    }
             case kind::APPLY_UF:
@@ -574,7 +588,7 @@ Node BVToInt::bvToInt(Node n)
 	    {
               if (Theory::theoryOf(current) == THEORY_BOOL)
               {
-                d_bvToIntCache[current] = Rewriter::rewrite(d_nm->mkNode(oldKind, intized_children));
+                d_bvToIntCache[current] = d_nm->mkNode(oldKind, intized_children);
                 break;
               } else {
                 throw TypeCheckingException(
@@ -588,27 +602,11 @@ Node BVToInt::bvToInt(Node n)
       }
     }
 
-    std::cout << "****************************" << std::endl;
-
-    Node panda = current;
-    std::cout << "* " << panda.toString() << std::endl;
-    std::cout << "* " << panda.getNumChildren() << std::endl;
-
-    panda = makeBinary(panda);
-    std::cout << "* " << panda.toString() << std::endl;
-    std::cout << "* " << panda.getNumChildren() << std::endl;
-
-    panda = eliminationPass(panda);
-    std::cout << "* " << panda.toString() << std::endl;
-    std::cout << "* " << panda.getNumChildren() << std::endl;
-    
-    panda = Rewriter::rewrite(panda);
-    std::cout << "* " << panda.toString() << std::endl;
-    std::cout << "* " << panda.getNumChildren() << std::endl;
 
   }
   return d_bvToIntCache[n];
 }
+
 
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
@@ -630,7 +628,7 @@ PreprocessingPassResult BVToInt::applyInternal(
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
     assertionsToPreprocess->replace(
-        i, bvToInt((*assertionsToPreprocess)[i]));
+        i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
   Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, d_rangeAssertions));
   assertionsToPreprocess->push_back(rangeAssertions);
