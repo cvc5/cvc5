@@ -82,7 +82,8 @@ Node BVToInt::makeBinary(Node n)
       if ((numChildren > 2)  && (k == kind::BITVECTOR_PLUS ||
             k == kind::BITVECTOR_MULT ||
             k == kind::BITVECTOR_AND ||
-            k == kind::BITVECTOR_OR)) {
+            k == kind::BITVECTOR_OR ||
+            k == kind::BITVECTOR_XOR)) {
         Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
         Node result = d_binarizeCache[current[0]];
         for (unsigned i = 1; i < numChildren; i++)
@@ -586,6 +587,25 @@ Node BVToInt::bvToInt(Node n)
         toVisit.pop_back();
       }
     }
+
+    std::cout << "****************************" << std::endl;
+
+    Node panda = current;
+    std::cout << "* " << panda.toString() << std::endl;
+    std::cout << "* " << panda.getNumChildren() << std::endl;
+
+    panda = makeBinary(panda);
+    std::cout << "* " << panda.toString() << std::endl;
+    std::cout << "* " << panda.getNumChildren() << std::endl;
+
+    panda = eliminationPass(panda);
+    std::cout << "* " << panda.toString() << std::endl;
+    std::cout << "* " << panda.getNumChildren() << std::endl;
+    
+    panda = Rewriter::rewrite(panda);
+    std::cout << "* " << panda.toString() << std::endl;
+    std::cout << "* " << panda.getNumChildren() << std::endl;
+
   }
   return d_bvToIntCache[n];
 }
@@ -621,7 +641,7 @@ Node BVToInt::createShiftNode(vector<Node> children, uint32_t bvsize, bool isLef
   Node x = children[0];
   Node y = children[1];
   Node ite = pow2(d_nm->mkConst<Rational>(0));
-  for (uint32_t i=1; i < pow(2, bvsize); i++) {
+  for (uint32_t i=1; i < bvsize; i++) {
     ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), pow2(d_nm->mkConst<Rational>(i)), ite);
   }
   //from smtlib:
@@ -629,10 +649,10 @@ Node BVToInt::createShiftNode(vector<Node> children, uint32_t bvsize, bool isLef
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
   Node result;
   if (isLeftShift) {
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize));
+    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
   } else {
     //logical right shift
-    result = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize));
+    result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::INTS_DIVISION_TOTAL, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
   }
   return result;
 }
