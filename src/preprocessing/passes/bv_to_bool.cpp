@@ -111,7 +111,7 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
 
   Kind kind = node.getKind();
 
-  if (kind == kind::CONST_BITVECTOR || kind == kind::ITE
+  if (kind == kind::CONST_BITVECTOR || kind == kind::BITVECTOR_ITE
       || kind == kind::BITVECTOR_AND
       || kind == kind::BITVECTOR_OR
       || kind == kind::BITVECTOR_NOT
