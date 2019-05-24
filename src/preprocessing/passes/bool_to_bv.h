@@ -72,8 +72,20 @@ class BoolToBV : public PreprocessingPass
    */
   void rebuildNode(const TNode& n, Kind new_kind);
 
+  /** Updates the cache, the cache is actually supported by two maps
+      one for ITEs and one for everything else
+
+      This is necessary so that when in ITE mode, the regular cache
+      can be cleared to prevent lowering boolean operators that are
+      not in an ITE
+   */
+  void updateCache(TNode n, TNode rebuilt);
+
   /* Returns cached node if it exists, otherwise returns the node */
   Node fromCache(TNode n) const;
+
+  /* Checks both caches for membership */
+  bool inCache(const Node& n) const;
 
   /** Checks if any of the node's children were rebuilt,
    *  in which case n needs to be rebuilt as well
@@ -82,7 +94,12 @@ class BoolToBV : public PreprocessingPass
 
   Statistics d_statistics;
 
-  /* Keeps track of lowered nodes */
+  /* Keeps track of lowered ITEs */
+  std::unordered_map<Node, Node, NodeHashFunction> d_iteLowerCache;
+
+  /** Keeps track of other lowered nodes
+      -- will be cleared periodically in ITE mode
+  */
   std::unordered_map<Node, Node, NodeHashFunction> d_lowerCache;
 };  // class BoolToBV
 

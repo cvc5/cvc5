@@ -69,13 +69,42 @@ PreprocessingPassResult BoolToBV::applyInternal(
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
+void BoolToBV::updateCache(TNode n, TNode rebuilt)
+{
+  // check more likely case first
+  if (n.getKind() != kind::ITE)
+  {
+    d_lowerCache[n] = rebuilt;
+  }
+  else
+  {
+    d_iteLowerCache[n] = rebuilt;
+  }
+}
+
 Node BoolToBV::fromCache(TNode n) const
 {
-  if (d_lowerCache.find(n) != d_lowerCache.end())
+  // check more likely case first
+  if (n.getKind() != kind::ITE)
   {
-    return d_lowerCache.find(n)->second;
+    if (d_lowerCache.find(n) != d_lowerCache.end())
+    {
+      return d_lowerCache.at(n);
+    }
+  }
+  else
+  {
+    if (d_iteLowerCache.find(n) != d_iteLowerCache.end())
+    {
+      return d_iteLowerCache.at(n);
+    }
   }
   return n;
+}
+
+inline bool BoolToBV::inCache(const Node& n) const
+{
+  return (ContainsKey(d_lowerCache, n) || ContainsKey(d_iteLowerCache, n));
 }
 
 bool BoolToBV::needToRebuild(TNode n) const
@@ -83,7 +112,7 @@ bool BoolToBV::needToRebuild(TNode n) const
   // check if any children were rebuilt
   for (const Node& nn : n)
   {
-    if (ContainsKey(d_lowerCache, nn))
+    if (inCache(nn))
     {
       return true;
     }
@@ -136,8 +165,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   // easy case -- just replace boolean constant
   if (k == kind::CONST_BOOLEAN)
   {
-    d_lowerCache[n] =
-        (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1);
+    updateCache(n, (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1));
     return;
   }
 
@@ -196,8 +224,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
         rebuildNode(n, k);
       }
 
-      d_lowerCache[n] =
-        nm->mkNode(kind::ITE, fromCache(n), bv::utils::mkOne(1), bv::utils::mkZero(1));
+      updateCache(n, nm->mkNode(kind::ITE, fromCache(n), bv::utils::mkOne(1), bv::utils::mkZero(1)));
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;
@@ -216,8 +243,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     // force booleans (which haven't already been converted) to bit-vector
     // needed to maintain the invariant that all boolean children
     // have been converted (even constants and variables) when forcing
-    d_lowerCache[n] =
-      nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
+    updateCache(n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
     Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
@@ -256,12 +282,9 @@ Node BoolToBV::lowerIte(const TNode& node)
         // don't force in this case -- forcing only introduces more ITEs
         Node loweredNode = lowerNode(n, false);
         // some of the lowered nodes might appear elsewhere but not in an ITE
-        // reset cache, but put the lowered ITE back in
-        // FIXME: loses all previous ITEs -- should probably have a separate ITE cache that's persistent
-        //        could decide to only use it in the ITE case
-        //        but need to be careful with rebuilding -- the regular cache have the replaced ITEs in it
+        // reset the cache to prevent lowering them
+        // the ITEs are still tracked in d_iteLowerCache though
         d_lowerCache.clear();
-        d_lowerCache[n] = loweredNode;
       }
       else
       {
@@ -325,7 +348,7 @@ void BoolToBV::rebuildNode(const TNode& n, Kind new_kind)
   Debug("bool-to-bv") << "BoolToBV::rebuildNode " << n << " =>\n"
                       << builder << std::endl;
 
-  d_lowerCache[n] = builder.constructNode();
+  updateCache(n, builder.constructNode());
 }
 
 BoolToBV::Statistics::Statistics()
