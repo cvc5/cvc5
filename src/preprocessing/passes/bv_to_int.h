@@ -50,6 +50,8 @@ class BVToInt : public PreprocessingPass
     Node makeBinary(Node n);
     Node pow2(size_t k);
     Node pow2(Node n);
+    Node modpow2(Node n, Node exponent);
+    Node modpow2(Node n, size_t exponent);
 
     NodeMap d_binarizeCache;
     NodeMap d_eliminationCache;
