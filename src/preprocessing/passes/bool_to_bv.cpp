@@ -166,7 +166,9 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   // easy case -- just replace boolean constant
   if (k == kind::CONST_BOOLEAN)
   {
-    updateCache(n, (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1) : bv::utils::mkZero(1));
+    updateCache(n,
+                (n == bv::utils::mkTrue()) ? bv::utils::mkOne(1)
+                                           : bv::utils::mkZero(1));
     return;
   }
 
@@ -195,13 +197,16 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   }
 
   // check if it's safe to lower or rebuild the node
-  // Note: might have to rebuild to keep changes to children, even if this node isn't being lowered
+  // Note: might have to rebuild to keep changes to children, even if this node
+  // isn't being lowered
 
   // it's safe to lower if all the children are bit-vectors
-  bool safe_to_lower = (new_kind != k); // don't need to lower at all if kind hasn't changed
+  bool safe_to_lower =
+      (new_kind != k);  // don't need to lower at all if kind hasn't changed
 
-  // it's safe to rebuild if rebuilding doesn't change any of the kinds of the children
-  bool safe_to_rebuild= true;
+  // it's safe to rebuild if rebuilding doesn't change any of the kinds of the
+  // children
+  bool safe_to_rebuild = true;
 
   for (const Node& nn : n)
   {
@@ -236,7 +241,11 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
         rebuildNode(n, k);
       }
 
-      updateCache(n, nm->mkNode(kind::ITE, fromCache(n), bv::utils::mkOne(1), bv::utils::mkZero(1)));
+      updateCache(n,
+                  nm->mkNode(kind::ITE,
+                             fromCache(n),
+                             bv::utils::mkOne(1),
+                             bv::utils::mkZero(1)));
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                           << " =>\n"
                           << fromCache(n) << std::endl;
@@ -254,7 +263,8 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     // force booleans (which haven't already been converted) to bit-vector
     // needed to maintain the invariant that all boolean children
     // have been converted (even constants and variables) when forcing
-    updateCache(n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
+    updateCache(
+        n, nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1)));
     Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
                         << " =>\n"
                         << fromCache(n) << std::endl;
