@@ -132,6 +132,7 @@ Node BoolToBV::lowerNode(const TNode& node, bool force)
 void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
 {
   Kind k = n.getKind();
+
   // easy case -- just replace boolean constant
   if (k == kind::CONST_BOOLEAN)
   {
@@ -168,25 +169,25 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   {
     // attempting to lower to bv
     // need to check that it's safe
-    bool safe_to_rebuild = true;
+    bool safe_to_lower = true;
     Type t;
     for (const Node& nn : n)
     {
-      safe_to_rebuild =
-          safe_to_rebuild && fromCache(nn).getType().isBitVector();
-      if (!safe_to_rebuild)
+      safe_to_lower =
+          safe_to_lower && fromCache(nn).getType().isBitVector();
+      if (!safe_to_lower)
       {
         break;
       }
     }
 
-    if (safe_to_rebuild)
+    if (safe_to_lower)
     {
       rebuildNode(n, new_kind);
       return;
     }
 
-    if (!safe_to_rebuild && force && fromCache(n).getType().isBoolean())
+    if (!safe_to_lower && force && fromCache(n).getType().isBoolean())
     {
       if (needToRebuild(n))
       {
@@ -194,6 +195,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
         // since we're forcing, we can always rebuild without changing the kind
         rebuildNode(n, k);
       }
+
       d_lowerCache[n] =
         nm->mkNode(kind::ITE, fromCache(n), bv::utils::mkOne(1), bv::utils::mkZero(1));
       Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
@@ -213,7 +215,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   {
     // force booleans (which haven't already been converted) to bit-vector
     // needed to maintain the invariant that all boolean children
-    // have been converted (even constants and variables)
+    // have been converted (even constants and variables) when forcing
     d_lowerCache[n] =
       nm->mkNode(kind::ITE, n, bv::utils::mkOne(1), bv::utils::mkZero(1));
     Debug("bool-to-bv") << "BoolToBV::lowerNodeHelper forcing " << n
@@ -251,9 +253,13 @@ Node BoolToBV::lowerIte(const TNode& node)
       {
         Debug("bool-to-bv") << "BoolToBV::lowerIte: adding " << n[0]
                             << " to set of ite conditions" << std::endl;
+        // don't force in this case -- forcing only introduces more ITEs
         Node loweredNode = lowerNode(n, false);
         // some of the lowered nodes might appear elsewhere but not in an ITE
         // reset cache, but put the lowered ITE back in
+        // FIXME: loses all previous ITEs -- should probably have a separate ITE cache that's persistent
+        //        could decide to only use it in the ITE case
+        //        but need to be careful with rebuilding -- the regular cache have the replaced ITEs in it
         d_lowerCache.clear();
         d_lowerCache[n] = loweredNode;
       }
