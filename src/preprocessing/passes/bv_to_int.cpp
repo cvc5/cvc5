@@ -107,6 +107,7 @@ Node BVToInt::makeBinary(Node n)
           for (uint i = 0; i < numChildren; i++) {
             binarized_children.push_back(d_binarizeCache[current[i]]);
           }
+          std::cout << "pandaa " << current.toString() << std::endl;
           d_binarizeCache[current] = d_nm->mkNode(k, binarized_children);
       } else {
           d_binarizeCache[current] = current;
