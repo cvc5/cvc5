@@ -98,7 +98,9 @@ Node BVToInt::makeBinary(Node n)
             k == kind::BITVECTOR_MULT ||
             k == kind::BITVECTOR_AND ||
             k == kind::BITVECTOR_OR ||
-            k == kind::BITVECTOR_XOR)) {
+            k == kind::BITVECTOR_XOR) ||
+            k == kind::BITVECTOR_CONCAT
+            ) {
         Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
         Node result = d_binarizeCache[current[0]];
         for (unsigned i = 1; i < numChildren; i++)
@@ -200,9 +202,11 @@ Node BVToInt::bvToInt(Node n)
   toVisit.push_back(n);
   Node one_const = d_nm->mkConst<Rational>(1);
 
+
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
+    std::cout << "panda current " << current.toString() << std::endl;
     size_t currentNumChildren = current.getNumChildren();
     if (d_bvToIntCache.find(current) == d_bvToIntCache.end()) {
       d_bvToIntCache[current] = Node();
@@ -244,7 +248,7 @@ Node BVToInt::bvToInt(Node n)
               case kind::CONST_BITVECTOR:
               {
                 BitVector constant(current.getConst<BitVector>());
-	        Integer c = constant.toInteger();
+	              Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
                 break;
               }
@@ -330,7 +334,7 @@ Node BVToInt::bvToInt(Node n)
               size_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, intized_children[0]};
-              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
+              d_bvToIntCache[current] = modpow2(d_nm->mkNode(kind::MINUS, children), bvsize);
               break;
             }  
             case kind::BITVECTOR_NOT: 
@@ -339,7 +343,7 @@ Node BVToInt::bvToInt(Node n)
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, one_const};
               Node max = d_nm->mkNode(kind::MINUS, children);
-              children = {pow2BvSize, intized_children[0]};
+              children = {max, intized_children[0]};
               d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
               break;
             }
@@ -503,6 +507,8 @@ Node BVToInt::bvToInt(Node n)
               Node b = intized_children[1];
               Node sum = d_nm->mkNode(kind::PLUS, a, b);
               d_bvToIntCache[current] = sum;
+              std::cout << "panda concat " << current.toString() << std::endl;
+              std::cout << "panda concat " << sum.toString() << std::endl;
               break;
             }
             case kind::BITVECTOR_EXTRACT:
@@ -555,22 +561,22 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::LT:
             {
-              d_bvToIntCache[current] = current;
+              d_bvToIntCache[current] = d_nm->mkNode(kind::LT, intized_children);
               break;
             }
             case kind::LEQ:
             {
-              d_bvToIntCache[current] = current;
+              d_bvToIntCache[current] = d_nm->mkNode(kind::LEQ, intized_children);
               break;
             }
             case kind::GT:
             {
-              d_bvToIntCache[current] = current;
+              d_bvToIntCache[current] = d_nm->mkNode(kind::GT, intized_children);
               break;
             }
             case kind::GEQ:
             {
-              d_bvToIntCache[current] = current;
+              d_bvToIntCache[current] = d_nm->mkNode(kind::GEQ, intized_children);
               break;
             }
             case kind::ITE:
@@ -640,6 +646,11 @@ PreprocessingPassResult BVToInt::applyInternal(
   AlwaysAssert(!options::incrementalSolving());
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
+    Node intizedNode = bvToInt((*assertionsToPreprocess)[i]);
+    Node rwNode = Rewriter::rewrite(intizedNode);
+    std:: cout << "panda " << (*assertionsToPreprocess)[i].toString() << std::endl;
+    std:: cout << "panda " << intizedNode.toString() << std::endl;
+    std:: cout << "panda " << rwNode.toString() << std::endl;
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
