@@ -59,10 +59,19 @@ Node BVToInt::pow2(Node n) {
 
 Node BVToInt::pow2(size_t k)
 {
-	  Node twoConst = d_nm->mkConst<Rational>(2);
 	  Node k_const = d_nm->mkConst<Rational>(k);
-	  Node result = d_nm->mkNode(kind::POW, twoConst, k_const);
-	  return result;
+	  return pow2(k_const);
+}
+
+Node BVToInt::modpow2(Node n, Node exponent) {
+    Node p2 = pow2(exponent);
+    Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
+    return modNode;
+}
+
+Node BVToInt::modpow2(Node n, size_t exponent) {
+  Node expNode = d_nm->mkConst<Rational>(exponent);
+  return modpow2(n, expNode);
 }
 
 Node BVToInt::makeBinary(Node n)
@@ -101,13 +110,12 @@ Node BVToInt::makeBinary(Node n)
         d_binarizeCache[current] = result;
       } else if (numChildren > 0) {
           vector<Node> binarized_children;
-          if (current.getKind() == kind::BITVECTOR_EXTRACT) { 
+          if (current.getKind() == kind::BITVECTOR_EXTRACT || current.getKind() == kind::APPLY_UF) { 
             binarized_children.push_back(current.getOperator());
           }
           for (uint i = 0; i < numChildren; i++) {
             binarized_children.push_back(d_binarizeCache[current[i]]);
           }
-          std::cout << "pandaa " << current.toString() << std::endl;
           d_binarizeCache[current] = d_nm->mkNode(k, binarized_children);
       } else {
           d_binarizeCache[current] = current;
@@ -186,8 +194,8 @@ Node BVToInt::eliminationPass(Node n) {
 
 Node BVToInt::bvToInt(Node n)
 {
-  n = makeBinary(n);
   n = eliminationPass(n);
+  n = makeBinary(n);
   vector<Node> toVisit;
   toVisit.push_back(n);
   Node one_const = d_nm->mkConst<Rational>(1);
@@ -264,34 +272,28 @@ Node BVToInt::bvToInt(Node n)
 	  for (size_t i=0; i<currentNumChildren; i++) {
 	    intized_children.push_back(d_bvToIntCache[current[i]]);
 	  }
+    
 	  switch (oldKind)
           {
             case kind::BITVECTOR_PLUS: 
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node plus = d_nm->mkNode(kind::PLUS, intized_children);
-              vector<Node> children = {plus, pow2BvSize};
-              Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
-              d_bvToIntCache[current] = mod;
+              d_bvToIntCache[current] = modpow2(plus, bvsize);
               break;
             }
             case kind::BITVECTOR_MULT: 
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node mul = d_nm->mkNode(kind::MULT, intized_children);
-              vector<Node> children = {mul, pow2BvSize};
-              d_bvToIntCache[current] = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
+              d_bvToIntCache[current] = modpow2(mul, bvsize);
               break;
             }
             case kind::BITVECTOR_SUB:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node sub = d_nm->mkNode(kind::MINUS, intized_children);
-              vector<Node> children = {sub, pow2BvSize};
-              d_bvToIntCache[current] = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, children);
+              d_bvToIntCache[current] = modpow2(sub, bvsize);
               break;
             }
             case kind::BITVECTOR_UDIV:
@@ -308,25 +310,24 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_UDIV_TOTAL:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               Node divNode = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
-              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)),d_nm->mkNode(kind::INTS_MODULUS_TOTAL, divNode, pow2BvSize));
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)), modpow2(divNode, bvsize));
               d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_UREM_TOTAL:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
-              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0],d_nm->mkNode(kind::INTS_MODULUS_TOTAL, modNode, pow2BvSize));
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0], modpow2(modNode, bvsize));
               d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_NEG: 
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, intized_children[0]};
               d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
@@ -334,7 +335,7 @@ Node BVToInt::bvToInt(Node n)
             }  
             case kind::BITVECTOR_NOT: 
             {
-       	      uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, one_const};
               Node max = d_nm->mkNode(kind::MINUS, children);
@@ -349,7 +350,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_AND:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -370,7 +371,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_OR:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -390,7 +391,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_XOR:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -410,7 +411,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_XNOR:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -430,7 +431,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_NAND:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -450,7 +451,7 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_NOR:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               uint32_t granularity = options::solveBVAsInt();
               Node newNode = createBitwiseNode(
                   intized_children, 
@@ -470,14 +471,14 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_SHL:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, true);
               d_bvToIntCache[current] = newNode;
               break;
             }
             case kind::BITVECTOR_LSHR:
             {
-              uint32_t bvsize = current[0].getType().getBitVectorSize();
+              size_t  bvsize = current[0].getType().getBitVectorSize();
               Node newNode = createShiftNode(intized_children, bvsize, false);
               d_bvToIntCache[current] = newNode;
               break;
@@ -514,9 +515,7 @@ Node BVToInt::bvToInt(Node n)
               Node div = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, d_bvToIntCache[a], pow2(j));
               Node difference = d_nm->mkNode(kind::MINUS, d_nm->mkConst<Rational>(i), d_nm->mkConst<Rational>(j));
               Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
-              Node pow = pow2(plus);
-              Node mod = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, div, pow);
-              d_bvToIntCache[current] = mod;
+              d_bvToIntCache[current] = modpow2(div, plus);
               break;
             }
             case kind::BITVECTOR_ULTBV:
@@ -581,8 +580,21 @@ Node BVToInt::bvToInt(Node n)
 	    }
             case kind::APPLY_UF:
             {
-              std::cout << "panda I do not expect to be here" << std::endl;
-              Assert(false);
+              TypeNode tn = current.getOperator().getType();
+              vector<TypeNode> bvDomain = tn.getArgTypes();
+              TypeNode bvRange = tn.getRangeType();
+              vector<TypeNode> intDomain;
+              TypeNode intRange = 
+                  bvRange.isBitVector() ? d_nm->integerType() : bvRange; 
+              vector<Node> intArguments;
+              for (uint i=0; i < bvDomain.size(); i++) {
+                intDomain.push_back(bvDomain[i].isBitVector() ? d_nm->integerType() : bvDomain[i] );
+              }
+              ostringstream os;
+              os << current.getOperator() << "_int";
+              Node intUF = d_nm->mkSkolem(os.str(), d_nm->mkFunctionType(intDomain, intRange), "bv2int function", NodeManager::SKOLEM_EXACT_NAME);
+              intized_children.insert(intized_children.begin(), intUF);
+              d_bvToIntCache[current] =  bvRange.isBitVector() ? modpow2(d_nm->mkNode(kind::APPLY_UF, intized_children), bvRange.getBitVectorSize()) : d_nm->mkNode(kind::APPLY_UF, intized_children);
               break;
             }
             default:
