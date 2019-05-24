@@ -123,6 +123,7 @@ bool BoolToBV::needToRebuild(TNode n) const
 Node BoolToBV::lowerNode(const TNode& node, bool force)
 {
   std::vector<TNode> visit;
+  // TODO: don't add top-level node, don't want to force the top one
   visit.push_back(node);
   std::unordered_set<TNode, TNodeHashFunction> visited;
 
@@ -193,34 +194,45 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     default: break;
   }
 
+  // check if it's safe to lower or rebuild the node
+  // Note: might have to rebuild to keep changes to children, even if this node isn't being lowered
+
+  // it's safe to lower if all the children are bit-vectors
+  bool safe_to_lower = (new_kind != k); // don't need to lower at all if kind hasn't changed
+
+  // it's safe to rebuild if rebuilding doesn't change any of the kinds of the children
+  bool safe_to_rebuild= true;
+
+  for (const Node& nn : n)
+  {
+    if (safe_to_lower)
+    {
+      safe_to_lower = fromCache(nn).getType().isBitVector();
+    }
+    if (safe_to_rebuild)
+    {
+      safe_to_rebuild = (fromCache(nn).getKind() == nn.getKind());
+    }
+    // if it's already not safe to do either, stop checking
+    if (!safe_to_lower && !safe_to_rebuild)
+    {
+      break;
+    }
+  }
+
   if (new_kind != k)
   {
-    // attempting to lower to bv
-    // need to check that it's safe
-    bool safe_to_lower = true;
-    Type t;
-    for (const Node& nn : n)
-    {
-      safe_to_lower =
-          safe_to_lower && fromCache(nn).getType().isBitVector();
-      if (!safe_to_lower)
-      {
-        break;
-      }
-    }
-
     if (safe_to_lower)
     {
       rebuildNode(n, new_kind);
       return;
     }
 
-    if (!safe_to_lower && force && fromCache(n).getType().isBoolean())
+    else if (force && fromCache(n).getType().isBoolean())
     {
-      if (needToRebuild(n))
+      if (safe_to_rebuild && needToRebuild(n))
       {
         // need to rebuild to keep changes made to descendants
-        // since we're forcing, we can always rebuild without changing the kind
         rebuildNode(n, k);
       }
 
@@ -232,9 +244,8 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
       return;
     }
   }
-  else if (needToRebuild(n))
+  else if (safe_to_rebuild && needToRebuild(n))
   {
-    // always safe to rebuild if not changing the kind
     Assert(k == new_kind);
     rebuildNode(n, k);
   }
