@@ -1221,7 +1221,9 @@ void SmtEngine::setDefaults() {
     d_logic = LogicInfo("QF_BV");
   }else if ((d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) || (d_logic.getLogicString() == "QF_BV" && options::solveBVAsInt() > 0)) {
     d_logic = LogicInfo("QF_NIA");
-  } else if ((d_logic.getLogicString() == "QF_UFBV" ||
+  } else if (d_logic.getLogicString() == "QF_UFBV" && options::solveBVAsInt() > 0) {
+    d_logic = LogicInfo("QF_UFNIA");
+  }else if ((d_logic.getLogicString() == "QF_UFBV" ||
               d_logic.getLogicString() == "QF_ABV") &&
              options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
     d_logic = LogicInfo("QF_BV");
@@ -3145,10 +3147,12 @@ void SmtEnginePrivate::processAssertions() {
 
   // Dump the assertions
   dumpAssertions("pre-everything", d_assertions);
+  std::cout << "panda smt_engine " << d_smt.d_logic.getLogicString() << std::endl;
 
   Trace("smt-proc") << "SmtEnginePrivate::processAssertions() begin" << endl;
   Trace("smt") << "SmtEnginePrivate::processAssertions()" << endl;
 
+  std::cout << "panda smt_engine " << d_smt.d_logic.getLogicString() << std::endl;
   Debug("smt") << "#Assertions : " << d_assertions.size() << endl;
   Debug("smt") << "#Assumptions: " << d_assertions.getNumAssumptions() << endl;
 
@@ -3304,6 +3308,7 @@ void SmtEnginePrivate::processAssertions() {
           d_passes["bv-to-int"]->apply(&d_assertions);
         }
   }
+  std::cout << "panda smt_engine " << d_smt.d_logic.getLogicString() << std::endl;
 
   // Convert non-top-level Booleans to bit-vectors of size 1
   if (options::boolToBitvector())
