@@ -342,6 +342,8 @@ Node BoolToBV::lowerIte(const TNode& node)
     }
     else if (needToRebuild(n))
     {
+      // Note: it's always safe to rebuild here, because we've only lowered
+      //       ITEs of type bit-vector to BITVECTOR_ITE
       rebuildNode(n, n.getKind());
     }
     else
