@@ -38,17 +38,13 @@ PreprocessingPassResult BoolToBV::applyInternal(
   NodeManager::currentResourceManager()->spendResource(
       options::preprocessStep());
 
-  NodeManager* nm = NodeManager::currentNM();
   unsigned size = assertionsToPreprocess->size();
 
   if (options::boolToBitvector() == BOOL_TO_BV_ALL)
   {
     for (unsigned i = 0; i < size; ++i)
     {
-      Node newAssertion = lowerNode((*assertionsToPreprocess)[i], true);
-      // mode all should always succeed
-      Assert(newAssertion.getType().isBitVector());
-      newAssertion = nm->mkNode(kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+      Node newAssertion = lowerAssertion((*assertionsToPreprocess)[i], true);
       assertionsToPreprocess->replace(i, Rewriter::rewrite(newAssertion));
     }
   }
@@ -120,10 +116,32 @@ bool BoolToBV::needToRebuild(TNode n) const
   return false;
 }
 
+Node BoolToBV::lowerAssertion(const TNode& assertion, bool force)
+{
+  // first try to lower all the children
+  for (const Node& c : assertion)
+  {
+    lowerNode(c, force);
+  }
+
+  // now try lowering the assertion, but don't force it (even in mode all)
+  lowerNode(assertion, false);
+  Node newAssertion = fromCache(assertion);
+  TypeNode newAssertionType = newAssertion.getType();
+  if (newAssertionType.isBitVector())
+  {
+    Assert(newAssertionType.getBitVectorSize() == 1);
+    NodeManager* nm = NodeManager::currentNM();
+    newAssertion = nm->mkNode(kind::EQUAL, newAssertion, bv::utils::mkOne(1));
+    newAssertionType = newAssertion.getType();
+  }
+  Assert(newAssertionType.isBoolean());
+  return newAssertion;
+}
+
 Node BoolToBV::lowerNode(const TNode& node, bool force)
 {
   std::vector<TNode> visit;
-  // TODO: don't add top-level node, don't want to force the top one
   visit.push_back(node);
   std::unordered_set<TNode, TNodeHashFunction> visited;
 
@@ -156,6 +174,7 @@ Node BoolToBV::lowerNode(const TNode& node, bool force)
       lowerNodeHelper(n, force);
     }
   }
+
   return fromCache(node);
 }
 
@@ -204,7 +223,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
   bool safe_to_lower =
       (new_kind != k);  // don't need to lower at all if kind hasn't changed
 
-  // it's safe to rebuild if rebuilding doesn't change any of the kinds of the
+  // it's safe to rebuild if rebuilding doesn't change any of the types of the
   // children
   bool safe_to_rebuild = true;
 
@@ -216,7 +235,7 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
     }
     if (safe_to_rebuild)
     {
-      safe_to_rebuild = (fromCache(nn).getKind() == nn.getKind());
+      safe_to_rebuild = (fromCache(nn).getType() == nn.getType());
     }
     // if it's already not safe to do either, stop checking
     if (!safe_to_lower && !safe_to_rebuild)
@@ -224,6 +243,9 @@ void BoolToBV::lowerNodeHelper(const TNode& n, bool force)
       break;
     }
   }
+
+  Debug("bool-to-bv") << "safe_to_lower = " << safe_to_lower
+                      << ", safe_to_rebuild = " << safe_to_rebuild << std::endl;
 
   if (new_kind != k)
   {

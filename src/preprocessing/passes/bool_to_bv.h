@@ -46,6 +46,15 @@ class BoolToBV : public PreprocessingPass
     ~Statistics();
   };
 
+  /** Takes an assertion and attempts to create more bit-vector structure
+      by replacing boolean operators with bit-vector operators.
+
+      It passes the force argument down to lowerNode, however it never
+      forces the top-level assertion. There's no point forcing the assertion
+      to be a bit-vector when it will just be converted back into a boolean.
+  */
+  Node lowerAssertion(const TNode& node, bool force = false);
+
   /** Traverses subterms to turn booleans into bit-vectors using lowerNodeHelper
    *  Passes the force argument to lowerNodeHelper
    *  Returns the lowered node
