@@ -197,11 +197,8 @@ Node BVToInt::eliminationPass(Node n) {
 
 Node BVToInt::bvToInt(Node n)
 { 
-  std::cout << "panda 0" << n.toString() << std::endl;
   n = eliminationPass(n);
-  std::cout << "panda 1" << n.toString() << std::endl;
   n = makeBinary(n);
-  std::cout << "panda 2" << n.toString() << std::endl;
   vector<Node> toVisit;
   toVisit.push_back(n);
   Node one_const = d_nm->mkConst<Rational>(1);
@@ -210,7 +207,6 @@ Node BVToInt::bvToInt(Node n)
   while (!toVisit.empty())
   {
     Node current = toVisit.back();
-    std::cout << "panda current " << current.toString() << std::endl;
     size_t currentNumChildren = current.getNumChildren();
     if (d_bvToIntCache.find(current) == d_bvToIntCache.end()) {
       d_bvToIntCache[current] = Node();
@@ -511,8 +507,6 @@ Node BVToInt::bvToInt(Node n)
               Node b = intized_children[1];
               Node sum = d_nm->mkNode(kind::PLUS, a, b);
               d_bvToIntCache[current] = sum;
-              std::cout << "panda concat " << current.toString() << std::endl;
-              std::cout << "panda concat " << sum.toString() << std::endl;
               break;
             }
             case kind::BITVECTOR_EXTRACT:
