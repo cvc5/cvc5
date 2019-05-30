@@ -27,6 +27,7 @@
 #include "theory/rewriter.h"
 #include "theory/bv/theory_bv_rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
+#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
 #include "theory/theory.h"
 
@@ -195,9 +196,12 @@ Node BVToInt::eliminationPass(Node n) {
 }
 
 Node BVToInt::bvToInt(Node n)
-{
+{ 
+  std::cout << "panda 0" << n.toString() << std::endl;
   n = eliminationPass(n);
+  std::cout << "panda 1" << n.toString() << std::endl;
   n = makeBinary(n);
+  std::cout << "panda 2" << n.toString() << std::endl;
   vector<Node> toVisit;
   toVisit.push_back(n);
   Node one_const = d_nm->mkConst<Rational>(1);
@@ -646,11 +650,6 @@ PreprocessingPassResult BVToInt::applyInternal(
   AlwaysAssert(!options::incrementalSolving());
   for (unsigned i = 0; i < assertionsToPreprocess->size(); ++i)
   {
-    Node intizedNode = bvToInt((*assertionsToPreprocess)[i]);
-    Node rwNode = Rewriter::rewrite(intizedNode);
-    std:: cout << "panda " << (*assertionsToPreprocess)[i].toString() << std::endl;
-    std:: cout << "panda " << intizedNode.toString() << std::endl;
-    std:: cout << "panda " << rwNode.toString() << std::endl;
     assertionsToPreprocess->replace(
         i, Rewriter::rewrite(bvToInt((*assertionsToPreprocess)[i])));
   }
