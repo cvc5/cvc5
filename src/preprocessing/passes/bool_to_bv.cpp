@@ -68,13 +68,13 @@ PreprocessingPassResult BoolToBV::applyInternal(
 void BoolToBV::updateCache(TNode n, TNode rebuilt)
 {
   // check more likely case first
-  if (n.getKind() != kind::ITE)
+  if ((n.getKind() != kind::ITE) || !n[1].getType().isBitVector())
   {
     d_lowerCache[n] = rebuilt;
   }
   else
   {
-    d_iteLowerCache[n] = rebuilt;
+    d_iteBVLowerCache[n] = rebuilt;
   }
 }
 
@@ -90,9 +90,9 @@ Node BoolToBV::fromCache(TNode n) const
   }
   else
   {
-    if (d_iteLowerCache.find(n) != d_iteLowerCache.end())
+    if (d_iteBVLowerCache.find(n) != d_iteBVLowerCache.end())
     {
-      return d_iteLowerCache.at(n);
+      return d_iteBVLowerCache.at(n);
     }
   }
   return n;
@@ -100,7 +100,7 @@ Node BoolToBV::fromCache(TNode n) const
 
 inline bool BoolToBV::inCache(const Node& n) const
 {
-  return (ContainsKey(d_lowerCache, n) || ContainsKey(d_iteLowerCache, n));
+  return (ContainsKey(d_lowerCache, n) || ContainsKey(d_iteBVLowerCache, n));
 }
 
 bool BoolToBV::needToRebuild(TNode n) const
@@ -326,7 +326,7 @@ Node BoolToBV::lowerIte(const TNode& node)
         Node loweredNode = lowerNode(n, false);
         // some of the lowered nodes might appear elsewhere but not in an ITE
         // reset the cache to prevent lowering them
-        // the ITEs are still tracked in d_iteLowerCache though
+        // the bit-vector ITEs are still tracked in d_iteBVLowerCache though
         d_lowerCache.clear();
       }
       else

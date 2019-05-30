@@ -103,8 +103,11 @@ class BoolToBV : public PreprocessingPass
 
   Statistics d_statistics;
 
-  /* Keeps track of lowered ITEs */
-  std::unordered_map<Node, Node, NodeHashFunction> d_iteLowerCache;
+  /** Keeps track of lowered ITEs
+      Note: it only keeps mappings for ITEs of type bit-vector.
+      Other ITEs will be in the d_lowerCache
+   */
+  std::unordered_map<Node, Node, NodeHashFunction> d_iteBVLowerCache;
 
   /** Keeps track of other lowered nodes
       -- will be cleared periodically in ITE mode
