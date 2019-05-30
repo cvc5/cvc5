@@ -396,7 +396,7 @@ class RewriteRule {
 public:
 
   RewriteRule() {
-    
+    std::cout << "panda RewriteRule() " << rule << std::endl;
     // if (s_statistics == NULL) {
     //   s_statistics = new RuleStatistics();
     // }
@@ -411,6 +411,7 @@ public:
   }
 
   static inline bool applies(TNode node) {
+    std::cout << "panda applies() " << rule << std::endl;
     Unreachable();
   }
 
@@ -705,26 +706,47 @@ struct FixpointRewriteStrategy {
     Node current = node;
     do {
       previous = current;
+      std::cout << "panda 1" << std::endl;
       if (R1::applies(current)) current  = R1::template run<false>(current);
+      std::cout << "panda 2" << std::endl;
       if (R2::applies(current)) current  = R2::template run<false>(current);
+      std::cout << "panda 3" << std::endl;
       if (R3::applies(current)) current  = R3::template run<false>(current);
+      std::cout << "panda 4" << std::endl;
       if (R4::applies(current)) current  = R4::template run<false>(current);
+      std::cout << "panda 5" << std::endl;
       if (R5::applies(current)) current  = R5::template run<false>(current);
+      std::cout << "panda 6" << std::endl;
       if (R6::applies(current)) current  = R6::template run<false>(current);
+      std::cout << "panda 7" << std::endl;
       if (R7::applies(current)) current  = R7::template run<false>(current);
+      std::cout << "panda 8" << std::endl;
       if (R8::applies(current)) current  = R8::template run<false>(current);
+      std::cout << "panda 9" << std::endl;
       if (R9::applies(current)) current  = R9::template run<false>(current);
+      std::cout << "panda 10" << std::endl;
       if (R10::applies(current)) current = R10::template run<false>(current);
+      std::cout << "panda 11" << std::endl;
       if (R11::applies(current)) current = R11::template run<false>(current);
+      std::cout << "panda 12" << std::endl;
       if (R12::applies(current)) current = R12::template run<false>(current);
+      std::cout << "panda 13" << std::endl;
       if (R13::applies(current)) current = R13::template run<false>(current);
+      std::cout << "panda 14" << std::endl;
       if (R14::applies(current)) current = R14::template run<false>(current);
+      std::cout << "panda 15" << std::endl;
       if (R15::applies(current)) current = R15::template run<false>(current);
+      std::cout << "panda 16" << std::endl;
       if (R16::applies(current)) current = R16::template run<false>(current);
+      std::cout << "panda 17" << std::endl;
       if (R17::applies(current)) current = R17::template run<false>(current);
+      std::cout << "panda 18" << std::endl;
       if (R18::applies(current)) current = R18::template run<false>(current);
+      std::cout << "panda 19" << std::endl;
       if (R19::applies(current)) current = R19::template run<false>(current);
+      std::cout << "panda 20" << std::endl;
       if (R20::applies(current)) current = R20::template run<false>(current);
+      std::cout << "panda 21" << std::endl;
     } while (previous != current);
     
     return current;
