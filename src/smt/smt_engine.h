@@ -263,6 +263,11 @@ class CVC4_PUBLIC SmtEngine {
   Result d_status;
 
   /**
+   * The expected status of the next satisfiability check.
+   */
+  Result d_expectedStatus;
+
+  /**
    * The input file name (if any) or the name set through setInfo (if any)
    */
   std::string d_filename;
