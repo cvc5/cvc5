@@ -39,19 +39,19 @@ class BVToInt : public PreprocessingPass
  protected:
     PreprocessingPassResult applyInternal(
       AssertionPipeline* assertionsToPreprocess) override;
-    Node createBitwiseNode(vector<Node> children, uint32_t bvsize, uint32_t granularity, uint32_t (*f)(uint32_t, uint32_t));
-    Node createITEFromTable(Node x, Node y, uint32_t granularity, std::map<std::pair<uint32_t, uint32_t>, uint32_t> table);
-    Node createShiftNode(vector<Node> children, uint32_t bvsize, bool isLeftShift);
+    Node createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t granularity, uint64_t (*f)(uint64_t, uint64_t));
+    Node createITEFromTable(Node x, Node y, uint64_t granularity, std::map<std::pair<uint64_t, uint64_t>, uint64_t> table);
+    Node createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift);
 
 
     Node bvToInt(Node n);
-    Node mkRangeConstraint(Node newVar, size_t k);
+    Node mkRangeConstraint(Node newVar, uint64_t k);
     Node eliminationPass(Node n);
     Node makeBinary(Node n);
-    Node pow2(size_t k);
+    Node pow2(uint64_t k);
     Node pow2(Node n);
     Node modpow2(Node n, Node exponent);
-    Node modpow2(Node n, size_t exponent);
+    Node modpow2(Node n, uint64_t exponent);
 
     NodeMap d_binarizeCache;
     NodeMap d_eliminationCache;
