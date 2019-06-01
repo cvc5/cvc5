@@ -113,19 +113,26 @@ Node TermDb::getTypeGroundTerm(TypeNode tn, unsigned i) const
   }
 }
 
-Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn)
+Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
 {
   std::map<TypeNode, std::vector<Node> >::const_iterator it =
       d_type_map.find(tn);
   if (it != d_type_map.end())
   {
     Assert(!it->second.empty());
-    return it->second[0];
+    if( !reqVar )
+    {
+      return it->second[0];
+    }
+    for( const Node& v : it->second )
+    {
+      if( v.isVar() )
+      {
+        return v;
+      }
+    }
   }
-  else
-  {
-    return getOrMakeTypeFreshVariable(tn);
-  }
+  return getOrMakeTypeFreshVariable(tn);
 }
 
 Node TermDb::getOrMakeTypeFreshVariable(TypeNode tn)
