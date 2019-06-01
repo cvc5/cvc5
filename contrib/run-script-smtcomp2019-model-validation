@@ -14,7 +14,7 @@ function finishwith {
 case "$logic" in
 
 QF_BV)
-  finishwith --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bv-eq-slicer=auto --no-bv-abstraction
+  finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
   ;;
 *)
   # just run the default
