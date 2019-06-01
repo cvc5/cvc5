@@ -85,6 +85,21 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(nr, Rewriter::rewrite(nr));
   }
 
+  void testRewriteBvIte()
+  {
+    TypeNode boolType = d_nm->booleanType();
+    TypeNode bvType = d_nm->mkBitVectorType(1);
+
+    Node zero = d_nm->mkConst(BitVector(1, 0u));
+    Node c1 = d_nm->mkVar("c1", bvType);
+    Node c2 = d_nm->mkVar("c2", bvType);
+
+    Node ite = d_nm->mkNode(BITVECTOR_ITE, c2, zero, zero);
+    Node n = d_nm->mkNode(BITVECTOR_ITE, c1, ite, ite);
+    Node nr = Rewriter::rewrite(n);
+    TS_ASSERT_EQUALS(nr, Rewriter::rewrite(nr));
+  }
+
  private:
   ExprManager* d_em;
   SmtEngine* d_smt;

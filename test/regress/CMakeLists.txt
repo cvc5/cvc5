@@ -35,6 +35,7 @@ set(regress_0_tests
   regress0/arrays/bool-array.smt2
   regress0/arrays/bug272.minimized.smt
   regress0/arrays/bug272.smt
+  regress0/arrays/bug3020.smt2
   regress0/arrays/bug637.delta.smt2
   regress0/arrays/constarr.cvc
   regress0/arrays/constarr.smt2
@@ -159,6 +160,7 @@ set(regress_0_tests
   regress0/bv/ackermann2.smt2
   regress0/bv/ackermann3.smt2
   regress0/bv/ackermann4.smt2
+  regress0/bv/bool-model.smt2
   regress0/bv/bool-to-bv-all.smt2
   regress0/bv/bool-to-bv-ite.smt2
   regress0/bv/bug260a.smt
@@ -450,7 +452,10 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
+  regress0/fp/rti_3_5_bug.smt2
+  regress0/fp/rti_3_5_bug_report.smt2
   regress0/fp/simple.smt2
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smt
@@ -580,6 +585,7 @@ set(regress_0_tests
   regress0/print_lambda.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/empty_symbol_name.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -1576,6 +1582,7 @@ set(regress_1_tests
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
@@ -1787,6 +1794,7 @@ set(regress_2_tests
   regress2/sygus/multi-udiv.sy
   regress2/sygus/nia-max-square.sy
   regress2/sygus/no-syntax-test-no-si.sy
+  regress2/sygus/pbe_bvurem.sy
   regress2/sygus/process-10-vars-2fun.sy
   regress2/sygus/process-arg-invariance.sy
   regress2/sygus/real-grammar-neg.sy
