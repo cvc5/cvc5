@@ -332,7 +332,7 @@ Node FirstOrderModel::getModelBasisTerm(TypeNode tn)
         // may produce an inconsistent model by choosing an arbitrary
         // equivalence class for it. Hence, we require that it be an existing or
         // fresh variable.
-        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn,true);
+        mbt = d_qe->getTermDatabase()->getOrMakeTypeGroundTerm(tn, true);
       }
     }
     ModelBasisAttribute mba;

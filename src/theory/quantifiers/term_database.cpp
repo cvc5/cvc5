@@ -120,13 +120,13 @@ Node TermDb::getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar)
   if (it != d_type_map.end())
   {
     Assert(!it->second.empty());
-    if( !reqVar )
+    if (!reqVar)
     {
       return it->second[0];
     }
-    for( const Node& v : it->second )
+    for (const Node& v : it->second)
     {
-      if( v.isVar() )
+      if (v.isVar())
       {
         return v;
       }
