@@ -78,11 +78,11 @@ class TheoryStringsRewriter {
    * and returns null.
    *
    * For example, given input
-   *   { "bcb", x }, { "b", ("a")* } and dir=-1,
+   *   { "cb", x }, { "b", ("a")* } and dir=-1,
    * this method leaves children and mchildren unchanged and returns false.
    *
    * Notice that based on this, we can determine that:
-   *   "bcb" ++ x  in ( "b" ++ ("a")* )*
+   *   "cb" ++ x  in ( "b" ++ ("a")* )*
    * is equivalent to false, whereas we cannot determine that:
    *   "bb" ++ x  in ( "b" ++ ("a")* )*
    * is equivalent to false.
