@@ -34,6 +34,11 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
 Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
+  Trace("regexp-ext-rewrite-debug")
+      << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
+  Trace("regexp-ext-rewrite-debug")
+      << "  mchildren : " << mchildren << std::endl;
+  Trace("regexp-ext-rewrite-debug") << "  children : " << children << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir<0 ? 0 : dir;
   unsigned tmax = dir<0 ? 1 : dir;
@@ -52,14 +57,19 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
             children.pop_back();
             mchildren.pop_back();
             do_next = true;
+            Trace("regexp-ext-rewrite-debug") << "...strip equal" << std::endl;
           }else if( xc.isConst() && rc[0].isConst() ){
             //split the constant
             int index;
             Node s = splitConstant( xc, rc[0], index, t==0 );
             Trace("regexp-ext-rewrite-debug") << "CRE: Regexp const split : " << xc << " " << rc[0] << " -> " << s << " " << index << " " << t << std::endl;
             if( s.isNull() ){
+              Trace("regexp-ext-rewrite-debug")
+                  << "...return false" << std::endl;
               return NodeManager::currentNM()->mkConst( false );
             }else{
+              Trace("regexp-ext-rewrite-debug")
+                  << "...strip equal const" << std::endl;
               children.pop_back();
               mchildren.pop_back();
               if( index==0 ){
@@ -75,6 +85,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
           CVC4::String s = xc.getConst<String>();
           if (s.size() == 0)
           {
+            Trace("regexp-ext-rewrite-debug") << "...ignore empty" << std::endl;
             // ignore and continue
             mchildren.pop_back();
             do_next = true;
@@ -157,13 +168,15 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
             }
             std::vector< Node > children_s;
             getConcat( rc[0], children_s );
+            Trace("regexp-ext-rewrite-debug")
+                << "...recursive call on body of star" << std::endl;
             Node ret = simpleRegexpConsume( mchildren_s, children_s, t );
             if( !ret.isNull() ){
               Trace("regexp-ext-rewrite-debug") << "CRE : regexp star infeasable " << xc << " " << rc << std::endl;
               children.pop_back();
-              if( children.empty() ){
-                return NodeManager::currentNM()->mkConst( false );
-              }else{
+              if (!children.empty())
+              {
+                Trace("regexp-ext-rewrite-debug") << "...continue" << std::endl;
                 do_next = true;
               }
             }else{
@@ -185,6 +198,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
                   }
                 }
                 if( !can_skip ){
+                  Trace("regexp-ext-rewrite-debug")
+                      << "...can't skip" << std::endl;
                   //take the result of fully consuming once
                   if( t==1 ){
                     std::reverse( mchildren_s.begin(), mchildren_s.end() );
@@ -193,7 +208,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
                   mchildren.insert( mchildren.end(), mchildren_s.begin(), mchildren_s.end() );
                   do_next = true;
                 }else{
-                  Trace("regexp-ext-rewrite-debug") << "CRE : can skip " << rc << " from " << xc << std::endl;
+                  Trace("regexp-ext-rewrite-debug")
+                      << "...can skip " << rc << " from " << xc << std::endl;
                 }
               }
             }
