@@ -61,22 +61,22 @@ class TheoryStringsRewriter {
    * this method updates:
    *   { "b" }, { [[y]] }
    * where [[.]] denotes str.to.re, and returns null.
-   * 
+   *
    * Notice that the above requirement for returning false is stronger than
    * determining that s1 ++ ... ++ sn in r1 ++ ... ++ rm is equivalent to false.
    * For example, for input "bb" in "b" ++ ( "a" )*, we do not return false
    * since "b" is in the language of "b" ++ ( "a" )* and is a prefix of "bb".
-   * We do not return false even though the above membership is equivalent 
+   * We do not return false even though the above membership is equivalent
    * to false. We do this because the function is used e.g. to test whether a
    * possible unrolling leads to a conflict. This is demonstrated by the
    * following examples:
-   * 
+   *
    * For example, given input
    *   { "bb", x }, { "b", ("a")* } and dir=-1,
    * this method updates:
    *   { "b" }, { ("a")* }
    * and returns null.
-   * 
+   *
    * For example, given input
    *   { "bcb", x }, { "bb", ("a")* } and dir=-1,
    * this method leaves children and mchildren unchanged and returns false.
