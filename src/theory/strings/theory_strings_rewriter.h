@@ -78,8 +78,14 @@ class TheoryStringsRewriter {
    * and returns null.
    *
    * For example, given input
-   *   { "bcb", x }, { "bb", ("a")* } and dir=-1,
+   *   { "bcb", x }, { "b", ("a")* } and dir=-1,
    * this method leaves children and mchildren unchanged and returns false.
+   *
+   * Notice that based on this, we can determine that:
+   *   "bcb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false, whereas we cannot determine that:
+   *   "bb" ++ x  in ( "b" ++ ("a")* )*
+   * is equivalent to false.
    */
   static Node simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir = -1 );
   static bool isConstRegExp( TNode t );
