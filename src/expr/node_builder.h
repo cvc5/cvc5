@@ -275,6 +275,7 @@ class NodeBuilder {
   inline void realloc() {
     size_t newSize = 2 * size_t(d_nvMaxChildren);
     size_t hardLimit = (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
+    AlwaysAssert(newSize <= hardLimit);
     realloc(__builtin_expect( ( newSize > hardLimit ), false ) ? hardLimit : newSize);
   }
 
