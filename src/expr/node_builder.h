@@ -275,7 +275,6 @@ class NodeBuilder {
   inline void realloc() {
     size_t newSize = 2 * size_t(d_nvMaxChildren);
     size_t hardLimit = (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
-    AlwaysAssert(newSize <= hardLimit);
     realloc(__builtin_expect( ( newSize > hardLimit ), false ) ? hardLimit : newSize);
   }
 
@@ -773,8 +772,8 @@ void NodeBuilder<nchild_thresh>::clear(Kind k) {
 
 template <unsigned nchild_thresh>
 void NodeBuilder<nchild_thresh>::realloc(size_t toSize) {
-  Assert( toSize > d_nvMaxChildren,
-          "attempt to realloc() a NodeBuilder to a smaller/equal size!" );
+  AlwaysAssert(toSize > d_nvMaxChildren,
+               "attempt to realloc() a NodeBuilder to a smaller/equal size!");
   Assert( toSize < (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN),
           "attempt to realloc() a NodeBuilder to size %u (beyond hard limit of %u)",
           toSize, (1lu << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1 );
