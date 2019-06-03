@@ -39,11 +39,11 @@ QF_NIA)
   trywith 30 --nl-ext-tplanes --decision=justification
   trywith 30 --no-nl-ext-tplanes --decision=internal
   # this totals up to more than 20 minutes, although notice that smaller bit-widths may quickly fail
-  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
-  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
-  trywith 600 --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=2 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=4 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=8 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 300 --solve-int-as-bv=16 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
+  trywith 600 --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
   finishwith --nl-ext-tplanes --decision=internal
   ;;
 QF_NRA)
@@ -85,7 +85,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   finishwith --full-saturate-quant
   ;;
 ABVFP|BVFP|FP)
-  finishwith --full-saturate-quant
+  finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
   # most problems in UFBV are essentially BV
@@ -125,7 +125,7 @@ QF_UFBV)
   finishwith
   ;;
 QF_BV)
-  finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --bv-eq-slicer=auto --no-bv-abstraction
+  finishwith --bv-div-zero-const --bitblast=eager --bv-sat-solver=cadical --no-bv-abstraction
   ;;
 QF_AUFLIA)
   finishwith --no-arrays-eager-index --arrays-eager-lemmas --decision=justification
@@ -145,13 +145,13 @@ QF_S|QF_SLIA)
   finishwith --strings-exp --rewrite-divk --lang=smt2.6.1
   ;;
 QF_ABVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_BVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_FP)
-  finishwith
+  finishwith --fp-exp
   ;;
 *)
   # just run the default

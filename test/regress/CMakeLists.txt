@@ -585,6 +585,7 @@ set(regress_0_tests
   regress0/print_lambda.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/empty_symbol_name.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -1580,6 +1581,7 @@ set(regress_1_tests
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2

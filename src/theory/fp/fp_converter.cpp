@@ -157,17 +157,17 @@ symbolicRoundingMode traits::RTN(void) { return symbolicRoundingMode(0x08); };
 symbolicRoundingMode traits::RTZ(void) { return symbolicRoundingMode(0x10); };
 void traits::precondition(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 void traits::postcondition(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 void traits::invariant(const bool b)
 {
-  Assert(b);
+  AlwaysAssert(b);
   return;
 }
 
