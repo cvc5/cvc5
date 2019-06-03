@@ -27,7 +27,7 @@ QF_NRA)
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
-  finishwith --full-saturate-quant
+  finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
   finishwith --finite-model-find
@@ -69,13 +69,13 @@ QF_S|QF_SLIA)
   finishwith --strings-exp --rewrite-divk --lang=smt2.6.1
   ;;
 QF_ABVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_BVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_FP)
-  finishwith
+  finishwith --fp-exp
   ;;
 *)
   # just run the default

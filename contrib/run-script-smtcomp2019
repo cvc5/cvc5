@@ -85,7 +85,7 @@ ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUF
   finishwith --full-saturate-quant
   ;;
 ABVFP|BVFP|FP)
-  finishwith --full-saturate-quant
+  finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
   # most problems in UFBV are essentially BV
@@ -142,13 +142,13 @@ QF_S|QF_SLIA)
   finishwith --strings-exp --rewrite-divk --lang=smt2.6.1
   ;;
 QF_ABVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_BVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_FP)
-  finishwith
+  finishwith --fp-exp
   ;;
 *)
   # just run the default
