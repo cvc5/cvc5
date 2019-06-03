@@ -119,7 +119,10 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --repeat-simp --arrays-weak-equiv
   ;;
 QF_UFBV)
-  finishwith --bitblast=eager --bv-sat-solver=cadical
+  # Benchmarks with uninterpreted sorts cannot be solved with eager
+  # bit-blasting currently
+  trywith 2400 --bitblast=eager --bv-sat-solver=cadical
+  finishwith
   ;;
 QF_BV)
   finishwith --unconstrained-simp --bv-div-zero-const --bv-intro-pow2 --bitblast=eager --bv-sat-solver=cadical --bitblast-aig --bv-eq-slicer=auto --no-bv-abstraction
