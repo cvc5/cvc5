@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
-#define __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#ifndef CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
+#define CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H
 
 #include "theory/rewriter.h"
 #include "theory/theory.h"
@@ -130,4 +130,4 @@ private:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */
+#endif /* CVC4__THEORY__BUILTIN__THEORY_BUILTIN_REWRITER_H */

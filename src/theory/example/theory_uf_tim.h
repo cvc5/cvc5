@@ -22,8 +22,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
-#define __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
+#ifndef CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
+#define CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
 
 #include "expr/node.h"
 #include "expr/attribute.h"
@@ -210,4 +210,4 @@ typedef expr::Attribute<ECAttrTag, ECData*, ECCleanupStrategy> ECAttr;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H */
+#endif /* CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H */

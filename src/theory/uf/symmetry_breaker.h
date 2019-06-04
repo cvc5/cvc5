@@ -41,8 +41,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__SYMMETRY_BREAKER_H
-#define __CVC4__THEORY__UF__SYMMETRY_BREAKER_H
+#ifndef CVC4__THEORY__UF__SYMMETRY_BREAKER_H
+#define CVC4__THEORY__UF__SYMMETRY_BREAKER_H
 
 #include <iostream>
 #include <list>
@@ -176,4 +176,4 @@ std::ostream& operator<<(std::ostream& out, const ::CVC4::theory::uf::SymmetryBr
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__SYMMETRY_BREAKER_H */
+#endif /* CVC4__THEORY__UF__SYMMETRY_BREAKER_H */

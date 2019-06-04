@@ -19,8 +19,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__COMMAND_H
-#define __CVC4__COMMAND_H
+#ifndef CVC4__COMMAND_H
+#define CVC4__COMMAND_H
 
 #include <iosfwd>
 #include <map>
@@ -1396,4 +1396,4 @@ class CVC4_PUBLIC DeclarationSequence : public CommandSequence
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__COMMAND_H */
+#endif /* CVC4__COMMAND_H */

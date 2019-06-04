@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
-#define __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#ifndef CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#define CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
 
 #include "theory/bv/bitblast/bitblaster.h"
 #include "prop/sat_solver.h"
@@ -111,4 +111,4 @@ class AigBitblaster : public TBitblaster<Abc_Obj_t*>
 }  // namespace bv
 }  // namespace theory
 }  // namespace CVC4
-#endif  //  __CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H
+#endif  //  CVC4__THEORY__BV__BITBLAST__AIG_BITBLASTER_H

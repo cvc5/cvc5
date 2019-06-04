@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__TYPE_NODE_H
-#define __CVC4__TYPE_NODE_H
+#ifndef CVC4__TYPE_NODE_H
+#define CVC4__TYPE_NODE_H
 
 #include <stdint.h>
 
@@ -1072,4 +1072,4 @@ static void __attribute__((used)) debugPrintRawTypeNode(const TypeNode& n) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

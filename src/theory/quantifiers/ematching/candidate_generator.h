@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H
 
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -212,4 +212,4 @@ class CandidateGeneratorConsExpand : public CandidateGeneratorQE
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CANDIDATE_GENERATOR_H */

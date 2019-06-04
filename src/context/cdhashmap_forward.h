@@ -23,8 +23,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHMAP_FORWARD_H
-#define __CVC4__CONTEXT__CDHASHMAP_FORWARD_H
+#ifndef CVC4__CONTEXT__CDHASHMAP_FORWARD_H
+#define CVC4__CONTEXT__CDHASHMAP_FORWARD_H
 
 #include <functional>
 
@@ -40,4 +40,4 @@ namespace CVC4 {
 
 /// \endcond
 
-#endif /* __CVC4__CONTEXT__CDHASHMAP_FORWARD_H */
+#endif /* CVC4__CONTEXT__CDHASHMAP_FORWARD_H */

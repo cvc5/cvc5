@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__FP__FP_CONVERTER_H
-#define __CVC4__THEORY__FP__FP_CONVERTER_H
+#ifndef CVC4__THEORY__FP__FP_CONVERTER_H
+#define CVC4__THEORY__FP__FP_CONVERTER_H
 
 #include "base/cvc4_assert.h"
 #include "context/cdhashmap.h"
@@ -355,4 +355,4 @@ class FpConverter
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__FP__THEORY_FP_H */
+#endif /* CVC4__THEORY__FP__THEORY_FP_H */

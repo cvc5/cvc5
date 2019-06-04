@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__SIMPLIFY_BOOLEAN_NODE_H
-#define __CVC4__SIMPLIFY_BOOLEAN_NODE_H
+#ifndef CVC4__SIMPLIFY_BOOLEAN_NODE_H
+#define CVC4__SIMPLIFY_BOOLEAN_NODE_H
 
 namespace CVC4 {
 
@@ -24,4 +24,4 @@ Node simplifyBooleanNode(const Node &n);
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SIMPLIFY_BOOLEAN_NODE_H */
+#endif /* CVC4__SIMPLIFY_BOOLEAN_NODE_H */

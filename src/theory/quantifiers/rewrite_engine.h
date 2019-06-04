@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__REWRITE_ENGINE_H
-#define __CVC4__REWRITE_ENGINE_H
+#ifndef CVC4__REWRITE_ENGINE_H
+#define CVC4__REWRITE_ENGINE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"

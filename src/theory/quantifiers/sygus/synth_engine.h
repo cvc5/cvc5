@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
-#define __CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
+#define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"

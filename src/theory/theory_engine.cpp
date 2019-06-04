@@ -1061,9 +1061,7 @@ Node TheoryEngine::ppTheoryRewrite(TNode term) {
 
   Node newTerm;
   // do not rewrite inside quantifiers
-  if (term.getKind() == kind::FORALL || term.getKind() == kind::EXISTS
-      || term.getKind() == kind::CHOICE
-      || term.getKind() == kind::LAMBDA)
+  if (term.isClosure())
   {
     newTerm = Rewriter::rewrite(term);
   }

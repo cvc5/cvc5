@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
-#define __CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
+#define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_H
 
 #include "context/cdlist.h"
 #include "theory/quantifiers/sygus/ce_guided_single_inv_sol.h"

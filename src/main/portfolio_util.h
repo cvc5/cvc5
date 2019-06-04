@@ -12,8 +12,8 @@
  ** \brief Code relevant only for portfolio builds
  **/
 
-#ifndef __CVC4__PORTFOLIO_UTIL_H
-#define __CVC4__PORTFOLIO_UTIL_H
+#ifndef CVC4__PORTFOLIO_UTIL_H
+#define CVC4__PORTFOLIO_UTIL_H
 
 #include <queue>
 
@@ -177,4 +177,4 @@ void sharingManager(unsigned numThreads,
 
 }/* CVC4 namespace */
 
-#endif   /* __CVC4__PORTFOLIO_UTIL_H */
+#endif   /* CVC4__PORTFOLIO_UTIL_H */

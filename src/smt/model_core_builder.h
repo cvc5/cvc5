@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__MODEL_CORE_BUILDER_H
-#define __CVC4__THEORY__MODEL_CORE_BUILDER_H
+#ifndef CVC4__THEORY__MODEL_CORE_BUILDER_H
+#define CVC4__THEORY__MODEL_CORE_BUILDER_H
 
 #include <vector>
 
@@ -61,4 +61,4 @@ class ModelCoreBuilder
 
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__MODEL_CORE_BUILDER_H */
+#endif /* CVC4__THEORY__MODEL_CORE_BUILDER_H */

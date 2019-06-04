@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_EXCEPTION_H
-#define __CVC4__PARSER__PARSER_EXCEPTION_H
+#ifndef CVC4__PARSER__PARSER_EXCEPTION_H
+#define CVC4__PARSER__PARSER_EXCEPTION_H
 
 #include <iostream>
 #include <string>
@@ -99,4 +99,4 @@ class CVC4_PUBLIC ParserEndOfFileException : public ParserException {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_EXCEPTION_H */
+#endif /* CVC4__PARSER__PARSER_EXCEPTION_H */

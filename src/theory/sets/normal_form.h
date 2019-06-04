@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SETS__NORMAL_FORM_H
-#define __CVC4__THEORY__SETS__NORMAL_FORM_H
+#ifndef CVC4__THEORY__SETS__NORMAL_FORM_H
+#define CVC4__THEORY__SETS__NORMAL_FORM_H
 
 namespace CVC4 {
 namespace theory {

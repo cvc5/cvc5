@@ -79,8 +79,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CDHASHMAP_H
-#define __CVC4__CONTEXT__CDHASHMAP_H
+#ifndef CVC4__CONTEXT__CDHASHMAP_H
+#define CVC4__CONTEXT__CDHASHMAP_H
 
 #include <functional>
 #include <iterator>
@@ -448,4 +448,4 @@ public:
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CDHASHMAP_H */
+#endif /* CVC4__CONTEXT__CDHASHMAP_H */

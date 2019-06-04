@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__DATATYPE_H
-#define __CVC4__DATATYPE_H
+#ifndef CVC4__DATATYPE_H
+#define CVC4__DATATYPE_H
 
 #include <functional>
 #include <iostream>
@@ -1288,4 +1288,4 @@ inline DatatypeConstructor::const_iterator DatatypeConstructor::end() const
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__DATATYPE_H */
+#endif /* CVC4__DATATYPE_H */

@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__CONTEXT__CONTEXT_MM_H
-#define __CVC4__CONTEXT__CONTEXT_MM_H
+#ifndef CVC4__CONTEXT__CONTEXT_MM_H
+#define CVC4__CONTEXT__CONTEXT_MM_H
 
 #include <deque>
 #include <limits>
@@ -266,4 +266,4 @@ inline bool operator!=(const ContextMemoryAllocator<T>& a1,
 }/* CVC4::context namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__CONTEXT__CONTEXT_MM_H */
+#endif /* CVC4__CONTEXT__CONTEXT_MM_H */
