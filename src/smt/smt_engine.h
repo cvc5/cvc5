@@ -849,6 +849,10 @@ class CVC4_PUBLIC SmtEngine {
   Expr doQuantifierElimination(const Expr& e,
                                bool doFull,
                                bool strict = true) /* throw(Exception) */;
+  /**
+   * TODO
+   */
+  void doAbduction(const Type& grammarType);
 
   /**
    * Get list of quantified formulas that were instantiated

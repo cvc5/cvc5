@@ -2033,6 +2033,42 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
+GetAbductCommand::GetAbductCommand() {}
+GetAbductCommand::GetAbductCommand(const Type& gtype) : d_sygus_grammar_type(gtype){}
+
+void GetAbductCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    smtEngine->doAbduction(d_sygus_grammar_type);
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+Command* GetAbductCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+{
+  GetAbductCommand* c = new GetAbductCommand();
+  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  return c;
+}
+
+Command* GetAbductCommand::clone() const
+{
+  GetAbductCommand* c = new GetAbductCommand();
+  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  return c;
+}
+
+std::string GetAbductCommand::getCommandName() const
+{
+  return "get-abduct";
+}
+
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */

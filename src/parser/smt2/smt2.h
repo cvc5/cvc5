@@ -181,7 +181,8 @@ private:
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
 
-  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
+  bool sygus() const;
+  bool sygus_v1() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -279,6 +280,16 @@ private:
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
+  void addSygusConstructorTerm(Datatype& dt,
+                               Expr term,
+                               std::map<Expr, Type>& ntsToUnres) const;
+  Expr purifySygusGTerm(Expr term,
+                        std::map<Expr, Type>& ntsToUnres,
+                        std::vector<Expr>& args,
+                        std::vector<Type>& cargs) const;
+  void addSygusConstructorVariables(Datatype& dt,
+                                    std::vector<Expr>& sygusVars,
+                                    Type type) const;
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -298,7 +309,8 @@ private:
       return;
     }else{
       //it is allowable in sygus
-      if( sygus() && name[0]=='-' ){
+      if (sygus_v1() && name[0] == '-')
+      {
         //do not check anything
         return;
       }

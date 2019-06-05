@@ -1009,6 +1009,23 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
   SmtEngine* d_smtEngine;
 }; /* class GetSynthSolutionCommand */
 
+class CVC4_PUBLIC GetAbductCommand : public Command
+{
+ public:
+  GetAbductCommand();
+  GetAbductCommand(const Type& gtype);
+
+  Type getGrammarType() const;
+  
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+ protected:
+  Type d_sygus_grammar_type;
+}; /* class GetQuantifierEliminationCommand */
+
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
 {
  protected:
