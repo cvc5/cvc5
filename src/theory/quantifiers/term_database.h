@@ -108,10 +108,11 @@ class TermDb : public QuantifiersUtil {
   */
   Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
   /** get or make ground term
-  * Returns the first ground term of type tn,
-  * or makes one if none exist.
-  */
-  Node getOrMakeTypeGroundTerm(TypeNode tn);
+   *
+   * Returns the first ground term of type tn, or makes one if none exist. If
+   * reqVar is true, then the ground term must be a variable.
+   */
+  Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
   /** make fresh variable
   * Returns a fresh variable of type tn.
   * This will return only a single fresh

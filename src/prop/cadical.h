@@ -48,8 +48,8 @@ class CadicalSolver : public SatSolver
   SatVariable falseVar() override;
 
   SatValue solve() override;
-
   SatValue solve(long unsigned int&) override;
+  SatValue solve(const std::vector<SatLiteral>& assumptions) override;
 
   void interrupt() override;
 
