@@ -238,7 +238,7 @@ bool getFreeVariables(TNode n,
 
 bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
 {
-  std::unordered_map<TNode, bool, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction> visited;
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -246,7 +246,7 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
   {
     cur = visit.back();
     visit.pop_back();
-    std::unordered_map<TNode, bool, TNodeHashFunction>::iterator itv =
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
         visited.find(cur);
     if (itv == visited.end())
     {
@@ -261,11 +261,7 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
           visit.push_back(cn);
         }
       }
-      visited[cur] = true;
-    }
-    else if (!itv->second)
-    {
-      visited[cur] = true;
+      visited.insert(cur);
     }
   } while (!visit.empty());
 
