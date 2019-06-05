@@ -1530,13 +1530,14 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
   | GET_ABDUCT_TOK { 
       PARSER_STATE->checkThatLogicIsSet(); 
-      e = PARSER_STATE->mkBoundVar(fun, EXPR_MANAGER->booleanType());
+      name = std::string("abd");
+      e = PARSER_STATE->mkBoundVar(name,EXPR_MANAGER->booleanType());
     }
     (
-      sygusGrammar[sygus_type, terms, e]
+      sygusGrammar[t, terms, name]
     )? 
     {
-      cmd->reset(new GetAbductCommand(sygus_type));
+      cmd->reset(new GetAbductCommand(t));
     }
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 
