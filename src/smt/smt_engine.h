@@ -256,6 +256,11 @@ class CVC4_PUBLIC SmtEngine {
    * Whether we did a global negation of the formula.
    */
   bool d_globalNegation;
+  
+  /** 
+   * The grammar type for abduction.
+   */
+  Type d_abductGrammarType;
 
   /**
    * Most recent result of last checkSat/query or (set-info :status).
