@@ -3383,6 +3383,7 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                 Trace("nl-ext-tplanes")
                       << "Tangent plane lemma : " << ub_reverse2 << std::endl;
 		lemmas.push_back(ub_reverse2);
+
 		
 		// t >= tplane -> ( (a <= a_v ^ b <= b_v) v (a >= a_v ^ b >= b_v) )
 		// in clause form, the above becomes
