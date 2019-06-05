@@ -249,6 +249,7 @@ Node BVToInt::bvToInt(Node n)
               }
               case kind::CONST_BITVECTOR:
               {
+                //TODO will i get overflows here? anywhere else?
                 BitVector constant(current.getConst<BitVector>());
 	              Integer c = constant.toInteger();
                 d_bvToIntCache[current] = d_nm->mkConst<Rational>(c);
@@ -650,7 +651,6 @@ PreprocessingPassResult BVToInt::applyInternal(
   }
   Node rangeAssertions = Rewriter::rewrite(d_nm->mkNode(kind::AND, d_rangeAssertions));
   assertionsToPreprocess->push_back(rangeAssertions);
-  //printCache(d_bvToIntCache);
   return PreprocessingPassResult::NO_CONFLICT;
 }
 
