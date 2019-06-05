@@ -4990,6 +4990,11 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
+void SmtEngine::doAbduction(const Type& grammarType)
+{
+  // TODO
+}
+
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   SmtScope smts(this);
   if( d_theoryEngine ){
