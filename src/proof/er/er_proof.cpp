@@ -31,7 +31,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/map_util.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/proof_manager.h"
 
@@ -80,8 +80,10 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
   return pf;
 }
 
-ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
-                                     const std::string& dratBinary)
+ErProof ErProof::fromBinaryDratProof(
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId>& usedIds,
+    const std::string& dratBinary)
 {
   std::ostringstream cmd;
   char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
@@ -101,7 +103,7 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
 
   // Write the formula
   std::ofstream formStream(formulaFilename);
-  printDimacs(formStream, usedClauses);
+  printDimacs(formStream, clauses, usedIds);
   formStream.close();
 
   // Write the (binary) DRAT proof
@@ -126,7 +128,8 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
 
   // Parse the resulting TRACECHECK proof into an ER proof.
   std::ifstream tracecheckStream(tracecheckFilename);
-  ErProof proof(usedClauses, TraceCheckProof::fromText(tracecheckStream));
+  TraceCheckProof pf = TraceCheckProof::fromText(tracecheckStream);
+  ErProof proof(clauses, usedIds, std::move(pf));
   tracecheckStream.close();
 
   remove(formulaFilename);
@@ -136,17 +139,21 @@ ErProof ErProof::fromBinaryDratProof(const ClauseUseRecord& usedClauses,
   return proof;
 }
 
-ErProof::ErProof(const ClauseUseRecord& usedClauses,
+ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+                 const std::vector<ClauseId>& usedIds,
                  TraceCheckProof&& tracecheck)
     : d_inputClauseIds(), d_definitions(), d_tracecheck(tracecheck)
 {
   // Step zero, save input clause Ids for future printing
-  std::transform(usedClauses.begin(),
-                 usedClauses.end(),
-                 std::back_inserter(d_inputClauseIds),
-                 [](const std::pair<ClauseId, prop::SatClause>& pair) {
-                   return pair.first;
-                 });
+  d_inputClauseIds = usedIds;
+
+  // Make a list of (idx, clause pairs), the used ones.
+  std::vector<std::pair<ClauseId, prop::SatClause>> usedClauses;
+  std::transform(
+      usedIds.begin(),
+      usedIds.end(),
+      std::back_inserter(usedClauses),
+      [&](const ClauseId& i) { return make_pair(i, clauses.at(i)); });
 
   // Step one, verify the formula starts the proof
   if (Configuration::isAssertionBuild())
@@ -162,14 +169,6 @@ ErProof::ErProof(const ClauseUseRecord& usedClauses,
           originalClause{usedClauses[i].second.begin(),
                          usedClauses[i].second.end()};
       Assert(traceCheckClause == originalClause);
-      Assert(d_tracecheck.d_lines[i].d_idx = i + 1);
-      Assert(d_tracecheck.d_lines[i].d_chain.size() == 0);
-      Assert(d_tracecheck.d_lines[i].d_clause.size()
-             == usedClauses[i].second.size());
-      for (size_t j = 0, m = usedClauses[i].second.size(); j < m; ++j)
-      {
-        Assert(usedClauses[i].second[j] == d_tracecheck.d_lines[i].d_clause[j]);
-      }
     }
   }
 

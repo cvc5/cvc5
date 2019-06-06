@@ -26,7 +26,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 
 #if CVC4_USE_DRAT2ER
@@ -104,6 +104,7 @@ void printHints(std::ostream& o,
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {
+  Assert(indices.size() > 0);
   // Verify that the indices are sorted!
   for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
   {
@@ -123,7 +124,8 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 // Prints the LRAT addition line in textual format
 
 LratProof LratProof::fromDratProof(
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId> usedIds,
     const std::string& dratBinary)
 {
   std::ostringstream cmd;
@@ -141,7 +143,7 @@ LratProof LratProof::fromDratProof(
   AlwaysAssert(r > 0);
   close(r);
   std::ofstream formStream(formulaFilename);
-  printDimacs(formStream, usedClauses);
+  printDimacs(formStream, clauses, usedIds);
   formStream.close();
 
   std::ofstream dratStream(dratFilename);
@@ -206,10 +208,13 @@ LratProof::LratProof(std::istream& textualProof)
         }
         clauses.push_back(di);
       }
-      std::sort(clauses.begin(), clauses.end());
-      std::unique_ptr<LratInstruction> instr(
-          new LratDeletion(clauseIdx, std::move(clauses)));
-      d_instructions.push_back(std::move(instr));
+      if (clauses.size() > 0)
+      {
+        std::sort(clauses.begin(), clauses.end());
+        std::unique_ptr<LratInstruction> instr(
+            new LratDeletion(clauseIdx, std::move(clauses)));
+        d_instructions.push_back(std::move(instr));
+      }
     }
     else
     {
