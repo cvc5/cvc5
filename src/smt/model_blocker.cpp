@@ -233,11 +233,13 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     }
     std::vector<Node> blockers;
     for (Node s : symbols) {
-      Node v = m->getValue(s);
-      Node a = nm->mkNode(DISTINCT, s, v);
-      blockers.push_back(a);
+      if (s.getType().getKind() != kind::FUNCTION_TYPE) {
+        Node v = m->getValue(s);
+        Node a = nm->mkNode(DISTINCT, s, v);
+        blockers.push_back(a);
+      }
     }
-    blocker = nm->mkNode(AND, blockers);
+    blocker = nm->mkNode(OR, blockers);
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   return blocker.toExpr();
