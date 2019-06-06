@@ -143,7 +143,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
       }
       Node ret = mkSygusTerm(dt, i, children);
       // if it is a variable, apply the substitution
-      ret = applySygusArgs(dt,op,ret,args);
+      ret = applySygusArgs(dt, op, ret, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
     }
@@ -181,9 +181,10 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
   return RewriteResponse(REWRITE_DONE, in);
 }
 
-Node DatatypesRewriter::applySygusArgs(const Datatype& dt,Node op,
-                                      Node n,
-                                      const std::vector<Node>& args)
+Node DatatypesRewriter::applySygusArgs(const Datatype& dt,
+                                       Node op,
+                                       Node n,
+                                       const std::vector<Node>& args)
 {
   if (n.getKind() == BOUND_VARIABLE)
   {
@@ -194,7 +195,7 @@ Node DatatypesRewriter::applySygusArgs(const Datatype& dt,Node op,
   }
   // n is an application of operator op.
   // We must compute the free variables in op to determine if there are
-  // any substitutions we need to make to n. 
+  // any substitutions we need to make to n.
   TNode val;
   if (!op.hasAttribute(SygusVarFreeAttribute()))
   {
@@ -213,8 +214,7 @@ Node DatatypesRewriter::applySygusArgs(const Datatype& dt,Node op,
         val = op;
       }
     }
-    Trace("dt-sygus-fv")
-        << "Free var in " << op << " : " << val << std::endl;
+    Trace("dt-sygus-fv") << "Free var in " << op << " : " << val << std::endl;
     op.setAttribute(SygusVarFreeAttribute(), val);
   }
   else
@@ -240,8 +240,7 @@ Node DatatypesRewriter::applySygusArgs(const Datatype& dt,Node op,
   }
   return n.substitute(vars.begin(), vars.end(), args.begin(), args.end());
 }
- 
- 
+
 Kind DatatypesRewriter::getOperatorKindForSygusBuiltin(Node op)
 {
   Assert(op.getKind() != BUILTIN);

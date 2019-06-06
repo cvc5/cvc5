@@ -2034,7 +2034,10 @@ std::string GetSynthSolutionCommand::getCommandName() const
 }
 
 GetAbductCommand::GetAbductCommand() {}
-GetAbductCommand::GetAbductCommand(const Type& gtype) : d_sygus_grammar_type(gtype){}
+GetAbductCommand::GetAbductCommand(const Type& gtype)
+    : d_sygus_grammar_type(gtype)
+{
+}
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
@@ -2049,8 +2052,8 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* GetAbductCommand::exportTo(
-    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
+Command* GetAbductCommand::exportTo(ExprManager* exprManager,
+                                    ExprManagerMapCollection& variableMap)
 {
   GetAbductCommand* c = new GetAbductCommand();
   c->d_sygus_grammar_type = d_sygus_grammar_type;
@@ -2064,10 +2067,7 @@ Command* GetAbductCommand::clone() const
   return c;
 }
 
-std::string GetAbductCommand::getCommandName() const
-{
-  return "get-abduct";
-}
+std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
 
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */

@@ -256,8 +256,8 @@ class CVC4_PUBLIC SmtEngine {
    * Whether we did a global negation of the formula.
    */
   bool d_globalNegation;
-  
-  /** 
+
+  /**
    * The grammar type for abduction.
    */
   Type d_abductGrammarType;
@@ -858,8 +858,8 @@ class CVC4_PUBLIC SmtEngine {
    * TODO
    */
   void doAbduction(const Type& grammarType);
-  /** get the abduction type 
-   * 
+  /** get the abduction type
+   *
    * TODO
    */
   Type getAbductionType() const;

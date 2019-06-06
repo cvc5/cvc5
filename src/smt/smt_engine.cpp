@@ -4995,10 +4995,7 @@ void SmtEngine::doAbduction(const Type& grammarType)
   d_abductGrammarType = grammarType;
 }
 
-Type SmtEngine::getAbductionType() const
-{
-  return d_abductGrammarType;
-}
+Type SmtEngine::getAbductionType() const { return d_abductGrammarType; }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   SmtScope smts(this);

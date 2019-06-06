@@ -1517,7 +1517,7 @@ Node TermDbSygus::unfold( Node en, std::map< Node, Node >& vtm, std::vector< Nod
   }
   Node ret = mkGeneric(dt, i, pre);
   // if it is a variable, apply the substitution
-  ret = datatypes::DatatypesRewriter::applySygusArgs(dt,sop,ret,args);
+  ret = datatypes::DatatypesRewriter::applySygusArgs(dt, sop, ret, args);
   // rewrite
   ret = Rewriter::rewrite(ret);
   return ret;

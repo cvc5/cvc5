@@ -1016,12 +1016,13 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   GetAbductCommand(const Type& gtype);
 
   Type getGrammarType() const;
-  
+
   void invoke(SmtEngine* smtEngine) override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+
  protected:
   Type d_sygus_grammar_type;
 }; /* class GetQuantifierEliminationCommand */
