@@ -858,6 +858,11 @@ class CVC4_PUBLIC SmtEngine {
    * TODO
    */
   void doAbduction(const Type& grammarType);
+  /** get the abduction type 
+   * 
+   * TODO
+   */
+  Type getAbductionType() const;
 
   /**
    * Get list of quantified formulas that were instantiated

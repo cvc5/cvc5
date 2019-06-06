@@ -23,6 +23,8 @@
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
+#include "expr/datatype.h"
+#include "printer/sygus_print_callback.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -93,6 +95,61 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Node abd = nm->mkBoundVar("A", abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
+  // get the abduction type
+  TypeNode abdGType = TypeNode::fromType(d_preprocContext->getSmt()->getAbductionType()); 
+  // if provided, we will associate it with the function-to-synthesize
+  if( !abdGType.isNull() )
+  {
+    Assert(abdGType.isDatatype() && abdGType.getDatatype().isSygus());
+    // must convert all constructors to version with bound variables in "vars"
+    std::vector<CVC4::Datatype> datatypes;
+    
+    // datatype types we have processed
+    std::vector< TypeNode > dtToProcess;
+    std::map< TypeNode, bool > dtProcessed;
+    dtToProcess.push_back(abdGType);
+    while( !dtToProcess.empty() )
+    {
+      std::vector< TypeNode > dtNextToProcess;
+      for( const TypeNode& curr : dtToProcess )
+      {
+        Assert( dtProcessed.find(curr)!=dtProcessed.end());
+        dtProcessed[curr] = true;
+        const Datatype& dtc = curr.getDatatype();
+        datatypes.push_back(Datatype(dtc.getName()));
+        for( unsigned j=0, ncons = dtc.getNumConstructors(); j<ncons; j++ )
+        {
+          Node op = Node::fromExpr(dtc[j].getSygusOp());
+          Node ops = op.substitute(syms.begin(),syms.end(),vars.begin(),vars.end());
+          std::vector<Type> cargs;
+          for( unsigned k=0, nargs=dtc[j].getNumArgs(); k<nargs; k++ )
+          {
+            cargs.push_back(dtc[j].getArgType(k));
+          }
+          Node opBody = ops;
+          std::vector< Expr > args;
+          if( ops.getKind()==LAMBDA )
+          {
+            opBody = ops[1];
+            for( const Node& v : ops[0] )
+            {
+              args.push_back(v.toExpr());
+            }
+          }
+          // callback prints as the expression
+          std::shared_ptr<SygusPrintCallback> spc;
+          spc = std::make_shared<printer::SygusExprPrintCallback>(opBody.toExpr(), args);
+          std::stringstream ss;
+          ss << ops.getKind();
+          datatypes.back().addSygusConstructor(ops.toExpr(), ss.str(), cargs, spc);
+        }
+      }
+      dtToProcess.clear();
+      dtToProcess.insert(dtToProcess.end(),dtNextToProcess.begin(),dtNextToProcess.end());
+    }
+  }
+
+  
   Trace("sygus-abduct-debug") << "Make abduction predicate app..." << std::endl;
   std::vector<Node> achildren;
   achildren.push_back(abd);
