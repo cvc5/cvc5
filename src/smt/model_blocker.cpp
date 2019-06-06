@@ -239,7 +239,13 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         blockers.push_back(a);
       }
     }
-    blocker = nm->mkNode(OR, blockers);
+    if (blockers.size() == 0) {
+      blocker = nm->mkConst<bool>(true);
+    } else if (blockers.size() == 1) {
+      blocker = blockers[0];
+    } else {
+      blocker = nm->mkNode(OR, blockers);
+    }
   }
   Trace("model-blocker") << "...model blocker is " << blocker << std::endl;
   return blocker.toExpr();
