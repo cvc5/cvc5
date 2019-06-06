@@ -108,13 +108,16 @@ header = "options/smt_options.h"
   includes   = ["options/smt_modes.h"]
   help       = "mode for producing model cores"
 
+
 [[option]]
-  name       = "blockModels"
+  name       = "blockModelsMode"
   category   = "regular"
-  long       = "block-models"
-  type       = "bool"
-  read_only  = true
-  help       = "add assertion that blocks the current model when get-model is called"
+  long       = "block-models==MODE"
+  type       = "BlockModelsMode"
+  default    = "BLOCK_MODELS_NONE"
+  handler    = "stringToBlockModelsMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing several models"
 
 [[option]]
   name       = "proof"

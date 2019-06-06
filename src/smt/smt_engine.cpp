@@ -1284,7 +1284,7 @@ void SmtEngine::setDefaults() {
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::modelCoresMode() != MODEL_CORES_NONE
-       || options::blockModels())
+       || options::blockModelsMode() != BLOCK_MODELS_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
@@ -4372,7 +4372,7 @@ Model* SmtEngine::getModel() {
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
   d_theoryEngine->setEagerModelBuilding();
 
-  if (options::modelCoresMode() != MODEL_CORES_NONE || options::blockModels())
+  if (options::modelCoresMode() != MODEL_CORES_NONE || options::blockModelsMode() != BLOCK_MODELS_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
@@ -4391,9 +4391,9 @@ Model* SmtEngine::getModel() {
       ModelCoreBuilder::setModelCore(
           eassertsProc, m, options::modelCoresMode());
     }
-    if (options::blockModels())
+    if (options::blockModelsMode() != BLOCK_MODELS_NONE)
     {
-      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m);
+      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode());
       assertFormula(eblocker);
     }
   }
