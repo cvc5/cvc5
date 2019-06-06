@@ -221,6 +221,14 @@ header = "options/smt_options.h"
   help       = "turn on unsat core generation"
 
 [[option]]
+  name       = "minimalUnsatCores"
+  category   = "regular"
+  long       = "minimal-unsat-cores"
+  type       = "bool"
+  default    = "false"
+  help       = "if an unsat core is produced, it is reduced to a minimal unsat core"
+
+[[option]]
   name       = "checkUnsatCores"
   category   = "regular"
   long       = "check-unsat-cores"

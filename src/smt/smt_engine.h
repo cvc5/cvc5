@@ -349,6 +349,11 @@ class CVC4_PUBLIC SmtEngine
   Result assertFormula(const Expr& e, bool inUnsatCore = true);
 
   /**
+   * Reduce an unsatisfiable core to make it minimal.
+   */
+  UnsatCore reduceUnsatCore(const UnsatCore& core);
+
+  /**
    * Check if a given (set of) expression(s) is entailed with respect to the
    * current set of assertions. We check this by asserting the negation of
    * the (big AND over the) given (set of) expression(s).

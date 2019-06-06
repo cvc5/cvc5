@@ -1199,7 +1199,7 @@ void SmtEngine::defineFunction(Expr func,
   addToModelCommandAndDump(
       c, ExprManager::VAR_FLAG_DEFINED, true, "declarations");
 
-  PROOF(if (options::checkUnsatCores()) {
+  PROOF(if (options::checkUnsatCores() || options::minimalUnsatCores()) {
     d_defineCommands.push_back(c.clone());
   });
 
@@ -1766,6 +1766,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
         checkProof();
       }
     }
+
     // Check that UNSAT results generate an unsat core correctly.
     if(options::checkUnsatCores()) {
       if(r.asSatisfiabilityResult().isSat() == Result::UNSAT) {
@@ -2510,12 +2511,87 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
   }
 
   d_proofManager->traceUnsatCore();  // just to trigger core creation
-  return UnsatCore(this, d_proofManager->extractUnsatCore());
+
+  UnsatCore core(this, d_proofManager->extractUnsatCore());
+  if (options::minimalUnsatCores())
+  {
+    core = reduceUnsatCore(core);
+  }
+  return core;
 #else  /* IS_PROOFS_BUILD */
   throw ModalException(
       "This build of CVC4 doesn't have proof support (required for unsat "
       "cores).");
 #endif /* IS_PROOFS_BUILD */
+}
+
+UnsatCore SmtEngine::reduceUnsatCore(const UnsatCore& core)
+{
+  Assert(options::unsatCores())
+      << "cannot reduce unsat core if unsat cores are turned off";
+
+  Notice() << "SmtEngine::reduceUnsatCore(): reducing unsat core" << endl;
+  std::unordered_set<Expr, ExprHashFunction> removed;
+  for (UnsatCore::iterator it = core.begin(); it != core.end(); ++it)
+  {
+      Expr curr = *it;
+      SmtEngine coreChecker(d_exprManager);
+      coreChecker.setLogic(getLogicInfo());
+
+      std::vector<Command*>::const_iterator itg = d_defineCommands.begin();
+      for (; itg != d_defineCommands.end(); ++itg)
+      {
+        (*itg)->invoke(&coreChecker);
+      };
+
+      for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
+      {
+        if (*i != curr && removed.find(*i) == removed.end())
+        {
+          coreChecker.assertFormula(*i);
+        }
+      }
+      Result r;
+      try
+      {
+        options::minimalUnsatCores.set(false);
+        r = coreChecker.checkSat();
+        options::minimalUnsatCores.set(true);
+      }
+      catch (...)
+      {
+        throw;
+      }
+
+      if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+      {
+        removed.insert(curr);
+      }
+      else if (r.asSatisfiabilityResult().isUnknown())
+      {
+        Warning() << "SmtEngine::checkUnsatCore(): could not reduce unsat core "
+                     "due to "
+                     "unknown result.";
+      }
+  }
+
+  if (removed.empty())
+  {
+    return core;
+  }
+  else
+  {
+    std::vector<Expr> newCoreExprs;
+    for (UnsatCore::iterator i = core.begin(); i != core.end(); ++i)
+    {
+      if (removed.find(*i) == removed.end())
+      {
+        newCoreExprs.push_back(*i);
+      }
+    }
+
+    return UnsatCore(this, newCoreExprs);
+  }
 }
 
 void SmtEngine::checkUnsatCore() {
