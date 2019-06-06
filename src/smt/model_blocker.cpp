@@ -79,6 +79,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
+    
+    Trace("model-blocker-debug") << "Visit : " << cur << std::endl;
 
     if (it == visited.end())
     {
@@ -117,7 +119,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         {
           // one step NNF
           std::vector<Node> children;
-          for (const Node& cn : cur)
+          for (const Node& cn : catom)
           {
             children.push_back(cn.negate());
           }
@@ -158,6 +160,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       {
         // literals justified by themselves
         visited[cur] = cur;
+        Trace("model-blocker-debug") << "...self justified" << std::endl;
       }
       if (visited[cur].isNull())
       {
@@ -165,6 +168,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         if (impl.isNull())
         {
           Assert(cur.getKind() == AND);
+          Trace("model-blocker-debug") << "...recurse" << std::endl;
           for (const Node& cn : cur)
           {
             visit.push_back(cn);
@@ -172,6 +176,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         }
         else
         {
+          Trace("model-blocker-debug") << "...implicant : " << impl << std::endl;
           implicant[cur] = impl;
           visit.push_back(impl);
         }
@@ -188,6 +193,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         Assert(it != visited.end());
         Assert(!it->second.isNull());
         ret = it->second;
+        Trace("model-blocker-debug") << "...implicant res: " << ret << std::endl;
       }
       else
       {
@@ -207,6 +213,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
         {
           ret = nm->mkNode(cur.getKind(), children);
         }
+        Trace("model-blocker-debug") << "...recons res: " << ret << std::endl;
       }
       visited[cur] = ret;
     }
