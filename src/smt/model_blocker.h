@@ -21,7 +21,7 @@
 
 #include "expr/expr.h"
 #include "options/smt_options.h"
-#include "smt/model.h"
+#include "theory/theory_model.h"
 
 namespace CVC4 {
 
@@ -49,7 +49,7 @@ class ModelBlocker
    * our input. In other words, we do not return ~(x < 0) V ~(w < 0) since the
    * left disjunct is always false.
    */
-  static Expr getModelBlocker(const std::vector<Expr>& assertions, Model* m);
+  static Expr getModelBlocker(const std::vector<Expr>& assertions, theory::TheoryModel* m, BlockModelsMode mode);
 }; /* class TheoryModelCoreBuilder */
 
 }  // namespace CVC4
