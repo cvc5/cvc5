@@ -14,8 +14,8 @@
  ** Base for ANTLR parser classes.
  **/
 
-#ifndef __CVC4__PARSER__ANTLR_INPUT_H
-#define __CVC4__PARSER__ANTLR_INPUT_H
+#ifndef CVC4__PARSER__ANTLR_INPUT_H
+#define CVC4__PARSER__ANTLR_INPUT_H
 
 #include "cvc4parser_private.h"
 
@@ -299,4 +299,4 @@ inline BitVector AntlrInput::tokenToBitvector(pANTLR3_COMMON_TOKEN number, pANTL
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__ANTLR_INPUT_H */
+#endif /* CVC4__PARSER__ANTLR_INPUT_H */

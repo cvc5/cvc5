@@ -280,9 +280,6 @@ void CvcPrinter::toStream(
       out << ")";
       return;
       break;
-    case kind::APPLY:
-      toStream(op, n.getOperator(), depth, types, true);
-      break;
     case kind::CHAIN:
     case kind::DISTINCT: // chain and distinct not supported directly in CVC4, blast them away with the rewriter
       toStream(out, theory::Rewriter::rewrite(n), depth, types, true);

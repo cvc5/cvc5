@@ -141,7 +141,7 @@ Node ProofUF::toStreamRecLFSC(std::ostream& out,
 
     return Node();
   }
-
+  // TODO (#2965): improve this code, which is highly complicated.
   switch(pf.d_id) {
   case theory::eq::MERGED_THROUGH_CONGRUENCE: {
     Debug("pf::uf") << "\nok, looking at congruence:\n";

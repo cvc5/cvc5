@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
-#define __CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
+#ifndef CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
+#define CVC4__QUANTIFIERS_FUN_DEF_PROCESS_H
 
 #include <iostream>
 #include <string>

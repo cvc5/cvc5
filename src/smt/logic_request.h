@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__LOGIC_REQUEST_H
-#define __CVC4__LOGIC_REQUEST_H
+#ifndef CVC4__LOGIC_REQUEST_H
+#define CVC4__LOGIC_REQUEST_H
 
 #include "expr/kind.h"
 
@@ -49,4 +49,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__LOGIC_REQUEST_H */
+#endif /* CVC4__LOGIC_REQUEST_H */

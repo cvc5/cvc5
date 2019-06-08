@@ -12,8 +12,8 @@
  ** \brief lazy trie
  **/
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
-#define __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
+#define CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H
 
 #include "expr/node.h"
 
@@ -170,4 +170,4 @@ class LazyTrieMulti
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__LAZY_TRIE_H */

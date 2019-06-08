@@ -19,8 +19,8 @@
 // circular dependency
 #include "expr/node_value.h"
 
-#ifndef __CVC4__NODE_H
-#define __CVC4__NODE_H
+#ifndef CVC4__NODE_H
+#define CVC4__NODE_H
 
 #include <stdint.h>
 
@@ -468,6 +468,10 @@ public:
     return getMetaKind() == kind::metakind::NULLARY_OPERATOR;
   }
 
+  /**
+   * Returns true if this node represents a closure, that is an expression
+   * that binds variables.
+   */
   inline bool isClosure() const {
     assertTNodeNotExpired();
     return getKind() == kind::LAMBDA || getKind() == kind::FORALL
@@ -485,7 +489,7 @@ public:
 
   /**
    * Returns a node representing the operator of this expression.
-   * If this is an APPLY, then the operator will be a functional term.
+   * If this is an APPLY_UF, then the operator will be a functional term.
    * Otherwise, it will be a node with kind BUILTIN.
    */
   NodeTemplate<true> getOperator() const;
@@ -1269,7 +1273,7 @@ NodeTemplate<ref_count>::printAst(std::ostream& out, int indent) const {
 
 /**
  * Returns a node representing the operator of this expression.
- * If this is an APPLY, then the operator will be a functional term.
+ * If this is an APPLY_UF, then the operator will be a functional term.
  * Otherwise, it will be a node with kind BUILTIN.
  */
 template <bool ref_count>
@@ -1566,4 +1570,4 @@ static void __attribute__((used)) debugPrintRawTNode(const NodeTemplate<false>& 
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_H */
+#endif /* CVC4__NODE_H */

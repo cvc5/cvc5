@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
+#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_GENERATOR_H
 
 #include <map>
 #include "expr/node_trie.h"

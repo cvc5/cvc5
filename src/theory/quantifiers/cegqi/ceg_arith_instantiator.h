@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
-#define __CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
+#ifndef CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
+#define CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H
 
 #include <vector>
 #include "expr/node.h"
@@ -203,4 +203,4 @@ class ArithInstantiator : public Instantiator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__CEG_ARITH_INSTANTIATOR_H */

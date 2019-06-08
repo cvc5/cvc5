@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__SUBSTITUTIONS_H
-#define __CVC4__THEORY__SUBSTITUTIONS_H
+#ifndef CVC4__THEORY__SUBSTITUTIONS_H
+#define CVC4__THEORY__SUBSTITUTIONS_H
 
 //#include <algorithm>
 #include <utility>
@@ -199,4 +199,4 @@ std::ostream& operator<<(std::ostream& out, const theory::SubstitutionMap::itera
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__SUBSTITUTIONS_H */
+#endif /* CVC4__THEORY__SUBSTITUTIONS_H */

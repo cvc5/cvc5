@@ -25,8 +25,8 @@
 #include "util/statistics.h"
 #include "util/statistics_registry.h"
 
-#ifndef __CVC4__MAIN__MAIN_H
-#define __CVC4__MAIN__MAIN_H
+#ifndef CVC4__MAIN__MAIN_H
+#define CVC4__MAIN__MAIN_H
 
 namespace CVC4 {
 namespace main {
@@ -70,4 +70,4 @@ void cvc4_shutdown() noexcept;
 int runCvc4(int argc, char* argv[], CVC4::Options&);
 void printUsage(CVC4::Options&, bool full = false);
 
-#endif /* __CVC4__MAIN__MAIN_H */
+#endif /* CVC4__MAIN__MAIN_H */

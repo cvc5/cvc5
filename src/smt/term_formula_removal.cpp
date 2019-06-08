@@ -207,9 +207,7 @@ Node RemoveTermFormulas::run(TNode node, std::vector<Node>& output,
     return skolem;
   }
 
-  if (node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS
-      || node.getKind() == kind::LAMBDA
-      || node.getKind() == kind::CHOICE)
+  if (node.isClosure())
   {
     // Remember if we're inside a quantifier
     inQuant = true;
@@ -269,9 +267,7 @@ Node RemoveTermFormulas::replace(TNode node, bool inQuant, bool inTerm) const {
     return cached.isNull() ? Node(node) : cached;
   }
 
-  if (node.getKind() == kind::FORALL || node.getKind() == kind::EXISTS
-      || node.getKind() == kind::LAMBDA
-      || node.getKind() == kind::CHOICE)
+  if (node.isClosure())
   {
     // Remember if we're inside a quantifier
     inQuant = true;

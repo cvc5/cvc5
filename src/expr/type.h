@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__TYPE_H
-#define __CVC4__TYPE_H
+#ifndef CVC4__TYPE_H
+#define CVC4__TYPE_H
 
 #include <climits>
 #include <cstdint>
@@ -665,4 +665,4 @@ class CVC4_PUBLIC TesterType : public Type {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__TYPE_H */
+#endif /* CVC4__TYPE_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
-#define __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#ifndef CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
+#define CVC4__THEORY__QUANTIFIERS__INST_MATCH_H
 
 #include <vector>
 
@@ -102,4 +102,4 @@ typedef CVC4::theory::inst::InstMatch InstMatch;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__INST_MATCH_H */

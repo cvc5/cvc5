@@ -1175,14 +1175,16 @@ theory::bv::SatSolverMode OptionsHandler::stringToSatSolver(std::string option,
   }
   else if (optarg == "cadical")
   {
+#ifndef CVC4_INCREMENTAL_CADICAL
     if (options::incrementalSolving()
         && options::incrementalSolving.wasSetByUser())
     {
-      throw OptionException(
-          std::string("CaDiCaL does not support incremental mode. \n\
-                         Try --bv-sat-solver=cryptominisat or "
-                      "--bv-sat-solver=minisat"));
+      throw OptionException(std::string(
+          "CaDiCaL version used does not support incremental mode. \n\
+                       Update CaDiCal or Try --bv-sat-solver=cryptominisat or "
+          "--bv-sat-solver=minisat"));
     }
+#endif
 
     if (options::bitblastMode() == theory::bv::BITBLAST_MODE_LAZY
         && options::bitblastMode.wasSetByUser())
@@ -1245,6 +1247,45 @@ theory::bv::BvProofFormat OptionsHandler::stringToBvProofFormat(
   }
 }
 
+const std::string OptionsHandler::s_bvOptimizeSatProofHelp =
+    "\
+Optimization levels currently supported by the --bv-optimize-sat-proof option:\n\
+\n\
+  none    : Do not optimize the SAT proof\n\
+\n\
+  proof   : Use drat-trim to shrink the SAT proof\n\
+\n\
+  formula : Use drat-trim to shrink the SAT proof and formula (default)\
+";
+
+theory::bv::BvOptimizeSatProof OptionsHandler::stringToBvOptimizeSatProof(
+    std::string option, std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE;
+  }
+  else if (optarg == "proof")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF;
+  }
+  else if (optarg == "formula")
+  {
+    return theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_bvOptimizeSatProofHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bv-optimize-sat-proof: `")
+                          + optarg + "'.  Try --bv-optimize-sat-proof=help.");
+  }
+}
+
+
 const std::string OptionsHandler::s_bitblastingModeHelp = "\
 Bit-blasting modes currently supported by the --bitblast option:\n\
 \n\
@@ -1259,26 +1300,34 @@ eager\n\
 theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
     std::string option, std::string optarg)
 {
-  if(optarg == "lazy") {
-    if (!options::bitvectorPropagate.wasSetByUser()) {
+  if (optarg == "lazy")
+  {
+    if (!options::bitvectorPropagate.wasSetByUser())
+    {
       options::bitvectorPropagate.set(true);
     }
-    if (!options::bitvectorEqualitySolver.wasSetByUser()) {
+    if (!options::bitvectorEqualitySolver.wasSetByUser())
+    {
       options::bitvectorEqualitySolver.set(true);
     }
-    if (!options::bitvectorEqualitySlicer.wasSetByUser()) {
-      if (options::incrementalSolving() ||
-          options::produceModels()) {
+    if (!options::bitvectorEqualitySlicer.wasSetByUser())
+    {
+      if (options::incrementalSolving() || options::produceModels())
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_OFF);
-      } else {
+      }
+      else
+      {
         options::bitvectorEqualitySlicer.set(theory::bv::BITVECTOR_SLICER_AUTO);
       }
     }
 
-    if (!options::bitvectorInequalitySolver.wasSetByUser()) {
+    if (!options::bitvectorInequalitySolver.wasSetByUser())
+    {
       options::bitvectorInequalitySolver.set(true);
     }
-    if (!options::bitvectorAlgebraicSolver.wasSetByUser()) {
+    if (!options::bitvectorAlgebraicSolver.wasSetByUser())
+    {
       options::bitvectorAlgebraicSolver.set(true);
     }
     if (options::bvSatSolver() != theory::bv::SAT_SOLVER_MINISAT)
@@ -1286,23 +1335,24 @@ theory::bv::BitblastMode OptionsHandler::stringToBitblastMode(
       throwLazyBBUnsupported(options::bvSatSolver());
     }
     return theory::bv::BITBLAST_MODE_LAZY;
-  } else if(optarg == "eager") {
-    if (!options::bitvectorToBool.wasSetByUser()) {
+  }
+  else if (optarg == "eager")
+  {
+    if (!options::bitvectorToBool.wasSetByUser())
+    {
       options::bitvectorToBool.set(true);
     }
-
-    if (!options::bvAbstraction.wasSetByUser() &&
-        !options::skolemizeArguments.wasSetByUser()) {
-      options::bvAbstraction.set(true);
-      options::skolemizeArguments.set(true);
-    }
     return theory::bv::BITBLAST_MODE_EAGER;
-  } else if(optarg == "help") {
+  }
+  else if (optarg == "help")
+  {
     puts(s_bitblastingModeHelp.c_str());
     exit(1);
-  } else {
-    throw OptionException(std::string("unknown option for --bitblast: `") +
-                          optarg + "'.  Try --bitblast=help.");
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --bitblast: `")
+                          + optarg + "'.  Try --bitblast=help.");
   }
 }
 

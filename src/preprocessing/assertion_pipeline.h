@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
-#define __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#ifndef CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
+#define CVC4__PREPROCESSING__ASSERTION_PIPELINE_H
 
 #include <vector>
 
@@ -117,4 +117,4 @@ class AssertionPipeline
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */
+#endif /* CVC4__PREPROCESSING__ASSERTION_PIPELINE_H */

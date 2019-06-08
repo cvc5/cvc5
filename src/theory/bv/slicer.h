@@ -28,8 +28,8 @@
 #include "util/index.h"
 #include "util/statistics_registry.h"
 
-#ifndef __CVC4__THEORY__BV__SLICER_BV_H
-#define __CVC4__THEORY__BV__SLICER_BV_H
+#ifndef CVC4__THEORY__BV__SLICER_BV_H
+#define CVC4__THEORY__BV__SLICER_BV_H
 
 
 namespace CVC4 {
@@ -251,4 +251,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__BV__SLICER_BV_H */
+#endif /* CVC4__THEORY__BV__SLICER_BV_H */

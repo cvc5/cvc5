@@ -30,27 +30,38 @@ QuantifiersModule::QEffort QuantifiersModule::needsModel(Theory::Effort e)
   return QEFFORT_NONE;
 }
 
-eq::EqualityEngine * QuantifiersModule::getEqualityEngine() {
+eq::EqualityEngine* QuantifiersModule::getEqualityEngine() const
+{
   return d_quantEngine->getActiveEqualityEngine();
 }
 
-bool QuantifiersModule::areEqual( TNode n1, TNode n2 ) {
+bool QuantifiersModule::areEqual(TNode n1, TNode n2) const
+{
   return d_quantEngine->getEqualityQuery()->areEqual( n1, n2 );
 }
 
-bool QuantifiersModule::areDisequal( TNode n1, TNode n2 ) {
+bool QuantifiersModule::areDisequal(TNode n1, TNode n2) const
+{
   return d_quantEngine->getEqualityQuery()->areDisequal( n1, n2 );
 }
 
-TNode QuantifiersModule::getRepresentative( TNode n ) {
+TNode QuantifiersModule::getRepresentative(TNode n) const
+{
   return d_quantEngine->getEqualityQuery()->getRepresentative( n );
 }
 
-quantifiers::TermDb * QuantifiersModule::getTermDatabase() {
+QuantifiersEngine* QuantifiersModule::getQuantifiersEngine() const
+{
+  return d_quantEngine;
+}
+
+quantifiers::TermDb* QuantifiersModule::getTermDatabase() const
+{
   return d_quantEngine->getTermDatabase();
 }
 
-quantifiers::TermUtil * QuantifiersModule::getTermUtil() {
+quantifiers::TermUtil* QuantifiersModule::getTermUtil() const
+{
   return d_quantEngine->getTermUtil();
 }
 

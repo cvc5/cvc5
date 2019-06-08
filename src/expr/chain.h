@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__CHAIN_H
-#define __CVC4__CHAIN_H
+#ifndef CVC4__CHAIN_H
+#define CVC4__CHAIN_H
 
 #include "expr/kind.h"
 #include <iostream>
@@ -48,4 +48,4 @@ struct CVC4_PUBLIC ChainHashFunction {
 
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__CHAIN_H */
+#endif  /* CVC4__CHAIN_H */

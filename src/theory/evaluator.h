@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__EVALUATOR_H
-#define __CVC4__THEORY__EVALUATOR_H
+#ifndef CVC4__THEORY__EVALUATOR_H
+#define CVC4__THEORY__EVALUATOR_H
 
 #include <utility>
 #include <vector>
@@ -110,4 +110,4 @@ class Evaluator
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__EVALUATOR_H */
+#endif /* CVC4__THEORY__EVALUATOR_H */
