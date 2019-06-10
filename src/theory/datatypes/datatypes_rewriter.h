@@ -53,6 +53,20 @@ typedef expr::Attribute<SygusSymBreakOkAttributeId, bool>
 
 /** sygus var free
  *
+ * This attribute is used to mark whether sygus operators have free occurrences
+ * of variables from the formal argument list of the function-to-synthesize.
+ * 
+ * We store three possible cases for sygus operators op:
+ * (1) op.getAttribute(SygusVarFreeAttribute())==Node::null()
+ * In this case, op has no free variables from the formal argument list of the
+ * function-to-synthesize.
+ * (2) op.getAttribute(SygusVarFreeAttribute())==v, where v is a bound variable.
+ * In this case, op has exactly one free variable, v.
+ * (3) op.getAttribute(SygusVarFreeAttribute())==op
+ * In this case, op has an arbitrary set (cardinality >1) of free variables from
+ * the formal argument list of the function to synthesize.
+ * 
+ * This attribute is used to compute applySygusArgs below.
  */
 struct SygusVarFreeAttributeId
 {
@@ -162,6 +176,27 @@ public:
   *
   * This returns an n' such that (eval n args) is n', where n' is a instance of
   * n for the appropriate substitution.
+  * 
+  * For example, given a function-to-synthesize with formal argument list (x,y),
+  * say we have grammar:
+  *   A -> A+A | A+x | A+(x+y) | y
+  * These lead to constructors with sygus ops:
+  *   C1 / (lambda w1 w2. w1+w2)
+  *   C2 / (lambda w1. w1+x)
+  *   C3 / (lambda w1. w1+(x+y))
+  *   C4 / y
+  * Examples of calling this function:
+  *   applySygusArgs( dt, C1, (APPLY_UF (lambda w1 w2. w1+w2) t1 t2), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1 w2. w1+w2) t1 t2).
+  *   applySygusArgs( dt, C2, (APPLY_UF (lambda w1. w1+x) t1), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1. w1+3) t1).
+  *   applySygusArgs( dt, C3, (APPLY_UF (lambda w1. w1+(x+y)) t1), { 3, 5 } )
+  *     ... returns (APPLY_UF (lambda w1. w1+(3+5)) t1).
+  *   applySygusArgs( dt, C4, y, { 3, 5 } )
+  *     ... returns 5.
+  * Notice the attribute SygusVarFreeAttribute is applied to C1, C2, C3, C4,
+  * to cache the results of whether the evaluation of this constructor needs
+  * a substitution over the formal argument list of the function-to-synthesize.
   */
  static Node applySygusArgs(const Datatype& dt,
                             Node op,

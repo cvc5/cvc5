@@ -227,6 +227,7 @@ Node DatatypesRewriter::applySygusArgs(const Datatype& dt,
   }
   if (val.getKind() == BOUND_VARIABLE)
   {
+    // single substitution case
     int vn = val.getAttribute(SygusVarNumAttribute());
     TNode sub = args[vn];
     return n.substitute(val, sub);
