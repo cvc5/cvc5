@@ -393,7 +393,7 @@ class TermDbSygus {
   std::map<TypeNode, std::vector<Node> > d_var_list;
   std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
   std::map<TypeNode, std::map<Kind, int> > d_kinds;
-  /** 
+  /**
    * Whether this sygus type has a constructors whose sygus operator is ITE,
    * or is a lambda whose body is ITE.
    */

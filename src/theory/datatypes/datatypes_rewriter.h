@@ -55,7 +55,7 @@ typedef expr::Attribute<SygusSymBreakOkAttributeId, bool>
  *
  * This attribute is used to mark whether sygus operators have free occurrences
  * of variables from the formal argument list of the function-to-synthesize.
- * 
+ *
  * We store three possible cases for sygus operators op:
  * (1) op.getAttribute(SygusVarFreeAttribute())==Node::null()
  * In this case, op has no free variables from the formal argument list of the
@@ -65,7 +65,7 @@ typedef expr::Attribute<SygusSymBreakOkAttributeId, bool>
  * (3) op.getAttribute(SygusVarFreeAttribute())==op
  * In this case, op has an arbitrary set (cardinality >1) of free variables from
  * the formal argument list of the function to synthesize.
- * 
+ *
  * This attribute is used to compute applySygusArgs below.
  */
 struct SygusVarFreeAttributeId
@@ -176,7 +176,7 @@ public:
   *
   * This returns an n' such that (eval n args) is n', where n' is a instance of
   * n for the appropriate substitution.
-  * 
+  *
   * For example, given a function-to-synthesize with formal argument list (x,y),
   * say we have grammar:
   *   A -> A+A | A+x | A+(x+y) | y
