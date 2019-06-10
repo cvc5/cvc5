@@ -827,12 +827,12 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         // then the conclusion of the reduction is quantifier-free:
         //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
         Node reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[0]);
-        if( reLength.isNull() )
+        if (reLength.isNull())
         {
           // try from the opposite end
-          unsigned indexE = r.getNumChildren()-1;
+          unsigned indexE = r.getNumChildren() - 1;
           reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[indexE]);
-          if( !reLength.isNull() )
+          if (!reLength.isNull())
           {
             indexRm = indexE;
           }
@@ -852,22 +852,23 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         Node s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
         Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
-        if( indexRm!=0 )
+        if (indexRm != 0)
         {
           // swap if we are removing from the end
           Node sswap = s1;
-          s1 =s2;
+          s1 = s2;
           s2 = sswap;
         }
         Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
-        std::vector< Node > nvec;
-        for(unsigned i=0, nchild=r.getNumChildren(); i<nchild; i++) {
-          if( i!=indexRm )
+        std::vector<Node> nvec;
+        for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)
+        {
+          if (i != indexRm)
           {
             nvec.push_back( r[i] );
           }
         }
-        Node r2 = nvec.size()==1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
+        Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
         r2 = Rewriter::rewrite(r2);
         Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
         conc = nm->mkNode(OR, s1r1, s2r2);
