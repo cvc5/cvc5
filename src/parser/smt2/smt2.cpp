@@ -1262,12 +1262,12 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   if (!args.empty())
   {
     bool pureVar = false;
-    if( op.getNumChildren()==args.size() )
+    if (op.getNumChildren() == args.size())
     {
       pureVar = true;
       for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
       {
-        if (op[i]!=args[i])
+        if (op[i] != args[i])
         {
           pureVar = false;
           break;
