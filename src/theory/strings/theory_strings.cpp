@@ -957,7 +957,8 @@ void TheoryStrings::check(Effort e) {
   }
 
   // Trace("strings-process") << "Theory of strings, check : " << e << std::endl;
-  Trace("strings-check-debug") << "Theory of strings, check : " << e << std::endl;
+  Trace("strings-check-debug")
+      << "Theory of strings, check : " << e << std::endl;
   while ( !done() && !d_conflict ) {
     // Get all the assertions
     Assertion assertion = get();
@@ -977,8 +978,8 @@ void TheoryStrings::check(Effort e) {
       d_strat_steps.find(e);
   if (!d_conflict && !d_valuation.needCheck() && itsr != d_strat_steps.end())
   {
-    Trace("strings-check-debug") << "Theory of strings " << e << " effort check "
-                           << std::endl;
+    Trace("strings-check-debug")
+        << "Theory of strings " << e << " effort check " << std::endl;
     if(Trace.isOn("strings-eqc")) {
       for( unsigned t=0; t<2; t++ ) {
         eq::EqClassesIterator eqcs2_i = eq::EqClassesIterator( &d_equalityEngine );
@@ -1022,13 +1023,13 @@ void TheoryStrings::check(Effort e) {
       addedLemma = !d_lemma_cache.empty();
       doPendingFacts();
       doPendingLemmas();
-      if( Trace.isOn("strings-check") )
+      if (Trace.isOn("strings-check"))
       {
         Trace("strings-check") << "  ...finish run strategy: ";
-        Trace("strings-check") << ( addedFact ? "addedFact " : " ");
-        Trace("strings-check") << ( addedLemma ? "addedLemma " : " ");
-        Trace("strings-check") << ( d_conflict ? "conflict " : " ");
-        if( !addedFact && !addedLemma && !d_conflict )
+        Trace("strings-check") << (addedFact ? "addedFact " : " ");
+        Trace("strings-check") << (addedLemma ? "addedLemma " : " ");
+        Trace("strings-check") << (d_conflict ? "conflict " : " ");
+        if (!addedFact && !addedLemma && !d_conflict)
         {
           Trace("strings-check") << "(none)";
         }
@@ -1037,7 +1038,8 @@ void TheoryStrings::check(Effort e) {
       // repeat if we did not add a lemma or conflict
     }while( !d_conflict && !addedLemma && addedFact );
   }
-  Trace("strings-check-debug") << "Theory of strings, done check : " << e << std::endl;
+  Trace("strings-check-debug")
+      << "Theory of strings, done check : " << e << std::endl;
   Assert( d_pending.empty() );
   Assert( d_lemma_cache.empty() );
 }
@@ -1493,7 +1495,7 @@ void TheoryStrings::checkInit() {
                   }
                   AlwaysAssert( foundNEmpty );
                   //infer the equality
-                  sendInference( exp, n.eqNode( ns ), "I_Norm_S" );
+                  sendInference(exp, n.eqNode(ns), "I_Norm_S");
                 }
                 d_congruent.insert( n );
                 congruent[k]++;
@@ -1670,9 +1672,9 @@ void TheoryStrings::checkExtfEval( int effort ) {
           Trace("strings-extf-debug") << "  get symbolic definition..." << std::endl;
           Node nrs;
           // only if option do we use symbolic definitions
-          if( options::stringSymDef() )
+          if (options::stringSymDef())
           {
-            nrs = getSymbolicDefinition( sn, exps );
+            nrs = getSymbolicDefinition(sn, exps);
           }
           if( !nrs.isNull() ){
             Trace("strings-extf-debug") << "  rewrite " << nrs << "..." << std::endl;
@@ -4484,15 +4486,16 @@ void TheoryStrings::checkNormalFormsDeq()
         for( unsigned j=0; j<cols[i].size(); j++ ){
           for( unsigned k=(j+1); k<cols[i].size(); k++ ){
             //for strings that are disequal, but have the same length
-            if( cols[i][j].isConst() && cols[i][k].isConst() )
+            if (cols[i][j].isConst() && cols[i][k].isConst())
             {
               // if both are constants, they should be distinct, and its trivial
-              Assert( cols[i][j]!=cols[i][k] );
+              Assert(cols[i][j] != cols[i][k]);
             }
             else
             {
-              if( areDisequal( cols[i][j], cols[i][k] ) ){
-                Assert( !d_conflict );
+              if (areDisequal(cols[i][j], cols[i][k]))
+              {
+                Assert(!d_conflict);
                 if (Trace.isOn("strings-solve"))
                 {
                   Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
@@ -4501,8 +4504,9 @@ void TheoryStrings::checkNormalFormsDeq()
                   printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
                   Trace("strings-solve") << "..." << std::endl;
                 }
-                processDeq( cols[i][j], cols[i][k] );
-                if( hasProcessed() ){
+                processDeq(cols[i][j], cols[i][k]);
+                if (hasProcessed())
+                {
                   return;
                 }
               }
