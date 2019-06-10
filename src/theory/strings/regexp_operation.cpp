@@ -818,6 +818,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         //      0 <= x <= len(s) =>
         //        ~( substr(s,0,x) in R1 ) OR ~( substr(s,x,len(s)-x) in R2)
         Node lens = nm->mkNode(STRING_LENGTH, s);
+        // the index we are removing from the RE concatenation
+        unsigned indexRm = 0;
         Node b1;
         Node b1v;
         // As an optimization to the above reduction, if we can determine that
@@ -825,6 +827,16 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         // then the conclusion of the reduction is quantifier-free:
         //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
         Node reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[0]);
+        if (reLength.isNull())
+        {
+          // try from the opposite end
+          unsigned indexE = r.getNumChildren() - 1;
+          reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[indexE]);
+          if (!reLength.isNull())
+          {
+            indexRm = indexE;
+          }
+        }
         Node guard;
         if (reLength.isNull())
         {
@@ -840,33 +852,25 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         }
         Node s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
         Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
-        Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[0]).negate();
-        if (r[0].getKind() == STRING_TO_REGEXP)
+        if (indexRm != 0)
         {
-          s1r1 = s1.eqNode(r[0][0]).negate();
+          // swap if we are removing from the end
+          Node sswap = s1;
+          s1 = s2;
+          s2 = sswap;
         }
-        else if (r[0].getKind() == REGEXP_EMPTY)
+        Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
+        std::vector<Node> nvec;
+        for (unsigned i = 0, nchild = r.getNumChildren(); i < nchild; i++)
         {
-          s1r1 = d_true;
-        }
-        Node r2 = r[1];
-        if(r.getNumChildren() > 2) {
-          std::vector< Node > nvec;
-          for(unsigned i=1; i<r.getNumChildren(); i++) {
+          if (i != indexRm)
+          {
             nvec.push_back( r[i] );
           }
-          r2 = nm->mkNode(REGEXP_CONCAT, nvec);
         }
+        Node r2 = nvec.size() == 1 ? nvec[0] : nm->mkNode(REGEXP_CONCAT, nvec);
         r2 = Rewriter::rewrite(r2);
         Node s2r2 = nm->mkNode(STRING_IN_REGEXP, s2, r2).negate();
-        if (r2.getKind() == STRING_TO_REGEXP)
-        {
-          s2r2 = s2.eqNode(r2[0]).negate();
-        }
-        else if (r2.getKind() == REGEXP_EMPTY)
-        {
-          s2r2 = d_true;
-        }
         conc = nm->mkNode(OR, s1r1, s2r2);
         if (!b1v.isNull())
         {
