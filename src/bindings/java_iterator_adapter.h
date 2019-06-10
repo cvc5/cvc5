@@ -30,30 +30,36 @@
 #ifndef CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
 #define CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H
 
+#include <type_traits>
+
 namespace CVC4 {
 
-template <class T>
-class JavaIteratorAdapter {
-  const T& d_t;
-  typename T::const_iterator d_it;
-
-public:
-  JavaIteratorAdapter(const T& t) :
-    d_t(t),
-    d_it(d_t.begin()) {
+template <class T, class value_type>
+class JavaIteratorAdapter
+{
+ public:
+  JavaIteratorAdapter(const T& t) : d_t(t), d_it(d_t.begin())
+  {
+    static_assert(
+        std::is_convertible<typename T::const_iterator::value_type,
+                            value_type>(),
+        "value_type must be convertible from T::const_iterator::value_type");
   }
 
-  bool hasNext() {
-    return d_it != d_t.end();
-  }
+  bool hasNext() { return d_it != d_t.end(); }
 
-  typename T::const_iterator::value_type getNext() {
-    typename T::const_iterator::value_type ret = *d_it;
+  value_type getNext()
+  {
+    value_type ret = *d_it;
     ++d_it;
     return ret;
   }
-};/* class JavaIteratorAdapter<T> */
 
-}/* CVC4 namespace */
+ private:
+  const T& d_t;
+  typename T::const_iterator d_it;
+}; /* class JavaIteratorAdapter<T, value_type> */
+
+}  // namespace CVC4
 
 #endif /* CVC4__BINDINGS__JAVA_ITERATOR_ADAPTER_H */
