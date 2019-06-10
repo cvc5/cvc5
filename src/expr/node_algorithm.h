@@ -73,6 +73,14 @@ bool getFreeVariables(TNode n,
                       bool computeFv = true);
 
 /**
+ * Get all variables in n.
+ * @param n The node under investigation
+ * @param vs The set which free variables are added to
+ * @return true iff this node contains a free variable.
+ */
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
+
+/**
  * For term n, this function collects the symbols that occur as a subterms
  * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
  * @param n The node under investigation

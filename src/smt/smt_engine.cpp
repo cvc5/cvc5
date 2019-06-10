@@ -31,6 +31,7 @@
 
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -888,6 +889,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
+      d_expectedStatus(),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -2420,7 +2422,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_status = Result(s, d_filename);
+    d_expectedStatus = Result(s, d_filename);
     return;
   }
   throw UnrecognizedOptionException();
@@ -3747,6 +3749,13 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
+    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
+        && d_status != d_expectedStatus)
+    {
+      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
+    }
+    d_expectedStatus = Result();
 
     setProblemExtended(false);
 
@@ -4428,13 +4437,7 @@ void SmtEngine::checkProof()
 
   std::string logicString = d_logic.getLogicString();
 
-  if (!(
-          // Pure logics
-          logicString == "QF_UF" || logicString == "QF_AX"
-          || logicString == "QF_BV" ||
-          // Non-pure logics
-          logicString == "QF_AUF" || logicString == "QF_UFBV"
-          || logicString == "QF_ABV" || logicString == "QF_AUFBV"))
+  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
   {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"
