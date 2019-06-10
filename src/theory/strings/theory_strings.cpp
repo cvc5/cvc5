@@ -4468,15 +4468,16 @@ void TheoryStrings::checkNormalFormsDeq()
         for( unsigned j=0; j<cols[i].size(); j++ ){
           for( unsigned k=(j+1); k<cols[i].size(); k++ ){
             //for strings that are disequal, but have the same length
-            if( cols[i][j].isConst() && cols[i][k].isConst() )
+            if (cols[i][j].isConst() && cols[i][k].isConst())
             {
               // if both are constants, they should be distinct, and its trivial
-              Assert( cols[i][j]!=cols[i][k] );
+              Assert(cols[i][j] != cols[i][k]);
             }
             else
             {
-              if( areDisequal( cols[i][j], cols[i][k] ) ){
-                Assert( !d_conflict );
+              if (areDisequal(cols[i][j], cols[i][k]))
+              {
+                Assert(!d_conflict);
                 if (Trace.isOn("strings-solve"))
                 {
                   Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
@@ -4485,8 +4486,9 @@ void TheoryStrings::checkNormalFormsDeq()
                   printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
                   Trace("strings-solve") << "..." << std::endl;
                 }
-                processDeq( cols[i][j], cols[i][k] );
-                if( hasProcessed() ){
+                processDeq(cols[i][j], cols[i][k]);
+                if (hasProcessed())
+                {
                   return;
                 }
               }
