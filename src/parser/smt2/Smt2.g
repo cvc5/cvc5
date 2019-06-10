@@ -1141,7 +1141,19 @@ sygusGrammar[CVC4::Type & ret,
     LPAREN_TOK
     symbol[name, CHECK_DECLARED, SYM_VARIABLE] sortSymbol[t, CHECK_DECLARED]
     {
-      // TODO: check that it matches sortedVarNames
+      // check that it matches sortedVarNames
+      if( sortedVarNames[dtProcessed].first!=name )
+      {
+        std::stringstream sse;
+        sse << "Grouped rule listing " << name << " does not match the name (in order) from the predeclaration (" << sortedVarNames[dtProcessed].first << ")." << std::endl;
+        PARSER_STATE->parseError(sse.str().c_str());
+      }
+      if( sortedVarNames[dtProcessed].second!=t )
+      {
+        std::stringstream sse;
+        sse << "Type for grouped rule listing " << name << " does not match the type (in order) from the predeclaration (" << sortedVarNames[dtProcessed].second << ")." << std::endl;
+        PARSER_STATE->parseError(sse.str().c_str());
+      }
     }
     LPAREN_TOK
     (

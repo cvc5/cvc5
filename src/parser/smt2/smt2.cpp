@@ -1261,13 +1261,17 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
   if (!args.empty())
   {
-    bool pureVar = true;
-    for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
+    bool pureVar = false;
+    if( op.getNumChildren()==args.size() )
     {
-      if (std::find(args.begin(), args.end(), op[i]) == args.end())
+      pureVar = true;
+      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
       {
-        pureVar = false;
-        break;
+        if (op[i]!=args[i])
+        {
+          pureVar = false;
+          break;
+        }
       }
     }
     Trace("parser-sygus2") << "Pure var is " << pureVar
