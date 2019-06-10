@@ -820,6 +820,10 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         Node lens = nm->mkNode(STRING_LENGTH, s);
         Node b1;
         Node b1v;
+        // As an optimization to the above reduction, if we can determine that
+        // all strings in the language of R1 have the same length, say n,
+        // then the conclusion of the reduction is quantifier-free:
+        //    ~( substr(s,0,n) in R1 ) OR ~( substr(s,n,len(s)-n) in R2)
         Node reLength = TheoryStringsRewriter::getFixedLengthForRegexp(r[0]);
         Node guard;
         if (reLength.isNull())
