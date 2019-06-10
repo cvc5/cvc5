@@ -3392,9 +3392,11 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                     << std::endl;
                 lemmas.push_back(ub_reverse2);
 
-                // t >= tplane -> ( (a <= a_v ^ b <= b_v) v (a >= a_v ^ b >=
-                // b_v) ) in clause form, the above becomes t >= tplane -> a <=
-                // a_v v b >= b_v t >= tplane -> b >= b_v v a <= a_v
+                // t >= tplane -> ( (a <= a_v ^ b <= b_v) v
+                // (a >= a_v ^ b >= b_v) ).
+                // in clause form, the above becomes
+                // t >= tplane -> a <= a_v v b >= b_v.
+                // t >= tplane -> b >= b_v v a <= a_v
                 Node t_geq_tplane =
                     NodeManager::currentNM()->mkNode(GEQ, t, tplane);
                 Node a_leq_av_or_b_geq_bv =
