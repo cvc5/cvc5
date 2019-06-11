@@ -18,6 +18,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/bv_inverter.h"
+#include "theory/strings/theory_strings_rewriter.h"
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/skolemize.h"
@@ -930,6 +931,51 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
   return Node::null();
 }
 
+Node QuantifiersRewriter::getVarElimLitString(Node lit, std::vector<Node>& args, Node& var)
+{
+  Assert(lit.getKind() == EQUAL);
+  NodeManager * nm = NodeManager::currentNM();
+  for( unsigned i=0; i<2; i++ )
+  {
+    if( lit[i].getKind()==STRING_CONCAT )
+    {
+      for( unsigned j=0, nchildren = lit[i].getNumChildren(); j<nchildren; j++ )
+      {
+        if( std::find( args.begin(), args.end(), lit[i][j] )!=args.end() )
+        {
+          var = lit[i][j];
+          Node slv = lit[1-i];
+          std::vector< Node > preL;
+          std::vector< Node > postL;
+          for( unsigned k=0; k<nchildren; k++ )
+          {
+            if( k<j )
+            {
+              preL.push_back( lit[i][k] );
+            }
+            else if( k>j )
+            {
+              postL.push_back( lit[i][k] );
+            }
+          }
+          Node tpre = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,preL);
+          Node tpost = strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT,postL);
+          Node slvL = nm->mkNode(STRING_LENGTH,slv);
+          Node tpreL = nm->mkNode( STRING_LENGTH, tpre);
+          Node tpostL = nm->mkNode( STRING_LENGTH, tpost);
+          slv = nm->mkNode( STRING_SUBSTR, slv, tpreL, nm->mkNode(MINUS, slvL,nm->mkNode(PLUS,tpreL,tpostL)));
+          if (!expr::hasFreeVar(slv))
+          {
+            return slv;
+          }
+        }
+      }
+    }
+  }
+  
+  return Node::null();
+}
+
 bool QuantifiersRewriter::getVarElimLit(Node lit,
                                         bool pol,
                                         std::vector<Node>& args,
@@ -1058,10 +1104,19 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
       }
     }
   }
-  if (lit.getKind() == EQUAL && lit[0].getType().isBitVector() && pol)
+  if (lit.getKind() == EQUAL && pol)
   {
     Node var;
-    Node slv = getVarElimLitBv(lit, args, var);
+    Node slv;
+    TypeNode tt = lit[0].getType();
+    if( tt.isBitVector() )
+    {
+      slv = getVarElimLitBv(lit, args, var);
+    }
+    else if( tt.isString() )
+    {
+      slv = getVarElimLitString(lit,args,var);
+    }
     if (!slv.isNull())
     {
       Assert(!var.isNull());
@@ -1069,7 +1124,7 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
           std::find(args.begin(), args.end(), var);
       Assert(ita != args.end());
       Trace("var-elim-quant")
-          << "Variable eliminate based on bit-vector inversion : " << var
+          << "Variable eliminate based on theory-specific solving : " << var
           << " -> " << slv << std::endl;
       Assert(!expr::hasSubterm(slv, var));
       Assert(slv.getType().isSubtypeOf(var.getType()));
