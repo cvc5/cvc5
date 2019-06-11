@@ -1481,7 +1481,7 @@ void TheoryStrings::checkInit() {
                   }
                   AlwaysAssert( foundNEmpty );
                   //infer the equality
-                  sendInference( exp, n.eqNode( ns ), "I_Norm_S" );
+                  sendInference(exp, n.eqNode(ns), "I_Norm_S");
                 }
                 d_congruent.insert( n );
                 congruent[k]++;
