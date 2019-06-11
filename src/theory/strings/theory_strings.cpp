@@ -4023,6 +4023,15 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
     d_out->lemma(lem);
   }
+  else if (n.getKind() == STRING_STRIDOF)
+  {
+    Node len = mkLength(n[0]);
+    Node lem = nm->mkNode(
+        AND,
+        nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+        nm->mkNode(LT, n, len));
+    d_out->lemma(lem);
+  }
 }
 
 bool TheoryStrings::sendInternalInference(std::vector<Node>& exp,
