@@ -586,6 +586,7 @@ set(regress_0_tests
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
   regress0/printer/empty_symbol_name.smt2
+  regress0/printer/let_shadowing.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -1572,6 +1573,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
