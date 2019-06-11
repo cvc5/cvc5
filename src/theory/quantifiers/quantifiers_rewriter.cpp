@@ -973,6 +973,10 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
               slv,
               tpreL,
               nm->mkNode(MINUS, slvL, nm->mkNode(PLUS, tpreL, tpostL)));
+          // forall x. r ++ x ++ t = s => P( x )
+          //   is equivalent to
+          // r ++ s' ++ t = s => P( s' ) where
+          // s' = substr( s, |r|, |s|-(|t|+|r|) ).
           if (!expr::hasFreeVar(slv))
           {
             return slv;
