@@ -455,6 +455,14 @@ protected:
     // Returns a random integer 0 <= x < size. Seed must never be 0.
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
+
+    // Writes to Trace macro for decision tree tracing
+    static inline void dtviewTraceHelper(const Node& node, size_t level, const char* decisiontype)
+    {
+      Trace("dtview") << std::string(level - (options::incrementalSolving() ? 1 : 0), '*') << " " << node << " :" << decisiontype << "-DECISION:" << std::endl;
+      Trace("dtview::prop") << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), '*') << " /Propagations [Last Decision Repeated]/" << std::endl;
+    }
+
 };
 
 

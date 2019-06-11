@@ -608,18 +608,8 @@ Lit Solver::pickBranchLit()
             << std::endl;
         decisions++;
 
-        // org-mode tracing, including propagations is a separate trace
-        Trace("dtview")
-            << std::string(context->getLevel()
-                               - (options::incrementalSolving() ? 1 : 0),
-                           '*')
-            << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit))
-            << " :THEORY-DECISION:" << std::endl;
-        Trace("dtview::prop")
-            << std::string(context->getLevel() + 1
-                               - (options::incrementalSolving() ? 1 : 0),
-                           '*')
-            << " /Propagations [Last Decision Repeated]/" << std::endl;
+        // org-mode tracing -- theory decision
+        dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)), context->getLevel(), "THEORY");
 
         return nextLit;
       } else {
@@ -647,19 +637,9 @@ Lit Solver::pickBranchLit()
         nextLit = mkLit(next, polarity[next] & 0x1);
       }
 
-      // org-mode tracing, including propagations is a separate trace
-      Trace("dtview") << std::string(
-                             context->getLevel()
-                                 - (options::incrementalSolving() ? 1 : 0),
-                             '*')
-                      << " "
-                      << proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit))
-                      << " :DE-DECISION:" << std::endl;
-      Trace("dtview::prop")
-          << std::string(context->getLevel() + 1
-                             - (options::incrementalSolving() ? 1 : 0),
-                         '*')
-          << " /Propagations [Last Decision Repeated]/" << std::endl;
+      // org-mode tracing -- decision engine decision
+      dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)), context->getLevel(), "DE");
+
       return nextLit;
     }
 
@@ -706,18 +686,9 @@ Lit Solver::pickBranchLit()
             next, rnd_pol ? drand(random_seed) < 0.5 : (polarity[next] & 0x1));
       }
 
-      // org-mode tracing, including propagations is a separate trace
-      Trace("dtview")
-          << std::string(
-                 context->getLevel() - (options::incrementalSolving() ? 1 : 0),
-                 '*')
-          << " " << proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit))
-          << " :DE-DECISION:" << std::endl;
-      Trace("dtview::prop")
-          << std::string(context->getLevel() + 1
-                             - (options::incrementalSolving() ? 1 : 0),
-                         '*')
-          << " /Propagations [Last Decision Repeated]/" << std::endl;
+      // org-mode tracing -- decision engine decision
+      dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)), context->getLevel(), "DE");
+
       return decisionLit;
     }
 }
