@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__GMP_UTIL_H
-#define __CVC4__GMP_UTIL_H
+#ifndef CVC4__GMP_UTIL_H
+#define CVC4__GMP_UTIL_H
 
 /*
  * Older versions of GMP in combination with newer versions of GCC and C++11
@@ -44,4 +44,4 @@ inline size_t gmpz_hash(const mpz_t toHash) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__GMP_UTIL_H */
+#endif /* CVC4__GMP_UTIL_H */

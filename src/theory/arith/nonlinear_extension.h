@@ -15,8 +15,8 @@
  ** multiplication via axiom instantiations.
  **/
 
-#ifndef __CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H
-#define __CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H
+#ifndef CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H
+#define CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H
 
 #include <stdint.h>
 
@@ -1013,4 +1013,4 @@ class NonlinearExtension {
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */
+#endif /* CVC4__THEORY__ARITH__NONLINEAR_EXTENSION_H */

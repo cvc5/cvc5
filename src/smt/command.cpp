@@ -1358,8 +1358,7 @@ void DefineNamedFunctionCommand::invoke(SmtEngine* smtEngine)
   this->DefineFunctionCommand::invoke(smtEngine);
   if (!d_func.isNull() && d_func.getType().isBoolean())
   {
-    smtEngine->addToAssignment(
-        d_func.getExprManager()->mkExpr(kind::APPLY, d_func));
+    smtEngine->addToAssignment(d_func);
   }
   d_commandStatus = CommandSuccess::instance();
 }
@@ -1751,14 +1750,7 @@ void GetAssignmentCommand::invoke(SmtEngine* smtEngine)
     for (const auto& p : assignments)
     {
       vector<SExpr> v;
-      if (p.first.getKind() == kind::APPLY)
-      {
-        v.emplace_back(SExpr::Keyword(p.first.getOperator().toString()));
-      }
-      else
-      {
-        v.emplace_back(SExpr::Keyword(p.first.toString()));
-      }
+      v.emplace_back(SExpr::Keyword(p.first.toString()));
       v.emplace_back(SExpr::Keyword(p.second.toString()));
       sexprs.emplace_back(v);
     }

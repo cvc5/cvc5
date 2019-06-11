@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
-#define __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#ifndef CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
+#define CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H
 
 #include "theory/quantifiers/fmf/model_builder.h"
 #include "theory/quantifiers/first_order_model.h"
@@ -162,4 +162,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__FULL_MODEL_CHECK_H */

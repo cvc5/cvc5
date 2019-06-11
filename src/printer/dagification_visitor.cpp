@@ -17,6 +17,8 @@
 #include "printer/dagification_visitor.h"
 
 #include "context/context.h"
+#include "expr/node_algorithm.h"
+#include "expr/node_manager_attributes.h"
 #include "theory/substitutions.h"
 
 #include <sstream>
@@ -24,18 +26,20 @@
 namespace CVC4 {
 namespace printer {
 
-DagificationVisitor::DagificationVisitor(unsigned threshold, std::string letVarPrefix) :
-  d_threshold(threshold),
-  d_letVarPrefix(letVarPrefix),
-  d_nodeCount(),
-  d_top(),
-  d_context(new context::Context()),
-  d_substitutions(new theory::SubstitutionMap(d_context)),
-  d_letVar(0),
-  d_done(false),
-  d_uniqueParent(),
-  d_substNodes() {
-
+DagificationVisitor::DagificationVisitor(unsigned threshold,
+                                         std::string letVarPrefix)
+    : d_threshold(threshold),
+      d_letVarPrefix(letVarPrefix),
+      d_nodeCount(),
+      d_reservedLetNames(),
+      d_top(),
+      d_context(new context::Context()),
+      d_substitutions(new theory::SubstitutionMap(d_context)),
+      d_letVar(0),
+      d_done(false),
+      d_uniqueParent(),
+      d_substNodes()
+{
   // 0 doesn't make sense
   AlwaysAssertArgument(threshold > 0, threshold);
 }
@@ -51,7 +55,27 @@ bool DagificationVisitor::alreadyVisited(TNode current, TNode parent) {
   {
     // for quantifiers, we visit them but we don't recurse on them
     visit(current, parent);
+
+    // search for variables that start with the let prefix
+    std::unordered_set<TNode, TNodeHashFunction> vs;
+    expr::getVariables(current, vs);
+    for (const TNode v : vs)
+    {
+      const std::string name = v.getAttribute(expr::VarNameAttr());
+      if (name.compare(0, d_letVarPrefix.size(), d_letVarPrefix) == 0)
+      {
+        d_reservedLetNames.insert(name);
+      }
+    }
     return true;
+  }
+  else if (current.isVar())
+  {
+    const std::string name = current.getAttribute(expr::VarNameAttr());
+    if (name.compare(0, d_letVarPrefix.size(), d_letVarPrefix) == 0)
+    {
+      d_reservedLetNames.insert(name);
+    }
   }
   // don't visit variables, constants, or those exprs that we've
   // already seen more than the threshold: if we've increased
@@ -137,7 +161,11 @@ void DagificationVisitor::done(TNode node) {
 
     // construct the let binder
     std::stringstream ss;
-    ss << d_letVarPrefix << d_letVar++;
+    do
+    {
+      ss.str("");
+      ss << d_letVarPrefix << d_letVar++;
+    } while (d_reservedLetNames.find(ss.str()) != d_reservedLetNames.end());
     Node letvar = NodeManager::currentNM()->mkSkolem(ss.str(), (*i).getType(), "dagification", NodeManager::SKOLEM_NO_NOTIFY | NodeManager::SKOLEM_EXACT_NAME);
 
     // apply previous substitutions to the rhs, enabling cascading LETs

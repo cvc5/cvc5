@@ -17,9 +17,10 @@
  **/
 #include "theory/logic_info.h"
 
-#include <string>
 #include <cstring>
+#include <iostream>
 #include <sstream>
+#include <string>
 
 #include "base/cvc4_assert.h"
 #include "expr/kind.h"
@@ -207,13 +208,15 @@ bool LogicInfo::operator==(const LogicInfo& other) const {
 
   PrettyCheckArgument(d_sharingTheories == other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = d_cardinalityConstraints == other.d_cardinalityConstraints
+             && d_higherOrder == other.d_higherOrder;
   if(isTheoryEnabled(theory::THEORY_ARITH)) {
     return d_integers == other.d_integers && d_reals == other.d_reals
            && d_transcendentals == other.d_transcendentals
            && d_linear == other.d_linear
-           && d_differenceLogic == other.d_differenceLogic;
+           && d_differenceLogic == other.d_differenceLogic && res;
   } else {
-    return true;
+    return res;
   }
 }
 
@@ -227,13 +230,15 @@ bool LogicInfo::operator<=(const LogicInfo& other) const {
   }
   PrettyCheckArgument(d_sharingTheories <= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = (!d_cardinalityConstraints || other.d_cardinalityConstraints)
+             && (!d_higherOrder || other.d_higherOrder);
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
     return (!d_integers || other.d_integers) && (!d_reals || other.d_reals)
            && (!d_transcendentals || other.d_transcendentals)
            && (d_linear || !other.d_linear)
-           && (d_differenceLogic || !other.d_differenceLogic);
+           && (d_differenceLogic || !other.d_differenceLogic) && res;
   } else {
-    return true;
+    return res;
   }
 }
 
@@ -247,13 +252,15 @@ bool LogicInfo::operator>=(const LogicInfo& other) const {
   }
   PrettyCheckArgument(d_sharingTheories >= other.d_sharingTheories, *this,
                       "LogicInfo internal inconsistency");
+  bool res = (d_cardinalityConstraints || !other.d_cardinalityConstraints)
+             && (d_higherOrder || !other.d_higherOrder);
   if(isTheoryEnabled(theory::THEORY_ARITH) && other.isTheoryEnabled(theory::THEORY_ARITH)) {
     return (d_integers || !other.d_integers) && (d_reals || !other.d_reals)
            && (d_transcendentals || !other.d_transcendentals)
            && (!d_linear || other.d_linear)
-           && (!d_differenceLogic || other.d_differenceLogic);
+           && (!d_differenceLogic || other.d_differenceLogic) && res;
     } else {
-    return true;
+      return res;
   }
 }
 

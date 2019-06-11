@@ -1004,7 +1004,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
         Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        sgt.d_expr = PARSER_STATE->getVariable(name);
+        sgt.d_expr = PARSER_STATE->getExpressionForName(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{
@@ -2091,7 +2091,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
              // however, we need to apply partial version since we don't have the internal selector available
              aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR, dtc[i].getSelector(), expr ) );
            }
-           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY, aargs ) );
+           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY_UF, aargs ) );
            patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK 
@@ -2307,8 +2307,8 @@ termAtomic[CVC4::api::Term& atomTerm]
       sortSymbol[type,CHECK_DECLARED]
       sortSymbol[type2,CHECK_DECLARED]
       {
-        api::Term v1 = SOLVER->mkVar(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkVar(api::Sort(type2), "_emp2");
+        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
+        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
         atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
 

@@ -15,8 +15,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__DECISION_STRATEGY__H
-#define __CVC4__THEORY__DECISION_STRATEGY__H
+#ifndef CVC4__THEORY__DECISION_STRATEGY__H
+#define CVC4__THEORY__DECISION_STRATEGY__H
 
 #include <map>
 #include "context/cdo.h"
@@ -143,4 +143,4 @@ class DecisionStrategySingleton : public DecisionStrategyFmf
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__DECISION_STRATEGY__H */
+#endif /* CVC4__THEORY__DECISION_STRATEGY__H */

@@ -13,8 +13,8 @@
  ** where t1 and t2 are subterms of the input.
  **/
 
-#ifndef __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
-#define __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
+#ifndef CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
+#define CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -74,4 +74,4 @@ class SynthRewRulesPass : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H */
+#endif /* CVC4__PREPROCESSING__PASSES__SYNTH_REW_RULES_H */

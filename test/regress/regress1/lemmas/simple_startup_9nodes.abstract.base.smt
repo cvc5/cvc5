@@ -1,3 +1,4 @@
+; COMMAND-LINE: --no-check-proofs
 (benchmark tta_startup
   :source { TTA Startup. Bruno Dutertre (bruno@csl.sri.com) }
 

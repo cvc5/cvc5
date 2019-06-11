@@ -31,6 +31,7 @@
 
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -888,6 +889,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
+      d_expectedStatus(),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -2420,7 +2422,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_status = Result(s, d_filename);
+    d_expectedStatus = Result(s, d_filename);
     return;
   }
   throw UnrecognizedOptionException();
@@ -2734,13 +2736,20 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
       if(n.isVar()) {
         SmtEngine::DefinedFunctionMap::const_iterator i = d_smt.d_definedFunctions->find(n);
         if(i != d_smt.d_definedFunctions->end()) {
+          Node f = (*i).second.getFormula();
+          // must expand its definition
+          Node fe = expandDefinitions(f, cache, expandOnly);
           // replacement must be closed
           if((*i).second.getFormals().size() > 0) {
-            result.push(d_smt.d_nodeManager->mkNode(kind::LAMBDA, d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST, (*i).second.getFormals()), (*i).second.getFormula()));
+            result.push(d_smt.d_nodeManager->mkNode(
+                kind::LAMBDA,
+                d_smt.d_nodeManager->mkNode(kind::BOUND_VAR_LIST,
+                                            (*i).second.getFormals()),
+                fe));
             continue;
           }
           // don't bother putting in the cache
-          result.push((*i).second.getFormula());
+          result.push(fe);
           continue;
         }
         // don't bother putting in the cache
@@ -2758,11 +2767,7 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
 
       // otherwise expand it
       bool doExpand = false;
-      if (k == kind::APPLY)
-      {
-        doExpand = true;
-      }
-      else if (k == kind::APPLY_UF)
+      if (k == kind::APPLY_UF)
       {
         // Always do beta-reduction here. The reason is that there may be
         // operators such as INTS_MODULUS in the body of the lambda that would
@@ -2775,10 +2780,9 @@ Node SmtEnginePrivate::expandDefinitions(TNode n, unordered_map<Node, Node, Node
         {
           doExpand = true;
         }
-        else if (options::macrosQuant() || options::sygusInference())
+        else
         {
-          // The above options assign substitutions to APPLY_UF, thus we check
-          // here and expand if this operator corresponds to a defined function.
+          // We always check if this operator corresponds to a defined function.
           doExpand = d_smt.isDefinedFunction(n.getOperator().toExpr());
         }
       }
@@ -3745,6 +3749,13 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
+    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
+        && d_status != d_expectedStatus)
+    {
+      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
+    }
+    d_expectedStatus = Result();
 
     setProblemExtended(false);
 
@@ -3969,8 +3980,7 @@ void SmtEngine::assertSygusInvConstraint(const Expr& inv,
     {
       children.insert(children.end(), vars.begin(), vars.end());
     }
-    terms[i] =
-        d_nodeManager->mkNode(i == 0 ? kind::APPLY_UF : kind::APPLY, children);
+    terms[i] = d_nodeManager->mkNode(kind::APPLY_UF, children);
     // make application of Inv on primed variables
     if (i == 0)
     {
@@ -4191,7 +4201,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
   Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType),
+  // Notice that lambdas have function type, which does not respect the subtype
+  // relation, so we ignore them here.
+  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
+             || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
   // ensure it's a constant
@@ -4218,15 +4231,15 @@ bool SmtEngine::addToAssignment(const Expr& ex) {
       "expected Boolean-typed variable or function application "
       "in addToAssignment()" );
   Node n = e.getNode();
-  // must be an APPLY of a zero-ary defined function, or a variable
+  // must be a defined constant, or a variable
   PrettyCheckArgument(
-      ( ( n.getKind() == kind::APPLY &&
-          ( d_definedFunctions->find(n.getOperator()) !=
-            d_definedFunctions->end() ) &&
-          n.getNumChildren() == 0 ) ||
-        n.isVar() ), e,
+      (((d_definedFunctions->find(n) != d_definedFunctions->end())
+        && n.getNumChildren() == 0)
+       || n.isVar()),
+      e,
       "expected variable or defined-function application "
-      "in addToAssignment(),\ngot %s", e.toString().c_str() );
+      "in addToAssignment(),\ngot %s",
+      e.toString().c_str());
   if(!options::produceAssignments()) {
     return false;
   }
@@ -4295,8 +4308,7 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       // ensure it's a constant
       Assert(resultNode.isConst());
 
-      Assert(as.getKind() == kind::APPLY || as.isVar());
-      Assert(as.getKind() != kind::APPLY || as.getNumChildren() == 0);
+      Assert(as.isVar());
       res.emplace_back(as.toExpr(), resultNode.toExpr());
     }
   }
@@ -4428,13 +4440,7 @@ void SmtEngine::checkProof()
 
   std::string logicString = d_logic.getLogicString();
 
-  if (!(
-          // Pure logics
-          logicString == "QF_UF" || logicString == "QF_AX"
-          || logicString == "QF_BV" ||
-          // Non-pure logics
-          logicString == "QF_AUF" || logicString == "QF_UFBV"
-          || logicString == "QF_ABV" || logicString == "QF_AUFBV"))
+  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
   {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"

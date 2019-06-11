@@ -17,8 +17,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__TIM__ECDATA_H
-#define __CVC4__THEORY__UF__TIM__ECDATA_H
+#ifndef CVC4__THEORY__UF__TIM__ECDATA_H
+#define CVC4__THEORY__UF__TIM__ECDATA_H
 
 #include "expr/node.h"
 #include "context/context.h"
@@ -255,4 +255,4 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__TIM__ECDATA_H */
+#endif /* CVC4__THEORY__UF__TIM__ECDATA_H */

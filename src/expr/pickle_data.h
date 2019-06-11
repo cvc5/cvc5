@@ -20,8 +20,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PICKLE_DATA_H
-#define __CVC4__PICKLE_DATA_H
+#ifndef CVC4__PICKLE_DATA_H
+#define CVC4__PICKLE_DATA_H
 
 #include <sstream>
 #include <deque>
@@ -44,8 +44,8 @@ namespace expr {
 namespace pickle {
 
 const unsigned NBITS_BLOCK = 64;
-const unsigned NBITS_KIND = __CVC4__EXPR__NODE_VALUE__NBITS__KIND;
-const unsigned NBITS_NCHILDREN = __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
+const unsigned NBITS_KIND = CVC4__EXPR__NODE_VALUE__NBITS__KIND;
+const unsigned NBITS_NCHILDREN = CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN;
 const unsigned NBITS_CONSTBLOCKS = 32;
 
 struct BlockHeader {
@@ -117,4 +117,4 @@ public:
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PICKLE_DATA_H */
+#endif /* CVC4__PICKLE_DATA_H */

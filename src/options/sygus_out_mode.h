@@ -14,8 +14,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT__SYGUS_OUT_MODE_H
-#define __CVC4__SMT__SYGUS_OUT_MODE_H
+#ifndef CVC4__SMT__SYGUS_OUT_MODE_H
+#define CVC4__SMT__SYGUS_OUT_MODE_H
 
 #include <iosfwd>
 
@@ -36,4 +36,4 @@ enum SygusSolutionOutMode
 
 } /* CVC4 namespace */
 
-#endif /* __CVC4__SMT__SYGUS_OUT_MODE_H */
+#endif /* CVC4__SMT__SYGUS_OUT_MODE_H */

@@ -1,6 +1,6 @@
 #!/bin/bash
 
-cvc4=./cvc4-application
+cvc4=./cvc4
 
 line=""
 while [[ -z "$line" ]]; do
@@ -44,7 +44,7 @@ QF_AUFLIA)
   runcvc4 --no-arrays-eager-index --arrays-eager-lemmas --incremental
   ;;
 QF_BV)
-  runcvc4 --tear-down-incremental=4 --bv-eq-slicer=auto --bv-div-zero-const --bv-intro-pow2
+  runcvc4 --incremental --bitblast=eager --bv-sat-solver=cadical
   ;;
 QF_LIA)
   runcvc4 --tear-down-incremental=1 --unconstrained-simp

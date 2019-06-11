@@ -13,8 +13,8 @@
  ** (potentially cooperative) race
  **/
 
-#ifndef __CVC4__PORTFOLIO_H
-#define __CVC4__PORTFOLIO_H
+#ifndef CVC4__PORTFOLIO_H
+#define CVC4__PORTFOLIO_H
 
 #include <boost/function.hpp>
 #include <utility>
@@ -38,4 +38,4 @@ std::pair<int, S> runPortfolio(int numThreads,
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PORTFOLIO_H */
+#endif /* CVC4__PORTFOLIO_H */

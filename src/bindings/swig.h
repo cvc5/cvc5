@@ -14,8 +14,8 @@
  ** Common swig checks and definitions, when generating swig interfaces.
  **/
 
-#ifndef __CVC4__BINDINGS__SWIG_H
-#define __CVC4__BINDINGS__SWIG_H
+#ifndef CVC4__BINDINGS__SWIG_H
+#define CVC4__BINDINGS__SWIG_H
 
 #ifndef SWIG
 #  error This file should only be included when generating swig interfaces.
@@ -30,4 +30,4 @@
 // swig doesn't like GCC attributes
 #define __attribute__(x)
 
-#endif /* __CVC4__BINDINGS__SWIG_H */
+#endif /* CVC4__BINDINGS__SWIG_H */

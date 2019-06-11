@@ -23,8 +23,8 @@
 // "expr.h" safely, then go on to completely declare their own stuff.
 ${includes}
 
-#ifndef __CVC4__EXPR_H
-#define __CVC4__EXPR_H
+#ifndef CVC4__EXPR_H
+#define CVC4__EXPR_H
 
 #include <stdint.h>
 #include <iosfwd>
@@ -620,4 +620,4 @@ inline size_t ExprHashFunction::operator()(CVC4::Expr e) const {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__EXPR_H */
+#endif /* CVC4__EXPR_H */

@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H
 
 #include <map>
 #include <unordered_set>
@@ -108,10 +108,11 @@ class TermDb : public QuantifiersUtil {
   */
   Node getTypeGroundTerm(TypeNode tn, unsigned i) const;
   /** get or make ground term
-  * Returns the first ground term of type tn,
-  * or makes one if none exist.
-  */
-  Node getOrMakeTypeGroundTerm(TypeNode tn);
+   *
+   * Returns the first ground term of type tn, or makes one if none exist. If
+   * reqVar is true, then the ground term must be a variable.
+   */
+  Node getOrMakeTypeGroundTerm(TypeNode tn, bool reqVar = false);
   /** make fresh variable
   * Returns a fresh variable of type tn.
   * This will return only a single fresh
@@ -277,7 +278,7 @@ class TermDb : public QuantifiersUtil {
   */
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
-  bool isTermEligibleForInstantiation(TNode n, TNode f, bool print = false);
+  bool isTermEligibleForInstantiation(TNode n, TNode f);
   /** get eligible term in equivalence class of r */
   Node getEligibleTermInEqc(TNode r);
   /** is r a inst closure node?
@@ -409,4 +410,4 @@ class TermDb : public QuantifiersUtil {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

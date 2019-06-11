@@ -15,8 +15,8 @@
  ** threads.
  **/
 
-#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
-#define __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
+#ifndef CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
+#define CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
 
 #include "main/command_executor.h"
 #include "main/portfolio_util.h"
@@ -82,4 +82,4 @@ private:
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H */
+#endif  /* CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H */

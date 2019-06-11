@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PRINTER__SMT2_PRINTER_H
-#define __CVC4__PRINTER__SMT2_PRINTER_H
+#ifndef CVC4__PRINTER__SMT2_PRINTER_H
+#define CVC4__PRINTER__SMT2_PRINTER_H
 
 #include <iostream>
 
@@ -80,4 +80,4 @@ class Smt2Printer : public CVC4::Printer {
 }/* CVC4::printer namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PRINTER__SMT2_PRINTER_H */
+#endif /* CVC4__PRINTER__SMT2_PRINTER_H */
