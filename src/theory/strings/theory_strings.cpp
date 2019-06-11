@@ -1464,6 +1464,7 @@ void TheoryStrings::checkInit() {
                 Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
                 //singular case
                 if( !areEqual( c[0], n ) ){
+                  Node ns;
                   std::vector< Node > exp;
                   //explain empty components
                   bool foundNEmpty = false;
@@ -1474,15 +1475,13 @@ void TheoryStrings::checkInit() {
                       }
                     }else{
                       Assert( !foundNEmpty );
-                      if( n[i]!=c[0] ){
-                        exp.push_back( n[i].eqNode( c[0] ) );
-                      }
+                      ns = n[i];
                       foundNEmpty = true;
                     }
                   }
                   AlwaysAssert( foundNEmpty );
                   //infer the equality
-                  sendInference( exp, n.eqNode( c[0] ), "I_Norm_S" );
+                  sendInference( exp, n.eqNode( ns ), "I_Norm_S" );
                 }
                 d_congruent.insert( n );
                 congruent[k]++;
