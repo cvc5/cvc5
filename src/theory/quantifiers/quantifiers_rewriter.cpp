@@ -977,6 +977,7 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
           //   is equivalent to
           // r ++ s' ++ t = s => P( s' ) where
           // s' = substr( s, |r|, |s|-(|t|+|r|) ).
+          // We apply this only if r,t,s do not contain free variables.
           if (!expr::hasFreeVar(slv))
           {
             return slv;
