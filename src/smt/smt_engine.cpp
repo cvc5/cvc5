@@ -4203,7 +4203,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
   // type-check the result we got
   // Notice that lambdas have function type, which does not respect the subtype
   // relation, so we ignore them here.
-  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA || resultNode.getType().isSubtypeOf(expectedType),
+  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
+             || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
   // ensure it's a constant
