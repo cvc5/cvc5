@@ -609,7 +609,10 @@ Lit Solver::pickBranchLit()
         decisions++;
 
         // org-mode tracing -- theory decision
-        dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)), context->getLevel(), "THEORY");
+        dtviewTraceHelper(
+            proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+            context->getLevel(),
+            "THEORY");
 
         return nextLit;
       } else {
@@ -638,7 +641,9 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)), context->getLevel(), "DE");
+      dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+                        context->getLevel(),
+                        "DE");
 
       return nextLit;
     }
@@ -687,7 +692,10 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      dtviewTraceHelper(proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)), context->getLevel(), "DE");
+      dtviewTraceHelper(
+          proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
+          context->getLevel(),
+          "DE");
 
       return decisionLit;
     }
