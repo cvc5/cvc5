@@ -185,6 +185,15 @@ class CVC4_PUBLIC SmtEngine {
    */
   smt::CommandList* d_modelCommands;
 
+
+  /**
+   * If there is a (get-value (t1 t2 ... tn)) command in the current
+   * context, then this vector includes t1,...,tn.
+   * This field is changed in getValue function, which is const, 
+   * therefore it is declared mutable.
+   */
+  mutable std::vector<Node> d_getValueNodes;
+
   /**
    * A vector of declaration commands waiting to be dumped out.
    * Once the SmtEngine is fully initialized, we'll dump them.
@@ -736,8 +745,9 @@ class CVC4_PUBLIC SmtEngine {
    * Get the assigned value of an expr (only if immediately preceded
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
+   * if isCommand == true then this call came from a get-value command
    */
-  Expr getValue(const Expr& e) const
+  Expr getValue(const Expr& e, bool isCommand = false) const
       /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
       ;
 

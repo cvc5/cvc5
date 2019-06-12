@@ -1671,7 +1671,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
       smt::SmtScope scope(smtEngine);
       Node request = Node::fromExpr(
           options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
-      Node value = Node::fromExpr(smtEngine->getValue(e));
+      Node value = Node::fromExpr(smtEngine->getValue(e, true));
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in division-by-one so that output printers know this

@@ -24,7 +24,8 @@ namespace CVC4 {
 
 Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
                                    theory::TheoryModel* m,
-                                   BlockModelsMode mode)
+                                   BlockModelsMode mode,
+                                   std::vector<Node> getValueNodes)
 {
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
@@ -37,6 +38,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
   if (mode == BLOCK_MODELS_LITERALS) {
+    Assert(getValueNodes.size() == 0);
     // optimization: filter to only top-level disjunctions
     unsigned counter = 0;
     std::vector<Node> asserts;
@@ -227,15 +229,28 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     blocker = visited[formula].negate();
   } else {
     Assert(mode == BLOCK_MODELS_VALUES);
-    std::unordered_set<Node, NodeHashFunction> symbols;
-    for (Node n: tlAsserts) {
-      expr::getSymbols(n, symbols);
-    }
     std::vector<Node> blockers;
-    for (Node s : symbols) {
-      if (s.getType().getKind() != kind::FUNCTION_TYPE) {
-        Node v = m->getValue(s);
-        Node a = nm->mkNode(DISTINCT, s, v);
+    //if specific terms were not specified in get-value, block all variables of the model
+    if (getValueNodes.size() == 0) {
+      Trace("model-blocker") << "no get-value recognized" << std::endl;
+      std::unordered_set<Node, NodeHashFunction> symbols;
+      for (Node n: tlAsserts) {
+        expr::getSymbols(n, symbols);
+      }
+      for (Node s : symbols) {
+        if (s.getType().getKind() != kind::FUNCTION_TYPE) {
+          Node v = m->getValue(s);
+          Node a = nm->mkNode(DISTINCT, s, v);
+          blockers.push_back(a);
+        }
+      }
+    } 
+    //otherwise, block all terms that were specified in get-value
+    else {
+      std::unordered_set<Node, NodeHashFunction> terms;
+      for (Node n : getValueNodes) {
+        Node v = m->getValue(n);
+        Node a = nm->mkNode(DISTINCT, n, v);
         blockers.push_back(a);
       }
     }
