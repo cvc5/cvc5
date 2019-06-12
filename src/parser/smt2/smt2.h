@@ -334,7 +334,8 @@ class Smt2 : public Parser
    *
    * The sygus operator that is actually added to dt corresponds to replacing
    * each occurrence of non-terminal symbols (those in the domain of ntsToUnres)
-   * with bound variables via purifySygusGTerm.
+   * with bound variables via purifySygusGTerm, and bounding these variables
+   * via a lambda.
    */
   void addSygusConstructorTerm(Datatype& dt,
                                Expr term,
