@@ -142,7 +142,7 @@ RewriteResponse DatatypesRewriter::postRewrite(TNode in)
         children.push_back(nm->mkNode(DT_SYGUS_EVAL, cc));
       }
       Node ret = mkSygusTerm(dt, i, children);
-      // if it is a variable, apply the substitution
+      // apply the appropriate substitution
       ret = applySygusArgs(dt, op, ret, args);
       Trace("dt-sygus-util") << "...got " << ret << "\n";
       return RewriteResponse(REWRITE_AGAIN_FULL, ret);
