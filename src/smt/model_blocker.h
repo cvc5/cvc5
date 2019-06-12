@@ -22,7 +22,6 @@
 #include "expr/expr.h"
 #include "options/smt_options.h"
 #include "theory/theory_model.h"
-#include "context/cdlist_forward.h"
 
 namespace CVC4 {
 
