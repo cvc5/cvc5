@@ -326,12 +326,12 @@ class Smt2 : public Parser
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
-  /** 
+  /**
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
-   * 
+   *
    * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
    * types they correspond to.
-   * 
+   *
    * The sygus operator that is actually added to dt corresponds to replacing
    * each occurrence of non-terminal symbols (those in the domain of ntsToUnres)
    * with bound variables via purifySygusGTerm.
@@ -339,7 +339,7 @@ class Smt2 : public Parser
   void addSygusConstructorTerm(Datatype& dt,
                                Expr term,
                                std::map<Expr, Type>& ntsToUnres) const;
-  /** 
+  /**
    * This adds constructors to dt for sygus variables in sygusVars whose
    * type is argument type. This method is called for sygus grammar term
    * (Variable type).
@@ -465,8 +465,8 @@ private:
                              const std::vector<Type>& ltypes,
                              std::vector<Expr>& lvars);
 
-  /** Purify sygus grammar term 
-   * 
+  /** Purify sygus grammar term
+   *
    * This returns a term where all occurrences of non-terminal symbols (those
    * in the domain of ntsToUnres) are replaced by fresh variables. For each
    * variable replaced in this way, we add the fresh variable it is replaced
@@ -479,8 +479,8 @@ private:
   Expr purifySygusGTerm(Expr term,
                         std::map<Expr, Type>& ntsToUnres,
                         std::vector<Expr>& args,
-                        std::vector<Type>& cargs) const;  
-  
+                        std::vector<Type>& cargs) const;
+
   void addArithmeticOperators();
 
   void addTranscendentalOperators();
