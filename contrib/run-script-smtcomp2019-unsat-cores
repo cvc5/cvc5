@@ -14,10 +14,10 @@ function finishwith {
 case "$logic" in
 
 QF_LRA)
-  finishwith --no-restrict-pivots --use-soi --new-prop --unconstrained-simp
+  finishwith --no-restrict-pivots --use-soi --new-prop
   ;;
 QF_LIA)
-  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --unconstrained-simp --use-soi
+  finishwith --miplib-trick --miplib-trick-subs=4 --use-approx --lemmas-on-replay-failure --replay-early-close-depth=4 --replay-lemma-reject-cut=128 --replay-reject-cut=512 --use-soi
   ;;
 QF_NIA)
   finishwith --solve-int-as-bv=32 --bitblast=eager --bv-sat-solver=cryptominisat
@@ -27,7 +27,7 @@ QF_NRA)
   ;;
 # all logics with UF + quantifiers should either fall under this or special cases below
 ALIA|AUFLIA|AUFLIRA|AUFNIRA|UF|UFIDL|UFLIA|UFLRA|UFNIA|UFDT|UFDTLIA|AUFDTLIA|AUFBVDTLIA|AUFNIA|ABVFP|BVFP|FP)
-  finishwith --full-saturate-quant
+  finishwith --full-saturate-quant --fp-exp
   ;;
 UFBV)
   finishwith --finite-model-find
@@ -48,7 +48,7 @@ QF_ABV)
   finishwith --ite-simp --simp-with-care --arrays-weak-equiv
   ;;
 QF_UFBV)
-  finishwith --bitblast=eager --bv-sat-solver=cryptominisat
+  finishwith
   ;;
 QF_BV)
   finishwith --bv-div-zero-const --bv-eq-slicer=auto --no-bv-abstraction
@@ -65,14 +65,17 @@ QF_AUFNIA)
 QF_ALIA)
   finishwith --decision=justification-stoponly --no-arrays-eager-index --arrays-eager-lemmas
   ;;
+QF_S|QF_SLIA)
+  finishwith --strings-exp --rewrite-divk --lang=smt2.6.1
+  ;;
 QF_ABVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_BVFP)
-  finishwith
+  finishwith --fp-exp
   ;;
 QF_FP)
-  finishwith
+  finishwith --fp-exp
   ;;
 *)
   # just run the default

@@ -131,6 +131,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/LastExceptionBuffer.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicException.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicInfo.java
+  ${CMAKE_CURRENT_BINARY_DIR}/Map_ExprExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/ModalException.java
   ${CMAKE_CURRENT_BINARY_DIR}/OptionException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
@@ -165,7 +166,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprType.java
-  ${CMAKE_CURRENT_BINARY_DIR}/Statistic.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Model.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__Printer.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_CVC4__api__Solver.java
@@ -178,7 +178,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__mapT_CVC4__Expr_CVC4__Expr_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__string.java
@@ -201,16 +200,17 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortConstructorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/Statistic.java
   ${CMAKE_CURRENT_BINARY_DIR}/Statistics.java
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusConstraintCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusGTerm.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusInvConstraintCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolTable.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
   ${CMAKE_CURRENT_BINARY_DIR}/Timer.java
