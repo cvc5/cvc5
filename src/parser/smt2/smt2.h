@@ -330,10 +330,12 @@ class Smt2 : public Parser
    * Adds a constructor to sygus datatype dt whose sygus operator is term.
    *
    * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
-   * types they correspond to.
+   * types they correspond to. This map indicates how the argument term should
+   * be interpreted (instances of symbols from the domain of ntsToUnres
+   * correspond to constructor arguments).
    *
    * The sygus operator that is actually added to dt corresponds to replacing
-   * each occurrence of non-terminal symbols (those in the domain of ntsToUnres)
+   * each occurrence of non-terminal symbols from the domain of ntsToUnres
    * with bound variables via purifySygusGTerm, and bounding these variables
    * via a lambda.
    */
@@ -342,8 +344,8 @@ class Smt2 : public Parser
                                std::map<Expr, Type>& ntsToUnres) const;
   /**
    * This adds constructors to dt for sygus variables in sygusVars whose
-   * type is argument type. This method is called for sygus grammar term
-   * (Variable type).
+   * type is argument type. This method should be called when the sygus grammar
+   * term (Variable type) is encountered.
    */
   void addSygusConstructorVariables(Datatype& dt,
                                     std::vector<Expr>& sygusVars,
