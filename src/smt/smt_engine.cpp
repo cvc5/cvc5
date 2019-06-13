@@ -876,7 +876,6 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_assignments(NULL),
       d_modelGlobalCommands(),
       d_modelCommands(NULL),
-      d_getValueNodes(),
       d_dumpCommands(),
       d_defineCommands(),
       d_logic(),
@@ -1075,7 +1074,6 @@ SmtEngine::~SmtEngine()
       delete d_dumpCommands[i];
       d_dumpCommands[i] = NULL;
     }
-    d_getValueNodes.clear();
     d_dumpCommands.clear();
 
     DeleteAndClearCommandVector(d_modelGlobalCommands);
@@ -4133,7 +4131,7 @@ Expr SmtEngine::expandDefinitions(const Expr& ex)
 }
 
 // TODO(#1108): Simplify the error reporting of this method.
-Expr SmtEngine::getValue(const Expr& ex, bool isCommand) const
+Expr SmtEngine::getValue(const Expr& ex) const
 {
   Assert(ex.getExprManager() == d_exprManager);
   SmtScope smts(this);
@@ -4207,11 +4205,33 @@ Expr SmtEngine::getValue(const Expr& ex, bool isCommand) const
     Trace("smt") << "--- abstract value >> " << resultNode << endl;
   }
 
-  if (options::blockModelsMode() != BLOCK_MODELS_NONE && isCommand)
-  {
-      d_getValueNodes.push_back(n);
-  }
   return resultNode.toExpr();
+}
+
+vector<Node> SmtEngine::getValues(const vector<Node> nodes) {
+  vector<Node> result;
+  for (Node n : nodes) {
+    Node value = Node::fromExpr(getValue(n.toExpr()));
+    result.push_back(value);
+  }
+
+  if (options::blockModelsMode() != BLOCK_MODELS_NONE)
+  {
+    TheoryModel* m = d_theoryEngine->getBuiltModel();
+    std::vector<Expr> easserts = getAssertions();
+    // must expand definitions
+    std::vector<Expr> eassertsProc;
+    std::unordered_map<Node, Node, NodeHashFunction> cache;
+    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+    {
+      Node ea = Node::fromExpr(easserts[i]);
+      Node eae = d_private->expandDefinitions(ea, cache);
+      eassertsProc.push_back(eae.toExpr());
+    }
+    Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), &nodes);
+    assertFormula(eblocker);
+  }
+  return result;
 }
 
 bool SmtEngine::addToAssignment(const Expr& ex) {
@@ -4399,9 +4419,8 @@ Model* SmtEngine::getModel() {
     }
     if (options::blockModelsMode() != BLOCK_MODELS_NONE)
     {
-      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), d_getValueNodes);
+      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode());
       assertFormula(eblocker);
-      d_getValueNodes.clear();
     }
   }
   m->d_inputName = d_filename;

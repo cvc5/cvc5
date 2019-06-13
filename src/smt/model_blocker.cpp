@@ -25,7 +25,7 @@ namespace CVC4 {
 Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
                                    theory::TheoryModel* m,
                                    BlockModelsMode mode,
-                                   std::vector<Node> getValueNodes)
+                                   const std::vector<Node>* nodesToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
@@ -38,7 +38,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
   if (mode == BLOCK_MODELS_LITERALS) {
-    Assert(getValueNodes.size() == 0);
+    Assert(nodesToBlock = NULL);
     // optimization: filter to only top-level disjunctions
     unsigned counter = 0;
     std::vector<Node> asserts;
@@ -231,7 +231,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     Assert(mode == BLOCK_MODELS_VALUES);
     std::vector<Node> blockers;
     //if specific terms were not specified in get-value, block all variables of the model
-    if (getValueNodes.size() == 0) {
+    if (nodesToBlock == NULL) {
       Trace("model-blocker") << "no get-value recognized" << std::endl;
       std::unordered_set<Node, NodeHashFunction> symbols;
       for (Node n: tlAsserts) {
@@ -248,7 +248,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     //otherwise, block all terms that were specified in get-value
     else {
       std::unordered_set<Node, NodeHashFunction> terms;
-      for (Node n : getValueNodes) {
+      for (Node n : *nodesToBlock) {
         Node v = m->getValue(n);
         Node a = nm->mkNode(DISTINCT, n, v);
         blockers.push_back(a);

@@ -1662,16 +1662,22 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    vector<Expr> result;
     ExprManager* em = smtEngine->getExprManager();
     NodeManager* nm = NodeManager::fromExprManager(em);
-    for (const Expr& e : d_terms)
+    smt::SmtScope scope(smtEngine);
+    vector<Node> termNodes;
+    for (Expr e : d_terms)  {
+      termNodes.push_back(Node::fromExpr(e));
+    }
+    vector<Node> result = smtEngine->getValues(termNodes);
+    Assert(result.size() == d_terms.size());
+    for (int i=0; i < d_terms.size(); i++) 
     {
+      Expr e = d_terms[i];
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      smt::SmtScope scope(smtEngine);
-      Node request = Node::fromExpr(
-          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
-      Node value = Node::fromExpr(smtEngine->getValue(e, true));
+      Node request = Node::fromExpr( options::expandDefinitions()
+          ? smtEngine->expandDefinitions(e) : e);
+      Node value = result[i];
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
         // Need to wrap in division-by-one so that output printers know this
@@ -1679,9 +1685,13 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
         // a rational.  Necessary for SMT-LIB standards compliance.
         value = nm->mkNode(kind::DIVISION, value, nm->mkConst(Rational(1)));
       }
-      result.push_back(nm->mkNode(kind::SEXPR, request, value).toExpr());
+      result[i] = nm->mkNode(kind::SEXPR, request, value);
     }
-    d_result = em->mkExpr(kind::SEXPR, result);
+    std::vector<Expr> resultExpr;
+    for (Node n : result) {
+      resultExpr.push_back(n.toExpr());
+    }
+    d_result = em->mkExpr(kind::SEXPR, resultExpr);
     d_commandStatus = CommandSuccess::instance();
   }
   catch (RecoverableModalException& e)
