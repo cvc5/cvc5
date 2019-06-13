@@ -745,7 +745,7 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node> nodes);
+  std::vector<Node> getValues(const std::vector<Node>& nodes);
 
 
   /**

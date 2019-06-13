@@ -4208,7 +4208,7 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
-vector<Node> SmtEngine::getValues(const vector<Node> nodes) {
+vector<Node> SmtEngine::getValues(const vector<Node>& nodes) {
   vector<Node> result;
   for (Node n : nodes) {
     Node value = Node::fromExpr(getValue(n.toExpr()));
@@ -4228,7 +4228,7 @@ vector<Node> SmtEngine::getValues(const vector<Node> nodes) {
       Node eae = d_private->expandDefinitions(ea, cache);
       eassertsProc.push_back(eae.toExpr());
     }
-    Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), &nodes);
+    Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), nodes);
     assertFormula(eblocker);
   }
   return result;
