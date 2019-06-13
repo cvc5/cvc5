@@ -31,7 +31,6 @@ namespace CVC4 {
 class ModelBlocker
 {
  
- typedef context::CDList<Node> NodeList;
 
  public:
   /** get model blocker

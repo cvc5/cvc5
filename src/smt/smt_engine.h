@@ -736,7 +736,6 @@ class CVC4_PUBLIC SmtEngine {
    * Get the assigned value of an expr (only if immediately preceded
    * by a SAT or INVALID query).  Only permitted if the SmtEngine is
    * set to operate interactively and produce-models is on.
-   * if isCommand == true then this call came from a get-value command
    */
   Expr getValue(const Expr& e) const
       /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
