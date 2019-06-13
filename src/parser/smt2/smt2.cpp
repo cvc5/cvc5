@@ -15,7 +15,6 @@
  **/
 #include "parser/smt2/smt2.h"
 
-#include "api/cvc4cpp.h"
 #include "expr/type.h"
 #include "options/options.h"
 #include "parser/antlr_input.h"
@@ -45,17 +44,21 @@ Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
 }
 
 void Smt2::addArithmeticOperators() {
-  Parser::addOperator(kind::PLUS);
-  Parser::addOperator(kind::MINUS);
+  addOperator(kind::PLUS, "+");
+  addOperator(kind::MINUS, "-");
+  // kind::MINUS is converted to kind::UMINUS if there is only a single operand
   Parser::addOperator(kind::UMINUS);
-  Parser::addOperator(kind::MULT);
-  Parser::addOperator(kind::LT);
-  Parser::addOperator(kind::LEQ);
-  Parser::addOperator(kind::GT);
-  Parser::addOperator(kind::GEQ);
+  addOperator(kind::MULT, "*");
+  addOperator(kind::LT, "<");
+  addOperator(kind::LEQ, "<=");
+  addOperator(kind::GT, ">");
+  addOperator(kind::GEQ, ">=");
 
-  // NOTE: this operator is non-standard
-  addOperator(kind::POW, "^");
+  if (!strictModeEnabled())
+  {
+    // NOTE: this operator is non-standard
+    addOperator(kind::POW, "^");
+  }
 }
 
 void Smt2::addTranscendentalOperators()
@@ -74,6 +77,14 @@ void Smt2::addTranscendentalOperators()
   addOperator(kind::ARCSECANT, "arcsec");
   addOperator(kind::ARCCOTANGENT, "arccot");
   addOperator(kind::SQRT, "sqrt");
+}
+
+void Smt2::addQuantifiersOperators()
+{
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::INST_CLOSURE, "inst-closure");
+  }
 }
 
 void Smt2::addBitvectorOperators() {
@@ -108,17 +119,39 @@ void Smt2::addBitvectorOperators() {
   addOperator(kind::BITVECTOR_SGE, "bvsge");
   addOperator(kind::BITVECTOR_REDOR, "bvredor");
   addOperator(kind::BITVECTOR_REDAND, "bvredand");
+  addOperator(kind::BITVECTOR_TO_NAT, "bv2nat");
 
-  Parser::addOperator(kind::BITVECTOR_BITOF);
-  Parser::addOperator(kind::BITVECTOR_EXTRACT);
-  Parser::addOperator(kind::BITVECTOR_REPEAT);
-  Parser::addOperator(kind::BITVECTOR_ZERO_EXTEND);
-  Parser::addOperator(kind::BITVECTOR_SIGN_EXTEND);
-  Parser::addOperator(kind::BITVECTOR_ROTATE_LEFT);
-  Parser::addOperator(kind::BITVECTOR_ROTATE_RIGHT);
+  addIndexedOperator(
+      kind::BITVECTOR_EXTRACT, api::BITVECTOR_EXTRACT_OP, "extract");
+  addIndexedOperator(
+      kind::BITVECTOR_REPEAT, api::BITVECTOR_REPEAT_OP, "repeat");
+  addIndexedOperator(kind::BITVECTOR_ZERO_EXTEND,
+                     api::BITVECTOR_ZERO_EXTEND_OP,
+                     "zero_extend");
+  addIndexedOperator(kind::BITVECTOR_SIGN_EXTEND,
+                     api::BITVECTOR_SIGN_EXTEND_OP,
+                     "sign_extend");
+  addIndexedOperator(kind::BITVECTOR_ROTATE_LEFT,
+                     api::BITVECTOR_ROTATE_LEFT_OP,
+                     "rotate_left");
+  addIndexedOperator(kind::BITVECTOR_ROTATE_RIGHT,
+                     api::BITVECTOR_ROTATE_RIGHT_OP,
+                     "rotate_right");
+  addIndexedOperator(
+      kind::INT_TO_BITVECTOR, api::INT_TO_BITVECTOR_OP, "int2bv");
+}
 
-  Parser::addOperator(kind::INT_TO_BITVECTOR);
-  Parser::addOperator(kind::BITVECTOR_TO_NAT);
+void Smt2::addDatatypesOperators()
+{
+  Parser::addOperator(kind::APPLY_CONSTRUCTOR);
+  Parser::addOperator(kind::APPLY_TESTER);
+  Parser::addOperator(kind::APPLY_SELECTOR);
+  Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
+
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::DT_SIZE, "dt.size");
+  }
 }
 
 void Smt2::addStringOperators() {
@@ -194,14 +227,32 @@ void Smt2::addFloatingPointOperators() {
   addOperator(kind::FLOATINGPOINT_ISPOS, "fp.isPositive");
   addOperator(kind::FLOATINGPOINT_TO_REAL, "fp.to_real");
 
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_GENERIC);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_REAL);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_UBV);
-  Parser::addOperator(kind::FLOATINGPOINT_TO_SBV);
+  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_GENERIC,
+                     api::FLOATINGPOINT_TO_FP_GENERIC_OP,
+                     "to_fp");
+  addIndexedOperator(kind::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR,
+                     api::FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP,
+                     "to_fp_unsigned");
+  addIndexedOperator(
+      kind::FLOATINGPOINT_TO_UBV, api::FLOATINGPOINT_TO_UBV_OP, "fp.to_ubv");
+  addIndexedOperator(
+      kind::FLOATINGPOINT_TO_SBV, api::FLOATINGPOINT_TO_SBV_OP, "fp.to_sbv");
+
+  if (!strictModeEnabled())
+  {
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR,
+                       api::FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP,
+                       "to_fp_bv");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_FLOATINGPOINT,
+                       api::FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP,
+                       "to_fp_fp");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_REAL,
+                       api::FLOATINGPOINT_TO_FP_REAL_OP,
+                       "to_fp_real");
+    addIndexedOperator(kind::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR,
+                       api::FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP,
+                       "to_fp_signed");
+  }
 }
 
 void Smt2::addSepOperators() {
@@ -230,19 +281,19 @@ void Smt2::addTheory(Theory theory) {
     defineType("Bool", getExprManager()->booleanType());
     defineVar("true", getExprManager()->mkConst(true));
     defineVar("false", getExprManager()->mkConst(false));
-    Parser::addOperator(kind::AND);
-    Parser::addOperator(kind::DISTINCT);
-    Parser::addOperator(kind::EQUAL);
-    Parser::addOperator(kind::IMPLIES);
-    Parser::addOperator(kind::ITE);
-    Parser::addOperator(kind::NOT);
-    Parser::addOperator(kind::OR);
-    Parser::addOperator(kind::XOR);
+    addOperator(kind::AND, "and");
+    addOperator(kind::DISTINCT, "distinct");
+    addOperator(kind::EQUAL, "=");
+    addOperator(kind::IMPLIES, "=>");
+    addOperator(kind::ITE, "ite");
+    addOperator(kind::NOT, "not");
+    addOperator(kind::OR, "or");
+    addOperator(kind::XOR, "xor");
     break;
 
   case THEORY_REALS_INTS:
     defineType("Real", getExprManager()->realType());
-    Parser::addOperator(kind::DIVISION);
+    addOperator(kind::DIVISION, "/");
     addOperator(kind::TO_INTEGER, "to_int");
     addOperator(kind::IS_INTEGER, "is_int");
     addOperator(kind::TO_REAL, "to_real");
@@ -253,21 +304,36 @@ void Smt2::addTheory(Theory theory) {
     addOperator(kind::INTS_DIVISION, "div");
     addOperator(kind::INTS_MODULUS, "mod");
     addOperator(kind::ABS, "abs");
-    Parser::addOperator(kind::DIVISIBLE);
+    addIndexedOperator(kind::DIVISIBLE, api::DIVISIBLE_OP, "divisible");
     break;
 
   case THEORY_REALS:
     defineType("Real", getExprManager()->realType());
     addArithmeticOperators();
-    Parser::addOperator(kind::DIVISION);
+    addOperator(kind::DIVISION, "/");
+    if (!strictModeEnabled())
+    {
+      addOperator(kind::ABS, "abs");
+    }
     break;
 
-  case THEORY_TRANSCENDENTALS: addTranscendentalOperators(); break;
-
-  case THEORY_QUANTIFIERS:
+  case THEORY_TRANSCENDENTALS:
+    defineVar("real.pi",
+              getExprManager()->mkNullaryOperator(getExprManager()->realType(),
+                                                  CVC4::kind::PI));
+    addTranscendentalOperators();
     break;
+
+  case THEORY_QUANTIFIERS: addQuantifiersOperators(); break;
 
   case THEORY_SETS:
+    defineVar("emptyset",
+              d_solver->mkEmptySet(d_solver->getNullSort()).getExpr());
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("univset",
+              d_solver->mkUniverseSet(d_solver->getBooleanSort()).getExpr());
+
     addOperator(kind::UNION, "union");
     addOperator(kind::INTERSECTION, "intersection");
     addOperator(kind::SETMINUS, "setminus");
@@ -287,10 +353,7 @@ void Smt2::addTheory(Theory theory) {
   {
     const std::vector<Type> types;
     defineType("Tuple", getExprManager()->mkTupleType(types));
-    Parser::addOperator(kind::APPLY_CONSTRUCTOR);
-    Parser::addOperator(kind::APPLY_TESTER);
-    Parser::addOperator(kind::APPLY_SELECTOR);
-    Parser::addOperator(kind::APPLY_SELECTOR_TOTAL);
+    addDatatypesOperators();
     break;
   }
 
@@ -298,11 +361,21 @@ void Smt2::addTheory(Theory theory) {
     defineType("String", getExprManager()->stringType());
     defineType("RegLan", getExprManager()->regExpType());
     defineType("Int", getExprManager()->integerType());
+
+    defineVar("re.nostr", d_solver->mkRegexpEmpty().getExpr());
+    defineVar("re.allchar", d_solver->mkRegexpSigma().getExpr());
+
     addStringOperators();
     break;
 
   case THEORY_UF:
     Parser::addOperator(kind::APPLY_UF);
+
+    if (!strictModeEnabled() && d_logic.hasCardinalityConstraints())
+    {
+      addOperator(kind::CARDINALITY_CONSTRAINT, "fmf.card");
+      addOperator(kind::CARDINALITY_VALUE, "fmf.card.val");
+    }
     break;
 
   case THEORY_FP:
@@ -311,10 +384,41 @@ void Smt2::addTheory(Theory theory) {
     defineType("Float32", getExprManager()->mkFloatingPointType(8, 24));
     defineType("Float64", getExprManager()->mkFloatingPointType(11, 53));
     defineType("Float128", getExprManager()->mkFloatingPointType(15, 113));
+
+    defineVar(
+        "RNE",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+    defineVar(
+        "roundNearestTiesToEven",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN).getExpr());
+    defineVar(
+        "RNA",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+    defineVar(
+        "roundNearestTiesToAway",
+        d_solver->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY).getExpr());
+    defineVar("RTP",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+    defineVar("roundTowardPositive",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_POSITIVE).getExpr());
+    defineVar("RTN",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+    defineVar("roundTowardNegative",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE).getExpr());
+    defineVar("RTZ",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+    defineVar("roundTowardZero",
+              d_solver->mkRoundingMode(api::ROUND_TOWARD_ZERO).getExpr());
+
     addFloatingPointOperators();
     break;
     
   case THEORY_SEP:
+    // the Boolean sort is a placeholder here since we don't have type info
+    // without type annotation
+    defineVar("sep.nil",
+              d_solver->mkSepNil(d_solver->getBooleanSort()).getExpr());
+
     addSepOperators();
     break;
     
@@ -330,6 +434,14 @@ void Smt2::addOperator(Kind kind, const std::string& name) {
                   << std::endl;
   Parser::addOperator(kind);
   operatorKindMap[name] = kind;
+}
+
+void Smt2::addIndexedOperator(Kind tKind,
+                              api::Kind opKind,
+                              const std::string& name)
+{
+  Parser::addOperator(tKind);
+  d_indexedOpKindMap[name] = opKind;
 }
 
 Kind Smt2::getOperatorKind(const std::string& name) const {
@@ -393,6 +505,66 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   }else{
     return Parser::getExpressionForNameAndType(name, t);
   }
+}
+
+api::Term Smt2::mkIndexedConstant(const std::string& name,
+                                  const std::vector<uint64_t>& numerals)
+{
+  if (isTheoryEnabled(THEORY_FP))
+  {
+    if (name == "+oo")
+    {
+      return d_solver->mkPosInf(numerals[0], numerals[1]);
+    }
+    else if (name == "-oo")
+    {
+      return d_solver->mkNegInf(numerals[0], numerals[1]);
+    }
+    else if (name == "NaN")
+    {
+      return d_solver->mkNaN(numerals[0], numerals[1]);
+    }
+    else if (name == "+zero")
+    {
+      return d_solver->mkPosZero(numerals[0], numerals[1]);
+    }
+    else if (name == "-zero")
+    {
+      return d_solver->mkNegZero(numerals[0], numerals[1]);
+    }
+  }
+
+  if (isTheoryEnabled(THEORY_BITVECTORS) && name.find("bv") == 0)
+  {
+    std::string bvStr = name.substr(2);
+    return d_solver->mkBitVector(numerals[0], bvStr, 10);
+  }
+
+  // NOTE: Theory parametric constants go here
+
+  parseError(std::string("Unknown indexed literal `") + name + "'");
+  return api::Term();
+}
+
+api::OpTerm Smt2::mkIndexedOp(const std::string& name,
+                              const std::vector<uint64_t>& numerals)
+{
+  const auto& kIt = d_indexedOpKindMap.find(name);
+  if (kIt != d_indexedOpKindMap.end())
+  {
+    api::Kind k = (*kIt).second;
+    if (numerals.size() == 1)
+    {
+      return d_solver->mkOpTerm(k, numerals[0]);
+    }
+    else if (numerals.size() == 2)
+    {
+      return d_solver->mkOpTerm(k, numerals[0], numerals[1]);
+    }
+  }
+
+  parseError(std::string("Unknown indexed function `") + name + "'");
+  return api::OpTerm();
 }
 
 Expr Smt2::mkDefineFunRec(
@@ -1233,5 +1405,5 @@ InputLanguage Smt2::getLanguage() const
   return em->getOptions().getInputLanguage();
 }
 
-}/* CVC4::parser namespace */
+}  // namespace parser
 }/* CVC4 namespace */

@@ -138,6 +138,12 @@ class ParserBlack
                            .withInputLanguage(d_lang)
                            .build();
 
+      if (d_lang == LANG_SMTLIB_V2)
+      {
+        // Use QF_LIA to make multiplication ("*") available
+        static_cast<Smt2*>(parser)->setLogic("QF_LIA");
+      }
+
       TS_ASSERT(!parser->done());
       setupContext(*parser);
       TS_ASSERT(!parser->done());
