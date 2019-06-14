@@ -150,10 +150,6 @@ SkolemCache::normalizeStringSkolem(SkolemId id, Node a, Node b)
     b = Rewriter::rewrite(nm->mkNode(STRING_LENGTH, b));
   }
 
-  if (id == SK_SUFFIX_REM) {
-    //std::cout << "suffix" << a << " " << b << std::endl;
-  }
-
   if (id == SK_PURIFY && a.getKind() == kind::STRING_SUBSTR)
   {
     Node s = a[0];
