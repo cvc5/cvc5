@@ -609,11 +609,12 @@ Lit Solver::pickBranchLit()
         decisions++;
 
         // org-mode tracing -- theory decision
-        Trace("dtview") << dtviewDecisionHelper(context->getLevel(),
-                                                proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-                                                "THEORY")
-                        << std::endl;
-        Trace("dtview::prop") << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+        Trace("dtview") << dtviewDecisionHelper(
+            context->getLevel(),
+            proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+            "THEORY") << std::endl;
+        Trace("dtview::prop")
+            << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
 
         return nextLit;
       } else {
@@ -642,11 +643,12 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      Trace("dtview") << dtviewDecisionHelper(context->getLevel(),
-                                              proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-                                              "DE")
-                      << std::endl;
-      Trace("dtview::prop") << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+      Trace("dtview") << dtviewDecisionHelper(
+          context->getLevel(),
+          proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+          "DE") << std::endl;
+      Trace("dtview::prop")
+          << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
 
       return nextLit;
     }
@@ -695,11 +697,12 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      Trace("dtview") << dtviewDecisionHelper(context->getLevel(),
-                                           proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
-                                           "DE")
-                      << std::endl;
-      Trace("dtview::prop") << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+      Trace("dtview") << dtviewDecisionHelper(
+          context->getLevel(),
+          proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
+          "DE") << std::endl;
+      Trace("dtview::prop")
+          << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
 
       return decisionLit;
     }

@@ -462,7 +462,7 @@ protected:
                                                    const char* decisiontype)
     {
       std::ostringstream msg;
-      msg <<  std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
+      msg << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
           << " " << node << " :" << decisiontype << "-DECISION:";
       return msg.str();
     }
@@ -470,7 +470,8 @@ protected:
     static inline std::string dtviewPropagationHeaderHelper(size_t level)
     {
       std::ostringstream msg;
-      msg << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), '*')
+      msg << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
+                         '*')
           << " /Propagations/";
       return msg.str();
     }
