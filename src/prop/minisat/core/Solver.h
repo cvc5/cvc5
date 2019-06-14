@@ -471,7 +471,7 @@ protected:
     {
       std::ostringstream msg;
       msg << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0), '*')
-          << " /Propagations [Last Decision Repeated]/";
+          << " /Propagations/";
       return msg.str();
     }
 };
