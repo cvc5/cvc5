@@ -9,7 +9,7 @@ if [ -e $wdir ]; then
   exit 1
 fi
 
-commit="1273dc9379b36af1461fe04aa453db82408006cf"
+commit="8fbe139bf0071cbe0758d2f6690a546c69ff0053"
 
 mkdir $wdir
 cd $wdir

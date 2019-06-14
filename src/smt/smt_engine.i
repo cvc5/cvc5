@@ -42,6 +42,9 @@ SWIGEXPORT void JNICALL Java_edu_nyu_acsys_CVC4_SmtEngine_dlRef(JNIEnv* jenv, jc
       swigCPtr = 0;
     }
   }
+
+%template(Map_ExprExpr) std::map<CVC4::Expr, CVC4::Expr>;
+
 #endif // SWIGJAVA
 
 %ignore CVC4::SmtEngine::setLogic(const char*);
