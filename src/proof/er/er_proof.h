@@ -32,6 +32,7 @@
 
 #include "proof/clause_id.h"
 #include "prop/sat_solver_types.h"
+#include "util/statistics_registry.h"
 
 namespace CVC4 {
 namespace proof {
@@ -118,8 +119,10 @@ class ErProof
    * @param clauses A store of clauses that might be in our formula
    * @param usedIds the ids of clauses that are actually in our formula
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream
+   *
+   * @return the Er proof and a timer of the execution of drat2er
    */
-  static ErProof fromBinaryDratProof(
+  static std::pair<ErProof, TimerStat> fromBinaryDratProof(
       const std::unordered_map<ClauseId, prop::SatClause>& clauses,
       const std::vector<ClauseId>& usedIds,
       const std::string& dratBinary);

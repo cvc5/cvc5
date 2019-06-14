@@ -124,7 +124,7 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 
 // Prints the LRAT addition line in textual format
 
-LratProof LratProof::fromDratProof(
+std::pair<LratProof, TimerStat> LratProof::fromDratProof(
     const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId> usedIds,
     const std::string& dratBinary)
@@ -144,6 +144,8 @@ LratProof LratProof::fromDratProof(
 
   std::fstream lratStream = openTmpFile(&lratFilename);
 
+  TimerStat dratTrimTimer{"Unimportant"};
+  dratTrimTimer.start();
 #if CVC4_USE_DRAT2ER
   drat2er::drat_trim::CheckAndConvertToLRAT(
       formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
@@ -152,12 +154,13 @@ LratProof LratProof::fromDratProof(
       "LRAT proof production requires drat2er.\n"
       "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
+  dratTrimTimer.stop();
 
   LratProof lrat(lratStream);
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
   remove(lratFilename.c_str());
-  return lrat;
+  return std::make_pair(std::move(lrat), dratTrimTimer);
 }
 
 std::istream& operator>>(std::istream& in, SatLiteral& l)

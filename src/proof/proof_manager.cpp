@@ -561,8 +561,8 @@ void LFSCProof::toStream(std::ostream& out, const ProofLetMap& map) const
 void LFSCProof::toStream(std::ostream& out) const
 {
   TimerStat::CodeTimer proofProductionTimer(
-      *ProofManager::currentPM()->getProofProductionTime());
-
+      ProofManager::currentPM()->getStats().d_proofProductionTime);
+  ProofManager::currentPM()->getStats().d_skeletonProofTraceTime.start();
   Assert(!d_satProof->proofConstructed());
   d_satProof->constructProof();
 
@@ -665,6 +665,10 @@ void LFSCProof::toStream(std::ostream& out) const
   for (atomIt = atoms.begin(); atomIt != atoms.end(); ++atomIt) {
     Debug("pf::pm") << "\tAtom: " << *atomIt << std::endl;
   }
+
+  ProofManager::currentPM()->getStats().d_skeletonProofTraceTime.stop();
+  ProofManager::currentPM()->getStats().d_proofDeclarationsTime.start();
+
   smt::SmtScope scope(d_smtEngine);
   std::ostringstream paren;
   out << "(check\n";
@@ -714,6 +718,9 @@ void LFSCProof::toStream(std::ostream& out) const
   // print trust that input assertions are their preprocessed form
   printPreprocessedAssertions(used_assertions, out, paren, globalLetMap);
 
+  ProofManager::currentPM()->getStats().d_proofDeclarationsTime.stop();
+  ProofManager::currentPM()->getStats().d_cnfProofTime.start();
+
   // print mapping between theory atoms and internal SAT variables
   out << ";; Printing mapping from preprocessed assertions into atoms \n";
   d_cnfProof->printAtomMapping(atoms, out, paren, globalLetMap);
@@ -726,11 +733,17 @@ void LFSCProof::toStream(std::ostream& out) const
     d_cnfProof->printCnfProofForClause(cl_it->first, cl_it->second, out, paren);
   }
 
+  ProofManager::currentPM()->getStats().d_cnfProofTime.stop();
+  ProofManager::currentPM()->getStats().d_theoryLemmaTime.start();
+
   Debug("pf::pm") << std::endl << "Printing cnf proof for clauses DONE" << std::endl;
 
   Debug("pf::pm") << "Proof manager: printing theory lemmas" << std::endl;
   d_theoryProof->printTheoryLemmas(used_lemmas, out, paren, globalLetMap);
   Debug("pf::pm") << "Proof manager: printing theory lemmas DONE!" << std::endl;
+
+  ProofManager::currentPM()->getStats().d_theoryLemmaTime.stop();
+  ProofManager::currentPM()->getStats().d_finalProofTime.start();
 
   out << ";; Printing final unsat proof \n";
   if (options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER && ProofManager::getBitVectorProof()) {
@@ -740,6 +753,7 @@ void LFSCProof::toStream(std::ostream& out) const
     proof::LFSCProofPrinter::printResolutions(d_satProof, out, paren);
     proof::LFSCProofPrinter::printResolutionEmptyClause(d_satProof, out, paren);
   }
+  ProofManager::currentPM()->getStats().d_finalProofTime.stop();
 
   out << paren.str();
   out << "\n;;\n";
@@ -1074,14 +1088,32 @@ void ProofManager::printTrustedTerm(Node term,
 }
 
 ProofManager::ProofManagerStatistics::ProofManagerStatistics()
-    : d_proofProductionTime("proof::ProofManager::proofProductionTime")
+    : d_proofProductionTime("proof::ProofManager::proofProductionTime"),
+      d_theoryLemmaTime(
+          "proof::ProofManager::proofProduction::theoryLemmaTime"),
+      d_skeletonProofTraceTime(
+          "proof::ProofManager::proofProduction::skeletonProofTraceTime"),
+      d_proofDeclarationsTime(
+          "proof::ProofManager::proofProduction::proofDeclarationsTime"),
+      d_cnfProofTime("proof::ProofManager::proofProduction::cnfProofTime"),
+      d_finalProofTime("proof::ProofManager::proofProduction::finalProofTime")
 {
   smtStatisticsRegistry()->registerStat(&d_proofProductionTime);
+  smtStatisticsRegistry()->registerStat(&d_theoryLemmaTime);
+  smtStatisticsRegistry()->registerStat(&d_skeletonProofTraceTime);
+  smtStatisticsRegistry()->registerStat(&d_proofDeclarationsTime);
+  smtStatisticsRegistry()->registerStat(&d_cnfProofTime);
+  smtStatisticsRegistry()->registerStat(&d_finalProofTime);
 }
 
 ProofManager::ProofManagerStatistics::~ProofManagerStatistics()
 {
   smtStatisticsRegistry()->unregisterStat(&d_proofProductionTime);
+  smtStatisticsRegistry()->unregisterStat(&d_theoryLemmaTime);
+  smtStatisticsRegistry()->unregisterStat(&d_skeletonProofTraceTime);
+  smtStatisticsRegistry()->unregisterStat(&d_proofDeclarationsTime);
+  smtStatisticsRegistry()->unregisterStat(&d_cnfProofTime);
+  smtStatisticsRegistry()->unregisterStat(&d_finalProofTime);
 }
 
 } /* CVC4  namespace */
