@@ -616,6 +616,7 @@ Node BVToInt::bvToInt(Node n)
               }
 	    }
           }
+    Trace("bv-to-int-debug") << "Node: " << current.toString() << std::endl << "Translation: " << d_bvToIntCache[current].toString() << std::endl;
 	}
         toVisit.pop_back();
       }
