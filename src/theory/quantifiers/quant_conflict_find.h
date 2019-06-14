@@ -242,14 +242,30 @@ public:
   bool needsCheck(Theory::Effort level) override;
   /** reset round */
   void reset_round(Theory::Effort level) override;
-  /** check */
+  /** check
+   *
+   * This method attempts to construct a conflicting or propagating instance.
+   * If such an instance exists, then it makes a call to
+   * Instantiation::addInstantiation or QuantifiersEngine::addLemma.
+   */
   void check(Theory::Effort level, QEffort quant_e) override;
 
  private:
-  bool d_needs_computeRelEqr;
-public:
-  void computeRelevantEqr();
-private:
+  /** check quantified formula
+   *
+   * This method is called by the above check method for each quantified
+   * formula q. It attempts to find a conflicting or propagating instance for
+   * q, depending on the effort level (d_effort).
+   *
+   * isConflict: this is set to true if we discovered a conflicting instance.
+   * This flag may be set instead of d_conflict if --qcf-all-conflict is true,
+   * in which we continuing adding all conflicts.
+   * addedLemmas: tracks the total number of lemmas added, and is incremented by
+   * this method when applicable.
+   */
+  void checkQuantifiedFormula(Node q, bool& isConflict, unsigned& addedLemmas);
+
+ private:
   void debugPrint( const char * c );
   //for debugging
   std::vector< Node > d_quants;
