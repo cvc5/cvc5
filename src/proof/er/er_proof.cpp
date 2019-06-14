@@ -333,7 +333,7 @@ prop::SatLiteral resolveModify(
     std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>& dest,
     const prop::SatClause& src)
 {
-  bool foundPivot = false;
+  CVC4_UNUSED bool foundPivot = false;
   prop::SatLiteral pivot(0, false);
 
   for (prop::SatLiteral lit : src)
@@ -341,8 +341,10 @@ prop::SatLiteral resolveModify(
     auto negationLocation = dest.find(~lit);
     if (negationLocation != dest.end())
     {
+#ifdef CVC4_ASSERTIONS
       Assert(!foundPivot);
       foundPivot = true;
+#endif
       dest.erase(negationLocation);
       pivot = ~lit;
     }

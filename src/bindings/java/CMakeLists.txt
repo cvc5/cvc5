@@ -175,8 +175,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
@@ -241,6 +239,18 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/vectorUnsignedInt.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorVectorExpr.java
 )
+
+if(CVC4_USE_CLN_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_I.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_RA.java
+  )
+elseif(CVC4_USE_GMP_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
+  )
+endif()
 
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(cvc4jar

@@ -393,6 +393,11 @@ class TermDbSygus {
   std::map<TypeNode, std::vector<Node> > d_var_list;
   std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
   std::map<TypeNode, std::map<Kind, int> > d_kinds;
+  /**
+   * Whether this sygus type has a constructors whose sygus operator is ITE,
+   * or is a lambda whose body is ITE.
+   */
+  std::map<TypeNode, bool> d_hasIte;
   std::map<TypeNode, std::map<int, Node> > d_arg_const;
   std::map<TypeNode, std::map<Node, int> > d_consts;
   std::map<TypeNode, std::map<Node, int> > d_ops;
@@ -462,6 +467,11 @@ class TermDbSygus {
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
   bool hasKind( TypeNode tn, Kind k );
+  /**
+   * Returns true if this sygus type has a constructors whose sygus operator is
+   * ITE, or is a lambda whose body is ITE.
+   */
+  bool hasIte(TypeNode tn) const;
   bool hasConst( TypeNode tn, Node n );
   bool hasOp( TypeNode tn, Node n );
   Node getConsNumConst( TypeNode tn, int i );
