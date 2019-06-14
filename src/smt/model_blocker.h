@@ -38,13 +38,16 @@ class ModelBlocker
    * This returns a disjunction of literals ~L1 V ... V ~Ln with the following
    * properties:
    * (1) L1 ... Ln hold in the current model (given by argument m),
-   * (2) L1 ... Ln are literals that occur in assertions and propositionally
+   * (2) if mode is set to "literals", L1 ... Ln are literals that occur in assertions and propositionally
    * entail all non-unit top-level assertions.
+   * (3) if mode is set to "values", L1 ... Ln are literals of the form x=c, where c is the value of x in the current model.
+   * (4) if nodesToBlock is not empty, L1 ... Ln are literals of the form t=c, where t is
+   *     an element of nodesToBlock and c is its value in the current model.
    * 
    * For example, if our input is:
    *    x > 0 ^ ( y < 0 V z < 0 V w < 0 )
    * and m is { x -> 1, y -> 2, z -> -1, w -> -1 }, then this method may
-   * return ~(z < 0) or ~(w < 0).
+   * return ~(z < 0) or ~(w < 0) when set to mode "literals".
    * 
    * Notice that we do not require that L1...Ln entail unit top-level assertions
    * since these literals are trivially entailed to be true in all models of
