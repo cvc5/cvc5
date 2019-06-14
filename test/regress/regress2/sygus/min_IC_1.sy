@@ -1,6 +1,6 @@
 ; REQUIRES: symfpu
 ; EXPECT: unsat
-; COMMAND-LINE: --sygus-out=status
+; COMMAND-LINE: --sygus-out=status --fp-exp
 (set-logic ALL)
 (define-sort FP () (_ FloatingPoint 3 5))
 (define-fun IC ((t FP)) Bool (=> (fp.isInfinite t) (fp.isNegative t)))
@@ -12,7 +12,7 @@
 
      (fp.isInfinite StartFP)
      (fp.isNegative StartFP)
-     
+
      (ite Start Start Start)
    ))
    (StartFP FP (

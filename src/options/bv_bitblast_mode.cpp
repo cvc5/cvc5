@@ -2,9 +2,9 @@
 /*! \file bv_bitblast_mode.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Tim King
+ **   Liana Hadarean, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -81,4 +81,25 @@ std::ostream& operator<<(std::ostream& out, theory::bv::BvProofFormat format)
   return out;
 }
 
+std::ostream& operator<<(std::ostream& out,
+                         theory::bv::BvOptimizeSatProof level)
+{
+  switch (level)
+  {
+    case theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_NONE:
+      out << "BITVECTOR_OPTIMIZE_SAT_PROOF_NONE";
+      break;
+    case theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF:
+      out << "BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF";
+      break;
+    case theory::bv::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA:
+      out << "BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA";
+      break;
+    default: out << "BvOptimizeSatProof:UNKNOWN![" << unsigned(level) << "]";
+  }
+
+  return out;
+}
+
 }/* CVC4 namespace */
+

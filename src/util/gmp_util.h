@@ -2,9 +2,9 @@
 /*! \file gmp_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Dejan Jovanovic, Morgan Deters, Andres Noetzli
+ **   Tim King, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__GMP_UTIL_H
-#define __CVC4__GMP_UTIL_H
+#ifndef CVC4__GMP_UTIL_H
+#define CVC4__GMP_UTIL_H
 
 /*
  * Older versions of GMP in combination with newer versions of GCC and C++11
@@ -44,4 +44,4 @@ inline size_t gmpz_hash(const mpz_t toHash) {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__GMP_UTIL_H */
+#endif /* CVC4__GMP_UTIL_H */

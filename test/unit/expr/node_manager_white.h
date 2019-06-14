@@ -2,9 +2,9 @@
 /*! \file node_manager_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters, Andres Noetzli, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -69,5 +69,25 @@ class NodeManagerWhite : public CxxTest::TestSuite {
 #ifdef CVC4_ASSERTIONS
     TS_ASSERT_THROWS(nb.realloc(67108863), AssertionException&);
 #endif /* CVC4_ASSERTIONS */
+  }
+
+  void testTopologicalSort()
+  {
+    TypeNode boolType = d_nm->booleanType();
+    Node i = d_nm->mkSkolem("i", boolType);
+    Node j = d_nm->mkSkolem("j", boolType);
+    Node n1 = d_nm->mkNode(kind::AND, j, j);
+    Node n2 = d_nm->mkNode(kind::AND, i, n1);
+
+    {
+      std::vector<NodeValue*> roots = {n1.d_nv};
+      TS_ASSERT_EQUALS(NodeManager::TopologicalSort(roots), roots);
+    }
+
+    {
+      std::vector<NodeValue*> roots = {n2.d_nv, n1.d_nv};
+      std::vector<NodeValue*> result = {n1.d_nv, n2.d_nv};
+      TS_ASSERT_EQUALS(NodeManager::TopologicalSort(roots), result);
+    }
   }
 };

@@ -2,9 +2,9 @@
 /*! \file type_properties_template.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Tim King
+ **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__TYPE_PROPERTIES_H
-#define __CVC4__TYPE_PROPERTIES_H
+#ifndef CVC4__TYPE_PROPERTIES_H
+#define CVC4__TYPE_PROPERTIES_H
 
 #line 23 "${template}"
 
@@ -138,4 +138,4 @@ ${type_groundterms}
 }/* CVC4::kind namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__TYPE_PROPERTIES_H */
+#endif /* CVC4__TYPE_PROPERTIES_H */

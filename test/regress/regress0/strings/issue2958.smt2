@@ -1,0 +1,7 @@
+(set-info :smt-lib-version 2.5)
+(set-logic QF_SLIA)
+(set-info :status unsat)
+(declare-const x String)
+(assert (not (str.prefixof "ab" x)))
+(assert (str.in.re (str.substr x 0 2) (re.++ (str.to.re "ab") (re.* (str.to.re "dcab")))))
+(check-sat)

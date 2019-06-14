@@ -2,6 +2,7 @@ include(CheckCXXSourceCompiles)
 include(CheckIncludeFile)
 include(CheckIncludeFileCXX)
 include(CheckSymbolExists)
+include(CheckLibraryExists)
 
 # Check whether "long" and "int64_t" are distinct types w.r.t. overloading.
 # Even if they have the same size, they can be distinct, and some platforms
@@ -54,12 +55,31 @@ if(CVC4_WINDOWS_BUILD)
   endif()
 else()
   check_symbol_exists(clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+  if(NOT HAVE_CLOCK_GETTIME)
+    unset(HAVE_CLOCK_GETTIME CACHE)
+    check_library_exists(rt clock_gettime "time.h" HAVE_CLOCK_GETTIME)
+    find_library(RT_LIBRARIES NAMES rt)
+  endif()
 endif()
 check_symbol_exists(ffs "strings.h" HAVE_FFS)
 check_symbol_exists(optreset "getopt.h" HAVE_DECL_OPTRESET)
 check_symbol_exists(sigaltstack "signal.h" HAVE_SIGALTSTACK)
 check_symbol_exists(strerror_r "string.h" HAVE_STRERROR_R)
 check_symbol_exists(strtok_r "string.h" HAVE_STRTOK_R)
+
+# Check whether the verison of CaDiCaL used supports incremental solving
+if(USE_CADICAL)
+  check_cxx_source_compiles(
+    "
+    #include <${CaDiCaL_HOME}/src/cadical.hpp>
+    int main() { return sizeof(&CaDiCaL::Solver::assume); }
+    "
+    CVC4_INCREMENTAL_CADICAL
+  )
+  if(CVC4_INCREMENTAL_CADICAL)
+    add_definitions(-DCVC4_INCREMENTAL_CADICAL)
+  endif()
+endif()
 
 # Determine if we have the POSIX (int) or GNU (char *) variant of strerror_r.
 check_c_source_compiles(

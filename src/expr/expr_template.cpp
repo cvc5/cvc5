@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Dejan Jovanovic, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -33,7 +33,7 @@ ${includes}
 // compiler directs the user to the template file instead of the
 // generated one.  We don't want the user to modify the generated one,
 // since it'll get overwritten on a later build.
-#line 36 "${template}"
+#line 37 "${template}"
 
 using namespace CVC4::kind;
 using namespace std;
@@ -200,6 +200,10 @@ public:
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
             Node n = to_nm->mkBoundVar(name, typeNode);  // FIXME thread safety
+
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
             to_e = n.toExpr();
           } else if(n.getKind() == kind::VARIABLE) {
             bool isGlobal;
@@ -214,6 +218,10 @@ public:
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
             Node n = to_nm->mkSkolem(name, typeNode, "is a skolem variable imported from another ExprManager");// FIXME thread safety
+
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
             to_e = n.toExpr();
           } else {
             Unhandled();
@@ -228,6 +236,10 @@ public:
             TypeNode typeNode = TypeNode::fromType(type);
             NodeManager* to_nm = NodeManager::fromExprManager(to);
             Node n = to_nm->mkBoundVar(typeNode);  // FIXME thread safety
+
+            // Make sure that the correct `NodeManager` is in scope while
+            // converting the node to an expression.
+            NodeManagerScope to_nms(to_nm);
             to_e = n.toExpr();
           }
           else
@@ -244,6 +256,11 @@ public:
         vmap.d_from[to_int] = from_int;
         vmap.d_to[from_int] = to_int;
         vmap.d_typeMap[to_e] = from_e;// insert other direction too
+
+        // Make sure that the expressions are associated with the correct
+        // `ExprManager`s.
+        Assert(from_e.getExprManager() == from);
+        Assert(to_e.getExprManager() == to);
         return Node::fromExpr(to_e);
       }
     } else {

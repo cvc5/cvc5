@@ -2,9 +2,9 @@
 /*! \file synth_rew_rules.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **  Andrew Reynolds
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -79,8 +79,7 @@ PreprocessingPassResult SynthRewRulesPass::applyInternal(
       {
         Trace("srs-input-debug") << "...preprocess " << cur << std::endl;
         visited[cur] = false;
-        Kind k = cur.getKind();
-        bool isQuant = k == FORALL || k == EXISTS || k == LAMBDA || k == CHOICE;
+        bool isQuant = cur.isClosure();
         // we recurse on this node if it is not a quantified formula
         if (!isQuant)
         {
