@@ -4,6 +4,7 @@ cache:
  - ccache
 
 sudo: false
+dist: xenial
 
 env:
  global:
