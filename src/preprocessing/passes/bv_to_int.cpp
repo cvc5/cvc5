@@ -740,7 +740,7 @@ Node BVToInt::createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t
     sumNode = d_nm->mkNode(
         kind::PLUS,
         sumNode,
-        d_nm->mkNode(kind::MULT, pow2(i), ite));
+        d_nm->mkNode(kind::MULT, pow2(i*granularity), ite));
   }
   return sumNode;
 }
