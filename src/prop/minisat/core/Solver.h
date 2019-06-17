@@ -456,25 +456,6 @@ protected:
     static inline int irand(double& seed, int size) {
         return (int)(drand(seed) * size); }
 
-    // Writes to Trace macro for decision tree tracing
-    static inline std::string dtviewDecisionHelper(size_t level,
-                                                   const Node& node,
-                                                   const char* decisiontype)
-    {
-      std::ostringstream msg;
-      msg << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
-          << " " << node << " :" << decisiontype << "-DECISION:";
-      return msg.str();
-    }
-
-    static inline std::string dtviewPropagationHeaderHelper(size_t level)
-    {
-      std::ostringstream msg;
-      msg << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
-                         '*')
-          << " /Propagations/";
-      return msg.str();
-    }
 };
 
 

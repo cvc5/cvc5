@@ -56,6 +56,27 @@ bool assertionLevelOnly()
 {
   return options::unsatCores() && options::incrementalSolving();
 }
+
+//=================================================================================================
+// Helper functions for decision tree tracing
+
+// Writes to Trace macro for decision tree tracing
+static inline void dtviewDecisionHelper(size_t level,
+                                        const Node& node,
+                                        const char* decisiontype)
+{
+  Trace("dtview") << std::string(level - (options::incrementalSolving() ? 1 : 0), '*')
+                  << " " << node << " :" << decisiontype << "-DECISION:" << std::endl;
+}
+
+// Writes to Trace macro for propagation tracing
+static inline void dtviewPropagationHeaderHelper(size_t level)
+{
+  Trace("dtview::prop") << std::string(level + 1 - (options::incrementalSolving() ? 1 : 0),
+                                       '*')
+                        << " /Propagations/" << std::endl;
+}
+
 }  // namespace
 
 //=================================================================================================
@@ -609,12 +630,17 @@ Lit Solver::pickBranchLit()
         decisions++;
 
         // org-mode tracing -- theory decision
-        Trace("dtview") << dtviewDecisionHelper(
-            context->getLevel(),
-            proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-            "THEORY") << std::endl;
-        Trace("dtview::prop")
-            << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+        if (Trace.isOn("dtview"))
+        {
+          dtviewDecisionHelper(context->getLevel(),
+                               proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+                               "THEORY");
+        }
+
+        if (Trace.isOn("dtview::prop"))
+        {
+          dtviewPropagationHeaderHelper(context->getLevel());
+        }
 
         return nextLit;
       } else {
@@ -643,12 +669,17 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      Trace("dtview") << dtviewDecisionHelper(
-          context->getLevel(),
-          proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
-          "DE") << std::endl;
-      Trace("dtview::prop")
-          << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+      if (Trace.isOn("dtview"))
+      {
+        dtviewDecisionHelper(context->getLevel(),
+                             proxy->getNode(MinisatSatSolver::toSatLiteral(nextLit)),
+                             "DE");
+      }
+
+      if (Trace.isOn("dtview::prop"))
+      {
+        dtviewPropagationHeaderHelper(context->getLevel());
+      }
 
       return nextLit;
     }
@@ -697,12 +728,17 @@ Lit Solver::pickBranchLit()
       }
 
       // org-mode tracing -- decision engine decision
-      Trace("dtview") << dtviewDecisionHelper(
-          context->getLevel(),
-          proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
-          "DE") << std::endl;
-      Trace("dtview::prop")
-          << dtviewPropagationHeaderHelper(context->getLevel()) << std::endl;
+      if (Trace.isOn("dtview"))
+      {
+        dtviewDecisionHelper(context->getLevel(),
+                             proxy->getNode(MinisatSatSolver::toSatLiteral(decisionLit)),
+                             "DE");
+      }
+
+      if (Trace.isOn("dtview::prop"))
+      {
+        dtviewPropagationHeaderHelper(context->getLevel());
+      }
 
       return decisionLit;
     }
