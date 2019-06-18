@@ -3282,6 +3282,7 @@ std::vector<Node> NonlinearExtension::checkMonomialMagnitude( unsigned c ) {
 std::vector<Node> NonlinearExtension::checkTangentPlanes() {
   std::vector< Node > lemmas;
   Trace("nl-ext") << "Get monomial tangent plane lemmas..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   unsigned kstart = d_ms_vars.size();
   for (unsigned k = kstart; k < d_mterms.size(); k++) {
     Node t = d_mterms[k];
@@ -3321,7 +3322,8 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                   Node pt_v = d_tangent_val_bound[p][a][b];
                   Assert( !pt_v.isNull() );
                   if( curr_v!=pt_v ){
-                    Node do_extend = NodeManager::currentNM()->mkNode( ( p==1 || p==3 ) ? GT : LT, curr_v, pt_v );
+                    Node do_extend =
+                        nm->mkNode((p == 1 || p == 3) ? GT : LT, curr_v, pt_v);
                     do_extend = Rewriter::rewrite( do_extend );
                     if( do_extend==d_true ){
                       for( unsigned q=0; q<2; q++ ){
@@ -3340,26 +3342,69 @@ std::vector<Node> NonlinearExtension::checkTangentPlanes() {
                 Node b_v = pts[1][p];
               
                 // tangent plane
-                Node tplane = NodeManager::currentNM()->mkNode(
-                    MINUS,
-                    NodeManager::currentNM()->mkNode(
-                        PLUS,
-                        NodeManager::currentNM()->mkNode(MULT, b_v, a),
-                        NodeManager::currentNM()->mkNode(MULT, a_v, b)),
-                    NodeManager::currentNM()->mkNode(MULT, a_v, b_v));
+                Node tplane = nm->mkNode(MINUS,
+                                         nm->mkNode(PLUS,
+                                                    nm->mkNode(MULT, b_v, a),
+                                                    nm->mkNode(MULT, a_v, b)),
+                                         nm->mkNode(MULT, a_v, b_v));
                 for (unsigned d = 0; d < 4; d++) {
-                  Node aa = NodeManager::currentNM()->mkNode(
-                      d == 0 || d == 3 ? GEQ : LEQ, a, a_v);
-                  Node ab = NodeManager::currentNM()->mkNode(
-                      d == 1 || d == 3 ? GEQ : LEQ, b, b_v);
-                  Node conc = NodeManager::currentNM()->mkNode(
-                      d <= 1 ? LEQ : GEQ, t, tplane);
-                  Node tlem = NodeManager::currentNM()->mkNode(
-                      OR, aa.negate(), ab.negate(), conc);
+                  Node aa = nm->mkNode(d == 0 || d == 3 ? GEQ : LEQ, a, a_v);
+                  Node ab = nm->mkNode(d == 1 || d == 3 ? GEQ : LEQ, b, b_v);
+                  Node conc = nm->mkNode(d <= 1 ? LEQ : GEQ, t, tplane);
+                  Node tlem = nm->mkNode(OR, aa.negate(), ab.negate(), conc);
                   Trace("nl-ext-tplanes")
                       << "Tangent plane lemma : " << tlem << std::endl;
                   lemmas.push_back(tlem);
                 }
+
+                // tangent plane reverse implication
+
+                // t <= tplane -> ( (a <= a_v ^ b >= b_v) v
+                // (a >= a_v ^ b <= b_v) ).
+                // in clause form, the above becomes
+                // t <= tplane -> a <= a_v v b <= b_v.
+                // t <= tplane -> b >= b_v v a >= a_v.
+                Node a_leq_av = nm->mkNode(LEQ, a, a_v);
+                Node b_leq_bv = nm->mkNode(LEQ, b, b_v);
+                Node a_geq_av = nm->mkNode(GEQ, a, a_v);
+                Node b_geq_bv = nm->mkNode(GEQ, b, b_v);
+
+                Node t_leq_tplane = nm->mkNode(LEQ, t, tplane);
+                Node a_leq_av_or_b_leq_bv = nm->mkNode(OR, a_leq_av, b_leq_bv);
+                Node b_geq_bv_or_a_geq_av = nm->mkNode(OR, b_geq_bv, a_geq_av);
+                Node ub_reverse1 =
+                    nm->mkNode(OR, t_leq_tplane.negate(), a_leq_av_or_b_leq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << ub_reverse1
+                    << std::endl;
+                lemmas.push_back(ub_reverse1);
+                Node ub_reverse2 =
+                    nm->mkNode(OR, t_leq_tplane.negate(), b_geq_bv_or_a_geq_av);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << ub_reverse2
+                    << std::endl;
+                lemmas.push_back(ub_reverse2);
+
+                // t >= tplane -> ( (a <= a_v ^ b <= b_v) v
+                // (a >= a_v ^ b >= b_v) ).
+                // in clause form, the above becomes
+                // t >= tplane -> a <= a_v v b >= b_v.
+                // t >= tplane -> b >= b_v v a <= a_v
+                Node t_geq_tplane = nm->mkNode(GEQ, t, tplane);
+                Node a_leq_av_or_b_geq_bv = nm->mkNode(OR, a_leq_av, b_geq_bv);
+                Node a_geq_av_or_b_leq_bv = nm->mkNode(OR, a_geq_av, b_leq_bv);
+                Node lb_reverse1 =
+                    nm->mkNode(OR, t_geq_tplane.negate(), a_leq_av_or_b_geq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << lb_reverse1
+                    << std::endl;
+                lemmas.push_back(lb_reverse1);
+                Node lb_reverse2 =
+                    nm->mkNode(OR, t_geq_tplane.negate(), a_geq_av_or_b_leq_bv);
+                Trace("nl-ext-tplanes")
+                    << "Tangent plane lemma (reverse) : " << lb_reverse2
+                    << std::endl;
+                lemmas.push_back(lb_reverse2);
               }
             }
           }

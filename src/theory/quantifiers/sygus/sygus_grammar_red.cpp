@@ -43,7 +43,6 @@ void SygusRedundantCons::initialize(QuantifiersEngine* qe, TypeNode tn)
     std::map<int, Node> pre;
     Node g = tds->mkGeneric(dt, i, pre);
     Trace("sygus-red-debug") << "  ...pre-rewrite : " << g << std::endl;
-    Assert(g.getNumChildren() == dt[i].getNumArgs());
     d_gen_terms[i] = g;
     for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
     {

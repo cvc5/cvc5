@@ -133,7 +133,18 @@ void SygusEvalUnfold::registerModelValue(Node a,
         bool do_unfold = false;
         if (options::sygusEvalUnfoldBool())
         {
-          if (bTerm.getKind() == ITE || bTerm.getType().isBoolean())
+          Node bTermUse = bTerm;
+          if (bTerm.getKind() == APPLY_UF)
+          {
+            // if the builtin term is non-beta-reduced application of lambda,
+            // we look at the body of the lambda.
+            Node bTermOp = bTerm.getOperator();
+            if (bTermOp.getKind() == LAMBDA)
+            {
+              bTermUse = bTermOp[0];
+            }
+          }
+          if (bTermUse.getKind() == ITE || bTermUse.getType().isBoolean())
           {
             do_unfold = true;
           }
