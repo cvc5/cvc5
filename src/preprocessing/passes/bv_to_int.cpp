@@ -54,6 +54,16 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k) {
   return result;
 }
 
+
+Node BVToInt::maxInt(uint64_t k)
+{
+  Node pow2BvSize = pow2(k);
+  Node one_const = d_nm->mkConst<Rational>(1);
+  vector<Node> children = {pow2BvSize, one_const};
+  Node max = d_nm->mkNode(kind::MINUS, children);
+  return max;
+}
+
 Node BVToInt::pow2(Node n) {
 	  Node two_const = d_nm->mkConst<Rational>(2);
     Node result = d_nm->mkNode(kind::POW, two_const, n);
@@ -293,7 +303,8 @@ Node BVToInt::bvToInt(Node n)
               Node plus = d_nm->mkNode(kind::PLUS, intized_children);
               Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
               d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,plus, multSig);
-              d_rangeAssertions.push_back(mkRangeConstraint(sigma, 1));
+              d_rangeAssertions.push_back(mkRangeConstraint(sigma, 0));
+              d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
               break;
             }
             case kind::BITVECTOR_MULT: 
@@ -352,10 +363,7 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_NOT: 
             {
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
-              Node pow2BvSize = pow2(bvsize);
-              vector<Node> children = {pow2BvSize, one_const};
-              Node max = d_nm->mkNode(kind::MINUS, children);
-              children = {max, intized_children[0]};
+              vector<Node> children = {maxInt(bvsize), intized_children[0]};
               d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
               break;
             }
