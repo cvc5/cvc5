@@ -214,6 +214,12 @@ void Tptp::checkLetBinding(const std::vector<Expr>& bvlist, Expr lhs, Expr rhs,
   }
 }
 
+void Tptp::forceLogic(const std::string& logic)
+{
+  Parser::forceLogic(logic);
+  preemptCommand(new SetBenchmarkLogicCommand(logic));
+}
+
 void Tptp::addFreeVar(Expr var) {
   assert(cnf());
   d_freeVar.push_back(var);

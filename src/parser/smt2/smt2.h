@@ -28,6 +28,7 @@
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
@@ -65,7 +66,11 @@ class Smt2 : public Parser
   };
 
  private:
+  /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
+  /** Have we seen a set-logic command yet? */
+  bool d_seenSetLogic;
+
   LogicInfo d_logic;
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
@@ -197,8 +202,11 @@ class Smt2 : public Parser
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
+   * @param fromCommand should be set to true if the request originates from a
+   *                    set-logic command and false otherwise
+   * @return the command corresponding to setting the logic
    */
-  void setLogic(std::string name);
+  Command* setLogic(std::string name, bool fromCommand = true);
 
   /**
    * Get the logic.

@@ -52,9 +52,6 @@ class CVC4_PUBLIC Options {
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  /** Listeners for options::forceLogicString being set. */
-  ListenerCollection d_forceLogicListeners;
-
   /** Listeners for notifyBeforeSearch. */
   ListenerCollection d_beforeSearchListeners;
 
