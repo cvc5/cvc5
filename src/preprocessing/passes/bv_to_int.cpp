@@ -182,7 +182,9 @@ Node BVToInt::eliminationPass(Node n) {
             	 RewriteRule<SleEliminate>,
             	 RewriteRule<SltEliminate>,
             	 RewriteRule<SgtEliminate>,
-            	 RewriteRule<SgeEliminate>
+            	 RewriteRule<SgeEliminate>,
+               RewriteRule<ShlByConst>,
+               RewriteRule<LshrByConst>
 	            >::apply(current);
             toVisit.push_back(current);
             toVisit.push_back(currentEliminated);
@@ -284,9 +286,14 @@ Node BVToInt::bvToInt(Node n)
           {
             case kind::BITVECTOR_PLUS: 
             {
+              Node sigma = d_nm->mkSkolem("__bvToInt_sigma_var",
+                  d_nm->integerType(),
+                  "Variable introduced in bvToInt pass to avoid integer mod");
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               Node plus = d_nm->mkNode(kind::PLUS, intized_children);
-              d_bvToIntCache[current] = modpow2(plus, bvsize);
+              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,plus, multSig);
+              d_rangeAssertions.push_back(mkRangeConstraint(sigma, 1));
               break;
             }
             case kind::BITVECTOR_MULT: 
@@ -319,7 +326,7 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               Node divNode = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, intized_children);
-              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)), modpow2(divNode, bvsize));
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)),d_nm->mkNode(kind::MINUS, pow2BvSize,d_nm->mkConst<Rational>(1)), divNode);
               d_bvToIntCache[current] = ite;
               break;
             }
@@ -327,7 +334,7 @@ Node BVToInt::bvToInt(Node n)
             {
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
-              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0], modpow2(modNode, bvsize));
+              Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0], modNode);
               d_bvToIntCache[current] = ite;
               break;
             }
@@ -336,7 +343,10 @@ Node BVToInt::bvToInt(Node n)
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
               Node pow2BvSize = pow2(bvsize);
               vector<Node> children = {pow2BvSize, intized_children[0]};
-              d_bvToIntCache[current] = modpow2(d_nm->mkNode(kind::MINUS, children), bvsize);
+              Node neg = d_nm->mkNode(kind::MINUS, children);
+              Node zero = d_nm->mkConst<Rational>(0);
+              Node isZero = d_nm->mkNode(kind::EQUAL, intized_children[0], zero);
+              d_bvToIntCache[current] = d_nm->mkNode(kind::ITE, isZero, zero, neg);
               break;
             }  
             case kind::BITVECTOR_NOT: 
@@ -518,8 +528,9 @@ Node BVToInt::bvToInt(Node n)
               uint64_t i = bv::utils::getExtractHigh(current);
               uint64_t j = bv::utils::getExtractLow(current);
               Assert(d_bvToIntCache.find(a) != d_bvToIntCache.end());
+              Assert (i >= j);
               Node div = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, d_bvToIntCache[a], pow2(j));
-              Node difference = d_nm->mkNode(kind::MINUS, d_nm->mkConst<Rational>(i), d_nm->mkConst<Rational>(j));
+              Node difference = d_nm->mkConst<Rational>(i-j);
               Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
               d_bvToIntCache[current] = modpow2(div, plus);
               break;
@@ -658,6 +669,7 @@ PreprocessingPassResult BVToInt::applyInternal(
 Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLeftShift) {
   Node x = children[0];
   Node y = children[1];
+  Assert(!y.isConst());
   Node ite = pow2(d_nm->mkConst<Rational>(0));
   for (uint64_t i=1; i < bvsize; i++) {
     ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), pow2(d_nm->mkConst<Rational>(i)), ite);
@@ -665,6 +677,7 @@ Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLef
   //from smtlib:
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
   // [[(bvlshr s t)]] := nat2bv[m](bv2nat([[s]]) div 2^(bv2nat([[t]])))
+  // TODO The ITE with LT is not ncessary, can be replaced with mod. Experiment with this,
   Node result;
   if (isLeftShift) {
     result = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::LT, y, d_nm->mkConst<Rational>(bvsize)), d_nm->mkNode(kind::INTS_MODULUS_TOTAL, d_nm->mkNode(kind::MULT, x, ite) , pow2(bvsize)), d_nm->mkConst<Rational>(0));
