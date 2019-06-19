@@ -2,9 +2,9 @@
 /*! \file smt_engine.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Tim King
+ **   Morgan Deters, Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT_ENGINE_H
-#define __CVC4__SMT_ENGINE_H
+#ifndef CVC4__SMT_ENGINE_H
+#define CVC4__SMT_ENGINE_H
 
 #include <string>
 #include <vector>
@@ -209,6 +209,9 @@ class CVC4_PUBLIC SmtEngine {
    */
   Options d_originalOptions;
 
+  /** whether this is an internal subsolver */
+  bool d_isInternalSubsolver;
+
   /**
    * Number of internal pops that have been deferred.
    */
@@ -258,6 +261,11 @@ class CVC4_PUBLIC SmtEngine {
    * Most recent result of last checkSat/query or (set-info :status).
    */
   Result d_status;
+
+  /**
+   * The expected status of the next satisfiability check.
+   */
+  Result d_expectedStatus;
 
   /**
    * The input file name (if any) or the name set through setInfo (if any)
@@ -501,6 +509,15 @@ class CVC4_PUBLIC SmtEngine {
    */
   void setOption(const std::string& key, const CVC4::SExpr& value)
       /* throw(OptionException, ModalException) */;
+
+  /** Set is internal subsolver.
+   *
+   * This function is called on SmtEngine objects that are created internally.
+   * It is used to mark that this SmtEngine should not perform preprocessing
+   * passes that rephrase the input, such as --sygus-rr-synth-input or
+   * --sygus-abduct.
+   */
+  void setIsInternalSubsolver();
 
   /** sets the input name */
   void setFilename(std::string filename);
@@ -1052,4 +1069,4 @@ class CVC4_PUBLIC SmtEngine {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT_ENGINE_H */
+#endif /* CVC4__SMT_ENGINE_H */

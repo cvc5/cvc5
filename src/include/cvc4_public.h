@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
  ** the libraries and driver binary, and also exported to the user.
  **/
 
-#ifndef __CVC4_PUBLIC_H
-#define __CVC4_PUBLIC_H
+#ifndef CVC4_PUBLIC_H
+#define CVC4_PUBLIC_H
 
 #include <stdint.h>
 
@@ -52,4 +52,4 @@
 #  define CVC4_WARN_UNUSED_RESULT
 #endif /* __GNUC__ */
 
-#endif /* __CVC4_PUBLIC_H */
+#endif /* CVC4_PUBLIC_H */

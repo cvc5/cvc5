@@ -2,9 +2,9 @@
 /*! \file bitvector_proof.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Liana Hadarean, Guy Katz, Paul Meng
+ **   Liana Hadarean, Guy Katz, Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -219,6 +219,14 @@ void BitVectorProof::printOwnedTerm(Expr term,
   default:
     Unreachable();
   }
+}
+
+void BitVectorProof::printEmptyClauseProof(std::ostream& os,
+                                           std::ostream& paren)
+{
+  Assert(options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER,
+         "the BV theory should only be proving bottom directly in the eager "
+         "bitblasting mode");
 }
 
 void BitVectorProof::printBitOf(Expr term,

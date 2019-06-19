@@ -131,6 +131,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/LastExceptionBuffer.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicException.java
   ${CMAKE_CURRENT_BINARY_DIR}/LogicInfo.java
+  ${CMAKE_CURRENT_BINARY_DIR}/Map_ExprExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/ModalException.java
   ${CMAKE_CURRENT_BINARY_DIR}/OptionException.java
   ${CMAKE_CURRENT_BINARY_DIR}/Options.java
@@ -174,10 +175,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__mapT_CVC4__Expr_CVC4__Expr_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__string.java
@@ -200,16 +198,17 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SmtEngine.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortConstructorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SortType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/Statistic.java
   ${CMAKE_CURRENT_BINARY_DIR}/Statistics.java
   ${CMAKE_CURRENT_BINARY_DIR}/StatisticsBase.java
   ${CMAKE_CURRENT_BINARY_DIR}/StringType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusConstraintCommand.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusGTerm.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusInvConstraintCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/SygusPrintCallback.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolTable.java
   ${CMAKE_CURRENT_BINARY_DIR}/SymbolType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/SynthFunCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/TesterType.java
   ${CMAKE_CURRENT_BINARY_DIR}/TheoryId.java
   ${CMAKE_CURRENT_BINARY_DIR}/Timer.java
@@ -241,5 +240,24 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/vectorVectorExpr.java
 )
 
-add_jar(cvc4jar SOURCES ${gen_java_files} OUTPUT_NAME CVC4)
+if(CVC4_USE_CLN_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_I.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_RA.java
+  )
+elseif(CVC4_USE_GMP_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
+  )
+endif()
+
+set(CMAKE_JNI_TARGET TRUE)
+add_jar(cvc4jar
+        SOURCES ${gen_java_files}
+        VERSION ${CVC4_MAJOR}.${CVC4_MINOR}.${CVC4_RELEASE}
+        OUTPUT_NAME CVC4)
 add_dependencies(cvc4jar cvc4jni)
+install_jar(cvc4jar DESTINATION share/java/cvc4)
+install_jni_symlink(cvc4jar DESTINATION share/java/cvc4)
+install(TARGETS cvc4jni DESTINATION lib)

@@ -2,9 +2,9 @@
 /*! \file symbol_table.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
+ **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SYMBOL_TABLE_H
-#define __CVC4__SYMBOL_TABLE_H
+#ifndef CVC4__SYMBOL_TABLE_H
+#define CVC4__SYMBOL_TABLE_H
 
 #include <memory>
 #include <string>
@@ -246,4 +246,4 @@ class CVC4_PUBLIC SymbolTable {
 
 }  // namespace CVC4
 
-#endif /* __CVC4__SYMBOL_TABLE_H */
+#endif /* CVC4__SYMBOL_TABLE_H */

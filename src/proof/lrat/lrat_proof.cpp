@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -26,7 +26,7 @@
 
 #include "base/cvc4_assert.h"
 #include "base/output.h"
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
 #include "proof/lfsc_proof_printer.h"
 #include "util/utility.h"
 
@@ -105,6 +105,7 @@ void printHints(std::ostream& o,
  */
 void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 {
+  Assert(indices.size() > 0);
   // Verify that the indices are sorted!
   for (size_t i = 0, n = indices.size() - 1; i < n; ++i)
   {
@@ -124,20 +125,24 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 // Prints the LRAT addition line in textual format
 
 LratProof LratProof::fromDratProof(
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
+    const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+    const std::vector<ClauseId> usedIds,
     const std::string& dratBinary)
 {
   std::ostringstream cmd;
   std::string formulaFilename("cvc4-dimacs-XXXXXX");
   std::string dratFilename("cvc4-drat-XXXXXX");
   std::string lratFilename("cvc4-lrat-XXXXXX");
+
   std::fstream formStream = openTmpFile(&formulaFilename);
-  printDimacs(formStream, usedClauses);
+  printDimacs(formStream, clauses, usedIds);
   formStream.close();
 
   std::fstream dratStream = openTmpFile(&dratFilename);
   dratStream << dratBinary;
   dratStream.close();
+
+  std::fstream lratStream = openTmpFile(&lratFilename);
 
 #if CVC4_USE_DRAT2ER
   drat2er::drat_trim::CheckAndConvertToLRAT(
@@ -148,7 +153,6 @@ LratProof LratProof::fromDratProof(
       "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
 
-  std::fstream lratStream = openTmpFile(&lratFilename);
   LratProof lrat(lratStream);
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
@@ -197,10 +201,13 @@ LratProof::LratProof(std::istream& textualProof)
         }
         clauses.push_back(di);
       }
-      std::sort(clauses.begin(), clauses.end());
-      std::unique_ptr<LratInstruction> instr(
-          new LratDeletion(clauseIdx, std::move(clauses)));
-      d_instructions.push_back(std::move(instr));
+      if (clauses.size() > 0)
+      {
+        std::sort(clauses.begin(), clauses.end());
+        std::unique_ptr<LratInstruction> instr(
+            new LratDeletion(clauseIdx, std::move(clauses)));
+        d_instructions.push_back(std::move(instr));
+      }
     }
     else
     {

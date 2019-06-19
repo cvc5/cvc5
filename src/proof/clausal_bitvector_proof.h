@@ -2,7 +2,7 @@
 /*! \file clausal_bitvector_proof.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Alex Ozdemir
+ **   Alex Ozdemir, Mathias Preiner
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
-#define __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#ifndef CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
+#define CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H
 
 #include <iostream>
 #include <sstream>
@@ -61,10 +61,16 @@ class ClausalBitVectorProof : public BitVectorProof
 
  protected:
   // A list of all clauses and their ids which are passed into the SAT solver
-  std::vector<std::pair<ClauseId, std::unique_ptr<prop::SatClause>>>
-      d_usedClauses;
+  std::unordered_map<ClauseId, prop::SatClause> d_clauses{};
+  std::vector<ClauseId> d_originalClauseIndices{};
   // Stores the proof recieved from the SAT solver.
-  std::ostringstream d_binaryDratProof;
+  std::ostringstream d_binaryDratProof{};
+  std::vector<ClauseId> d_coreClauseIndices{};
+
+ private:
+  // Optimizes the DRAT proof stored in `d_binaryDratProof` and returns a list
+  // of clause actually needed to check that proof (a smaller UNSAT core)
+  void optimizeDratProof();
 };
 
 /**
@@ -77,7 +83,6 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
                             TheoryProofEngine* proofEngine)
       : ClausalBitVectorProof(bv, proofEngine)
   {
-    // That's all!
   }
 
   void printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -87,6 +92,49 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
   void printBBDeclarationAndCnf(std::ostream& os,
                                 std::ostream& paren,
                                 ProofLetMap& letMap) override;
+};
+
+/**
+ * A DRAT proof for a bit-vector problem
+ */
+class LfscDratBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscDratBitVectorProof(theory::bv::TheoryBV* bv,
+                         TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
+  void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
+};
+
+/**
+ * An LRAT proof for a bit-vector problem
+ */
+class LfscLratBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscLratBitVectorProof(theory::bv::TheoryBV* bv,
+                         TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
+  void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
+};
+
+/**
+ * An Extended Resolution proof for a bit-vector problem
+ */
+class LfscErBitVectorProof : public LfscClausalBitVectorProof
+{
+ public:
+  LfscErBitVectorProof(theory::bv::TheoryBV* bv, TheoryProofEngine* proofEngine)
+      : LfscClausalBitVectorProof(bv, proofEngine)
+  {
+  }
+
   void printEmptyClauseProof(std::ostream& os, std::ostream& paren) override;
 };
 
@@ -94,4 +142,4 @@ class LfscClausalBitVectorProof : public ClausalBitVectorProof
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */
+#endif /* CVC4__PROOF__CLAUSAL_BITVECTOR_PROOF_H */
