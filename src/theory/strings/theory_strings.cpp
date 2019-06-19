@@ -1464,6 +1464,7 @@ void TheoryStrings::checkInit() {
                 Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
                 //singular case
                 if( !areEqual( c[0], n ) ){
+                  Node ns;
                   std::vector< Node > exp;
                   //explain empty components
                   bool foundNEmpty = false;
@@ -1474,15 +1475,13 @@ void TheoryStrings::checkInit() {
                       }
                     }else{
                       Assert( !foundNEmpty );
-                      if( n[i]!=c[0] ){
-                        exp.push_back( n[i].eqNode( c[0] ) );
-                      }
+                      ns = n[i];
                       foundNEmpty = true;
                     }
                   }
                   AlwaysAssert( foundNEmpty );
                   //infer the equality
-                  sendInference( exp, n.eqNode( c[0] ), "I_Norm_S" );
+                  sendInference(exp, n.eqNode(ns), "I_Norm_S");
                 }
                 d_congruent.insert( n );
                 congruent[k]++;
@@ -3290,7 +3289,6 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       Node firstChar = stra.size() == 1 ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( 1 ) : stra.prefix( 1 ) );
                       Node sk = d_sk_cache.mkSkolemCached(
                           other_str,
-                          firstChar,
                           isRev ? SkolemCache::SK_ID_VC_SPT_REV
                                 : SkolemCache::SK_ID_VC_SPT,
                           "c_spt");
@@ -3688,11 +3686,10 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   }
                 }else{
                   Node sk = d_sk_cache.mkSkolemCached(
-                      nconst_k, firstChar, SkolemCache::SK_ID_DC_SPT, "dc_spt");
+                      nconst_k, SkolemCache::SK_ID_DC_SPT, "dc_spt");
                   registerLength(sk, LENGTH_ONE);
                   Node skr =
                       d_sk_cache.mkSkolemCached(nconst_k,
-                                                firstChar,
                                                 SkolemCache::SK_ID_DC_SPT_REM,
                                                 "dc_spt_rem");
                   Node eq1 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk, skr ) );
@@ -4021,6 +4018,15 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
     Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+    d_out->lemma(lem);
+  }
+  else if (n.getKind() == STRING_STRIDOF)
+  {
+    Node len = mkLength(n[0]);
+    Node lem = nm->mkNode(
+        AND,
+        nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+        nm->mkNode(LT, n, len));
     d_out->lemma(lem);
   }
 }
@@ -4468,19 +4474,29 @@ void TheoryStrings::checkNormalFormsDeq()
         for( unsigned j=0; j<cols[i].size(); j++ ){
           for( unsigned k=(j+1); k<cols[i].size(); k++ ){
             //for strings that are disequal, but have the same length
-            if( areDisequal( cols[i][j], cols[i][k] ) ){
-              Assert( !d_conflict );
-              if (Trace.isOn("strings-solve"))
+            if (cols[i][j].isConst() && cols[i][k].isConst())
+            {
+              // if both are constants, they should be distinct, and its trivial
+              Assert(cols[i][j] != cols[i][k]);
+            }
+            else
+            {
+              if (areDisequal(cols[i][j], cols[i][k]))
               {
-                Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
-                Trace("strings-solve") << " against " << cols[i][k] << " ";
-                printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
-                Trace("strings-solve") << "..." << std::endl;
-              }
-              processDeq( cols[i][j], cols[i][k] );
-              if( hasProcessed() ){
-                return;
+                Assert(!d_conflict);
+                if (Trace.isOn("strings-solve"))
+                {
+                  Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
+                  printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                  Trace("strings-solve") << " against " << cols[i][k] << " ";
+                  printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                  Trace("strings-solve") << "..." << std::endl;
+                }
+                processDeq(cols[i][j], cols[i][k]);
+                if (hasProcessed())
+                {
+                  return;
+                }
               }
             }
           }
