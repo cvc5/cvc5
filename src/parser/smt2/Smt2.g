@@ -2903,8 +2903,6 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-    )
-    { PARSER_STATE->checkDeclaration(id, check, type); }
   | QUOTED_SYMBOL
     { id = AntlrInput::tokenText($QUOTED_SYMBOL);
       /* strip off the quotes */
