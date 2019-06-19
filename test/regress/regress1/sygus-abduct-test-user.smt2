@@ -13,7 +13,7 @@
 (assert (and (<= n x)(<= x (+ n 5))))
 (assert (and (<= 1 y)(<= y m)))
 
-(get-abduct 
+(set-abduct-grammar
 
 ((Start Bool) (StartInt Int))
 (
@@ -22,4 +22,9 @@
 )
 )
 
+; With --sygus-abduct:
+; Generate predicate(s) A that are consistent with the above axioms (i.e.
+; their conjunction is SAT), and is such that the conjunction of the above
+; axioms, A and the conjecture below are UNSAT.
+; The signature of A is above grammar.
 (check-sat-assuming ((< x y)))

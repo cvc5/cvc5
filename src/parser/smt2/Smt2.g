@@ -3058,7 +3058,7 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
-GET_ABDUCT_TOK : 'get-abduct';
+GET_ABDUCT_TOK : 'set-abduct-grammar';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
