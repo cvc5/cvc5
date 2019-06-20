@@ -172,17 +172,19 @@ void RegExpSolver::check()
   if (!addedLemma)
   {
     NodeManager* nm = NodeManager::currentNM();
-    // representatives of strings that are the LHS of positive memberships that we unfolded
-    std::unordered_set< Node, NodeHashFunction > repUnfold;
+    // representatives of strings that are the LHS of positive memberships that
+    // we unfolded
+    std::unordered_set<Node, NodeHashFunction> repUnfold;
     // check positive (e=0), then negative (e=1) memberships
-    for( unsigned e=0; e<2; e++ )
+    for (unsigned e = 0; e < 2; e++)
     {
-      for( const Node& assertion : d_regexp_memberships)
+      for (const Node& assertion : d_regexp_memberships)
       {
         // check regular expression membership
         Trace("regexp-debug")
             << "Check : " << assertion << " "
-            << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " "
+            << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end())
+            << " "
             << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
             << std::endl;
         if (d_regexp_ucached.find(assertion) != d_regexp_ucached.end()
@@ -195,7 +197,8 @@ void RegExpSolver::check()
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
         bool polarity = assertion.getKind() != NOT;
-        if( polarity!=(e==0) ){
+        if (polarity != (e == 0))
+        {
           continue;
         }
         bool flag = true;
@@ -215,12 +218,12 @@ void RegExpSolver::check()
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
                                    << x << " IN " << r << std::endl;
-        if( e==0 )
+        if (e == 0)
         {
           // remember that we have unfolded a membership for x
           repUnfold.insert(x);
         }
-        else if( repUnfold.find(x)!=repUnfold.end() )
+        else if (repUnfold.find(x) != repUnfold.end())
         {
           // do not unfold negative memberships of strings that have new
           // positive unfoldings. For example:

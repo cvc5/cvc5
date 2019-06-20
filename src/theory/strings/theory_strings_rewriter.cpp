@@ -3088,7 +3088,7 @@ Node TheoryStringsRewriter::rewritePrefixSuffix(Node n)
     return mem;
   }
   */
-  
+
   // general reduction to equality + substr
   Node retNode = n[0].eqNode(
       NodeManager::currentNM()->mkNode(kind::STRING_SUBSTR, n[1], val, lens));
