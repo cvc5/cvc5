@@ -172,8 +172,10 @@ void RegExpSolver::check()
   if (!addedLemma)
   {
     NodeManager* nm = NodeManager::currentNM();
-    // check positive, then negative memberships
-    for( unsigned r=0; r<2; r++ )
+    // representatives of strings that are the LHS of positive memberships that we unfolded
+    std::unordered_set< Node, NodeHashFunction > repUnfold;
+    // check positive (e=0), then negative (e=1) memberships
+    for( unsigned e=0; e<2; e++ )
     {
       for( const Node& assertion : d_regexp_memberships)
       {
@@ -193,7 +195,7 @@ void RegExpSolver::check()
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
         bool polarity = assertion.getKind() != NOT;
-        if( polarity!=(r==0) ){
+        if( polarity!=(e==0) ){
           continue;
         }
         bool flag = true;
@@ -213,6 +215,21 @@ void RegExpSolver::check()
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
                                    << x << " IN " << r << std::endl;
+        if( e==0 )
+        {
+          // remember that we have unfolded a membership for x
+          repUnfold.insert(x);
+        }
+        else if( repUnfold.find(x)!=repUnfold.end() )
+        {
+          // do not unfold negative memberships of strings that have new
+          // positive unfoldings. For example:
+          //   x in ("A")* ^ NOT x in ("B")*
+          // We unfold x = "A" ++ x' only. The intution here is that positive
+          // unfoldings lead to stronger constraints (equalities are stronger
+          // than disequalities), and are easier to check.
+          continue;
+        }
         if (changed)
         {
           Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, x, r));
@@ -281,10 +298,6 @@ void RegExpSolver::check()
         {
           break;
         }
-      }
-      if( addedLemma )
-      {
-        break;
       }
     }
   }
