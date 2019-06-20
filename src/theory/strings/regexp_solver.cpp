@@ -172,23 +172,30 @@ void RegExpSolver::check()
   if (!addedLemma)
   {
     NodeManager* nm = NodeManager::currentNM();
-    for (unsigned i = 0; i < d_regexp_memberships.size(); i++)
+    // check positive, then negative memberships
+    for( unsigned r=0; r<2; r++ )
     {
-      // check regular expression membership
-      Node assertion = d_regexp_memberships[i];
-      Trace("regexp-debug")
-          << "Check : " << assertion << " "
-          << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " "
-          << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
-          << std::endl;
-      if (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()
-          && d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
+      for( const Node& assertion : d_regexp_memberships)
       {
+        // check regular expression membership
+        Trace("regexp-debug")
+            << "Check : " << assertion << " "
+            << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " "
+            << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
+            << std::endl;
+        if (d_regexp_ucached.find(assertion) != d_regexp_ucached.end()
+            || d_regexp_ccached.find(assertion) != d_regexp_ccached.end())
+        {
+          continue;
+        }
         Trace("strings-regexp")
             << "We have regular expression assertion : " << assertion
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
         bool polarity = assertion.getKind() != NOT;
+        if( polarity!=(r==0) ){
+          continue;
+        }
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
@@ -270,8 +277,12 @@ void RegExpSolver::check()
             processed.push_back(assertion);
           }
         }
+        if (d_parent.inConflict())
+        {
+          break;
+        }
       }
-      if (d_parent.inConflict())
+      if( addedLemma )
       {
         break;
       }
