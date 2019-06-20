@@ -501,9 +501,13 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   {
     // allow unary minus in sygus version 1
     return getExprManager()->mkConst(Rational(name));
-  }else if(isAbstractValue(name)) {
+  }
+  else if (isAbstractValue(name))
+  {
     return mkAbstractValue(name);
-  }else{
+  }
+  else
+  {
     return Parser::getExpressionForNameAndType(name, t);
   }
 }
