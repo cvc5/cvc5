@@ -240,7 +240,7 @@ void RegExpSolver::check()
             break;
           }
         }
-        if (e==1 && repUnfold.find(x) != repUnfold.end())
+        if (e == 1 && repUnfold.find(x) != repUnfold.end())
         {
           // do not unfold negative memberships of strings that have new
           // positive unfoldings. For example:
