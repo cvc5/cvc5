@@ -440,7 +440,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * This list contains:
    *  softResourceOut
    *  hardResourceOut
-   *  setForceLogic
    *  beforeSearchListener
    *  UseTheoryListListener
    *

@@ -251,7 +251,7 @@ set(regress_0_tests
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
   regress0/bv/eager-inc-cryptominisat.smt2
-  regress0/bv/eager-inc-cryptominisat_force_logic.smt2
+  regress0/bv/eager-force-logic.smt2
   regress0/bv/fuzz01.smt
   regress0/bv/fuzz02.delta01.smt
   regress0/bv/fuzz02.smt
