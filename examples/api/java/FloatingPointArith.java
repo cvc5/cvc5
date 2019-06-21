@@ -95,7 +95,7 @@ public class FloatingPointArith {
     r = smt.checkSat(); // result is sat
     assert r.isSat() == Result.Sat.SAT;
 
-    // Convert the result to a rational and print the round
+    // Convert the result to a rational and print it
     Expr val = smt.getValue(d);
     Rational realVal =
         val.getConstFloatingPoint().convertToRationalTotal(new Rational(0));
