@@ -22,6 +22,7 @@
 #include <string>
 
 #include "api/cvc4cpp.h"
+#include "cvc/cvc.h"
 #include "expr/expr_manager.h"
 #include "options/options.h"
 #include "parser/input.h"
@@ -105,7 +106,7 @@ Parser* ParserBuilder::build()
       }
       else
       {
-        parser = new Parser(d_solver, input, d_strictMode, d_parseOnly);
+        parser = new Cvc(d_solver, input, d_strictMode, d_parseOnly);
       }
       break;
   }

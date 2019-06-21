@@ -74,10 +74,6 @@ void throwLazyBBUnsupported(theory::bv::SatSolverMode m)
 
 OptionsHandler::OptionsHandler(Options* options) : d_options(options) { }
 
-void OptionsHandler::notifyForceLogic(const std::string& option){
-  d_options->d_forceLogicListeners.notify();
-}
-
 void OptionsHandler::notifyBeforeSearch(const std::string& option)
 {
   try{

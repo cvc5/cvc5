@@ -285,18 +285,6 @@ class HardResourceOutListener : public Listener {
   SmtEngine* d_smt;
 }; /* class HardResourceOutListener */
 
-class SetLogicListener : public Listener {
- public:
-  SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    LogicInfo inOptions(options::forceLogicString());
-    d_smt->setLogic(inOptions);
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class SetLogicListener */
-
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
@@ -452,7 +440,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * This list contains:
    *  softResourceOut
    *  hardResourceOut
-   *  setForceLogic
    *  beforeSearchListener
    *  UseTheoryListListener
    *
@@ -600,9 +587,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     try
     {
       Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerForceLogicListener(
-              new SetLogicListener(d_smt), true));
 
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
@@ -1209,9 +1193,8 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::forceLogicString.wasSetByUser()) {
-    d_logic = LogicInfo(options::forceLogicString());
-  }else if (options::solveIntAsBV() > 0) {
+  if (options::solveIntAsBV() > 0)
+  {
     if (!(d_logic <= LogicInfo("QF_NIA")))
     {
       throw OptionException(
@@ -1219,11 +1202,15 @@ void SmtEngine::setDefaults() {
           "QF_LIA, QF_IDL)");
     }
     d_logic = LogicInfo("QF_BV");
-  }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
+  }
+  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+  {
     d_logic = LogicInfo("QF_NIA");
-  } else if ((d_logic.getLogicString() == "QF_UFBV" ||
-              d_logic.getLogicString() == "QF_ABV") &&
-             options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  }
+  else if ((d_logic.getLogicString() == "QF_UFBV"
+            || d_logic.getLogicString() == "QF_ABV")
+           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
     d_logic = LogicInfo("QF_BV");
   }
 
@@ -2343,25 +2330,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       Dump("benchmark") << SetBenchmarkStatusCommand(status);
     } else {
       Dump("benchmark") << SetInfoCommand(key, value);
-    }
-  }
-
-  // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")
-  if(key.length() > 5) {
-    string prefix = key.substr(0, 5);
-    if(prefix == "cvc4-" || prefix == "cvc4_") {
-      string cvc4key = key.substr(5);
-      if(cvc4key == "logic") {
-        if(! value.isAtom()) {
-          throw OptionException("argument to (set-info :cvc4-logic ..) must be a string");
-        }
-        SmtScope smts(this);
-        d_logic = value.getValue();
-        setLogicInternal();
-        return;
-      } else {
-        throw UnrecognizedOptionException();
-      }
     }
   }
 
