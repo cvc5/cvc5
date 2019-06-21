@@ -85,31 +85,21 @@ ErProof ErProof::fromBinaryDratProof(
     const std::vector<ClauseId>& usedIds,
     const std::string& dratBinary)
 {
-  std::ostringstream cmd;
-  char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
-  char dratFilename[] = "/tmp/cvc4-drat-XXXXXX";
-  char tracecheckFilename[] = "/tmp/cvc4-tracecheck-er-XXXXXX";
-
-  int r;
-  r = mkstemp(formulaFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(dratFilename);
-  AlwaysAssert(r > 0);
-  close(r);
-  r = mkstemp(tracecheckFilename);
-  AlwaysAssert(r > 0);
-  close(r);
+  std::string formulaFilename("cvc4-dimacs-XXXXXX");
+  std::string dratFilename("cvc4-drat-XXXXXX");
+  std::string tracecheckFilename("cvc4-tracecheck-er-XXXXXX");
 
   // Write the formula
-  std::ofstream formStream(formulaFilename);
+  std::fstream formStream = openTmpFile(&formulaFilename);
   printDimacs(formStream, clauses, usedIds);
   formStream.close();
 
   // Write the (binary) DRAT proof
-  std::ofstream dratStream(dratFilename);
+  std::fstream dratStream = openTmpFile(&dratFilename);
   dratStream << dratBinary;
   dratStream.close();
+
+  std::fstream tracecheckStream = openTmpFile(&tracecheckFilename);
 
   // Invoke drat2er
 #if CVC4_USE_DRAT2ER
@@ -119,7 +109,6 @@ ErProof ErProof::fromBinaryDratProof(
                                              false,
                                              drat2er::options::QUIET,
                                              false);
-
 #else
   Unimplemented(
       "ER proof production requires drat2er.\n"
@@ -127,14 +116,13 @@ ErProof ErProof::fromBinaryDratProof(
 #endif
 
   // Parse the resulting TRACECHECK proof into an ER proof.
-  std::ifstream tracecheckStream(tracecheckFilename);
   TraceCheckProof pf = TraceCheckProof::fromText(tracecheckStream);
   ErProof proof(clauses, usedIds, std::move(pf));
   tracecheckStream.close();
 
-  remove(formulaFilename);
-  remove(dratFilename);
-  remove(tracecheckFilename);
+  remove(formulaFilename.c_str());
+  remove(dratFilename.c_str());
+  remove(tracecheckFilename.c_str());
 
   return proof;
 }
