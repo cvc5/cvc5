@@ -133,23 +133,25 @@ namespace CVC4 {
 %template(getConstTypeConstant) CVC4::Expr::getConst<CVC4::TypeConstant>;
 #endif
 %template(getConstArrayStoreAll) CVC4::Expr::getConst<CVC4::ArrayStoreAll>;
-%template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
 %template(getConstAscriptionType) CVC4::Expr::getConst<CVC4::AscriptionType>;
-%template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
-%template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
-%template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
-%template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
-%template(getConstBitVectorSignExtend) CVC4::Expr::getConst<CVC4::BitVectorSignExtend>;
-%template(getConstBitVectorZeroExtend) CVC4::Expr::getConst<CVC4::BitVectorZeroExtend>;
-%template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
-%template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
-%template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
-%template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
-%template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
 %template(getConstBitVector) CVC4::Expr::getConst<CVC4::BitVector>;
-%template(getConstString) CVC4::Expr::getConst<CVC4::String>;
-%template(getConstEmptySet) CVC4::Expr::getConst<CVC4::EmptySet>;
+%template(getConstBitVectorBitOf) CVC4::Expr::getConst<CVC4::BitVectorBitOf>;
+%template(getConstBitVectorExtract) CVC4::Expr::getConst<CVC4::BitVectorExtract>;
+%template(getConstBitVectorRepeat) CVC4::Expr::getConst<CVC4::BitVectorRepeat>;
+%template(getConstBitVectorRotateLeft) CVC4::Expr::getConst<CVC4::BitVectorRotateLeft>;
+%template(getConstBitVectorRotateRight) CVC4::Expr::getConst<CVC4::BitVectorRotateRight>;
+%template(getConstBitVectorSignExtend) CVC4::Expr::getConst<CVC4::BitVectorSignExtend>;
+%template(getConstBitVectorSize) CVC4::Expr::getConst<CVC4::BitVectorSize>;
+%template(getConstBitVectorZeroExtend) CVC4::Expr::getConst<CVC4::BitVectorZeroExtend>;
 %template(getConstBoolean) CVC4::Expr::getConst<bool>;
+%template(getConstDatatypeIndexConstant) CVC4::Expr::getConst<CVC4::DatatypeIndexConstant>;
+%template(getConstEmptySet) CVC4::Expr::getConst<CVC4::EmptySet>;
+%template(getConstFloatingPoint) CVC4::Expr::getConst<CVC4::FloatingPoint>;
+%template(getConstKind) CVC4::Expr::getConst<CVC4::kind::Kind_t>;
+%template(getConstRational) CVC4::Expr::getConst<CVC4::Rational>;
+%template(getConstRoundingMode) CVC4::Expr::getConst<CVC4::RoundingMode>;
+%template(getConstString) CVC4::Expr::getConst<CVC4::String>;
+%template(getConstUninterpretedConstant) CVC4::Expr::getConst<CVC4::UninterpretedConstant>;
 
 #ifdef SWIGJAVA
 
