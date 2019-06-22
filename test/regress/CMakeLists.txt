@@ -251,6 +251,7 @@ set(regress_0_tests
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
   regress0/bv/eager-inc-cryptominisat.smt2
+  regress0/bv/eager-force-logic.smt2
   regress0/bv/fuzz01.smt
   regress0/bv/fuzz02.delta01.smt
   regress0/bv/fuzz02.smt
@@ -543,6 +544,7 @@ set(regress_0_tests
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
+  regress0/parser/force_logic_set_logic.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
