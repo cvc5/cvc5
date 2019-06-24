@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+"""
+This script reads CVC4/src/api/cvc4cppkind.h and generates
+.pxd and .pxi files which declare all the CVC4 kinds and
+implement a Python wrapper for kinds, respectively. The
+default names are kinds.pxd / kinds.pxi, but the name is
+configurable from the command line with --kinds-file-prefix.
+
+The script is aware of the '#if 0' pattern and will ignore
+kinds declared between '#if 0' and '#endif'.
+"""
+
 import argparse
 from collections import OrderedDict
 
