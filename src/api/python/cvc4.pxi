@@ -482,38 +482,34 @@ cdef class Solver:
             term.cterm = self.csolver.mkTerm(k.k, v)
         return term
 
-    def mkOpTerm(self, kind k, *args):
+    def mkOpTerm(self, kind k, arg0, arg1 = None):
         '''
         Supports the following uses:
                 OpTerm mkOpTerm(Kind kind, Kind k)
                 OpTerm mkOpTerm(Kind kind, const string& arg)
                 OpTerm mkOpTerm(Kind kind, uint32_t arg)
-                OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+                OpTerm mkOpTerm(Kind kind, uint32_t arg0, uint32_t arg1)
         '''
         cdef OpTerm opterm = OpTerm()
-        if len(args) == 1:
-            if isinstance(args[0], kind):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, (<kind?> args[0]).k)
-            elif isinstance(args[0], str):
+        if arg1 is None:
+            if isinstance(arg0, kind):
+                opterm.copterm = self.csolver.mkOpTerm(k.k, (<kind?> arg0).k)
+            elif isinstance(arg0, str):
                 opterm.copterm = self.csolver.mkOpTerm(k.k,
                                                        <const string &>
-                                                       args[0].encode())
-            elif isinstance(args[0], int):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, <int?> args[0])
+                                                       arg0.encode())
+            elif isinstance(arg0, int):
+                opterm.copterm = self.csolver.mkOpTerm(k.k, <int?> arg0)
             else:
                 raise ValueError("Unsupported signature"
-                                 " mkOpTerm: {}".format(" X ".join([k] + args)))
-        elif len(args) == 2:
-            if isinstance(args[0], int) and isinstance(args[1], int):
-                opterm.copterm = self.csolver.mkOpTerm(k.k, <int> args[0],
-                                                       <int> args[1])
-            else:
-                raise ValueError("Unsupported signature"
-                                 " mkOpTerm: {}".format(" X ".join([k] + args)))
+                                 " mkOpTerm: {}".format(" X ".join([k, arg0])))
         else:
-            raise ValueError("Expecting 2-3 args but"
-                             " got {}".format(
-                                 [str(a) for a in [k] + list(args)]))
+            if isinstance(arg0, int) and isinstance(arg1, int):
+                opterm.copterm = self.csolver.mkOpTerm(k.k, <int> arg0,
+                                                       <int> arg1)
+            else:
+                raise ValueError("Unsupported signature"
+                                 " mkOpTerm: {}".format(" X ".join([k, arg0, arg1])))
         return opterm
 
     def mkTrue(self):
