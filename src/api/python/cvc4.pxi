@@ -919,20 +919,14 @@ cdef class Solver:
         term.cterm = self.csolver.getValue(t.cterm)
         return term
 
-    def pop(self, nscopes=None):
-        if nscopes is None:
-            self.csolver.pop()
-        else:
-            self.csolver.pop(nscopes)
+    def pop(self, nscopes=1):
+        self.csolver.pop(nscopes)
 
     def printModel(self):
         self.csolver.printModel(cout)
 
-    def push(self, nscopes=None):
-        if nscopes is None:
-            self.csolver.push()
-        else:
-            self.csolver.push(nscopes)
+    def push(self, nscopes=1):
+        self.csolver.push(nscopes)
 
     def reset(self):
         self.csolver.reset()
