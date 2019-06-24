@@ -319,7 +319,7 @@ cdef class RoundingMode:
         return (<int> self.crm) == (<int> other.crm)
 
     def __ne__(self, RoundingMode other):
-    	return not self.__eq__(other)
+        return not self.__eq__(other)
 
     def __hash__(self):
         return hash((<int> self.crm, self.name))
@@ -411,6 +411,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkPredicateSort(self, *sorts):
+        '''
+        Supports the following arguments:
+                 Sort mkPredicateSort(List[Sort] sorts)
+
+                 where sorts can also be comma-separated arguments of
+                  type Sort
+        '''
         cdef Sort sort = Sort()
         cdef vector[c_Sort] v
         for s in sorts:
@@ -420,6 +427,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkRecordSort(self, *fields):
+        '''
+        Supports the following arguments:
+                Sort mkRecordSort(List[Tuple[str, Sort]] fields)
+
+                  where fields can also be comma-separated arguments of
+          type Tuple[str, Sort]
+        '''
         cdef Sort sort = Sort()
         cdef vector[pair[string, c_Sort]] v
         cdef pair[string, c_Sort] p
@@ -449,6 +463,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def mkTupleSort(self, *sorts):
+        '''
+           Supports the following arguments:
+                Sort mkTupleSort(List[Sort] sorts)
+
+                 where sorts can also be comma-separated arguments of
+                 type Sort
+        '''
         cdef Sort sort = Sort()
         cdef vector[c_Sort] v
         for s in sorts:
@@ -697,6 +718,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkSatAssuming(self, *assumptions):
+        '''
+            Supports the following arguments:
+                 Result checkSatAssuming(List[Term] assumptions)
+
+                 where assumptions can also be comma-separated arguments of
+                 type (boolean) Term
+        '''
         cdef c_Result r
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -719,6 +747,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=0)
     def checkValidAssuming(self, *assumptions):
+        '''
+            Supports the following arguments:
+                 Result checkValidAssuming(List[Term] assumptions)
+
+                 where assumptions can also be comma-separated arguments of
+                 type (boolean) Term
+        '''
         cdef c_Result r
         # used if assumptions is a list of terms
         cdef vector[c_Term] v
@@ -738,6 +773,13 @@ cdef class Solver:
 
     @expand_list_arg(num_req_args=1)
     def declareDatatype(self, str symbol, *ctors):
+        '''
+            Supports the following arguments:
+                 Sort declareDatatype(str symbol, List[Term] ctors)
+
+                 where ctors can also be comma-separated arguments of
+                  type DatatypeConstructorDecl
+        '''
         cdef Sort sort = Sort()
         cdef vector[c_DatatypeConstructorDecl] v
 
@@ -746,7 +788,6 @@ cdef class Solver:
         sort.csort = self.csolver.declareDatatype(symbol.encode(), v)
         return sort
 
-#    @expand_list_arg(num_req_args=1)
     def declareFun(self, str symbol, list sorts, Sort sort):
         cdef Term term = Term()
         cdef vector[c_Sort] v
