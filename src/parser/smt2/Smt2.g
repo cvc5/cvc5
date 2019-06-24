@@ -269,22 +269,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
-<<<<<<< HEAD
-    { Debug("parser") << "set logic: '" << name << "'" << std::endl;
-      if( PARSER_STATE->logicIsSet() ) {
-        PARSER_STATE->parseError("Only one set-logic is allowed.");
-      }
-      PARSER_STATE->setLogic(name);
-      if( PARSER_STATE->sygus() ){
-        // we may have modified the logic, get it from the parser state
-        cmd->reset(new SetBenchmarkLogicCommand(PARSER_STATE->getLogic().getLogicString()));
-      }else{
-        cmd->reset(new SetBenchmarkLogicCommand(name));
-      }
-=======
     {
       cmd->reset(PARSER_STATE->setLogic(name));
->>>>>>> d3e83102fde7d5e43f132efa80c651a43af5afa3
     }
   | /* set-info */
     SET_INFO_TOK metaInfoInternal[cmd]
