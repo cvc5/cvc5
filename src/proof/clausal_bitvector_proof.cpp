@@ -120,31 +120,21 @@ void ClausalBitVectorProof::optimizeDratProof()
                     BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
   {
     Debug("bv::clausal") << "Optimizing DRAT" << std::endl;
-    char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
-    char dratFilename[] = "/tmp/cvc4-drat-XXXXXX";
-    char optDratFilename[] = "/tmp/cvc4-optimized-drat-XXXXXX";
-    char optFormulaFilename[] = "/tmp/cvc4-optimized-formula-XXXXXX";
-    int r;
-    r = mkstemp(formulaFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(dratFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(optDratFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(optFormulaFilename);
-    AlwaysAssert(r > 0);
-    close(r);
+    std::string formulaFilename("cvc4-dimacs-XXXXXX");
+    std::string dratFilename("cvc4-drat-XXXXXX");
+    std::string optDratFilename("cvc4-optimized-drat-XXXXXX");
+    std::string optFormulaFilename("cvc4-optimized-formula-XXXXXX");
 
-    std::ofstream formStream(formulaFilename);
+    std::fstream formStream = openTmpFile(&formulaFilename);
     printDimacs(formStream, d_clauses, d_originalClauseIndices);
     formStream.close();
 
-    std::ofstream dratStream(dratFilename);
+    std::fstream dratStream = openTmpFile(&dratFilename);
     dratStream << d_binaryDratProof.str();
     dratStream.close();
+
+    std::fstream optDratStream = openTmpFile(&optDratFilename);
+    std::fstream optFormulaStream = openTmpFile(&optFormulaFilename);
 
 #if CVC4_USE_DRAT2ER
     int dratTrimExitCode =
@@ -164,17 +154,14 @@ void ClausalBitVectorProof::optimizeDratProof()
     d_binaryDratProof.str("");
     Assert(d_binaryDratProof.str().size() == 0);
 
-    std::ifstream lratStream(optDratFilename);
-    std::copy(std::istreambuf_iterator<char>(lratStream),
+    std::copy(std::istreambuf_iterator<char>(optDratStream),
               std::istreambuf_iterator<char>(),
               std::ostreambuf_iterator<char>(d_binaryDratProof));
 
     if (options::bvOptimizeSatProof()
         == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
     {
-      std::ifstream optFormulaStream{optFormulaFilename};
       std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
-      optFormulaStream.close();
 
       // Now we need to compute the clause indices for the UNSAT core. This is a
       // bit difficult because drat-trim may have reordered clauses, and/or
@@ -213,11 +200,13 @@ void ClausalBitVectorProof::optimizeDratProof()
       d_coreClauseIndices = d_originalClauseIndices;
     }
 
+    optFormulaStream.close();
+
     Assert(d_coreClauseIndices.size() > 0);
-    remove(formulaFilename);
-    remove(dratFilename);
-    remove(optDratFilename);
-    remove(optFormulaFilename);
+    remove(formulaFilename.c_str());
+    remove(dratFilename.c_str());
+    remove(optDratFilename.c_str());
+    remove(optFormulaFilename.c_str());
     Debug("bv::clausal") << "Optimized DRAT" << std::endl;
   }
   else

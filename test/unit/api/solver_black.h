@@ -881,8 +881,6 @@ void SolverBlack::testDefineFunsRec()
 
 void SolverBlack::testSetInfo()
 {
-  TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("cvc4-logic", "QF_BV"));
-  TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("cvc4_logic", "QF_BV"));
   TS_ASSERT_THROWS(d_solver->setInfo("cvc4-lagic", "QF_BV"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->setInfo("cvc2-logic", "QF_BV"), CVC4ApiException&);
   TS_ASSERT_THROWS(d_solver->setInfo("cvc4-logic", "asdf"), CVC4ApiException&);
@@ -907,10 +905,6 @@ void SolverBlack::testSetInfo()
   TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("status", "unsat"));
   TS_ASSERT_THROWS_NOTHING(d_solver->setInfo("status", "unknown"));
   TS_ASSERT_THROWS(d_solver->setInfo("status", "asdf"), CVC4ApiException&);
-
-  d_solver->assertFormula(d_solver->mkTrue());
-  TS_ASSERT_THROWS(d_solver->setInfo("cvc4-logic", "QF_BV"), CVC4ApiException&);
-  TS_ASSERT_THROWS(d_solver->setInfo("cvc4_logic", "QF_BV"), CVC4ApiException&);
 }
 
 void SolverBlack::testSetLogic()

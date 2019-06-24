@@ -218,21 +218,6 @@ void RegExpSolver::check()
         }
         Trace("strings-regexp-nf") << "Term " << atom << " is normalized to "
                                    << x << " IN " << r << std::endl;
-        if (e == 0)
-        {
-          // remember that we have unfolded a membership for x
-          repUnfold.insert(x);
-        }
-        else if (repUnfold.find(x) != repUnfold.end())
-        {
-          // do not unfold negative memberships of strings that have new
-          // positive unfoldings. For example:
-          //   x in ("A")* ^ NOT x in ("B")*
-          // We unfold x = "A" ++ x' only. The intution here is that positive
-          // unfoldings lead to stronger constraints (equalities are stronger
-          // than disequalities), and are easier to check.
-          continue;
-        }
         if (changed)
         {
           Node tmp = Rewriter::rewrite(nm->mkNode(STRING_IN_REGEXP, x, r));
@@ -255,7 +240,16 @@ void RegExpSolver::check()
             break;
           }
         }
-
+        if (e == 1 && repUnfold.find(x) != repUnfold.end())
+        {
+          // do not unfold negative memberships of strings that have new
+          // positive unfoldings. For example:
+          //   x in ("A")* ^ NOT x in ("B")*
+          // We unfold x = "A" ++ x' only. The intution here is that positive
+          // unfoldings lead to stronger constraints (equalities are stronger
+          // than disequalities), and are easier to check.
+          continue;
+        }
         if (polarity)
         {
           flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
@@ -295,6 +289,13 @@ void RegExpSolver::check()
           else
           {
             processed.push_back(assertion);
+          }
+          if (e == 0)
+          {
+            // Remember that we have unfolded a membership for x
+            // notice that we only do this here, after we have definitely
+            // added a lemma.
+            repUnfold.insert(x);
           }
         }
         if (d_parent.inConflict())

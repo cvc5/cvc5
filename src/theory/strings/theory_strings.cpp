@@ -4042,10 +4042,9 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
   else if (n.getKind() == STRING_STRIDOF)
   {
     Node len = mkLength(n[0]);
-    Node lem = nm->mkNode(
-        AND,
-        nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
-        nm->mkNode(LT, n, len));
+    Node lem = nm->mkNode(AND,
+                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                          nm->mkNode(LT, n, len));
     d_out->lemma(lem);
   }
 }
