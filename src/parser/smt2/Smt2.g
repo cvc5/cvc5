@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -269,16 +269,8 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
-    { Debug("parser") << "set logic: '" << name << "'" << std::endl;
-      if( PARSER_STATE->logicIsSet() ) {
-        PARSER_STATE->parseError("Only one set-logic is allowed.");
-      }
-      PARSER_STATE->setLogic(name);
-      if( PARSER_STATE->sygus() ){
-        cmd->reset(new SetBenchmarkLogicCommand(PARSER_STATE->getLogic().getLogicString()));
-      }else{
-        cmd->reset(new SetBenchmarkLogicCommand(name));
-      }
+    {
+      cmd->reset(PARSER_STATE->setLogic(name));
     }
   | /* set-info */
     SET_INFO_TOK metaInfoInternal[cmd]
@@ -891,14 +883,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
 }
   : LPAREN_TOK
     //read operator
-    ( builtinOp[k]{ 
-        Debug("parser-sygus") << "Sygus grammar " << fun << " : builtin op : "
-                              << name << std::endl;
-        sgt.d_name = kind::kindToString(k);
-        sgt.d_gterm_type = SygusGTerm::gterm_op;
-        sgt.d_expr = EXPR_MANAGER->operatorOf(k);
-      }
-     | SYGUS_LET_TOK LPAREN_TOK { 
+    ( SYGUS_LET_TOK LPAREN_TOK {
          sgt.d_name = std::string("let");
          sgt.d_gterm_type = SygusGTerm::gterm_let;
          PARSER_STATE->pushScope(true);
@@ -1004,7 +989,7 @@ sygusGTerm[CVC4::SygusGTerm& sgt, std::string& fun]
       }else if( PARSER_STATE->isDeclared(name,SYM_VARIABLE) ){
         Debug("parser-sygus") << "Sygus grammar " << fun << " : symbol "
                               << name << std::endl;
-        sgt.d_expr = PARSER_STATE->getVariable(name);
+        sgt.d_expr = PARSER_STATE->getExpressionForName(name);
         sgt.d_name = name;
         sgt.d_gterm_type = SygusGTerm::gterm_op;
       }else{
@@ -1036,9 +1021,6 @@ metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 }
   : KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
-        PARSER_STATE->setLogic(sexpr.getValue());
-      }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));
     }
@@ -1645,12 +1627,6 @@ simpleSymbolicExprNoKeyword[CVC4::SExpr& sexpr]
         | DECLARE_DATATYPES_TOK | GET_MODEL_TOK | ECHO_TOK | REWRITE_RULE_TOK
         | REDUCTION_RULE_TOK | PROPAGATION_RULE_TOK | SIMPLIFY_TOK)
     { sexpr = SExpr(SExpr::Keyword(AntlrInput::tokenText($tok))); }
-  | builtinOp[k]
-    { std::stringstream ss;
-      ss << language::SetLanguage(CVC4::language::output::LANG_SMTLIB_V2_5)
-         << EXPR_MANAGER->mkConst(k);
-      sexpr = SExpr(ss.str());
-    }
   ;
 
 keyword[std::string& s]
@@ -1700,10 +1676,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
   Expr op;
-  std::string name, name2;
+  std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
-  Expr f, f2, f3, f4;
+  Expr f, f2, f3;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -1719,49 +1695,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Type type2;
   api::Term atomTerm;
 }
-  : /* a built-in operator application */
-    LPAREN_TOK builtinOp[kind] termList[args,expr] RPAREN_TOK
-    {
-      if( !PARSER_STATE->strictModeEnabled() &&
-          (kind == CVC4::kind::AND || kind == CVC4::kind::OR) &&
-          args.size() == 1) {
-        /* Unary AND/OR can be replaced with the argument.
-         * It just so happens expr should already be the only argument. */
-        assert( expr == args[0] );
-      } else if( CVC4::kind::isAssociative(kind) &&
-                 args.size() > EXPR_MANAGER->maxArity(kind) ) {
-        /* Special treatment for associative operators with lots of children */
-        expr = EXPR_MANAGER->mkAssociative(kind, args);
-      } else if( kind == CVC4::kind::MINUS && args.size() == 1 ) {
-        expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
-      }
-      else if ((kind == CVC4::kind::XOR || kind == CVC4::kind::MINUS
-                || kind == CVC4::kind::DIVISION)
-               && args.size() > 2)
-      {
-        /* left-associative, but CVC4 internally only supports 2 args */
-        expr = EXPR_MANAGER->mkLeftAssociative(kind,args);
-      } else if( kind == CVC4::kind::IMPLIES && args.size() > 2 ) {
-        /* right-associative, but CVC4 internally only supports 2 args */
-        expr = EXPR_MANAGER->mkRightAssociative(kind,args);
-      } else if( ( kind == CVC4::kind::EQUAL ||
-                   kind == CVC4::kind::LT || kind == CVC4::kind::GT ||
-                   kind == CVC4::kind::LEQ || kind == CVC4::kind::GEQ ) &&
-                 args.size() > 2 ) {
-        /* "chainable", but CVC4 internally only supports 2 args */
-        expr = MK_EXPR(MK_CONST(Chain(kind)), args);
-      } else if( PARSER_STATE->strictModeEnabled() && kind == CVC4::kind::ABS &&
-                 args.size() == 1 && !args[0].getType().isInteger() ) {
-        /* first, check that ABS is even defined in this logic */
-        PARSER_STATE->checkOperator(kind, args.size());
-        PARSER_STATE->parseError("abs can only be applied to Int, not Real, "
-                                 "while in strict SMT-LIB compliance mode");
-      } else {
-        PARSER_STATE->checkOperator(kind, args.size());
-        expr = MK_EXPR(kind, args);
-      }
-    }
-  | LPAREN_TOK AS_TOK ( termNonVariable[f, f2] | symbol[name,CHECK_DECLARED,SYM_VARIABLE] { readVariable = true; } ) 
+  : LPAREN_TOK AS_TOK ( termNonVariable[f, f2] | symbol[name,CHECK_DECLARED,SYM_VARIABLE] { readVariable = true; } )
     sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
       if(readVariable) {
@@ -1843,7 +1777,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   | LPAREN_TOK functionName[name, CHECK_NONE]
     { isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
       if(isBuiltinOperator) {
-        /* A built-in operator not already handled by the lexer */
+        /* A built-in operator */
         kind = PARSER_STATE->getOperatorKind(name);
       } else {
         /* A non-built-in function application */
@@ -1883,16 +1817,69 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
-      Kind lassocKind = CVC4::kind::UNDEFINED_KIND;
-      if (args.size() >= 2)
+
+      bool done = false;
+      if (isBuiltinOperator)
       {
-        if (kind == CVC4::kind::INTS_DIVISION)
+        if (args.size() > 2)
         {
-          // Builtin operators that are not tokenized, are left associative,
-          // but not internally variadic must set this.
-          lassocKind = kind;
+          if (kind == CVC4::kind::INTS_DIVISION || kind == CVC4::kind::XOR
+              || kind == CVC4::kind::MINUS || kind == CVC4::kind::DIVISION
+              || (kind == CVC4::kind::BITVECTOR_XNOR && PARSER_STATE->v2_6()))
+          {
+            // Builtin operators that are not tokenized, are left associative,
+            // but not internally variadic must set this.
+            expr =
+                EXPR_MANAGER->mkLeftAssociative(kind, args);
+            done = true;
+          }
+          else if (kind == CVC4::kind::IMPLIES)
+          {
+            /* right-associative, but CVC4 internally only supports 2 args */
+            expr = EXPR_MANAGER->mkRightAssociative(kind, args);
+            done = true;
+          }
+          else if (kind == CVC4::kind::EQUAL || kind == CVC4::kind::LT
+                   || kind == CVC4::kind::GT || kind == CVC4::kind::LEQ
+                   || kind == CVC4::kind::GEQ)
+          {
+            /* "chainable", but CVC4 internally only supports 2 args */
+            expr = MK_EXPR(MK_CONST(Chain(kind)), args);
+            done = true;
+          }
         }
-        else
+
+        if (!done)
+        {
+          if (CVC4::kind::isAssociative(kind)
+              && args.size() > EXPR_MANAGER->maxArity(kind))
+          {
+            /* Special treatment for associative operators with lots of children
+             */
+            expr = EXPR_MANAGER->mkAssociative(kind, args);
+          }
+          else if (!PARSER_STATE->strictModeEnabled()
+                   && (kind == CVC4::kind::AND || kind == CVC4::kind::OR)
+                   && args.size() == 1)
+          {
+            /* Unary AND/OR can be replaced with the argument.
+             * It just so happens expr should already be the only argument. */
+            assert(expr == args[0]);
+          }
+          else if (kind == CVC4::kind::MINUS && args.size() == 1)
+          {
+            expr = MK_EXPR(CVC4::kind::UMINUS, args[0]);
+          }
+          else
+          {
+            PARSER_STATE->checkOperator(kind, args.size());
+            expr = MK_EXPR(kind, args);
+          }
+        }
+      }
+      else
+      {
+        if (args.size() >= 2)
         {
           // may be partially applied function, in this case we use HO_APPLY
           Type argt = args[0].getType();
@@ -1905,22 +1892,17 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
               Debug("parser") << " : #argTypes = " << arity;
               Debug("parser") << ", #args = " << args.size() - 1 << std::endl;
               // must curry the partial application
-              lassocKind = CVC4::kind::HO_APPLY;
+              expr =
+                  EXPR_MANAGER->mkLeftAssociative(CVC4::kind::HO_APPLY, args);
+              done = true;
             }
           }
         }
-      }
-      if (lassocKind != CVC4::kind::UNDEFINED_KIND)
-      {
-        expr = EXPR_MANAGER->mkLeftAssociative(lassocKind, args);
-      }
-      else
-      {
-        if (isBuiltinOperator)
+
+        if (!done)
         {
-          PARSER_STATE->checkOperator(kind, args.size());
+          expr = MK_EXPR(kind, args);
         }
-        expr = MK_EXPR(kind, args);
       }
     }
   | LPAREN_TOK
@@ -2022,9 +2004,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           }
           binders.push_back(std::make_pair(name, expr)); } )+ )
     { // now implement these bindings
-      for(std::vector< std::pair<std::string, Expr> >::iterator
-            i = binders.begin(); i != binders.end(); ++i) {
-        PARSER_STATE->defineVar((*i).first, (*i).second);
+      for (const std::pair<std::string, Expr>& binder : binders)
+      {
+        {
+          PARSER_STATE->defineVar(binder.first, binder.second);
+        }
       }
     }
     RPAREN_TOK
@@ -2090,7 +2074,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
              // however, we need to apply partial version since we don't have the internal selector available
              aargs.push_back( MK_EXPR( CVC4::kind::APPLY_SELECTOR, dtc[i].getSelector(), expr ) );
            }
-           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY, aargs ) );
+           patexprs.push_back( MK_EXPR( CVC4::kind::APPLY_UF, aargs ) );
            patconds.push_back( MK_EXPR( CVC4::kind::APPLY_TESTER, dtc.getTester(), expr ) );
          }
          RPAREN_TOK 
@@ -2239,6 +2223,7 @@ termAtomic[CVC4::api::Term& atomTerm]
   Type type;
   Type type2;
   std::string s;
+  std::vector<uint64_t> numerals;
 }
     /* constants */
   : INTEGER_LITERAL
@@ -2253,65 +2238,24 @@ termAtomic[CVC4::api::Term& atomTerm]
                                         SOLVER->getRealSort());
     }
 
-  // Pi constant
-  | REAL_PI_TOK { atomTerm = SOLVER->mkPi(); }
-
   // Constants using indexed identifiers, e.g. (_ +oo 8 24) (positive infinity
   // as a 32-bit floating-point constant)
   | LPAREN_TOK INDEX_TOK 
-    ( bvLit=SIMPLE_SYMBOL size=INTEGER_LITERAL 
-      {
-        if(AntlrInput::tokenText($bvLit).find("bv") == 0)
-        {
-          std::string bvStr = AntlrInput::tokenTextSubstr($bvLit, 2);
-          uint32_t bvSize = AntlrInput::tokenToUnsigned($size);
-          atomTerm = SOLVER->mkBitVector(bvSize, bvStr, 10);
-        }
-        else
-        {
-           PARSER_STATE->parseError("Unexpected symbol `" +
-                                    AntlrInput::tokenText($bvLit) + "'");
-        }
-      }
-
-    // Floating-point constants
-    | FP_PINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      {
-        atomTerm = SOLVER->mkPosInf(AntlrInput::tokenToUnsigned($eb),
-                                AntlrInput::tokenToUnsigned($sb));
-      }
-    | FP_NINF_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      {
-        atomTerm = SOLVER->mkNegInf(AntlrInput::tokenToUnsigned($eb),
-                                AntlrInput::tokenToUnsigned($sb));
-      }
-    | FP_NAN_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      {
-        atomTerm = SOLVER->mkNaN(AntlrInput::tokenToUnsigned($eb),
-                             AntlrInput::tokenToUnsigned($sb));
-      }
-    | FP_PZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      {
-        atomTerm = SOLVER->mkPosZero(AntlrInput::tokenToUnsigned($eb),
-                                 AntlrInput::tokenToUnsigned($sb));
-      }
-    | FP_NZERO_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      {
-        atomTerm = SOLVER->mkNegZero(AntlrInput::tokenToUnsigned($eb),
-                                 AntlrInput::tokenToUnsigned($sb));
-      }
-
-    // Empty heap constant in seperation logic
-    | EMP_TOK
+    ( EMP_TOK
       sortSymbol[type,CHECK_DECLARED]
       sortSymbol[type2,CHECK_DECLARED]
       {
-        api::Term v1 = SOLVER->mkVar(api::Sort(type), "_emp1");
-        api::Term v2 = SOLVER->mkVar(api::Sort(type2), "_emp2");
+        // Empty heap constant in seperation logic
+        api::Term v1 = SOLVER->mkConst(api::Sort(type), "_emp1");
+        api::Term v2 = SOLVER->mkConst(api::Sort(type2), "_emp2");
         atomTerm = SOLVER->mkTerm(api::SEP_EMP, v1, v2);
       }
-
-    // NOTE: Theory parametric constants go here
+    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
+      {
+        atomTerm =
+          PARSER_STATE->mkIndexedConstant(AntlrInput::tokenText($sym),
+                                          numerals);
+      }
     )
     RPAREN_TOK
 
@@ -2329,41 +2273,8 @@ termAtomic[CVC4::api::Term& atomTerm]
       atomTerm = SOLVER->mkBitVector(binStr, 2);
     }
 
-  // Floating-point rounding mode constants
-  | FP_RNE_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
-  | FP_RNA_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
-  | FP_RTP_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
-  | FP_RTN_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
-  | FP_RTZ_TOK      { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
-  | FP_RNE_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_EVEN); }
-  | FP_RNA_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_NEAREST_TIES_TO_AWAY); }
-  | FP_RTP_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_POSITIVE); }
-  | FP_RTN_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_NEGATIVE); }
-  | FP_RTZ_FULL_TOK { atomTerm = SOLVER->mkRoundingMode(api::ROUND_TOWARD_ZERO); }
-
   // String constant
   | str[s,false] { atomTerm = SOLVER->mkString(s, true); }
-
-  // Regular expression constants
-  | RENOSTR_TOK { atomTerm = SOLVER->mkRegexpEmpty(); }
-  | REALLCHAR_TOK { atomTerm = SOLVER->mkRegexpSigma(); }
-
-  // Set constants
-  | EMPTYSET_TOK { atomTerm = SOLVER->mkEmptySet(SOLVER->getNullSort()); }
-  | UNIVSET_TOK
-    {
-      // the Boolean sort is a placeholder here since we don't have type info
-      // without type annotation
-      atomTerm = SOLVER->mkUniverseSet(SOLVER->getBooleanSort());
-    }
-
-  // Separation logic constants
-  | NILREF_TOK
-    {
-      // the Boolean sort is a placeholder here since we don't have type info
-      // without type annotation
-      atomTerm = SOLVER->mkSepNil(SOLVER->getBooleanSort());
-    }
 
   // NOTE: Theory constants go here
     
@@ -2524,64 +2435,10 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
 @init {
   Expr expr;
   Expr expr2;
+  std::vector<uint64_t> numerals;
 }
   : LPAREN_TOK INDEX_TOK
-    ( 'extract' n1=INTEGER_LITERAL n2=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorExtract(AntlrInput::tokenToUnsigned($n1),
-                                       AntlrInput::tokenToUnsigned($n2))); }
-    | 'repeat' n=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorRepeat(AntlrInput::tokenToUnsigned($n))); }
-    | 'zero_extend' n=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorZeroExtend(AntlrInput::tokenToUnsigned($n))); }
-    | 'sign_extend' n=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorSignExtend(AntlrInput::tokenToUnsigned($n))); }
-    | 'rotate_left' n=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorRotateLeft(AntlrInput::tokenToUnsigned($n))); }
-    | 'rotate_right' n=INTEGER_LITERAL
-      { op = MK_CONST(BitVectorRotateRight(AntlrInput::tokenToUnsigned($n))); }
-    | DIVISIBLE_TOK n=INTEGER_LITERAL
-      { op = MK_CONST(Divisible(AntlrInput::tokenToUnsigned($n))); }
-    | INT2BV_TOK n=INTEGER_LITERAL
-      { op = MK_CONST(IntToBitVector(AntlrInput::tokenToUnsigned($n)));
-        if(PARSER_STATE->strictModeEnabled()) {
-          PARSER_STATE->parseError(
-              "bv2nat and int2bv are not part of SMT-LIB, and aren't available "
-              "in SMT-LIB strict compliance mode");
-        } }
-    | FP_TO_FP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPGeneric(
-                AntlrInput::tokenToUnsigned($eb),
-                AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_FPBV_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPIEEEBitVector(
-                AntlrInput::tokenToUnsigned($eb),
-                AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_FPFP_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPFloatingPoint(
-                AntlrInput::tokenToUnsigned($eb),
-                AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_FPR_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPReal(AntlrInput::tokenToUnsigned($eb),
-                                            AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_FPS_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPSignedBitVector(
-                AntlrInput::tokenToUnsigned($eb),
-                AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_FPU_TOK eb=INTEGER_LITERAL sb=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToFPUnsignedBitVector(
-                AntlrInput::tokenToUnsigned($eb),
-                AntlrInput::tokenToUnsigned($sb)));
-      }
-    | FP_TO_UBV_TOK m=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToUBV(AntlrInput::tokenToUnsigned($m))); }
-    | FP_TO_SBV_TOK m=INTEGER_LITERAL
-      { op = MK_CONST(FloatingPointToSBV(AntlrInput::tokenToUnsigned($m))); }
-    | TESTER_TOK term[expr, expr2] { 
+    ( TESTER_TOK term[expr, expr2] {
         if( expr.getKind()==kind::APPLY_CONSTRUCTOR && expr.getNumChildren()==0 ){
           //for nullary constructors, must get the operator
           expr = expr.getOperator();
@@ -2597,23 +2454,13 @@ indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
         //put m in op so that the caller (termNonVariable) can deal with this case
         op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
       } 
-    | badIndexedFunctionName
+    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
+      {
+        op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
+                 .getExpr();
+      }
     )
     RPAREN_TOK
-  ;
-
-/**
- * Matches an erroneous indexed function name (and args) for better
- * error reporting.
- */
-badIndexedFunctionName
-@declarations {
-  std::string name;
-}
-  : id=(SIMPLE_SYMBOL | QUOTED_SYMBOL | UNTERMINATED_QUOTED_SYMBOL)
-    { PARSER_STATE->parseError(std::string("Unknown indexed function `") +
-          AntlrInput::tokenText($id) + "'");
-    }
   ;
 
 /**
@@ -2679,56 +2526,6 @@ str[std::string& s, bool fsmtlib]
         free(p_orig);
       }
     }
-  ;
-
-/**
- * Matches a builtin operator symbol and sets kind to its associated Expr kind.
- */
-builtinOp[CVC4::Kind& kind]
-@init {
-  Debug("parser") << "builtin: " << AntlrInput::tokenText(LT(1)) << std::endl;
-}
-  : NOT_TOK      { $kind = CVC4::kind::NOT;     }
-  | IMPLIES_TOK  { $kind = CVC4::kind::IMPLIES; }
-  | AND_TOK      { $kind = CVC4::kind::AND;     }
-  | OR_TOK       { $kind = CVC4::kind::OR;      }
-  | XOR_TOK      { $kind = CVC4::kind::XOR;     }
-  | EQUAL_TOK    { $kind = CVC4::kind::EQUAL;   }
-  | DISTINCT_TOK { $kind = CVC4::kind::DISTINCT; }
-  | ITE_TOK      { $kind = CVC4::kind::ITE; }
-  | GREATER_THAN_TOK
-                 { $kind = CVC4::kind::GT; }
-  | GREATER_THAN_EQUAL_TOK
-                 { $kind = CVC4::kind::GEQ; }
-  | LESS_THAN_EQUAL_TOK
-                 { $kind = CVC4::kind::LEQ; }
-  | LESS_THAN_TOK
-                 { $kind = CVC4::kind::LT; }
-  | PLUS_TOK     { $kind = CVC4::kind::PLUS; }
-  | MINUS_TOK    { $kind = CVC4::kind::MINUS; }
-  | STAR_TOK     { $kind = CVC4::kind::MULT; }
-  | DIV_TOK      { $kind = CVC4::kind::DIVISION; }
-
-  | BV2NAT_TOK
-    { $kind = CVC4::kind::BITVECTOR_TO_NAT;
-      if(PARSER_STATE->strictModeEnabled()) {
-        PARSER_STATE->parseError("bv2nat and int2bv are not part of SMT-LIB, "
-                                 "and aren't available in SMT-LIB strict "
-                                 "compliance mode");
-      }
-    }
-
-  | DTSIZE_TOK       { $kind = CVC4::kind::DT_SIZE; }
-  | FMFCARD_TOK      { $kind = CVC4::kind::CARDINALITY_CONSTRAINT; }
-  | FMFCARDVAL_TOK   { $kind = CVC4::kind::CARDINALITY_VALUE; }
-  | INST_CLOSURE_TOK { $kind = CVC4::kind::INST_CLOSURE; }
-  
-  // NOTE: Theory operators no longer go here, add to smt2.cpp. Only
-  // special cases may go here. When this comment was written (2015
-  // Apr), the special cases were: core theory operators, arith
-  // operators which start with symbols like * / + >= etc, quantifier
-  // theory operators, and operators which depended on parser's state
-  // to accept or reject.
   ;
 
 quantOp[CVC4::Kind& kind]
@@ -2922,10 +2719,10 @@ symbol[std::string& id,
         PARSER_STATE->checkDeclaration(id, check, type);
       }
     }
-  | ( 'repeat' { id = "repeat"; }
+  |
     /* these are keywords in SyGuS but we don't want to inhibit their
      * use as symbols in SMT-LIB */
-    | SET_OPTIONS_TOK { id = "set-options"; }
+    ( SET_OPTIONS_TOK { id = "set-options"; }
     | DECLARE_VAR_TOK { id = "declare-var"; }
     | DECLARE_PRIMED_VAR_TOK { id = "declare-primed-var"; }
     | SYNTH_FUN_TOK { id = "synth-fun"; }
@@ -3048,7 +2845,6 @@ GET_UNSAT_CORE_TOK : 'get-unsat-core';
 EXIT_TOK : 'exit';
 RESET_TOK : { PARSER_STATE->v2_5() }? 'reset';
 RESET_ASSERTIONS_TOK : 'reset-assertions';
-ITE_TOK : 'ite';
 LET_TOK : { !PARSER_STATE->sygus() }? 'let';
 SYGUS_LET_TOK : { PARSER_STATE->sygus() }? 'let';
 ATTRIBUTE_TOK : '!';
@@ -3064,7 +2860,7 @@ GET_OPTION_TOK : 'get-option';
 PUSH_TOK : 'push';
 POP_TOK : 'pop';
 AS_TOK : 'as';
-CONST_TOK : 'const';
+CONST_TOK : { !PARSER_STATE->strictModeEnabled() }? 'const';
 
 // extended commands
 DECLARE_CODATATYPE_TOK : { PARSER_STATE->v2_6() || PARSER_STATE->sygus() }? 'declare-codatatype';
@@ -3092,17 +2888,16 @@ INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
 DECLARE_HEAP : 'declare-heap';
-EMP_TOK : 'emp';
 
 // SyGuS commands
-SYNTH_FUN_TOK : 'synth-fun';
-SYNTH_INV_TOK : 'synth-inv';
-CHECK_SYNTH_TOK : 'check-synth';
-DECLARE_VAR_TOK : 'declare-var';
-DECLARE_PRIMED_VAR_TOK : 'declare-primed-var';
-CONSTRAINT_TOK : 'constraint';
-INV_CONSTRAINT_TOK : 'inv-constraint';
-SET_OPTIONS_TOK : 'set-options';
+SYNTH_FUN_TOK : { PARSER_STATE->sygus() }? 'synth-fun';
+SYNTH_INV_TOK : { PARSER_STATE->sygus() }? 'synth-inv';
+CHECK_SYNTH_TOK : { PARSER_STATE->sygus() }? 'check-synth';
+DECLARE_VAR_TOK : { PARSER_STATE->sygus() }? 'declare-var';
+DECLARE_PRIMED_VAR_TOK : { PARSER_STATE->sygus() }? 'declare-primed-var';
+CONSTRAINT_TOK : { PARSER_STATE->sygus() }? 'constraint';
+INV_CONSTRAINT_TOK : { PARSER_STATE->sygus() }? 'inv-constraint';
+SET_OPTIONS_TOK : { PARSER_STATE->sygus() }? 'set-options';
 SYGUS_CONSTANT_TOK : { PARSER_STATE->sygus() }? 'Constant';
 SYGUS_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'Variable';
 SYGUS_INPUT_VARIABLE_TOK : { PARSER_STATE->sygus() }? 'InputVariable';
@@ -3116,80 +2911,12 @@ ATTRIBUTE_INST_LEVEL : ':quant-inst-max-level';
 ATTRIBUTE_RR_PRIORITY : ':rr-priority';
 
 // operators (NOTE: theory symbols go here)
-AMPERSAND_TOK     : '&';
-AND_TOK           : 'and';
-AT_TOK            : '@';
-DISTINCT_TOK      : 'distinct';
-DIV_TOK           : '/';
-EQUAL_TOK         : '=';
 EXISTS_TOK        : 'exists';
 FORALL_TOK        : 'forall';
-GREATER_THAN_TOK  : '>';
-GREATER_THAN_EQUAL_TOK  : '>=';
-IMPLIES_TOK       : '=>';
-LESS_THAN_TOK     : '<';
-LESS_THAN_EQUAL_TOK     : '<=';
-MINUS_TOK         : '-';
-NOT_TOK           : 'not';
-OR_TOK            : 'or';
-// PERCENT_TOK       : '%';
-PLUS_TOK          : '+';
-//POUND_TOK         : '#';
-STAR_TOK          : '*';
-// TILDE_TOK         : '~';
-XOR_TOK           : 'xor';
 
-
-DIVISIBLE_TOK : 'divisible';
-
-BV2NAT_TOK : 'bv2nat';
-INT2BV_TOK : 'int2bv';
-
-RENOSTR_TOK : 're.nostr';
-REALLCHAR_TOK : 're.allchar';
-
-DTSIZE_TOK : 'dt.size';
-
-FMFCARD_TOK : 'fmf.card';
-FMFCARDVAL_TOK : 'fmf.card.val';
-
-INST_CLOSURE_TOK : 'inst-closure';
-
-EMPTYSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'emptyset';
-UNIVSET_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SETS) }? 'univset';
-NILREF_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'sep.nil';
+EMP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_SEP) }? 'emp';
 TUPLE_CONST_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'mkTuple';
 TUPLE_SEL_TOK: { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }? 'tupSel';
-// Other set theory operators are not
-// tokenized and handled directly when
-// processing a term
-
-REAL_PI_TOK : 'real.pi';
-
-FP_PINF_TOK : '+oo';
-FP_NINF_TOK : '-oo';
-FP_PZERO_TOK : '+zero';
-FP_NZERO_TOK : '-zero';
-FP_NAN_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'NaN';
-
-FP_TO_FP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp';
-FP_TO_FPBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_bv';
-FP_TO_FPFP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_fp';
-FP_TO_FPR_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_real';
-FP_TO_FPS_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_signed';
-FP_TO_FPU_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'to_fp_unsigned';
-FP_TO_UBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'fp.to_ubv';
-FP_TO_SBV_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'fp.to_sbv';
-FP_RNE_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RNE';
-FP_RNA_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RNA';
-FP_RTP_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTP';
-FP_RTN_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTN';
-FP_RTZ_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'RTZ';
-FP_RNE_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundNearestTiesToEven';
-FP_RNA_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundNearestTiesToAway';
-FP_RTP_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardPositive';
-FP_RTN_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardNegative';
-FP_RTZ_FULL_TOK : { PARSER_STATE->isTheoryEnabled(Smt2::THEORY_FP) }? 'roundTowardZero';
 
 HO_ARROW_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? '->';
 HO_LAMBDA_TOK : { PARSER_STATE->getLogic().isHigherOrder() }? 'lambda';
@@ -3222,8 +2949,8 @@ KEYWORD
  * digit, and is not the special reserved symbols '!' or '_'.
  */
 SIMPLE_SYMBOL
-  : (ALPHA | SYMBOL_CHAR) (ALPHA | DIGIT | SYMBOL_CHAR)+
-  | ALPHA
+  : ALPHA (ALPHA | DIGIT | SYMBOL_CHAR)*
+  | SYMBOL_CHAR (ALPHA | DIGIT | SYMBOL_CHAR)+
   | SYMBOL_CHAR_NOUNDERSCORE_NOATTRIBUTE
   ;
 

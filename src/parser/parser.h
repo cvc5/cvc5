@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Andrew Reynolds, Christopher L. Conway
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4parser_public.h"
 
-#ifndef __CVC4__PARSER__PARSER_STATE_H
-#define __CVC4__PARSER__PARSER_STATE_H
+#ifndef CVC4__PARSER__PARSER_STATE_H
+#define CVC4__PARSER__PARSER_STATE_H
 
 #include <string>
 #include <set>
@@ -137,9 +137,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The API Solver object. */
- api::Solver* d_solver;
-
  /** The resource manager associated with this expr manager */
  ResourceManager* d_resourceManager;
 
@@ -244,6 +241,9 @@ private:
  Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
  /**
   * Create a parser state.
   *
@@ -322,7 +322,12 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  virtual void forceLogic(const std::string& logic)
+  {
+    assert(!d_logicIsForced);
+    d_logicIsForced = true;
+    d_forcedLogic = logic;
+  }
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 
@@ -835,4 +840,4 @@ public:
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__PARSER_STATE_H */
+#endif /* CVC4__PARSER__PARSER_STATE_H */

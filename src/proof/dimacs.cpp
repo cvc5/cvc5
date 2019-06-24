@@ -1,10 +1,10 @@
 /*********************                                                        */
-/*! \file dimacs_printer.cpp
+/*! \file dimacs.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,7 +14,9 @@
  ** Defines serialization for SAT problems as DIMACS
  **/
 
-#include "proof/dimacs_printer.h"
+#include "proof/dimacs.h"
+
+#include "base/cvc4_assert.h"
 
 #include <iostream>
 
@@ -43,14 +45,15 @@ std::ostream& textOut(std::ostream& o, const prop::SatClause& c)
   return o << "0";
 }
 
-void printDimacs(
-    std::ostream& o,
-    const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses)
+void printDimacs(std::ostream& o,
+                 const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+                 const std::vector<ClauseId>& usedIndices)
 {
   size_t maxVar = 0;
-  for (const auto& c : usedClauses)
+  for (const ClauseId i : usedIndices)
   {
-    for (const auto& l : c.second)
+    const prop::SatClause& c = clauses.at(i);
+    for (const auto& l : c)
     {
       if (l.getSatVariable() + 1 > maxVar)
       {
@@ -58,10 +61,11 @@ void printDimacs(
       }
     }
   }
-  o << "p cnf " << maxVar << " " << usedClauses.size() << '\n';
-  for (const auto& idAndClause : usedClauses)
+  o << "p cnf " << maxVar << " " << usedIndices.size() << '\n';
+  for (const ClauseId i : usedIndices)
   {
-    for (const auto& l : idAndClause.second)
+    const prop::SatClause& c = clauses.at(i);
+    for (const auto& l : c)
     {
       if (l.isNegated())
       {
@@ -71,6 +75,45 @@ void printDimacs(
     }
     o << "0\n";
   }
+}
+
+std::vector<prop::SatClause> parseDimacs(std::istream& in)
+{
+  std::string tag;
+  uint64_t nVars;
+  uint64_t nClauses;
+
+  in >> tag;
+  Assert(in.good());
+  Assert(tag == "p");
+
+  in >> tag;
+  Assert(in.good());
+  Assert(tag == "cnf");
+
+  in >> nVars;
+  Assert(nVars >= 0);
+
+  in >> nClauses;
+  Assert(nClauses >= 0);
+
+  std::vector<prop::SatClause> cnf;
+  for (uint64_t i = 0; i < nClauses; ++i)
+  {
+    cnf.emplace_back();
+    int64_t lit;
+    in >> lit;
+    Assert(in.good());
+    while (lit != 0)
+    {
+      cnf.back().emplace_back(std::abs(lit) - 1, lit < 0);
+      in >> lit;
+      Assert(static_cast<uint64_t>(std::abs(lit)) <= nVars);
+      Assert(in.good());
+    }
+  }
+
+  return cnf;
 }
 
 }  // namespace proof

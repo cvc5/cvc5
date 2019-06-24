@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPPKIND_H
-#define __CVC4__API__CVC4CPPKIND_H
+#ifndef CVC4__API__CVC4CPPKIND_H
+#define CVC4__API__CVC4CPPKIND_H
 
 #include <ostream>
 
@@ -33,7 +33,7 @@ namespace api {
  *
  * Note that the underlying type of Kind must be signed (to enable range
  * checks for validity). The size of this type depends on the size of
- * CVC4::Kind (__CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
+ * CVC4::Kind (CVC4__EXPR__NODE_VALUE__NBITS__KIND, currently 10 bits,
  * see expr/metakind_template.h).
  */
 enum CVC4_PUBLIC Kind : int32_t
@@ -79,31 +79,6 @@ enum CVC4_PUBLIC Kind : int32_t
   BUILTIN,
 #endif
   /**
-   * Defined function.
-   * Parameters: 3 (4)
-   *   See defineFun().
-   * Create with:
-   *   defineFun(const std::string& symbol,
-   *             const std::vector<Term>& bound_vars,
-   *             Sort sort,
-   *             Term term)
-   *   defineFun(Term fun,
-   *             const std::vector<Term>& bound_vars,
-   *             Term term)
-   */
-  FUNCTION,
-  /**
-   * Application of a defined function.
-   * Parameters: n > 1
-   *   -[1]..[n]: Function argument instantiation Terms
-   * Create with:
-   *   mkTerm(Kind kind, Term child)
-   *   mkTerm(Kind kind, Term child1, Term child2)
-   *   mkTerm(Kind kind, Term child1, Term child2, Term child3)
-   *   mkTerm(Kind kind, const std::vector<Term>& children)
-   */
-  APPLY,
-  /**
    * Equality.
    * Parameters: 2
    *   -[1]..[2]: Terms with same sort
@@ -123,8 +98,18 @@ enum CVC4_PUBLIC Kind : int32_t
    */
   DISTINCT,
   /**
-   * Variable.
+   * First-order constant.
    * Not permitted in bindings (forall, exists, ...).
+   * Parameters:
+   *   See mkConst().
+   * Create with:
+   *   mkConst(const std::string& symbol, Sort sort)
+   *   mkConst(Sort sort)
+   */
+  CONSTANT,
+  /**
+   * (Bound) variable.
+   * Permitted in bindings and in the lambda and quantifier bodies only.
    * Parameters:
    *   See mkVar().
    * Create with:
@@ -132,16 +117,6 @@ enum CVC4_PUBLIC Kind : int32_t
    *   mkVar(Sort sort)
    */
   VARIABLE,
-  /**
-   * Bound variable.
-   * Permitted in bindings and in the lambda and quantifier bodies only.
-   * Parameters:
-   *   See mkBoundVar().
-   * Create with:
-   *   mkBoundVar(const std::string& symbol, Sort sort)
-   *   mkBoundVar(Sort sort)
-   */
-  BOUND_VARIABLE,
 #if 0
   /* Skolem variable (internal only) */
   SKOLEM,

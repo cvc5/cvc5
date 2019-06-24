@@ -1,4 +1,5 @@
 ; REQUIRES: symfpu
+; COMMAND-LINE: --fp-exp
 ; EXPECT: sat
 (set-logic QF_FP)
 (set-info :status sat)

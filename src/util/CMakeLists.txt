@@ -47,6 +47,7 @@ libcvc4_add_sources(
   statistics_registry.h
   tuple.h
   unsafe_interrupt_exception.h
+  utility.cpp
   utility.h
 )
 

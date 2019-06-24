@@ -2,9 +2,9 @@
 /*! \file preprocessing_pass.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Justin Xu, Aina Niemetz
+ **   Justin Xu
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -28,8 +28,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PREPROCESSING_PASS_H
-#define __CVC4__PREPROCESSING__PREPROCESSING_PASS_H
+#ifndef CVC4__PREPROCESSING__PREPROCESSING_PASS_H
+#define CVC4__PREPROCESSING__PREPROCESSING_PASS_H
 
 #include <string>
 
@@ -82,4 +82,4 @@ class PreprocessingPass {
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PREPROCESSING_PASS_H */
+#endif /* CVC4__PREPROCESSING__PREPROCESSING_PASS_H */

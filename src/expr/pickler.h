@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters, Tim King, Clark Barrett
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PICKLER_H
-#define __CVC4__PICKLER_H
+#ifndef CVC4__PICKLER_H
+#define CVC4__PICKLER_H
 
 #include "expr/variable_type_map.h"
 #include "expr/expr.h"
@@ -126,4 +126,4 @@ protected:
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PICKLER_H */
+#endif /* CVC4__PICKLER_H */

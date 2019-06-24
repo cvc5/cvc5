@@ -2,9 +2,9 @@
 /*! \file rewrite_engine.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tim King
+ **   Andrew Reynolds, Tim King, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -119,7 +119,6 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
   QuantConflictFind * qcf = d_quantEngine->getConflictFind();
   if( qcf ){
     //reset QCF module
-    qcf->computeRelevantEqr();
     qcf->setEffort(QuantConflictFind::EFFORT_CONFLICT);
     //get the proper quantifiers info
     std::map< Node, QuantInfo >::iterator it = d_qinfo.find( f );

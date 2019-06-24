@@ -22,10 +22,11 @@
 #include "prop/sat_solver_types.h"
 #include "utils.h"
 
+using namespace CVC4;
 using namespace CVC4::proof::lrat;
 using namespace CVC4::prop;
 
-class LfscProofBlack : public CxxTest::TestSuite
+class LratProofBlack : public CxxTest::TestSuite
 {
  public:
   void setUp() override {}
@@ -34,7 +35,7 @@ class LfscProofBlack : public CxxTest::TestSuite
   void testOutputAsLfsc();
 };
 
-void LfscProofBlack::testOutputAsLfsc()
+void LratProofBlack::testOutputAsLfsc()
 {
   std::vector<std::unique_ptr<LratInstruction>> instructions;
 

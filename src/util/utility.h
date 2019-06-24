@@ -2,9 +2,9 @@
 /*! \file utility.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Aina Niemetz
+ **   Morgan Deters, Andres Noetzli, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,12 +16,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTILITY_H
-#define __CVC4__UTILITY_H
+#ifndef CVC4__UTILITY_H
+#define CVC4__UTILITY_H
 
 #include <algorithm>
-#include <utility>
+#include <fstream>
 #include <functional>
+#include <string>
+#include <utility>
 
 namespace CVC4 {
 
@@ -85,6 +87,18 @@ void container_to_stream(std::ostream& out,
   out << postfix;
 }
 
+/**
+ * Opens a new temporary file with a given filename pattern and returns an
+ * fstream to it. The directory that the file is created in is either TMPDIR or
+ * /tmp/ if TMPDIR is not set.
+ *
+ * @param pattern The filename pattern. This string is modified to contain the
+ * name of the temporary file.
+ *
+ * @return A filestream for the temporary file.
+ */
+std::fstream openTmpFile(std::string* pattern);
+
 }/* CVC4 namespace */
 
-#endif /* __CVC4__UTILITY_H */
+#endif /* CVC4__UTILITY_H */

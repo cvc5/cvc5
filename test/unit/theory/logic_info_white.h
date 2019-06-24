@@ -2,9 +2,9 @@
 /*! \file logic_info_white.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Mathias Preiner, Andres Noetzli
+ **   Morgan Deters, Andres Noetzli, Mathias Preiner
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -732,6 +732,10 @@ public:
   }
 
   void testComparison() {
+    LogicInfo ufHo = LogicInfo("QF_UF").getUnlockedCopy();
+    ufHo.enableHigherOrder();
+    ufHo.lock();
+
     eq("QF_UF", "QF_UF");
     nc("QF_UF", "QF_LRA");
     nc("QF_UF", "QF_LIA");
@@ -756,6 +760,9 @@ public:
     lt("QF_UF", "AUFLIA");
     lt("QF_UF", "AUFLIRA");
     lt("QF_UF", "AUFNIRA");
+    lt("QF_UF", "QF_UFC");
+    lt("QF_UF", ufHo);
+    nc("QF_UFC", ufHo);
 
     nc("QF_LRA", "QF_UF");
     eq("QF_LRA", "QF_LRA");
@@ -781,6 +788,7 @@ public:
     nc("QF_LRA", "AUFLIA");
     lt("QF_LRA", "AUFLIRA");
     lt("QF_LRA", "AUFNIRA");
+    lt("QF_LRA", "QF_UFCLRA");
 
     nc("QF_LIA", "QF_UF");
     nc("QF_LIA", "QF_LRA");
@@ -1335,6 +1343,11 @@ public:
     gt("AUFNIRA", "AUFLIRA");
     eq("AUFNIRA", "AUFNIRA");
     lt("AUFNIRA", "AUFNIRAT");
+
+    gt("QF_UFC", "QF_UF");
+    gt("QF_UFCLRA", "QF_UFLRA");
+
+    gt(ufHo, "QF_UF");
   }
 
 };/* class LogicInfoWhite */

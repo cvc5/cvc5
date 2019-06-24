@@ -2,9 +2,9 @@
 /*! \file term_database_sygus.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_SYGUS_H
 
 #include <unordered_set>
 
@@ -393,6 +393,11 @@ class TermDbSygus {
   std::map<TypeNode, std::vector<Node> > d_var_list;
   std::map<TypeNode, std::map<int, Kind> > d_arg_kind;
   std::map<TypeNode, std::map<Kind, int> > d_kinds;
+  /**
+   * Whether this sygus type has a constructors whose sygus operator is ITE,
+   * or is a lambda whose body is ITE.
+   */
+  std::map<TypeNode, bool> d_hasIte;
   std::map<TypeNode, std::map<int, Node> > d_arg_const;
   std::map<TypeNode, std::map<Node, int> > d_consts;
   std::map<TypeNode, std::map<Node, int> > d_ops;
@@ -462,6 +467,11 @@ class TermDbSygus {
   int getConstConsNum( TypeNode tn, Node n );
   int getOpConsNum( TypeNode tn, Node n );
   bool hasKind( TypeNode tn, Kind k );
+  /**
+   * Returns true if this sygus type has a constructors whose sygus operator is
+   * ITE, or is a lambda whose body is ITE.
+   */
+  bool hasIte(TypeNode tn) const;
   bool hasConst( TypeNode tn, Node n );
   bool hasOp( TypeNode tn, Node n );
   Node getConsNumConst( TypeNode tn, int i );
@@ -599,4 +609,4 @@ class TermDbSygus {
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_DATABASE_H */

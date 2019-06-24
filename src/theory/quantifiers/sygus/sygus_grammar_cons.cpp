@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Haniel Barbosa
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -712,7 +712,14 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
       for (unsigned k = 0, size_k = dt.getNumConstructors(); k < size_k; ++k)
       {
         Trace("sygus-grammar-def") << "...for " << dt[k].getName() << std::endl;
-        ops[i].push_back( dt[k].getConstructor() );
+        Expr cop = dt[k].getConstructor();
+        if (dt[k].getNumArgs() == 0)
+        {
+          // Nullary constructors are interpreted as terms, not operators.
+          // Thus, we apply them to no arguments here.
+          cop = nm->mkNode(APPLY_CONSTRUCTOR, Node::fromExpr(cop)).toExpr();
+        }
+        ops[i].push_back(cop);
         cnames[i].push_back(dt[k].getName());
         cargs[i].push_back(std::vector<Type>());
         Trace("sygus-grammar-def") << "...add for selectors" << std::endl;
