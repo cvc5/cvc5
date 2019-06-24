@@ -236,6 +236,38 @@ bool getFreeVariables(TNode n,
   return !fvs.empty();
 }
 
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs)
+{
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    std::unordered_set<TNode, TNodeHashFunction>::iterator itv =
+        visited.find(cur);
+    if (itv == visited.end())
+    {
+      if (cur.isVar())
+      {
+        vs.insert(cur);
+      }
+      else
+      {
+        for (const TNode& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      visited.insert(cur);
+    }
+  } while (!visit.empty());
+
+  return !vs.empty();
+}
+
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;

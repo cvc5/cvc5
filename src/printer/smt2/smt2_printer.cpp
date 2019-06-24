@@ -91,7 +91,11 @@ void Smt2Printer::toStream(
 
 static std::string maybeQuoteSymbol(const std::string& s) {
   // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted) symbols
-  if(s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@$%^&*_-+=<>.?/") != string::npos) {
+  if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                          "0123456789~!@$%^&*_-+=<>.?/")
+          != string::npos
+      || s.empty())
+  {
     // need to quote it
     stringstream ss;
     ss << '|' << s << '|';
@@ -1043,6 +1047,7 @@ static string smtKindString(Kind k, Variant v)
   case kind::BITVECTOR_NEG: return "bvneg";
   case kind::BITVECTOR_UDIV_TOTAL:
   case kind::BITVECTOR_UDIV: return "bvudiv";
+  case kind::BITVECTOR_UREM_TOTAL:
   case kind::BITVECTOR_UREM: return "bvurem";
   case kind::BITVECTOR_SDIV: return "bvsdiv";
   case kind::BITVECTOR_SREM: return "bvsrem";

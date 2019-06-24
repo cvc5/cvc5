@@ -33,108 +33,157 @@ std::ostream* DumpC::getStreamPointer() { return ::CVC4::DumpOutChannel.getStrea
 
 
 void DumpC::setDumpFromString(const std::string& optarg) {
-#ifdef CVC4_DUMPING
-  // Make a copy of optarg for strtok_r to use.
-  std::string optargCopy = optarg;
-  char* optargPtr = const_cast<char*>(optargCopy.c_str());
-  char* tokstr = optargPtr;
-  char* toksave;
-  while((optargPtr = strtok_r(tokstr, ",", &toksave)) != NULL) {
-    tokstr = NULL;
-    if(!strcmp(optargPtr, "raw-benchmark")) {
-    } else if(!strcmp(optargPtr, "benchmark")) {
-    } else if(!strcmp(optargPtr, "declarations")) {
-    } else if(!strcmp(optargPtr, "assertions")) {
-      Dump.on("assertions:post-everything");
-    } else if(!strncmp(optargPtr, "assertions:", 11)) {
-      const char* p = optargPtr + 11;
-      if(!strncmp(p, "pre-", 4)) {
-        p += 4;
-      } else if(!strncmp(p, "post-", 5)) {
-        p += 5;
-      } else {
-        throw OptionException(std::string("don't know how to dump `") +
-                              optargPtr + "'.  Please consult --dump help.");
-      }
-      if(!strcmp(p, "everything")) {
-      }
-      else if (preprocessing::PreprocessingPassRegistry::getInstance().hasPass(
-                   p))
+  if (Configuration::isDumpingBuild())
+  {
+    // Make a copy of optarg for strtok_r to use.
+    std::string optargCopy = optarg;
+    char* optargPtr = const_cast<char*>(optargCopy.c_str());
+    char* tokstr = optargPtr;
+    char* toksave;
+    while ((optargPtr = strtok_r(tokstr, ",", &toksave)) != NULL)
+    {
+      tokstr = NULL;
+      if (!strcmp(optargPtr, "raw-benchmark"))
       {
-      } else {
-        throw OptionException(std::string("don't know how to dump `") +
-                              optargPtr + "'.  Please consult --dump help.");
       }
-      Dump.on("assertions");
-    } else if(!strcmp(optargPtr, "skolems")) {
-    } else if(!strcmp(optargPtr, "clauses")) {
-    } else if(!strcmp(optargPtr, "t-conflicts") ||
-              !strcmp(optargPtr, "t-lemmas") ||
-              !strcmp(optargPtr, "t-explanations") ||
-              !strcmp(optargPtr, "bv-rewrites") ||
-              !strcmp(optargPtr, "theory::fullcheck")) {
-      // These are "non-state-dumping" modes.  If state (SAT decisions,
-      // propagations, etc.) is dumped, it will interfere with the validity
-      // of these generated queries.
-      if(Dump.isOn("state")) {
-        throw OptionException(std::string("dump option `") + optargPtr +
+      else if (!strcmp(optargPtr, "benchmark"))
+      {
+      }
+      else if (!strcmp(optargPtr, "declarations"))
+      {
+      }
+      else if (!strcmp(optargPtr, "assertions"))
+      {
+        Dump.on("assertions:post-everything");
+      }
+      else if (!strncmp(optargPtr, "assertions:", 11))
+      {
+        const char* p = optargPtr + 11;
+        if (!strncmp(p, "pre-", 4))
+        {
+          p += 4;
+        }
+        else if (!strncmp(p, "post-", 5))
+        {
+          p += 5;
+        }
+        else
+        {
+          throw OptionException(std::string("don't know how to dump `")
+                                + optargPtr
+                                + "'.  Please consult --dump help.");
+        }
+        if (!strcmp(p, "everything"))
+        {
+        }
+        else if (preprocessing::PreprocessingPassRegistry::getInstance()
+                     .hasPass(p))
+        {
+        }
+        else
+        {
+          throw OptionException(std::string("don't know how to dump `")
+                                + optargPtr
+                                + "'.  Please consult --dump help.");
+        }
+        Dump.on("assertions");
+      }
+      else if (!strcmp(optargPtr, "skolems"))
+      {
+      }
+      else if (!strcmp(optargPtr, "clauses"))
+      {
+      }
+      else if (!strcmp(optargPtr, "t-conflicts")
+               || !strcmp(optargPtr, "t-lemmas")
+               || !strcmp(optargPtr, "t-explanations")
+               || !strcmp(optargPtr, "bv-rewrites")
+               || !strcmp(optargPtr, "theory::fullcheck"))
+      {
+        // These are "non-state-dumping" modes.  If state (SAT decisions,
+        // propagations, etc.) is dumped, it will interfere with the validity
+        // of these generated queries.
+        if (Dump.isOn("state"))
+        {
+          throw OptionException(std::string("dump option `") + optargPtr +
                               "' conflicts with a previous, "
                               "state-dumping dump option.  You cannot "
                               "mix stateful and non-stateful dumping modes; "
                               "see --dump help.");
-      } else {
-        Dump.on("no-permit-state");
+        }
+        else
+        {
+          Dump.on("no-permit-state");
+        }
       }
-    } else if(!strcmp(optargPtr, "state") ||
-              !strcmp(optargPtr, "missed-t-conflicts") ||
-              !strcmp(optargPtr, "t-propagations") ||
-              !strcmp(optargPtr, "missed-t-propagations")) {
-      // These are "state-dumping" modes.  If state (SAT decisions,
-      // propagations, etc.) is not dumped, it will interfere with the
-      // validity of these generated queries.
-      if(Dump.isOn("no-permit-state")) {
-        throw OptionException(std::string("dump option `") + optargPtr +
+      else if (!strcmp(optargPtr, "state")
+               || !strcmp(optargPtr, "missed-t-conflicts")
+               || !strcmp(optargPtr, "t-propagations")
+               || !strcmp(optargPtr, "missed-t-propagations"))
+      {
+        // These are "state-dumping" modes.  If state (SAT decisions,
+        // propagations, etc.) is not dumped, it will interfere with the
+        // validity of these generated queries.
+        if (Dump.isOn("no-permit-state"))
+        {
+          throw OptionException(std::string("dump option `") + optargPtr +
                               "' conflicts with a previous, "
                               "non-state-dumping dump option.  You cannot "
                               "mix stateful and non-stateful dumping modes; "
                               "see --dump help.");
-      } else {
-        Dump.on("state");
+        }
+        else
+        {
+          Dump.on("state");
+        }
       }
-    } else if(!strcmp(optargPtr, "help")) {
-      puts(s_dumpHelp.c_str());
-
-      std::stringstream ss;
-      ss << "Available preprocessing passes:\n";
-      for (const std::string& pass :
-           preprocessing::PreprocessingPassRegistry::getInstance()
-               .getAvailablePasses())
+      else if (!strcmp(optargPtr, "help"))
       {
-        ss << "- " << pass << "\n";
-      }
-      puts(ss.str().c_str());
-      exit(1);
-    } else if(!strcmp(optargPtr, "bv-abstraction")) {
-      Dump.on("bv-abstraction");
-    } else if(!strcmp(optargPtr, "bv-algebraic")) {
-      Dump.on("bv-algebraic");
-    } else {
-      throw OptionException(std::string("unknown option for --dump: `") +
-                            optargPtr + "'.  Try --dump help.");
-    }
+        puts(s_dumpHelp.c_str());
 
-    Dump.on(optargPtr);
-    Dump.on("benchmark");
-    if(strcmp(optargPtr, "benchmark")) {
-      Dump.on("declarations");
-      if(strcmp(optargPtr, "declarations") && strcmp(optargPtr, "raw-benchmark")) {
-        Dump.on("skolems");
+        std::stringstream ss;
+        ss << "Available preprocessing passes:\n";
+        for (const std::string& pass :
+             preprocessing::PreprocessingPassRegistry::getInstance()
+                 .getAvailablePasses())
+        {
+          ss << "- " << pass << "\n";
+        }
+        puts(ss.str().c_str());
+        exit(1);
+      }
+      else if (!strcmp(optargPtr, "bv-abstraction"))
+      {
+        Dump.on("bv-abstraction");
+      }
+      else if (!strcmp(optargPtr, "bv-algebraic"))
+      {
+        Dump.on("bv-algebraic");
+      }
+      else
+      {
+        throw OptionException(std::string("unknown option for --dump: `")
+                              + optargPtr + "'.  Try --dump help.");
+      }
+
+      Dump.on(optargPtr);
+      Dump.on("benchmark");
+      if (strcmp(optargPtr, "benchmark"))
+      {
+        Dump.on("declarations");
+        if (strcmp(optargPtr, "declarations")
+            && strcmp(optargPtr, "raw-benchmark"))
+        {
+          Dump.on("skolems");
+        }
       }
     }
   }
-#else /* CVC4_DUMPING */
-  throw OptionException("The dumping feature was disabled in this build of CVC4.");
-#endif /* CVC4_DUMPING */
+  else
+  {
+    throw OptionException(
+        "The dumping feature was disabled in this build of CVC4.");
+  }
 }
 
 const std::string DumpC::s_dumpHelp = "\

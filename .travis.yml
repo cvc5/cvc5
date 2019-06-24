@@ -1,18 +1,10 @@
-# Fix Travis write errors on Clang builds. These write errors occurred after
-# a Travis update to new Trusty images on Dec. 12th 2017. The reason for these
-# write errors is unknown. Using the deprecated builds did not fix the problem.
-# Setting 'filter_secrets: false' as suggested here
-# https://github.com/travis-ci/travis-ci/issues/4704#issuecomment-321777557
-# fixes the problem.
-filter_secrets: false
-
 language: cpp
 cache:
  - apt
  - ccache
 
 sudo: false
-dist: trusty
+dist: xenial
 
 env:
  global:
@@ -30,7 +22,7 @@ addons:
   - libcln-dev
   - libgmp-dev
   - libhamcrest-java
-  - openjdk-7-jdk
+  - openjdk-8-jdk
   - swig3.0
 before_install:
  - eval "${MATRIX_EVAL}"
@@ -45,7 +37,7 @@ before_install:
      sudo ln -s $(which ccache) /usr/lib/ccache/clang++
    fi
 before_script:
-  export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+  export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 script:
  - ccache -M 1G
  - ccache -z
@@ -81,9 +73,12 @@ script:
      $1 || exit 1
      echo "travis_fold:end:$1"
    }
+   [[ "$TRAVIS_CVC4_CONFIG" == *"symfpu"* ]] && CVC4_SYMFPU_BUILD="yes"
+   [ -n "$CVC4_SYMFPU_BUILD" ] && run contrib/get-symfpu
    [ -n "$TRAVIS_CVC4" ] && [ -n "$TRAVIS_WITH_LFSC" ] && run contrib/get-lfsc-checker
    [ -n "$TRAVIS_CVC4" ] && run configureCVC4
-   [ -n "$TRAVIS_CVC4" ] && run makeCheck && run makeInstallCheck
+   [ -n "$TRAVIS_CVC4" ] && run makeCheck
+   [ -z "$CVC4_SYMFPU_BUILD" ] && run makeInstallCheck
    [ -z "$TRAVIS_CVC4" ] && error "Unknown Travis-CI configuration"
    echo "travis_fold:end:load_script"
  - echo; echo "${green}EVERYTHING SEEMED TO PASS!${normal}"
@@ -97,13 +92,13 @@ matrix:
         - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='production --language-bindings=java --lfsc'
     - compiler: gcc
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --lfsc --no-debug-symbols'
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --symfpu --lfsc --no-debug-symbols'
 
     #
     # Test with Clang
     - compiler: clang
       env:
-        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --cln --gpl --no-debug-symbols --no-proofs'
+        - TRAVIS_CVC4=yes TRAVIS_WITH_LFSC=yes TRAVIS_CVC4_CONFIG='debug --symfpu --cln --gpl --no-debug-symbols --no-proofs'
 notifications:
   email:
     on_success: change

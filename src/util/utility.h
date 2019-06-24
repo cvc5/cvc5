@@ -20,8 +20,10 @@
 #define CVC4__UTILITY_H
 
 #include <algorithm>
-#include <utility>
+#include <fstream>
 #include <functional>
+#include <string>
+#include <utility>
 
 namespace CVC4 {
 
@@ -84,6 +86,18 @@ void container_to_stream(std::ostream& out,
   }
   out << postfix;
 }
+
+/**
+ * Opens a new temporary file with a given filename pattern and returns an
+ * fstream to it. The directory that the file is created in is either TMPDIR or
+ * /tmp/ if TMPDIR is not set.
+ *
+ * @param pattern The filename pattern. This string is modified to contain the
+ * name of the temporary file.
+ *
+ * @return A filestream for the temporary file.
+ */
+std::fstream openTmpFile(std::string* pattern);
 
 }/* CVC4 namespace */
 

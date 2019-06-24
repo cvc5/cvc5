@@ -146,16 +146,16 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_CONCAT);
   d_equalityEngine.addFunctionKind(kind::STRING_IN_REGEXP);
   d_equalityEngine.addFunctionKind(kind::STRING_CODE);
-  if( options::stringLazyPreproc() ){
-    d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
-    d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
-    d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
-    d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
-    d_equalityEngine.addFunctionKind(kind::STRING_STOI);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
-    d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
-  }
+
+  // extended functions
+  d_equalityEngine.addFunctionKind(kind::STRING_STRCTN);
+  d_equalityEngine.addFunctionKind(kind::STRING_LEQ);
+  d_equalityEngine.addFunctionKind(kind::STRING_SUBSTR);
+  d_equalityEngine.addFunctionKind(kind::STRING_ITOS);
+  d_equalityEngine.addFunctionKind(kind::STRING_STOI);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
+  d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -484,16 +484,13 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
   }
   else
   {
-    if (options::stringLazyPreproc())
+    if (k == STRING_SUBSTR)
     {
-      if (k == STRING_SUBSTR)
-      {
-        r_effort = 1;
-      }
-      else if (k != STRING_IN_REGEXP)
-      {
-        r_effort = 2;
-      }
+      r_effort = 1;
+    }
+    else if (k != STRING_IN_REGEXP)
+    {
+      r_effort = 2;
     }
   }
   if (effort != r_effort)
@@ -1467,6 +1464,7 @@ void TheoryStrings::checkInit() {
                 Trace("strings-process-debug") << "  congruent term by singular : " << n << " " << c[0] << std::endl;
                 //singular case
                 if( !areEqual( c[0], n ) ){
+                  Node ns;
                   std::vector< Node > exp;
                   //explain empty components
                   bool foundNEmpty = false;
@@ -1477,15 +1475,13 @@ void TheoryStrings::checkInit() {
                       }
                     }else{
                       Assert( !foundNEmpty );
-                      if( n[i]!=c[0] ){
-                        exp.push_back( n[i].eqNode( c[0] ) );
-                      }
+                      ns = n[i];
                       foundNEmpty = true;
                     }
                   }
                   AlwaysAssert( foundNEmpty );
                   //infer the equality
-                  sendInference( exp, n.eqNode( c[0] ), "I_Norm_S" );
+                  sendInference(exp, n.eqNode(ns), "I_Norm_S");
                 }
                 d_congruent.insert( n );
                 congruent[k]++;
@@ -3293,7 +3289,6 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
                       Node firstChar = stra.size() == 1 ? const_str : NodeManager::currentNM()->mkConst( isRev ? stra.suffix( 1 ) : stra.prefix( 1 ) );
                       Node sk = d_sk_cache.mkSkolemCached(
                           other_str,
-                          firstChar,
                           isRev ? SkolemCache::SK_ID_VC_SPT_REV
                                 : SkolemCache::SK_ID_VC_SPT,
                           "c_spt");
@@ -3691,11 +3686,10 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   }
                 }else{
                   Node sk = d_sk_cache.mkSkolemCached(
-                      nconst_k, firstChar, SkolemCache::SK_ID_DC_SPT, "dc_spt");
+                      nconst_k, SkolemCache::SK_ID_DC_SPT, "dc_spt");
                   registerLength(sk, LENGTH_ONE);
                   Node skr =
                       d_sk_cache.mkSkolemCached(nconst_k,
-                                                firstChar,
                                                 SkolemCache::SK_ID_DC_SPT_REM,
                                                 "dc_spt_rem");
                   Node eq1 = nconst_k.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, sk, skr ) );
@@ -3967,6 +3961,14 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Trace("strings-lemma") << "Strings::Lemma LENGTH Term : " << eq
                            << std::endl;
     d_proxy_var[n] = sk;
+    // If we are introducing a proxy for a constant or concat term, we do not
+    // need to send lemmas about its length, since its length is already
+    // implied.
+    if (n.isConst() || n.getKind() == STRING_CONCAT)
+    {
+      // add to length lemma cache, i.e. do not send length lemma for sk.
+      d_length_lemma_terms_cache.insert(sk);
+    }
     Trace("strings-assert") << "(assert " << eq << ")" << std::endl;
     d_out->lemma(eq);
     Node skl = nm->mkNode(STRING_LENGTH, sk);
@@ -4016,6 +4018,14 @@ void TheoryStrings::registerTerm( Node n, int effort ) {
     Node lem = nm->mkNode(ITE, code_len, code_range, code_eq_neg1);
     Trace("strings-lemma") << "Strings::Lemma CODE : " << lem << std::endl;
     Trace("strings-assert") << "(assert " << lem << ")" << std::endl;
+    d_out->lemma(lem);
+  }
+  else if (n.getKind() == STRING_STRIDOF)
+  {
+    Node len = mkLength(n[0]);
+    Node lem = nm->mkNode(AND,
+                          nm->mkNode(GEQ, n, nm->mkConst(Rational(-1))),
+                          nm->mkNode(LT, n, len));
     d_out->lemma(lem);
   }
 }
@@ -4463,19 +4473,29 @@ void TheoryStrings::checkNormalFormsDeq()
         for( unsigned j=0; j<cols[i].size(); j++ ){
           for( unsigned k=(j+1); k<cols[i].size(); k++ ){
             //for strings that are disequal, but have the same length
-            if( areDisequal( cols[i][j], cols[i][k] ) ){
-              Assert( !d_conflict );
-              if (Trace.isOn("strings-solve"))
+            if (cols[i][j].isConst() && cols[i][k].isConst())
+            {
+              // if both are constants, they should be distinct, and its trivial
+              Assert(cols[i][j] != cols[i][k]);
+            }
+            else
+            {
+              if (areDisequal(cols[i][j], cols[i][k]))
               {
-                Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
-                printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
-                Trace("strings-solve") << " against " << cols[i][k] << " ";
-                printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
-                Trace("strings-solve") << "..." << std::endl;
-              }
-              processDeq( cols[i][j], cols[i][k] );
-              if( hasProcessed() ){
-                return;
+                Assert(!d_conflict);
+                if (Trace.isOn("strings-solve"))
+                {
+                  Trace("strings-solve") << "- Compare " << cols[i][j] << " ";
+                  printConcat(getNormalForm(cols[i][j]).d_nf, "strings-solve");
+                  Trace("strings-solve") << " against " << cols[i][k] << " ";
+                  printConcat(getNormalForm(cols[i][k]).d_nf, "strings-solve");
+                  Trace("strings-solve") << "..." << std::endl;
+                }
+                processDeq(cols[i][j], cols[i][k]);
+                if (hasProcessed())
+                {
+                  return;
+                }
               }
             }
           }
@@ -4516,8 +4536,9 @@ void TheoryStrings::checkLengthsEqc() {
           Node lc = NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, nf );
           Node lcr = Rewriter::rewrite( lc );
           Trace("strings-process-debug") << "Rewrote length " << lc << " to " << lcr << std::endl;
-          Node eq = llt.eqNode( lcr );
-          if( llt!=lcr ){
+          if (!areEqual(llt, lcr))
+          {
+            Node eq = llt.eqNode(lcr);
             ei->d_normalized_length.set( eq );
             sendInference( ant, eq, "LEN-NORM", true );
           }

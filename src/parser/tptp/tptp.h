@@ -47,6 +47,8 @@ class Tptp : public Parser {
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
 
+  void forceLogic(const std::string& logic) override;
+
   void addFreeVar(Expr var);
   std::vector< Expr > getFreeVar();
 
