@@ -25,8 +25,10 @@
 #include <unordered_map>
 #include <utility>
 
+#include "api/cvc4cpp.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
@@ -40,32 +42,42 @@ class Solver;
 
 namespace parser {
 
-class Smt2 : public Parser {
+class Smt2 : public Parser
+{
   friend class ParserBuilder;
 
-public:
- enum Theory
- {
-   THEORY_ARRAYS,
-   THEORY_BITVECTORS,
-   THEORY_CORE,
-   THEORY_DATATYPES,
-   THEORY_INTS,
-   THEORY_REALS,
-   THEORY_TRANSCENDENTALS,
-   THEORY_REALS_INTS,
-   THEORY_QUANTIFIERS,
-   THEORY_SETS,
-   THEORY_STRINGS,
-   THEORY_UF,
-   THEORY_FP,
-   THEORY_SEP
- };
+ public:
+  enum Theory
+  {
+    THEORY_ARRAYS,
+    THEORY_BITVECTORS,
+    THEORY_CORE,
+    THEORY_DATATYPES,
+    THEORY_INTS,
+    THEORY_REALS,
+    THEORY_TRANSCENDENTALS,
+    THEORY_REALS_INTS,
+    THEORY_QUANTIFIERS,
+    THEORY_SETS,
+    THEORY_STRINGS,
+    THEORY_UF,
+    THEORY_FP,
+    THEORY_SEP
+  };
 
-private:
+ private:
+  /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
+  /** Have we seen a set-logic command yet? */
+  bool d_seenSetLogic;
+
   LogicInfo d_logic;
   std::unordered_map<std::string, Kind> operatorKindMap;
+  /**
+   * Maps indexed symbols to the kind of the operator (e.g. "extract" to
+   * BITVECTOR_EXTRACT_OP).
+   */
+  std::unordered_map<std::string, api::Kind> d_indexedOpKindMap;
   std::pair<Expr, std::string> d_lastNamedTerm;
   // for sygus
   std::vector<Expr> d_sygusVars, d_sygusVarPrimed, d_sygusConstraints,
@@ -87,6 +99,20 @@ private:
 
   void addOperator(Kind k, const std::string& name);
 
+  /**
+   * Registers an indexed function symbol.
+   *
+   * @param tKind The kind of the term that uses the operator kind (e.g.
+   *              BITVECTOR_EXTRACT). NOTE: this is an internal kind for now
+   *              because that is what we use to create expressions. Eventually
+   *              it will be an api::Kind.
+   * @param opKind The kind of the operator term (e.g. BITVECTOR_EXTRACT_OP)
+   * @param name The name of the symbol (e.g. "extract")
+   */
+  void addIndexedOperator(Kind tKind,
+                          api::Kind opKind,
+                          const std::string& name);
+
   Kind getOperatorKind(const std::string& name) const;
 
   bool isOperatorEnabled(const std::string& name) const;
@@ -96,24 +122,47 @@ private:
   bool logicIsSet() override;
 
   /**
-   * Returns the expression that name should be interpreted as. 
+   * Creates an indexed constant, e.g. (_ +oo 8 24) (positive infinity
+   * as a 32-bit floating-point constant).
+   *
+   * @param name The name of the constant (e.g. "+oo")
+   * @param numerals The parameters for the constant (e.g. [8, 24])
+   * @return The term corresponding to the constant or a parse error if name is
+   *         not valid.
+   */
+  api::Term mkIndexedConstant(const std::string& name,
+                              const std::vector<uint64_t>& numerals);
+
+  /**
+   * Creates an indexed operator term, e.g. (_ extract 5 0).
+   *
+   * @param name The name of the operator (e.g. "extract")
+   * @param numerals The parameters for the operator (e.g. [5, 0])
+   * @return The operator term corresponding to the indexed operator or a parse
+   *         error if the name is not valid.
+   */
+  api::OpTerm mkIndexedOp(const std::string& name,
+                          const std::vector<uint64_t>& numerals);
+
+  /**
+   * Returns the expression that name should be interpreted as.
    */
   Expr getExpressionForNameAndType(const std::string& name, Type t) override;
 
   /** Make function defined by a define-fun(s)-rec command.
-  *
-  * fname : the name of the function.
-  * sortedVarNames : the list of variable arguments for the function.
-  * t : the range type of the function we are defining.
-  *
-  * This function will create a bind a new function term to name fname.
-  * The type of this function is
-  * Parser::mkFlatFunctionType(sorts,t,flattenVars),
-  * where sorts are the types in the second components of sortedVarNames.
-  * As descibed in Parser::mkFlatFunctionType, new bound variables may be
-  * added to flattenVars in this function if the function is given a function
-  * range type.
-  */
+   *
+   * fname : the name of the function.
+   * sortedVarNames : the list of variable arguments for the function.
+   * t : the range type of the function we are defining.
+   *
+   * This function will create a bind a new function term to name fname.
+   * The type of this function is
+   * Parser::mkFlatFunctionType(sorts,t,flattenVars),
+   * where sorts are the types in the second components of sortedVarNames.
+   * As descibed in Parser::mkFlatFunctionType, new bound variables may be
+   * added to flattenVars in this function if the function is given a function
+   * range type.
+   */
   Expr mkDefineFunRec(
       const std::string& fname,
       const std::vector<std::pair<std::string, Type> >& sortedVarNames,
@@ -122,21 +171,21 @@ private:
 
   /** Push scope for define-fun-rec
    *
-  * This calls Parser::pushScope(bindingLevel) and sets up
-  * initial information for reading a body of a function definition
-  * in the define-fun-rec and define-funs-rec command.
-  * The input parameters func/flattenVars are the result
-  * of a call to mkDefineRec above.
-  *
-  * func : the function whose body we are defining.
-  * sortedVarNames : the list of variable arguments for the function.
-  * flattenVars : the implicit variables introduced when defining func.
-  *
-  * This function:
-  * (1) Calls Parser::pushScope(bindingLevel).
-  * (2) Computes the bound variable list for the quantified formula
-  *     that defined this definition and stores it in bvs.
-  */
+   * This calls Parser::pushScope(bindingLevel) and sets up
+   * initial information for reading a body of a function definition
+   * in the define-fun-rec and define-funs-rec command.
+   * The input parameters func/flattenVars are the result
+   * of a call to mkDefineRec above.
+   *
+   * func : the function whose body we are defining.
+   * sortedVarNames : the list of variable arguments for the function.
+   * flattenVars : the implicit variables introduced when defining func.
+   *
+   * This function:
+   * (1) Calls Parser::pushScope(bindingLevel).
+   * (2) Computes the bound variable list for the quantified formula
+   *     that defined this definition and stores it in bvs.
+   */
   void pushDefineFunRecScope(
       const std::vector<std::pair<std::string, Type> >& sortedVarNames,
       Expr func,
@@ -153,15 +202,19 @@ private:
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
+   * @param fromCommand should be set to true if the request originates from a
+   *                    set-logic command and false otherwise
+   * @return the command corresponding to setting the logic
    */
-  void setLogic(std::string name);
+  Command* setLogic(std::string name, bool fromCommand = true);
 
   /**
    * Get the logic.
    */
   const LogicInfo& getLogic() const { return d_logic; }
 
-  bool v2_0() const {
+  bool v2_0() const
+  {
     return getLanguage() == language::input::LANG_SMTLIB_V2_0;
   }
   /**
@@ -400,7 +453,11 @@ private:
 
   void addTranscendentalOperators();
 
+  void addQuantifiersOperators();
+
   void addBitvectorOperators();
+
+  void addDatatypesOperators();
 
   void addStringOperators();
 
@@ -409,7 +466,7 @@ private:
   void addSepOperators();
 
   InputLanguage getLanguage() const;
-};/* class Smt2 */
+}; /* class Smt2 */
 
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */

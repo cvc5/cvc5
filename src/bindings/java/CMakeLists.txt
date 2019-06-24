@@ -97,6 +97,18 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManagerMapCollection.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprStream.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPoint.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointConvertSort.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointSize.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToBV.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPFloatingPoint.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPGeneric.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPIEEEBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPReal.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPSignedBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPUnsignedBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToSBV.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToUBV.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointType.java
   ${CMAKE_CURRENT_BINARY_DIR}/FunctionType.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetAssertionsCommand.java
@@ -162,6 +174,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ResourceManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
   ${CMAKE_CURRENT_BINARY_DIR}/RewriteRuleCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingModeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
@@ -175,8 +188,6 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_ListenerCollection__Registration.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_MaybeT_CVC4__Rational_t.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_Type.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
-  ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__istream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__ostream.java
   ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_std__shared_ptrT_CVC4__SygusPrintCallback_t.java
@@ -241,6 +252,18 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/vectorUnsignedInt.java
   ${CMAKE_CURRENT_BINARY_DIR}/vectorVectorExpr.java
 )
+
+if(CVC4_USE_CLN_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_I.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_cln__cl_RA.java
+  )
+elseif(CVC4_USE_GMP_IMP)
+  list(APPEND gen_java_files
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpq_class.java
+    ${CMAKE_CURRENT_BINARY_DIR}/SWIGTYPE_p_mpz_class.java
+  )
+endif()
 
 set(CMAKE_JNI_TARGET TRUE)
 add_jar(cvc4jar

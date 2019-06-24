@@ -1,18 +1,10 @@
-# Fix Travis write errors on Clang builds. These write errors occurred after
-# a Travis update to new Trusty images on Dec. 12th 2017. The reason for these
-# write errors is unknown. Using the deprecated builds did not fix the problem.
-# Setting 'filter_secrets: false' as suggested here
-# https://github.com/travis-ci/travis-ci/issues/4704#issuecomment-321777557
-# fixes the problem.
-filter_secrets: false
-
 language: cpp
 cache:
  - apt
  - ccache
 
 sudo: false
-dist: trusty
+dist: xenial
 
 env:
  global:
@@ -30,7 +22,7 @@ addons:
   - libcln-dev
   - libgmp-dev
   - libhamcrest-java
-  - openjdk-7-jdk
+  - openjdk-8-jdk
   - swig3.0
 before_install:
  - eval "${MATRIX_EVAL}"
@@ -45,7 +37,7 @@ before_install:
      sudo ln -s $(which ccache) /usr/lib/ccache/clang++
    fi
 before_script:
-  export JAVA_HOME=/usr/lib/jvm/java-7-openjdk-amd64
+  export JAVA_HOME=/usr/lib/jvm/java-8-openjdk-amd64
 script:
  - ccache -M 1G
  - ccache -z
