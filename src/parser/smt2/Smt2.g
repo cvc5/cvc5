@@ -269,6 +269,7 @@ command [std::unique_ptr<CVC4::Command>* cmd]
 }
   : /* set the logic */
     SET_LOGIC_TOK symbol[name,CHECK_NONE,SYM_SORT]
+<<<<<<< HEAD
     { Debug("parser") << "set logic: '" << name << "'" << std::endl;
       if( PARSER_STATE->logicIsSet() ) {
         PARSER_STATE->parseError("Only one set-logic is allowed.");
@@ -280,6 +281,10 @@ command [std::unique_ptr<CVC4::Command>* cmd]
       }else{
         cmd->reset(new SetBenchmarkLogicCommand(name));
       }
+=======
+    {
+      cmd->reset(PARSER_STATE->setLogic(name));
+>>>>>>> d3e83102fde7d5e43f132efa80c651a43af5afa3
     }
   | /* set-info */
     SET_INFO_TOK metaInfoInternal[cmd]
@@ -1207,9 +1212,6 @@ metaInfoInternal[std::unique_ptr<CVC4::Command>* cmd]
 }
   : KEYWORD symbolicExpr[sexpr]
     { name = AntlrInput::tokenText($KEYWORD);
-      if(name == ":cvc4-logic" || name == ":cvc4_logic") {
-        PARSER_STATE->setLogic(sexpr.getValue());
-      }
       PARSER_STATE->setInfo(name.c_str() + 1, sexpr);
       cmd->reset(new SetInfoCommand(name.c_str() + 1, sexpr));
     }
