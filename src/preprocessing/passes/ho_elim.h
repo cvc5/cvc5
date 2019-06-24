@@ -64,6 +64,17 @@ namespace passes {
  *     exists g : U(T1->T2).
  *       forall z: T1.
  *         App_{T1->T2}( g, z ) = ite( z = i, e, App_{T1->T2}( f, z ) ).
+ *
+ *
+ * Based on options, this preprocessing pass may apply a subset o the above
+ * steps. In particular:
+ * * If options::hoElim() is true, then step [2] is taken and extensionality
+ * axioms are added in step [3].
+ * * If options::hoElimStoreAx() is true, then store axioms are added in step 3.
+ * The form of these axioms depends on whether options::hoElim() is true. If it
+ * is true, the axiom is given in terms of the uninterpreted functions that
+ * encode function sorts. If it is false, then the store axiom is given in terms
+ * of the original function sorts.
  */
 class HoElim : public PreprocessingPass
 {
