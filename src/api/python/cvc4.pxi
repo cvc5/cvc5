@@ -289,9 +289,6 @@ class Result:
 
     def __ne__(self, other):
         return not self.__eq__(other)
-            return True
-
-        return self._name != other._name
 
     def __str__(self):
         return self._name
@@ -322,7 +319,7 @@ cdef class RoundingMode:
         return (<int> self.crm) == (<int> other.crm)
 
     def __ne__(self, RoundingMode other):
-        return (<int> self.crm) != (<int> other.crm)
+    	return not self.__eq__(other)
 
     def __hash__(self):
         return hash((<int> self.crm, self.name))
