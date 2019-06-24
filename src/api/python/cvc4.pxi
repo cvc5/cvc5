@@ -288,7 +288,7 @@ class Result:
         return self._name == other._name
 
     def __ne__(self, other):
-        if not isinstance(other, Result):
+        return not self.__eq__(other)
             return True
 
         return self._name != other._name
