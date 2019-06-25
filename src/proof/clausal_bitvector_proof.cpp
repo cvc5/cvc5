@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <unordered_set>
+#include <map>
 
 #include "options/bv_options.h"
 #include "proof/clausal_bitvector_proof.h"
@@ -28,6 +28,7 @@
 #include "proof/er/er_proof.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/lrat/lrat_proof.h"
+#include "prop/sat_solver_types.h"
 #include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 
@@ -83,7 +84,9 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
 void ClausalBitVectorProof::registerUsedClause(ClauseId id,
                                                prop::SatClause& clause)
 {
-  d_clauses.emplace(id, clause);
+  prop::SatClause& emplaced_clause =
+      d_clauses.emplace(id, clause).first->second;
+  canonicalizeClause(emplaced_clause);
   d_originalClauseIndices.push_back(id);
 };
 
@@ -113,6 +116,16 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
     d_cnfProof->collectAtoms(&d_clauses.at(usedIdx), d_atomsInBitblastingProof);
   }
 }
+
+struct SatClausePointerComparator
+{
+  inline bool operator()(const prop::SatClause* const& l,
+                         const prop::SatClause* const& r) const
+  {
+    prop::SatClauseLessThan cmp;
+    return cmp(*l, *r);
+  }
+};
 
 void ClausalBitVectorProof::optimizeDratProof()
 {
@@ -200,28 +213,23 @@ void ClausalBitVectorProof::optimizeDratProof()
       // bit difficult because drat-trim may have reordered clauses, and/or
       // removed duplicate literals. We use literal sets as the canonical clause
       // form.
-      std::unordered_map<
-          std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>,
-          ClauseId,
-          prop::SatClauseSetHashFunction>
+      //
+      // TODO (aozdemir) It may be better to use a hash map instead of a tree
+      // map here.
+      std::map<const prop::SatClause*, ClauseId, SatClausePointerComparator>
           cannonicalClausesToIndices;
       for (const auto& kv : d_clauses)
       {
-        cannonicalClausesToIndices.emplace(
-            std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>{
-                kv.second.begin(), kv.second.end()},
-            kv.first);
+        cannonicalClausesToIndices[&kv.second] = kv.first;
       }
 
       d_coreClauseIndices.clear();
-      std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
-          coreClauseCanonical;
-      for (const prop::SatClause& coreClause : core)
+
+      for (prop::SatClause& coreClause : core)
       {
-        coreClauseCanonical.insert(coreClause.begin(), coreClause.end());
+        canonicalizeClause(coreClause);
         d_coreClauseIndices.push_back(
-            cannonicalClausesToIndices.at(coreClauseCanonical));
-        coreClauseCanonical.clear();
+            cannonicalClausesToIndices.at(&coreClause));
       }
       Debug("bv::clausal") << "Optimizing the DRAT proof and the formula"
                            << std::endl;
@@ -248,6 +256,12 @@ void ClausalBitVectorProof::optimizeDratProof()
                          << std::endl;
     d_coreClauseIndices = d_originalClauseIndices;
   }
+}
+
+void ClausalBitVectorProof::canonicalizeClause(prop::SatClause& clause)
+{
+  std::sort(clause.begin(), clause.end());
+  clause.erase(std::unique(clause.begin(), clause.end()), clause.end());
 }
 
 ClausalBitVectorProof::DratTranslationStatistics::DratTranslationStatistics()

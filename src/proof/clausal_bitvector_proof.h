@@ -87,6 +87,10 @@ class ClausalBitVectorProof : public BitVectorProof
   // of clause actually needed to check that proof (a smaller UNSAT core)
   void optimizeDratProof();
 
+  // Given reference to a SAT clause encoded as a vector of literals, puts the
+  // literals into a canonical order
+  static void canonicalizeClause(prop::SatClause& clause);
+
   struct DratOptimizationStatistics
   {
     DratOptimizationStatistics();
