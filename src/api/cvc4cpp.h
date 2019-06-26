@@ -873,6 +873,12 @@ class CVC4_PUBLIC OpTerm
   bool isNull() const;
 
   /**
+   * @return the indices used to create this OpTerm
+   */
+  template <typename T>
+  T getIndices() const;
+
+  /**
    * @return a string representation of this operator term
    */
   std::string toString() const;

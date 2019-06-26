@@ -1280,6 +1280,139 @@ Sort OpTerm::getSort() const
 
 bool OpTerm::isNull() const { return d_expr->isNull(); }
 
+template <>
+std::string OpTerm::getIndices() const
+{
+  std::string i;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  if (k == DIVISIBLE_OP)
+  {
+    CVC4::Integer _int = d_expr->getConst<Divisible>().k;
+    i = _int.toString();
+  }
+  else if (k == RECORD_UPDATE_OP)
+  {
+    i = d_expr->getConst<RecordUpdate>().getField();
+  }
+  else
+  {
+    CVC4ApiExceptionStream().ostream() << "Can't get string index from"
+                                       << " kind " << kindToString(k);
+  }
+
+  return i;
+}
+
+template <>
+Kind OpTerm::getIndices() const
+{
+  Kind kind = intToExtKind(d_expr->getKind());
+  CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
+  return intToExtKind(d_expr->getConst<Chain>().getOperator());
+}
+
+template <>
+uint32_t OpTerm::getIndices() const
+{
+  uint32_t i;
+  Kind k = intToExtKind(d_expr->getKind());
+  switch (k)
+  {
+    case BITVECTOR_REPEAT_OP:
+      i = d_expr->getConst<BitVectorRepeat>().repeatAmount;
+      break;
+    case BITVECTOR_ZERO_EXTEND_OP:
+      i = d_expr->getConst<BitVectorZeroExtend>().zeroExtendAmount;
+      break;
+    case BITVECTOR_SIGN_EXTEND_OP:
+      i = d_expr->getConst<BitVectorSignExtend>().signExtendAmount;
+      break;
+    case BITVECTOR_ROTATE_LEFT_OP:
+      i = d_expr->getConst<BitVectorRotateLeft>().rotateLeftAmount;
+      break;
+    case BITVECTOR_ROTATE_RIGHT_OP:
+      i = d_expr->getConst<BitVectorRotateRight>().rotateRightAmount;
+      break;
+    case INT_TO_BITVECTOR_OP:
+      i = d_expr->getConst<IntToBitVector>().size;
+      break;
+    case FLOATINGPOINT_TO_UBV_OP:
+      i = d_expr->getConst<FloatingPointToUBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_UBV_TOTAL_OP:
+      i = d_expr->getConst<FloatingPointToUBVTotal>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV_OP:
+      i = d_expr->getConst<FloatingPointToSBV>().bvs.size;
+      break;
+    case FLOATINGPOINT_TO_SBV_TOTAL_OP:
+      i = d_expr->getConst<FloatingPointToSBVTotal>().bvs.size;
+      break;
+    case TUPLE_UPDATE_OP: i = d_expr->getConst<TupleUpdate>().getIndex(); break;
+    default:
+      CVC4ApiExceptionStream().ostream() << "Can't get uint32_t index from"
+                                         << " kind " << kindToString(k);
+  }
+  return i;
+}
+
+template <>
+std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
+{
+  std::pair<uint32_t, uint32_t> indices;
+  Kind k = intToExtKind(d_expr->getKind());
+
+  // using if/else instead of case statement because want local variables
+  if (k == BITVECTOR_EXTRACT_OP)
+  {
+    CVC4::BitVectorExtract ext = d_expr->getConst<BitVectorExtract>();
+    indices = std::make_pair(ext.high, ext.low);
+  }
+  else if (k == FLOATINGPOINT_TO_FP_IEEE_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPIEEEBitVector ext =
+        d_expr->getConst<FloatingPointToFPIEEEBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_FLOATINGPOINT_OP)
+  {
+    CVC4::FloatingPointToFPFloatingPoint ext =
+        d_expr->getConst<FloatingPointToFPFloatingPoint>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_REAL_OP)
+  {
+    CVC4::FloatingPointToFPReal ext = d_expr->getConst<FloatingPointToFPReal>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_SIGNED_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPSignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPSignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_UNSIGNED_BITVECTOR_OP)
+  {
+    CVC4::FloatingPointToFPUnsignedBitVector ext =
+        d_expr->getConst<FloatingPointToFPUnsignedBitVector>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else if (k == FLOATINGPOINT_TO_FP_GENERIC_OP)
+  {
+    CVC4::FloatingPointToFPGeneric ext =
+        d_expr->getConst<FloatingPointToFPGeneric>();
+    indices = std::make_pair(ext.t.exponent(), ext.t.significand());
+  }
+  else
+  {
+    CVC4ApiExceptionStream().ostream()
+        << "Can't get pair<uint32_t, uint32_t> indices from"
+        << " kind " << kindToString(k);
+  }
+  return indices;
+}
+
 std::string OpTerm::toString() const { return d_expr->toString(); }
 
 // !!! This is only temporarily available until the parser is fully migrated
