@@ -881,7 +881,7 @@ bool QuantifiersRewriter::isVarElim(Node v, Node s)
 }
 
 Node QuantifiersRewriter::getVarElimLitBv(Node lit,
-                                          std::vector<Node>& args,
+                                          const std::vector<Node>& args,
                                           Node& var)
 {
   if (Trace.isOn("quant-velim-bv"))
@@ -932,7 +932,7 @@ Node QuantifiersRewriter::getVarElimLitBv(Node lit,
 }
 
 Node QuantifiersRewriter::getVarElimLitString(Node lit,
-                                              std::vector<Node>& args,
+                                              const std::vector<Node>& args,
                                               Node& var)
 {
   Assert(lit.getKind() == EQUAL);
@@ -948,19 +948,8 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
         {
           var = lit[i][j];
           Node slv = lit[1 - i];
-          std::vector<Node> preL;
-          std::vector<Node> postL;
-          for (unsigned k = 0; k < nchildren; k++)
-          {
-            if (k < j)
-            {
-              preL.push_back(lit[i][k]);
-            }
-            else if (k > j)
-            {
-              postL.push_back(lit[i][k]);
-            }
-          }
+          std::vector<Node> preL(lit[i].begin(), lit[i].begin() + j);
+          std::vector<Node> postL(lit[i].begin() + j + 1, lit[i].end());
           Node tpre =
               strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT, preL);
           Node tpost =
