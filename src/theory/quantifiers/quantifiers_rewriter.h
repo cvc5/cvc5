@@ -67,13 +67,17 @@ private:
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit, const std::vector<Node>& args, Node& var);
+  static Node getVarElimLitBv(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var);
   /** variable eliminate for string equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
    * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitString(Node lit, const std::vector<Node>& args, Node& var);
+  static Node getVarElimLitString(Node lit,
+                                  const std::vector<Node>& args,
+                                  Node& var);
   /** get variable elimination
    *
    * If n asserted with polarity pol entails a literal lit that corresponds
