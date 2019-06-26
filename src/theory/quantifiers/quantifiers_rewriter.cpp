@@ -65,7 +65,7 @@ void QuantifiersRewriter::addNodeToOrBuilder( Node n, NodeBuilder<>& t ){
   }
 }
 
-void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited ){
+void QuantifiersRewriter::computeArgs( const std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited ){
   if( visited.find( n )==visited.end() ){
     visited[n] = true;
     if( n.getKind()==BOUND_VARIABLE ){
@@ -84,7 +84,7 @@ void QuantifiersRewriter::computeArgs( std::vector< Node >& args, std::map< Node
   }
 }
 
-void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n ) {
+void QuantifiersRewriter::computeArgVec( const std::vector< Node >& args, std::vector< Node >& activeArgs, Node n ) {
   Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
@@ -98,7 +98,7 @@ void QuantifiersRewriter::computeArgVec( std::vector< Node >& args, std::vector<
   }
 }
 
-void QuantifiersRewriter::computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl ) {
+void QuantifiersRewriter::computeArgVec2( const std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl ) {
   Assert( activeArgs.empty() );
   std::map< Node, bool > activeMap;
   std::map< Node, bool > visited;
