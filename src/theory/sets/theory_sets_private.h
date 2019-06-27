@@ -265,6 +265,7 @@ private: //for universe set
   void processLemmaToSend(Node lem);
   void processRequirePhase(Node lit, bool pol);
   
+  bool isInConflict() const;
 private:
   TheorySets& d_external;
 

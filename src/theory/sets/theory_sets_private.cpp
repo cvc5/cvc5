@@ -2149,12 +2149,31 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   
 void TheorySetsPrivate::processLemmaToSend(Node lem)
 {
+  Trace("sets-lts-lemma") << "Process lemma to send: " << lem << std::endl;
+  /*
+  if( lem.getKind()==kind::IMPLIES )
+  {
+    // is it a fact?
+    Trace("sets-lts") << "Process: " << lem[1] << std::endl;
+    if( isEntailed(lem[0], true)) 
+    {
+      // we can assert it as a fact
+      assertFact(lem[1],lem[0]);
+      return;
+    }
+  }
+  */
   d_external.d_out->lemma(lem);
 }
 
 void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
 {
   d_external.d_out->requirePhase(lit,pol);
+}
+
+bool TheorySetsPrivate::isInConflict() const 
+{ 
+  return d_conflict.get(); 
 }
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {

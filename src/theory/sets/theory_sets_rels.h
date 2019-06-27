@@ -59,7 +59,7 @@ public:
 
   ~TheorySetsRels();
   void check(Theory::Effort);
-  void doPendingLemmas();
+  void doPendingSends();
 
   bool isRelationKind( Kind k );
 private:
@@ -100,7 +100,6 @@ private:
   std::vector< Node > d_pending_merge;
   NodeSet                       d_lemmas_produced;
   NodeSet                       d_shared_terms;
-  std::vector< Node >           d_lemmas_out;
   std::map< Node, Node >        d_pending_facts;
 
 
@@ -138,7 +137,7 @@ public:
 private:
 
   /** Methods used in standard effort */
-  void doPendingMerge();
+  void doPendingLemmas();
   void sendInferProduct(Node member, Node pt_rel, Node exp);
   void sendInferTranspose(Node t1, Node t2, Node exp );
   void sendInferTClosure( Node mem_rep, EqcInfo* ei );
@@ -173,7 +172,6 @@ private:
 
 
   void sendInfer( Node fact, Node exp, const char * c );
-  void sendLemma( Node fact, Node reason, const char * c );
   void doTCLemmas();
 
   /** Helper functions */

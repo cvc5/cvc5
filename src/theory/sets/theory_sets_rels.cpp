@@ -37,11 +37,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       collectRelsInfo();
       check();
       doPendingLemmas();
-      Assert( d_lemmas_out.empty() );
-      Assert( d_pending_facts.empty() );
-    } else {
-      doPendingMerge();
     }
+    else
+    {
+      doPendingSends();
+    }
+    Assert( d_pending_merge.empty() );
+    Assert( d_pending_facts.empty() );
     Trace("rels") << "\n[sets-rels] ******************************* Done with the relational solver *******************************\n" << std::endl;
   }
 
@@ -57,38 +59,38 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
 
         if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
-          std::vector<Node> tp_terms = kind_terms[kind::TRANSPOSE];
+          std::vector<Node>& tp_terms = kind_terms[kind::TRANSPOSE];
           if( tp_terms.size() > 0 ) {
             applyTransposeRule( tp_terms );
             applyTransposeRule( tp_terms[0], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::JOIN) != kind_terms.end() ) {
-          std::vector<Node> join_terms = kind_terms[kind::JOIN];
+          std::vector<Node>& join_terms = kind_terms[kind::JOIN];
           for( unsigned int j = 0; j < join_terms.size(); j++ ) {
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::PRODUCT) != kind_terms.end() ) {
-          std::vector<Node> product_terms = kind_terms[kind::PRODUCT];
+          std::vector<Node>& product_terms = kind_terms[kind::PRODUCT];
           for( unsigned int j = 0; j < product_terms.size(); j++ ) {
             applyProductRule( product_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::TCLOSURE) != kind_terms.end() ) {
-          std::vector<Node> tc_terms = kind_terms[kind::TCLOSURE];
+          std::vector<Node>& tc_terms = kind_terms[kind::TCLOSURE];
           for( unsigned int j = 0; j < tc_terms.size(); j++ ) {
             applyTCRule( mem, tc_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::JOIN_IMAGE) != kind_terms.end() ) {
-          std::vector<Node> join_image_terms = kind_terms[kind::JOIN_IMAGE];
+          std::vector<Node>& join_image_terms = kind_terms[kind::JOIN_IMAGE];
           for( unsigned int j = 0; j < join_image_terms.size(); j++ ) {
             applyJoinImageRule( mem, join_image_terms[j], exp );
           }
         }
         if( kind_terms.find(kind::IDEN) != kind_terms.end() ) {
-          std::vector<Node> iden_terms = kind_terms[kind::IDEN];
+          std::vector<Node>& iden_terms = kind_terms[kind::IDEN];
           for( unsigned int j = 0; j < iden_terms.size(); j++ ) {
             applyIdenRule( mem, iden_terms[j], exp );
           }
@@ -987,26 +989,21 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   void TheorySetsRels::doPendingLemmas() {
     Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
     if( !(*d_conflict) ){
-      for( unsigned i=0; i < d_lemmas_out.size(); i++ ){
-        Assert(d_lemmas_out[i].getKind() == kind::IMPLIES);
-        d_sets_theory.processLemmaToSend( d_lemmas_out[i] );
-        Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
-                            << d_lemmas_out[i] << std::endl;
-      }
       for( std::map<Node, Node>::iterator pending_it = d_pending_facts.begin();
             pending_it != d_pending_facts.end(); pending_it++ ) {
         Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first);
-        d_sets_theory.processLemmaToSend(lemma);
-        Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
-                            << pending_it->first << " with reason " << pending_it->second << std::endl;
+        d_pending_merge.push_back(lemma);
       }
+      doPendingSends();
     }
-    doTCLemmas();
+    //if( !d_sets_theory.isInConflict() )
+    //{
+      doTCLemmas();
+    //}
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doPendingLemmas !" << std::endl;
     d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
     d_terms_cache.clear();
-    d_lemmas_out.clear();
     d_membership_trie.clear();
     d_rel_nodes.clear();
     d_pending_facts.clear();
@@ -1039,12 +1036,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       ++tc_lemma_it;
     }
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doTCLemmas !" << std::endl;
-  }
-
-  void TheorySetsRels::sendLemma(Node conc, Node ant, const char * c) {
-    Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-    d_lemmas_out.push_back( lemma );
-    Trace("rels-send-lemma") << "[Theory::Rels] **** Generate a lemma conclusion = " << conc << " with reason = " << ant << " by " << c << std::endl;
   }
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
@@ -1129,7 +1120,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
       Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      sendLemma(skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n)), d_trueNode, "share-term");
+      sendMergeInfer(skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n)), d_trueNode, "share-term");
       d_shared_terms.insert(n);
     }
   }
@@ -1169,7 +1160,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       Node tuple_reduct = NodeManager::currentNM()->mkNode(kind::APPLY_CONSTRUCTOR, tuple_elements);
       tuple_reduct = NodeManager::currentNM()->mkNode(kind::MEMBER,tuple_reduct, n[1]);
       Node tuple_reduction_lemma = NodeManager::currentNM()->mkNode(kind::EQUAL, n, tuple_reduct);
-      sendLemma(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
+      sendMergeInfer(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
       d_symbolic_tuples.insert(n);
     }
   }
@@ -1550,12 +1541,16 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   }
 
 
-  void TheorySetsRels::doPendingMerge() {
+  void TheorySetsRels::doPendingSends() {
     for( const Node& pm : d_pending_merge )
     {
       Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
                           << pm << std::endl;
       d_sets_theory.processLemmaToSend( pm );
+      //if (d_sets_theory.isInConflict() )
+      //{
+       // break;
+      //}
     }
     d_pending_merge.clear();
   }
@@ -1574,12 +1569,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   }
 
   void TheorySetsRels::sendMergeInfer( Node fact, Node reason, const char * c ) {
-    if( !holds( fact ) ) {
-      Node lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, reason, fact);
-      d_pending_merge.push_back(lemma);
-      Trace("rels-std") << "[std-rels-lemma] Generate a lemma by applying " << c
-                        << ": " << lemma << std::endl;
-    }
+    Node lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, reason, fact);
+    d_pending_merge.push_back(lemma);
   }
 
   void TheorySetsRels::sendInferProduct( Node member, Node pt_rel, Node exp ) {
