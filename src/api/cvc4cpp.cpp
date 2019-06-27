@@ -1283,6 +1283,7 @@ bool OpTerm::isNull() const { return d_expr->isNull(); }
 template <>
 std::string OpTerm::getIndices() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   std::string i;
   Kind k = intToExtKind(d_expr->getKind());
 
@@ -1307,6 +1308,7 @@ std::string OpTerm::getIndices() const
 template <>
 Kind OpTerm::getIndices() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   Kind kind = intToExtKind(d_expr->getKind());
   CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
   return intToExtKind(d_expr->getConst<Chain>().getOperator());
@@ -1315,6 +1317,7 @@ Kind OpTerm::getIndices() const
 template <>
 uint32_t OpTerm::getIndices() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   uint32_t i;
   Kind k = intToExtKind(d_expr->getKind());
   switch (k)
@@ -1360,6 +1363,7 @@ uint32_t OpTerm::getIndices() const
 template <>
 std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
 {
+  CVC4_API_CHECK_NOT_NULL;
   std::pair<uint32_t, uint32_t> indices;
   Kind k = intToExtKind(d_expr->getKind());
 
