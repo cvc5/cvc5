@@ -97,7 +97,7 @@ private:
   Node                          d_falseNode;
 
   /** Facts and lemmas to be sent to EE */
-  NodeList                      d_pending_merge;
+  std::vector< Node > d_pending_merge;
   NodeSet                       d_lemmas_produced;
   NodeSet                       d_shared_terms;
   std::vector< Node >           d_lemmas_out;
@@ -172,7 +172,6 @@ private:
                     std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
 
-  void addSharedTerm( TNode n );
   void sendInfer( Node fact, Node exp, const char * c );
   void sendLemma( Node fact, Node reason, const char * c );
   void doTCLemmas();

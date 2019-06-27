@@ -987,30 +987,18 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   void TheorySetsRels::doPendingLemmas() {
     Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
     if( !(*d_conflict) ){
-      if ( (!d_lemmas_out.empty() || !d_pending_facts.empty()) ) {
-        for( unsigned i=0; i < d_lemmas_out.size(); i++ ){
-          Assert(d_lemmas_out[i].getKind() == kind::IMPLIES);
-          if(holds( d_lemmas_out[i][1] )) {
-            Trace("rels-lemma-skip") << "[sets-rels-lemma-skip] Skip an already held lemma: "
-                                     << d_lemmas_out[i]<< std::endl;
-            continue;
-          }
-          d_sets_theory.processLemmaToSend( d_lemmas_out[i] );
-          Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
-                              << d_lemmas_out[i] << std::endl;
-        }
-        for( std::map<Node, Node>::iterator pending_it = d_pending_facts.begin();
-             pending_it != d_pending_facts.end(); pending_it++ ) {
-          if( holds( pending_it->first ) ) {
-            Trace("rels-lemma-skip") << "[sets-rels-fact-lemma-skip] Skip an already held fact,: "
-                                     << pending_it->first << std::endl;
-            continue;
-          }
-          Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first);
-          d_sets_theory.processLemmaToSend(lemma);
-          Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
-                              << pending_it->first << " with reason " << pending_it->second << std::endl;
-        }
+      for( unsigned i=0; i < d_lemmas_out.size(); i++ ){
+        Assert(d_lemmas_out[i].getKind() == kind::IMPLIES);
+        d_sets_theory.processLemmaToSend( d_lemmas_out[i] );
+        Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
+                            << d_lemmas_out[i] << std::endl;
+      }
+      for( std::map<Node, Node>::iterator pending_it = d_pending_facts.begin();
+            pending_it != d_pending_facts.end(); pending_it++ ) {
+        Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first);
+        d_sets_theory.processLemmaToSend(lemma);
+        Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
+                            << pending_it->first << " with reason " << pending_it->second << std::endl;
       }
     }
     doTCLemmas();
@@ -1054,14 +1042,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   }
 
   void TheorySetsRels::sendLemma(Node conc, Node ant, const char * c) {
-    if( !holds( conc ) ) {
-      Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
-      if( d_lemmas_produced.find( lemma ) == d_lemmas_produced.end() ) {
-        d_lemmas_out.push_back( lemma );
-        d_lemmas_produced.insert( lemma );
-        Trace("rels-send-lemma") << "[Theory::Rels] **** Generate a lemma conclusion = " << conc << " with reason = " << ant << " by " << c << std::endl;
-      }
-    }
+    Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, ant, conc);
+    d_lemmas_out.push_back( lemma );
+    Trace("rels-send-lemma") << "[Theory::Rels] **** Generate a lemma conclusion = " << conc << " with reason = " << ant << " by " << c << std::endl;
   }
 
   void TheorySetsRels::sendInfer( Node fact, Node exp, const char * c ) {
@@ -1142,12 +1125,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
   }
 
-  void TheorySetsRels::addSharedTerm( TNode n ) {
-    Trace("rels-debug") << "[sets-rels] Add a shared term:  " << n << std::endl;
-    d_sets_theory.addSharedTerm(n);
-    d_eqEngine->addTriggerTerm(n, THEORY_SETS);
-  }
-
   void TheorySetsRels::makeSharedTerm( Node n ) {
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
@@ -1207,7 +1184,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     d_sets_theory(d_set),
     d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
-    d_pending_merge(c),
     d_lemmas_produced(u),
     d_shared_terms(u),
     d_satContext(c)
@@ -1575,12 +1551,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 
   void TheorySetsRels::doPendingMerge() {
-    for( NodeList::const_iterator itr = d_pending_merge.begin(); itr != d_pending_merge.end(); itr++ ) {
+    for( const Node& pm : d_pending_merge )
+    {
       Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
-                          << *itr << std::endl;
-      d_sets_theory.processLemmaToSend( *itr );
-      d_lemmas_produced.insert(*itr);
+                          << pm << std::endl;
+      d_sets_theory.processLemmaToSend( pm );
     }
+    d_pending_merge.clear();
   }
 
   // t1 and t2 can be both relations
