@@ -995,7 +995,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                      << d_lemmas_out[i]<< std::endl;
             continue;
           }
-          d_sets_theory.d_out->lemma( d_lemmas_out[i] );
+          d_sets_theory.processLemmaToSend( d_lemmas_out[i] );
           Trace("rels-lemma") << "[sets-rels-lemma] Send out a lemma : "
                               << d_lemmas_out[i] << std::endl;
         }
@@ -1007,12 +1007,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             continue;
           }
           Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first);
-          if( d_lemmas_produced.find( lemma ) == d_lemmas_produced.end() ) {
-            d_sets_theory.d_out->lemma(NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first));
-            Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
-                                << pending_it->first << " with reason " << pending_it->second << std::endl;
-            d_lemmas_produced.insert( lemma );
-          }
+          d_sets_theory.processLemmaToSend(lemma);
+          Trace("rels-lemma") << "[sets-rels-fact-lemma] Send out a fact as lemma : "
+                              << pending_it->first << " with reason " << pending_it->second << std::endl;
         }
       }
     }
@@ -1042,17 +1039,14 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_tc_lemmas_last.begin();
     while( tc_lemma_it != d_tc_lemmas_last.end() ) {
       if( !holds( tc_lemma_it->first[1] ) ) {
-        if( d_lemmas_produced.find( tc_lemma_it->first ) == d_lemmas_produced.end() ) {
-          d_sets_theory.d_out->lemma( tc_lemma_it->first );
-          d_lemmas_produced.insert( tc_lemma_it->first );
+        d_sets_theory.processLemmaToSend( tc_lemma_it->first );
 
-          for( unsigned int i = 0; i < (tc_lemma_it->second).size(); i++ ) {
-            if( (tc_lemma_it->second)[i] == d_falseNode ) {
-              d_sets_theory.d_out->requirePhase((tc_lemma_it->second)[i], true);
-            }
+        for( unsigned int i = 0; i < (tc_lemma_it->second).size(); i++ ) {
+          if( (tc_lemma_it->second)[i] == d_falseNode ) {
+            d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
           }
-          Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = " << tc_lemma_it->first << " by " << "TCLOSURE-Forward"<< std::endl;
         }
+        Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = " << tc_lemma_it->first << " by " << "TCLOSURE-Forward"<< std::endl;
       }
       ++tc_lemma_it;
     }
@@ -1207,7 +1201,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                   context::UserContext* u,
                                   eq::EqualityEngine* eq,
                                   context::CDO<bool>* conflict,
-                                  TheorySets& d_set ):
+                                  TheorySetsPrivate& d_set ):
     d_eqEngine(eq),
     d_conflict(conflict),
     d_sets_theory(d_set),
@@ -1215,7 +1209,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
     d_pending_merge(c),
     d_lemmas_produced(u),
-    d_shared_terms(u)
+    d_shared_terms(u),
+    d_satContext(c)
   {
     d_eqEngine->addFunctionKind(kind::PRODUCT);
     d_eqEngine->addFunctionKind(kind::JOIN);
@@ -1581,14 +1576,10 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::doPendingMerge() {
     for( NodeList::const_iterator itr = d_pending_merge.begin(); itr != d_pending_merge.end(); itr++ ) {
-      if( !holds(*itr) ) {
-        if( d_lemmas_produced.find(*itr)==d_lemmas_produced.end() ) {
-          Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
-                              << *itr << std::endl;
-          d_sets_theory.d_out->lemma( *itr );
-          d_lemmas_produced.insert(*itr);
-        }
-      }
+      Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
+                          << *itr << std::endl;
+      d_sets_theory.processLemmaToSend( *itr );
+      d_lemmas_produced.insert(*itr);
     }
   }
 
@@ -1651,7 +1642,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         if( eqc_i!=d_eqc_info.end() ){
           ei = eqc_i->second;
         }else{
-          ei = new EqcInfo(d_sets_theory.getSatContext());
+          ei = new EqcInfo(d_satContext);
           d_eqc_info[n] = ei;
         }
         if( n.getKind() == kind::TRANSPOSE ){

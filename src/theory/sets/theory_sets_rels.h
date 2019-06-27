@@ -29,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySets;
+class TheorySetsPrivate;
 
 
 class TupleTrie {
@@ -55,7 +55,7 @@ public:
                  context::UserContext* u,
                  eq::EqualityEngine*,
                  context::CDO<bool>*,
-                 TheorySets&);
+                 TheorySetsPrivate&);
 
   ~TheorySetsRels();
   void check(Theory::Effort);
@@ -90,7 +90,7 @@ private:
 
   eq::EqualityEngine            *d_eqEngine;
   context::CDO<bool>            *d_conflict;
-  TheorySets&                   d_sets_theory;
+  TheorySetsPrivate& d_sets_theory;
 
   /** True and false constant nodes */
   Node                          d_trueNode;
@@ -128,6 +128,8 @@ private:
 
   std::map< Node, EqcInfo* > d_eqc_info;
 
+  
+  context::Context* d_satContext;
 public:
   /** Standard effort notifications */
   void eqNotifyNewClass(Node t);

@@ -55,7 +55,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
       d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
+          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, *this)),
       d_rels_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -2146,6 +2146,16 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
+  
+void TheorySetsPrivate::processLemmaToSend(Node lem)
+{
+  d_external.d_out->lemma(lem);
+}
+
+void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
+{
+  d_external.d_out->requirePhase(lit,pol);
+}
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);

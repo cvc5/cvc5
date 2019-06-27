@@ -262,6 +262,9 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
+  void processLemmaToSend(Node lem);
+  void processRequirePhase(Node lit, bool pol);
+  
 private:
   TheorySets& d_external;
 
