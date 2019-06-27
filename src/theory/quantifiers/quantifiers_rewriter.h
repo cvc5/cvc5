@@ -36,9 +36,17 @@ public:
 private:
   static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
-  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
-  static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
-  static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
+  static void computeArgs(const std::vector<Node>& args,
+                          std::map<Node, bool>& activeMap,
+                          Node n,
+                          std::map<Node, bool>& visited);
+  static void computeArgVec(const std::vector<Node>& args,
+                            std::vector<Node>& activeArgs,
+                            Node n);
+  static void computeArgVec2(const std::vector<Node>& args,
+                             std::vector<Node>& activeArgs,
+                             Node n,
+                             Node ipl);
   static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                     std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                     std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
@@ -62,12 +70,22 @@ private:
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
-  /** variable eliminate for bit-vector literals
+  /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
-   * args, lit is equivalent to ( var = ret ), and var is removed from args.
+   * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
+  static Node getVarElimLitBv(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var);
+  /** variable eliminate for string equalities
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ).
+   */
+  static Node getVarElimLitString(Node lit,
+                                  const std::vector<Node>& args,
+                                  Node& var);
   /** get variable elimination
    *
    * If n asserted with polarity pol entails a literal lit that corresponds
