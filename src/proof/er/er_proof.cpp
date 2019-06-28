@@ -80,10 +80,11 @@ TraceCheckProof TraceCheckProof::fromText(std::istream& in)
   return pf;
 }
 
-std::pair<ErProof, TimerStat> ErProof::fromBinaryDratProof(
+ErProof ErProof::fromBinaryDratProof(
     const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId>& usedIds,
-    const std::string& dratBinary)
+    const std::string& dratBinary,
+    TimerStat& toolTimer)
 {
   std::string formulaFilename("cvc4-dimacs-XXXXXX");
   std::string dratFilename("cvc4-drat-XXXXXX");
@@ -102,21 +103,21 @@ std::pair<ErProof, TimerStat> ErProof::fromBinaryDratProof(
   std::fstream tracecheckStream = openTmpFile(&tracecheckFilename);
 
   // Invoke drat2er
-  TimerStat drat2erTimer{"Unimportant"};
-  drat2erTimer.start();
+  {
+    CodeTimer blockTimer{toolTimer};
 #if CVC4_USE_DRAT2ER
-  drat2er::TransformDRATToExtendedResolution(formulaFilename,
-                                             dratFilename,
-                                             tracecheckFilename,
-                                             false,
-                                             drat2er::options::QUIET,
-                                             false);
+    drat2er::TransformDRATToExtendedResolution(formulaFilename,
+                                               dratFilename,
+                                               tracecheckFilename,
+                                               false,
+                                               drat2er::options::QUIET,
+                                               false);
 #else
-  Unimplemented(
-      "ER proof production requires drat2er.\n"
-      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented(
+        "ER proof production requires drat2er.\n"
+        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
-  drat2erTimer.stop();
+  }
 
   // Parse the resulting TRACECHECK proof into an ER proof.
   TraceCheckProof pf = TraceCheckProof::fromText(tracecheckStream);
@@ -127,7 +128,7 @@ std::pair<ErProof, TimerStat> ErProof::fromBinaryDratProof(
   remove(dratFilename.c_str());
   remove(tracecheckFilename.c_str());
 
-  return std::make_pair(std::move(proof), drat2erTimer);
+  return proof;
 }
 
 ErProof::ErProof(const std::unordered_map<ClauseId, prop::SatClause>& clauses,

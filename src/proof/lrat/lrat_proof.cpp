@@ -124,10 +124,11 @@ void printIndices(std::ostream& o, const std::vector<ClauseIdx>& indices)
 
 // Prints the LRAT addition line in textual format
 
-std::pair<LratProof, TimerStat> LratProof::fromDratProof(
+LratProof LratProof::fromDratProof(
     const std::unordered_map<ClauseId, prop::SatClause>& clauses,
     const std::vector<ClauseId> usedIds,
-    const std::string& dratBinary)
+    const std::string& dratBinary,
+    TimerStat& toolTimer)
 {
   std::ostringstream cmd;
   std::string formulaFilename("cvc4-dimacs-XXXXXX");
@@ -144,23 +145,23 @@ std::pair<LratProof, TimerStat> LratProof::fromDratProof(
 
   std::fstream lratStream = openTmpFile(&lratFilename);
 
-  TimerStat dratTrimTimer{"Unimportant"};
-  dratTrimTimer.start();
+  {
+    CodeTimer blockTimer{toolTimer};
 #if CVC4_USE_DRAT2ER
-  drat2er::drat_trim::CheckAndConvertToLRAT(
-      formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
+    drat2er::drat_trim::CheckAndConvertToLRAT(
+        formulaFilename, dratFilename, lratFilename, drat2er::options::QUIET);
 #else
-  Unimplemented(
-      "LRAT proof production requires drat2er.\n"
-      "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
+    Unimplemented(
+        "LRAT proof production requires drat2er.\n"
+        "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
-  dratTrimTimer.stop();
+  }
 
   LratProof lrat(lratStream);
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
   remove(lratFilename.c_str());
-  return std::make_pair(std::move(lrat), dratTrimTimer);
+  return lrat;
 }
 
 std::istream& operator>>(std::istream& in, SatLiteral& l)

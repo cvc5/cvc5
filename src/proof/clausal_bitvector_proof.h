@@ -101,7 +101,8 @@ class ClausalBitVectorProof : public BitVectorProof
     TimerStat d_totalTime;
     // Time that drat-trim actually spent optimizing the DRAT proof/formula
     TimerStat d_toolTime;
-    // Time that drat-trim actually spent optimizing the DRAT proof/formula
+    // Time that was spent matching clauses in drat-trim's output to clauses in
+    // its input
     TimerStat d_clauseMatchingTime;
     // Bytes in binary DRAT proof before optimization
     IntStat d_initialDratSize;

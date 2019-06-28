@@ -122,10 +122,12 @@ class ErProof
    *
    * @return the Er proof and a timer of the execution of drat2er
    */
-  static std::pair<ErProof, TimerStat> fromBinaryDratProof(
+  static ErProof fromBinaryDratProof(
       const std::unordered_map<ClauseId, prop::SatClause>& clauses,
       const std::vector<ClauseId>& usedIds,
-      const std::string& dratBinary);
+      const std::string& dratBinary,
+      TimerStat& toolTimer
+      );
 
   /**
    * Construct an ER proof from a TRACECHECK ER proof

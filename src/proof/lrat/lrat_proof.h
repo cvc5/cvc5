@@ -137,10 +137,11 @@ class LratProof
    *
    * @return an LRAT proof an a timer for how long it took to run drat-trim
    */
-  static std::pair<LratProof, TimerStat> fromDratProof(
+  static LratProof fromDratProof(
       const std::unordered_map<ClauseId, prop::SatClause>& clauses,
       const std::vector<ClauseId> usedIds,
-      const std::string& dratBinary);
+      const std::string& dratBinary,
+      TimerStat& toolTimer);
   /**
    * @brief Construct an LRAT proof from its textual representation
    *

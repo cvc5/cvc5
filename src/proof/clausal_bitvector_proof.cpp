@@ -135,7 +135,7 @@ void ClausalBitVectorProof::optimizeDratProof()
           == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF
       || options::bvOptimizeSatProof()
              == theory::bv::BvOptimizeSatProof::
-                 BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
+                    BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
   {
     Debug("bv::clausal") << "Optimizing DRAT" << std::endl;
     std::string formulaFilename("cvc4-dimacs-XXXXXX");
@@ -379,13 +379,13 @@ void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
   os << "(@ lratProof ";
   paren << ")";
   d_dratTranslationStatistics.d_totalTime.start();
-  std::pair<lrat::LratProof, TimerStat> pfAndToolTimer =
-      lrat::LratProof::fromDratProof(
-          d_clauses, d_coreClauseIndices, d_binaryDratProof.str());
+  lrat::LratProof pf =
+      lrat::LratProof::fromDratProof(d_clauses,
+                                     d_coreClauseIndices,
+                                     d_binaryDratProof.str(),
+                                     d_dratTranslationStatistics.d_toolTime);
   d_dratTranslationStatistics.d_totalTime.stop();
-  d_dratTranslationStatistics.d_toolTime.setData(
-      pfAndToolTimer.second.getData());
-  pfAndToolTimer.first.outputAsLfsc(os);
+  pf.outputAsLfsc(os);
   os << "\n";
 
   os << "\n;; Verification of DRAT Proof\n";
@@ -401,14 +401,14 @@ void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
          "bitblasting mode");
 
   d_dratTranslationStatistics.d_totalTime.start();
-  std::pair<er::ErProof, TimerStat> pfAndToolTimer =
-      er::ErProof::fromBinaryDratProof(
-          d_clauses, d_coreClauseIndices, d_binaryDratProof.str());
+  er::ErProof pf =
+      er::ErProof::fromBinaryDratProof(d_clauses,
+                                       d_coreClauseIndices,
+                                       d_binaryDratProof.str(),
+                                       d_dratTranslationStatistics.d_toolTime);
   d_dratTranslationStatistics.d_totalTime.stop();
-  d_dratTranslationStatistics.d_toolTime.setData(
-      pfAndToolTimer.second.getData());
 
-  pfAndToolTimer.first.outputAsLfsc(os);
+  pf.outputAsLfsc(os);
 }
 
 }  // namespace proof
