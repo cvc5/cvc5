@@ -1571,12 +1571,12 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
         {
           debugPrint( "uf-ss-debug" );
         }
-        if( Trace.isOn("uf-ss-check") )
+        if( Trace.isOn("uf-ss-stats") )
         {
-          Trace("uf-ss-check") << "StrongSolverTheoryUF::check" << level << std::endl;
+          Trace("uf-ss-stats") << "StrongSolverTheoryUF::check " << level << std::endl;
           for( std::pair< const TypeNode, SortModel* >& rm : d_rep_model )
           {
-            Trace("uf-ss-check") << "  " << rm.first << " has cardinality " << rm.second->getCardinality() << std::endl;
+            Trace("uf-ss-stats") << "  " << rm.first << " has cardinality " << rm.second->getCardinality() << std::endl;
           }
         }
       }

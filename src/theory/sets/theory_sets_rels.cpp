@@ -156,6 +156,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       Node                      eqc_rep  = (*eqcs_i);
       eq::EqClassIterator       eqc_i   = eq::EqClassIterator( eqc_rep, d_eqEngine );
 
+      TypeNode erType = eqc_rep.getType();
       Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
 
       while( !eqc_i.isFinished() ){
@@ -163,8 +164,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
         Trace("rels-ee") << "  term : " << eqc_node << std::endl;
 
-        if( getRepresentative(eqc_rep) == getRepresentative(d_trueNode) ||
-            getRepresentative(eqc_rep) == getRepresentative(d_falseNode) ) {
+        if( erType.isBoolean() && eqc_rep.isConst() ){
 
           // collect membership info
           if( eqc_node.getKind() == kind::MEMBER && eqc_node[1].getType().getSetElementType().isTuple()) {
@@ -175,7 +175,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
               reduceTupleVar( eqc_node );
             }
 
-            bool is_true_eq    = areEqual( eqc_rep, d_trueNode );
+            bool is_true_eq    = eqc_rep.getConst<bool>();
             Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
 
             if( is_true_eq ) {
@@ -187,7 +187,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             }
           }
         // collect relational terms info
-        } else if( eqc_rep.getType().isSet() && eqc_rep.getType().getSetElementType().isTuple() ) {
+        } else if( erType.isSet() && erType.getSetElementType().isTuple() ) {
           if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
               eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
               eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
@@ -211,8 +211,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             }
           }
         // need to add all tuple elements as shared terms
-        } else if( eqc_node.getType().isTuple() && !eqc_node.isConst() && !eqc_node.isVar() ) {
-          for( unsigned int i = 0; i < eqc_node.getType().getTupleLength(); i++ ) {
+        } else if( erType.isTuple() && !eqc_node.isConst() && !eqc_node.isVar() ) {
+          for( unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++ ) {
             Node element = RelsUtils::nthElementOfTuple( eqc_node, i );
 
             if( !element.isConst() ) {
@@ -1185,6 +1185,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     d_eqEngine->addFunctionKind(kind::TCLOSURE);
     d_eqEngine->addFunctionKind(kind::JOIN_IMAGE);
     d_eqEngine->addFunctionKind(kind::IDEN);
+    d_eqEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
   }
 
   TheorySetsRels::~TheorySetsRels() {
