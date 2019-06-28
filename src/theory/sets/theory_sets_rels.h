@@ -31,6 +31,7 @@ namespace sets {
 
 class TheorySetsPrivate;
 
+
 class TupleTrie {
 public:
   /** the data */
@@ -50,17 +51,17 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(context::Context* c,
-                context::UserContext* u,
-                eq::EqualityEngine*,
-                context::CDO<bool>*,
-                TheorySetsPrivate&);
+  TheorySetsRels(context::Context* c,
+                 context::UserContext* u,
+                 eq::EqualityEngine*,
+                 context::CDO<bool>*,
+                 TheorySetsPrivate&);
 
- ~TheorySetsRels();
- void check(Theory::Effort);
- void doPendingSends();
+  ~TheorySetsRels();
+  void check(Theory::Effort);
+  void doPendingSends();
 
- bool isRelationKind(Kind k);
+  bool isRelationKind( Kind k );
 private:
 
 private:
@@ -73,7 +74,7 @@ private:
   Node                          d_falseNode;
 
   /** Facts and lemmas to be sent to EE */
-  std::vector<Node> d_pending_merge;
+  std::vector< Node > d_pending_merge;
   NodeSet                       d_lemmas_produced;
   NodeSet                       d_shared_terms;
   std::map< Node, Node >        d_pending_facts;
@@ -101,14 +102,13 @@ private:
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
   std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
+  
   context::Context* d_satContext;
 
- private:
+private:
 
   /** Methods used in standard effort */
   void doPendingLemmas();
-  void sendInferProduct(Node member, Node pt_rel, Node exp);
-  void sendInferTranspose(Node t1, Node t2, Node exp );
   void sendMergeInfer( Node fact, Node reason, const char * c );
 
   /** Methods used in full effort */
@@ -137,8 +137,6 @@ private:
   void isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
                     std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
-
-  void sendInfer( Node fact, Node exp, const char * c );
   void doTCLemmas();
 
   /** Helper functions */
