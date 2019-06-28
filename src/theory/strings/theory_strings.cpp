@@ -3598,6 +3598,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
+  NodeManager * nm = NodeManager::currentNM();
   //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -3678,10 +3679,10 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   antec.push_back( nconst_k.eqNode( d_emptyString ).negate() );
                   d_os.sendInference(
                       antec,
-                      NodeManager::currentNM()->mkNode(
+                      nm->mkNode(
                           kind::OR,
-                          NodeManager::currentNM()->mkNode(
-                              kind::AND, eq1, sk.eqNode(firstChar).negate()),
+                          nm->mkNode(
+                              AND, eq1, sk.eqNode(firstChar).negate()),
                           eq2),
                       "D-DISL-CSplit");
                   d_os.sendPhaseRequirement(eq1, true);
@@ -3720,7 +3721,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               d_os.sendInference(
                   antec,
                   antec_new_lits,
-                  NodeManager::currentNM()->mkNode(kind::AND, conc),
+                  nm->mkNode(kind::AND, conc),
                   "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
@@ -4362,19 +4363,6 @@ void TheoryStrings::checkLengthsEqc() {
         if( !options::stringEagerLen() ){
           Node c = mkConcat(nfi.d_nf);
           registerTerm( c, 3 );
-          /*
-          if( !c.isConst() ){
-            NodeNodeMap::const_iterator it = d_proxy_var.find( c );
-            if( it!=d_proxy_var.end() ){
-              Node pv = (*it).second;
-              Assert( d_proxy_var_to_length.find( pv
-          )!=d_proxy_var_to_length.end() ); Node pvl =
-          d_proxy_var_to_length[pv]; Node ceq = Rewriter::rewrite( mkLength( pv
-          ).eqNode( pvl ) ); d_os.sendInference( d_empty_vec, ceq, "LEN-NORM-I",
-          true );
-            }
-          }
-          */
         }
       }
       //} else {

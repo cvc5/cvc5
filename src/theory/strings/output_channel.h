@@ -29,6 +29,12 @@ namespace strings {
 
 class TheoryStrings;
 
+/** Output channel strings
+ * 
+ * The purpose of this class is to process inference steps for strategies
+ * in the theory of strings.
+ * 
+ */
 class OutputChannelStrings
 {
   typedef context::CDList<Node> NodeList;
@@ -105,7 +111,7 @@ class OutputChannelStrings
                      bool asLemma = false);
   /** Send split
    *
-   * This requests tha ( a = b V a != b ) is sent on the output channel as a
+   * This requests that ( a = b V a != b ) is sent on the output channel as a
    * lemma. We additionally request that a phase requirement the equality a=b
    * to polarity preq.
    *

@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the theory of strings.
- **
- ** Implementation of the theory of strings.
+ ** \brief Implementation of the output channel for the theory of strings.
  **/
 
 #include "theory/strings/output_channel.h"
@@ -231,10 +229,10 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
     }
     if (Trace.isOn("strings-lemma-debug"))
     {
-      for (unsigned i = 0; i < unproc.size(); i++)
+      for( const Node& u : unproc )
       {
         Trace("strings-lemma-debug")
-            << "  non-trivial exp : " << unproc[i] << std::endl;
+            << "  non-trivial exp : " << u << std::endl;
       }
     }
   }
