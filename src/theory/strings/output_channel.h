@@ -281,7 +281,7 @@ class OutputChannelStrings
    *
    * For example, say that v1 was introduced as a proxy variable for "ABC", and
    * v2 was introduced as a proxy variable for "AA".
-   * 
+   *
    * Given the input n := v1 = "ABC" ^ v2 = x ^ x = "AA", this method sets:
    * vars = { x },
    * subs = { v2 },
