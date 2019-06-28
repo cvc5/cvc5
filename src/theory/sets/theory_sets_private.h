@@ -22,10 +22,10 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "theory/sets/skolem_cache.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -222,7 +222,7 @@ private: //for universe set
   Node explain(TNode);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-  
+
   SkolemCache& getSkolemCache() { return d_skCache; }
 
   void preRegisterTerm(TNode node);
@@ -265,17 +265,16 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-  void processLemmaToSend(Node lem, const char * c);
+  void processLemmaToSend(Node lem, const char* c);
   void processRequirePhase(Node lit, bool pol);
-  
+
   bool isInConflict() const;
   bool sentLemma() const;
 
-  
   /** get default output channel */
   OutputChannel* getOutputChannel();
 
-private:
+ private:
   TheorySets& d_external;
 
   class Statistics {

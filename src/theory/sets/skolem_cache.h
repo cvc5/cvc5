@@ -67,7 +67,7 @@ class SkolemCache
   std::unordered_set<Node, NodeHashFunction> d_allSkolems;
 };
 
-}  // namespace strings
+}  // namespace sets
 }  // namespace theory
 }  // namespace CVC4
 

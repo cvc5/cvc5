@@ -22,9 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-SkolemCache::SkolemCache()
-{
-}
+SkolemCache::SkolemCache() {}
 
 Node SkolemCache::mkTypedSkolemCached(
     TypeNode tn, Node a, Node b, SkolemId id, const char* c)
