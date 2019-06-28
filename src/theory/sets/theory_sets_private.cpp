@@ -84,9 +84,6 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
     EqcInfo * e = getOrMakeEqcInfo( t, true );
     e->d_singleton = t;
   }
-  if( options::setsRelEager() ){
-    d_rels->eqNotifyNewClass( t );
-  }
 }
 
 void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2){
@@ -178,9 +175,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         }
       }
       d_members[t1] = n_members;
-    }
-    if( options::setsRelEager() ){
-      d_rels->eqNotifyPostMerge( t1, t2 );
     }
   }
 }
@@ -1775,10 +1769,6 @@ void TheorySetsPrivate::check(Theory::Effort level) {
           d_external.d_out->setIncomplete();
         }
       }
-    }else{
-      if( options::setsRelEager() ){
-        d_rels->check(level);  
-      }
     }
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
@@ -2164,6 +2154,7 @@ void TheorySetsPrivate::processLemmaToSend(Node lem, const char * c)
   std::vector< Node > lemmas;
   if( lem.getKind()!=kind::IMPLIES || !isEntailed(lem[0], true ) )
   {
+    Trace("sets-lts") << "  must assert as lemma" << std::endl;
     flushLemma(lem,false);
     return;
   }
@@ -2172,7 +2163,7 @@ void TheorySetsPrivate::processLemmaToSend(Node lem, const char * c)
   // we can assert it as a fact
   Trace("sets-lts") << "  assert as fact" << std::endl;
   assertInference(lem[1],lem[0],lemmas,c);
-  Trace("sets-lts") << "  assert as lemma" << std::endl;
+  Trace("sets-lts") << "  assert " << lemmas.size() << " associated lemmas" << std::endl;
   flushLemmas(lemmas);
 }
 

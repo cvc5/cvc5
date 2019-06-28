@@ -63,30 +63,8 @@ public:
 
   bool isRelationKind( Kind k );
 private:
-  /** equivalence class info
-   * d_mem tuples that are members of this equivalence class
-   * d_not_mem tuples that are not members of this equivalence class
-   * d_tp is a node of kind TRANSPOSE (if any) in this equivalence class,
-   * d_pt is a node of kind PRODUCT (if any) in this equivalence class,
-   * d_tc is a node of kind TCLOSURE (if any) in this equivalence class,
-   */
-  class EqcInfo
-  {
-  public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    NodeSet                     d_mem;
-    NodeMap                     d_mem_exp;
-    context::CDO< Node >        d_tp;
-    context::CDO< Node >        d_pt;
-    context::CDO< Node >        d_tc;
-    context::CDO< Node >        d_rel_tc;
-  };
 
 private:
-
-  /** has eqc info */
-  bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
 
   eq::EqualityEngine            *d_eqEngine;
   TheorySetsPrivate& d_sets_theory;
@@ -124,14 +102,8 @@ private:
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
   std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
-  std::map< Node, EqcInfo* > d_eqc_info;
-
   
   context::Context* d_satContext;
-public:
-  /** Standard effort notifications */
-  void eqNotifyNewClass(Node t);
-  void eqNotifyPostMerge(Node t1, Node t2);
 
 private:
 
@@ -139,9 +111,7 @@ private:
   void doPendingLemmas();
   void sendInferProduct(Node member, Node pt_rel, Node exp);
   void sendInferTranspose(Node t1, Node t2, Node exp );
-  void sendInferTClosure( Node mem_rep, EqcInfo* ei );
   void sendMergeInfer( Node fact, Node reason, const char * c );
-  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
 
   /** Methods used in full effort */
   void check();
