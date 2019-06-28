@@ -611,6 +611,8 @@ libcvc4_add_sources(
   theory/sep/theory_sep_type_rules.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
+  theory/sets/skolem_cache.cpp
+  theory/sets/skolem_cache.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp

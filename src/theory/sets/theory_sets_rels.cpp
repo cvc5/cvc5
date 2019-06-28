@@ -38,8 +38,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       check();
       doPendingLemmas();
     }
-    Assert(d_pending_merge.empty());
-    Assert(d_pending_facts.empty());
+    Assert( d_pending_merge.empty() );
+    Assert( d_pending_facts.empty() );
     Trace("rels") << "\n[sets-rels] ******************************* Done with the relational solver *******************************\n" << std::endl;
   }
 
@@ -160,8 +160,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
         Trace("rels-ee") << "  term : " << eqc_node << std::endl;
 
-        if (erType.isBoolean() && eqc_rep.isConst())
-        {
+        if( erType.isBoolean() && eqc_rep.isConst() ){
+
           // collect membership info
           if( eqc_node.getKind() == kind::MEMBER && eqc_node[1].getType().getSetElementType().isTuple()) {
             Node tup_rep = getRepresentative( eqc_node[0] );
@@ -171,7 +171,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
               reduceTupleVar( eqc_node );
             }
 
-            bool is_true_eq = eqc_rep.getConst<bool>();
+            bool is_true_eq    = eqc_rep.getConst<bool>();
             Node reason        = is_true_eq ? eqc_node : eqc_node.negate();
 
             if( is_true_eq ) {
@@ -183,9 +183,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             }
           }
         // collect relational terms info
-        }
-        else if (erType.isSet() && erType.getSetElementType().isTuple())
-        {
+        } else if( erType.isSet() && erType.getSetElementType().isTuple() ) {
           if( eqc_node.getKind() == kind::TRANSPOSE || eqc_node.getKind() == kind::JOIN ||
               eqc_node.getKind() == kind::PRODUCT || eqc_node.getKind() == kind::TCLOSURE ||
               eqc_node.getKind() == kind::JOIN_IMAGE || eqc_node.getKind() == kind::IDEN ) {
@@ -209,11 +207,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             }
           }
         // need to add all tuple elements as shared terms
-        }
-        else if (erType.isTuple() && !eqc_node.isConst() && !eqc_node.isVar())
-        {
-          for (unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++)
-          {
+        } else if( erType.isTuple() && !eqc_node.isConst() && !eqc_node.isVar() ) {
+          for( unsigned i = 0, tlen = erType.getTupleLength(); i < tlen; i++ ) {
             Node element = RelsUtils::nthElementOfTuple( eqc_node, i );
 
             if( !element.isConst() ) {
@@ -305,12 +300,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                 new_membership = NodeManager::currentNM()->mkNode( kind::OR, new_membership, NodeManager::currentNM()->mkNode( kind::NOT, NodeManager::currentNM()->mkNode( kind::DISTINCT, existing_members ) ));
               }
               Assert(reasons.size() >= 1);
-              sendMergeInfer(
-                  new_membership,
-                  reasons.size() > 1
-                      ? NodeManager::currentNM()->mkNode(kind::AND, reasons)
-                      : reasons[0],
-                  "JOIN-IMAGE UP");
+              sendMergeInfer( new_membership, reasons.size() > 1 ? NodeManager::currentNM()->mkNode( kind::AND, reasons) : reasons[0], "JOIN-IMAGE UP" );
               break;
             }
           }
@@ -367,7 +357,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( distinct_skolems.size() >= 2 ) {
       conclusion =  NodeManager::currentNM()->mkNode( kind::AND, conclusion, NodeManager::currentNM()->mkNode( kind::DISTINCT, distinct_skolems ) );
     }
-    sendMergeInfer(conclusion, reason, "JOIN-IMAGE DOWN");
+    sendMergeInfer( conclusion, reason, "JOIN-IMAGE DOWN" );
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyJoinImageRule ***********" << std::endl;
 
   }
@@ -395,13 +385,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( exp[1] != iden_term ) {
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
     }
-    sendMergeInfer(
-        NodeManager::currentNM()->mkNode(
-            kind::AND,
-            fact,
-            NodeManager::currentNM()->mkNode(kind::EQUAL, fst_mem, snd_mem)),
-        reason,
-        "IDENTITY-DOWN");
+    sendMergeInfer( NodeManager::currentNM()->mkNode( kind::AND, fact, NodeManager::currentNM()->mkNode( kind::EQUAL, fst_mem, snd_mem ) ), reason, "IDENTITY-DOWN" );
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term << std::endl;
   }
 
@@ -431,10 +415,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
         reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel ) );
       }
-      sendMergeInfer(
-          NodeManager::currentNM()->mkNode(kind::MEMBER, new_mem, iden_term),
-          reason,
-          "IDENTITY-UP");
+      sendMergeInfer( NodeManager::currentNM()->mkNode( kind::MEMBER, new_mem, iden_term ), reason, "IDENTITY-UP" );
       ++mem_rep_exp_it;
     }
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for Iden Term = " << iden_term << std::endl;
@@ -651,15 +632,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       all_reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel[0], reasons.back()[1]) );
     }
     if( all_reasons.size() > 1) {
-      sendMergeInfer(
-          NodeManager::currentNM()->mkNode(kind::MEMBER, tc_mem, tc_rel),
-          NodeManager::currentNM()->mkNode(kind::AND, all_reasons),
-          "TCLOSURE-Forward");
+      sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, tc_mem, tc_rel), NodeManager::currentNM()->mkNode(kind::AND, all_reasons), "TCLOSURE-Forward");
     } else {
-      sendMergeInfer(
-          NodeManager::currentNM()->mkNode(kind::MEMBER, tc_mem, tc_rel),
-          all_reasons.front(),
-          "TCLOSURE-Forward");
+      sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, tc_mem, tc_rel), all_reasons.front(), "TCLOSURE-Forward");
     }
 
     // check if cur_node has been traversed or not
@@ -729,8 +704,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( pt_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, exp, NodeManager::currentNM()->mkNode(kind::EQUAL, pt_rel, exp[1]));
     }
-    sendMergeInfer(fact_1, reason, "product-split");
-    sendMergeInfer(fact_2, reason, "product-split");
+    sendMergeInfer( fact_1, reason, "product-split" );
+    sendMergeInfer( fact_2, reason, "product-split" );
   }
 
   /* join-split rule:           (a, b) IS_IN (X JOIN Y)
@@ -761,7 +736,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node         shared_x       = NodeManager::currentNM()->mkSkolem("srj_", shared_type);
+    //Node         shared_x       = NodeManager::currentNM()->mkSkolem("srj_", shared_type);
+    Node shared_x = d_sets_theory.getSkolemCache().mkTypedSkolemCached(shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
     unsigned int tup_len        = join_rel.getType().getSetElementType().getTupleLength();
@@ -799,9 +775,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, join_rel, exp[1]));
     }
     Node fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem1, join_rel[0]);
-    sendMergeInfer(fact, reason, "JOIN-Split");
+    sendMergeInfer( fact, reason, "JOIN-Split-1" );
     fact = NodeManager::currentNM()->mkNode(kind::MEMBER, mem2, join_rel[1]);
-    sendMergeInfer(fact, reason, "JOIN-Split");
+    sendMergeInfer( fact, reason, "JOIN-Split-2" );
     makeSharedTerm( shared_x );
   }
 
@@ -821,11 +797,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
       Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE-Equal rule on transposed term = " << tp_terms[0] << " and " << tp_terms[i] << std::endl;
-      sendMergeInfer(NodeManager::currentNM()->mkNode(
-                         kind::EQUAL, tp_terms[0][0], tp_terms[i][0]),
-                     NodeManager::currentNM()->mkNode(
-                         kind::EQUAL, tp_terms[0], tp_terms[i]),
-                     "TRANSPOSE-Equal");
+      sendMergeInfer(NodeManager::currentNM()->mkNode(kind::EQUAL, tp_terms[0][0], tp_terms[i][0]), NodeManager::currentNM()->mkNode(kind::EQUAL, tp_terms[0], tp_terms[i]), "TRANSPOSE-Equal");
     }
   }
 
@@ -848,10 +820,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( tp_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tp_rel, exp[1]));
     }
-    sendMergeInfer(
-        NodeManager::currentNM()->mkNode(kind::MEMBER, reversed_mem, tp_rel[0]),
-        reason,
-        "TRANSPOSE-Reverse");
+    sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, reversed_mem, tp_rel[0]), reason, "TRANSPOSE-Reverse" );
   }
 
   void TheorySetsRels::doTCInference() {
@@ -936,11 +905,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         if( rel[0] != exps[i][1] ) {
           reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
-        sendMergeInfer(
-            NodeManager::currentNM()->mkNode(
-                kind::MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
-            reason,
-            "TRANSPOSE-reverse");
+        sendMergeInfer(NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel), reason, "TRANSPOSE-reverse");
       }
     }
   }
@@ -1005,16 +970,12 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
             reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r2, r2_rep_exps[j][1]) );
           }
           if( isProduct ) {
-            sendMergeInfer(fact,
-                           NodeManager::currentNM()->mkNode(kind::AND, reasons),
-                           "PRODUCT-Compose");
+            sendMergeInfer( fact, NodeManager::currentNM()->mkNode(kind::AND, reasons), "PRODUCT-Compose" );
           } else {
             if( r1_rmost != r2_lmost ) {
               reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
             }
-            sendMergeInfer(fact,
-                           NodeManager::currentNM()->mkNode(kind::AND, reasons),
-                           "JOIN-Compose");
+            sendMergeInfer( fact, NodeManager::currentNM()->mkNode(kind::AND, reasons), "JOIN-Compose" );
           }
         }
       }
@@ -1024,11 +985,11 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::doPendingLemmas() {
     Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
-    if (!d_sets_theory.isInConflict())
+    if( !d_sets_theory.isInConflict() )
     {
       doPendingSends();
     }
-    if (!d_sets_theory.isInConflict())
+    if( !d_sets_theory.isInConflict() )
     {
       doTCLemmas();
     }
@@ -1055,18 +1016,14 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-debug") << "[Theory::Rels] **************** Start doTCLemmas !" << std::endl;
     std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_tc_lemmas_last.begin();
     while( tc_lemma_it != d_tc_lemmas_last.end() ) {
-      d_sets_theory.processLemmaToSend(tc_lemma_it->first, "rels_TC");
+      d_sets_theory.processLemmaToSend( tc_lemma_it->first, "rels_TC" );
 
-      for (unsigned int i = 0; i < (tc_lemma_it->second).size(); i++)
-      {
-        if ((tc_lemma_it->second)[i] == d_falseNode)
-        {
+      for( unsigned int i = 0; i < (tc_lemma_it->second).size(); i++ ) {
+        if( (tc_lemma_it->second)[i] == d_falseNode ) {
           d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
         }
       }
-      Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = "
-                          << tc_lemma_it->first << " by "
-                          << "TCLOSURE-Forward" << std::endl;
+      Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = " << tc_lemma_it->first << " by " << "TCLOSURE-Forward"<< std::endl;
       ++tc_lemma_it;
     }
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doTCLemmas !" << std::endl;
@@ -1140,11 +1097,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
-      Trace("rels-share") << " [sets-rels] making shared term " << n
-                          << std::endl;
+      Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
       Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      Node skEq =
-          skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON, n));
+      Node skEq = skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n));
       // force lemma to be sent immediately
       d_sets_theory.getOutputChannel()->lemma(skEq);
       d_shared_terms.insert(n);
@@ -1191,18 +1146,18 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
   }
 
-  TheorySetsRels::TheorySetsRels(context::Context* c,
-                                 context::UserContext* u,
-                                 eq::EqualityEngine* eq,
-                                 context::CDO<bool>* conflict,
-                                 TheorySetsPrivate& d_set)
-      : d_eqEngine(eq),
-        d_sets_theory(d_set),
-        d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
-        d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
-        d_lemmas_produced(u),
-        d_shared_terms(u),
-        d_satContext(c)
+  TheorySetsRels::TheorySetsRels( context::Context* c,
+                                  context::UserContext* u,
+                                  eq::EqualityEngine* eq,
+                                  context::CDO<bool>* conflict,
+                                  TheorySetsPrivate& d_set ):
+    d_eqEngine(eq),
+    d_sets_theory(d_set),
+    d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
+    d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
+    d_lemmas_produced(u),
+    d_shared_terms(u),
+    d_satContext(c)
   {
     d_eqEngine->addFunctionKind(kind::PRODUCT);
     d_eqEngine->addFunctionKind(kind::JOIN);
@@ -1300,33 +1255,30 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
   }
 
-  void TheorySetsRels::doPendingSends()
-  {
+  void TheorySetsRels::doPendingSends() {
     do
     {
-      std::vector<Node> pmcurr;
-      pmcurr.insert(
-          pmcurr.end(), d_pending_merge.begin(), d_pending_merge.end());
+      std::vector< Node > pmcurr;
+      pmcurr.insert( pmcurr.end(), d_pending_merge.begin(), d_pending_merge.end() );
       d_pending_merge.clear();
-      for (const Node& pm : pmcurr)
+      for( const Node& pm : pmcurr )
       {
-        Trace("rels-std-lemma")
-            << "[std-sets-rels-lemma] Send out a merge fact as lemma: " << pm
-            << std::endl;
-        d_sets_theory.processLemmaToSend(pm, "rels");
-        if (d_sets_theory.isInConflict())
+        Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
+                            << pm << std::endl;
+        d_sets_theory.processLemmaToSend( pm, "rels" );
+        if (d_sets_theory.isInConflict() )
         {
           d_pending_merge.clear();
           return;
         }
       }
-    } while (!d_pending_merge.empty());
+    }
+    while( !d_pending_merge.empty() );
   }
 
   void TheorySetsRels::sendMergeInfer( Node fact, Node reason, const char * c ) {
-    Trace("rels-lemma") << "Rels lemma: " << fact << " from " << reason
-                        << " by " << c << std::endl;
-    Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, fact);
+    Trace("rels-lemma") << "Rels lemma: " << fact << " from " << reason << " by " << c << std::endl;
+    Node lemma = NodeManager::currentNM()->mkNode( kind::IMPLIES, reason, fact);
     d_pending_merge.push_back(lemma);
   }
 
