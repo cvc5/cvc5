@@ -30,6 +30,7 @@
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -298,6 +299,8 @@ class TheoryStrings : public Theory {
   NotifyClass d_notify;
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
+  /** The (custom) output channel of the theory of strings */
+  OutputChannelStrings d_os;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   //list of pairs of nodes to merge

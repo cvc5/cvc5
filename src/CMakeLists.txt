@@ -627,6 +627,8 @@ libcvc4_add_sources(
   theory/sort_inference.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
+  theory/strings/output_channel.cpp
+  theory/strings/output_channel.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
