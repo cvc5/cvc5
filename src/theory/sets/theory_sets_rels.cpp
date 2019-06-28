@@ -1116,8 +1116,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   }
 
   void TheorySetsRels::makeSharedTerm( Node n ) {
-    Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
+      Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
       Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
       Node skEq = skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n));
       // force lemma to be sent immediately
@@ -1543,17 +1543,24 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
 
   void TheorySetsRels::doPendingSends() {
-    for( const Node& pm : d_pending_merge )
+    do
     {
-      Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
-                          << pm << std::endl;
-      d_sets_theory.processLemmaToSend( pm, "rels" );
-      if (d_sets_theory.isInConflict() )
+      std::vector< Node > pmcurr;
+      pmcurr.insert( pmcurr.end(), d_pending_merge.begin(), d_pending_merge.end() );
+      d_pending_merge.clear();
+      for( const Node& pm : pmcurr )
       {
-        break;
+        Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
+                            << pm << std::endl;
+        d_sets_theory.processLemmaToSend( pm, "rels" );
+        if (d_sets_theory.isInConflict() )
+        {
+          d_pending_merge.clear();
+          return;
+        }
       }
     }
-    d_pending_merge.clear();
+    while( !d_pending_merge.empty() );
   }
 
   // t1 and t2 can be both relations
