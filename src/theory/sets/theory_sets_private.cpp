@@ -535,11 +535,13 @@ void TheorySetsPrivate::fullEffortCheck(){
 
     std::vector< Node > lemmas;
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
+    std::map< TypeNode, unsigned > eqcTypeCount;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       bool isSet = false;
       TypeNode tn = eqc.getType();
+      eqcTypeCount[tn]++;
       //common type node and term
       TypeNode tnc;
       Node tnct;
@@ -666,6 +668,15 @@ void TheorySetsPrivate::fullEffortCheck(){
       }
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
+    }
+    
+    if( Trace.isOn("sets-stats") )
+    {
+      Trace("sets-stats") << "Equivalence class counters:" << std::endl;
+      for( std::pair< const TypeNode, unsigned >& ec : eqcTypeCount )
+      {
+        Trace("sets-stats") << "  " << ec.first << " -> " << ec.second << std::endl;
+      }
     }
     
     flushLemmas( lemmas );
