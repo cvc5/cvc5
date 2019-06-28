@@ -219,7 +219,7 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
                                      << eq_exp << " by " << c << std::endl;
         Trace("strings-lemma-debug")
             << "Strings::Infer Alternate : " << eqs << std::endl;
-        for (unsigned i = 0; i < vars.size(); i++)
+        for (unsigned i = 0, nvars = vars.size(); i < nvars; i++)
         {
           Trace("strings-lemma-debug")
               << "  " << vars[i] << " -> " << subs[i] << std::endl;
@@ -386,6 +386,7 @@ void OutputChannelStrings::inferSubstitutionProxyVars(
       for (unsigned i = 0; i < 2; i++)
       {
         Node ss;
+        // determine whether this side has a proxy variable
         if (ns[i].getAttribute(StringsProxyVarAttribute()))
         {
           // it is a proxy variable
@@ -398,6 +399,7 @@ void OutputChannelStrings::inferSubstitutionProxyVars(
         if (!ss.isNull())
         {
           v = ns[1 - i];
+          // if the other side is a constant or variable
           if (v.getNumChildren() == 0)
           {
             if (s.isNull())
@@ -406,7 +408,7 @@ void OutputChannelStrings::inferSubstitutionProxyVars(
             }
             else
             {
-              // both sides involved in proxy var
+              // both sides of the equality correspond to a proxy variable
               if (ss == s)
               {
                 // it is a trivial equality, e.g. between a proxy variable
@@ -415,6 +417,7 @@ void OutputChannelStrings::inferSubstitutionProxyVars(
               }
               else
               {
+                // equality between proxy variables, non-trivial
                 s = Node::null();
               }
             }
@@ -423,6 +426,7 @@ void OutputChannelStrings::inferSubstitutionProxyVars(
       }
       if (!s.isNull())
       {
+        // the equality can be turned into a substitution
         subs.push_back(s);
         vars.push_back(v);
         return;

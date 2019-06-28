@@ -272,14 +272,28 @@ class OutputChannelStrings
    * This method attempts to (partially) convert the formula n into a
    * substitution of the form:
    *   v1 -> s1, ..., vn -> sn
-   * where v1 ... vn are variables.
+   * where s1 ... sn are proxy variables and v1 ... vn are either variables
+   * or constants.
    *
    * This method ensures that P ^ v1 = s1 ^ ... ^ vn = sn ^ unproc is equivalent
-   * to P ^ n, where P is the definition of all proxy variables known to the
-   * theory of strings.
+   * to P ^ n, where P is the conjunction of equalities corresponding to the
+   * definition of all proxy variables introduced by the theory of strings.
    *
    * For example, say that v1 was introduced as a proxy variable for "ABC", and
    * v2 was introduced as a proxy variable for "AA".
+   * 
+   * Given the input n := v1 = "ABC" ^ v2 = x ^ x = "AA", this method sets:
+   * vars = { x },
+   * subs = { v2 },
+   * unproc = {}.
+   * In particular, since says that the information content of n essentially
+   * says that x = v2, while the first and third conjunctions can be dropped
+   * since they effectively give the definition of the proxy variables.
+   *
+   * This method is used as a performance heuristic. It can infer when the
+   * explanation of a fact depends only trivially on equalities corresponding
+   * to definitions of proxy variables, which can be omitted since they are
+   * assumed to hold globally.
    */
   void inferSubstitutionProxyVars(Node n,
                                   std::vector<Node>& vars,
