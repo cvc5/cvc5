@@ -54,8 +54,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
-      d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, *this)),
+      d_rels(new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, *this)),
       d_rels_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
@@ -529,7 +528,7 @@ void TheorySetsPrivate::fullEffortCheck(){
 
     std::vector< Node > lemmas;
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
-    std::map< TypeNode, unsigned > eqcTypeCount;
+    std::map<TypeNode, unsigned> eqcTypeCount;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
@@ -663,16 +662,17 @@ void TheorySetsPrivate::fullEffortCheck(){
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
     }
-    
-    if( Trace.isOn("sets-stats") )
+
+    if (Trace.isOn("sets-stats"))
     {
       Trace("sets-stats") << "Equivalence class counters:" << std::endl;
-      for( std::pair< const TypeNode, unsigned >& ec : eqcTypeCount )
+      for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
       {
-        Trace("sets-stats") << "  " << ec.first << " -> " << ec.second << std::endl;
+        Trace("sets-stats")
+            << "  " << ec.first << " -> " << ec.second << std::endl;
       }
     }
-    
+
     flushLemmas( lemmas );
     if( !hasProcessed() ){
       if( Trace.isOn("sets-mem") ){
@@ -741,8 +741,9 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
       }
     }
-    if( !hasProcessed() ){
-      //invoke relations solver
+    if (!hasProcessed())
+    {
+      // invoke relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
   }while( !d_sentLemma && !d_conflict && d_addedFact );
@@ -2147,39 +2148,33 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
-  
-void TheorySetsPrivate::processLemmaToSend(Node lem, const char * c)
+void TheorySetsPrivate::processLemmaToSend(Node lem, const char* c)
 {
   Trace("sets-lts") << "Process lemma to send: " << lem << std::endl;
-  std::vector< Node > lemmas;
-  if( lem.getKind()!=kind::IMPLIES || !isEntailed(lem[0], true ) )
+  std::vector<Node> lemmas;
+  if (lem.getKind() != kind::IMPLIES || !isEntailed(lem[0], true))
   {
     Trace("sets-lts") << "  must assert as lemma" << std::endl;
-    flushLemma(lem,false);
+    flushLemma(lem, false);
     return;
   }
   // is it a fact?
   Trace("sets-lts") << "Process conclusion: " << lem[1] << std::endl;
   // we can assert it as a fact
   Trace("sets-lts") << "  assert as fact" << std::endl;
-  assertInference(lem[1],lem[0],lemmas,c);
-  Trace("sets-lts") << "  assert " << lemmas.size() << " associated lemmas" << std::endl;
+  assertInference(lem[1], lem[0], lemmas, c);
+  Trace("sets-lts") << "  assert " << lemmas.size() << " associated lemmas"
+                    << std::endl;
   flushLemmas(lemmas);
 }
 
 void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
 {
-  d_external.d_out->requirePhase(lit,pol);
+  d_external.d_out->requirePhase(lit, pol);
 }
 
-bool TheorySetsPrivate::isInConflict() const 
-{ 
-  return d_conflict.get(); 
-}
-bool TheorySetsPrivate::sentLemma() const
-{
-  return d_sentLemma;
-}
+bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
+bool TheorySetsPrivate::sentLemma() const { return d_sentLemma; }
 
 OutputChannel* TheorySetsPrivate::getOutputChannel()
 {

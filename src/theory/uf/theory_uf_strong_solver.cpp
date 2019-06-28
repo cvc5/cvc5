@@ -1566,17 +1566,20 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
   if( !d_conflict ){
     if( options::ufssMode()==UF_SS_FULL ){
       Trace("uf-ss-solver") << "StrongSolverTheoryUF: check " << level << std::endl;
-      if( level==Theory::EFFORT_FULL ){
-        if( Debug.isOn( "uf-ss-debug" ) )
+      if (level == Theory::EFFORT_FULL)
+      {
+        if (Debug.isOn("uf-ss-debug"))
         {
-          debugPrint( "uf-ss-debug" );
+          debugPrint("uf-ss-debug");
         }
-        if( Trace.isOn("uf-ss-stats") )
+        if (Trace.isOn("uf-ss-stats"))
         {
-          Trace("uf-ss-stats") << "StrongSolverTheoryUF::check " << level << std::endl;
-          for( std::pair< const TypeNode, SortModel* >& rm : d_rep_model )
+          Trace("uf-ss-stats")
+              << "StrongSolverTheoryUF::check " << level << std::endl;
+          for (std::pair<const TypeNode, SortModel*>& rm : d_rep_model)
           {
-            Trace("uf-ss-stats") << "  " << rm.first << " has cardinality " << rm.second->getCardinality() << std::endl;
+            Trace("uf-ss-stats") << "  " << rm.first << " has cardinality "
+                                 << rm.second->getCardinality() << std::endl;
           }
         }
       }
