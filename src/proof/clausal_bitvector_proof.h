@@ -74,7 +74,7 @@ class ClausalBitVectorProof : public BitVectorProof
     ~DratTranslationStatistics();
 
     // Total time spent doing translation (optimized binary DRAT -> in memory
-    // target format) (including IO, postprocessing, etc.)
+    // target format including IO, postprocessing, etc.)
     TimerStat d_totalTime;
     // Time that the external tool actually spent
     TimerStat d_toolTime;
