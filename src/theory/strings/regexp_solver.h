@@ -23,8 +23,8 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/strings/regexp_operation.h"
 #include "theory/strings/output_channel.h"
+#include "theory/strings/regexp_operation.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -43,7 +43,10 @@ class RegExpSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  RegExpSolver(TheoryStrings& p, OutputChannelStrings& os, context::Context* c, context::UserContext* u);
+  RegExpSolver(TheoryStrings& p,
+               OutputChannelStrings& os,
+               context::Context* c,
+               context::UserContext* u);
   ~RegExpSolver() {}
 
   /** add membership

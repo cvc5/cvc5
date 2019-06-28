@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
 #define CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
 
-#include "theory/uf/equality_engine.h"
 #include "context/cdlist.h"
+#include "theory/uf/equality_engine.h"
 
 #include <climits>
 #include <deque>
@@ -26,13 +26,18 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
-  
+
 class TheoryStrings;
 
-class OutputChannelStrings {
+class OutputChannelStrings
+{
   typedef context::CDList<Node> NodeList;
+
  public:
-  OutputChannelStrings(TheoryStrings& p, context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
+  OutputChannelStrings(TheoryStrings& p,
+                       context::Context* c,
+                       context::UserContext* u,
+                       eq::EqualityEngine& ee,
                        OutputChannel& out);
   ~OutputChannelStrings() {}
 
@@ -101,56 +106,54 @@ class OutputChannelStrings {
   /** Send split
    *
    * This requests tha ( a = b V a != b ) is sent on the output channel as a
-   * lemma. We additionally request that a phase requirement the equality a=b 
+   * lemma. We additionally request that a phase requirement the equality a=b
    * to polarity preq.
    *
    * The argument c is a string identifying the reason for inference, used for
    * debugging.
-   * 
+   *
    * This method returns true if the split was non-trivial, and false
    * otherwise. A split is trivial if a=b rewrites to a constant.
    */
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   /** Send phase requirement
-   * 
+   *
    * This method is called to indicate this class should send a phase
    * requirement request to the output channel for literal lit to be
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
   /** Do pending facts
-   * 
+   *
    * This method asserts pending facts stored in d_pending to the equality
    * engine.
    */
   void doPendingFacts();
   /** Do pending lemmas
-   * 
+   *
    * This method flushes all pending lemmas to the output channel of theory
    * of strings.
-   * 
+   *
    * Like doPendingFacts, this function will terminate early if a conflict
    * has already been encountered by the theory of strings.
    */
   void doPendingLemmas();
-  /** 
+  /**
    * Have we processed an inference during this call to check? In particular,
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  inline bool hasProcessed() const{
-  return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
-}
+  inline bool hasProcessed() const
+  {
+    return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
+  }
   /** Do we have a pending fact to add to the equality engine? */
-  inline bool hasPendingFact() const{
-  return !d_pending.empty();
-}
+  inline bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
-  inline bool hasPendingLemma() const{
-  return !d_lemma_cache.empty();
-}
+  inline bool hasPendingLemma() const { return !d_lemma_cache.empty(); }
   /** Are we in conflict? */
   bool hasConflict() const;
+
  protected:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
@@ -170,16 +173,17 @@ class OutputChannelStrings {
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
-private:
+
+ private:
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
   /** the equality engine
-   * 
+   *
    * This is a reference to the equality engine of the theory of strings.
    */
   eq::EqualityEngine& d_ee;
-  /** the output channel 
-   * 
+  /** the output channel
+   *
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
@@ -187,16 +191,17 @@ private:
   Node d_true;
   Node d_false;
   /** The list of pending literals to assert to the equality engine */
-  std::vector< Node > d_pending;
+  std::vector<Node> d_pending;
   /** A map from the literals in the above vector to their explanation */
-  std::map< Node, Node > d_pending_exp;
+  std::map<Node, Node> d_pending_exp;
   /** A map from literals to their pending phase requirement */
-  std::map< Node, bool > d_pending_req_phase;
+  std::map<Node, bool> d_pending_req_phase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector< Node > d_lemma_cache;
-  
+  std::vector<Node> d_lemma_cache;
+
   // FIXME
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
+  /** inferences: maintained to ensure ref count for internally introduced nodes
+   */
   NodeList d_infer;
   NodeList d_infer_exp;
   //--------------------------- equality engine
@@ -217,13 +222,13 @@ private:
    * returns true if the representative of a and b are distinct constants.
    */
   bool areDisequal(Node a, Node b);
-  //--------------------------- end equality engine  
+  //--------------------------- end equality engine
   /** mkAnd **/
   static Node mkAnd(std::vector<Node>& a);
-};/* class TheoryStrings */
+}; /* class TheoryStrings */
 
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */

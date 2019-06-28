@@ -25,12 +25,12 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/output_channel.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -729,12 +729,12 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
- 
+
   /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
    */
-  //bool inConflict() const { return d_conflict; }
+  // bool inConflict() const { return d_conflict; }
 
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);
