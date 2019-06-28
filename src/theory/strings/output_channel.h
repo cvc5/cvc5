@@ -98,13 +98,30 @@ class OutputChannelStrings {
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** Send phase requirement
+   * 
+   * This method is called to indicate this class should send a phase
+   * requirement request to the output channel for literal lit to be
+   * decided with polarity pol.
+   */
+  void sendPhaseRequirement(Node lit, bool pol) const;
   
   // FIXME
   // do pending merges
-  void assertPendingFact(Node atom, bool polarity, Node exp);
   void doPendingFacts();
   void doPendingLemmas();
-  bool hasProcessed();
+  /** 
+   * Have we processed an inference during this call to check? In particular,
+   * this returns true if we have a pending fact or lemma, or have encountered
+   * a conflict.
+   */
+  inline bool hasProcessed() const;
+  /** Do we have a pending fact to add to the equality engine? */
+  inline bool hasPendingFact() const;
+  /** Do we have a pending lemma to send on the output channel? */
+  inline bool hasPendingLemma() const;
+  /** Are we in conflict? */
+  inline bool hasConflict() const;
  protected:
   /**
    * Indicates that ant => conc should be sent on the output channel of this

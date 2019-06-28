@@ -306,8 +306,20 @@ void OutputChannelStrings::doPendingLemmas() {
   d_pending_req_phase.clear();
 }
 
-bool OutputChannelStrings::hasProcessed() {
+bool OutputChannelStrings::hasProcessed() const {
   return d_conflict || !d_lemma_cache.empty() || !d_pending.empty();
+}
+bool OutputChannelStrings::hasPendingFact() const
+{
+  return !d_pending.empty();
+}
+bool OutputChannelStrings::hasPendingLemma() const
+{
+  return !d_lemma_cache.empty();
+}
+bool OutputChannelStrings::hasConflict() const
+{
+  return d_conflict;
 }
 
 }/* CVC4::theory::strings namespace */
