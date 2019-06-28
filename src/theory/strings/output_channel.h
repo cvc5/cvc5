@@ -95,22 +95,22 @@ class OutputChannelStrings
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp
    * contains literals that are explainable, i.e. those that hold in the
    * equality engine of the theory of strings. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by this
-   * class. This method may call sendInfer or sendLemma. Overall, the result
-   * of this method is one of the following:
+   * exp_n ("explanations new") contain nodes that are not explainable by the
+   * theory of strings. This method may call sendInfer or sendLemma. Overall,
+   * the result of this method is one of the following:
    *
    * [1] (No-op) Do nothing if eq is true,
    *
    * [2] (Infer) Indicate that eq should be added to the equality engine of this
    * class with explanation EXPLAIN(exp), where EXPLAIN returns the
-   * explanation of the node in exp in terms of the literals asserted to this
-   * class,
+   * explanation of the node in exp in terms of the literals asserted to the
+   * theory of strings,
    *
    * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of this class, or
+   * be sent on the output channel of the theory of strings, or
    *
    * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
-   * channel of this class.
+   * channel of the theory of strings.
    *
    * Determining which case to apply depends on the form of eq and whether
    * exp_n is empty. In particular, lemmas must be used whenever exp_n is
