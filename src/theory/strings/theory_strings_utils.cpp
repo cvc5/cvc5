@@ -22,7 +22,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 namespace utils {
-  
+
 Node mkAnd(std::vector<Node>& a)
 {
   std::vector<Node> au;
@@ -44,8 +44,7 @@ Node mkAnd(std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, au);
 }
 
-
-}/* CVC4::theory::strings::utils namespace */
-}/* CVC4::theory::strings namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace utils
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

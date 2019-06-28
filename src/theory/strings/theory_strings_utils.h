@@ -34,6 +34,6 @@ namespace utils {
 Node mkAnd(std::vector<Node>& a);
 
 }
-}
-}
-}
+}  // namespace strings
+}  // namespace theory
+}  // namespace CVC4

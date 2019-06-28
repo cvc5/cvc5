@@ -26,8 +26,8 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/type_enumerator.h"
 #include "theory/strings/theory_strings_utils.h"
+#include "theory/strings/type_enumerator.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -1536,7 +1536,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
           d_eqc_to_const[nr] = c;
           d_eqc_to_const_base[nr] = n;
-          d_eqc_to_const_exp[nr] = utils::mkAnd( exp );
+          d_eqc_to_const_exp[nr] = utils::mkAnd(exp);
         }else if( c!=it->second ){
           //conflict
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
@@ -3002,7 +3002,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         NormalForm& nfk = index == (nfiv.size() - rproc) ? nfj : nfi;
         std::vector<Node>& nfkv = nfk.d_nf;
         unsigned index_k = index;
-        //Node eq_exp = utils::mkAnd( curr_exp );
+        // Node eq_exp = utils::mkAnd( curr_exp );
         std::vector< Node > curr_exp;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
@@ -3599,7 +3599,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -3682,8 +3682,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                       antec,
                       nm->mkNode(
                           kind::OR,
-                          nm->mkNode(
-                              AND, eq1, sk.eqNode(firstChar).negate()),
+                          nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
                           eq2),
                       "D-DISL-CSplit");
                   d_os.sendPhaseRequirement(eq1, true);
@@ -3719,11 +3718,10 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               Node lsk2 = mkLength( sk2 );
               conc.push_back( lsk2.eqNode( lj ) );
               conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
-              d_os.sendInference(
-                  antec,
-                  antec_new_lits,
-                  nm->mkNode(kind::AND, conc),
-                  "D-DISL-Split");
+              d_os.sendInference(antec,
+                                 antec_new_lits,
+                                 nm->mkNode(kind::AND, conc),
+                                 "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
             }
