@@ -736,6 +736,10 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
       }
     }
+    if( !hasProcessed() ){
+      //invoke relations solver
+      d_rels->check(Theory::EFFORT_FULL);
+    }
   }while( !d_sentLemma && !d_conflict && d_addedFact );
   Trace("sets") << "----- End full effort check, conflict=" << d_conflict << ", lemma=" << d_sentLemma << std::endl;
 }
@@ -1755,10 +1759,6 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     if( level == Theory::EFFORT_FULL ){
       if( !d_external.d_valuation.needCheck() ){
         fullEffortCheck();
-        if( !d_conflict && !d_sentLemma ){
-          //invoke relations solver
-          d_rels->check(level);
-        }
         if (!d_conflict && !d_sentLemma && d_full_check_incomplete)
         {
           d_external.d_out->setIncomplete();
@@ -2147,23 +2147,22 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 }/* TheorySetsPrivate::propagate(TNode) */
 
   
-void TheorySetsPrivate::processLemmaToSend(Node lem)
+void TheorySetsPrivate::processLemmaToSend(Node lem, const char * c)
 {
-  Trace("sets-lts-lemma") << "Process lemma to send: " << lem << std::endl;
-  /*
-  if( lem.getKind()==kind::IMPLIES )
+  Trace("sets-lts") << "Process lemma to send: " << lem << std::endl;
+  std::vector< Node > lemmas;
+  if( lem.getKind()!=kind::IMPLIES || !isEntailed(lem[0], true ) )
   {
-    // is it a fact?
-    Trace("sets-lts") << "Process: " << lem[1] << std::endl;
-    if( isEntailed(lem[0], true)) 
-    {
-      // we can assert it as a fact
-      assertFact(lem[1],lem[0]);
-      return;
-    }
+    flushLemma(lem,false);
+    return;
   }
-  */
-  d_external.d_out->lemma(lem);
+  // is it a fact?
+  Trace("sets-lts") << "Process conclusion: " << lem[1] << std::endl;
+  // we can assert it as a fact
+  Trace("sets-lts") << "  assert as fact" << std::endl;
+  assertInference(lem[1],lem[0],lemmas,c);
+  Trace("sets-lts") << "  assert as lemma" << std::endl;
+  flushLemmas(lemmas);
 }
 
 void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
@@ -2174,6 +2173,15 @@ void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
 bool TheorySetsPrivate::isInConflict() const 
 { 
   return d_conflict.get(); 
+}
+bool TheorySetsPrivate::sentLemma() const
+{
+  return d_sentLemma;
+}
+
+OutputChannel* TheorySetsPrivate::getOutputChannel()
+{
+  return d_external.d_out;
 }
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {

@@ -89,7 +89,6 @@ private:
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
 
   eq::EqualityEngine            *d_eqEngine;
-  context::CDO<bool>            *d_conflict;
   TheorySetsPrivate& d_sets_theory;
 
   /** True and false constant nodes */

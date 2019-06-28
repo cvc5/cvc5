@@ -262,10 +262,15 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-  void processLemmaToSend(Node lem);
+  void processLemmaToSend(Node lem, const char * c);
   void processRequirePhase(Node lit, bool pol);
   
   bool isInConflict() const;
+  bool sentLemma() const;
+  
+  /** get default output channel */
+  OutputChannel* getOutputChannel();
+  
 private:
   TheorySets& d_external;
 

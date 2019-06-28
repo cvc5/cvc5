@@ -988,7 +988,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::doPendingLemmas() {
     Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
-    if( !(*d_conflict) ){
+    if( !d_sets_theory.isInConflict() )
+    {
       for( std::map<Node, Node>::iterator pending_it = d_pending_facts.begin();
             pending_it != d_pending_facts.end(); pending_it++ ) {
         Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, pending_it->second, pending_it->first);
@@ -996,10 +997,10 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       }
       doPendingSends();
     }
-    //if( !d_sets_theory.isInConflict() )
-    //{
+    if( !d_sets_theory.isInConflict() )
+    {
       doTCLemmas();
-    //}
+    }
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doPendingLemmas !" << std::endl;
     d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
@@ -1023,16 +1024,14 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-debug") << "[Theory::Rels] **************** Start doTCLemmas !" << std::endl;
     std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_tc_lemmas_last.begin();
     while( tc_lemma_it != d_tc_lemmas_last.end() ) {
-      if( !holds( tc_lemma_it->first[1] ) ) {
-        d_sets_theory.processLemmaToSend( tc_lemma_it->first );
+      d_sets_theory.processLemmaToSend( tc_lemma_it->first, "rels_TC" );
 
-        for( unsigned int i = 0; i < (tc_lemma_it->second).size(); i++ ) {
-          if( (tc_lemma_it->second)[i] == d_falseNode ) {
-            d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
-          }
+      for( unsigned int i = 0; i < (tc_lemma_it->second).size(); i++ ) {
+        if( (tc_lemma_it->second)[i] == d_falseNode ) {
+          d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
         }
-        Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = " << tc_lemma_it->first << " by " << "TCLOSURE-Forward"<< std::endl;
       }
+      Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = " << tc_lemma_it->first << " by " << "TCLOSURE-Forward"<< std::endl;
       ++tc_lemma_it;
     }
     Trace("rels-debug") << "[Theory::Rels] **************** Done with doTCLemmas !" << std::endl;
@@ -1120,7 +1119,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-share") << " [sets-rels] making shared term " << n << std::endl;
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
       Node skolem = NodeManager::currentNM()->mkSkolem( "sts", NodeManager::currentNM()->mkSetType( n.getType() ) );
-      sendMergeInfer(skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n)), d_trueNode, "share-term");
+      Node skEq = skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON,n));
+      // force lemma to be sent immediately
+      d_sets_theory.getOutputChannel()->lemma(skEq);
       d_shared_terms.insert(n);
     }
   }
@@ -1171,7 +1172,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                   context::CDO<bool>* conflict,
                                   TheorySetsPrivate& d_set ):
     d_eqEngine(eq),
-    d_conflict(conflict),
     d_sets_theory(d_set),
     d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1546,11 +1546,11 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     {
       Trace("rels-std-lemma") << "[std-sets-rels-lemma] Send out a merge fact as lemma: "
                           << pm << std::endl;
-      d_sets_theory.processLemmaToSend( pm );
-      //if (d_sets_theory.isInConflict() )
-      //{
-       // break;
-      //}
+      d_sets_theory.processLemmaToSend( pm, "rels" );
+      if (d_sets_theory.isInConflict() )
+      {
+        break;
+      }
     }
     d_pending_merge.clear();
   }
