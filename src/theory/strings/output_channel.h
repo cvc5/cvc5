@@ -98,13 +98,26 @@ class OutputChannelStrings {
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** Send split
+   *
+   * This requests tha ( a = b V a != b ) is sent on the output channel as a
+   * lemma. We additionally request that a phase requirement the equality a=b 
+   * to polarity preq.
+   *
+   * The argument c is a string identifying the reason for inference, used for
+   * debugging.
+   * 
+   * This method returns true if the split was non-trivial, and false
+   * otherwise. A split is trivial if a=b rewrites to a constant.
+   */
+  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
   /** Send phase requirement
    * 
    * This method is called to indicate this class should send a phase
    * requirement request to the output channel for literal lit to be
    * decided with polarity pol.
    */
-  void sendPhaseRequirement(Node lit, bool pol) const;
+  void sendPhaseRequirement(Node lit, bool pol);
   
   // FIXME
   /** Do pending facts
@@ -119,13 +132,19 @@ class OutputChannelStrings {
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  inline bool hasProcessed() const;
+  inline bool hasProcessed() const{
+  return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
+}
   /** Do we have a pending fact to add to the equality engine? */
-  inline bool hasPendingFact() const;
+  inline bool hasPendingFact() const{
+  return !d_pending.empty();
+}
   /** Do we have a pending lemma to send on the output channel? */
-  inline bool hasPendingLemma() const;
+  inline bool hasPendingLemma() const{
+  return !d_lemma_cache.empty();
+}
   /** Are we in conflict? */
-  inline bool hasConflict() const;
+  bool hasConflict() const;
  protected:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
@@ -145,7 +164,6 @@ class OutputChannelStrings {
    * equality engine of this class.
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
 private:
   /** the parent theory of strings object */
   TheoryStrings& d_parent;

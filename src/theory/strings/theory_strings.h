@@ -304,14 +304,6 @@ class TheoryStrings : public Theory {
   OutputChannelStrings d_os;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
-  //list of pairs of nodes to merge
-  std::map< Node, Node > d_pending_exp;
-  std::vector< Node > d_pending;
-  std::vector< Node > d_lemma_cache;
-  std::map< Node, bool > d_pending_req_phase;
-  /** inferences: maintained to ensure ref count for internally introduced nodes */
-  NodeList d_infer;
-  NodeList d_infer_exp;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -708,11 +700,8 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  // do pending merges
+  // FIXME
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  void doPendingFacts();
-  void doPendingLemmas();
-  bool hasProcessed();
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
    * must be the case that areEqual( a, b ) holds in this context.
@@ -740,97 +729,12 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-  //-------------------------------------send inferences
- public:
-  /** send internal inferences
-   *
-   * This is called when we have inferred exp => conc, where exp is a set
-   * of equalities and disequalities that hold in the current equality engine.
-   * This method adds equalities and disequalities ~( s = t ) via
-   * sendInference such that both s and t are either constants or terms
-   * that already occur in the equality engine, and ~( s = t ) is a consequence
-   * of conc. This function can be seen as a "conservative" version of
-   * sendInference below in that it does not introduce any new non-constant
-   * terms to the state.
-   *
-   * The argument c is a string identifying the reason for the inference.
-   * This string is used for debugging purposes.
-   *
-   * Return true if the inference is complete, in the sense that we infer
-   * inferences that are equivalent to conc. This returns false e.g. if conc
-   * (or one of its conjuncts if it is a conjunction) was not inferred due
-   * to the criteria mentioned above.
-   */
-  bool sendInternalInference(std::vector<Node>& exp, Node conc, const char* c);
-  /** send inference
-   *
-   * This function should be called when ( exp ^ exp_n ) => eq. The set exp
-   * contains literals that are explainable by this class, i.e. those that
-   * hold in the equality engine of this class. On the other hand, the set
-   * exp_n ("explanations new") contain nodes that are not explainable by this
-   * class. This method may call sendInfer or sendLemma. Overall, the result
-   * of this method is one of the following:
-   *
-   * [1] (No-op) Do nothing if eq is true,
-   *
-   * [2] (Infer) Indicate that eq should be added to the equality engine of this
-   * class with explanation EXPLAIN(exp), where EXPLAIN returns the
-   * explanation of the node in exp in terms of the literals asserted to this
-   * class,
-   *
-   * [3] (Lemma) Indicate that the lemma ( EXPLAIN(exp) ^ exp_n ) => eq should
-   * be sent on the output channel of this class, or
-   *
-   * [4] (Conflict) Immediately report a conflict EXPLAIN(exp) on the output
-   * channel of this class.
-   *
-   * Determining which case to apply depends on the form of eq and whether
-   * exp_n is empty. In particular, lemmas must be used whenever exp_n is
-   * non-empty, conflicts are used when exp_n is empty and eq is false.
-   *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   *
-   * If the flag asLemma is true, then this method will send a lemma instead
-   * of an inference whenever applicable.
-   */
-  void sendInference(std::vector<Node>& exp,
-                     std::vector<Node>& exp_n,
-                     Node eq,
-                     const char* c,
-                     bool asLemma = false);
-  /** same as above, but where exp_n is empty */
-  void sendInference(std::vector<Node>& exp,
-                     Node eq,
-                     const char* c,
-                     bool asLemma = false);
+ 
   /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
    */
-  bool inConflict() const { return d_conflict; }
-
- protected:
-  /**
-   * Indicates that ant => conc should be sent on the output channel of this
-   * class. This will either trigger an immediate call to the conflict
-   * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_lemma_cache, which may be flushed
-   * later within the current call to TheoryStrings::check.
-   *
-   * The argument c is a string identifying the reason for inference, used for
-   * debugging.
-   */
-  void sendLemma(Node ant, Node conc, const char* c);
-  /**
-   * Indicates that conc should be added to the equality engine of this class
-   * with explanation eq_exp. It must be the case that eq_exp is a (conjunction
-   * of) literals that each are explainable, i.e. they already hold in the
-   * equality engine of this class.
-   */
-  void sendInfer(Node eq_exp, Node eq, const char* c);
-  bool sendSplit(Node a, Node b, const char* c, bool preq = true);
-  //-------------------------------------end send inferences
+  //bool inConflict() const { return d_conflict; }
 
   /** mkConcat **/
   inline Node mkConcat(Node n1, Node n2);

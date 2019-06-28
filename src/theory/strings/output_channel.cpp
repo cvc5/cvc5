@@ -212,10 +212,14 @@ bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
   Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
                           << std::endl;
   d_lemma_cache.push_back(lemma_or);
-  d_pending_req_phase[eq] = preq;
+  sendPhaseRequirement(eq,preq);
   return true;
 }
 
+void OutputChannelStrings::sendPhaseRequirement(Node lit, bool pol)
+{
+  d_pending_req_phase[lit] = pol;
+}
 
 Node OutputChannelStrings::getRepresentative( Node t ) {
   if( d_ee.hasTerm( t ) ){
@@ -305,17 +309,6 @@ void OutputChannelStrings::doPendingLemmas() {
   d_pending_req_phase.clear();
 }
 
-bool OutputChannelStrings::hasProcessed() const {
-  return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
-}
-bool OutputChannelStrings::hasPendingFact() const
-{
-  return !d_pending.empty();
-}
-bool OutputChannelStrings::hasPendingLemma() const
-{
-  return !d_lemma_cache.empty();
-}
 bool OutputChannelStrings::hasConflict() const
 {
   return d_parent.d_conflict;

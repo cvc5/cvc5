@@ -24,6 +24,7 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/strings/regexp_operation.h"
+#include "theory/strings/output_channel.h"
 #include "util/regexp.h"
 
 namespace CVC4 {
@@ -42,7 +43,7 @@ class RegExpSolver
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  RegExpSolver(TheoryStrings& p, context::Context* c, context::UserContext* u);
+  RegExpSolver(TheoryStrings& p, OutputChannelStrings& os, context::Context* c, context::UserContext* u);
   ~RegExpSolver() {}
 
   /** add membership
@@ -69,6 +70,8 @@ class RegExpSolver
   Node d_false;
   /** the parent of this object */
   TheoryStrings& d_parent;
+  /** the output channel of the parent of this object */
+  OutputChannelStrings& d_os;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   bool checkPDerivative(
