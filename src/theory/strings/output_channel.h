@@ -131,17 +131,31 @@ class OutputChannelStrings
   void sendPhaseRequirement(Node lit, bool pol);
   /** Do pending facts
    *
-   * This method asserts pending facts stored in d_pending to the equality
-   * engine.
+   * This method asserts pending facts (d_pending) with explanations
+   * (d_pending_exp) to the equality engine of the theory of strings via calls
+   * to assertPendingFact in the theory of strings.
+   * 
+   * It terminates early if a conflict is encountered, for instance, by
+   * equality reasoning within the equality engine.
+   * 
+   * Regardless of whether a conflict is encountered, the vector d_pending
+   * and map d_pending_exp are cleared.
    */
   void doPendingFacts();
   /** Do pending lemmas
    *
-   * This method flushes all pending lemmas to the output channel of theory
-   * of strings.
+   * This method flushes all pending lemmas (d_lemma_cache) to the output
+   * channel of theory of strings.
    *
    * Like doPendingFacts, this function will terminate early if a conflict
-   * has already been encountered by the theory of strings.
+   * has already been encountered by the theory of strings. The vector
+   * d_lemma_cache is cleared regardless of whether a conflict is discovered.
+   * 
+   * Notice that as a result of the above design, some lemmas may be "dropped"
+   * if a conflict is discovered in between when a lemma is added to the
+   * pending vector of this class (via a sendInference call). Lemmas
+   * e.g. those that are required for initialization should not be sent via
+   * this class, since they should never be dropped.
    */
   void doPendingLemmas();
   /**

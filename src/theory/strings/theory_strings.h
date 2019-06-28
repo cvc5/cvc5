@@ -700,7 +700,14 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  // FIXME
+  /** assert pending fact 
+   * 
+   * This asserts atom with polarity to the equality engine of this class,
+   * where exp is the explanation of why (~) atom holds.
+   * 
+   * This call may trigger further initialization steps involving the terms
+   * of atom, including calls to registerTerm.
+   */
   void assertPendingFact(Node atom, bool polarity, Node exp);
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It

@@ -361,20 +361,19 @@ void OutputChannelStrings::doPendingFacts()
 
 void OutputChannelStrings::doPendingLemmas()
 {
-  if (hasConflict())
+  if (!hasConflict())
   {
-    return;
-  }
-  for (const Node& lc : d_lemma_cache)
-  {
-    Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
-    d_out.lemma(lc);
-  }
-  for (const std::pair<const Node, bool>& prp : d_pending_req_phase)
-  {
-    Trace("strings-pending") << "Require phase : " << prp.first
-                             << ", polarity = " << prp.second << std::endl;
-    d_out.requirePhase(prp.first, prp.second);
+    for (const Node& lc : d_lemma_cache)
+    {
+      Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+      d_out.lemma(lc);
+    }
+    for (const std::pair<const Node, bool>& prp : d_pending_req_phase)
+    {
+      Trace("strings-pending") << "Require phase : " << prp.first
+                              << ", polarity = " << prp.second << std::endl;
+      d_out.requirePhase(prp.first, prp.second);
+    }
   }
   d_lemma_cache.clear();
   d_pending_req_phase.clear();
