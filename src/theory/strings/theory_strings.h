@@ -25,12 +25,12 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/normal_form.h"
+#include "theory/strings/output_channel.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
-#include "theory/strings/output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -428,7 +428,7 @@ private:
    * In the above example, we store "ABC" -> v_{"ABC"} in this map.
    */
   NodeNodeMap d_proxy_var;
-  /** 
+  /**
    * Map from proxy variables to their normalized length. In the above example,
    * we store "ABC" -> 3.
    */
@@ -502,13 +502,13 @@ private:
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
   /** Get proxy variable
-   * 
+   *
    * If this method returns the proxy variable for (string) term n if one
    * exists, otherwise it returns null.
    */
-  Node getProxyVariableFor( Node n ) const;
-  /** Get symbolic definition 
-   * 
+  Node getProxyVariableFor(Node n) const;
+  /** Get symbolic definition
+   *
    * This method returns the "symbolic definition" of n, call it n', and
    * populates the vector exp with an explanation such that exp => n = n'.
    *
@@ -517,7 +517,7 @@ private:
    * proxy variable v for x ++ y, then given input x ++ y = w, this method
    * returns v = w and adds v = x ++ y to exp.
    */
-  Node getSymbolicDefinition( Node n, std::vector< Node >& exp ) const;
+  Node getSymbolicDefinition(Node n, std::vector<Node>& exp) const;
 
   //--------------------------for checkExtfEval
   /**
@@ -729,11 +729,11 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  /** assert pending fact 
-   * 
+  /** assert pending fact
+   *
    * This asserts atom with polarity to the equality engine of this class,
    * where exp is the explanation of why (~) atom holds.
-   * 
+   *
    * This call may trigger further initialization steps involving the terms
    * of atom, including calls to registerTerm.
    */
@@ -765,7 +765,7 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
- 
+
   /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
