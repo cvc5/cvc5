@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_strings.h
+/*! \file theory_strings_utils.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
