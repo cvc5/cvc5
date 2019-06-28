@@ -32,7 +32,6 @@ namespace strings {
 
 OutputChannelStrings::OutputChannelStrings(TheoryStrings& p, context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
                       OutputChannel& out) : d_parent(p), d_ee(ee), d_out(out),
-      d_conflict(c, false),
       d_infer(c),
       d_infer_exp(c)
 {
@@ -152,7 +151,7 @@ void OutputChannelStrings::sendLemma( Node ant, Node conc, const char * c ) {
     Trace("strings-lemma") << "Strings::Conflict : " << c << " : " << ant << std::endl;
     Trace("strings-assert") << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
     d_out.conflict(ant);
-    d_conflict = true;
+    d_parent.d_conflict = true;
     return;
   }
   Node lem;
@@ -270,7 +269,7 @@ Node OutputChannelStrings::mkAnd( std::vector< Node >& a ) {
 
 void OutputChannelStrings::doPendingFacts() {
   size_t i=0;
-  while( !d_conflict && i<d_pending.size() ) {
+  while( !hasConflict() && i<d_pending.size() ) {
     Node fact = d_pending[i];
     Node exp = d_pending_exp[ fact ];
     if(fact.getKind() == AND) {
@@ -291,7 +290,7 @@ void OutputChannelStrings::doPendingFacts() {
 }
 
 void OutputChannelStrings::doPendingLemmas() {
-  if( d_conflict ){
+  if( hasConflict() ){
     return;
   }
   for( const Node& lc : d_lemma_cache ){
@@ -307,7 +306,7 @@ void OutputChannelStrings::doPendingLemmas() {
 }
 
 bool OutputChannelStrings::hasProcessed() const {
-  return d_conflict || !d_lemma_cache.empty() || !d_pending.empty();
+  return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
 }
 bool OutputChannelStrings::hasPendingFact() const
 {
@@ -319,7 +318,7 @@ bool OutputChannelStrings::hasPendingLemma() const
 }
 bool OutputChannelStrings::hasConflict() const
 {
-  return d_conflict;
+  return d_parent.d_conflict;
 }
 
 }/* CVC4::theory::strings namespace */

@@ -107,7 +107,11 @@ class OutputChannelStrings {
   void sendPhaseRequirement(Node lit, bool pol) const;
   
   // FIXME
-  // do pending merges
+  /** Do pending facts
+   * 
+   * This method asserts pending facts stored in d_pending to the equality
+   * engine.
+   */
   void doPendingFacts();
   void doPendingLemmas();
   /** 
@@ -164,11 +168,6 @@ private:
   
   // FIXME
   std::vector< Node > d_lemma_cache;
-  
-  
-  // FIXME
-  /** Are we in conflict */
-  context::CDO<bool> d_conflict;
   
   // FIXME
   /** inferences: maintained to ensure ref count for internally introduced nodes */
