@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
 #define CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
 
-#include "context/cdlist.h"
+#include "context/cdhashset.h"
 #include "theory/uf/equality_engine.h"
 
 #include <climits>
@@ -34,10 +34,33 @@ class TheoryStrings;
  * The purpose of this class is to process inference steps for strategies
  * in the theory of strings.
  * 
+ * In particular, inferences are given to this class via calls to functions:
+ * 
+ * sendInternalInference, sendInference, sendSplit
+ * 
+ * This class decides how these calls will be processed, where the main design
+ * decisions it considers are whether the conclusions corresponding to these
+ * calls will be processed as:
+ * 
+ * (1) Internally in the strings solver, via calls to the equality engine. We
+ * refer to these literals as "facts",
+ * (2) External on the output channel as "lemmas",
+ * (3) External on the output channel as "conflicts" (exclusively this is
+ * when a conclusion of an inference is false).
+ * 
+ * It buffers facts and lemmas in vectors d_pending and d_pending_lem
+ * respectively.
+ * 
+ * When applicable, facts can be flushed to the equality engine via a call to
+ * doPendingFacts, and lemmas can be flushed to the output channel via a call
+ * to doPendingLemmas.
+ * 
+ * It also manages other kinds of interaction with the output channel of the
+ * theory of strings, e.g. sendPhaseRequirement.
  */
 class OutputChannelStrings
 {
-  typedef context::CDList<Node> NodeList;
+  typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
   OutputChannelStrings(TheoryStrings& p,
@@ -144,12 +167,12 @@ class OutputChannelStrings
   void doPendingFacts();
   /** Do pending lemmas
    *
-   * This method flushes all pending lemmas (d_lemma_cache) to the output
+   * This method flushes all pending lemmas (d_pending_lem) to the output
    * channel of theory of strings.
    *
    * Like doPendingFacts, this function will terminate early if a conflict
    * has already been encountered by the theory of strings. The vector
-   * d_lemma_cache is cleared regardless of whether a conflict is discovered.
+   * d_pending_lem is cleared regardless of whether a conflict is discovered.
    * 
    * Notice that as a result of the above design, some lemmas may be "dropped"
    * if a conflict is discovered in between when a lemma is added to the
@@ -165,12 +188,12 @@ class OutputChannelStrings
    */
   inline bool hasProcessed() const
   {
-    return hasConflict() || !d_lemma_cache.empty() || !d_pending.empty();
+    return hasConflict() || !d_pending_lem.empty() || !d_pending.empty();
   }
   /** Do we have a pending fact to add to the equality engine? */
   inline bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
-  inline bool hasPendingLemma() const { return !d_lemma_cache.empty(); }
+  inline bool hasPendingLemma() const { return !d_pending_lem.empty(); }
   /** Are we in conflict? */
   bool hasConflict() const;
 
@@ -179,7 +202,7 @@ class OutputChannelStrings
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
    * method of the output channel of this class of conc is false, or adds the
-   * above lemma to the lemma cache d_lemma_cache, which may be flushed
+   * above lemma to the lemma cache d_pending_lem, which may be flushed
    * later within the current call to TheoryStrings::check.
    *
    * The argument c is a string identifying the reason for inference, used for
@@ -217,13 +240,14 @@ class OutputChannelStrings
   /** A map from literals to their pending phase requirement */
   std::map<Node, bool> d_pending_req_phase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_lemma_cache;
-
-  // FIXME
-  /** inferences: maintained to ensure ref count for internally introduced nodes
+  std::vector<Node> d_pending_lem;
+  /** 
+   * The keep set of this class. This set is maintained to ensure that
+   * facts and their explanations are ref-counted. Since facts and their
+   * explanations are SAT-context-dependent, this set is also
+   * SAT-context-dependent.
    */
-  NodeList d_infer;
-  NodeList d_infer_exp;
+  NodeSet d_keep;
   //--------------------------- equality engine
   /**
    * Get the representative of t in the equality engine of this class, or t

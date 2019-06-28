@@ -33,7 +33,7 @@ OutputChannelStrings::OutputChannelStrings(TheoryStrings& p,
                                            context::UserContext* u,
                                            eq::EqualityEngine& ee,
                                            OutputChannel& out)
-    : d_parent(p), d_ee(ee), d_out(out), d_infer(c), d_infer_exp(c)
+    : d_parent(p), d_ee(ee), d_out(out), d_keep(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -197,7 +197,7 @@ void OutputChannelStrings::sendLemma(Node ant, Node conc, const char* c)
   Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
   Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c
                           << std::endl;
-  d_lemma_cache.push_back(lem);
+  d_pending_lem.push_back(lem);
 }
 
 void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
@@ -242,8 +242,8 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
                           << ")) ; infer " << c << std::endl;
   d_pending.push_back(eq);
   d_pending_exp[eq] = eq_exp;
-  d_infer.push_back(eq);
-  d_infer_exp.push_back(eq_exp);
+  d_keep.insert(eq);
+  d_keep.insert(eq_exp);
 }
 
 bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
@@ -258,7 +258,7 @@ bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
   Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
                          << std::endl;
-  d_lemma_cache.push_back(lemma_or);
+  d_pending_lem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;
 }
@@ -363,7 +363,7 @@ void OutputChannelStrings::doPendingLemmas()
 {
   if (!hasConflict())
   {
-    for (const Node& lc : d_lemma_cache)
+    for (const Node& lc : d_pending_lem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       d_out.lemma(lc);
@@ -375,7 +375,7 @@ void OutputChannelStrings::doPendingLemmas()
       d_out.requirePhase(prp.first, prp.second);
     }
   }
-  d_lemma_cache.clear();
+  d_pending_lem.clear();
   d_pending_req_phase.clear();
 }
 
