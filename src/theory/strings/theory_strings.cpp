@@ -3598,7 +3598,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -3681,8 +3681,7 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                       antec,
                       nm->mkNode(
                           kind::OR,
-                          nm->mkNode(
-                              AND, eq1, sk.eqNode(firstChar).negate()),
+                          nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
                           eq2),
                       "D-DISL-CSplit");
                   d_os.sendPhaseRequirement(eq1, true);
@@ -3718,11 +3717,10 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               Node lsk2 = mkLength( sk2 );
               conc.push_back( lsk2.eqNode( lj ) );
               conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
-              d_os.sendInference(
-                  antec,
-                  antec_new_lits,
-                  nm->mkNode(kind::AND, conc),
-                  "D-DISL-Split");
+              d_os.sendInference(antec,
+                                 antec_new_lits,
+                                 nm->mkNode(kind::AND, conc),
+                                 "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
             }

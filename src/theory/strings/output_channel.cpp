@@ -229,7 +229,7 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
     }
     if (Trace.isOn("strings-lemma-debug"))
     {
-      for( const Node& u : unproc )
+      for (const Node& u : unproc)
       {
         Trace("strings-lemma-debug")
             << "  non-trivial exp : " << u << std::endl;
@@ -371,7 +371,7 @@ void OutputChannelStrings::doPendingLemmas()
     for (const std::pair<const Node, bool>& prp : d_pending_req_phase)
     {
       Trace("strings-pending") << "Require phase : " << prp.first
-                              << ", polarity = " << prp.second << std::endl;
+                               << ", polarity = " << prp.second << std::endl;
       d_out.requirePhase(prp.first, prp.second);
     }
   }

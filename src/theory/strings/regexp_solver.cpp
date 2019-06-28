@@ -32,11 +32,11 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
-OutputChannelStrings& os, 
+                           OutputChannelStrings& os,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
-    d_os(os),
+      d_os(os),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
