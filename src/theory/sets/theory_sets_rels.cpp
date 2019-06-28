@@ -1339,17 +1339,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, tuple_1, r1), exp, "Product-Split" );
     sendMergeInfer( NodeManager::currentNM()->mkNode(kind::MEMBER, tuple_2, r2), exp, "Product-Split" );
   }
-
-  void TheorySetsRels::printNodeMap(const char* fst,
-                                    const char* snd,
-                                    const NodeMap& map)
-  {
-    for (const auto& key_data : map)
-    {
-      Trace("rels-debug") << fst << " " << key_data.first << " " << snd << " "
-                          << key_data.second << std::endl;
-    }
-  }
 }
 }
 }

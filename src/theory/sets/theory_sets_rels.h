@@ -154,9 +154,6 @@ private:
   Node getRepresentative( Node t );
   bool exists( std::vector<Node>&, Node );
   inline void addToMembershipDB( Node, Node, Node  );
-  static void printNodeMap(const char* fst,
-                           const char* snd,
-                           const NodeMap& map);
   inline Node constructPair(Node tc_rep, Node a, Node b);
   void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
