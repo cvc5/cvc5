@@ -208,7 +208,7 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
     std::vector<Node> vars;
     std::vector<Node> subs;
     std::vector<Node> unproc;
-    d_parent.inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
+    inferSubstitutionProxyVars(eq_exp, vars, subs, unproc);
     if (unproc.empty())
     {
       Node eqs =
@@ -360,6 +360,61 @@ void OutputChannelStrings::doPendingLemmas()
 }
 
 bool OutputChannelStrings::hasConflict() const { return d_parent.d_conflict; }
+
+
+void OutputChannelStrings::inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc ) const {
+  if( n.getKind()==AND ){
+    for( const Node& nc : n ){
+      inferSubstitutionProxyVars( nc, vars, subs, unproc );
+    }
+    return;
+  }
+  if( n.getKind()==EQUAL ){
+    Node ns = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
+    ns = Rewriter::rewrite( ns );
+    if( ns.getKind()==EQUAL ){
+      Node s;
+      Node v;
+      for( unsigned i=0; i<2; i++ ){
+        Node ss;
+        if( ns[i].getAttribute(StringsProxyVarAttribute()) ){
+          // it is a proxy variable
+          ss = ns[i];
+        }else if( ns[i].isConst() ){
+          ss = d_parent.getProxyVariableFor(ns[i]);
+        }
+        if( !ss.isNull() ){
+          v = ns[1-i];
+          if( v.getNumChildren()==0 ){
+            if( s.isNull() ){
+              s = ss;
+            }else{
+              //both sides involved in proxy var
+              if( ss==s ){
+                // it is a trivial equality, e.g. between a proxy variable
+                // and its definition
+                return;
+              }else{
+                s = Node::null();
+              }
+            }
+          }
+        }
+      }
+      if( !s.isNull() ){
+        subs.push_back( s );
+        vars.push_back( v );
+        return;
+      }
+    }else{
+      n = ns;
+    }
+  }
+  if( n!=d_true ){
+    unproc.push_back( n );
+  }
+}
+
 
 }  // namespace strings
 }  // namespace theory

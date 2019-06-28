@@ -267,10 +267,25 @@ class OutputChannelStrings
    */
   bool areDisequal(Node a, Node b);
   //--------------------------- end equality engine
-}; /* class TheoryStrings */
+  /** infer substitution proxy vars
+   * 
+   * This method attempts to (partially) convert the formula n into a
+   * substitution of the form:
+   *   v1 -> s1, ..., vn -> sn
+   * where v1 ... vn are variables.
+   * 
+   * This method ensures that P ^ v1 = s1 ^ ... ^ vn = sn ^ unproc is equivalent
+   * to P ^ n, where P is the definition of all proxy variables known to the
+   * theory of strings.
+   * 
+   * For example, say that v1 was introduced as a proxy variable for "ABC", and
+   * v2 was introduced as a proxy variable for "AA".
+   */
+  void inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc ) const;
+};
 
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__STRINGS__THEORY_STRINGS_H */
+#endif

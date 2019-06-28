@@ -31,9 +31,13 @@ namespace theory {
 namespace strings {
 namespace utils {
 
+/** 
+ * Make the conjunction of nodes in a. Removes duplicate conjuncts, returns
+ * true if a is empty, and a single literal if a has size 1.
+ */
 Node mkAnd(std::vector<Node>& a);
 
 }
-}  // namespace strings
-}  // namespace theory
-}  // namespace CVC4
+}
+}
+}

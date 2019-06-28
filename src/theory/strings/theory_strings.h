@@ -25,12 +25,12 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/normal_form.h"
-#include "theory/strings/output_channel.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -417,8 +417,21 @@ private:
    * should currently be a representative of the equality engine of this class.
    */
   EqcInfo * getOrMakeEqcInfo( Node eqc, bool doMake = true );
-  //maintain which concat terms have the length lemma instantiated
+  /**
+   * Map string terms to their "proxy variables". Proxy variables are used are
+   * intermediate variables so that length information can be communicated for
+   * constants. For example, to communicate that "ABC" has length 3, we
+   * introduce a proxy variable v_{"ABC"} for "ABC", and assert:
+   *   v_{"ABC"} = "ABC" ^ len( v_{"ABC"} ) = 3
+   * Notice this is required since we cannot directly write len( "ABC" ) = 3,
+   * which rewrites to 3 = 3.
+   * In the above example, we store "ABC" -> v_{"ABC"} in this map.
+   */
   NodeNodeMap d_proxy_var;
+  /** 
+   * Map from proxy variables to their normalized length. In the above example,
+   * we store "ABC" -> 3.
+   */
   NodeNodeMap d_proxy_var_to_length;
   /** All the function terms that the theory has seen */
   context::CDList<TNode> d_functionsTerms;
@@ -488,7 +501,23 @@ private:
   SkolemCache d_sk_cache;
 
   void checkConstantEquivalenceClasses( TermIndex* ti, std::vector< Node >& vecc );
-  Node getSymbolicDefinition( Node n, std::vector< Node >& exp );
+  /** Get proxy variable
+   * 
+   * If this method returns the proxy variable for (string) term n if one
+   * exists, otherwise it returns null.
+   */
+  Node getProxyVariableFor( Node n ) const;
+  /** Get symbolic definition 
+   * 
+   * This method returns the "symbolic definition" of n, call it n', and
+   * populates the vector exp with an explanation such that exp => n = n'.
+   *
+   * The symbolic definition of n is the term where (maximal) subterms of n
+   * are replaced by their proxy variables. For example, if we introduced
+   * proxy variable v for x ++ y, then given input x ++ y = w, this method
+   * returns v = w and adds v = x ++ y to exp.
+   */
+  Node getSymbolicDefinition( Node n, std::vector< Node >& exp ) const;
 
   //--------------------------for checkExtfEval
   /**
@@ -700,11 +729,11 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  /** assert pending fact
-   *
+  /** assert pending fact 
+   * 
    * This asserts atom with polarity to the equality engine of this class,
    * where exp is the explanation of why (~) atom holds.
-   *
+   * 
    * This call may trigger further initialization steps involving the terms
    * of atom, including calls to registerTerm.
    */
@@ -736,7 +765,7 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-
+ 
   /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
@@ -773,11 +802,6 @@ private:
                         std::vector<std::vector<Node> >& col,
                         std::vector<Node>& lts);
   void printConcat(std::vector<Node>& n, const char* c);
-
-  void inferSubstitutionProxyVars(Node n,
-                                  std::vector<Node>& vars,
-                                  std::vector<Node>& subs,
-                                  std::vector<Node>& unproc);
 
   // Symbolic Regular Expression
  private:

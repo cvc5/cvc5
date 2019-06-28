@@ -26,8 +26,8 @@
 #include "theory/ext_theory.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
-#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/type_enumerator.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -1536,7 +1536,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
           d_eqc_to_const[nr] = c;
           d_eqc_to_const_base[nr] = n;
-          d_eqc_to_const_exp[nr] = utils::mkAnd(exp);
+          d_eqc_to_const_exp[nr] = utils::mkAnd( exp );
         }else if( c!=it->second ){
           //conflict
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
@@ -1911,19 +1911,27 @@ void TheoryStrings::checkExtfInference( Node n, Node nr, ExtfInfoTmp& in, int ef
   }
 }
 
-Node TheoryStrings::getSymbolicDefinition( Node n, std::vector< Node >& exp ) {
+
+Node TheoryStrings::getProxyVariableFor( Node n ) const
+{
+  NodeNodeMap::const_iterator it = d_proxy_var.find( n );
+  if( it!=d_proxy_var.end() ){
+    return (*it).second;
+  }
+  return Node::null();
+}
+Node TheoryStrings::getSymbolicDefinition( Node n, std::vector< Node >& exp ) const {
   if( n.getNumChildren()==0 ){
-    NodeNodeMap::const_iterator it = d_proxy_var.find( n );
-    if( it==d_proxy_var.end() ){
+    Node pn = getProxyVariableFor(n);
+    if( pn.isNull() ){
       return Node::null();
-    }else{
-      Node eq = n.eqNode( (*it).second );
-      eq = Rewriter::rewrite( eq );
-      if( std::find( exp.begin(), exp.end(), eq )==exp.end() ){
-        exp.push_back( eq );
-      }
-      return (*it).second;
     }
+    Node eq = n.eqNode( pn );
+    eq = Rewriter::rewrite( eq );
+    if( std::find( exp.begin(), exp.end(), eq )==exp.end() ){
+      exp.push_back( eq );
+    }
+    return pn;
   }else{
     std::vector< Node > children;
     if (n.getMetaKind() == kind::metakind::PARAMETERIZED) {
@@ -2531,9 +2539,9 @@ void TheoryStrings::checkCodes()
         Node cc = nm->mkNode(kind::STRING_CODE, c);
         cc = Rewriter::rewrite(cc);
         Assert(cc.isConst());
-        NodeNodeMap::const_iterator it = d_proxy_var.find(c);
-        AlwaysAssert(it != d_proxy_var.end());
-        Node vc = nm->mkNode(kind::STRING_CODE, (*it).second);
+        Node cp = getProxyVariableFor(c);
+        AlwaysAssert(!cp.isNull());
+        Node vc = nm->mkNode(STRING_CODE, cp);
         if (!areEqual(cc, vc))
         {
           d_os.sendInference(d_empty_vec, cc.eqNode(vc), "Code_Proxy");
@@ -3002,7 +3010,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         NormalForm& nfk = index == (nfiv.size() - rproc) ? nfj : nfi;
         std::vector<Node>& nfkv = nfk.d_nf;
         unsigned index_k = index;
-        // Node eq_exp = utils::mkAnd( curr_exp );
+        //Node eq_exp = utils::mkAnd( curr_exp );
         std::vector< Node > curr_exp;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
@@ -3599,7 +3607,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager * nm = NodeManager::currentNM();
   //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -3681,8 +3689,9 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                   d_os.sendInference(
                       antec,
                       nm->mkNode(
-                          kind::OR,
-                          nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
+                          OR,
+                          nm->mkNode(
+                              AND, eq1, sk.eqNode(firstChar).negate()),
                           eq2),
                       "D-DISL-CSplit");
                   d_os.sendPhaseRequirement(eq1, true);
@@ -3718,10 +3727,11 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               Node lsk2 = mkLength( sk2 );
               conc.push_back( lsk2.eqNode( lj ) );
               conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
-              d_os.sendInference(antec,
-                                 antec_new_lits,
-                                 nm->mkNode(kind::AND, conc),
-                                 "D-DISL-Split");
+              d_os.sendInference(
+                  antec,
+                  antec_new_lits,
+                  nm->mkNode(AND, conc),
+                  "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
             }
@@ -4095,59 +4105,6 @@ void TheoryStrings::registerLength(Node n, LengthStatus s)
     d_out->lemma( n_len_geq );
   }
 }
-
-void TheoryStrings::inferSubstitutionProxyVars( Node n, std::vector< Node >& vars, std::vector< Node >& subs, std::vector< Node >& unproc ) {
-  if( n.getKind()==kind::AND ){
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      inferSubstitutionProxyVars( n[i], vars, subs, unproc );
-    }
-    return;
-  }else if( n.getKind()==kind::EQUAL ){
-    Node ns = n.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-    ns = Rewriter::rewrite( ns );
-    if( ns.getKind()==kind::EQUAL ){
-      Node s;
-      Node v;
-      for( unsigned i=0; i<2; i++ ){
-        Node ss;
-        if( ns[i].getAttribute(StringsProxyVarAttribute()) ){
-          ss = ns[i];
-        }else if( ns[i].isConst() ){
-          NodeNodeMap::const_iterator it = d_proxy_var.find( ns[i] );
-          if( it!=d_proxy_var.end() ){
-            ss = (*it).second;
-          }
-        }
-        if( !ss.isNull() ){
-          v = ns[1-i];
-          if( v.getNumChildren()==0 ){
-            if( s.isNull() ){
-              s = ss;
-            }else{
-              //both sides involved in proxy var
-              if( ss==s ){
-                return;
-              }else{
-                s = Node::null();
-              }
-            }
-          }
-        }
-      }
-      if( !s.isNull() ){
-        subs.push_back( s );
-        vars.push_back( v );
-        return;
-      }
-    }else{
-      n = ns;
-    }
-  }
-  if( n!=d_true ){
-    unproc.push_back( n );
-  }
-}
-
 
 Node TheoryStrings::mkConcat( Node n1, Node n2 ) {
   return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_CONCAT, n1, n2 ) );
