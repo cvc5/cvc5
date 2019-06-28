@@ -59,8 +59,8 @@ class OutputChannelStrings {
   /** send inference
    *
    * This function should be called when ( exp ^ exp_n ) => eq. The set exp
-   * contains literals that are explainable by this class, i.e. those that
-   * hold in the equality engine of this class. On the other hand, the set
+   * contains literals that are explainable, i.e. those that hold in the
+   * equality engine of the theory of strings. On the other hand, the set
    * exp_n ("explanations new") contain nodes that are not explainable by this
    * class. This method may call sendInfer or sendLemma. Overall, the result
    * of this method is one of the following:
@@ -118,14 +118,20 @@ class OutputChannelStrings {
    * decided with polarity pol.
    */
   void sendPhaseRequirement(Node lit, bool pol);
-  
-  // FIXME
   /** Do pending facts
    * 
    * This method asserts pending facts stored in d_pending to the equality
    * engine.
    */
   void doPendingFacts();
+  /** Do pending lemmas
+   * 
+   * This method flushes all pending lemmas to the output channel of theory
+   * of strings.
+   * 
+   * Like doPendingFacts, this function will terminate early if a conflict
+   * has already been encountered by the theory of strings.
+   */
   void doPendingLemmas();
   /** 
    * Have we processed an inference during this call to check? In particular,
@@ -177,24 +183,22 @@ private:
    * This is a reference to the output channel of the theory of strings.
    */
   OutputChannel& d_out;
-
-  // FIXME
-  //list of pairs of nodes to merge
-  std::map< Node, Node > d_pending_exp;
+  /** Common constants */
+  Node d_true;
+  Node d_false;
+  /** The list of pending literals to assert to the equality engine */
   std::vector< Node > d_pending;
+  /** A map from the literals in the above vector to their explanation */
+  std::map< Node, Node > d_pending_exp;
+  /** A map from literals to their pending phase requirement */
   std::map< Node, bool > d_pending_req_phase;
-  
-  // FIXME
+  /** A list of pending lemmas to be sent on the output channel. */
   std::vector< Node > d_lemma_cache;
   
   // FIXME
   /** inferences: maintained to ensure ref count for internally introduced nodes */
   NodeList d_infer;
   NodeList d_infer_exp;
-  
-  /** Common constants */
-  Node d_true;
-  Node d_false;
   //--------------------------- equality engine
   /**
    * Get the representative of t in the equality engine of this class, or t
@@ -214,12 +218,8 @@ private:
    */
   bool areDisequal(Node a, Node b);
   //--------------------------- end equality engine  
-  
-  
-
   /** mkAnd **/
   static Node mkAnd(std::vector<Node>& a);
-
 };/* class TheoryStrings */
 
 }/* CVC4::theory::strings namespace */
