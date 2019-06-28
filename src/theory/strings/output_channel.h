@@ -30,31 +30,31 @@ namespace strings {
 class TheoryStrings;
 
 /** Output channel strings
- *
+ * 
  * The purpose of this class is to process inference steps for strategies
  * in the theory of strings.
- *
+ * 
  * In particular, inferences are given to this class via calls to functions:
- *
+ * 
  * sendInternalInference, sendInference, sendSplit
- *
+ * 
  * This class decides how these calls will be processed, where the main design
  * decisions it considers are whether the conclusions corresponding to these
  * calls will be processed as:
- *
+ * 
  * (1) Internally in the strings solver, via calls to the equality engine. We
  * refer to these literals as "facts",
  * (2) External on the output channel as "lemmas",
  * (3) External on the output channel as "conflicts" (exclusively this is
  * when a conclusion of an inference is false).
- *
+ * 
  * It buffers facts and lemmas in vectors d_pending and d_pending_lem
  * respectively.
- *
+ * 
  * When applicable, facts can be flushed to the equality engine via a call to
  * doPendingFacts, and lemmas can be flushed to the output channel via a call
  * to doPendingLemmas.
- *
+ * 
  * It also manages other kinds of interaction with the output channel of the
  * theory of strings, e.g. sendPhaseRequirement.
  */
@@ -157,10 +157,10 @@ class OutputChannelStrings
    * This method asserts pending facts (d_pending) with explanations
    * (d_pending_exp) to the equality engine of the theory of strings via calls
    * to assertPendingFact in the theory of strings.
-   *
+   * 
    * It terminates early if a conflict is encountered, for instance, by
    * equality reasoning within the equality engine.
-   *
+   * 
    * Regardless of whether a conflict is encountered, the vector d_pending
    * and map d_pending_exp are cleared.
    */
@@ -173,7 +173,7 @@ class OutputChannelStrings
    * Like doPendingFacts, this function will terminate early if a conflict
    * has already been encountered by the theory of strings. The vector
    * d_pending_lem is cleared regardless of whether a conflict is discovered.
-   *
+   * 
    * Notice that as a result of the above design, some lemmas may be "dropped"
    * if a conflict is discovered in between when a lemma is added to the
    * pending vector of this class (via a sendInference call). Lemmas
@@ -241,7 +241,7 @@ class OutputChannelStrings
   std::map<Node, bool> d_pending_req_phase;
   /** A list of pending lemmas to be sent on the output channel. */
   std::vector<Node> d_pending_lem;
-  /**
+  /** 
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
    * explanations are SAT-context-dependent, this set is also
@@ -267,8 +267,6 @@ class OutputChannelStrings
    */
   bool areDisequal(Node a, Node b);
   //--------------------------- end equality engine
-  /** mkAnd **/
-  static Node mkAnd(std::vector<Node>& a);
 }; /* class TheoryStrings */
 
 }  // namespace strings

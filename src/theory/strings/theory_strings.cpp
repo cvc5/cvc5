@@ -27,6 +27,7 @@
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/type_enumerator.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
 #include "theory/valuation.h"
 
@@ -1535,7 +1536,7 @@ void TheoryStrings::checkConstantEquivalenceClasses( TermIndex* ti, std::vector<
           Trace("strings-debug") << "Set eqc const " << n << " to " << c << std::endl;
           d_eqc_to_const[nr] = c;
           d_eqc_to_const_base[nr] = n;
-          d_eqc_to_const_exp[nr] = mkAnd( exp );
+          d_eqc_to_const_exp[nr] = utils::mkAnd( exp );
         }else if( c!=it->second ){
           //conflict
           Trace("strings-debug") << "Conflict, other constant was " << it->second << ", this constant was " << c << std::endl;
@@ -2174,7 +2175,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   b[d_flat_form_index[b][j]].eqNode(d_emptyString));
             }
             Assert(!conc_c.empty());
-            conc = mkAnd(conc_c);
+            conc = utils::mkAnd(conc_c);
             inf_type = 2;
             Assert(count > 0);
             // swap, will enforce is empty past current
@@ -2210,7 +2211,7 @@ void TheoryStrings::checkFlatForm(std::vector<Node>& eqc,
                   a[d_flat_form_index[a][j]].eqNode(d_emptyString));
             }
             Assert(!conc_c.empty());
-            conc = mkAnd(conc_c);
+            conc = utils::mkAnd(conc_c);
             inf_type = 2;
             Assert(count > 0);
             count--;
@@ -2472,7 +2473,7 @@ void TheoryStrings::checkNormalFormsEq()
       NormalForm& nfe_eq = getNormalForm(itn->second);
       // two equivalence classes have same normal form, merge
       std::vector<Node> nf_exp;
-      nf_exp.push_back(mkAnd(nfe.d_exp));
+      nf_exp.push_back(utils::mkAnd(nfe.d_exp));
       nf_exp.push_back(eqc_to_exp[itn->second]);
       Node eq = nfe.d_base.eqNode(nfe_eq.d_base);
       d_os.sendInference(nf_exp, eq, "Normal_Form");
@@ -2485,7 +2486,7 @@ void TheoryStrings::checkNormalFormsEq()
     {
       nf_to_eqc[nf_term] = eqc;
       eqc_to_nf[eqc] = nf_term;
-      eqc_to_exp[eqc] = mkAnd(nfe.d_exp);
+      eqc_to_exp[eqc] = utils::mkAnd(nfe.d_exp);
     }
     Trace("strings-process-debug")
         << "Done verifying normal forms are the same for " << eqc << std::endl;
@@ -3001,7 +3002,7 @@ void TheoryStrings::processSimpleNEq(NormalForm& nfi,
         NormalForm& nfk = index == (nfiv.size() - rproc) ? nfj : nfi;
         std::vector<Node>& nfkv = nfk.d_nf;
         unsigned index_k = index;
-        //Node eq_exp = mkAnd( curr_exp );
+        //Node eq_exp = utils::mkAnd( curr_exp );
         std::vector< Node > curr_exp;
         NormalForm::getExplanationForPrefixEq(nfi, nfj, -1, -1, curr_exp);
         while (!d_conflict && index_k < (nfkv.size() - rproc))
@@ -3598,7 +3599,7 @@ TheoryStrings::ProcessLoopResult TheoryStrings::processLoop(NormalForm& nfi,
 
 //return true for lemma, false if we succeed
 void TheoryStrings::processDeq( Node ni, Node nj ) {
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager * nm = NodeManager::currentNM();
   //Assert( areDisequal( ni, nj ) );
   NormalForm& nfni = getNormalForm(ni);
   NormalForm& nfnj = getNormalForm(nj);
@@ -3681,7 +3682,8 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
                       antec,
                       nm->mkNode(
                           kind::OR,
-                          nm->mkNode(AND, eq1, sk.eqNode(firstChar).negate()),
+                          nm->mkNode(
+                              AND, eq1, sk.eqNode(firstChar).negate()),
                           eq2),
                       "D-DISL-CSplit");
                   d_os.sendPhaseRequirement(eq1, true);
@@ -3717,10 +3719,11 @@ void TheoryStrings::processDeq( Node ni, Node nj ) {
               Node lsk2 = mkLength( sk2 );
               conc.push_back( lsk2.eqNode( lj ) );
               conc.push_back( NodeManager::currentNM()->mkNode( kind::OR, j.eqNode( mkConcat( sk1, sk3 ) ), i.eqNode( mkConcat( sk2, sk3 ) ) ) );
-              d_os.sendInference(antec,
-                                 antec_new_lits,
-                                 nm->mkNode(kind::AND, conc),
-                                 "D-DISL-Split");
+              d_os.sendInference(
+                  antec,
+                  antec_new_lits,
+                  nm->mkNode(kind::AND, conc),
+                  "D-DISL-Split");
               ++(d_statistics.d_deq_splits);
               return;
             }
@@ -4220,22 +4223,6 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an )
   }
   //ant = Rewriter::rewrite( ant );
   return ant;
-}
-
-Node TheoryStrings::mkAnd( std::vector< Node >& a ) {
-  std::vector< Node > au;
-  for( unsigned i=0; i<a.size(); i++ ){
-    if( std::find( au.begin(), au.end(), a[i] )==au.end() ){
-      au.push_back( a[i] );
-    }
-  }
-  if( au.empty() ) {
-    return d_true;
-  } else if( au.size() == 1 ) {
-    return au[0];
-  } else {
-    return NodeManager::currentNM()->mkNode( kind::AND, au );
-  }
 }
 
 void TheoryStrings::checkNormalFormsDeq()

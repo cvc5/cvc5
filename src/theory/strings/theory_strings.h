@@ -25,12 +25,12 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/normal_form.h"
-#include "theory/strings/output_channel.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
 #include "theory/strings/skolem_cache.h"
 #include "theory/strings/theory_strings_preprocess.h"
+#include "theory/strings/output_channel.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -700,11 +700,11 @@ private:
    */
   bool areCareDisequal(TNode x, TNode y);
 
-  /** assert pending fact
-   *
+  /** assert pending fact 
+   * 
    * This asserts atom with polarity to the equality engine of this class,
    * where exp is the explanation of why (~) atom holds.
-   *
+   * 
    * This call may trigger further initialization steps involving the terms
    * of atom, including calls to registerTerm.
    */
@@ -736,7 +736,7 @@ private:
    * effort, the call to this method does nothing.
    */
   void registerTerm(Node n, int effort);
-
+ 
   /**
    * Are we in conflict? This returns true if this theory has called its output
    * channel's conflict method in the current SAT context.
@@ -754,8 +754,6 @@ private:
   Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
 
  protected:
-  /** mkAnd **/
-  Node mkAnd(std::vector<Node>& a);
 
   /** get equivalence classes
    *

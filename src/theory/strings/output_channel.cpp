@@ -18,6 +18,7 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings.h"
+#include "theory/strings/theory_strings_utils.h"
 #include "theory/strings/theory_strings_rewriter.h"
 
 using namespace std;
@@ -134,11 +135,11 @@ void OutputChannelStrings::sendInference(std::vector<Node>& exp,
     {
       if (exp.empty())
       {
-        eq_exp = mkAnd(exp_n);
+        eq_exp = utils::mkAnd(exp_n);
       }
       else if (exp_n.empty())
       {
-        eq_exp = mkAnd(exp);
+        eq_exp = utils::mkAnd(exp);
       }
       else
       {
@@ -158,7 +159,7 @@ void OutputChannelStrings::sendInference(std::vector<Node>& exp,
   }
   else
   {
-    sendInfer(mkAnd(exp), eq, c);
+    sendInfer(utils::mkAnd(exp), eq, c);
   }
 }
 
@@ -229,7 +230,7 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
     }
     if (Trace.isOn("strings-lemma-debug"))
     {
-      for (const Node& u : unproc)
+      for( const Node& u : unproc )
       {
         Trace("strings-lemma-debug")
             << "  non-trivial exp : " << u << std::endl;
@@ -310,27 +311,6 @@ bool OutputChannelStrings::areDisequal(Node a, Node b)
   return ar != br && ar.isConst() && br.isConst();
 }
 
-Node OutputChannelStrings::mkAnd(std::vector<Node>& a)
-{
-  std::vector<Node> au;
-  for (const Node& ai : a)
-  {
-    if (std::find(au.begin(), au.end(), ai) == au.end())
-    {
-      au.push_back(ai);
-    }
-  }
-  if (au.empty())
-  {
-    return NodeManager::currentNM()->mkConst(true);
-  }
-  else if (au.size() == 1)
-  {
-    return au[0];
-  }
-  return NodeManager::currentNM()->mkNode(AND, au);
-}
-
 void OutputChannelStrings::doPendingFacts()
 {
   size_t i = 0;
@@ -371,7 +351,7 @@ void OutputChannelStrings::doPendingLemmas()
     for (const std::pair<const Node, bool>& prp : d_pending_req_phase)
     {
       Trace("strings-pending") << "Require phase : " << prp.first
-                               << ", polarity = " << prp.second << std::endl;
+                              << ", polarity = " << prp.second << std::endl;
       d_out.requirePhase(prp.first, prp.second);
     }
   }
