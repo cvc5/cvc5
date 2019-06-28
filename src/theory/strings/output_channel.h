@@ -26,11 +26,13 @@
 namespace CVC4 {
 namespace theory {
 namespace strings {
+  
+class TheoryStrings;
 
 class OutputChannelStrings {
   typedef context::CDList<Node> NodeList;
  public:
-  OutputChannelStrings(context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
+  OutputChannelStrings(TheoryStrings& p, context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
                        OutputChannel& out);
   ~OutputChannelStrings() {}
 
@@ -96,6 +98,13 @@ class OutputChannelStrings {
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  
+  // FIXME
+  // do pending merges
+  void assertPendingFact(Node atom, bool polarity, Node exp);
+  void doPendingFacts();
+  void doPendingLemmas();
+  bool hasProcessed();
  protected:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
@@ -117,6 +126,8 @@ class OutputChannelStrings {
   void sendInfer(Node eq_exp, Node eq, const char* c);
   bool sendSplit(Node a, Node b, const char* c, bool preq = true);
 private:
+  /** the parent theory of strings object */
+  TheoryStrings& d_parent;
   /** the equality engine
    * 
    * This is a reference to the equality engine of the theory of strings.

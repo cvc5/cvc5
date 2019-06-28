@@ -20,6 +20,7 @@
 #include "options/strings_options.h"
 #include "theory/rewriter.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -29,8 +30,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-OutputChannelStrings::OutputChannelStrings(context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
-                      OutputChannel& out) : d_ee(ee), d_out(out),
+OutputChannelStrings::OutputChannelStrings(TheoryStrings& p, context::Context* c, context::UserContext* u,eq::EqualityEngine& ee,
+                      OutputChannel& out) : d_parent(p), d_ee(ee), d_out(out),
       d_conflict(c, false),
       d_infer(c),
       d_infer_exp(c)
@@ -99,47 +100,44 @@ bool OutputChannelStrings::sendInternalInference(std::vector<Node>& exp,
 
 void OutputChannelStrings::sendInference( std::vector< Node >& exp, std::vector< Node >& exp_n, Node eq, const char * c, bool asLemma ) {
   eq = eq.isNull() ? d_false : Rewriter::rewrite( eq );
-  if( eq!=d_true ){
-    if( Trace.isOn("strings-infer-debug") ){
-      Trace("strings-infer-debug") << "By " << c << ", infer : " << eq << " from: " << std::endl;
-      for( unsigned i=0; i<exp.size(); i++ ){
-        Trace("strings-infer-debug")  << "  " << exp[i] << std::endl;
-      }
-      for( unsigned i=0; i<exp_n.size(); i++ ){
-        Trace("strings-infer-debug")  << "  N:" << exp_n[i] << std::endl;
-      }
-      //Trace("strings-infer-debug") << "as lemma : " << asLemma << std::endl;
+  if( eq==d_true ){
+    return;
+  }
+  if( Trace.isOn("strings-infer-debug") ){
+    Trace("strings-infer-debug") << "By " << c << ", infer : " << eq << " from: " << std::endl;
+    for( unsigned i=0; i<exp.size(); i++ ){
+      Trace("strings-infer-debug")  << "  " << exp[i] << std::endl;
     }
-    //check if we should send a lemma or an inference
-    if( asLemma || eq==d_false || eq.getKind()==OR || !exp_n.empty() || options::stringInferAsLemmas() ){  
-      Node eq_exp;
-      // FIXME
-      /*
-      if( options::stringRExplainLemmas() ){
-        eq_exp = mkExplain( exp, exp_n );
-      }else{
-        if( exp.empty() ){
-          eq_exp = mkAnd( exp_n );
-        }else if( exp_n.empty() ){
-          eq_exp = mkAnd( exp );
-        }else{
-          std::vector< Node > ev;
-          ev.insert( ev.end(), exp.begin(), exp.end() );
-          ev.insert( ev.end(), exp_n.begin(), exp_n.end() );
-          eq_exp = NodeManager::currentNM()->mkNode( AND, ev );
-        }
-      }
-      */
-      // if we have unexplained literals, this lemma is not a conflict
-      if (eq == d_false && !exp_n.empty())
-      {
-        eq = eq_exp.negate();
-        eq_exp = d_true;
-      }
-      sendLemma( eq_exp, eq, c );
+    for( unsigned i=0; i<exp_n.size(); i++ ){
+      Trace("strings-infer-debug")  << "  N:" << exp_n[i] << std::endl;
+    }
+  }
+  //check if we should send a lemma or an inference
+  if( asLemma || eq==d_false || eq.getKind()==OR || !exp_n.empty() || options::stringInferAsLemmas() ){  
+    Node eq_exp;
+    if( options::stringRExplainLemmas() ){
+      eq_exp = d_parent.mkExplain( exp, exp_n );
     }else{
-      sendInfer( mkAnd( exp ), eq, c );
+      if( exp.empty() ){
+        eq_exp = mkAnd( exp_n );
+      }else if( exp_n.empty() ){
+        eq_exp = mkAnd( exp );
+      }else{
+        std::vector< Node > ev;
+        ev.insert( ev.end(), exp.begin(), exp.end() );
+        ev.insert( ev.end(), exp_n.begin(), exp_n.end() );
+        eq_exp = NodeManager::currentNM()->mkNode( AND, ev );
+      }
     }
+    // if we have unexplained literals, this lemma is not a conflict
+    if (eq == d_false && !exp_n.empty())
+    {
+      eq = eq_exp.negate();
+      eq_exp = d_true;
+    }
+    sendLemma( eq_exp, eq, c );
+  }else{
+    sendInfer( mkAnd( exp ), eq, c );
   }
 }
 
@@ -155,17 +153,17 @@ void OutputChannelStrings::sendLemma( Node ant, Node conc, const char * c ) {
     Trace("strings-assert") << "(assert (not " << ant << ")) ; conflict " << c << std::endl;
     d_out.conflict(ant);
     d_conflict = true;
-  } else {
-    Node lem;
-    if( ant == d_true ) {
-      lem = conc;
-    }else{
-      lem = NodeManager::currentNM()->mkNode( IMPLIES, ant, conc );
-    }
-    Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
-    Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c << std::endl;
-    d_lemma_cache.push_back( lem );
+    return;
   }
+  Node lem;
+  if( ant == d_true ) {
+    lem = conc;
+  }else{
+    lem = NodeManager::currentNM()->mkNode( IMPLIES, ant, conc );
+  }
+  Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
+  Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c << std::endl;
+  d_lemma_cache.push_back( lem );
 }
 
 void OutputChannelStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
@@ -173,18 +171,22 @@ void OutputChannelStrings::sendInfer( Node eq_exp, Node eq, const char * c ) {
     std::vector< Node > vars;
     std::vector< Node > subs;
     std::vector< Node > unproc;
-    //FIXME
-    //inferSubstitutionProxyVars( eq_exp, vars, subs, unproc );
+    d_parent.inferSubstitutionProxyVars( eq_exp, vars, subs, unproc );
     if( unproc.empty() ){
-      Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from " << eq_exp << " by " << c << std::endl;
       Node eqs = eq.substitute( vars.begin(), vars.end(), subs.begin(), subs.end() );
-      Trace("strings-lemma-debug") << "Strings::Infer Alternate : " << eqs << std::endl;
-      for( unsigned i=0; i<vars.size(); i++ ){
-        Trace("strings-lemma-debug") << "  " << vars[i] << " -> " << subs[i] << std::endl;
+      if( Trace.isOn("strings-lemma-debug") )
+      {
+        Trace("strings-lemma-debug") << "Strings::Infer " << eq << " from " << eq_exp << " by " << c << std::endl;
+        Trace("strings-lemma-debug") << "Strings::Infer Alternate : " << eqs << std::endl;
+        for( unsigned i=0; i<vars.size(); i++ ){
+          Trace("strings-lemma-debug") << "  " << vars[i] << " -> " << subs[i] << std::endl;
+        }
       }
       sendLemma( d_true, eqs, c );
       return;
-    }else{
+    }
+    if( Trace.isOn("strings-lemma-debug") )
+    {
       for( unsigned i=0; i<unproc.size(); i++ ){
         Trace("strings-lemma-debug") << "  non-trivial exp : " << unproc[i] << std::endl;
       }
@@ -206,8 +208,8 @@ bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
   {
     return false;
   }
-  Node neq = NodeManager::currentNM()->mkNode(NOT, eq);
-  Node lemma_or = NodeManager::currentNM()->mkNode(OR, eq, neq);
+  NodeManager * nm = NodeManager::currentNM();
+  Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
                           << std::endl;
   d_lemma_cache.push_back(lemma_or);
@@ -263,6 +265,49 @@ Node OutputChannelStrings::mkAnd( std::vector< Node >& a ) {
     return au[0];
   }
   return NodeManager::currentNM()->mkNode( AND, au );
+}
+
+
+void OutputChannelStrings::doPendingFacts() {
+  size_t i=0;
+  while( !d_conflict && i<d_pending.size() ) {
+    Node fact = d_pending[i];
+    Node exp = d_pending_exp[ fact ];
+    if(fact.getKind() == AND) {
+      for( const Node& lit : fact ){
+        bool polarity = lit.getKind() != NOT;
+        TNode atom = polarity ? lit : lit[0];
+        d_parent.assertPendingFact(atom, polarity, exp);
+      }
+    } else {
+      bool polarity = fact.getKind() != NOT;
+      TNode atom = polarity ? fact : fact[0];
+      d_parent.assertPendingFact(atom, polarity, exp);
+    }
+    i++;
+  }
+  d_pending.clear();
+  d_pending_exp.clear();
+}
+
+void OutputChannelStrings::doPendingLemmas() {
+  if( d_conflict ){
+    return;
+  }
+  for( const Node& lc : d_lemma_cache ){
+    Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
+    d_out.lemma( lc );
+  }
+  for( const std::pair< const Node, bool >& prp : d_pending_req_phase ){
+    Trace("strings-pending") << "Require phase : " << prp.first << ", polarity = " << prp.second << std::endl;
+    d_out.requirePhase( prp.first, prp.second );
+  }
+  d_lemma_cache.clear();
+  d_pending_req_phase.clear();
+}
+
+bool OutputChannelStrings::hasProcessed() {
+  return d_conflict || !d_lemma_cache.empty() || !d_pending.empty();
 }
 
 }/* CVC4::theory::strings namespace */
