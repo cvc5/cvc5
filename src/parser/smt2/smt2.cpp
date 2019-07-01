@@ -507,10 +507,7 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   {
     return mkAbstractValue(name);
   }
-  else
-  {
-    return Parser::getExpressionForNameAndType(name, t);
-  }
+  return Parser::getExpressionForNameAndType(name, t);
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
@@ -1487,7 +1484,7 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
                            << ", hasOp=" << op.hasOperator() << std::endl;
     if (pureVar && op.hasOperator())
     {
-      // optimization: just use the operator if it an application to only vars
+      // optimization: use just the operator if it an application to only vars
       op = op.getOperator();
     }
     else
