@@ -53,7 +53,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
-      d_rels(new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, *this)),
+      d_rels(new TheorySetsRels(c, u, &d_equalityEngine, *this)),
       d_rels_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );

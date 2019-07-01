@@ -1169,22 +1169,21 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   TheorySetsRels::TheorySetsRels(context::Context* c,
                                  context::UserContext* u,
                                  eq::EqualityEngine* eq,
-                                 context::CDO<bool>* conflict,
-                                 TheorySetsPrivate& d_set)
+                                 TheorySetsPrivate& set)
       : d_eqEngine(eq),
-        d_sets_theory(d_set),
+        d_sets_theory(set),
         d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
         d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
         d_shared_terms(u),
         d_satContext(c)
   {
-    d_eqEngine->addFunctionKind(kind::PRODUCT);
-    d_eqEngine->addFunctionKind(kind::JOIN);
-    d_eqEngine->addFunctionKind(kind::TRANSPOSE);
-    d_eqEngine->addFunctionKind(kind::TCLOSURE);
-    d_eqEngine->addFunctionKind(kind::JOIN_IMAGE);
-    d_eqEngine->addFunctionKind(kind::IDEN);
-    d_eqEngine->addFunctionKind(kind::APPLY_CONSTRUCTOR);
+    d_eqEngine->addFunctionKind(PRODUCT);
+    d_eqEngine->addFunctionKind(JOIN);
+    d_eqEngine->addFunctionKind(TRANSPOSE);
+    d_eqEngine->addFunctionKind(TCLOSURE);
+    d_eqEngine->addFunctionKind(JOIN_IMAGE);
+    d_eqEngine->addFunctionKind(IDEN);
+    d_eqEngine->addFunctionKind(APPLY_CONSTRUCTOR);
   }
 
   TheorySetsRels::~TheorySetsRels() {

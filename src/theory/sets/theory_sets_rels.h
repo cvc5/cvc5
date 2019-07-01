@@ -52,9 +52,8 @@ class TheorySetsRels {
 public:
  TheorySetsRels(context::Context* c,
                 context::UserContext* u,
-                eq::EqualityEngine*,
-                context::CDO<bool>*,
-                TheorySetsPrivate&);
+                eq::EqualityEngine* eq,
+                TheorySetsPrivate& set);
 
  ~TheorySetsRels();
  /** 

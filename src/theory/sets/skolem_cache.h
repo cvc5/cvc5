@@ -49,7 +49,7 @@ class SkolemCache
    */
   enum SkolemId
   {
-    // exists x. (a,b) in join(A,B) => (a,x) in A ^ (x,b) inB)
+    // (a,b) in join(A,B) => exists x. (a,x) in A ^ (x,b) in B
     SK_JOIN,
   };
 
