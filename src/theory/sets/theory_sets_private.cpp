@@ -26,9 +26,8 @@
 #include "theory/theory_model.h"
 #include "util/result.h"
 
-#define AJR_IMPLEMENTATION
-
 using namespace std;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -663,12 +662,12 @@ void TheorySetsPrivate::fullEffortCheck(){
       ++eqcs_i;
     }
 
-    if (Trace.isOn("sets-stats"))
+    if (Trace.isOn("sets-state"))
     {
-      Trace("sets-stats") << "Equivalence class counters:" << std::endl;
+      Trace("sets-state") << "Equivalence class counters:" << std::endl;
       for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
       {
-        Trace("sets-stats")
+        Trace("sets-state")
             << "  " << ec.first << " -> " << ec.second << std::endl;
       }
     }

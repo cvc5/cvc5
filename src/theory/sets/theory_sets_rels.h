@@ -106,8 +106,9 @@ private:
  private:
 
   /** Methods used in standard effort */
-  void doPendingLemmas();
-  void sendMergeInfer( Node fact, Node reason, const char * c );
+  void sendInfer( Node fact, Node reason, const char * c );
+  void doPendingInfers();
+  void doPendingInfersTC();
 
   /** Methods used in full effort */
   void check();
