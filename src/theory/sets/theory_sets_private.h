@@ -223,6 +223,10 @@ private: //for universe set
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
 
+  /**
+   * Get the skolem cache of this theory, which manages a database of introduced
+   * skolem variables used for various inferences.
+   */
   SkolemCache& getSkolemCache() { return d_skCache; }
 
   void preRegisterTerm(TNode node);
@@ -265,7 +269,12 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-  void processLemmaToSend(Node lem, const char* c);
+  /** 
+   * Process inference
+   * 
+   * FIXME
+   */
+  void processInference(Node lem, const char* c);
 
   bool isInConflict() const;
   bool sentLemma() const;

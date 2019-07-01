@@ -57,12 +57,12 @@ public:
                 TheorySetsPrivate&);
 
  ~TheorySetsRels();
+ /** 
+  * Invoke the check method with effort level e.
+  */
  void check(Theory::Effort);
- void doPendingSends();
-
- bool isRelationKind(Kind k);
-
-private:
+ /** Is kind k a kind that belongs to the relation theory? */
+ static bool isRelationKind(Kind k);
 
 private:
 
