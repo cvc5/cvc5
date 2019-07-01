@@ -44,8 +44,9 @@ class TheoryStrings;
  * This class decides how the conclusion of these calls will be processed.
  * It primarily has to decide whether the conclusions will be processed:
  *
- * (1) Internally in the strings solver, via calls to the equality engine. We
- * refer to these literals as "facts",
+ * (1) Internally in the strings solver, via calls to equality engine's
+ * assertLiteral and assertPredicate commands. We refer to these literals as
+ * "facts",
  * (2) Externally on the output channel of theory of strings as "lemmas",
  * (3) External on the output channel as "conflicts" (when a conclusion of an
  * inference is false).
