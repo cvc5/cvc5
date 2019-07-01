@@ -52,7 +52,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       for(unsigned int i = 0; i < m_it->second.size(); i++) {
         Node    mem     = d_rReps_memberReps_cache[rel_rep][i];
         Node    exp     = d_rReps_memberReps_exp_cache[rel_rep][i];
-        std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
+        std::map<kind::Kind_t, std::vector<Node> >&    kind_terms      = d_terms_cache[rel_rep];
 
         if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
           std::vector<Node>& tp_terms = kind_terms[TRANSPOSE];
@@ -524,10 +524,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                                      (NodeManager::currentNM()->mkNode(kind::OR, sk_eq, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel))))))));
 
     Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, conclusion );
-    std::vector< Node > require_phase;
-    require_phase.push_back(Rewriter::rewrite(mem_of_r));
-    require_phase.push_back(Rewriter::rewrite(sk_eq));
-    d_pending_tc[tc_lemma] = require_phase;
+    d_pending_tc.push_back(tc_lemma);
   }
 
   bool TheorySetsRels::isTCReachable( Node mem_rep, Node tc_rel ) {
@@ -1023,9 +1020,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     // process the inferences in d_pending
     if (!d_sets_theory.isInConflict())
     {
-      for (const Node& pm : d_pending)
+      for (const Node& p : d_pending)
       {
-        d_sets_theory.processLemmaToSend(pm, "rels");
+        d_sets_theory.processLemmaToSend(p, "rels");
         if (d_sets_theory.isInConflict())
         {
           break;
@@ -1036,21 +1033,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     // process the inferences in d_pending_tc
     if (!d_sets_theory.isInConflict())
     {
-      std::map<Node, std::vector<Node> >::iterator tc_lemma_it =
-          d_pending_tc.begin();
-      while (tc_lemma_it != d_pending_tc.end())
+      for( const Node& pt : d_pending_tc )
       {
-        d_sets_theory.processLemmaToSend(tc_lemma_it->first, "rels_TC");
-
-        for (unsigned int i = 0; i < (tc_lemma_it->second).size(); i++)
-          for (const Node& i : tc_lemma_it->second)
-          {
-            if ((tc_lemma_it->second)[i] == d_falseNode)
-            {
-              d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
-            }
-          }
-        ++tc_lemma_it;
+        d_sets_theory.processLemmaToSend(pt, "rels_TC");
       }
       d_pending_tc.clear();
     }

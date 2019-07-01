@@ -75,7 +75,7 @@ private:
 
   /** Facts and lemmas to be sent to EE */
   std::vector<Node> d_pending;
-  std::map<Node, std::vector<Node> > d_pending_tc;
+  std::vector<Node> d_pending_tc;
   NodeSet                       d_shared_terms;
 
 
