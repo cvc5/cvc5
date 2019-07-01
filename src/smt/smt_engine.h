@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__SMT_ENGINE_H
-#define __CVC4__SMT_ENGINE_H
+#ifndef CVC4__SMT_ENGINE_H
+#define CVC4__SMT_ENGINE_H
 
 #include <string>
 #include <vector>
@@ -261,6 +261,11 @@ class CVC4_PUBLIC SmtEngine {
    * Most recent result of last checkSat/query or (set-info :status).
    */
   Result d_status;
+
+  /**
+   * The expected status of the next satisfiability check.
+   */
+  Result d_expectedStatus;
 
   /**
    * The input file name (if any) or the name set through setInfo (if any)
@@ -1064,4 +1069,4 @@ class CVC4_PUBLIC SmtEngine {
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__SMT_ENGINE_H */
+#endif /* CVC4__SMT_ENGINE_H */

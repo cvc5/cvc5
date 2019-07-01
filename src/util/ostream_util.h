@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__UTIL__OSTREAM_UTIL_H
-#define __CVC4__UTIL__OSTREAM_UTIL_H
+#ifndef CVC4__UTIL__OSTREAM_UTIL_H
+#define CVC4__UTIL__OSTREAM_UTIL_H
 
 #include <ios>
 #include <ostream>
@@ -46,4 +46,4 @@ class StreamFormatScope
 
 }  // namespace CVC4
 
-#endif /* __CVC4__UTIL__OSTREAM_UTIL_H */
+#endif /* CVC4__UTIL__OSTREAM_UTIL_H */

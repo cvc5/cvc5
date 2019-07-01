@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__OPTIONS__OPTIONS_H
-#define __CVC4__OPTIONS__OPTIONS_H
+#ifndef CVC4__OPTIONS__OPTIONS_H
+#define CVC4__OPTIONS__OPTIONS_H
 
 #include <fstream>
 #include <ostream>
@@ -51,9 +51,6 @@ class CVC4_PUBLIC Options {
 
   /** The current Options in effect */
   static thread_local Options* s_current;
-
-  /** Listeners for options::forceLogicString being set. */
-  ListenerCollection d_forceLogicListeners;
 
   /** Listeners for notifyBeforeSearch. */
   ListenerCollection d_beforeSearchListeners;
@@ -560,4 +557,4 @@ public:
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__OPTIONS_H */
+#endif /* CVC4__OPTIONS__OPTIONS_H */

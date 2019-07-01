@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PRINTER__PRINTER_H
-#define __CVC4__PRINTER__PRINTER_H
+#ifndef CVC4__PRINTER__PRINTER_H
+#define CVC4__PRINTER__PRINTER_H
 
 #include <map>
 #include <string>
@@ -113,4 +113,4 @@ class Printer
 
 }  // namespace CVC4
 
-#endif /* __CVC4__PRINTER__PRINTER_H */
+#endif /* CVC4__PRINTER__PRINTER_H */

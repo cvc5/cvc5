@@ -171,14 +171,32 @@ RewriteResponse TheoryBVRewriter::RewriteITEBv(TNode node, bool prerewrite)
   Node resultNode =
       LinearRewriteStrategy<RewriteRule<EvalITEBv>,
                             RewriteRule<BvIteConstCond>,
-                            RewriteRule<BvIteEqualChildren>,
-                            RewriteRule<BvIteConstChildren>,
-                            RewriteRule<BvIteEqualCond>,
-                            RewriteRule<BvIteMergeThenIf>,
+                            RewriteRule<BvIteEqualChildren>>::apply(node);
+  // If the node has been rewritten, we return here because we need to make
+  // sure that `BvIteEqualChildren` has been applied until we reach a fixpoint
+  // before applying `BvIteConstChildren`. Otherwise, `BvIteConstChildren`
+  // potentially performs an unsound rewrite. Returning hands back the control
+  // to the `Rewriter` which will then call this method again, ensuring that
+  // the rewrites are applied in the correct order.
+  if (resultNode != node)
+  {
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
+
+  resultNode = LinearRewriteStrategy<RewriteRule<BvIteConstChildren>,
+                                     RewriteRule<BvIteEqualCond>>::apply(node);
+  if (resultNode != node)
+  {
+    return RewriteResponse(REWRITE_AGAIN, resultNode);
+  }
+
+  resultNode =
+      LinearRewriteStrategy<RewriteRule<BvIteMergeThenIf>,
                             RewriteRule<BvIteMergeElseIf>,
                             RewriteRule<BvIteMergeThenElse>,
                             RewriteRule<BvIteMergeElseElse>>::apply(node);
-  return RewriteResponse(REWRITE_DONE, resultNode);
+  return RewriteResponse(resultNode == node ? REWRITE_DONE : REWRITE_AGAIN_FULL,
+                         resultNode);
 }
 
 RewriteResponse TheoryBVRewriter::RewriteNot(TNode node, bool prerewrite){

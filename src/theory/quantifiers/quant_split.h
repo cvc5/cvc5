@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_SPLIT_H
-#define __CVC4__THEORY__QUANT_SPLIT_H
+#ifndef CVC4__THEORY__QUANT_SPLIT_H
+#define CVC4__THEORY__QUANT_SPLIT_H
 
 #include "theory/quantifiers_engine.h"
 #include "context/cdo.h"

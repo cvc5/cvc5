@@ -18,8 +18,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__TPTP_H
-#define __CVC4__PARSER__TPTP_H
+#ifndef CVC4__PARSER__TPTP_H
+#define CVC4__PARSER__TPTP_H
 
 #include <cassert>
 #include <unordered_map>
@@ -46,6 +46,8 @@ class Tptp : public Parser {
 
   bool fof() const { return d_fof; }
   void setFof(bool fof) { d_fof = fof; }
+
+  void forceLogic(const std::string& logic) override;
 
   void addFreeVar(Expr var);
   std::vector< Expr > getFreeVar();
@@ -196,4 +198,4 @@ enum NonAssoc {
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__TPTP_INPUT_H */
+#endif /* CVC4__PARSER__TPTP_INPUT_H */

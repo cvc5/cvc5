@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__INST_STRATEGY_ENUMERATIVE_H
-#define __CVC4__INST_STRATEGY_ENUMERATIVE_H
+#ifndef CVC4__INST_STRATEGY_ENUMERATIVE_H
+#define CVC4__INST_STRATEGY_ENUMERATIVE_H
 
 #include "context/context.h"
 #include "context/context_mm.h"
@@ -92,8 +92,12 @@ class InstStrategyEnum : public QuantifiersModule
    * well-typed term *not* occurring in the current context.
    * This handles corner cases where there are no well-typed
    * ground terms in the current context to instantiate with.
+   *
+   * The flag isRd indicates whether we are trying relevant domain
+   * instantiations. If this flag is false, we are trying arbitrary ground
+   * term instantiations.
    */
-  bool process(Node q, bool fullEffort);
+  bool process(Node q, bool fullEffort, bool isRd);
 }; /* class InstStrategyEnum */
 
 } /* CVC4::theory::quantifiers namespace */

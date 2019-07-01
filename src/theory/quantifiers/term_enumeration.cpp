@@ -87,6 +87,26 @@ bool TermEnumeration::mayComplete(TypeNode tn, unsigned maxCard)
   return mc;
 }
 
+bool TermEnumeration::getDomain(TypeNode tn, std::vector<Node>& dom)
+{
+  if (!mayComplete(tn))
+  {
+    return false;
+  }
+  Node curre;
+  unsigned counter = 0;
+  do
+  {
+    curre = getEnumerateTerm(tn, counter);
+    counter++;
+    if (!curre.isNull())
+    {
+      dom.push_back(curre);
+    }
+  } while (!curre.isNull());
+  return true;
+}
+
 } /* CVC4::theory::quantifiers namespace */
 } /* CVC4::theory namespace */
 } /* CVC4 namespace */

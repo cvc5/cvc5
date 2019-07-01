@@ -16,8 +16,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__OPTIONS__SET_LANGUAGE_H
-#define __CVC4__OPTIONS__SET_LANGUAGE_H
+#ifndef CVC4__OPTIONS__SET_LANGUAGE_H
+#define CVC4__OPTIONS__SET_LANGUAGE_H
 
 #include <iostream>
 #include "options/language.h"
@@ -96,4 +96,4 @@ std::ostream& operator<<(std::ostream& out, SetLanguage l) CVC4_PUBLIC;
 }/* CVC4::language namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__OPTIONS__SET_LANGUAGE_H */
+#endif /* CVC4__OPTIONS__SET_LANGUAGE_H */

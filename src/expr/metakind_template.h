@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__KIND__METAKIND_H
-#define __CVC4__KIND__METAKIND_H
+#ifndef CVC4__KIND__METAKIND_H
+#define CVC4__KIND__METAKIND_H
 
 #include <iosfwd>
 
@@ -118,13 +118,13 @@ namespace kind {
 namespace metakind {
 
 /* these are #defines so their sum can be #if-checked in node_value.h */
-#define __CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 20
-#define __CVC4__EXPR__NODE_VALUE__NBITS__KIND 10
-#define __CVC4__EXPR__NODE_VALUE__NBITS__ID 40
-#define __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
+#define CVC4__EXPR__NODE_VALUE__NBITS__REFCOUNT 20
+#define CVC4__EXPR__NODE_VALUE__NBITS__KIND 10
+#define CVC4__EXPR__NODE_VALUE__NBITS__ID 40
+#define CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN 26
 
 static const unsigned MAX_CHILDREN =
-  (1u << __CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
+  (1u << CVC4__EXPR__NODE_VALUE__NBITS__NCHILDREN) - 1;
 
 }/* CVC4::kind::metakind namespace */
 }/* CVC4::kind namespace */
@@ -143,11 +143,11 @@ struct NodeValuePoolEq {
 
 #include "expr/node_value.h"
 
-#endif /* __CVC4__KIND__METAKIND_H */
+#endif /* CVC4__KIND__METAKIND_H */
 
 ${metakind_includes}
 
-#ifdef __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
+#ifdef CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP
 
 namespace CVC4 {
 
@@ -234,4 +234,4 @@ ${theory_alternate_doc}";
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */
+#endif /* CVC4__NODE_MANAGER_NEEDS_CONSTANT_MAP */

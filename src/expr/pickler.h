@@ -18,8 +18,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__PICKLER_H
-#define __CVC4__PICKLER_H
+#ifndef CVC4__PICKLER_H
+#define CVC4__PICKLER_H
 
 #include "expr/variable_type_map.h"
 #include "expr/expr.h"
@@ -126,4 +126,4 @@ protected:
 }/* CVC4::expr namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PICKLER_H */
+#endif /* CVC4__PICKLER_H */

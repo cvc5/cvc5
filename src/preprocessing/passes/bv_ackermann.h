@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
-#define __CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
+#ifndef CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
+#define CVC4__PREPROCESSING__PASSES__BV_ACKERMANN_H
 
 #include <unordered_map>
 #include "expr/node.h"

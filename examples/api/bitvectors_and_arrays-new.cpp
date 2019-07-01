@@ -2,7 +2,7 @@
 /*! \file bitvectors_and_arrays-new.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Makai Mann
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -16,7 +16,8 @@
 
 #include <iostream>
 #include <cmath>
-// #include <cvc4/cvc4.h> // use this after CVC4 is properly installed
+
+// #include "cvc4/api/cvc4cpp.h" // use this after CVC4 is properly installed
 #include "api/cvc4cpp.h"
 
 using namespace std;
@@ -52,7 +53,7 @@ int main()
   Sort arraySort = slv.mkArraySort(indexSort, elementSort);
 
   // Variables
-  Term current_array = slv.mkVar(arraySort, "current_array");
+  Term current_array = slv.mkConst(arraySort, "current_array");
 
   // Making a bit-vector constant
   Term zero = slv.mkBitVector(index_size, 0u);

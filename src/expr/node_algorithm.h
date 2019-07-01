@@ -18,8 +18,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__EXPR__NODE_ALGORITHM_H
-#define __CVC4__EXPR__NODE_ALGORITHM_H
+#ifndef CVC4__EXPR__NODE_ALGORITHM_H
+#define CVC4__EXPR__NODE_ALGORITHM_H
 
 #include <unordered_map>
 #include <vector>
@@ -71,6 +71,14 @@ bool hasFreeVar(TNode n);
 bool getFreeVariables(TNode n,
                       std::unordered_set<Node, NodeHashFunction>& fvs,
                       bool computeFv = true);
+
+/**
+ * Get all variables in n.
+ * @param n The node under investigation
+ * @param vs The set which free variables are added to
+ * @return true iff this node contains a free variable.
+ */
+bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
 
 /**
  * For term n, this function collects the symbols that occur as a subterms

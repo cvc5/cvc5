@@ -17,8 +17,8 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__BASE__QUANTIFIERS_MODES_H
-#define __CVC4__BASE__QUANTIFIERS_MODES_H
+#ifndef CVC4__BASE__QUANTIFIERS_MODES_H
+#define CVC4__BASE__QUANTIFIERS_MODES_H
 
 #include <iostream>
 
@@ -316,4 +316,4 @@ std::ostream& operator<<(std::ostream& out, theory::quantifiers::InstWhenMode mo
 
 }/* CVC4 namespace */
 
-#endif /* __CVC4__BASE__QUANTIFIERS_MODES_H */
+#endif /* CVC4__BASE__QUANTIFIERS_MODES_H */

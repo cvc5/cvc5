@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
-#define __CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
+#ifndef CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
+#define CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
 
 #include <map>
 #include "expr/node.h"
@@ -89,4 +89,4 @@ class TermCanonize
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H */

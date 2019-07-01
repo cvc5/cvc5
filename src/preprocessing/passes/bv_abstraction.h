@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H
-#define __CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H
+#ifndef CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H
+#define CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H
 
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
@@ -47,4 +47,4 @@ class BvAbstraction : public PreprocessingPass
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* __CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H */
+#endif /* CVC4__PREPROCESSING__PASSES__BV_ABSTRACTION_H */
