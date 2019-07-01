@@ -308,9 +308,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
               Assert(reasons.size() >= 1);
               sendInfer(
                   new_membership,
-                  reasons.size() > 1
-                      ? nm->mkNode(AND, reasons)
-                      : reasons[0],
+                  reasons.size() > 1 ? nm->mkNode(AND, reasons) : reasons[0],
                   "JOIN-IMAGE UP");
               break;
             }
@@ -397,13 +395,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( exp[1] != iden_term ) {
       reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, exp[1], iden_term ) );
     }
-    sendInfer(
-        nm->mkNode(
-            AND,
-            fact,
-            nm->mkNode(EQUAL, fst_mem, snd_mem)),
-        reason,
-        "IDENTITY-DOWN");
+    sendInfer(nm->mkNode(AND, fact, nm->mkNode(EQUAL, fst_mem, snd_mem)),
+              reason,
+              "IDENTITY-DOWN");
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with applyIdenRule on " << iden_term << std::endl;
   }
 
@@ -421,7 +415,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( d_rReps_memberReps_cache.find( iden_term_rel_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     MEM_IT rel_mem_exp_it = d_rReps_memberReps_exp_cache.find( iden_term_rel_rep );
     std::vector< Node >::iterator mem_rep_exp_it = (*rel_mem_exp_it).second.begin();
@@ -434,10 +428,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       if( (*mem_rep_exp_it)[1] != iden_term_rel ) {
         reason = NodeManager::currentNM()->mkNode( kind::AND, reason, NodeManager::currentNM()->mkNode( kind::EQUAL, (*mem_rep_exp_it)[1], iden_term_rel ) );
       }
-      sendInfer(
-          nm->mkNode(MEMBER, new_mem, iden_term),
-          reason,
-          "IDENTITY-UP");
+      sendInfer(nm->mkNode(MEMBER, new_mem, iden_term), reason, "IDENTITY-UP");
       ++mem_rep_exp_it;
     }
     Trace("rels-debug") << "\n[Theory::Rels] *********** Done with computing members for Iden Term = " << iden_term << std::endl;
@@ -637,7 +628,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::doTCInference(Node tc_rel, std::vector< Node > reasons, std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph,
                                        std::map< Node, Node >& rel_tc_graph_exps, Node start_node_rep, Node cur_node_rep, std::unordered_set< Node, NodeHashFunction >& seen ) {
-    NodeManager * nm =NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     Node tc_mem = RelsUtils::constructPair( tc_rel, RelsUtils::nthElementOfTuple((reasons.front())[0], 0), RelsUtils::nthElementOfTuple((reasons.back())[0], 1) );
     std::vector< Node > all_reasons( reasons );
 
@@ -655,15 +646,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       all_reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, tc_rel[0], reasons.back()[1]) );
     }
     if( all_reasons.size() > 1) {
-      sendInfer(
-          nm->mkNode(MEMBER, tc_mem, tc_rel),
-          nm->mkNode(AND, all_reasons),
-          "TCLOSURE-Forward");
+      sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
+                nm->mkNode(AND, all_reasons),
+                "TCLOSURE-Forward");
     } else {
-      sendInfer(
-          nm->mkNode(MEMBER, tc_mem, tc_rel),
-          all_reasons.front(),
-          "TCLOSURE-Forward");
+      sendInfer(nm->mkNode(MEMBER, tc_mem, tc_rel),
+                all_reasons.front(),
+                "TCLOSURE-Forward");
     }
 
     // check if cur_node has been traversed or not
@@ -826,14 +815,12 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( tp_terms.size() < 1) {
       return;
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     for( unsigned int i = 1; i < tp_terms.size(); i++ ) {
       Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE-Equal rule on transposed term = " << tp_terms[0] << " and " << tp_terms[i] << std::endl;
-      sendInfer(nm->mkNode(
-                         EQUAL, tp_terms[0][0], tp_terms[i][0]),
-                     nm->mkNode(
-                         EQUAL, tp_terms[0], tp_terms[i]),
-                     "TRANSPOSE-Equal");
+      sendInfer(nm->mkNode(EQUAL, tp_terms[0][0], tp_terms[i][0]),
+                nm->mkNode(EQUAL, tp_terms[0], tp_terms[i]),
+                "TRANSPOSE-Equal");
     }
   }
 
@@ -841,7 +828,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE rule on transposed term = " << tp_rel
                         << ", its representative = " << tp_rel_rep
                         << " with explanation = " << exp << std::endl;
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     if(d_rel_nodes.find( tp_rel ) == d_rel_nodes.end()) {
       Trace("rels-debug") <<  "\n[Theory::Rels] Apply TRANSPOSE-Compose rule on term: " << tp_rel
@@ -857,10 +844,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if( tp_rel != exp[1] ) {
       reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, tp_rel, exp[1]));
     }
-    sendInfer(
-        nm->mkNode(MEMBER, reversed_mem, tp_rel[0]),
-        reason,
-        "TRANSPOSE-Reverse");
+    sendInfer(nm->mkNode(MEMBER, reversed_mem, tp_rel[0]),
+              reason,
+              "TRANSPOSE-Reverse");
   }
 
   void TheorySetsRels::doTCInference() {
@@ -931,11 +917,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
 
     Node rel0_rep  = getRepresentative(rel[0]);
-    if(d_rReps_memberReps_cache.find( rel0_rep ) == d_rReps_memberReps_cache.end()){
+    if (d_rReps_memberReps_cache.find(rel0_rep)
+        == d_rReps_memberReps_cache.end())
+    {
       return;
     }
-    NodeManager * nm = NodeManager::currentNM();
-    
+    NodeManager* nm = NodeManager::currentNM();
+
     std::vector<Node>   members = d_rReps_memberReps_cache[rel0_rep];
     std::vector<Node>   exps    = d_rReps_memberReps_exp_cache[rel0_rep];
 
@@ -947,11 +935,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         if( rel[0] != exps[i][1] ) {
           reason = NodeManager::currentNM()->mkNode(kind::AND, reason, NodeManager::currentNM()->mkNode(kind::EQUAL, rel[0], exps[i][1]));
         }
-        sendInfer(
-            nm->mkNode(
-                MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
-            reason,
-            "TRANSPOSE-reverse");
+        sendInfer(nm->mkNode(MEMBER, RelsUtils::reverseTuple(exps[i][0]), rel),
+                  reason,
+                  "TRANSPOSE-reverse");
       }
     }
   }
@@ -972,7 +958,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
        d_rReps_memberReps_cache.find( r2_rep ) == d_rReps_memberReps_cache.end() ) {
       return;
     }
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
 
     std::vector<Node> r1_rep_exps = d_rReps_memberReps_exp_cache[r1_rep];
     std::vector<Node> r2_rep_exps = d_rReps_memberReps_exp_cache[r2_rep];
@@ -1018,15 +1004,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
           }
           if( isProduct ) {
             sendInfer(fact,
-                           NodeManager::currentNM()->mkNode(kind::AND, reasons),
-                           "PRODUCT-Compose");
+                      NodeManager::currentNM()->mkNode(kind::AND, reasons),
+                      "PRODUCT-Compose");
           } else {
             if( r1_rmost != r2_lmost ) {
               reasons.push_back( NodeManager::currentNM()->mkNode(kind::EQUAL, r1_rmost, r2_lmost) );
             }
-            sendInfer(fact,
-                           nm->mkNode(kind::AND, reasons),
-                           "JOIN-Compose");
+            sendInfer(fact, nm->mkNode(kind::AND, reasons), "JOIN-Compose");
           }
         }
       }
@@ -1034,7 +1018,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   }
 
-  void TheorySetsRels::doPendingInfers() {
+  void TheorySetsRels::doPendingInfers()
+  {
     // process the inferences in d_pending
     if (!d_sets_theory.isInConflict())
     {
@@ -1051,18 +1036,20 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     // process the inferences in d_pending_tc
     if (!d_sets_theory.isInConflict())
     {
-      std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_pending_tc.begin();
-      while( tc_lemma_it != d_pending_tc.end() ) {
+      std::map<Node, std::vector<Node> >::iterator tc_lemma_it =
+          d_pending_tc.begin();
+      while (tc_lemma_it != d_pending_tc.end())
+      {
         d_sets_theory.processLemmaToSend(tc_lemma_it->first, "rels_TC");
 
         for (unsigned int i = 0; i < (tc_lemma_it->second).size(); i++)
-        for( const Node& i : tc_lemma_it->second)
-        {
-          if ((tc_lemma_it->second)[i] == d_falseNode)
+          for (const Node& i : tc_lemma_it->second)
           {
-            d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
+            if ((tc_lemma_it->second)[i] == d_falseNode)
+            {
+              d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
+            }
           }
-        }
         ++tc_lemma_it;
       }
       d_pending_tc.clear();
@@ -1077,7 +1064,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     d_tcr_tcGraph_exps.clear();
     d_tcr_tcGraph.clear();
   }
-
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;
@@ -1310,13 +1296,13 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
   }
 
-  void TheorySetsRels::sendInfer( Node fact, Node reason, const char * c ) {
+  void TheorySetsRels::sendInfer(Node fact, Node reason, const char* c)
+  {
     Trace("rels-lemma") << "Rels::lemma " << fact << " from " << reason
                         << " by " << c << std::endl;
     Node lemma = NodeManager::currentNM()->mkNode(IMPLIES, reason, fact);
     d_pending.push_back(lemma);
   }
-
 }
 }
 }

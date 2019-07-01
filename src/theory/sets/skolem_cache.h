@@ -53,7 +53,7 @@ class SkolemCache
     SK_JOIN,
   };
 
-  /** 
+  /**
    * Makes a skolem of type tn that is cached based on the key (a,b,id).
    * Argument c is the variable name of the skolem.
    */
@@ -63,6 +63,7 @@ class SkolemCache
   Node mkTypedSkolem(TypeNode tn, const char* c);
   /** Returns true if n is a skolem allocated by this class */
   bool isSkolem(Node n) const;
+
  private:
   /** map from node pairs and identifiers to skolems */
   std::map<Node, std::map<Node, std::map<SkolemId, Node> > > d_skolemCache;

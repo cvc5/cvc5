@@ -61,6 +61,7 @@ public:
  void doPendingSends();
 
  bool isRelationKind(Kind k);
+
 private:
 
 private:
@@ -74,7 +75,7 @@ private:
 
   /** Facts and lemmas to be sent to EE */
   std::vector<Node> d_pending;
-  std::map< Node, std::vector< Node > > d_pending_tc;
+  std::map<Node, std::vector<Node> > d_pending_tc;
   NodeSet                       d_shared_terms;
 
 
@@ -102,9 +103,8 @@ private:
   context::Context* d_satContext;
 
  private:
-
   /** Methods used in standard effort */
-  void sendInfer( Node fact, Node reason, const char * c );
+  void sendInfer(Node fact, Node reason, const char* c);
   void doPendingInfers();
 
   /** Methods used in full effort */
