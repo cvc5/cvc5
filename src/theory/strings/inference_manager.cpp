@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file output_channel.cpp
+/*! \file inference_manager.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,10 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of the output channel for the theory of strings.
+ ** \brief Implementation of the inference manager for the theory of strings.
  **/
 
-#include "theory/strings/output_channel.h"
+#include "theory/strings/inference_manager.h"
 
 #include "expr/kind.h"
 #include "options/strings_options.h"
@@ -29,7 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-OutputChannelStrings::OutputChannelStrings(TheoryStrings& p,
+InferenceManager::InferenceManager(TheoryStrings& p,
                                            context::Context* c,
                                            context::UserContext* u,
                                            eq::EqualityEngine& ee,
@@ -40,7 +40,7 @@ OutputChannelStrings::OutputChannelStrings(TheoryStrings& p,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-bool OutputChannelStrings::sendInternalInference(std::vector<Node>& exp,
+bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
                                                  Node conc,
                                                  const char* c)
 {
@@ -63,14 +63,14 @@ bool OutputChannelStrings::sendInternalInference(std::vector<Node>& exp,
   {
     for (unsigned i = 0; i < 2; i++)
     {
-      if (!lit[i].isConst() && !hasTerm(lit[i]))
+      if (!lit[i].isConst() && !d_parent.hasTerm(lit[i]))
       {
         // introduces a new non-constant term, do not infer
         return false;
       }
     }
     // does it already hold?
-    if (pol ? areEqual(lit[0], lit[1]) : areDisequal(lit[0], lit[1]))
+    if (pol ? d_parent.areEqual(lit[0], lit[1]) : d_parent.areDisequal(lit[0], lit[1]))
     {
       return true;
     }
@@ -84,12 +84,12 @@ bool OutputChannelStrings::sendInternalInference(std::vector<Node>& exp,
       return true;
     }
   }
-  else if (!hasTerm(lit))
+  else if (!d_parent.hasTerm(lit))
   {
     // introduces a new non-constant term, do not infer
     return false;
   }
-  else if (areEqual(lit, pol ? d_true : d_false))
+  else if (d_parent.areEqual(lit, pol ? d_true : d_false))
   {
     // already holds
     return true;
@@ -98,7 +98,7 @@ bool OutputChannelStrings::sendInternalInference(std::vector<Node>& exp,
   return true;
 }
 
-void OutputChannelStrings::sendInference(std::vector<Node>& exp,
+void InferenceManager::sendInference(std::vector<Node>& exp,
                                          std::vector<Node>& exp_n,
                                          Node eq,
                                          const char* c,
@@ -163,7 +163,7 @@ void OutputChannelStrings::sendInference(std::vector<Node>& exp,
   }
 }
 
-void OutputChannelStrings::sendInference(std::vector<Node>& exp,
+void InferenceManager::sendInference(std::vector<Node>& exp,
                                          Node eq,
                                          const char* c,
                                          bool asLemma)
@@ -172,7 +172,7 @@ void OutputChannelStrings::sendInference(std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, c, asLemma);
 }
 
-void OutputChannelStrings::sendLemma(Node ant, Node conc, const char* c)
+void InferenceManager::sendLemma(Node ant, Node conc, const char* c)
 {
   if (conc.isNull() || conc == d_false)
   {
@@ -198,10 +198,10 @@ void OutputChannelStrings::sendLemma(Node ant, Node conc, const char* c)
   Trace("strings-lemma") << "Strings::Lemma " << c << " : " << lem << std::endl;
   Trace("strings-assert") << "(assert " << lem << ") ; lemma " << c
                           << std::endl;
-  d_pending_lem.push_back(lem);
+  d_pendingLem.push_back(lem);
 }
 
-void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
+void InferenceManager::sendInfer(Node eq_exp, Node eq, const char* c)
 {
   if (options::stringInferSym())
   {
@@ -242,12 +242,12 @@ void OutputChannelStrings::sendInfer(Node eq_exp, Node eq, const char* c)
   Trace("strings-assert") << "(assert (=> " << eq_exp << " " << eq
                           << ")) ; infer " << c << std::endl;
   d_pending.push_back(eq);
-  d_pending_exp[eq] = eq_exp;
+  d_pendingExp[eq] = eq_exp;
   d_keep.insert(eq);
   d_keep.insert(eq_exp);
 }
 
-bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
+bool InferenceManager::sendSplit(Node a, Node b, const char* c, bool preq)
 {
   Node eq = a.eqNode(b);
   eq = Rewriter::rewrite(eq);
@@ -259,65 +259,23 @@ bool OutputChannelStrings::sendSplit(Node a, Node b, const char* c, bool preq)
   Node lemma_or = nm->mkNode(OR, eq, nm->mkNode(NOT, eq));
   Trace("strings-lemma") << "Strings::Lemma " << c << " SPLIT : " << lemma_or
                          << std::endl;
-  d_pending_lem.push_back(lemma_or);
+  d_pendingLem.push_back(lemma_or);
   sendPhaseRequirement(eq, preq);
   return true;
 }
 
-void OutputChannelStrings::sendPhaseRequirement(Node lit, bool pol)
+void InferenceManager::sendPhaseRequirement(Node lit, bool pol)
 {
-  d_pending_req_phase[lit] = pol;
+  d_pendingReqPhase[lit] = pol;
 }
 
-Node OutputChannelStrings::getRepresentative(Node t)
-{
-  if (d_ee.hasTerm(t))
-  {
-    return d_ee.getRepresentative(t);
-  }
-  return t;
-}
-
-bool OutputChannelStrings::hasTerm(Node a) { return d_ee.hasTerm(a); }
-
-bool OutputChannelStrings::areEqual(Node a, Node b)
-{
-  if (a == b)
-  {
-    return true;
-  }
-  else if (hasTerm(a) && hasTerm(b))
-  {
-    return d_ee.areEqual(a, b);
-  }
-  return false;
-}
-
-bool OutputChannelStrings::areDisequal(Node a, Node b)
-{
-  if (a == b)
-  {
-    return false;
-  }
-  if (hasTerm(a) && hasTerm(b))
-  {
-    Node ar = d_ee.getRepresentative(a);
-    Node br = d_ee.getRepresentative(b);
-    return (ar != br && ar.isConst() && br.isConst())
-           || d_ee.areDisequal(ar, br, false);
-  }
-  Node ar = getRepresentative(a);
-  Node br = getRepresentative(b);
-  return ar != br && ar.isConst() && br.isConst();
-}
-
-void OutputChannelStrings::doPendingFacts()
+void InferenceManager::doPendingFacts()
 {
   size_t i = 0;
   while (!hasConflict() && i < d_pending.size())
   {
     Node fact = d_pending[i];
-    Node exp = d_pending_exp[fact];
+    Node exp = d_pendingExp[fact];
     if (fact.getKind() == AND)
     {
       for (const Node& lit : fact)
@@ -336,32 +294,32 @@ void OutputChannelStrings::doPendingFacts()
     i++;
   }
   d_pending.clear();
-  d_pending_exp.clear();
+  d_pendingExp.clear();
 }
 
-void OutputChannelStrings::doPendingLemmas()
+void InferenceManager::doPendingLemmas()
 {
   if (!hasConflict())
   {
-    for (const Node& lc : d_pending_lem)
+    for (const Node& lc : d_pendingLem)
     {
       Trace("strings-pending") << "Process pending lemma : " << lc << std::endl;
       d_out.lemma(lc);
     }
-    for (const std::pair<const Node, bool>& prp : d_pending_req_phase)
+    for (const std::pair<const Node, bool>& prp : d_pendingReqPhase)
     {
       Trace("strings-pending") << "Require phase : " << prp.first
                                << ", polarity = " << prp.second << std::endl;
       d_out.requirePhase(prp.first, prp.second);
     }
   }
-  d_pending_lem.clear();
-  d_pending_req_phase.clear();
+  d_pendingLem.clear();
+  d_pendingReqPhase.clear();
 }
 
-bool OutputChannelStrings::hasConflict() const { return d_parent.d_conflict; }
+bool InferenceManager::hasConflict() const { return d_parent.d_conflict; }
 
-void OutputChannelStrings::inferSubstitutionProxyVars(
+void InferenceManager::inferSubstitutionProxyVars(
     Node n,
     std::vector<Node>& vars,
     std::vector<Node>& subs,

@@ -25,7 +25,7 @@
 #include "expr/node_trie.h"
 #include "theory/decision_manager.h"
 #include "theory/strings/normal_form.h"
-#include "theory/strings/output_channel.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_elim.h"
 #include "theory/strings/regexp_operation.h"
 #include "theory/strings/regexp_solver.h"
@@ -136,7 +136,7 @@ struct StringsProxyVarAttributeId {};
 typedef expr::Attribute< StringsProxyVarAttributeId, bool > StringsProxyVarAttribute;
 
 class TheoryStrings : public Theory {
-  friend class OutputChannelStrings;
+  friend class InferenceManager;
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashMap<Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap<Node, int, NodeHashFunction> NodeIntMap;
@@ -301,7 +301,7 @@ class TheoryStrings : public Theory {
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
   /** The (custom) output channel of the theory of strings */
-  OutputChannelStrings d_os;
+  InferenceManager d_im;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
   /** map from terms to their normal forms */

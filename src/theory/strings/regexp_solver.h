@@ -23,7 +23,7 @@
 #include "context/cdlist.h"
 #include "context/context.h"
 #include "expr/node.h"
-#include "theory/strings/output_channel.h"
+#include "theory/strings/inference_manager.h"
 #include "theory/strings/regexp_operation.h"
 #include "util/regexp.h"
 
@@ -44,7 +44,7 @@ class RegExpSolver
 
  public:
   RegExpSolver(TheoryStrings& p,
-               OutputChannelStrings& os,
+               InferenceManager& im,
                context::Context* c,
                context::UserContext* u);
   ~RegExpSolver() {}
@@ -74,7 +74,7 @@ class RegExpSolver
   /** the parent of this object */
   TheoryStrings& d_parent;
   /** the output channel of the parent of this object */
-  OutputChannelStrings& d_os;
+  InferenceManager& d_im;
   // check membership constraints
   Node mkAnd(Node c1, Node c2);
   bool checkPDerivative(

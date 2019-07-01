@@ -16,15 +16,12 @@
 
 #include "cvc4_private.h"
 
-#pragma once
+#ifndef CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
+#define CVC4__THEORY__STRINGS__THEORY_STRINGS_UTILS_H
 
-#include <set>
-#include <sstream>
-#include <unordered_map>
-#include <unordered_set>
 #include <vector>
 
-#include "expr/node_manager.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
@@ -41,3 +38,5 @@ Node mkAnd(std::vector<Node>& a);
 }  // namespace strings
 }  // namespace theory
 }  // namespace CVC4
+
+#endif

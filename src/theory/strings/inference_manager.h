@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file output_channel.h
+/*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -9,19 +9,22 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Customized output channel for the theory of strings
+ ** \brief Customized inference manager for the theory of strings
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
-#define CVC4__THEORY__STRINGS__OUTPUT_CHANNEL_H
+#ifndef CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+#define CVC4__THEORY__STRINGS__INFERENCE_MANAGER_H
+
+#include <map>
+#include <vector>
 
 #include "context/cdhashset.h"
+#include "theory/output_channel.h"
+#include "expr/node.h"
+#include "context/context.h"
 #include "theory/uf/equality_engine.h"
-
-#include <climits>
-#include <deque>
 
 namespace CVC4 {
 namespace theory {
@@ -29,7 +32,7 @@ namespace strings {
 
 class TheoryStrings;
 
-/** Output channel strings
+/** Inference Manager
  *
  * The purpose of this class is to process inference steps for strategies
  * in the theory of strings.
@@ -38,15 +41,14 @@ class TheoryStrings;
  *
  * sendInternalInference, sendInference, sendSplit
  *
- * This class decides how these calls will be processed, where the main design
- * decisions it considers are whether the conclusions corresponding to these
- * calls will be processed as:
+ * This class decides how the conclusion of these calls will be processed. 
+ * It primarily has to decide whether the conclusions will be processed:
  *
  * (1) Internally in the strings solver, via calls to the equality engine. We
  * refer to these literals as "facts",
- * (2) External on the output channel as "lemmas",
- * (3) External on the output channel as "conflicts" (exclusively this is
- * when a conclusion of an inference is false).
+ * (2) Externally on the output channel of theory of strings as "lemmas",
+ * (3) External on the output channel as "conflicts" (when a conclusion of an
+ * inference is false).
  *
  * It buffers facts and lemmas in vectors d_pending and d_pending_lem
  * respectively.
@@ -58,17 +60,17 @@ class TheoryStrings;
  * It also manages other kinds of interaction with the output channel of the
  * theory of strings, e.g. sendPhaseRequirement.
  */
-class OutputChannelStrings
+class InferenceManager
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
 
  public:
-  OutputChannelStrings(TheoryStrings& p,
+  InferenceManager(TheoryStrings& p,
                        context::Context* c,
                        context::UserContext* u,
                        eq::EqualityEngine& ee,
                        OutputChannel& out);
-  ~OutputChannelStrings() {}
+  ~InferenceManager() {}
 
   /** send internal inferences
    *
@@ -135,8 +137,8 @@ class OutputChannelStrings
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
-   * lemma. We additionally request that a phase requirement the equality a=b
-   * to polarity preq.
+   * lemma. We additionally request that a phase requirement for the equality
+   * a=b with polarity preq.
    *
    * The argument c is a string identifying the reason for inference, used for
    * debugging.
@@ -155,14 +157,14 @@ class OutputChannelStrings
   /** Do pending facts
    *
    * This method asserts pending facts (d_pending) with explanations
-   * (d_pending_exp) to the equality engine of the theory of strings via calls
+   * (d_pendingExp) to the equality engine of the theory of strings via calls
    * to assertPendingFact in the theory of strings.
    *
    * It terminates early if a conflict is encountered, for instance, by
    * equality reasoning within the equality engine.
    *
    * Regardless of whether a conflict is encountered, the vector d_pending
-   * and map d_pending_exp are cleared.
+   * and map d_pendingExp are cleared.
    */
   void doPendingFacts();
   /** Do pending lemmas
@@ -188,16 +190,16 @@ class OutputChannelStrings
    */
   inline bool hasProcessed() const
   {
-    return hasConflict() || !d_pending_lem.empty() || !d_pending.empty();
+    return hasConflict() || !d_pendingLem.empty() || !d_pending.empty();
   }
   /** Do we have a pending fact to add to the equality engine? */
   inline bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
-  inline bool hasPendingLemma() const { return !d_pending_lem.empty(); }
+  inline bool hasPendingLemma() const { return !d_pendingLem.empty(); }
   /** Are we in conflict? */
   bool hasConflict() const;
 
- protected:
+ private:
   /**
    * Indicates that ant => conc should be sent on the output channel of this
    * class. This will either trigger an immediate call to the conflict
@@ -217,7 +219,6 @@ class OutputChannelStrings
    */
   void sendInfer(Node eq_exp, Node eq, const char* c);
 
- private:
   /** the parent theory of strings object */
   TheoryStrings& d_parent;
   /** the equality engine
@@ -236,11 +237,11 @@ class OutputChannelStrings
   /** The list of pending literals to assert to the equality engine */
   std::vector<Node> d_pending;
   /** A map from the literals in the above vector to their explanation */
-  std::map<Node, Node> d_pending_exp;
+  std::map<Node, Node> d_pendingExp;
   /** A map from literals to their pending phase requirement */
-  std::map<Node, bool> d_pending_req_phase;
+  std::map<Node, bool> d_pendingReqPhase;
   /** A list of pending lemmas to be sent on the output channel. */
-  std::vector<Node> d_pending_lem;
+  std::vector<Node> d_pendingLem;
   /**
    * The keep set of this class. This set is maintained to ensure that
    * facts and their explanations are ref-counted. Since facts and their
@@ -248,25 +249,6 @@ class OutputChannelStrings
    * SAT-context-dependent.
    */
   NodeSet d_keep;
-  //--------------------------- equality engine
-  /**
-   * Get the representative of t in the equality engine of this class, or t
-   * itself if it is not registered as a term.
-   */
-  Node getRepresentative(Node t);
-  /** Is t registered as a term in the equality engine of this class? */
-  bool hasTerm(Node a);
-  /**
-   * Are a and b equal according to the equality engine of this class? Also
-   * returns true if a and b are identical.
-   */
-  bool areEqual(Node a, Node b);
-  /**
-   * Are a and b disequal according to the equality engine of this class? Also
-   * returns true if the representative of a and b are distinct constants.
-   */
-  bool areDisequal(Node a, Node b);
-  //--------------------------- end equality engine
   /** infer substitution proxy vars
    *
    * This method attempts to (partially) convert the formula n into a
@@ -287,8 +269,9 @@ class OutputChannelStrings
    * subs = { v2 },
    * unproc = {}.
    * In particular, since says that the information content of n essentially
-   * says that x = v2, while the first and third conjunctions can be dropped
-   * since they effectively give the definition of the proxy variables.
+   * says that x = v2. The first and third conjunctions can be dropped from
+   * the explanation since these equalities simply correspond to definitions
+   * of proxy variables.
    *
    * This method is used as a performance heuristic. It can infer when the
    * explanation of a fact depends only trivially on equalities corresponding

@@ -625,10 +625,10 @@ libcvc4_add_sources(
   theory/shared_terms_database.h
   theory/sort_inference.cpp
   theory/sort_inference.h
+  theory/strings/inference_manager.cpp
+  theory/strings/inference_manager.h
   theory/strings/normal_form.cpp
   theory/strings/normal_form.h
-  theory/strings/output_channel.cpp
-  theory/strings/output_channel.h
   theory/strings/regexp_elim.cpp
   theory/strings/regexp_elim.h
   theory/strings/regexp_operation.cpp
