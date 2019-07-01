@@ -22,7 +22,6 @@
 #include "theory/uf/theory_uf_rewriter.h"
 
 using namespace std;
-using namespace CVC4;
 using namespace CVC4::kind;
 
 namespace CVC4 {
@@ -145,13 +144,13 @@ Node HoExtension::getApplyUfForHoApply(Node node)
         new_f = nm->mkSkolem("app_uf", nft);
         for (const Node& v : vs)
         {
-          new_f = nm->mkNode(kind::HO_APPLY, new_f, v);
+          new_f = nm->mkNode(HO_APPLY, new_f, v);
         }
         Assert(new_f.getType() == f.getType());
         Node eq = new_f.eqNode(f);
         Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
         lem = nm->mkNode(
-            kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, nvs), seq);
+            FORALL, nm->mkNode(BOUND_VAR_LIST, nvs), seq);
       }
       else
       {
@@ -171,7 +170,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
     }
     // unroll the HO_APPLY, adding to the first argument position
     // Note arguments in the vector args begin at position 1.
-    while (new_f.getKind() == kind::HO_APPLY)
+    while (new_f.getKind() == HO_APPLY)
     {
       args.insert(args.begin() + 1, new_f[1]);
       new_f = new_f[0];
@@ -179,7 +178,7 @@ Node HoExtension::getApplyUfForHoApply(Node node)
   }
   Assert(TheoryUfRewriter::canUseAsApplyUfOperator(new_f));
   args[0] = new_f;
-  Node ret = nm->mkNode(kind::APPLY_UF, args);
+  Node ret = nm->mkNode(APPLY_UF, args);
   Assert(ret.getType() == node.getType());
   return ret;
 }
@@ -418,7 +417,7 @@ bool HoExtension::collectModelInfoHo(std::set<Node>& termSet, TheoryModel* m)
 
 bool HoExtension::collectModelInfoHoTerm(Node n, TheoryModel* m)
 {
-  if (n.getKind() == kind::APPLY_UF)
+  if (n.getKind() == APPLY_UF)
   {
     Node hn = TheoryUfRewriter::getHoApplyForApplyUf(n);
     if (!m->assertEquality(n, hn, true))

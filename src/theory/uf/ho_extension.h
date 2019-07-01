@@ -77,8 +77,7 @@ class HoExtension
    * Given disequality deq f != g, if not already cached, this sends a lemma of
    * the form:
    *   f = g V (f k) != (g k) for fresh constant k on the output channel of the
-   * parent TheoryUF object.
-   * on the output channel. This is an "extensionality lemma".
+   * parent TheoryUF object. This is an "extensionality lemma".
    * Return value is the number of lemmas of this form sent on the output
    * channel.
    */
