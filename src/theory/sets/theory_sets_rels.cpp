@@ -37,10 +37,9 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     if(Theory::fullEffort(level)) {
       collectRelsInfo();
       check();
-      doPendingLemmas();
+      doPendingInfers();
     }
-    Assert(d_pending_merge.empty());
-    Assert(d_pending_facts.empty());
+    Assert(d_pending.empty());
     Trace("rels") << "\n[sets-rels] ******************************* Done with the relational solver *******************************\n" << std::endl;
   }
 
@@ -56,38 +55,38 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         std::map<kind::Kind_t, std::vector<Node> >    kind_terms      = d_terms_cache[rel_rep];
 
         if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
-          std::vector<Node>& tp_terms = kind_terms[kind::TRANSPOSE];
+          std::vector<Node>& tp_terms = kind_terms[TRANSPOSE];
           if( tp_terms.size() > 0 ) {
             applyTransposeRule( tp_terms );
             applyTransposeRule( tp_terms[0], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::JOIN) != kind_terms.end() ) {
-          std::vector<Node>& join_terms = kind_terms[kind::JOIN];
+          std::vector<Node>& join_terms = kind_terms[JOIN];
           for( unsigned int j = 0; j < join_terms.size(); j++ ) {
             applyJoinRule( join_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::PRODUCT) != kind_terms.end() ) {
-          std::vector<Node>& product_terms = kind_terms[kind::PRODUCT];
+          std::vector<Node>& product_terms = kind_terms[PRODUCT];
           for( unsigned int j = 0; j < product_terms.size(); j++ ) {
             applyProductRule( product_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::TCLOSURE) != kind_terms.end() ) {
-          std::vector<Node>& tc_terms = kind_terms[kind::TCLOSURE];
+          std::vector<Node>& tc_terms = kind_terms[TCLOSURE];
           for( unsigned int j = 0; j < tc_terms.size(); j++ ) {
             applyTCRule( mem, tc_terms[j], rel_rep, exp );
           }
         }
         if( kind_terms.find(kind::JOIN_IMAGE) != kind_terms.end() ) {
-          std::vector<Node>& join_image_terms = kind_terms[kind::JOIN_IMAGE];
+          std::vector<Node>& join_image_terms = kind_terms[JOIN_IMAGE];
           for( unsigned int j = 0; j < join_image_terms.size(); j++ ) {
             applyJoinImageRule( mem, join_image_terms[j], exp );
           }
         }
         if( kind_terms.find(kind::IDEN) != kind_terms.end() ) {
-          std::vector<Node>& iden_terms = kind_terms[kind::IDEN];
+          std::vector<Node>& iden_terms = kind_terms[IDEN];
           for( unsigned int j = 0; j < iden_terms.size(); j++ ) {
             applyIdenRule( mem, iden_terms[j], exp );
           }
@@ -537,7 +536,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     std::vector< Node > require_phase;
     require_phase.push_back(Rewriter::rewrite(mem_of_r));
     require_phase.push_back(Rewriter::rewrite(sk_eq));
-    d_tc_lemmas_last[tc_lemma] = require_phase;
+    d_pending_tc[tc_lemma] = require_phase;
   }
 
   bool TheorySetsRels::isTCReachable( Node mem_rep, Node tc_rel ) {
@@ -842,6 +841,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Trace("rels-debug") << "\n[Theory::Rels] *********** Applying TRANSPOSE rule on transposed term = " << tp_rel
                         << ", its representative = " << tp_rel_rep
                         << " with explanation = " << exp << std::endl;
+    NodeManager * nm = NodeManager::currentNM();
 
     if(d_rel_nodes.find( tp_rel ) == d_rel_nodes.end()) {
       Trace("rels-debug") <<  "\n[Theory::Rels] Apply TRANSPOSE-Compose rule on term: " << tp_rel
@@ -1034,23 +1034,44 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   }
 
-  void TheorySetsRels::doPendingLemmas() {
-    Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
+  void TheorySetsRels::doPendingInfers() {
+    // process the inferences in d_pending
     if (!d_sets_theory.isInConflict())
     {
-      doPendingInfers();
+      for (const Node& pm : d_pending)
+      {
+        d_sets_theory.processLemmaToSend(pm, "rels");
+        if (d_sets_theory.isInConflict())
+        {
+          break;
+        }
+      }
+      d_pending.clear();
     }
+    // process the inferences in d_pending_tc
     if (!d_sets_theory.isInConflict())
     {
-      doPendingInfersTC();
+      std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_pending_tc.begin();
+      while( tc_lemma_it != d_pending_tc.end() ) {
+        d_sets_theory.processLemmaToSend(tc_lemma_it->first, "rels_TC");
+
+        for (unsigned int i = 0; i < (tc_lemma_it->second).size(); i++)
+        for( const Node& i : tc_lemma_it->second)
+        {
+          if ((tc_lemma_it->second)[i] == d_falseNode)
+          {
+            d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
+          }
+        }
+        ++tc_lemma_it;
+      }
+      d_pending_tc.clear();
     }
-    Trace("rels-debug") << "[Theory::Rels] **************** Done with doPendingLemmas !" << std::endl;
     d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
     d_terms_cache.clear();
     d_membership_trie.clear();
     d_rel_nodes.clear();
-    d_pending_facts.clear();
     d_rReps_memberReps_cache.clear();
     d_rRep_tcGraph.clear();
     d_tcr_tcGraph_exps.clear();
@@ -1060,28 +1081,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;
-  }
-
-  void TheorySetsRels::doPendingInfersTC() {
-    Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingInfersTC !" << std::endl;
-    std::map< Node, std::vector< Node > >::iterator tc_lemma_it = d_tc_lemmas_last.begin();
-    while( tc_lemma_it != d_tc_lemmas_last.end() ) {
-      d_sets_theory.processLemmaToSend(tc_lemma_it->first, "rels_TC");
-
-      for (unsigned int i = 0; i < (tc_lemma_it->second).size(); i++)
-      {
-        if ((tc_lemma_it->second)[i] == d_falseNode)
-        {
-          d_sets_theory.processRequirePhase((tc_lemma_it->second)[i], true);
-        }
-      }
-      Trace("rels-lemma") << "[Theory::Rels] **** Send out a TC lemma = "
-                          << tc_lemma_it->first << " by "
-                          << "TCLOSURE-Forward" << std::endl;
-      ++tc_lemma_it;
-    }
-    Trace("rels-debug") << "[Theory::Rels] **************** Done with doPendingInfersTC !" << std::endl;
-    d_tc_lemmas_last.clear();
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
@@ -1212,7 +1211,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         d_sets_theory(d_set),
         d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
         d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
-        d_lemmas_produced(u),
         d_shared_terms(u),
         d_satContext(c)
   {
@@ -1312,34 +1310,11 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     }
   }
 
-  void TheorySetsRels::doPendingInfers()
-  {
-    do
-    {
-      std::vector<Node> pmcurr;
-      pmcurr.insert(
-          pmcurr.end(), d_pending_merge.begin(), d_pending_merge.end());
-      d_pending_merge.clear();
-      for (const Node& pm : pmcurr)
-      {
-        Trace("rels-std-lemma")
-            << "[std-sets-rels-lemma] Send out a merge fact as lemma: " << pm
-            << std::endl;
-        d_sets_theory.processLemmaToSend(pm, "rels");
-        if (d_sets_theory.isInConflict())
-        {
-          d_pending_merge.clear();
-          return;
-        }
-      }
-    } while (!d_pending_merge.empty());
-  }
-
   void TheorySetsRels::sendInfer( Node fact, Node reason, const char * c ) {
-    Trace("rels-lemma") << "Rels lemma: " << fact << " from " << reason
+    Trace("rels-lemma") << "Rels::lemma " << fact << " from " << reason
                         << " by " << c << std::endl;
-    Node lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, fact);
-    d_pending_merge.push_back(lemma);
+    Node lemma = NodeManager::currentNM()->mkNode(IMPLIES, reason, fact);
+    d_pending.push_back(lemma);
   }
 
 }

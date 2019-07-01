@@ -73,10 +73,9 @@ private:
   Node                          d_falseNode;
 
   /** Facts and lemmas to be sent to EE */
-  std::vector<Node> d_pending_merge;
-  NodeSet                       d_lemmas_produced;
+  std::vector<Node> d_pending;
+  std::map< Node, std::vector< Node > > d_pending_tc;
   NodeSet                       d_shared_terms;
-  std::map< Node, Node >        d_pending_facts;
 
 
   std::unordered_set< Node, NodeHashFunction >       d_rel_nodes;
@@ -99,7 +98,6 @@ private:
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
-  std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
   context::Context* d_satContext;
 
@@ -108,7 +106,6 @@ private:
   /** Methods used in standard effort */
   void sendInfer( Node fact, Node reason, const char * c );
   void doPendingInfers();
-  void doPendingInfersTC();
 
   /** Methods used in full effort */
   void check();
