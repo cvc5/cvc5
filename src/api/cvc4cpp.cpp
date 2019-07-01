@@ -2726,20 +2726,20 @@ std::vector<Expr> Solver::termVectorToExprs(
 /* Create operator terms                                                      */
 /* -------------------------------------------------------------------------- */
 
-OpTerm Solver::mkOpTerm(Kind kind, Kind k)
+OpTerm Solver::mkOpTerm(Kind kind, Kind k) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
   return *mkValHelper<CVC4::Chain>(CVC4::Chain(extToIntKind(k))).d_expr.get();
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
+OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
       << "RECORD_UPDATE_OP";
   return *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg) const
 {
   CVC4_API_KIND_CHECK(kind);
   OpTerm res;
@@ -2808,7 +2808,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
   return res;
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
   CVC4_API_KIND_CHECK(kind);
   OpTerm res;
