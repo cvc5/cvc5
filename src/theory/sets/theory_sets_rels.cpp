@@ -32,6 +32,30 @@ typedef std::map< Node, std::unordered_set< Node, NodeHashFunction > >::iterator
 typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterator               TERM_IT;
 typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
+  TheorySetsRels::TheorySetsRels(context::Context* c,
+                                 context::UserContext* u,
+                                 eq::EqualityEngine* eq,
+                                 TheorySetsPrivate& set)
+      : d_eqEngine(eq),
+        d_sets_theory(set),
+        d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
+        d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
+        d_shared_terms(u),
+        d_satContext(c)
+  {
+    d_eqEngine->addFunctionKind(PRODUCT);
+    d_eqEngine->addFunctionKind(JOIN);
+    d_eqEngine->addFunctionKind(TRANSPOSE);
+    d_eqEngine->addFunctionKind(TCLOSURE);
+    d_eqEngine->addFunctionKind(JOIN_IMAGE);
+    d_eqEngine->addFunctionKind(IDEN);
+    d_eqEngine->addFunctionKind(APPLY_CONSTRUCTOR);
+  }
+
+  TheorySetsRels::~TheorySetsRels() {
+
+  }
+
   void TheorySetsRels::check(Theory::Effort level) {
     Trace("rels") << "\n[sets-rels] ******************************* Start the relational solver, effort = " << level << " *******************************\n" << std::endl;
     if(Theory::fullEffort(level)) {
@@ -1154,30 +1178,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       sendInfer(tuple_reduction_lemma, d_trueNode, "tuple-reduction");
       d_symbolic_tuples.insert(n);
     }
-  }
-
-  TheorySetsRels::TheorySetsRels(context::Context* c,
-                                 context::UserContext* u,
-                                 eq::EqualityEngine* eq,
-                                 TheorySetsPrivate& set)
-      : d_eqEngine(eq),
-        d_sets_theory(set),
-        d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
-        d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
-        d_shared_terms(u),
-        d_satContext(c)
-  {
-    d_eqEngine->addFunctionKind(PRODUCT);
-    d_eqEngine->addFunctionKind(JOIN);
-    d_eqEngine->addFunctionKind(TRANSPOSE);
-    d_eqEngine->addFunctionKind(TCLOSURE);
-    d_eqEngine->addFunctionKind(JOIN_IMAGE);
-    d_eqEngine->addFunctionKind(IDEN);
-    d_eqEngine->addFunctionKind(APPLY_CONSTRUCTOR);
-  }
-
-  TheorySetsRels::~TheorySetsRels() {
-
   }
 
   std::vector<Node> TupleTrie::findTerms( std::vector< Node >& reps, int argIndex ) {
