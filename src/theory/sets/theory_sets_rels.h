@@ -75,7 +75,6 @@ private:
 
   /** Facts and lemmas to be sent to EE */
   std::vector<Node> d_pending;
-  std::vector<Node> d_pending_tc;
   NodeSet                       d_shared_terms;
 
 
@@ -103,8 +102,22 @@ private:
   context::Context* d_satContext;
 
  private:
-  /** Methods used in standard effort */
+  /** Send infer
+   *
+   * Called when we have inferred fact from explanation reason, where the
+   * latter should be a conjunction of facts that hold in the current context.
+   * 
+   * The argument c is used for debugging, to give the name of the inference
+   * rule being used.
+   * 
+   * This method adds the node (=> reason exp) to the pending vector d_pending.
+   */
   void sendInfer(Node fact, Node reason, const char* c);
+  /**
+   * This method flushes the inferences in the pending vector d_pending to
+   * theory of sets, which may process them as lemmas or as facts to assert to
+   * the equality engine.
+   */
   void doPendingInfers();
 
   /** Methods used in full effort */

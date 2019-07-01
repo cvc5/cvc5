@@ -524,7 +524,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                                      (NodeManager::currentNM()->mkNode(kind::OR, sk_eq, NodeManager::currentNM()->mkNode(kind::MEMBER, RelsUtils::constructPair(tc_rel, sk_1, sk_2), tc_rel))))))));
 
     Node tc_lemma = NodeManager::currentNM()->mkNode(kind::IMPLIES, reason, conclusion );
-    d_pending_tc.push_back(tc_lemma);
+    d_pending.push_back(tc_lemma);
   }
 
   bool TheorySetsRels::isTCReachable( Node mem_rep, Node tc_rel ) {
@@ -1029,15 +1029,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
         }
       }
       d_pending.clear();
-    }
-    // process the inferences in d_pending_tc
-    if (!d_sets_theory.isInConflict())
-    {
-      for( const Node& pt : d_pending_tc )
-      {
-        d_sets_theory.processLemmaToSend(pt, "rels_TC");
-      }
-      d_pending_tc.clear();
     }
     d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
