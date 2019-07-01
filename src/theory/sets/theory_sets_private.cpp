@@ -2158,9 +2158,8 @@ void TheorySetsPrivate::processInference(Node lem,
     lemmas.push_back(lem);
     return;
   }
-  // is it a fact?
+  // try to assert it as a fact
   Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
-  // we can assert it as a fact
   Trace("sets-pinfer") << "  assert as fact" << std::endl;
   assertInference(lem[1], lem[0], lemmas, c);
 }

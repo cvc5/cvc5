@@ -44,6 +44,20 @@ public:
   void clear() { d_data.clear(); }
 };/* class TupleTrie */
 
+
+/** The relations extension of the theory of sets
+ *
+ * This class implements inference schemes described in Meng et al. CADE 2017
+ * for handling quantifier-free constraints in the theory of relations.
+ *
+ * In CVC4, relations are represented as sets of tuples. The theory of
+ * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
+ * on, which apply to sets of tuples.
+ *
+ * Since relations are a special case of sets, this class is implemented as an
+ * extension of the theory of sets. That is, it shares many components of the
+ * TheorySets object which owns it.
+ */
 class TheorySetsRels {
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
@@ -57,7 +71,10 @@ public:
 
  ~TheorySetsRels();
  /**
-  * Invoke the check method with effort level e.
+  * Invoke the check method with effort level e. At a high level, this class
+  * will make calls to TheorySetsPrivate::processInference to assert facts,
+  * lemmas, and conflicts. If this class makes no such call, then the current
+  * set of assertions is satisfiable with respect to relations.
   */
  void check(Theory::Effort);
  /** Is kind k a kind that belongs to the relation theory? */
