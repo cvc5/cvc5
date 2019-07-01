@@ -1028,6 +1028,28 @@ Sort Term::getSort() const
 
 bool Term::isNull() const { return d_expr->isNull(); }
 
+bool Term::hasOperator() const { return d_expr->hasOperator(); }
+
+bool Term::hasBuiltinOperator() const { return d_expr->getOperator().getKind() == CVC4::kind::BUILTIN; }
+
+bool Term::hasOpTermOperator() const
+{
+  CVC4::Expr op = d_expr->getOperator();
+  return (op.getKind() != CVC4::kind::BUILTIN) && (op.isConst());
+}
+
+bool Term::hasUFOperator() const { return d_expr->getOperator().isVariable(); }
+
+OpTerm Term::getOpTerm() const
+{
+  return OpTerm(d_expr->getOperator());
+}
+
+Term Term::getUF() const
+{
+  return Term(d_expr->getOperator());
+}
+
 Term Term::notTerm() const
 {
   try

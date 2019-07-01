@@ -591,6 +591,43 @@ class CVC4_PUBLIC Term
   bool isNull() const;
 
   /**
+   * @return true iff this Term has an operator
+   */
+  bool hasOperator() const;
+
+  /**
+   * @return true iff this Term has a builtin operator
+   *
+   * in this case, getKind() will return the operator
+   */
+  bool hasBuilltinOperator() const;
+
+  /**
+   * @return true iff this Term has an indexed operator
+   */
+  bool hasOpTermOperator() const;
+
+  /**
+   * @return true iff this Term is the result of
+   *         applying an uninterpreted function
+   */
+  bool hasUFOperator() const;
+
+  /**
+   * @return the OpTerm used to create this time
+   *
+   * valid to call when hasOpTermOperator() returns true
+   */
+  OpTerm getOpTerm() const;
+
+  /**
+   * @return the OpTerm used to create this time
+   *
+   * valid to call when hasUFOperator() returns true
+   */
+  Term getUF() const;
+
+  /**
    * Boolean negation.
    * @return the Boolean negation of this term
    */
