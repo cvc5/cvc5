@@ -252,8 +252,7 @@ AntlrInput* AntlrInput::newInput(InputLanguage lang, AntlrInputStream& inputStre
     break;
 
   case LANG_SYGUS:
-    input = new SygusInput(inputStream);
-    break;
+  case LANG_SYGUS_V2: input = new SygusInput(inputStream); break;
 
   case LANG_TPTP:
     input = new TptpInput(inputStream);
