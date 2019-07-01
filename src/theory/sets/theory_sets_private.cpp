@@ -2167,11 +2167,6 @@ void TheorySetsPrivate::processLemmaToSend(Node lem, const char* c)
   flushLemmas(lemmas);
 }
 
-void TheorySetsPrivate::processRequirePhase(Node lit, bool pol)
-{
-  d_external.d_out->requirePhase(lit, pol);
-}
-
 bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
 bool TheorySetsPrivate::sentLemma() const { return d_sentLemma; }
 
