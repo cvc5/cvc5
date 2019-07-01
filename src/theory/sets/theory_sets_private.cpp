@@ -2147,13 +2147,13 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
-void TheorySetsPrivate::processLemmaToSend(Node lem, const char* c)
+void TheorySetsPrivate::processInference(Node lem, const char* c)
 {
-  Trace("sets-lts") << "Process lemma to send: " << lem << std::endl;
+  Trace("sets-pi") << "Process inference: " << lem << std::endl;
   std::vector<Node> lemmas;
-  if (lem.getKind() != kind::IMPLIES || !isEntailed(lem[0], true))
+  if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))
   {
-    Trace("sets-lts") << "  must assert as lemma" << std::endl;
+    Trace("sets-pi") << "  must assert as lemma" << std::endl;
     flushLemma(lem, false);
     return;
   }

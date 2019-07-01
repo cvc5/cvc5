@@ -139,6 +139,17 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       t_it++;
     }
     doTCInference();
+    
+    //clean up
+    d_tuple_reps.clear();
+    d_rReps_memberReps_exp_cache.clear();
+    d_terms_cache.clear();
+    d_membership_trie.clear();
+    d_rel_nodes.clear();
+    d_rReps_memberReps_cache.clear();
+    d_rRep_tcGraph.clear();
+    d_tcr_tcGraph_exps.clear();
+    d_tcr_tcGraph.clear();
   }
 
   /*
@@ -1022,7 +1033,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     {
       for (const Node& p : d_pending)
       {
-        d_sets_theory.processLemmaToSend(p, "rels");
+        d_sets_theory.processInference(p, "rels");
         if (d_sets_theory.isInConflict())
         {
           break;
@@ -1030,15 +1041,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       }
       d_pending.clear();
     }
-    d_tuple_reps.clear();
-    d_rReps_memberReps_exp_cache.clear();
-    d_terms_cache.clear();
-    d_membership_trie.clear();
-    d_rel_nodes.clear();
-    d_rReps_memberReps_cache.clear();
-    d_rRep_tcGraph.clear();
-    d_tcr_tcGraph_exps.clear();
-    d_tcr_tcGraph.clear();
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
