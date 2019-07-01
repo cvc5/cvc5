@@ -56,7 +56,7 @@ public:
                 TheorySetsPrivate& set);
 
  ~TheorySetsRels();
- /** 
+ /**
   * Invoke the check method with effort level e.
   */
  void check(Theory::Effort);
@@ -70,7 +70,7 @@ private:
   /** The parent theory of sets object */
   TheorySetsPrivate& d_sets_theory;
   /** pointer to the equality engine of the theory of sets */
-  eq::EqualityEngine            *d_eqEngine;
+  eq::EqualityEngine* d_eqEngine;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
@@ -104,10 +104,10 @@ private:
    *
    * Called when we have inferred fact from explanation reason, where the
    * latter should be a conjunction of facts that hold in the current context.
-   * 
+   *
    * The argument c is used for debugging, to give the name of the inference
    * rule being used.
-   * 
+   *
    * This method adds the node (=> reason exp) to the pending vector d_pending.
    */
   void sendInfer(Node fact, Node reason, const char* c);

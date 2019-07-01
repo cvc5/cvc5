@@ -2147,7 +2147,9 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
-void TheorySetsPrivate::processInference(Node lem, const char* c, std::vector< Node >& lemmas)
+void TheorySetsPrivate::processInference(Node lem,
+                                         const char* c,
+                                         std::vector<Node>& lemmas)
 {
   Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
   if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))

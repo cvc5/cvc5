@@ -52,7 +52,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       for(unsigned int i = 0; i < m_it->second.size(); i++) {
         Node    mem     = d_rReps_memberReps_cache[rel_rep][i];
         Node    exp     = d_rReps_memberReps_exp_cache[rel_rep][i];
-        std::map<kind::Kind_t, std::vector<Node> >&    kind_terms      = d_terms_cache[rel_rep];
+        std::map<kind::Kind_t, std::vector<Node> >& kind_terms =
+            d_terms_cache[rel_rep];
 
         if( kind_terms.find(kind::TRANSPOSE) != kind_terms.end() ) {
           std::vector<Node>& tp_terms = kind_terms[TRANSPOSE];
@@ -139,8 +140,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       t_it++;
     }
     doTCInference();
-    
-    //clean up
+
+    // clean up
     d_tuple_reps.clear();
     d_rReps_memberReps_exp_cache.clear();
     d_terms_cache.clear();
@@ -277,7 +278,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
                                                              join_image_term);
-      if( d_sets_theory.isEntailed( new_membership, true ) ) {
+      if (d_sets_theory.isEntailed(new_membership, true))
+      {
         ++mem_rep_it;
         ++mem_rep_exp_it;
         continue;
@@ -1029,7 +1031,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     // process the inferences in d_pending
     if (!d_sets_theory.isInConflict())
     {
-      std::vector< Node > lemmas;
+      std::vector<Node> lemmas;
       for (const Node& p : d_pending)
       {
         d_sets_theory.processInference(p, "rels", lemmas);
