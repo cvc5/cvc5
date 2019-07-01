@@ -44,7 +44,6 @@ public:
   void clear() { d_data.clear(); }
 };/* class TupleTrie */
 
-
 /** The relations extension of the theory of sets
  *
  * This class implements inference schemes described in Meng et al. CADE 2017
