@@ -187,7 +187,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
             if( is_true_eq ) {
               if( safelyAddToMap(d_rReps_memberReps_cache, rel_rep, tup_rep) ) {
-                addToMap(d_rReps_memberReps_exp_cache, rel_rep, reason);
+                d_rReps_memberReps_exp_cache[rel_rep].push_back(reason);
                 computeTupleReps(tup_rep);
                 d_membership_trie[rel_rep].addTerm(tup_rep, d_tuple_reps[tup_rep]);
               }
@@ -277,7 +277,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
                                                              join_image_term);
-      if( holds( new_membership ) ) {
+      if( d_sets_theory.isEntailed( new_membership, true ) ) {
         ++mem_rep_it;
         ++mem_rep_exp_it;
         continue;
@@ -762,8 +762,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    // Node         shared_x       = NodeManager::currentNM()->mkSkolem("srj_",
-    // shared_type);
     Node shared_x = d_sets_theory.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
@@ -1031,16 +1029,22 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     // process the inferences in d_pending
     if (!d_sets_theory.isInConflict())
     {
+      std::vector< Node > lemmas;
       for (const Node& p : d_pending)
       {
-        d_sets_theory.processInference(p, "rels");
+        d_sets_theory.processInference(p, "rels", lemmas);
         if (d_sets_theory.isInConflict())
         {
           break;
         }
       }
-      d_pending.clear();
+      // if we are still not in conflict, send lemmas
+      if (!d_sets_theory.isInConflict())
+      {
+        d_sets_theory.flushLemmas(lemmas);
+      }
     }
+    d_pending.clear();
   }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
@@ -1103,16 +1107,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
     return false;
   }
 
-  void TheorySetsRels::addToMap(std::map< Node, std::vector<Node> >& map, Node rel_rep, Node member) {
-    if(map.find(rel_rep) == map.end()) {
-      std::vector<Node> members;
-      members.push_back(member);
-      map[rel_rep] = members;
-    } else {
-      map[rel_rep].push_back(member);
-    }
-  }
-
   void TheorySetsRels::makeSharedTerm( Node n ) {
     if(d_shared_terms.find(n) == d_shared_terms.end()) {
       Trace("rels-share") << " [sets-rels] making shared term " << n
@@ -1124,12 +1118,6 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
       d_sets_theory.getOutputChannel()->lemma(skEq);
       d_shared_terms.insert(n);
     }
-  }
-
-  bool TheorySetsRels::holds(Node node) {
-    bool polarity       = node.getKind() != kind::NOT;
-    Node atom           = polarity ? node : node[0];
-    return d_sets_theory.isEntailed( atom, polarity );
   }
 
   /*

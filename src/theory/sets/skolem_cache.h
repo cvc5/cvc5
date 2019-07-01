@@ -39,17 +39,13 @@ class SkolemCache
   /** Identifiers for skolem types
    *
    * The comments below document the properties of each skolem introduced by
-   * inference in the strings solver, where by skolem we mean the fresh
+   * inference in the sets solver, where by skolem we mean the fresh
    * string variable that witnesses each of "exists k".
-   *
-   * The skolems with _REV suffixes are used for the reverse version of the
-   * preconditions below, e.g. where we are considering a' ++ a = b' ++ b.
-   *
-   * All skolems assume a and b are strings unless otherwise stated.
    */
   enum SkolemId
   {
-    // (a,b) in join(A,B) => exists x. (a,x) in A ^ (x,b) in B
+    // (a,b) in join(A,B) => exists k. (a,k) in A ^ (k,b) in B
+    // This is cached by the nodes corresponding to (a,b) and join(A,B).
     SK_JOIN,
   };
 

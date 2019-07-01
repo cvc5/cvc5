@@ -70,9 +70,7 @@ private:
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
   bool isSetDisequalityEntailed( Node s, Node t );
-  
-  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
-  void flushLemma( Node lem, bool preprocess = false );
+
   Node getProxy( Node n );
   Node getCongruent( Node n );
   Node getEmptySet( TypeNode tn );
@@ -269,14 +267,32 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
-  /** 
-   * Process inference
+  /** Process inference
    * 
-   * FIXME
+   * Argument lem specifies an inference inferred by this theory. If lem is
+   * an IMPLIES node, then its antecendant is the explanation of the conclusion.
+   * 
+   * Argument c is used for debugging, typically the name of the inference.
+   * 
+   * This method may add facts to the equality engine of theory of sets.
+   * Any (portion of) the conclusion of lem that is not sent to the equality
+   * engine is added to the argument lemmas, which should be processed via the
+   * caller of this method.
    */
-  void processInference(Node lem, const char* c);
-
+  void processInference(Node lem, const char* c, std::vector< Node >& lemmas);
+  /** Flush lemmas
+   * 
+   * This sends lemmas on the output channel of the theory of sets. 
+   * 
+   * The argument preprocess indicates whether preprocessing should be applied
+   * (by TheoryEngine) on each of lemmas.
+   */
+  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
+  /** singular version of above */
+  void flushLemma( Node lem, bool preprocess = false );
+  /** Are we currently in conflict? */
   bool isInConflict() const;
+  /** Have we sent out a lemma during a call to a full effort check? */
   bool sentLemma() const;
 
   /** get default output channel */

@@ -64,15 +64,14 @@ public:
  static bool isRelationKind(Kind k);
 
 private:
-
-  eq::EqualityEngine            *d_eqEngine;
-  TheorySetsPrivate& d_sets_theory;
-
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-
-  /** Facts and lemmas to be sent to EE */
+  /** The parent theory of sets object */
+  TheorySetsPrivate& d_sets_theory;
+  /** pointer to the equality engine of the theory of sets */
+  eq::EqualityEngine            *d_eqEngine;
+  /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
 
@@ -145,10 +144,7 @@ private:
   void isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
                     std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
-  void doTCLemmas();
-
   /** Helper functions */
-  bool holds( Node );
   bool hasTerm( Node a );
   void makeSharedTerm( Node );
   void reduceTupleVar( Node );
@@ -156,10 +152,8 @@ private:
   void computeTupleReps( Node );
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
-  bool exists( std::vector<Node>&, Node );
   inline void addToMembershipDB( Node, Node, Node  );
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 };

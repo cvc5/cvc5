@@ -2147,24 +2147,20 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
-void TheorySetsPrivate::processInference(Node lem, const char* c)
+void TheorySetsPrivate::processInference(Node lem, const char* c, std::vector< Node >& lemmas)
 {
-  Trace("sets-pi") << "Process inference: " << lem << std::endl;
-  std::vector<Node> lemmas;
+  Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
   if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))
   {
-    Trace("sets-pi") << "  must assert as lemma" << std::endl;
-    flushLemma(lem, false);
+    Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+    lemmas.push_back(lem);
     return;
   }
   // is it a fact?
-  Trace("sets-lts") << "Process conclusion: " << lem[1] << std::endl;
+  Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
   // we can assert it as a fact
-  Trace("sets-lts") << "  assert as fact" << std::endl;
+  Trace("sets-pinfer") << "  assert as fact" << std::endl;
   assertInference(lem[1], lem[0], lemmas, c);
-  Trace("sets-lts") << "  assert " << lemmas.size() << " associated lemmas"
-                    << std::endl;
-  flushLemmas(lemmas);
 }
 
 bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
