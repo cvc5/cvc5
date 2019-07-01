@@ -2,9 +2,9 @@
 /*! \file antlr_line_buffered_input.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Morgan Deters, Andres Noetzli, Tim King
+ **   Morgan Deters, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,8 @@
 
 #include "cvc4parser_private.h"
 
-#ifndef __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
-#define __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
+#ifndef CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
+#define CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H
 
 #include <antlr3.h>
 #include <istream>
@@ -47,4 +47,4 @@ pANTLR3_INPUT_STREAM antlr3LineBufferedStreamNew(std::istream& in,
 }/* CVC4::parser namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H */
+#endif /* CVC4__PARSER__ANTLR_LINE_BUFFERED_INPUT_H */

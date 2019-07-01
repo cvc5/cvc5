@@ -2,9 +2,9 @@
 /*! \file quant_util.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANT_UTIL_H
-#define __CVC4__THEORY__QUANT_UTIL_H
+#ifndef CVC4__THEORY__QUANT_UTIL_H
+#define CVC4__THEORY__QUANT_UTIL_H
 
 #include <iostream>
 #include <map>
@@ -138,19 +138,19 @@ class QuantifiersModule {
   virtual std::string identify() const = 0;
   //----------------------------general queries
   /** get currently used the equality engine */
-  eq::EqualityEngine * getEqualityEngine();
+  eq::EqualityEngine* getEqualityEngine() const;
   /** are n1 and n2 equal in the current used equality engine? */
-  bool areEqual( TNode n1, TNode n2 );
+  bool areEqual(TNode n1, TNode n2) const;
   /** are n1 and n2 disequal in the current used equality engine? */
-  bool areDisequal(TNode n1, TNode n2);
+  bool areDisequal(TNode n1, TNode n2) const;
   /** get the representative of n in the current used equality engine */
-  TNode getRepresentative( TNode n );
+  TNode getRepresentative(TNode n) const;
   /** get quantifiers engine that owns this module */
-  QuantifiersEngine* getQuantifiersEngine() { return d_quantEngine; }
+  QuantifiersEngine* getQuantifiersEngine() const;
   /** get currently used term database */
-  quantifiers::TermDb * getTermDatabase();
+  quantifiers::TermDb* getTermDatabase() const;
   /** get currently used term utility object */
-  quantifiers::TermUtil * getTermUtil();
+  quantifiers::TermUtil* getTermUtil() const;
   //----------------------------end general queries
  protected:
   /** pointer to the quantifiers engine that owns this module */
@@ -237,4 +237,4 @@ public:
 }
 }
 
-#endif /* __CVC4__THEORY__QUANT_UTIL_H */
+#endif /* CVC4__THEORY__QUANT_UTIL_H */

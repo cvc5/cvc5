@@ -2,9 +2,9 @@
 /*! \file command_executor_portfolio.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Kshitij Bansal, Morgan Deters, Tim King
+ **   Kshitij Bansal, Morgan Deters, Aina Niemetz
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -15,8 +15,8 @@
  ** threads.
  **/
 
-#ifndef __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
-#define __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
+#ifndef CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
+#define CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H
 
 #include "main/command_executor.h"
 #include "main/portfolio_util.h"
@@ -82,4 +82,4 @@ private:
 }/* CVC4::main namespace */
 }/* CVC4 namespace */
 
-#endif  /* __CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H */
+#endif  /* CVC4__MAIN__COMMAND_EXECUTOR_PORTFOLIO_H */

@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Morgan Deters
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -22,8 +22,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
-#define __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
+#ifndef CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
+#define CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H
 
 #include "expr/node.h"
 #include "expr/attribute.h"
@@ -210,4 +210,4 @@ typedef expr::Attribute<ECAttrTag, ECData*, ECCleanupStrategy> ECAttr;
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H */
+#endif /* CVC4__THEORY__UF__TIM__THEORY_UF_TIM_H */

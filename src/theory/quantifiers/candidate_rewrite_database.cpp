@@ -2,9 +2,9 @@
 /*! \file candidate_rewrite_database.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds
+ **   Andrew Reynolds, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -137,9 +137,9 @@ bool CandidateRewriteDatabase::addTerm(Node sol,
         // options as the SmtEngine we belong to, where we ensure that
         // produce-models is set.
         bool needExport = false;
-        ExprManagerMapCollection varMap;
         ExprManager em(nm->getOptions());
         std::unique_ptr<SmtEngine> rrChecker;
+        ExprManagerMapCollection varMap;
         initializeChecker(rrChecker, em, varMap, crr, needExport);
         Result r = rrChecker->checkSat();
         Trace("rr-check") << "...result : " << r << std::endl;

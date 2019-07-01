@@ -2,9 +2,9 @@
 /*! \file theory_strings_rewriter.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Tianyi Liang, Andres Noetzli
+ **   Andrew Reynolds, Andres Noetzli, Tianyi Liang
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -34,6 +34,11 @@ using namespace CVC4::theory;
 using namespace CVC4::theory::strings;
 
 Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren, std::vector< Node >& children, int dir ){
+  Trace("regexp-ext-rewrite-debug")
+      << "Simple reg exp consume, dir=" << dir << ":" << std::endl;
+  Trace("regexp-ext-rewrite-debug")
+      << "  mchildren : " << mchildren << std::endl;
+  Trace("regexp-ext-rewrite-debug") << "  children : " << children << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   unsigned tmin = dir<0 ? 0 : dir;
   unsigned tmax = dir<0 ? 1 : dir;
@@ -52,14 +57,19 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
             children.pop_back();
             mchildren.pop_back();
             do_next = true;
+            Trace("regexp-ext-rewrite-debug") << "...strip equal" << std::endl;
           }else if( xc.isConst() && rc[0].isConst() ){
             //split the constant
             int index;
             Node s = splitConstant( xc, rc[0], index, t==0 );
             Trace("regexp-ext-rewrite-debug") << "CRE: Regexp const split : " << xc << " " << rc[0] << " -> " << s << " " << index << " " << t << std::endl;
             if( s.isNull() ){
+              Trace("regexp-ext-rewrite-debug")
+                  << "...return false" << std::endl;
               return NodeManager::currentNM()->mkConst( false );
             }else{
+              Trace("regexp-ext-rewrite-debug")
+                  << "...strip equal const" << std::endl;
               children.pop_back();
               mchildren.pop_back();
               if( index==0 ){
@@ -75,6 +85,7 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
           CVC4::String s = xc.getConst<String>();
           if (s.size() == 0)
           {
+            Trace("regexp-ext-rewrite-debug") << "...ignore empty" << std::endl;
             // ignore and continue
             mchildren.pop_back();
             do_next = true;
@@ -157,13 +168,15 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
             }
             std::vector< Node > children_s;
             getConcat( rc[0], children_s );
+            Trace("regexp-ext-rewrite-debug")
+                << "...recursive call on body of star" << std::endl;
             Node ret = simpleRegexpConsume( mchildren_s, children_s, t );
             if( !ret.isNull() ){
               Trace("regexp-ext-rewrite-debug") << "CRE : regexp star infeasable " << xc << " " << rc << std::endl;
               children.pop_back();
-              if( children.empty() ){
-                return NodeManager::currentNM()->mkConst( false );
-              }else{
+              if (!children.empty())
+              {
+                Trace("regexp-ext-rewrite-debug") << "...continue" << std::endl;
                 do_next = true;
               }
             }else{
@@ -185,6 +198,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
                   }
                 }
                 if( !can_skip ){
+                  Trace("regexp-ext-rewrite-debug")
+                      << "...can't skip" << std::endl;
                   //take the result of fully consuming once
                   if( t==1 ){
                     std::reverse( mchildren_s.begin(), mchildren_s.end() );
@@ -193,7 +208,8 @@ Node TheoryStringsRewriter::simpleRegexpConsume( std::vector< Node >& mchildren,
                   mchildren.insert( mchildren.end(), mchildren_s.begin(), mchildren_s.end() );
                   do_next = true;
                 }else{
-                  Trace("regexp-ext-rewrite-debug") << "CRE : can skip " << rc << " from " << xc << std::endl;
+                  Trace("regexp-ext-rewrite-debug")
+                      << "...can skip " << rc << " from " << xc << std::endl;
                 }
               }
             }
@@ -599,30 +615,9 @@ Node TheoryStringsRewriter::rewriteArithEqualityExt(Node node)
 {
   Assert(node.getKind() == EQUAL && node[0].getType().isInteger());
 
-  NodeManager* nm = NodeManager::currentNM();
-
   // cases where we can solve the equality
-  for (unsigned i = 0; i < 2; i++)
-  {
-    if (node[i].isConst())
-    {
-      Node on = node[1 - i];
-      Kind onk = on.getKind();
-      if (onk == STRING_STOI)
-      {
-        Rational r = node[i].getConst<Rational>();
-        int sgn = r.sgn();
-        Node onEq;
-        std::stringstream ss;
-        if (sgn >= 0)
-        {
-          ss << r.getNumerator();
-        }
-        Node new_ret = on[0].eqNode(nm->mkConst(String(ss.str())));
-        return returnRewrite(node, new_ret, "stoi-solve");
-      }
-    }
-  }
+
+  // notice we cannot rewrite str.to.int(x)=n to x="n" due to leading zeroes.
 
   return node;
 }
@@ -1490,7 +1485,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
       if(s.isNumber()) {
         retNode = nm->mkConst(s.toNumber());
       } else {
-        retNode = nm->mkConst(::CVC4::Rational(-1));
+        retNode = nm->mkConst(Rational(-1));
       }
     } else if(node[0].getKind() == kind::STRING_CONCAT) {
       for(unsigned i=0; i<node[0].getNumChildren(); ++i) {
@@ -2317,6 +2312,22 @@ Node TheoryStringsRewriter::rewriteIndexof( Node node ) {
           Node nn = mkConcat(kind::STRING_CONCAT, children0);
           Node ret = nm->mkNode(kind::STRING_STRIDOF, nn, node[1], node[2]);
           return returnRewrite(node, ret, "idof-def-ctn");
+        }
+
+        // Strip components from the beginning that are guaranteed not to match
+        if (stripConstantEndpoints(children0, children1, nb, ne, 1))
+        {
+          // str.indexof(str.++("AB", x, "C"), "C", 0) --->
+          // 2 + str.indexof(str.++(x, "C"), "C", 0)
+          Node ret =
+              nm->mkNode(kind::PLUS,
+                         nm->mkNode(kind::STRING_LENGTH,
+                                    mkConcat(kind::STRING_CONCAT, nb)),
+                         nm->mkNode(kind::STRING_STRIDOF,
+                                    mkConcat(kind::STRING_CONCAT, children0),
+                                    node[1],
+                                    node[2]));
+          return returnRewrite(node, ret, "idof-strip-cnst-endpts");
         }
       }
 
@@ -3663,6 +3674,14 @@ bool TheoryStringsRewriter::stripConstantEndpoints(std::vector<Node>& n1,
               // e.g. str.contains( str.++( "abc", x ), str.++( "cd", y ) ) -->
               // str.contains( str.++( "c", x ), str.++( "cd", y ) )
               overlap = r == 0 ? s.overlap(t) : t.overlap(s);
+            }
+            else
+            {
+              // if we are looking at a substring, we can remove the component
+              // if there is no overlap
+              //   e.g. str.contains( str.++( str.substr( "c", i, j ), x), "a" )
+              //        --> str.contains( x, "a" )
+              removeComponent = ((r == 0 ? s.overlap(t) : t.overlap(s)) == 0);
             }
           }
           else if (sss.empty())  // only if not substr

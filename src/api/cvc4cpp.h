@@ -2,9 +2,9 @@
 /*! \file cvc4cpp.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Aina Niemetz
+ **   Aina Niemetz, Andres Noetzli
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,10 +16,10 @@
 
 #include "cvc4_public.h"
 
-#ifndef __CVC4__API__CVC4CPP_H
-#define __CVC4__API__CVC4CPP_H
+#ifndef CVC4__API__CVC4CPP_H
+#define CVC4__API__CVC4CPP_H
 
-#include "cvc4cppkind.h"
+#include "api/cvc4cppkind.h"
 
 #include <map>
 #include <memory>
@@ -1813,7 +1813,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, Kind k);
+  OpTerm mkOpTerm(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
@@ -1822,7 +1822,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg);
+  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
@@ -1842,7 +1842,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
@@ -1858,7 +1858,7 @@ class CVC4_PUBLIC Solver
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */
@@ -2166,20 +2166,23 @@ class CVC4_PUBLIC Solver
   /* .................................................................... */
 
   /**
-   * Create variable.
+   * Create (first-order) constant (0-arity function symbol).
+   * SMT-LIB: ( declare-const <symbol> <sort> )
+   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
+   *
+   * @param sort the sort of the constant
+   * @param symbol the name of the constant
+   * @return the first-order constant
+   */
+  Term mkConst(Sort sort, const std::string& symbol = std::string()) const;
+
+  /**
+   * Create (bound) variable.
    * @param sort the sort of the variable
    * @param symbol the name of the variable
    * @return the variable
    */
   Term mkVar(Sort sort, const std::string& symbol = std::string()) const;
-
-  /**
-   * Create bound variable.
-   * @param sort the sort of the variable
-   * @param symbol the name of the variable
-   * @return the variable
-   */
-  Term mkBoundVar(Sort sort, const std::string& symbol = std::string()) const;
 
   /* .................................................................... */
   /* Formula Handling                                                     */
@@ -2246,17 +2249,6 @@ class CVC4_PUBLIC Solver
   Result checkValidAssuming(const std::vector<Term>& assumptions) const;
 
   /**
-   * Declare first-order constant (0-arity function symbol).
-   * SMT-LIB: ( declare-const <symbol> <sort> )
-   * SMT-LIB: ( declare-fun <symbol> ( ) <sort> )
-   * This command corresponds to mkVar().
-   * @param symbol the name of the first-order constant
-   * @param sort the sort of the first-order constant
-   * @return the first-order constant
-   */
-  Term declareConst(const std::string& symbol, Sort sort) const;
-
-  /**
    * Create datatype sort.
    * SMT-LIB: ( declare-datatype <symbol> <datatype_decl> )
    * @param symbol the name of the datatype sort
@@ -2303,7 +2295,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define n-ary function.
    * SMT-LIB: ( define-fun <function_def> )
-   * Create parameter 'fun' with mkVar().
+   * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
@@ -2330,7 +2322,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define recursive function.
    * SMT-LIB: ( define-fun-rec <function_def> )
-   * Create parameter 'fun' with mkVar().
+   * Create parameter 'fun' with mkConst().
    * @param fun the sorted function
    * @param bound_vars the parameters to this function
    * @param term the function body
@@ -2343,7 +2335,7 @@ class CVC4_PUBLIC Solver
   /**
    * Define recursive functions.
    * SMT-LIB: ( define-funs-rec ( <function_decl>^{n+1} ) ( <term>^{n+1} ) )
-   * Create elements of parameter 'funs' with mkVar().
+   * Create elements of parameter 'funs' with mkConst().
    * @param funs the sorted functions
    * @param bound_vars the list of parameters to the functions
    * @param term the list of function bodies of the functions
@@ -2506,7 +2498,7 @@ class CVC4_PUBLIC Solver
   void checkMkTerm(Kind kind, uint32_t nchildren) const;
   /* Helper for mk-functions that call d_exprMgr->mkConst(). */
   template <typename T>
-  Term mkConstHelper(T t) const;
+  Term mkValHelper(T t) const;
   /* Helper for mkReal functions that take a string as argument. */
   Term mkRealFromStrHelper(std::string s) const;
   /* Helper for mkBitVector functions that take a string as argument. */

@@ -1,0 +1,26 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status
+(set-logic SLIA)
+(declare-datatype JSIdentifier ((JSString (jsString String)) (Error )))
+
+(synth-fun substring ((x1 String) (x3 Int))String
+	((Start String (ntString))
+		(ntInt Int
+			(0 x3)
+		)
+		(ntJSIdentifier JSIdentifier
+			( 
+				Error
+			)
+		)
+		(ntString String
+			(x1
+				(str.substr ntString ntInt ntInt)
+				(jsString ntJSIdentifier)
+				(str.++ ntString ntString)
+			)
+		)
+	)
+)
+(constraint (= (substring "ey" 1) "e"))
+(check-synth)

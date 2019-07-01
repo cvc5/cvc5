@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Andrew Reynolds, Morgan Deters, Tim King
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
-#define __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#ifndef CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
+#define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
 #include "theory/rewriter.h"
 #include "theory/quantifiers_engine.h"
@@ -36,9 +36,17 @@ public:
 private:
   static bool addCheckElimChild( std::vector< Node >& children, Node c, Kind k, std::map< Node, bool >& lit_pol, bool& childrenChanged );
   static void addNodeToOrBuilder( Node n, NodeBuilder<>& t );
-  static void computeArgs( std::vector< Node >& args, std::map< Node, bool >& activeMap, Node n, std::map< Node, bool >& visited );
-  static void computeArgVec( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n );
-  static void computeArgVec2( std::vector< Node >& args, std::vector< Node >& activeArgs, Node n, Node ipl );
+  static void computeArgs(const std::vector<Node>& args,
+                          std::map<Node, bool>& activeMap,
+                          Node n,
+                          std::map<Node, bool>& visited);
+  static void computeArgVec(const std::vector<Node>& args,
+                            std::vector<Node>& activeArgs,
+                            Node n);
+  static void computeArgVec2(const std::vector<Node>& args,
+                             std::vector<Node>& activeArgs,
+                             Node n,
+                             Node ipl);
   static Node computeProcessTerms2( Node body, bool hasPol, bool pol, std::map< Node, bool >& currCond, int nCurrCond,
                                     std::map< Node, Node >& cache, std::map< Node, Node >& icache,
                                     std::vector< Node >& new_vars, std::vector< Node >& new_conds, bool elimExtArith );
@@ -62,12 +70,22 @@ private:
                             std::vector<Node>& args,
                             std::vector<Node>& vars,
                             std::vector<Node>& subs);
-  /** variable eliminate for bit-vector literals
+  /** variable eliminate for bit-vector equalities
    *
    * If this returns a non-null value ret, then var is updated to a member of
-   * args, lit is equivalent to ( var = ret ), and var is removed from args.
+   * args, lit is equivalent to ( var = ret ).
    */
-  static Node getVarElimLitBv(Node lit, std::vector<Node>& args, Node& var);
+  static Node getVarElimLitBv(Node lit,
+                              const std::vector<Node>& args,
+                              Node& var);
+  /** variable eliminate for string equalities
+   *
+   * If this returns a non-null value ret, then var is updated to a member of
+   * args, lit is equivalent to ( var = ret ).
+   */
+  static Node getVarElimLitString(Node lit,
+                                  const std::vector<Node>& args,
+                                  Node& var);
   /** get variable elimination
    *
    * If n asserted with polarity pol entails a literal lit that corresponds
@@ -188,6 +206,6 @@ public:
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
 
-#endif /* __CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
+#endif /* CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H */
 
 

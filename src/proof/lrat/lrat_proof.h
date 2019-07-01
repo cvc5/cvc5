@@ -4,7 +4,7 @@
  ** Top contributors (to current version):
  **   Alex Ozdemir
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -23,8 +23,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef __CVC4__PROOF__LRAT__LRAT_PROOF_H
-#define __CVC4__PROOF__LRAT__LRAT_PROOF_H
+#ifndef CVC4__PROOF__LRAT__LRAT_PROOF_H
+#define CVC4__PROOF__LRAT__LRAT_PROOF_H
 
 #include <iosfwd>
 #include <string>
@@ -129,15 +129,13 @@ class LratProof
   /**
    * @brief Construct an LRAT proof from a DRAT proof, using drat-trim
    *
-   * @param usedClauses The CNF formula that we're deriving bottom from.
-   *                    It's a map because other parts of the system represent
-   *                    it this way.
-   * @param clauseOrder A record of the order in which those clauses were
-   *                    given to the SAT solver.
+   * @param clauses A store of clauses that might be in our formula
+   * @param usedIds the ids of clauses that are actually in our formula
    * @param dratBinary  The DRAT proof from the SAT solver, as a binary stream.
    */
   static LratProof fromDratProof(
-      const std::vector<std::pair<ClauseId, prop::SatClause>>& usedClauses,
+      const std::unordered_map<ClauseId, prop::SatClause>& clauses,
+      const std::vector<ClauseId> usedIds,
       const std::string& dratBinary);
   /**
    * @brief Construct an LRAT proof from its textual representation

@@ -2,9 +2,9 @@
 /*! \file theory.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Tim King, Andrew Reynolds, Dejan Jovanovic
+ **   Tim King, Dejan Jovanovic, Andrew Reynolds
  ** This file is part of the CVC4 project.
- ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
+ ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
@@ -295,13 +295,15 @@ Theory::PPAssertStatus Theory::ppAssert(TNode in,
     // 2) x is not in the term t
     // 3) x : T and t : S, then S <: T
     if (in[0].isVar() && !expr::hasSubterm(in[1], in[0])
-        && (in[1].getType()).isSubtypeOf(in[0].getType()))
+        && (in[1].getType()).isSubtypeOf(in[0].getType())
+        && in[0].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[0], in[1]);
       return PP_ASSERT_STATUS_SOLVED;
     }
     if (in[1].isVar() && !expr::hasSubterm(in[0], in[1])
-        && (in[0].getType()).isSubtypeOf(in[1].getType()))
+        && (in[0].getType()).isSubtypeOf(in[1].getType())
+        && in[1].getKind() != kind::BOOLEAN_TERM_VARIABLE)
     {
       outSubstitutions.addSubstitution(in[1], in[0]);
       return PP_ASSERT_STATUS_SOLVED;
