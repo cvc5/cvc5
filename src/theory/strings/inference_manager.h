@@ -21,9 +21,9 @@
 #include <vector>
 
 #include "context/cdhashset.h"
-#include "theory/output_channel.h"
-#include "expr/node.h"
 #include "context/context.h"
+#include "expr/node.h"
+#include "theory/output_channel.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -41,7 +41,7 @@ class TheoryStrings;
  *
  * sendInternalInference, sendInference, sendSplit
  *
- * This class decides how the conclusion of these calls will be processed. 
+ * This class decides how the conclusion of these calls will be processed.
  * It primarily has to decide whether the conclusions will be processed:
  *
  * (1) Internally in the strings solver, via calls to the equality engine. We
@@ -66,10 +66,10 @@ class InferenceManager
 
  public:
   InferenceManager(TheoryStrings& p,
-                       context::Context* c,
-                       context::UserContext* u,
-                       eq::EqualityEngine& ee,
-                       OutputChannel& out);
+                   context::Context* c,
+                   context::UserContext* u,
+                   eq::EqualityEngine& ee,
+                   OutputChannel& out);
   ~InferenceManager() {}
 
   /** send internal inferences

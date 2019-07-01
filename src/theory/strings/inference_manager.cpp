@@ -30,10 +30,10 @@ namespace theory {
 namespace strings {
 
 InferenceManager::InferenceManager(TheoryStrings& p,
-                                           context::Context* c,
-                                           context::UserContext* u,
-                                           eq::EqualityEngine& ee,
-                                           OutputChannel& out)
+                                   context::Context* c,
+                                   context::UserContext* u,
+                                   eq::EqualityEngine& ee,
+                                   OutputChannel& out)
     : d_parent(p), d_ee(ee), d_out(out), d_keep(c)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -41,8 +41,8 @@ InferenceManager::InferenceManager(TheoryStrings& p,
 }
 
 bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
-                                                 Node conc,
-                                                 const char* c)
+                                             Node conc,
+                                             const char* c)
 {
   if (conc.getKind() == AND
       || (conc.getKind() == NOT && conc[0].getKind() == OR))
@@ -70,7 +70,8 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
       }
     }
     // does it already hold?
-    if (pol ? d_parent.areEqual(lit[0], lit[1]) : d_parent.areDisequal(lit[0], lit[1]))
+    if (pol ? d_parent.areEqual(lit[0], lit[1])
+            : d_parent.areDisequal(lit[0], lit[1]))
     {
       return true;
     }
@@ -99,10 +100,10 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(std::vector<Node>& exp,
-                                         std::vector<Node>& exp_n,
-                                         Node eq,
-                                         const char* c,
-                                         bool asLemma)
+                                     std::vector<Node>& exp_n,
+                                     Node eq,
+                                     const char* c,
+                                     bool asLemma)
 {
   eq = eq.isNull() ? d_false : Rewriter::rewrite(eq);
   if (eq == d_true)
@@ -164,9 +165,9 @@ void InferenceManager::sendInference(std::vector<Node>& exp,
 }
 
 void InferenceManager::sendInference(std::vector<Node>& exp,
-                                         Node eq,
-                                         const char* c,
-                                         bool asLemma)
+                                     Node eq,
+                                     const char* c,
+                                     bool asLemma)
 {
   std::vector<Node> exp_n;
   sendInference(exp, exp_n, eq, c, asLemma);
