@@ -586,11 +586,6 @@ void LFSCProof::toStream(std::ostream& out) const
     }
     Debug("pf::pm") << std::endl;
 
-    // Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
-    // for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2) {
-    //   Debug("pf::pm") << "\t lemma = " << *(it2->second) << std::endl;
-    // }
-    // Debug("pf::pm") << std::endl;
     Debug("pf::pm") << std::endl << "Used lemmas: " << std::endl;
     for (it2 = used_lemmas.begin(); it2 != used_lemmas.end(); ++it2)
     {
@@ -680,7 +675,6 @@ void LFSCProof::toStream(std::ostream& out) const
          ++it)
     {
       utils::collectAtoms(*it, atoms);
-      // utils::collectAtoms(*it, newAtoms);
     }
 
     std::set<Node>::iterator atomIt;
