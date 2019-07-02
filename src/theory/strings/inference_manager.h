@@ -138,8 +138,8 @@ class InferenceManager
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
-   * lemma. We additionally request that a phase requirement for the equality
-   * a=b with polarity preq.
+   * lemma. We additionally request a phase requirement for the equality a=b
+   * with polarity preq.
    *
    * The argument c is a string identifying the reason for inference, used for
    * debugging.
@@ -189,14 +189,14 @@ class InferenceManager
    * this returns true if we have a pending fact or lemma, or have encountered
    * a conflict.
    */
-  inline bool hasProcessed() const
+  bool hasProcessed() const
   {
     return hasConflict() || !d_pendingLem.empty() || !d_pending.empty();
   }
   /** Do we have a pending fact to add to the equality engine? */
-  inline bool hasPendingFact() const { return !d_pending.empty(); }
+  bool hasPendingFact() const { return !d_pending.empty(); }
   /** Do we have a pending lemma to send on the output channel? */
-  inline bool hasPendingLemma() const { return !d_pendingLem.empty(); }
+  bool hasPendingLemma() const { return !d_pendingLem.empty(); }
   /** Are we in conflict? */
   bool hasConflict() const;
 
@@ -269,9 +269,9 @@ class InferenceManager
    * vars = { x },
    * subs = { v2 },
    * unproc = {}.
-   * In particular, since says that the information content of n essentially
-   * says that x = v2. The first and third conjunctions can be dropped from
-   * the explanation since these equalities simply correspond to definitions
+   * In particular, this says that the information content of n essentially
+   * x = v2. The first and third conjunctions can be dropped from the
+   * explanation since these equalities simply correspond to definitions
    * of proxy variables.
    *
    * This method is used as a performance heuristic. It can infer when the
