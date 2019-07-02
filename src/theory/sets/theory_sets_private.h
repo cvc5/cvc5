@@ -51,8 +51,6 @@ public:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 private:
-  bool ee_areEqual( Node a, Node b );
-  bool ee_areDisequal( Node a, Node b );
   bool ee_areCareDisequal( Node a, Node b );
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
@@ -72,14 +70,9 @@ private:
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
   bool isMember( Node x, Node s );
-  bool isSetDisequalityEntailed( Node s, Node t );
   
   void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
   void flushLemma( Node lem, bool preprocess = false );
-  Node getProxy( Node n );
-  Node getCongruent( Node n );
-  Node getEmptySet( TypeNode tn );
-  Node getUnivSet( TypeNode tn );
   bool hasLemmaCached( Node lem );
   bool hasProcessed();
 
@@ -134,26 +127,9 @@ private:
    * with a relation or extended function kind).
    */
   bool d_full_check_incomplete;
-  NodeMap d_proxy;  
-  NodeMap d_proxy_to_term;  
   NodeSet d_lemmas_produced;
-  std::vector< Node > d_set_eqc;
-  std::map< Node, bool > d_set_eqc_relevant;
-  std::map< TypeNode, Node > d_eqc_emptyset;
-  std::map< TypeNode, Node > d_eqc_univset;
-  std::map< Node, Node > d_eqc_singleton;
-  std::map< TypeNode, Node > d_emptyset;
-  std::map< TypeNode, Node > d_univset;
-  std::map< Node, Node > d_congruent;
-  std::map< Node, std::vector< Node > > d_nvar_sets;
-  std::map< Node, Node > d_var_set;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
-  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
-  std::map< Node, std::map< Node, Node > > d_members_index;
-  std::map< Node, Node > d_singleton_index;
-  std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
-  std::map< Kind, std::vector< Node > > d_op_list;
   //cardinality
  private:
   /** is cardinality enabled?
@@ -162,40 +138,10 @@ private:
    * involving cardinality constraints is asserted to this theory.
    */
   bool d_card_enabled;
-  /** element types of sets for which cardinality is enabled */
-  std::map<TypeNode, bool> d_t_card_enabled;
-  std::map< Node, Node > d_eqc_to_card_term;
-  NodeSet d_card_processed;
-  std::map< Node, std::vector< Node > > d_card_parent;
-  std::map< Node, std::map< Node, std::vector< Node > > > d_ff;
-  std::map< Node, std::vector< Node > > d_nf;
-  std::map< Node, Node > d_card_base;
-  void checkCardBuildGraph( std::vector< Node >& lemmas );
-  void registerCardinalityTerm( Node n, std::vector< Node >& lemmas );
-  void checkCardCycles( std::vector< Node >& lemmas );
-  void checkCardCyclesRec( Node eqc, std::vector< Node >& curr, std::vector< Node >& exp, std::vector< Node >& lemmas );
-  void checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets );
-  void checkNormalForm( Node eqc, std::vector< Node >& intro_sets );
-  void checkMinCard( std::vector< Node >& lemmas );
 private: //for universe set
   NodeBoolMap d_var_elim;
   void lastCallEffortCheck();
 
- private:
-  /** type constraint skolems
-   *
-   * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn]
-   * where the type of d_tc_skolem[n][tn] is tn, and the type
-   * of n is not a subtype of tn. This is required to handle benchmarks like
-   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
-   * where for s : (Set Int) and t : (Set Real), we have that
-   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is the skolemization of k above.
-   */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
-  /** get type constraint skolem for n and tn */
-  Node getTypeConstraintSkolem(Node n, TypeNode tn);
 
  public:
 
@@ -267,6 +213,8 @@ private: //for universe set
 
   /** get default output channel */
   OutputChannel* getOutputChannel();
+  /** get the valuation */
+  Valuation& getValuation();
 private:
   TheorySets& d_external;
 
@@ -321,13 +269,16 @@ private:
   
   bool isCareArg( Node n, unsigned a );
 public:
-  bool isEntailed( Node n, bool pol );
+  // TODO: remove
+  bool isEntailed( Node n, bool pol ) { return d_state.isEntailed(n,pol); }
 
  private:
   /** The state of the sets solver at full effort */
   SetsState d_state;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
+  /** subtheory solver for the theory of sets with cardinality */
+  std::unique_ptr<CardinalityExtension> d_cardSolver;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint

@@ -21,6 +21,7 @@
 #include "options/sets_options.h"
 #include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets_private.h"
+#include "theory/valuation.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -42,6 +43,33 @@ CardinalityExtension::CardinalityExtension(TheorySetsPrivate& p,
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
 
   d_ee.addFunctionKind(CARD);
+}
+
+void CardinalityExtension::reset()
+{
+  d_eqc_to_card_term.clear();
+  d_t_card_enabled.clear();
+}
+void CardinalityExtension::registerTerm(Node n, std::vector< Node >& lemmas)
+{
+  Trace("sets-card-debug") << "Register term : " << n << std::endl;
+  Assert( n.getKind()==CARD);
+  Node r = d_ee.getRepresentative( n[0] );
+  if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
+    d_eqc_to_card_term[ r ] = n;
+    registerCardinalityTerm( n[0], lemmas );
+  }
+  TypeNode tnc = n[0].getType().getSetElementType();
+  d_t_card_enabled[tnc] = true;
+  if( tnc.isInterpretedFinite() ){
+    std::stringstream ss;
+    ss << "ERROR: cannot use cardinality on sets with finite element "
+          "type (term is "
+        << n << ")." << std::endl;
+    throw LogicException(ss.str());
+    //TODO (#1123): extend approach for this case
+  }
+  Trace("sets-card-debug") << "...finished register term" << std::endl;
 }
 
 void CardinalityExtension::check()
@@ -77,6 +105,7 @@ void CardinalityExtension::check()
   //debugPrintSet(intro_sets[0], "sets-nf");
   Trace("sets-nf") << std::endl;
   Node k = d_state.getProxy(intro_sets[0]);
+  AlwaysAssert( !k.isNull() );  
 }
 
 void CardinalityExtension::checkCardBuildGraph( std::vector< Node >& lemmas ) {
@@ -655,6 +684,47 @@ void CardinalityExtension::checkMinCard( std::vector< Node >& lemmas ) {
       Node lem = nm->mkNode( IMPLIES, exp.size()==1 ? exp[0] : nm->mkNode( AND, exp ), conc );
       Trace("sets-lemma") << "Sets::Lemma : " << lem << " by mincard" << std::endl;
       lemmas.push_back( lem );
+    }
+  }
+}
+
+bool CardinalityExtension::isModelValueBasic( Node eqc )
+{
+  return d_nf[eqc].size()==1 && d_nf[eqc][0]==eqc;
+}
+
+void CardinalityExtension::mkModelValueElementsFor( Node eqc, std::vector< Node >& els, const std::map< Node, Node >& mvals )
+{
+  TypeNode elementType = eqc.getType().getSetElementType();
+  if( isModelValueBasic(eqc) ){
+    std::map< Node, Node >::iterator it = d_eqc_to_card_term.find( eqc );
+    if( it!=d_eqc_to_card_term.end() ){
+      //slack elements from cardinality value
+      Node v = d_parent.getValuation().getModelValue(it->second);
+      Trace("sets-model") << "Cardinality of " << eqc << " is " << v << std::endl;
+      Assert(v.getConst<Rational>() <= LONG_MAX, "Exceeded LONG_MAX in sets model");
+      unsigned vu = v.getConst<Rational>().getNumerator().toUnsignedInt();
+      Assert( els.size()<=vu );
+      NodeManager * nm = NodeManager::currentNM();
+      while( els.size()<vu ){
+        els.push_back( nm->mkNode( kind::SINGLETON, nm->mkSkolem( "msde", elementType ) ) );
+      }
+    }else{
+      Trace("sets-model") << "No slack elements for " << eqc << std::endl;
+    }
+  }else{
+    Trace("sets-model") << "Build value for " << eqc << " based on normal form, size = " << d_nf[eqc].size() << std::endl;
+    //it is union of venn regions
+    for( unsigned j=0; j<d_nf[eqc].size(); j++ ){
+      std::map< Node, Node >::const_iterator itm = mvals.find(d_nf[eqc][j]);
+      if( itm!=mvals.end() )
+      {
+        els.push_back( itm->second );
+      }
+      else
+      {
+        Assert(false);
+      }
     }
   }
 }

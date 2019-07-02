@@ -61,6 +61,11 @@ public:
    */
   Node getEmptySetEqClass( TypeNode tn ) const;
   /** 
+   * Get the equivalence class of the universe set of type tn, or null if it
+   * does not exist as a term in the current context.
+   */
+  Node getUnivSetEqClass( TypeNode tn ) const;
+  /** 
    * Get the singleton set in the equivalence class of representative r if it
    * exists, or null if none exists.
    */
@@ -95,8 +100,15 @@ public:
   std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
   /** get non-variable sets for representative r */
   std::vector< Node >& getNonVariableSets(Node r) { return d_nvar_sets[r]; }
+  /** 
+   * Get a variable set in the equivalence class with representative r, or null
+   * if none exist.
+   */
+  Node getVariableSet(Node r) const;
   /** get (positive) members */
   std::map< Node, Node >& getMembers(Node r) { return d_pol_mems[0][r]; }
+  /** get negative members */
+  std::map< Node, Node >& getNegativeMembers(Node r) { return d_pol_mems[1][r]; }
   /** Are there members entailed for equivalence class r? */
   bool hasMembers(Node r) const;
 private:
@@ -123,6 +135,7 @@ private:
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
   std::map< Node, Node > d_var_set;
+public: //FIXME
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   // -------------------------------- term indices
   std::map< Node, std::map< Node, Node > > d_members_index;
@@ -130,6 +143,7 @@ private:
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
   // -------------------------------- end term indices
   std::map< Kind, std::vector< Node > > d_op_list;
+private:
   /** type constraint skolems
    *
    * The sets theory solver outputs equality lemmas of the form:

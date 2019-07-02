@@ -44,10 +44,25 @@ class CardinalityExtension {
                     context::UserContext* u);
 
   ~CardinalityExtension(){}
+  /** reset
+   * FIXME
+   */
+  void reset();
+  /** register term
+   * FIXME
+   */
+  void registerTerm(Node n, std::vector< Node >& lemmas);
   /** check 
    * FIXME
    */
   void check();
+  /** is model value basic */
+  bool isModelValueBasic( Node eqc );
+  /** get model elements
+   * 
+   * 
+   */
+  void mkModelValueElementsFor( Node eqc, std::vector< Node >& els, const std::map< Node, Node >& mvals );
  private:
    /** constants */
    Node d_zero;

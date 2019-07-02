@@ -120,8 +120,10 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back( n );
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
-  else if( n.isVar() )
+  else if( nk==VARIABLE )
   {
+    // it is important that we check kind VARIABLE, due to the semantics of the
+    // universe set.
     if( tnn.isSet() ){
       if( d_var_set.find( r )==d_var_set.end() ){
         d_var_set[r] = n;
@@ -159,6 +161,17 @@ Node SetsState::getEmptySetEqClass( TypeNode tn ) const
   return Node::null();
 }
 
+Node SetsState::getUnivSetEqClass( TypeNode tn ) const
+{
+  std::map< TypeNode, Node >::const_iterator it = d_univset.find(tn);
+  if( it != d_univset.end() )
+  {
+    return it->second;
+  }
+  return Node::null();
+}
+
+  
 Node SetsState::getSingletonEqClass( Node r ) const
 {
   std::map< Node, Node >::const_iterator it =  d_eqc_singleton.find(r);
@@ -248,7 +261,6 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
     // no positive members, continue
     return false;
   }
-  Assert( !itpma->second.empty() );
   //if b is empty
   if( b==re ){
     if( !itpma->second.empty() ){
@@ -366,13 +378,23 @@ Node SetsState::getUnivSet( TypeNode tn ) {
 Node SetsState::getTypeConstraintSkolem(Node n, TypeNode tn)
 {
   std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
-  if (it != d_tc_skolem[n].end())
+  if (it == d_tc_skolem[n].end())
   {
     Node k = NodeManager::currentNM()->mkSkolem("tc_k", tn);
     d_tc_skolem[n][tn] = k;
     return k;
   }
   return it->second;
+}
+
+Node SetsState::getVariableSet(Node r) const
+{
+  std::map< Node, Node >::const_iterator it = d_var_set.find(r);
+  if( it != d_var_set.end() )
+  {
+    return it->second;
+  }
+  return Node::null();
 }
 
 bool SetsState::hasMembers(Node r) const
