@@ -219,9 +219,7 @@ private:
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
   /** get a pointer to the strong solver (uf with cardinality) */
-  StrongSolverTheoryUF* getStrongSolver() const {
-    return d_thss.get();
-  }
+  StrongSolverTheoryUF* getStrongSolver() const { return d_thss.get(); }
   /** are we in conflict? */
   bool inConflict() const { return d_conflict; }
 

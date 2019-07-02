@@ -81,7 +81,8 @@ void TheoryUF::finishInit() {
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
       && options::ufssMode() != UF_SS_NONE)
   {
-    d_thss.reset(new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this));
+    d_thss.reset(new StrongSolverTheoryUF(
+        getSatContext(), getUserContext(), *d_out, this));
   }
   if (options::ufHo())
   {
