@@ -33,7 +33,6 @@ class TheorySetsPrivate;
   
 class SetsState {
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-  typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
 public:
   SetsState(TheorySetsPrivate& p,
                  eq::EqualityEngine& e,
@@ -47,15 +46,15 @@ public:
   void registerTerm(Node r, TypeNode tnn, Node n);
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol );
-  /** Is x entailed to be a member of set s? */
-  bool isMember( Node x, Node s );
+  /** Is the disequality between sets s and t entailed in the current context?
+   * 
+   * FIXME
+   */
   bool isSetDisequalityEntailed( Node s, Node t );
   /** Is a=b according to equality reasoning? */
   bool ee_areEqual( Node a, Node b );
   /** Is a!=b according to equality reasoning? */
   bool ee_areDisequal( Node a, Node b );
-  /** is congruent */
-  bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
   /** 
    * Get the equivalence class of the empty set of type tn, or null if it does
    * not exist as a term in the current context.
@@ -77,9 +76,18 @@ public:
   
   /** get type constraint skolem for n and tn */
   Node getTypeConstraintSkolem(Node n, TypeNode tn);
+  /** get the proxy variable for set n
+   * 
+   * FIXME
+   */
   Node getProxy( Node n );
+  /** Returns a term that is congruent to n in the current context */
   Node getCongruent( Node n );
+  /** is congruent */
+  bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
+  /** Get the empty set of type tn */
   Node getEmptySet( TypeNode tn );
+  /** Get the universe set of type tn */
   Node getUnivSet( TypeNode tn );
   
   
@@ -101,7 +109,6 @@ private:
   NodeMap d_proxy;
   NodeMap d_proxy_to_term;
   
-  NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
   std::vector< Node > d_set_eqc;
   std::map< Node, bool > d_set_eqc_relevant;

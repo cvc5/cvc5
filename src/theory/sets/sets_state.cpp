@@ -38,8 +38,7 @@ SetsState::SetsState(TheorySetsPrivate& p,
                   context::UserContext* u) :
       d_ee(e),
       d_proxy(u),
-      d_proxy_to_term(u),
-                  d_members(c)
+      d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
@@ -200,20 +199,8 @@ bool SetsState::isEntailed( Node n, bool polarity ) {
   }else if( n.getKind()==EQUAL ){
     if( polarity ){
       return ee_areEqual( n[0], n[1] );
-    }else{
-      return ee_areDisequal( n[0], n[1] );
     }
-  }else if( n.getKind()==MEMBER ){
-    if( ee_areEqual( n, polarity ? d_true : d_false ) ){
-      return true;
-    }
-    //check members cache
-    if( polarity && d_ee.hasTerm( n[1] ) ){
-      Node r = d_ee.getRepresentative( n[1] );
-      if( isMember( n[0], r ) ){
-        return true;
-      }
-    }
+    return ee_areDisequal( n[0], n[1] );
   }else if( n.getKind()==AND || n.getKind()==OR ){
     bool conj = (n.getKind()==AND)==polarity;
     for( unsigned i=0; i<n.getNumChildren(); i++ ){
@@ -226,21 +213,7 @@ bool SetsState::isEntailed( Node n, bool polarity ) {
   }else if( n.isConst() ){
     return ( polarity && n==d_true ) || ( !polarity && n==d_false );
   }
-  return false;
-}
-
-
-bool SetsState::isMember( Node x, Node s ) {
-  Assert( d_ee.hasTerm( s ) && d_ee.getRepresentative( s )==s );
-  NodeIntMap::iterator mem_i = d_members.find( s );
-  if( mem_i != d_members.end() ) {
-    for( int i=0; i<(*mem_i).second; i++ ){
-      if( ee_areEqual( d_members_data[s][i][0], x ) ){
-        return true;
-      }
-    }
-  }
-  return false;
+  return ee_areEqual( n, polarity ? d_true : d_false );
 }
 
 bool SetsState::isSetDisequalityEntailed( Node r1, Node r2 ) {
