@@ -113,6 +113,7 @@ private:
   std::map< TypeNode, Node > d_univset;
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
+  std::map< Node, Node > d_var_set;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;

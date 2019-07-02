@@ -125,6 +125,14 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
     d_nvar_sets[r].push_back( n );
     Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
   }
+  else if( n.isVar() )
+  {
+    if( tnn.isSet() ){
+      if( d_var_set.find( r )==d_var_set.end() ){
+        d_var_set[r] = n;
+      }
+    }
+  }
 }
   
 bool SetsState::ee_areEqual( Node a, Node b ) {
