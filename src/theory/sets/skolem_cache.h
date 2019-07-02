@@ -18,7 +18,6 @@
 #define CVC4__THEORY__SETS__SKOLEM_CACHE_H
 
 #include <map>
-#include <tuple>
 #include <unordered_set>
 
 #include "expr/node.h"

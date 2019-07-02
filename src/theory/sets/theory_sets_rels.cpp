@@ -1041,7 +1041,7 @@ void TheorySetsRels::check(Theory::Effort level)
           }
           if( isProduct ) {
             sendInfer(fact,
-                      NodeManager::currentNM()->mkNode(kind::AND, reasons),
+                      nm->mkNode(kind::AND, reasons),
                       "PRODUCT-Compose");
           } else {
             if( r1_rmost != r2_lmost ) {
