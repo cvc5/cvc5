@@ -524,6 +524,114 @@ struct CVC4_PUBLIC SortHashFunction
 };
 
 /* -------------------------------------------------------------------------- */
+/* OpTerm                                                                     */
+/* -------------------------------------------------------------------------- */
+
+/**
+ * A CVC4 operator term.
+ * An operator term is a term that represents certain operators, instantiated
+ * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
+ */
+class CVC4_PUBLIC OpTerm
+{
+  friend class Solver;
+  friend struct OpTermHashFunction;
+
+ public:
+  /**
+   * Constructor.
+   */
+  OpTerm();
+
+  // !!! This constructor is only temporarily public until the parser is fully
+  // migrated to the new API. !!!
+  /**
+   * Constructor.
+   * @param e the internal expression that is to be wrapped by this term
+   * @return the Term
+   */
+  OpTerm(const CVC4::Expr& e);
+
+  /**
+   * Destructor.
+   */
+  ~OpTerm();
+
+  /**
+   * Syntactic equality operator.
+   * Return true if both operator terms are syntactically identical.
+   * Both operator terms must belong to the same solver object.
+   * @param t the operator term to compare to for equality
+   * @return true if the operator terms are equal
+   */
+  bool operator==(const OpTerm& t) const;
+
+  /**
+   * Syntactic disequality operator.
+   * Return true if both operator terms differ syntactically.
+   * Both terms must belong to the same solver object.
+   * @param t the operator term to compare to for disequality
+   * @return true if operator terms are disequal
+   */
+  bool operator!=(const OpTerm& t) const;
+
+  /**
+   * @return the kind of this operator term
+   */
+  Kind getKind() const;
+
+  /**
+   * @return the sort of this operator term
+   */
+  Sort getSort() const;
+
+  /**
+   * @return true if this operator term is a null term
+   */
+  bool isNull() const;
+
+  /**
+   * @return the indices used to create this OpTerm
+   */
+  template <typename T>
+  T getIndices() const;
+
+  /**
+   * @return a string representation of this operator term
+   */
+  std::string toString() const;
+
+  // !!! This is only temporarily available until the parser is fully migrated
+  // to the new API. !!!
+  CVC4::Expr getExpr(void) const;
+
+ private:
+  /**
+   * The internal expression wrapped by this operator term.
+   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
+   * memory allocation (CVC4::Expr is already ref counted, so this could be
+   * a unique_ptr instead).
+   */
+  std::shared_ptr<CVC4::Expr> d_expr;
+};
+
+/**
+ * Serialize an operator term to given stream.
+ * @param out the output stream
+ * @param t the operator term to be serialized to the given output stream
+ * @return the output stream
+ */
+std::ostream& operator<<(std::ostream& out, const OpTerm& t) CVC4_PUBLIC;
+
+/**
+ * Hash function for OpTerms.
+ */
+struct CVC4_PUBLIC OpTermHashFunction
+{
+  size_t operator()(const OpTerm& t) const;
+};
+
+/* -------------------------------------------------------------------------- */
 /* Term                                                                       */
 /* -------------------------------------------------------------------------- */
 
@@ -600,7 +708,7 @@ class CVC4_PUBLIC Term
    *
    * in this case, getKind() will return the operator
    */
-  bool hasBuilltinOperator() const;
+  bool hasBuiltinOperator() const;
 
   /**
    * @return true iff this Term has an indexed operator
@@ -841,108 +949,6 @@ template <typename V>
 std::ostream& operator<<(std::ostream& out,
                          const std::unordered_map<Term, V, TermHashFunction>&
                              unordered_map) CVC4_PUBLIC;
-
-/* -------------------------------------------------------------------------- */
-/* OpTerm                                                                     */
-/* -------------------------------------------------------------------------- */
-
-/**
- * A CVC4 operator term.
- * An operator term is a term that represents certain operators, instantiated
- * with its required parameters, e.g., a term of kind BITVECTOR_EXTRACT.
- */
-class CVC4_PUBLIC OpTerm
-{
-  friend class Solver;
-  friend struct OpTermHashFunction;
-
- public:
-  /**
-   * Constructor.
-   */
-  OpTerm();
-
-  // !!! This constructor is only temporarily public until the parser is fully
-  // migrated to the new API. !!!
-  /**
-   * Constructor.
-   * @param e the internal expression that is to be wrapped by this term
-   * @return the Term
-   */
-  OpTerm(const CVC4::Expr& e);
-
-  /**
-   * Destructor.
-   */
-  ~OpTerm();
-
-  /**
-   * Syntactic equality operator.
-   * Return true if both operator terms are syntactically identical.
-   * Both operator terms must belong to the same solver object.
-   * @param t the operator term to compare to for equality
-   * @return true if the operator terms are equal
-   */
-  bool operator==(const OpTerm& t) const;
-
-  /**
-   * Syntactic disequality operator.
-   * Return true if both operator terms differ syntactically.
-   * Both terms must belong to the same solver object.
-   * @param t the operator term to compare to for disequality
-   * @return true if operator terms are disequal
-   */
-  bool operator!=(const OpTerm& t) const;
-
-  /**
-   * @return the kind of this operator term
-   */
-  Kind getKind() const;
-
-  /**
-   * @return the sort of this operator term
-   */
-  Sort getSort() const;
-
-  /**
-   * @return true if this operator term is a null term
-   */
-  bool isNull() const;
-
-  /**
-   * @return a string representation of this operator term
-   */
-  std::string toString() const;
-
-  // !!! This is only temporarily available until the parser is fully migrated
-  // to the new API. !!!
-  CVC4::Expr getExpr(void) const;
-
- private:
-  /**
-   * The internal expression wrapped by this operator term.
-   * This is a shared_ptr rather than a unique_ptr to avoid overhead due to
-   * memory allocation (CVC4::Expr is already ref counted, so this could be
-   * a unique_ptr instead).
-   */
-  std::shared_ptr<CVC4::Expr> d_expr;
-};
-
-/**
- * Serialize an operator term to given stream.
- * @param out the output stream
- * @param t the operator term to be serialized to the given output stream
- * @return the output stream
- */
-std::ostream& operator<<(std::ostream& out, const OpTerm& t) CVC4_PUBLIC;
-
-/**
- * Hash function for OpTerms.
- */
-struct CVC4_PUBLIC OpTermHashFunction
-{
-  size_t operator()(const OpTerm& t) const;
-};
 
 /* -------------------------------------------------------------------------- */
 /* Datatypes                                                                  */
