@@ -75,7 +75,7 @@ public:
   * lemmas, and conflicts. If this class makes no such call, then the current
   * set of assertions is satisfiable with respect to relations.
   */
- void check(Theory::Effort);
+ void check(Theory::Effort e);
  /** Is kind k a kind that belongs to the relation theory? */
  static bool isRelationKind(Kind k);
 
