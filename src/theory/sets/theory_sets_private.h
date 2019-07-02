@@ -26,6 +26,7 @@
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 #include "theory/sets/cardinality_extension.h"
+#include "theory/sets/sets_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -38,6 +39,7 @@ class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
   friend class CardinalityExtension;
+  friend class SetsState;
 //new implementation
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
@@ -263,6 +265,8 @@ private: //for universe set
 
   void propagate(Theory::Effort);
 
+  /** get default output channel */
+  OutputChannel* getOutputChannel();
 private:
   TheorySets& d_external;
 

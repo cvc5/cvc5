@@ -2143,6 +2143,10 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
 
+OutputChannel* TheorySetsPrivate::getOutputChannel()
+{
+  return d_external.d_out;
+}
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);

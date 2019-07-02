@@ -103,6 +103,8 @@ private:
   /** constants */
   Node d_true;
   Node d_false;
+  /** Reference to the parent theory of sets */
+  TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   
@@ -122,9 +124,11 @@ private:
   std::map< Node, std::vector< Node > > d_nvar_sets;
   std::map< Node, Node > d_var_set;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
+  // -------------------------------- term indices
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
+  // -------------------------------- end term indices
   std::map< Kind, std::vector< Node > > d_op_list;
   /** type constraint skolems
    *
@@ -138,6 +142,17 @@ private:
    * The type constraint Skolem for (y, Int) is the skolemization of k above.
    */
   std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;  
+  
+  /** is set disequality entailed internal 
+   * 
+   * This returns true if disequality between sets a and b is entailed in the
+   * current context. We use an incomplete test based on equality and membership
+   * information.
+   * 
+   * eqE is the representative of the equivalence class of the empty set
+   * whose type is the same as a and b.
+   */
+  bool isSetDisequalityEntailedInternal( Node a, Node b, Node re );
 };/* class TheorySetsPrivate */
 
 
