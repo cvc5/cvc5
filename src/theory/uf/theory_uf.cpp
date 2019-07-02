@@ -29,6 +29,7 @@
 #include "proof/uf_proof.h"
 #include "theory/theory_model.h"
 #include "theory/type_enumerator.h"
+#include "theory/uf/ho_extension.h"
 #include "theory/uf/theory_uf_rewriter.h"
 #include "theory/uf/theory_uf_strong_solver.h"
 
@@ -49,11 +50,10 @@ TheoryUF::TheoryUF(context::Context* c,
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
-      d_thss(NULL),
+      d_thss(nullptr),
+      d_ho(nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_conflict(c, false),
-      d_extensionality(u),
-      d_uf_std_skolem(u),
       d_functionsTerms(c),
       d_symb(u, instanceName)
 {
@@ -61,13 +61,9 @@ TheoryUF::TheoryUF(context::Context* c,
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::APPLY_UF, false, options::ufHo());
-  if( options::ufHo() ){
-    d_equalityEngine.addFunctionKind(kind::HO_APPLY);
-  }
 }
 
 TheoryUF::~TheoryUF() {
-  delete d_thss;
 }
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -85,7 +81,13 @@ void TheoryUF::finishInit() {
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
       && options::ufssMode() != UF_SS_NONE)
   {
-    d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
+    d_thss.reset(new StrongSolverTheoryUF(
+        getSatContext(), getUserContext(), *d_out, this));
+  }
+  if (options::ufHo())
+  {
+    d_equalityEngine.addFunctionKind(kind::HO_APPLY);
+    d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
   }
 }
 
@@ -143,7 +145,8 @@ void TheoryUF::check(Effort level) {
       d_equalityEngine.assertEquality(atom, polarity, fact);
       if( options::ufHo() && options::ufHoExt() ){
         if( !polarity && !d_conflict && atom[0].getType().isFunction() ){
-          applyExtensionality( fact );
+          // apply extensionality eagerly using the ho extension
+          d_ho->applyExtensionality(fact);
         }
       }
     } else if (atom.getKind() == kind::CARDINALITY_CONSTRAINT || atom.getKind() == kind::COMBINED_CARDINALITY_CONSTRAINT) {
@@ -168,88 +171,21 @@ void TheoryUF::check(Effort level) {
   }
 
   if(! d_conflict ){
+    // check with the cardinality constraints extension
     if (d_thss != NULL) {
       d_thss->check(level);
       if( d_thss->isConflict() ){
         d_conflict = true;
       }
     }
+    // check with the higher-order extension
     if(! d_conflict && fullEffort(level) ){
       if( options::ufHo() ){
-        checkHigherOrder();
+        d_ho->check();
       }
     }
   }
 }/* TheoryUF::check() */
-
-Node TheoryUF::getApplyUfForHoApply( Node node ) {
-  Assert( node[0].getType().getNumChildren()==2 );
-  std::vector< TNode > args;
-  Node f = TheoryUfRewriter::decomposeHoApply( node, args, true );
-  Node new_f = f;
-  NodeManager* nm = NodeManager::currentNM();
-  if( !TheoryUfRewriter::canUseAsApplyUfOperator( f ) ){
-    NodeNodeMap::const_iterator itus = d_uf_std_skolem.find( f );
-    if( itus==d_uf_std_skolem.end() ){
-      std::unordered_set<Node, NodeHashFunction> fvs;
-      expr::getFreeVariables(f, fvs);
-      Node lem;
-      if (!fvs.empty())
-      {
-        std::vector<TypeNode> newTypes;
-        std::vector<Node> vs;
-        std::vector<Node> nvs;
-        for (const Node& v : fvs)
-        {
-          TypeNode vt = v.getType();
-          newTypes.push_back(vt);
-          Node nv = nm->mkBoundVar(vt);
-          vs.push_back(v);
-          nvs.push_back(nv);
-        }
-        TypeNode ft = f.getType();
-        std::vector<TypeNode> argTypes = ft.getArgTypes();
-        TypeNode rangeType = ft.getRangeType();
-
-        newTypes.insert(newTypes.end(), argTypes.begin(), argTypes.end());
-        TypeNode nft = nm->mkFunctionType(newTypes, rangeType);
-        new_f = nm->mkSkolem("app_uf", nft);
-        for (const Node& v : vs)
-        {
-          new_f = nm->mkNode(kind::HO_APPLY, new_f, v);
-        }
-        Assert(new_f.getType() == f.getType());
-        Node eq = new_f.eqNode(f);
-        Node seq = eq.substitute(vs.begin(), vs.end(), nvs.begin(), nvs.end());
-        lem = nm->mkNode(
-            kind::FORALL, nm->mkNode(kind::BOUND_VAR_LIST, nvs), seq);
-      }
-      else
-      {
-        // introduce skolem to make a standard APPLY_UF
-        new_f = nm->mkSkolem("app_uf", f.getType());
-        lem = new_f.eqNode(f);
-      }
-      Trace("uf-ho-lemma") << "uf-ho-lemma : Skolem definition for apply-conversion : " << lem << std::endl;
-      d_out->lemma( lem );
-      d_uf_std_skolem[f] = new_f;
-    }else{
-      new_f = (*itus).second;
-    }
-    // unroll the HO_APPLY, adding to the first argument position
-    // Note arguments in the vector args begin at position 1.
-    while (new_f.getKind() == kind::HO_APPLY)
-    {
-      args.insert(args.begin() + 1, new_f[1]);
-      new_f = new_f[0];
-    }
-  }
-  Assert( TheoryUfRewriter::canUseAsApplyUfOperator( new_f ) );
-  args[0] = new_f;
-  Node ret = nm->mkNode(kind::APPLY_UF, args);
-  Assert(ret.getType() == node.getType());
-  return ret;
-}
 
 Node TheoryUF::getOperatorForApplyTerm( TNode node ) {
   Assert( node.getKind()==kind::APPLY_UF || node.getKind()==kind::HO_APPLY );
@@ -266,18 +202,19 @@ unsigned TheoryUF::getArgumentStartIndexForApplyTerm( TNode node ) {
 }
 
 Node TheoryUF::expandDefinition(LogicRequest &logicRequest, Node node) {
-  Trace("uf-ho-debug") << "uf-ho-debug : expanding definition : " << node << std::endl;
+  Trace("uf-exp-def") << "TheoryUF::expandDefinition: expanding definition : "
+                      << node << std::endl;
   if( node.getKind()==kind::HO_APPLY ){
     if( !options::ufHo() ){
       std::stringstream ss;
       ss << "Partial function applications are not supported in default mode, try --uf-ho.";
       throw LogicException(ss.str());
     }
-    // convert HO_APPLY to APPLY_UF if fully applied
-    if( node[0].getType().getNumChildren()==2 ){
-      Trace("uf-ho") << "uf-ho : expanding definition : " << node << std::endl;
-      Node ret = getApplyUfForHoApply( node );
-      Trace("uf-ho") << "uf-ho : expandDefinition : " << node << " to " << ret << std::endl;
+    Node ret = d_ho->expandDefinition(node);
+    if (ret != node)
+    {
+      Trace("uf-exp-def") << "TheoryUF::expandDefinition: higher-order: "
+                          << node << " to " << ret << std::endl;
       return ret;
     }
   }
@@ -391,37 +328,15 @@ bool TheoryUF::collectModelInfo(TheoryModel* m)
   }
 
   if( options::ufHo() ){
-    for( std::set<Node>::iterator it = termSet.begin(); it != termSet.end(); ++it ){
-      Node n = *it;
-      // for model-building with ufHo, we require that APPLY_UF is always
-      // expanded to HO_APPLY
-      if (!collectModelInfoHoTerm(n, m))
-      {
-        return false;
-      }
-    }
     // must add extensionality disequalities for all pairs of (non-disequal)
     // function equivalence classes.
-    if (checkExtensionality(m) != 0)
+    if (!d_ho->collectModelInfoHo(termSet, m))
     {
       return false;
     }
   }
 
   Debug("uf") << "UF : finish collectModelInfo " << std::endl;
-  return true;
-}
-
-bool TheoryUF::collectModelInfoHoTerm(Node n, TheoryModel* m)
-{
-  if (n.getKind() == kind::APPLY_UF)
-  {
-    Node hn = TheoryUfRewriter::getHoApplyForApplyUf(n);
-    if (!m->assertEquality(n, hn, true))
-    {
-      return false;
-    }
-  }
   return true;
 }
 
@@ -747,236 +662,6 @@ void TheoryUF::eqNotifyDisequal(TNode t1, TNode t2, TNode reason) {
   if (d_thss != NULL) {
     d_thss->assertDisequal(t1, t2, reason);
   }
-}
-
-Node TheoryUF::getExtensionalityDeq(TNode deq)
-{
-  Assert( deq.getKind()==kind::NOT && deq[0].getKind()==kind::EQUAL );
-  Assert( deq[0][0].getType().isFunction() );
-  std::map<Node, Node>::iterator it = d_extensionality_deq.find(deq);
-  if (it == d_extensionality_deq.end())
-  {
-    TypeNode tn = deq[0][0].getType();
-    std::vector<TypeNode> argTypes = tn.getArgTypes();
-    std::vector< Node > skolems;
-    NodeManager* nm = NodeManager::currentNM();
-    for (unsigned i = 0, nargs = argTypes.size(); i < nargs; i++)
-    {
-      Node k =
-          nm->mkSkolem("k", argTypes[i], "skolem created for extensionality.");
-      skolems.push_back( k );
-    }
-    Node t[2];
-    for (unsigned i = 0; i < 2; i++)
-    {
-      std::vector< Node > children;
-      Node curr = deq[0][i];
-      while( curr.getKind()==kind::HO_APPLY ){
-        children.push_back( curr[1] );
-        curr = curr[0];
-      }
-      children.push_back( curr );
-      std::reverse( children.begin(), children.end() );
-      children.insert( children.end(), skolems.begin(), skolems.end() );
-      t[i] = nm->mkNode(kind::APPLY_UF, children);
-    }
-    Node conc = t[0].eqNode( t[1] ).negate();
-    d_extensionality_deq[deq] = conc;
-    return conc;
-  }
-  return it->second;
-}
-
-unsigned TheoryUF::applyExtensionality(TNode deq)
-{
-  Assert(deq.getKind() == kind::NOT && deq[0].getKind() == kind::EQUAL);
-  Assert(deq[0][0].getType().isFunction());
-  // apply extensionality
-  if (d_extensionality.find(deq) == d_extensionality.end())
-  {
-    d_extensionality.insert(deq);
-    Node conc = getExtensionalityDeq(deq);
-    Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq[0], conc );
-    Trace("uf-ho-lemma") << "uf-ho-lemma : extensionality : " << lem << std::endl;
-    d_out->lemma( lem );
-    return 1;
-  }
-  return 0;
-}
-
-unsigned TheoryUF::checkExtensionality(TheoryModel* m)
-{
-  unsigned num_lemmas = 0;
-  bool isCollectModel = (m != nullptr);
-  Trace("uf-ho") << "TheoryUF::checkExtensionality, collectModel="
-                 << isCollectModel << "..." << std::endl;
-  std::map< TypeNode, std::vector< Node > > func_eqcs;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  while( !eqcs_i.isFinished() ){
-    Node eqc = (*eqcs_i);
-    TypeNode tn = eqc.getType();
-    if( tn.isFunction() ){
-      // if during collect model, must have an infinite type
-      // if not during collect model, must have a finite type
-      if (tn.isInterpretedFinite() != isCollectModel)
-      {
-        func_eqcs[tn].push_back(eqc);
-        Trace("uf-ho-debug")
-            << "  func eqc : " << tn << " : " << eqc << std::endl;
-      }
-    }
-    ++eqcs_i;
-  }
-  
-  for( std::map< TypeNode, std::vector< Node > >::iterator itf = func_eqcs.begin(); 
-       itf != func_eqcs.end(); ++itf ){
-    for( unsigned j=0; j<itf->second.size(); j++ ){
-      for( unsigned k=(j+1); k<itf->second.size(); k++ ){ 
-        // if these equivalence classes are not explicitly disequal, do extensionality to ensure distinctness
-        if (!d_equalityEngine.areDisequal(
-                itf->second[j], itf->second[k], false))
-        {
-          Node deq = Rewriter::rewrite( itf->second[j].eqNode( itf->second[k] ).negate() );
-          // either add to model, or add lemma
-          if (isCollectModel)
-          {
-            // add extentionality disequality to the model
-            Node edeq = getExtensionalityDeq(deq);
-            Assert(edeq.getKind() == kind::NOT
-                   && edeq[0].getKind() == kind::EQUAL);
-            // introducing terms, must add required constraints, e.g. to
-            // force equalities between APPLY_UF and HO_APPLY terms
-            for (unsigned r = 0; r < 2; r++)
-            {
-              if (!collectModelInfoHoTerm(edeq[0][r], m))
-              {
-                return 1;
-              }
-            }
-            Trace("uf-ho-debug")
-                << "Add extensionality deq to model : " << edeq << std::endl;
-            if (!m->assertEquality(edeq[0][0], edeq[0][1], false))
-            {
-              return 1;
-            }
-          }
-          else
-          {
-            // apply extensionality lemma
-            num_lemmas += applyExtensionality(deq);
-          }
-        }
-      }   
-    }
-  }
-  return num_lemmas;
-}
-
-unsigned TheoryUF::applyAppCompletion( TNode n ) {
-  Assert( n.getKind()==kind::APPLY_UF );
-
-  //must expand into APPLY_HO version if not there already
-  Node ret = TheoryUfRewriter::getHoApplyForApplyUf( n );
-  if( !d_equalityEngine.hasTerm( ret ) || !d_equalityEngine.areEqual( ret, n ) ){
-    Node eq = ret.eqNode( n );
-    Trace("uf-ho-lemma") << "uf-ho-lemma : infer, by apply-expand : " << eq << std::endl;
-    d_equalityEngine.assertEquality(eq, true, d_true);
-    return 1;
-  }else{
-    Trace("uf-ho-debug") << "    ...already have " << ret << " == " << n << "." << std::endl;
-    return 0;
-  }
-}
-
-unsigned TheoryUF::checkAppCompletion() {
-  Trace("uf-ho") << "TheoryUF::checkApplyCompletion..." << std::endl;
-  // compute the operators that are relevant (those for which an HO_APPLY exist)
-  std::set< TNode > rlvOp;
-  eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
-  std::map< TNode, std::vector< Node > > apply_uf;
-  while( !eqcs_i.isFinished() ){
-    Node eqc = (*eqcs_i);
-    Trace("uf-ho-debug") << "  apply completion : visit eqc " << eqc << std::endl;
-    eq::EqClassIterator eqc_i = eq::EqClassIterator( eqc, &d_equalityEngine );
-    while( !eqc_i.isFinished() ){
-      Node n = *eqc_i;
-      if( n.getKind()==kind::APPLY_UF || n.getKind()==kind::HO_APPLY ){
-        int curr_sum = 0;
-        std::map< TNode, bool > curr_rops;
-        if( n.getKind()==kind::APPLY_UF ){
-          TNode rop = d_equalityEngine.getRepresentative( n.getOperator() );
-          if( rlvOp.find( rop )!=rlvOp.end() ){
-            // try if its operator is relevant
-            curr_sum = applyAppCompletion( n );
-            if( curr_sum>0 ){
-              return curr_sum;
-            }
-          }else{
-            // add to pending list
-            apply_uf[rop].push_back( n );
-          }
-          //arguments are also relevant operators  FIXME (github issue #1115)
-          for( unsigned k=0; k<n.getNumChildren(); k++ ){
-            if( n[k].getType().isFunction() ){
-              TNode rop = d_equalityEngine.getRepresentative( n[k] );
-              curr_rops[rop] = true;
-            }
-          }
-        }else{
-          Assert( n.getKind()==kind::HO_APPLY );
-          TNode rop = d_equalityEngine.getRepresentative( n[0] );
-          curr_rops[rop] = true;
-        }
-        for( std::map< TNode, bool >::iterator itc = curr_rops.begin(); itc != curr_rops.end(); ++itc ){
-          TNode rop = itc->first;
-          if( rlvOp.find( rop )==rlvOp.end() ){
-            rlvOp.insert( rop );
-            // now, try each pending APPLY_UF for this operator
-            std::map< TNode, std::vector< Node > >::iterator itu = apply_uf.find( rop );
-            if( itu!=apply_uf.end() ){
-              for( unsigned j=0; j<itu->second.size(); j++ ){
-                curr_sum = applyAppCompletion( itu->second[j] );
-                if( curr_sum>0 ){
-                  return curr_sum;
-                }
-              }
-            }
-          }
-        }
-      }
-      ++eqc_i;
-    }
-    ++eqcs_i;
-  }
-  return 0;
-}
-
-unsigned TheoryUF::checkHigherOrder() {
-  Trace("uf-ho") << "TheoryUF::checkHigherOrder..." << std::endl;
-
-  // infer new facts based on apply completion until fixed point 
-  unsigned num_facts;
-  do{
-    num_facts = checkAppCompletion();
-    if( d_conflict ){
-      Trace("uf-ho") << "...conflict during app-completion." << std::endl;
-      return 1;  
-    }
-  }while( num_facts>0 );
-
-  if( options::ufHoExt() ){
-    unsigned num_lemmas = 0;
-
-    num_lemmas = checkExtensionality();
-    if( num_lemmas>0 ){
-      Trace("uf-ho") << "...extensionality returned " << num_lemmas << " lemmas." << std::endl;
-      return num_lemmas;
-    }
-  }
-
-  Trace("uf-ho") << "...finished check higher order." << std::endl;
-
-  return 0;
 }
 
 } /* namespace CVC4::theory::uf */

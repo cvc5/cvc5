@@ -1158,10 +1158,12 @@ void SmtEngine::setDefaults() {
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage())
-        || options::inputLanguage() == language::input::LANG_SYGUS);
+        || options::inputLanguage() == language::input::LANG_SYGUS
+        || options::inputLanguage() == language::input::LANG_SYGUS_V2);
   }
   bool is_sygus = false;
-  if (options::inputLanguage() == language::input::LANG_SYGUS)
+  if (options::inputLanguage() == language::input::LANG_SYGUS
+      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
   {
     is_sygus = true;
   }

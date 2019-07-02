@@ -1784,6 +1784,24 @@ header = "options/quantifiers_options.h"
   read_only  = true
   help       = "merge term indices modulo equality"
 
+[[option]]
+  name       = "hoElim"
+  category   = "regular"
+  long       = "ho-elim"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "eagerly eliminate higher-order constraints"
+
+[[option]]
+  name       = "hoElimStoreAx"
+  category   = "regular"
+  long       = "ho-elim-store-ax"
+  type       = "bool"
+  default    = "true"
+  read_only  = false
+  help       = "use store axiom during ho-elim"
+
 ### Proof options
 
 [[option]]

@@ -60,6 +60,8 @@ libcvc4_add_sources(
   preprocessing/passes/extended_rewriter_pass.h
   preprocessing/passes/global_negate.cpp
   preprocessing/passes/global_negate.h
+  preprocessing/passes/ho_elim.cpp
+  preprocessing/passes/ho_elim.h
   preprocessing/passes/int_to_bv.cpp
   preprocessing/passes/int_to_bv.h
   preprocessing/passes/ite_removal.cpp
@@ -219,6 +221,7 @@ libcvc4_add_sources(
   prop/sat_solver_factory.cpp
   prop/sat_solver_factory.h
   prop/bv_sat_solver_notify.h
+  prop/sat_solver_types.cpp
   prop/sat_solver_types.h
   prop/theory_proxy.cpp
   prop/theory_proxy.h
@@ -669,6 +672,8 @@ libcvc4_add_sources(
   theory/uf/equality_engine.cpp
   theory/uf/equality_engine.h
   theory/uf/equality_engine_types.h
+  theory/uf/ho_extension.cpp
+  theory/uf/ho_extension.h
   theory/uf/symmetry_breaker.cpp
   theory/uf/symmetry_breaker.h
   theory/uf/theory_uf.cpp
