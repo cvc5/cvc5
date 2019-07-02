@@ -25,6 +25,7 @@
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/sets/cardinality_extension.h"
 
 namespace CVC4 {
 namespace theory {
@@ -36,6 +37,7 @@ class TheorySets;
 class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
+  friend class CardinalityExtension;
 //new implementation
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;

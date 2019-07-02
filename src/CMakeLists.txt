@@ -614,6 +614,8 @@ libcvc4_add_sources(
   theory/sep/theory_sep_type_rules.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
+  theory/sets/sets_state.cpp
+  theory/sets/sets_state.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp
