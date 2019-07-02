@@ -1030,7 +1030,10 @@ bool Term::isNull() const { return d_expr->isNull(); }
 
 bool Term::hasOperator() const { return d_expr->hasOperator(); }
 
-bool Term::hasBuiltinOperator() const { return d_expr->getOperator().getKind() == CVC4::kind::BUILTIN; }
+bool Term::hasBuiltinOperator() const
+{
+  return d_expr->getOperator().getKind() == CVC4::kind::BUILTIN;
+}
 
 bool Term::hasOpTermOperator() const
 {
@@ -1042,13 +1045,15 @@ bool Term::hasUFOperator() const { return d_expr->getOperator().isVariable(); }
 
 OpTerm Term::getOpTerm() const
 {
-  CVC4_API_CHECK(hasOperator() && hasOpTermOperator()) << "Does not have an OpTerm operator.";
+  CVC4_API_CHECK(hasOperator() && hasOpTermOperator())
+      << "Does not have an OpTerm operator.";
   return OpTerm(d_expr->getOperator());
 }
 
 Term Term::getUF() const
 {
-  CVC4_API_CHECK(hasOperator() && hasUFOperator()) << "Does not have an UF operator.";
+  CVC4_API_CHECK(hasOperator() && hasUFOperator())
+      << "Does not have an UF operator.";
   return Term(d_expr->getOperator());
 }
 

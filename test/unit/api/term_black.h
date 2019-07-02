@@ -590,4 +590,3 @@ void TermBlack::testUFOperator()
   TS_ASSERT(!fx.hasOpTermOperator());
   TS_ASSERT_EQUALS(fx.getUF(), f);
 }
-
