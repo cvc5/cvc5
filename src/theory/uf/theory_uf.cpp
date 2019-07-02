@@ -50,7 +50,8 @@ TheoryUF::TheoryUF(context::Context* c,
       d_notify(*this),
       /* The strong theory solver can be notified by EqualityEngine::init(),
        * so make sure it's initialized first. */
-      d_thss(NULL),
+      d_thss(nullptr),
+      d_ho(nullptr),
       d_equalityEngine(d_notify, c, instanceName + "theory::uf::ee", true),
       d_conflict(c, false),
       d_functionsTerms(c),
@@ -63,7 +64,6 @@ TheoryUF::TheoryUF(context::Context* c,
 }
 
 TheoryUF::~TheoryUF() {
-  delete d_thss;
 }
 
 void TheoryUF::setMasterEqualityEngine(eq::EqualityEngine* eq) {
@@ -81,12 +81,12 @@ void TheoryUF::finishInit() {
   if (getLogicInfo().isTheoryEnabled(THEORY_UF) && options::finiteModelFind()
       && options::ufssMode() != UF_SS_NONE)
   {
-    d_thss = new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this);
+    d_thss.reset(new StrongSolverTheoryUF(getSatContext(), getUserContext(), *d_out, this));
   }
   if (options::ufHo())
   {
     d_equalityEngine.addFunctionKind(kind::HO_APPLY);
-    d_ho = new HoExtension(*this, getSatContext(), getUserContext());
+    d_ho.reset(new HoExtension(*this, getSatContext(), getUserContext()));
   }
 }
 

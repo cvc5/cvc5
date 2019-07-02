@@ -120,8 +120,10 @@ private:
   /** The notify class */
   NotifyClass d_notify;
 
-  /** The associated theory strong solver (or NULL if none) */
-  StrongSolverTheoryUF* d_thss;
+  /** The associated theory strong solver (or nullptr if it does not exist) */
+  std::unique_ptr<StrongSolverTheoryUF> d_thss;
+  /** the higher-order solver extension (or nullptr if it does not exist) */
+  std::unique_ptr<HoExtension> d_ho;
 
   /** Equaltity engine */
   eq::EqualityEngine d_equalityEngine;
@@ -132,8 +134,6 @@ private:
   /** The conflict node */
   Node d_conflictNode;
 
-  /** the higher-order solver extension */
-  HoExtension* d_ho;
 
   /** node for true */
   Node d_true;
@@ -218,8 +218,9 @@ private:
 
   eq::EqualityEngine* getEqualityEngine() override { return &d_equalityEngine; }
 
-  StrongSolverTheoryUF* getStrongSolver() {
-    return d_thss;
+  /** get a pointer to the strong solver (uf with cardinality) */
+  StrongSolverTheoryUF* getStrongSolver() const {
+    return d_thss.get();
   }
   /** are we in conflict? */
   bool inConflict() const { return d_conflict; }
