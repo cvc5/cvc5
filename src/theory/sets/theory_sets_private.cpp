@@ -54,6 +54,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
+      d_state(*this,d_equalityEngine,c,u),
       d_rels(
           new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
       d_rels_enabled(false)
@@ -531,6 +532,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_t_card_enabled.clear();
     d_rels_enabled = false;
     d_eqc_to_card_term.clear();
+    d_state.reset();
 
     std::vector< Node > lemmas;
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
@@ -539,6 +541,7 @@ void TheorySetsPrivate::fullEffortCheck(){
       Node eqc = (*eqcs_i);
       bool isSet = false;
       TypeNode tn = eqc.getType();
+      d_state.registerEqc(tn,eqc);
       //common type node and term
       TypeNode tnc;
       Node tnct;
@@ -566,6 +569,7 @@ void TheorySetsPrivate::fullEffortCheck(){
             tnct = n;
           }
         }
+        d_state.registerTerm(eqc,tnn,n);
         if( n.getKind()==kind::MEMBER ){
           if( eqc.isConst() ){
             Node s = d_equalityEngine.getRepresentative( n[1] );

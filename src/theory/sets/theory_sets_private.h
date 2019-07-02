@@ -324,6 +324,8 @@ public:
   bool isEntailed( Node n, bool pol );
 
  private:
+  /** The state of the sets solver at full effort */
+  SetsState d_state;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** are relations enabled?
