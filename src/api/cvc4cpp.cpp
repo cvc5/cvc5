@@ -1042,11 +1042,13 @@ bool Term::hasUFOperator() const { return d_expr->getOperator().isVariable(); }
 
 OpTerm Term::getOpTerm() const
 {
+  CVC4_API_CHECK(hasOperator() && hasOpTermOperator()) << "Does not have an OpTerm operator.";
   return OpTerm(d_expr->getOperator());
 }
 
 Term Term::getUF() const
 {
+  CVC4_API_CHECK(hasOperator() && hasUFOperator()) << "Does not have an UF operator.";
   return Term(d_expr->getOperator());
 }
 
