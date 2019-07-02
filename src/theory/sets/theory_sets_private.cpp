@@ -513,7 +513,6 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_addedFact = false;
     d_full_check_incomplete = false;
     d_set_eqc.clear();
-    d_set_eqc_list.clear();
     d_eqc_emptyset.clear();
     d_eqc_univset.clear();
     d_eqc_singleton.clear();
@@ -618,7 +617,6 @@ void TheorySetsPrivate::fullEffortCheck(){
           }
           d_nvar_sets[eqc].push_back( n );
           Trace("sets-debug2") << "Non-var-set[" << eqc << "] : " << n << std::endl;
-          d_set_eqc_list[eqc].push_back( n );
         }else if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
           TypeNode tnc = n[0].getType().getSetElementType();
@@ -649,7 +647,6 @@ void TheorySetsPrivate::fullEffortCheck(){
             d_rels_enabled = true;
           }
           if( isSet ){
-            d_set_eqc_list[eqc].push_back( n );
             if( n.getKind()==kind::VARIABLE ){
               if( d_var_set.find( eqc )==d_var_set.end() ){
                 d_var_set[eqc] = n;

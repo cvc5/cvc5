@@ -31,38 +31,69 @@ namespace sets {
 
 CardinalityExtension::CardinalityExtension(TheorySetsPrivate& p,
                        SetsState& s,
-                 eq::EqualityEngine* e,
+                 eq::EqualityEngine& e,
                                      context::Context* c,
                                      context::UserContext* u)
     : d_parent(p),
     d_state(s),
+    d_ee(e),
       d_card_processed(u)
 {
   d_zero = NodeManager::currentNM()->mkConst( Rational(0) );
 
-  e->addFunctionKind(CARD);
+  d_ee.addFunctionKind(CARD);
 }
+
 void CardinalityExtension::check()
 {
-  
+  std::vector< Node > lemmas;
+  checkCardBuildGraph( lemmas );
+  d_parent.flushLemmas( lemmas );
+  if( d_parent.hasProcessed() ){
+    return;
+  }
+  checkMinCard( lemmas );
+  d_parent.flushLemmas( lemmas );
+  if( d_parent.hasProcessed() ){
+    return;
+  }
+  checkCardCycles( lemmas );
+  d_parent.flushLemmas( lemmas );
+  if( d_parent.hasProcessed() ){
+    return;
+  }
+  std::vector<Node> intro_sets;
+  checkNormalForms( lemmas, intro_sets );
+  d_parent.flushLemmas( lemmas );
+  if (d_parent.hasProcessed() || intro_sets.empty())
+  {
+    return;
+  }
+  Assert(intro_sets.size() == 1);
+  Trace("sets-intro")
+      << "Introduce term : " << intro_sets[0] << std::endl;
+  Trace("sets-intro") << "  Actual Intro : ";
+            //FIXME
+  //debugPrintSet(intro_sets[0], "sets-nf");
+  Trace("sets-nf") << std::endl;
+  Node k = d_state.getProxy(intro_sets[0]);
 }
 
 void CardinalityExtension::checkCardBuildGraph( std::vector< Node >& lemmas ) {
   Trace("sets") << "Cardinality graph..." << std::endl;
   NodeManager * nm = NodeManager::currentNM();
   //first, ensure cardinality relationships are added as lemmas for all non-basic set terms
-  for( const Node& eqc : d_set_eqc )
+  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
+  for( const Node& eqc : setEqc )
   {
-    std::map< Node, std::vector< Node > >::iterator itn = d_nvar_sets.find( eqc );
-    if( itn!=d_nvar_sets.end() ){
-      for( const Node& n : itn->second ){
-        if( d_congruent.find( n )==d_congruent.end() ){
-          //if setminus, do for intersection instead
-          if( n.getKind()==SETMINUS ){
-            n = Rewriter::rewrite( nm->mkNode( INTERSECTION, n[0], n[1] ) );
-          }
-          registerCardinalityTerm( n, lemmas );
+    std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+    for( Node n : nvsets ){
+      if( !d_state.isCongruent(n) ){
+        //if setminus, do for intersection instead
+        if( n.getKind()==SETMINUS ){
+          n = Rewriter::rewrite( nm->mkNode( INTERSECTION, n[0], n[1] ) );
         }
+        registerCardinalityTerm( n, lemmas );
       }
     }
   }
@@ -90,22 +121,21 @@ void CardinalityExtension::registerCardinalityTerm( Node n, std::vector< Node >&
       cterms.push_back( s );
     }
     Node pos_lem = nm->mkNode( GEQ, nm->mkNode( CARD, n ), d_zero );
-    // FIXME
-    //assertInference( pos_lem, d_emp_exp, lemmas, "pcard", 1 );
+    d_parent.assertInference( pos_lem, d_emp_exp, lemmas, "pcard", 1 );
   }else{
     cterms.push_back( n );
   }
   for( unsigned k=0, csize = cterms.size(); k<csize; k++ ){
     Node nn = cterms[k];
-    Node nk = getProxy( nn );
+    Node nk = d_state.getProxy( nn );
     Node pos_lem = nm->mkNode( GEQ, nm->mkNode( CARD, nk ), d_zero );
-    assertInference( pos_lem, d_emp_exp, lemmas, "pcard", 1 );
+    d_parent.assertInference( pos_lem, d_emp_exp, lemmas, "pcard", 1 );
     if( nn!=nk ){
       Node lem = nm->mkNode( EQUAL, nm->mkNode( CARD, nk ),
                                                                 nm->mkNode( CARD, nn ) );
       lem = Rewriter::rewrite( lem );
       Trace("sets-card") << "  " << k << " : " << lem << std::endl;
-      assertInference( lem, d_emp_exp, lemmas, "card", 1 );
+      d_parent.assertInference( lem, d_emp_exp, lemmas, "card", 1 );
     }
   }
 }
@@ -113,22 +143,17 @@ void CardinalityExtension::registerCardinalityTerm( Node n, std::vector< Node >&
 void CardinalityExtension::checkCardCycles( std::vector< Node >& lemmas ) {
   Trace("sets") << "Check cardinality cycles..." << std::endl;
   //build order of equivalence classes, also build cardinality graph
-  std::vector< Node > set_eqc_tmp;
-  // FIXME: improve
-  set_eqc_tmp.insert( set_eqc_tmp.end(), d_parent.d_set_eqc.begin(), d_parent.d_set_eqc.end() );
+  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
   d_set_eqc.clear();
   d_card_parent.clear();
-  for( unsigned i=0; i<set_eqc_tmp.size(); i++ ){
+  for( unsigned i=0; i<setEqc.size(); i++ ){
     std::vector< Node > curr;
     std::vector< Node > exp;
-    checkCardCyclesRec( set_eqc_tmp[i], curr, exp, lemmas );
-    // FIXME
-    /*
-    flushLemmas( lemmas );
+    checkCardCyclesRec( setEqc[i], curr, exp, lemmas );
+    d_parent.flushLemmas( lemmas );
     if( d_parent.hasProcessed() ){
       return;
     }
-    */
   }
   Trace("sets") << "Done check cardinality cycles" << std::endl;
 }
@@ -144,11 +169,8 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
         conc.push_back( curr[0].eqNode( curr[i] ) );
       }
       Node fact = conc.size()==1 ? conc[0] : nm->mkNode( AND, conc );
-      // FIXME
-      /*
-      assertInference( fact, exp, lemmas, "card_cycle" );
-      flushLemmas( lemmas );
-      */
+      d_parent.assertInference( fact, exp, lemmas, "card_cycle" );
+      d_parent.flushLemmas( lemmas );
     }else{
       //should be guaranteed based on not exploring equal parents
       Assert( false );
@@ -159,17 +181,17 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
     // already processed
     return;
   }
-  std::map< Node, std::vector< Node > >::iterator itn = d_nvar_sets.find( eqc );
-  if( itn==d_nvar_sets.end() ){
+  std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+  if( nvsets.empty() ){
     // no non-variable sets, trivial
     d_set_eqc.push_back(eqc);
     return;
   }
   curr.push_back( eqc );
   TypeNode tn = eqc.getType();
-  bool is_empty = eqc==d_eqc_emptyset[tn];
-  Node emp_set = getEmptySet( tn );
-  for( const Node& n : itn->second ){
+  bool is_empty = eqc==d_state.getEmptySetEqClass(tn);
+  Node emp_set = d_state.getEmptySet( tn );
+  for( const Node& n : nvsets ){
     Kind nk = n.getKind();
     if( nk!=INTERSECTION && nk!=SETMINUS ){
       continue;
@@ -193,24 +215,24 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
       true_sib = 1;
     }
     Node u = Rewriter::rewrite( nm->mkNode( UNION, n[0], n[1] ) );
-    if( !d_equalityEngine.hasTerm( u ) ){
+    if( !d_ee.hasTerm( u ) ){
       u = Node::null();
     }
     unsigned n_parents = true_sib + ( u.isNull() ? 0 : 1 );
     //if this set is empty
     if( is_empty ){
-      Assert( ee_areEqual( n, emp_set ) );
+      Assert( d_state.ee_areEqual( n, emp_set ) );
       Trace("sets-debug") << "  empty, parents equal siblings" << std::endl;
       std::vector< Node > conc;
       //parent equal siblings
       for( unsigned e=0; e<true_sib; e++ ){
-        if( d_equalityEngine.hasTerm( sib[e] ) && !ee_areEqual( n[e], sib[e] ) )
+        if( d_ee.hasTerm( sib[e] ) && !d_state.ee_areEqual( n[e], sib[e] ) )
         {
           conc.push_back( n[e].eqNode( sib[e] ) );
         }
       }
-      assertInference( conc, n.eqNode( emp_set ), lemmas, "cg_emp" );
-      flushLemmas( lemmas );
+      d_parent.assertInference( conc, n.eqNode( emp_set ), lemmas, "cg_emp" );
+      d_parent.flushLemmas( lemmas );
       if( d_parent.hasProcessed() ){
         return;
       }else{
@@ -230,15 +252,15 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
         Node p = (e==true_sib) ? u : n[e];
         Trace("sets-debug") << "  check relation to parent " << p << ", isu=" << is_union << "..." << std::endl;
         //if parent is empty
-        if( ee_areEqual( p, emp_set ) ){
+        if( d_state.ee_areEqual( p, emp_set ) ){
           Trace("sets-debug") << "  it is empty..." << std::endl;
-          Assert( !ee_areEqual( n, emp_set ) );
-          assertInference( n.eqNode( emp_set ), p.eqNode( emp_set ), lemmas, "cg_emppar" );
+          Assert( !d_state.ee_areEqual( n, emp_set ) );
+          d_parent.assertInference( n.eqNode( emp_set ), p.eqNode( emp_set ), lemmas, "cg_emppar" );
           if( d_parent.hasProcessed() ){
             return;
           }
         //if we are equal to a parent
-        }else if( ee_areEqual( p, n ) ){
+        }else if( d_state.ee_areEqual( p, n ) ){
           Trace("sets-debug") << "  it is equal to this..." << std::endl;
           std::vector< Node > conc;
           std::vector< int > sib_emp_indices;
@@ -251,7 +273,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
           }
           //sibling(s) are empty
           for( unsigned si : sib_emp_indices ){
-            if( !ee_areEqual( sib[si], emp_set ) ){
+            if( !d_state.ee_areEqual( sib[si], emp_set ) ){
               conc.push_back( sib[si].eqNode( emp_set ) );
             }else{
               Trace("sets-debug") << "Sibling " << sib[si] << " is already empty." << std::endl;
@@ -259,13 +281,13 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
           }
           if( !is_union && nk==INTERSECTION && !u.isNull() ){
             //union is equal to other parent
-            if( !ee_areEqual( u, n[1-e] ) ){
+            if( !d_state.ee_areEqual( u, n[1-e] ) ){
               conc.push_back( u.eqNode( n[1-e] ) );
             }
           }
           Trace("sets-debug") << "...derived " << conc.size() << " conclusions" << std::endl;
-          assertInference( conc, n.eqNode( p ), lemmas, "cg_eqpar" );
-          flushLemmas( lemmas );
+          d_parent.assertInference( conc, n.eqNode( p ), lemmas, "cg_eqpar" );
+          d_parent.flushLemmas( lemmas );
           if( d_parent.hasProcessed() ){
             return;
           }
@@ -280,36 +302,36 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
       Trace("sets-debug") << "get parent representatives..." << std::endl;
       //for each parent, take their representatives
       for( unsigned k=0; k<card_parents.size(); k++ ){
-        Node eqcc = d_equalityEngine.getRepresentative( card_parents[k] );
+        Node eqcc = d_ee.getRepresentative( card_parents[k] );
         Trace("sets-debug") << "Check card parent " << k << "/" << card_parents.size() << std::endl;
         
         //if parent is singleton, then we should either be empty to equal to it
-        std::map< Node, Node >::iterator itps = d_eqc_singleton.find( eqcc );
-        if( itps!=d_eqc_singleton.end() ){
+        Node eqccSingleton = d_state.getSingletonEqClass(eqcc);
+        if( !eqccSingleton.isNull() ){
           bool eq_parent = false;
           std::vector< Node > exp;
-          addEqualityToExp( card_parents[k], itps->second, exp );
-          if( ee_areDisequal( n, emp_set ) ){
+          d_parent.addEqualityToExp( card_parents[k], eqccSingleton, exp );
+          if( d_state.ee_areDisequal( n, emp_set ) ){
             exp.push_back( n.eqNode( emp_set ).negate() );
             eq_parent = true;
           }else{
-            std::map< Node, std::map< Node, Node > >::iterator itpm = d_pol_mems[0].find( eqc );
-            if( itpm!=d_pol_mems[0].end() && !itpm->second.empty() ){
-              Node pmem = itpm->second.begin()->second;
+            std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
+            if( !pmemsE.empty() ){
+              Node pmem = pmemsE.begin()->second;
               exp.push_back( pmem );
-              addEqualityToExp( n, pmem[1], exp );
+              d_parent.addEqualityToExp( n, pmem[1], exp );
               eq_parent = true;
             }
           }
           //must be equal to parent
           if( eq_parent ){
             Node conc = n.eqNode(  card_parents[k] );
-            assertInference( conc, exp, lemmas, "cg_par_sing" );
-            flushLemmas( lemmas );
+            d_parent.assertInference( conc, exp, lemmas, "cg_par_sing" );
+            d_parent.flushLemmas( lemmas );
           }else{
             //split on empty
             Trace("sets-nf") << "Split empty : " << n << std::endl;
-            split( n.eqNode( emp_set ), 1 );
+            d_parent.split( n.eqNode( emp_set ), 1 );
           }
           Assert( d_parent.hasProcessed() );
           return;
@@ -325,19 +347,19 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
                 if( card_parent_ids[k]==2 ){
                   //intersection is equal to other parent
                   unsigned pid = 1-card_parent_ids[l];
-                  if( !ee_areEqual( n[pid], n ) ){
+                  if( !d_state.ee_areEqual( n[pid], n ) ){
                     Trace("sets-debug") << "  one of them is union, make equal to other..." << std::endl;
                     conc.push_back( n[pid].eqNode( n ) );
                   }
                 }else{
-                  if( !ee_areEqual( card_parents[k], n ) ){
+                  if( !d_state.ee_areEqual( card_parents[k], n ) ){
                     Trace("sets-debug") << "  neither is union, make equal to one parent..." << std::endl;
                     //intersection is equal to one of the parents
                     conc.push_back( card_parents[k].eqNode( n ) );
                   }
                 }
-                assertInference( conc, card_parents[k].eqNode( d_card_parent[n][l] ), lemmas, "cg_pareq" );
-                flushLemmas( lemmas );
+                d_parent.assertInference( conc, card_parents[k].eqNode( d_card_parent[n][l] ), lemmas, "cg_pareq" );
+                d_parent.flushLemmas( lemmas );
                 if( d_parent.hasProcessed() ){
                   return;
                 }
@@ -351,8 +373,8 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
       }
       //now recurse on parents (to ensure their normal will be computed after this eqc)
       exp.push_back( eqc.eqNode( n ) );
-      for( unsigned k=0; k<d_card_parent[n].size(); k++ ){
-        checkCardCyclesRec( d_card_parent[n][k], curr, exp, lemmas );
+      for( const Node& cpnc : d_card_parent[n] ){
+        checkCardCyclesRec( cpnc, curr, exp, lemmas );
         if( d_parent.hasProcessed() ){
           return;
         }
@@ -363,7 +385,6 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
   curr.pop_back();
   //parents now processed, can add to ordered list
   d_set_eqc.push_back( eqc );
-
 }
 
 void CardinalityExtension::checkNormalForms( std::vector< Node >& lemmas, std::vector< Node >& intro_sets ){
@@ -386,7 +407,7 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
   TypeNode tn = eqc.getType();
   Trace("sets") << "Compute normal form for " << eqc << std::endl;
   Trace("sets-nf") << "Compute N " << eqc << "..." << std::endl;
-  if( eqc==d_eqc_emptyset[tn] ){
+  if( eqc==d_state.getEmptySetEqClass(tn) ){
     d_nf[eqc].clear();
     Trace("sets-nf") << "----> N " << eqc << " => {}" << std::endl;
     return;
@@ -413,7 +434,8 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
         Trace("sets-nf") << " }" << std::endl;
       }
       Trace("sets-nf-debug") << " ...";
-      debugPrintSet( itf->first, "sets-nf-debug" );
+      //FIXME
+      //debugPrintSet( itf->first, "sets-nf-debug" );
       Trace("sets-nf-debug") << std::endl;
     }
   }else{
@@ -421,8 +443,9 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
   }
 
   Assert( d_nf.find( eqc )==d_nf.end() );
+  NodeManager * nm = NodeManager::currentNM();
   bool success = true;
-  Node emp_set = getEmptySet(tn);
+  Node emp_set = d_state.getEmptySet(tn);
   if( !base.isNull() ){
     for( unsigned j=0, csize = comps.size(); j<csize; j++ ){
       //compare if equal
@@ -476,14 +499,16 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
             Node r = e==2 ? common[l] : only[e][l];
             Trace("sets-nf-debug") << "Try split empty : " << r << std::endl;
             Trace("sets-nf-debug") << "         actual : ";
-            debugPrintSet( r, "sets-nf-debug" );
+            //FIXME
+            //debugPrintSet( r, "sets-nf-debug" );
             Trace("sets-nf-debug") << std::endl;
-            Assert( !ee_areEqual( r, emp_set ) );
-            if( !ee_areDisequal( r, emp_set ) && ( d_pol_mems[0].find( r )==d_pol_mems[0].end() || d_pol_mems[0][r].empty() ) ){
+            Assert( !d_state.ee_areEqual( r, emp_set ) );
+            if( !d_state.ee_areDisequal( r, emp_set ) && !d_state.hasMembers(r) ){
               //guess that its equal empty if it has no explicit members
               Trace("sets-nf") << " Split empty : " << r << std::endl;
               Trace("sets-nf") << "Actual Split : ";
-              debugPrintSet( r, "sets-nf" );
+              //FIXME
+              //debugPrintSet( r, "sets-nf" );
               Trace("sets-nf") << std::endl;
               d_parent.split( r.eqNode( emp_set ), 1 );
               Assert( d_parent.hasProcessed() );
@@ -500,12 +525,12 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
               Node r1 = e==0 ? only[0][l] : only[1][m];
               Node r2 = e==0 ? only[1][m] : only[0][l];
               //check if their intersection exists modulo equality
-              std::map< Node, Node >::iterator itb = d_bop_index[INTERSECTION][r1].find( r2 );
-              if( itb!=d_bop_index[INTERSECTION][r1].end() ){
-                Trace("sets-nf-debug") << "Split term already exists, but not in cardinality graph : " << itb->second << ", should be empty." << std::endl;
+              Node r1r2i = d_state.getBinaryOpTerm(INTERSECTION,r1,r2);
+              if( !r1r2i.isNull() ){
+                Trace("sets-nf-debug") << "Split term already exists, but not in cardinality graph : " << r1r2i << ", should be empty." << std::endl;
                 //their intersection is empty (probably?)
                 // e.g. these are two disjoint venn regions, proceed to next pair
-                Assert( ee_areEqual( emp_set, itb->second ) );
+                Assert( d_state.ee_areEqual( emp_set, r1r2i ) );
                 disjoint = true;
                 break;
               }
@@ -513,12 +538,12 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
             if( !disjoint ){
               //simply introduce their intersection
               Assert( only[0][l]!=only[1][m] );
-              Node kca = getProxy( only[0][l] );
-              Node kcb = getProxy( only[1][m] );
+              Node kca = d_state.getProxy( only[0][l] );
+              Node kcb = d_state.getProxy( only[1][m] );
               Node intro = Rewriter::rewrite( nm->mkNode( INTERSECTION, kca, kcb ) );
               Trace("sets-nf") << "   Intro split : " << only[0][l] << " against " << only[1][m] << ", term is " << intro << std::endl;
               intro_sets.push_back( intro );
-              Assert( !d_equalityEngine.hasTerm( intro ) );
+              Assert( !d_ee.hasTerm( intro ) );
               return;
             }
           }
@@ -536,12 +561,11 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
     }
   }else{
     // must ensure disequal from empty
-    if (!eqc.isConst() && !ee_areDisequal(eqc, emp_set)
-        && (d_pol_mems[0].find(eqc) == d_pol_mems[0].end()
-            || d_pol_mems[0][eqc].empty()))
+    if (!eqc.isConst() && !d_state.ee_areDisequal(eqc, emp_set)
+        && !d_state.hasMembers(eqc))
     {
       Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;
-      split(eqc.eqNode(emp_set));
+      d_parent.split(eqc.eqNode(emp_set));
       success = false;
     }
     else
@@ -556,15 +580,15 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
     Assert( d_parent.hasProcessed() );
     return;
   }
-  //send to parents
-  std::map< Node, std::vector< Node > >::iterator itn = d_nvar_sets.find( eqc );
-  if( itn==d_nvar_sets.end() ){
-    // no parents
+  // Send to parents (a parent is a set that contains a term in this equivalence
+  // class as a direct child).
+  std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+  if( nvsets.empty() ){
+    // no non-variable sets
     return;
   }
   std::map< Node, std::map< Node, bool > > parents_proc;
-  for( unsigned j=0; j<itn->second.size(); j++ ){
-    Node n = itn->second[j];
+  for( const Node& n : nvsets ){
     Trace("sets-nf-debug") << "Carry nf for term " << n << std::endl;
     if( d_card_parent[n].empty() ){
       // nothing to do
@@ -604,30 +628,33 @@ void CardinalityExtension::checkMinCard( std::vector< Node >& lemmas ) {
       continue;
     }
     //get members in class
-    std::map< Node, std::map< Node, Node > >::iterator itm = d_pol_mems[0].find( eqc );
-    if( itm!=d_pol_mems[0].end() ){
-      std::vector< Node > exp;
-      std::vector< Node > members;
-      Node cardTerm;
-      std::map< Node, Node >::iterator it = d_eqc_to_card_term.find( eqc );
-      if( it!=d_eqc_to_card_term.end() ){
-        cardTerm = it->second;
-      }else{
-        cardTerm = nm->mkNode( CARD, eqc );
-      }
-      for( std::map< Node, Node >::iterator itmm = itm->second.begin(); itmm != itm->second.end(); ++itmm ){
-        members.push_back( itmm->first );
-        exp.push_back( nm->mkNode( MEMBER, itmm->first, cardTerm[0] ) );
-      }
-      if( members.size()>1 ){
-        exp.push_back( nm->mkNode( DISTINCT, members ) );
-      }
-      if( !members.empty() ){
-        Node conc = nm->mkNode( GEQ, cardTerm, nm->mkConst( Rational( members.size() ) ) );
-        Node lem = nm->mkNode( IMPLIES, exp.size()==1 ? exp[0] : nm->mkNode( AND, exp ), conc );
-        Trace("sets-lemma") << "Sets::Lemma : " << lem << " by mincard" << std::endl;
-        lemmas.push_back( lem );
-      }
+    std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
+    if( pmemsE.empty() )
+    {
+      // no members, trivial
+      continue;
+    }
+    std::vector< Node > exp;
+    std::vector< Node > members;
+    Node cardTerm;
+    std::map< Node, Node >::iterator it = d_eqc_to_card_term.find( eqc );
+    if( it!=d_eqc_to_card_term.end() ){
+      cardTerm = it->second;
+    }else{
+      cardTerm = nm->mkNode( CARD, eqc );
+    }
+    for( const std::pair< const Node, Node >& itmm : pmemsE){
+      members.push_back( itmm.first );
+      exp.push_back( nm->mkNode( MEMBER, itmm.first, cardTerm[0] ) );
+    }
+    if( members.size()>1 ){
+      exp.push_back( nm->mkNode( DISTINCT, members ) );
+    }
+    if( !members.empty() ){
+      Node conc = nm->mkNode( GEQ, cardTerm, nm->mkConst( Rational( members.size() ) ) );
+      Node lem = nm->mkNode( IMPLIES, exp.size()==1 ? exp[0] : nm->mkNode( AND, exp ), conc );
+      Trace("sets-lemma") << "Sets::Lemma : " << lem << " by mincard" << std::endl;
+      lemmas.push_back( lem );
     }
   }
 }

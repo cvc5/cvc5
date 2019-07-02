@@ -39,6 +39,12 @@ public:
                  eq::EqualityEngine& e,
                     context::Context* c,
                     context::UserContext* u);
+  /** reset */
+  void reset();
+  /** register equivalence class whose type is tn */
+  void registerEqc(TypeNode tn, Node r);
+  /** register term n of type tnn in the equivalence class of r */
+  void registerTerm(Node r, TypeNode tnn, Node n);
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol );
   /** Is x entailed to be a member of set s? */
@@ -50,7 +56,24 @@ public:
   bool ee_areDisequal( Node a, Node b );
   /** is congruent */
   bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
+  /** 
+   * Get the equivalence class of the empty set of type tn, or null if it does
+   * not exist as a term in the current context.
+   */
+  Node getEmptySetEqClass( TypeNode tn ) const;
+  /** 
+   * Get the singleton set in the equivalence class of representative r if it
+   * exists, or null if none exists.
+   */
+  Node getSingletonEqClass( Node r ) const;
   
+  
+  /** get binary operator term (modulo equality)
+   * 
+   * This method returns a non-null node n if and only if a term n that is
+   * congruent to <k>(r1,r2) exists in the current context.
+   */
+  Node getBinaryOpTerm( Kind k, Node r1, Node r2 ) const;
   
   /** get type constraint skolem for n and tn */
   Node getTypeConstraintSkolem(Node n, TypeNode tn);
@@ -64,6 +87,10 @@ public:
   std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
   /** get non-variable sets for representative r */
   std::vector< Node >& getNonVariableSets(Node r) { return d_nvar_sets[r]; }
+  /** get (positive) members */
+  std::map< Node, Node >& getMembers(Node r) { return d_pol_mems[0][r]; }
+  /** Are there members entailed for equivalence class r? */
+  bool hasMembers(Node r) const;
 private:
   /** constants */
   Node d_true;
@@ -86,9 +113,6 @@ private:
   std::map< TypeNode, Node > d_univset;
   std::map< Node, Node > d_congruent;
   std::map< Node, std::vector< Node > > d_nvar_sets;
-  std::map< Node, Node > d_var_set;
-  std::map< Node, TypeNode > d_most_common_type;
-  std::map< Node, Node > d_most_common_type_term;
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   std::map< Node, std::map< Node, Node > > d_members_index;
   std::map< Node, Node > d_singleton_index;

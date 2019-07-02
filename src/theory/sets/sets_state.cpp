@@ -43,7 +43,88 @@ SetsState::SetsState(TheorySetsPrivate& p,
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
+}
+
+void SetsState::reset()
+{
+  d_set_eqc.clear();
+  d_eqc_emptyset.clear();
+  d_eqc_univset.clear();
+  d_eqc_singleton.clear();
+  d_congruent.clear();
+  d_nvar_sets.clear();
+  d_var_set.clear();
+  d_pol_mems[0].clear();
+  d_pol_mems[1].clear();
+  d_members_index.clear();
+  d_singleton_index.clear();
+  d_bop_index.clear();
+  d_op_list.clear();
+}
+
+void SetsState::registerEqc(TypeNode tn, Node r)
+{
+  if( tn.isSet() )
+  {
+    d_set_eqc.push_back( r );
+  }
+}
   
+void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
+{
+  Kind nk = n.getKind();
+  if( nk==MEMBER ){
+    if( r.isConst() ){
+      Node s = d_ee.getRepresentative( n[1] );
+      Node x = d_ee.getRepresentative( n[0] );
+      int pindex = r==d_true ? 0 : ( r==d_false ? 1 : -1 );
+      if( pindex!=-1  ){
+        if( d_pol_mems[pindex][s].find( x )==d_pol_mems[pindex][s].end() ){
+          d_pol_mems[pindex][s][x] = n;
+          Trace("sets-debug2") << "Membership[" << x << "][" << s << "] : " << n << ", pindex = " << pindex << std::endl;
+        }
+        if( d_members_index[s].find( x )==d_members_index[s].end() ){
+          d_members_index[s][x] = n;
+          d_op_list[MEMBER].push_back( n );
+        }
+      }else{
+        Assert( false );
+      }
+    }
+  }else if( nk==SINGLETON || nk==UNION || nk==INTERSECTION || 
+            nk==SETMINUS || nk==EMPTYSET || nk==UNIVERSE_SET ){
+    if( nk==SINGLETON ){
+      //singleton lemma
+      getProxy( n );
+      Node r = d_ee.getRepresentative( n[0] );
+      if( d_singleton_index.find( r )==d_singleton_index.end() ){
+        d_singleton_index[r] = n;
+        d_eqc_singleton[r] = n;
+        d_op_list[SINGLETON].push_back( n );
+      }else{
+        d_congruent[n] = d_singleton_index[r];
+      }
+    }else if( nk==EMPTYSET ){
+      d_eqc_emptyset[tnn] = r;
+    }else if( nk==UNIVERSE_SET ){
+      Assert( options::setsExt() );
+      d_eqc_univset[tnn] = r;
+    }else{
+      Node r1 = d_ee.getRepresentative( n[0] );
+      Node r2 = d_ee.getRepresentative( n[1] );
+      std::map<Node, Node>& binr1 = d_bop_index[nk][r1];
+      std::map<Node, Node>::iterator itb = binr1.find(r2);
+      if (itb == binr1.end())
+      {
+        binr1[r2] = n;
+        d_op_list[nk].push_back( n );
+      }else{
+        d_congruent[n] = itb->second;
+      }
+    }
+    d_nvar_sets[r].push_back( n );
+    Trace("sets-debug2") << "Non-var-set[" << r << "] : " << n << std::endl;
+  }
 }
   
 bool SetsState::ee_areEqual( Node a, Node b ) {
@@ -63,6 +144,46 @@ bool SetsState::ee_areDisequal( Node a, Node b ) {
       return d_ee.areDisequal( a, b, false );
     }
       return a.isConst() && b.isConst();
+}
+
+Node SetsState::getEmptySetEqClass( TypeNode tn ) const
+{
+  std::map< TypeNode, Node >::const_iterator it = d_eqc_emptyset.find(tn);
+  if( it != d_eqc_emptyset.end() )
+  {
+    return it->second;
+  }
+  return Node::null();
+}
+
+Node SetsState::getSingletonEqClass( Node r ) const
+{
+  std::map< Node, Node >::const_iterator it =  d_eqc_singleton.find(r);
+  if( it != d_eqc_singleton.end() )
+  {
+    return it->second;
+  }
+  return Node::null();
+}
+
+Node SetsState::getBinaryOpTerm( Kind k, Node r1, Node r2 ) const
+{
+  std::map< Kind, std::map< Node, std::map< Node, Node > > >::const_iterator itk = d_bop_index.find(k);
+  if( itk==d_bop_index.end() )
+  {
+    return Node::null();
+  }
+  std::map< Node, std::map< Node, Node > >::const_iterator it1 = itk->second.find(r1);
+  if( it1==itk->second.end() )
+  {
+    return Node::null();
+  }
+  std::map< Node, Node >::const_iterator it2 = it1->second.find(r2);
+  if( it2==it1->second.end() )
+  {
+    return Node::null();
+  }
+  return it2->second;
 }
 
 bool SetsState::isEntailed( Node n, bool polarity ) {
@@ -267,6 +388,16 @@ Node SetsState::getTypeConstraintSkolem(Node n, TypeNode tn)
     return k;
   }
   return it->second;
+}
+
+bool SetsState::hasMembers(Node r) const
+{
+  std::map< Node, std::map< Node, Node > >::const_iterator it = d_pol_mems[0].find(r);
+  if( it==d_pol_mems[0].end() )
+  {
+    return false;
+  }
+  return !it->second.empty();
 }
 
 }/* CVC4::theory::sets namespace */

@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
-#define CVC4__THEORY__SETS__THEORY_SETS_PRIVATE_H
+#ifndef CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
+#define CVC4__THEORY__SETS__CARDINALITY_EXTENSION_H
 
 #include "context/cdhashset.h"
 #include "context/context.h"
@@ -39,7 +39,7 @@ class CardinalityExtension {
    */
   CardinalityExtension(TheorySetsPrivate& p,
                        SetsState& s,
-                    eq::EqualityEngine* e,
+                    eq::EqualityEngine& e,
                     context::Context* c,
                     context::UserContext* u);
 
@@ -55,6 +55,9 @@ class CardinalityExtension {
   TheorySetsPrivate&                   d_parent;
    /** Reference to the state object for the theory of sets */
    SetsState& d_state;
+   
+  /** Reference to the equality engine of theory of sets */
+  eq::EqualityEngine& d_ee;
   void checkCardBuildGraph( std::vector< Node >& lemmas );
   void registerCardinalityTerm( Node n, std::vector< Node >& lemmas );
   void checkCardCycles( std::vector< Node >& lemmas );
@@ -72,6 +75,7 @@ class CardinalityExtension {
   std::map< Node, Node > d_card_base;
   
   std::vector< Node > d_set_eqc;
+  std::vector< Node > d_emp_exp;
 };/* class CardinalityExtension */
 
 
