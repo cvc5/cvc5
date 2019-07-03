@@ -40,17 +40,16 @@ class TheorySetsScrutinize;
 class TheorySetsPrivate {
   friend class CardinalityExtension;
   friend class SetsState;
-//new implementation
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-public:
+ public:
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-private:
+ private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal( Node a, Node b );
   NodeIntMap d_members;
@@ -128,10 +127,6 @@ private:
   NodeSet d_lemmas_produced;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
-private: //for universe set
-  NodeBoolMap d_var_elim;
-  void lastCallEffortCheck();
-
 
  public:
 
@@ -205,7 +200,7 @@ private: //for universe set
   OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-private:
+ private:
   TheorySets& d_external;
 
   class Statistics {
@@ -258,7 +253,7 @@ private:
   void conflict(TNode, TNode);
   
   bool isCareArg( Node n, unsigned a );
-public:
+ public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol ) { return d_state.isEntailed(n,pol); }
   /** Is x entailed to be a member of set s in the current context? */

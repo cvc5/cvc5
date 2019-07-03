@@ -45,7 +45,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_addedFact(false),
       d_full_check_incomplete(false),
       d_lemmas_produced(u),
-      d_var_elim(u),
       d_external(external),
       d_notify(*this),
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
@@ -807,11 +806,6 @@ bool TheorySetsPrivate::hasProcessed() {
   return d_conflict || d_sentLemma || d_addedFact;
 }
 
-void TheorySetsPrivate::lastCallEffortCheck() {
-  Trace("sets") << "----- Last call effort check ------" << std::endl;
-
-}
-
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
 /**************************** TheorySetsPrivate *****************************/
@@ -819,7 +813,6 @@ void TheorySetsPrivate::lastCallEffortCheck() {
 void TheorySetsPrivate::check(Theory::Effort level) {
   Trace("sets-check") << "Sets check effort " << level << std::endl;
   if( level == Theory::EFFORT_LAST_CALL ){
-    lastCallEffortCheck();
     return;
   }
   while(!d_external.done() && !d_conflict) {
@@ -854,13 +847,6 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   }
   Trace("sets-check") << "Sets finish Check effort " << level << std::endl;
 }/* TheorySetsPrivate::check() */
-
-bool TheorySetsPrivate::needsCheckLastEffort() {
-  if( !d_var_elim.empty() ){
-    return true;
-  }
-  return false;
-}
 
 /************************ Sharing ************************/
 /************************ Sharing ************************/
@@ -1333,19 +1319,6 @@ Theory::PPAssertStatus TheorySetsPrivate::ppAssert(TNode in, SubstitutionMap& ou
       {
         status = Theory::PP_ASSERT_STATUS_CONFLICT;
       }
-    }
-  }
-
-  if( status==Theory::PP_ASSERT_STATUS_SOLVED ){
-    Trace("sets-var-elim") << "Sets : ppAssert variable eliminated : " << in << ", var = " << var << std::endl;
-    /*
-    if( var.getType().isSet() ){
-      //we must ensure that subs is included in the universe set
-      d_var_elim[var] = true;
-    } 
-    */
-    if( options::setsExt() ){
-      Assert( !var.getType().isSet() ); 
     }
   }
   return status;
