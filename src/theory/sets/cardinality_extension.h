@@ -76,6 +76,8 @@ class CardinalityExtension
  private:
   /** constants */
   Node d_zero;
+  /** the empty vector */
+  std::vector<Node> d_emp_exp;
   /** the theory of sets which owns this */
   TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
@@ -103,9 +105,7 @@ class CardinalityExtension
   std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
   std::map<Node, std::vector<Node> > d_nf;
   std::map<Node, Node> d_card_base;
-
   std::vector<Node> d_set_eqc;
-  std::vector<Node> d_emp_exp;
 }; /* class CardinalityExtension */
 
 }  // namespace sets
