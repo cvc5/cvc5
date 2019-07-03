@@ -28,7 +28,10 @@ class TheorySetsPrivate;
 
 /** Inference manager
  *
- * This class manages inferences produced by the theory of sets.
+ * This class manages inferences produced by the theory of sets. It manages
+ * whether inferences are processed as external lemmas on the output channel
+ * of theory of sets or internally as literals asserted to the equality engine
+ * of theory of sets. The latter literals are referred to as "facts".
  */
 class InferenceManager
 {
@@ -53,7 +56,10 @@ class InferenceManager
    * The argument lemmas is updated to contain poritions of fact that were
    * unable to be processed as facts.
    *
-   * FIXME
+   * The argument inferType is used for overriding the policy on whether
+   * fact is processed as a lemma, where inferType=1 forces fact to be
+   * set as a lemma, and inferType=-1 forces fact to be processed as a fact
+   * (if possible).
    *
    * The argument c is the name of the inference, which is used for debugging.
    */
