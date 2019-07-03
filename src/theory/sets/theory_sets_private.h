@@ -50,13 +50,17 @@ class TheorySetsPrivate {
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
-
+  /** Assert fact holds in the current context with explanation exp.
+   * 
+   * exp should be explanable by the equality engine of this class, and fact
+   * should be a literal.
+   */
+  bool assertFact( Node fact, Node exp );
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
-  bool assertFact( Node fact, Node exp );
   // inferType : 1 : must send out as lemma, -1 : do internal inferences if possible, 0 : default.
   bool assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType = 0 );
   // add inferences corresponding to ( exp => fact ) to lemmas, equality engine
@@ -199,6 +203,10 @@ class TheorySetsPrivate {
   /** get the valuation */
   Valuation& getValuation();
 
+  /** Are we currently in conflict? */
+  bool isInConflict() const;
+  /** Set conf is a conflict node to be sent on the output channel.  */
+  void setConflict(Node conf);
  private:
   TheorySets& d_external;
 
@@ -223,9 +231,8 @@ class TheorySetsPrivate {
 
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
-
+  /** Whether or not we are in conflict. This flag is SAT context dependent. */
   context::CDO<bool> d_conflict;
-  Node d_conflictNode;
 
   /** Proagate out to output channel */
   bool propagate(TNode);

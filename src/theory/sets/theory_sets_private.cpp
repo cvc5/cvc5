@@ -162,8 +162,7 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
             }else{
               //conflict
               Trace("sets-prop") << "Propagate eq-mem conflict : " << exp << std::endl;
-              d_conflict = true;
-              d_external.d_out->conflict( exp );
+              setConflict(exp);
               return;
             }
           }
@@ -267,8 +266,7 @@ bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
               }
             }else{
               Trace("sets-prop") << "Propagate mem-eq conflict : " << exp << std::endl;
-              d_conflict = true;
-              d_external.d_out->conflict( exp );
+              setConflict(exp);
             }
           }
         }
@@ -307,8 +305,7 @@ bool TheorySetsPrivate::assertFactRec( Node fact, Node exp, std::vector< Node >&
       //either trivial or a conflict
       if( fact==d_false ){
         Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-        d_conflict = true;
-        d_external.d_out->conflict( exp );
+        setConflict( exp );
         return true;
       }
     }else if( fact.getKind()==kind::AND || ( fact.getKind()==kind::NOT && fact[0].getKind()==kind::OR ) ){
@@ -1194,10 +1191,8 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
     conjunction << *it;
     ++ it;
   }
-
   return conjunction;
 }/* mkAnd() */
-
 
 void TheorySetsPrivate::propagate(Theory::Effort effort) {
 
@@ -1227,6 +1222,14 @@ OutputChannel* TheorySetsPrivate::getOutputChannel()
 }
 
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
+
+bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
+  void TheorySetsPrivate::setConflict(Node conf)
+  {
+    d_external.d_out->conflict(conf);
+    d_conflict = true;
+  }
+
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
 }
@@ -1234,12 +1237,11 @@ void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
-  d_conflictNode = explain(a.eqNode(b));
-  d_external.d_out->conflict(d_conflictNode);
+  Node conf= explain(a.eqNode(b));
+  setConflict(conf);
   Debug("sets") << "[sets] conflict: " << a << " iff " << b
-                << ", explaination " << d_conflictNode << std::endl;
-  Trace("sets-lemma") << "Equality Conflict : " << d_conflictNode << std::endl;
-  d_conflict = true;
+                << ", explaination " << conf << std::endl;
+  Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
 }
 
 Node TheorySetsPrivate::explain(TNode literal)
