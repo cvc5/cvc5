@@ -88,7 +88,7 @@ bool InferenceManager::assertFactRec( Node fact, Node exp, std::vector< Node >& 
       d_addedFact = true;
       return true;
     }
-  }else if (!d_state.isEntailed(fact, true))
+  }else if (!d_state.isEntailed(fact, true)){
     //must send as lemma
     lemma.push_back( exp==d_true ? fact : NodeManager::currentNM()->mkNode( IMPLIES, exp, fact ) );
     return true;

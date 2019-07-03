@@ -23,6 +23,7 @@
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
 #include "theory/sets/cardinality_extension.h"
+#include "theory/sets/inference_manager.h"
 #include "theory/sets/sets_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
@@ -251,6 +252,8 @@ class TheorySetsPrivate {
  private:
   /** The state of the sets solver at full effort */
   SetsState d_state;
+  /** The inference manager of the sets solver */
+  InferenceManager d_im;
   /** subtheory solver for the theory of relations */
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */

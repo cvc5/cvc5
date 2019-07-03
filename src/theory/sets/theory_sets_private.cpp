@@ -50,6 +50,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_conflict(c),
       d_state(*this, d_equalityEngine, c, u),
+      d_im(*this, d_state, d_equalityEngine, c, u),
       d_rels(
           new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
       d_cardSolver(
