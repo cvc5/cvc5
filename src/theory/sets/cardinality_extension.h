@@ -60,7 +60,7 @@ class CardinalityExtension {
   bool isModelValueBasic( Node eqc );
   /** get model elements
    * 
-   * 
+   * FIXME
    */
   void mkModelValueElementsFor( Node eqc, std::vector< Node >& els, const std::map< Node, Node >& mvals );
   /** get ordered sets equivalence classes

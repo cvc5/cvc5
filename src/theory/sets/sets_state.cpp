@@ -431,6 +431,14 @@ bool SetsState::hasMembers(Node r) const
   }
   return !it->second.empty();
 }
+const std::map< Kind, std::map< Node, std::map< Node, Node > > >& SetsState::getBinaryOpIndex() const
+{
+  return d_bop_index;
+}
+const std::map< Kind, std::vector< Node > >& SetsState::getOperatorList() const
+{
+  return d_op_list;
+}
 
 void SetsState::debugPrintSet( Node s, const char * c ) const {
   if( s.getNumChildren()==0 ){

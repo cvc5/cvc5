@@ -95,7 +95,7 @@ public:
    * To ensure that inferences and processing is not redundant,
    * this class computes congruence over all terms that exist in the current
    * context. If a set of terms f( t1 ), ... f( tn ) are pairwise congruent
-   * (call this a congruence class), it selects one of these terms as a
+   * (call this a "congruence class"), it selects one of these terms as a
    * representative. All other terms return the representative term from
    * its congruence class.
    */
@@ -128,6 +128,23 @@ public:
   const std::map< Node, Node >& getNegativeMembers(Node r) const;
   /** Is the (positive) members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
+  /** Get binary operator index 
+   * 
+   * This returns a mapping from binary operator kinds (INTERSECT, SETMINUS,
+   * UNION) to index of terms of that kind. Each kind k maps to a map whose
+   * entries are of the form [r1 -> r2 -> t], where t is a term in the current
+   * context, and t is of the form <k>(t1,t2) where t1=r1 and t2=r2 hold in the
+   * current context. The term t is the representative of its congruence class.
+   */
+  const std::map< Kind, std::map< Node, std::map< Node, Node > > >& getBinaryOpIndex() const;
+  /** get operator list 
+   * 
+   * This returns a mapping from set kinds to a list of terms of that kind
+   * that exist in the current context. Each of the terms in the range of this
+   * map is a representative of its congruence class.
+   */
+  const std::map< Kind, std::vector< Node > >& getOperatorList() const;
+  
   // --------------------------------------- commonly used terms
   /** Get type constraint skolem
    *
@@ -185,6 +202,13 @@ private:
   std::map< Node, std::vector< Node > > d_nvar_sets;
   /** Map from equivalence classes to a variable sets in it */
   std::map< Node, Node > d_var_set;
+  /** polarity memberships 
+   * 
+   * d_pol_mems[0] maps equivalence class to their positive membership list
+   * with explanations (see getMembers), d_pol_mems[1] maps equivalence classes
+   * to their negative memberships.
+   */
+  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   // --------------------------------------- commonly used terms
   /** Map from set terms to their proxy variables */
   NodeMap d_proxy;
@@ -197,11 +221,21 @@ private:
   /** Map from types to universe set of that type */
   std::map< TypeNode, Node > d_univset;
   // --------------------------------------- end commonly used terms
-public: //FIXME
-  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   // -------------------------------- term indices
+  /** Term index for MEMBER
+   * 
+   * A term index maps equivalence class representatives to the representative
+   * of their congruence class. 
+   * 
+   * For example, the term index for member may contain an entry
+   * [ r1 -> r2 -> (member t1 t2) ] where r1 and r2 are representatives of their
+   * equivalence classes, (member t1 t2) is the representative of its congruence
+   * class, and r1=t1 and r2=t2 hold in the current context.
+   */
   std::map< Node, std::map< Node, Node > > d_members_index;
+  /** Term index for SINGLETON */
   std::map< Node, Node > d_singleton_index;
+  /** Indices for the binary kinds INTERSECT, SETMINUS and UNION. */
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
   // -------------------------------- end term indices
   std::map< Kind, std::vector< Node > > d_op_list;

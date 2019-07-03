@@ -539,14 +539,15 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
 void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
   Trace("sets") << "TheorySetsPrivate: check downwards closure..." << std::endl;
   //downwards closure
-  // FIXME
-  for( std::map< Node, std::map< Node, Node > >::iterator it = d_state.d_pol_mems[0].begin(); it != d_state.d_pol_mems[0].end(); ++it ){
-    const std::vector< Node >& nvsets = d_state.getNonVariableSets( it->first );
+  const std::vector< Node >& sec = d_state.getSetsEqClasses();
+  for( const Node& s : sec ){  
+    const std::vector< Node >& nvsets = d_state.getNonVariableSets( s );
     if( !nvsets.empty() ){
+      const std::map< Node, Node >& smem = d_state.getMembers(s);
       for( const Node& nv : nvsets ){
         if( !d_state.isCongruent( nv ) ){
-          for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){ 
-            Node mem = it2->second;
+          for( const std::pair< const Node, Node >& it2 : smem ){
+            Node mem = it2.second;
             Node eq_set = nv;
             Assert( d_equalityEngine.areEqual( mem[1], eq_set ) );
             if( mem[1]!=eq_set ){
@@ -585,22 +586,24 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
 
 void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
   //upwards closure
-  // FIXME
-  for( std::map< Kind, std::map< Node, std::map< Node, Node > > >::iterator itb = d_state.d_bop_index.begin(); itb != d_state.d_bop_index.end(); ++itb ){
-    Kind k = itb->first;
+  NodeManager * nm = NodeManager::currentNM();
+  const std::map< Kind, std::map< Node, std::map< Node, Node > > >& boi = d_state.getBinaryOpIndex();
+  for( const std::pair< const Kind, std::map< Node, std::map< Node, Node > > >& itb : boi ){
+    Kind k = itb.first;
     Trace("sets") << "TheorySetsPrivate: check upwards closure " << k << "..." << std::endl;
-    for( std::map< Node, std::map< Node, Node > >::iterator it = itb->second.begin(); it != itb->second.end(); ++it ){
-      Node r1 = it->first;
+    for( const std::pair< const Node, std::map< Node, Node > >& it : itb.second ){
+      Node r1 = it.first;
       //see if there are members in first argument r1
       const std::map< Node, Node >& r1mem = d_state.getMembers(r1);
       if( !r1mem.empty() || k==kind::UNION ){
-        for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-          Node r2 = it2->first;
+        for( const std::pair< const Node, Node >& it2 : it.second ){
+          Node r2 = it2.first;
+          Node term = it2.second;
           //see if there are members in second argument
           const std::map< Node, Node >& r2mem = d_state.getMembers(r2);
           const std::map< Node, Node >& r2nmem = d_state.getNegativeMembers(r2);
           if( !r2mem.empty() || k!=kind::INTERSECTION ){
-            Trace("sets-debug") << "Checking " << it2->second << ", members = " << (!r1mem.empty()) << ", " << (!r2mem.empty()) << std::endl;
+            Trace("sets-debug") << "Checking " << term << ", members = " << (!r1mem.empty()) << ", " << (!r2mem.empty()) << std::endl;
             //for all members of r1
             if( !r1mem.empty() ){
               for( const std::pair< const Node, Node >& itm1m : r1mem ){
@@ -609,63 +612,43 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                 Trace("sets-debug") << "checking membership " << xr << " " << itm1m.second << std::endl;
                 std::vector< Node > exp;
                 exp.push_back( itm1m.second );
-                addEqualityToExp( it2->second[0], itm1m.second[1], exp );
+                addEqualityToExp( term[0], itm1m.second[1], exp );
                 bool valid = false;
                 int inferType = 0;
                 if( k==kind::UNION ){
                   valid = true;
                 }else if( k==kind::INTERSECTION ){
-                  //conclude x is in it2->second
+                  //conclude x is in term
                   //if also existing in members of r2
                   std::map< Node, Node >::const_iterator itm = r2mem.find(xr);
                   if( itm!=r2mem.end() ){
                     exp.push_back( itm->second );
-                    addEqualityToExp( it2->second[1], itm->second[1], exp );
+                    addEqualityToExp( term[1], itm->second[1], exp );
                     addEqualityToExp( x, itm->second[0], exp );
                     valid = true;
                   }else{
                     // if not, check whether it is definitely not a member, if unknown, split
                     if( r2nmem.find(xr)==r2nmem.end() ){
-                      exp.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, x, it2->second[1] ) );
+                      exp.push_back( nm->mkNode( kind::MEMBER, x, term[1] ) );
                       valid = true;
                       inferType = 1;
                     }
                   }
                 }else{
                   Assert( k==kind::SETMINUS );
-                  /*
-                  std::map< Node, std::map< Node, Node > >::iterator itnm2 = d_pol_mems[1].find( r2 );
-                  if( itnm2!=d_pol_mems[1].end() ){
-                    bool not_in_r2 = itnm2->second.find( xr )!=itnm2->second.end();
-                    if( not_in_r2 ){
-                      exp.push_back( itnm2->second[xr] );
-                      if( it2->second[1]!=itnm2->second[xr][1] ){
-                        Assert( d_equalityEngine.areEqual( it2->second[1], itnm2->second[xr][1] ) );
-                        exp.push_back( it2->second[1].eqNode( itnm2->second[xr][1] ) );
-                      }
-                      if( x!=itnm2->second[xr][0] ){
-                        Assert( d_equalityEngine.areEqual( x, itnm2->second[xr][0] ) );
-                        exp.push_back( NodeManager::currentNM()->mkNode( kind::EQUAL, x, itnm2->second[xr][0] ) );
-                      }
-                      valid = true;
-                    }
-                  }
-                  */
-                  if( !valid ){
-                    std::map< Node, Node >::const_iterator itm = r2mem.find(xr);
-                    if( itm==r2mem.end() ){
-                      // must add lemma for set minus since non-membership in this case is not explained
-                      exp.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, x, it2->second[1] ).negate() );
-                      valid = true;
-                      inferType = 1;
-                    }
+                  std::map< Node, Node >::const_iterator itm = r2mem.find(xr);
+                  if( itm==r2mem.end() ){
+                    // must add lemma for set minus since non-membership in this case is not explained
+                    exp.push_back( nm->mkNode( kind::MEMBER, x, term[1] ).negate() );
+                    valid = true;
+                    inferType = 1;
                   }
                 }
                 if( valid ){
-                  Node rr = d_equalityEngine.getRepresentative( it2->second );
+                  Node rr = d_equalityEngine.getRepresentative( term );
                   if( !isMember( x, rr ) ){
-                    Node kk = d_state.getProxy( it2->second );
-                    Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, x, kk );
+                    Node kk = d_state.getProxy( term );
+                    Node fact = nm->mkNode( kind::MEMBER, x, kk );
                     assertInference( fact, exp, lemmas, "upc", inferType );
                     if( d_conflict ){
                       return;
@@ -680,13 +663,13 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                 //for all members of r2
                 for( const std::pair< const Node, Node >& itm2m : r2mem ){
                   Node x = itm2m.second[0];
-                  Node rr = d_equalityEngine.getRepresentative( it2->second );
+                  Node rr = d_equalityEngine.getRepresentative( term );
                   if( !isMember( x, rr ) ){
                     std::vector< Node > exp;
                     exp.push_back( itm2m.second );
-                    addEqualityToExp( it2->second[1], itm2m.second[1], exp );
-                    Node k = d_state.getProxy( it2->second );
-                    Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, x, k );
+                    addEqualityToExp( term[1], itm2m.second[1], exp );
+                    Node k = d_state.getProxy( term );
+                    Node fact = nm->mkNode( kind::MEMBER, x, k );
                     assertInference( fact, exp, lemmas, "upc2" );
                     if( d_conflict ){
                       return;
@@ -705,14 +688,16 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
       //universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
       //all elements must be in universal set
-      for( std::map< Node, std::map< Node, Node > >::iterator it = d_state.d_pol_mems[0].begin(); it != d_state.d_pol_mems[0].end(); ++it ){
+      const std::vector< Node >& sec =  d_state.getSetsEqClasses();
+      for( const Node& s : sec ){
         //if equivalence class contains a variable
-        Node v = d_state.getVariableSet( it->first );
+        Node v = d_state.getVariableSet( s );
         if( !v.isNull() ){
           //the variable in the equivalence class
           std::map< TypeNode, Node > univ_set;
-          for( std::map< Node, Node >::iterator it2 = it->second.begin(); it2 != it->second.end(); ++it2 ){
-            Node e = it2->second[0];
+          const std::map< Node, Node >& smems = d_state.getMembers(s);
+          for( const std::pair< const Node, Node >& it2 : smems ){
+            Node e = it2.second[0];
             TypeNode tn = NodeManager::currentNM()->mkSetType( e.getType() );
             Node u;
             std::map< TypeNode, Node >::iterator itu = univ_set.find( tn );
@@ -727,13 +712,13 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
               u = itu->second;
             }
             if( !u.isNull() ){
-              Assert( it2->second.getKind()==kind::MEMBER );
+              Assert( it2.second.getKind()==kind::MEMBER );
               std::vector< Node > exp;
-              exp.push_back( it2->second );
-              if( v!=it2->second[1] ){
-                exp.push_back( v.eqNode( it2->second[1] ) );
+              exp.push_back( it2.second );
+              if( v!=it2.second[1] ){
+                exp.push_back( v.eqNode( it2.second[1] ) );
               }
-              Node fact = NodeManager::currentNM()->mkNode( kind::MEMBER, it2->second[0], u );
+              Node fact =nm->mkNode( kind::MEMBER, it2.second[0], u );
               assertInference( fact, exp, lemmas, "upuniv" );
               if( d_conflict ){
                 return;
@@ -969,17 +954,17 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
 }
 
 void TheorySetsPrivate::computeCareGraph() {
-  // FIXME
-  for( std::map< Kind, std::vector< Node > >::iterator it = d_state.d_op_list.begin(); it != d_state.d_op_list.end(); ++it ){
-    if( it->first==kind::SINGLETON || it->first==kind::MEMBER ){
+  const std::map< Kind, std::vector< Node > >& ol = d_state.getOperatorList();
+  for( const std::pair< const Kind, std::vector< Node > >& it : ol ){
+    Kind k = it.first;
+    if( k==kind::SINGLETON || k==kind::MEMBER ){
       unsigned n_pairs = 0;
-      Trace("sets-cg-summary") << "Compute graph for sets, op=" << it->first << "..." << it->second.size() << std::endl;
-      Trace("sets-cg") << "Build index for " << it->first << "..." << std::endl;
+      Trace("sets-cg-summary") << "Compute graph for sets, op=" << k << "..." << it.second.size() << std::endl;
+      Trace("sets-cg") << "Build index for " << k << "..." << std::endl;
       std::map<TypeNode, TNodeTrie> index;
       unsigned arity = 0;
       //populate indices
-      for( unsigned i=0; i<it->second.size(); i++ ){
-        TNode f1 = it->second[i];
+      for( TNode f1 : it.second ){
         Assert(d_equalityEngine.hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
         //break into index based on operator, and type of first argument (since some operators are parametric)
