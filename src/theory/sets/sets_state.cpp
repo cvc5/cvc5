@@ -177,11 +177,12 @@ bool SetsState::areDisequal(Node a, Node b) const
   return a.isConst() && b.isConst();
 }
 
-void SetsState::addEqualityToExp( Node a, Node b, std::vector< Node >& exp ) const
+void SetsState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
 {
-  if( a!=b ){
+  if (a != b)
+  {
     Assert(areEqual(a, b));
-    exp.push_back( a.eqNode( b ) );
+    exp.push_back(a.eqNode(b));
   }
 }
 

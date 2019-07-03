@@ -14,9 +14,9 @@
 
 #include "theory/sets/inference_manager.h"
 
-#include "theory/sets/theory_sets_private.h"
 #include "options/sets_options.h"
 #include "theory/sets/theory_sets.h"
+#include "theory/sets/theory_sets_private.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -26,14 +26,14 @@ namespace theory {
 namespace sets {
 
 InferenceManager::InferenceManager(TheorySetsPrivate& p,
-                                           SetsState& s,
-                                           eq::EqualityEngine& e,
-                       context::Context* c,
-                       context::UserContext* u)
+                                   SetsState& s,
+                                   eq::EqualityEngine& e,
+                                   context::Context* c,
+                                   context::UserContext* u)
     : d_parent(p), d_state(s), d_ee(e), d_lemmas_produced(u), d_keep(c)
 {
-  d_true = NodeManager::currentNM()->mkConst( true );
-  d_false = NodeManager::currentNM()->mkConst( false );
+  d_true = NodeManager::currentNM()->mkConst(true);
+  d_false = NodeManager::currentNM()->mkConst(false);
 }
 
 void InferenceManager::reset()
@@ -41,34 +41,48 @@ void InferenceManager::reset()
   d_sentLemma = false;
   d_addedFact = false;
 }
-  
-bool InferenceManager::assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType ) {
-  if( ( options::setsInferAsLemmas() && inferType!=-1 ) || inferType==1 ){
+
+bool InferenceManager::assertFactRec(Node fact,
+                                     Node exp,
+                                     std::vector<Node>& lemma,
+                                     int inferType)
+{
+  if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
+  {
     if (d_state.isEntailed(fact, true))
     {
       return false;
     }
-    lemma.push_back( exp==d_true ? fact : NodeManager::currentNM()->mkNode( IMPLIES, exp, fact ) );
+    lemma.push_back(exp == d_true
+                        ? fact
+                        : NodeManager::currentNM()->mkNode(IMPLIES, exp, fact));
     return true;
   }
-  Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp << std::endl;
-  if( fact.isConst() ){
-    //either trivial or a conflict
-    if( fact==d_false ){
+  Trace("sets-fact") << "Assert fact rec : " << fact << ", exp = " << exp
+                     << std::endl;
+  if (fact.isConst())
+  {
+    // either trivial or a conflict
+    if (fact == d_false)
+    {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      d_parent.setConflict( exp );
+      d_parent.setConflict(exp);
       return true;
     }
     return false;
   }
-  else if( fact.getKind()==AND || ( fact.getKind()==NOT && fact[0].getKind()==OR ) ){
+  else if (fact.getKind() == AND
+           || (fact.getKind() == NOT && fact[0].getKind() == OR))
+  {
     bool ret = false;
-    Node f = fact.getKind()==NOT ? fact[0] : fact;
-    for( unsigned i=0; i<f.getNumChildren(); i++ ){
-      Node factc = fact.getKind()==NOT ? f[i].negate() : f[i];
-      bool tret = assertFactRec( factc, exp, lemma, inferType );
+    Node f = fact.getKind() == NOT ? fact[0] : fact;
+    for (unsigned i = 0; i < f.getNumChildren(); i++)
+    {
+      Node factc = fact.getKind() == NOT ? f[i].negate() : f[i];
+      bool tret = assertFactRec(factc, exp, lemma, inferType);
       ret = ret || tret;
-      if( d_parent.isInConflict()  ){
+      if (d_parent.isInConflict())
+      {
         return true;
       }
     }
@@ -76,64 +90,109 @@ bool InferenceManager::assertFactRec( Node fact, Node exp, std::vector< Node >& 
   }
   bool polarity = fact.getKind() != NOT;
   TNode atom = polarity ? fact : fact[0];
-  //things we can assert to equality engine
-  if( atom.getKind()==MEMBER || ( atom.getKind()==EQUAL && atom[0].getType().isSet() ) ){
-    //send to equality engine
-    if( d_parent.assertFact( fact, exp ) ){
+  // things we can assert to equality engine
+  if (atom.getKind() == MEMBER
+      || (atom.getKind() == EQUAL && atom[0].getType().isSet()))
+  {
+    // send to equality engine
+    if (d_parent.assertFact(fact, exp))
+    {
       d_addedFact = true;
       return true;
     }
-  }else if (!d_state.isEntailed(fact, true)){
-    //must send as lemma
-    lemma.push_back( exp==d_true ? fact : NodeManager::currentNM()->mkNode( IMPLIES, exp, fact ) );
+  }
+  else if (!d_state.isEntailed(fact, true))
+  {
+    // must send as lemma
+    lemma.push_back(exp == d_true
+                        ? fact
+                        : NodeManager::currentNM()->mkNode(IMPLIES, exp, fact));
     return true;
   }
   return false;
 }
-void InferenceManager::assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType ) {
-  d_keep.insert( exp );
-  d_keep.insert( fact );
-  if( assertFactRec( fact, exp, lemmas, inferType ) ){
-    Trace("sets-lemma") << "Sets::Lemma : " << fact << " from " << exp << " by " << c << std::endl;
-    Trace("sets-assertion") << "(assert (=> " << exp << " " << fact << ")) ; by " << c << std::endl;
+void InferenceManager::assertInference(Node fact,
+                                       Node exp,
+                                       std::vector<Node>& lemmas,
+                                       const char* c,
+                                       int inferType)
+{
+  d_keep.insert(exp);
+  d_keep.insert(fact);
+  if (assertFactRec(fact, exp, lemmas, inferType))
+  {
+    Trace("sets-lemma") << "Sets::Lemma : " << fact << " from " << exp << " by "
+                        << c << std::endl;
+    Trace("sets-assertion")
+        << "(assert (=> " << exp << " " << fact << ")) ; by " << c << std::endl;
   }
 }
 
-void InferenceManager::assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType ){
-  Node exp_n = exp.empty() ? d_true : ( exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( AND, exp ) );
-  assertInference( fact, exp_n, lemmas, c, inferType );
+void InferenceManager::assertInference(Node fact,
+                                       std::vector<Node>& exp,
+                                       std::vector<Node>& lemmas,
+                                       const char* c,
+                                       int inferType)
+{
+  Node exp_n = exp.empty() ? d_true
+                           : (exp.size() == 1
+                                  ? exp[0]
+                                  : NodeManager::currentNM()->mkNode(AND, exp));
+  assertInference(fact, exp_n, lemmas, c, inferType);
 }
 
-void InferenceManager::assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType ){
-  if( !conc.empty() ){
-    Node fact = conc.size()==1 ? conc[0] : NodeManager::currentNM()->mkNode( AND, conc );
-    assertInference( fact, exp, lemmas, c, inferType );
+void InferenceManager::assertInference(std::vector<Node>& conc,
+                                       Node exp,
+                                       std::vector<Node>& lemmas,
+                                       const char* c,
+                                       int inferType)
+{
+  if (!conc.empty())
+  {
+    Node fact = conc.size() == 1 ? conc[0]
+                                 : NodeManager::currentNM()->mkNode(AND, conc);
+    assertInference(fact, exp, lemmas, c, inferType);
   }
 }
-void InferenceManager::assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType ) {
-  Node exp_n = exp.empty() ? d_true : ( exp.size()==1 ? exp[0] : NodeManager::currentNM()->mkNode( AND, exp ) );
-  assertInference( conc, exp_n, lemmas, c, inferType );
+void InferenceManager::assertInference(std::vector<Node>& conc,
+                                       std::vector<Node>& exp,
+                                       std::vector<Node>& lemmas,
+                                       const char* c,
+                                       int inferType)
+{
+  Node exp_n = exp.empty() ? d_true
+                           : (exp.size() == 1
+                                  ? exp[0]
+                                  : NodeManager::currentNM()->mkNode(AND, exp));
+  assertInference(conc, exp_n, lemmas, c, inferType);
 }
 
-void InferenceManager::split( Node n, int reqPol ) {
-  n = Rewriter::rewrite( n );
-  Node lem = NodeManager::currentNM()->mkNode( OR, n, n.negate() );
-  flushLemma( lem );
+void InferenceManager::split(Node n, int reqPol)
+{
+  n = Rewriter::rewrite(n);
+  Node lem = NodeManager::currentNM()->mkNode(OR, n, n.negate());
+  flushLemma(lem);
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
-  if( reqPol!=0 ){
-    Trace("sets-lemma") << "Sets::Require phase "  << n << " " << (reqPol>0) << std::endl;
-    d_parent.getOutputChannel()->requirePhase( n, reqPol>0 );
+  if (reqPol != 0)
+  {
+    Trace("sets-lemma") << "Sets::Require phase " << n << " " << (reqPol > 0)
+                        << std::endl;
+    d_parent.getOutputChannel()->requirePhase(n, reqPol > 0);
   }
 }
-void InferenceManager::flushLemmas( std::vector< Node >& lemmas, bool preprocess ) {
-  for( const Node& l : lemmas ){
-    flushLemma( l, preprocess );
+void InferenceManager::flushLemmas(std::vector<Node>& lemmas, bool preprocess)
+{
+  for (const Node& l : lemmas)
+  {
+    flushLemma(l, preprocess);
   }
   lemmas.clear();
 }
 
-void InferenceManager::flushLemma( Node lem, bool preprocess ) {
-  if( d_lemmas_produced.find(lem)!=d_lemmas_produced.end() ){
+void InferenceManager::flushLemma(Node lem, bool preprocess)
+{
+  if (d_lemmas_produced.find(lem) != d_lemmas_produced.end())
+  {
     Trace("sets-lemma-debug") << "Already sent lemma : " << lem << std::endl;
     return;
   }
@@ -143,22 +202,18 @@ void InferenceManager::flushLemma( Node lem, bool preprocess ) {
   d_sentLemma = true;
 }
 
-bool InferenceManager::hasLemmaCached( Node lem ) const{
-  return d_lemmas_produced.find(lem)!=d_lemmas_produced.end();
+bool InferenceManager::hasLemmaCached(Node lem) const
+{
+  return d_lemmas_produced.find(lem) != d_lemmas_produced.end();
 }
 
-bool InferenceManager::hasProcessed() const{
+bool InferenceManager::hasProcessed() const
+{
   return d_parent.isInConflict() || d_sentLemma || d_addedFact;
 }
-bool InferenceManager::hasSentLemma() const
-{
-  return d_sentLemma;
-}
-bool InferenceManager::hasAddedFact() const
-{
-  return d_addedFact;
-}
+bool InferenceManager::hasSentLemma() const { return d_sentLemma; }
+bool InferenceManager::hasAddedFact() const { return d_addedFact; }
 
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace CVC4

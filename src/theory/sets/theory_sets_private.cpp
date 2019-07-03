@@ -50,8 +50,8 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_im(*this, d_state, d_equalityEngine, c, u),
       d_rels(
           new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
-      d_cardSolver(
-          new CardinalityExtension(*this, d_state, d_im, d_equalityEngine, c, u)),
+      d_cardSolver(new CardinalityExtension(
+          *this, d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -377,8 +377,9 @@ void TheorySetsPrivate::fullEffortCheck(){
     }
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
 
-    d_im.flushLemmas( lemmas );
-    if( !d_im.hasProcessed() ){
+    d_im.flushLemmas(lemmas);
+    if (!d_im.hasProcessed())
+    {
       if( Trace.isOn("sets-mem") ){
         const std::vector<Node>& sec = d_state.getSetsEqClasses();
         for (const Node& s : sec)
@@ -402,17 +403,19 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
       }
       checkSubtypes( lemmas );
-      d_im.flushLemmas( lemmas, true );
-      if( !d_im.hasProcessed() ){
-      
+      d_im.flushLemmas(lemmas, true);
+      if (!d_im.hasProcessed())
+      {
         checkDownwardsClosure( lemmas );
         if( options::setsInferAsLemmas() ){
-          d_im.flushLemmas( lemmas );
+          d_im.flushLemmas(lemmas);
         }
-        if( !d_im.hasProcessed() ){
+        if (!d_im.hasProcessed())
+        {
           checkUpwardsClosure( lemmas );
-          d_im.flushLemmas( lemmas );
-          if( !d_im.hasProcessed() ){
+          d_im.flushLemmas(lemmas);
+          if (!d_im.hasProcessed())
+          {
             checkDisequalities(lemmas);
             d_im.flushLemmas(lemmas);
             if (!d_im.hasProcessed() && d_card_enabled)
@@ -424,8 +427,9 @@ void TheorySetsPrivate::fullEffortCheck(){
         }
       }
     }
-  }while( !d_im.hasSentLemma() && !d_conflict && d_im.hasAddedFact() );
-  Trace("sets") << "----- End full effort check, conflict=" << d_conflict << ", lemma=" << d_im.hasSentLemma() << std::endl;
+  } while (!d_im.hasSentLemma() && !d_conflict && d_im.hasAddedFact());
+  Trace("sets") << "----- End full effort check, conflict=" << d_conflict
+                << ", lemma=" << d_im.hasSentLemma() << std::endl;
 }
 
 void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
@@ -457,7 +461,7 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
           if (!tc_k.isNull())
           {
             Node etc = tc_k.eqNode(it2.first);
-            d_im.assertInference( etc, exp, lemmas, "subtype-clash" );
+            d_im.assertInference(etc, exp, lemmas, "subtype-clash");
             if( d_conflict ){
               return;
             }
@@ -496,7 +500,7 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
                 std::vector< Node > exp;
                 exp.push_back( mem );
                 exp.push_back( mem[1].eqNode( eq_set ) );
-                d_im.assertInference( nmem, exp, lemmas, "downc" );
+                d_im.assertInference(nmem, exp, lemmas, "downc");
                 if( d_conflict ){
                   return;
                 }
@@ -515,7 +519,7 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
                 {
                   nmem = NodeManager::currentNM()->mkNode( kind::OR, pmem.negate(), nmem );
                 }
-                d_im.assertInference( nmem, exp, lemmas, "downc" );
+                d_im.assertInference(nmem, exp, lemmas, "downc");
               }
             }
           }
@@ -610,7 +614,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                   if( !isMember( x, rr ) ){
                     Node kk = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
-                    d_im.assertInference( fact, exp, lemmas, "upc", inferType );
+                    d_im.assertInference(fact, exp, lemmas, "upc", inferType);
                     if( d_conflict ){
                       return;
                     }
@@ -634,7 +638,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                     d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
                     Node k = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, k);
-                    d_im.assertInference( fact, exp, lemmas, "upc2" );
+                    d_im.assertInference(fact, exp, lemmas, "upc2");
                     if( d_conflict ){
                       return;
                     }
@@ -647,7 +651,8 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
       }
     }
   }
-  if( !d_im.hasProcessed() ){
+  if (!d_im.hasProcessed())
+  {
     if( options::setsExt() ){
       //universal sets
       Trace("sets-debug") << "Check universe sets..." << std::endl;
@@ -688,7 +693,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                 exp.push_back(v.eqNode(it2.second[1]));
               }
               Node fact = nm->mkNode(kind::MEMBER, it2.second[0], u);
-              d_im.assertInference( fact, exp, lemmas, "upuniv" );
+              d_im.assertInference(fact, exp, lemmas, "upuniv");
               if( d_conflict ){
                 return;
               }
@@ -733,9 +738,10 @@ void TheorySetsPrivate::checkDisequalities( std::vector< Node >& lemmas ) {
           Node mem2 = NodeManager::currentNM()->mkNode( kind::MEMBER, x, deq[1] );
           Node lem = NodeManager::currentNM()->mkNode( kind::OR, deq, NodeManager::currentNM()->mkNode( kind::EQUAL, mem1, mem2 ).negate() );
           lem = Rewriter::rewrite( lem );
-          d_im.assertInference( lem, d_emp_exp, lemmas, "diseq", 1 );
-          d_im.flushLemmas( lemmas );
-          if( d_im.hasProcessed() ){
+          d_im.assertInference(lem, d_emp_exp, lemmas, "diseq", 1);
+          d_im.flushLemmas(lemmas);
+          if (d_im.hasProcessed())
+          {
             return;
           }
         }
@@ -767,7 +773,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     if( level == Theory::EFFORT_FULL ){
       if( !d_external.d_valuation.needCheck() ){
         fullEffortCheck();
-        if( !d_conflict && !d_im.hasSentLemma() ){
+        if (!d_conflict && !d_im.hasSentLemma())
+        {
           //invoke relations solver
           d_rels->check(level);
         }
@@ -828,7 +835,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
                 if (!d_state.areDisequal(x, y))
                 {
                   Trace("sets-cg-lemma") << "Should split on : " << x << "==" << y << std::endl;
-                  d_im.split( x.eqNode( y ) );
+                  d_im.split(x.eqNode(y));
                 }
               }
             }
@@ -1107,11 +1114,11 @@ OutputChannel* TheorySetsPrivate::getOutputChannel()
 Valuation& TheorySetsPrivate::getValuation() { return d_external.d_valuation; }
 
 bool TheorySetsPrivate::isInConflict() const { return d_conflict.get(); }
-  void TheorySetsPrivate::setConflict(Node conf)
-  {
-    d_external.d_out->conflict(conf);
-    d_conflict = true;
-  }
+void TheorySetsPrivate::setConflict(Node conf)
+{
+  d_external.d_out->conflict(conf);
+  d_conflict = true;
+}
 
 void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
   d_equalityEngine.setMasterEqualityEngine(eq);
@@ -1120,10 +1127,10 @@ void TheorySetsPrivate::setMasterEqualityEngine(eq::EqualityEngine* eq) {
 
 void TheorySetsPrivate::conflict(TNode a, TNode b)
 {
-  Node conf= explain(a.eqNode(b));
+  Node conf = explain(a.eqNode(b));
   setConflict(conf);
-  Debug("sets") << "[sets] conflict: " << a << " iff " << b
-                << ", explaination " << conf << std::endl;
+  Debug("sets") << "[sets] conflict: " << a << " iff " << b << ", explaination "
+                << conf << std::endl;
   Trace("sets-lemma") << "Equality Conflict : " << conf << std::endl;
 }
 

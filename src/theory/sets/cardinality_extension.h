@@ -19,8 +19,8 @@
 
 #include "context/cdhashset.h"
 #include "context/context.h"
-#include "theory/sets/sets_state.h"
 #include "theory/sets/inference_manager.h"
+#include "theory/sets/sets_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {

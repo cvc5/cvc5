@@ -47,11 +47,12 @@ class TheorySetsPrivate {
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
   /** Assert fact holds in the current context with explanation exp.
-   * 
+   *
    * exp should be explanable by the equality engine of this class, and fact
    * should be a literal.
    */
-  bool assertFact( Node fact, Node exp );
+  bool assertFact(Node fact, Node exp);
+
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal(Node a, Node b);
@@ -176,6 +177,7 @@ class TheorySetsPrivate {
   bool isInConflict() const;
   /** Set conf is a conflict node to be sent on the output channel.  */
   void setConflict(Node conf);
+
  private:
   TheorySets& d_external;
 

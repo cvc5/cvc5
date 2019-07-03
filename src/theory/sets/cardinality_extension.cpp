@@ -31,7 +31,7 @@ namespace sets {
 
 CardinalityExtension::CardinalityExtension(TheorySetsPrivate& p,
                                            SetsState& s,
-                                          InferenceManager& im,
+                                           InferenceManager& im,
                                            eq::EqualityEngine& e,
                                            context::Context* c,
                                            context::UserContext* u)

@@ -63,11 +63,11 @@ class SetsState
   /** Is a!=b according to equality reasoning in the current context? */
   bool areDisequal(Node a, Node b) const;
   /** add equality to explanation
-   * 
+   *
    * This adds a = b to exp if a and b are syntactically disequal. The equality
    * a = b should hold in the current context.
    */
-  void addEqualityToExp( Node a, Node b, std::vector< Node >& exp ) const;
+  void addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const;
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed(Node n, bool pol) const;
   /**

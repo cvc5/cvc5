@@ -23,45 +23,63 @@
 namespace CVC4 {
 namespace theory {
 namespace sets {
-  
+
 class TheorySetsPrivate;
 
-/** Inference manager 
- * 
+/** Inference manager
+ *
  * This class manages inferences produced by the theory of sets.
  */
-class InferenceManager {
+class InferenceManager
+{
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
+
  public:
   InferenceManager(TheorySetsPrivate& p,
-                       SetsState& s,
-                       eq::EqualityEngine& e,
-                       context::Context* c,
-                       context::UserContext* u);
-  /** reset 
-   * 
+                   SetsState& s,
+                   eq::EqualityEngine& e,
+                   context::Context* c,
+                   context::UserContext* u);
+  /** reset
+   *
    * Called at the beginning of a full effort check. Resets the information
    * related to this class.
    */
   void reset();
-  /** 
+  /**
    * Add facts corresponding to ( exp => fact ) via calls to the assertFact
    * method of TheorySetsPrivate.
-   * 
+   *
    * The argument lemmas is updated to contain poritions of fact that were
    * unable to be processed as facts.
-   * 
+   *
    * FIXME
-   * 
+   *
    * The argument c is the name of the inference, which is used for debugging.
    */
-  void assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference(Node fact,
+                       Node exp,
+                       std::vector<Node>& lemmas,
+                       const char* c,
+                       int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
-  void assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference(Node fact,
+                       std::vector<Node>& exp,
+                       std::vector<Node>& lemmas,
+                       const char* c,
+                       int inferType = 0);
   /** same as above, where conc is interpreted as a conjunction */
-  void assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference(std::vector<Node>& conc,
+                       Node exp,
+                       std::vector<Node>& lemmas,
+                       const char* c,
+                       int inferType = 0);
   /** same as above, where both exp and conc are interpreted as conjunctions */
-  void assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  void assertInference(std::vector<Node>& conc,
+                       std::vector<Node>& exp,
+                       std::vector<Node>& lemmas,
+                       const char* c,
+                       int inferType = 0);
   /** Flush lemmas
    *
    * This sends lemmas on the output channel of the theory of sets.
@@ -73,11 +91,11 @@ class InferenceManager {
   /** singular version of above */
   void flushLemma(Node lem, bool preprocess = false);
   /** flush the splitting lemma ( n OR (NOT n) )
-   * 
+   *
    * If reqPol is not 0, then a phase requirement for n is requested with
    * polarity ( reqPol>0 ).
    */
-  void split( Node n, int reqPol=0 );
+  void split(Node n, int reqPol = 0);
   /** Have we sent a lemma during the current call to a full effort check? */
   bool hasSentLemma() const;
   /** Have we added a fact during the current call to a full effort check? */
@@ -85,7 +103,8 @@ class InferenceManager {
   /** Have we processed an inference (fact, lemma, or conflict)? */
   bool hasProcessed() const;
   /** Have we sent lem as a lemma in the current user context? */
-  bool hasLemmaCached( Node lem ) const;
+  bool hasLemmaCached(Node lem) const;
+
  private:
   /** constants */
   Node d_true;
@@ -110,7 +129,7 @@ class InferenceManager {
   bool d_addedFact;
   /** A user-context-dependent cache of all lemmas produced */
   NodeSet d_lemmas_produced;
-  /** 
+  /**
    * A set of nodes to ref-count. Nodes that are facts or are explanations of
    * facts must be added to this set since the equality engine does not
    * ref count nodes.
@@ -118,14 +137,17 @@ class InferenceManager {
   NodeSet d_keep;
   /** Assert fact recursive
    *
-   * inferType : 1 : must send out as lemma, -1 : do internal inferences if possible, 0 : default.
+   * inferType : 1 : must send out as lemma, -1 : do internal inferences if
+   * possible, 0 : default.
    */
-  bool assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType = 0 );
+  bool assertFactRec(Node fact,
+                     Node exp,
+                     std::vector<Node>& lemma,
+                     int inferType = 0);
 };
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__SETS__INFERENCE_MANAGER_H */
