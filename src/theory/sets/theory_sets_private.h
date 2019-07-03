@@ -51,7 +51,7 @@ public:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 private:
-  bool ee_areCareDisequal( Node a, Node b );
+  bool areCareDisequal( Node a, Node b );
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
   bool assertFact( Node fact, Node exp );

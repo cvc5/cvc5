@@ -31,6 +31,18 @@ namespace sets {
 
 class TheorySetsPrivate;
   
+/** Sets state 
+ * 
+ * The purpose of this class is to:
+ * (1) Maintain information concerning the current set of assertions during a
+ * full effort check,
+ * (2) Maintain a database of commonly used terms.
+ * 
+ * During a full effort check, the solver for theory of sets should call:
+ *   reset; ( registerEqc | registerTerm )*
+ * to initialize the information in this class regarding (1).
+ * 
+ */
 class SetsState {
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
 public:
@@ -51,9 +63,9 @@ public:
    */
   bool isSetDisequalityEntailed( Node s, Node t );
   /** Is a=b according to equality reasoning? */
-  bool ee_areEqual( Node a, Node b );
+  bool areEqual( Node a, Node b );
   /** Is a!=b according to equality reasoning? */
-  bool ee_areDisequal( Node a, Node b );
+  bool areDisequal( Node a, Node b );
   /** 
    * Get the equivalence class of the empty set of type tn, or null if it does
    * not exist as a term in the current context.
@@ -69,29 +81,12 @@ public:
    * exists, or null if none exists.
    */
   Node getSingletonEqClass( Node r ) const;
-  
-  
   /** get binary operator term (modulo equality)
    * 
    * This method returns a non-null node n if and only if a term n that is
    * congruent to <k>(r1,r2) exists in the current context.
    */
   Node getBinaryOpTerm( Kind k, Node r1, Node r2 ) const;
-  
-  /** get type constraint skolem for n and tn */
-  Node getTypeConstraintSkolem(Node n, TypeNode tn);
-  /** get the proxy variable for set n
-   * 
-   * Proxy variables are used to communicate information that otherwise would
-   * not be possible due to rewriting. For example, the literal
-   *   card( singleton( 0 ) ) = 1
-   * is rewritten to true. Instead, to communicate this fact (e.g. to other
-   * theories), we require introducing a proxy variable x for singleton( 0 ).
-   * Then:
-   *   card( x ) = 1 ^ x = singleton( 0 )
-   * communicates the equivalent of the above literal.
-   */
-  Node getProxy( Node n );
   /** 
    * Returns a term that is congruent to n in the current context.
    * 
@@ -108,10 +103,6 @@ public:
    * class.
    */
   bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
-  /** Get the empty set of type tn */
-  Node getEmptySet( TypeNode tn );
-  /** Get the universe set of type tn */
-  Node getUnivSet( TypeNode tn );
   /** Get the list of all equivalence classes of set type */
   std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
   /** 
@@ -130,6 +121,36 @@ public:
   std::map< Node, Node >& getNegativeMembers(Node r) { return d_pol_mems[1][r]; }
   /** Is the members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
+  // --------------------------------------- commonly used terms
+  /** Get type constraint skolem
+   *
+   * The sets theory solver outputs equality lemmas of the form:
+   *   n = d_tc_skolem[n][tn]
+   * where the type of d_tc_skolem[n][tn] is tn, and the type
+   * of n is not a subtype of tn. This is required to handle benchmarks like
+   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
+   * where for s : (Set Int) and t : (Set Real), we have that
+   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
+   * The type constraint Skolem for (y, Int) is the skolemization of k above.
+   */
+  Node getTypeConstraintSkolem(Node n, TypeNode tn);
+  /** get the proxy variable for set n
+   * 
+   * Proxy variables are used to communicate information that otherwise would
+   * not be possible due to rewriting. For example, the literal
+   *   card( singleton( 0 ) ) = 1
+   * is rewritten to true. Instead, to communicate this fact (e.g. to other
+   * theories), we require introducing a proxy variable x for singleton( 0 ).
+   * Then:
+   *   card( x ) = 1 ^ x = singleton( 0 )
+   * communicates the equivalent of the above literal.
+   */
+  Node getProxy( Node n );
+  /** Get the empty set of type tn */
+  Node getEmptySet( TypeNode tn );
+  /** Get the universe set of type tn */
+  Node getUnivSet( TypeNode tn );
+  // --------------------------------------- end commonly used terms
 private:
   /** constants */
   Node d_true;
@@ -165,17 +186,7 @@ public: //FIXME
   // -------------------------------- end term indices
   std::map< Kind, std::vector< Node > > d_op_list;
 private:
-  /** type constraint skolems
-   *
-   * The sets theory solver outputs equality lemmas of the form:
-   *   n = d_tc_skolem[n][tn]
-   * where the type of d_tc_skolem[n][tn] is tn, and the type
-   * of n is not a subtype of tn. This is required to handle benchmarks like
-   *   test/regress/regress0/sets/sets-of-sets-subtypes.smt2
-   * where for s : (Set Int) and t : (Set Real), we have that
-   *   ( s = t ^ y in t ) implies ( exists k : Int. y = k )
-   * The type constraint Skolem for (y, Int) is the skolemization of k above.
-   */
+  /** type constraint skolems (see getTypeConstraintSkolem) */
   std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;  
   
   /** is set disequality entailed internal 

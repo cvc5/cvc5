@@ -250,12 +250,12 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
     unsigned n_parents = true_sib + ( u.isNull() ? 0 : 1 );
     //if this set is empty
     if( is_empty ){
-      Assert( d_state.ee_areEqual( n, emp_set ) );
+      Assert( d_state.areEqual( n, emp_set ) );
       Trace("sets-debug") << "  empty, parents equal siblings" << std::endl;
       std::vector< Node > conc;
       //parent equal siblings
       for( unsigned e=0; e<true_sib; e++ ){
-        if( d_ee.hasTerm( sib[e] ) && !d_state.ee_areEqual( n[e], sib[e] ) )
+        if( d_ee.hasTerm( sib[e] ) && !d_state.areEqual( n[e], sib[e] ) )
         {
           conc.push_back( n[e].eqNode( sib[e] ) );
         }
@@ -281,15 +281,15 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
         Node p = (e==true_sib) ? u : n[e];
         Trace("sets-debug") << "  check relation to parent " << p << ", isu=" << is_union << "..." << std::endl;
         //if parent is empty
-        if( d_state.ee_areEqual( p, emp_set ) ){
+        if( d_state.areEqual( p, emp_set ) ){
           Trace("sets-debug") << "  it is empty..." << std::endl;
-          Assert( !d_state.ee_areEqual( n, emp_set ) );
+          Assert( !d_state.areEqual( n, emp_set ) );
           d_parent.assertInference( n.eqNode( emp_set ), p.eqNode( emp_set ), lemmas, "cg_emppar" );
           if( d_parent.hasProcessed() ){
             return;
           }
         //if we are equal to a parent
-        }else if( d_state.ee_areEqual( p, n ) ){
+        }else if( d_state.areEqual( p, n ) ){
           Trace("sets-debug") << "  it is equal to this..." << std::endl;
           std::vector< Node > conc;
           std::vector< int > sib_emp_indices;
@@ -302,7 +302,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
           }
           //sibling(s) are empty
           for( unsigned si : sib_emp_indices ){
-            if( !d_state.ee_areEqual( sib[si], emp_set ) ){
+            if( !d_state.areEqual( sib[si], emp_set ) ){
               conc.push_back( sib[si].eqNode( emp_set ) );
             }else{
               Trace("sets-debug") << "Sibling " << sib[si] << " is already empty." << std::endl;
@@ -310,7 +310,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
           }
           if( !is_union && nk==INTERSECTION && !u.isNull() ){
             //union is equal to other parent
-            if( !d_state.ee_areEqual( u, n[1-e] ) ){
+            if( !d_state.areEqual( u, n[1-e] ) ){
               conc.push_back( u.eqNode( n[1-e] ) );
             }
           }
@@ -340,7 +340,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
           bool eq_parent = false;
           std::vector< Node > exp;
           d_parent.addEqualityToExp( card_parents[k], eqccSingleton, exp );
-          if( d_state.ee_areDisequal( n, emp_set ) ){
+          if( d_state.areDisequal( n, emp_set ) ){
             exp.push_back( n.eqNode( emp_set ).negate() );
             eq_parent = true;
           }else{
@@ -376,12 +376,12 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
                 if( card_parent_ids[k]==2 ){
                   //intersection is equal to other parent
                   unsigned pid = 1-card_parent_ids[l];
-                  if( !d_state.ee_areEqual( n[pid], n ) ){
+                  if( !d_state.areEqual( n[pid], n ) ){
                     Trace("sets-debug") << "  one of them is union, make equal to other..." << std::endl;
                     conc.push_back( n[pid].eqNode( n ) );
                   }
                 }else{
-                  if( !d_state.ee_areEqual( card_parents[k], n ) ){
+                  if( !d_state.areEqual( card_parents[k], n ) ){
                     Trace("sets-debug") << "  neither is union, make equal to one parent..." << std::endl;
                     //intersection is equal to one of the parents
                     conc.push_back( card_parents[k].eqNode( n ) );
@@ -531,8 +531,8 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
             //FIXME
             //debugPrintSet( r, "sets-nf-debug" );
             Trace("sets-nf-debug") << std::endl;
-            Assert( !d_state.ee_areEqual( r, emp_set ) );
-            if( !d_state.ee_areDisequal( r, emp_set ) && !d_state.hasMembers(r) ){
+            Assert( !d_state.areEqual( r, emp_set ) );
+            if( !d_state.areDisequal( r, emp_set ) && !d_state.hasMembers(r) ){
               //guess that its equal empty if it has no explicit members
               Trace("sets-nf") << " Split empty : " << r << std::endl;
               Trace("sets-nf") << "Actual Split : ";
@@ -559,7 +559,7 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
                 Trace("sets-nf-debug") << "Split term already exists, but not in cardinality graph : " << r1r2i << ", should be empty." << std::endl;
                 //their intersection is empty (probably?)
                 // e.g. these are two disjoint venn regions, proceed to next pair
-                Assert( d_state.ee_areEqual( emp_set, r1r2i ) );
+                Assert( d_state.areEqual( emp_set, r1r2i ) );
                 disjoint = true;
                 break;
               }
@@ -590,7 +590,7 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
     }
   }else{
     // must ensure disequal from empty
-    if (!eqc.isConst() && !d_state.ee_areDisequal(eqc, emp_set)
+    if (!eqc.isConst() && !d_state.areDisequal(eqc, emp_set)
         && !d_state.hasMembers(eqc))
     {
       Trace("sets-nf-debug") << "Split on leaf " << eqc << std::endl;

@@ -140,7 +140,7 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         bool add = true;
         for( int j=0; j<n_members; j++ ){
           Assert( j<(int)d_members_data[t1].size() && d_members_data[t1][j].getKind()==kind::MEMBER );
-          if( d_state.ee_areEqual( m2[0], d_members_data[t1][j][0] ) ){
+          if( d_state.areEqual( m2[0], d_members_data[t1][j][0] ) ){
             add = false;
             break;
           }
@@ -148,7 +148,7 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         if( add ){
           if( !s1.isNull() && s2.isNull() ){
             Assert( m2[1].getType().isComparableTo( s1.getType() ) );
-            Assert( d_state.ee_areEqual( m2[1], s1 ) );
+            Assert( d_state.areEqual( m2[1], s1 ) );
             Node exp = NodeManager::currentNM()->mkNode( kind::AND, m2[1].eqNode( s1 ), m2 );
             if( s1.getKind()==kind::SINGLETON ){
               if( s1[0]!=m2[0] ){
@@ -209,7 +209,7 @@ TheorySetsPrivate::EqcInfo* TheorySetsPrivate::getOrMakeEqcInfo( TNode n, bool d
   }
 }
 
-bool TheorySetsPrivate::ee_areCareDisequal( Node a, Node b ) {
+bool TheorySetsPrivate::areCareDisequal( Node a, Node b ) {
   if( d_equalityEngine.isTriggerTerm(a, THEORY_SETS) && d_equalityEngine.isTriggerTerm(b, THEORY_SETS) ){
     TNode a_shared = d_equalityEngine.getTriggerTermRepresentative(a, THEORY_SETS);
     TNode b_shared = d_equalityEngine.getTriggerTermRepresentative(b, THEORY_SETS);
@@ -226,7 +226,7 @@ bool TheorySetsPrivate::isMember( Node x, Node s ) {
   NodeIntMap::iterator mem_i = d_members.find( s );
   if( mem_i != d_members.end() ) {
     for( int i=0; i<(*mem_i).second; i++ ){
-      if( d_state.ee_areEqual( d_members_data[s][i][0], x ) ){
+      if( d_state.areEqual( d_members_data[s][i][0], x ) ){
         return true;
       }
     }
@@ -521,7 +521,7 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
           Trace("sets") << "    most common type term is " << mctt << std::endl;
           std::vector< Node > exp;
           exp.push_back( it2->second );
-          Assert( d_state.ee_areEqual( mctt, it2->second[1] ) );
+          Assert( d_state.areEqual( mctt, it2->second[1] ) );
           exp.push_back( mctt.eqNode( it2->second[1] ) );
           Node tc_k = d_state.getTypeConstraintSkolem(it2->first, mct);
           if (!tc_k.isNull())
@@ -571,7 +571,7 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
                 Node nmem = NodeManager::currentNM()->mkNode( kind::MEMBER, mem[0], eq_set );
                 nmem = Rewriter::rewrite( nmem );
                 std::vector< Node > exp;
-                if( d_state.ee_areEqual( mem, pmem ) ){
+                if( d_state.areEqual( mem, pmem ) ){
                   exp.push_back( pmem );
                 }else{
                   nmem = NodeManager::currentNM()->mkNode( kind::OR, pmem.negate(), nmem );
@@ -913,7 +913,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
     if( t2!=NULL ){
       Node f1 = t1->getData();
       Node f2 = t2->getData();
-      if( !d_state.ee_areEqual( f1, f2 ) ){
+      if( !d_state.areEqual( f1, f2 ) ){
         Trace("sets-cg") << "Check " << f1 << " and " << f2 << std::endl;
         vector< pair<TNode, TNode> > currentPairs;
         for (unsigned k = 0; k < f1.getNumChildren(); ++ k) {
@@ -921,8 +921,8 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
           TNode y = f2[k];
           Assert( d_equalityEngine.hasTerm(x) );
           Assert( d_equalityEngine.hasTerm(y) );
-          Assert( !d_state.ee_areDisequal( x, y ) );
-          Assert( !ee_areCareDisequal( x, y ) );
+          Assert( !d_state.areDisequal( x, y ) );
+          Assert( !areCareDisequal( x, y ) );
           if( !d_equalityEngine.areEqual( x, y ) ){
             Trace("sets-cg") << "Arg #" << k << " is " << x << " " << y << std::endl;
             if( d_equalityEngine.isTriggerTerm(x, THEORY_SETS) && d_equalityEngine.isTriggerTerm(y, THEORY_SETS) ){
@@ -933,7 +933,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
               //splitting on sets (necessary for handling set of sets properly)
               if( x.getType().isSet() ){
                 Assert( y.getType().isSet() );
-                if( !d_state.ee_areDisequal( x, y ) ){
+                if( !d_state.areDisequal( x, y ) ){
                   Trace("sets-cg-lemma") << "Should split on : " << x << "==" << y << std::endl;
                   split( x.eqNode( y ) );
                 }
@@ -966,7 +966,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         ++it2;
         for( ; it2 != t1->d_data.end(); ++it2 ){
           if( !d_equalityEngine.areDisequal(it->first, it2->first, false) ){
-            if( !ee_areCareDisequal(it->first, it2->first) ){
+            if( !areCareDisequal(it->first, it2->first) ){
               addCarePairs( &it->second, &it2->second, arity, depth+1, n_pairs );
             }
           }
@@ -980,7 +980,7 @@ void TheorySetsPrivate::addCarePairs(TNodeTrie* t1,
         {
           if (!d_equalityEngine.areDisequal(tt1.first, tt2.first, false))
           {
-            if (!ee_areCareDisequal(tt1.first, tt2.first))
+            if (!areCareDisequal(tt1.first, tt2.first))
             {
               addCarePairs(&tt1.second, &tt2.second, arity, depth + 1, n_pairs);
             }
@@ -1137,7 +1137,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
 
 void TheorySetsPrivate::addEqualityToExp( Node a, Node b, std::vector< Node >& exp ) {
   if( a!=b ){
-    Assert( d_state.ee_areEqual( a, b ) );
+    Assert( d_state.areEqual( a, b ) );
     exp.push_back( a.eqNode( b ) );
   }
 }

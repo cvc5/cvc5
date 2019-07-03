@@ -132,7 +132,7 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
   }
 }
   
-bool SetsState::ee_areEqual( Node a, Node b ) {
+bool SetsState::areEqual( Node a, Node b ) {
   if( a==b ){
     return true;
   }
@@ -142,7 +142,7 @@ bool SetsState::ee_areEqual( Node a, Node b ) {
   return false;
 }
 
-bool SetsState::ee_areDisequal( Node a, Node b ) {
+bool SetsState::areDisequal( Node a, Node b ) {
   if( a==b ){
     return false;
   }else if( d_ee.hasTerm( a ) && d_ee.hasTerm( b ) ){
@@ -207,12 +207,12 @@ bool SetsState::isEntailed( Node n, bool polarity ) {
     return isEntailed( n[0], !polarity );
   }else if( n.getKind()==EQUAL ){
     if( polarity ){
-      return ee_areEqual( n[0], n[1] );
+      return areEqual( n[0], n[1] );
     }else{
-      return ee_areDisequal( n[0], n[1] );
+      return areDisequal( n[0], n[1] );
     }
   }else if( n.getKind()==MEMBER ){
-    if( ee_areEqual( n, polarity ? d_true : d_false ) ){
+    if( areEqual( n, polarity ? d_true : d_false ) ){
       return true;
     }
     //check members cache
@@ -278,13 +278,13 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
   for( std::pair< const Node, Node >& itm : itpma->second ){
     //if b is a singleton
     if( itsb!=d_eqc_singleton.end() ){
-      if( ee_areDisequal( itm.first, itsb->second[0] ) ){
+      if( areDisequal( itm.first, itsb->second[0] ) ){
         Trace("sets-deq") << "Disequality is satisfied because of " << itm.second << ", singleton eq " << itsb->second[0] << std::endl;
         return true;
       }
       //or disequal with another member
       for( const Node& p : prev ){
-        if( ee_areDisequal( itm.first, p ) ){
+        if( areDisequal( itm.first, p ) ){
           Trace("sets-deq") << "Disequality is satisfied because of disequal members " << itm.first << " " << p << ", singleton eq " << std::endl;
         return true;
         }
@@ -292,7 +292,7 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
     //if a has positive member that is negative member in b 
     }else if( itpmb!=d_pol_mems[1].end() ){
       for( std::pair< const Node, Node >& itnm : itpmb->second ){
-        if( ee_areEqual( itm.first, itnm.first ) ){
+        if( areEqual( itm.first, itnm.first ) ){
           Trace("sets-deq") << "Disequality is satisfied because of " << itm.second << " " << itnm.second << std::endl;
           return true;
         }
