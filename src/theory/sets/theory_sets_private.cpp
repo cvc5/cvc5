@@ -628,7 +628,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                     valid = true;
                   }else{
                     // if not, check whether it is definitely not a member, if unknown, split
-                    if( r2nmem.find(xr)!=r2nmem.end() ){
+                    if( r2nmem.find(xr)==r2nmem.end() ){
                       exp.push_back( NodeManager::currentNM()->mkNode( kind::MEMBER, x, it2->second[1] ) );
                       valid = true;
                       inferType = 1;

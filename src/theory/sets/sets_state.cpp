@@ -91,13 +91,13 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
     if( nk==SINGLETON ){
       //singleton lemma
       getProxy( n );
-      Node r = d_ee.getRepresentative( n[0] );
-      if( d_singleton_index.find( r )==d_singleton_index.end() ){
-        d_singleton_index[r] = n;
+      Node re = d_ee.getRepresentative( n[0] );
+      if( d_singleton_index.find( re )==d_singleton_index.end() ){
+        d_singleton_index[re] = n;
         d_eqc_singleton[r] = n;
         d_op_list[SINGLETON].push_back( n );
       }else{
-        d_congruent[n] = d_singleton_index[r];
+        d_congruent[n] = d_singleton_index[re];
       }
     }else if( nk==EMPTYSET ){
       d_eqc_emptyset[tnn] = r;

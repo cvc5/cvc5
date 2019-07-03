@@ -54,13 +54,13 @@ void CardinalityExtension::registerTerm(Node n, std::vector< Node >& lemmas)
 {
   Trace("sets-card-debug") << "Register term : " << n << std::endl;
   Assert( n.getKind()==CARD);
+  TypeNode tnc = n[0].getType().getSetElementType();
+  d_t_card_enabled[tnc] = true;
   Node r = d_ee.getRepresentative( n[0] );
   if( d_eqc_to_card_term.find( r )==d_eqc_to_card_term.end() ){
     d_eqc_to_card_term[ r ] = n;
     registerCardinalityTerm( n[0], lemmas );
   }
-  TypeNode tnc = n[0].getType().getSetElementType();
-  d_t_card_enabled[tnc] = true;
   if( tnc.isInterpretedFinite() ){
     std::stringstream ss;
     ss << "ERROR: cannot use cardinality on sets with finite element "
@@ -140,8 +140,8 @@ void CardinalityExtension::registerCardinalityTerm( Node n, std::vector< Node >&
     // already processed
     return;
   }
-  NodeManager * nm = NodeManager::currentNM();
   d_card_processed.insert( n );
+  NodeManager * nm = NodeManager::currentNM();
   Trace("sets-card") << "Cardinality lemmas for " << n << " : " << std::endl;
   std::vector< Node > cterms;
   if( n.getKind()==INTERSECTION ){
@@ -648,8 +648,9 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
 
 void CardinalityExtension::checkMinCard( std::vector< Node >& lemmas ) {
   NodeManager * nm = NodeManager::currentNM();
-  for( int i=(int)(d_set_eqc.size()-1); i>=0; i-- ){
-    Node eqc = d_set_eqc[i];
+  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
+  for( int i=(int)(setEqc.size()-1); i>=0; i-- ){
+    Node eqc = setEqc[i];
     TypeNode tn = eqc.getType().getSetElementType();
     if (d_t_card_enabled.find(tn) == d_t_card_enabled.end())
     {
