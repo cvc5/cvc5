@@ -1,17 +1,15 @@
 /*********************                                                        */
-/*! \file theory_sets_private.cpp
+/*! \file sets_state.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
+ ** \brief Implementation of sets state object
  **/
 
 #include "theory/sets/sets_state.h"
@@ -224,8 +222,8 @@ bool SetsState::isEntailed( Node n, bool polarity ) const{
     }
   }else if( n.getKind()==AND || n.getKind()==OR ){
     bool conj = (n.getKind()==AND)==polarity;
-    for( unsigned i=0; i<n.getNumChildren(); i++ ){
-      bool isEnt = isEntailed( n[i], polarity );
+    for( const Node& nc : n ){
+      bool isEnt = isEntailed( nc, polarity );
       if( isEnt!=conj ){
         return !conj;
       }
@@ -450,9 +448,9 @@ void SetsState::debugPrintSet( Node s, const char * c ) const {
     }
   }else{
     Trace(c) << "(" << s.getOperator();
-    for( unsigned i=0; i<s.getNumChildren(); i++ ){
+    for( const Node& sc : s ){
       Trace(c) << " ";
-      debugPrintSet( s[i], c );
+      debugPrintSet( sc, c );
     }
     Trace(c) << ")";
   }

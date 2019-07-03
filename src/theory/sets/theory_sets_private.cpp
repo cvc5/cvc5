@@ -387,7 +387,9 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_most_common_type_term.clear();
     d_card_enabled = false;
     d_rels_enabled = false;
+    // reset the state object
     d_state.reset();
+    // reset the cardinality solver
     d_cardSolver->reset();
 
     std::vector< Node > lemmas;
@@ -424,12 +426,15 @@ void TheorySetsPrivate::fullEffortCheck(){
             tnct = n;
           }
         }
+        // register it with the state
         d_state.registerTerm(eqc,tnn,n);
         if( n.getKind()==kind::CARD ){
           d_card_enabled = true;
+          // register it with the cardinality solver
           d_cardSolver->registerTerm(n,lemmas);
           // if we do not handle the kind, set incomplete
           Kind nk = n[0].getKind();
+          // some kinds of cardinality we cannot handle
           if (nk == kind::UNIVERSE_SET || d_rels->isRelationKind(nk))
           {
             d_full_check_incomplete = true;
@@ -490,6 +495,7 @@ void TheorySetsPrivate::fullEffortCheck(){
             flushLemmas(lemmas);
             if (!hasProcessed() && d_card_enabled)
             {
+              // call the check method of the cardinality solver
               d_cardSolver->check();
             }
           }

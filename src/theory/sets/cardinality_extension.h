@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file theory_sets_private.h
+/*! \file cardinality_extension.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds, Kshitij Bansal, Paul Meng
@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
+ ** \brief An extension of the theory sets for handling cardinality constraints
  **/
 
 #include "cvc4_private.h"

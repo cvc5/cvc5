@@ -1,17 +1,15 @@
 /*********************                                                        */
-/*! \file theory_sets_private.h
+/*! \file sets_state.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sets theory implementation.
- **
- ** Sets theory implementation.
+ ** \brief Sets state object
  **/
 
 #include "cvc4_private.h"

@@ -51,6 +51,7 @@ public:
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
 private:
+  /** Are a and b trigger terms in the equality engine that may be disequal? */
   bool areCareDisequal( Node a, Node b );
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
@@ -267,7 +268,7 @@ private:
   
   bool isCareArg( Node n, unsigned a );
 public:
-  // TODO: remove
+  /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol ) { return d_state.isEntailed(n,pol); }
 
  private:
