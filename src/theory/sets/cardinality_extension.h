@@ -73,7 +73,6 @@ class CardinalityExtension {
   TheorySetsPrivate&                   d_parent;
    /** Reference to the state object for the theory of sets */
    SetsState& d_state;
-   
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   void checkCardBuildGraph( std::vector< Node >& lemmas );

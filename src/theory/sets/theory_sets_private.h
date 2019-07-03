@@ -70,7 +70,6 @@ private:
   void checkDownwardsClosure( std::vector< Node >& lemmas );
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
-  bool isMember( Node x, Node s );
   
   void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
   void flushLemma( Node lem, bool preprocess = false );
@@ -129,14 +128,6 @@ private:
   NodeSet d_lemmas_produced;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
-  //cardinality
- private:
-  /** is cardinality enabled?
-   *
-   * This flag is set to true during a full effort check if any constraint
-   * involving cardinality constraints is asserted to this theory.
-   */
-  bool d_card_enabled;
 private: //for universe set
   NodeBoolMap d_var_elim;
   void lastCallEffortCheck();
@@ -270,7 +261,8 @@ private:
 public:
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol ) { return d_state.isEntailed(n,pol); }
-
+  /** Is x entailed to be a member of set s in the current context? */
+  bool isMember( Node x, Node s );
  private:
   /** The state of the sets solver at full effort */
   SetsState d_state;
@@ -284,6 +276,12 @@ public:
    * involving relational constraints is asserted to this theory.
    */
   bool d_rels_enabled;
+  /** is cardinality enabled?
+   *
+   * This flag is set to true during a full effort check if any constraint
+   * involving cardinality constraints is asserted to this theory.
+   */
+  bool d_card_enabled;
 };/* class TheorySetsPrivate */
 
 

@@ -45,7 +45,6 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_addedFact(false),
       d_full_check_incomplete(false),
       d_lemmas_produced(u),
-      d_card_enabled(false),
       d_var_elim(u),
       d_external(external),
       d_notify(*this),
@@ -54,8 +53,9 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_state(*this,d_equalityEngine,c,u),
       d_rels(
           new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
-          d_cardSolver(new CardinalityExtension(*this,d_state,d_equalityEngine,c,u)),
-      d_rels_enabled(false)
+      d_cardSolver(new CardinalityExtension(*this,d_state,d_equalityEngine,c,u)),
+      d_rels_enabled(false),
+      d_card_enabled(false)
 {
   d_true = NodeManager::currentNM()->mkConst( true );
   d_false = NodeManager::currentNM()->mkConst( false );
