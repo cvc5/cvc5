@@ -37,7 +37,7 @@ CardinalityExtension::CardinalityExtension(TheorySetsPrivate& p,
     : d_parent(p), d_state(s), d_ee(e), d_card_processed(u)
 {
   d_zero = NodeManager::currentNM()->mkConst(Rational(0));
-
+  // we do congruence over cardinality
   d_ee.addFunctionKind(CARD);
 }
 
@@ -518,9 +518,8 @@ void CardinalityExtension::checkNormalForms(std::vector<Node>& lemmas,
 {
   Trace("sets") << "Check normal forms..." << std::endl;
   // now, build normal form for each equivalence class
-  //   d_set_eqc is now sorted such that for each d_set_eqc[i], d_set_eqc[j],
-  //      if d_set_eqc[i] is a strict syntactic subterm of d_set_eqc[j], then
-  //      i<j.
+  // d_set_eqc is now sorted such that for each d_set_eqc[i], d_set_eqc[j],
+  // if d_set_eqc[i] is a strict syntactic subterm of d_set_eqc[j], then i<j.
   d_ff.clear();
   d_nf.clear();
   for (int i = (int)(d_set_eqc.size() - 1); i >= 0; i--)
@@ -800,7 +799,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
         else
         {
           // if it is a duplicate venn region, it must be empty since it is
-          // coming from syntactically disjoint siblings TODO?
+          // coming from syntactically disjoint siblings
         }
       }
     }

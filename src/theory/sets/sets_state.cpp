@@ -241,10 +241,7 @@ bool SetsState::isEntailed(Node n, bool polarity) const
     {
       return areEqual(n[0], n[1]);
     }
-    else
-    {
-      return areDisequal(n[0], n[1]);
-    }
+    return areDisequal(n[0], n[1]);
   }
   else if (n.getKind() == MEMBER)
   {

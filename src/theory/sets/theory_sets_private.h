@@ -147,8 +147,6 @@ class TheorySetsPrivate {
   void addSharedTerm(TNode);
 
   void check(Theory::Effort);
-  
-  bool needsCheckLastEffort();
 
   bool collectModelInfo(TheoryModel* m);
 
