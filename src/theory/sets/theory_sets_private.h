@@ -105,8 +105,6 @@ private:
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
   
   void addEqualityToExp( Node a, Node b, std::vector< Node >& exp );
-  
-  void debugPrintSet( Node s, const char * c );
 
   /** sent lemma
    *

@@ -59,15 +59,15 @@ public:
   void registerTerm(Node r, TypeNode tnn, Node n);
   //-------------------------------- end initialize
   /** Is a=b according to equality reasoning? */
-  bool areEqual( Node a, Node b );
+  bool areEqual( Node a, Node b ) const;
   /** Is a!=b according to equality reasoning? */
-  bool areDisequal( Node a, Node b );
+  bool areDisequal( Node a, Node b ) const;
   /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed( Node n, bool pol );
+  bool isEntailed( Node n, bool pol ) const;
   /** 
    * Is the disequality between sets s and t entailed in the current context?
    */
-  bool isSetDisequalityEntailed( Node s, Node t );
+  bool isSetDisequalityEntailed( Node s, Node t ) const;
   /** 
    * Get the equivalence class of the empty set of type tn, or null if it does
    * not exist as a term in the current context.
@@ -104,14 +104,14 @@ public:
    * This method returns true if n is not the representative of its congruence
    * class.
    */
-  bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
+  bool isCongruent(Node n) const;
   /** Get the list of all equivalence classes of set type */
-  std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
+  const std::vector< Node >& getSetsEqClasses() const { return d_set_eqc; }
   /** 
    * Get the list of non-variable sets that exists in the equivalence class
    * whose representative is r. 
    */
-  std::vector< Node >& getNonVariableSets(Node r) { return d_nvar_sets[r]; }
+  const std::vector< Node >& getNonVariableSets(Node r) const;
   /** 
    * Get a variable set in the equivalence class with representative r, or null
    * if none exist.
@@ -123,9 +123,9 @@ public:
    * For example, if x = y, (member 5 y), (member 6 x), then getMembers(x)
    * returns the map [ 5 -> (member 5 y), 6 -> (member 6 x)].
    */
-  std::map< Node, Node >& getMembers(Node r) const; { return d_pol_mems[0][r]; }
+  const std::map< Node, Node >& getMembers(Node r) const;
   /** Get negative members of the set equivalence class r, similar to above */
-  std::map< Node, Node >& getNegativeMembers(Node r) const; { return d_pol_mems[1][r]; }
+  const std::map< Node, Node >& getNegativeMembers(Node r) const;
   /** Is the (positive) members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
   // --------------------------------------- commonly used terms
@@ -158,12 +158,15 @@ public:
   /** Get the universe set of type tn */
   Node getUnivSet( TypeNode tn );
   // --------------------------------------- end commonly used terms
+  /** debug print set */
+  void debugPrintSet( Node s, const char * c ) const;
 private:
   /** constants */
   Node d_true;
   Node d_false;
-  /** the empty vector */
+  /** the empty vector and map */
   std::vector< Node > d_emptyVec;
+  std::map< Node, Node > d_emptyMap;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
@@ -212,12 +215,12 @@ private:
    * eqE is the representative of the equivalence class of the empty set
    * whose type is the same as a and b.
    */
-  bool isSetDisequalityEntailedInternal( Node a, Node b, Node re );
+  bool isSetDisequalityEntailedInternal( Node a, Node b, Node re ) const;
   /** 
    * Get members internal, returns the positive members if i=0, or negative
    * members if i=1.
    */
-  std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const;
+  const std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const;
 };/* class TheorySetsPrivate */
 
 

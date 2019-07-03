@@ -112,10 +112,10 @@ void CardinalityExtension::checkCardBuildGraph( std::vector< Node >& lemmas ) {
   Trace("sets") << "Cardinality graph..." << std::endl;
   NodeManager * nm = NodeManager::currentNM();
   //first, ensure cardinality relationships are added as lemmas for all non-basic set terms
-  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
+  const std::vector< Node >& setEqc = d_state.getSetsEqClasses();
   for( const Node& eqc : setEqc )
   {
-    std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+    const std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
     for( Node n : nvsets ){
       if( !d_state.isCongruent(n) ){
         //if setminus, do for intersection instead
@@ -172,7 +172,7 @@ void CardinalityExtension::registerCardinalityTerm( Node n, std::vector< Node >&
 void CardinalityExtension::checkCardCycles( std::vector< Node >& lemmas ) {
   Trace("sets") << "Check cardinality cycles..." << std::endl;
   //build order of equivalence classes, also build cardinality graph
-  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
+  const std::vector< Node >& setEqc = d_state.getSetsEqClasses();
   d_set_eqc.clear();
   d_card_parent.clear();
   for( unsigned i=0; i<setEqc.size(); i++ ){
@@ -210,7 +210,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
     // already processed
     return;
   }
-  std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+  const std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
   if( nvsets.empty() ){
     // no non-variable sets, trivial
     d_set_eqc.push_back(eqc);
@@ -344,7 +344,7 @@ void CardinalityExtension::checkCardCyclesRec( Node eqc, std::vector< Node >& cu
             exp.push_back( n.eqNode( emp_set ).negate() );
             eq_parent = true;
           }else{
-            std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
+            const std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
             if( !pmemsE.empty() ){
               Node pmem = pmemsE.begin()->second;
               exp.push_back( pmem );
@@ -611,7 +611,7 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
   }
   // Send to parents (a parent is a set that contains a term in this equivalence
   // class as a direct child).
-  std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
+  const std::vector< Node >& nvsets = d_state.getNonVariableSets(eqc);
   if( nvsets.empty() ){
     // no non-variable sets
     return;
@@ -648,7 +648,7 @@ void CardinalityExtension::checkNormalForm( Node eqc, std::vector< Node >& intro
 
 void CardinalityExtension::checkMinCard( std::vector< Node >& lemmas ) {
   NodeManager * nm = NodeManager::currentNM();
-  std::vector< Node >& setEqc = d_state.getSetsEqClasses();
+  const std::vector< Node >& setEqc = d_state.getSetsEqClasses();
   for( int i=(int)(setEqc.size()-1); i>=0; i-- ){
     Node eqc = setEqc[i];
     TypeNode tn = eqc.getType().getSetElementType();
@@ -658,7 +658,7 @@ void CardinalityExtension::checkMinCard( std::vector< Node >& lemmas ) {
       continue;
     }
     //get members in class
-    std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
+    const std::map< Node, Node >& pmemsE = d_state.getMembers(eqc);
     if( pmemsE.empty() )
     {
       // no members, trivial

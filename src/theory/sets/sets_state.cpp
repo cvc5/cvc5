@@ -132,7 +132,7 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
   }
 }
   
-bool SetsState::areEqual( Node a, Node b ) {
+bool SetsState::areEqual( Node a, Node b ) const {
   if( a==b ){
     return true;
   }
@@ -142,7 +142,7 @@ bool SetsState::areEqual( Node a, Node b ) {
   return false;
 }
 
-bool SetsState::areDisequal( Node a, Node b ) {
+bool SetsState::areDisequal( Node a, Node b ) const{
   if( a==b ){
     return false;
   }else if( d_ee.hasTerm( a ) && d_ee.hasTerm( b ) ){
@@ -202,7 +202,7 @@ Node SetsState::getBinaryOpTerm( Kind k, Node r1, Node r2 ) const
   return it2->second;
 }
 
-bool SetsState::isEntailed( Node n, bool polarity ) {
+bool SetsState::isEntailed( Node n, bool polarity ) const{
   if( n.getKind()==NOT ){
     return isEntailed( n[0], !polarity );
   }else if( n.getKind()==EQUAL ){
@@ -237,11 +237,11 @@ bool SetsState::isEntailed( Node n, bool polarity ) {
   return false;
 }
 
-bool SetsState::isSetDisequalityEntailed( Node r1, Node r2 ) {
+bool SetsState::isSetDisequalityEntailed( Node r1, Node r2 )const {
   Assert( d_ee.hasTerm( r1 ) && d_ee.getRepresentative( r1 )==r1 );
   Assert( d_ee.hasTerm( r2 ) && d_ee.getRepresentative( r2 )==r2 );
   TypeNode tn = r1.getType();
-  Node re = d_eqc_emptyset[tn];
+  Node re = getEmptySetEqClass(tn);
   for( unsigned e=0; e<2; e++ ){
     Node a = e==0 ? r1 : r2;
     Node b = e==0 ? r2 : r1;
@@ -253,10 +253,10 @@ bool SetsState::isSetDisequalityEntailed( Node r1, Node r2 ) {
   return false;
 }
 
-bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
+bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re ) const
 {
   //if there are members in a
-  std::map< Node, std::map< Node, Node > >::iterator itpma = d_pol_mems[0].find( a );
+  std::map< Node, std::map< Node, Node > >::const_iterator itpma = d_pol_mems[0].find( a );
   if( itpma==d_pol_mems[0].end() ){
     // no positive members, continue
     return false;
@@ -272,10 +272,10 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
     }
     return false;
   }
-  std::map< Node, Node >::iterator itsb = d_eqc_singleton.find( b );
-  std::map< Node, std::map< Node, Node > >::iterator itpmb = d_pol_mems[1].find( b );
+  std::map< Node, Node >::const_iterator itsb = d_eqc_singleton.find( b );
+  std::map< Node, std::map< Node, Node > >::const_iterator itpmb = d_pol_mems[1].find( b );
   std::vector< Node > prev;
-  for( std::pair< const Node, Node >& itm : itpma->second ){
+  for( const std::pair< const Node, Node >& itm : itpma->second ){
     //if b is a singleton
     if( itsb!=d_eqc_singleton.end() ){
       if( areDisequal( itm.first, itsb->second[0] ) ){
@@ -291,7 +291,7 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
       }
     //if a has positive member that is negative member in b 
     }else if( itpmb!=d_pol_mems[1].end() ){
-      for( std::pair< const Node, Node >& itnm : itpmb->second ){
+      for( const std::pair< const Node, Node >& itnm : itpmb->second ){
         if( areEqual( itm.first, itnm.first ) ){
           Trace("sets-deq") << "Disequality is satisfied because of " << itm.second << " " << itnm.second << std::endl;
           return true;
@@ -336,6 +336,7 @@ Node SetsState::getCongruent( Node n ) const {
   }
   return it->second;
 }
+  bool SetsState::isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
 
 Node SetsState::getEmptySet( TypeNode tn ) {
   std::map< TypeNode, Node >::iterator it = d_emptyset.find( tn );
@@ -386,6 +387,16 @@ Node SetsState::getTypeConstraintSkolem(Node n, TypeNode tn)
   return it->second;
 }
 
+const std::vector< Node >& SetsState::getNonVariableSets(Node r) const { 
+  std::map< Node, std::vector< Node > >::const_iterator it = d_nvar_sets.find(r);
+  if( it==d_nvar_sets.end() )
+  {
+    return d_emptyVec;
+  }
+  return it->second;
+  
+}
+  
 Node SetsState::getVariableSet(Node r) const
 {
   std::map< Node, Node >::const_iterator it = d_var_set.find(r);
@@ -395,18 +406,18 @@ Node SetsState::getVariableSet(Node r) const
   }
   return Node::null();
 }
-std::map< Node, Node >& SetsState::getMembers(Node r) const{ 
+const std::map< Node, Node >& SetsState::getMembers(Node r) const{ 
   return getMembersInternal(r,0);
 }
-std::map< Node, Node >& SetsState::getNegativeMembers(Node r) const { 
+const std::map< Node, Node >& SetsState::getNegativeMembers(Node r) const { 
   return getMembersInternal(r,1);
   
 }
-std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const{ 
+const std::map< Node, Node >& SetsState::getMembersInternal(Node r, unsigned i) const{ 
   std::map< Node, std::map< Node, Node > >::const_iterator itp = d_pol_mems[i].find(r);
   if( itp==d_pol_mems[i].end() )
   {
-    return d_emptyVec;
+    return d_emptyMap;
   }
   return itp->second;
 }
@@ -419,6 +430,24 @@ bool SetsState::hasMembers(Node r) const
     return false;
   }
   return !it->second.empty();
+}
+
+void SetsState::debugPrintSet( Node s, const char * c ) const {
+  if( s.getNumChildren()==0 ){
+    NodeMap::const_iterator it = d_proxy_to_term.find( s );
+    if( it!=d_proxy_to_term.end() ){
+      debugPrintSet( (*it).second, c );
+    }else{
+      Trace(c) << s;
+    }
+  }else{
+    Trace(c) << "(" << s.getOperator();
+    for( unsigned i=0; i<s.getNumChildren(); i++ ){
+      Trace(c) << " ";
+      debugPrintSet( s[i], c );
+    }
+    Trace(c) << ")";
+  }
 }
 
 }/* CVC4::theory::sets namespace */
