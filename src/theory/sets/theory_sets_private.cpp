@@ -1206,47 +1206,6 @@ Node mkAnd(const std::vector<TNode>& conjunctions) {
 }/* mkAnd() */
 
 
-TheorySetsPrivate::Statistics::Statistics() :
-  d_getModelValueTime("theory::sets::getModelValueTime")
-  , d_mergeTime("theory::sets::merge_nodes::time")
-  , d_processCard2Time("theory::sets::processCard2::time")
-  , d_memberLemmas("theory::sets::lemmas::member", 0)
-  , d_disequalityLemmas("theory::sets::lemmas::disequality", 0)
-  , d_numVertices("theory::sets::vertices", 0)
-  , d_numVerticesMax("theory::sets::vertices-max", 0)
-  , d_numMergeEq1or2("theory::sets::merge1or2", 0)
-  , d_numMergeEq3("theory::sets::merge3", 0)
-  , d_numLeaves("theory::sets::leaves", 0)
-  , d_numLeavesMax("theory::sets::leaves-max", 0)
-{
-  smtStatisticsRegistry()->registerStat(&d_getModelValueTime);
-  smtStatisticsRegistry()->registerStat(&d_mergeTime);
-  smtStatisticsRegistry()->registerStat(&d_processCard2Time);
-  smtStatisticsRegistry()->registerStat(&d_memberLemmas);
-  smtStatisticsRegistry()->registerStat(&d_disequalityLemmas);
-  smtStatisticsRegistry()->registerStat(&d_numVertices);
-  smtStatisticsRegistry()->registerStat(&d_numVerticesMax);
-  smtStatisticsRegistry()->registerStat(&d_numMergeEq1or2);
-  smtStatisticsRegistry()->registerStat(&d_numMergeEq3);
-  smtStatisticsRegistry()->registerStat(&d_numLeaves);
-  smtStatisticsRegistry()->registerStat(&d_numLeavesMax);
-}
-
-
-TheorySetsPrivate::Statistics::~Statistics() {
-  smtStatisticsRegistry()->unregisterStat(&d_getModelValueTime);
-  smtStatisticsRegistry()->unregisterStat(&d_mergeTime);
-  smtStatisticsRegistry()->unregisterStat(&d_processCard2Time);
-  smtStatisticsRegistry()->unregisterStat(&d_memberLemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_disequalityLemmas);
-  smtStatisticsRegistry()->unregisterStat(&d_numVertices);
-  smtStatisticsRegistry()->unregisterStat(&d_numVerticesMax);
-  smtStatisticsRegistry()->unregisterStat(&d_numMergeEq1or2);
-  smtStatisticsRegistry()->unregisterStat(&d_numMergeEq3);
-  smtStatisticsRegistry()->unregisterStat(&d_numLeaves);
-  smtStatisticsRegistry()->unregisterStat(&d_numLeavesMax);
-}
-
 void TheorySetsPrivate::propagate(Theory::Effort effort) {
 
 }

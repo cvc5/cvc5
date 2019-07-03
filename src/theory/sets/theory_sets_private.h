@@ -204,24 +204,6 @@ class TheorySetsPrivate {
  private:
   TheorySets& d_external;
 
-  class Statistics {
-  public:
-    TimerStat d_getModelValueTime;
-    TimerStat d_mergeTime;
-    TimerStat d_processCard2Time;
-    IntStat d_memberLemmas;
-    IntStat d_disequalityLemmas;
-    IntStat d_numVertices;
-    IntStat d_numVerticesMax;
-    IntStat d_numMergeEq1or2;
-    IntStat d_numMergeEq3;
-    IntStat d_numLeaves;
-    IntStat d_numLeavesMax;
-
-    Statistics();
-    ~Statistics();
-  } d_statistics;
-
   /** Functions to handle callbacks from equality engine */
   class NotifyClass : public eq::EqualityEngineNotify {
     TheorySetsPrivate& d_theory;
