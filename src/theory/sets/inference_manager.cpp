@@ -47,6 +47,7 @@ bool InferenceManager::assertFactRec(Node fact,
                                      std::vector<Node>& lemma,
                                      int inferType)
 {
+  // should we send this fact out as a lemma?
   if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
   {
     if (d_state.isEntailed(fact, true))
