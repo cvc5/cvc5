@@ -708,7 +708,7 @@ void CardinalityExtension::mkModelValueElementsFor( Node eqc, std::vector< Node 
       Assert( els.size()<=vu );
       NodeManager * nm = NodeManager::currentNM();
       while( els.size()<vu ){
-        els.push_back( nm->mkNode( kind::SINGLETON, nm->mkSkolem( "msde", elementType ) ) );
+        els.push_back( nm->mkNode( SINGLETON, nm->mkSkolem( "msde", elementType ) ) );
       }
     }else{
       Trace("sets-model") << "No slack elements for " << eqc << std::endl;

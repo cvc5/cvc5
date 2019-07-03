@@ -63,6 +63,11 @@ class CardinalityExtension {
    * 
    */
   void mkModelValueElementsFor( Node eqc, std::vector< Node >& els, const std::map< Node, Node >& mvals );
+  /** get sets equivalence classes
+   * 
+   * FIXME
+   */
+  std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
  private:
    /** constants */
    Node d_zero;

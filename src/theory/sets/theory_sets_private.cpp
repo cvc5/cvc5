@@ -1093,7 +1093,8 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   }
 
   std::map< Node, Node > mvals;
-  std::vector< Node >& sec = d_state.getSetsEqClasses();
+  // FIXME: this is ugly
+  std::vector< Node >& sec = d_card_enabled ? d_cardSolver->getSetsEqClasses() : d_state.getSetsEqClasses();
   for( int i=(int)(sec.size()-1); i>=0; i-- ){
     Node eqc = sec[i];
     if( termSet.find( eqc )==termSet.end() ){
