@@ -2,7 +2,7 @@
 /*! \file inference_manager.h
  ** \verbatim
  ** Top contributors (to current version):
- **   Andrew Reynolds, Kshitij Bansal, Paul Meng
+ **   Andrew Reynolds
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2019 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -46,7 +46,8 @@ class InferenceManager
   /** reset
    *
    * Called at the beginning of a full effort check. Resets the information
-   * related to this class.
+   * related to this class regarding whether facts and lemmas have been
+   * processed.
    */
   void reset();
   /**
@@ -143,8 +144,8 @@ class InferenceManager
   NodeSet d_keep;
   /** Assert fact recursive
    *
-   * inferType : 1 : must send out as lemma, -1 : do internal inferences if
-   * possible, 0 : default.
+   * The argument inferType determines the policy on whether fact is processed
+   * as a fact or as a lemma (see assertInference above).
    */
   bool assertFactRec(Node fact,
                      Node exp,
