@@ -22,11 +22,11 @@
 #include "context/cdhashset.h"
 #include "context/cdqueue.h"
 #include "expr/node_trie.h"
+#include "theory/sets/cardinality_extension.h"
+#include "theory/sets/sets_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/sets/cardinality_extension.h"
-#include "theory/sets/sets_state.h"
 
 namespace CVC4 {
 namespace theory {
@@ -44,14 +44,16 @@ class TheorySetsPrivate {
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
+
  public:
   void eqNotifyNewClass(TNode t);
   void eqNotifyPreMerge(TNode t1, TNode t2);
   void eqNotifyPostMerge(TNode t1, TNode t2);
   void eqNotifyDisequal(TNode t1, TNode t2, TNode reason);
+
  private:
   /** Are a and b trigger terms in the equality engine that may be disequal? */
-  bool areCareDisequal( Node a, Node b );
+  bool areCareDisequal(Node a, Node b);
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
   bool assertFact( Node fact, Node exp );
@@ -200,6 +202,7 @@ class TheorySetsPrivate {
   OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
+
  private:
   TheorySets& d_external;
 
@@ -253,11 +256,13 @@ class TheorySetsPrivate {
   void conflict(TNode, TNode);
   
   bool isCareArg( Node n, unsigned a );
+
  public:
   /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed( Node n, bool pol ) { return d_state.isEntailed(n,pol); }
+  bool isEntailed(Node n, bool pol) { return d_state.isEntailed(n, pol); }
   /** Is x entailed to be a member of set s in the current context? */
-  bool isMember( Node x, Node s );
+  bool isMember(Node x, Node s);
+
  private:
   /** The state of the sets solver at full effort */
   SetsState d_state;

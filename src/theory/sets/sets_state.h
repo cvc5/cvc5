@@ -17,37 +17,39 @@
 #ifndef CVC4__THEORY__SETS__THEORY_SETS_STATE_H
 #define CVC4__THEORY__SETS__THEORY_SETS_STATE_H
 
-#include <vector>
 #include <map>
+#include <vector>
 
-#include "theory/uf/equality_engine.h"
 #include "context/cdhashset.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
 namespace sets {
 
 class TheorySetsPrivate;
-  
-/** Sets state 
- * 
+
+/** Sets state
+ *
  * The purpose of this class is to:
  * (1) Maintain information concerning the current set of assertions during a
  * full effort check,
  * (2) Maintain a database of commonly used terms.
- * 
+ *
  * During a full effort check, the solver for theory of sets should call:
  *   reset; ( registerEqc | registerTerm )*
- * to initialize the information in this class regarding full effort checks. 
+ * to initialize the information in this class regarding full effort checks.
  * Other query calls are then valid for the remainder of the full effort check.
  */
-class SetsState {
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
-public:
+class SetsState
+{
+  typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
+
+ public:
   SetsState(TheorySetsPrivate& p,
-                 eq::EqualityEngine& e,
-                    context::Context* c,
-                    context::UserContext* u);
+            eq::EqualityEngine& e,
+            context::Context* c,
+            context::UserContext* u);
   //-------------------------------- initialize
   /** reset, clears the data structures maintained by this class. */
   void reset();
@@ -57,39 +59,39 @@ public:
   void registerTerm(Node r, TypeNode tnn, Node n);
   //-------------------------------- end initialize
   /** Is a=b according to equality reasoning? */
-  bool areEqual( Node a, Node b ) const;
+  bool areEqual(Node a, Node b) const;
   /** Is a!=b according to equality reasoning? */
-  bool areDisequal( Node a, Node b ) const;
+  bool areDisequal(Node a, Node b) const;
   /** Is formula n entailed to have polarity pol in the current context? */
-  bool isEntailed( Node n, bool pol ) const;
-  /** 
+  bool isEntailed(Node n, bool pol) const;
+  /**
    * Is the disequality between sets s and t entailed in the current context?
    */
-  bool isSetDisequalityEntailed( Node s, Node t ) const;
-  /** 
+  bool isSetDisequalityEntailed(Node s, Node t) const;
+  /**
    * Get the equivalence class of the empty set of type tn, or null if it does
    * not exist as a term in the current context.
    */
-  Node getEmptySetEqClass( TypeNode tn ) const;
-  /** 
+  Node getEmptySetEqClass(TypeNode tn) const;
+  /**
    * Get the equivalence class of the universe set of type tn, or null if it
    * does not exist as a term in the current context.
    */
-  Node getUnivSetEqClass( TypeNode tn ) const;
-  /** 
+  Node getUnivSetEqClass(TypeNode tn) const;
+  /**
    * Get the singleton set in the equivalence class of representative r if it
    * exists, or null if none exists.
    */
-  Node getSingletonEqClass( Node r ) const;
+  Node getSingletonEqClass(Node r) const;
   /** get binary operator term (modulo equality)
-   * 
+   *
    * This method returns a non-null node n if and only if a term n that is
    * congruent to <k>(r1,r2) exists in the current context.
    */
-  Node getBinaryOpTerm( Kind k, Node r1, Node r2 ) const;
-  /** 
+  Node getBinaryOpTerm(Kind k, Node r1, Node r2) const;
+  /**
    * Returns a term that is congruent to n in the current context.
-   * 
+   *
    * To ensure that inferences and processing is not redundant,
    * this class computes congruence over all terms that exist in the current
    * context. If a set of terms f( t1 ), ... f( tn ) are pairwise congruent
@@ -97,52 +99,53 @@ public:
    * representative. All other terms return the representative term from
    * its congruence class.
    */
-  Node getCongruent( Node n ) const;
-  /** 
+  Node getCongruent(Node n) const;
+  /**
    * This method returns true if n is not the representative of its congruence
    * class.
    */
   bool isCongruent(Node n) const;
   /** Get the list of all equivalence classes of set type */
-  const std::vector< Node >& getSetsEqClasses() const { return d_set_eqc; }
-  /** 
+  const std::vector<Node>& getSetsEqClasses() const { return d_set_eqc; }
+  /**
    * Get the list of non-variable sets that exists in the equivalence class
-   * whose representative is r. 
+   * whose representative is r.
    */
-  const std::vector< Node >& getNonVariableSets(Node r) const;
-  /** 
+  const std::vector<Node>& getNonVariableSets(Node r) const;
+  /**
    * Get a variable set in the equivalence class with representative r, or null
    * if none exist.
    */
   Node getVariableSet(Node r) const;
   /** Get (positive) members of the set equivalence class r
-   * 
+   *
    * The members are return as a map, which maps members to their explanation.
    * For example, if x = y, (member 5 y), (member 6 x), then getMembers(x)
    * returns the map [ 5 -> (member 5 y), 6 -> (member 6 x)].
    */
-  const std::map< Node, Node >& getMembers(Node r) const;
+  const std::map<Node, Node>& getMembers(Node r) const;
   /** Get negative members of the set equivalence class r, similar to above */
-  const std::map< Node, Node >& getNegativeMembers(Node r) const;
+  const std::map<Node, Node>& getNegativeMembers(Node r) const;
   /** Is the (positive) members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
-  /** Get binary operator index 
-   * 
+  /** Get binary operator index
+   *
    * This returns a mapping from binary operator kinds (INTERSECT, SETMINUS,
    * UNION) to index of terms of that kind. Each kind k maps to a map whose
    * entries are of the form [r1 -> r2 -> t], where t is a term in the current
    * context, and t is of the form <k>(t1,t2) where t1=r1 and t2=r2 hold in the
    * current context. The term t is the representative of its congruence class.
    */
-  const std::map< Kind, std::map< Node, std::map< Node, Node > > >& getBinaryOpIndex() const;
-  /** get operator list 
-   * 
+  const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
+  getBinaryOpIndex() const;
+  /** get operator list
+   *
    * This returns a mapping from set kinds to a list of terms of that kind
    * that exist in the current context. Each of the terms in the range of this
    * map is a representative of its congruence class.
    */
-  const std::map< Kind, std::vector< Node > >& getOperatorList() const;
-  
+  const std::map<Kind, std::vector<Node> >& getOperatorList() const;
+
   // --------------------------------------- commonly used terms
   /** Get type constraint skolem
    *
@@ -157,7 +160,7 @@ public:
    */
   Node getTypeConstraintSkolem(Node n, TypeNode tn);
   /** get the proxy variable for set n
-   * 
+   *
    * Proxy variables are used to communicate information that otherwise would
    * not be possible due to rewriting. For example, the literal
    *   card( singleton( 0 ) ) = 1
@@ -167,97 +170,98 @@ public:
    *   card( x ) = 1 ^ x = singleton( 0 )
    * communicates the equivalent of the above literal.
    */
-  Node getProxy( Node n );
+  Node getProxy(Node n);
   /** Get the empty set of type tn */
-  Node getEmptySet( TypeNode tn );
+  Node getEmptySet(TypeNode tn);
   /** Get the universe set of type tn */
-  Node getUnivSet( TypeNode tn );
+  Node getUnivSet(TypeNode tn);
   // --------------------------------------- end commonly used terms
   /** debug print set */
-  void debugPrintSet( Node s, const char * c ) const;
-private:
+  void debugPrintSet(Node s, const char* c) const;
+
+ private:
   /** constants */
   Node d_true;
   Node d_false;
   /** the empty vector and map */
-  std::vector< Node > d_emptyVec;
-  std::map< Node, Node > d_emptyMap;
+  std::vector<Node> d_emptyVec;
+  std::map<Node, Node> d_emptyMap;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   /** The list of all equivalence classes of type set in the current context */
-  std::vector< Node > d_set_eqc;
+  std::vector<Node> d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */
-  std::map< TypeNode, Node > d_eqc_emptyset;
+  std::map<TypeNode, Node> d_eqc_emptyset;
   /** Maps types to the equivalence class containing univ set of that type */
-  std::map< TypeNode, Node > d_eqc_univset;
+  std::map<TypeNode, Node> d_eqc_univset;
   /** Maps equivalence classes to a singleton set that exists in it. */
-  std::map< Node, Node > d_eqc_singleton;
+  std::map<Node, Node> d_eqc_singleton;
   /** Map from terms to the representative of their congruence class */
-  std::map< Node, Node > d_congruent;
+  std::map<Node, Node> d_congruent;
   /** Map from equivalence classes to the list of non-variable sets in it */
-  std::map< Node, std::vector< Node > > d_nvar_sets;
+  std::map<Node, std::vector<Node> > d_nvar_sets;
   /** Map from equivalence classes to a variable sets in it */
-  std::map< Node, Node > d_var_set;
-  /** polarity memberships 
-   * 
+  std::map<Node, Node> d_var_set;
+  /** polarity memberships
+   *
    * d_pol_mems[0] maps equivalence class to their positive membership list
    * with explanations (see getMembers), d_pol_mems[1] maps equivalence classes
    * to their negative memberships.
    */
-  std::map< Node, std::map< Node, Node > > d_pol_mems[2];
+  std::map<Node, std::map<Node, Node> > d_pol_mems[2];
   // --------------------------------------- commonly used terms
   /** Map from set terms to their proxy variables */
   NodeMap d_proxy;
   /** Backwards map of above */
   NodeMap d_proxy_to_term;
   /** Cache of type constraint skolems (see getTypeConstraintSkolem) */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem; 
+  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;
   /** Map from types to empty set of that type */
-  std::map< TypeNode, Node > d_emptyset;
+  std::map<TypeNode, Node> d_emptyset;
   /** Map from types to universe set of that type */
-  std::map< TypeNode, Node > d_univset;
+  std::map<TypeNode, Node> d_univset;
   // --------------------------------------- end commonly used terms
   // -------------------------------- term indices
   /** Term index for MEMBER
-   * 
+   *
    * A term index maps equivalence class representatives to the representative
-   * of their congruence class. 
-   * 
+   * of their congruence class.
+   *
    * For example, the term index for member may contain an entry
    * [ r1 -> r2 -> (member t1 t2) ] where r1 and r2 are representatives of their
    * equivalence classes, (member t1 t2) is the representative of its congruence
    * class, and r1=t1 and r2=t2 hold in the current context.
    */
-  std::map< Node, std::map< Node, Node > > d_members_index;
+  std::map<Node, std::map<Node, Node> > d_members_index;
   /** Term index for SINGLETON */
-  std::map< Node, Node > d_singleton_index;
+  std::map<Node, Node> d_singleton_index;
   /** Indices for the binary kinds INTERSECT, SETMINUS and UNION. */
-  std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
+  std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
   // -------------------------------- end term indices
-  std::map< Kind, std::vector< Node > > d_op_list;
-private: 
-  /** is set disequality entailed internal 
-   * 
+  std::map<Kind, std::vector<Node> > d_op_list;
+
+ private:
+  /** is set disequality entailed internal
+   *
    * This returns true if disequality between sets a and b is entailed in the
    * current context. We use an incomplete test based on equality and membership
    * information.
-   * 
+   *
    * eqE is the representative of the equivalence class of the empty set
    * whose type is the same as a and b.
    */
-  bool isSetDisequalityEntailedInternal( Node a, Node b, Node re ) const;
-  /** 
+  bool isSetDisequalityEntailedInternal(Node a, Node b, Node re) const;
+  /**
    * Get members internal, returns the positive members if i=0, or negative
    * members if i=1.
    */
-  const std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const;
-};/* class TheorySetsPrivate */
+  const std::map<Node, Node>& getMembersInternal(Node r, unsigned i) const;
+}; /* class TheorySetsPrivate */
 
-
-}/* CVC4::theory::sets namespace */
-}/* CVC4::theory namespace */
-}/* CVC4 namespace */
+}  // namespace sets
+}  // namespace theory
+}  // namespace CVC4
 
 #endif /* CVC4__THEORY__SETS__THEORY_SETS_STATE_H */
