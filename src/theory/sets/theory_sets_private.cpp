@@ -659,7 +659,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                                     << itm1m.second << std::endl;
                 std::vector< Node > exp;
                 exp.push_back(itm1m.second);
-                addEqualityToExp(term[0], itm1m.second[1], exp);
+                d_state.addEqualityToExp(term[0], itm1m.second[1], exp);
                 bool valid = false;
                 int inferType = 0;
                 if( k==kind::UNION ){
@@ -671,8 +671,8 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                   if (itm != r2mem.end())
                   {
                     exp.push_back(itm->second);
-                    addEqualityToExp(term[1], itm->second[1], exp);
-                    addEqualityToExp(x, itm->second[0], exp);
+                    d_state.addEqualityToExp(term[1], itm->second[1], exp);
+                    d_state.addEqualityToExp(x, itm->second[0], exp);
                     valid = true;
                   }
                   else
@@ -724,7 +724,7 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                   if( !isMember( x, rr ) ){
                     std::vector< Node > exp;
                     exp.push_back(itm2m.second);
-                    addEqualityToExp(term[1], itm2m.second[1], exp);
+                    d_state.addEqualityToExp(term[1], itm2m.second[1], exp);
                     Node k = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, k);
                     assertInference( fact, exp, lemmas, "upc2" );
@@ -1162,13 +1162,6 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
 /********************** Helper functions ***************************/
-
-void TheorySetsPrivate::addEqualityToExp( Node a, Node b, std::vector< Node >& exp ) {
-  if( a!=b ){
-    Assert(d_state.areEqual(a, b));
-    exp.push_back( a.eqNode( b ) );
-  }
-}
 
 Node mkAnd(const std::vector<TNode>& conjunctions) {
   Assert(conjunctions.size() > 0);

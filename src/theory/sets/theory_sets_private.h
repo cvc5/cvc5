@@ -104,8 +104,6 @@ class TheorySetsPrivate {
   std::map< Node, EqcInfo* > d_eqc_info;
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
-  
-  void addEqualityToExp( Node a, Node b, std::vector< Node >& exp );
 
   /** sent lemma
    *

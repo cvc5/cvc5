@@ -406,7 +406,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         bool eq_parent = false;
         std::vector<Node> exp;
-        d_parent.addEqualityToExp(cpk, eqccSingleton, exp);
+        d_state.addEqualityToExp(cpk, eqccSingleton, exp);
         if (d_state.areDisequal(n, emp_set))
         {
           exp.push_back(n.eqNode(emp_set).negate());
@@ -419,7 +419,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           {
             Node pmem = pmemsE.begin()->second;
             exp.push_back(pmem);
-            d_parent.addEqualityToExp(n, pmem[1], exp);
+            d_state.addEqualityToExp(n, pmem[1], exp);
             eq_parent = true;
           }
         }
