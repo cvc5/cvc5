@@ -46,9 +46,8 @@ public:
   void registerTerm(Node r, TypeNode tnn, Node n);
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol );
-  /** Is the disequality between sets s and t entailed in the current context?
-   * 
-   * FIXME
+  /** 
+   * Is the disequality between sets s and t entailed in the current context?
    */
   bool isSetDisequalityEntailed( Node s, Node t );
   /** Is a=b according to equality reasoning? */
@@ -83,33 +82,53 @@ public:
   Node getTypeConstraintSkolem(Node n, TypeNode tn);
   /** get the proxy variable for set n
    * 
-   * FIXME
+   * Proxy variables are used to communicate information that otherwise would
+   * not be possible due to rewriting. For example, the literal
+   *   card( singleton( 0 ) ) = 1
+   * is rewritten to true. Instead, to communicate this fact (e.g. to other
+   * theories), we require introducing a proxy variable x for singleton( 0 ).
+   * Then:
+   *   card( x ) = 1 ^ x = singleton( 0 )
+   * communicates the equivalent of the above literal.
    */
   Node getProxy( Node n );
-  /** Returns a term that is congruent to n in the current context */
-  Node getCongruent( Node n );
-  /** is congruent */
+  /** 
+   * Returns a term that is congruent to n in the current context.
+   * 
+   * To ensure that inferences and processing is not redundant,
+   * this class computes congruence over all terms that exist in the current
+   * context. If a set of terms f( t1 ), ... f( tn ) are pairwise congruent
+   * (call this a congruence class), it selects one of these terms as a
+   * representative. All other terms return the representative term from
+   * its congruence class.
+   */
+  Node getCongruent( Node n ) const;
+  /** 
+   * This method returns true if n is not the representative of its congruence
+   * class.
+   */
   bool isCongruent(Node n) const { return d_congruent.find(n)!=d_congruent.end(); }
   /** Get the empty set of type tn */
   Node getEmptySet( TypeNode tn );
   /** Get the universe set of type tn */
   Node getUnivSet( TypeNode tn );
-  
-  
-  /** get sets equivalence classes */
+  /** Get the list of all equivalence classes of set type */
   std::vector< Node >& getSetsEqClasses() { return d_set_eqc; }
-  /** get non-variable sets for representative r */
+  /** 
+   * Get the list of non-variable sets that exists in the equivalence class
+   * whose representative is r. 
+   */
   std::vector< Node >& getNonVariableSets(Node r) { return d_nvar_sets[r]; }
   /** 
    * Get a variable set in the equivalence class with representative r, or null
    * if none exist.
    */
   Node getVariableSet(Node r) const;
-  /** get (positive) members */
+  /** Get (positive) members of the set equivalence class r */
   std::map< Node, Node >& getMembers(Node r) { return d_pol_mems[0][r]; }
-  /** get negative members */
+  /** Get negative members of the set equivalence class r */
   std::map< Node, Node >& getNegativeMembers(Node r) { return d_pol_mems[1][r]; }
-  /** Are there members entailed for equivalence class r? */
+  /** Is the members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
 private:
   /** constants */
@@ -119,20 +138,22 @@ private:
   TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
-  
+  /** Map from set terms to their proxy variables */
   NodeMap d_proxy;
+  /** Backwards map of above */
   NodeMap d_proxy_to_term;
-  
-  std::map< Node, std::vector< Node > > d_members_data;
+  /** The list of all equivalence classes of type set in the current context */
   std::vector< Node > d_set_eqc;
-  std::map< Node, bool > d_set_eqc_relevant;
-  std::map< Node, std::vector< Node > > d_set_eqc_list;
+  /** Maps types to the equivalence class containing empty set of that type */
   std::map< TypeNode, Node > d_eqc_emptyset;
+  /** Maps types to the equivalence class containing univ set of that type */
   std::map< TypeNode, Node > d_eqc_univset;
   std::map< Node, Node > d_eqc_singleton;
   std::map< TypeNode, Node > d_emptyset;
   std::map< TypeNode, Node > d_univset;
+  /** Map from terms to the representative of their congruence class */
   std::map< Node, Node > d_congruent;
+  /** Map from equivalence classes to the list of non-variable sets in that equivalence class */
   std::map< Node, std::vector< Node > > d_nvar_sets;
   std::map< Node, Node > d_var_set;
 public: //FIXME

@@ -275,31 +275,30 @@ bool SetsState::isSetDisequalityEntailedInternal( Node a, Node b, Node re )
   std::map< Node, Node >::iterator itsb = d_eqc_singleton.find( b );
   std::map< Node, std::map< Node, Node > >::iterator itpmb = d_pol_mems[1].find( b );
   std::vector< Node > prev;
-  for( std::map< Node, Node >::iterator itm = itpma->second.begin(); itm != itpma->second.end(); ++itm ){
+  for( std::pair< const Node, Node >& itm : itpma->second ){
     //if b is a singleton
     if( itsb!=d_eqc_singleton.end() ){
-      if( ee_areDisequal( itm->first, itsb->second[0] ) ){
-        Trace("sets-deq") << "Disequality is satisfied because of " << itm->second << ", singleton eq " << itsb->second[0] << std::endl;
+      if( ee_areDisequal( itm.first, itsb->second[0] ) ){
+        Trace("sets-deq") << "Disequality is satisfied because of " << itm.second << ", singleton eq " << itsb->second[0] << std::endl;
         return true;
       }
       //or disequal with another member
-      for( unsigned k=0; k<prev.size(); k++ ){
-        if( ee_areDisequal( itm->first, prev[k] ) ){
-          Trace("sets-deq") << "Disequality is satisfied because of disequal members " << itm->first << " " << prev[k] << ", singleton eq " << std::endl;
+      for( const Node& p : prev ){
+        if( ee_areDisequal( itm.first, p ) ){
+          Trace("sets-deq") << "Disequality is satisfied because of disequal members " << itm.first << " " << p << ", singleton eq " << std::endl;
         return true;
         }
       }
-    //TODO: this can be generalized : maintain map to abstract domain ( set -> cardinality )
     //if a has positive member that is negative member in b 
     }else if( itpmb!=d_pol_mems[1].end() ){
-      for( std::map< Node, Node >::iterator itnm = itpmb->second.begin(); itnm != itpmb->second.end(); ++itnm ){
-        if( ee_areEqual( itm->first, itnm->first ) ){
-          Trace("sets-deq") << "Disequality is satisfied because of " << itm->second << " " << itnm->second << std::endl;
+      for( std::pair< const Node, Node >& itnm : itpmb->second ){
+        if( ee_areEqual( itm.first, itnm.first ) ){
+          Trace("sets-deq") << "Disequality is satisfied because of " << itm.second << " " << itnm.second << std::endl;
           return true;
         }
       }
     }
-    prev.push_back( itm->first );
+    prev.push_back( itm.first );
   }
   return false;
 }
@@ -329,9 +328,9 @@ Node SetsState::getProxy( Node n ) {
   return k;
 }
 
-Node SetsState::getCongruent( Node n ) {
+Node SetsState::getCongruent( Node n ) const {
   Assert( d_ee.hasTerm( n ) );
-  std::map< Node, Node >::iterator it = d_congruent.find( n );
+  std::map< Node, Node >::const_iterator it = d_congruent.find( n );
   if( it==d_congruent.end() ){
     return n;
   }
