@@ -395,6 +395,21 @@ Node SetsState::getVariableSet(Node r) const
   }
   return Node::null();
 }
+std::map< Node, Node >& SetsState::getMembers(Node r) const{ 
+  return getMembersInternal(r,0);
+}
+std::map< Node, Node >& SetsState::getNegativeMembers(Node r) const { 
+  return getMembersInternal(r,1);
+  
+}
+std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const{ 
+  std::map< Node, std::map< Node, Node > >::const_iterator itp = d_pol_mems[i].find(r);
+  if( itp==d_pol_mems[i].end() )
+  {
+    return d_emptyVec;
+  }
+  return itp->second;
+}
 
 bool SetsState::hasMembers(Node r) const
 {

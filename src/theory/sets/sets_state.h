@@ -40,8 +40,8 @@ class TheorySetsPrivate;
  * 
  * During a full effort check, the solver for theory of sets should call:
  *   reset; ( registerEqc | registerTerm )*
- * to initialize the information in this class regarding (1).
- * 
+ * to initialize the information in this class regarding full effort checks. 
+ * Other query calls are then valid for the remainder of the full effort check.
  */
 class SetsState {
   typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
@@ -50,22 +50,24 @@ public:
                  eq::EqualityEngine& e,
                     context::Context* c,
                     context::UserContext* u);
-  /** reset */
+  //-------------------------------- initialize
+  /** reset, clears the data structures maintained by this class. */
   void reset();
   /** register equivalence class whose type is tn */
   void registerEqc(TypeNode tn, Node r);
   /** register term n of type tnn in the equivalence class of r */
   void registerTerm(Node r, TypeNode tnn, Node n);
+  //-------------------------------- end initialize
+  /** Is a=b according to equality reasoning? */
+  bool areEqual( Node a, Node b );
+  /** Is a!=b according to equality reasoning? */
+  bool areDisequal( Node a, Node b );
   /** Is formula n entailed to have polarity pol in the current context? */
   bool isEntailed( Node n, bool pol );
   /** 
    * Is the disequality between sets s and t entailed in the current context?
    */
   bool isSetDisequalityEntailed( Node s, Node t );
-  /** Is a=b according to equality reasoning? */
-  bool areEqual( Node a, Node b );
-  /** Is a!=b according to equality reasoning? */
-  bool areDisequal( Node a, Node b );
   /** 
    * Get the equivalence class of the empty set of type tn, or null if it does
    * not exist as a term in the current context.
@@ -115,11 +117,16 @@ public:
    * if none exist.
    */
   Node getVariableSet(Node r) const;
-  /** Get (positive) members of the set equivalence class r */
-  std::map< Node, Node >& getMembers(Node r) { return d_pol_mems[0][r]; }
-  /** Get negative members of the set equivalence class r */
-  std::map< Node, Node >& getNegativeMembers(Node r) { return d_pol_mems[1][r]; }
-  /** Is the members list of set equivalence class r non-empty? */
+  /** Get (positive) members of the set equivalence class r
+   * 
+   * The members are return as a map, which maps members to their explanation.
+   * For example, if x = y, (member 5 y), (member 6 x), then getMembers(x)
+   * returns the map [ 5 -> (member 5 y), 6 -> (member 6 x)].
+   */
+  std::map< Node, Node >& getMembers(Node r) const; { return d_pol_mems[0][r]; }
+  /** Get negative members of the set equivalence class r, similar to above */
+  std::map< Node, Node >& getNegativeMembers(Node r) const; { return d_pol_mems[1][r]; }
+  /** Is the (positive) members list of set equivalence class r non-empty? */
   bool hasMembers(Node r) const;
   // --------------------------------------- commonly used terms
   /** Get type constraint skolem
@@ -155,28 +162,38 @@ private:
   /** constants */
   Node d_true;
   Node d_false;
+  /** the empty vector */
+  std::vector< Node > d_emptyVec;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
-  /** Map from set terms to their proxy variables */
-  NodeMap d_proxy;
-  /** Backwards map of above */
-  NodeMap d_proxy_to_term;
   /** The list of all equivalence classes of type set in the current context */
   std::vector< Node > d_set_eqc;
   /** Maps types to the equivalence class containing empty set of that type */
   std::map< TypeNode, Node > d_eqc_emptyset;
   /** Maps types to the equivalence class containing univ set of that type */
   std::map< TypeNode, Node > d_eqc_univset;
+  /** Maps equivalence classes to a singleton set that exists in it. */
   std::map< Node, Node > d_eqc_singleton;
-  std::map< TypeNode, Node > d_emptyset;
-  std::map< TypeNode, Node > d_univset;
   /** Map from terms to the representative of their congruence class */
   std::map< Node, Node > d_congruent;
-  /** Map from equivalence classes to the list of non-variable sets in that equivalence class */
+  /** Map from equivalence classes to the list of non-variable sets in it */
   std::map< Node, std::vector< Node > > d_nvar_sets;
+  /** Map from equivalence classes to a variable sets in it */
   std::map< Node, Node > d_var_set;
+  // --------------------------------------- commonly used terms
+  /** Map from set terms to their proxy variables */
+  NodeMap d_proxy;
+  /** Backwards map of above */
+  NodeMap d_proxy_to_term;
+  /** Cache of type constraint skolems (see getTypeConstraintSkolem) */
+  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem; 
+  /** Map from types to empty set of that type */
+  std::map< TypeNode, Node > d_emptyset;
+  /** Map from types to universe set of that type */
+  std::map< TypeNode, Node > d_univset;
+  // --------------------------------------- end commonly used terms
 public: //FIXME
   std::map< Node, std::map< Node, Node > > d_pol_mems[2];
   // -------------------------------- term indices
@@ -185,10 +202,7 @@ public: //FIXME
   std::map< Kind, std::map< Node, std::map< Node, Node > > > d_bop_index;
   // -------------------------------- end term indices
   std::map< Kind, std::vector< Node > > d_op_list;
-private:
-  /** type constraint skolems (see getTypeConstraintSkolem) */
-  std::map<Node, std::map<TypeNode, Node> > d_tc_skolem;  
-  
+private: 
   /** is set disequality entailed internal 
    * 
    * This returns true if disequality between sets a and b is entailed in the
@@ -199,6 +213,11 @@ private:
    * whose type is the same as a and b.
    */
   bool isSetDisequalityEntailedInternal( Node a, Node b, Node re );
+  /** 
+   * Get members internal, returns the positive members if i=0, or negative
+   * members if i=1.
+   */
+  std::map< Node, Node >& getMembersInternal(Node r, unsigned i) const;
 };/* class TheorySetsPrivate */
 
 
