@@ -34,17 +34,12 @@ namespace theory {
 namespace sets {
 
 /** Internal classes, forward declared here */
-class TheorySetsTermInfoManager;
 class TheorySets;
-class TheorySetsScrutinize;
 
 class TheorySetsPrivate {
-  friend class CardinalityExtension;
-  friend class SetsState;
   typedef context::CDHashMap< Node, bool, NodeHashFunction> NodeBoolMap;
   typedef context::CDHashMap< Node, int, NodeHashFunction> NodeIntMap;
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-  typedef context::CDHashMap< Node, Node, NodeHashFunction > NodeMap;
 
  public:
   void eqNotifyNewClass(TNode t);
@@ -62,25 +57,11 @@ class TheorySetsPrivate {
   bool areCareDisequal(Node a, Node b);
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
-  // inferType : 1 : must send out as lemma, -1 : do internal inferences if possible, 0 : default.
-  bool assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType = 0 );
-  // add inferences corresponding to ( exp => fact ) to lemmas, equality engine
-  void assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  void assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
-  // send lemma ( n OR (NOT n) ) immediately
-  void split( Node n, int reqPol=0 );
   void fullEffortCheck();
   void checkSubtypes( std::vector< Node >& lemmas );
   void checkDownwardsClosure( std::vector< Node >& lemmas );
   void checkUpwardsClosure( std::vector< Node >& lemmas );
   void checkDisequalities( std::vector< Node >& lemmas );
-  
-  void flushLemmas( std::vector< Node >& lemmas, bool preprocess = false );
-  void flushLemma( Node lem, bool preprocess = false );
-  bool hasLemmaCached( Node lem );
-  bool hasProcessed();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -110,18 +91,6 @@ class TheorySetsPrivate {
   /** get or make eqc info */
   EqcInfo* getOrMakeEqcInfo( TNode n, bool doMake = false );
 
-  /** sent lemma
-   *
-   * This flag is set to true during a full effort check if this theory
-   * called d_out->lemma(...).
-   */
-  bool d_sentLemma;
-  /** added fact
-   *
-   * This flag is set to true during a full effort check if this theory
-   * added an internal fact to its equality engine.
-   */
-  bool d_addedFact;
   /** full check incomplete
    *
    * This flag is set to true during a full effort check if this theory
@@ -129,7 +98,6 @@ class TheorySetsPrivate {
    * with a relation or extended function kind).
    */
   bool d_full_check_incomplete;
-  NodeSet d_lemmas_produced;
   std::map< Node, TypeNode > d_most_common_type;
   std::map< Node, Node > d_most_common_type_term;
 

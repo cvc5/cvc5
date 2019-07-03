@@ -404,7 +404,6 @@ Node SetsState::getProxy(Node n)
                         << std::endl;
     d_parent.getOutputChannel()->lemma(slem);
   }
-  d_parent.d_sentLemma = true;
   return k;
 }
 
@@ -463,7 +462,6 @@ Node SetsState::getUnivSet(TypeNode tn)
       Trace("sets-lemma") << "Sets::Lemma : " << ulem << " by univ-type"
                           << std::endl;
       d_parent.getOutputChannel()->lemma(ulem);
-      d_parent.d_sentLemma = true;
     }
   }
   d_univset[tn] = n;

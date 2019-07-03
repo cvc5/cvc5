@@ -20,6 +20,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "theory/sets/sets_state.h"
+#include "theory/sets/inference_manager.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -39,6 +40,7 @@ class CardinalityExtension
    */
   CardinalityExtension(TheorySetsPrivate& p,
                        SetsState& s,
+                       InferenceManager& im,
                        eq::EqualityEngine& e,
                        context::Context* c,
                        context::UserContext* u);
@@ -78,6 +80,8 @@ class CardinalityExtension
   TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
   SetsState& d_state;
+  /** Reference to the inference manager for the theory of sets */
+  InferenceManager& d_im;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   void checkCardBuildGraph(std::vector<Node>& lemmas);

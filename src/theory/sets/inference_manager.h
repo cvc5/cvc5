@@ -40,15 +40,27 @@ class InferenceManager {
                        context::UserContext* u);
   /** reset 
    * 
+   * Called at the beginning of a full effort check. Resets the information
+   * related to this class.
    */
   void reset();
   /** 
-   * Add inferences corresponding to ( exp => fact ).
+   * Add facts corresponding to ( exp => fact ) via calls to the assertFact
+   * method of TheorySetsPrivate.
    * 
+   * The argument lemmas is updated to contain poritions of fact that were
+   * unable to be processed as facts.
+   * 
+   * FIXME
+   * 
+   * The argument c is the name of the inference, which is used for debugging.
    */
   void assertInference( Node fact, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  /** same as above, where exp is interpreted as a conjunction */
   void assertInference( Node fact, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  /** same as above, where conc is interpreted as a conjunction */
   void assertInference( std::vector< Node >& conc, Node exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
+  /** same as above, where both exp and conc are interpreted as conjunctions */
   void assertInference( std::vector< Node >& conc, std::vector< Node >& exp, std::vector< Node >& lemmas, const char * c, int inferType = 0 );
   /** Flush lemmas
    *
@@ -60,12 +72,20 @@ class InferenceManager {
   void flushLemmas(std::vector<Node>& lemmas, bool preprocess = false);
   /** singular version of above */
   void flushLemma(Node lem, bool preprocess = false);
-  /** Have we sent out a lemma during a call to a full effort check? */
-  bool sentLemma() const;
-  // send lemma ( n OR (NOT n) ) immediately
+  /** flush the splitting lemma ( n OR (NOT n) )
+   * 
+   * If reqPol is not 0, then a phase requirement for n is requested with
+   * polarity ( reqPol>0 ).
+   */
   void split( Node n, int reqPol=0 );
-  bool hasLemmaCached( Node lem ) const;
+  /** Have we sent a lemma during the current call to a full effort check? */
+  bool hasSentLemma() const;
+  /** Have we added a fact during the current call to a full effort check? */
+  bool hasAddedFact() const;
+  /** Have we processed an inference (fact, lemma, or conflict)? */
   bool hasProcessed() const;
+  /** Have we sent lem as a lemma in the current user context? */
+  bool hasLemmaCached( Node lem ) const;
  private:
   /** constants */
   Node d_true;

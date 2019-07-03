@@ -15,14 +15,8 @@
 #include "theory/sets/inference_manager.h"
 
 #include "theory/sets/theory_sets_private.h"
-#include "expr/emptyset.h"
-#include "expr/node_algorithm.h"
 #include "options/sets_options.h"
-#include "smt/smt_statistics_registry.h"
-#include "theory/sets/normal_form.h"
 #include "theory/sets/theory_sets.h"
-#include "theory/theory_model.h"
-#include "util/result.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -44,7 +38,8 @@ InferenceManager::InferenceManager(TheorySetsPrivate& p,
 
 void InferenceManager::reset()
 {
-  
+  d_sentLemma = false;
+  d_addedFact = false;
 }
   
 bool InferenceManager::assertFactRec( Node fact, Node exp, std::vector< Node >& lemma, int inferType ) {
@@ -123,9 +118,7 @@ void InferenceManager::assertInference( std::vector< Node >& conc, std::vector< 
 void InferenceManager::split( Node n, int reqPol ) {
   n = Rewriter::rewrite( n );
   Node lem = NodeManager::currentNM()->mkNode( OR, n, n.negate() );
-  std::vector< Node > lemmas;
-  lemmas.push_back( lem );
-  flushLemmas( lemmas );
+  flushLemma( lem );
   Trace("sets-lemma") << "Sets::Lemma split : " << lem << std::endl;
   if( reqPol!=0 ){
     Trace("sets-lemma") << "Sets::Require phase "  << n << " " << (reqPol>0) << std::endl;
@@ -156,6 +149,14 @@ bool InferenceManager::hasLemmaCached( Node lem ) const{
 
 bool InferenceManager::hasProcessed() const{
   return d_parent.isInConflict() || d_sentLemma || d_addedFact;
+}
+bool InferenceManager::hasSentLemma() const
+{
+  return d_sentLemma;
+}
+bool InferenceManager::hasAddedFact() const
+{
+  return d_addedFact;
 }
 
 }/* CVC4::theory::sets namespace */
