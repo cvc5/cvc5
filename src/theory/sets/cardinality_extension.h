@@ -47,31 +47,56 @@ class CardinalityExtension
 
   ~CardinalityExtension() {}
   /** reset
-   * FIXME
+   * 
+   * Called at the beginning of a full effort check. This resets the data
+   * structures used by this class during a full effort check.
    */
   void reset();
   /** register term
-   * FIXME
+   * 
+   * Register that the term n exists in the current context, where n is an
+   * application of CARD.
    */
   void registerTerm(Node n, std::vector<Node>& lemmas);
   /** check
-   * FIXME
+   * 
+   * Invoke a full effort check of the cardinality solver. At a high level,
+   * this asserts inferences via the inference manager object d_im. If no
+   * inferences are made, then the current set of assertions is satisfied
+   * with respect to constraints involving set cardinality.
    */
   void check();
-  /** is model value basic */
+  /** Is model value basic?
+   *   
+   * This returns true if equivalence class eqc is a "leaf" in the cardinality
+   * graph. In this case, its model value is simply 
+   */
   bool isModelValueBasic(Node eqc);
   /** get model elements
    *
-   * FIXME
+   * This method updates els so that it is the set of elements that occur in eqc
+   * in the model we are building. Notice that els may already have elements 
+   * in it (from explicit memberships from the base set solver for leaf nodes
+   * of the cardinality graph). This method is used during the collectModelInfo
+   * method of theory of sets.
+   * 
+   * The argument mvals maps set equivalence classes to their model values. 
+   * Due to our model construction algorithm, it can be assumed that all
+   * sets in the normal form of eqc occur in the domain of mvals by the order
+   * in which sets are assigned.
    */
   void mkModelValueElementsFor(Node eqc,
                                std::vector<Node>& els,
                                const std::map<Node, Node>& mvals);
   /** get ordered sets equivalence classes
    *
-   * FIXME
+   * Get the ordered set of equivalence classes computed by this class. This
+   * ordering ensures the invariant mentioned above mkModelValueElementsFor.
+   * 
+   * This ordering ensures that all children of a node in the cardinality
+   * graph computed by this class occur before it in this list.
    */
-  const std::vector<Node>& getOrderedSetsEqClasses() { return d_set_eqc; }
+  const std::vector<Node>& getOrderedSetsEqClasses() { return d_oSetEqc; }
 
  private:
   /** constants */
@@ -105,7 +130,8 @@ class CardinalityExtension
   std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
   std::map<Node, std::vector<Node> > d_nf;
   std::map<Node, Node> d_card_base;
-  std::vector<Node> d_set_eqc;
+  /** the ordered set of equivalence classes */
+  std::vector<Node> d_oSetEqc;
 }; /* class CardinalityExtension */
 
 }  // namespace sets

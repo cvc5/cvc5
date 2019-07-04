@@ -187,7 +187,7 @@ void CardinalityExtension::checkCardCycles(std::vector<Node>& lemmas)
   Trace("sets") << "Check cardinality cycles..." << std::endl;
   // build order of equivalence classes, also build cardinality graph
   const std::vector<Node>& setEqc = d_state.getSetsEqClasses();
-  d_set_eqc.clear();
+  d_oSetEqc.clear();
   d_card_parent.clear();
   for (const Node& s : setEqc)
   {
@@ -216,9 +216,9 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     {
       // all regions must be equal
       std::vector<Node> conc;
-      for (unsigned i = 1; i < curr.size(); i++)
+      for (const Node& cc : curr)
       {
-        conc.push_back(curr[0].eqNode(curr[i]));
+        conc.push_back(curr[0].eqNode(cc));
       }
       Node fact = conc.size() == 1 ? conc[0] : nm->mkNode(AND, conc);
       d_im.assertInference(fact, exp, lemmas, "card_cycle");
@@ -231,7 +231,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     }
     return;
   }
-  if (std::find(d_set_eqc.begin(), d_set_eqc.end(), eqc) != d_set_eqc.end())
+  if (std::find(d_oSetEqc.begin(), d_oSetEqc.end(), eqc) != d_oSetEqc.end())
   {
     // already processed
     return;
@@ -240,7 +240,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   if (nvsets.empty())
   {
     // no non-variable sets, trivial
-    d_set_eqc.push_back(eqc);
+    d_oSetEqc.push_back(eqc);
     return;
   }
   curr.push_back(eqc);
@@ -511,7 +511,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   }
   curr.pop_back();
   // parents now processed, can add to ordered list
-  d_set_eqc.push_back(eqc);
+  d_oSetEqc.push_back(eqc);
 }
 
 void CardinalityExtension::checkNormalForms(std::vector<Node>& lemmas,
@@ -519,13 +519,13 @@ void CardinalityExtension::checkNormalForms(std::vector<Node>& lemmas,
 {
   Trace("sets") << "Check normal forms..." << std::endl;
   // now, build normal form for each equivalence class
-  // d_set_eqc is now sorted such that for each d_set_eqc[i], d_set_eqc[j],
-  // if d_set_eqc[i] is a strict syntactic subterm of d_set_eqc[j], then i<j.
+  // d_oSetEqc is now sorted such that for each d_oSetEqc[i], d_oSetEqc[j],
+  // if d_oSetEqc[i] is a strict syntactic subterm of d_oSetEqc[j], then i<j.
   d_ff.clear();
   d_nf.clear();
-  for (int i = (int)(d_set_eqc.size() - 1); i >= 0; i--)
+  for (int i = (int)(d_oSetEqc.size() - 1); i >= 0; i--)
   {
-    checkNormalForm(d_set_eqc[i], intro_sets);
+    checkNormalForm(d_oSetEqc[i], intro_sets);
     if (d_im.hasProcessed() || !intro_sets.empty())
     {
       return;
@@ -575,8 +575,9 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   {
     Trace("sets-nf") << "(no flat forms)" << std::endl;
   }
-
+  std::map<Node, std::vector<Node> >& ffeqc = d_ff[eqc];
   Assert(d_nf.find(eqc) == d_nf.end());
+  std::vector< Node >& nfeqc = d_nf[eqc];
   NodeManager* nm = NodeManager::currentNM();
   bool success = true;
   Node emp_set = d_state.getEmptySet(tn);
@@ -593,36 +594,36 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf-debug") << "Compare venn regions of " << base << " vs "
                              << comps[j] << std::endl;
       unsigned k[2] = {0, 0};
-      while (k[0] < d_ff[eqc][c[0]].size() || k[1] < d_ff[eqc][c[1]].size())
+      while (k[0] < ffeqc[c[0]].size() || k[1] < ffeqc[c[1]].size())
       {
         bool proc = true;
         for (unsigned e = 0; e < 2; e++)
         {
-          if (k[e] == d_ff[eqc][c[e]].size())
+          if (k[e] == ffeqc[c[e]].size())
           {
-            for (; k[1 - e] < d_ff[eqc][c[1 - e]].size(); ++k[1 - e])
+            for (; k[1 - e] < ffeqc[c[1 - e]].size(); ++k[1 - e])
             {
-              only[1 - e].push_back(d_ff[eqc][c[1 - e]][k[1 - e]]);
+              only[1 - e].push_back(ffeqc[c[1 - e]][k[1 - e]]);
             }
             proc = false;
           }
         }
         if (proc)
         {
-          if (d_ff[eqc][c[0]][k[0]] == d_ff[eqc][c[1]][k[1]])
+          if (ffeqc[c[0]][k[0]] == ffeqc[c[1]][k[1]])
           {
-            common.push_back(d_ff[eqc][c[0]][k[0]]);
+            common.push_back(ffeqc[c[0]][k[0]]);
             k[0]++;
             k[1]++;
           }
-          else if (d_ff[eqc][c[0]][k[0]] < d_ff[eqc][c[1]][k[1]])
+          else if (ffeqc[c[0]][k[0]] < ffeqc[c[1]][k[1]])
           {
-            only[0].push_back(d_ff[eqc][c[0]][k[0]]);
+            only[0].push_back(ffeqc[c[0]][k[0]]);
             k[0]++;
           }
           else
           {
-            only[1].push_back(d_ff[eqc][c[1]][k[1]]);
+            only[1].push_back(ffeqc[c[1]][k[1]]);
             k[1]++;
           }
         }
@@ -671,18 +672,18 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             }
           }
         }
-        for (unsigned l = 0; l < only[0].size(); l++)
+        for( const Node& o0 : only[0] )
         {
-          for (unsigned m = 0; m < only[1].size(); m++)
+          for( const Node& o1 : only[1] )
           {
             bool disjoint = false;
-            Trace("sets-nf-debug") << "Try split " << only[0][l] << " against "
-                                   << only[1][m] << std::endl;
+            Trace("sets-nf-debug") << "Try split " << o0 << " against "
+                                   << o1 << std::endl;
             // split them
             for (unsigned e = 0; e < 2; e++)
             {
-              Node r1 = e == 0 ? only[0][l] : only[1][m];
-              Node r2 = e == 0 ? only[1][m] : only[0][l];
+              Node r1 = e == 0 ? o0 : o1;
+              Node r2 = e == 0 ? o1 : o0;
               // check if their intersection exists modulo equality
               Node r1r2i = d_state.getBinaryOpTerm(INTERSECTION, r1, r2);
               if (!r1r2i.isNull())
@@ -702,14 +703,14 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             if (!disjoint)
             {
               // simply introduce their intersection
-              Assert(only[0][l] != only[1][m]);
-              Node kca = d_state.getProxy(only[0][l]);
-              Node kcb = d_state.getProxy(only[1][m]);
+              Assert(o0 != o1);
+              Node kca = d_state.getProxy(o0);
+              Node kcb = d_state.getProxy(o1);
               Node intro =
                   Rewriter::rewrite(nm->mkNode(INTERSECTION, kca, kcb));
               Trace("sets-nf")
-                  << "   Intro split : " << only[0][l] << " against "
-                  << only[1][m] << ", term is " << intro << std::endl;
+                  << "   Intro split : " << o0 << " against "
+                  << o1 << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
               Assert(!d_ee.hasTerm(intro));
               return;
@@ -723,8 +724,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     if (success)
     {
       // normal form is flat form of base
-      d_nf[eqc].insert(
-          d_nf[eqc].end(), d_ff[eqc][base].begin(), d_ff[eqc][base].end());
+      nfeqc.insert(
+          nfeqc.end(), ffeqc[base].begin(), ffeqc[base].end());
       Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
     }
     else
@@ -745,7 +746,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     else
     {
       // normal form is this equivalence class
-      d_nf[eqc].push_back(eqc);
+      nfeqc.push_back(eqc);
       Trace("sets-nf") << "----> N " << eqc << " => { " << eqc << " }"
                        << std::endl;
     }
@@ -788,14 +789,15 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf-debug") << "Carry nf to parent ( " << cbase << ", [" << p
                              << "] ), from " << n << "..." << std::endl;
 
-      for (unsigned i = 0; i < d_nf[eqc].size(); i++)
+      std::vector< Node >& ffpc = d_ff[p][cbase];
+      for( const Node& nfeqci : nfeqc )
       {
         if (std::find(
-                d_ff[p][cbase].begin(), d_ff[p][cbase].end(), d_nf[eqc][i])
-            == d_ff[p][cbase].end())
+                ffpc.begin(), ffpc.end(), nfeqci)
+            == ffpc.end())
         {
-          d_ff[p][cbase].insert(
-              d_ff[p][cbase].end(), d_nf[eqc].begin(), d_nf[eqc].end());
+          ffpc.insert(
+              ffpc.end(), nfeqc.begin(), nfeqc.end());
         }
         else
         {
