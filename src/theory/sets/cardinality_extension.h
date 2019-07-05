@@ -29,10 +29,13 @@ namespace sets {
 
 class TheorySetsPrivate;
 
+/** 
+ * This class implements a variant of the procedure from Bansal et al, IJCAR
+ * 2016. 
+ */
 class CardinalityExtension
 {
   typedef context::CDHashSet<Node, NodeHashFunction> NodeSet;
-
  public:
   /**
    * Constructs a new instance of the cardinality solver w.r.t. the provided
@@ -111,8 +114,18 @@ class CardinalityExtension
   InferenceManager& d_im;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
-  void checkCardBuildGraph(std::vector<Node>& lemmas);
+  /** register cardinality term
+   * 
+   * This method add nodes to lemmas corresponding to the definition of
+   * the cardinality of set term n. For example, if n is A^B (denoting set
+   * intersection as ^), then we consider the lemmas card(A^B)>=0,
+   * card(A) = card(A\B) + card(A^B) and card(B) = card(B\A) + card(A^B). 
+   * 
+   * The exact form of this lemma is modified such that proxy variables are
+   * introduced for set terms as needed (see SetsState::getProxy).
+   */
   void registerCardinalityTerm(Node n, std::vector<Node>& lemmas);
+  void checkCardBuildGraph(std::vector<Node>& lemmas);
   void checkCardCycles(std::vector<Node>& lemmas);
   void checkCardCyclesRec(Node eqc,
                           std::vector<Node>& curr,
@@ -125,6 +138,10 @@ class CardinalityExtension
   /** element types of sets for which cardinality is enabled */
   std::map<TypeNode, bool> d_t_card_enabled;
   std::map<Node, Node> d_eqc_to_card_term;
+  /** 
+   * User-context-dependent set of set terms for which we have called
+   * registerCardinalityTerm on.
+   */
   NodeSet d_card_processed;
   std::map<Node, std::vector<Node> > d_card_parent;
   std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
