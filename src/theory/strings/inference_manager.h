@@ -269,7 +269,7 @@ class InferenceManager
    * vars = { x },
    * subs = { v2 },
    * unproc = {}.
-   * In particular, this says that the information content of n essentially
+   * In particular, this says that the information content of n is essentially
    * x = v2. The first and third conjunctions can be dropped from the
    * explanation since these equalities simply correspond to definitions
    * of proxy variables.
