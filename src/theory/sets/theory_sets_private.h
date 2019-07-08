@@ -24,7 +24,7 @@
 #include "expr/node_trie.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
-#include "theory/sets/sets_state.h"
+#include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -221,7 +221,7 @@ class TheorySetsPrivate {
 
  private:
   /** The state of the sets solver at full effort */
-  SetsState d_state;
+  SolverState d_state;
   /** The inference manager of the sets solver */
   InferenceManager d_im;
   /** subtheory solver for the theory of relations */

@@ -20,7 +20,7 @@
 #include "context/cdhashset.h"
 #include "context/context.h"
 #include "theory/sets/inference_manager.h"
-#include "theory/sets/sets_state.h"
+#include "theory/sets/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -42,7 +42,7 @@ class CardinalityExtension
    * contexts.
    */
   CardinalityExtension(TheorySetsPrivate& p,
-                       SetsState& s,
+                       SolverState& s,
                        InferenceManager& im,
                        eq::EqualityEngine& e,
                        context::Context* c,
@@ -109,7 +109,7 @@ class CardinalityExtension
   /** the theory of sets which owns this */
   TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
-  SetsState& d_state;
+  SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
   /** Reference to the equality engine of theory of sets */
@@ -122,7 +122,7 @@ class CardinalityExtension
    * card(A) = card(A\B) + card(A^B) and card(B) = card(B\A) + card(A^B). 
    * 
    * The exact form of this lemma is modified such that proxy variables are
-   * introduced for set terms as needed (see SetsState::getProxy).
+   * introduced for set terms as needed (see SolverState::getProxy).
    */
   void registerCardinalityTerm(Node n, std::vector<Node>& lemmas);
   void checkCardBuildGraph(std::vector<Node>& lemmas);

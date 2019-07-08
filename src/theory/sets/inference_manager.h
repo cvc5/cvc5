@@ -17,7 +17,7 @@
 #ifndef CVC4__THEORY__SETS__INFERENCE_MANAGER_H
 #define CVC4__THEORY__SETS__INFERENCE_MANAGER_H
 
-#include "theory/sets/sets_state.h"
+#include "theory/sets/solver_state.h"
 #include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
@@ -39,7 +39,7 @@ class InferenceManager
 
  public:
   InferenceManager(TheorySetsPrivate& p,
-                   SetsState& s,
+                   SolverState& s,
                    eq::EqualityEngine& e,
                    context::Context* c,
                    context::UserContext* u);
@@ -119,7 +119,7 @@ class InferenceManager
   /** the theory of sets which owns this */
   TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
-  SetsState& d_state;
+  SolverState& d_state;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   /** sent lemma

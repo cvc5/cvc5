@@ -30,7 +30,7 @@ namespace theory {
 namespace sets {
 
 CardinalityExtension::CardinalityExtension(TheorySetsPrivate& p,
-                                           SetsState& s,
+                                           SolverState& s,
                                            InferenceManager& im,
                                            eq::EqualityEngine& e,
                                            context::Context* c,

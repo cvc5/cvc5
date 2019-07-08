@@ -26,7 +26,7 @@ namespace theory {
 namespace sets {
 
 InferenceManager::InferenceManager(TheorySetsPrivate& p,
-                                   SetsState& s,
+                                   SolverState& s,
                                    eq::EqualityEngine& e,
                                    context::Context* c,
                                    context::UserContext* u)

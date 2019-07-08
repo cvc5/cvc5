@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sets_state.h
+/*! \file solver_state.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__SETS__THEORY_SETS_STATE_H
-#define CVC4__THEORY__SETS__THEORY_SETS_STATE_H
+#ifndef CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H
+#define CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H
 
 #include <map>
 #include <vector>
@@ -41,12 +41,12 @@ class TheorySetsPrivate;
  * to initialize the information in this class regarding full effort checks.
  * Other query calls are then valid for the remainder of the full effort check.
  */
-class SetsState
+class SolverState
 {
   typedef context::CDHashMap<Node, Node, NodeHashFunction> NodeMap;
 
  public:
-  SetsState(TheorySetsPrivate& p,
+  SolverState(TheorySetsPrivate& p,
             eq::EqualityEngine& e,
             context::Context* c,
             context::UserContext* u);
@@ -270,4 +270,4 @@ class SetsState
 }  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__SETS__THEORY_SETS_STATE_H */
+#endif /* CVC4__THEORY__SETS__THEORY_SOLVER_STATE_H */

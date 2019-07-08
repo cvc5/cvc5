@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file sets_state.cpp
+/*! \file solver_state.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andrew Reynolds
@@ -12,7 +12,7 @@
  ** \brief Implementation of sets state object
  **/
 
-#include "theory/sets/sets_state.h"
+#include "theory/sets/solver_state.h"
 
 #include "expr/emptyset.h"
 #include "options/sets_options.h"
@@ -25,7 +25,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-SetsState::SetsState(TheorySetsPrivate& p,
+SolverState::SolverState(TheorySetsPrivate& p,
                      eq::EqualityEngine& e,
                      context::Context* c,
                      context::UserContext* u)
@@ -35,7 +35,7 @@ SetsState::SetsState(TheorySetsPrivate& p,
   d_false = NodeManager::currentNM()->mkConst(false);
 }
 
-void SetsState::reset()
+void SolverState::reset()
 {
   d_set_eqc.clear();
   d_eqc_emptyset.clear();
@@ -52,7 +52,7 @@ void SetsState::reset()
   d_op_list.clear();
 }
 
-void SetsState::registerEqc(TypeNode tn, Node r)
+void SolverState::registerEqc(TypeNode tn, Node r)
 {
   if (tn.isSet())
   {
@@ -60,7 +60,7 @@ void SetsState::registerEqc(TypeNode tn, Node r)
   }
 }
 
-void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
+void SolverState::registerTerm(Node r, TypeNode tnn, Node n)
 {
   Kind nk = n.getKind();
   if (nk == MEMBER)
@@ -151,7 +151,7 @@ void SetsState::registerTerm(Node r, TypeNode tnn, Node n)
   }
 }
 
-bool SetsState::areEqual(Node a, Node b) const
+bool SolverState::areEqual(Node a, Node b) const
 {
   if (a == b)
   {
@@ -164,7 +164,7 @@ bool SetsState::areEqual(Node a, Node b) const
   return false;
 }
 
-bool SetsState::areDisequal(Node a, Node b) const
+bool SolverState::areDisequal(Node a, Node b) const
 {
   if (a == b)
   {
@@ -177,7 +177,7 @@ bool SetsState::areDisequal(Node a, Node b) const
   return a.isConst() && b.isConst();
 }
 
-void SetsState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
+void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
 {
   if (a != b)
   {
@@ -186,7 +186,7 @@ void SetsState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const
   }
 }
 
-Node SetsState::getEmptySetEqClass(TypeNode tn) const
+Node SolverState::getEmptySetEqClass(TypeNode tn) const
 {
   std::map<TypeNode, Node>::const_iterator it = d_eqc_emptyset.find(tn);
   if (it != d_eqc_emptyset.end())
@@ -196,7 +196,7 @@ Node SetsState::getEmptySetEqClass(TypeNode tn) const
   return Node::null();
 }
 
-Node SetsState::getUnivSetEqClass(TypeNode tn) const
+Node SolverState::getUnivSetEqClass(TypeNode tn) const
 {
   std::map<TypeNode, Node>::const_iterator it = d_univset.find(tn);
   if (it != d_univset.end())
@@ -206,7 +206,7 @@ Node SetsState::getUnivSetEqClass(TypeNode tn) const
   return Node::null();
 }
 
-Node SetsState::getSingletonEqClass(Node r) const
+Node SolverState::getSingletonEqClass(Node r) const
 {
   std::map<Node, Node>::const_iterator it = d_eqc_singleton.find(r);
   if (it != d_eqc_singleton.end())
@@ -216,7 +216,7 @@ Node SetsState::getSingletonEqClass(Node r) const
   return Node::null();
 }
 
-Node SetsState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
+Node SolverState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
 {
   std::map<Kind, std::map<Node, std::map<Node, Node> > >::const_iterator itk =
       d_bop_index.find(k);
@@ -238,7 +238,7 @@ Node SetsState::getBinaryOpTerm(Kind k, Node r1, Node r2) const
   return it2->second;
 }
 
-bool SetsState::isEntailed(Node n, bool polarity) const
+bool SolverState::isEntailed(Node n, bool polarity) const
 {
   if (n.getKind() == NOT)
   {
@@ -288,7 +288,7 @@ bool SetsState::isEntailed(Node n, bool polarity) const
   return false;
 }
 
-bool SetsState::isSetDisequalityEntailed(Node r1, Node r2) const
+bool SolverState::isSetDisequalityEntailed(Node r1, Node r2) const
 {
   Assert(d_ee.hasTerm(r1) && d_ee.getRepresentative(r1) == r1);
   Assert(d_ee.hasTerm(r2) && d_ee.getRepresentative(r2) == r2);
@@ -306,7 +306,7 @@ bool SetsState::isSetDisequalityEntailed(Node r1, Node r2) const
   return false;
 }
 
-bool SetsState::isSetDisequalityEntailedInternal(Node a, Node b, Node re) const
+bool SolverState::isSetDisequalityEntailedInternal(Node a, Node b, Node re) const
 {
   // if there are members in a
   std::map<Node, std::map<Node, Node> >::const_iterator itpma =
@@ -378,7 +378,7 @@ bool SetsState::isSetDisequalityEntailedInternal(Node a, Node b, Node re) const
   return false;
 }
 
-Node SetsState::getProxy(Node n)
+Node SolverState::getProxy(Node n)
 {
   Kind nk = n.getKind();
   if (nk != EMPTYSET && nk != SINGLETON && nk != INTERSECTION && nk != SETMINUS
@@ -408,7 +408,7 @@ Node SetsState::getProxy(Node n)
   return k;
 }
 
-Node SetsState::getCongruent(Node n) const
+Node SolverState::getCongruent(Node n) const
 {
   Assert(d_ee.hasTerm(n));
   std::map<Node, Node>::const_iterator it = d_congruent.find(n);
@@ -418,12 +418,12 @@ Node SetsState::getCongruent(Node n) const
   }
   return it->second;
 }
-bool SetsState::isCongruent(Node n) const
+bool SolverState::isCongruent(Node n) const
 {
   return d_congruent.find(n) != d_congruent.end();
 }
 
-Node SetsState::getEmptySet(TypeNode tn)
+Node SolverState::getEmptySet(TypeNode tn)
 {
   std::map<TypeNode, Node>::iterator it = d_emptyset.find(tn);
   if (it != d_emptyset.end())
@@ -434,7 +434,7 @@ Node SetsState::getEmptySet(TypeNode tn)
   d_emptyset[tn] = n;
   return n;
 }
-Node SetsState::getUnivSet(TypeNode tn)
+Node SolverState::getUnivSet(TypeNode tn)
 {
   std::map<TypeNode, Node>::iterator it = d_univset.find(tn);
   if (it != d_univset.end())
@@ -469,7 +469,7 @@ Node SetsState::getUnivSet(TypeNode tn)
   return n;
 }
 
-Node SetsState::getTypeConstraintSkolem(Node n, TypeNode tn)
+Node SolverState::getTypeConstraintSkolem(Node n, TypeNode tn)
 {
   std::map<TypeNode, Node>::iterator it = d_tc_skolem[n].find(tn);
   if (it == d_tc_skolem[n].end())
@@ -481,7 +481,7 @@ Node SetsState::getTypeConstraintSkolem(Node n, TypeNode tn)
   return it->second;
 }
 
-const std::vector<Node>& SetsState::getNonVariableSets(Node r) const
+const std::vector<Node>& SolverState::getNonVariableSets(Node r) const
 {
   std::map<Node, std::vector<Node> >::const_iterator it = d_nvar_sets.find(r);
   if (it == d_nvar_sets.end())
@@ -491,7 +491,7 @@ const std::vector<Node>& SetsState::getNonVariableSets(Node r) const
   return it->second;
 }
 
-Node SetsState::getVariableSet(Node r) const
+Node SolverState::getVariableSet(Node r) const
 {
   std::map<Node, Node>::const_iterator it = d_var_set.find(r);
   if (it != d_var_set.end())
@@ -500,15 +500,15 @@ Node SetsState::getVariableSet(Node r) const
   }
   return Node::null();
 }
-const std::map<Node, Node>& SetsState::getMembers(Node r) const
+const std::map<Node, Node>& SolverState::getMembers(Node r) const
 {
   return getMembersInternal(r, 0);
 }
-const std::map<Node, Node>& SetsState::getNegativeMembers(Node r) const
+const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
 {
   return getMembersInternal(r, 1);
 }
-const std::map<Node, Node>& SetsState::getMembersInternal(Node r,
+const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
                                                           unsigned i) const
 {
   std::map<Node, std::map<Node, Node> >::const_iterator itp =
@@ -520,7 +520,7 @@ const std::map<Node, Node>& SetsState::getMembersInternal(Node r,
   return itp->second;
 }
 
-bool SetsState::hasMembers(Node r) const
+bool SolverState::hasMembers(Node r) const
 {
   std::map<Node, std::map<Node, Node> >::const_iterator it =
       d_pol_mems[0].find(r);
@@ -531,16 +531,16 @@ bool SetsState::hasMembers(Node r) const
   return !it->second.empty();
 }
 const std::map<Kind, std::map<Node, std::map<Node, Node> > >&
-SetsState::getBinaryOpIndex() const
+SolverState::getBinaryOpIndex() const
 {
   return d_bop_index;
 }
-const std::map<Kind, std::vector<Node> >& SetsState::getOperatorList() const
+const std::map<Kind, std::vector<Node> >& SolverState::getOperatorList() const
 {
   return d_op_list;
 }
 
-void SetsState::debugPrintSet(Node s, const char* c) const
+void SolverState::debugPrintSet(Node s, const char* c) const
 {
   if (s.getNumChildren() == 0)
   {

@@ -618,8 +618,8 @@ libcvc4_add_sources(
   theory/sets/inference_manager.h
   theory/sets/normal_form.h
   theory/sets/rels_utils.h
-  theory/sets/sets_state.cpp
-  theory/sets/sets_state.h
+  theory/sets/solver_state.cpp
+  theory/sets/solver_state.h
   theory/sets/theory_sets.cpp
   theory/sets/theory_sets.h
   theory/sets/theory_sets_private.cpp
