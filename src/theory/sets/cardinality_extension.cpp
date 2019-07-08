@@ -108,7 +108,7 @@ void CardinalityExtension::check()
 
 void CardinalityExtension::checkRegister()
 {
-  std::vector< Node > lemmas;
+  std::vector<Node> lemmas;
   Trace("sets") << "Cardinality graph..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
   // first, ensure cardinality relationships are added as lemmas for all
@@ -219,7 +219,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         conc.push_back(curr[0].eqNode(cc));
       }
       Node fact = conc.size() == 1 ? conc[0] : nm->mkNode(AND, conc);
-      std::vector< Node > lemmas;
+      std::vector<Node> lemmas;
       d_im.assertInference(fact, exp, lemmas, "card_cycle");
       d_im.flushLemmas(lemmas);
     }
@@ -296,7 +296,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           conc.push_back(n[e].eqNode(sib[e]));
         }
       }
-      std::vector< Node > lemmas;
+      std::vector<Node> lemmas;
       d_im.assertInference(conc, n.eqNode(emp_set), lemmas, "cg_emp");
       d_im.flushLemmas(lemmas);
       if (d_im.hasProcessed())
@@ -329,7 +329,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
-        std::vector< Node > lemmas;
+        std::vector<Node> lemmas;
         d_im.assertInference(
             n.eqNode(emp_set), p.eqNode(emp_set), lemmas, "cg_emppar");
         d_im.flushLemmas(lemmas);
@@ -378,7 +378,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         }
         Trace("sets-debug")
             << "...derived " << conc.size() << " conclusions" << std::endl;
-        std::vector< Node > lemmas;
+        std::vector<Node> lemmas;
         d_im.assertInference(conc, n.eqNode(p), lemmas, "cg_eqpar");
         d_im.flushLemmas(lemmas);
         if (d_im.hasProcessed())
@@ -431,7 +431,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         if (eq_parent)
         {
           Node conc = n.eqNode(cpk);
-          std::vector< Node > lemmas;
+          std::vector<Node> lemmas;
           d_im.assertInference(conc, exp, lemmas, "cg_par_sing");
           d_im.flushLemmas(lemmas);
         }
@@ -487,7 +487,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
               conc.push_back(cpk.eqNode(n));
             }
           }
-          std::vector< Node > lemmas;
+          std::vector<Node> lemmas;
           d_im.assertInference(conc, cpk.eqNode(cpnl), lemmas, "cg_pareq");
           d_im.flushLemmas(lemmas);
           if (d_im.hasProcessed())
@@ -870,8 +870,11 @@ bool CardinalityExtension::isModelValueBasic(Node eqc)
   return d_nf[eqc].size() == 1 && d_nf[eqc][0] == eqc;
 }
 
-void CardinalityExtension::mkModelValueElementsFor(Valuation& val, 
-    Node eqc, std::vector<Node>& els, const std::map<Node, Node>& mvals)
+void CardinalityExtension::mkModelValueElementsFor(
+    Valuation& val,
+    Node eqc,
+    std::vector<Node>& els,
+    const std::map<Node, Node>& mvals)
 {
   TypeNode elementType = eqc.getType().getSetElementType();
   if (isModelValueBasic(eqc))

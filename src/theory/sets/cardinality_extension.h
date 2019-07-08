@@ -99,13 +99,13 @@ class CardinalityExtension
    * The argument val is the Valuation utility of the theory of sets, which is
    * used by this method to query the value assigned to cardinality terms by
    * the theory of arithmetic.
-   * 
+   *
    * The argument mvals maps set equivalence classes to their model values.
    * Due to our model construction algorithm, it can be assumed that all
    * sets in the normal form of eqc occur in the domain of mvals by the order
    * in which sets are assigned.
    */
-  void mkModelValueElementsFor(Valuation& v, 
+  void mkModelValueElementsFor(Valuation& v,
                                Node eqc,
                                std::vector<Node>& els,
                                const std::map<Node, Node>& mvals);
@@ -178,10 +178,10 @@ class CardinalityExtension
   void checkCardCycles();
   /**
    * Helper function for above. Called when wish to process equivalence class
-   * eqc. A 
-   * 
+   * eqc. A
+   *
    * Argument curr contains the equivalence classes we are currently processing.
-   * 
+   *
    * Argument exp contains an explanation
    */
   void checkCardCyclesRec(Node eqc,
@@ -227,7 +227,7 @@ class CardinalityExtension
   std::vector<Node> d_oSetEqc;
   /** TODO */
   std::map<Node, std::vector<Node> > d_card_parent;
-  /** 
+  /**
    * Maps equivalence classes + set terms in that equivalence class to their
    * "flat form" (see checkNormalForms).
    */
