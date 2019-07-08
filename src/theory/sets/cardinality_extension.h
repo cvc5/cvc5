@@ -191,8 +191,9 @@ class CardinalityExtension
    *   parent( A \ B ) = A
    *   parent( B \ A ) = B
    * Additionally, (A union B) is a parent of all three of the above sets
-   * if it exists as a term in the current context. As an exception,
+   * if it exists as a term in the current context. As exceptions,
    * if A op B = A, then A is not a parent of A ^ B and similarly for B.
+   * If A ^ B is empty, then it has no parents.
    * 
    * We say the cardinality graph induced by the current set of equalities
    * is an (irreflexive, acyclic) graph whose nodes are equivalence classes and
