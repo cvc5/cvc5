@@ -274,6 +274,10 @@ class CardinalityExtension
    * will e.g. add (A^B)^E to intro_sets, which will force the solver
    * to explore a model where the Venn regions (A^B)^E (A^B)\E and E\(A^B) are
    * considered while constructing flat forms.
+   * Assuming a new context where:
+   *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {(A^B)^E},
+   *   {empty, B\A, (A^B)\E, E\(A^B)},
+   * we have that the flat form of C is {E,
    */
   void checkNormalForms(std::vector<Node>& intro_sets);
   /**
