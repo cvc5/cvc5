@@ -307,7 +307,6 @@ void TheorySetsPrivate::fullEffortCheck(){
     // reset the cardinality solver
     d_cardSolver->reset();
 
-    std::vector< Node > lemmas;
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
@@ -347,7 +346,7 @@ void TheorySetsPrivate::fullEffortCheck(){
         {
           d_card_enabled = true;
           // register it with the cardinality solver
-          d_cardSolver->registerTerm(n, lemmas);
+          d_cardSolver->registerTerm(n);
           // if we do not handle the kind, set incomplete
           Kind nk = n[0].getKind();
           // some kinds of cardinality we cannot handle
@@ -376,10 +375,12 @@ void TheorySetsPrivate::fullEffortCheck(){
       ++eqcs_i;
     }
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
-
-    d_im.flushLemmas(lemmas);
+    
+    // We may have sent lemmas while registering the terms in the loop above,
+    // e.g. the cardinality solver.
     if (!d_im.hasProcessed())
     {
+      std::vector< Node > lemmas;
       if( Trace.isOn("sets-mem") ){
         const std::vector<Node>& sec = d_state.getSetsEqClasses();
         for (const Node& s : sec)

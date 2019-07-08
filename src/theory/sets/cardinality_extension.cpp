@@ -47,13 +47,14 @@ void CardinalityExtension::reset()
   d_eqc_to_card_term.clear();
   d_t_card_enabled.clear();
 }
-void CardinalityExtension::registerTerm(Node n, std::vector<Node>& lemmas)
+void CardinalityExtension::registerTerm(Node n)
 {
   Trace("sets-card-debug") << "Register term : " << n << std::endl;
   Assert(n.getKind() == CARD);
   TypeNode tnc = n[0].getType().getSetElementType();
   d_t_card_enabled[tnc] = true;
   Node r = d_ee.getRepresentative(n[0]);
+  std::vector< Node > lemmas;
   if (d_eqc_to_card_term.find(r) == d_eqc_to_card_term.end())
   {
     d_eqc_to_card_term[r] = n;
@@ -69,12 +70,14 @@ void CardinalityExtension::registerTerm(Node n, std::vector<Node>& lemmas)
     // TODO (#1123): extend approach for this case
   }
   Trace("sets-card-debug") << "...finished register term" << std::endl;
+  // flush lemmas now
+  d_im.flushLemmas(lemmas);
 }
 
 void CardinalityExtension::check()
 {
   std::vector<Node> lemmas;
-  checkCardBuildGraph(lemmas);
+  checkRegister(lemmas);
   d_im.flushLemmas(lemmas);
   if (d_im.hasProcessed())
   {
@@ -92,10 +95,11 @@ void CardinalityExtension::check()
   {
     return;
   }
+  // The last step will either do nothing (in which case we are SAT), or request
+  // that a new set term is introduced.
   std::vector<Node> intro_sets;
-  checkNormalForms(lemmas, intro_sets);
-  d_im.flushLemmas(lemmas);
-  if (d_im.hasProcessed() || intro_sets.empty())
+  checkNormalForms(intro_sets);
+  if (intro_sets.empty())
   {
     return;
   }
@@ -108,7 +112,7 @@ void CardinalityExtension::check()
   AlwaysAssert(!k.isNull());
 }
 
-void CardinalityExtension::checkCardBuildGraph(std::vector<Node>& lemmas)
+void CardinalityExtension::checkRegister(std::vector<Node>& lemmas)
 {
   Trace("sets") << "Cardinality graph..." << std::endl;
   NodeManager* nm = NodeManager::currentNM();
@@ -260,7 +264,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     unsigned true_sib = 0;
     if (n.getKind() == INTERSECTION)
     {
-      d_card_base[n] = n;
+      d_localBase[n] = n;
       for (unsigned e = 0; e < 2; e++)
       {
         Node sm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[e], n[1 - e]));
@@ -272,7 +276,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
     {
       Node si = Rewriter::rewrite(nm->mkNode(INTERSECTION, n[0], n[1]));
       sib.push_back(si);
-      d_card_base[n] = si;
+      d_localBase[n] = si;
       Node osm = Rewriter::rewrite(nm->mkNode(SETMINUS, n[1], n[0]));
       sib.push_back(osm);
       true_sib = 1;
@@ -514,8 +518,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
   d_oSetEqc.push_back(eqc);
 }
 
-void CardinalityExtension::checkNormalForms(std::vector<Node>& lemmas,
-                                            std::vector<Node>& intro_sets)
+void CardinalityExtension::checkNormalForms(std::vector<Node>& intro_sets)
 {
   Trace("sets") << "Check normal forms..." << std::endl;
   // now, build normal form for each equivalence class
@@ -773,8 +776,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       // nothing to do
       continue;
     }
-    Assert(d_card_base.find(n) != d_card_base.end());
-    Node cbase = d_card_base[n];
+    Assert(d_localBase.find(n) != d_localBase.end());
+    Node cbase = d_localBase[n];
     Trace("sets-nf-debug") << "Card base is " << cbase << std::endl;
     for (const Node& p : d_card_parent[n])
     {
