@@ -409,11 +409,11 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       if (!eqccSingleton.isNull())
       {
         bool eq_parent = false;
-        std::vector<Node> exp;
-        d_state.addEqualityToExp(cpk, eqccSingleton, exp);
+        std::vector<Node> exps;
+        d_state.addEqualityToExp(cpk, eqccSingleton, exps);
         if (d_state.areDisequal(n, emp_set))
         {
-          exp.push_back(n.eqNode(emp_set).negate());
+          exps.push_back(n.eqNode(emp_set).negate());
           eq_parent = true;
         }
         else
@@ -422,8 +422,8 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
           if (!pmemsE.empty())
           {
             Node pmem = pmemsE.begin()->second;
-            exp.push_back(pmem);
-            d_state.addEqualityToExp(n, pmem[1], exp);
+            exps.push_back(pmem);
+            d_state.addEqualityToExp(n, pmem[1], exps);
             eq_parent = true;
           }
         }
@@ -432,7 +432,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
         {
           Node conc = n.eqNode(cpk);
           std::vector<Node> lemmas;
-          d_im.assertInference(conc, exp, lemmas, "cg_par_sing");
+          d_im.assertInference(conc, exps, lemmas, "cg_par_sing");
           d_im.flushLemmas(lemmas);
         }
         else

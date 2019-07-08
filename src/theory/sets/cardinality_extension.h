@@ -34,13 +34,28 @@ namespace sets {
  * where CardTerms is the set of all applications of CARD in the current
  * context.
  *
- * The remaining public methods are used for model construction.
+ * The remaining public methods are used during model construction, i.e. 
+ * the collectModelInfo method of the theory of sets.
  *
+ * The procedure from Bansal et al IJCAR 2016 introduces the notion of a
+ * "cardinality graph", where the nodes of this graph are sets and (directed)
+ * edges connect sets to their Venn regions wrt to other sets. For example,
+ * if (A \ B) is a term in the current context, then the node A is
+ * connected via an edge to child (A \ B). The node (A ^ B) is a child
+ * of both A and B. The notion of a cardinality graph is loosely followed
+ * in the procedure implemented by this class. 
+ * 
+ * The main difference wrt Bansal et al IJCAR 2016 is that the nodes of the
+ * cardinality graph considered by this class are not set terms, but are instead
+ * representatives of equivalence classes. For more details, see documentation
+ * of the inference schemas in the private methods of this class.
+ * 
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
  * forms" are generated for String terms by recursively expanding
  * concatentations modulo equality. This procedure similarly maintains
- * normal forms, where the normal form for Set terms is a set of Venn regions.
+ * normal forms, where the normal form for Set terms is a set of (equivalence 
+ * class representatives of) Venn regions that do not contain the empty set.
  */
 class CardinalityExtension
 {
@@ -168,9 +183,39 @@ class CardinalityExtension
   void checkMinCard();
   /** check cardinality cycles
    *
-   * The purpose of this inference schema is
+   * The purpose of this inference schema is construct two data structures:
+   * 
+   * (1) d_card_parent, which maps set terms (A op B) for op in { \, ^ } to
+   * equivalence class representatives of their "parents", where:
+   *   parent( A ^ B ) = A, B
+   *   parent( A \ B ) = A
+   *   parent( B \ A ) = B
+   * Additionally, (A union B) is a parent of all three of the above sets
+   * if it exists as a term in the current context. As an exception,
+   * if A op B = A, then A is not a parent of A ^ B and similarly for B.
+   * 
+   * We say the cardinality graph induced by the current set of equalities
+   * is an (irreflexive, acyclic) graph whose nodes are equivalence classes and
+   * which contains a (directed) edge r1 to r2 if there exists a term t2 in r2
+   * that has some parent t1 in r1.
+   * 
+   * (2) d_oSetEqc, an ordered set of equivalence classes whose types are set.
+   * These equivalence classes have the property that if r1 is a descendant
+   * of r2 in the cardinality graph, then r1 must come before r2 in d_oSetEqc.
    *
-   * TODO
+   * This inference schema may make various inferences while building these
+   * two data structures if the current equality arrangement of sets is not
+   * as expected. For example, it will infer equalities between sets based on
+   * the emptiness and equalities of sets in adjacent children in the
+   * cardinality graph, to give some examples:
+   *   (A \ B = empty) => A = A ^ B
+   *   A^B = B => B \ A = empty
+   *   A union B = A ^ B => A \ B = empty AND B \ A = empty
+   * and so on.
+   *
+   * It will also recognize when a cycle occurs in the cardinality graph, in
+   * which case an equality chain between sets can be inferred. For an example,
+   * see checkCardCyclesRec below.
    *
    * This method is inspired by the checkCycles inference schema in the theory
    * of strings.
@@ -178,11 +223,21 @@ class CardinalityExtension
   void checkCardCycles();
   /**
    * Helper function for above. Called when wish to process equivalence class
-   * eqc. A
+   * eqc.
    *
-   * Argument curr contains the equivalence classes we are currently processing.
+   * Argument curr contains the equivalence classes we are currently processing,
+   * which are descendants of eqc in the cardinality graph.
    *
-   * Argument exp contains an explanation
+   * Argument exp contains an explanation of why the chain of children curr
+   * are descedants of . For example, say we are in context with equivalence
+   * classes:
+   *   { A, B, C^D }, { D, B ^ C,  A ^ E }
+   * We may recursively call this method via the following steps:
+   *   eqc = D, curr = {}, exp = {}
+   *   eqc = A, curr = { D }, exp = { D = B^C }
+   *   eqc = A, curr = { D, A }, exp = { D = B^C, A = C^D }
+   * after which we discover a cycle in the cardinality graph. We infer
+   * that A must be equal to D, where exp is an explanation of the cycle.
    */
   void checkCardCyclesRec(Node eqc,
                           std::vector<Node>& curr,
@@ -194,16 +249,31 @@ class CardinalityExtension
    * defined recursively.
    *
    * A "normal form" of an equivalence class E is a set of Venn regions
-   * { S1, ..., Sn } where the "flat form" of each non-variable set T in E
-   * is e
+   * U = { S1, ..., Sn } where the "flat form" of each non-variable set T in E
+   * is equal to U.
    *
-   * A "flat form" of a set term T
-   *
-   * TODO
-   *
+   * A "flat form" of a set term T is the union of the normal forms of sets
+   * whose parent is T, or the representative of T itself if non exist.
+   * 
    * The argument intro_sets is updated to contain the set of new set terms that
    * the procedure is requesting to introduce for the purpose of forcing the
-   * flat forms of two equivalent sets to become identical.
+   * flat forms of two equivalent sets to become identical. If any equivalence
+   * class cannot be assigned 
+   * 
+   * As an example, say we have a context with equivalence classes:
+   *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {empty, B\A},
+   * An ordered list d_oSetEqc for this context:
+   *   A, C, E, C\D, D\C, A\B, B\A, ...
+   * The normal form of {empty, B\A} is {}, since it contains the empty set.
+   * The flat/normal forms for each of the singleton equivalence classes are
+   * themselves. 
+   * The flat form of both E and C^D is {E} (assuming E is the respresentative
+   * of that class), hence the normal form of {E, C^D} is {E}.
+   * The flat form of C is {E,C\D,D\C}, and A^B is {A^B}. Hence, we cannot
+   * assign a normal form to this equivalence class. Instead this method
+   * will e.g. add (A^B)^E to intro_sets, which will force the solver
+   * to explore a model where the Venn regions (A^B)^E (A^B)\E and E\(A^B) are
+   * considered while constructing flat forms.
    */
   void checkNormalForms(std::vector<Node>& intro_sets);
   /**
@@ -223,9 +293,12 @@ class CardinalityExtension
    * registerCardinalityTerm on.
    */
   NodeSet d_card_processed;
-  /** the ordered set of equivalence classes, see checkCardCycles */
+  /** The ordered set of equivalence classes, see checkCardCycles. */
   std::vector<Node> d_oSetEqc;
-  /** TODO */
+  /** 
+   * This maps set terms to the set of representatives of their "parent" sets,
+   * see checkCardCycles.
+   */
   std::map<Node, std::vector<Node> > d_card_parent;
   /**
    * Maps equivalence classes + set terms in that equivalence class to their
