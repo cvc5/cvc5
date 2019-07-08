@@ -54,7 +54,7 @@ void CardinalityExtension::registerTerm(Node n)
   TypeNode tnc = n[0].getType().getSetElementType();
   d_t_card_enabled[tnc] = true;
   Node r = d_ee.getRepresentative(n[0]);
-  std::vector< Node > lemmas;
+  std::vector<Node> lemmas;
   if (d_eqc_to_card_term.find(r) == d_eqc_to_card_term.end())
   {
     d_eqc_to_card_term[r] = n;
@@ -580,7 +580,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
   }
   std::map<Node, std::vector<Node> >& ffeqc = d_ff[eqc];
   Assert(d_nf.find(eqc) == d_nf.end());
-  std::vector< Node >& nfeqc = d_nf[eqc];
+  std::vector<Node>& nfeqc = d_nf[eqc];
   NodeManager* nm = NodeManager::currentNM();
   bool success = true;
   Node emp_set = d_state.getEmptySet(tn);
@@ -675,13 +675,13 @@ void CardinalityExtension::checkNormalForm(Node eqc,
             }
           }
         }
-        for( const Node& o0 : only[0] )
+        for (const Node& o0 : only[0])
         {
-          for( const Node& o1 : only[1] )
+          for (const Node& o1 : only[1])
           {
             bool disjoint = false;
-            Trace("sets-nf-debug") << "Try split " << o0 << " against "
-                                   << o1 << std::endl;
+            Trace("sets-nf-debug")
+                << "Try split " << o0 << " against " << o1 << std::endl;
             // split them
             for (unsigned e = 0; e < 2; e++)
             {
@@ -711,9 +711,8 @@ void CardinalityExtension::checkNormalForm(Node eqc,
               Node kcb = d_state.getProxy(o1);
               Node intro =
                   Rewriter::rewrite(nm->mkNode(INTERSECTION, kca, kcb));
-              Trace("sets-nf")
-                  << "   Intro split : " << o0 << " against "
-                  << o1 << ", term is " << intro << std::endl;
+              Trace("sets-nf") << "   Intro split : " << o0 << " against " << o1
+                               << ", term is " << intro << std::endl;
               intro_sets.push_back(intro);
               Assert(!d_ee.hasTerm(intro));
               return;
@@ -727,8 +726,7 @@ void CardinalityExtension::checkNormalForm(Node eqc,
     if (success)
     {
       // normal form is flat form of base
-      nfeqc.insert(
-          nfeqc.end(), ffeqc[base].begin(), ffeqc[base].end());
+      nfeqc.insert(nfeqc.end(), ffeqc[base].begin(), ffeqc[base].end());
       Trace("sets-nf") << "----> N " << eqc << " => F " << base << std::endl;
     }
     else
@@ -792,15 +790,12 @@ void CardinalityExtension::checkNormalForm(Node eqc,
       Trace("sets-nf-debug") << "Carry nf to parent ( " << cbase << ", [" << p
                              << "] ), from " << n << "..." << std::endl;
 
-      std::vector< Node >& ffpc = d_ff[p][cbase];
-      for( const Node& nfeqci : nfeqc )
+      std::vector<Node>& ffpc = d_ff[p][cbase];
+      for (const Node& nfeqci : nfeqc)
       {
-        if (std::find(
-                ffpc.begin(), ffpc.end(), nfeqci)
-            == ffpc.end())
+        if (std::find(ffpc.begin(), ffpc.end(), nfeqci) == ffpc.end())
         {
-          ffpc.insert(
-              ffpc.end(), nfeqc.begin(), nfeqc.end());
+          ffpc.insert(ffpc.end(), nfeqc.begin(), nfeqc.end());
         }
         else
         {

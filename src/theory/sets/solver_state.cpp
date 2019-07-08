@@ -26,9 +26,9 @@ namespace theory {
 namespace sets {
 
 SolverState::SolverState(TheorySetsPrivate& p,
-                     eq::EqualityEngine& e,
-                     context::Context* c,
-                     context::UserContext* u)
+                         eq::EqualityEngine& e,
+                         context::Context* c,
+                         context::UserContext* u)
     : d_parent(p), d_ee(e), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
@@ -306,7 +306,9 @@ bool SolverState::isSetDisequalityEntailed(Node r1, Node r2) const
   return false;
 }
 
-bool SolverState::isSetDisequalityEntailedInternal(Node a, Node b, Node re) const
+bool SolverState::isSetDisequalityEntailedInternal(Node a,
+                                                   Node b,
+                                                   Node re) const
 {
   // if there are members in a
   std::map<Node, std::map<Node, Node> >::const_iterator itpma =
@@ -509,7 +511,7 @@ const std::map<Node, Node>& SolverState::getNegativeMembers(Node r) const
   return getMembersInternal(r, 1);
 }
 const std::map<Node, Node>& SolverState::getMembersInternal(Node r,
-                                                          unsigned i) const
+                                                            unsigned i) const
 {
   std::map<Node, std::map<Node, Node> >::const_iterator itp =
       d_pol_mems[i].find(r);

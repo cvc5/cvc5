@@ -47,9 +47,9 @@ class SolverState
 
  public:
   SolverState(TheorySetsPrivate& p,
-            eq::EqualityEngine& e,
-            context::Context* c,
-            context::UserContext* u);
+              eq::EqualityEngine& e,
+              context::Context* c,
+              context::UserContext* u);
   //-------------------------------- initialize
   /** reset, clears the data structures maintained by this class. */
   void reset();

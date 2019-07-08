@@ -375,12 +375,12 @@ void TheorySetsPrivate::fullEffortCheck(){
       ++eqcs_i;
     }
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
-    
+
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
     if (!d_im.hasProcessed())
     {
-      std::vector< Node > lemmas;
+      std::vector<Node> lemmas;
       if( Trace.isOn("sets-mem") ){
         const std::vector<Node>& sec = d_state.getSetsEqClasses();
         for (const Node& s : sec)
