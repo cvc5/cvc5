@@ -26,9 +26,8 @@
 #include "theory/theory_model.h"
 #include "util/result.h"
 
-#define AJR_IMPLEMENTATION
-
 using namespace std;
+using namespace CVC4::kind;
 
 namespace CVC4 {
 namespace theory {
@@ -48,7 +47,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_state(*this, d_equalityEngine, c, u),
       d_im(*this, d_state, d_equalityEngine, c, u),
       d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, external)),
+          new TheorySetsRels(c, u, &d_equalityEngine, *this)),
       d_cardSolver(
           new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
@@ -77,9 +76,6 @@ void TheorySetsPrivate::eqNotifyNewClass(TNode t) {
   if( t.getKind()==kind::SINGLETON || t.getKind()==kind::EMPTYSET ){
     EqcInfo * e = getOrMakeEqcInfo( t, true );
     e->d_singleton = t;
-  }
-  if( options::setsRelEager() ){
-    d_rels->eqNotifyNewClass( t );
   }
 }
 
@@ -172,9 +168,6 @@ void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
         }
       }
       d_members[t1] = n_members;
-    }
-    if( options::setsRelEager() ){
-      d_rels->eqNotifyPostMerge( t1, t2 );
     }
   }
 }
@@ -307,12 +300,14 @@ void TheorySetsPrivate::fullEffortCheck(){
     d_cardSolver->reset();
 
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
+    std::map<TypeNode, unsigned> eqcTypeCount;
     eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_equalityEngine );
     while( !eqcs_i.isFinished() ){
       Node eqc = (*eqcs_i);
       bool isSet = false;
       TypeNode tn = eqc.getType();
       d_state.registerEqc(tn, eqc);
+      eqcTypeCount[tn]++;
       //common type node and term
       TypeNode tnc;
       Node tnct;
@@ -373,13 +368,23 @@ void TheorySetsPrivate::fullEffortCheck(){
       Trace("sets-eqc") << std::endl;
       ++eqcs_i;
     }
+
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
+    
+    if (Trace.isOn("sets-state"))
+    {
+      Trace("sets-state") << "Equivalence class counters:" << std::endl;
+      for (std::pair<const TypeNode, unsigned>& ec : eqcTypeCount)
+      {
+        Trace("sets-state")
+            << "  " << ec.first << " -> " << ec.second << std::endl;
+      }
+    }
 
     // We may have sent lemmas while registering the terms in the loop above,
     // e.g. the cardinality solver.
     if (!d_im.hasProcessed())
     {
-      std::vector<Node> lemmas;
       if( Trace.isOn("sets-mem") ){
         const std::vector<Node>& sec = d_state.getSetsEqClasses();
         for (const Node& s : sec)
@@ -402,6 +407,7 @@ void TheorySetsPrivate::fullEffortCheck(){
           Trace("sets-mem") << std::endl;
         }
       }
+      std::vector<Node> lemmas;
       checkSubtypes( lemmas );
       d_im.flushLemmas(lemmas, true);
       if (!d_im.hasProcessed())
@@ -426,6 +432,11 @@ void TheorySetsPrivate::fullEffortCheck(){
           }
         }
       }
+    }
+    if (!d_im.hasProcessed())
+    {
+      // invoke relations solver
+      d_rels->check(Theory::EFFORT_FULL);
     }
   } while (!d_im.hasSentLemma() && !d_state.isInConflict() && d_im.hasAddedFact());
   Trace("sets") << "----- End full effort check, conflict=" << d_state.isInConflict()
@@ -773,19 +784,10 @@ void TheorySetsPrivate::check(Theory::Effort level) {
     if( level == Theory::EFFORT_FULL ){
       if( !d_external.d_valuation.needCheck() ){
         fullEffortCheck();
-        if (!d_state.isInConflict() && !d_im.hasSentLemma())
-        {
-          //invoke relations solver
-          d_rels->check(level);
-        }
         if (!d_state.isInConflict() && !d_im.hasSentLemma() && d_full_check_incomplete)
         {
           d_external.d_out->setIncomplete();
         }
-      }
-    }else{
-      if( options::setsRelEager() ){
-        d_rels->check(level);  
       }
     }
   }
@@ -910,6 +912,7 @@ void TheorySetsPrivate::computeCareGraph() {
       {
         Assert(d_equalityEngine.hasTerm(f1));
         Trace("sets-cg-debug") << "...build for " << f1 << std::endl;
+        Assert(d_equalityEngine.hasTerm(f1));
         //break into index based on operator, and type of first argument (since some operators are parametric)
         TypeNode tn = f1[0].getType();
         std::vector< TNode > reps;
@@ -1106,6 +1109,23 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
+
+void TheorySetsPrivate::processInference(Node lem,
+                                         const char* c,
+                                         std::vector<Node>& lemmas)
+{
+  Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
+  if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))
+  {
+    Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+    lemmas.push_back(lem);
+    return;
+  }
+  // try to assert it as a fact
+  Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
+  Trace("sets-pinfer") << "  assert as fact" << std::endl;
+  d_im.assertInference(lem[1], lem[0], lemmas, c);
+}
 
 OutputChannel* TheorySetsPrivate::getOutputChannel()
 {
