@@ -168,6 +168,23 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
   assertInference(conc, exp_n, lemmas, c, inferType);
 }
 
+void InferenceManager::processInference(Node lem,
+                                         const char* c,
+                                         std::vector<Node>& lemmas)
+{
+  Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
+  if (lem.getKind() != IMPLIES || !d_state.isEntailed(lem[0], true))
+  {
+    Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+    lemmas.push_back(lem);
+    return;
+  }
+  // try to assert it as a fact
+  Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
+  Trace("sets-pinfer") << "  assert as fact" << std::endl;
+  assertInference(lem[1], lem[0], lemmas, c);
+}
+
 void InferenceManager::split(Node n, int reqPol)
 {
   n = Rewriter::rewrite(n);

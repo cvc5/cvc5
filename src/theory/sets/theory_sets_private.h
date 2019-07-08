@@ -179,19 +179,6 @@ class TheorySetsPrivate {
   OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-  /** Process inference
-   *
-   * Argument lem specifies an inference inferred by this theory. If lem is
-   * an IMPLIES node, then its antecendant is the explanation of the conclusion.
-   *
-   * Argument c is used for debugging, typically the name of the inference.
-   *
-   * This method may add facts to the equality engine of theory of sets.
-   * Any (portion of) the conclusion of lem that is not sent to the equality
-   * engine is added to the argument lemmas, which should be processed via the
-   * caller of this method.
-   */
-  void processInference(Node lem, const char* c, std::vector<Node>& lemmas);
   
  private:
   TheorySets& d_external;

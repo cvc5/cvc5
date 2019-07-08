@@ -22,6 +22,8 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "theory/sets/rels_utils.h"
+#include "theory/sets/inference_manager.h"
+#include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
 
@@ -66,7 +68,10 @@ public:
  TheorySetsRels(context::Context* c,
                 context::UserContext* u,
                 eq::EqualityEngine* eq,
-                TheorySetsPrivate& set);
+                TheorySetsPrivate& set,
+                SolverState& s,
+                InferenceManager& im
+               );
 
  ~TheorySetsRels();
  /**
@@ -83,10 +88,14 @@ private:
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-  /** The parent theory of sets object */
-  TheorySetsPrivate& d_sets_theory;
   /** pointer to the equality engine of the theory of sets */
   eq::EqualityEngine* d_eqEngine;
+  /** Reference to the state object for the theory of sets */
+  SolverState& d_state;
+  /** Reference to the inference manager for the theory of sets */
+  InferenceManager& d_im;
+  /** The parent theory of sets object */
+  TheorySetsPrivate& d_sets_theory;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;

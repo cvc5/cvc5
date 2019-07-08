@@ -35,8 +35,12 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 TheorySetsRels::TheorySetsRels(context::Context* c,
                                context::UserContext* u,
                                eq::EqualityEngine* eq,
-                               TheorySetsPrivate& set)
+                               TheorySetsPrivate& set,
+                SolverState& s,
+                InferenceManager& im)
     : d_eqEngine(eq),
+      d_state(s),
+      d_im(im),
       d_sets_theory(set),
       d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
       d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
@@ -1058,21 +1062,21 @@ void TheorySetsRels::check(Theory::Effort level)
   void TheorySetsRels::doPendingInfers()
   {
     // process the inferences in d_pending
-    if (!d_sets_theory.isInConflict())
+    if (!d_state.isInConflict())
     {
       std::vector<Node> lemmas;
       for (const Node& p : d_pending)
       {
-        d_sets_theory.processInference(p, "rels", lemmas);
-        if (d_sets_theory.isInConflict())
+        d_im.processInference(p, "rels", lemmas);
+        if (d_state.isInConflict())
         {
           break;
         }
       }
       // if we are still not in conflict, send lemmas
-      if (!d_sets_theory.isInConflict())
+      if (!d_state.isInConflict())
       {
-        d_sets_theory.flushLemmas(lemmas);
+        d_im.flushLemmas(lemmas);
       }
     }
     d_pending.clear();

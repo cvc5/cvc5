@@ -47,7 +47,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_state(*this, d_equalityEngine, c, u),
       d_im(*this, d_state, d_equalityEngine, c, u),
       d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, *this)),
+          new TheorySetsRels(c, u, &d_equalityEngine, *this, d_state, d_im)),
       d_cardSolver(
           new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
@@ -1109,23 +1109,6 @@ bool TheorySetsPrivate::propagate(TNode literal) {
 
   return ok;
 }/* TheorySetsPrivate::propagate(TNode) */
-
-void TheorySetsPrivate::processInference(Node lem,
-                                         const char* c,
-                                         std::vector<Node>& lemmas)
-{
-  Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
-  if (lem.getKind() != IMPLIES || !isEntailed(lem[0], true))
-  {
-    Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
-    lemmas.push_back(lem);
-    return;
-  }
-  // try to assert it as a fact
-  Trace("sets-pinfer") << "Process conclusion: " << lem[1] << std::endl;
-  Trace("sets-pinfer") << "  assert as fact" << std::endl;
-  d_im.assertInference(lem[1], lem[0], lemmas, c);
-}
 
 OutputChannel* TheorySetsPrivate::getOutputChannel()
 {
