@@ -50,8 +50,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_im(*this, d_state, d_equalityEngine, c, u),
       d_rels(
           new TheorySetsRels(c, u, &d_equalityEngine, &d_conflict, external)),
-      d_cardSolver(new CardinalityExtension(
-          *this, d_state, d_im, d_equalityEngine, c, u)),
+      d_cardSolver(new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
       d_card_enabled(false)
 {
@@ -1007,6 +1006,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
   const std::vector<Node>& sec = d_card_enabled
                                      ? d_cardSolver->getOrderedSetsEqClasses()
                                      : d_state.getSetsEqClasses();
+  Valuation& val = getValuation();
   for (int i = (int)(sec.size() - 1); i >= 0; i--)
   {
     Node eqc = sec[i];
@@ -1031,7 +1031,7 @@ bool TheorySetsPrivate::collectModelInfo(TheoryModel* m)
       if( d_card_enabled ){
         // make the slack elements for the equivalence class based on set
         // cardinality
-        d_cardSolver->mkModelValueElementsFor(eqc, els, mvals);
+        d_cardSolver->mkModelValueElementsFor(val, eqc, els, mvals);
       }
       Node rep = NormalForm::mkBop( kind::UNION, els, eqc.getType() );
       rep = Rewriter::rewrite( rep );

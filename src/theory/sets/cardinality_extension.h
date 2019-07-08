@@ -27,8 +27,6 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySetsPrivate;
-
 /**
  * This class implements a variant of the procedure from Bansal et al, IJCAR
  * 2016. It is used during a full effort check in the following way:
@@ -36,7 +34,7 @@ class TheorySetsPrivate;
  * where CardTerms is the set of all applications of CARD in the current
  * context.
  *
- * The remaining methods are used for model construction.
+ * The remaining public methods are used for model construction.
  *
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
@@ -53,8 +51,7 @@ class CardinalityExtension
    * Constructs a new instance of the cardinality solver w.r.t. the provided
    * contexts.
    */
-  CardinalityExtension(TheorySetsPrivate& p,
-                       SolverState& s,
+  CardinalityExtension(SolverState& s,
                        InferenceManager& im,
                        eq::EqualityEngine& e,
                        context::Context* c,
@@ -99,12 +96,17 @@ class CardinalityExtension
    * of the cardinality graph). This method is used during the collectModelInfo
    * method of theory of sets.
    *
+   * The argument val is the Valuation utility of the theory of sets, which is
+   * used by this method to query the value assigned to cardinality terms by
+   * the theory of arithmetic.
+   * 
    * The argument mvals maps set equivalence classes to their model values.
    * Due to our model construction algorithm, it can be assumed that all
    * sets in the normal form of eqc occur in the domain of mvals by the order
    * in which sets are assigned.
    */
-  void mkModelValueElementsFor(Node eqc,
+  void mkModelValueElementsFor(Valuation& v, 
+                               Node eqc,
                                std::vector<Node>& els,
                                const std::map<Node, Node>& mvals);
   /** get ordered sets equivalence classes
@@ -122,8 +124,6 @@ class CardinalityExtension
   Node d_zero;
   /** the empty vector */
   std::vector<Node> d_emp_exp;
-  /** the theory of sets which owns this */
-  TheorySetsPrivate& d_parent;
   /** Reference to the state object for the theory of sets */
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
@@ -152,7 +152,7 @@ class CardinalityExtension
    * Notice a term is redundant in a context if it is congruent to another
    * term; it is not relevant if no cardinality constraints exist for its type.
    */
-  void checkRegister(std::vector<Node>& lemmas);
+  void checkRegister();
   /** check minimum cardinality
    *
    * This adds lemmas to the argument of the method of the form
@@ -165,7 +165,7 @@ class CardinalityExtension
    * literals. Furthermore, x1, ..., xn reside in distinct equivalence classes
    * but are not necessarily entailed to be distinct.
    */
-  void checkMinCard(std::vector<Node>& lemmas);
+  void checkMinCard();
   /** check cardinality cycles
    *
    * The purpose of this inference schema is
@@ -175,15 +175,18 @@ class CardinalityExtension
    * This method is inspired by the checkCycles inference schema in the theory
    * of strings.
    */
-  void checkCardCycles(std::vector<Node>& lemmas);
+  void checkCardCycles();
   /**
-   *
-   * TODO
+   * Helper function for above. Called when wish to process equivalence class
+   * eqc. A 
+   * 
+   * Argument curr contains the equivalence classes we are currently processing.
+   * 
+   * Argument exp contains an explanation
    */
   void checkCardCyclesRec(Node eqc,
                           std::vector<Node>& curr,
-                          std::vector<Node>& exp,
-                          std::vector<Node>& lemmas);
+                          std::vector<Node>& exp);
   /** check normal forms
    *
    * This method attempts to assign "normal forms" to all set equivalence
@@ -222,8 +225,14 @@ class CardinalityExtension
   NodeSet d_card_processed;
   /** the ordered set of equivalence classes, see checkCardCycles */
   std::vector<Node> d_oSetEqc;
+  /** TODO */
   std::map<Node, std::vector<Node> > d_card_parent;
+  /** 
+   * Maps equivalence classes + set terms in that equivalence class to their
+   * "flat form" (see checkNormalForms).
+   */
   std::map<Node, std::map<Node, std::vector<Node> > > d_ff;
+  /** Maps equivalence classes to their "normal form" (see checkNormalForms). */
   std::map<Node, std::vector<Node> > d_nf;
   /** The local base node map
    *
