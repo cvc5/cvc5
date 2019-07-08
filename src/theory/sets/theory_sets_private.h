@@ -173,11 +173,6 @@ class TheorySetsPrivate {
   /** get the valuation */
   Valuation& getValuation();
 
-  /** Are we currently in conflict? */
-  bool isInConflict() const;
-  /** Set conf is a conflict node to be sent on the output channel.  */
-  void setConflict(Node conf);
-
  private:
   TheorySets& d_external;
 
@@ -202,8 +197,6 @@ class TheorySetsPrivate {
 
   /** Equality engine */
   eq::EqualityEngine d_equalityEngine;
-  /** Whether or not we are in conflict. This flag is SAT context dependent. */
-  context::CDO<bool> d_conflict;
 
   /** Proagate out to output channel */
   bool propagate(TNode);

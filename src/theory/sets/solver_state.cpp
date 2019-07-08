@@ -29,7 +29,7 @@ SolverState::SolverState(TheorySetsPrivate& p,
                          eq::EqualityEngine& e,
                          context::Context* c,
                          context::UserContext* u)
-    : d_parent(p), d_ee(e), d_proxy(u), d_proxy_to_term(u)
+    : d_conflict(c), d_parent(p), d_ee(e), d_proxy(u), d_proxy_to_term(u)
 {
   d_true = NodeManager::currentNM()->mkConst(true);
   d_false = NodeManager::currentNM()->mkConst(false);
@@ -175,6 +175,16 @@ bool SolverState::areDisequal(Node a, Node b) const
     return d_ee.areDisequal(a, b, false);
   }
   return a.isConst() && b.isConst();
+}
+
+void SolverState::setConflict()
+{
+  d_conflict = true;
+}
+void SolverState::setConflict(Node conf)
+{
+  d_parent.getOutputChannel()->conflict(conf);
+  d_conflict = true;
 }
 
 void SolverState::addEqualityToExp(Node a, Node b, std::vector<Node>& exp) const

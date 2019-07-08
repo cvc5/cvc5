@@ -54,7 +54,6 @@ public:
   TheorySetsRels(context::Context* c,
                  context::UserContext* u,
                  eq::EqualityEngine*,
-                 context::CDO<bool>*,
                  TheorySets&);
 
   ~TheorySetsRels();
@@ -89,7 +88,6 @@ private:
   bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
 
   eq::EqualityEngine            *d_eqEngine;
-  context::CDO<bool>            *d_conflict;
   TheorySets&                   d_sets_theory;
 
   /** True and false constant nodes */

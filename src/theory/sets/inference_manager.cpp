@@ -67,7 +67,7 @@ bool InferenceManager::assertFactRec(Node fact,
     if (fact == d_false)
     {
       Trace("sets-lemma") << "Conflict : " << exp << std::endl;
-      d_parent.setConflict(exp);
+      d_state.setConflict(exp);
       return true;
     }
     return false;
@@ -82,7 +82,7 @@ bool InferenceManager::assertFactRec(Node fact,
       Node factc = fact.getKind() == NOT ? f[i].negate() : f[i];
       bool tret = assertFactRec(factc, exp, lemma, inferType);
       ret = ret || tret;
-      if (d_parent.isInConflict())
+      if (d_state.isInConflict())
       {
         return true;
       }
@@ -210,7 +210,7 @@ bool InferenceManager::hasLemmaCached(Node lem) const
 
 bool InferenceManager::hasProcessed() const
 {
-  return d_parent.isInConflict() || d_sentLemma || d_addedFact;
+  return d_state.isInConflict() || d_sentLemma || d_addedFact;
 }
 bool InferenceManager::hasSentLemma() const { return d_sentLemma; }
 bool InferenceManager::hasAddedFact() const { return d_addedFact; }

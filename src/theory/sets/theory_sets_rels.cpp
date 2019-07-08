@@ -986,7 +986,7 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
 
   void TheorySetsRels::doPendingLemmas() {
     Trace("rels-debug") << "[Theory::Rels] **************** Start doPendingLemmas !" << std::endl;
-    if( !(*d_conflict) ){
+    {
       if ( (!d_lemmas_out.empty() || !d_pending_facts.empty()) ) {
         for( unsigned i=0; i < d_lemmas_out.size(); i++ ){
           Assert(d_lemmas_out[i].getKind() == kind::IMPLIES);
@@ -1206,10 +1206,8 @@ typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFuncti
   TheorySetsRels::TheorySetsRels( context::Context* c,
                                   context::UserContext* u,
                                   eq::EqualityEngine* eq,
-                                  context::CDO<bool>* conflict,
                                   TheorySets& d_set ):
     d_eqEngine(eq),
-    d_conflict(conflict),
     d_sets_theory(d_set),
     d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
     d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),

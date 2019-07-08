@@ -58,6 +58,15 @@ class SolverState
   /** register term n of type tnn in the equivalence class of r */
   void registerTerm(Node r, TypeNode tnn, Node n);
   //-------------------------------- end initialize
+  /** Are we currently in conflict? */
+  bool isInConflict() const { return d_conflict; }
+  /** 
+   * Indicate that we are in conflict, without a conflict clause. This is
+   * called, for instance, when we have propagated a conflicting literal.
+   */
+  void setConflict();
+  /** Set conf is a conflict node to be sent on the output channel.  */
+  void setConflict(Node conf);
   /** Is a=b according to equality reasoning in the current context? */
   bool areEqual(Node a, Node b) const;
   /** Is a!=b according to equality reasoning in the current context? */
@@ -192,6 +201,8 @@ class SolverState
   /** the empty vector and map */
   std::vector<Node> d_emptyVec;
   std::map<Node, Node> d_emptyMap;
+  /** Whether or not we are in conflict. This flag is SAT context dependent. */
+  context::CDO<bool> d_conflict;
   /** Reference to the parent theory of sets */
   TheorySetsPrivate& d_parent;
   /** Reference to the equality engine of theory of sets */
