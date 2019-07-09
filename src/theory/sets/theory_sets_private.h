@@ -24,7 +24,6 @@
 #include "expr/node_trie.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
-#include "theory/sets/skolem_cache.h"
 #include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
@@ -60,10 +59,38 @@ class TheorySetsPrivate {
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
   void fullEffortCheck();
-  void checkSubtypes( std::vector< Node >& lemmas );
-  void checkDownwardsClosure( std::vector< Node >& lemmas );
-  void checkUpwardsClosure( std::vector< Node >& lemmas );
-  void checkDisequalities( std::vector< Node >& lemmas );
+  /**
+   * This ensures that subtype constraints are met for all set terms. In
+   * particular, for a set equivalence class E, let Set(T) be the most
+   * common type among the types of terms in that class. In other words,
+   * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
+   * most common type. Then, for each membership x in S where S is a set in
+   * this equivalence class, we ensure x has type T by asserting:
+   *   x = k 
+   * for a fresh constant k of type T. This is done only if the type of x is not
+   * a subtype of Int (e.g. if x is of type Real). We call k the "type
+   * constraint skolem for x of type Int".
+   */
+  void checkSubtypes();
+  /** 
+   * This implements an inference schema based on the "downwards closure" of
+   * set membership. This roughly corresponds to the rules UNION DOWN I and II,
+   * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
+   * difference.
+   */
+  void checkDownwardsClosure();
+  /** 
+   * This implements an inference schema based on the "upwards closure" of
+   * set membership. This roughly corresponds to the rules UNION UP, INTER
+   * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
+   * difference.
+   */
+  void checkUpwardsClosure();
+  /** 
+   * This implements a strategy for splitting for set disequalities which
+   * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
+   */
+  void checkDisequalities();
 
   void addCarePairs(TNodeTrie* t1,
                     TNodeTrie* t2,
@@ -128,12 +155,6 @@ class TheorySetsPrivate {
   Node explain(TNode);
 
   EqualityStatus getEqualityStatus(TNode a, TNode b);
-
-  /**
-   * Get the skolem cache of this theory, which manages a database of introduced
-   * skolem variables used for various inferences.
-   */
-  SkolemCache& getSkolemCache() { return d_skCache; }
 
   void preRegisterTerm(TNode node);
 
@@ -228,8 +249,6 @@ class TheorySetsPrivate {
   std::unique_ptr<TheorySetsRels> d_rels;
   /** subtheory solver for the theory of sets with cardinality */
   std::unique_ptr<CardinalityExtension> d_cardSolver;
-  /** the skolem cache */
-  SkolemCache d_skCache;
   /** are relations enabled?
    *
    * This flag is set to true during a full effort check if any constraint

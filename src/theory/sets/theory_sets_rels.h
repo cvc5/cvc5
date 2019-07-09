@@ -141,7 +141,15 @@ private:
    * the equality engine.
    */
   void doPendingInfers();
-
+  /** Process inference
+   * 
+   * A wrapper around d_im.assertInference that ensures that we do not send
+   * inferences with explanations that are not entailed.
+   * 
+   * Argument c is used for debugging, typically the name of the inference.
+   */
+  void processInference( Node conc, Node exp, const char * c );
+  
   /** Methods used in full effort */
   void check();
   void collectRelsInfo();

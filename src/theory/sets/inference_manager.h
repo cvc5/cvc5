@@ -66,41 +66,24 @@ class InferenceManager
    */
   void assertInference(Node fact,
                        Node exp,
-                       std::vector<Node>& lemmas,
                        const char* c,
                        int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
                        std::vector<Node>& exp,
-                       std::vector<Node>& lemmas,
                        const char* c,
                        int inferType = 0);
   /** same as above, where conc is interpreted as a conjunction */
   void assertInference(std::vector<Node>& conc,
                        Node exp,
-                       std::vector<Node>& lemmas,
                        const char* c,
                        int inferType = 0);
   /** same as above, where both exp and conc are interpreted as conjunctions */
   void assertInference(std::vector<Node>& conc,
                        std::vector<Node>& exp,
-                       std::vector<Node>& lemmas,
                        const char* c,
                        int inferType = 0);
 
-  /** Process inference  FIXME
-   *
-   * Argument lem specifies an inference inferred by this theory. If lem is
-   * an IMPLIES node, then its antecendant is the explanation of the conclusion.
-   *
-   * Argument c is used for debugging, typically the name of the inference.
-   *
-   * This method may add facts to the equality engine of theory of sets.
-   * Any (portion of) the conclusion of lem that is not sent to the equality
-   * engine is added to the argument lemmas, which should be processed via the
-   * caller of this method.
-   */
-  void processInference(Node lem, const char* c, std::vector<Node>& lemmas);
   /** Flush lemmas
    *
    * This sends lemmas on the output channel of the theory of sets.
@@ -111,6 +94,10 @@ class InferenceManager
   void flushLemmas(std::vector<Node>& lemmas, bool preprocess = false);
   /** singular version of above */
   void flushLemma(Node lem, bool preprocess = false);
+  /** Do we have pending lemmas? */
+  bool hasPendingLemmas() const { return !d_pendingLemmas.empty(); }
+  /** Applies flushLemmas on d_pendingLemmas */
+  void flushPendingLemmas(bool preprocess = false);
   /** flush the splitting lemma ( n OR (NOT n) )
    *
    * If reqPol is not 0, then a phase requirement for n is requested with
@@ -136,6 +123,8 @@ class InferenceManager
   SolverState& d_state;
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
+  /** pending lemmas */
+  std::vector< Node > d_pendingLemmas;
   /** sent lemma
    *
    * This flag is set to true during a full effort check if this theory
@@ -158,12 +147,13 @@ class InferenceManager
   NodeSet d_keep;
   /** Assert fact recursive
    *
+   * This is a helper function for assertInference, which calls assertFact
+   * in theory of sets and adds to d_pendingLemmas based on fact.
    * The argument inferType determines the policy on whether fact is processed
    * as a fact or as a lemma (see assertInference above).
    */
   bool assertFactRec(Node fact,
                      Node exp,
-                     std::vector<Node>& lemma,
                      int inferType = 0);
 };
 

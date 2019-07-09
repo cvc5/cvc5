@@ -42,11 +42,11 @@ TheorySetsRels::TheorySetsRels(context::Context* c,
       d_state(s),
       d_im(im),
       d_sets_theory(set),
-      d_trueNode(NodeManager::currentNM()->mkConst<bool>(true)),
-      d_falseNode(NodeManager::currentNM()->mkConst<bool>(false)),
       d_shared_terms(u),
       d_satContext(c)
 {
+      d_trueNode = NodeManager::currentNM()->mkConst(true);
+      d_falseNode = NodeManager::currentNM()->mkConst(false);
   d_eqEngine->addFunctionKind(PRODUCT);
   d_eqEngine->addFunctionKind(JOIN);
   d_eqEngine->addFunctionKind(TRANSPOSE);
@@ -311,7 +311,7 @@ void TheorySetsRels::check(Theory::Effort level)
                                                              NodeManager::currentNM()->mkNode( kind::APPLY_CONSTRUCTOR,
                                                                                                Node::fromExpr(dt[0].getConstructor()), fst_mem_rep ),
                                                              join_image_term);
-      if (d_sets_theory.isEntailed(new_membership, true))
+      if (d_state.isEntailed(new_membership, true))
       {
         ++mem_rep_it;
         ++mem_rep_exp_it;
@@ -797,7 +797,7 @@ void TheorySetsRels::check(Theory::Effort level)
     Node r1_rep = getRepresentative(join_rel[0]);
     Node r2_rep = getRepresentative(join_rel[1]);
     TypeNode     shared_type    = r2_rep.getType().getSetElementType().getTupleTypes()[0];
-    Node shared_x = d_sets_theory.getSkolemCache().mkTypedSkolemCached(
+    Node shared_x = d_state.getSkolemCache().mkTypedSkolemCached(
         shared_type, mem, join_rel, SkolemCache::SK_JOIN, "srj");
     Datatype     dt             = join_rel[0].getType().getSetElementType().getDatatype();
     unsigned int s1_len         = join_rel[0].getType().getSetElementType().getTupleLength();
@@ -1064,10 +1064,16 @@ void TheorySetsRels::check(Theory::Effort level)
     // process the inferences in d_pending
     if (!d_state.isInConflict())
     {
-      std::vector<Node> lemmas;
       for (const Node& p : d_pending)
       {
-        d_im.processInference(p, "rels", lemmas);
+        if( p.getKind()==IMPLIES )
+        {
+          processInference(p[1], p[0], "rels");
+        }
+        else
+        {
+          processInference(p, d_trueNode, "rels");
+        }
         if (d_state.isInConflict())
         {
           break;
@@ -1076,11 +1082,26 @@ void TheorySetsRels::check(Theory::Effort level)
       // if we are still not in conflict, send lemmas
       if (!d_state.isInConflict())
       {
-        d_im.flushLemmas(lemmas);
+        d_im.flushPendingLemmas();
       }
     }
     d_pending.clear();
   }
+  
+  void TheorySetsRels::processInference(Node conc, Node exp, const char * c)
+  {
+    Trace("sets-pinfer") << "Process inference: " << exp << " => "<< conc << std::endl;
+    if (!d_state.isEntailed(exp, true))
+    {
+      Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
+      // we wrap the spurious explanation into a splitting lemma
+      Node lem = NodeManager::currentNM()->mkNode( OR, exp.negate(), conc );
+      d_im.assertInference(lem, d_trueNode, c, 1);
+      return;
+    }
+    // try to assert it as a fact
+    d_im.assertInference(conc, exp, c);
+  }  
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;

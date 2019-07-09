@@ -147,7 +147,7 @@ class CardinalityExtension
   eq::EqualityEngine& d_ee;
   /** register cardinality term
    *
-   * This method add nodes to lemmas corresponding to the definition of
+   * This method add lemmas corresponding to the definition of
    * the cardinality of set term n. For example, if n is A^B (denoting set
    * intersection as ^), then we consider the lemmas card(A^B)>=0,
    * card(A) = card(A\B) + card(A^B) and card(B) = card(B\A) + card(A^B).
@@ -155,7 +155,7 @@ class CardinalityExtension
    * The exact form of this lemma is modified such that proxy variables are
    * introduced for set terms as needed (see SolverState::getProxy).
    */
-  void registerCardinalityTerm(Node n, std::vector<Node>& lemmas);
+  void registerCardinalityTerm(Node n);
   /** check register
    *
    * This ensures that all (non-redundant, relevant) non-variable set terms in

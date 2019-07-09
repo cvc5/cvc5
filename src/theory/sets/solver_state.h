@@ -22,6 +22,7 @@
 
 #include "context/cdhashset.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/sets/skolem_cache.h"
 
 namespace CVC4 {
 namespace theory {
@@ -190,6 +191,11 @@ class SolverState
   Node getEmptySet(TypeNode tn);
   /** Get the universe set of type tn */
   Node getUnivSet(TypeNode tn);
+  /**
+   * Get the skolem cache of this theory, which manages a database of introduced
+   * skolem variables used for various inferences.
+   */
+  SkolemCache& getSkolemCache() { return d_skCache; }
   // --------------------------------------- end commonly used terms
   /** debug print set */
   void debugPrintSet(Node s, const char* c) const;
@@ -258,8 +264,8 @@ class SolverState
   std::map<Kind, std::map<Node, std::map<Node, Node> > > d_bop_index;
   // -------------------------------- end term indices
   std::map<Kind, std::vector<Node> > d_op_list;
-
- private:
+  /** the skolem cache */
+  SkolemCache d_skCache;
   /** is set disequality entailed internal
    *
    * This returns true if disequality between sets a and b is entailed in the
