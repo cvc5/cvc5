@@ -249,36 +249,48 @@ class CardinalityExtension
    * classes whose types have cardinality constraints. Normal forms are
    * defined recursively.
    *
-   * A "normal form" of an equivalence class E is a set of Venn regions
-   * U = { S1, ..., Sn } where the "flat form" of each non-variable set T in E
-   * is equal to U.
+   * A "normal form" of an equivalence class [r] (where [r] denotes the
+   * equivalence class whose representative is r) is a set of representatives
+   * U = { r1, ..., rn }. If there exists at least one set in [r] that has a 
+   * "flat form", then all sets in the equivalence class have flat form U.
+   * If no set in E has a flat form, then U = { r } if r does not contain
+   * the empty set, and {} otherwise.
    *
-   * A "flat form" of a set term T is the union of the normal forms of sets
-   * whose parent is T, or the representative of T itself if non exist.
+   * A "flat form" of a set term T is the union of the normal forms of the
+   * equivalence classes that contain sets whose parent is T.
    * 
-   * The argument intro_sets is updated to contain the set of new set terms that
-   * the procedure is requesting to introduce for the purpose of forcing the
-   * flat forms of two equivalent sets to become identical. If any equivalence
-   * class cannot be assigned 
+   * In terms of the cardinality graph, the "flat form" of term t is the set
+   * of leaves of t that are descendants of it in the cardinality graph induced
+   * by the current set of assertions. Notice a flat form is only defined if t
+   * has children. If all terms in an equivalence class E with flat forms have
+   * the same flat form, then E is added as a node to the cardinality graph with
+   * edges connecting to all equivalence classes with terms that have a parent
+   * in E. 
+   * 
+   * In the following inference schema, the argument intro_sets is updated to
+   * contain the set of new set terms that the procedure is requesting to
+   * introduce for the purpose of forcing the flat forms of two equivalent sets
+   * to become identical. If any equivalence class cannot be assigned a normal
+   * form, then the resulting intro_sets is guaranteed to be non-empty.
    * 
    * As an example, say we have a context with equivalence classes:
    *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {empty, B\A},
    * An ordered list d_oSetEqc for this context:
-   *   A, C, E, C\D, D\C, A\B, B\A, ...
+   *   A, C, E, C\D, D\C, A\B, empty, ...
    * The normal form of {empty, B\A} is {}, since it contains the empty set.
-   * The flat/normal forms for each of the singleton equivalence classes are
+   * The normal forms for each of the singleton equivalence classes are
    * themselves. 
-   * The flat form of both E and C^D is {E} (assuming E is the respresentative
-   * of that class), hence the normal form of {E, C^D} is {E}.
-   * The flat form of C is {E,C\D,D\C}, and A^B is {A^B}. Hence, we cannot
-   * assign a normal form to this equivalence class. Instead this method
-   * will e.g. add (A^B)^E to intro_sets, which will force the solver
-   * to explore a model where the Venn regions (A^B)^E (A^B)\E and E\(A^B) are
-   * considered while constructing flat forms.
-   * Assuming a new context where:
-   *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {(A^B)^E},
-   *   {empty, B\A, (A^B)\E, E\(A^B)},
-   * we have that the flat form of C is {E,
+   * The flat form of each of E and C^D does not exist, hence the normal form
+   * of {E, C^D} is {E}.
+   * The flat form of C is {E, C\D}, noting that C^D and C\D are terms whose
+   * parents are C, hence {E, C\D} is the normal form for class {C, A^B}.
+   * The flat form of A is {E, C\D, A\B} and the flat form of D is {E, D\C}.
+   * Hence, no normal form can be assigned to class {A, D}. Instead this method
+   * will e.g. add (C\D)^E to intro_sets, which will force the solver
+   * to explore a model where the Venn regions (C\D)^E (C\D)\E and E\(C\D) are
+   * considered while constructing flat forms. Splitting on whether these sets
+   * are empty will eventually lead to a model where the flat forms of A and D 
+   * are the same.
    */
   void checkNormalForms(std::vector<Node>& intro_sets);
   /**
