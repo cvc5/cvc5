@@ -65,12 +65,11 @@ class TheorySetsRels {
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
- TheorySetsRels(context::Context* c,
-                context::UserContext* u,
-                eq::EqualityEngine* eq,
-                TheorySetsPrivate& set,
-                SolverState& s,
-                InferenceManager& im);
+ TheorySetsRels(SolverState& s,
+                       InferenceManager& im,
+                       eq::EqualityEngine& e,
+                       context::Context* c,
+                       context::UserContext* u);
 
  ~TheorySetsRels();
  /**
@@ -87,14 +86,13 @@ private:
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-  /** pointer to the equality engine of the theory of sets */
-  eq::EqualityEngine* d_eqEngine;
+
   /** Reference to the state object for the theory of sets */
   SolverState& d_state;
   /** Reference to the inference manager for the theory of sets */
   InferenceManager& d_im;
-  /** The parent theory of sets object */
-  TheorySetsPrivate& d_sets_theory;
+  /** Reference to the equality engine of theory of sets */
+  eq::EqualityEngine& d_ee;
   /** A list of pending inferences to process */
   std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
@@ -120,8 +118,6 @@ private:
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
-
-  context::Context* d_satContext;
 
  private:
   /** Send infer
