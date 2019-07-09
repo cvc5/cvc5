@@ -21,8 +21,8 @@
 
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
-#include "theory/sets/rels_utils.h"
 #include "theory/sets/inference_manager.h"
+#include "theory/sets/rels_utils.h"
 #include "theory/sets/solver_state.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -70,8 +70,7 @@ public:
                 eq::EqualityEngine* eq,
                 TheorySetsPrivate& set,
                 SolverState& s,
-                InferenceManager& im
-               );
+                InferenceManager& im);
 
  ~TheorySetsRels();
  /**

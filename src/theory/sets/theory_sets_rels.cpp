@@ -36,8 +36,8 @@ TheorySetsRels::TheorySetsRels(context::Context* c,
                                context::UserContext* u,
                                eq::EqualityEngine* eq,
                                TheorySetsPrivate& set,
-                SolverState& s,
-                InferenceManager& im)
+                               SolverState& s,
+                               InferenceManager& im)
     : d_eqEngine(eq),
       d_state(s),
       d_im(im),

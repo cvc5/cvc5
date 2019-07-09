@@ -60,7 +60,7 @@ class SolverState
   //-------------------------------- end initialize
   /** Are we currently in conflict? */
   bool isInConflict() const { return d_conflict; }
-  /** 
+  /**
    * Indicate that we are in conflict, without a conflict clause. This is
    * called, for instance, when we have propagated a conflicting literal.
    */

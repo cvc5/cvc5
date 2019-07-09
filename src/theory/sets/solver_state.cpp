@@ -177,10 +177,7 @@ bool SolverState::areDisequal(Node a, Node b) const
   return a.isConst() && b.isConst();
 }
 
-void SolverState::setConflict()
-{
-  d_conflict = true;
-}
+void SolverState::setConflict() { d_conflict = true; }
 void SolverState::setConflict(Node conf)
 {
   d_parent.getOutputChannel()->conflict(conf);

@@ -34,7 +34,7 @@ namespace sets {
  * where CardTerms is the set of all applications of CARD in the current
  * context.
  *
- * The remaining public methods are used during model construction, i.e. 
+ * The remaining public methods are used during model construction, i.e.
  * the collectModelInfo method of the theory of sets.
  *
  * The procedure from Bansal et al IJCAR 2016 introduces the notion of a
@@ -43,18 +43,18 @@ namespace sets {
  * if (A \ B) is a term in the current context, then the node A is
  * connected via an edge to child (A \ B). The node (A ^ B) is a child
  * of both A and B. The notion of a cardinality graph is loosely followed
- * in the procedure implemented by this class. 
- * 
+ * in the procedure implemented by this class.
+ *
  * The main difference wrt Bansal et al IJCAR 2016 is that the nodes of the
  * cardinality graph considered by this class are not set terms, but are instead
  * representatives of equivalence classes. For more details, see documentation
  * of the inference schemas in the private methods of this class.
- * 
+ *
  * This variant of the procedure takes inspiration from the procedure
  * for word equations in Liang et al, CAV 2014. In that procedure, "normal
  * forms" are generated for String terms by recursively expanding
  * concatentations modulo equality. This procedure similarly maintains
- * normal forms, where the normal form for Set terms is a set of (equivalence 
+ * normal forms, where the normal form for Set terms is a set of (equivalence
  * class representatives of) Venn regions that do not contain the empty set.
  */
 class CardinalityExtension
@@ -184,7 +184,7 @@ class CardinalityExtension
   /** check cardinality cycles
    *
    * The purpose of this inference schema is construct two data structures:
-   * 
+   *
    * (1) d_card_parent, which maps set terms (A op B) for op in { \, ^ } to
    * equivalence class representatives of their "parents", where:
    *   parent( A ^ B ) = A, B
@@ -194,12 +194,12 @@ class CardinalityExtension
    * if it exists as a term in the current context. As exceptions,
    * if A op B = A, then A is not a parent of A ^ B and similarly for B.
    * If A ^ B is empty, then it has no parents.
-   * 
+   *
    * We say the cardinality graph induced by the current set of equalities
    * is an (irreflexive, acyclic) graph whose nodes are equivalence classes and
    * which contains a (directed) edge r1 to r2 if there exists a term t2 in r2
    * that has some parent t1 in r1.
-   * 
+   *
    * (2) d_oSetEqc, an ordered set of equivalence classes whose types are set.
    * These equivalence classes have the property that if r1 is a descendant
    * of r2 in the cardinality graph, then r1 must come before r2 in d_oSetEqc.
@@ -251,35 +251,35 @@ class CardinalityExtension
    *
    * A "normal form" of an equivalence class [r] (where [r] denotes the
    * equivalence class whose representative is r) is a set of representatives
-   * U = { r1, ..., rn }. If there exists at least one set in [r] that has a 
+   * U = { r1, ..., rn }. If there exists at least one set in [r] that has a
    * "flat form", then all sets in the equivalence class have flat form U.
    * If no set in E has a flat form, then U = { r } if r does not contain
    * the empty set, and {} otherwise.
    *
    * A "flat form" of a set term T is the union of the normal forms of the
    * equivalence classes that contain sets whose parent is T.
-   * 
+   *
    * In terms of the cardinality graph, the "flat form" of term t is the set
    * of leaves of t that are descendants of it in the cardinality graph induced
    * by the current set of assertions. Notice a flat form is only defined if t
    * has children. If all terms in an equivalence class E with flat forms have
    * the same flat form, then E is added as a node to the cardinality graph with
    * edges connecting to all equivalence classes with terms that have a parent
-   * in E. 
-   * 
+   * in E.
+   *
    * In the following inference schema, the argument intro_sets is updated to
    * contain the set of new set terms that the procedure is requesting to
    * introduce for the purpose of forcing the flat forms of two equivalent sets
    * to become identical. If any equivalence class cannot be assigned a normal
    * form, then the resulting intro_sets is guaranteed to be non-empty.
-   * 
+   *
    * As an example, say we have a context with equivalence classes:
    *   {A, D}, {C, A^B}, {E, C^D}, {C\D}, {D\C}, {A\B}, {empty, B\A},
    * An ordered list d_oSetEqc for this context:
    *   A, C, E, C\D, D\C, A\B, empty, ...
    * The normal form of {empty, B\A} is {}, since it contains the empty set.
    * The normal forms for each of the singleton equivalence classes are
-   * themselves. 
+   * themselves.
    * The flat form of each of E and C^D does not exist, hence the normal form
    * of {E, C^D} is {E}.
    * The flat form of C is {E, C\D}, noting that C^D and C\D are terms whose
@@ -289,7 +289,7 @@ class CardinalityExtension
    * will e.g. add (C\D)^E to intro_sets, which will force the solver
    * to explore a model where the Venn regions (C\D)^E (C\D)\E and E\(C\D) are
    * considered while constructing flat forms. Splitting on whether these sets
-   * are empty will eventually lead to a model where the flat forms of A and D 
+   * are empty will eventually lead to a model where the flat forms of A and D
    * are the same.
    */
   void checkNormalForms(std::vector<Node>& intro_sets);
@@ -312,7 +312,7 @@ class CardinalityExtension
   NodeSet d_card_processed;
   /** The ordered set of equivalence classes, see checkCardCycles. */
   std::vector<Node> d_oSetEqc;
-  /** 
+  /**
    * This maps set terms to the set of representatives of their "parent" sets,
    * see checkCardCycles.
    */

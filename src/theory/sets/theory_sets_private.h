@@ -24,8 +24,8 @@
 #include "expr/node_trie.h"
 #include "theory/sets/cardinality_extension.h"
 #include "theory/sets/inference_manager.h"
-#include "theory/sets/solver_state.h"
 #include "theory/sets/skolem_cache.h"
+#include "theory/sets/solver_state.h"
 #include "theory/sets/theory_sets_rels.h"
 #include "theory/theory.h"
 #include "theory/uf/equality_engine.h"
@@ -179,7 +179,7 @@ class TheorySetsPrivate {
   OutputChannel* getOutputChannel();
   /** get the valuation */
   Valuation& getValuation();
-  
+
  private:
   TheorySets& d_external;
 

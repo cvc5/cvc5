@@ -46,8 +46,7 @@ TheorySetsPrivate::TheorySetsPrivate(TheorySets& external,
       d_equalityEngine(d_notify, c, "theory::sets::ee", true),
       d_state(*this, d_equalityEngine, c, u),
       d_im(*this, d_state, d_equalityEngine, c, u),
-      d_rels(
-          new TheorySetsRels(c, u, &d_equalityEngine, *this, d_state, d_im)),
+      d_rels(new TheorySetsRels(c, u, &d_equalityEngine, *this, d_state, d_im)),
       d_cardSolver(
           new CardinalityExtension(d_state, d_im, d_equalityEngine, c, u)),
       d_rels_enabled(false),
@@ -84,7 +83,8 @@ void TheorySetsPrivate::eqNotifyPreMerge(TNode t1, TNode t2){
 }
 
 void TheorySetsPrivate::eqNotifyPostMerge(TNode t1, TNode t2){
-  if( !d_state.isInConflict() ){
+  if (!d_state.isInConflict())
+  {
     Trace("sets-prop-debug") << "Merge " << t1 << " and " << t2 << "..." << std::endl;
     Node s1, s2;
     EqcInfo * e2 = getOrMakeEqcInfo( t2 );
@@ -237,7 +237,8 @@ bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
     }else{
       d_equalityEngine.assertPredicate( atom, polarity, exp );
     }
-    if( !d_state.isInConflict() ){
+    if (!d_state.isInConflict())
+    {
       if( atom.getKind()==kind::MEMBER && polarity ){
         //check if set has a value, if so, we can propagate
         Node r = d_equalityEngine.getRepresentative( atom[1] );
@@ -370,7 +371,7 @@ void TheorySetsPrivate::fullEffortCheck(){
     }
 
     Trace("sets-eqc") << "...finished equality engine." << std::endl;
-    
+
     if (Trace.isOn("sets-state"))
     {
       Trace("sets-state") << "Equivalence class counters:" << std::endl;
@@ -438,9 +439,11 @@ void TheorySetsPrivate::fullEffortCheck(){
       // invoke relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-  } while (!d_im.hasSentLemma() && !d_state.isInConflict() && d_im.hasAddedFact());
-  Trace("sets") << "----- End full effort check, conflict=" << d_state.isInConflict()
-                << ", lemma=" << d_im.hasSentLemma() << std::endl;
+  } while (!d_im.hasSentLemma() && !d_state.isInConflict()
+           && d_im.hasAddedFact());
+  Trace("sets") << "----- End full effort check, conflict="
+                << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
+                << std::endl;
 }
 
 void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
@@ -473,7 +476,8 @@ void TheorySetsPrivate::checkSubtypes( std::vector< Node >& lemmas ) {
           {
             Node etc = tc_k.eqNode(it2.first);
             d_im.assertInference(etc, exp, lemmas, "subtype-clash");
-            if( d_state.isInConflict() ){
+            if (d_state.isInConflict())
+            {
               return;
             }
           }
@@ -512,7 +516,8 @@ void TheorySetsPrivate::checkDownwardsClosure( std::vector< Node >& lemmas ) {
                 exp.push_back( mem );
                 exp.push_back( mem[1].eqNode( eq_set ) );
                 d_im.assertInference(nmem, exp, lemmas, "downc");
-                if( d_state.isInConflict() ){
+                if (d_state.isInConflict())
+                {
                   return;
                 }
               }else{
@@ -626,7 +631,8 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                     Node kk = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
                     d_im.assertInference(fact, exp, lemmas, "upc", inferType);
-                    if( d_state.isInConflict() ){
+                    if (d_state.isInConflict())
+                    {
                       return;
                     }
                   }
@@ -650,7 +656,8 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
                     Node k = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, k);
                     d_im.assertInference(fact, exp, lemmas, "upc2");
-                    if( d_state.isInConflict() ){
+                    if (d_state.isInConflict())
+                    {
                       return;
                     }
                   }
@@ -705,7 +712,8 @@ void TheorySetsPrivate::checkUpwardsClosure( std::vector< Node >& lemmas ) {
               }
               Node fact = nm->mkNode(kind::MEMBER, it2.second[0], u);
               d_im.assertInference(fact, exp, lemmas, "upuniv");
-              if( d_state.isInConflict() ){
+              if (d_state.isInConflict())
+              {
                 return;
               }
             }
@@ -770,7 +778,8 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   if( level == Theory::EFFORT_LAST_CALL ){
     return;
   }
-  while(!d_external.done() && !d_state.isInConflict()) {
+  while (!d_external.done() && !d_state.isInConflict())
+  {
     // Get all the assertions
     Assertion assertion = d_external.get();
     TNode fact = assertion.assertion;
@@ -780,11 +789,13 @@ void TheorySetsPrivate::check(Theory::Effort level) {
   }
   Trace("sets-check") << "Sets finished assertions effort " << level << std::endl;
   //invoke full effort check, relations check
-  if( !d_state.isInConflict() ){
+  if (!d_state.isInConflict())
+  {
     if( level == Theory::EFFORT_FULL ){
       if( !d_external.d_valuation.needCheck() ){
         fullEffortCheck();
-        if (!d_state.isInConflict() && !d_im.hasSentLemma() && d_full_check_incomplete)
+        if (!d_state.isInConflict() && !d_im.hasSentLemma()
+            && d_full_check_incomplete)
         {
           d_external.d_out->setIncomplete();
         }
@@ -1096,7 +1107,8 @@ bool TheorySetsPrivate::propagate(TNode literal) {
   Debug("sets-prop") << " propagate(" << literal  << ")" << std::endl;
 
   // If already in conflict, no more propagation
-  if (d_state.isInConflict()) {
+  if (d_state.isInConflict())
+  {
     Debug("sets-prop") << "TheoryUF::propagate(" << literal << "): already in conflict" << std::endl;
     return false;
   }

@@ -169,8 +169,8 @@ void InferenceManager::assertInference(std::vector<Node>& conc,
 }
 
 void InferenceManager::processInference(Node lem,
-                                         const char* c,
-                                         std::vector<Node>& lemmas)
+                                        const char* c,
+                                        std::vector<Node>& lemmas)
 {
   Trace("sets-pinfer") << "Process inference: " << lem << std::endl;
   if (lem.getKind() != IMPLIES || !d_state.isEntailed(lem[0], true))
