@@ -64,10 +64,7 @@ class InferenceManager
    *
    * The argument c is the name of the inference, which is used for debugging.
    */
-  void assertInference(Node fact,
-                       Node exp,
-                       const char* c,
-                       int inferType = 0);
+  void assertInference(Node fact, Node exp, const char* c, int inferType = 0);
   /** same as above, where exp is interpreted as a conjunction */
   void assertInference(Node fact,
                        std::vector<Node>& exp,
@@ -124,7 +121,7 @@ class InferenceManager
   /** Reference to the equality engine of theory of sets */
   eq::EqualityEngine& d_ee;
   /** pending lemmas */
-  std::vector< Node > d_pendingLemmas;
+  std::vector<Node> d_pendingLemmas;
   /** sent lemma
    *
    * This flag is set to true during a full effort check if this theory
@@ -152,9 +149,7 @@ class InferenceManager
    * The argument inferType determines the policy on whether fact is processed
    * as a fact or as a lemma (see assertInference above).
    */
-  bool assertFactRec(Node fact,
-                     Node exp,
-                     int inferType = 0);
+  bool assertFactRec(Node fact, Node exp, int inferType = 0);
 };
 
 }  // namespace sets

@@ -66,27 +66,27 @@ class TheorySetsPrivate {
    * if E contains two terms of Set(Int) and Set(Real), then Set(Int) is the
    * most common type. Then, for each membership x in S where S is a set in
    * this equivalence class, we ensure x has type T by asserting:
-   *   x = k 
+   *   x = k
    * for a fresh constant k of type T. This is done only if the type of x is not
    * a subtype of Int (e.g. if x is of type Real). We call k the "type
    * constraint skolem for x of type Int".
    */
   void checkSubtypes();
-  /** 
+  /**
    * This implements an inference schema based on the "downwards closure" of
    * set membership. This roughly corresponds to the rules UNION DOWN I and II,
    * INTER DOWN I and II from Bansal et al IJCAR 2016, as well as rules for set
    * difference.
    */
   void checkDownwardsClosure();
-  /** 
+  /**
    * This implements an inference schema based on the "upwards closure" of
    * set membership. This roughly corresponds to the rules UNION UP, INTER
    * UP I and II from Bansal et al IJCAR 2016, as well as rules for set
    * difference.
    */
   void checkUpwardsClosure();
-  /** 
+  /**
    * This implements a strategy for splitting for set disequalities which
    * roughly corresponds the SET DISEQUALITY rule from Bansal et al IJCAR 2016.
    */

@@ -438,13 +438,16 @@ void TheorySetsPrivate::fullEffortCheck(){
       // invoke relations solver
       d_rels->check(Theory::EFFORT_FULL);
     }
-    Assert( !d_im.hasPendingLemmas() || d_im.hasProcessed()  );
-  } while (!d_im.hasSentLemma() && !d_state.isInConflict() && d_im.hasAddedFact());
-  Trace("sets") << "----- End full effort check, conflict=" << d_state.isInConflict()
-                << ", lemma=" << d_im.hasSentLemma() << std::endl;
+    Assert(!d_im.hasPendingLemmas() || d_im.hasProcessed());
+  } while (!d_im.hasSentLemma() && !d_state.isInConflict()
+           && d_im.hasAddedFact());
+  Trace("sets") << "----- End full effort check, conflict="
+                << d_state.isInConflict() << ", lemma=" << d_im.hasSentLemma()
+                << std::endl;
 }
 
-void TheorySetsPrivate::checkSubtypes() {
+void TheorySetsPrivate::checkSubtypes()
+{
   Trace("sets") << "TheorySetsPrivate: check Subtypes..." << std::endl;
   const std::vector<Node>& sec = d_state.getSetsEqClasses();
   for (const Node& s : sec)
@@ -474,7 +477,8 @@ void TheorySetsPrivate::checkSubtypes() {
           {
             Node etc = tc_k.eqNode(it2.first);
             d_im.assertInference(etc, exp, "subtype-clash");
-            if( d_state.isInConflict() ){
+            if (d_state.isInConflict())
+            {
               return;
             }
           }
@@ -485,7 +489,8 @@ void TheorySetsPrivate::checkSubtypes() {
   Trace("sets") << "TheorySetsPrivate: finished." << std::endl;
 }
 
-void TheorySetsPrivate::checkDownwardsClosure() {
+void TheorySetsPrivate::checkDownwardsClosure()
+{
   Trace("sets") << "TheorySetsPrivate: check downwards closure..." << std::endl;
   //downwards closure
   const std::vector<Node>& sec = d_state.getSetsEqClasses();
@@ -513,7 +518,8 @@ void TheorySetsPrivate::checkDownwardsClosure() {
                 exp.push_back( mem );
                 exp.push_back( mem[1].eqNode( eq_set ) );
                 d_im.assertInference(nmem, exp, "downc");
-                if( d_state.isInConflict() ){
+                if (d_state.isInConflict())
+                {
                   return;
                 }
               }else{
@@ -541,7 +547,8 @@ void TheorySetsPrivate::checkDownwardsClosure() {
   }
 }
 
-void TheorySetsPrivate::checkUpwardsClosure() {
+void TheorySetsPrivate::checkUpwardsClosure()
+{
   //upwards closure
   NodeManager* nm = NodeManager::currentNM();
   const std::map<Kind, std::map<Node, std::map<Node, Node> > >& boi =
@@ -627,7 +634,8 @@ void TheorySetsPrivate::checkUpwardsClosure() {
                     Node kk = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, kk);
                     d_im.assertInference(fact, exp, "upc", inferType);
-                    if( d_state.isInConflict() ){
+                    if (d_state.isInConflict())
+                    {
                       return;
                     }
                   }
@@ -651,7 +659,8 @@ void TheorySetsPrivate::checkUpwardsClosure() {
                     Node k = d_state.getProxy(term);
                     Node fact = nm->mkNode(kind::MEMBER, x, k);
                     d_im.assertInference(fact, exp, "upc2");
-                    if( d_state.isInConflict() ){
+                    if (d_state.isInConflict())
+                    {
                       return;
                     }
                   }
@@ -706,7 +715,8 @@ void TheorySetsPrivate::checkUpwardsClosure() {
               }
               Node fact = nm->mkNode(kind::MEMBER, it2.second[0], u);
               d_im.assertInference(fact, exp, "upuniv");
-              if( d_state.isInConflict() ){
+              if (d_state.isInConflict())
+              {
                 return;
               }
             }
@@ -717,7 +727,8 @@ void TheorySetsPrivate::checkUpwardsClosure() {
   }
 }
 
-void TheorySetsPrivate::checkDisequalities() {
+void TheorySetsPrivate::checkDisequalities()
+{
   //disequalities
   Trace("sets") << "TheorySetsPrivate: check disequalities..." << std::endl;
   for(NodeBoolMap::const_iterator it=d_deq.begin(); it !=d_deq.end(); ++it) {

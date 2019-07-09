@@ -43,9 +43,7 @@ void InferenceManager::reset()
   d_pendingLemmas.clear();
 }
 
-bool InferenceManager::assertFactRec(Node fact,
-                                     Node exp,
-                                     int inferType)
+bool InferenceManager::assertFactRec(Node fact, Node exp, int inferType)
 {
   // should we send this fact out as a lemma?
   if ((options::setsInferAsLemmas() && inferType != -1) || inferType == 1)
@@ -55,7 +53,7 @@ bool InferenceManager::assertFactRec(Node fact,
       return false;
     }
     Node lem = fact;
-    if( exp!=d_true )
+    if (exp != d_true)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }
@@ -109,7 +107,7 @@ bool InferenceManager::assertFactRec(Node fact,
   {
     // must send as lemma
     Node lem = fact;
-    if( exp!=d_true )
+    if (exp != d_true)
     {
       lem = NodeManager::currentNM()->mkNode(IMPLIES, exp, fact);
     }

@@ -322,8 +322,7 @@ void CardinalityExtension::checkCardCyclesRec(Node eqc,
       {
         Trace("sets-debug") << "  it is empty..." << std::endl;
         Assert(!d_state.areEqual(n, emp_set));
-        d_im.assertInference(
-            n.eqNode(emp_set), p.eqNode(emp_set), "cg_emppar");
+        d_im.assertInference(n.eqNode(emp_set), p.eqNode(emp_set), "cg_emppar");
         d_im.flushPendingLemmas();
         if (d_im.hasProcessed())
         {
@@ -843,7 +842,7 @@ void CardinalityExtension::checkMinCard()
       Node conc =
           nm->mkNode(GEQ, cardTerm, nm->mkConst(Rational(members.size())));
       Node expn = exp.size() == 1 ? exp[0] : nm->mkNode(AND, exp);
-      d_im.assertInference(conc,expn,"mincard", 1);
+      d_im.assertInference(conc, expn, "mincard", 1);
     }
   }
   // flush the lemmas

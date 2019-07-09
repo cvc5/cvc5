@@ -21,8 +21,8 @@
 #include <vector>
 
 #include "context/cdhashset.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/sets/skolem_cache.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {

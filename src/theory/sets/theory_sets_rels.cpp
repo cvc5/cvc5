@@ -33,15 +33,14 @@ typedef std::map< Node, std::map< kind::Kind_t, std::vector< Node > > >::iterato
 typedef std::map< Node, std::map< Node, std::unordered_set< Node, NodeHashFunction > > >::iterator   TC_IT;
 
 TheorySetsRels::TheorySetsRels(SolverState& s,
-                       InferenceManager& im,
-                       eq::EqualityEngine& e,
-                       context::Context* c,
-                       context::UserContext* u)
-    : d_state(s), d_im(im), d_ee(e), 
-      d_shared_terms(u)
+                               InferenceManager& im,
+                               eq::EqualityEngine& e,
+                               context::Context* c,
+                               context::UserContext* u)
+    : d_state(s), d_im(im), d_ee(e), d_shared_terms(u)
 {
-      d_trueNode = NodeManager::currentNM()->mkConst(true);
-      d_falseNode = NodeManager::currentNM()->mkConst(false);
+  d_trueNode = NodeManager::currentNM()->mkConst(true);
+  d_falseNode = NodeManager::currentNM()->mkConst(false);
   d_ee.addFunctionKind(PRODUCT);
   d_ee.addFunctionKind(JOIN);
   d_ee.addFunctionKind(TRANSPOSE);
@@ -187,10 +186,10 @@ void TheorySetsRels::check(Theory::Effort level)
 
   void TheorySetsRels::collectRelsInfo() {
     Trace("rels") << "[sets-rels] Start collecting relational terms..." << std::endl;
-    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator( &d_ee );
+    eq::EqClassesIterator eqcs_i = eq::EqClassesIterator(&d_ee);
     while( !eqcs_i.isFinished() ){
       Node                      eqc_rep  = (*eqcs_i);
-      eq::EqClassIterator       eqc_i   = eq::EqClassIterator( eqc_rep, &d_ee );
+      eq::EqClassIterator eqc_i = eq::EqClassIterator(eqc_rep, &d_ee);
 
       TypeNode erType = eqc_rep.getType();
       Trace("rels-ee") << "[sets-rels-ee] Eqc term representative: " << eqc_rep << " with type " << eqc_rep.getType() << std::endl;
@@ -1061,7 +1060,7 @@ void TheorySetsRels::check(Theory::Effort level)
     {
       for (const Node& p : d_pending)
       {
-        if( p.getKind()==IMPLIES )
+        if (p.getKind() == IMPLIES)
         {
           processInference(p[1], p[0], "rels");
         }
@@ -1082,37 +1081,39 @@ void TheorySetsRels::check(Theory::Effort level)
     }
     d_pending.clear();
   }
-  
-  void TheorySetsRels::processInference(Node conc, Node exp, const char * c)
+
+  void TheorySetsRels::processInference(Node conc, Node exp, const char* c)
   {
-    Trace("sets-pinfer") << "Process inference: " << exp << " => "<< conc << std::endl;
+    Trace("sets-pinfer") << "Process inference: " << exp << " => " << conc
+                         << std::endl;
     if (!d_state.isEntailed(exp, true))
     {
       Trace("sets-pinfer") << "  must assert as lemma" << std::endl;
       // we wrap the spurious explanation into a splitting lemma
-      Node lem = NodeManager::currentNM()->mkNode( OR, exp.negate(), conc );
+      Node lem = NodeManager::currentNM()->mkNode(OR, exp.negate(), conc);
       d_im.assertInference(lem, d_trueNode, c, 1);
       return;
     }
     // try to assert it as a fact
     d_im.assertInference(conc, exp, c);
-  }  
+  }
 
   bool TheorySetsRels::isRelationKind( Kind k ) {
     return k == kind::TRANSPOSE || k == kind::PRODUCT || k == kind::JOIN || k == kind::TCLOSURE;
   }
 
   Node TheorySetsRels::getRepresentative( Node t ) {
-    if( d_ee.hasTerm( t ) ){
-      return d_ee.getRepresentative( t );
-    }else{
+    if (d_ee.hasTerm(t))
+    {
+      return d_ee.getRepresentative(t);
+    }
+    else
+    {
       return t;
     }
   }
 
-  bool TheorySetsRels::hasTerm( Node a ){
-    return d_ee.hasTerm( a );
-  }
+  bool TheorySetsRels::hasTerm(Node a) { return d_ee.hasTerm(a); }
 
   bool TheorySetsRels::areEqual( Node a, Node b ){
     Assert(a.getType() == b.getType());
@@ -1120,7 +1121,7 @@ void TheorySetsRels::check(Theory::Effort level)
     if(a == b) {
       return true;
     } else if( hasTerm( a ) && hasTerm( b ) ){
-      return d_ee.areEqual( a, b );
+      return d_ee.areEqual(a, b);
     } else if(a.getType().isTuple()) {
       bool equal = true;
       for(unsigned int i = 0; i < a.getType().getTupleLength(); i++) {
@@ -1166,7 +1167,7 @@ void TheorySetsRels::check(Theory::Effort level)
       Node skEq =
           skolem.eqNode(NodeManager::currentNM()->mkNode(kind::SINGLETON, n));
       // force lemma to be sent immediately
-      d_im.assertInference(skEq,d_trueNode,"shared-term");
+      d_im.assertInference(skEq, d_trueNode, "shared-term");
       d_im.flushPendingLemmas();
       d_shared_terms.insert(n);
     }
