@@ -1231,9 +1231,31 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         }
       }
     }
+    else if( x.getKind() == STRING_CONCAT )
+    {
+      // (str.in.re (str.++ x1 ... xn) (str.* R)) -->
+      //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
+      //     if the length of all strings in R is one.
+      Node flr = getFixedLengthForRegexp(r[0]);
+      if( !flr.isNull() )
+      {
+        Node one = nm->mkConst( Rational( 1 ) );
+        if( flr==one )
+        {
+          std::vector< Node > conj;
+          for( const Node& xc : x )
+          {
+            conj.push_back(nm->mkNode(STRING_IN_REGEXP,xc,r));
+          }
+          Node retNode = nm->mkNode(AND, conj);
+          return returnRewrite(node, retNode, "re-in-dist-char-star");          
+        }
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
+      return returnRewrite(node, retNode, "re-in-sigma-star");
     }
   }else if( r.getKind() == kind::REGEXP_CONCAT ){
     bool allSigma = true;
@@ -1461,6 +1483,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == kind::STRING_STRREPLALL)
   {
     retNode = rewriteReplaceAll(node);
+  }
+  else if( nk == STRING_TOLOWER || nk == STRING_TOUPPER )
+  {
+    retNode = rewriteStrConvert(node);
   }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
@@ -2950,6 +2976,41 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   }
 
   return Node::null();
+}
+
+Node TheoryStringsRewriter::rewriteStrConvert(Node node)
+{
+  if( node[0].isConst() )
+  {
+    Kind nk = node.getKind();
+    std::vector< unsigned > nvec = node[0].getConst<String>().getVec();
+    for( unsigned i=0, nvsize = nvec.size(); i<nvsize; i++ )
+    {
+      unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
+      // transform it
+      // upper 65 ... 90
+      // lower 97 ... 122 
+      if( nk==STRING_TOUPPER )
+      {
+        if( newChar>=97 && newChar<=122 )
+        {
+          newChar = newChar - 32;
+        }
+      }
+      else if( nk==STRING_TOLOWER )
+      {
+        if( newChar>=65 && newChar<=90 )
+        {
+          newChar = newChar + 32;
+        }
+      }
+      newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
+      nvec[i] = newChar;
+    }
+    Node retNode = NodeManager::currentNM()->mkConst(String(nvec));
+    return returnRewrite(node, retNode, "str-conv-const");
+  }
+  return node;
 }
 
 Node TheoryStringsRewriter::rewriteStringLeq(Node n)
