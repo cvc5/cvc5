@@ -1231,9 +1231,31 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         }
       }
     }
+    else if( x.getKind() == STRING_CONCAT )
+    {
+      // (str.in.re (str.++ x1 x1) (str.* R)) -->
+      //   (str.in.re x1 (re.* R)) AND (str.in.re x2 (re.* R))
+      //     if the length of all strings in R is one
+      Node flr = getFixedLengthForRegexp(r[0]);
+      if( !flr.isNull() )
+      {
+        Node one = nm->mkConst( Rational( 1 ) );
+        if( flr==one )
+        {
+          std::vector< Node > conj;
+          for( const Node& xc : x )
+          {
+            conj.push_back(nm->mkNode(STRING_IN_REGEXP,xc,r));
+          }
+          Node retNode = nm->mkNode(AND, conj);
+          return returnRewrite(node, retNode, "re-in-dist-char-star");          
+        }
+      }
+    }
     if (r[0].getKind() == kind::REGEXP_SIGMA)
     {
       retNode = NodeManager::currentNM()->mkConst( true );
+      return returnRewrite(node, retNode, "re-in-sigma-star");
     }
   }else if( r.getKind() == kind::REGEXP_CONCAT ){
     bool allSigma = true;
