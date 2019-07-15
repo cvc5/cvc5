@@ -503,7 +503,7 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node ri = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, r, i, d_one));
 
     Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
-    Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 65 : 90));
+    Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
     Node offset =
         nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
 
