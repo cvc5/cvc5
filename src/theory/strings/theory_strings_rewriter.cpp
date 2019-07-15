@@ -1231,24 +1231,24 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         }
       }
     }
-    else if( x.getKind() == STRING_CONCAT )
+    else if (x.getKind() == STRING_CONCAT)
     {
       // (str.in.re (str.++ x1 ... xn) (str.* R)) -->
       //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
       //     if the length of all strings in R is one.
       Node flr = getFixedLengthForRegexp(r[0]);
-      if( !flr.isNull() )
+      if (!flr.isNull())
       {
-        Node one = nm->mkConst( Rational( 1 ) );
-        if( flr==one )
+        Node one = nm->mkConst(Rational(1));
+        if (flr == one)
         {
-          std::vector< Node > conj;
-          for( const Node& xc : x )
+          std::vector<Node> conj;
+          for (const Node& xc : x)
           {
-            conj.push_back(nm->mkNode(STRING_IN_REGEXP,xc,r));
+            conj.push_back(nm->mkNode(STRING_IN_REGEXP, xc, r));
           }
           Node retNode = nm->mkNode(AND, conj);
-          return returnRewrite(node, retNode, "re-in-dist-char-star");          
+          return returnRewrite(node, retNode, "re-in-dist-char-star");
         }
       }
     }
@@ -1484,7 +1484,7 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewriteReplaceAll(node);
   }
-  else if( nk == STRING_TOLOWER || nk == STRING_TOUPPER )
+  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
   {
     retNode = rewriteStrConvert(node);
   }
@@ -2980,26 +2980,26 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
 
 Node TheoryStringsRewriter::rewriteStrConvert(Node node)
 {
-  if( node[0].isConst() )
+  if (node[0].isConst())
   {
     Kind nk = node.getKind();
-    std::vector< unsigned > nvec = node[0].getConst<String>().getVec();
-    for( unsigned i=0, nvsize = nvec.size(); i<nvsize; i++ )
+    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
+    for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
     {
       unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
       // transform it
       // upper 65 ... 90
-      // lower 97 ... 122 
-      if( nk==STRING_TOUPPER )
+      // lower 97 ... 122
+      if (nk == STRING_TOUPPER)
       {
-        if( newChar>=97 && newChar<=122 )
+        if (newChar >= 97 && newChar <= 122)
         {
           newChar = newChar - 32;
         }
       }
-      else if( nk==STRING_TOLOWER )
+      else if (nk == STRING_TOLOWER)
       {
-        if( newChar>=65 && newChar<=90 )
+        if (newChar >= 65 && newChar <= 90)
         {
           newChar = newChar + 32;
         }

@@ -240,13 +240,18 @@ public:
   }
 };
 
-class StringStrToStrTypeRule {
-public:
-  inline static TypeNode computeType(NodeManager* nodeManager, TNode n, bool check)
+class StringStrToStrTypeRule
+{
+ public:
+  inline static TypeNode computeType(NodeManager* nodeManager,
+                                     TNode n,
+                                     bool check)
   {
-    if( check ) {
+    if (check)
+    {
       TypeNode t = n[0].getType(check);
-      if (!t.isString()) {
+      if (!t.isString())
+      {
         std::stringstream ss;
         ss << "expecting a string term in argument of " << n.getKind();
         throw TypeCheckingExceptionPrivate(n, ss.str());

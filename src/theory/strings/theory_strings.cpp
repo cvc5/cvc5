@@ -531,7 +531,8 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
            || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER );
+           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
+           || k == STRING_TOUPPER);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);

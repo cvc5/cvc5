@@ -227,7 +227,7 @@ class TheoryStringsRewriter {
    */
   static Node rewriteReplaceInternal(Node node);
   /** rewrite string convert
-   * 
+   *
    * This is the entry point for post-rewriting terms n of the form
    *   str.tolower( s ) and str.toupper( s )
    * Returns the rewritten form of node.
