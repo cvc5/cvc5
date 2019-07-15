@@ -507,11 +507,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
     Node offset =
         nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
 
-    Node res =
-        nm->mkNode(ITE,
-                   nm->mkNode(AND, nm->mkNode(LEQ, lb, ci), nm->mkNode(LEQ, ci, ub)),
-                   nm->mkNode(PLUS, ci, offset),
-                   ci);
+    Node res = nm->mkNode(
+        ITE,
+        nm->mkNode(AND, nm->mkNode(LEQ, lb, ci), nm->mkNode(LEQ, ci, ub)),
+        nm->mkNode(PLUS, ci, offset),
+        ci);
 
     Node bound =
         nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
