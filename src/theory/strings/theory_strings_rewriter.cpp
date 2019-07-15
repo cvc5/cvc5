@@ -1242,12 +1242,12 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
         Node one = nm->mkConst(Rational(1));
         if (flr == one)
         {
-          std::vector<Node> conj;
+          NodeBuilder<> nb(AND);
           for (const Node& xc : x)
           {
-            conj.push_back(nm->mkNode(STRING_IN_REGEXP, xc, r));
+            nb << nm->mkNode(STRING_IN_REGEXP, xc, r);
           }
-          Node retNode = nm->mkNode(AND, conj);
+          Node retNode = nb.constructNode();
           return returnRewrite(node, retNode, "re-in-dist-char-star");
         }
       }
