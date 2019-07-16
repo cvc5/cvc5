@@ -1233,7 +1233,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     }
     else if (x.getKind() == STRING_CONCAT)
     {
-      // (str.in.re (str.++ x1 ... xn) (str.* R)) -->
+      // (str.in.re (str.++ x1 ... xn) (re.* R)) -->
       //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
       //     if the length of all strings in R is one.
       Node flr = getFixedLengthForRegexp(r[0]);
