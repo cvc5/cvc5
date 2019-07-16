@@ -1484,6 +1484,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   {
     retNode = rewriteReplaceAll(node);
   }
+  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
+  {
+    retNode = rewriteStrConvert(node);
+  }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
     retNode = rewritePrefixSuffix(node);
@@ -2972,6 +2976,42 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   }
 
   return Node::null();
+}
+
+Node TheoryStringsRewriter::rewriteStrConvert(Node node)
+{
+  Kind nk = node.getKind();
+  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
+  if (node[0].isConst())
+  {
+    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
+    for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
+    {
+      unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
+      // transform it
+      // upper 65 ... 90
+      // lower 97 ... 122
+      if (nk == STRING_TOUPPER)
+      {
+        if (newChar >= 97 && newChar <= 122)
+        {
+          newChar = newChar - 32;
+        }
+      }
+      else if (nk == STRING_TOLOWER)
+      {
+        if (newChar >= 65 && newChar <= 90)
+        {
+          newChar = newChar + 32;
+        }
+      }
+      newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
+      nvec[i] = newChar;
+    }
+    Node retNode = NodeManager::currentNM()->mkConst(String(nvec));
+    return returnRewrite(node, retNode, "str-conv-const");
+  }
+  return node;
 }
 
 Node TheoryStringsRewriter::rewriteStringLeq(Node n)
