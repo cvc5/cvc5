@@ -29,7 +29,7 @@ operator STRING_ITOS 1 "integer to string"
 operator STRING_STOI 1 "string to integer (total function)"
 operator STRING_CODE 1 "string to code, returns the code of the first character of the string if it has length one, -1 otherwise"
 operator STRING_TOLOWER 1 "string to lowercase conversion"
-operator STRING_TOUPPER 1 "string to lowercase conversion"
+operator STRING_TOUPPER 1 "string to uppercase conversion"
 
 sort STRING_TYPE \
     Cardinality::INTEGERS \
