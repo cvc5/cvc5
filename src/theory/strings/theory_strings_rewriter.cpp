@@ -2980,9 +2980,10 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
 
 Node TheoryStringsRewriter::rewriteStrConvert(Node node)
 {
+  Kind nk = node.getKind();
+  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
   if (node[0].isConst())
   {
-    Kind nk = node.getKind();
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
     for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
     {
