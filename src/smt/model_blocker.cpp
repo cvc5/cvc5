@@ -10,6 +10,7 @@
  ** directory for licensing information.\endverbatim
  **
  ** \brief Implementation of utility for blocking models.
+ **
  **/
 
 #include "smt/model_blocker.h"
