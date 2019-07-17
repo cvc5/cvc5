@@ -1310,21 +1310,6 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
     Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
   } else {
     d_equalityEngine.assertPredicate( atom, polarity, exp );
-    //process extf
-    if( atom.getKind()==kind::STRING_IN_REGEXP ){
-      if( polarity && atom[1].getKind()==kind::REGEXP_RANGE ){
-        if( d_extf_infer_cache_u.find( atom )==d_extf_infer_cache_u.end() ){
-          d_extf_infer_cache_u.insert( atom );
-          //length of first argument is one
-          Node conc = d_one.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[0] ) );
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, atom.negate(), conc );
-          Trace("strings-lemma") << "Strings::Lemma RE-Range-Len : " << lem << std::endl;
-          d_out->lemma( lem );
-        }
-      }
-    }
-    //register the atom here, since it may not create a new equivalence class
-    //getExtTheory()->registerTerm( atom );
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   // Collect extended function terms in the atom. Notice that we must register
