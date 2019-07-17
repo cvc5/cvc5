@@ -314,24 +314,30 @@ void getOperatorsMap(TNode n,
                      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
                      std::unordered_set<TNode, TNodeHashFunction>& visited)
 { 
+  //nodes that we still need to visit
   std::vector<TNode> visit;
+  //current node
   TNode cur;
   visit.push_back(n);
   do
   {
     cur = visit.back();
     visit.pop_back();
+    //if cur is in the cache, do nothing
     if (visited.find(cur) == visited.end())
     {
+      //fetch the correct type and add it to the resulting map if needed
       TypeNode tn = cur.getType();
       if (ops.find(tn) == ops.end())
       {
         ops[tn] = std::unordered_set<Node, NodeHashFunction>();
       }
+      //add the current operator to the result
       if (cur.hasOperator())
       {
           ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
       }
+      //add children to visit in the future
       for (TNode cn : cur)
       {
         visit.push_back(cn);

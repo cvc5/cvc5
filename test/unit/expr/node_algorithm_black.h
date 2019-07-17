@@ -54,6 +54,7 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     delete d_nodeManager;
   }
 
+  //The only symbol in ~x (x is a boolean varible) should be x
   void testGetSymbols1()
   {
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
@@ -64,11 +65,16 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     TS_ASSERT(syms.find(x) != syms.end());
   }
 
+  //the only symbols in x=y ^ (exists var. var+var = x) are x and y, because "var"
+  //is bound.
   void testGetSymbols2()
   {
+    //left conjunct
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
     Node y = d_nodeManager->mkSkolem("y", d_nodeManager->integerType());
     Node left = d_nodeManager->mkNode(EQUAL, x, y);
+
+    //right conjunct
     Node var = d_nodeManager->mkBoundVar(*d_intTypeNode);
     std::vector<Node> vars;
     vars.push_back(var);
@@ -76,9 +82,15 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     Node qeq = d_nodeManager->mkNode(EQUAL, x, sum);
     Node bvl = d_nodeManager->mkNode(BOUND_VAR_LIST, vars);
     Node right = d_nodeManager->mkNode(EXISTS, bvl, qeq);
+
+    //conjunction
     Node res = d_nodeManager->mkNode(AND, left, right);
+
+    //symbols
     std::unordered_set<Node, NodeHashFunction> syms;
     getSymbols(res, syms);
+
+    //assertions
     TS_ASSERT_EQUALS(syms.size(), 2);
     TS_ASSERT(syms.find(x) != syms.end());
     TS_ASSERT(syms.find(y) != syms.end());

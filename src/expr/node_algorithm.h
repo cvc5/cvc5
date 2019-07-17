@@ -94,10 +94,9 @@ void getSymbols(TNode n,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 /**
- * For term n, this function collects the kinds of the nodes that occur as a
- * subterms of n.
+ * For term n, this function collects the operators that occur in n.
  * @param n The node under investigation
- * @param syms The map (from each type to kinds of that type) which the kinds of
+ * @param syms The map (from each type to operators of that type) which the operators of
  * n are added to
  */
 void getOperatorsMap(TNode n, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
