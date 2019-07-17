@@ -27,7 +27,6 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 
-
 namespace CVC4 {
 namespace expr {
 
@@ -95,16 +94,17 @@ void getSymbols(TNode n,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 /**
- * For term n, this function collects the kinds of the nodes that occur as a subterms
- * of n. 
+ * For term n, this function collects the kinds of the nodes that occur as a
+ * subterms of n.
  * @param n The node under investigation
- * @param syms The map (from each type to kinds of that type) which the kinds of n are added to
+ * @param syms The map (from each type to kinds of that type) which the kinds of
+ * n are added to
  */
 void getOperatorsMap(TNode n, std::map<TypeNode, std::vector<Node>>& ops);
 /** Same as above, with a visited cache */
 void getOperatorsMap(TNode n,
-                std::map<TypeNode, std::vector<Node>>& ops,
-                std::unordered_set<TNode, TNodeHashFunction>& visited);
+                     std::map<TypeNode, std::vector<Node>>& ops,
+                     std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 /**
  * Substitution of Nodes in a capture avoiding way.

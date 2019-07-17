@@ -304,18 +304,15 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-
-
-void getOperatorsMap(TNode n,
-               std::map<TypeNode, std::vector<Node>>& ops)
+void getOperatorsMap(TNode n, std::map<TypeNode, std::vector<Node>>& ops)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   getOperatorsMap(n, ops, visited);
 }
 
 void getOperatorsMap(TNode n,
-                std::map<TypeNode, std::vector<Node>>& ops,
-                std::unordered_set<TNode, TNodeHashFunction>& visited)
+                     std::map<TypeNode, std::vector<Node>>& ops,
+                     std::unordered_set<TNode, TNodeHashFunction>& visited)
 {
   std::vector<TNode> visit;
   TNode cur;
@@ -327,7 +324,8 @@ void getOperatorsMap(TNode n,
     if (visited.find(cur) == visited.end())
     {
       TypeNode tn = cur.getType();
-      if (ops.find(tn) == ops.end()) {
+      if (ops.find(tn) == ops.end())
+      {
         ops[tn] = std::vector<Node>();
       }
       ops[tn].push_back(NodeManager::currentNM()->operatorOf(cur.getKind()));
@@ -343,11 +341,6 @@ void getOperatorsMap(TNode n,
     }
   } while (!visit.empty());
 }
-
-
-
-
-
 
 Node substituteCaptureAvoiding(TNode n, Node src, Node dest)
 {

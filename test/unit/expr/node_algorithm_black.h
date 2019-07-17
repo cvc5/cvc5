@@ -29,9 +29,9 @@ using namespace CVC4;
 using namespace CVC4::expr;
 using namespace CVC4::kind;
 
-class NodeAlgorithmBlack : public CxxTest::TestSuite {
-
-private:
+class NodeAlgorithmBlack : public CxxTest::TestSuite
+{
+ private:
   NodeManager* d_nodeManager;
   NodeManagerScope* d_scope;
   TypeNode* d_intTypeNode;
@@ -51,8 +51,9 @@ private:
     delete d_nodeManager;
   }
 
-  void testGetSymbols1() {
-    Node x = d_nodeManager->mkSkolem("x",d_nodeManager->booleanType());
+  void testGetSymbols1()
+  {
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
     Node n = d_nodeManager->mkNode(NOT, x);
     std::unordered_set<Node, NodeHashFunction> syms;
     getSymbols(n, syms);
@@ -60,9 +61,10 @@ private:
     TS_ASSERT(syms.find(x) != syms.end());
   }
 
-  void testGetSymbols2() {
-    Node x = d_nodeManager->mkSkolem("x",d_nodeManager->integerType());
-    Node y = d_nodeManager->mkSkolem("y",d_nodeManager->integerType());
+  void testGetSymbols2()
+  {
+    Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
+    Node y = d_nodeManager->mkSkolem("y", d_nodeManager->integerType());
     Node left = d_nodeManager->mkNode(EQUAL, x, y);
     Node var = d_nodeManager->mkBoundVar(*d_intTypeNode);
     std::vector<Node> vars;
@@ -79,5 +81,4 @@ private:
     TS_ASSERT(syms.find(y) != syms.end());
     TS_ASSERT(syms.find(var) == syms.end());
   }
-
 };
