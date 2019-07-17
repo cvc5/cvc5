@@ -304,16 +304,16 @@ void getSymbols(TNode n,
   } while (!visit.empty());
 }
 
-void getOperatorsMap(TNode n, std::map<TypeNode, std::vector<Node>>& ops)
+void getOperatorsMap(TNode n, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops)
 {
   std::unordered_set<TNode, TNodeHashFunction> visited;
   getOperatorsMap(n, ops, visited);
 }
 
 void getOperatorsMap(TNode n,
-                     std::map<TypeNode, std::vector<Node>>& ops,
+                     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
                      std::unordered_set<TNode, TNodeHashFunction>& visited)
-{
+{ 
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
@@ -326,13 +326,11 @@ void getOperatorsMap(TNode n,
       TypeNode tn = cur.getType();
       if (ops.find(tn) == ops.end())
       {
-        ops[tn] = std::vector<Node>();
+        ops[tn] = std::unordered_set<Node, NodeHashFunction>();
       }
-      ops[tn].push_back(NodeManager::currentNM()->operatorOf(cur.getKind()));
-      visited.insert(cur);
       if (cur.hasOperator())
       {
-        visit.push_back(cur.getOperator());
+          ops[tn].insert(NodeManager::currentNM()->operatorOf(cur.getKind()));
       }
       for (TNode cn : cur)
       {

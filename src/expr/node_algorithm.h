@@ -100,10 +100,10 @@ void getSymbols(TNode n,
  * @param syms The map (from each type to kinds of that type) which the kinds of
  * n are added to
  */
-void getOperatorsMap(TNode n, std::map<TypeNode, std::vector<Node>>& ops);
+void getOperatorsMap(TNode n, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
 /** Same as above, with a visited cache */
 void getOperatorsMap(TNode n,
-                     std::map<TypeNode, std::vector<Node>>& ops,
+                     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
                      std::unordered_set<TNode, TNodeHashFunction>& visited);
 
 /**
