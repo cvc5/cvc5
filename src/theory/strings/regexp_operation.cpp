@@ -860,7 +860,8 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         else
         {
           s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
-          s2 = nm->mkNode(STRING_SUBSTR, s, d_zero, nm->mkNode(MINUS, lens, b1));
+          s2 =
+              nm->mkNode(STRING_SUBSTR, s, d_zero, nm->mkNode(MINUS, lens, b1));
         }
         Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
         std::vector<Node> nvec;
