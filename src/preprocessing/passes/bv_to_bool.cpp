@@ -111,7 +111,9 @@ bool BVToBool::isConvertibleBvTerm(TNode node)
 
   Kind kind = node.getKind();
 
-  if (kind == kind::CONST_BITVECTOR || kind == kind::BITVECTOR_ITE
+  if (kind == kind::CONST_BITVECTOR 
+      || kind == kind::ITE 
+      || kind == kind::BITVECTOR_ITE
       || kind == kind::BITVECTOR_AND
       || kind == kind::BITVECTOR_OR
       || kind == kind::BITVECTOR_NOT
@@ -171,7 +173,7 @@ Node BVToBool::convertBvTerm(TNode node)
   ++(d_statistics.d_numTermsLifted);
 
   Kind kind = node.getKind();
-  if (kind == kind::ITE)
+  if (kind == kind::ITE || kind == kind::BITVECTOR_ITE)
   {
     Node cond = liftNode(node[0]);
     Node true_branch = convertBvTerm(node[1]);
