@@ -91,16 +91,17 @@ ErProof ErProof::fromBinaryDratProof(
   std::string tracecheckFilename("cvc4-tracecheck-er-XXXXXX");
 
   // Write the formula
-  std::fstream formStream = openTmpFile(&formulaFilename);
-  printDimacs(formStream, clauses, usedIds);
-  formStream.close();
+  std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+  printDimacs(*formStream, clauses, usedIds);
+  formStream->close();
 
   // Write the (binary) DRAT proof
-  std::fstream dratStream = openTmpFile(&dratFilename);
-  dratStream << dratBinary;
-  dratStream.close();
+  std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+  (*dratStream) << dratBinary;
+  dratStream->close();
 
-  std::fstream tracecheckStream = openTmpFile(&tracecheckFilename);
+  std::unique_ptr<std::fstream> tracecheckStream =
+      openTmpFile(&tracecheckFilename);
 
   // Invoke drat2er
   {
@@ -120,9 +121,9 @@ ErProof ErProof::fromBinaryDratProof(
   }
 
   // Parse the resulting TRACECHECK proof into an ER proof.
-  TraceCheckProof pf = TraceCheckProof::fromText(tracecheckStream);
+  TraceCheckProof pf = TraceCheckProof::fromText(*tracecheckStream);
   ErProof proof(clauses, usedIds, std::move(pf));
-  tracecheckStream.close();
+  tracecheckStream->close();
 
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
