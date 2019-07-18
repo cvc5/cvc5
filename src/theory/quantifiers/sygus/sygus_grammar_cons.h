@@ -65,11 +65,13 @@ public:
  /** make the default sygus datatype type corresponding to builtin type range
  *   bvl is the set of free variables to include in the grammar
  *   fun is for naming
- *   extra_cons is a set of extra constant symbols to include in the grammar,
+ *   extra_cons is a set of extra constant symbols to include in the grammar, 
+ *   regardless of their inclusion in the default grammar.
  *   exclude_cons is used to exclude operators from the grammar,
  *   term_irrelevant is a set of terms that should not be included in the
  *      grammar.
- *   include_cons is a set of operators that will be included if they are in the default grammar as well (and only them)
+ *   include_cons is a set of operators such that if this set is not empty,
+ *   its elements that are in the default grammar will be included.
  */
  static TypeNode mkSygusDefaultType(
      TypeNode range,
