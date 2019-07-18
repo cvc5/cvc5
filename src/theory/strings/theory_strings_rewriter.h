@@ -226,6 +226,13 @@ class TheoryStringsRewriter {
    * str.replaceall. If it returns a non-null ret, then node rewrites to ret.
    */
   static Node rewriteReplaceInternal(Node node);
+  /** rewrite string convert
+   *
+   * This is the entry point for post-rewriting terms n of the form
+   *   str.tolower( s ) and str.toupper( s )
+   * Returns the rewritten form of node.
+   */
+  static Node rewriteStrConvert(Node node);
   /** rewrite string less than or equal
   * This is the entry point for post-rewriting terms n of the form
   *   str.<=( t, s )

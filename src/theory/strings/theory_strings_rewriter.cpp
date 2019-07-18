@@ -1233,7 +1233,7 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
     }
     else if (x.getKind() == STRING_CONCAT)
     {
-      // (str.in.re (str.++ x1 ... xn) (str.* R)) -->
+      // (str.in.re (str.++ x1 ... xn) (re.* R)) -->
       //   (str.in.re x1 (re.* R)) AND ... AND (str.in.re xn (re.* R))
       //     if the length of all strings in R is one.
       Node flr = getFixedLengthForRegexp(r[0]);
@@ -1483,6 +1483,10 @@ RewriteResponse TheoryStringsRewriter::postRewrite(TNode node) {
   else if (nk == kind::STRING_STRREPLALL)
   {
     retNode = rewriteReplaceAll(node);
+  }
+  else if (nk == STRING_TOLOWER || nk == STRING_TOUPPER)
+  {
+    retNode = rewriteStrConvert(node);
   }
   else if (nk == kind::STRING_PREFIX || nk == kind::STRING_SUFFIX)
   {
@@ -2972,6 +2976,67 @@ Node TheoryStringsRewriter::rewriteReplaceInternal(Node node)
   }
 
   return Node::null();
+}
+
+Node TheoryStringsRewriter::rewriteStrConvert(Node node)
+{
+  Kind nk = node.getKind();
+  Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
+  NodeManager* nm = NodeManager::currentNM();
+  if (node[0].isConst())
+  {
+    std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
+    for (unsigned i = 0, nvsize = nvec.size(); i < nvsize; i++)
+    {
+      unsigned newChar = CVC4::String::convertUnsignedIntToCode(nvec[i]);
+      // transform it
+      // upper 65 ... 90
+      // lower 97 ... 122
+      if (nk == STRING_TOUPPER)
+      {
+        if (newChar >= 97 && newChar <= 122)
+        {
+          newChar = newChar - 32;
+        }
+      }
+      else if (nk == STRING_TOLOWER)
+      {
+        if (newChar >= 65 && newChar <= 90)
+        {
+          newChar = newChar + 32;
+        }
+      }
+      newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
+      nvec[i] = newChar;
+    }
+    Node retNode = nm->mkConst(String(nvec));
+    return returnRewrite(node, retNode, "str-conv-const");
+  }
+  else if (node[0].getKind() == STRING_CONCAT)
+  {
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    for (const Node& nc : node[0])
+    {
+      concatBuilder << nm->mkNode(nk, nc);
+    }
+    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
+    Node retNode = concatBuilder.constructNode();
+    return returnRewrite(node, retNode, "str-conv-minscope-concat");
+  }
+  else if (node[0].getKind() == STRING_TOLOWER
+           || node[0].getKind() == STRING_TOUPPER)
+  {
+    // tolower( tolower( x ) ) --> tolower( x )
+    // tolower( toupper( x ) ) --> tolower( x )
+    Node retNode = nm->mkNode(nk, node[0][0]);
+    return returnRewrite(node, retNode, "str-conv-idem");
+  }
+  else if (node[0].getKind() == STRING_ITOS)
+  {
+    // tolower( str.from.int( x ) ) --> str.from.int( x )
+    return returnRewrite(node, node[0], "str-conv-itos");
+  }
+  return node;
 }
 
 Node TheoryStringsRewriter::rewriteStringLeq(Node n)
