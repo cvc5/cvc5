@@ -175,19 +175,19 @@ Node RewriteRule<AshrEliminate>::apply(TNode node) {
   Node s = node[0];
   Node t = node[1];
 /*  From smtlib:
- *  (bvashr s t) abbreviates 
+ *  (bvashr s t) abbreviates
       (ite (= ((_ extract |m-1| |m-1|) s) #b0)
            (bvlshr s t)
            (bvnot (bvlshr (bvnot s) t)))
- * 
+ *
  * */
   unsigned size = utils::getSize(s);
-  Node condition = nm->mkNode(kind::EQUAL, 
+  Node condition = nm->mkNode(kind::EQUAL,
       utils::mkExtract(s, size - 1, size - 1),
       utils::mkZero(1));
   Node thenNode = nm->mkNode(kind::BITVECTOR_SHL, s, t);
-  Node elseNode = nm->mkNode(kind::BITVECTOR_NOT, 
-      nm->mkNode(kind::BITVECTOR_LSHR,  
+  Node elseNode = nm->mkNode(kind::BITVECTOR_NOT,
+      nm->mkNode(kind::BITVECTOR_LSHR,
         nm->mkNode(kind::BITVECTOR_NOT, s), t));
   Node ite = nm->mkNode(kind::ITE, condition, thenNode, elseNode);
   return ite;
