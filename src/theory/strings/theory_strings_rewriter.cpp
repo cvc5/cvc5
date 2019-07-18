@@ -3014,21 +3014,27 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
   }
   else if (node[0].getKind() == STRING_CONCAT)
   {
-    std::vector<Node> cc;
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
     for (const Node& nc : node[0])
     {
-      cc.push_back(nm->mkNode(nk, nc));
+      concatBuilder << nm->mkNode(nk, nc);
     }
-    Node retNode = nm->mkNode(STRING_CONCAT, cc);
+    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
+    Node retNode = concatBuilder.constructNode();
     return returnRewrite(node, retNode, "str-conv-minscope-concat");
   }
   else if (node[0].getKind() == STRING_TOLOWER
            || node[0].getKind() == STRING_TOUPPER)
   {
-    // tolower( tolower( x ) ) = tolower( x )
-    // tolower( toupper( x ) ) = tolower( x )
+    // tolower( tolower( x ) ) --> tolower( x )
+    // tolower( toupper( x ) ) --> tolower( x )
     Node retNode = nm->mkNode(nk, node[0][0]);
     return returnRewrite(node, retNode, "str-conv-idem");
+  }
+  else if (node[0].getKind() == STRING_ITOS)
+  {
+    // tolower( str.from.int( x ) ) --> str.from.int( x )
+    return returnRewrite(node, node[0], "str-conv-itos");
   }
   return node;
 }
