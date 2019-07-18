@@ -741,6 +741,13 @@ class CVC4_PUBLIC SmtEngine {
       /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
       ;
 
+
+  /**
+   * Same as getValue but for a vector of expressions
+   */
+  std::vector<Node> getValues(const std::vector<Node>& nodes);
+
+
   /**
    * Add a function to the set of expressions whose value is to be
    * later returned by a call to getAssignment().  The expression

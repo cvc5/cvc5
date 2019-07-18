@@ -4208,6 +4208,32 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
+vector<Node> SmtEngine::getValues(const vector<Node>& nodes) {
+  vector<Node> result;
+  for (Node n : nodes) {
+    Node value = Node::fromExpr(getValue(n.toExpr()));
+    result.push_back(value);
+  }
+
+  if (options::blockModelsMode() != BLOCK_MODELS_NONE)
+  {
+    TheoryModel* m = d_theoryEngine->getBuiltModel();
+    std::vector<Expr> easserts = getAssertions();
+    // must expand definitions
+    std::vector<Expr> eassertsProc;
+    std::unordered_map<Node, Node, NodeHashFunction> cache;
+    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+    {
+      Node ea = Node::fromExpr(easserts[i]);
+      Node eae = d_private->expandDefinitions(ea, cache);
+      eassertsProc.push_back(eae.toExpr());
+    }
+    Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), nodes);
+    assertFormula(eblocker);
+  }
+  return result;
+}
+
 bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
   finalOptionsAreSet();
