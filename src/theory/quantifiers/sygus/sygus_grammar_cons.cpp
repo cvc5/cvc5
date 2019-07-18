@@ -25,7 +25,6 @@
 #include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
-#include "smt/smt_engine_scope.h"
 
 using namespace CVC4::kind;
 
@@ -79,7 +78,7 @@ void CegGrammarConstructor::collectTerms( Node n, std::map< TypeNode, std::unord
         }
         if( std::find( consts[tn].begin(), consts[tn].end(), c )==consts[tn].end() ){
           Trace("cegqi-debug") << "...consider const : " << c << std::endl;
-          consts[tn].insert( c );
+          consts[tn].insert(c);
         }
       }
       // recurse
@@ -104,6 +103,7 @@ Node CegGrammarConstructor::process(Node q,
     collectTerms( q[1], extra_cons );
   }
   std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exc_cons;
+  std::map< TypeNode, std::unordered_set<Node, NodeHashFunction > > inc_cons;
 
   NodeManager* nm = NodeManager::currentNM();
 
@@ -152,7 +152,7 @@ Node CegGrammarConstructor::process(Node q,
 
       // make the default grammar
       tn = mkSygusDefaultType(
-          preGrammarType, sfvl, ss.str(), extra_cons, exc_cons, term_irlv);
+          preGrammarType, sfvl, ss.str(), extra_cons, exc_cons, inc_cons, term_irlv);
     }
     // sfvl may be null for constant synthesis functions
     Trace("cegqi-debug") << "...sygus var list associated with " << sf << " is "
@@ -422,10 +422,10 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     const std::string& fun,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& exc_cons,
+    const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& inc_cons,
     std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
     std::vector<CVC4::Datatype>& datatypes,
-    std::set<Type>& unres,
-    const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& inc_cons)
+    std::set<Type>& unres)
 {
   NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-grammar-def") << "Construct default grammar for " << fun << " "
@@ -520,7 +520,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
     mkSygusConstantsForType( types[i], consts );
     std::map< TypeNode, std::unordered_set<Node, NodeHashFunction> >::iterator itec = extra_cons.find( types[i] );
     if( itec!=extra_cons.end() ){
-      
       for (std::unordered_set<Node, NodeHashFunction>::iterator set_it = itec->second.begin(); set_it != itec->second.end(); set_it++)
       {
         if( std::find( consts.begin(), consts.end(), *set_it)==consts.end() ){
@@ -566,7 +565,6 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
-      
       if (!types[i].isInteger())
       {
         Trace("sygus-grammar-def")
@@ -954,8 +952,8 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
     const std::string& fun,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& extra_cons,
     std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& exclude_cons,
-    std::unordered_set<Node, NodeHashFunction>& term_irrelevant,
-     const std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& include_cons)
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& include_cons,
+    std::unordered_set<Node, NodeHashFunction>& term_irrelevant)
 {
   Trace("sygus-grammar-def") << "*** Make sygus default type " << range << ", make datatypes..." << std::endl;
   for( std::map< TypeNode, std::unordered_set<Node, NodeHashFunction> >::iterator it = extra_cons.begin(); it != extra_cons.end(); ++it ){
@@ -968,10 +966,10 @@ TypeNode CegGrammarConstructor::mkSygusDefaultType(
                         fun,
                         extra_cons,
                         exclude_cons,
+                        include_cons,
                         term_irrelevant,
                         datatypes,
-                        unres, 
-                        include_cons);
+                        unres);
   Trace("sygus-grammar-def")  << "...made " << datatypes.size() << " datatypes, now make mutual datatype types..." << std::endl;
   Assert( !datatypes.empty() );
   std::vector<DatatypeType> types =

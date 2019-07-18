@@ -457,6 +457,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
       std::string virtualEnumName(ss.str());
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> extra_cons;
       std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> exclude_cons;
+      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>> include_cons;
       // do not include "-", which is included by default for integers
       exclude_cons[intTn].insert(nm->operatorOf(MINUS));
       std::unordered_set<Node, NodeHashFunction> term_irrelevant;
@@ -465,6 +466,7 @@ Node CegisUnifEnumDecisionStrategy::mkLiteral(unsigned n)
                                                                virtualEnumName,
                                                                extra_cons,
                                                                exclude_cons,
+                                                               include_cons,
                                                                term_irrelevant);
       d_virtual_enum = nm->mkSkolem("_ve", vtn);
       d_tds->registerEnumerator(
