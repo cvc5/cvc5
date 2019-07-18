@@ -865,6 +865,7 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
+  regress0/strings/tolower-rrs.smt2
   regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
