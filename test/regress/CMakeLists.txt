@@ -1639,6 +1639,7 @@ set(regress_1_tests
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/error1-dt.sy
   regress1/sygus/extract.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
