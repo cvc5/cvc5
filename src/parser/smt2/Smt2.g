@@ -1840,9 +1840,29 @@ symbolicExpr[CVC4::SExpr& sexpr]
  * @return the expression representing the formula
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
+@init {
+  Expr f;
+  std::string name;
+  Type arrayType;
+}
 : termNonVariable[expr, expr2]
     /* a variable */
-  | qualIdentifier[expr]
+  | qualIdentifier[name,f,arrayType]
+    {
+      if( !arrayType.isNull() )
+      {
+        PARSER_STATE->parseError("Bad syntax for array constant.");
+      }
+      if( f.isNull() )
+      {
+        expr = PARSER_STATE->getExpressionForName(name);
+      }
+      else
+      {
+        expr = f;
+      }
+      assert( !expr.isNull() );
+    }
   ;
 
 /**
@@ -1912,7 +1932,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK qualIdentifierInternal[name,qexpr,qexprArrayType]
+  | LPAREN_TOK qualIdentifier[name,qexpr,qexprArrayType]
     { 
       if( qexprArrayType.isNull() )
       {
@@ -2332,40 +2352,15 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   ;
 
-/**
- * Matches a qualified identifier.
- */
-qualIdentifier[CVC4::Expr& expr]
+
+qualIdentifier[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
 @init {
   Expr f;
-  std::string name;
-  Type arrayType;
-}
-: qualIdentifierInternal[name,f, arrayType]
-  {
-    if( !arrayType.isNull() )
-    {
-      PARSER_STATE->parseError("Bad syntax for array constant.");
-    }
-    if( f.isNull() )
-    {
-      f = PARSER_STATE->getExpressionForName(name);
-    }
-    expr = f;
-    assert( !expr.isNull() );
-  }
-  ;
-
-qualIdentifierInternal[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
-@init {
-  Expr f, f2;
   api::Term atomTerm;
   Kind kind;
   Type type;
 }
-: functionName[name, CHECK_NONE]
-  { Trace("parser-qid") << "Parsed function " << name << " within qid" << std::endl; }
-  | indexedFunctionName[expr, kind]
+: identifier[name,expr]
   | LPAREN_TOK AS_TOK 
     ( CONST_TOK sortSymbol[arrayType, CHECK_DECLARED]
       {
@@ -2377,13 +2372,7 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayTyp
           PARSER_STATE->parseError(ss.str());
         }
       }
-    | qualIdentifierInternal[name,f,arrayType]
-      {
-        if( !arrayType.isNull() )
-        {
-          PARSER_STATE->parseError("Nested array constant");
-        }
-      }
+    | identifier[name,f]
       sortSymbol[type, CHECK_DECLARED]
       {
         if(f.isNull()) {
@@ -2416,7 +2405,7 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayTyp
                                 MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
         } else if(f.getKind() == CVC4::kind::EMPTYSET) {
           Debug("parser") << "Empty set encountered: " << f << " "
-                            << f2 << " " << type <<  std::endl;
+                          << type <<  std::endl;
           expr = MK_CONST( ::CVC4::EmptySet(type) );
         } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
           expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
@@ -2436,7 +2425,15 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayTyp
     )
     RPAREN_TOK
   ;
-
+  
+identifier[std::string& name, CVC4::Expr& expr]
+@init {
+  Kind kind;
+}
+: functionName[name, CHECK_NONE]
+  | indexedFunctionName[expr, kind]
+  ;
+  
 /**
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
