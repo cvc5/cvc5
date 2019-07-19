@@ -1859,6 +1859,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
   Expr f, f2, f3;
+  Expr qexpr;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -1910,15 +1911,23 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK functionName[name, CHECK_NONE]
-    { isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
+  | LPAREN_TOK qualIdentifierInternal[name,qexpr]
+    { isBuiltinOperator = qexpr.isNull() && PARSER_STATE->isOperatorEnabled(name);
+      Trace("ajr-temp") << "Parsed qual id: " << name << "/" << qexpr << ", isBuiltin = " << isBuiltinOperator << std::endl;
       if(isBuiltinOperator) {
         /* A built-in operator */
         kind = PARSER_STATE->getOperatorKind(name);
       } else {
         /* A non-built-in function application */
-        PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-        expr = PARSER_STATE->getVariable(name);
+        if( qexpr.isNull() )
+        {
+          PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+          expr = PARSER_STATE->getVariable(name);
+        }
+        else
+        {
+          expr = qexpr;
+        }
         if(!expr.isNull()) {
           PARSER_STATE->checkFunctionLike(expr);
           kind = PARSER_STATE->getKindForFunction(expr);
@@ -2036,69 +2045,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
     }
-  | LPAREN_TOK
-    ( /* An indexed function application */
-      indexedFunctionName[op, kind] termList[args,expr] RPAREN_TOK {
-        if(kind==CVC4::kind::APPLY_SELECTOR) {
-          //tuple selector case
-          Integer x = op.getConst<CVC4::Rational>().getNumerator();
-          if (!x.fitsUnsignedInt()) {
-            PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
-          }
-          unsigned int n = x.toUnsignedInt();
-          if (args.size()>1) {
-            PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
-          }
-          Type t = args[0].getType();
-          if (!t.isTuple()) {
-            PARSER_STATE->parseError("tupSel applied to non-tuple");
-          }
-          size_t length = ((DatatypeType)t).getTupleLength();
-          if (n >= length) {
-            std::stringstream ss;
-            ss << "tuple is of length " << length << "; cannot access index " << n;
-            PARSER_STATE->parseError(ss.str());
-          }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
-          op = dt[0][n].getSelector();
-        }
-        if (kind!=kind::NULL_EXPR) {
-          expr = MK_EXPR( kind, op, args );
-        } else {
-          expr = MK_EXPR(op, args);
-        }
-        PARSER_STATE->checkOperator(expr.getKind(), args.size());
-      }
-    | /* Array constant (in Z3 syntax) */
-      LPAREN_TOK AS_TOK CONST_TOK sortSymbol[type, CHECK_DECLARED]
-      RPAREN_TOK term[f, f2] RPAREN_TOK
-      {
-        if(!type.isArray()) {
-          std::stringstream ss;
-          ss << "expected array constant term, but cast is not of array type"
-             << std::endl
-             << "cast type: " << type;
-          PARSER_STATE->parseError(ss.str());
-        }
-        if(!f.isConst()) {
-          std::stringstream ss;
-          ss << "expected constant term inside array constant, but found "
-             << "nonconstant term:" << std::endl
-             << "the term: " << f;
-          PARSER_STATE->parseError(ss.str());
-        }
-        if(!ArrayType(type).getConstituentType().isComparableTo(f.getType())) {
-          std::stringstream ss;
-          ss << "type mismatch inside array constant term:" << std::endl
-             << "array type:          " << type << std::endl
-             << "expected const type: " << ArrayType(type).getConstituentType()
-             << std::endl
-             << "computed const type: " << f.getType();
-          PARSER_STATE->parseError(ss.str());
-        }
-        expr = MK_CONST( ::CVC4::ArrayStoreAll(type, f) );
-      }
-    )
   | /* a let or sygus let binding */
     LPAREN_TOK (
       LET_TOK LPAREN_TOK
@@ -2329,21 +2275,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       expr = MK_EXPR( CVC4::kind::LAMBDA, args );
     }
 
-  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
-  {
-    std::vector<api::Sort> sorts;
-    std::vector<api::Term> terms;
-    for (const Expr& arg : args)
-    {
-      sorts.emplace_back(arg.getType());
-      terms.emplace_back(arg);
-    }
-    expr = SOLVER->mkTuple(sorts, terms).getExpr();
-  }
   ;
 
 /**
- * Matches a qualified indentifier.
+ * Matches a qualified identifier.
  */
 qualIdentifier[CVC4::Expr& expr]
 @init {
@@ -2367,10 +2302,13 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
   Type type;
   api::Term atomTerm;
 }
-: symbol[name,CHECK_DECLARED,SYM_VARIABLE]
+: functionName[name, CHECK_NONE]
+  { Trace("parser-qid") << "Parsed function " << name << " within qid" << std::endl; }
   | /* an atomic term (a term with no subterms) */
-    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
-  | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f] sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
+    termAtomic[atomTerm] { expr = atomTerm.getExpr(); 
+     Trace("parser-qid") << "Parsed atom " << expr << " within qid" << std::endl; }
+  | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f]
+    sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
       if(f.isNull()) {
         Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
@@ -2378,6 +2316,9 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
         f = PARSER_STATE->getExpressionForNameAndType(name, type);
         assert( !f.isNull() );
       }
+      Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
+      Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
+      Trace("parser-qid") << std::endl;
       if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
         // could be a parametric type constructor or just an overloaded constructor
         if(((DatatypeType)type).isParametric()) {
@@ -2392,6 +2333,11 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
         }else{
           expr = f;
         }
+      } else if(f.getType().isConstructor()){
+        // a non-nullary constructor with a type ascription
+        const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+        expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
       } else if(f.getKind() == CVC4::kind::EMPTYSET) {
         Debug("parser") << "Empty set encountered: " << f << " "
                           << f2 << " " << type <<  std::endl;
