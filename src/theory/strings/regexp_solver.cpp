@@ -281,7 +281,6 @@ void RegExpSolver::check()
           std::vector<Node> exp_n;
           exp_n.push_back(assertion);
           Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          conc = Rewriter::rewrite(conc);
           d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
           addedLemma = true;
           if (changed)
