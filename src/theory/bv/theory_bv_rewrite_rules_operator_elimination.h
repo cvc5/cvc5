@@ -19,6 +19,7 @@
 
 #pragma once
 
+#include "options/bv_options.h"
 #include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_utils.h"
 
