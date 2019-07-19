@@ -2982,6 +2982,7 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
 {
   Kind nk = node.getKind();
   Assert(nk == STRING_TOLOWER || nk == STRING_TOUPPER);
+  NodeManager* nm = NodeManager::currentNM();
   if (node[0].isConst())
   {
     std::vector<unsigned> nvec = node[0].getConst<String>().getVec();
@@ -3008,8 +3009,32 @@ Node TheoryStringsRewriter::rewriteStrConvert(Node node)
       newChar = CVC4::String::convertCodeToUnsignedInt(newChar);
       nvec[i] = newChar;
     }
-    Node retNode = NodeManager::currentNM()->mkConst(String(nvec));
+    Node retNode = nm->mkConst(String(nvec));
     return returnRewrite(node, retNode, "str-conv-const");
+  }
+  else if (node[0].getKind() == STRING_CONCAT)
+  {
+    NodeBuilder<> concatBuilder(STRING_CONCAT);
+    for (const Node& nc : node[0])
+    {
+      concatBuilder << nm->mkNode(nk, nc);
+    }
+    // tolower( x1 ++ x2 ) --> tolower( x1 ) ++ tolower( x2 )
+    Node retNode = concatBuilder.constructNode();
+    return returnRewrite(node, retNode, "str-conv-minscope-concat");
+  }
+  else if (node[0].getKind() == STRING_TOLOWER
+           || node[0].getKind() == STRING_TOUPPER)
+  {
+    // tolower( tolower( x ) ) --> tolower( x )
+    // tolower( toupper( x ) ) --> tolower( x )
+    Node retNode = nm->mkNode(nk, node[0][0]);
+    return returnRewrite(node, retNode, "str-conv-idem");
+  }
+  else if (node[0].getKind() == STRING_ITOS)
+  {
+    // tolower( str.from.int( x ) ) --> str.from.int( x )
+    return returnRewrite(node, node[0], "str-conv-itos");
   }
   return node;
 }
