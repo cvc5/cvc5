@@ -1860,6 +1860,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::vector< std::pair<std::string, Type> > sortedVarNames;
   Expr f, f2, f3;
   Expr qexpr;
+  Type qexprArrayType;
   std::string attr;
   Expr attexpr;
   std::vector<Expr> patexprs;
@@ -1911,32 +1912,36 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK qualIdentifierInternal[name,qexpr]
-    { isBuiltinOperator = qexpr.isNull() && PARSER_STATE->isOperatorEnabled(name);
-      Trace("ajr-temp") << "Parsed qual id: " << name << "/" << qexpr << ", isBuiltin = " << isBuiltinOperator << std::endl;
-      if(isBuiltinOperator) {
-        /* A built-in operator */
-        kind = PARSER_STATE->getOperatorKind(name);
-      } else {
-        /* A non-built-in function application */
-        if( qexpr.isNull() )
-        {
-          PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-          expr = PARSER_STATE->getVariable(name);
-          if(!expr.isNull()) {
-            PARSER_STATE->checkFunctionLike(expr);
-            kind = PARSER_STATE->getKindForFunction(expr);
-            args.push_back(expr);
-          }else{
-            isOverloadedFunction = true;
-          }
-        }
-        else
-        {
-          args.push_back(qexpr);
-          if( qexpr.getType().isTester() )
+  | LPAREN_TOK qualIdentifierInternal[name,qexpr,qexprArrayType]
+    { 
+      if( qexprArrayType.isNull() )
+      {
+        isBuiltinOperator = qexpr.isNull() && PARSER_STATE->isOperatorEnabled(name);
+        Trace("ajr-temp") << "Parsed qual id: " << name << "/" << qexpr << ", isBuiltin = " << isBuiltinOperator << std::endl;
+        if(isBuiltinOperator) {
+          /* A built-in operator */
+          kind = PARSER_STATE->getOperatorKind(name);
+        } else {
+          /* A non-built-in function application */
+          if( qexpr.isNull() )
           {
-            kind = kind::APPLY_TESTER;
+            PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+            expr = PARSER_STATE->getVariable(name);
+            if(!expr.isNull()) {
+              PARSER_STATE->checkFunctionLike(expr);
+              kind = PARSER_STATE->getKindForFunction(expr);
+              args.push_back(expr);
+            }else{
+              isOverloadedFunction = true;
+            }
+          }
+          else
+          {
+            args.push_back(qexpr);
+            if( qexpr.getType().isTester() )
+            {
+              kind = kind::APPLY_TESTER;
+            }
           }
         }
       }
@@ -2020,6 +2025,31 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
             expr = MK_EXPR(kind, args);
           }
         }
+      }
+      else if( !qexprArrayType.isNull() )
+      {
+        if( args.size()!=1 )
+        {
+          PARSER_STATE->parseError("Too many arguments to array constant.");
+        }
+        if(!args[0].isConst()) {
+          std::stringstream ss;
+          ss << "expected constant term inside array constant, but found "
+             << "nonconstant term:" << std::endl
+             << "the term: " << args[0];
+          PARSER_STATE->parseError(ss.str());
+        }
+        if(!ArrayType(qexprArrayType).getConstituentType().isComparableTo(args[0].getType())) {
+          std::stringstream ss;
+          ss << "type mismatch inside array constant term:" << std::endl
+             << "array type:          " << qexprArrayType << std::endl
+             << "expected const type: " << ArrayType(qexprArrayType).getConstituentType()
+             << std::endl
+             << "computed const type: " << args[0].getType();
+          PARSER_STATE->parseError(ss.str());
+        }
+        expr = MK_CONST( CVC4::ArrayStoreAll(qexprArrayType, args[0]) );
+        done = true;
       }
       else
       {
@@ -2309,9 +2339,14 @@ qualIdentifier[CVC4::Expr& expr]
 @init {
   Expr f;
   std::string name;
+  Type arrayType;
 }
-: qualIdentifierInternal[name,f]
+: qualIdentifierInternal[name,f, arrayType]
   {
+    if( !arrayType.isNull() )
+    {
+      PARSER_STATE->parseError("Bad syntax for array constant.");
+    }
     if( f.isNull() )
     {
       f = PARSER_STATE->getExpressionForName(name);
@@ -2321,66 +2356,85 @@ qualIdentifier[CVC4::Expr& expr]
   }
   ;
 
-qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
+qualIdentifierInternal[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
 @init {
   Expr f, f2;
-  Type type;
   api::Term atomTerm;
   Kind kind;
+  Type type;
 }
 : functionName[name, CHECK_NONE]
   { Trace("parser-qid") << "Parsed function " << name << " within qid" << std::endl; }
   | indexedFunctionName[expr, kind]
-  | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f]
-    sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
-    {
-      if(f.isNull()) {
-        Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
-        // get the variable expression for the type
-        f = PARSER_STATE->getExpressionForNameAndType(name, type);
-        assert( !f.isNull() );
-      }
-      Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
-      Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
-      Trace("parser-qid") << std::endl;
-      if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
-        // could be a parametric type constructor or just an overloaded constructor
-        if(((DatatypeType)type).isParametric()) {
-          std::vector<CVC4::Expr> v;
-          Expr e = f.getOperator();
-          const DatatypeConstructor& dtc =
-              Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-          v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
-          v.insert(v.end(), f.begin(), f.end());
-          expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
-        }else{
-          expr = f;
-        }
-      } else if(f.getType().isConstructor()){
-        // a non-nullary constructor with a type ascription
-        const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
-        expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                               MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
-      } else if(f.getKind() == CVC4::kind::EMPTYSET) {
-        Debug("parser") << "Empty set encountered: " << f << " "
-                          << f2 << " " << type <<  std::endl;
-        expr = MK_CONST( ::CVC4::EmptySet(type) );
-      } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
-        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
-      } else if(f.getKind() == CVC4::kind::SEP_NIL) {
-        //We don't want the nil reference to be a constant: for instance, it
-        //could be of type Int but is not a const rational. However, the
-        //expression has 0 children. So we convert to a SEP_NIL variable.
-        expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
-      } else {
-        if(f.getType() != type) {
-          PARSER_STATE->parseError("Type ascription not satisfied.");
-        }else{
-          expr = f;
+  | LPAREN_TOK AS_TOK 
+    ( CONST_TOK sortSymbol[arrayType, CHECK_DECLARED]
+      {
+        if(!arrayType.isArray()) {
+          std::stringstream ss;
+          ss << "expected array constant term, but cast is not of array type"
+             << std::endl
+             << "cast type: " << type;
+          PARSER_STATE->parseError(ss.str());
         }
       }
-    }
+    | qualIdentifierInternal[name,f,arrayType]
+      {
+        if( !arrayType.isNull() )
+        {
+          PARSER_STATE->parseError("Nested array constant");
+        }
+      }
+      sortSymbol[type, CHECK_DECLARED]
+      {
+        if(f.isNull()) {
+          Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
+          // get the variable expression for the type
+          f = PARSER_STATE->getExpressionForNameAndType(name, type);
+          assert( !f.isNull() );
+        }
+        Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
+        Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
+        Trace("parser-qid") << std::endl;
+        if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
+          // could be a parametric type constructor or just an overloaded constructor
+          if(((DatatypeType)type).isParametric()) {
+            std::vector<CVC4::Expr> v;
+            Expr e = f.getOperator();
+            const DatatypeConstructor& dtc =
+                Datatype::datatypeOf(e)[Datatype::indexOf(e)];
+            v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                                MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+            v.insert(v.end(), f.begin(), f.end());
+            expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
+          }else{
+            expr = f;
+          }
+        } else if(f.getType().isConstructor()){
+          // a non-nullary constructor with a type ascription
+          const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+          expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                                MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
+        } else if(f.getKind() == CVC4::kind::EMPTYSET) {
+          Debug("parser") << "Empty set encountered: " << f << " "
+                            << f2 << " " << type <<  std::endl;
+          expr = MK_CONST( ::CVC4::EmptySet(type) );
+        } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
+          expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
+        } else if(f.getKind() == CVC4::kind::SEP_NIL) {
+          //We don't want the nil reference to be a constant: for instance, it
+          //could be of type Int but is not a const rational. However, the
+          //expression has 0 children. So we convert to a SEP_NIL variable.
+          expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
+        } else {
+          if(f.getType() != type) {
+            PARSER_STATE->parseError("Type ascription not satisfied.");
+          }else{
+            expr = f;
+          }
+        }
+      }
+    )
+    RPAREN_TOK
   ;
 
 /**
