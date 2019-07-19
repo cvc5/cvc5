@@ -1934,6 +1934,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         else
         {
           args.push_back(qexpr);
+          if( qexpr.getType().isTester() )
+          {
+            kind = kind::APPLY_TESTER;
+          }
         }
       }
     }
