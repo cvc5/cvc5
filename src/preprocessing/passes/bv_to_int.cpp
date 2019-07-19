@@ -25,11 +25,8 @@
 
 #include "expr/node.h"
 #include "theory/rewriter.h"
-#include "theory/bv/theory_bv_rewriter.h"
-#include "theory/bv/theory_bv_rewrite_rules.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/bv/theory_bv_rewrite_rules_simplification.h"
-#include "theory/theory.h"
 
 namespace CVC4 {
 namespace preprocessing {
