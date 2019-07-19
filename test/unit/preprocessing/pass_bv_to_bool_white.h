@@ -36,8 +36,8 @@ class BVToBoolWhite : public CxxTest::TestSuite
 {
   ExprManager* d_em;
   NodeManager* d_nm;
-  SmtEngine *d_smt;
-  SmtScope *d_scope;
+  SmtEngine* d_smt;
+  SmtScope* d_scope;
   Node d_unaryOne;
   Node d_two;
   Node d_three;
@@ -72,7 +72,8 @@ class BVToBoolWhite : public CxxTest::TestSuite
   void testLiftBVIte()
   {
     Node bvite = d_nm->mkNode(kind::BITVECTOR_ITE, d_unaryOne, d_two, d_three);
-    Node ite = d_nm->mkNode(kind::ITE, d_nm->mkConst<bool>(true), d_two, d_three);
+    Node ite =
+        d_nm->mkNode(kind::ITE, d_nm->mkConst<bool>(true), d_two, d_three);
 
     passes::BVToBool bvtobool(nullptr);
     AssertionPipeline apipe;
