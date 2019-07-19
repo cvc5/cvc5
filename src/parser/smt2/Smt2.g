@@ -1923,17 +1923,17 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         {
           PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
           expr = PARSER_STATE->getVariable(name);
+          if(!expr.isNull()) {
+            PARSER_STATE->checkFunctionLike(expr);
+            kind = PARSER_STATE->getKindForFunction(expr);
+            args.push_back(expr);
+          }else{
+            isOverloadedFunction = true;
+          }
         }
         else
         {
-          expr = qexpr;
-        }
-        if(!expr.isNull()) {
-          PARSER_STATE->checkFunctionLike(expr);
-          kind = PARSER_STATE->getKindForFunction(expr);
-          args.push_back(expr);
-        }else{
-          isOverloadedFunction = true;
+          args.push_back(qexpr);
         }
       }
     }
@@ -2041,7 +2041,16 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
         if (!done)
         {
-          expr = MK_EXPR(kind, args);
+          if( kind==kind::NULL_EXPR )
+          {
+            std::vector<Expr> eargs;
+            eargs.insert(eargs.end(),args.begin()+1, args.end());
+            expr = MK_EXPR(args[0],eargs);
+          }
+          else
+          {
+            expr = MK_EXPR(kind, args);
+          }
         }
       }
     }
@@ -2274,7 +2283,19 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       PARSER_STATE->popScope();
       expr = MK_EXPR( CVC4::kind::LAMBDA, args );
     }
-
+  | LPAREN_TOK TUPLE_CONST_TOK termList[args,expr] RPAREN_TOK
+  {
+    std::vector<api::Sort> sorts;
+    std::vector<api::Term> terms;
+    for (const Expr& arg : args)
+    {
+      sorts.emplace_back(arg.getType());
+      terms.emplace_back(arg);
+    }
+    expr = SOLVER->mkTuple(sorts, terms).getExpr();
+  }
+  | /* an atomic term (a term with no subterms) */
+    termAtomic[atomTerm] { expr = atomTerm.getExpr(); }
   ;
 
 /**
@@ -2301,12 +2322,11 @@ qualIdentifierInternal[std::string& name, CVC4::Expr& expr]
   Expr f, f2;
   Type type;
   api::Term atomTerm;
+  Kind kind;
 }
 : functionName[name, CHECK_NONE]
   { Trace("parser-qid") << "Parsed function " << name << " within qid" << std::endl; }
-  | /* an atomic term (a term with no subterms) */
-    termAtomic[atomTerm] { expr = atomTerm.getExpr(); 
-     Trace("parser-qid") << "Parsed atom " << expr << " within qid" << std::endl; }
+  | indexedFunctionName[expr, kind]
   | LPAREN_TOK AS_TOK qualIdentifierInternal[name,f]
     sortSymbol[type, CHECK_DECLARED] RPAREN_TOK
     {
