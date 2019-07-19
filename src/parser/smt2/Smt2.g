@@ -1841,25 +1841,30 @@ symbolicExpr[CVC4::SExpr& sexpr]
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
+  Kind kind = kind::NULL_EXPR;
   Expr f;
   std::string name;
   Type arrayType;
 }
 : termNonVariable[expr, expr2]
     /* a variable */
-  | qualIdentifier[name,f,arrayType]
+  | qualIdentifier[kind,name,f,arrayType]
     {
-      if( !arrayType.isNull() )
+      if( kind!=kind::NULL_EXPR )
+      {
+        PARSER_STATE->parseError("Bad syntax for builtin operator.");
+      }
+      else if( !arrayType.isNull() )
       {
         PARSER_STATE->parseError("Bad syntax for array constant.");
       }
-      if( f.isNull() )
+      else if( !f.isNull() )
       {
-        expr = PARSER_STATE->getExpressionForName(name);
+        expr = f;
       }
       else
       {
-        expr = f;
+        expr = PARSER_STATE->getExpressionForName(name);
       }
       assert( !expr.isNull() );
     }
@@ -1932,14 +1937,13 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK qualIdentifier[name,qexpr,qexprArrayType]
+  | LPAREN_TOK qualIdentifier[kind,name,qexpr,qexprArrayType]
     { 
       if( qexprArrayType.isNull() )
       {
         isBuiltinOperator = qexpr.isNull() && PARSER_STATE->isOperatorEnabled(name);
         Trace("ajr-temp") << "Parsed qual id: " << name << "/" << qexpr << ", isBuiltin = " << isBuiltinOperator << std::endl;
         if(isBuiltinOperator) {
-          /* A built-in operator */
           kind = PARSER_STATE->getOperatorKind(name);
         } else {
           /* A non-built-in function application */
@@ -2353,14 +2357,14 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   ;
 
 
-qualIdentifier[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
+qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
 @init {
+  Kind k;
+  std::string baseName;
   Expr f;
-  api::Term atomTerm;
-  Kind kind;
   Type type;
 }
-: identifier[name,expr]
+: identifier[kind,name,expr]
   | LPAREN_TOK AS_TOK 
     ( CONST_TOK sortSymbol[arrayType, CHECK_DECLARED]
       {
@@ -2368,17 +2372,17 @@ qualIdentifier[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
           std::stringstream ss;
           ss << "expected array constant term, but cast is not of array type"
              << std::endl
-             << "cast type: " << type;
+             << "cast type: " << arrayType;
           PARSER_STATE->parseError(ss.str());
         }
       }
-    | identifier[name,f]
+    | identifier[k,baseName,f]
       sortSymbol[type, CHECK_DECLARED]
       {
         if(f.isNull()) {
-          Trace("parser-overloading") << "Getting variable expression of type " << name << " with type " << type << std::endl;
+          Trace("parser-overloading") << "Getting variable expression of type " << baseName << " with type " << type << std::endl;
           // get the variable expression for the type
-          f = PARSER_STATE->getExpressionForNameAndType(name, type);
+          f = PARSER_STATE->getExpressionForNameAndType(baseName, type);
           assert( !f.isNull() );
         }
         Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
@@ -2426,11 +2430,16 @@ qualIdentifier[std::string& name, CVC4::Expr& expr, CVC4::Type& arrayType]
     RPAREN_TOK
   ;
   
-identifier[std::string& name, CVC4::Expr& expr]
-@init {
-  Kind kind;
-}
-: functionName[name, CHECK_NONE]
+identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
+: functionName[name, CHECK_NONE] {
+/*
+    if(PARSER_STATE->isOperatorEnabled(name)) {
+      kind = PARSER_STATE->getOperatorKind(name);
+      // name is processed
+      name = std::string("");
+    } 
+    */
+  }
   | indexedFunctionName[expr, kind]
   ;
   
