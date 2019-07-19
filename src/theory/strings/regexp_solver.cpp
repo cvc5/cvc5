@@ -32,9 +32,11 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
+                           InferenceManager& im,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
+      d_im(im),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -147,17 +149,17 @@ void RegExpSolver::check()
               vec_nodes.push_back(n);
             }
             Node conc;
-            d_parent.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
+            d_im.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
             addedLemma = true;
             break;
           }
-          if (d_parent.inConflict())
+          if (d_im.hasConflict())
           {
             break;
           }
         }
         // updates
-        if (!d_parent.inConflict() && !spflag)
+        if (!d_im.hasConflict() && !spflag)
         {
           d_inter_cache[x] = r;
           d_inter_index[x] = (int)n_pmem;
@@ -235,7 +237,7 @@ void RegExpSolver::check()
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = Node::null();
-            d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP NF Conflict");
+            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP NF Conflict");
             addedLemma = true;
             break;
           }
@@ -279,8 +281,7 @@ void RegExpSolver::check()
           std::vector<Node> exp_n;
           exp_n.push_back(assertion);
           Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          conc = Rewriter::rewrite(conc);
-          d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+          d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
           addedLemma = true;
           if (changed)
           {
@@ -298,7 +299,7 @@ void RegExpSolver::check()
             repUnfold.insert(x);
           }
         }
-        if (d_parent.inConflict())
+        if (d_im.hasConflict())
         {
           break;
         }
@@ -307,7 +308,7 @@ void RegExpSolver::check()
   }
   if (addedLemma)
   {
-    if (!d_parent.inConflict())
+    if (!d_im.hasConflict())
     {
       for (unsigned i = 0; i < processed.size(); i++)
       {
@@ -338,7 +339,7 @@ bool RegExpSolver::checkPDerivative(
         std::vector<Node> exp_n;
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
-        d_parent.sendInference(nf_exp, exp_n, exp, "RegExp Delta");
+        d_im.sendInference(nf_exp, exp_n, exp, "RegExp Delta");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -354,7 +355,7 @@ bool RegExpSolver::checkPDerivative(
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
         Node conc;
-        d_parent.sendInference(nf_exp, exp_n, conc, "RegExp Delta CONFLICT");
+        d_im.sendInference(nf_exp, exp_n, conc, "RegExp Delta CONFLICT");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -444,7 +445,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     }
     std::vector<Node> exp_n;
     exp_n.push_back(atom);
-    d_parent.sendInference(ant, exp_n, conc, "RegExp-Derive");
+    d_im.sendInference(ant, exp_n, conc, "RegExp-Derive");
     return true;
   }
   return false;

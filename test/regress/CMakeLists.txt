@@ -865,6 +865,8 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
+  regress0/strings/tolower-rrs.smt2
+  regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
@@ -1553,6 +1555,7 @@ set(regress_1_tests
   regress1/strings/issue2429-code.smt2
   regress1/strings/issue2981.smt2
   regress1/strings/issue2982.smt2
+  regress1/strings/issue3090.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1577,6 +1580,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-neg-concat-reduct.smt2
+  regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
@@ -1606,6 +1610,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
+  regress1/strings/tolower-find.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
