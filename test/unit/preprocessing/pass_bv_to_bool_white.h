@@ -14,11 +14,9 @@
  ** Unit tests for bv-to-bool preprocessing pass.
  **/
 
-#include "context/context.h"
 #include "expr/node.h"
 #include "expr/node_manager.h"
 #include "preprocessing/passes/bv_to_bool.cpp"
-#include "preprocessing/preprocessing_pass.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
 #include "theory/bv/theory_bv_utils.h"
@@ -38,10 +36,9 @@ class BVToBoolWhite : public CxxTest::TestSuite
 {
   ExprManager* d_em;
   NodeManager* d_nm;
-  SmtEngine* d_smt;
-  SmtScope* d_scope;
-  Node d_zero;
-  Node d_one;
+  SmtEngine *d_smt;
+  SmtScope *d_scope;
+  Node d_unaryOne;
   Node d_two;
   Node d_three;
 
@@ -54,9 +51,7 @@ class BVToBoolWhite : public CxxTest::TestSuite
     d_nm = NodeManager::fromExprManager(d_em);
     d_smt = new SmtEngine(d_em);
     d_scope = new SmtScope(d_smt);
-
-    d_zero = bv::utils::mkZero(16);
-    d_one = d_nm->mkConst<BitVector>(BitVector(16, 1u));
+    d_unaryOne = d_nm->mkConst<BitVector>(BitVector(1, 1u));
     d_two = d_nm->mkConst<BitVector>(BitVector(16, 2u));
     d_three = d_nm->mkConst<BitVector>(BitVector(16, 3u));
   }
@@ -64,8 +59,7 @@ class BVToBoolWhite : public CxxTest::TestSuite
   void tearDown() override
   {
     (void)d_scope;
-    d_zero = Node::null();
-    d_one = Node::null();
+    d_unaryOne = Node::null();
     d_two = Node::null();
     d_three = Node::null();
     delete d_scope;
@@ -73,10 +67,12 @@ class BVToBoolWhite : public CxxTest::TestSuite
     delete d_em;
   }
 
-  void testBvToBool()
+  // Test wehther BITVECTOR_ITE is correctly eliminated.
+  // bvite(1, 2, 3) should get rewritten to ite(true, 2, 3)
+  void testLiftBVIte()
   {
-    Node bvite = d_nm->mkNode(kind::BITVECTOR_ITE, d_unaryOne, two, three);
-    Node ite = d_nm->mkNode(kind::ITE, nm->mkConst<Boolean>(true), two, three);
+    Node bvite = d_nm->mkNode(kind::BITVECTOR_ITE, d_unaryOne, d_two, d_three);
+    Node ite = d_nm->mkNode(kind::ITE, d_nm->mkConst<bool>(true), d_two, d_three);
 
     passes::BVToBool bvtobool(nullptr);
     AssertionPipeline apipe;
@@ -84,6 +80,6 @@ class BVToBoolWhite : public CxxTest::TestSuite
     PreprocessingPassResult pres = bvtobool.applyInternal(&apipe);
 
     TS_ASSERT(pres == PreprocessingPassResult::NO_CONFLICT);
-    TS_ASSERT_EQUAL(apipe[0], ite);
+    TS_ASSERT_EQUALS(apipe[0], Rewriter::rewrite(ite));
   }
 };
