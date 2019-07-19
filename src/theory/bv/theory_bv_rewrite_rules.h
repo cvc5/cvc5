@@ -54,6 +54,7 @@ enum RewriteRuleId
   SgtEliminate,
   RedorEliminate,
   RedandEliminate,
+  AshrEliminate,
   SubEliminate,
   SltEliminate,
   SleEliminate,
@@ -307,6 +308,7 @@ inline std::ostream& operator << (std::ostream& out, RewriteRuleId ruleId) {
   case UremSelf :            out << "UremSelf";             return out;
   case ShiftZero :            out << "ShiftZero";             return out;
   case SubEliminate :            out << "SubEliminate";             return out;
+  case AshrEliminate :            out << "AshrEliminate";             return out;
   case CompEliminate :            out << "CompEliminate";             return out;
   case XnorEliminate :            out << "XnorEliminate";             return out;
   case SignExtendEliminate :            out << "SignExtendEliminate";             return out;
@@ -394,7 +396,6 @@ class RewriteRule {
 public:
 
   RewriteRule() {
-    
     // if (s_statistics == NULL) {
     //   s_statistics = new RuleStatistics();
     // }
@@ -582,6 +583,7 @@ struct AllRewriteRules {
   RewriteRule<BvIteMergeThenElse>             rule137;
   RewriteRule<BvIteMergeElseElse>             rule138;
   RewriteRule<AndOrXorConcatPullUp>           rule139;
+  RewriteRule<AshrEliminate>                  rule140;
 };
 
 template<> inline
