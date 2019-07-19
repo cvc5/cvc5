@@ -18,8 +18,8 @@
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/rewriter.h"
 #include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
+#include "theory/rewriter.h"
 #include "util/bitvector.h"
 
 #include <cxxtest/TestSuite.h>
@@ -115,11 +115,14 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
     Node three_lshr_one = d_nm->mkNode(BITVECTOR_LSHR, three, one);
     TS_ASSERT(RewriteRule<AshrEliminate>::applies(fifteen_ashr_one));
     TS_ASSERT(RewriteRule<AshrEliminate>::applies(three_ashr_one));
-    TS_ASSERT(! RewriteRule<AshrEliminate>::applies(three_lshr_one));
-    Node fifteen_ashr_one_rw = RewriteRule<AshrEliminate>::apply(fifteen_ashr_one);
+    TS_ASSERT(!RewriteRule<AshrEliminate>::applies(three_lshr_one));
+    Node fifteen_ashr_one_rw =
+        RewriteRule<AshrEliminate>::apply(fifteen_ashr_one);
     Node three_ashr_one_rw = RewriteRule<AshrEliminate>::apply(three_ashr_one);
-    TS_ASSERT_EQUALS(Rewriter::rewrite(fifteen_ashr_one), Rewriter::rewrite(fifteen_ashr_one_rw));
-    TS_ASSERT_EQUALS(Rewriter::rewrite(three_ashr_one), Rewriter::rewrite(three_ashr_one_rw));
+    TS_ASSERT_EQUALS(Rewriter::rewrite(fifteen_ashr_one),
+                     Rewriter::rewrite(fifteen_ashr_one_rw));
+    TS_ASSERT_EQUALS(Rewriter::rewrite(three_ashr_one),
+                     Rewriter::rewrite(three_ashr_one_rw));
   }
 
  private:

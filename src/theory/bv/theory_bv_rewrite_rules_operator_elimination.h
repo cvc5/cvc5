@@ -27,12 +27,13 @@ namespace CVC4 {
 namespace theory {
 namespace bv {
 
-template<>
-inline bool RewriteRule<UgtEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<UgtEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_UGT);
 }
 
-template<>
+template <>
 inline Node RewriteRule<UgtEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UgtEliminate>(" << node << ")"
@@ -43,12 +44,13 @@ inline Node RewriteRule<UgtEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<UgeEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<UgeEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_UGE);
 }
 
-template<>
+template <>
 inline Node RewriteRule<UgeEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UgeEliminate>(" << node << ")"
@@ -59,12 +61,13 @@ inline Node RewriteRule<UgeEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SgtEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SgtEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SGT);
 }
 
-template<>
+template <>
 inline Node RewriteRule<SgtEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SgtEliminate>(" << node << ")"
@@ -75,12 +78,13 @@ inline Node RewriteRule<SgtEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SgeEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SgeEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SGE);
 }
 
-template<>
+template <>
 inline Node RewriteRule<SgeEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SgeEliminate>(" << node << ")"
@@ -91,12 +95,13 @@ inline Node RewriteRule<SgeEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SltEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SltEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SLT); 
 }
 
-template<>
+template <>
 inline Node RewriteRule<SltEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SltEliminate>(" << node << ")"
@@ -111,12 +116,13 @@ inline Node RewriteRule<SltEliminate>::apply(TNode node)
   return nm->mkNode(kind::BITVECTOR_ULT, a, b);
 }
 
-template<>
-inline bool RewriteRule<SleEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SleEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SLE); 
 }
 
-template<>
+template <>
 inline Node RewriteRule<SleEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SleEliminate>(" << node << ")"
@@ -128,12 +134,13 @@ inline Node RewriteRule<SleEliminate>::apply(TNode node)
   return nm->mkNode(kind::NOT, b_slt_a);
 }
 
-template<>
-inline bool RewriteRule<UleEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<UleEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_ULE); 
 }
 
-template<>
+template <>
 inline Node RewriteRule<UleEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<UleEliminate>(" << node << ")"
@@ -145,12 +152,13 @@ inline Node RewriteRule<UleEliminate>::apply(TNode node)
   return nm->mkNode(kind::NOT, b_ult_a);
 }
 
-template<>
-inline bool RewriteRule<CompEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<CompEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_COMP); 
 }
 
-template<>
+template <>
 inline Node RewriteRule<CompEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<CompEliminate>(" << node << ")"
@@ -163,43 +171,45 @@ inline Node RewriteRule<CompEliminate>::apply(TNode node)
   return nm->mkNode(kind::ITE, comp, one, zero);
 }
 
-template<>
-inline bool RewriteRule<AshrEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<AshrEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_ASHR);
 }
 
-template<>
-inline Node RewriteRule<AshrEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<AshrEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<AshrEliminate>(" << node << ")"
                       << std::endl;
-  NodeManager *nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   Node s = node[0];
   Node t = node[1];
-/*  From smtlib:
- *  (bvashr s t) abbreviates
-      (ite (= ((_ extract |m-1| |m-1|) s) #b0)
-           (bvlshr s t)
-           (bvnot (bvlshr (bvnot s) t)))
- *
- * */
+  /*  From smtlib:
+   *  (bvashr s t) abbreviates
+        (ite (= ((_ extract |m-1| |m-1|) s) #b0)
+             (bvlshr s t)
+             (bvnot (bvlshr (bvnot s) t)))
+   *
+   * */
   unsigned size = utils::getSize(s);
-  Node condition = nm->mkNode(kind::EQUAL,
-      utils::mkExtract(s, size - 1, size - 1),
-      utils::mkZero(1));
+  Node condition = nm->mkNode(
+      kind::EQUAL, utils::mkExtract(s, size - 1, size - 1), utils::mkZero(1));
   Node thenNode = nm->mkNode(kind::BITVECTOR_LSHR, s, t);
-  Node elseNode = nm->mkNode(kind::BITVECTOR_NOT,
-      nm->mkNode(kind::BITVECTOR_LSHR,
-        nm->mkNode(kind::BITVECTOR_NOT, s), t));
+  Node elseNode = nm->mkNode(
+      kind::BITVECTOR_NOT,
+      nm->mkNode(kind::BITVECTOR_LSHR, nm->mkNode(kind::BITVECTOR_NOT, s), t));
   Node ite = nm->mkNode(kind::ITE, condition, thenNode, elseNode);
   return ite;
 }
 
-template<>
-inline bool RewriteRule<SubEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SubEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SUB); 
 }
 
-template<>
+template <>
 inline Node RewriteRule<SubEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SubEliminate>(" << node << ")"
@@ -211,13 +221,15 @@ inline Node RewriteRule<SubEliminate>::apply(TNode node)
   return nm->mkNode(kind::BITVECTOR_PLUS, a, negb);
 }
 
-template<>
-inline bool RewriteRule<RepeatEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<RepeatEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_REPEAT);
 }
 
-template<>
-inline Node RewriteRule<RepeatEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<RepeatEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<RepeatEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned amount = node.getOperator().getConst<BitVectorRepeat>().repeatAmount;
@@ -233,13 +245,15 @@ inline Node RewriteRule<RepeatEliminate>::apply(TNode node) {
   return resultNode;
 }
 
-template<>
-inline bool RewriteRule<RotateLeftEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<RotateLeftEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_ROTATE_LEFT);
 }
 
-template<>
-inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<RotateLeftEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned amount = node.getOperator().getConst<BitVectorRotateLeft>().rotateLeftAmount;
@@ -255,13 +269,15 @@ inline Node RewriteRule<RotateLeftEliminate>::apply(TNode node) {
   return result;
 }
 
-template<>
-inline bool RewriteRule<RotateRightEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<RotateRightEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_ROTATE_RIGHT);
 }
 
-template<>
-inline Node RewriteRule<RotateRightEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<RotateRightEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<RotateRightEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned amount = node.getOperator().getConst<BitVectorRotateRight>().rotateRightAmount;
@@ -277,13 +293,15 @@ inline Node RewriteRule<RotateRightEliminate>::apply(TNode node) {
   return result;
 }
 
-template<>
-inline bool RewriteRule<BVToNatEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<BVToNatEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_TO_NAT);
 }
 
-template<>
-inline Node RewriteRule<BVToNatEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<BVToNatEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<BVToNatEliminate>(" << node << ")" << std::endl;
 
   //if( node[0].isConst() ){
@@ -305,13 +323,15 @@ inline Node RewriteRule<BVToNatEliminate>::apply(TNode node) {
   return Node(result);
 }
 
-template<>
-inline bool RewriteRule<IntToBVEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<IntToBVEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::INT_TO_BITVECTOR);
 }
 
-template<>
-inline Node RewriteRule<IntToBVEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<IntToBVEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<IntToBVEliminate>(" << node << ")" << std::endl;
 
   //if( node[0].isConst() ){
@@ -336,13 +356,14 @@ inline Node RewriteRule<IntToBVEliminate>::apply(TNode node) {
   return Node(result);
 }
 
-template<>
-inline bool RewriteRule<NandEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<NandEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_NAND &&
           node.getNumChildren() == 2);
 }
 
-template<>
+template <>
 inline Node RewriteRule<NandEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<NandEliminate>(" << node << ")"
@@ -355,13 +376,13 @@ inline Node RewriteRule<NandEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
+template <>
 inline bool RewriteRule<NorEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_NOR && node.getNumChildren() == 2);
 }
 
-template<>
+template <>
 inline Node RewriteRule<NorEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<NorEliminate>(" << node << ")"
@@ -374,13 +395,14 @@ inline Node RewriteRule<NorEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<XnorEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<XnorEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_XNOR &&
           node.getNumChildren() == 2);
 }
 
-template<>
+template <>
 inline Node RewriteRule<XnorEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<XnorEliminate>(" << node << ")"
@@ -393,12 +415,13 @@ inline Node RewriteRule<XnorEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SdivEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SdivEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SDIV);
 }
 
-template<>
+template <>
 inline Node RewriteRule<SdivEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SdivEliminate>(" << node << ")"
@@ -432,12 +455,13 @@ inline Node RewriteRule<SdivEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SremEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SremEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SREM);
 }
 
-template<>
+template <>
 inline Node RewriteRule<SremEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SremEliminate>(" << node << ")"
@@ -469,12 +493,13 @@ inline Node RewriteRule<SremEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<SmodEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SmodEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SMOD);
 }
 
-template<>
+template <>
 inline Node RewriteRule<SmodEliminate>::apply(TNode node)
 {
   Debug("bv-rewrite") << "RewriteRule<SmodEliminate>(" << node << ")"
@@ -530,13 +555,15 @@ inline Node RewriteRule<SmodEliminate>::apply(TNode node)
   return result;
 }
 
-template<>
-inline bool RewriteRule<ZeroExtendEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<ZeroExtendEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_ZERO_EXTEND); 
 }
 
-template<>
-inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<ZeroExtendEliminate>(" << node << ")" << std::endl;
 
   TNode bv = node[0];
@@ -550,13 +577,15 @@ inline Node RewriteRule<ZeroExtendEliminate>::apply(TNode node) {
   return result;
 }
 
-template<>
-inline bool RewriteRule<SignExtendEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<SignExtendEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_SIGN_EXTEND); 
 }
 
-template<>
-inline Node RewriteRule<SignExtendEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<SignExtendEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<SignExtendEliminate>(" << node << ")" << std::endl;
 
   unsigned amount = node.getOperator().getConst<BitVectorSignExtend>().signExtendAmount;
@@ -570,13 +599,15 @@ inline Node RewriteRule<SignExtendEliminate>::apply(TNode node) {
   return utils::mkConcat(extension, node[0]);
 }
 
-template<>
-inline bool RewriteRule<RedorEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<RedorEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_REDOR);
 }
 
-template<>
-inline Node RewriteRule<RedorEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<RedorEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<RedorEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned size = utils::getSize(node[0]); 
@@ -584,13 +615,15 @@ inline Node RewriteRule<RedorEliminate>::apply(TNode node) {
   return result.negate();
 }
 
-template<>
-inline bool RewriteRule<RedandEliminate>::applies(TNode node) {
+template <>
+inline bool RewriteRule<RedandEliminate>::applies(TNode node)
+{
   return (node.getKind() == kind::BITVECTOR_REDAND);
 }
 
-template<>
-inline Node RewriteRule<RedandEliminate>::apply(TNode node) {
+template <>
+inline Node RewriteRule<RedandEliminate>::apply(TNode node)
+{
   Debug("bv-rewrite") << "RewriteRule<RedandEliminate>(" << node << ")" << std::endl;
   TNode a = node[0];
   unsigned size = utils::getSize(node[0]); 
