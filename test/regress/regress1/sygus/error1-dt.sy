@@ -1,3 +1,5 @@
+; EXPECT: unsat
+; COMMAND-LINE: --sygus-out=status --cegqi-si=none --sygus-active-gen=enum
 
 (set-logic ALL_SUPPORTED)
 
