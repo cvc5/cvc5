@@ -2931,20 +2931,25 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
       set_use_index = true;
     }
   }
+  doInferInfo(pinfer[use_index]);
+}
+
+void TheoryStrings::doInferInfo( const InferInfo& ii )
+{
   // send the inference
-  if (!pinfer[use_index].d_nf_pair[0].isNull())
+  if (!ii.d_nf_pair[0].isNull())
   {
-    Assert(!pinfer[use_index].d_nf_pair[1].isNull());
-    addNormalFormPair(pinfer[use_index].d_nf_pair[0],
-                      pinfer[use_index].d_nf_pair[1]);
+    Assert(!ii.d_nf_pair[1].isNull());
+    addNormalFormPair(ii.d_nf_pair[0],
+                      ii.d_nf_pair[1]);
   }
   // send the inference
-  d_im.sendInference(pinfer[use_index]);
+  d_im.sendInference(ii);
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
   for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-       pinfer[use_index].d_new_skolem)
+       ii.d_new_skolem)
   {
     for (const Node& n : sks.second)
     {
