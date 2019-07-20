@@ -700,7 +700,7 @@ private:
   inline Node mkLength(Node n);
 
   /** make explanation
-   * 
+   *
    * This returns a node corresponding to the explanation of formulas in a,
    * interpreted conjunctively. The returned node is a conjunction of literals
    * that have been asserted to the equality engine.

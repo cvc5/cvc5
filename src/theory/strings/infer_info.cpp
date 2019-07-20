@@ -37,10 +37,7 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-InferInfo::InferInfo() : d_id(INFER_NONE), d_index(0), d_rev(false)
-{
-  
-}
+InferInfo::InferInfo() : d_id(INFER_NONE), d_index(0), d_rev(false) {}
 
 }  // namespace strings
 }  // namespace theory

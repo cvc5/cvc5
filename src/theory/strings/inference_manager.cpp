@@ -173,16 +173,11 @@ void InferenceManager::sendInference(const std::vector<Node>& exp,
   sendInference(exp, exp_n, eq, c, asLemma);
 }
 
-
-void InferenceManager::sendInference( const InferInfo& i )
+void InferenceManager::sendInference(const InferInfo& i)
 {
   std::stringstream ssi;
   ssi << i.d_id;
-  sendInference(i.d_ant,
-                     i.d_antn,
-                     i.d_conc,
-                     ssi.str().c_str(),
-                     true);
+  sendInference(i.d_ant, i.d_antn, i.d_conc, ssi.str().c_str(), true);
 }
 
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)

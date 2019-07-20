@@ -327,7 +327,7 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
     if( atom[0]!=atom[1] ){
       Assert( hasTerm( atom[0] ) );
       Assert( hasTerm( atom[1] ) );
-      Assert( d_equalityEngine.areEqual( atom[0], atom[1] ) );
+      Assert(d_equalityEngine.areEqual(atom[0], atom[1]));
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
@@ -4085,42 +4085,52 @@ Node TheoryStrings::mkLength( Node t ) {
   return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
 }
 
-Node TheoryStrings::mkExplain( const std::vector< Node >& a ) {
+Node TheoryStrings::mkExplain(const std::vector<Node>& a)
+{
   std::vector< Node > an;
   return mkExplain( a, an );
 }
 
-Node TheoryStrings::mkExplain( const std::vector< Node >& ao, const std::vector< Node >& an ) {
+Node TheoryStrings::mkExplain(const std::vector<Node>& ao,
+                              const std::vector<Node>& an)
+{
   std::vector< TNode > antec_exp;
-  std::vector< Node > a;
-  a.insert(a.end(),ao.begin(),ao.end());
+  std::vector<Node> a;
+  a.insert(a.end(), ao.begin(), ao.end());
   for( unsigned i=0; i<a.size(); i++ ) {
-    if( std::find( a.begin(), a.begin() + i, a[i] )!=a.begin() + i ) {
+    if (std::find(a.begin(), a.begin() + i, a[i]) != a.begin() + i)
+    {
       // already processed
       continue;
     }
-    if( a[i].getKind() == AND ){
-      for( unsigned j=0; j<a[i].getNumChildren(); j++ ){
-        a.push_back( a[i][j] );
+    if (a[i].getKind() == AND)
+    {
+      for (unsigned j = 0; j < a[i].getNumChildren(); j++)
+      {
+        a.push_back(a[i][j]);
       }
       continue;
     }
     Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
-    if( a[i].getKind()==NOT && a[i][0].getKind()==EQUAL ) {
-      Assert( hasTerm(a[i][0][0]) );
-      Assert( hasTerm(a[i][0][1]) );
+    if (a[i].getKind() == NOT && a[i][0].getKind() == EQUAL)
+    {
+      Assert(hasTerm(a[i][0][0]));
+      Assert(hasTerm(a[i][0][1]));
       // ensure that we are ready to explain the disequality
-      AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
+      AlwaysAssert(d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true));
     }
     // now, explain
     explain(a[i], antec_exp);
   }
-  for( const Node& anc : an ){
-    if( std::find( antec_exp.begin(), antec_exp.end(), anc )!=antec_exp.end() ){
+  for (const Node& anc : an)
+  {
+    if (std::find(antec_exp.begin(), antec_exp.end(), anc) != antec_exp.end())
+    {
       // already processed
       continue;
     }
-    Debug("strings-explain") << "Add to explanation (new literal) " << anc << std::endl;
+    Debug("strings-explain")
+        << "Add to explanation (new literal) " << anc << std::endl;
     antec_exp.push_back(anc);
   }
   Node ant;

@@ -24,8 +24,8 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/output_channel.h"
-#include "theory/uf/equality_engine.h"
 #include "theory/strings/infer_info.h"
+#include "theory/uf/equality_engine.h"
 
 namespace CVC4 {
 namespace theory {
@@ -136,12 +136,12 @@ class InferenceManager
                      Node eq,
                      const char* c,
                      bool asLemma = false);
-  /** Send inference 
-   * 
+  /** Send inference
+   *
    * Calls the appropriate call to send inference based on the infer info
    * data structure.
    */
-  void sendInference( const InferInfo& i );
+  void sendInference(const InferInfo& i);
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a
