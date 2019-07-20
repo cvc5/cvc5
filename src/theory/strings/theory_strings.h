@@ -659,12 +659,12 @@ private:
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  /** 
+  /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and
    * updates the set of normal form pairs.
    */
-  void doInferInfo( const InferInfo& ii );
+  void doInferInfo(const InferInfo& ii);
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
    * must be the case that areEqual( a, b ) holds in this context.

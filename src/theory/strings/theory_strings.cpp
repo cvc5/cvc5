@@ -2933,14 +2933,13 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
   doInferInfo(pinfer[use_index]);
 }
 
-void TheoryStrings::doInferInfo( const InferInfo& ii )
+void TheoryStrings::doInferInfo(const InferInfo& ii)
 {
   // send the inference
   if (!ii.d_nf_pair[0].isNull())
   {
     Assert(!ii.d_nf_pair[1].isNull());
-    addNormalFormPair(ii.d_nf_pair[0],
-                      ii.d_nf_pair[1]);
+    addNormalFormPair(ii.d_nf_pair[0], ii.d_nf_pair[1]);
   }
   // send the inference
   d_im.sendInference(ii);
@@ -4126,7 +4125,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
       // ensure that we are ready to explain the disequality
       AlwaysAssert(d_equalityEngine.areDisequal(api[0][0], api[0][1], true));
     }
-    Assert(api.getKind()!=EQUAL || d_equalityEngine.areEqual(api[0], api[1]));
+    Assert(api.getKind() != EQUAL || d_equalityEngine.areEqual(api[0], api[1]));
     // now, explain
     explain(api, antec_exp);
   }
