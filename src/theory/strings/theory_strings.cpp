@@ -4091,36 +4091,38 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a)
   return mkExplain( a, an );
 }
 
-Node TheoryStrings::mkExplain(const std::vector<Node>& ao,
+Node TheoryStrings::mkExplain(const std::vector<Node>& a,
                               const std::vector<Node>& an)
 {
   std::vector< TNode > antec_exp;
-  std::vector<Node> a;
-  a.insert(a.end(), ao.begin(), ao.end());
-  for( unsigned i=0; i<a.size(); i++ ) {
-    if (std::find(a.begin(), a.begin() + i, a[i]) != a.begin() + i)
+  // copy to processing vector
+  std::vector<Node> ap;
+  ap.insert(ap.end(), a.begin(), a.end());
+  for( unsigned i=0; i<ap.size(); i++ ) {
+    Node api = ap[i];
+    if (std::find(ap.begin(), ap.begin() + i, api) != ap.begin() + i)
     {
       // already processed
       continue;
     }
-    if (a[i].getKind() == AND)
+    if (api.getKind() == AND)
     {
-      for (unsigned j = 0; j < a[i].getNumChildren(); j++)
+      for( const Node& apic : api )
       {
-        a.push_back(a[i][j]);
+        ap.push_back(apic);
       }
       continue;
     }
-    Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
-    if (a[i].getKind() == NOT && a[i][0].getKind() == EQUAL)
+    Debug("strings-explain") << "Add to explanation " << api << std::endl;
+    if (api.getKind() == NOT && api[0].getKind() == EQUAL)
     {
-      Assert(hasTerm(a[i][0][0]));
-      Assert(hasTerm(a[i][0][1]));
+      Assert(hasTerm(api[0][0]));
+      Assert(hasTerm(api[0][1]));
       // ensure that we are ready to explain the disequality
-      AlwaysAssert(d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true));
+      AlwaysAssert(d_equalityEngine.areDisequal(api[0][0], api[0][1], true));
     }
     // now, explain
-    explain(a[i], antec_exp);
+    explain(api, antec_exp);
   }
   for (const Node& anc : an)
   {
@@ -4141,7 +4143,6 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& ao,
   } else {
     ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
   }
-  //ant = Rewriter::rewrite( ant );
   return ant;
 }
 
