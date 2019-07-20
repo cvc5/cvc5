@@ -4098,7 +4098,8 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
   // copy to processing vector
   std::vector<Node> ap;
   ap.insert(ap.end(), a.begin(), a.end());
-  for( unsigned i=0; i<ap.size(); i++ ) {
+  for (unsigned i = 0; i < ap.size(); i++)
+  {
     Node api = ap[i];
     if (std::find(ap.begin(), ap.begin() + i, api) != ap.begin() + i)
     {
@@ -4107,7 +4108,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
     }
     if (api.getKind() == AND)
     {
-      for( const Node& apic : api )
+      for (const Node& apic : api)
       {
         ap.push_back(apic);
       }
