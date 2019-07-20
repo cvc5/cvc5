@@ -327,7 +327,6 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
     if( atom[0]!=atom[1] ){
       Assert( hasTerm( atom[0] ) );
       Assert( hasTerm( atom[1] ) );
-      Assert(!polarity || d_equalityEngine.areEqual(atom[0], atom[1]));
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
@@ -4127,6 +4126,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
       // ensure that we are ready to explain the disequality
       AlwaysAssert(d_equalityEngine.areDisequal(api[0][0], api[0][1], true));
     }
+    Assert(api.getKind()!=EQUAL || d_equalityEngine.areEqual(api[0], api[1]));
     // now, explain
     explain(api, antec_exp);
   }
