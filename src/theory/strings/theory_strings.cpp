@@ -2943,7 +2943,7 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
                      pinfer[use_index].d_antn,
                      pinfer[use_index].d_conc,
                      ssi.str().c_str(),
-                     pinfer[use_index].sendAsLemma());
+                     true);
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.

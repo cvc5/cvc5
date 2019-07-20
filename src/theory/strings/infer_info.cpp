@@ -37,11 +37,6 @@ std::ostream& operator<<(std::ostream& out, Inference i)
   return out;
 }
 
-bool InferInfo::sendAsLemma() {
-  return true;
-}
-
-
 }/* CVC4::theory::strings namespace */
 }/* CVC4::theory namespace */
 }/* CVC4 namespace */
