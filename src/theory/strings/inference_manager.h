@@ -25,6 +25,7 @@
 #include "expr/node.h"
 #include "theory/output_channel.h"
 #include "theory/uf/equality_engine.h"
+#include "theory/strings/infer_info.h"
 
 namespace CVC4 {
 namespace theory {
@@ -125,16 +126,22 @@ class InferenceManager
    * If the flag asLemma is true, then this method will send a lemma instead
    * of an inference whenever applicable.
    */
-  void sendInference(std::vector<Node>& exp,
-                     std::vector<Node>& exp_n,
+  void sendInference(const std::vector<Node>& exp,
+                     const std::vector<Node>& exp_n,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
   /** same as above, but where exp_n is empty */
-  void sendInference(std::vector<Node>& exp,
+  void sendInference(const std::vector<Node>& exp,
                      Node eq,
                      const char* c,
                      bool asLemma = false);
+  /** Send inference 
+   * 
+   * Calls the appropriate call to send inference based on the infer info
+   * data structure.
+   */
+  void sendInference( const InferInfo& i );
   /** Send split
    *
    * This requests that ( a = b V a != b ) is sent on the output channel as a

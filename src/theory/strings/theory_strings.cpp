@@ -327,6 +327,7 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
     if( atom[0]!=atom[1] ){
       Assert( hasTerm( atom[0] ) );
       Assert( hasTerm( atom[1] ) );
+      Assert( d_equalityEngine.areEqual( atom[0], atom[1] ) );
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
@@ -2937,13 +2938,8 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
     addNormalFormPair(pinfer[use_index].d_nf_pair[0],
                       pinfer[use_index].d_nf_pair[1]);
   }
-  std::stringstream ssi;
-  ssi << pinfer[use_index].d_id;
-  d_im.sendInference(pinfer[use_index].d_ant,
-                     pinfer[use_index].d_antn,
-                     pinfer[use_index].d_conc,
-                     ssi.str().c_str(),
-                     true);
+  // send the inference
+  d_im.sendInference(pinfer[use_index]);
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
@@ -4089,51 +4085,43 @@ Node TheoryStrings::mkLength( Node t ) {
   return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
 }
 
-Node TheoryStrings::mkExplain( std::vector< Node >& a ) {
+Node TheoryStrings::mkExplain( const std::vector< Node >& a ) {
   std::vector< Node > an;
   return mkExplain( a, an );
 }
 
-Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an ) {
+Node TheoryStrings::mkExplain( const std::vector< Node >& ao, const std::vector< Node >& an ) {
   std::vector< TNode > antec_exp;
+  std::vector< Node > a;
+  a.insert(a.end(),ao.begin(),ao.end());
   for( unsigned i=0; i<a.size(); i++ ) {
-    if( std::find( a.begin(), a.begin() + i, a[i] )==a.begin() + i ) {
-      bool exp = true;
-      Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
-      //assert
-      if(a[i].getKind() == kind::EQUAL) {
-        //Assert( hasTerm(a[i][0]) );
-        //Assert( hasTerm(a[i][1]) );
-        Assert( areEqual(a[i][0], a[i][1]) );
-        if( a[i][0]==a[i][1] ){
-          exp = false;
-        }
-      } else if( a[i].getKind()==kind::NOT && a[i][0].getKind()==kind::EQUAL ) {
-        Assert( hasTerm(a[i][0][0]) );
-        Assert( hasTerm(a[i][0][1]) );
-        AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
-      }else if( a[i].getKind() == kind::AND ){
-        for( unsigned j=0; j<a[i].getNumChildren(); j++ ){
-          a.push_back( a[i][j] );
-        }
-        exp = false;
-      }
-      if( exp ) {
-        unsigned ps = antec_exp.size();
-        explain(a[i], antec_exp);
-        Debug("strings-explain") << "Done, explanation was : " << std::endl;
-        for( unsigned j=ps; j<antec_exp.size(); j++ ) {
-          Debug("strings-explain") << "  " << antec_exp[j] << std::endl;
-        }
-        Debug("strings-explain") << std::endl;
-      }
+    if( std::find( a.begin(), a.begin() + i, a[i] )!=a.begin() + i ) {
+      // already processed
+      continue;
     }
+    if( a[i].getKind() == AND ){
+      for( unsigned j=0; j<a[i].getNumChildren(); j++ ){
+        a.push_back( a[i][j] );
+      }
+      continue;
+    }
+    Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
+    if( a[i].getKind()==NOT && a[i][0].getKind()==EQUAL ) {
+      Assert( hasTerm(a[i][0][0]) );
+      Assert( hasTerm(a[i][0][1]) );
+      // ensure that we are ready to explain the disequality
+      AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
+    }
+    // now, explain
+    explain(a[i], antec_exp);
   }
-  for( unsigned i=0; i<an.size(); i++ ) {
-    if( std::find( an.begin(), an.begin() + i, an[i] )==an.begin() + i ){
-      Debug("strings-explain") << "Add to explanation (new literal) " << an[i] << std::endl;
-      antec_exp.push_back(an[i]);
+  for( const Node& anc : an ){
+    if( std::find( antec_exp.begin(), antec_exp.end(), anc )!=antec_exp.end() ){
+      // already processed
+      continue;
     }
+    Debug("strings-explain") << "Add to explanation (new literal) " << anc << std::endl;
+    antec_exp.push_back(anc);
   }
   Node ant;
   if( antec_exp.empty() ) {

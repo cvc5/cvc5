@@ -95,6 +95,7 @@ enum LengthStatus
 class InferInfo
 {
  public:
+  InferInfo();
   /**
    * The identifier for the inference, indicating the kind of reasoning used
    * for this conclusion.

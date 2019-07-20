@@ -23,7 +23,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-Node mkAnd(std::vector<Node>& a)
+Node mkAnd(const std::vector<Node>& a)
 {
   std::vector<Node> au;
   for (const Node& ai : a)

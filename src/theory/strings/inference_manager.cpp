@@ -99,8 +99,8 @@ bool InferenceManager::sendInternalInference(std::vector<Node>& exp,
   return true;
 }
 
-void InferenceManager::sendInference(std::vector<Node>& exp,
-                                     std::vector<Node>& exp_n,
+void InferenceManager::sendInference(const std::vector<Node>& exp,
+                                     const std::vector<Node>& exp_n,
                                      Node eq,
                                      const char* c,
                                      bool asLemma)
@@ -164,13 +164,25 @@ void InferenceManager::sendInference(std::vector<Node>& exp,
   }
 }
 
-void InferenceManager::sendInference(std::vector<Node>& exp,
+void InferenceManager::sendInference(const std::vector<Node>& exp,
                                      Node eq,
                                      const char* c,
                                      bool asLemma)
 {
   std::vector<Node> exp_n;
   sendInference(exp, exp_n, eq, c, asLemma);
+}
+
+
+void InferenceManager::sendInference( const InferInfo& i )
+{
+  std::stringstream ssi;
+  ssi << i.d_id;
+  sendInference(i.d_ant,
+                     i.d_antn,
+                     i.d_conc,
+                     ssi.str().c_str(),
+                     true);
 }
 
 void InferenceManager::sendLemma(Node ant, Node conc, const char* c)

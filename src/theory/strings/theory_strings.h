@@ -699,9 +699,15 @@ private:
   inline Node mkConcat(const std::vector<Node>& c);
   inline Node mkLength(Node n);
 
-  /** mkExplain **/
-  Node mkExplain(std::vector<Node>& a);
-  Node mkExplain(std::vector<Node>& a, std::vector<Node>& an);
+  /** make explanation
+   * 
+   * This returns a node corresponding to the explanation of formulas in a,
+   * interpreted conjunctively. The returned node is a conjunction of literals
+   * that have been asserted to the equality engine.
+   */
+  Node mkExplain(const std::vector<Node>& a);
+  /** Same as above, but the new literals an are append to the result */
+  Node mkExplain(const std::vector<Node>& a, const std::vector<Node>& an);
 
  protected:
 
