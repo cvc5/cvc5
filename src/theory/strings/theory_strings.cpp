@@ -327,7 +327,7 @@ void TheoryStrings::explain(TNode literal, std::vector<TNode>& assumptions) {
     if( atom[0]!=atom[1] ){
       Assert( hasTerm( atom[0] ) );
       Assert( hasTerm( atom[1] ) );
-      Assert(d_equalityEngine.areEqual(atom[0], atom[1]));
+      Assert(!polarity || d_equalityEngine.areEqual(atom[0], atom[1]));
       d_equalityEngine.explainEquality(atom[0], atom[1], polarity, tassumptions);
     }
   } else {
