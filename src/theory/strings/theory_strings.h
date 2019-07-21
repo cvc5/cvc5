@@ -423,7 +423,7 @@ private:
     /** same as above, for suffix. */
     context::CDO<Node> d_suffixC;
     /** add prefix constant
-     * 
+     *
      * This informs this equivalence class info that a term t in its
      * equivalence class has a constant prefix (if isPost=true) or suffix
      * (if isPost=false). The constant c (if non-null) is the value of that

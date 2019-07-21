@@ -1167,11 +1167,11 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
           r[i] = tp;
         }
       }
-      if( r[0]!=r[1] )
+      if (r[0] != r[1])
       {
         ccs.push_back(r[0].eqNode(r[1]));
       }
-      Assert( !ccs.empty() );
+      Assert(!ccs.empty());
       Node ret =
           ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
       Trace("strings-eager-pconf")
