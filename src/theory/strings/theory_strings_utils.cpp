@@ -51,7 +51,7 @@ Node getConstantComponent(Node t)
   {
     return t[0].isConst() ? t[0] : Node::null();
   }
-  return tk==CONST_STRING ? t : Node::null();
+  return tk == CONST_STRING ? t : Node::null();
 }
 
 Node getConstantPrefix(Node e, bool isPost)

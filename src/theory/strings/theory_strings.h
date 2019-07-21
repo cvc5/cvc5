@@ -758,7 +758,7 @@ private:
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
   /** add prefix to eqc info */
-  void addPrefixToEqcInfo( Node t, Node concat, Node eqc );
+  void addPrefixToEqcInfo(Node t, Node concat, Node eqc);
   /** set pending conflict */
   void setPendingConflict(Node conf);
   /**

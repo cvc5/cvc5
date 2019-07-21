@@ -1110,19 +1110,21 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
   Node prev = isPost ? d_suffixC : d_prefixC;
   if (!prev.isNull())
   {
-    Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t << " post=" << isPost << std::endl;
+    Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
+                                       << " post=" << isPost << std::endl;
     Node prevC = utils::getConstantPrefix(prev, isPost);
     if (c.isNull())
     {
       c = utils::getConstantPrefix(t, isPost);
-      Assert( !c.isNull() );
+      Assert(!c.isNull());
     }
     if (c == prevC)
     {
       return Node::null();
     }
     Assert(!prevC.isNull() && !c.isNull());
-    Trace("strings-eager-pconf-debug")  << "Check conflict constants " << prevC << ", " << c << std::endl;
+    Trace("strings-eager-pconf-debug")
+        << "Check conflict constants " << prevC << ", " << c << std::endl;
     const String& ps = prevC.getConst<String>();
     const String& cs = c.getConst<String>();
     unsigned pvs = ps.size();
@@ -1251,11 +1253,11 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   }
   else if (k == STRING_CONCAT)
   {
-    addPrefixToEqcInfo( t, t, t );
+    addPrefixToEqcInfo(t, t, t);
   }
 }
 
-void TheoryStrings::addPrefixToEqcInfo( Node t, Node concat, Node eqc )
+void TheoryStrings::addPrefixToEqcInfo(Node t, Node concat, Node eqc)
 {
   EqcInfo* ei = nullptr;
   // check each side
@@ -1269,7 +1271,9 @@ void TheoryStrings::addPrefixToEqcInfo( Node t, Node concat, Node eqc )
       {
         ei = getOrMakeEqcInfo(eqc);
       }
-      Trace("strings-eager-pconf-debug") << "New term: " << concat << " for " << t << " with prefix " << c << " (" << (r==1) << ")" << std::endl;
+      Trace("strings-eager-pconf-debug")
+          << "New term: " << concat << " for " << t << " with prefix " << c
+          << " (" << (r == 1) << ")" << std::endl;
       ei->addPrefixConst(t, c, r == 1);
     }
   }
@@ -1442,26 +1446,28 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
     Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
   } else {
     d_equalityEngine.assertPredicate( atom, polarity, exp );
-    if( atom.getKind()==STRING_IN_REGEXP )
+    if (atom.getKind() == STRING_IN_REGEXP)
     {
-      if( polarity && atom[1].getKind() == REGEXP_CONCAT)
+      if (polarity && atom[1].getKind() == REGEXP_CONCAT)
       {
         Node eqc = d_equalityEngine.getRepresentative(atom[0]);
-        addPrefixToEqcInfo( atom, atom[1], eqc );
+        addPrefixToEqcInfo(atom, atom[1], eqc);
       }
     }
   }
   // process the conflict
-  if( !d_conflict )
+  if (!d_conflict)
   {
-    if( !d_pendingConflict.get().isNull() )
+    if (!d_pendingConflict.get().isNull())
     {
-      std::vector< Node > a;
+      std::vector<Node> a;
       a.push_back(d_pendingConflict.get());
-      Trace("strings-pending") << "Process pending conflict " << d_pendingConflict.get() << std::endl;
+      Trace("strings-pending") << "Process pending conflict "
+                               << d_pendingConflict.get() << std::endl;
       Node conflictNode = mkExplain(a);
       d_conflict = true;
-      Trace("strings-conflict") << "CONFLICT: Eager prefix conflict : " << conflictNode << std::endl;
+      Trace("strings-conflict")
+          << "CONFLICT: Eager prefix conflict : " << conflictNode << std::endl;
       d_out->conflict(conflictNode);
     }
   }
