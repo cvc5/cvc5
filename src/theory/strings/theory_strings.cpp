@@ -1273,7 +1273,7 @@ void TheoryStrings::addPrefixToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      ei->addPrefixConst(t, c, r == 1);
+      setPendingConflict(ei->addPrefixConst(t, c, r == 1));
     }
   }
 }
@@ -1466,7 +1466,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       Node conflictNode = mkExplain(a);
       d_conflict = true;
       Trace("strings-conflict")
-          << "CONFLICT: Eager prefix conflict : " << conflictNode << std::endl;
+          << "CONFLICT: Eager prefix : " << conflictNode << std::endl;
       d_out->conflict(conflictNode);
     }
   }
