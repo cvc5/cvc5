@@ -1152,7 +1152,31 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
     {
       Trace("strings-eager-pconf")
           << "Conflict for " << ps << ", " << cs << std::endl;
-      return constructPrefixConflict(t, prev);
+      std::vector<Node> ccs;
+      Node r[2];
+      for (unsigned i = 0; i < 2; i++)
+      {
+        Node tp = i == 0 ? t : prev;
+        if (tp.getKind() == STRING_IN_REGEXP)
+        {
+          ccs.push_back(tp);
+          r[i] = tp[0];
+        }
+        else
+        {
+          r[i] = tp;
+        }
+      }
+      if( r[0]!=r[1] )
+      {
+        ccs.push_back(r[0].eqNode(r[1]));
+      }
+      Assert( !ccs.empty() );
+      Node ret =
+          ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
+      Trace("strings-eager-pconf")
+          << "String: eager prefix conflict: " << ret << std::endl;
+      return ret;
     }
     else if (pvs > cvs)
     {
@@ -1169,31 +1193,6 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
     d_prefixC = t;
   }
   return Node::null();
-}
-
-Node TheoryStrings::EqcInfo::constructPrefixConflict(Node t1, Node t2)
-{
-  std::vector<Node> ccs;
-  Node r[2];
-  for (unsigned i = 0; i < 2; i++)
-  {
-    Node tp = i == 0 ? t1 : t2;
-    if (tp.getKind() == STRING_IN_REGEXP)
-    {
-      ccs.push_back(tp);
-      r[i] = tp[0];
-    }
-    else
-    {
-      r[i] = tp;
-    }
-  }
-  ccs.push_back(r[0].eqNode(r[1]));
-  Node ret =
-      ccs.size() == 1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND, ccs);
-  Trace("strings-eager-pconf")
-      << "String: eager prefix conflict: " << ret << std::endl;
-  return ret;
 }
 
 TheoryStrings::EqcInfo * TheoryStrings::getOrMakeEqcInfo( Node eqc, bool doMake ) {

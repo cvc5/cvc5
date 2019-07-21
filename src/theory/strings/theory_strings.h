@@ -422,11 +422,14 @@ private:
     context::CDO<Node> d_prefixC;
     /** same as above, for suffix. */
     context::CDO<Node> d_suffixC;
-    /** add prefix const */
+    /** add prefix constant
+     * 
+     * This informs this equivalence class info that a term t in its
+     * equivalence class has a constant prefix (if isPost=true) or suffix
+     * (if isPost=false). The constant c (if non-null) is the value of that
+     * constant, if it has been computed yet.
+     */
     Node addPrefixConst(Node t, Node c, bool isPost);
-
-   private:
-    Node constructPrefixConflict(Node t1, Node t2);
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
