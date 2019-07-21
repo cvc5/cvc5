@@ -34,7 +34,7 @@ namespace utils {
  */
 Node mkAnd(std::vector<Node>& a);
 
-/** 
+/**
  * Get constant component. Returns the string constant represented by the
  * string or regular expression t. For example:
  *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null

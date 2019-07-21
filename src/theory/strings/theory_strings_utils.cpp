@@ -46,24 +46,24 @@ Node mkAnd(std::vector<Node>& a)
 
 Node getConstantComponent(Node t)
 {
-  if( t.getKind()==STRING_TO_REGEXP )
+  if (t.getKind() == STRING_TO_REGEXP)
   {
     return t[0].isConst() ? t[0] : Node::null();
-  }  
-  Assert( t.getType().isString() );
+  }
+  Assert(t.getType().isString());
   return t.isConst() ? t : Node::null();
 }
 
 Node getConstantPrefix(Node e, bool isPost)
 {
   Kind ek = e.getKind();
-  if( ek==STRING_IN_REGEXP )
+  if (ek == STRING_IN_REGEXP)
   {
-    return getConstantPrefix(e[1],isPost);
+    return getConstantPrefix(e[1], isPost);
   }
-  if( ek==STRING_CONCAT || ek==REGEXP_CONCAT )
+  if (ek == STRING_CONCAT || ek == REGEXP_CONCAT)
   {
-    return getConstantComponent(e[isPost ? e.getNumChildren()-1 : 0]);
+    return getConstantComponent(e[isPost ? e.getNumChildren() - 1 : 0]);
   }
   return getConstantComponent(e);
 }

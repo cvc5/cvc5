@@ -146,7 +146,6 @@ class CVC4_PUBLIC String {
   bool hasPrefix(const String& y) const;
   /** Returns true if y is a suffix of this */
   bool hasSuffix(const String& y) const;
-  
 
   String replace(const String& s, const String& t) const;
   String substr(std::size_t i) const;

@@ -423,8 +423,9 @@ private:
     /** same as above, for suffix. */
     context::CDO<Node> d_suffixC;
     /** add prefix const */
-    Node addPrefixConst( Node t, Node c, bool isPost );
-  private:
+    Node addPrefixConst(Node t, Node c, bool isPost);
+
+   private:
     Node constructPrefixConflict(Node t1, Node t2);
   };
   /** map from representatives to information necessary for equivalence classes */

@@ -398,12 +398,13 @@ bool String::hasPrefix(const String& y) const
 {
   unsigned s = size();
   unsigned ys = y.size();
-  if( ys>s ){
+  if (ys > s)
+  {
     return false;
   }
-  for( unsigned i=0; i<ys; i++ )
+  for (unsigned i = 0; i < ys; i++)
   {
-    if( d_str[i]!=y.d_str[i])
+    if (d_str[i] != y.d_str[i])
     {
       return false;
     }
@@ -415,20 +416,21 @@ bool String::hasSuffix(const String& y) const
 {
   unsigned s = size();
   unsigned ys = y.size();
-  if( ys>s ){
+  if (ys > s)
+  {
     return false;
   }
-  unsigned idiff = s-ys;
-  for( unsigned i=0; i<ys; i++ )
+  unsigned idiff = s - ys;
+  for (unsigned i = 0; i < ys; i++)
   {
-    if( d_str[i+idiff]!=y.d_str[i])
+    if (d_str[i + idiff] != y.d_str[i])
     {
       return false;
     }
   }
   return true;
 }
-  
+
 String String::replace(const String &s, const String &t) const {
   std::size_t ret = find(s);
   if (ret != std::string::npos) {
