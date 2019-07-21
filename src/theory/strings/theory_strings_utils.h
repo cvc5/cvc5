@@ -34,6 +34,26 @@ namespace utils {
  */
 Node mkAnd(std::vector<Node>& a);
 
+/** 
+ * Get constant component. Returns the string constant represented by the
+ * string or regular expression t. For example:
+ *   "ABC" -> "ABC", (str.to.re "ABC") -> "ABC", (str.++ x "ABC") -> null
+ */
+Node getConstantComponent(Node t);
+
+/**
+ * Get constant prefix / suffix from expression. For example, if isPost=false:
+ *   "ABC" -> "ABC"
+ *   (str.++ "ABC" x) -> "ABC"
+ *   (str.to.re "ABC") -> "ABC"
+ *   (re.++ (str.to.re "ABC") ...) -> "ABC"
+ *   (re.in x (str.to.re "ABC")) -> "ABC"
+ *   (re.in x (re.++ (str.to.re "ABC") ...)) -> "ABC"
+ *   (str.++ x "ABC") -> null
+ *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
+ */
+Node getConstantPrefix(Node e, bool isPost);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

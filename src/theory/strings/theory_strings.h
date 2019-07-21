@@ -304,6 +304,8 @@ class TheoryStrings : public Theory {
   InferenceManager d_im;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
+  /** Pending conflict */
+  context::CDO<Node> d_pendingConflict;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -408,6 +410,22 @@ private:
     context::CDO<Node> d_code_term;
     context::CDO< unsigned > d_cardinality_lem_k;
     context::CDO< Node > d_normalized_length;
+    /**
+     * A node that explains the longest constant prefix known of this
+     * equivalence class. This can either be:
+     * (1) A term from this equivalence class, including a constant "ABC" or
+     * concatenation term (str.++ "ABC" ...), or
+     * (2) A membership of the form (str.in.re x R) where x is in this
+     * equivalence class and R is a regular expression of the form
+     * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
+     */
+    context::CDO<Node> d_prefixC;
+    /** same as above, for suffix. */
+    context::CDO<Node> d_suffixC;
+    /** add prefix const */
+    Node addPrefixConst( Node t, Node c, bool isPost );
+  private:
+    Node constructPrefixConflict(Node t1, Node t2);
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -738,6 +756,8 @@ private:
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
+  /** set pending conflict */
+  void setPendingConflict(Node conf);
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
    * must be the case that areEqual( a, b ) holds in this context.

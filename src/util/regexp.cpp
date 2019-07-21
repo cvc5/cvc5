@@ -394,6 +394,41 @@ std::size_t String::rfind(const String &y, const std::size_t start) const {
   return std::string::npos;
 }
 
+bool String::hasPrefix(const String& y) const
+{
+  unsigned s = size();
+  unsigned ys = y.size();
+  if( ys>s ){
+    return false;
+  }
+  for( unsigned i=0; i<ys; i++ )
+  {
+    if( d_str[i]!=y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+
+bool String::hasSuffix(const String& y) const
+{
+  unsigned s = size();
+  unsigned ys = y.size();
+  if( ys>s ){
+    return false;
+  }
+  unsigned idiff = s-ys;
+  for( unsigned i=0; i<ys; i++ )
+  {
+    if( d_str[i+idiff]!=y.d_str[i])
+    {
+      return false;
+    }
+  }
+  return true;
+}
+  
 String String::replace(const String &s, const String &t) const {
   std::size_t ret = find(s);
   if (ret != std::string::npos) {

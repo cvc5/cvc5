@@ -107,6 +107,7 @@ TheoryStrings::TheoryStrings(context::Context* c,
       d_equalityEngine(d_notify, c, "theory::strings", true),
       d_im(*this, c, u, d_equalityEngine, out),
       d_conflict(c, false),
+      d_pendingConflict(c),
       d_nf_pairs(c),
       d_pregistered_terms_cache(u),
       d_registered_terms_cache(u),
@@ -1097,8 +1098,95 @@ TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
     : d_length_term(c),
       d_code_term(c),
       d_cardinality_lem_k(c),
-      d_normalized_length(c)
+      d_normalized_length(c),
+      d_prefixC(c),
+      d_suffixC(c)
 {
+}
+
+
+Node TheoryStrings::EqcInfo::addPrefixConst( Node t, Node c, bool isPost )
+{
+  // check conflict
+  Node prev = isPost ? d_suffixC : d_prefixC;
+  if( !prev.isNull() )
+  {
+    Node prevC = utils::getConstantPrefix(prev,isPost);
+    if( c.isNull() )
+    {
+      c = utils::getConstantPrefix(t,isPost);
+    }
+    if( c==prevC )
+    {
+      return Node::null();
+    }
+    Assert( !prevC.isNull() && !c.isNull() );
+    String& ps = prevC.getConst<String>();
+    String& cs = c.getConst<String>();
+    unsigned pvs = ps.size();
+    unsigned cvs = cs.size();
+    bool conflict = false;
+    if( pvs==cvs )
+    {
+      // cannot be equal due to node check above
+      conflict = true;
+    }
+    else
+    {
+      String& larges = pvs>cvs ? ps : cs;
+      String& smalls = pvs>cvs ? ps : cs;
+      if( isPost )
+      {
+        conflict = !larges.hasSuffix(smalls);
+      }
+      else
+      {
+        conflict = !larges.hasPrefix(smalls);
+      }
+    }
+    if( conflict )
+    {
+      Trace("strings-eager-pconf") << "Conflict for " << ps << ", " << cs << std::endl;
+      return constructPrefixConflict(t,prev);
+    }
+    else if( pvs>cvs )
+    {
+        // current is subsumed
+      return Node::null();
+    }
+  }
+  if( isPost )
+  {
+    d_prefixC = t;
+  }
+  else
+  {
+    d_suffixC = t;
+  }
+  return Node::null();
+}
+
+Node TheoryStrings::constructPrefixConflict(Node t1, Node t2)
+{
+  std::vector< Node > ccs;
+  Node r[2];
+  for( unsigned i=0; i<2; i++ )
+  {
+    Node tp = i==0 ? t1 : t2;
+    if( tp.getKind()==STRING_IN_REGEXP )
+    {
+      ccs.push_back(tp);
+      r[i] = tp[0];
+    }
+    else
+    {
+      r[i] = tp;
+    }
+  }
+  ccs.push_back(r[0].eqNode(r[1]));
+  Node ret = ccs.size()==1 ? ccs[0] : NodeManager::currentNM()->mkNode(AND,ccs);
+  Trace("strings-eager-pconf") << "String: eager prefix conflict: " << ret << std::endl;
+  return ret;
 }
 
 TheoryStrings::EqcInfo * TheoryStrings::getOrMakeEqcInfo( Node eqc, bool doMake ) {
@@ -1136,7 +1224,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   {
     Trace("strings-debug") << "New length eqc : " << t << std::endl;
     Node r = d_equalityEngine.getRepresentative(t[0]);
-    EqcInfo * ei = getOrMakeEqcInfo( r, true );
+    EqcInfo * ei = getOrMakeEqcInfo( r );
     if (k == kind::STRING_LENGTH)
     {
       ei->d_length_term = t[0];
@@ -1147,8 +1235,42 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
     }
     //we care about the length of this string
     registerTerm( t[0], 1 );
-  }else{
-    //getExtTheory()->registerTerm( t );
+    return;
+  }else if( k==CONST_STRING ){
+    EqcInfo * ei = getOrMakeEqcInfo( t );
+    ei->d_prefixC = t;
+    ei->d_suffixC = t;
+    return;
+  }
+  Node concat;
+  Node eqc;
+  if( k==STRING_CONCAT )
+  {
+    concat = t;
+    eqc = t;
+  }
+  else if( k==STRING_IN_REGEXP && t[1].getKind()==REGEXP_CONCAT )
+  {
+    concat = t[1];
+    eqc = d_equalityEngine.getRepresentative(t[0]);
+  }
+  if( !concat.isNull() )
+  {
+    EqcInfo * ei = nullptr;
+    // check each side
+    for( unsigned r=0; r<2; r++ )
+    {
+      unsigned index = r==0 ? 0 : concat.getNumChildren()-1;
+      Node c = utils::getConstantComponent(concat[index]);
+      if( !c.isNull() )
+      {
+        if( ei==nullptr )
+        {
+          ei = getOrMakeEqcInfo( eqc );
+        }
+        ei->addPrefixConst(t,c,r==1);
+      }
+    }
   }
 }
 
@@ -1164,6 +1286,14 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     if (!e2->d_code_term.get().isNull())
     {
       e1->d_code_term.set(e2->d_code_term);
+    }
+    if( !e2->d_prefixC.get().isNull() )
+    {
+      setPendingConflict(e1->addPrefixConst(e2->d_prefixC,Node::null(),false));
+    }
+    if( !e2->d_suffixC.get().isNull() )
+    {
+      setPendingConflict(e1->addPrefixConst(e2->d_suffixC,Node::null(),true));
     }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
@@ -1317,6 +1447,14 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   // make a similar call to registerTermRec in addSharedTerm.
   getExtTheory()->registerTermRec( atom );
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
+}
+
+void TheoryStrings::setPendingConflict(Node conf)
+{
+  if( !conf.isNull() && d_pendingConflict.get().isNull() )
+  {
+    d_pendingConflict = conf;
+  }
 }
 
 void TheoryStrings::addToExplanation( Node a, Node b, std::vector< Node >& exp ) {
