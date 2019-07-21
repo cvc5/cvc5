@@ -46,12 +46,12 @@ Node mkAnd(std::vector<Node>& a)
 
 Node getConstantComponent(Node t)
 {
-  if (t.getKind() == STRING_TO_REGEXP)
+  Kind tk = t.getKind();
+  if (tk == STRING_TO_REGEXP)
   {
     return t[0].isConst() ? t[0] : Node::null();
   }
-  Assert(t.getType().isString());
-  return t.isConst() ? t : Node::null();
+  return tk==CONST_STRING ? t : Node::null();
 }
 
 Node getConstantPrefix(Node e, bool isPost)
