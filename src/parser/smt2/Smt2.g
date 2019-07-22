@@ -1539,7 +1539,7 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     { cmd->reset(new BlockModelCommand()); }
 
   | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+    ( LPAREN_TOK termList[terms,e] RPAREN_TOK
       { cmd->reset(new BlockModelValuesCommand(terms)); }
     | ~LPAREN_TOK
       { PARSER_STATE->parseError("The block-model-value command expects a list "
