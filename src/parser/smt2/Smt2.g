@@ -1264,18 +1264,6 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetModelCommand()); }
 
-  | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    { cmd->reset(new BlockModelCommand()); }
-
-  | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
-    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
-      { cmd->reset(new BlockModelValuesCommand(terms)); }
-    | ~LPAREN_TOK
-      { PARSER_STATE->parseError("The block-model-value command expects a list "
-                                 "of terms.  Perhaps you forgot a pair of "
-                                 "parentheses?");
-      }
-    )
     /* echo */
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
@@ -1547,6 +1535,18 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     // We currently do nothing with the type information declared for the heap.
     { cmd->reset(new EmptyCommand()); }
     RPAREN_TOK
+  | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new BlockModelCommand()); }
+
+  | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+      { cmd->reset(new BlockModelValuesCommand(terms)); }
+    | ~LPAREN_TOK
+      { PARSER_STATE->parseError("The block-model-value command expects a list "
+                                 "of terms.  Perhaps you forgot a pair of "
+                                 "parentheses?");
+      }
+    )
   ;
 
 
