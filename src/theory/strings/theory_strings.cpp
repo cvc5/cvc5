@@ -1113,45 +1113,60 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
                                        << " post=" << isPost << std::endl;
     Node prevC = utils::getConstantPrefix(prev, isPost);
+    Assert(!prevC.isNull());
     if (c.isNull())
     {
       c = utils::getConstantPrefix(t, isPost);
       Assert(!c.isNull());
     }
-    if (c == prevC)
-    {
-      return Node::null();
-    }
-    Assert(!prevC.isNull() && !c.isNull());
-    Trace("strings-eager-pconf-debug")
-        << "Check conflict constants " << prevC << ", " << c << std::endl;
-    const String& ps = prevC.getConst<String>();
-    const String& cs = c.getConst<String>();
-    unsigned pvs = ps.size();
-    unsigned cvs = cs.size();
     bool conflict = false;
-    if (pvs == cvs)
+    // if the constant prefixes are different
+    if (c != prevC)
     {
-      // cannot be equal due to node check above
-      conflict = true;
-    }
-    else
-    {
-      const String& larges = pvs > cvs ? ps : cs;
-      const String& smalls = pvs > cvs ? cs : ps;
-      if (isPost)
+      // conflicts between constants should be handled by equality engine
+      Assert(!t.isConst() || !prev.isConst());
+      Trace("strings-eager-pconf-debug")
+          << "Check conflict constants " << prevC << ", " << c << std::endl;
+      const String& ps = prevC.getConst<String>();
+      const String& cs = c.getConst<String>();
+      unsigned pvs = ps.size();
+      unsigned cvs = cs.size();
+      if (pvs == cvs || (pvs>cvs && t.isConst()) || (cvs>pvs && prev.isConst()))
       {
-        conflict = !larges.hasSuffix(smalls);
+        // If equal length, cannot be equal due to node check above.
+        // If one is fully constant and has less length than the other, then the
+        // other will not fit and we are in conflict.
+        conflict = true;
       }
       else
       {
-        conflict = !larges.hasPrefix(smalls);
+        const String& larges = pvs > cvs ? ps : cs;
+        const String& smalls = pvs > cvs ? cs : ps;
+        if (isPost)
+        {
+          conflict = !larges.hasSuffix(smalls);
+        }
+        else
+        {
+          conflict = !larges.hasPrefix(smalls);
+        }
       }
+      if( !conflict && (pvs > cvs || prev.isConst()) )
+      {
+        // current is subsumed, either shorter prefix or the other is a full
+        // constant
+        return Node::null();
+      }
+    }
+    else if( !t.isConst() )
+    {
+      // current is subsumed since the other may be a full constant
+      return Node::null();
     }
     if (conflict)
     {
       Trace("strings-eager-pconf")
-          << "Conflict for " << ps << ", " << cs << std::endl;
+          << "Conflict for " << prevC << ", " << c << std::endl;
       std::vector<Node> ccs;
       Node r[2];
       for (unsigned i = 0; i < 2; i++)
@@ -1177,11 +1192,6 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
       Trace("strings-eager-pconf")
           << "String: eager prefix conflict: " << ret << std::endl;
       return ret;
-    }
-    else if (pvs > cvs)
-    {
-      // current is subsumed
-      return Node::null();
     }
   }
   if (isPost)
