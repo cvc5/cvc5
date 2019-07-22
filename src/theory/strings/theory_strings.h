@@ -765,7 +765,16 @@ private:
   void assertPendingFact(Node atom, bool polarity, Node exp);
   /** add prefix to eqc info */
   void addPrefixToEqcInfo(Node t, Node concat, Node eqc);
-  /** set pending conflict */
+  /** set pending conflict
+   *
+   * This is called when conf is a conjunction of literals that hold in the
+   * current context that are unsatisfiable. It is set as the "pending conflict"
+   * to be processed as a conflict lemma on the output channel of this class.
+   * It is not sent out immediately since it may require explanation from the
+   * equality engine, and may be called at any time, e.g. during a merge
+   * operation, when the equality engine is not in a state to provide
+   * explanations.
+   */
   void setPendingConflict(Node conf);
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
