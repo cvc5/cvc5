@@ -1837,7 +1837,7 @@ symbolicExpr[CVC4::SExpr& sexpr]
 
 /**
  * Matches a term.
- * @return the expression representing the formula
+ * @return the expression representing the term.
  */
 term[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
@@ -1847,7 +1847,9 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
   Type type;
 }
 : termNonVariable[expr, expr2]
-    /* a variable */
+
+  // a qualified identifier (section 3.6 of SMT-LIB version 2.6)
+  
   | qualIdentifier[kind,name,f,type]
     {
       if( kind!=kind::NULL_EXPR || !type.isNull() )
@@ -2397,10 +2399,46 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 /** 
  * Matches a qualified identifier, which can be a combination of one or more of
  * the following:
- * (1) A kind,
- * (2) A name,
- * (3) An expression, or
- * (4) A type.
+ * (1) A kind.
+ * (2) A string name.
+ * (3) An expression expr.
+ * (4) A type t.
+ *
+ * A qualified identifier is the generic case of function heads.
+ * With respect to the standard definition (Section 3.6 of SMT-LIB version 2.6)
+ * of qualified identifiers, we additionally parse:
+ * - "Array constant specifications" of the form (as const (Array T1 T2)),
+ * which notice are used as function heads e.g. ((as const (Array Int Int)) 0)
+ * specifies the constant array over integers consisting of constant 0. This
+ * is handled as it were a special case of an operator here.
+ *
+ * Examples:
+ * 
+ * (Identifiers)
+ * - For declared functions f, we return (2).
+ * - Indexed functions like testers (_ is C) and bitvector extract
+ * (_ extract n m), we return (3) for the appropriate operator.
+ * - For tuple selectors (_ tupSel n), we return (1) and (3). Kind is set to
+ * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
+ * caller as the n^th generic tuple selector. We do this since there is no
+ * AST expression representing (generic) tuple select, and we do not have enough
+ * type information at this point to know the type of the tuple we will be
+ * selecting from.
+ *
+ * (Ascripted Identifiers)
+ * - For ascripted nullary parametric datatype constructors like
+ * (as nil (List Int)), we return (APPLY_CONSTRUCTOR C) for the appropriate
+ * specialized constructor C as (3).
+ * - For ascripted non-nullary parametric datatype constructors like
+ * (as cons (List Int)), we return the appropriate specialized constructor C
+ * as (3).
+ * - Overloaded non-parametric constructors (as C T) return the appropriate
+ * expression, analogous to the parametric cases above.
+ * - For other ascripted nullary constants like (as emptyset (Set T)),
+ * (as sep.nil T), we return the appropriate expression (3).
+ * - For array constant specifications (as const (Array T1 T2)), we return (1)
+ * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2),
+ * where this is to be interpreted by the caller.
  */
 qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type& t]
 @init {
@@ -2434,9 +2472,13 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
         Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
         Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
         Trace("parser-qid") << std::endl;
+        // by default, we take f itself
+        expr = f;
         if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
-          // could be a parametric type constructor or just an overloaded constructor
-          if(((DatatypeType)type).isParametric()) {
+          // nullary constructors with a type ascription
+          // could be a parametric constructor or just an overloaded constructor
+          DatatypeType dtype = static_cast<DatatypeType>(type);
+          if(dtype.isParametric()) {
             std::vector<CVC4::Expr> v;
             Expr e = f.getOperator();
             const DatatypeConstructor& dtc =
@@ -2445,14 +2487,15 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
                                 MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
             v.insert(v.end(), f.begin(), f.end());
             expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
-          }else{
-            expr = f;
           }
         } else if(f.getType().isConstructor()){
           // a non-nullary constructor with a type ascription
-          const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
-          expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                                MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
+          DatatypeType dtype = static_cast<DatatypeType>(type);
+          if(dtype.isParametric()) {
+            const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+            expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                                  MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
+          }
         } else if(f.getKind() == CVC4::kind::EMPTYSET) {
           Debug("parser") << "Empty set encountered: " << f << " "
                           << type <<  std::endl;
@@ -2464,12 +2507,8 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
           //could be of type Int but is not a const rational. However, the
           //expression has 0 children. So we convert to a SEP_NIL variable.
           expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
-        } else {
-          if(f.getType() != type) {
-            PARSER_STATE->parseError("Type ascription not satisfied.");
-          }else{
-            expr = f;
-          }
+        } else if(f.getType() != type) {
+          PARSER_STATE->parseError("Type ascription not satisfied.");
         }
       }
     )
@@ -2480,8 +2519,9 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
  * Matches an identifier, which can be a combination of one or more of the
  * following:
  * (1) A kind.
- * (2) A name.
- * (3) An expression.
+ * (2) A string name.
+ * (3) An expression expr.
+ * For examples, see documentation of qualIdentifier.
  */
 identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
 @init {
@@ -2489,15 +2529,7 @@ identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
   Expr f2;
   std::vector<uint64_t> numerals;
 }
-: functionName[name, CHECK_NONE] {
-/*
-    if(PARSER_STATE->isOperatorEnabled(name)) {
-      kind = PARSER_STATE->getOperatorKind(name);
-      // name is processed
-      name = std::string("");
-    }
-    */
-  }
+: functionName[name, CHECK_NONE]
   
   // indexed functions 
   
