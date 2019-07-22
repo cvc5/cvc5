@@ -3042,6 +3042,37 @@ Result SmtEngine::quickCheck() {
 }
 
 
+theory::TheoryModel* SmtEngine::ensureAvailableModel(const char * c) const
+{
+  if (!options::assignFunctionValues())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when --assign-function-values is false.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+
+  if(d_status.isNull() ||
+     d_status.asSatisfiabilityResult() == Result::UNSAT ||
+     d_problemExtended) {
+    std::stringstream ss;
+    ss << "Cannot " << c << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  if(!options::produceModels()) {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when produce-models options is off.";
+    throw ModalException(ss.str().c_str());
+  }
+  
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  // Since model m is being returned to the user, we must ensure that this
+  // model object remains valid with future check-sat calls. Hence, we set
+  // the theory engine into "eager model building" mode. TODO #2648: revisit.
+  d_theoryEngine->setEagerModelBuilding();
+  
+  return m;
+}
+  
 void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
   unordered_map<Node, bool, NodeHashFunction>::iterator it;
@@ -4196,23 +4227,6 @@ vector<Node> SmtEngine::getValues(const vector<Node>& nodes) {
     Node value = Node::fromExpr(getValue(n.toExpr()));
     result.push_back(value);
   }
-
-  if (options::blockModelsMode() != BLOCK_MODELS_NONE)
-  {
-    TheoryModel* m = d_theoryEngine->getBuiltModel();
-    std::vector<Expr> easserts = getAssertions();
-    // must expand definitions
-    std::vector<Expr> eassertsProc;
-    std::unordered_map<Node, Node, NodeHashFunction> cache;
-    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-    {
-      Node ea = Node::fromExpr(easserts[i]);
-      Node eae = d_private->expandDefinitions(ea, cache);
-      eassertsProc.push_back(eae.toExpr());
-    }
-    Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), nodes);
-    assertFormula(eblocker);
-  }
   return result;
 }
 
@@ -4353,34 +4367,9 @@ Model* SmtEngine::getModel() {
     Dump("benchmark") << GetModelCommand();
   }
 
-  if (!options::assignFunctionValues())
-  {
-    const char* msg =
-        "Cannot get the model when --assign-function-values is false.";
-    throw RecoverableModalException(msg);
-  }
+  TheoryModel* m = ensureAvailableModel("get model");
 
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
-    const char* msg =
-      "Cannot get the current model unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get model when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
-
-  // Since model m is being returned to the user, we must ensure that this
-  // model object remains valid with future check-sat calls. Hence, we set
-  // the theory engine into "eager model building" mode. TODO #2648: revisit.
-  d_theoryEngine->setEagerModelBuilding();
-
-  if (options::modelCoresMode() != MODEL_CORES_NONE || options::blockModelsMode() != BLOCK_MODELS_NONE)
+  if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
     // assertions using the model core builder utility
@@ -4399,14 +4388,79 @@ Model* SmtEngine::getModel() {
       ModelCoreBuilder::setModelCore(
           eassertsProc, m, options::modelCoresMode());
     }
-    if (options::blockModelsMode() != BLOCK_MODELS_NONE)
-    {
-      Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode());
-      assertFormula(eblocker);
-    }
   }
   m->d_inputName = d_filename;
   return m;
+}
+
+Result SmtEngine::blockModel()
+{
+  Trace("smt") << "SMT blockModel()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << BlockModelCommand();
+  }
+  
+  TheoryModel* m = ensureAvailableModel("block model");
+  
+  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  {
+    std::stringstream ss;
+    ss << "Cannot block model when block-models is set to none.";
+    throw ModalException(ss.str().c_str());
+  }
+  
+  // If we enabled model cores, we compute a model core for m based on our
+  // assertions using the model core builder utility
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+  {
+    Node ea = Node::fromExpr(easserts[i]);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode());
+  return assertFormula(eblocker);
+}
+
+Result SmtEngine::blockModelValues(const std::vector<Node>& nodes)
+{
+  Trace("smt") << "SMT blockModelValues()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if(Dump.isOn("benchmark")) {
+    Dump("benchmark") << BlockModelValuesCommand();
+  }
+  
+  TheoryModel* m = ensureAvailableModel("block model");
+  
+  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  {
+    std::stringstream ss;
+    ss << "Cannot block model values when block-models is set to none.";
+    throw ModalException(ss.str().c_str());
+  }
+  
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+  {
+    Node ea = Node::fromExpr(easserts[i]);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), nodes);
+  return assertFormula(eblocker);
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)

@@ -958,6 +958,36 @@ class CVC4_PUBLIC GetModelCommand : public Command
   SmtEngine* d_smtEngine;
 }; /* class GetModelCommand */
 
+/** The command to block models. */
+class CVC4_PUBLIC BlockModelCommand : public Command
+{
+ public:
+  BlockModelCommand();
+
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+}; /* class BlockModelCommand */
+
+/** The command to block model values. */
+class CVC4_PUBLIC BlockModelValuesCommand : public Command
+{
+ public:
+  BlockModelValuesCommand(const std::vector<Expr>& terms);
+
+  const std::vector<Expr>& getTerms() const;
+  void invoke(SmtEngine* smtEngine) override;
+  Command* exportTo(ExprManager* exprManager,
+                    ExprManagerMapCollection& variableMap) override;
+  Command* clone() const override;
+  std::string getCommandName() const override;
+ protected:
+  /** The terms we are blocking */
+  std::vector<Expr> d_terms;
+}; /* class BlockModelValuesCommand */
+
 class CVC4_PUBLIC GetProofCommand : public Command
 {
  public:

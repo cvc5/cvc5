@@ -1264,6 +1264,13 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   | GET_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     { cmd->reset(new GetModelCommand()); }
 
+  | BLOCK_MODEL_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    { cmd->reset(new BlockModelCommand()); }
+
+  | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
+    ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
+      { cmd->reset(new BlockModelValuesCommand(terms)); }
+
     /* echo */
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]
@@ -3041,6 +3048,8 @@ PAR_TOK : { PARSER_STATE->v2_6() }?'par';
 TESTER_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'is';
 MATCH_TOK : { ( PARSER_STATE->v2_6() || PARSER_STATE->sygus() ) && PARSER_STATE->isTheoryEnabled(Smt2::THEORY_DATATYPES) }?'match';
 GET_MODEL_TOK : 'get-model';
+BLOCK_MODEL_TOK : 'block-model';
+BLOCK_MODEL_VALUES_TOK : 'block-model-values';
 ECHO_TOK : 'echo';
 REWRITE_RULE_TOK : 'assert-rewrite';
 REDUCTION_RULE_TOK : 'assert-reduction';
