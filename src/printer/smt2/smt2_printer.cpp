@@ -1476,18 +1476,15 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
       return;
     }
   }
+  Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
+  if (!p.isNull())
+  {
+    out << p;
+  }
   else
   {
-    Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-    if (!p.isNull())
-    {
-      out << p;
-    }
-    else
-    {
-      // cannot convert term to analog, print original
-      out << n;
-    }
+    // cannot convert term to analog, print original
+    out << n;
   }
 }
 
