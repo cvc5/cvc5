@@ -1104,19 +1104,19 @@ TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
 {
 }
 
-Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
+Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isSuf)
 {
   // check conflict
-  Node prev = isPost ? d_suffixC : d_prefixC;
+  Node prev = isSuf ? d_suffixC : d_prefixC;
   if (!prev.isNull())
   {
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
-                                       << " post=" << isPost << std::endl;
-    Node prevC = utils::getConstantPrefix(prev, isPost);
+                                       << " post=" << isSuf << std::endl;
+    Node prevC = utils::getConstantPrefix(prev, isSuf);
     Assert(!prevC.isNull());
     if (c.isNull())
     {
-      c = utils::getConstantPrefix(t, isPost);
+      c = utils::getConstantPrefix(t, isSuf);
       Assert(!c.isNull());
     }
     bool conflict = false;
@@ -1142,7 +1142,7 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
       {
         const String& larges = pvs > cvs ? ps : cs;
         const String& smalls = pvs > cvs ? cs : ps;
-        if (isPost)
+        if (isSuf)
         {
           conflict = !larges.hasSuffix(smalls);
         }
@@ -1194,7 +1194,7 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isPost)
       return ret;
     }
   }
-  if (isPost)
+  if (isSuf)
   {
     d_suffixC = t;
   }

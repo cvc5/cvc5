@@ -42,7 +42,7 @@ Node mkAnd(std::vector<Node>& a);
 Node getConstantComponent(Node t);
 
 /**
- * Get constant prefix / suffix from expression. For example, if isPost=false:
+ * Get constant prefix / suffix from expression. For example, if isSuf=false:
  *   "ABC" -> "ABC"
  *   (str.++ "ABC" x) -> "ABC"
  *   (str.to.re "ABC") -> "ABC"
@@ -52,7 +52,7 @@ Node getConstantComponent(Node t);
  *   (str.++ x "ABC") -> null
  *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
  */
-Node getConstantPrefix(Node e, bool isPost);
+Node getConstantPrefix(Node e, bool isSuf);
 
 }  // namespace utils
 }  // namespace strings
