@@ -1877,6 +1877,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 @init {
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
+  Kind qkind = kind::NULL_EXPR;
   Expr op;
   std::string name;
   std::vector<Expr> args;
@@ -1891,7 +1892,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   std::unordered_set<std::string> names;
   std::vector< std::pair<std::string, Expr> > binders;
   bool isBuiltinOperator = false;
-  bool isSpecialQIdentifier = false;
   bool isOverloadedFunction = false;
   int match_vindex = -1;
   std::vector<Type> match_ptypes;
@@ -1936,15 +1936,18 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         expr = MK_EXPR(kind, args);
       }
     }
-  | LPAREN_TOK qualIdentifier[kind,name,qexpr,qtype]
+  | LPAREN_TOK qualIdentifier[qkind,name,qexpr,qtype]
     { 
-      Debug("parser") << "Parsed qual id: " << kind << "/" << name << "/" << qexpr << "/" << qtype << std::endl;
-      if( kind!=kind::NULL_EXPR )
+      // process the operator
+      Debug("parser") << "Parsed qual id: " << qkind << "/" << name << "/" << qexpr << "/" << qtype << std::endl;
+      if( qkind!=kind::NULL_EXPR )
       {
-        isSpecialQIdentifier = true;
+        // It is a special case, e.g. tupSel or array constant specification.
+        // We have to wait until the arguments are parsed to resolve it.
       }
       else if( !qexpr.isNull() )
       {
+        // An explicit operator, e.g. an indexed symbol.
         args.push_back(qexpr);
         if( qexpr.getType().isTester() )
         {
@@ -1955,9 +1958,10 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       {
         isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
         if(isBuiltinOperator) {
+          // a builtin operator, convert to kind
           kind = PARSER_STATE->getOperatorKind(name);
         } else {
-          /* A non-built-in function application */
+          // A non-built-in function application, get the expression
           PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
           expr = PARSER_STATE->getVariable(name);
           if(!expr.isNull()) {
@@ -1965,6 +1969,9 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
             kind = PARSER_STATE->getKindForFunction(expr);
             args.push_back(expr);
           }else{
+            // Could not find the expression. It may be an overloaded symbol,
+            // in which case we may find it after knowing the types of its
+            // arguments.
             isOverloadedFunction = true;
           }
         }
@@ -1977,7 +1984,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         Debug("parser") << "++ " << *i << std::endl;
       }
       // We now can figure out what the operator is, if we guessed it was
-      // overloaded
+      // overloaded.
       if(isOverloadedFunction) {
         std::vector< Type > argTypes;
         for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
@@ -1993,66 +2000,65 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
       // handle special cases
-      if (isSpecialQIdentifier) 
+      if (qkind==kind::STORE_ALL) 
       {
-        if( kind==kind::STORE_ALL )
+        if( args.size()!=1 )
         {
-          if( args.size()!=1 )
-          {
-            PARSER_STATE->parseError("Too many arguments to array constant.");
-          }
-          if(!args[0].isConst()) {
-            std::stringstream ss;
-            ss << "expected constant term inside array constant, but found "
-              << "nonconstant term:" << std::endl
-              << "the term: " << args[0];
-            PARSER_STATE->parseError(ss.str());
-          }
-          ArrayType aqtype = static_cast<ArrayType>(qtype);
-          if(!aqtype.getConstituentType().isComparableTo(args[0].getType())) {
-            std::stringstream ss;
-            ss << "type mismatch inside array constant term:" << std::endl
-              << "array type:          " << qtype << std::endl
-              << "expected const type: " << aqtype.getConstituentType()
-              << std::endl
-              << "computed const type: " << args[0].getType();
-            PARSER_STATE->parseError(ss.str());
-          }
-          expr = MK_CONST( CVC4::ArrayStoreAll(qtype, args[0]) );
+          PARSER_STATE->parseError("Too many arguments to array constant.");
         }
-        else if( kind==kind::APPLY_SELECTOR )
+        if(!args[0].isConst()) {
+          std::stringstream ss;
+          ss << "expected constant term inside array constant, but found "
+            << "nonconstant term:" << std::endl
+            << "the term: " << args[0];
+          PARSER_STATE->parseError(ss.str());
+        }
+        ArrayType aqtype = static_cast<ArrayType>(qtype);
+        if(!aqtype.getConstituentType().isComparableTo(args[0].getType())) {
+          std::stringstream ss;
+          ss << "type mismatch inside array constant term:" << std::endl
+            << "array type:          " << qtype << std::endl
+            << "expected const type: " << aqtype.getConstituentType()
+            << std::endl
+            << "computed const type: " << args[0].getType();
+          PARSER_STATE->parseError(ss.str());
+        }
+        expr = MK_CONST( CVC4::ArrayStoreAll(qtype, args[0]) );
+      }
+      else if( qkind==kind::APPLY_SELECTOR )
+      {
+        if( qexpr.isNull() )
         {
-          if( qexpr.isNull() )
-          {
-            PARSER_STATE->parseError("Could not process parsed tuple selector.");
-          }
-          //tuple selector case
-          Integer x = op.getConst<CVC4::Rational>().getNumerator();
-          if (!x.fitsUnsignedInt()) {
-            PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
-          }
-          unsigned int n = x.toUnsignedInt();
-          if (args.size()>1) {
-            PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
-          }
-          Type t = args[0].getType();
-          if (!t.isTuple()) {
-            PARSER_STATE->parseError("tupSel applied to non-tuple");
-          }
-          size_t length = ((DatatypeType)t).getTupleLength();
-          if (n >= length) {
-            std::stringstream ss;
-            ss << "tuple is of length " << length << "; cannot access index " << n;
-            PARSER_STATE->parseError(ss.str());
-          }
-          const Datatype & dt = ((DatatypeType)t).getDatatype();
-          op = dt[0][n].getSelector();
-          expr = MK_EXPR( kind, op, args );
+          PARSER_STATE->parseError("Could not process parsed tuple selector.");
         }
-        else
-        {
-          PARSER_STATE->parseError("Could not process parsed special qualified identifier.");
+        //tuple selector case
+        Integer x = qexpr.getConst<CVC4::Rational>().getNumerator();
+        if (!x.fitsUnsignedInt()) {
+          PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
         }
+        unsigned int n = x.toUnsignedInt();
+        if (args.size()>1) {
+          PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
+        }
+        Type t = args[0].getType();
+        if (!t.isTuple()) {
+          PARSER_STATE->parseError("tupSel applied to non-tuple");
+        }
+        size_t length = ((DatatypeType)t).getTupleLength();
+        if (n >= length) {
+          std::stringstream ss;
+          ss << "tuple is of length " << length << "; cannot access index " << n;
+          PARSER_STATE->parseError(ss.str());
+        }
+        const Datatype & dt = ((DatatypeType)t).getDatatype();
+        op = dt[0][n].getSelector();
+        expr = MK_EXPR( kind::APPLY_SELECTOR, op, args );
+      }
+      else if( qkind!=kind::NULL_EXPR)
+      {
+        std::stringstream ss;
+        ss << "Could not process parsed qualified identifier kind " << qkind;
+        PARSER_STATE->parseError(ss.str());
       }
       else if (isBuiltinOperator)
       {
@@ -2415,17 +2421,19 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * Examples:
  * 
  * (Identifiers)
+ *
  * - For declared functions f, we return (2).
  * - Indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
  * - For tuple selectors (_ tupSel n), we return (1) and (3). Kind is set to
  * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
  * caller as the n^th generic tuple selector. We do this since there is no
- * AST expression representing (generic) tuple select, and we do not have enough
+ * AST expression representing generic tuple select, and we do not have enough
  * type information at this point to know the type of the tuple we will be
  * selecting from.
  *
  * (Ascripted Identifiers)
+ *
  * - For ascripted nullary parametric datatype constructors like
  * (as nil (List Int)), we return (APPLY_CONSTRUCTOR C) for the appropriate
  * specialized constructor C as (3).
@@ -2438,7 +2446,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * (as sep.nil T), we return the appropriate expression (3).
  * - For array constant specifications (as const (Array T1 T2)), we return (1)
  * and (4), where kind is set to STORE_ALL and type is set to (Array T1 T2),
- * where this is to be interpreted by the caller.
+ * where this is to be interpreted by the caller as converting the next parsed
+ * constant of type T2 to an Array of type (Array T1 T2) over that constant.
+ * - For ascriptions on normal symbols (as f T), we return the appropriate
+ * expression (3), which may involve disambiguating f based on type T if it is
+ * overloaded.
  */
 qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type& t]
 @init {

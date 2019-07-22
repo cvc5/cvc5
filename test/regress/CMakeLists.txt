@@ -497,6 +497,7 @@ set(regress_0_tests
   regress0/issue1063-overloading-dt-cons.smt2
   regress0/issue1063-overloading-dt-fun.smt2
   regress0/issue1063-overloading-dt-sel.smt2
+  regress0/issue2832-qualId.smt2
   regress0/ite.cvc
   regress0/ite2.smt2
   regress0/ite3.smt2

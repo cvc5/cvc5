@@ -1,4 +1,5 @@
 (set-logic ALL)
+(set-info :status sat)
 (declare-datatypes ((D 2)) ((par (T1 T2)
                                     ((CL  (get_CL  T1))
                                      (CR (get_CR T2))))))
