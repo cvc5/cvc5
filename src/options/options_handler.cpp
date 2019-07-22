@@ -1754,9 +1754,6 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   }
 }
 
-
-
-
 const std::string OptionsHandler::s_blockModelsHelp =
     "\
 Blocking models modes are currently supported by the --simplification option:\n\
@@ -1773,7 +1770,7 @@ values\n\
 ";
 
 BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
-                                                      std::string optarg)
+                                                        std::string optarg)
 {
   if (optarg == "none")
   {
@@ -1785,7 +1782,8 @@ BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
   }
   else if (optarg == "values")
   {
-    return BLOCK_MODELS_VALUES;;
+    return BLOCK_MODELS_VALUES;
+    ;
   }
   else if (optarg == "help")
   {
@@ -1798,8 +1796,6 @@ BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
                           + optarg + "'.  Try --block-models help.");
   }
 }
-
-
 
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\

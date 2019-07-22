@@ -37,13 +37,14 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     tlAsserts.push_back(a);
   }
   std::vector<Node> nodesToBlock;
-  for( unsigned i=0, size = exprToBlock.size(); i<size; i++ )
+  for (unsigned i = 0, size = exprToBlock.size(); i < size; i++)
   {
     nodesToBlock.push_back(Node::fromExpr(exprToBlock[i]));
   }
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
-  if (mode == BLOCK_MODELS_LITERALS) {
+  if (mode == BLOCK_MODELS_LITERALS)
+  {
     Assert(nodesToBlock.empty());
     // optimization: filter to only top-level disjunctions
     unsigned counter = 0;
@@ -74,8 +75,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     if (asserts.empty())
     {
       Node blockTriv = nm->mkConst(false);
-      Trace("model-blocker") << "...model blocker is (trivially) " << blockTriv
-                             << std::endl;
+      Trace("model-blocker")
+          << "...model blocker is (trivially) " << blockTriv << std::endl;
       return blockTriv.toExpr();
     }
 
@@ -91,7 +92,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       cur = visit.back();
       visit.pop_back();
       it = visited.find(cur);
-      
+
       Trace("model-blocker-debug") << "Visit : " << cur << std::endl;
 
       if (it == visited.end())
@@ -188,7 +189,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           }
           else
           {
-            Trace("model-blocker-debug") << "...implicant : " << impl << std::endl;
+            Trace("model-blocker-debug")
+                << "...implicant : " << impl << std::endl;
             implicant[cur] = impl;
             visit.push_back(impl);
           }
@@ -205,7 +207,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           Assert(it != visited.end());
           Assert(!it->second.isNull());
           ret = it->second;
-          Trace("model-blocker-debug") << "...implicant res: " << ret << std::endl;
+          Trace("model-blocker-debug")
+              << "...implicant res: " << ret << std::endl;
         }
         else
         {
@@ -233,38 +236,52 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     Assert(visited.find(formula) != visited.end());
     Assert(!visited.find(formula)->second.isNull());
     blocker = visited[formula].negate();
-  } else {
+  }
+  else
+  {
     Assert(mode == BLOCK_MODELS_VALUES);
     std::vector<Node> blockers;
-    //if specific terms were not specified in get-value, block all variables of the model
-    if (nodesToBlock.empty()) {
+    // if specific terms were not specified in get-value, block all variables of
+    // the model
+    if (nodesToBlock.empty())
+    {
       Trace("model-blocker") << "no get-value recognized" << std::endl;
       std::unordered_set<Node, NodeHashFunction> symbols;
-      for (Node n: tlAsserts) {
+      for (Node n : tlAsserts)
+      {
         expr::getSymbols(n, symbols);
       }
-      for (Node s : symbols) {
-        if (s.getType().getKind() != kind::FUNCTION_TYPE) {
+      for (Node s : symbols)
+      {
+        if (s.getType().getKind() != kind::FUNCTION_TYPE)
+        {
           Node v = m->getValue(s);
           Node a = nm->mkNode(DISTINCT, s, v);
           blockers.push_back(a);
         }
       }
-    } 
-    //otherwise, block all terms that were specified in get-value
-    else {
+    }
+    // otherwise, block all terms that were specified in get-value
+    else
+    {
       std::unordered_set<Node, NodeHashFunction> terms;
-      for (Node n : nodesToBlock) {
+      for (Node n : nodesToBlock)
+      {
         Node v = m->getValue(n);
         Node a = nm->mkNode(DISTINCT, n, v);
         blockers.push_back(a);
       }
     }
-    if (blockers.size() == 0) {
+    if (blockers.size() == 0)
+    {
       blocker = nm->mkConst<bool>(true);
-    } else if (blockers.size() == 1) {
+    }
+    else if (blockers.size() == 1)
+    {
       blocker = blockers[0];
-    } else {
+    }
+    else
+    {
       blocker = nm->mkNode(OR, blockers);
     }
   }

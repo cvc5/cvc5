@@ -183,7 +183,8 @@ public:
   SimplificationMode stringToSimplificationMode(std::string option,
                                                 std::string optarg);
   ModelCoresMode stringToModelCoresMode(std::string option, std::string optarg);
-  BlockModelsMode stringToBlockModelsMode(std::string option, std::string optarg);
+  BlockModelsMode stringToBlockModelsMode(std::string option,
+                                          std::string optarg);
   SygusSolutionOutMode stringToSygusSolutionOutMode(std::string option,
                                                     std::string optarg);
   void setProduceAssertions(std::string option, bool value);

@@ -375,15 +375,15 @@ class CVC4_PUBLIC SmtEngine {
    */
   Result quickCheck();
   /** ensure that the model is available and return a pointer to it
-   * 
+   *
    * This ensures that the model is currently available, which means that
    * CVC4 is producing models, and is in "SAT mode", otherwise an exception
    * is thrown.
-   * 
+   *
    * The flag c is used for giving an error message to indicate the context
    * this method was called.
    */
-  theory::TheoryModel* ensureAvailableModel(const char * c) const;
+  theory::TheoryModel* ensureAvailableModel(const char* c) const;
 
   /**
    * Fully type-check the argument, and also type-check that it's
@@ -545,10 +545,10 @@ class CVC4_PUBLIC SmtEngine {
    * a SAT or INVALID query. Only permitted if CVC4 was built with model
    * support and produce-models is on, and the block-models option is set
    * to a mode other than "none".
-   * 
+   *
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by CVC4.
-   * 
+   *
    * The return value has the same meaning as that of assertFormula.
    */
   Result blockModel();
@@ -558,15 +558,15 @@ class CVC4_PUBLIC SmtEngine {
    * Can be called only if immediately preceded by a SAT or INVALID query. Only
    * permitted if CVC4 was built with model support and produce-models is on,
    * and the block-models option is set to a mode other than "none".
-   * 
+   *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
-   * where M0 ... Mn are the current model values of exprs[0] ... exprs[n]. 
-   * 
+   * where M0 ... Mn are the current model values of exprs[0] ... exprs[n].
+   *
    * The return value has the same meaning as that of assertFormula.
    */
   Result blockModelValues(const std::vector<Expr>& exprs);
-  
+
   /**
    * When using separation logic, obtain the expression for the heap.
    */
@@ -783,12 +783,10 @@ class CVC4_PUBLIC SmtEngine {
       /* throw(ModalException, TypeCheckingException, LogicException, UnsafeInterruptException) */
       ;
 
-
   /**
    * Same as getValue but for a vector of expressions
    */
   std::vector<Expr> getValues(const std::vector<Expr>& exprs);
-
 
   /**
    * Add a function to the set of expressions whose value is to be

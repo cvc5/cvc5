@@ -1667,12 +1667,12 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     smt::SmtScope scope(smtEngine);
     vector<Expr> result = smtEngine->getValues(d_terms);
     Assert(result.size() == d_terms.size());
-    for (int i=0, size = d_terms.size(); i < size; i++) 
+    for (int i = 0, size = d_terms.size(); i < size; i++)
     {
       Expr e = d_terms[i];
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
-      Node request = Node::fromExpr( options::expandDefinitions()
-          ? smtEngine->expandDefinitions(e) : e);
+      Node request = Node::fromExpr(
+          options::expandDefinitions() ? smtEngine->expandDefinitions(e) : e);
       Node value = Node::fromExpr(result[i]);
       if (value.getType().isInteger() && request.getType() == nm->realType())
       {
@@ -1872,7 +1872,7 @@ Command* GetModelCommand::clone() const
 std::string GetModelCommand::getCommandName() const { return "get-model"; }
 
 /* -------------------------------------------------------------------------- */
-/* class BlockModelCommand                                                      */
+/* class BlockModelCommand */
 /* -------------------------------------------------------------------------- */
 
 BlockModelCommand::BlockModelCommand() {}
@@ -1898,7 +1898,7 @@ void BlockModelCommand::invoke(SmtEngine* smtEngine)
 }
 
 Command* BlockModelCommand::exportTo(ExprManager* exprManager,
-                                    ExprManagerMapCollection& variableMap)
+                                     ExprManagerMapCollection& variableMap)
 {
   BlockModelCommand* c = new BlockModelCommand();
   return c;
@@ -1912,19 +1912,22 @@ Command* BlockModelCommand::clone() const
 
 std::string BlockModelCommand::getCommandName() const { return "block-model"; }
 
-
 /* -------------------------------------------------------------------------- */
-/* class BlockModelValuesCommand                                                      */
+/* class BlockModelValuesCommand */
 /* -------------------------------------------------------------------------- */
 
 BlockModelValuesCommand::BlockModelValuesCommand(const std::vector<Expr>& terms)
     : d_terms(terms)
 {
-  PrettyCheckArgument(
-      terms.size() >= 1, terms, "cannot block-model-values of an empty set of terms");
+  PrettyCheckArgument(terms.size() >= 1,
+                      terms,
+                      "cannot block-model-values of an empty set of terms");
 }
 
-const std::vector<Expr>& BlockModelValuesCommand::getTerms() const { return d_terms; }
+const std::vector<Expr>& BlockModelValuesCommand::getTerms() const
+{
+  return d_terms;
+}
 void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
 {
   try
@@ -1946,8 +1949,8 @@ void BlockModelValuesCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
-Command* BlockModelValuesCommand::exportTo(ExprManager* exprManager,
-                                   ExprManagerMapCollection& variableMap)
+Command* BlockModelValuesCommand::exportTo(
+    ExprManager* exprManager, ExprManagerMapCollection& variableMap)
 {
   vector<Expr> exportedTerms;
   for (std::vector<Expr>::const_iterator i = d_terms.begin();
@@ -1966,7 +1969,10 @@ Command* BlockModelValuesCommand::clone() const
   return c;
 }
 
-std::string BlockModelValuesCommand::getCommandName() const { return "block-model-values"; }
+std::string BlockModelValuesCommand::getCommandName() const
+{
+  return "block-model-values";
+}
 
 /* -------------------------------------------------------------------------- */
 /* class GetProofCommand                                                      */

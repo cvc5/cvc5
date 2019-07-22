@@ -3041,8 +3041,7 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
-
-theory::TheoryModel* SmtEngine::ensureAvailableModel(const char * c) const
+theory::TheoryModel* SmtEngine::ensureAvailableModel(const char* c) const
 {
   if (!options::assignFunctionValues())
   {
@@ -3051,28 +3050,30 @@ theory::TheoryModel* SmtEngine::ensureAvailableModel(const char * c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() == Result::UNSAT
+      || d_problemExtended)
+  {
     std::stringstream ss;
-    ss << "Cannot " << c << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+    ss << "Cannot " << c
+       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(ss.str().c_str());
   }
-  if(!options::produceModels()) {
+  if (!options::produceModels())
+  {
     std::stringstream ss;
     ss << "Cannot " << c << " when produce-models options is off.";
     throw ModalException(ss.str().c_str());
   }
-  
+
   TheoryModel* m = d_theoryEngine->getBuiltModel();
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
   // the theory engine into "eager model building" mode. TODO #2648: revisit.
   d_theoryEngine->setEagerModelBuilding();
-  
+
   return m;
 }
-  
+
 void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
   unordered_map<Node, bool, NodeHashFunction>::iterator it;
@@ -4221,9 +4222,11 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
-vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs) {
+vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
+{
   vector<Expr> result;
-  for (unsigned i=0, size = exprs.size(); i<size; i++ ){
+  for (unsigned i = 0, size = exprs.size(); i < size; i++)
+  {
     result.push_back(getValue(exprs[i]));
   }
   return result;
@@ -4399,19 +4402,20 @@ Result SmtEngine::blockModel()
 
   finalOptionsAreSet();
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     Dump("benchmark") << BlockModelCommand();
   }
-  
+
   TheoryModel* m = ensureAvailableModel("block model");
-  
+
   if (options::blockModelsMode() == BLOCK_MODELS_NONE)
   {
     std::stringstream ss;
     ss << "Cannot block model when block-models is set to none.";
     throw ModalException(ss.str().c_str());
   }
-  
+
   // If we enabled model cores, we compute a model core for m based on our
   // assertions using the model core builder utility
   std::vector<Expr> easserts = getAssertions();
@@ -4424,7 +4428,8 @@ Result SmtEngine::blockModel()
     Node eae = d_private->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
-  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode());
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::blockModelsMode());
   return assertFormula(eblocker);
 }
 
@@ -4435,19 +4440,20 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
 
   finalOptionsAreSet();
 
-  if(Dump.isOn("benchmark")) {
+  if (Dump.isOn("benchmark"))
+  {
     Dump("benchmark") << BlockModelValuesCommand(exprs);
   }
-  
+
   TheoryModel* m = ensureAvailableModel("block model");
-  
+
   if (options::blockModelsMode() == BLOCK_MODELS_NONE)
   {
     std::stringstream ss;
     ss << "Cannot block model values when block-models is set to none.";
     throw ModalException(ss.str().c_str());
   }
-  
+
   std::vector<Expr> easserts = getAssertions();
   // must expand definitions
   std::vector<Expr> eassertsProc;
@@ -4458,7 +4464,8 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
     Node eae = d_private->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
-  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), exprs);
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::blockModelsMode(), exprs);
   return assertFormula(eblocker);
 }
 

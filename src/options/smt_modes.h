@@ -53,7 +53,6 @@ enum ModelCoresMode
   MODEL_CORES_NON_IMPLIED
 };
 
-
 /** Block models modes. */
 enum BlockModelsMode
 {
@@ -68,7 +67,6 @@ enum BlockModelsMode
    */
   BLOCK_MODELS_VALUES,
 };
-
 
 }  // namespace CVC4
 

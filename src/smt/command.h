@@ -983,6 +983,7 @@ class CVC4_PUBLIC BlockModelValuesCommand : public Command
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
+
  protected:
   /** The terms we are blocking */
   std::vector<Expr> d_terms;
