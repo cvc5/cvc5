@@ -1852,7 +1852,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
     {
       if( kind!=kind::NULL_EXPR || !type.isNull() )
       {
-        PARSER_STATE->parseError("Bad syntax for qualified identifier in term position.");
+        PARSER_STATE->parseError("Bad syntax for qualified identifier operator in term position.");
       }
       else if( !f.isNull() )
       {
@@ -1936,37 +1936,34 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
     }
   | LPAREN_TOK qualIdentifier[kind,name,qexpr,qtype]
     { 
+      Debug("parser") << "Parsed qual id: " << kind << "/" << name << "/" << qexpr << "/" << qtype << std::endl;
       if( kind!=kind::NULL_EXPR )
       {
         isSpecialQIdentifier = true;
       }
+      else if( !qexpr.isNull() )
+      {
+        args.push_back(qexpr);
+        if( qexpr.getType().isTester() )
+        {
+          kind = kind::APPLY_TESTER;
+        }
+      }
       else
       {
-        isBuiltinOperator = qexpr.isNull() && PARSER_STATE->isOperatorEnabled(name);
-        Trace("ajr-temp") << "Parsed qual id: " << name << "/" << qexpr << ", isBuiltin = " << isBuiltinOperator << std::endl;
+        isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
         if(isBuiltinOperator) {
           kind = PARSER_STATE->getOperatorKind(name);
         } else {
           /* A non-built-in function application */
-          if( qexpr.isNull() )
-          {
-            PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
-            expr = PARSER_STATE->getVariable(name);
-            if(!expr.isNull()) {
-              PARSER_STATE->checkFunctionLike(expr);
-              kind = PARSER_STATE->getKindForFunction(expr);
-              args.push_back(expr);
-            }else{
-              isOverloadedFunction = true;
-            }
-          }
-          else
-          {
-            args.push_back(qexpr);
-            if( qexpr.getType().isTester() )
-            {
-              kind = kind::APPLY_TESTER;
-            }
+          PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
+          expr = PARSER_STATE->getVariable(name);
+          if(!expr.isNull()) {
+            PARSER_STATE->checkFunctionLike(expr);
+            kind = PARSER_STATE->getKindForFunction(expr);
+            args.push_back(expr);
+          }else{
+            isOverloadedFunction = true;
           }
         }
       }
@@ -1977,6 +1974,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
         Debug("parser") << "++ " << *i << std::endl;
       }
+      // We now can figure out what the operator is, if we guessed it was
+      // overloaded
       if(isOverloadedFunction) {
         std::vector< Type > argTypes;
         for(std::vector<Expr>::iterator i = args.begin(); i != args.end(); ++i) {
@@ -1991,7 +1990,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError("Cannot find unambiguous overloaded function for argument types.");
         }
       }
-
+      // handle special cases
       if (isSpecialQIdentifier) 
       {
         if( kind==kind::STORE_ALL )
@@ -2396,8 +2395,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
 
 /** 
- * Matches an identifier, which can be a combination of one or more of the
- * following:
+ * Matches a qualified identifier, which can be a combination of one or more of
+ * the following:
  * (1) A kind,
  * (2) A name,
  * (3) An expression, or
@@ -2485,6 +2484,11 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
  * (3) An expression.
  */
 identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
+@init {
+  Expr f;
+  Expr f2;
+  std::vector<uint64_t> numerals;
+}
 : functionName[name, CHECK_NONE] {
 /*
     if(PARSER_STATE->isOperatorEnabled(name)) {
@@ -2494,7 +2498,33 @@ identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
     }
     */
   }
-  | indexedFunctionName[expr, kind]
+  
+  // indexed functions 
+  
+  | LPAREN_TOK INDEX_TOK
+    ( TESTER_TOK term[f, f2] {
+        if( f.getKind()==kind::APPLY_CONSTRUCTOR && f.getNumChildren()==0 ){
+          //for nullary constructors, must get the operator
+          f = f.getOperator();
+        }
+        if( !f.getType().isConstructor() ){
+          PARSER_STATE->parseError("Bad syntax for test (_ is X), X must be a constructor.");
+        }
+        expr = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getTester();
+      }
+    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
+        // we adopt a special syntax (_ tupSel n)
+        kind = CVC4::kind::APPLY_SELECTOR;
+        //put m in expr so that the caller can deal with this case
+        expr = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
+      }
+    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
+      {
+        expr = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
+                 .getExpr();
+      }
+    )
+    RPAREN_TOK
   ;
   
 /**
@@ -2709,40 +2739,6 @@ attribute[CVC4::Expr& expr, CVC4::Expr& retExpr, std::string& attr]
       c->setMuted(true);
       PARSER_STATE->preemptCommand(c);
     }
-  ;
-
-/**
- * Matches an indexed function. 
- */
-indexedFunctionName[CVC4::Expr& op, CVC4::Kind& kind]
-@init {
-  Expr expr;
-  Expr expr2;
-  std::vector<uint64_t> numerals;
-}
-  : LPAREN_TOK INDEX_TOK
-    ( TESTER_TOK term[expr, expr2] {
-        if( expr.getKind()==kind::APPLY_CONSTRUCTOR && expr.getNumChildren()==0 ){
-          //for nullary constructors, must get the operator
-          expr = expr.getOperator();
-        }
-        if( !expr.getType().isConstructor() ){
-          PARSER_STATE->parseError("Bad syntax for test (_ is X), X must be a constructor.");
-        }
-        op = Datatype::datatypeOf(expr)[Datatype::indexOf(expr)].getTester();
-      }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
-        kind = CVC4::kind::APPLY_SELECTOR;
-        //put m in op so that the caller (termNonVariable) can deal with this case
-        op = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
-      }
-    | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
-      {
-        op = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
-                 .getExpr();
-      }
-    )
-    RPAREN_TOK
   ;
 
 /**
