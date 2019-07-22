@@ -1849,14 +1849,15 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
 : termNonVariable[expr, expr2]
 
   // a qualified identifier (section 3.6 of SMT-LIB version 2.6)
-  
+
   | qualIdentifier[kind,name,f,type]
     {
-      if( kind!=kind::NULL_EXPR || !type.isNull() )
+      if (kind != kind::NULL_EXPR || !type.isNull())
       {
-        PARSER_STATE->parseError("Bad syntax for qualified identifier operator in term position.");
+        PARSER_STATE->parseError(
+            "Bad syntax for qualified identifier operator in term position.");
       }
-      else if( !f.isNull() )
+      else if (!f.isNull())
       {
         expr = f;
       }
@@ -1864,7 +1865,7 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       {
         expr = PARSER_STATE->getExpressionForName(name);
       }
-      assert( !expr.isNull() );
+      assert(!expr.isNull());
     }
   ;
 
@@ -1937,19 +1938,20 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       }
     }
   | LPAREN_TOK qualIdentifier[qkind,name,qexpr,qtype]
-    { 
+    {
       // process the operator
-      Debug("parser") << "Parsed qual id: " << qkind << "/" << name << "/" << qexpr << "/" << qtype << std::endl;
-      if( qkind!=kind::NULL_EXPR )
+      Debug("parser") << "Parsed qual id: " << qkind << "/" << name << "/"
+                      << qexpr << "/" << qtype << std::endl;
+      if (qkind != kind::NULL_EXPR)
       {
         // It is a special case, e.g. tupSel or array constant specification.
         // We have to wait until the arguments are parsed to resolve it.
       }
-      else if( !qexpr.isNull() )
+      else if (!qexpr.isNull())
       {
         // An explicit operator, e.g. an indexed symbol.
         args.push_back(qexpr);
-        if( qexpr.getType().isTester() )
+        if (qexpr.getType().isTester())
         {
           kind = kind::APPLY_TESTER;
         }
@@ -1957,18 +1959,24 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
       else
       {
         isBuiltinOperator = PARSER_STATE->isOperatorEnabled(name);
-        if(isBuiltinOperator) {
+        if (isBuiltinOperator)
+        {
           // a builtin operator, convert to kind
           kind = PARSER_STATE->getOperatorKind(name);
-        } else {
+        }
+        else
+        {
           // A non-built-in function application, get the expression
           PARSER_STATE->checkDeclaration(name, CHECK_DECLARED, SYM_VARIABLE);
           expr = PARSER_STATE->getVariable(name);
-          if(!expr.isNull()) {
+          if (!expr.isNull())
+          {
             PARSER_STATE->checkFunctionLike(expr);
             kind = PARSER_STATE->getKindForFunction(expr);
             args.push_back(expr);
-          }else{
+          }
+          else
+          {
             // Could not find the expression. It may be an overloaded symbol,
             // in which case we may find it after knowing the types of its
             // arguments.
@@ -2000,61 +2008,70 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
         }
       }
       // handle special cases
-      if (qkind==kind::STORE_ALL) 
+      if (qkind == kind::STORE_ALL)
       {
-        if( args.size()!=1 )
+        if (args.size() != 1)
         {
           PARSER_STATE->parseError("Too many arguments to array constant.");
         }
-        if(!args[0].isConst()) {
+        if (!args[0].isConst())
+        {
           std::stringstream ss;
           ss << "expected constant term inside array constant, but found "
-            << "nonconstant term:" << std::endl
-            << "the term: " << args[0];
+             << "nonconstant term:" << std::endl
+             << "the term: " << args[0];
           PARSER_STATE->parseError(ss.str());
         }
         ArrayType aqtype = static_cast<ArrayType>(qtype);
-        if(!aqtype.getConstituentType().isComparableTo(args[0].getType())) {
+        if (!aqtype.getConstituentType().isComparableTo(args[0].getType()))
+        {
           std::stringstream ss;
           ss << "type mismatch inside array constant term:" << std::endl
-            << "array type:          " << qtype << std::endl
-            << "expected const type: " << aqtype.getConstituentType()
-            << std::endl
-            << "computed const type: " << args[0].getType();
+             << "array type:          " << qtype << std::endl
+             << "expected const type: " << aqtype.getConstituentType()
+             << std::endl
+             << "computed const type: " << args[0].getType();
           PARSER_STATE->parseError(ss.str());
         }
-        expr = MK_CONST( CVC4::ArrayStoreAll(qtype, args[0]) );
+        expr = MK_CONST(CVC4::ArrayStoreAll(qtype, args[0]));
       }
-      else if( qkind==kind::APPLY_SELECTOR )
+      else if (qkind == kind::APPLY_SELECTOR)
       {
-        if( qexpr.isNull() )
+        if (qexpr.isNull())
         {
           PARSER_STATE->parseError("Could not process parsed tuple selector.");
         }
-        //tuple selector case
+        // tuple selector case
         Integer x = qexpr.getConst<CVC4::Rational>().getNumerator();
-        if (!x.fitsUnsignedInt()) {
-          PARSER_STATE->parseError("index of tupSel is larger than size of unsigned int");
+        if (!x.fitsUnsignedInt())
+        {
+          PARSER_STATE->parseError(
+              "index of tupSel is larger than size of unsigned int");
         }
         unsigned int n = x.toUnsignedInt();
-        if (args.size()>1) {
-          PARSER_STATE->parseError("tupSel applied to more than one tuple argument");
+        if (args.size() > 1)
+        {
+          PARSER_STATE->parseError(
+              "tupSel applied to more than one tuple argument");
         }
         Type t = args[0].getType();
-        if (!t.isTuple()) {
+        if (!t.isTuple())
+        {
           PARSER_STATE->parseError("tupSel applied to non-tuple");
         }
         size_t length = ((DatatypeType)t).getTupleLength();
-        if (n >= length) {
+        if (n >= length)
+        {
           std::stringstream ss;
-          ss << "tuple is of length " << length << "; cannot access index " << n;
+          ss << "tuple is of length " << length << "; cannot access index "
+             << n;
           PARSER_STATE->parseError(ss.str());
         }
-        const Datatype & dt = ((DatatypeType)t).getDatatype();
+        const Datatype& dt = ((DatatypeType)t).getDatatype();
         op = dt[0][n].getSelector();
-        expr = MK_EXPR( kind::APPLY_SELECTOR, op, args );
+        expr = MK_EXPR(kind::APPLY_SELECTOR, op, args);
       }
-      else if( qkind!=kind::NULL_EXPR)
+      else if (qkind != kind::NULL_EXPR)
       {
         std::stringstream ss;
         ss << "Could not process parsed qualified identifier kind " << qkind;
@@ -2144,11 +2161,11 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
 
         if (!done)
         {
-          if( kind==kind::NULL_EXPR )
+          if (kind == kind::NULL_EXPR)
           {
             std::vector<Expr> eargs;
-            eargs.insert(eargs.end(),args.begin()+1, args.end());
-            expr = MK_EXPR(args[0],eargs);
+            eargs.insert(eargs.end(), args.begin() + 1, args.end());
+            expr = MK_EXPR(args[0], eargs);
           }
           else
           {
@@ -2402,7 +2419,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   ;
 
 
-/** 
+/**
  * Matches a qualified identifier, which can be a combination of one or more of
  * the following:
  * (1) A kind.
@@ -2419,7 +2436,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * is handled as it were a special case of an operator here.
  *
  * Examples:
- * 
+ *
  * (Identifiers)
  *
  * - For declared functions f, we return (2).
@@ -2460,10 +2477,11 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
   Type type;
 }
 : identifier[kind,name,expr]
-  | LPAREN_TOK AS_TOK 
+  | LPAREN_TOK AS_TOK
     ( CONST_TOK sortSymbol[t, CHECK_DECLARED]
       {
-        if(!t.isArray()) {
+        if (!t.isArray())
+        {
           std::stringstream ss;
           ss << "expected array constant term, but cast is not of array type"
              << std::endl
@@ -2475,51 +2493,72 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
     | identifier[k,baseName,f]
       sortSymbol[type, CHECK_DECLARED]
       {
-        if(f.isNull()) {
-          Trace("parser-overloading") << "Getting variable expression of type " << baseName << " with type " << type << std::endl;
+        if (f.isNull())
+        {
+          Trace("parser-overloading")
+              << "Getting variable expression of type " << baseName
+              << " with type " << type << std::endl;
           // get the variable expression for the type
           f = PARSER_STATE->getExpressionForNameAndType(baseName, type);
-          assert( !f.isNull() );
+          assert(!f.isNull());
         }
         Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
         Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
         Trace("parser-qid") << std::endl;
         // by default, we take f itself
         expr = f;
-        if(f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype()) {
+        if (f.getKind() == CVC4::kind::APPLY_CONSTRUCTOR && type.isDatatype())
+        {
           // nullary constructors with a type ascription
           // could be a parametric constructor or just an overloaded constructor
           DatatypeType dtype = static_cast<DatatypeType>(type);
-          if(dtype.isParametric()) {
+          if (dtype.isParametric())
+          {
             std::vector<CVC4::Expr> v;
             Expr e = f.getOperator();
             const DatatypeConstructor& dtc =
                 Datatype::datatypeOf(e)[Datatype::indexOf(e)];
-            v.push_back(MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                                MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f.getOperator() ));
+            v.push_back(MK_EXPR(CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                                MK_CONST(AscriptionType(
+                                    dtc.getSpecializedConstructorType(type))),
+                                f.getOperator()));
             v.insert(v.end(), f.begin(), f.end());
             expr = MK_EXPR(CVC4::kind::APPLY_CONSTRUCTOR, v);
           }
-        } else if(f.getType().isConstructor()){
+        }
+        else if (f.getType().isConstructor())
+        {
           // a non-nullary constructor with a type ascription
           DatatypeType dtype = static_cast<DatatypeType>(type);
-          if(dtype.isParametric()) {
-            const DatatypeConstructor& dtc = Datatype::datatypeOf(f)[Datatype::indexOf(f)];
-            expr = MK_EXPR( CVC4::kind::APPLY_TYPE_ASCRIPTION,
-                                  MK_CONST(AscriptionType(dtc.getSpecializedConstructorType(type))), f );
+          if (dtype.isParametric())
+          {
+            const DatatypeConstructor& dtc =
+                Datatype::datatypeOf(f)[Datatype::indexOf(f)];
+            expr = MK_EXPR(CVC4::kind::APPLY_TYPE_ASCRIPTION,
+                           MK_CONST(AscriptionType(
+                               dtc.getSpecializedConstructorType(type))),
+                           f);
           }
-        } else if(f.getKind() == CVC4::kind::EMPTYSET) {
-          Debug("parser") << "Empty set encountered: " << f << " "
-                          << type <<  std::endl;
-          expr = MK_CONST( ::CVC4::EmptySet(type) );
-        } else if(f.getKind() == CVC4::kind::UNIVERSE_SET) {
+        }
+        else if (f.getKind() == CVC4::kind::EMPTYSET)
+        {
+          Debug("parser") << "Empty set encountered: " << f << " " << type
+                          << std::endl;
+          expr = MK_CONST(::CVC4::EmptySet(type));
+        }
+        else if (f.getKind() == CVC4::kind::UNIVERSE_SET)
+        {
           expr = EXPR_MANAGER->mkNullaryOperator(type, kind::UNIVERSE_SET);
-        } else if(f.getKind() == CVC4::kind::SEP_NIL) {
-          //We don't want the nil reference to be a constant: for instance, it
-          //could be of type Int but is not a const rational. However, the
-          //expression has 0 children. So we convert to a SEP_NIL variable.
+        }
+        else if (f.getKind() == CVC4::kind::SEP_NIL)
+        {
+          // We don't want the nil reference to be a constant: for instance, it
+          // could be of type Int but is not a const rational. However, the
+          // expression has 0 children. So we convert to a SEP_NIL variable.
           expr = EXPR_MANAGER->mkNullaryOperator(type, kind::SEP_NIL);
-        } else if(f.getType() != type) {
+        }
+        else if (f.getType() != type)
+        {
           PARSER_STATE->parseError("Type ascription not satisfied.");
         }
       }
@@ -2527,7 +2566,7 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
     RPAREN_TOK
   ;
 
-/** 
+/**
  * Matches an identifier, which can be a combination of one or more of the
  * following:
  * (1) A kind.
@@ -2542,35 +2581,40 @@ identifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr]
   std::vector<uint64_t> numerals;
 }
 : functionName[name, CHECK_NONE]
-  
-  // indexed functions 
-  
+
+  // indexed functions
+
   | LPAREN_TOK INDEX_TOK
-    ( TESTER_TOK term[f, f2] {
-        if( f.getKind()==kind::APPLY_CONSTRUCTOR && f.getNumChildren()==0 ){
-          //for nullary constructors, must get the operator
+    ( TESTER_TOK term[f, f2]
+      {
+        if (f.getKind() == kind::APPLY_CONSTRUCTOR && f.getNumChildren() == 0)
+        {
+          // for nullary constructors, must get the operator
           f = f.getOperator();
         }
-        if( !f.getType().isConstructor() ){
-          PARSER_STATE->parseError("Bad syntax for test (_ is X), X must be a constructor.");
+        if (!f.getType().isConstructor())
+        {
+          PARSER_STATE->parseError(
+              "Bad syntax for test (_ is X), X must be a constructor.");
         }
         expr = Datatype::datatypeOf(f)[Datatype::indexOf(f)].getTester();
       }
-    | TUPLE_SEL_TOK m=INTEGER_LITERAL {
+    | TUPLE_SEL_TOK m=INTEGER_LITERAL
+      {
         // we adopt a special syntax (_ tupSel n)
         kind = CVC4::kind::APPLY_SELECTOR;
-        //put m in expr so that the caller can deal with this case
+        // put m in expr so that the caller can deal with this case
         expr = MK_CONST(Rational(AntlrInput::tokenToUnsigned($m)));
       }
     | sym=SIMPLE_SYMBOL nonemptyNumeralList[numerals]
       {
         expr = PARSER_STATE->mkIndexedOp(AntlrInput::tokenText($sym), numerals)
-                 .getExpr();
+                   .getExpr();
       }
     )
     RPAREN_TOK
   ;
-  
+
 /**
  * Matches an atomic term (a term with no subterms).
  * @return the expression expr representing the term or formula.
