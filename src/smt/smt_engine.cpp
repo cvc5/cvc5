@@ -4374,22 +4374,9 @@ Model* SmtEngine::getModel() {
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
-    // assertions using the model core builder utility
-    std::vector<Expr> easserts = getAssertions();
-    // must expand definitions
-    std::vector<Expr> eassertsProc;
-    std::unordered_map<Node, Node, NodeHashFunction> cache;
-    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-    {
-      Node ea = Node::fromExpr(easserts[i]);
-      Node eae = d_private->expandDefinitions(ea, cache);
-      eassertsProc.push_back(eae.toExpr());
-    }
-    if (options::modelCoresMode() != MODEL_CORES_NONE)
-    {
-      ModelCoreBuilder::setModelCore(
-          eassertsProc, m, options::modelCoresMode());
-    }
+    // (expanded) assertions using the model core builder utility
+    std::vector<Expr> eassertsProc = getExpandedAssertions();
+    ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
@@ -4416,18 +4403,8 @@ Result SmtEngine::blockModel()
     throw ModalException(ss.str().c_str());
   }
 
-  // If we enabled model cores, we compute a model core for m based on our
-  // assertions using the model core builder utility
-  std::vector<Expr> easserts = getAssertions();
-  // must expand definitions
-  std::vector<Expr> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-  {
-    Node ea = Node::fromExpr(easserts[i]);
-    Node eae = d_private->expandDefinitions(ea, cache);
-    eassertsProc.push_back(eae.toExpr());
-  }
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::blockModelsMode());
   return assertFormula(eblocker);
@@ -4445,7 +4422,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
     Dump("benchmark") << BlockModelValuesCommand(exprs);
   }
 
-  TheoryModel* m = ensureAvailableModel("block model");
+  TheoryModel* m = ensureAvailableModel("block model values");
 
   if (options::blockModelsMode() == BLOCK_MODELS_NONE)
   {
@@ -4454,16 +4431,8 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
     throw ModalException(ss.str().c_str());
   }
 
-  std::vector<Expr> easserts = getAssertions();
-  // must expand definitions
-  std::vector<Expr> eassertsProc;
-  std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-  {
-    Node ea = Node::fromExpr(easserts[i]);
-    Node eae = d_private->expandDefinitions(ea, cache);
-    eassertsProc.push_back(eae.toExpr());
-  }
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
   Expr eblocker = ModelBlocker::getModelBlocker(
       eassertsProc, m, options::blockModelsMode(), exprs);
   return assertFormula(eblocker);
@@ -4489,6 +4458,21 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   InternalError(
       "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
       "expressions from theory model.");
+}
+
+std::vector<Expr> SmtEngine::getExpandedAssertions()
+{
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+  {
+    Node ea = Node::fromExpr(easserts[i]);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  return eassertsProc;
 }
 
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
