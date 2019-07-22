@@ -59,7 +59,8 @@ Node getConstantPrefix(Node e, bool isSuf)
   Kind ek = e.getKind();
   if (ek == STRING_IN_REGEXP)
   {
-    return getConstantPrefix(e[1], isSuf);
+    e = e[1];
+    ek = e.getKind();
   }
   if (ek == STRING_CONCAT || ek == REGEXP_CONCAT)
   {
