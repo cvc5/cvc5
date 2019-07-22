@@ -137,9 +137,6 @@ inline std::ostream& operator<<(std::ostream& out, SymbolType type) {
 class CVC4_PUBLIC Parser {
   friend class ParserBuilder;
 private:
- /** The API Solver object. */
- api::Solver* d_solver;
-
  /** The resource manager associated with this expr manager */
  ResourceManager* d_resourceManager;
 
@@ -244,6 +241,9 @@ private:
  Expr getSymbol(const std::string& var_name, SymbolType type);
 
 protected:
+ /** The API Solver object. */
+ api::Solver* d_solver;
+
  /**
   * Create a parser state.
   *
@@ -322,7 +322,12 @@ public:
       implementation optional by returning false by default. */
   virtual bool logicIsSet() { return false; }
 
-  void forceLogic(const std::string& logic) { assert(!d_logicIsForced); d_logicIsForced = true; d_forcedLogic = logic; }
+  virtual void forceLogic(const std::string& logic)
+  {
+    assert(!d_logicIsForced);
+    d_logicIsForced = true;
+    d_forcedLogic = logic;
+  }
   const std::string& getForcedLogic() const { return d_forcedLogic; }
   bool logicIsForced() const { return d_logicIsForced; }
 

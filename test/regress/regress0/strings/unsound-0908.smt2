@@ -1,4 +1,4 @@
-(set-logic QF_S)
+(set-logic QF_SLIA)
 (set-info :status sat)
 (declare-const x String)
 (assert (= (str.len x) 1))

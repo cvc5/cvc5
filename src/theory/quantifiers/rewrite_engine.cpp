@@ -119,7 +119,6 @@ int RewriteEngine::checkRewriteRule( Node f, Theory::Effort e ) {
   QuantConflictFind * qcf = d_quantEngine->getConflictFind();
   if( qcf ){
     //reset QCF module
-    qcf->computeRelevantEqr();
     qcf->setEffort(QuantConflictFind::EFFORT_CONFLICT);
     //get the proper quantifiers info
     std::map< Node, QuantInfo >::iterator it = d_qinfo.find( f );

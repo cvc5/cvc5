@@ -1813,7 +1813,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param k the kind argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, Kind k);
+  OpTerm mkOpTerm(Kind kind, Kind k) const;
 
   /**
    * Create operator of kind:
@@ -1822,7 +1822,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the string argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, const std::string& arg);
+  OpTerm mkOpTerm(Kind kind, const std::string& arg) const;
 
   /**
    * Create operator of kind:
@@ -1842,7 +1842,7 @@ class CVC4_PUBLIC Solver
    * @param kind the kind of the operator
    * @param arg the uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg) const;
 
   /**
    * Create operator of Kind:
@@ -1858,7 +1858,7 @@ class CVC4_PUBLIC Solver
    * @param arg1 the first uint32_t argument to this operator
    * @param arg2 the second uint32_t argument to this operator
    */
-  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2);
+  OpTerm mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const;
 
   /* .................................................................... */
   /* Create Constants                                                     */

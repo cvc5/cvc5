@@ -35,6 +35,7 @@ set(regress_0_tests
   regress0/arrays/bool-array.smt2
   regress0/arrays/bug272.minimized.smt
   regress0/arrays/bug272.smt
+  regress0/arrays/bug3020.smt2
   regress0/arrays/bug637.delta.smt2
   regress0/arrays/constarr.cvc
   regress0/arrays/constarr.smt2
@@ -250,6 +251,7 @@ set(regress_0_tests
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
   regress0/bv/eager-inc-cryptominisat.smt2
+  regress0/bv/eager-force-logic.smt2
   regress0/bv/fuzz01.smt
   regress0/bv/fuzz02.delta01.smt
   regress0/bv/fuzz02.smt
@@ -451,7 +453,10 @@ set(regress_0_tests
   regress0/fmf/tail_rec.smt2
   regress0/fp/abs-unsound.smt2
   regress0/fp/abs-unsound2.smt2
+  regress0/fp/down-cast-RNA.smt2
   regress0/fp/ext-rew-test.smt2
+  regress0/fp/rti_3_5_bug.smt2
+  regress0/fp/rti_3_5_bug_report.smt2
   regress0/fp/simple.smt2
   regress0/fp/wrong-model.smt2
   regress0/fuzz_1.smt
@@ -539,6 +544,7 @@ set(regress_0_tests
   regress0/parser/bv_arity_smt2.6.smt2
   regress0/parser/constraint.smt2
   regress0/parser/declarefun-emptyset-uf.smt2
+  regress0/parser/force_logic_set_logic.smt2
   regress0/parser/shadow_fun_symbol_all.smt2
   regress0/parser/shadow_fun_symbol_nirat.smt2
   regress0/parser/strings20.smt2
@@ -581,6 +587,8 @@ set(regress_0_tests
   regress0/print_lambda.cvc
   regress0/printer/bv_consts_bin.smt2
   regress0/printer/bv_consts_dec.smt2
+  regress0/printer/empty_symbol_name.smt2
+  regress0/printer/let_shadowing.smt2
   regress0/printer/tuples_and_records.cvc
   regress0/push-pop/boolean/fuzz_12.smt2
   regress0/push-pop/boolean/fuzz_13.smt2
@@ -821,6 +829,7 @@ set(regress_0_tests
   regress0/smt2output.smt2
   regress0/smtlib/get-unsat-assumptions.smt2
   regress0/smtlib/reason-unknown.smt2
+  regress0/smtlib/set-info-status.smt2
   regress0/strings/bug001.smt2
   regress0/strings/bug002.smt2
   regress0/strings/bug612.smt2
@@ -856,6 +865,8 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
+  regress0/strings/tolower-rrs.smt2
+  regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
@@ -1343,6 +1354,7 @@ set(regress_1_tests
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
+  regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
@@ -1543,6 +1555,7 @@ set(regress_1_tests
   regress1/strings/issue2429-code.smt2
   regress1/strings/issue2981.smt2
   regress1/strings/issue2982.smt2
+  regress1/strings/issue3090.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1566,16 +1579,20 @@ set(regress_1_tests
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-neg-concat-reduct.smt2
+  regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
   regress1/strings/regexp003.smt2
+  regress1/strings/regexp-strat-fix.smt2
   regress1/strings/reloop.smt2
   regress1/strings/repl-empty-sem.smt2
   regress1/strings/repl-soundness-sem.smt2
   regress1/strings/replaceall-len.smt2
   regress1/strings/replaceall-replace.smt2
   regress1/strings/rew-020618.smt2
+  regress1/strings/simple-re-consume.smt2
   regress1/strings/stoi-400million.smt2
   regress1/strings/stoi-solve.smt2
   regress1/strings/str-code-sat.smt2
@@ -1593,6 +1610,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
+  regress1/strings/tolower-find.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
@@ -1623,6 +1641,7 @@ set(regress_1_tests
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/error1-dt.sy
   regress1/sygus/extract.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy

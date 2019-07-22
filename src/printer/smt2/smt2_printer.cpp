@@ -91,7 +91,11 @@ void Smt2Printer::toStream(
 
 static std::string maybeQuoteSymbol(const std::string& s) {
   // this is the set of SMT-LIBv2 permitted characters in "simple" (non-quoted) symbols
-  if(s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789~!@$%^&*_-+=<>.?/") != string::npos) {
+  if (s.find_first_not_of("ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz"
+                          "0123456789~!@$%^&*_-+=<>.?/")
+          != string::npos
+      || s.empty())
+  {
     // need to quote it
     stringstream ss;
     ss << '|' << s << '|';
@@ -605,6 +609,8 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::STRING_STRIDOF:
   case kind::STRING_STRREPL:
   case kind::STRING_STRREPLALL:
+  case kind::STRING_TOLOWER:
+  case kind::STRING_TOUPPER:
   case kind::STRING_PREFIX:
   case kind::STRING_SUFFIX:
   case kind::STRING_LEQ:
@@ -1148,6 +1154,8 @@ static string smtKindString(Kind k, Variant v)
   case kind::STRING_STRIDOF: return "str.indexof" ;
   case kind::STRING_STRREPL: return "str.replace" ;
   case kind::STRING_STRREPLALL: return "str.replaceall";
+  case kind::STRING_TOLOWER: return "str.tolower";
+  case kind::STRING_TOUPPER: return "str.toupper";
   case kind::STRING_PREFIX: return "str.prefixof" ;
   case kind::STRING_SUFFIX: return "str.suffixof" ;
   case kind::STRING_LEQ: return "str.<=";
@@ -1468,18 +1476,15 @@ void Smt2Printer::toStreamSygus(std::ostream& out, TNode n) const
       return;
     }
   }
+  Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
+  if (!p.isNull())
+  {
+    out << p;
+  }
   else
   {
-    Node p = n.getAttribute(theory::SygusPrintProxyAttribute());
-    if (!p.isNull())
-    {
-      out << p;
-    }
-    else
-    {
-      // cannot convert term to analog, print original
-      out << n;
-    }
+    // cannot convert term to analog, print original
+    out << n;
   }
 }
 

@@ -23,16 +23,6 @@ header = "options/smt_options.h"
   help       = "all dumping goes to FILE (instead of stdout)"
 
 [[option]]
-  name       = "forceLogicString"
-  smt_name   = "force-logic"
-  category   = "expert"
-  long       = "force-logic=LOGIC"
-  type       = "std::string"
-  notifies   = ["notifyForceLogic"]
-  read_only  = true
-  help       = "set the logic, and override all further user attempts to change it"
-
-[[option]]
   name       = "simplificationMode"
   smt_name   = "simplification-mode"
   category   = "regular"

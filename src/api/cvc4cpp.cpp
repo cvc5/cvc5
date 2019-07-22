@@ -2726,20 +2726,20 @@ std::vector<Expr> Solver::termVectorToExprs(
 /* Create operator terms                                                      */
 /* -------------------------------------------------------------------------- */
 
-OpTerm Solver::mkOpTerm(Kind kind, Kind k)
+OpTerm Solver::mkOpTerm(Kind kind, Kind k) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == CHAIN_OP, kind) << "CHAIN_OP";
   return *mkValHelper<CVC4::Chain>(CVC4::Chain(extToIntKind(k))).d_expr.get();
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg)
+OpTerm Solver::mkOpTerm(Kind kind, const std::string& arg) const
 {
   CVC4_API_KIND_CHECK_EXPECTED(kind == RECORD_UPDATE_OP, kind)
       << "RECORD_UPDATE_OP";
   return *mkValHelper<CVC4::RecordUpdate>(CVC4::RecordUpdate(arg)).d_expr.get();
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg) const
 {
   CVC4_API_KIND_CHECK(kind);
   OpTerm res;
@@ -2808,7 +2808,7 @@ OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg)
   return res;
 }
 
-OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2)
+OpTerm Solver::mkOpTerm(Kind kind, uint32_t arg1, uint32_t arg2) const
 {
   CVC4_API_KIND_CHECK(kind);
   OpTerm res;
@@ -3389,41 +3389,23 @@ void Solver::setLogicHelper(const std::string& logic) const
  */
 void Solver::setInfo(const std::string& keyword, const std::string& value) const
 {
-  bool is_cvc4_keyword = false;
-
-  /* Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_") */
-  if (keyword.length() > 5)
-  {
-    std::string prefix = keyword.substr(0, 5);
-    if (prefix == "cvc4-" || prefix == "cvc4_")
-    {
-      is_cvc4_keyword = true;
-      std::string cvc4key = keyword.substr(5);
-      CVC4_API_ARG_CHECK_EXPECTED(cvc4key == "logic", keyword)
-          << "keyword 'cvc4-logic'";
-      setLogicHelper(value);
-    }
-  }
-  if (!is_cvc4_keyword)
-  {
-    CVC4_API_ARG_CHECK_EXPECTED(
-        keyword == "source" || keyword == "category" || keyword == "difficulty"
-            || keyword == "filename" || keyword == "license"
-            || keyword == "name" || keyword == "notes"
-            || keyword == "smt-lib-version" || keyword == "status",
-        keyword)
-        << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
-           "'notes', 'smt-lib-version' or 'status'";
-    CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
-                                    || value == "2.0" || value == "2.5"
-                                    || value == "2.6" || value == "2.6.1",
-                                value)
-        << "'2.0', '2.5', '2.6' or '2.6.1'";
-    CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
-                                    || value == "unsat" || value == "unknown",
-                                value)
-        << "'sat', 'unsat' or 'unknown'";
-  }
+  CVC4_API_ARG_CHECK_EXPECTED(
+      keyword == "source" || keyword == "category" || keyword == "difficulty"
+          || keyword == "filename" || keyword == "license" || keyword == "name"
+          || keyword == "notes" || keyword == "smt-lib-version"
+          || keyword == "status",
+      keyword)
+      << "'source', 'category', 'difficulty', 'filename', 'license', 'name', "
+         "'notes', 'smt-lib-version' or 'status'";
+  CVC4_API_ARG_CHECK_EXPECTED(keyword != "smt-lib-version" || value == "2"
+                                  || value == "2.0" || value == "2.5"
+                                  || value == "2.6" || value == "2.6.1",
+                              value)
+      << "'2.0', '2.5', '2.6' or '2.6.1'";
+  CVC4_API_ARG_CHECK_EXPECTED(keyword != "status" || value == "sat"
+                                  || value == "unsat" || value == "unknown",
+                              value)
+      << "'sat', 'unsat' or 'unknown'";
 
   d_smtEngine->setInfo(keyword, value);
 }

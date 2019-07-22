@@ -31,6 +31,7 @@
 
 #include "base/configuration.h"
 #include "base/configuration_private.h"
+#include "base/cvc4_check.h"
 #include "base/exception.h"
 #include "base/listener.h"
 #include "base/modal_exception.h"
@@ -285,18 +286,6 @@ class HardResourceOutListener : public Listener {
   SmtEngine* d_smt;
 }; /* class HardResourceOutListener */
 
-class SetLogicListener : public Listener {
- public:
-  SetLogicListener(SmtEngine& smt) : d_smt(&smt) {}
-  void notify() override
-  {
-    LogicInfo inOptions(options::forceLogicString());
-    d_smt->setLogic(inOptions);
-  }
- private:
-  SmtEngine* d_smt;
-}; /* class SetLogicListener */
-
 class BeforeSearchListener : public Listener {
  public:
   BeforeSearchListener(SmtEngine& smt) : d_smt(&smt) {}
@@ -452,7 +441,6 @@ class SmtEnginePrivate : public NodeManagerListener {
    * This list contains:
    *  softResourceOut
    *  hardResourceOut
-   *  setForceLogic
    *  beforeSearchListener
    *  UseTheoryListListener
    *
@@ -600,9 +588,6 @@ class SmtEnginePrivate : public NodeManagerListener {
     try
     {
       Options& nodeManagerOptions = NodeManager::currentNM()->getOptions();
-      d_listenerRegistrations->add(
-          nodeManagerOptions.registerForceLogicListener(
-              new SetLogicListener(d_smt), true));
 
       // Multiple options reuse BeforeSearchListener so registration requires an
       // extra bit of care.
@@ -889,6 +874,7 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
+      d_expectedStatus(),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -1173,10 +1159,12 @@ void SmtEngine::setDefaults() {
     // option if we are sygus, since we assume SMT LIB 2.6 semantics for sygus.
     options::bitvectorDivByZeroConst.set(
         language::isInputLang_smt2_6(options::inputLanguage())
-        || options::inputLanguage() == language::input::LANG_SYGUS);
+        || options::inputLanguage() == language::input::LANG_SYGUS
+        || options::inputLanguage() == language::input::LANG_SYGUS_V2);
   }
   bool is_sygus = false;
-  if (options::inputLanguage() == language::input::LANG_SYGUS)
+  if (options::inputLanguage() == language::input::LANG_SYGUS
+      || options::inputLanguage() == language::input::LANG_SYGUS_V2)
   {
     is_sygus = true;
   }
@@ -1208,9 +1196,8 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if(options::forceLogicString.wasSetByUser()) {
-    d_logic = LogicInfo(options::forceLogicString());
-  }else if (options::solveIntAsBV() > 0) {
+  if (options::solveIntAsBV() > 0)
+  {
     if (!(d_logic <= LogicInfo("QF_NIA")))
     {
       throw OptionException(
@@ -1218,11 +1205,15 @@ void SmtEngine::setDefaults() {
           "QF_LIA, QF_IDL)");
     }
     d_logic = LogicInfo("QF_BV");
-  }else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt()) {
+  }
+  else if (d_logic.getLogicString() == "QF_NRA" && options::solveRealAsInt())
+  {
     d_logic = LogicInfo("QF_NIA");
-  } else if ((d_logic.getLogicString() == "QF_UFBV" ||
-              d_logic.getLogicString() == "QF_ABV") &&
-             options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER) {
+  }
+  else if ((d_logic.getLogicString() == "QF_UFBV"
+            || d_logic.getLogicString() == "QF_ABV")
+           && options::bitblastMode() == theory::bv::BITBLAST_MODE_EAGER)
+  {
     d_logic = LogicInfo("QF_BV");
   }
 
@@ -2346,25 +2337,6 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
     }
   }
 
-  // Check for CVC4-specific info keys (prefixed with "cvc4-" or "cvc4_")
-  if(key.length() > 5) {
-    string prefix = key.substr(0, 5);
-    if(prefix == "cvc4-" || prefix == "cvc4_") {
-      string cvc4key = key.substr(5);
-      if(cvc4key == "logic") {
-        if(! value.isAtom()) {
-          throw OptionException("argument to (set-info :cvc4-logic ..) must be a string");
-        }
-        SmtScope smts(this);
-        d_logic = value.getValue();
-        setLogicInternal();
-        return;
-      } else {
-        throw UnrecognizedOptionException();
-      }
-    }
-  }
-
   // Check for standard info keys (SMT-LIB v1, SMT-LIB v2, ...)
   if (key == "source" || key == "category" || key == "difficulty"
       || key == "notes" || key == "name" || key == "license")
@@ -2422,7 +2394,7 @@ void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
       throw OptionException("argument to (set-info :status ..) must be "
                             "`sat' or `unsat' or `unknown'");
     }
-    d_status = Result(s, d_filename);
+    d_expectedStatus = Result(s, d_filename);
     return;
   }
   throw UnrecognizedOptionException();
@@ -3749,6 +3721,13 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
+    if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
+        && d_status != d_expectedStatus)
+    {
+      CVC4_FATAL() << "Expected result " << d_expectedStatus << " but got "
+                   << d_status;
+    }
+    d_expectedStatus = Result();
 
     setProblemExtended(false);
 
@@ -4194,7 +4173,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
   Trace("smt") << "--- model-post expected " << expectedType << endl;
 
   // type-check the result we got
-  Assert(resultNode.isNull() || resultNode.getType().isSubtypeOf(expectedType),
+  // Notice that lambdas have function type, which does not respect the subtype
+  // relation, so we ignore them here.
+  Assert(resultNode.isNull() || resultNode.getKind() == kind::LAMBDA
+             || resultNode.getType().isSubtypeOf(expectedType),
          "Run with -t smt for details.");
 
   // ensure it's a constant
@@ -4465,13 +4447,7 @@ void SmtEngine::checkProof()
 
   std::string logicString = d_logic.getLogicString();
 
-  if (!(
-          // Pure logics
-          logicString == "QF_UF" || logicString == "QF_AX"
-          || logicString == "QF_BV" ||
-          // Non-pure logics
-          logicString == "QF_AUF" || logicString == "QF_UFBV"
-          || logicString == "QF_ABV" || logicString == "QF_AUFBV"))
+  if (!(d_logic <= LogicInfo("QF_AUFBVLRA")))
   {
     // This logic is not yet supported
     Notice() << "Notice: no proof-checking for " << logicString << " proofs yet"

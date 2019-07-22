@@ -456,7 +456,7 @@ bool SymbolTable::Implementation::isBound(const string& name) const {
 
 bool SymbolTable::Implementation::isBoundDefinedFunction(
     const string& name) const {
-  CDHashMap<string, Expr>::iterator found = d_exprMap->find(name);
+  CDHashMap<string, Expr>::const_iterator found = d_exprMap->find(name);
   return found != d_exprMap->end() && d_functions->contains((*found).second);
 }
 
