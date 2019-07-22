@@ -554,18 +554,18 @@ class CVC4_PUBLIC SmtEngine {
   Result blockModel();
 
   /**
-   * Block the current model values of (at least) of the values in nodes.
+   * Block the current model values of (at least) of the values in exprs.
    * Can be called only if immediately preceded by a SAT or INVALID query. Only
    * permitted if CVC4 was built with model support and produce-models is on,
    * and the block-models option is set to a mode other than "none".
    * 
    * This adds an assertion to the assertion stack of the form:
-   *  (or (not (= nodes[0] M0)) ... (not (= nodes[n] Mn)))
-   * where M0 ... Mn are the current model values of nodes[0] ... nodes[n]. 
+   *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
+   * where M0 ... Mn are the current model values of exprs[0] ... exprs[n]. 
    * 
    * The return value has the same meaning as that of assertFormula.
    */
-  Result blockModelValues(const std::vector<Node>& nodes);
+  Result blockModelValues(const std::vector<Expr>& exprs);
   
   /**
    * When using separation logic, obtain the expression for the heap.
@@ -787,7 +787,7 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Same as getValue but for a vector of expressions
    */
-  std::vector<Node> getValues(const std::vector<Node>& nodes);
+  std::vector<Expr> getValues(const std::vector<Expr>& exprs);
 
 
   /**

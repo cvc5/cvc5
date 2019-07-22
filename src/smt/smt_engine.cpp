@@ -4221,11 +4221,10 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
-vector<Node> SmtEngine::getValues(const vector<Node>& nodes) {
-  vector<Node> result;
-  for (Node n : nodes) {
-    Node value = Node::fromExpr(getValue(n.toExpr()));
-    result.push_back(value);
+vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs) {
+  vector<Expr> result;
+  for (unsigned i=0, size = exprs.size(); i<size; i++ ){
+    result.push_back(getValue(exprs[i]));
   }
   return result;
 }
@@ -4429,7 +4428,7 @@ Result SmtEngine::blockModel()
   return assertFormula(eblocker);
 }
 
-Result SmtEngine::blockModelValues(const std::vector<Node>& nodes)
+Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
 {
   Trace("smt") << "SMT blockModelValues()" << endl;
   SmtScope smts(this);
@@ -4437,7 +4436,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& nodes)
   finalOptionsAreSet();
 
   if(Dump.isOn("benchmark")) {
-    Dump("benchmark") << BlockModelValuesCommand();
+    Dump("benchmark") << BlockModelValuesCommand(exprs);
   }
   
   TheoryModel* m = ensureAvailableModel("block model");
@@ -4459,7 +4458,7 @@ Result SmtEngine::blockModelValues(const std::vector<Node>& nodes)
     Node eae = d_private->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
-  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), nodes);
+  Expr eblocker = ModelBlocker::getModelBlocker(eassertsProc, m, options::blockModelsMode(), exprs);
   return assertFormula(eblocker);
 }
 

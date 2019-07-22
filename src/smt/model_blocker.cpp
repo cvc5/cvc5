@@ -26,7 +26,7 @@ namespace CVC4 {
 Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
                                    theory::TheoryModel* m,
                                    BlockModelsMode mode,
-                                   const std::vector<Node>& nodesToBlock)
+                                   const std::vector<Expr>& exprToBlock)
 {
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
@@ -35,6 +35,11 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   {
     Node a = Node::fromExpr(assertions[i]);
     tlAsserts.push_back(a);
+  }
+  std::vector<Node> nodesToBlock;
+  for( unsigned i=0, size = exprToBlock.size(); i<size; i++ )
+  {
+    nodesToBlock.push_back(Node::fromExpr(exprToBlock[i]));
   }
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
