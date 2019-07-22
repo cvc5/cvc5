@@ -760,17 +760,6 @@ bool Smt2::sygus_v1() const
   return getLanguage() == language::input::LANG_SYGUS;
 }
 
-bool Smt2::sygus() const
-{
-  InputLanguage ilang = getLanguage();
-  return ilang == language::input::LANG_SYGUS
-         || ilang == language::input::LANG_SYGUS_V2;
-}
-bool Smt2::sygus_v1() const
-{
-  return getLanguage() == language::input::LANG_SYGUS;
-}
-
 void Smt2::setInfo(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
 }
