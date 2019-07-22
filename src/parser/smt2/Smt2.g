@@ -2496,11 +2496,17 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
         if (f.isNull())
         {
           Trace("parser-overloading")
-              << "Getting variable expression of type " << baseName
-              << " with type " << type << std::endl;
+              << "Getting variable expression with name " << baseName
+              << " and type " << type << std::endl;
           // get the variable expression for the type
           f = PARSER_STATE->getExpressionForNameAndType(baseName, type);
-          assert(!f.isNull());
+          if(f.isNull())
+          {
+            std::stringstream ss;
+            ss << "Could not resolve expression with name " << baseName
+               << " and type " << type << std::endl;
+            PARSER_STATE->parseError(ss.str());
+          }
         }
         Trace("parser-qid") << "Resolve ascription " << type << " on " << f;
         Trace("parser-qid") << " " << f.getKind() << " " << f.getType();
