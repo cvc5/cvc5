@@ -185,7 +185,7 @@ inline Node RewriteRule<AshrEliminate>::apply(TNode node)
   NodeManager* nm = NodeManager::currentNM();
   Node s = node[0];
   Node t = node[1];
-  /*  From smtlib:
+  /*  From SMT-LIB:
    *  (bvashr s t) abbreviates
         (ite (= ((_ extract |m-1| |m-1|) s) #b0)
              (bvlshr s t)
