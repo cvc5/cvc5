@@ -1861,6 +1861,21 @@ term[CVC4::Expr& expr, CVC4::Expr& expr2]
       {
         expr = f;
       }
+      else if (!PARSER_STATE->isDeclared(name,SYM_VARIABLE))
+      {
+        if (PARSER_STATE->sygus_v1() && name[0] == '-'
+            && name.find_first_not_of("0123456789", 1) == std::string::npos)
+        {
+          // allow unary minus in sygus version 1
+          expr = MK_CONST(Rational(name));
+        }
+        else
+        {
+          std::stringstream ss;
+          ss << "Symbol " << name << " is not declared.";
+          PARSER_STATE->parseError(ss.str());
+        }
+      }
       else
       {
         expr = PARSER_STATE->getExpressionForName(name);
