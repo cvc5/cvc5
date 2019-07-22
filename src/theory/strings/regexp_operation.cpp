@@ -850,14 +850,18 @@ void RegExpOpr::simplifyNRegExp( Node s, Node r, std::vector< Node > &new_nodes 
         {
           b1 = reLength;
         }
-        Node s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
-        Node s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
-        if (indexRm != 0)
+        Node s1;
+        Node s2;
+        if (indexRm == 0)
         {
-          // swap if we are removing from the end
-          Node sswap = s1;
-          s1 = s2;
-          s2 = sswap;
+          s1 = nm->mkNode(STRING_SUBSTR, s, d_zero, b1);
+          s2 = nm->mkNode(STRING_SUBSTR, s, b1, nm->mkNode(MINUS, lens, b1));
+        }
+        else
+        {
+          s1 = nm->mkNode(STRING_SUBSTR, s, nm->mkNode(MINUS, lens, b1), b1);
+          s2 =
+              nm->mkNode(STRING_SUBSTR, s, d_zero, nm->mkNode(MINUS, lens, b1));
         }
         Node s1r1 = nm->mkNode(STRING_IN_REGEXP, s1, r[indexRm]).negate();
         std::vector<Node> nvec;
