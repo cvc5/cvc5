@@ -1270,7 +1270,12 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
   | BLOCK_MODEL_VALUES_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     ( LPAREN_TOK termList[terms,expr] RPAREN_TOK
       { cmd->reset(new BlockModelValuesCommand(terms)); }
-
+    | ~LPAREN_TOK
+      { PARSER_STATE->parseError("The block-model-value command expects a list "
+                                 "of terms.  Perhaps you forgot a pair of "
+                                 "parentheses?");
+      }
+    )
     /* echo */
   | ECHO_TOK
     ( simpleSymbolicExpr[sexpr]

@@ -1667,7 +1667,7 @@ void GetValueCommand::invoke(SmtEngine* smtEngine)
     smt::SmtScope scope(smtEngine);
     vector<Expr> result = smtEngine->getValues(d_terms);
     Assert(result.size() == d_terms.size());
-    for (int i=0; i < d_terms.size(); i++) 
+    for (int i=0, size = d_terms.size(); i < size; i++) 
     {
       Expr e = d_terms[i];
       Assert(nm == NodeManager::fromExprManager(e.getExprManager()));
