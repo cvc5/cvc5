@@ -22,7 +22,6 @@
 #include "parser/smt1/smt1.h"
 #include "parser/smt2/smt2_input.h"
 #include "printer/sygus_print_callback.h"
-#include "smt/command.h"
 #include "util/bitvector.h"
 
 #include <algorithm>
@@ -35,7 +34,9 @@ namespace CVC4 {
 namespace parser {
 
 Smt2::Smt2(api::Solver* solver, Input* input, bool strictMode, bool parseOnly)
-    : Parser(solver, input, strictMode, parseOnly), d_logicSet(false)
+    : Parser(solver, input, strictMode, parseOnly),
+      d_logicSet(false),
+      d_seenSetLogic(false)
 {
   if (!strictModeEnabled())
   {
@@ -168,6 +169,11 @@ void Smt2::addStringOperators() {
   addOperator(kind::STRING_STRIDOF, "str.indexof" );
   addOperator(kind::STRING_STRREPL, "str.replace" );
   addOperator(kind::STRING_STRREPLALL, "str.replaceall");
+  if (!strictModeEnabled())
+  {
+    addOperator(kind::STRING_TOLOWER, "str.tolower");
+    addOperator(kind::STRING_TOUPPER, "str.toupper");
+  }
   addOperator(kind::STRING_PREFIX, "str.prefixof" );
   addOperator(kind::STRING_SUFFIX, "str.suffixof" );
   // at the moment, we only use this syntax for smt2.6.1
@@ -501,11 +507,12 @@ Expr Smt2::getExpressionForNameAndType(const std::string& name, Type t) {
   {
     // allow unary minus in sygus version 1
     return getExprManager()->mkConst(Rational(name));
-  }else if(isAbstractValue(name)) {
-    return mkAbstractValue(name);
-  }else{
-    return Parser::getExpressionForNameAndType(name, t);
   }
+  else if (isAbstractValue(name))
+  {
+    return mkAbstractValue(name);
+  }
+  return Parser::getExpressionForNameAndType(name, t);
 }
 
 api::Term Smt2::mkIndexedConstant(const std::string& name,
@@ -627,7 +634,23 @@ void Smt2::resetAssertions() {
   }
 }
 
-void Smt2::setLogic(std::string name) {
+Command* Smt2::setLogic(std::string name, bool fromCommand)
+{
+  if (fromCommand)
+  {
+    if (d_seenSetLogic)
+    {
+      parseError("Only one set-logic is allowed.");
+    }
+    d_seenSetLogic = true;
+
+    if (logicIsForced())
+    {
+      // If the logic is forced, we ignore all set-logic requests from commands.
+      return new EmptyCommand();
+    }
+  }
+
   if (sygus_v1())
   {
     // non-smt2-standard sygus logic names go here (http://sygus.seas.upenn.edu/files/sygus.pdf Section 3.2)
@@ -639,11 +662,7 @@ void Smt2::setLogic(std::string name) {
   }
 
   d_logicSet = true;
-  if(logicIsForced()) {
-    d_logic = getForcedLogic();
-  } else {
-    d_logic = name;
-  }
+  d_logic = name;
 
   // if sygus is enabled, we must enable UF, datatypes, integer arithmetic and
   // higher-order
@@ -719,8 +738,27 @@ void Smt2::setLogic(std::string name) {
   if (d_logic.isTheoryEnabled(theory::THEORY_SEP)) {
     addTheory(THEORY_SEP);
   }
-  
-}/* Smt2::setLogic() */
+
+  if (sygus())
+  {
+    return new SetBenchmarkLogicCommand(d_logic.getLogicString());
+  }
+  else
+  {
+    return new SetBenchmarkLogicCommand(name);
+  }
+} /* Smt2::setLogic() */
+
+bool Smt2::sygus() const
+{
+  InputLanguage ilang = getLanguage();
+  return ilang == language::input::LANG_SYGUS
+         || ilang == language::input::LANG_SYGUS_V2;
+}
+bool Smt2::sygus_v1() const
+{
+  return getLanguage() == language::input::LANG_SYGUS;
+}
 
 bool Smt2::sygus() const
 {
@@ -741,21 +779,33 @@ void Smt2::setOption(const std::string& flag, const SExpr& sexpr) {
   // TODO: ???
 }
 
-void Smt2::checkThatLogicIsSet() {
-  if( ! logicIsSet() ) {
-    if(strictModeEnabled()) {
+void Smt2::checkThatLogicIsSet()
+{
+  if (!logicIsSet())
+  {
+    if (strictModeEnabled())
+    {
       parseError("set-logic must appear before this point.");
-    } else {
-      warning("No set-logic command was given before this point.");
-      warning("CVC4 will make all theories available.");
-      warning("Consider setting a stricter logic for (likely) better performance.");
-      warning("To suppress this warning in the future use (set-logic ALL).");
+    }
+    else
+    {
+      Command* cmd = nullptr;
+      if (logicIsForced())
+      {
+        cmd = setLogic(getForcedLogic(), false);
+      }
+      else
+      {
+        warning("No set-logic command was given before this point.");
+        warning("CVC4 will make all theories available.");
+        warning(
+            "Consider setting a stricter logic for (likely) better "
+            "performance.");
+        warning("To suppress this warning in the future use (set-logic ALL).");
 
-      setLogic("ALL");
-
-      Command* c = new SetBenchmarkLogicCommand("ALL");
-      c->setMuted(true);
-      preemptCommand(c);
+        cmd = setLogic("ALL", false);
+      }
+      preemptCommand(cmd);
     }
   }
 }
@@ -1433,20 +1483,24 @@ void Smt2::addSygusConstructorTerm(Datatype& dt,
   spc = std::make_shared<printer::SygusExprPrintCallback>(op, args);
   if (!args.empty())
   {
-    bool pureVar = true;
-    for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
+    bool pureVar = false;
+    if (op.getNumChildren() == args.size())
     {
-      if (std::find(args.begin(), args.end(), op[i]) == args.end())
+      pureVar = true;
+      for (unsigned i = 0, nchild = op.getNumChildren(); i < nchild; i++)
       {
-        pureVar = false;
-        break;
+        if (op[i] != args[i])
+        {
+          pureVar = false;
+          break;
+        }
       }
     }
     Trace("parser-sygus2") << "Pure var is " << pureVar
                            << ", hasOp=" << op.hasOperator() << std::endl;
     if (pureVar && op.hasOperator())
     {
-      // optimization: just use the operator if it an application to only vars
+      // optimization: use just the operator if it an application to only vars
       op = op.getOperator();
     }
     else
@@ -1481,7 +1535,9 @@ Expr Smt2::purifySygusGTerm(Expr term,
     return ret;
   }
   std::vector<Expr> pchildren;
-  // FIXME: this is probably wrong
+  // To test whether the operator should be passed to mkExpr below, we check
+  // whether this term has an operator which is not constant. This includes
+  // APPLY_UF terms, but excludes applications of interpreted symbols.
   if (term.hasOperator() && !term.getOperator().isConst())
   {
     pchildren.push_back(term.getOperator());

@@ -32,9 +32,11 @@ namespace theory {
 namespace strings {
 
 RegExpSolver::RegExpSolver(TheoryStrings& p,
+                           InferenceManager& im,
                            context::Context* c,
                            context::UserContext* u)
     : d_parent(p),
+      d_im(im),
       d_regexp_memberships(c),
       d_regexp_ucached(u),
       d_regexp_ccached(c),
@@ -147,17 +149,17 @@ void RegExpSolver::check()
               vec_nodes.push_back(n);
             }
             Node conc;
-            d_parent.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
+            d_im.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
             addedLemma = true;
             break;
           }
-          if (d_parent.inConflict())
+          if (d_im.hasConflict())
           {
             break;
           }
         }
         // updates
-        if (!d_parent.inConflict() && !spflag)
+        if (!d_im.hasConflict() && !spflag)
         {
           d_inter_cache[x] = r;
           d_inter_index[x] = (int)n_pmem;
@@ -172,23 +174,35 @@ void RegExpSolver::check()
   if (!addedLemma)
   {
     NodeManager* nm = NodeManager::currentNM();
-    for (unsigned i = 0; i < d_regexp_memberships.size(); i++)
+    // representatives of strings that are the LHS of positive memberships that
+    // we unfolded
+    std::unordered_set<Node, NodeHashFunction> repUnfold;
+    // check positive (e=0), then negative (e=1) memberships
+    for (unsigned e = 0; e < 2; e++)
     {
-      // check regular expression membership
-      Node assertion = d_regexp_memberships[i];
-      Trace("regexp-debug")
-          << "Check : " << assertion << " "
-          << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()) << " "
-          << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
-          << std::endl;
-      if (d_regexp_ucached.find(assertion) == d_regexp_ucached.end()
-          && d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
+      for (const Node& assertion : d_regexp_memberships)
       {
+        // check regular expression membership
+        Trace("regexp-debug")
+            << "Check : " << assertion << " "
+            << (d_regexp_ucached.find(assertion) == d_regexp_ucached.end())
+            << " "
+            << (d_regexp_ccached.find(assertion) == d_regexp_ccached.end())
+            << std::endl;
+        if (d_regexp_ucached.find(assertion) != d_regexp_ucached.end()
+            || d_regexp_ccached.find(assertion) != d_regexp_ccached.end())
+        {
+          continue;
+        }
         Trace("strings-regexp")
             << "We have regular expression assertion : " << assertion
             << std::endl;
         Node atom = assertion.getKind() == NOT ? assertion[0] : assertion;
         bool polarity = assertion.getKind() != NOT;
+        if (polarity != (e == 0))
+        {
+          continue;
+        }
         bool flag = true;
         Node x = atom[0];
         Node r = atom[1];
@@ -223,12 +237,21 @@ void RegExpSolver::check()
             std::vector<Node> exp_n;
             exp_n.push_back(assertion);
             Node conc = Node::null();
-            d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP NF Conflict");
+            d_im.sendInference(rnfexp, exp_n, conc, "REGEXP NF Conflict");
             addedLemma = true;
             break;
           }
         }
-
+        if (e == 1 && repUnfold.find(x) != repUnfold.end())
+        {
+          // do not unfold negative memberships of strings that have new
+          // positive unfoldings. For example:
+          //   x in ("A")* ^ NOT x in ("B")*
+          // We unfold x = "A" ++ x' only. The intution here is that positive
+          // unfoldings lead to stronger constraints (equalities are stronger
+          // than disequalities), and are easier to check.
+          continue;
+        }
         if (polarity)
         {
           flag = checkPDerivative(x, r, atom, addedLemma, rnfexp);
@@ -258,8 +281,7 @@ void RegExpSolver::check()
           std::vector<Node> exp_n;
           exp_n.push_back(assertion);
           Node conc = nvec.size() == 1 ? nvec[0] : nm->mkNode(AND, nvec);
-          conc = Rewriter::rewrite(conc);
-          d_parent.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
+          d_im.sendInference(rnfexp, exp_n, conc, "REGEXP_Unfold");
           addedLemma = true;
           if (changed)
           {
@@ -269,17 +291,24 @@ void RegExpSolver::check()
           {
             processed.push_back(assertion);
           }
+          if (e == 0)
+          {
+            // Remember that we have unfolded a membership for x
+            // notice that we only do this here, after we have definitely
+            // added a lemma.
+            repUnfold.insert(x);
+          }
         }
-      }
-      if (d_parent.inConflict())
-      {
-        break;
+        if (d_im.hasConflict())
+        {
+          break;
+        }
       }
     }
   }
   if (addedLemma)
   {
-    if (!d_parent.inConflict())
+    if (!d_im.hasConflict())
     {
       for (unsigned i = 0; i < processed.size(); i++)
       {
@@ -310,7 +339,7 @@ bool RegExpSolver::checkPDerivative(
         std::vector<Node> exp_n;
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
-        d_parent.sendInference(nf_exp, exp_n, exp, "RegExp Delta");
+        d_im.sendInference(nf_exp, exp_n, exp, "RegExp Delta");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -326,7 +355,7 @@ bool RegExpSolver::checkPDerivative(
         exp_n.push_back(atom);
         exp_n.push_back(x.eqNode(d_emptyString));
         Node conc;
-        d_parent.sendInference(nf_exp, exp_n, conc, "RegExp Delta CONFLICT");
+        d_im.sendInference(nf_exp, exp_n, conc, "RegExp Delta CONFLICT");
         addedLemma = true;
         d_regexp_ccached.insert(atom);
         return false;
@@ -416,7 +445,7 @@ bool RegExpSolver::deriveRegExp(Node x,
     }
     std::vector<Node> exp_n;
     exp_n.push_back(atom);
-    d_parent.sendInference(ant, exp_n, conc, "RegExp-Derive");
+    d_im.sendInference(ant, exp_n, conc, "RegExp-Derive");
     return true;
   }
   return false;

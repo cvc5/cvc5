@@ -1566,8 +1566,22 @@ void StrongSolverTheoryUF::check( Theory::Effort level ){
   if( !d_conflict ){
     if( options::ufssMode()==UF_SS_FULL ){
       Trace("uf-ss-solver") << "StrongSolverTheoryUF: check " << level << std::endl;
-      if( level==Theory::EFFORT_FULL && Debug.isOn( "uf-ss-debug" ) ){
-        debugPrint( "uf-ss-debug" );
+      if (level == Theory::EFFORT_FULL)
+      {
+        if (Debug.isOn("uf-ss-debug"))
+        {
+          debugPrint("uf-ss-debug");
+        }
+        if (Trace.isOn("uf-ss-state"))
+        {
+          Trace("uf-ss-state")
+              << "StrongSolverTheoryUF::check " << level << std::endl;
+          for (std::pair<const TypeNode, SortModel*>& rm : d_rep_model)
+          {
+            Trace("uf-ss-state") << "  " << rm.first << " has cardinality "
+                                 << rm.second->getCardinality() << std::endl;
+          }
+        }
       }
       for( std::map< TypeNode, SortModel* >::iterator it = d_rep_model.begin(); it != d_rep_model.end(); ++it ){
         it->second->check( level, d_out );

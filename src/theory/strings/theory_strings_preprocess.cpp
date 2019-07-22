@@ -486,6 +486,50 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
 
     // Thus, replaceall( x, y, z ) = rpaw
     retNode = rpaw;
+  }
+  else if (t.getKind() == STRING_TOLOWER || t.getKind() == STRING_TOUPPER)
+  {
+    Node x = t[0];
+    Node r = d_sc->mkSkolemCached(t, SkolemCache::SK_PURIFY, "r");
+
+    Node lent = nm->mkNode(STRING_LENGTH, t);
+    Node lenr = nm->mkNode(STRING_LENGTH, r);
+    Node eqLenA = lent.eqNode(lenr);
+
+    Node i = nm->mkBoundVar(nm->integerType());
+    Node bvi = nm->mkNode(BOUND_VAR_LIST, i);
+
+    Node ci = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, x, i, d_one));
+    Node ri = nm->mkNode(STRING_CODE, nm->mkNode(STRING_SUBSTR, r, i, d_one));
+
+    Node lb = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 97 : 65));
+    Node ub = nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? 122 : 90));
+    Node offset =
+        nm->mkConst(Rational(t.getKind() == STRING_TOUPPER ? -32 : 32));
+
+    Node res = nm->mkNode(
+        ITE,
+        nm->mkNode(AND, nm->mkNode(LEQ, lb, ci), nm->mkNode(LEQ, ci, ub)),
+        nm->mkNode(PLUS, ci, offset),
+        ci);
+
+    Node bound =
+        nm->mkNode(AND, nm->mkNode(LEQ, d_zero, i), nm->mkNode(LEQ, i, lenr));
+    Node rangeA =
+        nm->mkNode(FORALL, bvi, nm->mkNode(OR, bound.negate(), ri.eqNode(res)));
+
+    // upper 65 ... 90
+    // lower 97 ... 122
+    // assert:
+    //   len(r) = len(x) ^
+    //   forall i. 0 <= i < len(r) =>
+    //     str.code( str.substr(r,i,1) ) = ite( 97 <= ci <= 122, ci-32, ci)
+    // where ci = str.code( str.substr(x,i,1) )
+    Node assert = nm->mkNode(AND, eqLenA, rangeA);
+    new_nodes.push_back(assert);
+
+    // Thus, toLower( x ) = r
+    retNode = r;
   } else if( t.getKind() == kind::STRING_STRCTN ){
     Node x = t[0];
     Node s = t[1];

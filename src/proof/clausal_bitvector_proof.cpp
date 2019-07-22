@@ -19,7 +19,7 @@
 #include <algorithm>
 #include <iostream>
 #include <iterator>
-#include <unordered_set>
+#include <map>
 
 #include "options/bv_options.h"
 #include "proof/clausal_bitvector_proof.h"
@@ -28,6 +28,8 @@
 #include "proof/er/er_proof.h"
 #include "proof/lfsc_proof_printer.h"
 #include "proof/lrat/lrat_proof.h"
+#include "prop/sat_solver_types.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/bv/theory_bv.h"
 
 #if CVC4_USE_DRAT2ER
@@ -45,7 +47,9 @@ ClausalBitVectorProof::ClausalBitVectorProof(theory::bv::TheoryBV* bv,
       d_clauses(),
       d_originalClauseIndices(),
       d_binaryDratProof(),
-      d_coreClauseIndices()
+      d_coreClauseIndices(),
+      d_dratTranslationStatistics(),
+      d_dratOptimizationStatistics()
 {
 }
 
@@ -80,7 +84,9 @@ void ClausalBitVectorProof::initCnfProof(prop::CnfStream* cnfStream,
 void ClausalBitVectorProof::registerUsedClause(ClauseId id,
                                                prop::SatClause& clause)
 {
-  d_clauses.emplace(id, clause);
+  prop::SatClause& emplaced_clause =
+      d_clauses.emplace(id, clause).first->second;
+  canonicalizeClause(emplaced_clause);
   d_originalClauseIndices.push_back(id);
 };
 
@@ -111,8 +117,20 @@ void ClausalBitVectorProof::calculateAtomsInBitblastingProof()
   }
 }
 
+struct SatClausePointerComparator
+{
+  inline bool operator()(const prop::SatClause* const& l,
+                         const prop::SatClause* const& r) const
+  {
+    prop::SatClauseLessThan cmp;
+    return cmp(*l, *r);
+  }
+};
+
 void ClausalBitVectorProof::optimizeDratProof()
 {
+  TimerStat::CodeTimer optimizeDratProofTimer{
+      d_dratOptimizationStatistics.d_totalTime};
   if (options::bvOptimizeSatProof()
           == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_PROOF
       || options::bvOptimizeSatProof()
@@ -120,88 +138,98 @@ void ClausalBitVectorProof::optimizeDratProof()
                     BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
   {
     Debug("bv::clausal") << "Optimizing DRAT" << std::endl;
-    char formulaFilename[] = "/tmp/cvc4-dimacs-XXXXXX";
-    char dratFilename[] = "/tmp/cvc4-drat-XXXXXX";
-    char optDratFilename[] = "/tmp/cvc4-optimized-drat-XXXXXX";
-    char optFormulaFilename[] = "/tmp/cvc4-optimized-formula-XXXXXX";
-    int r;
-    r = mkstemp(formulaFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(dratFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(optDratFilename);
-    AlwaysAssert(r > 0);
-    close(r);
-    r = mkstemp(optFormulaFilename);
-    AlwaysAssert(r > 0);
-    close(r);
+    std::string formulaFilename("cvc4-dimacs-XXXXXX");
+    std::string dratFilename("cvc4-drat-XXXXXX");
+    std::string optDratFilename("cvc4-optimized-drat-XXXXXX");
+    std::string optFormulaFilename("cvc4-optimized-formula-XXXXXX");
 
-    std::ofstream formStream(formulaFilename);
-    printDimacs(formStream, d_clauses, d_originalClauseIndices);
-    formStream.close();
+    {
+      std::fstream formStream = openTmpFile(&formulaFilename);
+      const int64_t startPos = static_cast<int64_t>(formStream.tellp());
+      printDimacs(formStream, d_clauses, d_originalClauseIndices);
+      d_dratOptimizationStatistics.d_initialFormulaSize.setData(
+          static_cast<int64_t>(formStream.tellp()) - startPos);
+      formStream.close();
+    }
 
-    std::ofstream dratStream(dratFilename);
-    dratStream << d_binaryDratProof.str();
-    dratStream.close();
+    {
+      std::fstream dratStream = openTmpFile(&dratFilename);
+      const int64_t startPos = static_cast<int64_t>(dratStream.tellp());
+      dratStream << d_binaryDratProof.str();
+      d_dratOptimizationStatistics.d_initialDratSize.setData(
+          static_cast<int64_t>(dratStream.tellp()) - startPos);
+      dratStream.close();
+    }
+
+    std::fstream optDratStream = openTmpFile(&optDratFilename);
+    std::fstream optFormulaStream = openTmpFile(&optFormulaFilename);
 
 #if CVC4_USE_DRAT2ER
-    int dratTrimExitCode =
-        drat2er::drat_trim::OptimizeWithDratTrim(formulaFilename,
-                                                 dratFilename,
-                                                 optFormulaFilename,
-                                                 optDratFilename,
-                                                 drat2er::options::QUIET);
-    AlwaysAssert(
-        dratTrimExitCode == 0, "drat-trim exited with %d", dratTrimExitCode);
+    {
+      TimerStat::CodeTimer runDratTimeOptimizationTimer{
+          d_dratOptimizationStatistics.d_toolTime};
+      int dratTrimExitCode =
+          drat2er::drat_trim::OptimizeWithDratTrim(formulaFilename,
+                                                   dratFilename,
+                                                   optFormulaFilename,
+                                                   optDratFilename,
+                                                   drat2er::options::QUIET);
+      AlwaysAssert(
+          dratTrimExitCode == 0, "drat-trim exited with %d", dratTrimExitCode);
+    }
 #else
     Unimplemented(
         "Proof production when using CryptoMiniSat requires drat2er.\n"
         "Run contrib/get-drat2er, reconfigure with --drat2er, and rebuild");
 #endif
 
-    d_binaryDratProof.str("");
-    Assert(d_binaryDratProof.str().size() == 0);
+    {
+      d_binaryDratProof.str("");
+      Assert(d_binaryDratProof.str().size() == 0);
 
-    std::ifstream lratStream(optDratFilename);
-    std::copy(std::istreambuf_iterator<char>(lratStream),
-              std::istreambuf_iterator<char>(),
-              std::ostreambuf_iterator<char>(d_binaryDratProof));
+      const int64_t startPos = static_cast<int64_t>(d_binaryDratProof.tellp());
+      std::ifstream lratStream(optDratFilename);
+      std::copy(std::istreambuf_iterator<char>(lratStream),
+                std::istreambuf_iterator<char>(),
+                std::ostreambuf_iterator<char>(d_binaryDratProof));
+      d_dratOptimizationStatistics.d_optimizedDratSize.setData(
+          static_cast<int64_t>(d_binaryDratProof.tellp()) - startPos);
+    }
 
     if (options::bvOptimizeSatProof()
         == theory::bv::BvOptimizeSatProof::BITVECTOR_OPTIMIZE_SAT_PROOF_FORMULA)
     {
       std::ifstream optFormulaStream{optFormulaFilename};
+      const int64_t startPos = static_cast<int64_t>(optFormulaStream.tellg());
       std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
+      d_dratOptimizationStatistics.d_optimizedFormulaSize.setData(
+          static_cast<int64_t>(optFormulaStream.tellg()) - startPos);
       optFormulaStream.close();
+
+      CodeTimer clauseMatchingTimer{
+          d_dratOptimizationStatistics.d_clauseMatchingTime};
 
       // Now we need to compute the clause indices for the UNSAT core. This is a
       // bit difficult because drat-trim may have reordered clauses, and/or
       // removed duplicate literals. We use literal sets as the canonical clause
       // form.
-      std::unordered_map<
-          std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>,
-          ClauseId,
-          prop::SatClauseSetHashFunction>
+      //
+      // TODO (aozdemir) It may be better to use a hash map instead of a tree
+      // map here.
+      std::map<const prop::SatClause*, ClauseId, SatClausePointerComparator>
           cannonicalClausesToIndices;
       for (const auto& kv : d_clauses)
       {
-        cannonicalClausesToIndices.emplace(
-            std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>{
-                kv.second.begin(), kv.second.end()},
-            kv.first);
+        cannonicalClausesToIndices[&kv.second] = kv.first;
       }
 
       d_coreClauseIndices.clear();
-      std::unordered_set<prop::SatLiteral, prop::SatLiteralHashFunction>
-          coreClauseCanonical;
-      for (const prop::SatClause& coreClause : core)
+
+      for (prop::SatClause& coreClause : core)
       {
-        coreClauseCanonical.insert(coreClause.begin(), coreClause.end());
+        canonicalizeClause(coreClause);
         d_coreClauseIndices.push_back(
-            cannonicalClausesToIndices.at(coreClauseCanonical));
-        coreClauseCanonical.clear();
+            cannonicalClausesToIndices.at(&coreClause));
       }
       Debug("bv::clausal") << "Optimizing the DRAT proof and the formula"
                            << std::endl;
@@ -213,11 +241,13 @@ void ClausalBitVectorProof::optimizeDratProof()
       d_coreClauseIndices = d_originalClauseIndices;
     }
 
+    optFormulaStream.close();
+
     Assert(d_coreClauseIndices.size() > 0);
-    remove(formulaFilename);
-    remove(dratFilename);
-    remove(optDratFilename);
-    remove(optFormulaFilename);
+    remove(formulaFilename.c_str());
+    remove(dratFilename.c_str());
+    remove(optDratFilename.c_str());
+    remove(optFormulaFilename.c_str());
     Debug("bv::clausal") << "Optimized DRAT" << std::endl;
   }
   else
@@ -226,6 +256,57 @@ void ClausalBitVectorProof::optimizeDratProof()
                          << std::endl;
     d_coreClauseIndices = d_originalClauseIndices;
   }
+}
+
+void ClausalBitVectorProof::canonicalizeClause(prop::SatClause& clause)
+{
+  std::sort(clause.begin(), clause.end());
+  clause.erase(std::unique(clause.begin(), clause.end()), clause.end());
+}
+
+ClausalBitVectorProof::DratTranslationStatistics::DratTranslationStatistics()
+    : d_totalTime("proof::bv::dratTranslation::totalTime"),
+      d_toolTime("proof::bv::dratTranslation::toolTime")
+{
+  smtStatisticsRegistry()->registerStat(&d_totalTime);
+  smtStatisticsRegistry()->registerStat(&d_toolTime);
+}
+
+ClausalBitVectorProof::DratTranslationStatistics::~DratTranslationStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_totalTime);
+  smtStatisticsRegistry()->unregisterStat(&d_toolTime);
+}
+
+ClausalBitVectorProof::DratOptimizationStatistics::DratOptimizationStatistics()
+    : d_totalTime("proof::bv::dratOptimization::totalTime"),
+      d_toolTime("proof::bv::dratOptimization::toolTime"),
+      d_clauseMatchingTime("proof::bv::dratOptimization::clauseMatchingTime"),
+      d_initialDratSize("proof::bv::dratOptimization::initialDratSize", 0),
+      d_optimizedDratSize("proof::bv::dratOptimization::optimizedDratSize", 0),
+      d_initialFormulaSize("proof::bv::dratOptimization::initialFormulaSize",
+                           0),
+      d_optimizedFormulaSize(
+          "proof::bv::dratOptimization::optimizedFormulaSize", 0)
+{
+  smtStatisticsRegistry()->registerStat(&d_totalTime);
+  smtStatisticsRegistry()->registerStat(&d_toolTime);
+  smtStatisticsRegistry()->registerStat(&d_clauseMatchingTime);
+  smtStatisticsRegistry()->registerStat(&d_initialDratSize);
+  smtStatisticsRegistry()->registerStat(&d_optimizedDratSize);
+  smtStatisticsRegistry()->registerStat(&d_initialFormulaSize);
+  smtStatisticsRegistry()->registerStat(&d_optimizedFormulaSize);
+}
+
+ClausalBitVectorProof::DratOptimizationStatistics::~DratOptimizationStatistics()
+{
+  smtStatisticsRegistry()->unregisterStat(&d_totalTime);
+  smtStatisticsRegistry()->unregisterStat(&d_toolTime);
+  smtStatisticsRegistry()->unregisterStat(&d_clauseMatchingTime);
+  smtStatisticsRegistry()->unregisterStat(&d_initialDratSize);
+  smtStatisticsRegistry()->unregisterStat(&d_optimizedDratSize);
+  smtStatisticsRegistry()->unregisterStat(&d_initialFormulaSize);
+  smtStatisticsRegistry()->unregisterStat(&d_optimizedFormulaSize);
 }
 
 void LfscClausalBitVectorProof::printTheoryLemmaProof(std::vector<Expr>& lemma,
@@ -271,7 +352,10 @@ void LfscDratBitVectorProof::printEmptyClauseProof(std::ostream& os,
   os << "\n;; DRAT Proof Value\n";
   os << "(@ dratProof ";
   paren << ")";
-  drat::DratProof::fromBinary(d_binaryDratProof.str()).outputAsLfsc(os, 2);
+  d_dratTranslationStatistics.d_totalTime.start();
+  drat::DratProof pf = drat::DratProof::fromBinary(d_binaryDratProof.str());
+  d_dratTranslationStatistics.d_totalTime.stop();
+  pf.outputAsLfsc(os, 2);
   os << "\n";
 
   os << "\n;; Verification of DRAT Proof\n";
@@ -294,8 +378,13 @@ void LfscLratBitVectorProof::printEmptyClauseProof(std::ostream& os,
   os << "\n;; DRAT Proof Value\n";
   os << "(@ lratProof ";
   paren << ")";
-  lrat::LratProof pf = lrat::LratProof::fromDratProof(
-      d_clauses, d_coreClauseIndices, d_binaryDratProof.str());
+  d_dratTranslationStatistics.d_totalTime.start();
+  lrat::LratProof pf =
+      lrat::LratProof::fromDratProof(d_clauses,
+                                     d_coreClauseIndices,
+                                     d_binaryDratProof.str(),
+                                     d_dratTranslationStatistics.d_toolTime);
+  d_dratTranslationStatistics.d_totalTime.stop();
   pf.outputAsLfsc(os);
   os << "\n";
 
@@ -311,8 +400,13 @@ void LfscErBitVectorProof::printEmptyClauseProof(std::ostream& os,
          "the BV theory should only be proving bottom directly in the eager "
          "bitblasting mode");
 
-  er::ErProof pf = er::ErProof::fromBinaryDratProof(
-      d_clauses, d_coreClauseIndices, d_binaryDratProof.str());
+  d_dratTranslationStatistics.d_totalTime.start();
+  er::ErProof pf =
+      er::ErProof::fromBinaryDratProof(d_clauses,
+                                       d_coreClauseIndices,
+                                       d_binaryDratProof.str(),
+                                       d_dratTranslationStatistics.d_toolTime);
+  d_dratTranslationStatistics.d_totalTime.stop();
 
   pf.outputAsLfsc(os);
 }

@@ -52,9 +52,6 @@ class CVC4_PUBLIC Options {
   /** The current Options in effect */
   static thread_local Options* s_current;
 
-  /** Listeners for options::forceLogicString being set. */
-  ListenerCollection d_forceLogicListeners;
-
   /** Listeners for notifyBeforeSearch. */
   ListenerCollection d_beforeSearchListeners;
 
@@ -350,19 +347,6 @@ public:
    */
   ListenerCollection::Registration* registerBeforeSearchListener(
       Listener* listener);
-
-
-  /**
-   * Registers a listener for options::forceLogic being set.
-   *
-   * If notifyIfSet is true, this calls notify on the listener
-   * if the option was set by the user.
-   *
-   * The memory for the Registration is controlled by the user and must
-   * be destroyed before the Options object is.
-   */
-  ListenerCollection::Registration* registerForceLogicListener(
-      Listener* listener, bool notifyIfSet);
 
   /**
    * Registers a listener for options::tlimit being set.
