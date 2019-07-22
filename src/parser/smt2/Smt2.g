@@ -1879,7 +1879,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
   Debug("parser") << "term: " << AntlrInput::tokenText(LT(1)) << std::endl;
   Kind kind = kind::NULL_EXPR;
   Kind qkind = kind::NULL_EXPR;
-  Expr op;
   std::string name;
   std::vector<Expr> args;
   std::vector< std::pair<std::string, Type> > sortedVarNames;
@@ -2068,8 +2067,8 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           PARSER_STATE->parseError(ss.str());
         }
         const Datatype& dt = ((DatatypeType)t).getDatatype();
-        op = dt[0][n].getSelector();
-        expr = MK_EXPR(kind::APPLY_SELECTOR, op, args);
+        expr = dt[0][n].getSelector();
+        expr = MK_EXPR(kind::APPLY_SELECTOR, expr, args);
       }
       else if (qkind != kind::NULL_EXPR)
       {
@@ -2499,7 +2498,10 @@ qualIdentifier[CVC4::Kind& kind, std::string& name, CVC4::Expr& expr, CVC4::Type
               << "Getting variable expression with name " << baseName
               << " and type " << type << std::endl;
           // get the variable expression for the type
-          f = PARSER_STATE->getExpressionForNameAndType(baseName, type);
+          if (PARSER_STATE->isDeclared(baseName, SYM_VARIABLE))
+          {
+            f = PARSER_STATE->getExpressionForNameAndType(baseName, type);
+          }
           if(f.isNull())
           {
             std::stringstream ss;
