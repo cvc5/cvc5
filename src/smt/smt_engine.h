@@ -461,9 +461,9 @@ class CVC4_PUBLIC SmtEngine {
    * element is the nil expression.
    */
   std::pair<Expr, Expr> getSepHeapAndNilExpr();
-  
-  /** get expanded assertions 
-   * 
+
+  /** get expanded assertions
+   *
    * Returns the set of assertions, after expanding definitions.
    */
   std::vector<Expr> getExpandedAssertions();
