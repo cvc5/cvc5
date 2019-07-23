@@ -326,12 +326,8 @@ void getOperatorsMap(TNode n,
     //if cur is in the cache, do nothing
     if (visited.find(cur) == visited.end())
     {
-      //fetch the correct type and add it to the resulting map if needed
+      //fetch the correct type 
       TypeNode tn = cur.getType();
-      if (ops.find(tn) == ops.end())
-      {
-        ops[tn] = std::unordered_set<Node, NodeHashFunction>();
-      }
       //add the current operator to the result
       if (cur.hasOperator())
       {

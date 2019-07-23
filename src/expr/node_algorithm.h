@@ -88,7 +88,14 @@ bool getVariables(TNode n, std::unordered_set<TNode, TNodeHashFunction>& vs);
  * @param syms The set which the symbols of n are added to
  */
 void getSymbols(TNode n, std::unordered_set<Node, NodeHashFunction>& syms);
-/** Same as above, with a visited cache */
+
+/**
+ * For term n, this function collects the symbols that occur as a subterms
+ * of n. A symbol is a variable that does not have kind BOUND_VARIABLE.
+ * @param n The node under investigation
+ * @param syms The set which the symbols of n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
 void getSymbols(TNode n,
                 std::unordered_set<Node, NodeHashFunction>& syms,
                 std::unordered_set<TNode, TNodeHashFunction>& visited);
@@ -96,11 +103,18 @@ void getSymbols(TNode n,
 /**
  * For term n, this function collects the operators that occur in n.
  * @param n The node under investigation
- * @param syms The map (from each type to operators of that type) which the operators of
+ * @param ops The map (from each type to operators of that type) which the operators of
  * n are added to
  */
 void getOperatorsMap(TNode n, std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops);
-/** Same as above, with a visited cache */
+
+/**
+ * For term n, this function collects the operators that occur in n.
+ * @param n The node under investigation
+ * @param ops The map (from each type to operators of that type) which the operators of
+ * n are added to
+ * @param visited A cache to be used for visited nodes.
+ */
 void getOperatorsMap(TNode n,
                      std::map<TypeNode, std::unordered_set<Node, NodeHashFunction>>& ops,
                      std::unordered_set<TNode, TNodeHashFunction>& visited);
