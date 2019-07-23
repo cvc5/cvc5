@@ -252,16 +252,6 @@ class TheoryStringsRewriter {
    */
   static Node rewriteStringCode(Node node);
 
-  /** gets the "vector form" of term n, adds it to c.
-  * For example:
-  * when n = str.++( x, y ), c is { x, y }
-  * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
-  * when n = x, c is { x }
-  *
-  * Also applies to regular expressions (re.++ above).
-  */
-  static void getConcat( Node n, std::vector< Node >& c );
-  static Node mkConcat( Kind k, std::vector< Node >& c );
   static Node splitConstant( Node a, Node b, int& index, bool isRev );
   /** can constant contain list
    * return true if constant c can contain the list l in order
