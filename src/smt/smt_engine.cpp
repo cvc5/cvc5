@@ -4971,7 +4971,7 @@ Expr SmtEngine::getAbduct(const Expr& ax, const Expr& conj, const Type& grammarT
 
 Expr SmtEngine::getAbduct(const Expr& ax, const Expr& conj)
 {
-  d_abductGrammarType = TypeNode::null();
+  //d_abductGrammarType = TypeNode::null();
   Expr ret;
   // TODO
   return ret;
