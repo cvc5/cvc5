@@ -187,11 +187,9 @@ inline Node RewriteRule<AshrEliminate>::apply(TNode node)
   Node t = node[1];
   /*  From SMT-LIB:
    *  (bvashr s t) abbreviates
-        (ite (= ((_ extract |m-1| |m-1|) s) #b0)
-             (bvlshr s t)
-             (bvnot (bvlshr (bvnot s) t)))
-   *
-   * */
+   *    (ite (= ((_ extract |m-1| |m-1|) s) #b0)
+   *         (bvlshr s t)
+   *         (bvnot (bvlshr (bvnot s) t)))  */
   unsigned size = utils::getSize(s);
   Node condition = nm->mkNode(
       kind::EQUAL, utils::mkExtract(s, size - 1, size - 1), utils::mkZero(1));
