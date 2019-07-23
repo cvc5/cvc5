@@ -283,22 +283,27 @@ bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
   }
 }
 
+void TheorySetsPrivate::fullEffortReset()
+{
+  Assert( d_equalityEngine.consistent() );
+  d_full_check_incomplete = false;
+  d_most_common_type.clear();
+  d_most_common_type_term.clear();
+  d_card_enabled = false;
+  d_rels_enabled = false;
+  // reset the state object
+  d_state.reset();
+  // reset the inference manager
+  d_im.reset();
+  // reset the cardinality solver
+  d_cardSolver->reset();
+}
+
 void TheorySetsPrivate::fullEffortCheck(){
   Trace("sets") << "----- Full effort check ------" << std::endl;
   do{
     Trace("sets") << "...iterate full effort check..." << std::endl;
-    Assert( d_equalityEngine.consistent() );
-    d_full_check_incomplete = false;
-    d_most_common_type.clear();
-    d_most_common_type_term.clear();
-    d_card_enabled = false;
-    d_rels_enabled = false;
-    // reset the state object
-    d_state.reset();
-    // reset the inference manager
-    d_im.reset();
-    // reset the cardinality solver
-    d_cardSolver->reset();
+    fullEffortReset();
 
     Trace("sets-eqc") << "Equality Engine:" << std::endl;
     std::map<TypeNode, unsigned> eqcTypeCount;

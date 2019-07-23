@@ -272,7 +272,7 @@ class SolverState
    * current context. We use an incomplete test based on equality and membership
    * information.
    *
-   * eqE is the representative of the equivalence class of the empty set
+   * re is the representative of the equivalence class of the empty set
    * whose type is the same as a and b.
    */
   bool isSetDisequalityEntailedInternal(Node a, Node b, Node re) const;
