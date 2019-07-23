@@ -285,7 +285,7 @@ bool TheorySetsPrivate::assertFact( Node fact, Node exp ){
 
 void TheorySetsPrivate::fullEffortReset()
 {
-  Assert( d_equalityEngine.consistent() );
+  Assert(d_equalityEngine.consistent());
   d_full_check_incomplete = false;
   d_most_common_type.clear();
   d_most_common_type_term.clear();

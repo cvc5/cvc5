@@ -58,14 +58,14 @@ class TheorySetsPrivate {
   bool areCareDisequal(Node a, Node b);
   NodeIntMap d_members;
   std::map< Node, std::vector< Node > > d_members_data;
-  /** 
+  /**
    * Invoke the decision procedure for this theory, which is run at
    * full effort. This will either send a lemma or conflict on the output
    * channel of this class, or otherwise the current set of constraints is
    * satisfiable w.r.t. the theory of sets.
    */
   void fullEffortCheck();
-  /** 
+  /**
    * Reset the information for a full effort check.
    */
   void fullEffortReset();
