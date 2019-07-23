@@ -1437,11 +1437,13 @@ Node RegExpOpr::removeIntersection(Node r) {
   }
   Node retNode;
   Kind rk = r.getKind();
-  switch(rk) {
+  switch (rk)
+  {
     case REGEXP_EMPTY:
     case REGEXP_SIGMA:
     case REGEXP_RANGE:
-    case STRING_TO_REGEXP: {
+    case STRING_TO_REGEXP:
+    {
       retNode = r;
       break;
     }
@@ -1449,30 +1451,37 @@ Node RegExpOpr::removeIntersection(Node r) {
     case REGEXP_UNION:
     case REGEXP_STAR:
     {
-      std::vector< Node > vec_nodes;
-      for( const Node& rc : r ){
-        Node tmpNode = removeIntersection( rc );
-        vec_nodes.push_back( tmpNode );
+      std::vector<Node> vec_nodes;
+      for (const Node& rc : r)
+      {
+        Node tmpNode = removeIntersection(rc);
+        vec_nodes.push_back(tmpNode);
       }
-      retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(rk, vec_nodes) );
+      retNode =
+          Rewriter::rewrite(NodeManager::currentNM()->mkNode(rk, vec_nodes));
       break;
     }
 
-    case REGEXP_INTER: {
-      retNode = removeIntersection( r[0] );
-      for(unsigned i=1, nchild = r.getNumChildren(); i<nchild; i++) {
+    case REGEXP_INTER:
+    {
+      retNode = removeIntersection(r[0]);
+      for (unsigned i = 1, nchild = r.getNumChildren(); i < nchild; i++)
+      {
         bool spflag = false;
-        Node tmpNode = removeIntersection( r[i] );
-        retNode = intersect( retNode, tmpNode, spflag );
+        Node tmpNode = removeIntersection(r[i]);
+        retNode = intersect(retNode, tmpNode, spflag);
       }
       break;
     }
-    case REGEXP_LOOP: {
-      retNode = removeIntersection( r[0] );
-      retNode = Rewriter::rewrite( NodeManager::currentNM()->mkNode(REGEXP_LOOP, retNode, r[1], r[2]) );
+    case REGEXP_LOOP:
+    {
+      retNode = removeIntersection(r[0]);
+      retNode = Rewriter::rewrite(
+          NodeManager::currentNM()->mkNode(REGEXP_LOOP, retNode, r[1], r[2]));
       break;
     }
-    default: {
+    default:
+    {
       Unreachable();
     }
   }
