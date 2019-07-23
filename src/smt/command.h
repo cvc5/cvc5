@@ -1013,8 +1013,11 @@ class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
   GetAbductCommand();
-  GetAbductCommand(const Type& gtype);
+  GetAbductCommand(Expr ax, Expr conj);
+  GetAbductCommand(Expr ax, Expr conj, const Type& gtype);
 
+  Expr getAxiom() const;
+  Expr getConjecture() const;
   Type getGrammarType() const;
 
   void invoke(SmtEngine* smtEngine) override;
@@ -1024,8 +1027,16 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   std::string getCommandName() const override;
 
  protected:
+  /** The axiom of the abduction query */
+  Expr d_axiom;
+  /** The conjecture of the abduction query */
+  Expr d_conj;
+  /** 
+   * The (optional) grammar of the abduction query, expressed as a sygus
+   * datatype type.
+   */
   Type d_sygus_grammar_type;
-}; /* class GetQuantifierEliminationCommand */
+}; /* class GetAbductCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
 {

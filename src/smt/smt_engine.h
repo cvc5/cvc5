@@ -857,7 +857,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * TODO
    */
-  void doAbduction(const Type& grammarType);
+  Expr getAbduct(const Expr& ax, const Expr& conj, const Type& grammarType);
+  Expr getAbduct(const Expr& ax, const Expr& conj);
   /** get the abduction type
    *
    * TODO

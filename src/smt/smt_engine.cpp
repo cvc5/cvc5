@@ -4961,9 +4961,16 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-void SmtEngine::doAbduction(const Type& grammarType)
+Expr SmtEngine::getAbduct(const Expr& ax, const Expr& conj, const Type& grammarType)
 {
   d_abductGrammarType = grammarType;
+  return Expr::null();
+}
+
+Expr SmtEngine::getAbduct(const Expr& ax, const Expr& conj)
+{
+  d_abductGrammarType = Type::null();
+  return Expr::null();
 }
 
 Type SmtEngine::getAbductionType() const { return d_abductGrammarType; }

@@ -1367,7 +1367,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
 extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
-  Expr e, e2;
+  Expr e, e2, e3;
   Type t;
   std::string name;
   std::vector<std::string> names;
@@ -1530,15 +1530,15 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
   | GET_ABDUCT_TOK { 
-      PARSER_STATE->checkThatLogicIsSet(); 
-      name = std::string("abd");
-      e = PARSER_STATE->mkBoundVar(name,EXPR_MANAGER->booleanType());
+      PARSER_STATE->checkThatLogicIsSet();
     }
+    term[e,e3]
+    term[e2,e3]
     (
       sygusGrammar[t, terms, name]
     )? 
     {
-      cmd->reset(new GetAbductCommand(t));
+      cmd->reset(new GetAbductCommand(e, e2, t));
     }
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 
@@ -3066,7 +3066,7 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
-GET_ABDUCT_TOK : 'set-abduct-grammar';
+GET_ABDUCT_TOK : 'get-abduct';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
