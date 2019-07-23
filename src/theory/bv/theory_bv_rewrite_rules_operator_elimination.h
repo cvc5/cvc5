@@ -183,8 +183,8 @@ inline Node RewriteRule<AshrEliminate>::apply(TNode node)
   Debug("bv-rewrite") << "RewriteRule<AshrEliminate>(" << node << ")"
                       << std::endl;
   NodeManager* nm = NodeManager::currentNM();
-  Node s = node[0];
-  Node t = node[1];
+  TNode s = node[0];
+  TNode t = node[1];
   /*  From SMT-LIB:
    *  (bvashr s t) abbreviates
    *    (ite (= ((_ extract |m-1| |m-1|) s) #b0)
