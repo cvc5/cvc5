@@ -1355,10 +1355,9 @@ Node TheoryStringsRewriter::rewriteMembership(TNode node) {
               Trace("regexp-ext-rewrite") << "Regexp star : full consume : " << node << std::endl;
               return NodeManager::currentNM()->mkConst( true );
             }else{
-              retNode = nm->mkNode(
-                  STRING_IN_REGEXP,
-                  utils::mkConcat(STRING_CONCAT, mchildren),
-                  r);
+              retNode = nm->mkNode(STRING_IN_REGEXP,
+                                   utils::mkConcat(STRING_CONCAT, mchildren),
+                                   r);
               success = true;
             }
           }
