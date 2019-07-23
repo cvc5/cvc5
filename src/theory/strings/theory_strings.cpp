@@ -140,6 +140,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   getExtTheory()->addFunctionKind(kind::STRING_IN_REGEXP);
   getExtTheory()->addFunctionKind(kind::STRING_LEQ);
   getExtTheory()->addFunctionKind(kind::STRING_CODE);
+  getExtTheory()->addFunctionKind(kind::STRING_TOLOWER);
+  getExtTheory()->addFunctionKind(kind::STRING_TOUPPER);
 
   // The kinds we are treating as function application in congruence
   d_equalityEngine.addFunctionKind(kind::STRING_LENGTH);
@@ -156,6 +158,8 @@ TheoryStrings::TheoryStrings(context::Context* c,
   d_equalityEngine.addFunctionKind(kind::STRING_STRIDOF);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPL);
   d_equalityEngine.addFunctionKind(kind::STRING_STRREPLALL);
+  d_equalityEngine.addFunctionKind(kind::STRING_TOLOWER);
+  d_equalityEngine.addFunctionKind(kind::STRING_TOUPPER);
 
   d_zero = NodeManager::currentNM()->mkConst( Rational( 0 ) );
   d_one = NodeManager::currentNM()->mkConst( Rational( 1 ) );
@@ -527,7 +531,8 @@ bool TheoryStrings::doReduction(int effort, Node n, bool& isCd)
     NodeManager* nm = NodeManager::currentNM();
     Assert(k == STRING_SUBSTR || k == STRING_STRCTN || k == STRING_STRIDOF
            || k == STRING_ITOS || k == STRING_STOI || k == STRING_STRREPL
-           || k == STRING_STRREPLALL || k == STRING_LEQ);
+           || k == STRING_STRREPLALL || k == STRING_LEQ || k == STRING_TOLOWER
+           || k == STRING_TOUPPER);
     std::vector<Node> new_nodes;
     Node res = d_preproc.simplify(n, new_nodes);
     Assert(res != n);
@@ -854,7 +859,7 @@ void TheoryStrings::preRegisterTerm(TNode n) {
       if (k == kind::STRING_STRIDOF || k == kind::STRING_ITOS
           || k == kind::STRING_STOI || k == kind::STRING_STRREPL
           || k == kind::STRING_STRREPLALL || k == kind::STRING_STRCTN
-          || k == STRING_LEQ)
+          || k == STRING_LEQ || k == STRING_TOLOWER || k == STRING_TOUPPER)
       {
         std::stringstream ss;
         ss << "Term of kind " << k
@@ -1305,21 +1310,6 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
     Trace("strings-pending-debug") << "  Finished assert equality" << std::endl;
   } else {
     d_equalityEngine.assertPredicate( atom, polarity, exp );
-    //process extf
-    if( atom.getKind()==kind::STRING_IN_REGEXP ){
-      if( polarity && atom[1].getKind()==kind::REGEXP_RANGE ){
-        if( d_extf_infer_cache_u.find( atom )==d_extf_infer_cache_u.end() ){
-          d_extf_infer_cache_u.insert( atom );
-          //length of first argument is one
-          Node conc = d_one.eqNode( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, atom[0] ) );
-          Node lem = NodeManager::currentNM()->mkNode( kind::OR, atom.negate(), conc );
-          Trace("strings-lemma") << "Strings::Lemma RE-Range-Len : " << lem << std::endl;
-          d_out->lemma( lem );
-        }
-      }
-    }
-    //register the atom here, since it may not create a new equivalence class
-    //getExtTheory()->registerTerm( atom );
   }
   Trace("strings-pending-debug") << "  Now collect terms" << std::endl;
   // Collect extended function terms in the atom. Notice that we must register

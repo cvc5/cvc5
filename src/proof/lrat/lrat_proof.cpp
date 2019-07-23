@@ -135,15 +135,15 @@ LratProof LratProof::fromDratProof(
   std::string dratFilename("cvc4-drat-XXXXXX");
   std::string lratFilename("cvc4-lrat-XXXXXX");
 
-  std::fstream formStream = openTmpFile(&formulaFilename);
-  printDimacs(formStream, clauses, usedIds);
-  formStream.close();
+  std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+  printDimacs(*formStream, clauses, usedIds);
+  formStream->close();
 
-  std::fstream dratStream = openTmpFile(&dratFilename);
-  dratStream << dratBinary;
-  dratStream.close();
+  std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+  (*dratStream) << dratBinary;
+  dratStream->close();
 
-  std::fstream lratStream = openTmpFile(&lratFilename);
+  std::unique_ptr<std::fstream> lratStream = openTmpFile(&lratFilename);
 
   {
     CodeTimer blockTimer{toolTimer};
@@ -157,7 +157,7 @@ LratProof LratProof::fromDratProof(
 #endif
   }
 
-  LratProof lrat(lratStream);
+  LratProof lrat(*lratStream);
   remove(formulaFilename.c_str());
   remove(dratFilename.c_str());
   remove(lratFilename.c_str());
