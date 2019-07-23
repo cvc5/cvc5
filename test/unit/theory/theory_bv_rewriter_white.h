@@ -104,8 +104,6 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
 
   void testRewriteAshrEliminate()
   {
-    TypeNode bvType = d_nm->mkBitVectorType(4);
-    Node zero = d_nm->mkConst(BitVector(4, 0u));
     Node one = d_nm->mkConst(BitVector(4, 1u));
     Node three = d_nm->mkConst(BitVector(4, 3u));
     Node fifteen = d_nm->mkConst(BitVector(4, 15u));
