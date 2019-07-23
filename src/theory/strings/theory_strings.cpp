@@ -4099,46 +4099,34 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
 {
   std::vector< TNode > antec_exp;
   // copy to processing vector
-  std::vector<Node> ap;
-  ap.insert(ap.end(), a.begin(), a.end());
-  for (unsigned i = 0; i < ap.size(); i++)
+  std::vector<Node> aconj;
+  for( const Node& ac : a )
   {
-    Node api = ap[i];
-    if (std::find(ap.begin(), ap.begin() + i, api) != ap.begin() + i)
+    utils::getConjuncts(ac, aconj);
+  }
+  for (const Node& apc : aconj)
+  {
+    Assert(apc.getKind() != AND);
+    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
+    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
     {
-      // already processed
-      continue;
-    }
-    if (api.getKind() == AND)
-    {
-      for (const Node& apic : api)
-      {
-        ap.push_back(apic);
-      }
-      continue;
-    }
-    Debug("strings-explain") << "Add to explanation " << api << std::endl;
-    if (api.getKind() == NOT && api[0].getKind() == EQUAL)
-    {
-      Assert(hasTerm(api[0][0]));
-      Assert(hasTerm(api[0][1]));
+      Assert(hasTerm(apc[0][0]));
+      Assert(hasTerm(apc[0][1]));
       // ensure that we are ready to explain the disequality
-      AlwaysAssert(d_equalityEngine.areDisequal(api[0][0], api[0][1], true));
+      AlwaysAssert(d_equalityEngine.areDisequal(apc[0][0], apc[0][1], true));
     }
-    Assert(api.getKind() != EQUAL || d_equalityEngine.areEqual(api[0], api[1]));
+    Assert(apc.getKind() != EQUAL || d_equalityEngine.areEqual(apc[0], apc[1]));
     // now, explain
-    explain(api, antec_exp);
+    explain(apc, antec_exp);
   }
   for (const Node& anc : an)
   {
-    if (std::find(antec_exp.begin(), antec_exp.end(), anc) != antec_exp.end())
+    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
     {
-      // already processed
-      continue;
+      Debug("strings-explain")
+          << "Add to explanation (new literal) " << anc << std::endl;
+      antec_exp.push_back(anc);
     }
-    Debug("strings-explain")
-        << "Add to explanation (new literal) " << anc << std::endl;
-    antec_exp.push_back(anc);
   }
   Node ant;
   if( antec_exp.empty() ) {

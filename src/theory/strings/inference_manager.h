@@ -138,8 +138,8 @@ class InferenceManager
                      bool asLemma = false);
   /** Send inference
    *
-   * Calls the appropriate call to send inference based on the infer info
-   * data structure.
+   * Makes the appropriate call to send inference based on the infer info
+   * data structure (see sendInference documentation above).
    */
   void sendInference(const InferInfo& i);
   /** Send split

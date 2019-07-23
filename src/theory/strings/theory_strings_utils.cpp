@@ -44,6 +44,20 @@ Node mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, au);
 }
 
+void getConjuncts(Node n, std::vector<Node>& conj)
+{
+  if( n.getKind()==AND )
+  {
+    for (const Node& cn : n ){
+      getConjuncts(cn, conj);
+    }
+  }
+  else if (std::find(conj.begin(),conj.end(),n)==conj.end())
+  {
+    conj.push_back(n);
+  }
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory

@@ -34,6 +34,12 @@ namespace utils {
  */
 Node mkAnd(const std::vector<Node>& a);
 
+/**
+ * Adds all (non-duplicate) literals from conjunction n to conj. For example,
+ * given (and (and A B) C A), we add { A, B, C } to conj.
+ */
+void getConjuncts(Node n, std::vector<Node>& conj);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
