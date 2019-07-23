@@ -54,7 +54,7 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     delete d_nodeManager;
   }
 
-  //The only symbol in ~x (x is a boolean varible) should be x
+  // The only symbol in ~x (x is a boolean varible) should be x
   void testGetSymbols1()
   {
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->booleanType());
@@ -65,16 +65,16 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     TS_ASSERT(syms.find(x) != syms.end());
   }
 
-  //the only symbols in x=y ^ (exists var. var+var = x) are x and y, because "var"
-  //is bound.
+  // the only symbols in x=y ^ (exists var. var+var = x) are x and y, because
+  // "var" is bound.
   void testGetSymbols2()
   {
-    //left conjunct
+    // left conjunct
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
     Node y = d_nodeManager->mkSkolem("y", d_nodeManager->integerType());
     Node left = d_nodeManager->mkNode(EQUAL, x, y);
 
-    //right conjunct
+    // right conjunct
     Node var = d_nodeManager->mkBoundVar(*d_intTypeNode);
     std::vector<Node> vars;
     vars.push_back(var);
@@ -83,14 +83,14 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
     Node bvl = d_nodeManager->mkNode(BOUND_VAR_LIST, vars);
     Node right = d_nodeManager->mkNode(EXISTS, bvl, qeq);
 
-    //conjunction
+    // conjunction
     Node res = d_nodeManager->mkNode(AND, left, right);
 
-    //symbols
+    // symbols
     std::unordered_set<Node, NodeHashFunction> syms;
     getSymbols(res, syms);
 
-    //assertions
+    // assertions
     TS_ASSERT_EQUALS(syms.size(), 2);
     TS_ASSERT(syms.find(x) != syms.end());
     TS_ASSERT(syms.find(y) != syms.end());
@@ -99,31 +99,35 @@ class NodeAlgorithmBlack : public CxxTest::TestSuite
 
   void testGetOperatorsMap()
   {
-    //map to store result
-    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result = std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
+    // map to store result
+    std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> > result =
+        std::map<TypeNode, std::unordered_set<Node, NodeHashFunction> >();
 
-    //create test formula
+    // create test formula
     Node x = d_nodeManager->mkSkolem("x", d_nodeManager->integerType());
     Node plus = d_nodeManager->mkNode(PLUS, x, x);
     Node mul = d_nodeManager->mkNode(MULT, x, x);
     Node eq = d_nodeManager->mkNode(EQUAL, plus, mul);
 
-    //call function
-    expr::getOperatorsMap(eq, result );
+    // call function
+    expr::getOperatorsMap(eq, result);
 
-    //Verify result
-    //We should have only integer and boolean as types
+    // Verify result
+    // We should have only integer and boolean as types
     TS_ASSERT(result.size() == 2);
     TS_ASSERT(result.find(*d_intTypeNode) != result.end());
     TS_ASSERT(result.find(*d_boolTypeNode) != result.end());
 
-    //in integers, we should only have plus and mult as operators
+    // in integers, we should only have plus and mult as operators
     TS_ASSERT(result[*d_intTypeNode].size() == 2);
-    TS_ASSERT(result[*d_intTypeNode].find(d_nodeManager->operatorOf(PLUS)) != result[*d_intTypeNode].end());
-    TS_ASSERT(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT)) != result[*d_intTypeNode].end());
-    
-    //in booleans, we should only have "=" as an operator.
+    TS_ASSERT(result[*d_intTypeNode].find(d_nodeManager->operatorOf(PLUS))
+              != result[*d_intTypeNode].end());
+    TS_ASSERT(result[*d_intTypeNode].find(d_nodeManager->operatorOf(MULT))
+              != result[*d_intTypeNode].end());
+
+    // in booleans, we should only have "=" as an operator.
     TS_ASSERT(result[*d_boolTypeNode].size() == 1);
-    TS_ASSERT(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL)) != result[*d_boolTypeNode].end());
+    TS_ASSERT(result[*d_boolTypeNode].find(d_nodeManager->operatorOf(EQUAL))
+              != result[*d_boolTypeNode].end());
   }
 };
