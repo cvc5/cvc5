@@ -609,7 +609,8 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
   }
   else
   {
-    Trace("strings-preprocess-debug") << "Return " << retNode << " unchanged" << std::endl;
+    Trace("strings-preprocess-debug")
+        << "Return " << retNode << " unchanged" << std::endl;
   }
   return retNode;
 }
