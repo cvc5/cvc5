@@ -4100,7 +4100,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
   std::vector< TNode > antec_exp;
   // copy to processing vector
   std::vector<Node> aconj;
-  for( const Node& ac : a )
+  for (const Node& ac : a)
   {
     utils::getConjuncts(ac, aconj);
   }

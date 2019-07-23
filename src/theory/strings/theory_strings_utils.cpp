@@ -46,13 +46,14 @@ Node mkAnd(const std::vector<Node>& a)
 
 void getConjuncts(Node n, std::vector<Node>& conj)
 {
-  if( n.getKind()==AND )
+  if (n.getKind() == AND)
   {
-    for (const Node& cn : n ){
+    for (const Node& cn : n)
+    {
       getConjuncts(cn, conj);
     }
   }
-  else if (std::find(conj.begin(),conj.end(),n)==conj.end())
+  else if (std::find(conj.begin(), conj.end(), n) == conj.end())
   {
     conj.push_back(n);
   }
