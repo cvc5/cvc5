@@ -1,0 +1,10 @@
+(set-info :smt-lib-version 2.5)
+(set-logic QF_S)
+(set-info :status unsat)
+(set-option :strings-exp true)
+
+(declare-const x String)
+(declare-const y String)
+(assert (and (= y "foobar") (str.in.re x (re.++ (str.to.re "ab") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b")))))
+(assert (not (and (= y "foobar") (str.in.re x (re.++ (str.to.re "a") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b") (re.* re.allchar) (str.to.re "b"))))))
+(check-sat)

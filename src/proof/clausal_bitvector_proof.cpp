@@ -144,25 +144,26 @@ void ClausalBitVectorProof::optimizeDratProof()
     std::string optFormulaFilename("cvc4-optimized-formula-XXXXXX");
 
     {
-      std::fstream formStream = openTmpFile(&formulaFilename);
-      const int64_t startPos = static_cast<int64_t>(formStream.tellp());
-      printDimacs(formStream, d_clauses, d_originalClauseIndices);
+      std::unique_ptr<std::fstream> formStream = openTmpFile(&formulaFilename);
+      const int64_t startPos = static_cast<int64_t>(formStream->tellp());
+      printDimacs(*formStream, d_clauses, d_originalClauseIndices);
       d_dratOptimizationStatistics.d_initialFormulaSize.setData(
-          static_cast<int64_t>(formStream.tellp()) - startPos);
-      formStream.close();
+          static_cast<int64_t>(formStream->tellp()) - startPos);
+      formStream->close();
     }
 
     {
-      std::fstream dratStream = openTmpFile(&dratFilename);
-      const int64_t startPos = static_cast<int64_t>(dratStream.tellp());
-      dratStream << d_binaryDratProof.str();
+      std::unique_ptr<std::fstream> dratStream = openTmpFile(&dratFilename);
+      const int64_t startPos = static_cast<int64_t>(dratStream->tellp());
+      (*dratStream) << d_binaryDratProof.str();
       d_dratOptimizationStatistics.d_initialDratSize.setData(
-          static_cast<int64_t>(dratStream.tellp()) - startPos);
-      dratStream.close();
+          static_cast<int64_t>(dratStream->tellp()) - startPos);
+      dratStream->close();
     }
 
-    std::fstream optDratStream = openTmpFile(&optDratFilename);
-    std::fstream optFormulaStream = openTmpFile(&optFormulaFilename);
+    std::unique_ptr<std::fstream> optDratStream = openTmpFile(&optDratFilename);
+    std::unique_ptr<std::fstream> optFormulaStream =
+        openTmpFile(&optFormulaFilename);
 
 #if CVC4_USE_DRAT2ER
     {
@@ -204,7 +205,6 @@ void ClausalBitVectorProof::optimizeDratProof()
       std::vector<prop::SatClause> core = parseDimacs(optFormulaStream);
       d_dratOptimizationStatistics.d_optimizedFormulaSize.setData(
           static_cast<int64_t>(optFormulaStream.tellg()) - startPos);
-      optFormulaStream.close();
 
       CodeTimer clauseMatchingTimer{
           d_dratOptimizationStatistics.d_clauseMatchingTime};
@@ -241,7 +241,7 @@ void ClausalBitVectorProof::optimizeDratProof()
       d_coreClauseIndices = d_originalClauseIndices;
     }
 
-    optFormulaStream.close();
+    optFormulaStream->close();
 
     Assert(d_coreClauseIndices.size() > 0);
     remove(formulaFilename.c_str());

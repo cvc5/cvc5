@@ -25,7 +25,7 @@
 
 namespace CVC4 {
 
-std::fstream openTmpFile(std::string* pattern)
+std::unique_ptr<std::fstream> openTmpFile(std::string* pattern)
 {
   char* tmpDir = getenv("TMPDIR");
   if (tmpDir != nullptr)
@@ -46,7 +46,7 @@ std::fstream openTmpFile(std::string* pattern)
   {
     CVC4_FATAL() << "Could not create temporary file " << *pattern;
   }
-  std::fstream tmpStream(tmpName);
+  std::unique_ptr<std::fstream> tmpStream(new std::fstream(tmpName));
   close(r);
   *pattern = std::string(tmpName);
   delete[] tmpName;
