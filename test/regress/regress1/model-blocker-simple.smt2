@@ -1,4 +1,4 @@
-; COMMAND-LINE: --incremental --block-models=literals
+; COMMAND-LINE: --incremental --produce-models --block-models=literals
 ; EXPECT: sat
 ; EXPECT: sat
 ; EXPECT: sat

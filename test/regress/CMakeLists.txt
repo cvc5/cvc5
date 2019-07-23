@@ -1194,6 +1194,7 @@ set(regress_1_tests
   regress1/lemmas/pursuit-safety-8.smt
   regress1/lemmas/simple_startup_9nodes.abstract.base.smt
   regress1/model-blocker-simple.smt2
+  regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
