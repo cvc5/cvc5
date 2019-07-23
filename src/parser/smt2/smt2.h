@@ -233,7 +233,6 @@ class Smt2 : public Parser
   {
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
-
   /** Are we using a sygus language? */
   bool sygus() const;
   /** Are we using the sygus version 1.0 format? */
