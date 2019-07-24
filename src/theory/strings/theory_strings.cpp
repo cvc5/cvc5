@@ -4102,7 +4102,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
   std::vector<Node> aconj;
   for (const Node& ac : a)
   {
-    utils::getConjuncts(ac, aconj);
+    utils::flattenOp(ac, aconj);
   }
   for (const Node& apc : aconj)
   {
