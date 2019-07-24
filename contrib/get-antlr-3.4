@@ -3,6 +3,21 @@
 source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR=antlr-3.4
 
+# re-implementation of realpath, because Mac OS doesn't have realpath
+# https://stackoverflow.com/questions/3572030/bash-script-absolute-path-with-os-x/18443300#18443300
+portable_realpath() {
+    OURPWD=$PWD
+    cd "$(dirname "$1")"
+    LINK=$(readlink "$(basename "$1")")
+    while [ "$LINK" ]; do
+        cd "$(dirname "$LINK")"
+        LINK=$(readlink "$(basename "$1")")
+    done
+    REALPATH="$PWD/$(basename "$1")"
+    cd "$OURPWD"
+    echo "$REALPATH"
+}
+
 if [ -z "${BUILD_TYPE}" ]; then
   BUILD_TYPE="--disable-shared --enable-static"
 fi
@@ -46,7 +61,7 @@ cd libantlr3c-3.4
 
 # Use an absolute path for the installation directory to avoid spurious libtool
 # warnings about the ANTLR library having moved
-PREFIX=$(realpath `pwd`/../..)
+PREFIX=$(portable_realpath `pwd`/../..)
 
 # Make antlr3debughandlers.c empty to avoid unreferenced symbols
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
