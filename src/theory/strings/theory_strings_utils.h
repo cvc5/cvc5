@@ -35,10 +35,10 @@ namespace utils {
 Node mkAnd(const std::vector<Node>& a);
 
 /**
- * Adds all (non-duplicate) literals from conjunction n to conj. For example,
- * given (and (and A B) C A), we add { A, B, C } to conj.
+ * Adds all (non-duplicate) children of <k> applications from n to conj. For
+ * example, given (<k> (<k> A B) C A), we add { A, B, C } to conj.
  */
-void getConjuncts(Node n, std::vector<Node>& conj);
+void flattenOp(Kind k, Node n, std::vector<Node>& conj);
 
 }  // namespace utils
 }  // namespace strings

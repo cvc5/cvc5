@@ -44,19 +44,43 @@ Node mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, au);
 }
 
-void getConjuncts(Node n, std::vector<Node>& conj)
+void getConjuncts(Kind k, Node n, std::vector<Node>& conj)
 {
-  if (n.getKind() == AND)
+  if (n.getKind() != k)
   {
-    for (const Node& cn : n)
+    // easy case, just add to conj if non-duplicate
+    if (std::find(conj.begin(), conj.end(), n) == conj.end())
     {
-      getConjuncts(cn, conj);
+      conj.push_back(n);
     }
+    return;
   }
-  else if (std::find(conj.begin(), conj.end(), n) == conj.end())
-  {
-    conj.push_back(n);
-  }
+  // otherwise, traverse
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end()) {
+      visited.insert(cur);
+      if( cur.getKind()==k )
+      {
+        for( const Node& cn : cur )
+        {
+          visit.push(cn);
+        }
+      }
+      else if (std::find(conj.begin(), conj.end(), n) == conj.end())
+      {
+        conj.push_back(n);
+      }
+    }
+  } while (!visit.empty());
 }
 
 }  // namespace utils
