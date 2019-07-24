@@ -607,6 +607,11 @@ Node StringsPreprocess::simplify( Node t, std::vector< Node > &new_nodes ) {
       }
     }
   }
+  else
+  {
+    Trace("strings-preprocess-debug")
+        << "Return " << retNode << " unchanged" << std::endl;
+  }
   return retNode;
 }
 
@@ -615,7 +620,7 @@ Node StringsPreprocess::simplifyRec( Node t, std::vector< Node > & new_nodes, st
   if( it!=visited.end() ){
     return it->second;
   }else{
-    Node retNode;
+    Node retNode = t;
     if( t.getNumChildren()==0 ){
       retNode = simplify( t, new_nodes );
     }else if( t.getKind()!=kind::FORALL ){
