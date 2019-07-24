@@ -18,7 +18,6 @@
 #include "expr/node_manager.h"
 #include "smt/smt_engine.h"
 #include "smt/smt_engine_scope.h"
-#include "theory/bv/theory_bv_rewrite_rules_operator_elimination.h"
 #include "theory/rewriter.h"
 #include "util/bitvector.h"
 
@@ -31,7 +30,6 @@ using namespace CVC4;
 using namespace CVC4::kind;
 using namespace CVC4::smt;
 using namespace CVC4::theory;
-using namespace CVC4::theory::bv;
 
 class TheoryBvRewriterWhite : public CxxTest::TestSuite
 {
