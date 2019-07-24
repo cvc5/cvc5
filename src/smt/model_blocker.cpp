@@ -242,7 +242,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   {
     Assert(mode == BLOCK_MODELS_VALUES);
     std::vector<Node> blockers;
-    // if specific terms were not specified in get-value, block all variables of
+    // if specific terms were not specified, block all variables of
     // the model
     if (nodesToBlock.empty())
     {
