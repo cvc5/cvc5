@@ -46,7 +46,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   if (mode == BLOCK_MODELS_LITERALS)
   {
     Assert(nodesToBlock.empty());
-    // optimization: filter to only top-level disjunctions
+    // optimization: filter out top-level unit assertions, as they cannot
+    // contribute to model blocking.
     unsigned counter = 0;
     std::vector<Node> asserts;
     while (counter < tlAsserts.size())

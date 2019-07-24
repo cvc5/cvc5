@@ -1756,7 +1756,7 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
 
 const std::string OptionsHandler::s_blockModelsHelp =
     "\
-Blocking models modes are currently supported by the --simplification option:\n\
+Blocking models modes are currently supported by the --block-models option:\n\
 \n\
 none (default) \n\
 + do not block models\n\

@@ -3041,7 +3041,7 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
-theory::TheoryModel* SmtEngine::ensureAvailableModel(const char* c) const
+theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
 {
   if (!options::assignFunctionValues())
   {
@@ -3049,7 +3049,7 @@ theory::TheoryModel* SmtEngine::ensureAvailableModel(const char* c) const
     ss << "Cannot " << c << " when --assign-function-values is false.";
     throw RecoverableModalException(ss.str().c_str());
   }
-
+`
   if (d_status.isNull() || d_status.asSatisfiabilityResult() == Result::UNSAT
       || d_problemExtended)
   {
@@ -4369,7 +4369,7 @@ Model* SmtEngine::getModel() {
     Dump("benchmark") << GetModelCommand();
   }
 
-  TheoryModel* m = ensureAvailableModel("get model");
+  TheoryModel* m = getAvailableModel("get model");
 
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
@@ -4394,7 +4394,7 @@ Result SmtEngine::blockModel()
     Dump("benchmark") << BlockModelCommand();
   }
 
-  TheoryModel* m = ensureAvailableModel("block model");
+  TheoryModel* m = getAvailableModel("block model");
 
   if (options::blockModelsMode() == BLOCK_MODELS_NONE)
   {
@@ -4422,7 +4422,7 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
     Dump("benchmark") << BlockModelValuesCommand(exprs);
   }
 
-  TheoryModel* m = ensureAvailableModel("block model values");
+  TheoryModel* m = getAvailableModel("block model values");
 
   if (options::blockModelsMode() == BLOCK_MODELS_NONE)
   {

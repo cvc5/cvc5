@@ -374,7 +374,7 @@ class CVC4_PUBLIC SmtEngine {
    * that).
    */
   Result quickCheck();
-  /** ensure that the model is available and return a pointer to it
+  /** get the model, if it is available and return a pointer to it
    *
    * This ensures that the model is currently available, which means that
    * CVC4 is producing models, and is in "SAT mode", otherwise an exception
@@ -383,7 +383,7 @@ class CVC4_PUBLIC SmtEngine {
    * The flag c is used for giving an error message to indicate the context
    * this method was called.
    */
-  theory::TheoryModel* ensureAvailableModel(const char* c) const;
+  theory::TheoryModel* getAvailableModel(const char* c) const;
 
   /**
    * Fully type-check the argument, and also type-check that it's
