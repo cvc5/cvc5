@@ -102,27 +102,6 @@ class TheoryBvRewriterWhite : public CxxTest::TestSuite
     TS_ASSERT_EQUALS(nr, Rewriter::rewrite(nr));
   }
 
-  void testRewriteAshrEliminate()
-  {
-    Node one = d_nm->mkConst(BitVector(4, 1u));
-    Node three = d_nm->mkConst(BitVector(4, 3u));
-    Node fifteen = d_nm->mkConst(BitVector(4, 15u));
-
-    Node fifteen_ashr_one = d_nm->mkNode(BITVECTOR_ASHR, fifteen, one);
-    Node three_ashr_one = d_nm->mkNode(BITVECTOR_ASHR, three, one);
-    Node three_lshr_one = d_nm->mkNode(BITVECTOR_LSHR, three, one);
-    TS_ASSERT(RewriteRule<AshrEliminate>::applies(fifteen_ashr_one));
-    TS_ASSERT(RewriteRule<AshrEliminate>::applies(three_ashr_one));
-    TS_ASSERT(!RewriteRule<AshrEliminate>::applies(three_lshr_one));
-    Node fifteen_ashr_one_rw =
-        RewriteRule<AshrEliminate>::apply(fifteen_ashr_one);
-    Node three_ashr_one_rw = RewriteRule<AshrEliminate>::apply(three_ashr_one);
-    TS_ASSERT_EQUALS(Rewriter::rewrite(fifteen_ashr_one),
-                     Rewriter::rewrite(fifteen_ashr_one_rw));
-    TS_ASSERT_EQUALS(Rewriter::rewrite(three_ashr_one),
-                     Rewriter::rewrite(three_ashr_one_rw));
-  }
-
  private:
   ExprManager* d_em;
   SmtEngine* d_smt;
