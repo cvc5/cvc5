@@ -541,16 +541,14 @@ class CVC4_PUBLIC SmtEngine {
   std::string getFilename() const;
   /**
    * Get the model (only if immediately preceded by a SAT
-   * or INVALID query).  Only permitted if CVC4 was built with model
-   * support and produce-models is on.
+   * or INVALID query).  Only permitted if produce-models is on.
    */
   Model* getModel();
 
   /**
    * Block the current model. Can be called only if immediately preceded by
-   * a SAT or INVALID query. Only permitted if CVC4 was built with model
-   * support and produce-models is on, and the block-models option is set
-   * to a mode other than "none".
+   * a SAT or INVALID query. Only permitted if produce-models is on, and the
+   * block-models option is set to a mode other than "none".
    *
    * This adds an assertion to the assertion stack that blocks the current
    * model based on the current options configured by CVC4.
@@ -562,8 +560,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * Block the current model values of (at least) the values in exprs.
    * Can be called only if immediately preceded by a SAT or INVALID query. Only
-   * permitted if CVC4 was built with model support and produce-models is on,
-   * and the block-models option is set to a mode other than "none".
+   * permitted if produce-models is on, and the block-models option is set to a
+   * mode other than "none".
    *
    * This adds an assertion to the assertion stack of the form:
    *  (or (not (= exprs[0] M0)) ... (not (= exprs[n] Mn)))
