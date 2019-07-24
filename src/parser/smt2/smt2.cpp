@@ -1088,7 +1088,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
         }
       }
       Kind sk = sop.getKind() != kind::BUILTIN
-                    ? kind::APPLY_UF
+                    ? getKindForFunction(sop)
                     : getExprManager()->operatorToKind(sop);
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
       Expr e = getExprManager()->mkExpr( sk, children );

@@ -83,6 +83,30 @@ void getConjuncts(Kind k, Node n, std::vector<Node>& conj)
   } while (!visit.empty());
 }
 
+void getConcat(Node n, std::vector<Node>& c)
+{
+  Kind k = n.getKind();
+  if (k == STRING_CONCAT || k == REGEXP_CONCAT)
+  {
+    for (const Node& nc : n)
+    {
+      c.push_back(nc);
+    }
+  }
+  else
+  {
+    c.push_back(n);
+  }
+}
+
+Node mkConcat(Kind k, std::vector<Node>& c)
+{
+  Assert(!c.empty() || k == STRING_CONCAT);
+  NodeManager* nm = NodeManager::currentNM();
+  return c.size() > 1 ? nm->mkNode(k, c)
+                      : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+}
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
