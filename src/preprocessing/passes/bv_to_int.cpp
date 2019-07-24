@@ -21,7 +21,7 @@
 #include <string>
 #include <unordered_map>
 #include <vector>
-#include <math.h>
+#include <cmath>
 
 #include "expr/node.h"
 #include "theory/rewriter.h"
@@ -60,27 +60,26 @@ Node BVToInt::maxInt(uint64_t k)
   return max;
 }
 
-Node BVToInt::pow2(Node n) {
-	  Node two_const = d_nm->mkConst<Rational>(2);
-    Node result = d_nm->mkNode(kind::POW, two_const, n);
-    return result;
-}
+//Node BVToInt::pow2(Node n) {
+//	  Node two_const = d_nm->mkConst<Rational>(2);
+//    Node result = d_nm->mkNode(kind::POW, two_const, n);
+//    return result;
+//}
 
 Node BVToInt::pow2(uint64_t k)
 {
-	  Node k_const = d_nm->mkConst<Rational>(k);
-	  return pow2(k_const);
+	  return d_nm->mkConst<Rational>((uint64_t) pow(2,k));
 }
 
-Node BVToInt::modpow2(Node n, Node exponent) {
-    Node p2 = pow2(exponent);
-    Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
-    return modNode;
-}
+//Node BVToInt::modpow2(Node n, Node exponent) {
+//    Node p2 = pow2(exponent);
+//    Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
+//    return modNode;
+//}
 
 Node BVToInt::modpow2(Node n, uint64_t exponent) {
-  Node expNode = d_nm->mkConst<Rational>(exponent);
-  return modpow2(n, expNode);
+  Node p2 = d_nm->mkConst<Rational>((uint64_t) pow(2, exponent));
+  return d_nm->mkNode(kind::INTS_MODULUS_TOTAL, n, p2);
 }
 
 Node BVToInt::makeBinary(Node n)
@@ -555,9 +554,7 @@ Node BVToInt::bvToInt(Node n)
               Assert(d_bvToIntCache.find(a) != d_bvToIntCache.end());
               Assert (i >= j);
               Node div = d_nm->mkNode(kind::INTS_DIVISION_TOTAL, d_bvToIntCache[a], pow2(j));
-              Node difference = d_nm->mkConst<Rational>(i-j);
-              Node plus = d_nm->mkNode(kind::PLUS, difference, d_nm->mkConst<Rational>(1));
-              d_bvToIntCache[current] = modpow2(div, plus);
+              d_bvToIntCache[current] = modpow2(div, i-j+1);
               break;
             }
             case kind::BITVECTOR_ULTBV:
@@ -694,9 +691,9 @@ Node BVToInt::createShiftNode(vector<Node> children, uint64_t bvsize, bool isLef
   Node x = children[0];
   Node y = children[1];
   Assert(!y.isConst());
-  Node ite = pow2(d_nm->mkConst<Rational>(0));
+  Node ite = pow2(0);
   for (uint64_t i=1; i < bvsize; i++) {
-    ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), pow2(d_nm->mkConst<Rational>(i)), ite);
+    ite = d_nm->mkNode(kind::ITE, d_nm->mkNode(kind::EQUAL, y, d_nm->mkConst<Rational>(i)), pow2(i), ite);
   }
   //from smtlib:
   //[[(bvshl s t)]] := nat2bv[m](bv2nat([[s]]) * 2^(bv2nat([[t]])))
