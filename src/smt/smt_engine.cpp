@@ -3049,7 +3049,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     ss << "Cannot " << c << " when --assign-function-values is false.";
     throw RecoverableModalException(ss.str().c_str());
   }
-`
+
   if (d_status.isNull() || d_status.asSatisfiabilityResult() == Result::UNSAT
       || d_problemExtended)
   {

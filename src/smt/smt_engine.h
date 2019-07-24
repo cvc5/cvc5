@@ -560,7 +560,7 @@ class CVC4_PUBLIC SmtEngine {
   Result blockModel();
 
   /**
-   * Block the current model values of (at least) of the values in exprs.
+   * Block the current model values of (at least) the values in exprs.
    * Can be called only if immediately preceded by a SAT or INVALID query. Only
    * permitted if CVC4 was built with model support and produce-models is on,
    * and the block-models option is set to a mode other than "none".
