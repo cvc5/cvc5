@@ -172,36 +172,6 @@ inline Node RewriteRule<CompEliminate>::apply(TNode node)
 }
 
 template <>
-inline bool RewriteRule<AshrEliminate>::applies(TNode node)
-{
-  return (node.getKind() == kind::BITVECTOR_ASHR);
-}
-
-template <>
-inline Node RewriteRule<AshrEliminate>::apply(TNode node)
-{
-  Debug("bv-rewrite") << "RewriteRule<AshrEliminate>(" << node << ")"
-                      << std::endl;
-  NodeManager* nm = NodeManager::currentNM();
-  TNode s = node[0];
-  TNode t = node[1];
-  /*  From SMT-LIB:
-   *  (bvashr s t) abbreviates
-   *    (ite (= ((_ extract |m-1| |m-1|) s) #b0)
-   *         (bvlshr s t)
-   *         (bvnot (bvlshr (bvnot s) t)))  */
-  unsigned size = utils::getSize(s);
-  Node condition = nm->mkNode(
-      kind::EQUAL, utils::mkExtract(s, size - 1, size - 1), utils::mkZero(1));
-  Node thenNode = nm->mkNode(kind::BITVECTOR_LSHR, s, t);
-  Node elseNode = nm->mkNode(
-      kind::BITVECTOR_NOT,
-      nm->mkNode(kind::BITVECTOR_LSHR, nm->mkNode(kind::BITVECTOR_NOT, s), t));
-  Node ite = nm->mkNode(kind::ITE, condition, thenNode, elseNode);
-  return ite;
-}
-
-template <>
 inline bool RewriteRule<SubEliminate>::applies(TNode node)
 {
   return (node.getKind() == kind::BITVECTOR_SUB); 
