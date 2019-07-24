@@ -1451,14 +1451,12 @@ Node RegExpOpr::removeIntersection(Node r) {
     case REGEXP_UNION:
     case REGEXP_STAR:
     {
-      std::vector<Node> vec_nodes;
+      NodeBuilder<> nb(rk);
       for (const Node& rc : r)
       {
-        Node tmpNode = removeIntersection(rc);
-        vec_nodes.push_back(tmpNode);
+        nb << removeIntersection(rc);
       }
-      retNode =
-          Rewriter::rewrite(NodeManager::currentNM()->mkNode(rk, vec_nodes));
+      retNode = Rewriter::rewrite(nb.constructNode());
       break;
     }
 
