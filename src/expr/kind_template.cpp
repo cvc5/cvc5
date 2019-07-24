@@ -95,7 +95,7 @@ ${kind_to_theory_id}
   case kind::LAST_KIND:
     break;
   }
-  throw IllegalArgumentException("", "k" + k , __PRETTY_FUNCTION__, "bad kind" + k);
+  throw IllegalArgumentException("", "k", __PRETTY_FUNCTION__, "bad kind");
 }
 
 TheoryId typeConstantToTheoryId(::CVC4::TypeConstant typeConstant) {

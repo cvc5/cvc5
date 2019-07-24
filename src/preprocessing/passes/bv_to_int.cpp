@@ -51,7 +51,6 @@ Node BVToInt::mkRangeConstraint(Node newVar, uint64_t k) {
   return result;
 }
 
-
 Node BVToInt::maxInt(uint64_t k)
 {
   Node pow2BvSize = pow2(k);
@@ -175,7 +174,6 @@ Node BVToInt::eliminationPass(Node n) {
           continue;
         } else {
             currentEliminated = FixpointRewriteStrategy<
-               RewriteRule<AshrEliminate>,
                RewriteRule<UdivZero>,
             	 RewriteRule<SdivEliminate>,
             	 RewriteRule<SremEliminate>,
@@ -360,8 +358,7 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_NOT: 
             {
               uint64_t  bvsize = current[0].getType().getBitVectorSize();
-              vector<Node> children = {maxInt(bvsize), intized_children[0]};
-              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS, children);
+              d_bvToIntCache[current] = createBVNotNode(intized_children[0], bvsize);
               break;
             }
             case kind::BITVECTOR_TO_NAT:
@@ -506,8 +503,31 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_ASHR:
             {
-              std::cout << "panda not supposed to be here" << std::endl;
-              Assert(false);
+
+              /*  From smtlib:
+               *  (bvashr s t) abbreviates
+               *     (ite (= ((_ extract |m-1| |m-1|) s) #b0)
+               *          (bvlshr s t)
+               *          (bvnot (bvlshr (bvnot s) t)))
+               *
+               *  Equivalently:
+               *  (bvashr s t) abbreviates
+               *      (ite (bvult s 100000...)
+               *           (bvlshr s t)
+               *           (bvnot (bvlshr (bvnot s) t)))
+               *
+               * */
+              uint64_t  bvsize = current[0].getType().getBitVectorSize();
+              //signed_min is 100000...
+              Node signed_min = pow2(bvsize - 1);
+              Node condition = d_nm->mkNode(kind::LT,
+                  intized_children[0],
+                  signed_min);
+              Node thenNode = createShiftNode(intized_children, bvsize, true);
+              vector<Node> children = {createBVNotNode(intized_children[0], bvsize), intized_children[1]};
+              Node elseNode = createBVNotNode(createShiftNode(children, bvsize, true), bvsize);
+              Node ite = d_nm->mkNode(kind::ITE, condition, thenNode, elseNode);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_ITE:
@@ -643,7 +663,6 @@ Node BVToInt::bvToInt(Node n)
   return d_bvToIntCache[n];
 }
 
-
 BVToInt::BVToInt(PreprocessingPassContext* preprocContext)
     : PreprocessingPass(preprocContext, "bv-to-int"),
       d_binarizeCache(),
@@ -761,6 +780,11 @@ Node BVToInt::createBitwiseNode(vector<Node> children, uint64_t bvsize, uint64_t
         d_nm->mkNode(kind::MULT, pow2(i*granularity), ite));
   }
   return sumNode;
+}
+
+Node BVToInt::createBVNotNode(Node n, uint64_t bvsize) {
+  vector<Node> children = {maxInt(bvsize), n};
+  return d_nm->mkNode(kind::MINUS, children);
 }
 
 

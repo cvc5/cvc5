@@ -2381,6 +2381,7 @@ class TheoryBVGaussWhite : public CxxTest::TestSuite
     AssertionPipeline apipe;
     apipe.push_back(a);
     passes::BVGauss bgauss(nullptr);
+    std::unordered_map<Node, Node, NodeHashFunction> res;
     PreprocessingPassResult pres = bgauss.applyInternal(&apipe);
     TS_ASSERT (pres == PreprocessingPassResult::NO_CONFLICT);
     Node resx = d_nm->mkNode(

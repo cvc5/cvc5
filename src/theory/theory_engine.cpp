@@ -1030,6 +1030,7 @@ theory::Theory::PPAssertStatus TheoryEngine::solve(TNode literal, SubstitutionMa
 
   TNode atom = literal.getKind() == kind::NOT ? literal[0] : literal;
   Trace("theory::solve") << "TheoryEngine::solve(" << literal << "): solving with " << theoryOf(atom)->getId() << endl;
+
   if(! d_logicInfo.isTheoryEnabled(Theory::theoryOf(atom)) &&
      Theory::theoryOf(atom) != THEORY_SAT_SOLVER) {
     stringstream ss;
