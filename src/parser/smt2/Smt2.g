@@ -2178,7 +2178,6 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
           if (kind == kind::NULL_EXPR)
           {
             std::vector<Expr> eargs(args.begin() + 1, args.end());
-            eargs.insert(eargs.end(), args.begin() + 1, args.end());
             expr = MK_EXPR(args[0], eargs);
           }
           else
