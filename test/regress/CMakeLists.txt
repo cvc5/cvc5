@@ -879,6 +879,7 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
+  regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/let-ringer.sy
