@@ -34,6 +34,24 @@ namespace utils {
  */
 Node mkAnd(std::vector<Node>& a);
 
+/**
+ * Gets the "vector form" of term n, adds it to c.
+ *
+ * For example:
+ * when n = str.++( x, y ), c is { x, y }
+ * when n = str.++( x, str.++( y, z ), w ), c is { x, str.++( y, z ), w )
+ * when n = x, c is { x }
+ *
+ * Also applies to regular expressions (re.++ above).
+ */
+void getConcat(Node n, std::vector<Node>& c);
+
+/**
+ * Make the concatentation from vector c
+ * The kind k is either STRING_CONCAT or REGEXP_CONCAT.
+ */
+Node mkConcat(Kind k, std::vector<Node>& c);
+
 }  // namespace utils
 }  // namespace strings
 }  // namespace theory
