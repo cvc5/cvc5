@@ -1465,7 +1465,7 @@ Node RegExpOpr::removeIntersection(Node r) {
     case REGEXP_INTER:
     {
       retNode = removeIntersection(r[0]);
-      for (unsigned i = 1, nchild = r.getNumChildren(); i < nchild; i++)
+      for (size_t i = 1, nchild = r.getNumChildren(); i < nchild; i++)
       {
         bool spflag = false;
         Node tmpNode = removeIntersection(r[i]);
