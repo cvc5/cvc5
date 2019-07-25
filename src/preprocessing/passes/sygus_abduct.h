@@ -56,14 +56,6 @@ class SygusAbduct : public PreprocessingPass
  public:
   SygusAbduct(PreprocessingPassContext* preprocContext);
 
- protected:
-  /**
-   * Replaces the set of assertions by an abduction sygus problem described
-   * above.
-   */
-  PreprocessingPassResult applyInternal(
-      AssertionPipeline* assertionsToPreprocess) override;
-
   /**
    * Returns the sygus conjecture corresponding to the abduction problem for
    * input problem given by asserts, and axioms given by axioms. Note that
@@ -72,9 +64,16 @@ class SygusAbduct : public PreprocessingPass
    * The type abdGType (if non-null) is a sygus datatype type that encodes the
    * grammar that should be used for solutions of the abduction conjecture.
    */
-  Node mkAbductionConjecture(const std::vector<Node>& asserts,
-                             const std::vector<Node>& axioms,
-                             TypeNode abdGType);
+  static Node mkAbductionConjecture(const std::vector<Node>& asserts,
+                                    const std::vector<Node>& axioms,
+                                    TypeNode abdGType);
+ protected:
+  /**
+   * Replaces the set of assertions by an abduction sygus problem described
+   * above.
+   */
+  PreprocessingPassResult applyInternal(
+      AssertionPipeline* assertionsToPreprocess) override;
 };
 
 }  // namespace passes
