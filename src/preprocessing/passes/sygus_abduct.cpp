@@ -39,11 +39,9 @@ SygusAbduct::SygusAbduct(PreprocessingPassContext* preprocContext)
 PreprocessingPassResult SygusAbduct::applyInternal(
     AssertionPipeline* assertionsToPreprocess)
 {
-  NodeManager* nm = NodeManager::currentNM();
   Trace("sygus-abduct") << "Run sygus abduct..." << std::endl;
 
   Trace("sygus-abduct-debug") << "Collect symbols..." << std::endl;
-  std::unordered_set<Node, NodeHashFunction> symset;
   std::vector<Node>& asserts = assertionsToPreprocess->ref();
   // do we have any assumptions, e.g. via check-sat-assuming?
   bool usingAssumptions = (assertionsToPreprocess->getNumAssumptions() > 0);
@@ -54,14 +52,38 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   // conjecture Fc, and
   // - The conjunction of all other assertions are the axioms Fa.
   std::vector<Node> axioms;
+  if( usingAssumptions )
+  {
+    for (size_t i = 0, astart = assertionsToPreprocess->getAssumptionsStart(); i < astart; i++)
+    {
+      // if we are not an assumption, add it to the set of axioms
+      axioms.push_back(asserts[i]);
+    }
+  }
+  
+  // the abduction type we are using (null for now)
+  TypeNode abdGType;
+  
+  Node res = mkAbductionConjecture(asserts, axioms, abdGType);
+  
+  Node trueNode = NodeManager::currentNM()->mkConst(true);
+
+  assertionsToPreprocess->replace(0, res);
+  for (size_t i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
+  {
+    assertionsToPreprocess->replace(i, trueNode);
+  }
+
+  return PreprocessingPassResult::NO_CONFLICT;
+}
+  
+Node SygusAbduct::mkAbductionConjecture( const std::vector< Node >& asserts, const std::vector< Node >& axioms, TypeNode abdGType )
+{
+  NodeManager* nm = NodeManager::currentNM();
+  std::unordered_set<Node, NodeHashFunction> symset;
   for (size_t i = 0, size = asserts.size(); i < size; i++)
   {
     expr::getSymbols(asserts[i], symset);
-    // if we are not an assumption, add it to the set of axioms
-    if (usingAssumptions && i < assertionsToPreprocess->getAssumptionsStart())
-    {
-      axioms.push_back(asserts[i]);
-    }
   }
   Trace("sygus-abduct-debug")
       << "...finish, got " << symset.size() << " symbols." << std::endl;
@@ -97,9 +119,6 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   Node abd = nm->mkBoundVar("A", abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
-  // get the abduction type
-  TypeNode abdGType =
-      TypeNode::fromType(d_preprocContext->getSmt()->getAbductionType());
   // if provided, we will associate it with the function-to-synthesize
   if (!abdGType.isNull())
   {
@@ -309,15 +328,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
 
   Trace("sygus-abduct") << "Generate: " << res << std::endl;
 
-  Node trueNode = nm->mkConst(true);
-
-  assertionsToPreprocess->replace(0, res);
-  for (size_t i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    assertionsToPreprocess->replace(i, trueNode);
-  }
-
-  return PreprocessingPassResult::NO_CONFLICT;
+  return res;
 }
 
 }  // namespace passes
