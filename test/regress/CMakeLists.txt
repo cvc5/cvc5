@@ -178,6 +178,9 @@ set(regress_0_tests
   regress0/bv/bv-options4.smt2
   regress0/bv/bv-to-bool1.smt
   regress0/bv/bv-to-bool2.smt2
+  regress0/bv/bv_to_int1.smt2
+  regress0/bv/bv_to_int2.smt2
+  regress0/bv/bv_to_int_ashr.smt2
   regress0/bv/bv2nat-ground-c.smt2
   regress0/bv/bv2nat-simp-range.smt2
   regress0/bv/bvmul-pow2-only.smt2
@@ -1110,6 +1113,7 @@ set(regress_1_tests
   regress1/bv/bug_extract_mult_leading_bit.smt2
   regress1/bv/bv-int-collapse2-sat.smt2
   regress1/bv/bv-proof00.smt
+  regress1/bv/bv_to_int0.smt2
   regress1/bv/bv2nat-ground.smt2
   regress1/bv/bv2nat-simp-range-sat.smt2
   regress1/bv/bv2nat-types.smt2
@@ -1828,6 +1832,7 @@ set(regress_3_tests
   regress3/bmc-ibm-2.smt
   regress3/bmc-ibm-5.smt
   regress3/bmc-ibm-7.smt
+  regress3/bv_to_int_and_or.smt2
   regress3/eq_diamond14.smt
   regress3/friedman_n6_i4.smt
   regress3/hole9.cvc

@@ -503,7 +503,7 @@ Node BVToInt::bvToInt(Node n)
             case kind::BITVECTOR_ASHR:
             {
 
-              /*  From smtlib:
+              /*  From SMT-LIB2:
                *  (bvashr s t) abbreviates
                *     (ite (= ((_ extract |m-1| |m-1|) s) #b0)
                *          (bvlshr s t)
