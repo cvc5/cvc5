@@ -4425,17 +4425,11 @@ Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
 
   TheoryModel* m = getAvailableModel("block model values");
 
-  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
-  {
-    std::stringstream ss;
-    ss << "Cannot block model values when block-models is set to none.";
-    throw ModalException(ss.str().c_str());
-  }
-
   // get expanded assertions
   std::vector<Expr> eassertsProc = getExpandedAssertions();
+  // we always do block model values mode here
   Expr eblocker = ModelBlocker::getModelBlocker(
-      eassertsProc, m, options::blockModelsMode(), exprs);
+      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
   return assertFormula(eblocker);
 }
 
