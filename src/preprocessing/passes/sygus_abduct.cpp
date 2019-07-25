@@ -136,7 +136,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
 
     // datatype types we need to process
     std::vector<TypeNode> dtToProcess;
-// datatype types we have processed
+    // datatype types we have processed
     std::map<TypeNode, TypeNode> dtProcessed;
     dtToProcess.push_back(abdGType);
     std::stringstream ssutn0;
@@ -146,6 +146,22 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
     unres.insert(abdTNew.toType());
     dtProcessed[abdGType] = abdTNew;
 
+    // We must convert all symbols in the sygus datatype type abdGType to
+    // apply the substitution { syms -> varlist }, where syms is the free
+    // variables of the input problem, and varlist is the formal argument list
+    // of the abduct-to-synthesize. For example, given user-provided sygus
+    // grammar:
+    //   G -> a | +( b, G )
+    // we synthesize a abduct A with two arguments x_a and x_b corresponding to
+    // a and b, and reconstruct the grammar:
+    //   G' -> x_a | +( x_b, G' )
+    // In this way, x_a and x_b are treated as bound variables and handled as
+    // arguments of the abduct-to-synthesize instead of as free variables with
+    // no relation to A. We additionally require that x_a, when printed, prints
+    // "a", which we do with a custom sygus callback below.
+    
+    // We are traversing over the subfield types of the datatype to convert
+    // them into the form described above.
     while (!dtToProcess.empty())
     {
       std::vector<TypeNode> dtNextToProcess;
@@ -162,6 +178,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
         for (unsigned j = 0, ncons = dtc.getNumConstructors(); j < ncons; j++)
         {
           Node op = Node::fromExpr(dtc[j].getSygusOp());
+          // apply the substitution to the argument
           Node ops = op.substitute(
               syms.begin(), syms.end(), varlist.begin(), varlist.end());
           Trace("sygus-abduct-debug") << "  Process constructor " << op << " / "
