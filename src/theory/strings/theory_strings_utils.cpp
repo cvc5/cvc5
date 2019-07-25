@@ -74,7 +74,7 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
       {
         for (const Node& cn : cur)
         {
-          visit.push(cn);
+          visit.push_back(cn);
         }
       }
       else if (std::find(conj.begin(), conj.end(), n) == conj.end())
