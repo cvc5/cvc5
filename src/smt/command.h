@@ -1031,7 +1031,7 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   Expr d_axiom;
   /** The conjecture of the abduction query */
   Expr d_conj;
-  /** 
+  /**
    * The (optional) grammar of the abduction query, expressed as a sygus
    * datatype type.
    */

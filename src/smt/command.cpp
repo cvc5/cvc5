@@ -2035,43 +2035,29 @@ std::string GetSynthSolutionCommand::getCommandName() const
 
 GetAbductCommand::GetAbductCommand() {}
 GetAbductCommand::GetAbductCommand(Expr ax, Expr conj)
-: d_axiom(ax),
-d_conj(conj)
+    : d_axiom(ax), d_conj(conj)
 {
-  
 }
 GetAbductCommand::GetAbductCommand(Expr ax, Expr conj, const Type& gtype)
-    : d_axiom(ax),
-d_conj(conj),
-d_sygus_grammar_type(gtype)
+    : d_axiom(ax), d_conj(conj), d_sygus_grammar_type(gtype)
 {
 }
 
-
-Expr GetAbductCommand::getAxiom() const
-{
-  return d_axiom;
-}
-Expr GetAbductCommand::getConjecture() const
-{
-  return d_conj;
-}
-Type GetAbductCommand::getGrammarType() const
-{
-  return d_sygus_grammar_type;
-}
+Expr GetAbductCommand::getAxiom() const { return d_axiom; }
+Expr GetAbductCommand::getConjecture() const { return d_conj; }
+Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
   try
   {
-    if( d_sygus_grammar_type.isNull() )
+    if (d_sygus_grammar_type.isNull())
     {
-      smtEngine->getAbduct(d_axiom,d_conj);
+      smtEngine->getAbduct(d_axiom, d_conj);
     }
     else
     {
-      smtEngine->getAbduct(d_axiom,d_conj,d_sygus_grammar_type);
+      smtEngine->getAbduct(d_axiom, d_conj, d_sygus_grammar_type);
     }
     d_commandStatus = CommandSuccess::instance();
   }
