@@ -3066,10 +3066,6 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
   }
 
   TheoryModel* m = d_theoryEngine->getBuiltModel();
-  // Since model m is being returned to the user, we must ensure that this
-  // model object remains valid with future check-sat calls. Hence, we set
-  // the theory engine into "eager model building" mode. TODO #2648: revisit.
-  d_theoryEngine->setEagerModelBuilding();
 
   return m;
 }
@@ -4370,6 +4366,11 @@ Model* SmtEngine::getModel() {
   }
 
   TheoryModel* m = getAvailableModel("get model");
+
+  // Since model m is being returned to the user, we must ensure that this
+  // model object remains valid with future check-sat calls. Hence, we set
+  // the theory engine into "eager model building" mode. TODO #2648: revisit.
+  d_theoryEngine->setEagerModelBuilding();
 
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
