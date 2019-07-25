@@ -44,7 +44,7 @@ Node mkAnd(const std::vector<Node>& a)
   return NodeManager::currentNM()->mkNode(AND, au);
 }
 
-void getConjuncts(Kind k, Node n, std::vector<Node>& conj)
+void flattenOp(Kind k, Node n, std::vector<Node>& conj)
 {
   if (n.getKind() != k)
   {
