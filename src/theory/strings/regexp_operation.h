@@ -87,7 +87,7 @@ class RegExpOpr {
   RegExpOpr();
   ~RegExpOpr();
 
-  /** 
+  /**
    * Returns true if r is a "constant" regular expression, that is, a set
    * of regular expression operators applied to constant leaf nodes.
    */
@@ -96,13 +96,13 @@ class RegExpOpr {
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
-  /** 
+  /**
    * Returns the regular expression intersection of r1 and r2. If r1 or r2 is
    * not constant, then this method returns null and sets spflag to true.
    */
   Node intersect(Node r1, Node r2, bool &spflag);
   /** Get the pretty printed version of r */
-  static std::string mkString( Node r );
+  static std::string mkString(Node r);
 };
 
 }/* CVC4::theory::strings namespace */
