@@ -136,6 +136,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
 
     // datatype types we have processed
     std::vector<TypeNode> dtToProcess;
+// datatype types we have processed
     std::map<TypeNode, TypeNode> dtProcessed;
     dtToProcess.push_back(abdGType);
     std::stringstream ssutn0;
