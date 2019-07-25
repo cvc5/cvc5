@@ -61,16 +61,18 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(n);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = visited.find(cur);
 
-    if (it == visited.end()) {
+    if (it == visited.end())
+    {
       visited.insert(cur);
-      if( cur.getKind()==k )
+      if (cur.getKind() == k)
       {
-        for( const Node& cn : cur )
+        for (const Node& cn : cur)
         {
           visit.push(cn);
         }
