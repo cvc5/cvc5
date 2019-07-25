@@ -63,7 +63,8 @@ PreprocessingPassResult SygusAbduct::applyInternal(
     }
   }
 
-  // the abduction grammar type we are using (null for now, until a future commit)
+  // the abduction grammar type we are using (null for now, until a future
+  // commit)
   TypeNode abdGType;
 
   Node res = mkAbductionConjecture(asserts, axioms, abdGType);
@@ -159,7 +160,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
     // arguments of the abduct-to-synthesize instead of as free variables with
     // no relation to A. We additionally require that x_a, when printed, prints
     // "a", which we do with a custom sygus callback below.
-    
+
     // We are traversing over the subfield types of the datatype to convert
     // them into the form described above.
     while (!dtToProcess.empty())
