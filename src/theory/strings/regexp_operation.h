@@ -89,7 +89,8 @@ class RegExpOpr {
 
   /**
    * Returns true if r is a "constant" regular expression, that is, a set
-   * of regular expression operators applied to constant leaf nodes.
+   * of regular expression operators whose subterms of the form (str.to.re t)
+   * are such that t is a constant (or rewrites to one).
    */
   bool checkConstRegExp( Node r );
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
