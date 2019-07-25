@@ -52,22 +52,20 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   // conjecture Fc, and
   // - The conjunction of all other assertions are the axioms Fa.
   std::vector<Node> axioms;
-  if (usingAssumptions)
+  if( usingAssumptions )
   {
-    for (size_t i = 0, astart = assertionsToPreprocess->getAssumptionsStart();
-         i < astart;
-         i++)
+    for (size_t i = 0, astart = assertionsToPreprocess->getAssumptionsStart(); i < astart; i++)
     {
       // if we are not an assumption, add it to the set of axioms
       axioms.push_back(asserts[i]);
     }
   }
-
+  
   // the abduction type we are using (null for now)
   TypeNode abdGType;
-
+  
   Node res = mkAbductionConjecture(asserts, axioms, abdGType);
-
+  
   Node trueNode = NodeManager::currentNM()->mkConst(true);
 
   assertionsToPreprocess->replace(0, res);
@@ -78,10 +76,8 @@ PreprocessingPassResult SygusAbduct::applyInternal(
 
   return PreprocessingPassResult::NO_CONFLICT;
 }
-
-Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
-                                        const std::vector<Node>& axioms,
-                                        TypeNode abdGType)
+  
+Node SygusAbduct::mkAbductionConjecture( const std::vector< Node >& asserts, const std::vector< Node >& axioms, TypeNode abdGType )
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
@@ -140,8 +136,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
     dtToProcess.push_back(abdGType);
     std::stringstream ssutn0;
     ssutn0 << abdGType.getDatatype().getName() << "_s";
-    TypeNode abdTNew =
-        nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
+    TypeNode abdTNew = nm->mkSort(ssutn0.str(), ExprManager::SORT_FLAG_PLACEHOLDER);
     unres.insert(abdTNew.toType());
     dtProcessed[abdGType] = abdTNew;
 
@@ -262,10 +257,10 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
     Trace("sygus-abduct-debug")
         << "Make sygus grammar attribute..." << std::endl;
     Node sym = nm->mkBoundVar("sfproxy_abduct", abdGTypeS);
-    std::vector<Expr> attrValue;
-    attrValue.push_back(sym.toExpr());
-    d_preprocContext->getSmt()->setUserAttribute(
-        "sygus-synth-grammar", abd.toExpr(), attrValue, "");
+    // Set the sygus grammar attribute to indicate that abdGTypeS encodes the
+    // grammar for abd.
+    theory::SygusSynthGrammarAttribute ssg;
+    abd.setAttribute(ssg, sym);
     Trace("sygus-abduct-debug") << "Finished setting up grammar." << std::endl;
   }
 
