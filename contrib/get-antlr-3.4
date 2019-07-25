@@ -3,20 +3,9 @@
 source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR=antlr-3.4
 
-# re-implementation of realpath, because Mac OS doesn't have realpath
-# https://stackoverflow.com/questions/3572030/bash-script-absolute-path-with-os-x/18443300#18443300
-portable_realpath() {
-    OURPWD=$PWD
-    cd "$(dirname "$1")"
-    LINK=$(readlink "$(basename "$1")")
-    while [ "$LINK" ]; do
-        cd "$(dirname "$LINK")"
-        LINK=$(readlink "$(basename "$1")")
-    done
-    REALPATH="$PWD/$(basename "$1")"
-    cd "$OURPWD"
-    echo "$REALPATH"
-}
+# portable version of realpath, because MacOS doesn't have it
+# makes portable_realpath function available
+source "$(dirname "$0")/portable_realpath_fun.sh"
 
 if [ -z "${BUILD_TYPE}" ]; then
   BUILD_TYPE="--disable-shared --enable-static"
