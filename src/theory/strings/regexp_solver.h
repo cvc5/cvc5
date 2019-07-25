@@ -55,7 +55,7 @@ class RegExpSolver
    * are consistent. If they are not, then this class will call the
    * sendInference method of its parent TheoryString object, indicating that
    * it requires a conflict or lemma to be processed.
-   * 
+   *
    * The argument mems maps representative string terms r to memberships of the
    * form (t in R) or ~(t in R), where t = r currently holds in the equality
    * engine of theory of strings.
@@ -63,14 +63,14 @@ class RegExpSolver
   void check(const std::map<Node, std::vector<Node>>& mems);
 
  private:
-  /** 
-   * Check memberships for equivalence class. 
+  /**
+   * Check memberships for equivalence class.
    * The vector mems is a vector of memberships of the form:
    *   (~) (x1 in R1 ) ... (~) (xn in Rn)
-   * where x1 = ... = xn in the current context. 
-   * 
+   * where x1 = ... = xn in the current context.
+   *
    * This method may add lemmas or conflicts via the inference manager.
-   * 
+   *
    * This method returns false if it discovered a conflict for this set of
    * assertions, and false otherwise. It discovers a conflict e.g. if mems
    * contains (xi in Ri) and (xj in Rj) and intersect(xi,xj) is empty.

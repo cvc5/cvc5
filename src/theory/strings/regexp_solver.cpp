@@ -19,11 +19,11 @@
 #include <cmath>
 
 #include "options/strings_options.h"
+#include "theory/ext_theory.h"
 #include "theory/strings/theory_strings.h"
 #include "theory/strings/theory_strings_rewriter.h"
 #include "theory/strings/theory_strings_utils.h"
 #include "theory/theory_model.h"
-#include "theory/ext_theory.h"
 
 using namespace std;
 using namespace CVC4::context;
@@ -63,10 +63,11 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   std::vector<Node> cprocessed;
 
   Trace("regexp-process") << "Checking Memberships ... " << std::endl;
-  for( const std::pair<const Node, std::vector<Node> >& mr : mems )
+  for (const std::pair<const Node, std::vector<Node> >& mr : mems)
   {
-    Trace("regexp-process") << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
-    if( !checkEqcIntersect(mr.second))
+    Trace("regexp-process")
+        << "Memberships(" << mr.first << ") = " << mr.second << std::endl;
+    if (!checkEqcIntersect(mr.second))
     {
       // conflict discovered, return
       return;
@@ -79,19 +80,19 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
   if (!addedLemma)
   {
     // get all memberships
-    std::vector< Node > allMems;
-    for( const std::pair<const Node, std::vector<Node> >& mr : mems )
+    std::vector<Node> allMems;
+    for (const std::pair<const Node, std::vector<Node> >& mr : mems)
     {
-      for( const Node& m : mr.second )
+      for (const Node& m : mr.second)
       {
-        bool polarity = m.getKind()!=NOT;
-        if( polarity || !options::stringIgnNegMembership())
+        bool polarity = m.getKind() != NOT;
+        if (polarity || !options::stringIgnNegMembership())
         {
           allMems.push_back(m);
         }
       }
     }
-      
+
     NodeManager* nm = NodeManager::currentNM();
     // representatives of strings that are the LHS of positive memberships that
     // we unfolded
@@ -247,28 +248,28 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
 
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
-  if( mems.empty() )
+  if (mems.empty())
   {
     // nothing to do
     return true;
   }
   // the initial regular expression membership
   Node ri;
-  NodeManager * nm = NodeManager::currentNM();
-  for( const Node& m : mems )
+  NodeManager* nm = NodeManager::currentNM();
+  for (const Node& m : mems)
   {
-    if( m.getKind()!=STRING_IN_REGEXP )
+    if (m.getKind() != STRING_IN_REGEXP)
     {
       // do not do negative
-      Assert( m.getKind()==NOT && m[0].getKind()==STRING_IN_REGEXP );
+      Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
-    if( !d_regexp_opr.checkConstRegExp(m) )
+    if (!d_regexp_opr.checkConstRegExp(m))
     {
       // cannot do intersection on RE with variables
       continue;
     }
-    if( ri.isNull() )
+    if (ri.isNull())
     {
       // first regular expression seen
       ri = m;
@@ -277,15 +278,15 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     bool spflag = false;
     Node resR = d_regexp_opr.intersect(ri[1], m[1], spflag);
     // intersection should be computable
-    Assert( !resR.isNull() );
-    Assert( !spflag );
-    if( resR==d_emptyRegexp )
+    Assert(!resR.isNull());
+    Assert(!spflag);
+    if (resR == d_emptyRegexp)
     {
       // conflict, explain
       std::vector<Node> vec_nodes;
       vec_nodes.push_back(ri);
       vec_nodes.push_back(m);
-      if( ri[0]!=m[0] )
+      if (ri[0] != m[0])
       {
         vec_nodes.push_back(ri[0].eqNode(m[0]));
       }
@@ -294,13 +295,13 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       // conflict, return
       return false;
     }
-    else if( resR==ri[1] )
+    else if (resR == ri[1])
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
       d_parent.getExtTheory()->markReduced(m);
     }
-    else if( resR==m[1] )
+    else if (resR == m[1])
     {
       // same as above, opposite direction
       d_parent.getExtTheory()->markReduced(ri);
@@ -312,11 +313,11 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       std::vector<Node> vec_nodes;
       vec_nodes.push_back(ri);
       vec_nodes.push_back(m);
-      if( ri[0]!=m[0] )
+      if (ri[0] != m[0])
       {
         vec_nodes.push_back(ri[0].eqNode(m[0]));
       }
-      Node conc = nm->mkNode(STRING_IN_REGEXP,ri[0],resR);
+      Node conc = nm->mkNode(STRING_IN_REGEXP, ri[0], resR);
       d_im.sendInference(vec_nodes, conc, "INTERSECT INFER", true);
       // both are reduced
       d_parent.getExtTheory()->markReduced(m);
