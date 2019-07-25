@@ -102,7 +102,7 @@ header = "options/smt_options.h"
 [[option]]
   name       = "blockModelsMode"
   category   = "regular"
-  long       = "block-models==MODE"
+  long       = "block-models=MODE"
   type       = "BlockModelsMode"
   default    = "BLOCK_MODELS_NONE"
   handler    = "stringToBlockModelsMode"
