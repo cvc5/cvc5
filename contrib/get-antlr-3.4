@@ -3,10 +3,6 @@
 source "$(dirname "$0")/get-script-header.sh"
 ANTLR_HOME_DIR=antlr-3.4
 
-# portable version of realpath, because MacOS doesn't have it
-# makes portable_realpath function available
-source "$(dirname "$0")/portable_realpath_fun.sh"
-
 if [ -z "${BUILD_TYPE}" ]; then
   BUILD_TYPE="--disable-shared --enable-static"
 fi
@@ -50,7 +46,7 @@ cd libantlr3c-3.4
 
 # Use an absolute path for the installation directory to avoid spurious libtool
 # warnings about the ANTLR library having moved
-PREFIX=$(portable_realpath `pwd`/../..)
+PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" `pwd`/../..)
 
 # Make antlr3debughandlers.c empty to avoid unreferenced symbols
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
