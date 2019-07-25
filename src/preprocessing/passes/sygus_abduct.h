@@ -67,6 +67,7 @@ class SygusAbduct : public PreprocessingPass
   static Node mkAbductionConjecture(const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
                                     TypeNode abdGType);
+
  protected:
   /**
    * Replaces the set of assertions by an abduction sygus problem described
