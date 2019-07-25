@@ -63,7 +63,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
     }
   }
 
-  // the abduction type we are using (null for now)
+  // the abduction grammar type we are using (null for now, until a future commit)
   TypeNode abdGType;
 
   Node res = mkAbductionConjecture(asserts, axioms, abdGType);
