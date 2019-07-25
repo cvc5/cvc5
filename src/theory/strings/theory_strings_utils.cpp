@@ -77,9 +77,9 @@ void flattenOp(Kind k, Node n, std::vector<Node>& conj)
           visit.push_back(cn);
         }
       }
-      else if (std::find(conj.begin(), conj.end(), n) == conj.end())
+      else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
       {
-        conj.push_back(n);
+        conj.push_back(cur);
       }
     }
   } while (!visit.empty());
