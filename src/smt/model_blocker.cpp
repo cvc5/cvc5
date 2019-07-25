@@ -246,7 +246,8 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
     // the model
     if (nodesToBlock.empty())
     {
-      Trace("model-blocker") << "no specific terms to block recognized" << std::endl;
+      Trace("model-blocker")
+          << "no specific terms to block recognized" << std::endl;
       std::unordered_set<Node, NodeHashFunction> symbols;
       for (Node n : tlAsserts)
       {
