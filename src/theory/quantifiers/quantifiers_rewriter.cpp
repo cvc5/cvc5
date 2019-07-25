@@ -23,7 +23,7 @@
 #include "theory/quantifiers/skolemize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace std;
 using namespace CVC4::kind;
@@ -961,10 +961,8 @@ Node QuantifiersRewriter::getVarElimLitString(Node lit,
           Node slv = lit[1 - i];
           std::vector<Node> preL(lit[i].begin(), lit[i].begin() + j);
           std::vector<Node> postL(lit[i].begin() + j + 1, lit[i].end());
-          Node tpre =
-              strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT, preL);
-          Node tpost =
-              strings::TheoryStringsRewriter::mkConcat(STRING_CONCAT, postL);
+          Node tpre = strings::utils::mkConcat(STRING_CONCAT, preL);
+          Node tpost = strings::utils::mkConcat(STRING_CONCAT, postL);
           Node slvL = nm->mkNode(STRING_LENGTH, slv);
           Node tpreL = nm->mkNode(STRING_LENGTH, tpre);
           Node tpostL = nm->mkNode(STRING_LENGTH, tpost);

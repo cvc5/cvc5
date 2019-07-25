@@ -22,6 +22,7 @@
 #include <algorithm>
 #include <fstream>
 #include <functional>
+#include <memory>
 #include <string>
 #include <utility>
 
@@ -95,9 +96,13 @@ void container_to_stream(std::ostream& out,
  * @param pattern The filename pattern. This string is modified to contain the
  * name of the temporary file.
  *
- * @return A filestream for the temporary file.
+ * @return A unique pointer to the filestream for the temporary file.
+ *
+ * Note: We use `std::unique_ptr<std::fstream>` instead of `std::fstream`
+ * because GCC < 5 does not support the move constructor of `std::fstream`. See
+ * https://gcc.gnu.org/bugzilla/show_bug.cgi?id=54316 for details.
  */
-std::fstream openTmpFile(std::string* pattern);
+std::unique_ptr<std::fstream> openTmpFile(std::string* pattern);
 
 }/* CVC4 namespace */
 
