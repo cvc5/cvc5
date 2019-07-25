@@ -254,7 +254,7 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     return true;
   }
   // the initial regular expression membership
-  Node ri;
+  Node mi;
   NodeManager* nm = NodeManager::currentNM();
   for (const Node& m : mems)
   {
@@ -269,14 +269,14 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       // cannot do intersection on RE with variables
       continue;
     }
-    if (ri.isNull())
+    if (mi.isNull())
     {
       // first regular expression seen
-      ri = m;
+      mi = m;
       continue;
     }
     bool spflag = false;
-    Node resR = d_regexp_opr.intersect(ri[1], m[1], spflag);
+    Node resR = d_regexp_opr.intersect(mi[1], m[1], spflag);
     // intersection should be computable
     Assert(!resR.isNull());
     Assert(!spflag);
@@ -284,44 +284,45 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     {
       // conflict, explain
       std::vector<Node> vec_nodes;
-      vec_nodes.push_back(ri);
+      vec_nodes.push_back(mi);
       vec_nodes.push_back(m);
-      if (ri[0] != m[0])
+      if (mi[0] != m[0])
       {
-        vec_nodes.push_back(ri[0].eqNode(m[0]));
+        vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
       Node conc;
       d_im.sendInference(vec_nodes, conc, "INTERSECT CONFLICT", true);
       // conflict, return
       return false;
     }
-    else if (resR == ri[1])
+    // rewrite to ensure the equality checks below are precise
+    Node mres = Rewriter::rewrite(nm->mkNode( STRING_IN_REGEXP, mi[0],resR));
+    if (mres == mi)
     {
       // if R1 = intersect( R1, R2 ), then x in R1 ^ x in R2 is equivalent
       // to x in R1, hence x in R2 can be marked redundant.
       d_parent.getExtTheory()->markReduced(m);
     }
-    else if (resR == m[1])
+    else if (mres == m)
     {
       // same as above, opposite direction
-      d_parent.getExtTheory()->markReduced(ri);
+      d_parent.getExtTheory()->markReduced(mi);
     }
     else
     {
       // new conclusion
       // (x in R ^ y in R2 ^ x = y) => (x in intersect(R1,R2))
       std::vector<Node> vec_nodes;
-      vec_nodes.push_back(ri);
+      vec_nodes.push_back(mi);
       vec_nodes.push_back(m);
-      if (ri[0] != m[0])
+      if (mi[0] != m[0])
       {
-        vec_nodes.push_back(ri[0].eqNode(m[0]));
+        vec_nodes.push_back(mi[0].eqNode(m[0]));
       }
-      Node conc = nm->mkNode(STRING_IN_REGEXP, ri[0], resR);
-      d_im.sendInference(vec_nodes, conc, "INTERSECT INFER", true);
+      d_im.sendInference(vec_nodes, mres, "INTERSECT INFER", true);
       // both are reduced
       d_parent.getExtTheory()->markReduced(m);
-      d_parent.getExtTheory()->markReduced(ri);
+      d_parent.getExtTheory()->markReduced(mi);
       // do not send more than one lemma for this class
       return true;
     }
