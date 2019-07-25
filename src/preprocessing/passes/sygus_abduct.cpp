@@ -134,7 +134,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
     Trace("sygus-abduct-debug") << "Process abduction type:" << std::endl;
     Trace("sygus-abduct-debug") << abdGType.getDatatype() << std::endl;
 
-    // datatype types we have processed
+    // datatype types we need to process
     std::vector<TypeNode> dtToProcess;
 // datatype types we have processed
     std::map<TypeNode, TypeNode> dtProcessed;
