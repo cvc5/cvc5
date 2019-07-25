@@ -41,11 +41,12 @@ class ModelBlocker
    * (3) if mode is set to "values", L1 ... Ln are literals of the form x=c,
    * where c is the value of x in the current model.
    * (4) if exprToBlock is not empty, L1 ... Ln are literals of the form t=c,
-   * where t is an element of exprToBlock and c is its value in the current
-   * model.
+   * where c is the value of t in the current model. If exprToBlock is
+   * non-empty, then L1 ... Ln are t1=c1 ... tn=cn where exprToBlock is
+   * { t1 ... tn }; if exprToBlock is empty, then t1 ... tn are the free
+   * variables of assertions.
    *
-   * We expect exprToBlock to be non-empty if and only if mode is
-   * BLOCK_MODELS_VALUES.
+   * We expect exprToBlock to be non-empty only if mode is BLOCK_MODELS_VALUES.
    *
    * For example, if our input is:
    *    x > 0 ^ ( y < 0 V z < 0 V w < 0 )
