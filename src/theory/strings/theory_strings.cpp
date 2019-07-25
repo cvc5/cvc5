@@ -4102,7 +4102,7 @@ Node TheoryStrings::mkExplain(const std::vector<Node>& a,
   std::vector<Node> aconj;
   for (const Node& ac : a)
   {
-    utils::flattenOp(ac, aconj);
+    utils::flattenOp(AND, ac, aconj);
   }
   for (const Node& apc : aconj)
   {
