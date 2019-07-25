@@ -23,7 +23,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-Node mkAnd(std::vector<Node>& a)
+Node mkAnd(const std::vector<Node>& a)
 {
   std::vector<Node> au;
   for (const Node& ai : a)
@@ -42,6 +42,47 @@ Node mkAnd(std::vector<Node>& a)
     return au[0];
   }
   return NodeManager::currentNM()->mkNode(AND, au);
+}
+
+void flattenOp(Kind k, Node n, std::vector<Node>& conj)
+{
+  if (n.getKind() != k)
+  {
+    // easy case, just add to conj if non-duplicate
+    if (std::find(conj.begin(), conj.end(), n) == conj.end())
+    {
+      conj.push_back(n);
+    }
+    return;
+  }
+  // otherwise, traverse
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        for (const Node& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
+      {
+        conj.push_back(cur);
+      }
+    }
+  } while (!visit.empty());
 }
 
 void getConcat(Node n, std::vector<Node>& c)
