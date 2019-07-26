@@ -4987,7 +4987,12 @@ bool SmtEngine::getAbduct(const std::string& name,
   d_subsolverSynthFunVars.clear();
   d_subsolverSynthFunSyms.clear();
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms, TypeNode::fromType(grammarType), d_subsolverSynthFunVars, d_subsolverSynthFunSyms);
+      name,
+      asserts,
+      axioms,
+      TypeNode::fromType(grammarType),
+      d_subsolverSynthFunVars,
+      d_subsolverSynthFunSyms);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -5019,34 +5024,43 @@ bool SmtEngine::getAbduct(const std::string& name,
       Node abdn = Node::fromExpr(its->second);
       Trace("sygus-abduct")
           << "SmtEngine::getAbduct: solution is " << abdn << std::endl;
-      if( abdn.getKind()==kind::LAMBDA )
+      if (abdn.getKind() == kind::LAMBDA)
       {
         abdn = abdn[1];
       }
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to
-      abdn = abdn.substitute(d_subsolverSynthFunVars.begin(),d_subsolverSynthFunVars.end(),d_subsolverSynthFunSyms.begin(), d_subsolverSynthFunSyms.end());
-      Trace("sygus-abduct") << "Apply substs " << d_subsolverSynthFunVars << " -> " << d_subsolverSynthFunSyms << std::endl;
-      
+      abdn = abdn.substitute(d_subsolverSynthFunVars.begin(),
+                             d_subsolverSynthFunVars.end(),
+                             d_subsolverSynthFunSyms.begin(),
+                             d_subsolverSynthFunSyms.end());
+      Trace("sygus-abduct") << "Apply substs " << d_subsolverSynthFunVars
+                            << " -> " << d_subsolverSynthFunSyms << std::endl;
+
       std::unordered_set<Node, NodeHashFunction> fvs;
-      expr::getFreeVariables(abdn,fvs);
+      expr::getFreeVariables(abdn, fvs);
       std::unordered_set<Node, NodeHashFunction> fvsInput;
-      for( const Node& a : asserts )
+      for (const Node& a : asserts)
       {
-        expr::getFreeVariables(a,fvsInput);
+        expr::getFreeVariables(a, fvsInput);
       }
-      for( const Node& fv : fvs )
+      for (const Node& fv : fvs)
       {
-        Trace("sygus-abduct") << "Free variable " << fv << ", inInput = " << (fvsInput.find(fv)!=fvsInput.end()) << std::endl;
+        Trace("sygus-abduct")
+            << "Free variable " << fv
+            << ", inInput = " << (fvsInput.find(fv) != fvsInput.end())
+            << std::endl;
       }
-      for( const Node& fv : fvsInput )
+      for (const Node& fv : fvsInput)
       {
-        Trace("sygus-abduct") << "Free variable in input " << fv << ", inSol = " << (fvs.find(fv)!=fvs.end()) << std::endl;
+        Trace("sygus-abduct")
+            << "Free variable in input " << fv
+            << ", inSol = " << (fvs.find(fv) != fvs.end()) << std::endl;
       }
       // convert to expression
       abd = abdn.toExpr();
-          
+
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"

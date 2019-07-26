@@ -36,8 +36,8 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType,
-                                        std::vector< Node >& varlist,
-                                        std::vector< Node >& syms)
+                                        std::vector<Node>& varlist,
+                                        std::vector<Node>& syms)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
