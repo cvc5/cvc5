@@ -4962,7 +4962,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+bool SmtEngine::getAbduct(const Expr& conj,
+                          const Type& grammarType,
+                          Expr& abd)
 {
   SmtScope smts(this);
 
@@ -5028,34 +5030,12 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
       }
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
-      // input problem that they correspond to
+      // input problem that they correspond to.
       abdn = abdn.substitute(d_sssfVarlist.begin(),
                              d_sssfVarlist.end(),
                              d_sssfSyms.begin(),
                              d_sssfSyms.end());
-      Trace("sygus-abduct") << "Apply substs " << d_sssfVarlist << " -> "
-                            << d_sssfSyms << std::endl;
 
-      std::unordered_set<Node, NodeHashFunction> fvs;
-      expr::getFreeVariables(abdn, fvs);
-      std::unordered_set<Node, NodeHashFunction> fvsInput;
-      for (const Node& a : asserts)
-      {
-        expr::getFreeVariables(a, fvsInput);
-      }
-      for (const Node& fv : fvs)
-      {
-        Trace("sygus-abduct")
-            << "Free variable " << fv
-            << ", inInput = " << (fvsInput.find(fv) != fvsInput.end())
-            << std::endl;
-      }
-      for (const Node& fv : fvsInput)
-      {
-        Trace("sygus-abduct")
-            << "Free variable in input " << fv
-            << ", inSol = " << (fvs.find(fv) != fvs.end()) << std::endl;
-      }
       // convert to expression
       abd = abdn.toExpr();
 
