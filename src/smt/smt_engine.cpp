@@ -5016,6 +5016,10 @@ bool SmtEngine::getAbduct(const std::string& name,
       abd = its->second;
       Trace("sygus-abduct")
           << "SmtEngine::getAbduct: solution is " << abd << std::endl;
+      // convert back to original
+      // must replace formal arguments of abd with the free variables in the
+      // input problem that they correspond to
+      // TODO
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"

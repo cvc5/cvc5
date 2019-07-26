@@ -856,12 +856,22 @@ class CVC4_PUBLIC SmtEngine {
                                bool doFull,
                                bool strict = true) /* throw(Exception) */;
   /**
-   * TODO
+   * This method asks this SMT engine to find an abduct with respect to the
+   * current assertion stack (call it A) and the conjecture (call it B).
+   * If this method returns true, then abd is set to a formula C such that
+   * A ^ C is satisfiable, and A ^ B ^ C is unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shape of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
    */
   bool getAbduct(const std::string& name,
                  const Expr& conj,
                  const Type& grammarType,
                  Expr& abd);
+  /** Same as above, but without user-provided grammar restrictions */
   bool getAbduct(const std::string& name, const Expr& conj, Expr& abd);
 
   /**
