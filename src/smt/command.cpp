@@ -2058,7 +2058,7 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
   {
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getAbduct(d_name, d_conj, d_result);
+      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
     }
     else
     {
