@@ -4984,21 +4984,21 @@ bool SmtEngine::getAbduct(const std::string& name,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
-  d_subsolverSynthFunVars.clear();
-  d_subsolverSynthFunSyms.clear();
+  d_sssfVars.clear();
+  d_sssfSyms.clear();
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
       name,
       asserts,
       axioms,
       TypeNode::fromType(grammarType),
-      d_subsolverSynthFunVars,
-      d_subsolverSynthFunSyms);
+      d_sssfVars,
+      d_sssfSyms);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
-  d_subsolverSynthFun = aconj[0][0].toExpr();
+  d_sssf = aconj[0][0].toExpr();
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
-                        << ", solving for " << d_subsolverSynthFun << std::endl;
+                        << ", solving for " << d_sssf << std::endl;
   // we generate a new smt engine to do the abduction query
   d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
   d_subsolver->setIsInternalSubsolver();
@@ -5018,7 +5018,7 @@ bool SmtEngine::getAbduct(const std::string& name,
     std::map<Expr, Expr> sols;
     d_subsolver->getSynthSolutions(sols);
     Assert(sols.size() == 1);
-    std::map<Expr, Expr>::iterator its = sols.find(d_subsolverSynthFun);
+    std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
     {
       Node abdn = Node::fromExpr(its->second);
@@ -5031,12 +5031,12 @@ bool SmtEngine::getAbduct(const std::string& name,
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to
-      abdn = abdn.substitute(d_subsolverSynthFunVars.begin(),
-                             d_subsolverSynthFunVars.end(),
-                             d_subsolverSynthFunSyms.begin(),
-                             d_subsolverSynthFunSyms.end());
-      Trace("sygus-abduct") << "Apply substs " << d_subsolverSynthFunVars
-                            << " -> " << d_subsolverSynthFunSyms << std::endl;
+      abdn = abdn.substitute(d_sssfVars.begin(),
+                             d_sssfVars.end(),
+                             d_sssfSyms.begin(),
+                             d_sssfSyms.end());
+      Trace("sygus-abduct") << "Apply substs " << d_sssfVars
+                            << " -> " << d_sssfSyms << std::endl;
 
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(abdn, fvs);

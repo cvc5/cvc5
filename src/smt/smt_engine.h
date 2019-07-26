@@ -150,14 +150,15 @@ class CVC4_PUBLIC SmtEngine {
   /** The SMT engine subsolver */
   std::unique_ptr<SmtEngine> d_subsolver;
   /**
-   * If applicable, the function-to-synthesize we are using the subsolver for.
+   * If applicable, the function-to-synthesize that the subsolver is solving
+   * for. This is used for the get-abduction command.
    */
-  Expr d_subsolverSynthFun;
+  Expr d_sssf;
   /**
-   * If applicable, the function-to-synthesize we are using the subsolver for.
+   * The substitution to apply to the solutions from the subsolver.
    */
-  std::vector<Node> d_subsolverSynthFunVars;
-  std::vector<Node> d_subsolverSynthFunSyms;
+  std::vector<Node> d_sssfVarlist;
+  std::vector<Node> d_sssfSyms;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
