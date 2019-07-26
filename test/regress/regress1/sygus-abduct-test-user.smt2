@@ -1,4 +1,6 @@
-
+; COMMAND-LINE: --produce-abducts
+; SCRUBBER: grep -v -E '(\(define-fun)'
+; EXIT: 0
 (set-logic QF_UFLIRA)
 (set-option :produce-abducts true)
 (declare-fun n () Int)

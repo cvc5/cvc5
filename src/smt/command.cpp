@@ -2083,8 +2083,7 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
     expr::ExprDag::Scope scope(out, false);
     if (d_resultStatus)
     {
-      out << "(define-fun " << d_name << "() Bool " << d_result << ")"
-          << std::endl;
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")" << std::endl;
     }
     else
     {
