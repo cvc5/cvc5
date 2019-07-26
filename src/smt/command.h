@@ -1010,14 +1010,14 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 }; /* class GetSynthSolutionCommand */
 
 /** The command (get-abduct s B (G)?)
- * 
+ *
  * This command asks for an abduct from the current set of assertions (call
  * them A) and conjecture (goal) given by the argument B.
- * 
+ *
  * The symbol s is the name for the abduction predicate. If we successfully
  * find a predicate P, then the output response of this command is:
  *   (define-fun s () Bool P)
- * 
+ *
  * A grammar type can be optionally provided to indicate the syntactic
  * restrictions on the possible solutions returned.
  */
@@ -1032,7 +1032,8 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   Expr getConjecture() const;
   /** Get the grammar type given for the abduction query */
   Type getGrammarType() const;
-  /** Get the result of the query, which is the solution to the abduction query. */
+  /** Get the result of the query, which is the solution to the abduction query.
+   */
   Expr getResult() const;
 
   void invoke(SmtEngine* smtEngine) override;
