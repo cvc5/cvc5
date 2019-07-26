@@ -4962,8 +4962,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const std::string& name,
-                          const Expr& conj,
+bool SmtEngine::getAbduct(const Expr& conj,
                           const Type& grammarType,
                           Expr& abd)
 {
@@ -4986,6 +4985,7 @@ bool SmtEngine::getAbduct(const std::string& name,
   asserts.push_back(Node::fromExpr(conj));
   d_sssfVarlist.clear();
   d_sssfSyms.clear();
+  std::string name("A");
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
       name,
       asserts,
@@ -5070,10 +5070,10 @@ bool SmtEngine::getAbduct(const std::string& name,
   return false;
 }
 
-bool SmtEngine::getAbduct(const std::string& name, const Expr& conj, Expr& abd)
+bool SmtEngine::getAbduct(const Expr& conj, Expr& abd)
 {
   Type grammarType;
-  return getAbduct(name, conj, grammarType, abd);
+  return getAbduct(conj, grammarType, abd);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {

@@ -2050,6 +2050,7 @@ GetAbductCommand::GetAbductCommand(const std::string& name,
 
 Expr GetAbductCommand::getConjecture() const { return d_conj; }
 Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+Expr GetAbductCommand::getResult() const { return d_result; }
 
 void GetAbductCommand::invoke(SmtEngine* smtEngine)
 {
@@ -2062,7 +2063,7 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
     else
     {
       d_resultStatus =
-          smtEngine->getAbduct(d_name, d_conj, d_sygus_grammar_type, d_result);
+          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
