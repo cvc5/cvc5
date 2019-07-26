@@ -147,6 +147,12 @@ class CVC4_PUBLIC SmtEngine {
   ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
+  /** The SMT engine subsolver */
+  std::unique_ptr<SmtEngine> d_subsolver;
+  /** 
+   * If applicable, the function-to-synthesize we are using the subsolver for.
+   */
+  Expr d_subsolverSynthFun;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
@@ -852,8 +858,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * TODO
    */
-  Expr getAbduct(const Expr& conj, const Type& grammarType);
-  Expr getAbduct(const Expr& conj);
+  bool getAbduct(const std::string& name, const Expr& conj, const Type& grammarType, Expr& abd);
+  bool getAbduct(const std::string& name, const Expr& conj, Expr& abd);
 
   /**
    * Get list of quantified formulas that were instantiated

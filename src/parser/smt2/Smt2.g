@@ -1532,12 +1532,13 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_ABDUCT_TOK { 
       PARSER_STATE->checkThatLogicIsSet();
     }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
     term[e,e2]
     (
       sygusGrammar[t, terms, name]
     )? 
     {
-      cmd->reset(new GetAbductCommand(e, t));
+      cmd->reset(new GetAbductCommand(name,e, t));
     }
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 

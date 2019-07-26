@@ -2034,9 +2034,12 @@ std::string GetSynthSolutionCommand::getCommandName() const
 }
 
 GetAbductCommand::GetAbductCommand() {}
-GetAbductCommand::GetAbductCommand(Expr conj) : d_conj(conj) {}
-GetAbductCommand::GetAbductCommand(Expr conj, const Type& gtype)
-    : d_conj(conj), d_sygus_grammar_type(gtype)
+GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj, const Type& gtype)
+    : d_name(name), d_conj(conj), d_sygus_grammar_type(gtype), d_resultStatus(false)
 {
 }
 
@@ -2049,11 +2052,11 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
   {
     if (d_sygus_grammar_type.isNull())
     {
-      smtEngine->getAbduct(d_conj);
+      d_resultStatus = smtEngine->getAbduct(d_name,d_conj,d_result);
     }
     else
     {
-      smtEngine->getAbduct(d_conj, d_sygus_grammar_type);
+      d_resultStatus = smtEngine->getAbduct(d_name,d_conj, d_sygus_grammar_type,d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2063,23 +2066,43 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
   }
 }
 
+void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    // FIXME
+    if( d_resultStatus )
+    {
+      out << "(define-fun " << d_name << " " << d_result << ")" << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
 Command* GetAbductCommand::exportTo(ExprManager* exprManager,
                                     ExprManagerMapCollection& variableMap)
 {
-  GetAbductCommand* c =
-      new GetAbductCommand(d_conj.exportTo(exprManager, variableMap));
-  if (!d_sygus_grammar_type.isNull())
-  {
-    c->d_sygus_grammar_type =
-        d_sygus_grammar_type.exportTo(exprManager, variableMap);
-  }
+  GetAbductCommand* c = new GetAbductCommand(d_name,d_conj.exportTo(exprManager, variableMap));
+  c->d_sygus_grammar_type = d_sygus_grammar_type.exportTo(exprManager, variableMap);
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_resultStatus = d_resultStatus;
   return c;
 }
 
 Command* GetAbductCommand::clone() const
 {
-  GetAbductCommand* c = new GetAbductCommand();
+  GetAbductCommand* c = new GetAbductCommand(d_name,d_conj);
   c->d_sygus_grammar_type = d_sygus_grammar_type;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
   return c;
 }
 

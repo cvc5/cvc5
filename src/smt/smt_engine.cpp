@@ -75,6 +75,7 @@
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
+#include "preprocessing/passes/sygus_abduct.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -1258,14 +1259,16 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusAbduct())
+    if (options::produceAbducts())
     {
+      is_sygus = true;
+    }
+    if (options::sygusInference() || options::sygusRewSynthInput())
+    {
+      is_sygus = true;
       d_logic = d_logic.getUnlockedCopy();
       // sygus requires arithmetic, datatypes and quantifiers
-      d_logic.enableTheory(THEORY_ARITH);
-      d_logic.enableTheory(THEORY_DATATYPES);
-      d_logic.enableTheory(THEORY_QUANTIFIERS);
+      d_logic.enableSygus();
       d_logic.lock();
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -1954,7 +1957,7 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
-    if (options::sygusAbduct())
+    if (options::produceAbducts())
     {
       // if doing abduction, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
@@ -1963,7 +1966,7 @@ void SmtEngine::setDefaults() {
       }
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen() || options::sygusAbduct())
+        || options::sygusQueryGen())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -2291,11 +2294,11 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput() || options::sygusAbduct())
+    if (options::sygusRewSynthInput() || options::produceAbducts())
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--sygus-abduct");
+                                           : "--produce-abducts");
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
@@ -3324,10 +3327,6 @@ void SmtEnginePrivate::processAssertions() {
     if (options::sygusInference())
     {
       d_passes["sygus-infer"]->apply(&d_assertions);
-    }
-    else if (options::sygusAbduct())
-    {
-      d_passes["sygus-abduct"]->apply(&d_assertions);
     }
     else if (options::sygusRewSynthInput())
     {
@@ -4961,17 +4960,66 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-Expr SmtEngine::getAbduct(const Expr& conj, const Type& grammarType)
+bool SmtEngine::getAbduct(const std::string& name, const Expr& conj,
+                          const Type& grammarType, Expr& abd)
 {
-  Expr ret;
-  // TODO
-  return ret;
+  SmtScope smts(this);
+  
+  if(!options::produceAbducts()) {
+    const char* msg =
+      "Cannot get abduct when produce-abducts options is off.";
+    throw ModalException(msg);
+  }
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj << std::endl;
+  std::vector<Expr> easserts = getAssertions();
+  std::vector< Node > axioms;
+  for( unsigned i=0, size=easserts.size(); i<size; i++ )
+  {
+    axioms.push_back(Node::fromExpr(easserts[i]));
+  }
+  std::vector<Node> asserts(axioms.begin(),axioms.end());
+  asserts.push_back(Node::fromExpr(conj));
+  Node abdSym;
+  Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(name, asserts,axioms,TypeNode::fromType(grammarType), abdSym);
+  // remember the abduct-to-synthesize
+  d_subsolverSynthFun = abdSym.toExpr();
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj << ", solving for " << abdSym << std::endl;
+  // we generate a new smt engine to do the abduction query
+  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
+  d_subsolver->setIsInternalSubsolver();
+  // get the logic
+  LogicInfo l = d_logic.getUnlockedCopy();
+  // enable everything needed for sygus
+  l.enableSygus();
+  d_subsolver->setLogic(l);
+  // assert the abduction query
+  d_subsolver->assertFormula(aconj.toExpr());
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
+  Result r = d_subsolver->checkSat();
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
+  if( r.asSatisfiabilityResult().isSat() == Result::UNSAT )
+  {
+    // get the synthesis solution
+    std::map<Expr, Expr> sols;
+    d_subsolver->getSynthSolutions(sols);
+    Assert( sols.size()==1 );
+    std::map< Expr, Expr >::iterator its = sols.find(d_subsolverSynthFun);
+    if( its!=sols.end() )
+    {
+      abd = its->second;
+      Trace("sygus-abduct") << "SmtEngine::getAbduct: solution is " << abd << std::endl; 
+      return true;
+    }
+    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!" << std::endl;
+    Assert( false );
+  }
+  return false;
 }
 
-Expr SmtEngine::getAbduct(const Expr& conj)
+bool SmtEngine::getAbduct(const std::string& name, const Expr& conj, Expr& abd)
 {
   Type grammarType;
-  return getAbduct(conj, grammarType);
+  return getAbduct(name,conj,grammarType,abd);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {

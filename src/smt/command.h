@@ -1013,19 +1013,22 @@ class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
   GetAbductCommand();
-  GetAbductCommand(Expr conj);
-  GetAbductCommand(Expr conj, const Type& gtype);
+  GetAbductCommand(const std::string& name, Expr conj);
+  GetAbductCommand(const std::string& name, Expr conj, const Type& gtype);
 
   Expr getConjecture() const;
   Type getGrammarType() const;
 
   void invoke(SmtEngine* smtEngine) override;
+  void printResult(std::ostream& out, uint32_t verbosity = 2) const override;
   Command* exportTo(ExprManager* exprManager,
                     ExprManagerMapCollection& variableMap) override;
   Command* clone() const override;
   std::string getCommandName() const override;
 
  protected:
+  /** The name of the abduction predicate */
+  std::string d_name;
   /** The conjecture of the abduction query */
   Expr d_conj;
   /**
@@ -1033,6 +1036,10 @@ class CVC4_PUBLIC GetAbductCommand : public Command
    * datatype type.
    */
   Type d_sygus_grammar_type;
+  /** the return status of the command */
+  bool d_resultStatus;
+  /** the return expression of the command */
+  Expr d_result;
 }; /* class GetAbductCommand */
 
 class CVC4_PUBLIC GetQuantifierEliminationCommand : public Command
