@@ -31,15 +31,15 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
   NodeManager* nm = NodeManager::currentNM();
   // convert to nodes
   std::vector<Node> tlAsserts;
-  for (unsigned i = 0, size = assertions.size(); i < size; i++)
+  for (const Expr& a : assertions)
   {
-    Node a = Node::fromExpr(assertions[i]);
-    tlAsserts.push_back(a);
+    Node an = Node::fromExpr(a);
+    tlAsserts.push_back(an);
   }
   std::vector<Node> nodesToBlock;
-  for (unsigned i = 0, size = exprToBlock.size(); i < size; i++)
+  for (const Expr& eb : exprToBlock)
   {
-    nodesToBlock.push_back(Node::fromExpr(exprToBlock[i]));
+    nodesToBlock.push_back(Node::fromExpr(eb));
   }
   Trace("model-blocker") << "Compute model blocker, assertions:" << std::endl;
   Node blocker;
@@ -62,10 +62,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       }
       else if (catom.getKind() == AND && cpol)
       {
-        for (const Node& c : catom)
-        {
-          tlAsserts.push_back(c);
-        }
+        tlAsserts.insert(tlAsserts.end(),catom.begin(),catom.end());
       }
       else if (theory::quantifiers::TermUtil::isBoolConnectiveTerm(catom))
       {
@@ -183,10 +180,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           {
             Assert(cur.getKind() == AND);
             Trace("model-blocker-debug") << "...recurse" << std::endl;
-            for (const Node& cn : cur)
-            {
-              visit.push_back(cn);
-            }
+            visit.insert(visit.end(),cur.begin(),cur.end());
           }
           else
           {

@@ -4221,9 +4221,9 @@ Expr SmtEngine::getValue(const Expr& ex) const
 vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
 {
   vector<Expr> result;
-  for (unsigned i = 0, size = exprs.size(); i < size; i++)
+  for (const Expr& e : exprs)
   {
-    result.push_back(getValue(exprs[i]));
+    result.push_back(getValue(e));
   }
   return result;
 }
@@ -4464,9 +4464,9 @@ std::vector<Expr> SmtEngine::getExpandedAssertions()
   // must expand definitions
   std::vector<Expr> eassertsProc;
   std::unordered_map<Node, Node, NodeHashFunction> cache;
-  for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
+  for( const Expr& e : easserts )
   {
-    Node ea = Node::fromExpr(easserts[i]);
+    Node ea = Node::fromExpr(e);
     Node eae = d_private->expandDefinitions(ea, cache);
     eassertsProc.push_back(eae.toExpr());
   }
