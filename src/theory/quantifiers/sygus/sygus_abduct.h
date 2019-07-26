@@ -9,23 +9,25 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus abduction preprocessing pass, which transforms an arbitrary
- ** input into an abduction problem.
+ ** \brief Sygus abduction utility, which transforms an arbitrary input into an
+ ** abduction problem.
  **/
 
-#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
-#define CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
 
-#include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include <string>
+#include <vector>
+#include "expr/node.h"
+#include "expr/type.h"
 
 namespace CVC4 {
-namespace preprocessing {
-namespace passes {
+namespace theory {
+namespace quantifiers {
 
 /** SygusAbduct
  *
- * A preprocessing utility that turns a set of quantifier-free assertions into
+ * A utility that turns a set of quantifier-free assertions into
  * a sygus conjecture that encodes an abduction problem. In detail, if our
  * input formula is F( x ) for free symbols x, then we construct the sygus
  * conjecture:
@@ -51,10 +53,10 @@ namespace passes {
  * In other words, A( y ) must be consistent with our axioms Fa and imply
  * ~F( x ). We encode this conjecture using SygusSideConditionAttribute.
  */
-class SygusAbduct : public PreprocessingPass
+class SygusAbduct
 {
  public:
-  SygusAbduct(PreprocessingPassContext* preprocContext);
+  SygusAbduct();
 
   /**
    * Returns the sygus conjecture corresponding to the abduction problem for
@@ -71,17 +73,10 @@ class SygusAbduct : public PreprocessingPass
                                     const std::vector<Node>& axioms,
                                     TypeNode abdGType);
 
- protected:
-  /**
-   * Replaces the set of assertions by an abduction sygus problem described
-   * above.
-   */
-  PreprocessingPassResult applyInternal(
-      AssertionPipeline* assertionsToPreprocess) override;
 };
 
 }  // namespace passes
 }  // namespace preprocessing
 }  // namespace CVC4
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_ */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

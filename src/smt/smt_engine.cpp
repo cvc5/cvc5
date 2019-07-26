@@ -72,7 +72,7 @@
 #include "options/strings_process_loop_mode.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
-#include "preprocessing/passes/sygus_abduct.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
@@ -4983,7 +4983,7 @@ bool SmtEngine::getAbduct(const std::string& name,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
-  Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(
+  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
