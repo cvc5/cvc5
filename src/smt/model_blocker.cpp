@@ -62,7 +62,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
       }
       else if (catom.getKind() == AND && cpol)
       {
-        tlAsserts.insert(tlAsserts.end(),catom.begin(),catom.end());
+        tlAsserts.insert(tlAsserts.end(), catom.begin(), catom.end());
       }
       else if (theory::quantifiers::TermUtil::isBoolConnectiveTerm(catom))
       {
@@ -180,7 +180,7 @@ Expr ModelBlocker::getModelBlocker(const std::vector<Expr>& assertions,
           {
             Assert(cur.getKind() == AND);
             Trace("model-blocker-debug") << "...recurse" << std::endl;
-            visit.insert(visit.end(),cur.begin(),cur.end());
+            visit.insert(visit.end(), cur.begin(), cur.end());
           }
           else
           {
