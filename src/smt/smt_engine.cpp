@@ -5035,8 +5035,8 @@ bool SmtEngine::getAbduct(const std::string& name,
                              d_sssfVarlist.end(),
                              d_sssfSyms.begin(),
                              d_sssfSyms.end());
-      Trace("sygus-abduct")
-          << "Apply substs " << d_sssfVarlist << " -> " << d_sssfSyms << std::endl;
+      Trace("sygus-abduct") << "Apply substs " << d_sssfVarlist << " -> "
+                            << d_sssfSyms << std::endl;
 
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(abdn, fvs);
@@ -5065,8 +5065,7 @@ bool SmtEngine::getAbduct(const std::string& name,
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
                           << std::endl;
-    throw RecoverableModalException(
-        "Could not find solution for get-abduct.");
+    throw RecoverableModalException("Could not find solution for get-abduct.");
   }
   return false;
 }
