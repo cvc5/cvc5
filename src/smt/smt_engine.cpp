@@ -5035,8 +5035,8 @@ bool SmtEngine::getAbduct(const std::string& name,
                              d_sssfVars.end(),
                              d_sssfSyms.begin(),
                              d_sssfSyms.end());
-      Trace("sygus-abduct") << "Apply substs " << d_sssfVars
-                            << " -> " << d_sssfSyms << std::endl;
+      Trace("sygus-abduct")
+          << "Apply substs " << d_sssfVars << " -> " << d_sssfSyms << std::endl;
 
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(abdn, fvs);
