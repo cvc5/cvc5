@@ -1011,14 +1011,14 @@ class CVC4_PUBLIC GetSynthSolutionCommand : public Command
 
 /** The command (get-abduct s B (G)?)
  *
- * This command asks for an abduct from the current set of assertions (call
- * them A) and conjecture (goal) given by the argument B.
+ * This command asks for an abduct from the current set of assertions and
+ * conjecture (goal) given by the argument B.
  *
  * The symbol s is the name for the abduction predicate. If we successfully
  * find a predicate P, then the output response of this command is:
  *   (define-fun s () Bool P)
  *
- * A grammar type can be optionally provided to indicate the syntactic
+ * A grammar type G can be optionally provided to indicate the syntactic
  * restrictions on the possible solutions returned.
  */
 class CVC4_PUBLIC GetAbductCommand : public Command
