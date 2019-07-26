@@ -4984,14 +4984,14 @@ bool SmtEngine::getAbduct(const std::string& name,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
-  d_sssfVars.clear();
+  d_sssfVarlist.clear();
   d_sssfSyms.clear();
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
       name,
       asserts,
       axioms,
       TypeNode::fromType(grammarType),
-      d_sssfVars,
+      d_sssfVarlist,
       d_sssfSyms);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
@@ -5065,7 +5065,8 @@ bool SmtEngine::getAbduct(const std::string& name,
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
                           << std::endl;
-    Assert(false);
+    throw RecoverableModalException(
+        "Could not find solution for get-abduct.");
   }
   return false;
 }
