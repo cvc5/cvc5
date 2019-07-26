@@ -5031,12 +5031,12 @@ bool SmtEngine::getAbduct(const std::string& name,
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to
-      abdn = abdn.substitute(d_sssfVars.begin(),
-                             d_sssfVars.end(),
+      abdn = abdn.substitute(d_sssfVarlist.begin(),
+                             d_sssfVarlist.end(),
                              d_sssfSyms.begin(),
                              d_sssfSyms.end());
       Trace("sygus-abduct")
-          << "Apply substs " << d_sssfVars << " -> " << d_sssfSyms << std::endl;
+          << "Apply substs " << d_sssfVarlist << " -> " << d_sssfSyms << std::endl;
 
       std::unordered_set<Node, NodeHashFunction> fvs;
       expr::getFreeVariables(abdn, fvs);
