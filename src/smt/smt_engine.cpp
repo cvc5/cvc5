@@ -4961,8 +4961,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-Expr SmtEngine::getAbduct(const Expr& conj,
-                          const Type& grammarType)
+Expr SmtEngine::getAbduct(const Expr& conj, const Type& grammarType)
 {
   Expr ret;
   // TODO
@@ -4972,7 +4971,7 @@ Expr SmtEngine::getAbduct(const Expr& conj,
 Expr SmtEngine::getAbduct(const Expr& conj)
 {
   Type grammarType;
-  return getAbduct(conj,grammarType);
+  return getAbduct(conj, grammarType);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
