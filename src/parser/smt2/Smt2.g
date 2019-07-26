@@ -1367,7 +1367,7 @@ smt25Command[std::unique_ptr<CVC4::Command>* cmd]
 extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
 @declarations {
   std::vector<CVC4::Datatype> dts;
-  Expr e, e2, e3;
+  Expr e, e2;
   Type t;
   std::string name;
   std::vector<std::string> names;
@@ -1532,13 +1532,12 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_ABDUCT_TOK { 
       PARSER_STATE->checkThatLogicIsSet();
     }
-    term[e,e3]
-    term[e2,e3]
+    term[e,e2]
     (
       sygusGrammar[t, terms, name]
     )? 
     {
-      cmd->reset(new GetAbductCommand(e, e2, t));
+      cmd->reset(new GetAbductCommand(e, t));
     }
   | DECLARE_HEAP LPAREN_TOK 
     sortSymbol[t,CHECK_DECLARED] 

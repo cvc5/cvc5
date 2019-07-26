@@ -258,11 +258,6 @@ class CVC4_PUBLIC SmtEngine {
   bool d_globalNegation;
 
   /**
-   * The grammar type for abduction.
-   */
-  Type d_abductGrammarType;
-
-  /**
    * Most recent result of last checkSat/query or (set-info :status).
    */
   Result d_status;
@@ -857,13 +852,8 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * TODO
    */
-  Expr getAbduct(const Expr& ax, const Expr& conj, const Type& grammarType);
-  Expr getAbduct(const Expr& ax, const Expr& conj);
-  /** get the abduction type
-   *
-   * TODO
-   */
-  Type getAbductionType() const;
+  Expr getAbduct(const Expr& conj, const Type& grammarType);
+  Expr getAbduct(const Expr& conj);
 
   /**
    * Get list of quantified formulas that were instantiated

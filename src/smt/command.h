@@ -1013,10 +1013,9 @@ class CVC4_PUBLIC GetAbductCommand : public Command
 {
  public:
   GetAbductCommand();
-  GetAbductCommand(Expr ax, Expr conj);
-  GetAbductCommand(Expr ax, Expr conj, const Type& gtype);
+  GetAbductCommand(Expr conj);
+  GetAbductCommand(Expr conj, const Type& gtype);
 
-  Expr getAxiom() const;
   Expr getConjecture() const;
   Type getGrammarType() const;
 
@@ -1027,8 +1026,6 @@ class CVC4_PUBLIC GetAbductCommand : public Command
   std::string getCommandName() const override;
 
  protected:
-  /** The axiom of the abduction query */
-  Expr d_axiom;
   /** The conjecture of the abduction query */
   Expr d_conj;
   /**
