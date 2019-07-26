@@ -67,9 +67,8 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   // the abduction grammar type we are using (null for now, until a future
   // commit)
   TypeNode abdGType;
-  Node abd;
 
-  Node res = mkAbductionConjecture(aname, asserts, axioms, abdGType, abd);
+  Node res = mkAbductionConjecture(aname, asserts, axioms, abdGType);
 
   Node trueNode = NodeManager::currentNM()->mkConst(true);
 
@@ -85,8 +84,7 @@ PreprocessingPassResult SygusAbduct::applyInternal(
 Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
-                                        TypeNode abdGType,
-                                        Node& abd)
+                                        TypeNode abdGType)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
@@ -125,7 +123,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   // make the abduction predicate to synthesize
   TypeNode abdType = varlistTypes.empty() ? nm->booleanType()
                                           : nm->mkPredicateType(varlistTypes);
-  abd = nm->mkBoundVar(name.c_str(), abdType);
+  Node abd = nm->mkBoundVar(name.c_str(), abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // if provided, we will associate it with the function-to-synthesize

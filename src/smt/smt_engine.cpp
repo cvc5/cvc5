@@ -1261,21 +1261,21 @@ void SmtEngine::setDefaults() {
   {
     if (options::produceAbducts())
     {
+      // we may invoke a sygus conjecture, hence we need options 
       is_sygus = true;
     }
     if (options::sygusInference() || options::sygusRewSynthInput())
     {
+      // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
       d_logic = d_logic.getUnlockedCopy();
       // sygus requires arithmetic, datatypes and quantifiers
       d_logic.enableSygus();
       d_logic.lock();
-      // since we are trying to recast as sygus, we assume the input is sygus
-      is_sygus = true;
     }
   }
 
-  if ((options::checkModels() || options::checkSynthSol()
+  if ((options::checkModels() || options::checkSynthSol() || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
@@ -4982,13 +4982,14 @@ bool SmtEngine::getAbduct(const std::string& name,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
-  Node abdSym;
   Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms, TypeNode::fromType(grammarType), abdSym);
+      name, asserts, axioms, TypeNode::fromType(grammarType));
+  // should be a quantified conjecture with one function-to-synthesize
+  Assert( aconj.getKind()==kind::FORALL && aconj[0].getNumChildren()==1 );
   // remember the abduct-to-synthesize
-  d_subsolverSynthFun = abdSym.toExpr();
+  d_subsolverSynthFun = aconj[0][0].toExpr();
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
-                        << ", solving for " << abdSym << std::endl;
+                        << ", solving for " << d_subsolverSynthFun << std::endl;
   // we generate a new smt engine to do the abduction query
   d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
   d_subsolver->setIsInternalSubsolver();

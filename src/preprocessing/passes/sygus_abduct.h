@@ -65,15 +65,11 @@ class SygusAbduct : public PreprocessingPass
    *
    * The type abdGType (if non-null) is a sygus datatype type that encodes the
    * grammar that should be used for solutions of the abduction conjecture.
-   *
-   * The argument abd is updated to the (bound variable) corresponding to the
-   * abduct-to-snyhtesize.
    */
   static Node mkAbductionConjecture(const std::string& name,
                                     const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
-                                    TypeNode abdGType,
-                                    Node& abd);
+                                    TypeNode abdGType);
 
  protected:
   /**
