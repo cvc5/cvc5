@@ -58,8 +58,8 @@ class SygusAbduct : public PreprocessingPass
 
   /**
    * Returns the sygus conjecture corresponding to the abduction problem for
-   * input problem given by asserts, and axioms given by axioms. Note that
-   * axioms is expected to be a subset of asserts.
+   * input problem (F above) given by asserts, and axioms (Fa above) given by
+   * axioms. Note that axioms is expected to be a subset of asserts.
    *
    * The type abdGType (if non-null) is a sygus datatype type that encodes the
    * grammar that should be used for solutions of the abduction conjecture.
