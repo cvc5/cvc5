@@ -519,8 +519,6 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     return false;
   }
 
-  Trace("cegqi-debug") << "pre-unfold counterexample (pre-rewrite) : " << lem
-                       << std::endl;
   lem = Rewriter::rewrite(lem);
   // eagerly unfold applications of evaluation function
   Trace("cegqi-debug") << "pre-unfold counterexample : " << lem << std::endl;
