@@ -1261,15 +1261,16 @@ void SmtEngine::setDefaults() {
   {
     if (options::produceAbducts())
     {
-      // we may invoke a sygus conjecture, hence we need options
+      // we may invoke a sygus conjecture, hence we need options related to
+      // sygus
       is_sygus = true;
     }
     if (options::sygusInference() || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
+      // we change the logic to incorporate sygus immediately
       d_logic = d_logic.getUnlockedCopy();
-      // sygus requires arithmetic, datatypes and quantifiers
       d_logic.enableSygus();
       d_logic.lock();
     }
@@ -4983,8 +4984,10 @@ bool SmtEngine::getAbduct(const std::string& name,
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
+  d_subsolverSynthFunVars.clear();
+  d_subsolverSynthFunSyms.clear();
   Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
-      name, asserts, axioms, TypeNode::fromType(grammarType));
+      name, asserts, axioms, TypeNode::fromType(grammarType), d_subsolverSynthFunVars, d_subsolverSynthFunSyms);
   // should be a quantified conjecture with one function-to-synthesize
   Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
@@ -5013,13 +5016,37 @@ bool SmtEngine::getAbduct(const std::string& name,
     std::map<Expr, Expr>::iterator its = sols.find(d_subsolverSynthFun);
     if (its != sols.end())
     {
-      abd = its->second;
+      Node abdn = Node::fromExpr(its->second);
       Trace("sygus-abduct")
-          << "SmtEngine::getAbduct: solution is " << abd << std::endl;
+          << "SmtEngine::getAbduct: solution is " << abdn << std::endl;
+      if( abdn.getKind()==kind::LAMBDA )
+      {
+        abdn = abdn[1];
+      }
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to
-      // TODO
+      abdn = abdn.substitute(d_subsolverSynthFunVars.begin(),d_subsolverSynthFunVars.end(),d_subsolverSynthFunSyms.begin(), d_subsolverSynthFunSyms.end());
+      Trace("sygus-abduct") << "Apply substs " << d_subsolverSynthFunVars << " -> " << d_subsolverSynthFunSyms << std::endl;
+      
+      std::unordered_set<Node, NodeHashFunction> fvs;
+      expr::getFreeVariables(abdn,fvs);
+      std::unordered_set<Node, NodeHashFunction> fvsInput;
+      for( const Node& a : asserts )
+      {
+        expr::getFreeVariables(a,fvsInput);
+      }
+      for( const Node& fv : fvs )
+      {
+        Trace("sygus-abduct") << "Free variable " << fv << ", inInput = " << (fvsInput.find(fv)!=fvsInput.end()) << std::endl;
+      }
+      for( const Node& fv : fvsInput )
+      {
+        Trace("sygus-abduct") << "Free variable in input " << fv << ", inSol = " << (fvs.find(fv)!=fvs.end()) << std::endl;
+      }
+      // convert to expression
+      abd = abdn.toExpr();
+          
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"

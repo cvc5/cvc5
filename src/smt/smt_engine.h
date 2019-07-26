@@ -153,6 +153,11 @@ class CVC4_PUBLIC SmtEngine {
    * If applicable, the function-to-synthesize we are using the subsolver for.
    */
   Expr d_subsolverSynthFun;
+  /**
+   * If applicable, the function-to-synthesize we are using the subsolver for.
+   */
+  std::vector< Node > d_subsolverSynthFunVars;
+  std::vector< Node > d_subsolverSynthFunSyms;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;

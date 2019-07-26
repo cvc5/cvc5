@@ -622,4 +622,4 @@ header = "options/smt_options.h"
   type       = "bool"
   default    = "false"
   read_only  = true
-  help       = "support the get-abduct and get-next-abduct commands"
+  help       = "support the get-abduct command"
