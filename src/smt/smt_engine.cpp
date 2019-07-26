@@ -1261,7 +1261,7 @@ void SmtEngine::setDefaults() {
   {
     if (options::produceAbducts())
     {
-      // we may invoke a sygus conjecture, hence we need options 
+      // we may invoke a sygus conjecture, hence we need options
       is_sygus = true;
     }
     if (options::sygusInference() || options::sygusRewSynthInput())
@@ -1275,7 +1275,8 @@ void SmtEngine::setDefaults() {
     }
   }
 
-  if ((options::checkModels() || options::checkSynthSol() || options::produceAbducts()
+  if ((options::checkModels() || options::checkSynthSol()
+       || options::produceAbducts()
        || options::modelCoresMode() != MODEL_CORES_NONE)
       && !options::produceAssertions())
   {
@@ -4985,7 +4986,7 @@ bool SmtEngine::getAbduct(const std::string& name,
   Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(
       name, asserts, axioms, TypeNode::fromType(grammarType));
   // should be a quantified conjecture with one function-to-synthesize
-  Assert( aconj.getKind()==kind::FORALL && aconj[0].getNumChildren()==1 );
+  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
   // remember the abduct-to-synthesize
   d_subsolverSynthFun = aconj[0][0].toExpr();
   Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj

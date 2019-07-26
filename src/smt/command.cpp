@@ -2084,7 +2084,7 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
     if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " ";
-      if( d_result.getKind()==kind::LAMBDA )
+      if (d_result.getKind() == kind::LAMBDA)
       {
         out << d_result[0] << " " << d_result[1];
       }
