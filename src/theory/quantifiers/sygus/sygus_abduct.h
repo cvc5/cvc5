@@ -72,11 +72,10 @@ class SygusAbduct
                                     const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
                                     TypeNode abdGType);
-
 };
 
-}  // namespace passes
-}  // namespace preprocessing
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace CVC4
 
 #endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

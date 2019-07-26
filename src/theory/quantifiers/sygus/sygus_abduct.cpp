@@ -30,7 +30,7 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-SygusAbduct::SygusAbduct(){}
+SygusAbduct::SygusAbduct() {}
 
 Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
@@ -308,6 +308,6 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
   return res;
 }
 
-}  // namespace passes
-}  // namespace preprocessing
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace CVC4
