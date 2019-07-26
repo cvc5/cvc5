@@ -68,8 +68,8 @@ PreprocessingPassResult SygusAbduct::applyInternal(
   // commit)
   TypeNode abdGType;
   Node abd;
-  
-  Node res = mkAbductionConjecture(aname,asserts, axioms, abdGType, abd);
+
+  Node res = mkAbductionConjecture(aname, asserts, axioms, abdGType, abd);
 
   Node trueNode = NodeManager::currentNM()->mkConst(true);
 
@@ -86,7 +86,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::string& name,
                                         const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
                                         TypeNode abdGType,
-                                    Node& abd)
+                                        Node& abd)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;

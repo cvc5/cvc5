@@ -200,8 +200,8 @@ public:
   void disableQuantifiers() {
     disableTheory(theory::THEORY_QUANTIFIERS);
   }
-  
-  /** 
+
+  /**
    * Enable everything that is needed for sygus with respect to this logic info.
    * This means enabling quantifiers, datatypes, UF, integers, and higher order.
    */

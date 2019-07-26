@@ -72,10 +72,10 @@
 #include "options/strings_process_loop_mode.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
+#include "preprocessing/passes/sygus_abduct.h"
 #include "preprocessing/preprocessing_pass.h"
 #include "preprocessing/preprocessing_pass_context.h"
 #include "preprocessing/preprocessing_pass_registry.h"
-#include "preprocessing/passes/sygus_abduct.h"
 #include "printer/printer.h"
 #include "proof/proof.h"
 #include "proof/proof_manager.h"
@@ -4960,30 +4960,35 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const std::string& name, const Expr& conj,
-                          const Type& grammarType, Expr& abd)
+bool SmtEngine::getAbduct(const std::string& name,
+                          const Expr& conj,
+                          const Type& grammarType,
+                          Expr& abd)
 {
   SmtScope smts(this);
-  
-  if(!options::produceAbducts()) {
-    const char* msg =
-      "Cannot get abduct when produce-abducts options is off.";
+
+  if (!options::produceAbducts())
+  {
+    const char* msg = "Cannot get abduct when produce-abducts options is off.";
     throw ModalException(msg);
   }
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj << std::endl;
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
+                        << std::endl;
   std::vector<Expr> easserts = getAssertions();
-  std::vector< Node > axioms;
-  for( unsigned i=0, size=easserts.size(); i<size; i++ )
+  std::vector<Node> axioms;
+  for (unsigned i = 0, size = easserts.size(); i < size; i++)
   {
     axioms.push_back(Node::fromExpr(easserts[i]));
   }
-  std::vector<Node> asserts(axioms.begin(),axioms.end());
+  std::vector<Node> asserts(axioms.begin(), axioms.end());
   asserts.push_back(Node::fromExpr(conj));
   Node abdSym;
-  Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(name, asserts,axioms,TypeNode::fromType(grammarType), abdSym);
+  Node aconj = preprocessing::passes::SygusAbduct::mkAbductionConjecture(
+      name, asserts, axioms, TypeNode::fromType(grammarType), abdSym);
   // remember the abduct-to-synthesize
   d_subsolverSynthFun = abdSym.toExpr();
-  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj << ", solving for " << abdSym << std::endl;
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
+                        << ", solving for " << abdSym << std::endl;
   // we generate a new smt engine to do the abduction query
   d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
   d_subsolver->setIsInternalSubsolver();
@@ -4997,21 +5002,23 @@ bool SmtEngine::getAbduct(const std::string& name, const Expr& conj,
   Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
   Result r = d_subsolver->checkSat();
   Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
-  if( r.asSatisfiabilityResult().isSat() == Result::UNSAT )
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
   {
     // get the synthesis solution
     std::map<Expr, Expr> sols;
     d_subsolver->getSynthSolutions(sols);
-    Assert( sols.size()==1 );
-    std::map< Expr, Expr >::iterator its = sols.find(d_subsolverSynthFun);
-    if( its!=sols.end() )
+    Assert(sols.size() == 1);
+    std::map<Expr, Expr>::iterator its = sols.find(d_subsolverSynthFun);
+    if (its != sols.end())
     {
       abd = its->second;
-      Trace("sygus-abduct") << "SmtEngine::getAbduct: solution is " << abd << std::endl; 
+      Trace("sygus-abduct")
+          << "SmtEngine::getAbduct: solution is " << abd << std::endl;
       return true;
     }
-    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!" << std::endl;
-    Assert( false );
+    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
+                          << std::endl;
+    Assert(false);
   }
   return false;
 }
@@ -5019,7 +5026,7 @@ bool SmtEngine::getAbduct(const std::string& name, const Expr& conj,
 bool SmtEngine::getAbduct(const std::string& name, const Expr& conj, Expr& abd)
 {
   Type grammarType;
-  return getAbduct(name,conj,grammarType,abd);
+  return getAbduct(name, conj, grammarType, abd);
 }
 
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {

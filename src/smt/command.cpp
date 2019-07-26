@@ -2038,8 +2038,13 @@ GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
     : d_name(name), d_conj(conj), d_resultStatus(false)
 {
 }
-GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj, const Type& gtype)
-    : d_name(name), d_conj(conj), d_sygus_grammar_type(gtype), d_resultStatus(false)
+GetAbductCommand::GetAbductCommand(const std::string& name,
+                                   Expr conj,
+                                   const Type& gtype)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
 {
 }
 
@@ -2052,11 +2057,12 @@ void GetAbductCommand::invoke(SmtEngine* smtEngine)
   {
     if (d_sygus_grammar_type.isNull())
     {
-      d_resultStatus = smtEngine->getAbduct(d_name,d_conj,d_result);
+      d_resultStatus = smtEngine->getAbduct(d_name, d_conj, d_result);
     }
     else
     {
-      d_resultStatus = smtEngine->getAbduct(d_name,d_conj, d_sygus_grammar_type,d_result);
+      d_resultStatus =
+          smtEngine->getAbduct(d_name, d_conj, d_sygus_grammar_type, d_result);
     }
     d_commandStatus = CommandSuccess::instance();
   }
@@ -2076,7 +2082,7 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
   {
     expr::ExprDag::Scope scope(out, false);
     // FIXME
-    if( d_resultStatus )
+    if (d_resultStatus)
     {
       out << "(define-fun " << d_name << " " << d_result << ")" << std::endl;
     }
@@ -2090,8 +2096,10 @@ void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
 Command* GetAbductCommand::exportTo(ExprManager* exprManager,
                                     ExprManagerMapCollection& variableMap)
 {
-  GetAbductCommand* c = new GetAbductCommand(d_name,d_conj.exportTo(exprManager, variableMap));
-  c->d_sygus_grammar_type = d_sygus_grammar_type.exportTo(exprManager, variableMap);
+  GetAbductCommand* c =
+      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
+  c->d_sygus_grammar_type =
+      d_sygus_grammar_type.exportTo(exprManager, variableMap);
   c->d_result = d_result.exportTo(exprManager, variableMap);
   c->d_resultStatus = d_resultStatus;
   return c;
@@ -2099,7 +2107,7 @@ Command* GetAbductCommand::exportTo(ExprManager* exprManager,
 
 Command* GetAbductCommand::clone() const
 {
-  GetAbductCommand* c = new GetAbductCommand(d_name,d_conj);
+  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
   c->d_sygus_grammar_type = d_sygus_grammar_type;
   c->d_result = d_result;
   c->d_resultStatus = d_resultStatus;

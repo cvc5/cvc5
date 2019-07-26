@@ -149,7 +149,7 @@ class CVC4_PUBLIC SmtEngine {
   DefinedFunctionMap* d_definedFunctions;
   /** The SMT engine subsolver */
   std::unique_ptr<SmtEngine> d_subsolver;
-  /** 
+  /**
    * If applicable, the function-to-synthesize we are using the subsolver for.
    */
   Expr d_subsolverSynthFun;
@@ -858,7 +858,10 @@ class CVC4_PUBLIC SmtEngine {
   /**
    * TODO
    */
-  bool getAbduct(const std::string& name, const Expr& conj, const Type& grammarType, Expr& abd);
+  bool getAbduct(const std::string& name,
+                 const Expr& conj,
+                 const Type& grammarType,
+                 Expr& abd);
   bool getAbduct(const std::string& name, const Expr& conj, Expr& abd);
 
   /**
