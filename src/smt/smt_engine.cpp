@@ -1988,7 +1988,7 @@ void SmtEngine::setDefaults() {
       reqBasicSygus = true;
     }
     // Now, disable options for non-basic sygus algorithms, if necessary.
-    if( reqBasicSygus )
+    if (reqBasicSygus)
     {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
