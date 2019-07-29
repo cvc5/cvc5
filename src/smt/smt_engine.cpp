@@ -1959,6 +1959,11 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
+    // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
+    // is one that is specialized for returning a single solution. Non-basic
+    // sygus algorithms currently include the PBE solver, static template
+    // inference for invariant synthesis, and single invocation techniques.
+    bool reqBasicSygus = false;
     if (options::produceAbducts())
     {
       // if doing abduction, we should filter strong solutions
@@ -1966,6 +1971,9 @@ void SmtEngine::setDefaults() {
       {
         options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
       }
+      // we must use basic sygus algorithms, since e.g. we require checking
+      // a sygus side condition for consistency with axioms.
+      reqBasicSygus = true;
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
         || options::sygusQueryGen())
@@ -1976,9 +1984,12 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution. This currently includes the PBE solver,
-      // static template inference for invariant synthesis, and single
-      // invocation techniques.
+      // finding a single solution.
+      reqBasicSygus = true;
+    }
+    // Now, disable options for non-basic sygus algorithms, if necessary.
+    if( reqBasicSygus )
+    {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
