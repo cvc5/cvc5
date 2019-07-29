@@ -56,6 +56,18 @@ class SygusAbduct : public PreprocessingPass
  public:
   SygusAbduct(PreprocessingPassContext* preprocContext);
 
+  /**
+   * Returns the sygus conjecture corresponding to the abduction problem for
+   * input problem (F above) given by asserts, and axioms (Fa above) given by
+   * axioms. Note that axioms is expected to be a subset of asserts.
+   *
+   * The type abdGType (if non-null) is a sygus datatype type that encodes the
+   * grammar that should be used for solutions of the abduction conjecture.
+   */
+  static Node mkAbductionConjecture(const std::vector<Node>& asserts,
+                                    const std::vector<Node>& axioms,
+                                    TypeNode abdGType);
+
  protected:
   /**
    * Replaces the set of assertions by an abduction sygus problem described

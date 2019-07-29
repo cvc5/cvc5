@@ -865,6 +865,8 @@ set(regress_0_tests
   regress0/strings/strings-native-simple.cvc
   regress0/strings/strip-endpoint-itos.smt2
   regress0/strings/substr-rewrites.smt2
+  regress0/strings/tolower-rrs.smt2
+  regress0/strings/tolower-simple.smt2
   regress0/strings/type001.smt2
   regress0/strings/unsound-0908.smt2
   regress0/strings/unsound-repl-rewrite.smt2
@@ -877,6 +879,7 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
+  regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/let-ringer.sy
@@ -1352,6 +1355,7 @@ set(regress_1_tests
   regress1/quantifiers/intersection-example-onelane.proof-node22337.smt2
   regress1/quantifiers/is-even.smt2
   regress1/quantifiers/isaplanner-goal20.smt2
+  regress1/quantifiers/issue2970-string-var-elim.smt2
   regress1/quantifiers/javafe.ast.StmtVec.009.smt2
   regress1/quantifiers/lra-vts-inf.smt2
   regress1/quantifiers/mix-coeff.smt2
@@ -1552,6 +1556,7 @@ set(regress_1_tests
   regress1/strings/issue2429-code.smt2
   regress1/strings/issue2981.smt2
   regress1/strings/issue2982.smt2
+  regress1/strings/issue3090.smt2
   regress1/strings/kaluza-fl.smt2
   regress1/strings/loop002.smt2
   regress1/strings/loop003.smt2
@@ -1562,6 +1567,7 @@ set(regress_1_tests
   regress1/strings/loop008.smt2
   regress1/strings/loop009.smt2
   regress1/strings/nf-ff-contains-abs.smt2
+  regress1/strings/no-lazy-pp-quant.smt2
   regress1/strings/non_termination_regular_expression4.smt2
   regress1/strings/norn-13.smt2
   regress1/strings/norn-360.smt2
@@ -1576,6 +1582,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
   regress1/strings/re-neg-concat-reduct.smt2
+  regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
   regress1/strings/regexp001.smt2
   regress1/strings/regexp002.smt2
@@ -1605,6 +1612,7 @@ set(regress_1_tests
   regress1/strings/strings-lt-simple.smt2
   regress1/strings/strip-endpt-sound.smt2
   regress1/strings/substr001.smt2
+  regress1/strings/tolower-find.smt2
   regress1/strings/timeout-no-resp.smt2
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
@@ -1635,6 +1643,7 @@ set(regress_1_tests
   regress1/sygus/double.sy
   regress1/sygus/dt-test-ns.sy
   regress1/sygus/dup-op.sy
+  regress1/sygus/error1-dt.sy
   regress1/sygus/extract.sy
   regress1/sygus/fg_polynomial3.sy
   regress1/sygus/find_sc_bvult_bvnot.sy
