@@ -2,7 +2,7 @@
 /*! \file bv_to_int.cpp
  ** \verbatim
  ** Top contributors (to current version):
- **   Andres Noetzli
+ **   Yoni Zohar
  ** This file is part of the CVC4 project.
  ** Copyright (c) 2009-2018 by the authors listed in the file AUTHORS
  ** in the top-level source directory) and their institutional affiliations.
@@ -11,9 +11,8 @@
  **
  ** \brief The BVToInt preprocessing pass
  **
- ** Converts integer operations into bitvector operations. The width of the
- ** bitvectors is controlled through the `--solve-int-as-bv` command line
- ** option.
+ ** Converts bitvector operations into integer operations. 
+ **
  **/
 
 #include "preprocessing/passes/bv_to_int.h"
@@ -290,23 +289,56 @@ Node BVToInt::bvToInt(Node n)
           {
             case kind::BITVECTOR_PLUS: 
             {
-              Node sigma = d_nm->mkSkolem("__bvToInt_sigma_var",
+              uint64_t  bvsize = current[0].getType().getBitVectorSize();
+	      if (intized_children[0].isConst() && intized_children[1].isConst()) {
+		// special constant case
+		const Rational& c0 = intized_children[0].getConst<Rational>();
+		const Rational& c1 = intized_children[1].getConst<Rational>();
+		Rational c0c1 = c0 + c1;
+		c0c1 = Rational(c0c1.getNumerator().modByPow2(bvsize));
+		d_bvToIntCache[current] = d_nm->mkConst<Rational>(c0c1);
+	      } else {
+		Node sigma = d_nm->mkSkolem("__bvToInt_sigma_var",
                   d_nm->integerType(),
                   "Variable introduced in bvToInt pass to avoid integer mod");
-              uint64_t  bvsize = current[0].getType().getBitVectorSize();
-              Node plus = d_nm->mkNode(kind::PLUS, intized_children);
-              Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
-              d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,plus, multSig);
-              d_rangeAssertions.push_back(mkRangeConstraint(sigma, 0));
-              d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
+		Node plus = d_nm->mkNode(kind::PLUS, intized_children);
+		Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+		d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,plus, multSig);
+		d_rangeAssertions.push_back(mkRangeConstraint(sigma, 0));
+		d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
+	      }
               break;
             }
             case kind::BITVECTOR_MULT: 
             {
-              uint64_t  bvsize = current[0].getType().getBitVectorSize();
-              Node mul = d_nm->mkNode(kind::MULT, intized_children);
-              d_bvToIntCache[current] = modpow2(mul, bvsize);
-              break;
+	      uint64_t  bvsize = current[0].getType().getBitVectorSize();
+	      if (intized_children[0].isConst() && intized_children[1].isConst()) {
+		// special constant case
+		const Rational& c0 = intized_children[0].getConst<Rational>();
+		const Rational& c1 = intized_children[1].getConst<Rational>();
+		Rational c0c1 = c0 * c1;
+		c0c1 = Rational(c0c1.getNumerator().modByPow2(bvsize));
+		d_bvToIntCache[current] = d_nm->mkConst<Rational>(c0c1);
+	      } else {
+		Node sigma = d_nm->mkSkolem("__bvToInt_sigma_var",
+					    d_nm->integerType(),
+      		  "Variable introduced in bvToInt pass to avoid integer mod");
+		Node mult = d_nm->mkNode(kind::MULT, intized_children);
+		Node multSig = d_nm->mkNode(kind::MULT, sigma, pow2(bvsize));
+		d_bvToIntCache[current] = d_nm->mkNode(kind::MINUS,mult, multSig);
+
+		Node sig_lower = d_nm->mkNode(kind::LEQ, d_nm->mkConst<Rational>(0), sigma);
+		if (intized_children[0].isConst()) {
+		  Node sig_upper = d_nm->mkNode(kind::LT, sigma, intized_children[0]);
+		  d_rangeAssertions.push_back(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+		} else if (intized_children[1].isConst()) {
+		  Node sig_upper = d_nm->mkNode(kind::LT, sigma, intized_children[1]);
+		  d_rangeAssertions.push_back(d_nm->mkNode(kind::AND, sig_lower, sig_upper));
+		} else {
+		  d_rangeAssertions.push_back(mkRangeConstraint(d_bvToIntCache[current], bvsize));
+		}
+	      }
+	      break;
             }
             case kind::BITVECTOR_SUB:
             {
@@ -337,7 +369,6 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_UREM_TOTAL:
             {
-              uint64_t  bvsize = current[0].getType().getBitVectorSize();
               Node modNode = d_nm->mkNode(kind::INTS_MODULUS_TOTAL, intized_children);
               Node ite = d_nm->mkNode(kind::ITE,d_nm->mkNode(kind::EQUAL, intized_children[1],d_nm->mkConst<Rational>(0)), intized_children[0], modNode);
               d_bvToIntCache[current] = ite;
