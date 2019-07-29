@@ -1529,8 +1529,19 @@ extendedCommand[std::unique_ptr<CVC4::Command>* cmd]
   | GET_QE_DISJUNCT_TOK { PARSER_STATE->checkThatLogicIsSet(); }
     term[e,e2]
     { cmd->reset(new GetQuantifierEliminationCommand(e, false)); }
-  | DECLARE_HEAP LPAREN_TOK
-    sortSymbol[t,CHECK_DECLARED]
+  | GET_ABDUCT_TOK { 
+      PARSER_STATE->checkThatLogicIsSet();
+    }
+    symbol[name,CHECK_UNDECLARED,SYM_VARIABLE]
+    term[e,e2]
+    (
+      sygusGrammar[t, terms, name]
+    )? 
+    {
+      cmd->reset(new GetAbductCommand(name,e, t));
+    }
+  | DECLARE_HEAP LPAREN_TOK 
+    sortSymbol[t,CHECK_DECLARED] 
     sortSymbol[t, CHECK_DECLARED]
     // We currently do nothing with the type information declared for the heap.
     { cmd->reset(new EmptyCommand()); }
@@ -3055,6 +3066,7 @@ SIMPLIFY_TOK : 'simplify';
 INCLUDE_TOK : 'include';
 GET_QE_TOK : 'get-qe';
 GET_QE_DISJUNCT_TOK : 'get-qe-disjunct';
+GET_ABDUCT_TOK : 'get-abduct';
 DECLARE_HEAP : 'declare-heap';
 
 // SyGuS commands
