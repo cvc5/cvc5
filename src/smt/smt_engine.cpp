@@ -85,6 +85,7 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
@@ -1278,11 +1279,12 @@ void SmtEngine::setDefaults() {
 
   if ((options::checkModels() || options::checkSynthSol()
        || options::produceAbducts()
-       || options::modelCoresMode() != MODEL_CORES_NONE)
+       || options::modelCoresMode() != MODEL_CORES_NONE
+       || options::blockModelsMode() != BLOCK_MODELS_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
-             << "check-models, check-synth-sol or produce-model-cores." << endl;
+             << "option requiring assertions." << endl;
     setOption("produce-assertions", SExpr("true"));
   }
 
@@ -3055,6 +3057,34 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
+theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+{
+  if (!options::assignFunctionValues())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when --assign-function-values is false.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+
+  if (d_status.isNull() || d_status.asSatisfiabilityResult() == Result::UNSAT
+      || d_problemExtended)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  if (!options::produceModels())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when produce-models options is off.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  return m;
+}
 
 void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
@@ -4200,6 +4230,16 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
+vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
+{
+  vector<Expr> result;
+  for (const Expr& e : exprs)
+  {
+    result.push_back(getValue(e));
+  }
+  return result;
+}
+
 bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4337,27 +4377,7 @@ Model* SmtEngine::getModel() {
     Dump("benchmark") << GetModelCommand();
   }
 
-  if (!options::assignFunctionValues())
-  {
-    const char* msg =
-        "Cannot get the model when --assign-function-values is false.";
-    throw RecoverableModalException(msg);
-  }
-
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
-    const char* msg =
-      "Cannot get the current model unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get model when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("get model");
 
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
@@ -4367,21 +4387,65 @@ Model* SmtEngine::getModel() {
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
-    // assertions using the model core builder utility
-    std::vector<Expr> easserts = getAssertions();
-    // must expand definitions
-    std::vector<Expr> eassertsProc;
-    std::unordered_map<Node, Node, NodeHashFunction> cache;
-    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-    {
-      Node ea = Node::fromExpr(easserts[i]);
-      Node eae = d_private->expandDefinitions(ea, cache);
-      eassertsProc.push_back(eae.toExpr());
-    }
+    // (expanded) assertions using the model core builder utility
+    std::vector<Expr> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
+}
+
+Result SmtEngine::blockModel()
+{
+  Trace("smt") << "SMT blockModel()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelCommand();
+  }
+
+  TheoryModel* m = getAvailableModel("block model");
+
+  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  {
+    std::stringstream ss;
+    ss << "Cannot block model when block-models is set to none.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::blockModelsMode());
+  return assertFormula(eblocker);
+}
+
+Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
+{
+  Trace("smt") << "SMT blockModelValues()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  PrettyCheckArgument(
+      !exprs.empty(),
+      "block model values must be called on non-empty set of terms");
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelValuesCommand(exprs);
+  }
+
+  TheoryModel* m = getAvailableModel("block model values");
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  // we always do block model values mode here
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
+  return assertFormula(eblocker);
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
@@ -4404,6 +4468,21 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   InternalError(
       "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
       "expressions from theory model.");
+}
+
+std::vector<Expr> SmtEngine::getExpandedAssertions()
+{
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (const Expr& e : easserts)
+  {
+    Node ea = Node::fromExpr(e);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  return eassertsProc;
 }
 
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }

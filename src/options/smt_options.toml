@@ -98,6 +98,17 @@ header = "options/smt_options.h"
   includes   = ["options/smt_modes.h"]
   help       = "mode for producing model cores"
 
+
+[[option]]
+  name       = "blockModelsMode"
+  category   = "regular"
+  long       = "block-models=MODE"
+  type       = "BlockModelsMode"
+  default    = "BLOCK_MODELS_NONE"
+  handler    = "stringToBlockModelsMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing several models"
+
 [[option]]
   name       = "proof"
   smt_name   = "produce-proofs"
