@@ -90,8 +90,6 @@ libcvc4_add_sources(
   preprocessing/passes/sort_infer.h
   preprocessing/passes/static_learning.cpp
   preprocessing/passes/static_learning.h
-  preprocessing/passes/sygus_abduct.cpp
-  preprocessing/passes/sygus_abduct.h
   preprocessing/passes/sygus_inference.cpp
   preprocessing/passes/sygus_inference.h
   preprocessing/passes/symmetry_breaker.cpp
@@ -553,6 +551,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/cegis_unif.h
   theory/quantifiers/sygus/enum_stream_substitution.cpp
   theory/quantifiers/sygus/enum_stream_substitution.h
+  theory/quantifiers/sygus/sygus_abduct.cpp
+  theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
   theory/quantifiers/sygus/sygus_enumerator.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp

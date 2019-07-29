@@ -147,6 +147,34 @@ class CVC4_PUBLIC SmtEngine {
   ProofManager* d_proofManager;
   /** An index of our defined functions */
   DefinedFunctionMap* d_definedFunctions;
+  /** The SMT engine subsolver
+   *
+   * This is a separate copy of the SMT engine which is used for making
+   * calls that cannot be answered by this copy of the SMT engine. An example
+   * of invoking this subsolver is the get-abduct command, where we wish to
+   * solve a sygus conjecture based on the current assertions. In particular,
+   * consider the input:
+   *   (assert A)
+   *   (get-abduct B)
+   * In the copy of the SMT engine where these commands are issued, we maintain
+   * A in the assertion stack. To solve the abduction problem, instead of
+   * modifying the assertion stack to remove A and add the sygus conjecture
+   * (exists I. ...), we invoke a fresh copy of the SMT engine and leave the
+   * assertion stack unchaged. This copy of the SMT engine can be further
+   * queried for information regarding further solutions.
+   */
+  std::unique_ptr<SmtEngine> d_subsolver;
+  /**
+   * If applicable, the function-to-synthesize that the subsolver is solving
+   * for. This is used for the get-abduct command.
+   */
+  Expr d_sssf;
+  /**
+   * The substitution to apply to the solutions from the subsolver, used for
+   * the get-abduct command.
+   */
+  std::vector<Node> d_sssfVarlist;
+  std::vector<Node> d_sssfSyms;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
@@ -895,6 +923,21 @@ class CVC4_PUBLIC SmtEngine {
   Expr doQuantifierElimination(const Expr& e,
                                bool doFull,
                                bool strict = true) /* throw(Exception) */;
+  /**
+   * This method asks this SMT engine to find an abduct with respect to the
+   * current assertion stack (call it A) and the conjecture (call it B).
+   * If this method returns true, then abd is set to a formula C such that
+   * A ^ C is satisfiable, and A ^ B ^ C is unsatisfiable.
+   *
+   * The argument grammarType is a sygus datatype type that encodes the syntax
+   * restrictions on the shape of possible solutions.
+   *
+   * This method invokes a separate copy of the SMT engine for solving the
+   * corresponding sygus problem for generating such a solution.
+   */
+  bool getAbduct(const Expr& conj, const Type& grammarType, Expr& abd);
+  /** Same as above, but without user-provided grammar restrictions */
+  bool getAbduct(const Expr& conj, Expr& abd);
 
   /**
    * Get list of quantified formulas that were instantiated

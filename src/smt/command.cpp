@@ -2138,6 +2138,90 @@ std::string GetSynthSolutionCommand::getCommandName() const
   return "get-instantiations";
 }
 
+GetAbductCommand::GetAbductCommand() {}
+GetAbductCommand::GetAbductCommand(const std::string& name, Expr conj)
+    : d_name(name), d_conj(conj), d_resultStatus(false)
+{
+}
+GetAbductCommand::GetAbductCommand(const std::string& name,
+                                   Expr conj,
+                                   const Type& gtype)
+    : d_name(name),
+      d_conj(conj),
+      d_sygus_grammar_type(gtype),
+      d_resultStatus(false)
+{
+}
+
+Expr GetAbductCommand::getConjecture() const { return d_conj; }
+Type GetAbductCommand::getGrammarType() const { return d_sygus_grammar_type; }
+Expr GetAbductCommand::getResult() const { return d_result; }
+
+void GetAbductCommand::invoke(SmtEngine* smtEngine)
+{
+  try
+  {
+    if (d_sygus_grammar_type.isNull())
+    {
+      d_resultStatus = smtEngine->getAbduct(d_conj, d_result);
+    }
+    else
+    {
+      d_resultStatus =
+          smtEngine->getAbduct(d_conj, d_sygus_grammar_type, d_result);
+    }
+    d_commandStatus = CommandSuccess::instance();
+  }
+  catch (exception& e)
+  {
+    d_commandStatus = new CommandFailure(e.what());
+  }
+}
+
+void GetAbductCommand::printResult(std::ostream& out, uint32_t verbosity) const
+{
+  if (!ok())
+  {
+    this->Command::printResult(out, verbosity);
+  }
+  else
+  {
+    expr::ExprDag::Scope scope(out, false);
+    if (d_resultStatus)
+    {
+      out << "(define-fun " << d_name << " () Bool " << d_result << ")"
+          << std::endl;
+    }
+    else
+    {
+      out << "none" << std::endl;
+    }
+  }
+}
+
+Command* GetAbductCommand::exportTo(ExprManager* exprManager,
+                                    ExprManagerMapCollection& variableMap)
+{
+  GetAbductCommand* c =
+      new GetAbductCommand(d_name, d_conj.exportTo(exprManager, variableMap));
+  c->d_sygus_grammar_type =
+      d_sygus_grammar_type.exportTo(exprManager, variableMap);
+  c->d_result = d_result.exportTo(exprManager, variableMap);
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+Command* GetAbductCommand::clone() const
+{
+  GetAbductCommand* c = new GetAbductCommand(d_name, d_conj);
+  c->d_sygus_grammar_type = d_sygus_grammar_type;
+  c->d_result = d_result;
+  c->d_resultStatus = d_resultStatus;
+  return c;
+}
+
+std::string GetAbductCommand::getCommandName() const { return "get-abduct"; }
+
 /* -------------------------------------------------------------------------- */
 /* class GetQuantifierEliminationCommand                                      */
 /* -------------------------------------------------------------------------- */
