@@ -685,7 +685,7 @@ private:
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
   /** add endpoints to eqc info
-   * 
+   *
    * This method is called when term t is the explanation for why equivalence
    * class eqc may have a constant endpoint due to a concatentation term concat.
    * For example, we may call this method on:

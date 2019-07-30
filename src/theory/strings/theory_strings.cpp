@@ -1104,7 +1104,7 @@ Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
     if (c.isNull())
     {
       c = utils::getConstantEndpoint(t, isSuf);
-      Assert(!c.isNull() && c.getKind()==CONST_STRING);
+      Assert(!c.isNull() && c.getKind() == CONST_STRING);
     }
     bool conflict = false;
     // if the constant prefixes are different
@@ -1118,7 +1118,8 @@ Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
       const String& cs = c.getConst<String>();
       unsigned pvs = ps.size();
       unsigned cvs = cs.size();
-      if (pvs == cvs || (pvs>cvs && t.isConst()) || (cvs>pvs && prev.isConst()))
+      if (pvs == cvs || (pvs > cvs && t.isConst())
+          || (cvs > pvs && prev.isConst()))
       {
         // If equal length, cannot be equal due to node check above.
         // If one is fully constant and has less length than the other, then the
@@ -1138,14 +1139,14 @@ Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
           conflict = !larges.hasPrefix(smalls);
         }
       }
-      if( !conflict && (pvs > cvs || prev.isConst()) )
+      if (!conflict && (pvs > cvs || prev.isConst()))
       {
         // current is subsumed, either shorter prefix or the other is a full
         // constant
         return Node::null();
       }
     }
-    else if( !t.isConst() )
+    else if (!t.isConst())
     {
       // current is subsumed since the other may be a full constant
       return Node::null();
@@ -1255,7 +1256,8 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 void TheoryStrings::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
-  Assert(concat.getKind()==STRING_CONCAT || concat.getKind()==REGEXP_CONCAT);
+  Assert(concat.getKind() == STRING_CONCAT
+         || concat.getKind() == REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
   for (unsigned r = 0; r < 2; r++)
@@ -1296,7 +1298,8 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     }
     if (!e2->d_suffixC.get().isNull())
     {
-      setPendingConflictWhen(e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
+      setPendingConflictWhen(
+          e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
