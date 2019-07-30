@@ -432,7 +432,7 @@ private:
      * If this method returns a non-null node ret, then ret is a conjunction
      * corresponding to a conflict that holds in the current context.
      */
-    Node addPrefixConst(Node t, Node c, bool isSuf);
+    Node addEndpointConst(Node t, Node c, bool isSuf);
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -763,8 +763,11 @@ private:
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
-  /** add prefix to eqc info */
-  void addPrefixToEqcInfo(Node t, Node concat, Node eqc);
+  /** add endpoints to eqc info
+   * 
+   * TODO
+   */
+  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /** set pending conflict
    *
    * This is called when conf is a conjunction of literals that hold in the

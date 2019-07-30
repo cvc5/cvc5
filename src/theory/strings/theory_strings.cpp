@@ -1104,7 +1104,7 @@ TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
 {
 }
 
-Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isSuf)
+Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
 {
   // check conflict
   Node prev = isSuf ? d_suffixC : d_prefixC;
@@ -1262,11 +1262,11 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
   }
   else if (k == STRING_CONCAT)
   {
-    addPrefixToEqcInfo(t, t, t);
+    addEndpointsToEqcInfo(t, t, t);
   }
 }
 
-void TheoryStrings::addPrefixToEqcInfo(Node t, Node concat, Node eqc)
+void TheoryStrings::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
   EqcInfo* ei = nullptr;
   // check each side
@@ -1283,7 +1283,7 @@ void TheoryStrings::addPrefixToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      setPendingConflict(ei->addPrefixConst(t, c, r == 1));
+      setPendingConflict(ei->addEndpointConst(t, c, r == 1));
     }
   }
 }
@@ -1304,11 +1304,11 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     if (!e2->d_prefixC.get().isNull())
     {
       setPendingConflict(
-          e1->addPrefixConst(e2->d_prefixC, Node::null(), false));
+          e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
     }
     if (!e2->d_suffixC.get().isNull())
     {
-      setPendingConflict(e1->addPrefixConst(e2->d_suffixC, Node::null(), true));
+      setPendingConflict(e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
@@ -1460,7 +1460,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
       if (polarity && atom[1].getKind() == REGEXP_CONCAT)
       {
         Node eqc = d_equalityEngine.getRepresentative(atom[0]);
-        addPrefixToEqcInfo(atom, atom[1], eqc);
+        addEndpointsToEqcInfo(atom, atom[1], eqc);
       }
     }
   }
