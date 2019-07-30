@@ -74,7 +74,7 @@ class RegExpOpr {
   std::map<PairNodeStr, std::pair<Node, int> > d_deriv_cache;
   std::map<Node, std::pair<Node, int> > d_compl_cache;
   /** cache mapping regular expressions to whether they contain constants */
-  std::unordered_map<Node, RegExpConstType, NodeHashFunction> d_cstre_cache;
+  std::unordered_map<Node, RegExpConstType, NodeHashFunction> d_constCache;
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_cset_cache;
   std::map<Node, std::pair<std::set<unsigned>, std::set<Node> > > d_fset_cache;
   std::map<PairNodes, Node> d_inter_cache;
