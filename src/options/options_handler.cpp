@@ -1450,7 +1450,7 @@ all \n\
 + Compute intersections for all regular expressions.\n\
 \n\
 constant (default)\n\
-+ Computer intersections only between regular expressions that do not contain\
++ Compute intersections only between regular expressions that do not contain\
 re.allchar\n\
 \n\
 none\n\

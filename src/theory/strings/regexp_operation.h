@@ -38,7 +38,7 @@ namespace strings {
  */
 enum RegExpConstType
 {
-  // invalid
+  // unknown status
   RE_C_UNKNOWN,
   // the regular expression doesn't contain variables or re.allchar
   RE_C_CONRETE_CONSTANT,
