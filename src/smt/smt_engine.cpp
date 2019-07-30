@@ -869,13 +869,13 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
-      d_problemExtended(false),
       d_queryMade(false),
       d_needPostsolve(false),
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
       d_expectedStatus(),
+      d_smtMode(SMT_MODE_START),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -2329,10 +2329,10 @@ void SmtEngine::setDefaults() {
   }
 }
 
-void SmtEngine::setProblemExtended(bool value)
+void SmtEngine::setProblemExtended()
 {
-  d_problemExtended = value;
-  if (value) { d_assumptions.clear(); }
+  d_smtMode = SMT_MODE_ASSERT;
+  d_assumptions.clear();
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -3066,8 +3066,7 @@ theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
     throw RecoverableModalException(ss.str().c_str());
   }
 
-  if (d_status.isNull() || d_status.asSatisfiabilityResult() == Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_SAT)
   {
     std::stringstream ss;
     ss << "Cannot " << c
@@ -3656,7 +3655,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     bool didInternalPush = false;
 
-    setProblemExtended(true);
+    setProblemExtended();
 
     if (isQuery)
     {
@@ -3761,6 +3760,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
+    // Check against expected status
     if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
         && d_status != d_expectedStatus)
     {
@@ -3768,8 +3768,16 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                    << d_status;
     }
     d_expectedStatus = Result();
-
-    setProblemExtended(false);
+    if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      d_smtMode = SMT_MODE_UNSAT;
+    }
+    else
+    {
+      // Notice that unknown response moves to sat mode, since the same set
+      // of commands (get-model, get-value) are applicable to this case.
+      d_smtMode = SMT_MODE_SAT;
+    }
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -3821,9 +3829,7 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions when produce-unsat-assumptions option "
         "is off.");
   }
-  if (d_status.isNull()
-      || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
@@ -4165,9 +4171,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(msg);
@@ -4288,9 +4293,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT  ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get the current assignment unless immediately "
       "preceded by SAT/INVALID or UNKNOWN response.";
@@ -4542,8 +4546,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores option is off.");
   }
-  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
@@ -4933,9 +4936,8 @@ const Proof& SmtEngine::getProof()
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_UNSAT)
+  {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by UNSAT/VALID "
         "response.");
@@ -5052,7 +5054,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+bool SmtEngine::getAbduct(const Expr& conj,
+                          const Type& grammarType,
+                          Expr& abd)
 {
   SmtScope smts(this);
 
@@ -5097,6 +5101,20 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   d_subsolver->setLogic(l);
   // assert the abduction query
   d_subsolver->assertFormula(aconj.toExpr());
+  if (getAbductInternal(abd))
+  {
+    d_smtMode = SMT_MODE_ABDUCT;
+    return true;
+  }
+  // failed, we revert to the assert state
+  d_smtMode = SMT_MODE_ASSERT;
+  return false;
+}
+
+bool SmtEngine::getAbductInternal(Expr& abd)
+{
+  // should have initialized the subsolver by now
+  Assert(d_subsolver != nullptr);
   Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
   Result r = d_subsolver->checkSat();
   Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
@@ -5109,13 +5127,14 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
     std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
     if (its != sols.end())
     {
-      Node abdn = Node::fromExpr(its->second);
       Trace("sygus-abduct")
-          << "SmtEngine::getAbduct: solution is " << abdn << std::endl;
+          << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
+      Node abdn = Node::fromExpr(its->second);
       if (abdn.getKind() == kind::LAMBDA)
       {
         abdn = abdn[1];
       }
+      Assert(d_sssfVarlist.size() == d_sssfSyms.size());
       // convert back to original
       // must replace formal arguments of abd with the free variables in the
       // input problem that they correspond to.
@@ -5126,7 +5145,6 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
 
       // convert to expression
       abd = abdn.toExpr();
-
       return true;
     }
     Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
@@ -5223,7 +5241,7 @@ void SmtEngine::push()
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
   // staying symmtric with pop.
-  setProblemExtended(true);
+  setProblemExtended();
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -5251,7 +5269,7 @@ void SmtEngine::pop() {
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  setProblemExtended(true);
+  setProblemExtended();
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
