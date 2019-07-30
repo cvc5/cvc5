@@ -54,7 +54,7 @@ Node getConstantComponent(Node t)
   return tk == CONST_STRING ? t : Node::null();
 }
 
-Node getConstantPrefix(Node e, bool isSuf)
+Node getConstantEndpoint(Node e, bool isSuf)
 {
   Kind ek = e.getKind();
   if (ek == STRING_IN_REGEXP)

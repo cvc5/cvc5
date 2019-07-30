@@ -1112,11 +1112,11 @@ Node TheoryStrings::EqcInfo::addPrefixConst(Node t, Node c, bool isSuf)
   {
     Trace("strings-eager-pconf-debug") << "Check conflict " << prev << ", " << t
                                        << " post=" << isSuf << std::endl;
-    Node prevC = utils::getConstantPrefix(prev, isSuf);
+    Node prevC = utils::getConstantEndpoint(prev, isSuf);
     Assert(!prevC.isNull());
     if (c.isNull())
     {
-      c = utils::getConstantPrefix(t, isSuf);
+      c = utils::getConstantEndpoint(t, isSuf);
       Assert(!c.isNull());
     }
     bool conflict = false;
