@@ -1812,7 +1812,7 @@ literals\n\
 + block models based on the SAT skeleton\n\
 \n\
 values\n\
-+ block models based on the concrete model values for the free variables.\n\ 
++ block models based on the concrete model values for the free variables.\n\
 \n\
 ";
 
