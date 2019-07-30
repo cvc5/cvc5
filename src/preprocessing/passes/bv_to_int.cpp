@@ -105,9 +105,9 @@ Node BVToInt::makeBinary(Node n)
             k == kind::BITVECTOR_MULT ||
             k == kind::BITVECTOR_AND ||
             k == kind::BITVECTOR_OR ||
-            k == kind::BITVECTOR_XOR) ||
+            k == kind::BITVECTOR_XOR ||
             k == kind::BITVECTOR_CONCAT
-            ) {
+            )) {
         Assert(d_binarizeCache.find(current[0]) != d_binarizeCache.end());
         Node result = d_binarizeCache[current[0]];
         for (uint64_t i = 1; i < numChildren; i++)
