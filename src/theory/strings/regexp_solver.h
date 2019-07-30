@@ -58,7 +58,7 @@ class RegExpSolver
    *
    * The argument mems maps representative string terms r to memberships of the
    * form (t in R) or ~(t in R), where t = r currently holds in the equality
-   * engine of theory of strings.
+   * engine of the theory of strings.
    */
   void check(const std::map<Node, std::vector<Node>>& mems);
 
