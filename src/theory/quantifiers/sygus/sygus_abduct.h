@@ -9,23 +9,25 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Sygus abduction preprocessing pass, which transforms an arbitrary
- ** input into an abduction problem.
+ ** \brief Sygus abduction utility, which transforms an arbitrary input into an
+ ** abduction problem.
  **/
 
-#ifndef CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
-#define CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H
+#ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
+#define CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H
 
-#include "preprocessing/preprocessing_pass.h"
-#include "preprocessing/preprocessing_pass_context.h"
+#include <string>
+#include <vector>
+#include "expr/node.h"
+#include "expr/type.h"
 
 namespace CVC4 {
-namespace preprocessing {
-namespace passes {
+namespace theory {
+namespace quantifiers {
 
 /** SygusAbduct
  *
- * A preprocessing utility that turns a set of quantifier-free assertions into
+ * A utility that turns a set of quantifier-free assertions into
  * a sygus conjecture that encodes an abduction problem. In detail, if our
  * input formula is F( x ) for free symbols x, then we construct the sygus
  * conjecture:
@@ -51,34 +53,38 @@ namespace passes {
  * In other words, A( y ) must be consistent with our axioms Fa and imply
  * ~F( x ). We encode this conjecture using SygusSideConditionAttribute.
  */
-class SygusAbduct : public PreprocessingPass
+class SygusAbduct
 {
  public:
-  SygusAbduct(PreprocessingPassContext* preprocContext);
+  SygusAbduct();
 
   /**
    * Returns the sygus conjecture corresponding to the abduction problem for
    * input problem (F above) given by asserts, and axioms (Fa above) given by
    * axioms. Note that axioms is expected to be a subset of asserts.
    *
+   * The argument name is the name for the abduct-to-synthesize.
+   *
    * The type abdGType (if non-null) is a sygus datatype type that encodes the
    * grammar that should be used for solutions of the abduction conjecture.
+   *
+   * The arguments varlist and syms specify the relationship between the free
+   * variables of asserts and the formal argument list of the
+   * abduct-to-synthesize. In particular, solutions to the synthesis conjecture
+   * will be in the form of a closed term (lambda varlist. t). The intended
+   * solution, which is a term whose free variables are a subset of asserts,
+   * is the term t { varlist -> syms }.
    */
-  static Node mkAbductionConjecture(const std::vector<Node>& asserts,
+  static Node mkAbductionConjecture(const std::string& name,
+                                    const std::vector<Node>& asserts,
                                     const std::vector<Node>& axioms,
-                                    TypeNode abdGType);
-
- protected:
-  /**
-   * Replaces the set of assertions by an abduction sygus problem described
-   * above.
-   */
-  PreprocessingPassResult applyInternal(
-      AssertionPipeline* assertionsToPreprocess) override;
+                                    TypeNode abdGType,
+                                    std::vector<Node>& varlist,
+                                    std::vector<Node>& syms);
 };
 
-}  // namespace passes
-}  // namespace preprocessing
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace CVC4
 
-#endif /* CVC4__PREPROCESSING__PASSES__SYGUS_ABDUCT_H_ */
+#endif /* CVC4__THEORY__QUANTIFIERS__SYGUS_ABDUCT_H */

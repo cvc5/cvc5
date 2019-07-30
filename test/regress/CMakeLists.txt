@@ -1195,6 +1195,8 @@ set(regress_1_tests
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt
   regress1/lemmas/pursuit-safety-8.smt
   regress1/lemmas/simple_startup_9nodes.abstract.base.smt
+  regress1/model-blocker-simple.smt2
+  regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
@@ -1582,6 +1584,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
@@ -1619,6 +1622,7 @@ set(regress_1_tests
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-test.smt2
+  regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array_search_2.sy

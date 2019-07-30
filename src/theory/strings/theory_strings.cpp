@@ -1056,16 +1056,20 @@ void TheoryStrings::checkMemberships()
 {
   // add the memberships
   std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
+  // maps representatives to regular expression memberships in that class
+  std::map<Node, std::vector<Node> > assertedMems;
   for (unsigned i = 0; i < mems.size(); i++)
   {
     Node n = mems[i];
+    Assert(n.getKind() == STRING_IN_REGEXP);
     Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
     if (!d_extf_info_tmp[n].d_const.isNull())
     {
       bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
       Trace("strings-process-debug")
           << "  add membership : " << n << ", pol = " << pol << std::endl;
-      d_regexp_solver.addMembership(pol ? n : n.negate());
+      Node r = getRepresentative(n[0]);
+      assertedMems[r].push_back(pol ? n : n.negate());
     }
     else
     {
@@ -1073,7 +1077,7 @@ void TheoryStrings::checkMemberships()
           << "  irrelevant (non-asserted) membership : " << n << std::endl;
     }
   }
-  d_regexp_solver.check();
+  d_regexp_solver.check(assertedMems);
 }
 
 TheoryStrings::EqcInfo::EqcInfo(context::Context* c)

@@ -9,18 +9,15 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Implementation of sygus abduction preprocessing pass, which
+ ** \brief Implementation of sygus abduction utility, which
  ** transforms an arbitrary input into an abduction problem.
  **/
 
-#include "preprocessing/passes/sygus_abduct.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
 
 #include "expr/datatype.h"
 #include "expr/node_algorithm.h"
 #include "printer/sygus_print_callback.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/term_util.h"
@@ -30,59 +27,17 @@ using namespace std;
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace preprocessing {
-namespace passes {
+namespace theory {
+namespace quantifiers {
 
-SygusAbduct::SygusAbduct(PreprocessingPassContext* preprocContext)
-    : PreprocessingPass(preprocContext, "sygus-abduct"){};
+SygusAbduct::SygusAbduct() {}
 
-PreprocessingPassResult SygusAbduct::applyInternal(
-    AssertionPipeline* assertionsToPreprocess)
-{
-  Trace("sygus-abduct") << "Run sygus abduct..." << std::endl;
-
-  Trace("sygus-abduct-debug") << "Collect symbols..." << std::endl;
-  std::vector<Node>& asserts = assertionsToPreprocess->ref();
-  // do we have any assumptions, e.g. via check-sat-assuming?
-  bool usingAssumptions = (assertionsToPreprocess->getNumAssumptions() > 0);
-  // The following is our set of "axioms". We construct this set only when the
-  // usingAssumptions (above) is true. In this case, our input formula is
-  // partitioned into Fa ^ Fc as described in the header of this class, where:
-  // - The conjunction of assertions marked as assumptions are the negated
-  // conjecture Fc, and
-  // - The conjunction of all other assertions are the axioms Fa.
-  std::vector<Node> axioms;
-  if (usingAssumptions)
-  {
-    for (size_t i = 0, astart = assertionsToPreprocess->getAssumptionsStart();
-         i < astart;
-         i++)
-    {
-      // if we are not an assumption, add it to the set of axioms
-      axioms.push_back(asserts[i]);
-    }
-  }
-
-  // the abduction grammar type we are using (null for now, until a future
-  // commit)
-  TypeNode abdGType;
-
-  Node res = mkAbductionConjecture(asserts, axioms, abdGType);
-
-  Node trueNode = NodeManager::currentNM()->mkConst(true);
-
-  assertionsToPreprocess->replace(0, res);
-  for (size_t i = 1, size = assertionsToPreprocess->size(); i < size; ++i)
-  {
-    assertionsToPreprocess->replace(i, trueNode);
-  }
-
-  return PreprocessingPassResult::NO_CONFLICT;
-}
-
-Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
+Node SygusAbduct::mkAbductionConjecture(const std::string& name,
+                                        const std::vector<Node>& asserts,
                                         const std::vector<Node>& axioms,
-                                        TypeNode abdGType)
+                                        TypeNode abdGType,
+                                        std::vector<Node>& varlist,
+                                        std::vector<Node>& syms)
 {
   NodeManager* nm = NodeManager::currentNM();
   std::unordered_set<Node, NodeHashFunction> symset;
@@ -94,9 +49,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
       << "...finish, got " << symset.size() << " symbols." << std::endl;
 
   Trace("sygus-abduct-debug") << "Setup symbols..." << std::endl;
-  std::vector<Node> syms;
   std::vector<Node> vars;
-  std::vector<Node> varlist;
   std::vector<TypeNode> varlistTypes;
   for (const Node& s : symset)
   {
@@ -121,7 +74,7 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
   // make the abduction predicate to synthesize
   TypeNode abdType = varlistTypes.empty() ? nm->booleanType()
                                           : nm->mkPredicateType(varlistTypes);
-  Node abd = nm->mkBoundVar("A", abdType);
+  Node abd = nm->mkBoundVar(name.c_str(), abdType);
   Trace("sygus-abduct-debug") << "...finish" << std::endl;
 
   // if provided, we will associate it with the function-to-synthesize
@@ -355,6 +308,6 @@ Node SygusAbduct::mkAbductionConjecture(const std::vector<Node>& asserts,
   return res;
 }
 
-}  // namespace passes
-}  // namespace preprocessing
+}  // namespace quantifiers
+}  // namespace theory
 }  // namespace CVC4
