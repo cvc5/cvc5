@@ -1041,31 +1041,14 @@ thfUnitaryFormula[CVC4::Expr& expr]
       // auxiliary variables introduced in the proccess must be added no the
       // variable list
       //
-      // The argument flattenVars is needed in the case of defined functions
-      // with function return type. These have implicit arguments, for instance:
-      //    (define-fun Q ((x Int)) (-> Int Int) (lambda y (P x)))
-      // is equivalent to the command:
-      //    (define-fun Q ((x Int) (z Int)) Int (@ (lambda y (P x)) z))
-      // where @ is (higher-order) application. In this example, z is added to
-      // flattenVars.
-
-      // flatten body type
-      Type range = expr.getType();
+      // see documentation of mkFlatFunctionType for how it's done
+      //
+      // flatten body via flattening its type
+      std::vector<Type> sorts;
       std::vector<Expr> flattenVars;
-      if (range.isFunction())
+      PARSER_STATE->mkFlatFunctionType(sorts, expr.getType(), flattenVars);
+      if (!flattenVars.empty())
       {
-        std::vector<Type> domainTypes =
-            (static_cast<FunctionType>(range)).getArgTypes();
-        for (unsigned i = 0, size = domainTypes.size(); i < size; ++i)
-        {
-          // the introduced variable is internal (not parsable)
-          std::stringstream ss;
-          ss << "__flatten_var_" << i;
-          Expr v = EXPR_MANAGER->mkBoundVar(ss.str(), domainTypes[i]);
-          flattenVars.push_back(v);
-        }
-        // update range type
-        range = static_cast<FunctionType>(range).getRangeType();
         // apply body of lambda to flatten vars
         expr = PARSER_STATE->mkHoApply(expr, flattenVars);
         // add variables to BOUND_VAR_LIST
