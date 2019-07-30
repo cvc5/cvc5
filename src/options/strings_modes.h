@@ -16,8 +16,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
-#define CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
+#ifndef CVC4__BASE__STRINGS_MODES_H
+#define CVC4__BASE__STRINGS_MODES_H
 
 #include <iosfwd>
 
@@ -25,8 +25,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Enumeration of bit-blasting modes */
-enum class ProcessLoopMode
+/** Enumeration of string processing loop modes */
+enum ProcessLoopMode
 {
   /** Perform full loop processing. */
   FULL,
@@ -44,12 +44,30 @@ enum class ProcessLoopMode
   ABORT
 }; // enum ProcessLoopMode
 
+
+/** Enumeration of regular expression intersection modes */
+enum RegExpInterMode
+{
+  /** Compute intersections for all regular expressions. */
+  RE_INTER_ALL,
+
+  /** Compute intersections only for regular expressions without re.allchar. */
+  RE_INTER_CONSTANT,
+
+  /** Do not compute intersections of regular expressions. */
+  RE_INTER_NONE,
+}; // enum RegExpInterMode
+
+
 }  // namespace strings
 }  // namespace theory
 
 std::ostream& operator<<(std::ostream& out,
                          theory::strings::ProcessLoopMode mode);
 
+std::ostream& operator<<(std::ostream& out,
+                         theory::strings::ProcessLoopMode mode);
+
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BV__BITBLAST_MODE_H */
+#endif /* CVC4__BASE__STRINGS_MODES_H */
