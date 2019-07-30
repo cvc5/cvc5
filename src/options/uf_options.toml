@@ -108,3 +108,11 @@ header = "options/uf_options.h"
   type       = "bool"
   default    = "true"
   help       = "apply extensionality on function symbols"
+
+[[option]]
+  name       = "hoFlattenTotal"
+  category   = "regular"
+  long       = "ho-flatten-total"
+  type       = "bool"
+  default    = "false"
+  help       = "Flatten total applications"
