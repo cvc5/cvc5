@@ -427,7 +427,7 @@ private:
      * This informs this equivalence class info that a term t in its
      * equivalence class has a constant prefix (if isSuf=true) or suffix
      * (if isSuf=false). The constant c (if non-null) is the value of that
-     * constant, if it has been computed yet.
+     * constant, if it has been computed already.
      *
      * If this method returns a non-null node ret, then ret is a conjunction
      * corresponding to a conflict that holds in the current context.
