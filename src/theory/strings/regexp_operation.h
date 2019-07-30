@@ -102,7 +102,7 @@ class RegExpOpr {
    * not constant, then this method returns null and sets spflag to true.
    */
   Node intersect(Node r1, Node r2, bool &spflag);
-  /** Get the pretty printed version of r */
+  /** Get the pretty printed version of the regular expression r */
   static std::string mkString(Node r);
 };
 
