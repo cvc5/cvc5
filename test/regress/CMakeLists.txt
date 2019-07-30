@@ -879,6 +879,7 @@ set(regress_0_tests
   regress0/sygus/check-generic-red.sy
   regress0/sygus/const-var-test.sy
   regress0/sygus/dt-no-syntax.sy
+  regress0/sygus/dt-sel-parse1.sy
   regress0/sygus/hd-05-d1-prog-nogrammar.sy
   regress0/sygus/inv-different-var-order.sy
   regress0/sygus/let-ringer.sy
@@ -1193,6 +1194,8 @@ set(regress_1_tests
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt
   regress1/lemmas/pursuit-safety-8.smt
   regress1/lemmas/simple_startup_9nodes.abstract.base.smt
+  regress1/model-blocker-simple.smt2
+  regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
@@ -1566,6 +1569,7 @@ set(regress_1_tests
   regress1/strings/loop008.smt2
   regress1/strings/loop009.smt2
   regress1/strings/nf-ff-contains-abs.smt2
+  regress1/strings/no-lazy-pp-quant.smt2
   regress1/strings/non_termination_regular_expression4.smt2
   regress1/strings/norn-13.smt2
   regress1/strings/norn-360.smt2
@@ -1579,6 +1583,7 @@ set(regress_1_tests
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
@@ -1616,6 +1621,7 @@ set(regress_1_tests
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-test.smt2
+  regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array_search_2.sy

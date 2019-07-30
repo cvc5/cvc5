@@ -39,23 +39,6 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-std::ostream& operator<<(std::ostream& out, Inference i)
-{
-  switch (i)
-  {
-    case INFER_SSPLIT_CST_PROP: out << "S-Split(CST-P)-prop"; break;
-    case INFER_SSPLIT_VAR_PROP: out << "S-Split(VAR)-prop"; break;
-    case INFER_LEN_SPLIT: out << "Len-Split(Len)"; break;
-    case INFER_LEN_SPLIT_EMP: out << "Len-Split(Emp)"; break;
-    case INFER_SSPLIT_CST_BINARY: out << "S-Split(CST-P)-binary"; break;
-    case INFER_SSPLIT_CST: out << "S-Split(CST-P)"; break;
-    case INFER_SSPLIT_VAR: out << "S-Split(VAR)"; break;
-    case INFER_FLOOP: out << "F-Loop"; break;
-    default: out << "?"; break;
-  }
-  return out;
-}
-
 std::ostream& operator<<(std::ostream& out, InferStep s)
 {
   switch (s)
@@ -1074,16 +1057,20 @@ void TheoryStrings::checkMemberships()
 {
   // add the memberships
   std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
+  // maps representatives to regular expression memberships in that class
+  std::map<Node, std::vector<Node> > assertedMems;
   for (unsigned i = 0; i < mems.size(); i++)
   {
     Node n = mems[i];
+    Assert(n.getKind() == STRING_IN_REGEXP);
     Assert(d_extf_info_tmp.find(n) != d_extf_info_tmp.end());
     if (!d_extf_info_tmp[n].d_const.isNull())
     {
       bool pol = d_extf_info_tmp[n].d_const.getConst<bool>();
       Trace("strings-process-debug")
           << "  add membership : " << n << ", pol = " << pol << std::endl;
-      d_regexp_solver.addMembership(pol ? n : n.negate());
+      Node r = getRepresentative(n[0]);
+      assertedMems[r].push_back(pol ? n : n.negate());
     }
     else
     {
@@ -1091,7 +1078,7 @@ void TheoryStrings::checkMemberships()
           << "  irrelevant (non-asserted) membership : " << n << std::endl;
     }
   }
-  d_regexp_solver.check();
+  d_regexp_solver.check(assertedMems);
 }
 
 TheoryStrings::EqcInfo::EqcInfo(context::Context* c)
@@ -3125,35 +3112,30 @@ void TheoryStrings::processNEqc(std::vector<NormalForm>& normal_forms)
       set_use_index = true;
     }
   }
+  doInferInfo(pinfer[use_index]);
+}
+
+void TheoryStrings::doInferInfo(const InferInfo& ii)
+{
   // send the inference
-  if (!pinfer[use_index].d_nf_pair[0].isNull())
+  if (!ii.d_nf_pair[0].isNull())
   {
-    Assert(!pinfer[use_index].d_nf_pair[1].isNull());
-    addNormalFormPair(pinfer[use_index].d_nf_pair[0],
-                      pinfer[use_index].d_nf_pair[1]);
+    Assert(!ii.d_nf_pair[1].isNull());
+    addNormalFormPair(ii.d_nf_pair[0], ii.d_nf_pair[1]);
   }
-  std::stringstream ssi;
-  ssi << pinfer[use_index].d_id;
-  d_im.sendInference(pinfer[use_index].d_ant,
-                     pinfer[use_index].d_antn,
-                     pinfer[use_index].d_conc,
-                     ssi.str().c_str(),
-                     pinfer[use_index].sendAsLemma());
+  // send the inference
+  d_im.sendInference(ii);
   // Register the new skolems from this inference. We register them here
   // (lazily), since the code above has now decided to use the inference
   // at use_index that involves them.
   for (const std::pair<const LengthStatus, std::vector<Node> >& sks :
-       pinfer[use_index].d_new_skolem)
+       ii.d_new_skolem)
   {
     for (const Node& n : sks.second)
     {
       registerLength(n, sks.first);
     }
   }
-}
-
-bool TheoryStrings::InferInfo::sendAsLemma() {
-  return true;
 }
 
 void TheoryStrings::processSimpleNEq(NormalForm& nfi,
@@ -4288,50 +4270,44 @@ Node TheoryStrings::mkLength( Node t ) {
   return Rewriter::rewrite( NodeManager::currentNM()->mkNode( kind::STRING_LENGTH, t ) );
 }
 
-Node TheoryStrings::mkExplain( std::vector< Node >& a ) {
+Node TheoryStrings::mkExplain(const std::vector<Node>& a)
+{
   std::vector< Node > an;
   return mkExplain( a, an );
 }
 
-Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an ) {
+Node TheoryStrings::mkExplain(const std::vector<Node>& a,
+                              const std::vector<Node>& an)
+{
   std::vector< TNode > antec_exp;
-  for( unsigned i=0; i<a.size(); i++ ) {
-    if( std::find( a.begin(), a.begin() + i, a[i] )==a.begin() + i ) {
-      bool exp = true;
-      Debug("strings-explain") << "Ask for explanation of " << a[i] << std::endl;
-      //assert
-      if(a[i].getKind() == kind::EQUAL) {
-        //Assert( hasTerm(a[i][0]) );
-        //Assert( hasTerm(a[i][1]) );
-        Assert( areEqual(a[i][0], a[i][1]) );
-        if( a[i][0]==a[i][1] ){
-          exp = false;
-        }
-      } else if( a[i].getKind()==kind::NOT && a[i][0].getKind()==kind::EQUAL ) {
-        Assert( hasTerm(a[i][0][0]) );
-        Assert( hasTerm(a[i][0][1]) );
-        AlwaysAssert( d_equalityEngine.areDisequal(a[i][0][0], a[i][0][1], true) );
-      }else if( a[i].getKind() == kind::AND ){
-        for( unsigned j=0; j<a[i].getNumChildren(); j++ ){
-          a.push_back( a[i][j] );
-        }
-        exp = false;
-      }
-      if( exp ) {
-        unsigned ps = antec_exp.size();
-        explain(a[i], antec_exp);
-        Debug("strings-explain") << "Done, explanation was : " << std::endl;
-        for( unsigned j=ps; j<antec_exp.size(); j++ ) {
-          Debug("strings-explain") << "  " << antec_exp[j] << std::endl;
-        }
-        Debug("strings-explain") << std::endl;
-      }
-    }
+  // copy to processing vector
+  std::vector<Node> aconj;
+  for (const Node& ac : a)
+  {
+    utils::flattenOp(AND, ac, aconj);
   }
-  for( unsigned i=0; i<an.size(); i++ ) {
-    if( std::find( an.begin(), an.begin() + i, an[i] )==an.begin() + i ){
-      Debug("strings-explain") << "Add to explanation (new literal) " << an[i] << std::endl;
-      antec_exp.push_back(an[i]);
+  for (const Node& apc : aconj)
+  {
+    Assert(apc.getKind() != AND);
+    Debug("strings-explain") << "Add to explanation " << apc << std::endl;
+    if (apc.getKind() == NOT && apc[0].getKind() == EQUAL)
+    {
+      Assert(hasTerm(apc[0][0]));
+      Assert(hasTerm(apc[0][1]));
+      // ensure that we are ready to explain the disequality
+      AlwaysAssert(d_equalityEngine.areDisequal(apc[0][0], apc[0][1], true));
+    }
+    Assert(apc.getKind() != EQUAL || d_equalityEngine.areEqual(apc[0], apc[1]));
+    // now, explain
+    explain(apc, antec_exp);
+  }
+  for (const Node& anc : an)
+  {
+    if (std::find(antec_exp.begin(), antec_exp.end(), anc) == antec_exp.end())
+    {
+      Debug("strings-explain")
+          << "Add to explanation (new literal) " << anc << std::endl;
+      antec_exp.push_back(anc);
     }
   }
   Node ant;
@@ -4342,7 +4318,6 @@ Node TheoryStrings::mkExplain( std::vector< Node >& a, std::vector< Node >& an )
   } else {
     ant = NodeManager::currentNM()->mkNode( kind::AND, antec_exp );
   }
-  //ant = Rewriter::rewrite( ant );
   return ant;
 }
 
