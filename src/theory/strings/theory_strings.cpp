@@ -1056,7 +1056,7 @@ void TheoryStrings::checkMemberships()
 {
   // add the memberships
   std::vector<Node> mems = getExtTheory()->getActive(kind::STRING_IN_REGEXP);
-  // maps representatives regular expression memberships for that class
+  // maps representatives to regular expression memberships in that class
   std::map<Node, std::vector<Node> > assertedMems;
   for (unsigned i = 0; i < mems.size(); i++)
   {
