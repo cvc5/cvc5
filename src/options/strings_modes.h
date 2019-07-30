@@ -40,8 +40,7 @@ enum ProcessLoopMode
 
   /** Abort if looping word equations are encountered. */
   ABORT
-}; // enum ProcessLoopMode
-
+};  // enum ProcessLoopMode
 
 /** Enumeration of regular expression intersection modes */
 enum RegExpInterMode
@@ -54,8 +53,7 @@ enum RegExpInterMode
 
   /** Do not compute intersections of regular expressions. */
   RE_INTER_NONE,
-}; // enum RegExpInterMode
-
+};  // enum RegExpInterMode
 
 }  // namespace strings
 }  // namespace theory

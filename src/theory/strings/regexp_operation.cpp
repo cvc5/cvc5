@@ -47,9 +47,10 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
-  Trace("strings-regexp-cstre") << "RegExpOpr::checkConstRegExp /" << mkString( r ) << "/" << std::endl;
+  Trace("strings-regexp-cstre")
+      << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
   RegExpConstType rct = getRegExpConstType(r);
-  return rct!=RE_C_VARIABLE;
+  return rct != RE_C_VARIABLE;
 }
 
 RegExpConstType RegExpOpr::getRegExpConstType(Node r)
@@ -58,19 +59,22 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
   std::vector<TNode> visit;
   TNode cur;
   visit.push_back(r);
-  do {
+  do
+  {
     cur = visit.back();
     visit.pop_back();
     it = d_constCache.find(cur);
 
-    if (it == d_constCache.end()) {
+    if (it == d_constCache.end())
+    {
       Kind ck = cur.getKind();
-      if( ck==STRING_TO_REGEXP )
+      if (ck == STRING_TO_REGEXP)
       {
-        Node tmp = Rewriter::rewrite( cur[0] );
-        d_constCache[cur] = tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
+        Node tmp = Rewriter::rewrite(cur[0]);
+        d_constCache[cur] =
+            tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
       }
-      else if( ck==REGEXP_SIGMA )
+      else if (ck == REGEXP_SIGMA)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }
@@ -78,14 +82,17 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
       {
         d_constCache[cur] = RE_C_UNKNOWN;
         visit.push_back(cur);
-        visit.insert(visit.end(),cur.begin(),cur.end());
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
-    } else if (it->second==RE_C_UNKNOWN) {
+    }
+    else if (it->second == RE_C_UNKNOWN)
+    {
       RegExpConstType ret = RE_C_CONRETE_CONSTANT;
-      for (const Node& cn : cur) {
+      for (const Node& cn : cur)
+      {
         it = d_constCache.find(cn);
         Assert(it != d_constCache.end());
-        if( it->second>ret )
+        if (it->second > ret)
         {
           ret = it->second;
         }

@@ -33,9 +33,9 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** 
-  * Information on whether regular expressions contain constants or re.allchar.
-  */
+/**
+ * Information on whether regular expressions contain constants or re.allchar.
+ */
 enum RegExpConstType
 {
   // invalid

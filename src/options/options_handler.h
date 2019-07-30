@@ -153,9 +153,8 @@ public:
 
   theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
       std::string option, std::string optarg);
-  theory::strings::RegExpInterMode stringToRegExpInterMode(
-      std::string option, std::string optarg);
-
+  theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
+                                                           std::string optarg);
 
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);

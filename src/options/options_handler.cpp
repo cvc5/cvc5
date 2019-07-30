@@ -1479,9 +1479,8 @@ theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
   }
   else
   {
-    throw OptionException(
-        std::string("unknown option for --re-inter-mode: `")
-        + optarg + "'.  Try --re-inter-mode=help.");
+    throw OptionException(std::string("unknown option for --re-inter-mode: `")
+                          + optarg + "'.  Try --re-inter-mode=help.");
   }
 }
 
