@@ -5055,9 +5055,7 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const Expr& conj,
-                          const Type& grammarType,
-                          Expr& abd)
+bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
 {
   SmtScope smts(this);
 
