@@ -46,7 +46,7 @@ cd libantlr3c-3.4
 
 # Use an absolute path for the installation directory to avoid spurious libtool
 # warnings about the ANTLR library having moved
-PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" `pwd`/../..)
+PREFIX=$(python -c "import os,sys; print os.path.realpath(sys.argv[1])" $(pwd)/../..)
 
 # Make antlr3debughandlers.c empty to avoid unreferenced symbols
 rm -rf src/antlr3debughandlers.c && touch src/antlr3debughandlers.c
