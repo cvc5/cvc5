@@ -67,7 +67,7 @@ class RegExpOpr {
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
-  /** 
+  /**
    * Helper function for mkString, pretty prints constant or variable regular
    * expression r.
    */
