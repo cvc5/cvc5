@@ -8,6 +8,7 @@ set(EXAMPLES_API_JAVA
   #CVC4Streams
   Combination
   Datatypes
+  FloatingPointArith
   HelloWorld
   LinearArith
   ## disabled until bindings for the new API are in place (issue #2284)
@@ -34,5 +35,6 @@ foreach(example ${EXAMPLES_API_JAVA})
         -cp "${EXAMPLES_JAVA_CLASSPATH}:${CMAKE_BINARY_DIR}/bin/examples/api/java/"
         ${example}
   )
+  set_tests_properties(${example_test} PROPERTIES SKIP_RETURN_CODE 77)
   set_tests_properties(${example_test} PROPERTIES LABELS "example")
 endforeach()

@@ -55,12 +55,17 @@ class TermCanonize
    *
    * This returns a canonical (alpha-equivalent) version of n, where
    * bound variables in n may be replaced by other ones, and arguments of
-   * commutative operators of n may be sorted (if apply_torder is true).
+   * commutative operators of n may be sorted (if apply_torder is true). If
+   * doHoVar is true, we also canonicalize bound variables that occur in
+   * operators.
+   *
    * In detail, we replace bound variables in n so the the leftmost occurrence
    * of a bound variable for type T is the first canonical free variable for T,
    * the second leftmost is the second, and so on, for each type T.
    */
-  Node getCanonicalTerm(TNode n, bool apply_torder = false);
+  Node getCanonicalTerm(TNode n,
+                        bool apply_torder = false,
+                        bool doHoVar = true);
 
  private:
   /** the number of ids we have allocated for operators */
@@ -81,6 +86,7 @@ class TermCanonize
    */
   Node getCanonicalTerm(TNode n,
                         bool apply_torder,
+                        bool doHoVar,
                         std::map<TypeNode, unsigned>& var_count,
                         std::map<TNode, Node>& visited);
 };

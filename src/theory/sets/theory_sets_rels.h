@@ -29,8 +29,7 @@ namespace CVC4 {
 namespace theory {
 namespace sets {
 
-class TheorySets;
-
+class TheorySetsPrivate;
 
 class TupleTrie {
 public:
@@ -45,63 +44,52 @@ public:
   void clear() { d_data.clear(); }
 };/* class TupleTrie */
 
+/** The relations extension of the theory of sets
+ *
+ * This class implements inference schemes described in Meng et al. CADE 2017
+ * for handling quantifier-free constraints in the theory of relations.
+ *
+ * In CVC4, relations are represented as sets of tuples. The theory of
+ * relations includes constraints over operators, e.g. TRANSPOSE, JOIN and so
+ * on, which apply to sets of tuples.
+ *
+ * Since relations are a special case of sets, this class is implemented as an
+ * extension of the theory of sets. That is, it shares many components of the
+ * TheorySets object which owns it.
+ */
 class TheorySetsRels {
   typedef context::CDList<Node> NodeList;
   typedef context::CDHashSet< Node, NodeHashFunction >            NodeSet;
   typedef context::CDHashMap< Node, Node, NodeHashFunction >      NodeMap;
 
 public:
-  TheorySetsRels(context::Context* c,
-                 context::UserContext* u,
-                 eq::EqualityEngine*,
-                 context::CDO<bool>*,
-                 TheorySets&);
+ TheorySetsRels(context::Context* c,
+                context::UserContext* u,
+                eq::EqualityEngine* eq,
+                TheorySetsPrivate& set);
 
-  ~TheorySetsRels();
-  void check(Theory::Effort);
-  void doPendingLemmas();
-
-  bool isRelationKind( Kind k );
-private:
-  /** equivalence class info
-   * d_mem tuples that are members of this equivalence class
-   * d_not_mem tuples that are not members of this equivalence class
-   * d_tp is a node of kind TRANSPOSE (if any) in this equivalence class,
-   * d_pt is a node of kind PRODUCT (if any) in this equivalence class,
-   * d_tc is a node of kind TCLOSURE (if any) in this equivalence class,
-   */
-  class EqcInfo
-  {
-  public:
-    EqcInfo( context::Context* c );
-    ~EqcInfo(){}
-    NodeSet                     d_mem;
-    NodeMap                     d_mem_exp;
-    context::CDO< Node >        d_tp;
-    context::CDO< Node >        d_pt;
-    context::CDO< Node >        d_tc;
-    context::CDO< Node >        d_rel_tc;
-  };
+ ~TheorySetsRels();
+ /**
+  * Invoke the check method with effort level e. At a high level, this class
+  * will make calls to TheorySetsPrivate::processInference to assert facts,
+  * lemmas, and conflicts. If this class makes no such call, then the current
+  * set of assertions is satisfiable with respect to relations.
+  */
+ void check(Theory::Effort e);
+ /** Is kind k a kind that belongs to the relation theory? */
+ static bool isRelationKind(Kind k);
 
 private:
-
-  /** has eqc info */
-  bool hasEqcInfo( TNode n ) { return d_eqc_info.find( n )!=d_eqc_info.end(); }
-
-  eq::EqualityEngine            *d_eqEngine;
-  context::CDO<bool>            *d_conflict;
-  TheorySets&                   d_sets_theory;
-
   /** True and false constant nodes */
   Node                          d_trueNode;
   Node                          d_falseNode;
-
-  /** Facts and lemmas to be sent to EE */
-  NodeList                      d_pending_merge;
-  NodeSet                       d_lemmas_produced;
+  /** The parent theory of sets object */
+  TheorySetsPrivate& d_sets_theory;
+  /** pointer to the equality engine of the theory of sets */
+  eq::EqualityEngine* d_eqEngine;
+  /** A list of pending inferences to process */
+  std::vector<Node> d_pending;
   NodeSet                       d_shared_terms;
-  std::vector< Node >           d_lemmas_out;
-  std::map< Node, Node >        d_pending_facts;
 
 
   std::unordered_set< Node, NodeHashFunction >       d_rel_nodes;
@@ -124,24 +112,27 @@ private:
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_rRep_tcGraph;
   std::map< Node, std::map< Node, std::unordered_set<Node, NodeHashFunction> > >     d_tcr_tcGraph;
   std::map< Node, std::map< Node, Node > > d_tcr_tcGraph_exps;
-  std::map< Node, std::vector< Node > > d_tc_lemmas_last;
 
-  std::map< Node, EqcInfo* > d_eqc_info;
+  context::Context* d_satContext;
 
-public:
-  /** Standard effort notifications */
-  void eqNotifyNewClass(Node t);
-  void eqNotifyPostMerge(Node t1, Node t2);
-
-private:
-
-  /** Methods used in standard effort */
-  void doPendingMerge();
-  void sendInferProduct(Node member, Node pt_rel, Node exp);
-  void sendInferTranspose(Node t1, Node t2, Node exp );
-  void sendInferTClosure( Node mem_rep, EqcInfo* ei );
-  void sendMergeInfer( Node fact, Node reason, const char * c );
-  EqcInfo* getOrMakeEqcInfo( Node n, bool doMake = false );
+ private:
+  /** Send infer
+   *
+   * Called when we have inferred fact from explanation reason, where the
+   * latter should be a conjunction of facts that hold in the current context.
+   *
+   * The argument c is used for debugging, to give the name of the inference
+   * rule being used.
+   *
+   * This method adds the node (=> reason exp) to the pending vector d_pending.
+   */
+  void sendInfer(Node fact, Node reason, const char* c);
+  /**
+   * This method flushes the inferences in the pending vector d_pending to
+   * theory of sets, which may process them as lemmas or as facts to assert to
+   * the equality engine.
+   */
+  void doPendingInfers();
 
   /** Methods used in full effort */
   void check();
@@ -169,14 +160,7 @@ private:
   void isTCReachable( Node start, Node dest, std::unordered_set<Node, NodeHashFunction>& hasSeen,
                     std::map< Node, std::unordered_set< Node, NodeHashFunction > >& tc_graph, bool& isReachable );
 
-
-  void addSharedTerm( TNode n );
-  void sendInfer( Node fact, Node exp, const char * c );
-  void sendLemma( Node fact, Node reason, const char * c );
-  void doTCLemmas();
-
   /** Helper functions */
-  bool holds( Node );
   bool hasTerm( Node a );
   void makeSharedTerm( Node );
   void reduceTupleVar( Node );
@@ -184,13 +168,8 @@ private:
   void computeTupleReps( Node );
   bool areEqual( Node a, Node b );
   Node getRepresentative( Node t );
-  bool exists( std::vector<Node>&, Node );
   inline void addToMembershipDB( Node, Node, Node  );
-  static void printNodeMap(const char* fst,
-                           const char* snd,
-                           const NodeMap& map);
   inline Node constructPair(Node tc_rep, Node a, Node b);
-  void addToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool safelyAddToMap( std::map< Node, std::vector<Node> >&, Node, Node );
   bool isRel( Node n ) {return n.getType().isSet() && n.getType().getSetElementType().isTuple();}
 };

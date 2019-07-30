@@ -28,6 +28,7 @@
 #include "api/cvc4cpp.h"
 #include "parser/parser.h"
 #include "parser/smt1/smt1.h"
+#include "smt/command.h"
 #include "theory/logic_info.h"
 #include "util/abstract_value.h"
 
@@ -65,7 +66,11 @@ class Smt2 : public Parser
   };
 
  private:
+  /** Has the logic been set (either by forcing it or a set-logic command)? */
   bool d_logicSet;
+  /** Have we seen a set-logic command yet? */
+  bool d_seenSetLogic;
+
   LogicInfo d_logic;
   std::unordered_map<std::string, Kind> operatorKindMap;
   /**
@@ -197,8 +202,11 @@ class Smt2 : public Parser
    * theory symbols.
    *
    * @param name the name of the logic (e.g., QF_UF, AUFLIA)
+   * @param fromCommand should be set to true if the request originates from a
+   *                    set-logic command and false otherwise
+   * @return the command corresponding to setting the logic
    */
-  void setLogic(std::string name);
+  Command* setLogic(std::string name, bool fromCommand = true);
 
   /**
    * Get the logic.
@@ -225,8 +233,10 @@ class Smt2 : public Parser
   {
     return language::isInputLang_smt2_6(getLanguage(), exact);
   }
-
-  bool sygus() const { return getLanguage() == language::input::LANG_SYGUS; }
+  /** Are we using a sygus language? */
+  bool sygus() const;
+  /** Are we using the sygus version 1.0 format? */
+  bool sygus_v1() const;
 
   /**
    * Returns true if the language that we are parsing (SMT-LIB version >=2.5
@@ -324,6 +334,30 @@ class Smt2 : public Parser
                         std::vector<std::string>& unresolved_gterm_sym,
                         std::map< CVC4::Type, CVC4::Type >& sygus_to_builtin );
 
+  /**
+   * Adds a constructor to sygus datatype dt whose sygus operator is term.
+   *
+   * ntsToUnres contains a mapping from non-terminal symbols to the unresolved
+   * types they correspond to. This map indicates how the argument term should
+   * be interpreted (instances of symbols from the domain of ntsToUnres
+   * correspond to constructor arguments).
+   *
+   * The sygus operator that is actually added to dt corresponds to replacing
+   * each occurrence of non-terminal symbols from the domain of ntsToUnres
+   * with bound variables via purifySygusGTerm, and binding these variables
+   * via a lambda.
+   */
+  void addSygusConstructorTerm(Datatype& dt,
+                               Expr term,
+                               std::map<Expr, Type>& ntsToUnres) const;
+  /**
+   * This adds constructors to dt for sygus variables in sygusVars whose
+   * type is argument type. This method should be called when the sygus grammar
+   * term (Variable type) is encountered.
+   */
+  void addSygusConstructorVariables(Datatype& dt,
+                                    std::vector<Expr>& sygusVars,
+                                    Type type) const;
 
   /**
    * Smt2 parser provides its own checkDeclaration, which does the
@@ -343,7 +377,8 @@ class Smt2 : public Parser
       return;
     }else{
       //it is allowable in sygus
-      if( sygus() && name[0]=='-' ){
+      if (sygus_v1() && name[0] == '-')
+      {
         //do not check anything
         return;
       }
@@ -440,6 +475,22 @@ private:
                              unsigned i,
                              const std::vector<Type>& ltypes,
                              std::vector<Expr>& lvars);
+
+  /** Purify sygus grammar term
+   *
+   * This returns a term where all occurrences of non-terminal symbols (those
+   * in the domain of ntsToUnres) are replaced by fresh variables. For each
+   * variable replaced in this way, we add the fresh variable it is replaced
+   * with to args, and the unresolved type corresponding to the non-terminal
+   * symbol to cargs (constructor args). In other words, args contains the
+   * free variables in the term returned by this method (which should be bound
+   * by a lambda), and cargs contains the types of the arguments of the
+   * sygus constructor.
+   */
+  Expr purifySygusGTerm(Expr term,
+                        std::map<Expr, Type>& ntsToUnres,
+                        std::vector<Expr>& args,
+                        std::vector<Type>& cargs) const;
 
   void addArithmeticOperators();
 

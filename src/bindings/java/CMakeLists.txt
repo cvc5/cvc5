@@ -37,6 +37,8 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorSize.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorZeroExtend.java
+  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelValuesCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/BoolHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/BooleanType.java
   ${CMAKE_CURRENT_BINARY_DIR}/CVC4.java
@@ -97,8 +99,21 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprManagerMapCollection.java
   ${CMAKE_CURRENT_BINARY_DIR}/ExprStream.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPoint.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointConvertSort.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointSize.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToBV.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPFloatingPoint.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPGeneric.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPIEEEBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPReal.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPSignedBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToFPUnsignedBitVector.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToSBV.java
+  ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToUBV.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointType.java
   ${CMAKE_CURRENT_BINARY_DIR}/FunctionType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/GetAbductCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetAssertionsCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetAssignmentCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetInfoCommand.java
@@ -162,6 +177,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/ResourceManager.java
   ${CMAKE_CURRENT_BINARY_DIR}/Result.java
   ${CMAKE_CURRENT_BINARY_DIR}/RewriteRuleCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/RoundingMode.java
   ${CMAKE_CURRENT_BINARY_DIR}/RoundingModeType.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExpr.java
   ${CMAKE_CURRENT_BINARY_DIR}/SExprKeyword.java
