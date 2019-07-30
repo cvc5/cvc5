@@ -52,7 +52,7 @@ Node getConstantComponent(Node t);
  *   (str.++ x "ABC") -> null
  *   (re.in x (re.++ (re.* "D") (str.to.re "ABC"))) -> null
  */
-Node getConstantPrefix(Node e, bool isSuf);
+Node getConstantEndpoint(Node e, bool isSuf);
 
 }  // namespace utils
 }  // namespace strings
