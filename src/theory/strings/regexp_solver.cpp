@@ -248,6 +248,11 @@ void RegExpSolver::check(const std::map<Node, std::vector<Node> >& mems)
 
 bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
 {
+  // do not compute intersections if the re intersection mode is none
+  if( options::stringRegExpInterMode()==RE_INTER_NONE )
+  {
+    return true;
+  }
   if (mems.empty())
   {
     // nothing to do
@@ -264,9 +269,11 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
       Assert(m.getKind() == NOT && m[0].getKind() == STRING_IN_REGEXP);
       continue;
     }
-    if (!d_regexp_opr.checkConstRegExp(m))
+    RegExpConstType rct = d_regexp_opr.getRegExpConstType(m);
+    if (rct==RE_C_VARIABLE || ( options::stringRegExpInterMode()==RE_INTER_CONSTANT && rct!=RE_C_CONRETE_CONSTANT) )
     {
-      // cannot do intersection on RE with variables
+      // cannot do intersection on RE with variables, or with re.allchar based
+      // on option.
       continue;
     }
     if (mi.isNull())
