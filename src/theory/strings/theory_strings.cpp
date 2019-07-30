@@ -1117,7 +1117,7 @@ Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
     if (c.isNull())
     {
       c = utils::getConstantEndpoint(t, isSuf);
-      Assert(!c.isNull());
+      Assert(!c.isNull() && c.getKind()==CONST_STRING);
     }
     bool conflict = false;
     // if the constant prefixes are different
@@ -1268,6 +1268,7 @@ void TheoryStrings::eqNotifyNewClass(TNode t){
 
 void TheoryStrings::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
 {
+  Assert(concat.getKind()==STRING_CONCAT || concat.getKind()==REGEXP_CONCAT);
   EqcInfo* ei = nullptr;
   // check each side
   for (unsigned r = 0; r < 2; r++)
@@ -1283,7 +1284,7 @@ void TheoryStrings::addEndpointsToEqcInfo(Node t, Node concat, Node eqc)
       Trace("strings-eager-pconf-debug")
           << "New term: " << concat << " for " << t << " with prefix " << c
           << " (" << (r == 1) << ")" << std::endl;
-      setPendingConflict(ei->addEndpointConst(t, c, r == 1));
+      setPendingConflictWhen(ei->addEndpointConst(t, c, r == 1));
     }
   }
 }
@@ -1303,12 +1304,12 @@ void TheoryStrings::eqNotifyPreMerge(TNode t1, TNode t2){
     }
     if (!e2->d_prefixC.get().isNull())
     {
-      setPendingConflict(
+      setPendingConflictWhen(
           e1->addEndpointConst(e2->d_prefixC, Node::null(), false));
     }
     if (!e2->d_suffixC.get().isNull())
     {
-      setPendingConflict(e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
+      setPendingConflictWhen(e1->addEndpointConst(e2->d_suffixC, Node::null(), true));
     }
     if( e2->d_cardinality_lem_k.get()>e1->d_cardinality_lem_k.get() ) {
       e1->d_cardinality_lem_k.set( e2->d_cardinality_lem_k );
@@ -1488,7 +1489,7 @@ void TheoryStrings::assertPendingFact(Node atom, bool polarity, Node exp) {
   Trace("strings-pending-debug") << "  Finished collect terms" << std::endl;
 }
 
-void TheoryStrings::setPendingConflict(Node conf)
+void TheoryStrings::setPendingConflictWhen(Node conf)
 {
   if (!conf.isNull() && d_pendingConflict.get().isNull())
   {

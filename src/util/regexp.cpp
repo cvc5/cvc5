@@ -396,13 +396,13 @@ std::size_t String::rfind(const String &y, const std::size_t start) const {
 
 bool String::hasPrefix(const String& y) const
 {
-  unsigned s = size();
-  unsigned ys = y.size();
+  size_t s = size();
+  size_t ys = y.size();
   if (ys > s)
   {
     return false;
   }
-  for (unsigned i = 0; i < ys; i++)
+  for (size_t i = 0; i < ys; i++)
   {
     if (d_str[i] != y.d_str[i])
     {
@@ -414,14 +414,14 @@ bool String::hasPrefix(const String& y) const
 
 bool String::hasSuffix(const String& y) const
 {
-  unsigned s = size();
-  unsigned ys = y.size();
+  size_t s = size();
+  size_t ys = y.size();
   if (ys > s)
   {
     return false;
   }
-  unsigned idiff = s - ys;
-  for (unsigned i = 0; i < ys; i++)
+  size_t idiff = s - ys;
+  for (size_t i = 0; i < ys; i++)
   {
     if (d_str[i + idiff] != y.d_str[i])
     {

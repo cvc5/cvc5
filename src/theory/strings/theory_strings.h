@@ -765,20 +765,26 @@ private:
   void assertPendingFact(Node atom, bool polarity, Node exp);
   /** add endpoints to eqc info
    * 
-   * TODO
+   * This method is called when term t is the explanation for why equivalence
+   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * For example, we may call this method on:
+   *   t := (str.++ x y), concat := (str.++ x y), eqc
+   * for some eqc that is currently equal to t. Another example is:
+   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
+   * for some eqc that is currently equal to z.
    */
   void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
   /** set pending conflict
    *
-   * This is called when conf is a conjunction of literals that hold in the
-   * current context that are unsatisfiable. It is set as the "pending conflict"
-   * to be processed as a conflict lemma on the output channel of this class.
-   * It is not sent out immediately since it may require explanation from the
-   * equality engine, and may be called at any time, e.g. during a merge
-   * operation, when the equality engine is not in a state to provide
-   * explanations.
+   * If conf is non-null, this is called when conf is a conjunction of literals
+   * that hold in the current context that are unsatisfiable. It is set as the
+   * "pending conflict" to be processed as a conflict lemma on the output
+   * channel of this class. It is not sent out immediately since it may require
+   * explanation from the equality engine, and may be called at any time, e.g.
+   * during a merge operation, when the equality engine is not in a state to
+   * provide explanations.
    */
-  void setPendingConflict(Node conf);
+  void setPendingConflictWhen(Node conf);
   /**
    * Adds equality a = b to the vector exp if a and b are distinct terms. It
    * must be the case that areEqual( a, b ) holds in this context.
