@@ -5240,7 +5240,7 @@ void SmtEngine::push()
 
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
-  // staying symmtric with pop.
+  // staying symmetric with pop.
   setProblemExtended();
 
   d_userLevels.push_back(d_userContext->getLevel());
