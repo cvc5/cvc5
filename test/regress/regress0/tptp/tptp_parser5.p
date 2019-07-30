@@ -1,3 +1,4 @@
+% COMMAND-LINE: --finite-model-find
 % Status: Satisfiable
 
 %--------------------------------------------------------------------------

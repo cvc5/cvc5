@@ -874,8 +874,13 @@ void TermDbSygus::computeMinTypeDepthInternal( TypeNode root_tn, TypeNode tn, un
       // do not recurse to non-datatype types
       return;
     }
+    const Datatype& dt = tn.getDatatype();
+    if( !dt.isSygus() )
+    {
+      // do not recurse to non-sygus datatype types
+      return;
+    }
     d_min_type_depth[root_tn][tn] = type_depth;
-    const Datatype& dt = ((DatatypeType)(tn).toType()).getDatatype();
     //compute for connected types
     for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
       for( unsigned j=0; j<dt[i].getNumArgs(); j++ ){

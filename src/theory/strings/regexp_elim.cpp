@@ -17,6 +17,7 @@
 
 #include "options/strings_options.h"
 #include "theory/strings/theory_strings_rewriter.h"
+#include "theory/strings/theory_strings_utils.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -51,7 +52,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
   Node lenx = nm->mkNode(STRING_LENGTH, x);
   Node re = atom[1];
   std::vector<Node> children;
-  TheoryStringsRewriter::getConcat(re, children);
+  utils::getConcat(re, children);
 
   // If it can be reduced to memberships in fixed length regular expressions.
   // This includes concatenations where at most one child is of the form
@@ -380,8 +381,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
     Assert(rexpElimChildren.size() + sConstraints.size() == nchildren);
     Node ss = nm->mkNode(STRING_SUBSTR, x, sStartIndex, sLength);
     Assert(!rexpElimChildren.empty());
-    Node regElim =
-        TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rexpElimChildren);
+    Node regElim = utils::mkConcat(REGEXP_CONCAT, rexpElimChildren);
     sConstraints.push_back(nm->mkNode(STRING_IN_REGEXP, ss, regElim));
     Node ret = nm->mkNode(AND, sConstraints);
     // e.g.
@@ -421,7 +421,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         std::vector<Node> rprefix;
         rprefix.insert(rprefix.end(), children.begin(), children.begin() + i);
-        Node rpn = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rprefix);
+        Node rpn = utils::mkConcat(REGEXP_CONCAT, rprefix);
         Node substrPrefix = nm->mkNode(
             STRING_IN_REGEXP, nm->mkNode(STRING_SUBSTR, x, d_zero, k), rpn);
         echildren.push_back(substrPrefix);
@@ -430,7 +430,7 @@ Node RegExpElimination::eliminateConcat(Node atom)
       {
         std::vector<Node> rsuffix;
         rsuffix.insert(rsuffix.end(), children.begin() + i + 1, children.end());
-        Node rps = TheoryStringsRewriter::mkConcat(REGEXP_CONCAT, rsuffix);
+        Node rps = utils::mkConcat(REGEXP_CONCAT, rsuffix);
         Node ks = nm->mkNode(PLUS, k, lens);
         Node substrSuffix = nm->mkNode(
             STRING_IN_REGEXP,

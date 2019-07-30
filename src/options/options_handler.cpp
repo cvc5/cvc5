@@ -219,7 +219,7 @@ ErrorSelectionRule OptionsHandler::stringToErrorSelectionRule(
 // theory/quantifiers/options_handlers.h
 
 const std::string OptionsHandler::s_instWhenHelp = "\
-Modes currently supported by the --inst-when option:\n\
+Instantiation modes currently supported by the --inst-when option:\n\
 \n\
 full-last-call (default)\n\
 + Alternate running instantiation rounds at full effort and last\n\
@@ -349,7 +349,8 @@ min-s-all \n\
 \n\
 ";
 const std::string OptionsHandler::s_triggerActiveSelModeHelp = "\
-Trigger active selection modes currently supported by the --trigger-sel option:\n\
+Trigger active selection modes currently supported by the \
+--trigger-active-sel option:\n\
 \n\
 all \n\
 + Make all triggers active. \n\
@@ -399,7 +400,8 @@ none \n\
 ";
 
 const std::string OptionsHandler::s_termDbModeHelp = "\
-Modes for term database, supported by --term-db-mode:\n\
+Modes for terms included in the quantifiers term database, supported by\
+--term-db-mode:\n\
 \n\
 all  \n\
 + Quantifiers module considers all ground terms.\n\
@@ -425,7 +427,8 @@ all \n\
 
 const std::string OptionsHandler::s_cbqiBvIneqModeHelp =
     "\
-Modes for single invocation techniques, supported by --cbqi-bv-ineq:\n\
+Modes for handling bit-vector inequalities in counterexample-guided\
+instantiation, supported by --cbqi-bv-ineq:\n\
 \n\
 eq-slack (default)  \n\
 + Solve for the inequality using the slack value in the model, e.g.,\
@@ -1587,7 +1590,7 @@ table\n\
 ";
 
 const std::string OptionsHandler::s_instFormatHelp = "\
-Inst format modes currently supported by the --model-format option:\n\
+Inst format modes currently supported by the --inst-format option:\n\
 \n\
 default \n\
 + Print instantiations as a list in the output language format.\n\
@@ -1711,7 +1714,7 @@ SimplificationMode OptionsHandler::stringToSimplificationMode(
 
 const std::string OptionsHandler::s_modelCoresHelp =
     "\
-Model cores modes currently supported by the --simplification option:\n\
+Model cores modes currently supported by the --model-cores option:\n\
 \n\
 none (default) \n\
 + do not compute model cores\n\
@@ -1754,9 +1757,52 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_blockModelsHelp =
+    "\
+Blocking models modes are currently supported by the --block-models option:\n\
+\n\
+none (default) \n\
++ do not block models\n\
+\n\
+literals\n\
++ block models based on the SAT skeleton\n\
+\n\
+values\n\
++ block models based on the concrete model values for the free variables.\n\ 
+\n\
+";
+
+BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
+                                                        std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return BLOCK_MODELS_NONE;
+  }
+  else if (optarg == "literals")
+  {
+    return BLOCK_MODELS_LITERALS;
+  }
+  else if (optarg == "values")
+  {
+    return BLOCK_MODELS_VALUES;
+    ;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_blockModelsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --block-models: `")
+                          + optarg + "'.  Try --block-models help.");
+  }
+}
+
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\
-Modes for finite model finding bound minimization, supported by --sygus-out:\n\
+Modes for sygus solution output, supported by --sygus-out:\n\
 \n\
 status \n\
 + Print only status for check-synth calls.\n\
