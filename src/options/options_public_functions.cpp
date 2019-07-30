@@ -34,7 +34,6 @@
 #include "options/option_exception.h"
 #include "options/smt_options.h"
 #include "options/quantifiers_options.h"
-#include "options/uf_options.h"
 
 namespace CVC4 {
 
@@ -310,11 +309,6 @@ void Options::flushOut() {
   if(getOut() != NULL) {
     *(getOut()) << std::flush;
   }
-}
-
-bool Options::getHoFlattenTotal() const
-{
-  return (*this)[options::hoFlattenTotal];
 }
 
 }/* CVC4 namespace */

@@ -973,21 +973,9 @@ thfLogicFormula[CVC4::Expr& expr]
                 (static_cast<FunctionType>(args[0].getType()))
                     .getArgTypes()[i - 1]);
           }
-          // total application
-          if (EXPR_MANAGER->getOptions().getHoFlattenTotal()
-                   && expr.getType().isFunction()
-                   && static_cast<FunctionType>(expr.getType()).getArity()
-                          == args.size() - 1)
+          for (unsigned i = 1; i < args.size(); ++i)
           {
-            args.erase(args.begin());
-            expr = EXPR_MANAGER->mkExpr(kind::APPLY_UF, expr, args);
-          }
-          else
-          {
-            for (unsigned i = 1; i < args.size(); ++i)
-            {
-              expr = MK_EXPR(kind::HO_APPLY, expr, args[i]);
-            }
+            expr = MK_EXPR(kind::HO_APPLY, expr, args[i]);
           }
         }
       }

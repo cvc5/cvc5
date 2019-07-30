@@ -241,7 +241,6 @@ public:
   unsigned getParseStep() const;
   unsigned getThreadStackSize() const;
   unsigned getThreads() const;
-  bool getHoFlattenTotal() const;
 
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
