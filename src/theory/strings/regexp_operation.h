@@ -67,7 +67,10 @@ class RegExpOpr {
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
-  /** Helper function for mkString */
+  /** 
+   * Helper function for mkString, pretty prints constant or variable regular
+   * expression r.
+   */
   static std::string niceChar(Node r);
   Node mkAllExceptOne(unsigned c);
   bool isPairNodesInSet(std::set<PairNodes> &s, Node n1, Node n2);
