@@ -67,7 +67,11 @@ class RegExpOpr {
   std::map<Node, std::vector<PairNodes> > d_split_cache;
   void simplifyPRegExp(Node s, Node r, std::vector<Node> &new_nodes);
   void simplifyNRegExp(Node s, Node r, std::vector<Node> &new_nodes);
-  std::string niceChar(Node r);
+  /**
+   * Helper function for mkString, pretty prints constant or variable regular
+   * expression r.
+   */
+  static std::string niceChar(Node r);
   Node mkAllExceptOne(unsigned c);
   bool isPairNodesInSet(std::set<PairNodes> &s, Node n1, Node n2);
 
@@ -86,14 +90,23 @@ class RegExpOpr {
   RegExpOpr();
   ~RegExpOpr();
 
+  /**
+   * Returns true if r is a "constant" regular expression, that is, a set
+   * of regular expression operators whose subterms of the form (str.to.re t)
+   * are such that t is a constant (or rewrites to one).
+   */
   bool checkConstRegExp( Node r );
   void simplify(Node t, std::vector< Node > &new_nodes, bool polarity);
   int delta( Node r, Node &exp );
   int derivativeS( Node r, CVC4::String c, Node &retNode );
   Node derivativeSingle( Node r, CVC4::String c );
+  /**
+   * Returns the regular expression intersection of r1 and r2. If r1 or r2 is
+   * not constant, then this method returns null and sets spflag to true.
+   */
   Node intersect(Node r1, Node r2, bool &spflag);
-
-  std::string mkString( Node r );
+  /** Get the pretty printed version of the regular expression r */
+  static std::string mkString(Node r);
 };
 
 }/* CVC4::theory::strings namespace */
