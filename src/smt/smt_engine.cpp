@@ -3768,6 +3768,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                    << d_status;
     }
     d_expectedStatus = Result();
+    // Update the SMT mode
     if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
     {
       d_smtMode = SMT_MODE_UNSAT;
@@ -5054,7 +5055,9 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
-bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+bool SmtEngine::getAbduct(const Expr& conj,
+                          const Type& grammarType,
+                          Expr& abd)
 {
   SmtScope smts(this);
 
@@ -5101,6 +5104,7 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
   d_subsolver->assertFormula(aconj.toExpr());
   if (getAbductInternal(abd))
   {
+    // successfully generated an abduct, update to abduct state
     d_smtMode = SMT_MODE_ABDUCT;
     return true;
   }
