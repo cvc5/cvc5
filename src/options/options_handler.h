@@ -151,8 +151,11 @@ public:
   theory::bv::BvOptimizeSatProof stringToBvOptimizeSatProof(std::string option,
                                                             std::string optarg);
 
-  theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
+  theory::strings::ProcessLoopMode stringToProcessLoopMode(
       std::string option, std::string optarg);
+  theory::strings::RegExpInterMode stringToRegExpInterMode(
+      std::string option, std::string optarg);
+
 
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
@@ -242,7 +245,8 @@ public:
   static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
-  static const std::string s_stringToStringsProcessLoopModeHelp;
+  static const std::string s_stringsProcessLoopModeHelp;
+  static const std::string s_regExpInterModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file strings_process_loop_mode.cpp
+/*! \file strings_modes.cpp
  ** \verbatim
  ** Top contributors (to current version):
  **   Andres Noetzli
@@ -9,12 +9,10 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Modes for processing looping word equations in the string solver.
- **
- ** Modes for processing looping word equations in the string solver.
+ ** \brief Modes for the string solver.
  **/
 
-#include "options/strings_process_loop_mode.h"
+#include "options/strings_modes.h"
 
 #include <cstdint>
 #include <iostream>
@@ -43,6 +41,26 @@ std::ostream& operator<<(std::ostream& out,
       break;
     default:
       out << "ProcessLoopMode:UNKNOWN![" << static_cast<int64_t>(mode) << "]";
+  }
+  return out;
+}
+
+std::ostream& operator<<(std::ostream& out,
+                         theory::strings::RegExpInterMode mode)
+{
+  switch (mode)
+  {
+    case theory::strings::RegExpInterMode::RE_INTER_ALL:
+      out << "RegExpInterMode::RE_INTER_ALL";
+      break;
+    case theory::strings::RegExpInterMode::RE_INTER_CONSTANT:
+      out << "RegExpInterMode::RE_INTER_CONSTANT";
+      break;
+    case theory::strings::RegExpInterMode::RE_INTER_NONE:
+      out << "RegExpInterMode::RE_INTER_NONE";
+      break;
+    default:
+      out << "RegExpInterMode:UNKNOWN![" << static_cast<int64_t>(mode) << "]";
   }
   return out;
 }

@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file strings_process_loop_mode.h
+/*! \file strings_modes.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andres Noetzli
@@ -9,9 +9,7 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Modes for processing looping word equations in the string solver.
- **
- ** Modes for processing looping word equations in the string solver.
+ ** \brief Modes for the string solver.
  **/
 
 #include "cvc4_private.h"
@@ -66,7 +64,7 @@ std::ostream& operator<<(std::ostream& out,
                          theory::strings::ProcessLoopMode mode);
 
 std::ostream& operator<<(std::ostream& out,
-                         theory::strings::ProcessLoopMode mode);
+                         theory::strings::RegExpInterMode mode);
 
 }  // namespace CVC4
 

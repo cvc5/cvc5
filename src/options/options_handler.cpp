@@ -1386,7 +1386,7 @@ theory::bv::BvSlicerMode OptionsHandler::stringToBvSlicerMode(
   }
 }
 
-const std::string OptionsHandler::s_stringToStringsProcessLoopModeHelp =
+const std::string OptionsHandler::s_stringsProcessLoopModeHelp =
     "Loop processing modes supported by the --strings-process-loop-mode "
     "option:\n"
     "\n"
@@ -1430,7 +1430,7 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
   }
   else if (optarg == "help")
   {
-    puts(s_stringToStringsProcessLoopModeHelp.c_str());
+    puts(s_stringsProcessLoopModeHelp.c_str());
     exit(1);
   }
   else
@@ -1438,6 +1438,50 @@ theory::strings::ProcessLoopMode OptionsHandler::stringToStringsProcessLoopMode(
     throw OptionException(
         std::string("unknown option for --strings-process-loop-mode: `")
         + optarg + "'.  Try --strings-process-loop-mode=help.");
+  }
+}
+
+const std::string OptionsHandler::s_regExpInterModeHelp =
+    "\
+Regular expression intersection modes supported by the --re-inter-mode option\
+\n\
+\n\
+all \n\
++ Compute intersections for all regular expressions.\n\
+\n\
+constant (default)\n\
++ Computer intersections only between regular expressions that do not contain\
+re.allchar\n\
+\n\
+none\n\
++ Do not compute intersections for regular expressions\n\
+";
+
+theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
+    std::string option, std::string optarg)
+{
+  if (optarg == "all")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ALL;
+  }
+  else if (optarg == "constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_CONSTANT;
+  }
+  else if (optarg == "none")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_NONE;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_regExpInterModeHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(
+        std::string("unknown option for --re-inter-mode: `")
+        + optarg + "'.  Try --re-inter-mode=help.");
   }
 }
 

@@ -220,7 +220,7 @@ header = "options/strings_options.h"
 [[option]]
   name       = "stringRegExpInterMode"
   category   = "expert"
-  long       = "strings-regexp-inter-mode=MODE"
+  long       = "re-inter-mode=MODE"
   type       = "CVC4::theory::strings::RegExpInterMode"
   default    = "CVC4::theory::strings::RE_INTER_CONSTANT"
   handler    = "stringToRegExpInterMode"
