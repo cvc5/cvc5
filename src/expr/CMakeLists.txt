@@ -16,6 +16,8 @@ libcvc4_add_sources(
   expr_stream.h
   kind_map.h
   matcher.h
+  match_trie.cpp
+  match_trie.h
   node.cpp
   node.h
   node_algorithm.cpp
