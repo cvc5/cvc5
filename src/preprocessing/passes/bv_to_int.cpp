@@ -562,8 +562,10 @@ Node BVToInt::bvToInt(Node n)
             }
             case kind::BITVECTOR_ITE:
             {
-              std::cout << "panda not supposed to be here" << std::endl;
-              Assert(false);
+              Node one_const = d_nm->mkConst<Rational>(1);
+              Node cond = d_nm->mkNode(kind::EQUAL, intized_children[0], one_const);
+              Node ite = d_nm->mkNode(kind::ITE, cond, intized_children[1], intized_children[2]);
+              d_bvToIntCache[current] = ite;
               break;
             }
             case kind::BITVECTOR_CONCAT:
