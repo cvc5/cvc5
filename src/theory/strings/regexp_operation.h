@@ -35,17 +35,21 @@ namespace strings {
 
 /**
  * Information on whether regular expressions contain constants or re.allchar.
+ *
+ * The order of this enumeration matters: the larger the value, the more
+ * possible regular expressions could fit the description.
  */
 enum RegExpConstType
 {
-  // unknown status
-  RE_C_UNKNOWN,
   // the regular expression doesn't contain variables or re.allchar
   RE_C_CONRETE_CONSTANT,
-  // the regular expression doesn't contain variables, but contains re.allchar
+  // the regular expression doesn't contain variables, but may contain
+  // re.allchar
   RE_C_CONSTANT,
-  // the regular expression contains variables
-  RE_C_VARIABLE
+  // the regular expression may contain variables
+  RE_C_VARIABLE,
+  // the status of the regular expression is unknown (used internally)
+  RE_C_UNKNOWN,
 };
 
 class RegExpOpr {

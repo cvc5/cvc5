@@ -14,8 +14,8 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__BASE__STRINGS_MODES_H
-#define CVC4__BASE__STRINGS_MODES_H
+#ifndef CVC4__THEORY__STRINGS__STRINGS_MODES_H
+#define CVC4__THEORY__STRINGS__STRINGS_MODES_H
 
 #include <iosfwd>
 
@@ -50,6 +50,12 @@ enum RegExpInterMode
 
   /** Compute intersections only for regular expressions without re.allchar. */
   RE_INTER_CONSTANT,
+  
+  /** 
+   * Compute intersections only between regular expressions where one side does
+   * not contain re.allchar.
+   */
+  RE_INTER_ONE_CONSTANT,
 
   /** Do not compute intersections of regular expressions. */
   RE_INTER_NONE,
@@ -66,4 +72,4 @@ std::ostream& operator<<(std::ostream& out,
 
 }  // namespace CVC4
 
-#endif /* CVC4__BASE__STRINGS_MODES_H */
+#endif /* CVC4__THEORY__STRINGS__STRINGS_MODES_H */

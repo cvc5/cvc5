@@ -1453,6 +1453,10 @@ constant (default)\n\
 + Compute intersections only between regular expressions that do not contain\
 re.allchar\n\
 \n\
+one-constant\n\
++ Compute intersections only between regular expressions such that at least one\
+side does not contain re.allchar\n\
+\n\
 none\n\
 + Do not compute intersections for regular expressions\n\
 ";
@@ -1467,6 +1471,10 @@ theory::strings::RegExpInterMode OptionsHandler::stringToRegExpInterMode(
   else if (optarg == "constant")
   {
     return theory::strings::RegExpInterMode::RE_INTER_CONSTANT;
+  }
+  else if (optarg == "one-constant")
+  {
+    return theory::strings::RegExpInterMode::RE_INTER_ONE_CONSTANT;
   }
   else if (optarg == "none")
   {

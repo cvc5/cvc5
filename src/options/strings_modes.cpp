@@ -56,6 +56,9 @@ std::ostream& operator<<(std::ostream& out,
     case theory::strings::RegExpInterMode::RE_INTER_CONSTANT:
       out << "RegExpInterMode::RE_INTER_CONSTANT";
       break;
+    case theory::strings::RegExpInterMode::RE_INTER_ONE_CONSTANT:
+      out << "RegExpInterMode::RE_INTER_ONE_CONSTANT";
+      break;
     case theory::strings::RegExpInterMode::RE_INTER_NONE:
       out << "RegExpInterMode::RE_INTER_NONE";
       break;
