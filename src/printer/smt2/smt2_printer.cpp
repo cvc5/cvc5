@@ -509,7 +509,30 @@ void Smt2Printer::toStream(std::ostream& out,
   // uf theory
   case kind::APPLY_UF: typeChildren = true; break;
   // higher-order
-  case kind::HO_APPLY: break;
+  case kind::HO_APPLY:
+    // collapse "@" chains, i.e.
+    //
+    // @(@(a, b), c) --> (@ a b c)
+    //
+    // @(@(@(a, b), @(@(c, d), e)), f) --> (@ a b (@ c d e) f)
+    {
+      Node head = n;
+      std::vector<Node> args;
+      while (head.getKind() == kind::HO_APPLY)
+      {
+        args.insert(args.begin(), head[1]);
+        head = head[0];
+      }
+      toStream(out, head, toDepth, types, TypeNode::null());
+      for (unsigned i = 0, size = args.size(); i < size; ++i)
+      {
+        out << " ";
+        toStream(out, args[i], toDepth, types, TypeNode::null());
+      }
+      out << ")";
+    }
+    return;
+
   case kind::LAMBDA:
     out << smtKindString(k, d_variant) << " ";
     break;
