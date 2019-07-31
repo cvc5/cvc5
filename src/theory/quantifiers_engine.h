@@ -36,6 +36,11 @@ namespace CVC4 {
 
 class TheoryEngine;
 
+namespace expr 
+{
+  class TermCanonize;
+}
+
 namespace theory {
 
 class QuantifiersEngine;
@@ -47,7 +52,6 @@ namespace quantifiers {
   class TermDb;
   class TermDbSygus;
   class TermUtil;
-  class TermCanonize;
   class Instantiate;
   class Skolemize;
   class TermEnumeration;
@@ -130,7 +134,7 @@ public:
   /** get term utilities */
   quantifiers::TermUtil* getTermUtil() const;
   /** get term canonizer */
-  quantifiers::TermCanonize* getTermCanonize() const;
+  expr::TermCanonize* getTermCanonize() const;
   /** get quantifiers attributes */
   quantifiers::QuantAttributes* getQuantAttributes() const;
   /** get instantiate utility */
@@ -345,7 +349,7 @@ public:
   /** term utilities */
   std::unique_ptr<quantifiers::TermUtil> d_term_util;
   /** term utilities */
-  std::unique_ptr<quantifiers::TermCanonize> d_term_canon;
+  std::unique_ptr<expr::TermCanonize> d_term_canon;
   /** term database */
   std::unique_ptr<quantifiers::TermDb> d_term_db;
   /** sygus term database */

@@ -591,8 +591,6 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
-  theory/quantifiers/term_canonize.cpp
-  theory/quantifiers/term_canonize.h
   theory/quantifiers/term_database.cpp
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp

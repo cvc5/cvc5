@@ -14,15 +14,14 @@
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
-#define CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H
+#ifndef CVC4__EXPR__TERM_CANONIZE_H
+#define CVC4__EXPR__TERM_CANONIZE_H
 
 #include <map>
 #include "expr/node.h"
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
+namespace expr {
 
 /** TermCanonize
  *
@@ -78,6 +77,15 @@ class TermCanonize
   std::map<TypeNode, int> d_typ_id;
   /** free variables for each type */
   std::map<TypeNode, std::vector<Node> > d_cn_free_var;
+  /** 
+   * Map from each free variable above to their index in their respective vector
+   */
+  std::map<Node, size_t > d_fvIndex;
+  /** 
+   * Return the range of the free variable in the above map, or 0 if it does not
+   * exist. 
+   */
+  size_t getIndexForFreeVariable(Node v) const;
   /** get canonical term
    *
    * This is a helper function for getCanonicalTerm above. We maintain a
@@ -91,8 +99,7 @@ class TermCanonize
                         std::map<TNode, Node>& visited);
 };
 
-}  // namespace quantifiers
-}  // namespace theory
+}  // namespace expr
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__QUANTIFIERS__TERM_CANONIZE_H */
+#endif /* CVC4__EXPR__TERM_CANONIZE_H */

@@ -37,6 +37,8 @@ libcvc4_add_sources(
   pickler.h
   symbol_table.cpp
   symbol_table.h
+  term_canonize.cpp
+  term_canonize.h
   type.cpp
   type.h
   type_checker.h

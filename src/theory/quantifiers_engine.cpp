@@ -49,7 +49,7 @@
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_canonize.h"
+#include "expr/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
@@ -81,7 +81,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
-      d_term_canon(new quantifiers::TermCanonize),
+      d_term_canon(new expr::TermCanonize),
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
@@ -330,7 +330,7 @@ quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
 {
   return d_term_util.get();
 }
-quantifiers::TermCanonize* QuantifiersEngine::getTermCanonize() const
+expr::TermCanonize* QuantifiersEngine::getTermCanonize() const
 {
   return d_term_canon.get();
 }

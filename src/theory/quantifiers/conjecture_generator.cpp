@@ -18,7 +18,7 @@
 #include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/term_canonize.h"
+#include "expr/term_canonize.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
