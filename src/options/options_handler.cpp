@@ -1757,6 +1757,49 @@ ModelCoresMode OptionsHandler::stringToModelCoresMode(std::string option,
   }
 }
 
+const std::string OptionsHandler::s_blockModelsHelp =
+    "\
+Blocking models modes are currently supported by the --block-models option:\n\
+\n\
+none (default) \n\
++ do not block models\n\
+\n\
+literals\n\
++ block models based on the SAT skeleton\n\
+\n\
+values\n\
++ block models based on the concrete model values for the free variables.\n\ 
+\n\
+";
+
+BlockModelsMode OptionsHandler::stringToBlockModelsMode(std::string option,
+                                                        std::string optarg)
+{
+  if (optarg == "none")
+  {
+    return BLOCK_MODELS_NONE;
+  }
+  else if (optarg == "literals")
+  {
+    return BLOCK_MODELS_LITERALS;
+  }
+  else if (optarg == "values")
+  {
+    return BLOCK_MODELS_VALUES;
+    ;
+  }
+  else if (optarg == "help")
+  {
+    puts(s_blockModelsHelp.c_str());
+    exit(1);
+  }
+  else
+  {
+    throw OptionException(std::string("unknown option for --block-models: `")
+                          + optarg + "'.  Try --block-models help.");
+  }
+}
+
 const std::string OptionsHandler::s_sygusSolutionOutModeHelp =
     "\
 Modes for sygus solution output, supported by --sygus-out:\n\

@@ -85,6 +85,7 @@
 #include "smt/command_list.h"
 #include "smt/logic_request.h"
 #include "smt/managed_ostreams.h"
+#include "smt/model_blocker.h"
 #include "smt/model_core_builder.h"
 #include "smt/smt_engine_scope.h"
 #include "smt/term_formula_removal.h"
@@ -98,6 +99,7 @@
 #include "theory/quantifiers/fun_def_process.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/single_inv_partition.h"
+#include "theory/quantifiers/sygus/sygus_abduct.h"
 #include "theory/quantifiers/sygus/synth_engine.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/rewriter.h"
@@ -867,13 +869,13 @@ SmtEngine::SmtEngine(ExprManager* em)
       d_isInternalSubsolver(false),
       d_pendingPops(0),
       d_fullyInited(false),
-      d_problemExtended(false),
       d_queryMade(false),
       d_needPostsolve(false),
       d_earlyTheoryPP(true),
       d_globalNegation(false),
       d_status(),
       d_expectedStatus(),
+      d_smtMode(SMT_MODE_START),
       d_replayStream(NULL),
       d_private(NULL),
       d_statisticsRegistry(NULL),
@@ -1256,26 +1258,31 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::sygusInference() || options::sygusRewSynthInput()
-        || options::sygusAbduct())
+    if (options::produceAbducts())
     {
-      d_logic = d_logic.getUnlockedCopy();
-      // sygus requires arithmetic, datatypes and quantifiers
-      d_logic.enableTheory(THEORY_ARITH);
-      d_logic.enableTheory(THEORY_DATATYPES);
-      d_logic.enableTheory(THEORY_QUANTIFIERS);
-      d_logic.lock();
+      // we may invoke a sygus conjecture, hence we need options related to
+      // sygus
+      is_sygus = true;
+    }
+    if (options::sygusInference() || options::sygusRewSynthInput())
+    {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
+      // we change the logic to incorporate sygus immediately
+      d_logic = d_logic.getUnlockedCopy();
+      d_logic.enableSygus();
+      d_logic.lock();
     }
   }
 
   if ((options::checkModels() || options::checkSynthSol()
-       || options::modelCoresMode() != MODEL_CORES_NONE)
+       || options::produceAbducts()
+       || options::modelCoresMode() != MODEL_CORES_NONE
+       || options::blockModelsMode() != BLOCK_MODELS_NONE)
       && !options::produceAssertions())
   {
     Notice() << "SmtEngine: turning on produce-assertions to support "
-             << "check-models, check-synth-sol or produce-model-cores." << endl;
+             << "option requiring assertions." << endl;
     setOption("produce-assertions", SExpr("true"));
   }
 
@@ -1834,6 +1841,11 @@ void SmtEngine::setDefaults() {
     if( options::mbqiMode()!=quantifiers::MBQI_NONE ){
       options::mbqiMode.set( quantifiers::MBQI_NONE );
     }
+    if (!options::hoElimStoreAx.wasSetByUser())
+    {
+      // by default, use store axioms only if --ho-elim is set
+      options::hoElimStoreAx.set(options::hoElim());
+    }
   }
   if( options::fmfFunWellDefinedRelevant() ){
     if( !options::fmfFunWellDefined.wasSetByUser() ){
@@ -1957,16 +1969,24 @@ void SmtEngine::setDefaults() {
         options::sygusExtRew.set(false);
       }
     }
-    if (options::sygusAbduct())
+    // Whether we must use "basic" sygus algorithms. A non-basic sygus algorithm
+    // is one that is specialized for returning a single solution. Non-basic
+    // sygus algorithms currently include the PBE solver, static template
+    // inference for invariant synthesis, and single invocation techniques.
+    bool reqBasicSygus = false;
+    if (options::produceAbducts())
     {
       // if doing abduction, we should filter strong solutions
       if (!options::sygusFilterSolMode.wasSetByUser())
       {
         options::sygusFilterSolMode.set(quantifiers::SYGUS_FILTER_SOL_STRONG);
       }
+      // we must use basic sygus algorithms, since e.g. we require checking
+      // a sygus side condition for consistency with axioms.
+      reqBasicSygus = true;
     }
     if (options::sygusRewSynth() || options::sygusRewVerify()
-        || options::sygusQueryGen() || options::sygusAbduct())
+        || options::sygusQueryGen())
     {
       // rewrite rule synthesis implies that sygus stream must be true
       options::sygusStream.set(true);
@@ -1974,9 +1994,12 @@ void SmtEngine::setDefaults() {
     if (options::sygusStream())
     {
       // Streaming is incompatible with techniques that focus the search towards
-      // finding a single solution. This currently includes the PBE solver,
-      // static template inference for invariant synthesis, and single
-      // invocation techniques.
+      // finding a single solution.
+      reqBasicSygus = true;
+    }
+    // Now, disable options for non-basic sygus algorithms, if necessary.
+    if (reqBasicSygus)
+    {
       if (!options::sygusUnifPbe.wasSetByUser())
       {
         options::sygusUnifPbe.set(false);
@@ -2294,11 +2317,11 @@ void SmtEngine::setDefaults() {
           "--sygus-expr-miner-check-timeout=N requires "
           "--sygus-expr-miner-check-use-export");
     }
-    if (options::sygusRewSynthInput() || options::sygusAbduct())
+    if (options::sygusRewSynthInput() || options::produceAbducts())
     {
       std::stringstream ss;
       ss << (options::sygusRewSynthInput() ? "--sygus-rr-synth-input"
-                                           : "--sygus-abduct");
+                                           : "--produce-abducts");
       ss << "requires --sygus-expr-miner-check-use-export";
       throw OptionException(ss.str());
     }
@@ -2314,10 +2337,10 @@ void SmtEngine::setDefaults() {
   }
 }
 
-void SmtEngine::setProblemExtended(bool value)
+void SmtEngine::setProblemExtended()
 {
-  d_problemExtended = value;
-  if (value) { d_assumptions.clear(); }
+  d_smtMode = SMT_MODE_ASSERT;
+  d_assumptions.clear();
 }
 
 void SmtEngine::setInfo(const std::string& key, const CVC4::SExpr& value)
@@ -3042,6 +3065,33 @@ Result SmtEngine::quickCheck() {
   return Result(Result::VALIDITY_UNKNOWN, Result::REQUIRES_FULL_CHECK, d_filename);
 }
 
+theory::TheoryModel* SmtEngine::getAvailableModel(const char* c) const
+{
+  if (!options::assignFunctionValues())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when --assign-function-values is false.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+
+  if (d_smtMode != SMT_MODE_SAT)
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c
+       << " unless immediately preceded by SAT/INVALID or UNKNOWN response.";
+    throw RecoverableModalException(ss.str().c_str());
+  }
+  if (!options::produceModels())
+  {
+    std::stringstream ss;
+    ss << "Cannot " << c << " when produce-models options is off.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  TheoryModel* m = d_theoryEngine->getBuiltModel();
+
+  return m;
+}
 
 void SmtEnginePrivate::collectSkolems(TNode n, set<TNode>& skolemSet, unordered_map<Node, bool, NodeHashFunction>& cache)
 {
@@ -3336,10 +3386,6 @@ void SmtEnginePrivate::processAssertions() {
     {
       d_passes["sygus-infer"]->apply(&d_assertions);
     }
-    else if (options::sygusAbduct())
-    {
-      d_passes["sygus-abduct"]->apply(&d_assertions);
-    }
     else if (options::sygusRewSynthInput())
     {
       // do candidate rewrite rule synthesis
@@ -3455,6 +3501,11 @@ void SmtEnginePrivate::processAssertions() {
   if (options::rewriteApplyToConst())
   {
     d_passes["apply-to-const"]->apply(&d_assertions);
+  }
+
+  if (options::ufHo())
+  {
+    d_passes["ho-elim"]->apply(&d_assertions);
   }
 
   // begin: INVARIANT to maintain: no reordering of assertions or
@@ -3625,7 +3676,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     bool didInternalPush = false;
 
-    setProblemExtended(true);
+    setProblemExtended();
 
     if (isQuery)
     {
@@ -3730,6 +3781,7 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
 
     // Remember the status
     d_status = r;
+    // Check against expected status
     if (!d_expectedStatus.isUnknown() && !d_status.isUnknown()
         && d_status != d_expectedStatus)
     {
@@ -3737,8 +3789,17 @@ Result SmtEngine::checkSatisfiability(const vector<Expr>& assumptions,
                    << d_status;
     }
     d_expectedStatus = Result();
-
-    setProblemExtended(false);
+    // Update the SMT mode
+    if (d_status.asSatisfiabilityResult().isSat() == Result::UNSAT)
+    {
+      d_smtMode = SMT_MODE_UNSAT;
+    }
+    else
+    {
+      // Notice that unknown response moves to sat mode, since the same set
+      // of commands (get-model, get-value) are applicable to this case.
+      d_smtMode = SMT_MODE_SAT;
+    }
 
     Trace("smt") << "SmtEngine::" << (isQuery ? "query" : "checkSat") << "("
                  << assumptions << ") => " << r << endl;
@@ -3790,9 +3851,7 @@ vector<Expr> SmtEngine::getUnsatAssumptions(void)
         "Cannot get unsat assumptions when produce-unsat-assumptions option "
         "is off.");
   }
-  if (d_status.isNull()
-      || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get unsat assumptions unless immediately preceded by "
@@ -4134,9 +4193,8 @@ Expr SmtEngine::getValue(const Expr& ex) const
       "Cannot get value when produce-models options is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get value unless immediately preceded by SAT/INVALID or UNKNOWN response.";
     throw RecoverableModalException(msg);
@@ -4199,6 +4257,16 @@ Expr SmtEngine::getValue(const Expr& ex) const
   return resultNode.toExpr();
 }
 
+vector<Expr> SmtEngine::getValues(const vector<Expr>& exprs)
+{
+  vector<Expr> result;
+  for (const Expr& e : exprs)
+  {
+    result.push_back(getValue(e));
+  }
+  return result;
+}
+
 bool SmtEngine::addToAssignment(const Expr& ex) {
   SmtScope smts(this);
   finalOptionsAreSet();
@@ -4247,9 +4315,8 @@ vector<pair<Expr, Expr>> SmtEngine::getAssignment()
       "produce-assignments option is off.";
     throw ModalException(msg);
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT  ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_SAT)
+  {
     const char* msg =
       "Cannot get the current assignment unless immediately "
       "preceded by SAT/INVALID or UNKNOWN response.";
@@ -4336,27 +4403,7 @@ Model* SmtEngine::getModel() {
     Dump("benchmark") << GetModelCommand();
   }
 
-  if (!options::assignFunctionValues())
-  {
-    const char* msg =
-        "Cannot get the model when --assign-function-values is false.";
-    throw RecoverableModalException(msg);
-  }
-
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() == Result::UNSAT ||
-     d_problemExtended) {
-    const char* msg =
-      "Cannot get the current model unless immediately "
-      "preceded by SAT/INVALID or UNKNOWN response.";
-    throw RecoverableModalException(msg);
-  }
-  if(!options::produceModels()) {
-    const char* msg =
-      "Cannot get model when produce-models options is off.";
-    throw ModalException(msg);
-  }
-  TheoryModel* m = d_theoryEngine->getBuiltModel();
+  TheoryModel* m = getAvailableModel("get model");
 
   // Since model m is being returned to the user, we must ensure that this
   // model object remains valid with future check-sat calls. Hence, we set
@@ -4366,21 +4413,65 @@ Model* SmtEngine::getModel() {
   if (options::modelCoresMode() != MODEL_CORES_NONE)
   {
     // If we enabled model cores, we compute a model core for m based on our
-    // assertions using the model core builder utility
-    std::vector<Expr> easserts = getAssertions();
-    // must expand definitions
-    std::vector<Expr> eassertsProc;
-    std::unordered_map<Node, Node, NodeHashFunction> cache;
-    for (unsigned i = 0, nasserts = easserts.size(); i < nasserts; i++)
-    {
-      Node ea = Node::fromExpr(easserts[i]);
-      Node eae = d_private->expandDefinitions(ea, cache);
-      eassertsProc.push_back(eae.toExpr());
-    }
+    // (expanded) assertions using the model core builder utility
+    std::vector<Expr> eassertsProc = getExpandedAssertions();
     ModelCoreBuilder::setModelCore(eassertsProc, m, options::modelCoresMode());
   }
   m->d_inputName = d_filename;
   return m;
+}
+
+Result SmtEngine::blockModel()
+{
+  Trace("smt") << "SMT blockModel()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelCommand();
+  }
+
+  TheoryModel* m = getAvailableModel("block model");
+
+  if (options::blockModelsMode() == BLOCK_MODELS_NONE)
+  {
+    std::stringstream ss;
+    ss << "Cannot block model when block-models is set to none.";
+    throw ModalException(ss.str().c_str());
+  }
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, options::blockModelsMode());
+  return assertFormula(eblocker);
+}
+
+Result SmtEngine::blockModelValues(const std::vector<Expr>& exprs)
+{
+  Trace("smt") << "SMT blockModelValues()" << endl;
+  SmtScope smts(this);
+
+  finalOptionsAreSet();
+
+  PrettyCheckArgument(
+      !exprs.empty(),
+      "block model values must be called on non-empty set of terms");
+  if (Dump.isOn("benchmark"))
+  {
+    Dump("benchmark") << BlockModelValuesCommand(exprs);
+  }
+
+  TheoryModel* m = getAvailableModel("block model values");
+
+  // get expanded assertions
+  std::vector<Expr> eassertsProc = getExpandedAssertions();
+  // we always do block model values mode here
+  Expr eblocker = ModelBlocker::getModelBlocker(
+      eassertsProc, m, BLOCK_MODELS_VALUES, exprs);
+  return assertFormula(eblocker);
 }
 
 std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
@@ -4403,6 +4494,21 @@ std::pair<Expr, Expr> SmtEngine::getSepHeapAndNilExpr(void)
   InternalError(
       "SmtEngine::getSepHeapAndNilExpr(): failed to obtain heap/nil "
       "expressions from theory model.");
+}
+
+std::vector<Expr> SmtEngine::getExpandedAssertions()
+{
+  std::vector<Expr> easserts = getAssertions();
+  // must expand definitions
+  std::vector<Expr> eassertsProc;
+  std::unordered_map<Node, Node, NodeHashFunction> cache;
+  for (const Expr& e : easserts)
+  {
+    Node ea = Node::fromExpr(e);
+    Node eae = d_private->expandDefinitions(ea, cache);
+    eassertsProc.push_back(eae.toExpr());
+  }
+  return eassertsProc;
 }
 
 Expr SmtEngine::getSepHeapExpr() { return getSepHeapAndNilExpr().first; }
@@ -4462,8 +4568,7 @@ UnsatCore SmtEngine::getUnsatCoreInternal()
     throw ModalException(
         "Cannot get an unsat core when produce-unsat-cores option is off.");
   }
-  if (d_status.isNull() || d_status.asSatisfiabilityResult() != Result::UNSAT
-      || d_problemExtended)
+  if (d_smtMode != SMT_MODE_UNSAT)
   {
     throw RecoverableModalException(
         "Cannot get an unsat core unless immediately preceded by UNSAT/VALID "
@@ -4853,9 +4958,8 @@ const Proof& SmtEngine::getProof()
   if(!options::proof()) {
     throw ModalException("Cannot get a proof when produce-proofs option is off.");
   }
-  if(d_status.isNull() ||
-     d_status.asSatisfiabilityResult() != Result::UNSAT ||
-     d_problemExtended) {
+  if (d_smtMode != SMT_MODE_UNSAT)
+  {
     throw RecoverableModalException(
         "Cannot get a proof unless immediately preceded by UNSAT/VALID "
         "response.");
@@ -4972,6 +5076,111 @@ Expr SmtEngine::doQuantifierElimination(const Expr& e, bool doFull, bool strict)
   }
 }
 
+bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
+{
+  SmtScope smts(this);
+
+  if (!options::produceAbducts())
+  {
+    const char* msg = "Cannot get abduct when produce-abducts options is off.";
+    throw ModalException(msg);
+  }
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: conjecture " << conj
+                        << std::endl;
+  std::vector<Expr> easserts = getAssertions();
+  std::vector<Node> axioms;
+  for (unsigned i = 0, size = easserts.size(); i < size; i++)
+  {
+    axioms.push_back(Node::fromExpr(easserts[i]));
+  }
+  std::vector<Node> asserts(axioms.begin(), axioms.end());
+  asserts.push_back(Node::fromExpr(conj));
+  d_sssfVarlist.clear();
+  d_sssfSyms.clear();
+  std::string name("A");
+  Node aconj = theory::quantifiers::SygusAbduct::mkAbductionConjecture(
+      name,
+      asserts,
+      axioms,
+      TypeNode::fromType(grammarType),
+      d_sssfVarlist,
+      d_sssfSyms);
+  // should be a quantified conjecture with one function-to-synthesize
+  Assert(aconj.getKind() == kind::FORALL && aconj[0].getNumChildren() == 1);
+  // remember the abduct-to-synthesize
+  d_sssf = aconj[0][0].toExpr();
+  Trace("sygus-abduct") << "SmtEngine::getAbduct: made conjecture : " << aconj
+                        << ", solving for " << d_sssf << std::endl;
+  // we generate a new smt engine to do the abduction query
+  d_subsolver.reset(new SmtEngine(NodeManager::currentNM()->toExprManager()));
+  d_subsolver->setIsInternalSubsolver();
+  // get the logic
+  LogicInfo l = d_logic.getUnlockedCopy();
+  // enable everything needed for sygus
+  l.enableSygus();
+  d_subsolver->setLogic(l);
+  // assert the abduction query
+  d_subsolver->assertFormula(aconj.toExpr());
+  if (getAbductInternal(abd))
+  {
+    // successfully generated an abduct, update to abduct state
+    d_smtMode = SMT_MODE_ABDUCT;
+    return true;
+  }
+  // failed, we revert to the assert state
+  d_smtMode = SMT_MODE_ASSERT;
+  return false;
+}
+
+bool SmtEngine::getAbductInternal(Expr& abd)
+{
+  // should have initialized the subsolver by now
+  Assert(d_subsolver != nullptr);
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct check sat..." << std::endl;
+  Result r = d_subsolver->checkSat();
+  Trace("sygus-abduct") << "  SmtEngine::getAbduct result: " << r << std::endl;
+  if (r.asSatisfiabilityResult().isSat() == Result::UNSAT)
+  {
+    // get the synthesis solution
+    std::map<Expr, Expr> sols;
+    d_subsolver->getSynthSolutions(sols);
+    Assert(sols.size() == 1);
+    std::map<Expr, Expr>::iterator its = sols.find(d_sssf);
+    if (its != sols.end())
+    {
+      Trace("sygus-abduct")
+          << "SmtEngine::getAbduct: solution is " << its->second << std::endl;
+      Node abdn = Node::fromExpr(its->second);
+      if (abdn.getKind() == kind::LAMBDA)
+      {
+        abdn = abdn[1];
+      }
+      Assert(d_sssfVarlist.size() == d_sssfSyms.size());
+      // convert back to original
+      // must replace formal arguments of abd with the free variables in the
+      // input problem that they correspond to.
+      abdn = abdn.substitute(d_sssfVarlist.begin(),
+                             d_sssfVarlist.end(),
+                             d_sssfSyms.begin(),
+                             d_sssfSyms.end());
+
+      // convert to expression
+      abd = abdn.toExpr();
+      return true;
+    }
+    Trace("sygus-abduct") << "SmtEngine::getAbduct: could not find solution!"
+                          << std::endl;
+    throw RecoverableModalException("Could not find solution for get-abduct.");
+  }
+  return false;
+}
+
+bool SmtEngine::getAbduct(const Expr& conj, Expr& abd)
+{
+  Type grammarType;
+  return getAbduct(conj, grammarType, abd);
+}
+
 void SmtEngine::getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs ) {
   SmtScope smts(this);
   if( d_theoryEngine ){
@@ -5052,8 +5261,8 @@ void SmtEngine::push()
 
   // The problem isn't really "extended" yet, but this disallows
   // get-model after a push, simplifying our lives somewhat and
-  // staying symmtric with pop.
-  setProblemExtended(true);
+  // staying symmetric with pop.
+  setProblemExtended();
 
   d_userLevels.push_back(d_userContext->getLevel());
   internalPush();
@@ -5081,7 +5290,7 @@ void SmtEngine::pop() {
   // but also it would be weird to have a legally-executed (get-model)
   // that only returns a subset of the assignment (because the rest
   // is no longer in scope!).
-  setProblemExtended(true);
+  setProblemExtended();
 
   AlwaysAssert(d_userContext->getLevel() > 0);
   AlwaysAssert(d_userLevels.back() < d_userContext->getLevel());
