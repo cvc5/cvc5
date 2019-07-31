@@ -250,6 +250,7 @@ set(regress_0_tests
   regress0/bv/core/slice-20.smt
   regress0/bv/divtest_2_5.smt2
   regress0/bv/divtest_2_6.smt2
+  regress0/bv/eager-inc-cadical.smt2
   regress0/bv/eager-inc-cryptominisat.smt2
   regress0/bv/eager-force-logic.smt2
   regress0/bv/fuzz01.smt
