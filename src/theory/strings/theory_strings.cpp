@@ -1101,11 +1101,13 @@ Node TheoryStrings::EqcInfo::addEndpointConst(Node t, Node c, bool isSuf)
                                        << " post=" << isSuf << std::endl;
     Node prevC = utils::getConstantEndpoint(prev, isSuf);
     Assert(!prevC.isNull());
+    Assert(prevC.getKind() == CONST_STRING);
     if (c.isNull())
     {
       c = utils::getConstantEndpoint(t, isSuf);
-      Assert(!c.isNull() && c.getKind() == CONST_STRING);
+      Assert(!c.isNull());
     }
+    Assert(c.getKind() == CONST_STRING);
     bool conflict = false;
     // if the constant prefixes are different
     if (c != prevC)
