@@ -854,11 +854,6 @@ thfAtomTyping[CVC4::Command*& cmd]
     )
   ;
 
-// unary formula case
-// <unitary_term> != <unitary_term>
-
-// unitary_term -> atomicformula | variable | (logic_formula)
-
 thfLogicFormula[CVC4::Expr& expr]
 @declarations {
   tptp::NonAssoc na;
@@ -981,21 +976,6 @@ thfLogicFormula[CVC4::Expr& expr]
       }
     )?
   ;
-
-// atom
-// unary op formula
-// quantified formula
-// ite form
-// let form
-// tuple -- ignore
-// formula between parethesis
-
-// <thf_unitary_formula> -> <thf_atomic_formula> | ...
-// <thf_atomic_formula>  -> <thf_defined_atomic> | ...
-// <thf_defined_atomic>  -> <defined_constant> | <thf_conditional> | <thf_let> |
-//                          (<thf_conn_term>) | <defined_term>
-// <thf_conn_term>       -> <nonassoc_connective> | <assoc_connective> |
-//                          <infix_equality> | <thf_unary_connective>
 
 thfTupleForm[std::vector<CVC4::Expr>& args]
 @declarations {
@@ -1257,14 +1237,6 @@ tffVariableList[std::vector<CVC4::Expr>& bvlist]
   : tffbindvariable[e] { bvlist.push_back(e); }
     ( COMMA_TOK tffbindvariable[e] { bvlist.push_back(e); } )*
   ;
-
-// typelist -> type (arrow type)*
-// type     -> simple_type | ( typelist )
-
-// emptyset : $i
-// qmltpeq  : mu > mu > $i > $o
-// meq_prop : ( $i > $o ) > ( $i > $o ) > $i > $o )).
-
 
 parseThfType[CVC4::Type& type]
 // assumes only mapping types (arrows), no tuple type
