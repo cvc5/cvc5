@@ -41,10 +41,10 @@ namespace strings {
  */
 enum RegExpConstType
 {
-  // the regular expression doesn't contain variables or re.allchar
+  // the regular expression doesn't contain variables or re.allchar or re.range
   RE_C_CONRETE_CONSTANT,
   // the regular expression doesn't contain variables, but may contain
-  // re.allchar
+  // re.allchar or re.range
   RE_C_CONSTANT,
   // the regular expression may contain variables
   RE_C_VARIABLE,

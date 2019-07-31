@@ -74,7 +74,7 @@ RegExpConstType RegExpOpr::getRegExpConstType(Node r)
         d_constCache[cur] =
             tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
       }
-      else if (ck == REGEXP_SIGMA)
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE)
       {
         d_constCache[cur] = RE_C_CONSTANT;
       }

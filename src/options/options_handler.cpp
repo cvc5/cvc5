@@ -1451,11 +1451,11 @@ all \n\
 \n\
 constant (default)\n\
 + Compute intersections only between regular expressions that do not contain\
-re.allchar\n\
+re.allchar or re.range\n\
 \n\
 one-constant\n\
 + Compute intersections only between regular expressions such that at least one\
-side does not contain re.allchar\n\
+side does not contain re.allchar or re.range\n\
 \n\
 none\n\
 + Do not compute intersections for regular expressions\n\
