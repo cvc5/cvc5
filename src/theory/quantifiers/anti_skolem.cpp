@@ -15,9 +15,9 @@
 
 #include "theory/quantifiers/anti_skolem.h"
 
+#include "expr/term_canonize.h"
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "expr/term_canonize.h"
 #include "theory/quantifiers_engine.h"
 
 using namespace std;

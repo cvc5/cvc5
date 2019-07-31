@@ -36,9 +36,8 @@ namespace CVC4 {
 
 class TheoryEngine;
 
-namespace expr 
-{
-  class TermCanonize;
+namespace expr {
+class TermCanonize;
 }
 
 namespace theory {

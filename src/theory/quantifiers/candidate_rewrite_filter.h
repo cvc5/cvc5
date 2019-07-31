@@ -20,10 +20,10 @@
 #define CVC4__THEORY__QUANTIFIERS__CANDIDATE_REWRITE_FILTER_H
 
 #include <map>
+#include "expr/match_trie.h"
 #include "theory/quantifiers/dynamic_rewrite.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus_sampler.h"
-#include "expr/match_trie.h"
 
 namespace CVC4 {
 namespace theory {

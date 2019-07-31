@@ -54,7 +54,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   {
     if (b.getKind() == BOUND_VARIABLE)
     {
-      return getIndexForFreeVariable(a)<getIndexForFreeVariable(b);
+      return getIndexForFreeVariable(a) < getIndexForFreeVariable(b);
     }
     return true;
   }
@@ -114,8 +114,8 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
 
 size_t TermCanonize::getIndexForFreeVariable(Node v) const
 {
-  std::map<Node, size_t >::const_iterator it = d_fvIndex.find(v);
-  if( it==d_fvIndex.end() )
+  std::map<Node, size_t>::const_iterator it = d_fvIndex.find(v);
+  if (it == d_fvIndex.end())
   {
     return 0;
   }

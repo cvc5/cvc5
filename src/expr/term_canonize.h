@@ -77,13 +77,13 @@ class TermCanonize
   std::map<TypeNode, int> d_typ_id;
   /** free variables for each type */
   std::map<TypeNode, std::vector<Node> > d_cn_free_var;
-  /** 
+  /**
    * Map from each free variable above to their index in their respective vector
    */
-  std::map<Node, size_t > d_fvIndex;
-  /** 
+  std::map<Node, size_t> d_fvIndex;
+  /**
    * Return the range of the free variable in the above map, or 0 if it does not
-   * exist. 
+   * exist.
    */
   size_t getIndexForFreeVariable(Node v) const;
   /** get canonical term

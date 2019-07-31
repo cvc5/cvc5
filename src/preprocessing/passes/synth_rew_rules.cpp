@@ -15,6 +15,7 @@
 
 #include "preprocessing/passes/synth_rew_rules.h"
 
+#include "expr/term_canonize.h"
 #include "options/base_options.h"
 #include "options/quantifiers_options.h"
 #include "printer/printer.h"
@@ -22,7 +23,6 @@
 #include "theory/quantifiers/candidate_rewrite_database.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
-#include "expr/term_canonize.h"
 #include "theory/quantifiers/term_util.h"
 
 using namespace std;

@@ -42,7 +42,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
     {
       Assert(n
              == curr->d_data.substitute(
-                    vars.begin(), vars.end(), subs.begin(), subs.end()));
+                 vars.begin(), vars.end(), subs.begin(), subs.end()));
       Trace("match-debug") << "notify : " << curr->d_data << std::endl;
       if (!ntm->notify(n, curr->d_data, vars, subs))
       {
@@ -57,7 +57,7 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
     {
       Node cn = cvisit.back();
       Trace("match-debug") << "traverse : " << cn << " at depth "
-                               << visit.size() << std::endl;
+                           << visit.size() << std::endl;
       unsigned index = visit.size() - 1;
       int vindex = visit_var_index[index];
       if (vindex == -1)
@@ -113,8 +113,8 @@ bool MatchTrie::getMatches(Node n, NotifyMatch* ntm)
         }
         else
         {
-          Trace("match-debug") << "check variable #" << vindex
-                                   << " at depth " << visit.size() << std::endl;
+          Trace("match-debug") << "check variable #" << vindex << " at depth "
+                               << visit.size() << std::endl;
           Assert(vindex < static_cast<int>(curr->d_vars.size()));
           // recurse on variable?
           Node var = curr->d_vars[vindex];
