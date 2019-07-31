@@ -254,13 +254,6 @@ class CVC4_PUBLIC SmtEngine {
   bool d_fullyInited;
 
   /**
-   * Whether or not we have added any assertions/declarations/definitions,
-   * or done push/pop, since the last checkSat/query, and therefore we're
-   * not responsible for models or proofs.
-   */
-  bool d_problemExtended;
-
-  /**
    * Whether or not a query() or checkSat() has already been made through
    * this SmtEngine.  If true, and incrementalSolving is false, then
    * attempting an additional query() or checkSat() will fail with a
@@ -294,6 +287,26 @@ class CVC4_PUBLIC SmtEngine {
    * The expected status of the next satisfiability check.
    */
   Result d_expectedStatus;
+
+  /**
+   * The current mode of the solver, see Figure 4.1 on page 52 of the
+   * SMT-LIB version 2.6 standard
+   * http://smtlib.cs.uiowa.edu/papers/smt-lib-reference-v2.6-r2017-07-18.pdf
+   */
+  enum SmtMode
+  {
+    // the initial state of the solver
+    SMT_MODE_START,
+    // normal state of the solver, after assert/push/pop/declare/define
+    SMT_MODE_ASSERT,
+    // immediately after a check-sat returning "sat" or "unknown"
+    SMT_MODE_SAT,
+    // immediately after a check-sat returning "unsat"
+    SMT_MODE_UNSAT,
+    // immediately after a successful call to get-abduct
+    SMT_MODE_ABDUCT
+  };
+  SmtMode d_smtMode;
 
   /**
    * The input file name (if any) or the name set through setInfo (if any)
@@ -370,11 +383,11 @@ class CVC4_PUBLIC SmtEngine {
   void setDefaults();
 
   /**
-   * Sets d_problemExtended to the given value.
-   * If d_problemExtended is set to true, the list of assumptions from the
-   * previous call to checkSatisfiability is cleared.
+   * Sets that the problem has been extended. This sets the smt mode of the
+   * solver to SMT_MODE_ASSERT, and clears the list of assumptions from the
+   * previous call to checkSatisfiability.
    */
-  void setProblemExtended(bool value);
+  void setProblemExtended();
 
   /**
    * Create theory engine, prop engine, decision engine. Called by
@@ -482,6 +495,15 @@ class CVC4_PUBLIC SmtEngine {
   void debugCheckFunctionBody(Expr formula,
                               const std::vector<Expr>& formals,
                               Expr func);
+  /** get abduct internal
+   *
+   * Gets the next abduct from the internal subsolver d_subsolver. If
+   * successful, this method returns true and sets abd to that abduct.
+   *
+   * This method assumes d_subsolver has been initialized to do abduction
+   * problems.
+   */
+  bool getAbductInternal(Expr& abd);
 
   /**
    * Helper method to obtain both the heap and nil from the solver. Returns a

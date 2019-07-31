@@ -34,6 +34,7 @@
 #include "preprocessing/passes/bv_to_bool.h"
 #include "preprocessing/passes/extended_rewriter_pass.h"
 #include "preprocessing/passes/global_negate.h"
+#include "preprocessing/passes/ho_elim.h"
 #include "preprocessing/passes/int_to_bv.h"
 #include "preprocessing/passes/ite_removal.h"
 #include "preprocessing/passes/ite_simp.h"
@@ -148,6 +149,7 @@ PreprocessingPassRegistry::PreprocessingPassRegistry()
   registerPassInfo("quantifier-macros", callCtor<QuantifierMacros>);
   registerPassInfo("nl-ext-purify", callCtor<NlExtPurify>);
   registerPassInfo("bool-to-bv", callCtor<BoolToBV>);
+  registerPassInfo("ho-elim", callCtor<HoElim>);
 }
 
 }  // namespace preprocessing
