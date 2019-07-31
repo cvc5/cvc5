@@ -225,4 +225,4 @@ header = "options/strings_options.h"
   default    = "CVC4::theory::strings::RE_INTER_CONSTANT"
   handler    = "stringToRegExpInterMode"
   includes   = ["options/strings_modes.h"]
-  help       = "determines which regular expressions to compute intersections"
+  help       = "determines which regular expressions intersections to compute"
