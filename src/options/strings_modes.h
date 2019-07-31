@@ -50,8 +50,8 @@ enum RegExpInterMode
 
   /** Compute intersections only for regular expressions without re.allchar. */
   RE_INTER_CONSTANT,
-  
-  /** 
+
+  /**
    * Compute intersections only between regular expressions where one side does
    * not contain re.allchar.
    */

@@ -281,9 +281,9 @@ bool RegExpSolver::checkEqcIntersect(const std::vector<Node>& mems)
     }
     if (options::stringRegExpInterMode() == RE_INTER_ONE_CONSTANT)
     {
-      if( !mi.isNull() && rcti==RE_C_CONSTANT && rct==RE_C_CONSTANT )
+      if (!mi.isNull() && rcti == RE_C_CONSTANT && rct == RE_C_CONSTANT)
       {
-        // if both have re.allchar, do not do intersection if the 
+        // if both have re.allchar, do not do intersection if the
         // RE_INTER_ONE_CONSTANT option is set.
         continue;
       }
