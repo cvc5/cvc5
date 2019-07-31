@@ -465,7 +465,36 @@ set(regress_0_tests
   regress0/get-value-ints.smt2
   regress0/get-value-reals-ints.smt2
   regress0/get-value-reals.smt2
+  regress0/ho/apply-collapse-sat.smt2
+  regress0/ho/apply-collapse-unsat.smt2
   regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
+  regress0/ho/cong-full-apply.smt2
+  regress0/ho/cong.smt2
+  regress0/ho/declare-fun-variants.smt2
+  regress0/ho/def-fun-flatten.smt2
+  regress0/ho/ext-finite-unsat.smt2
+  regress0/ho/ext-ho-nested-lambda-model.smt2
+  regress0/ho/ext-ho.smt2
+  regress0/ho/ext-sat-partial-eval.smt2
+  regress0/ho/ext-sat.smt2
+  regress0/ho/finite-fun-ext.smt2
+  regress0/ho/fta0144-alpha-eq.smt2
+  regress0/ho/fta0210.smt2
+  regress0/ho/ho-exponential-model.smt2
+  regress0/ho/ho-match-fun-suffix.smt2
+  regress0/ho/ho-matching-enum.smt2
+  regress0/ho/ho-matching-enum-2.smt2
+  regress0/ho/ho-matching-nested-app.smt2
+  regress0/ho/ho-std-fmf.smt2
+  regress0/ho/hoa0008.smt2
+  regress0/ho/ite-apply-eq.smt2
+  regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/match-middle.smt2
+  regress0/ho/modulo-func-equality.smt2
+  regress0/ho/shadowing-defs.smt2
+  regress0/ho/simple-matching-partial.smt2
+  regress0/ho/simple-matching.smt2
+  regress0/ho/trans.smt2
   regress0/hung10_itesdk_output1.smt2
   regress0/hung10_itesdk_output2.smt2
   regress0/hung13sdk_output1.smt2
@@ -1160,43 +1189,14 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
-  regress1/ho/apply-collapse-sat.smt2
-  regress1/ho/apply-collapse-unsat.smt2
-  regress1/ho/cong-full-apply.smt2
-  regress1/ho/cong.smt2
-  regress1/ho/declare-fun-variants.smt2
-  regress1/ho/def-fun-flatten.smt2
-  regress1/ho/ext-finite-unsat.smt2
-  regress1/ho/ext-ho-nested-lambda-model.smt2
-  regress1/ho/ext-ho.smt2
-  regress1/ho/ext-sat-partial-eval.smt2
-  regress1/ho/ext-sat.smt2
-  regress1/ho/finite-fun-ext.smt2
-  regress1/ho/fta0144-alpha-eq.smt2
-  regress1/ho/fta0210.smt2
   regress1/ho/fta0328.lfho.p
-  regress1/ho/ho-exponential-model.smt2
-  regress1/ho/ho-match-fun-suffix.smt2
-  regress1/ho/ho-matching-enum.smt2
-  regress1/ho/ho-matching-enum-2.smt2
-  regress1/ho/ho-matching-nested-app.smt2
-  regress1/ho/ho-std-fmf.smt2
-  regress1/ho/hoa0008.smt2
-  regress1/ho/ite-apply-eq.smt2
-  regress1/ho/lambda-equality-non-canon.smt2
-  regress1/ho/match-middle.smt2
-  regress1/ho/modulo-func-equality.smt2
   regress1/ho/nested_lambdas-AGT034^2.smt2
   regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
   regress1/ho/NUM638^1.smt2
   regress1/ho/NUM925^1.p
-  regress1/ho/shadowing-defs.smt2
-  regress1/ho/simple-matching-partial.smt2
-  regress1/ho/simple-matching.smt2
   regress1/ho/soundness_fmf_SYO362^5-delta.p
   regress1/ho/store-ax-min.p
   regress1/ho/SYO056^1.p
-  regress1/ho/trans.smt2
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt
