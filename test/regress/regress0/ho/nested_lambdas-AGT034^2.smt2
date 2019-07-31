@@ -1,4 +1,4 @@
-; COMMAND-LINE: --uf-ho --no-check-unsat-cores
+; COMMAND-LINE: --uf-ho --no-check-unsat-cores --no-check-proofs
 ; EXPECT: unsat
 
 (set-logic ALL)
