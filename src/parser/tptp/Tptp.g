@@ -107,7 +107,6 @@ using namespace CVC4::parser;
 #include "parser/antlr_input.h"
 #include "parser/parser.h"
 #include "parser/tptp/tptp.h"
-#include "options/options.h"
 #include "util/integer.h"
 #include "util/rational.h"
 
