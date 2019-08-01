@@ -355,8 +355,8 @@ bool CegSingleInv::check(std::vector<Node>& lems)
   for (const Expr& q : qs)
   {
     TNode qn = Node::fromExpr(q);
-    Assert(qn == d_single_inv);
-    Assert(qn.getKind() == FORALL) std::vector<std::vector<Expr> > tvecs;
+    Assert(qn.getKind() == FORALL);
+    std::vector<std::vector<Expr> > tvecs;
     siSmt.getInstantiationTermVectors(q, tvecs);
     Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size()
                       << std::endl;
@@ -498,7 +498,8 @@ Node CegSingleInv::getSolution(unsigned sol_index,
 
   //simplify the solution
   Trace("csi-sol") << "Solution (pre-simplification): " << d_orig_solution << std::endl;
-  s = d_sol->simplifySolution( s, stn );
+  //s = d_sol->simplifySolution( s, stn );
+  s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   return reconstructToSyntax( s, stn, reconstructed, rconsSygus );
 }
@@ -509,6 +510,7 @@ Node CegSingleInv::reconstructToSyntax(Node s,
                                        bool rconsSygus)
 {
   d_solution = s;
+  Trace("ajr-temp") << "Reconstruct to syntax: " << s << std::endl;
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
 
   //reconstruct the solution into sygus if necessary
