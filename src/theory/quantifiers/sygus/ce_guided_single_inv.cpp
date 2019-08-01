@@ -497,7 +497,6 @@ Node CegSingleInv::reconstructToSyntax(Node s,
                                        bool rconsSygus)
 {
   d_solution = s;
-  Trace("ajr-temp") << "Reconstruct to syntax: " << s << std::endl;
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
 
   //reconstruct the solution into sygus if necessary
