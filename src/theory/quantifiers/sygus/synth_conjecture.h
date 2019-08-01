@@ -71,6 +71,8 @@ class SynthConjecture
  public:
   SynthConjecture(QuantifiersEngine* qe);
   ~SynthConjecture();
+  /** presolve */
+  void presolve();
   /** get original version of conjecture */
   Node getConjecture() { return d_quant; }
   /** get deep embedding version of conjecture */
@@ -161,6 +163,8 @@ class SynthConjecture
   TermDbSygus* d_tds;
   /** The feasible guard. */
   Node d_feasible_guard;
+  /** do we have a solution in this user context? */
+  context::CDO<bool> d_hasSolution;
   /** the decision strategy for the feasible guard */
   std::unique_ptr<DecisionStrategy> d_feasible_strategy;
   /** single invocation utility */

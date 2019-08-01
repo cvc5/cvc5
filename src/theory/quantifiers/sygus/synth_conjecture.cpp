@@ -44,6 +44,7 @@ namespace quantifiers {
 SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
     : d_qe(qe),
       d_tds(qe->getTermDatabaseSygus()),
+      d_hasSolution(false, qe->getUserContext()),
       d_ceg_si(new CegSingleInv(qe, this)),
       d_ceg_proc(new SynthConjectureProcess(qe)),
       d_ceg_gc(new CegGrammarConstructor(qe, this)),
@@ -69,6 +70,11 @@ SynthConjecture::SynthConjecture(QuantifiersEngine* qe)
 }
 
 SynthConjecture::~SynthConjecture() {}
+
+void SynthConjecture::presolve()
+{
+
+}
 
 void SynthConjecture::assign(Node q)
 {
@@ -132,21 +138,14 @@ void SynthConjecture::assign(Node q)
 
   // we now finalize the single invocation module, based on the syntax
   // restrictions
-  bool isSolved = false;
   if (qa.d_sygus)
   {
-    isSolved = d_ceg_si->solve(d_ceg_gc->isSyntaxRestricted());
+    if( d_ceg_si->solve(d_ceg_gc->isSyntaxRestricted()) )
+    {
+      d_hasSolution = true;
+    }
   }
-
-  // if we've already solved, return
-  if (isSolved)
-  {
-    // The conjecture has a solution, thus the negation of the negated
-    // conjecture holds.
-    d_qe->getOutputChannel().lemma(q.negate());
-    return;
-  }
-
+  
   Assert(d_candidates.empty());
   std::vector<Node> vars;
   for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
@@ -285,6 +284,18 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
 
+  // if we've already solved, return
+  if (d_hasSolution)
+  {
+    // The conjecture has a solution, thus the negation of the negated
+    // conjecture holds.
+    Node lem = d_quant.negate();
+    lem = getStreamGuardedLemma(lem);
+    lems.push_back(lem);
+    return true;
+  }
+
+  
   if (isSingleInvocation())
   {
     // we tried to solve the conjecture using single invocation techniques,
@@ -609,12 +620,16 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
       // free logic is undecidable.
     }
   }
-  if (success && options::sygusStream())
+  if (success)
   {
-    // if we were successful, we immediately print the current solution.
-    // this saves us from introducing a verification lemma and a new guard.
-    printAndContinueStream();
-    return false;
+    if (options::sygusStream())
+    {
+      // if we were successful, we immediately print the current solution.
+      // this saves us from introducing a verification lemma and a new guard.
+      printAndContinueStream();
+      return false;
+    }
+    d_hasSolution = true;
   }
   lem = getStreamGuardedLemma(lem);
   lems.push_back(lem);
