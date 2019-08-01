@@ -492,6 +492,15 @@ Type Parser::mkFlatFunctionType(std::vector<Type>& sorts, Type range)
     // no difference
     return range;
   }
+  if (Debug.isOn("parser"))
+  {
+    Debug("parser") << "mkFlatFunctionType: range " << range << " and domains ";
+    for (Type t : sorts)
+    {
+      Debug("parser") << " " << t;
+    }
+    Debug("parser") << "\n";
+  }
   while (range.isFunction())
   {
     std::vector<Type> domainTypes =

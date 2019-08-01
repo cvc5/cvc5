@@ -37,6 +37,8 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorSize.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorType.java
   ${CMAKE_CURRENT_BINARY_DIR}/BitVectorZeroExtend.java
+  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelCommand.java
+  ${CMAKE_CURRENT_BINARY_DIR}/BlockModelValuesCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/BoolHashFunction.java
   ${CMAKE_CURRENT_BINARY_DIR}/BooleanType.java
   ${CMAKE_CURRENT_BINARY_DIR}/CVC4.java
@@ -111,6 +113,7 @@ set(gen_java_files
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointToUBV.java
   ${CMAKE_CURRENT_BINARY_DIR}/FloatingPointType.java
   ${CMAKE_CURRENT_BINARY_DIR}/FunctionType.java
+  ${CMAKE_CURRENT_BINARY_DIR}/GetAbductCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetAssertionsCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetAssignmentCommand.java
   ${CMAKE_CURRENT_BINARY_DIR}/GetInfoCommand.java

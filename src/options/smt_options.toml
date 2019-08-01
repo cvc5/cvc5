@@ -98,6 +98,17 @@ header = "options/smt_options.h"
   includes   = ["options/smt_modes.h"]
   help       = "mode for producing model cores"
 
+
+[[option]]
+  name       = "blockModelsMode"
+  category   = "regular"
+  long       = "block-models=MODE"
+  type       = "BlockModelsMode"
+  default    = "BLOCK_MODELS_NONE"
+  handler    = "stringToBlockModelsMode"
+  includes   = ["options/smt_modes.h"]
+  help       = "mode for producing several models"
+
 [[option]]
   name       = "proof"
   smt_name   = "produce-proofs"
@@ -614,3 +625,12 @@ header = "options/smt_options.h"
   default    = "false"
   read_only  = true
   help       = "attempt to solve a pure real satisfiable problem as an integer problem (for non-linear)"
+
+[[option]]
+  name       = "produceAbducts"
+  category   = "undocumented"
+  long       = "produce-abducts"
+  type       = "bool"
+  default    = "false"
+  read_only  = true
+  help       = "support the get-abduct command"

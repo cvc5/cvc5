@@ -1,5 +1,5 @@
 /*********************                                                        */
-/*! \file strings_process_loop_mode.h
+/*! \file strings_modes.h
  ** \verbatim
  ** Top contributors (to current version):
  **   Andres Noetzli
@@ -9,15 +9,13 @@
  ** All rights reserved.  See the file COPYING in the top-level source
  ** directory for licensing information.\endverbatim
  **
- ** \brief Modes for processing looping word equations in the string solver.
- **
- ** Modes for processing looping word equations in the string solver.
+ ** \brief Modes for the string solver.
  **/
 
 #include "cvc4_private.h"
 
-#ifndef CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
-#define CVC4__THEORY__STRINGS__PROCESS_LOOP_MODE_H
+#ifndef CVC4__THEORY__STRINGS__STRINGS_MODES_H
+#define CVC4__THEORY__STRINGS__STRINGS_MODES_H
 
 #include <iosfwd>
 
@@ -25,8 +23,8 @@ namespace CVC4 {
 namespace theory {
 namespace strings {
 
-/** Enumeration of bit-blasting modes */
-enum class ProcessLoopMode
+/** Enumeration of string processing loop modes */
+enum ProcessLoopMode
 {
   /** Perform full loop processing. */
   FULL,
@@ -42,7 +40,29 @@ enum class ProcessLoopMode
 
   /** Abort if looping word equations are encountered. */
   ABORT
-}; // enum ProcessLoopMode
+};  // enum ProcessLoopMode
+
+/** Enumeration of regular expression intersection modes */
+enum RegExpInterMode
+{
+  /** Compute intersections for all regular expressions. */
+  RE_INTER_ALL,
+
+  /**
+   * Compute intersections only for regular expressions without re.allchar
+   * and re.range.
+   */
+  RE_INTER_CONSTANT,
+
+  /**
+   * Compute intersections only between regular expressions where one side does
+   * not contain re.allchar and re.range.
+   */
+  RE_INTER_ONE_CONSTANT,
+
+  /** Do not compute intersections of regular expressions. */
+  RE_INTER_NONE,
+};  // enum RegExpInterMode
 
 }  // namespace strings
 }  // namespace theory
@@ -50,6 +70,9 @@ enum class ProcessLoopMode
 std::ostream& operator<<(std::ostream& out,
                          theory::strings::ProcessLoopMode mode);
 
+std::ostream& operator<<(std::ostream& out,
+                         theory::strings::RegExpInterMode mode);
+
 }  // namespace CVC4
 
-#endif /* CVC4__THEORY__BV__BITBLAST_MODE_H */
+#endif /* CVC4__THEORY__STRINGS__STRINGS_MODES_H */

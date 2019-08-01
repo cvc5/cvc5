@@ -467,6 +467,7 @@ set(regress_0_tests
   regress0/get-value-reals.smt2
   regress0/ho/apply-collapse-sat.smt2
   regress0/ho/apply-collapse-unsat.smt2
+  regress0/ho/bug_nodbuilding_interpreted_SYO042^1.p
   regress0/ho/cong-full-apply.smt2
   regress0/ho/cong.smt2
   regress0/ho/declare-fun-variants.smt2
@@ -478,11 +479,17 @@ set(regress_0_tests
   regress0/ho/ext-sat.smt2
   regress0/ho/finite-fun-ext.smt2
   regress0/ho/fta0144-alpha-eq.smt2
+  regress0/ho/fta0210.smt2
+  regress0/ho/ho-exponential-model.smt2
   regress0/ho/ho-match-fun-suffix.smt2
   regress0/ho/ho-matching-enum.smt2
+  regress0/ho/ho-matching-enum-2.smt2
   regress0/ho/ho-matching-nested-app.smt2
+  regress0/ho/ho-std-fmf.smt2
+  regress0/ho/hoa0008.smt2
   regress0/ho/ite-apply-eq.smt2
   regress0/ho/lambda-equality-non-canon.smt2
+  regress0/ho/match-middle.smt2
   regress0/ho/modulo-func-equality.smt2
   regress0/ho/shadowing-defs.smt2
   regress0/ho/simple-matching-partial.smt2
@@ -853,6 +860,7 @@ set(regress_0_tests
   regress0/strings/norn-simp-rew.smt2
   regress0/strings/re.all.smt2
   regress0/strings/repl-rewrites2.smt2
+  regress0/strings/replace-const.smt2
   regress0/strings/replaceall-eval.smt2
   regress0/strings/rewrites-re-concat.smt2
   regress0/strings/rewrites-v2.smt2
@@ -1181,19 +1189,21 @@ set(regress_1_tests
   regress1/fmf/sort-inf-int.smt2
   regress1/fmf/with-ind-104-core.smt2
   regress1/gensys_brn001.smt2
-  regress1/ho/auth0068.smt2
-  regress1/ho/fta0210.smt2
-  regress1/ho/fta0409.smt2
-  regress1/ho/ho-exponential-model.smt2
-  regress1/ho/ho-matching-enum-2.smt2
-  regress1/ho/ho-std-fmf.smt2
-  regress1/ho/hoa0008.smt2
-  regress1/ho/match-middle.smt2
+  regress1/ho/fta0328.lfho.p
+  regress1/ho/nested_lambdas-AGT034^2.smt2
+  regress1/ho/nested_lambdas-sat-SYO056^1-delta.smt2
+  regress1/ho/NUM638^1.smt2
+  regress1/ho/NUM925^1.p
+  regress1/ho/soundness_fmf_SYO362^5-delta.p
+  regress1/ho/store-ax-min.p
+  regress1/ho/SYO056^1.p
   regress1/hole6.cvc
   regress1/ite5.smt2
   regress1/lemmas/clocksynchro_5clocks.main_invar.base.smt
   regress1/lemmas/pursuit-safety-8.smt
   regress1/lemmas/simple_startup_9nodes.abstract.base.smt
+  regress1/model-blocker-simple.smt2
+  regress1/model-blocker-values.smt2
   regress1/nl/approx-sqrt-unsat.smt2
   regress1/nl/approx-sqrt.smt2
   regress1/nl/arctan2-expdef.smt2
@@ -1578,9 +1588,11 @@ set(regress_1_tests
   regress1/strings/nterm-re-inter-sigma.smt2
   regress1/strings/pierre150331.smt2
   regress1/strings/policy_variable.smt2
+  regress1/strings/re-all-char-hard.smt2
   regress1/strings/re-agg-total1.smt2
   regress1/strings/re-agg-total2.smt2
   regress1/strings/re-elim-exact.smt2
+  regress1/strings/re-mod-eq.smt2
   regress1/strings/re-neg-concat-reduct.smt2
   regress1/strings/re-neg-unfold-rev-a.smt2
   regress1/strings/re-unsound-080718.smt2
@@ -1618,6 +1630,7 @@ set(regress_1_tests
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
   regress1/sygus-abduct-test.smt2
+  regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
   regress1/sygus/abv.sy
   regress1/sygus/array_search_2.sy
@@ -1761,6 +1774,12 @@ set(regress_2_tests
   regress2/hash_sat_07_17.smt2
   regress2/hash_sat_09_09.smt2
   regress2/hash_sat_10_09.smt2
+  regress2/ho/auth0068.smt2
+  regress2/ho/bug_instfalse_SEU882^5.p
+  regress2/ho/fta0409.smt2
+  regress2/ho/involved_parsing_ALG248^3.p
+  regress2/ho/partial_app_interpreted_SWW474^2.p
+  regress2/ho/SYO362^5.p
   regress2/hole7.cvc
   regress2/hole8.cvc
   regress2/instance_1444.smt

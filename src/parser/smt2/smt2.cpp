@@ -674,11 +674,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());
-    log.enableQuantifiers();
-    log.enableTheory(theory::THEORY_UF);
-    log.enableTheory(theory::THEORY_DATATYPES);
-    log.enableIntegers();
-    log.enableHigherOrder();
+    // enable everything needed for sygus
+    log.enableSygus();
     d_logic = log;
     d_logic.lock();
   }
