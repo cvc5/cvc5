@@ -83,11 +83,6 @@ class SynthConjecture
   bool needsCheck();
   /** whether the conjecture is waiting for a call to doRefine below */
   bool needsRefinement() const;
-  /** do single invocation check
-   * This updates Gamma for an iteration of step 2 of Figure 1 of Reynolds et al
-   * CAV 2015.
-   */
-  void doSingleInvCheck(std::vector<Node>& lems);
   /** do syntax-guided enumerative check
    *
    * This is step 2(a) of Figure 3 of Reynolds et al CAV 2015.

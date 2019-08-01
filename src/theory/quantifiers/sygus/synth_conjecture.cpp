@@ -132,9 +132,19 @@ void SynthConjecture::assign(Node q)
 
   // we now finalize the single invocation module, based on the syntax
   // restrictions
+  bool isSolved = false;
   if (qa.d_sygus)
   {
-    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
+    isSolved = d_ceg_si->solve(d_ceg_gc->isSyntaxRestricted());
+  }
+  
+  // if we've already solved, return
+  if( isSolved )
+  {
+    // The conjecture has a solution, thus the negation of the negated conjecture
+    // holds.
+    d_qe->getOutputChannel().lemma(q.negate());
+    return;
   }
 
   Assert(d_candidates.empty());
@@ -270,19 +280,18 @@ bool SynthConjecture::needsCheck()
   return true;
 }
 
-void SynthConjecture::doSingleInvCheck(std::vector<Node>& lems)
-{
-  if (d_ceg_si != NULL)
-  {
-    d_ceg_si->check(lems);
-  }
-}
-
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
 
+  if( isSingleInvocation() )
+  {
+    // we tried to solve the conjecture using single invocation techniques,
+    // but failed, hence we are done.
+    return true;
+  }
+  
   // process the sygus streaming guard
   if (options::sygusStream())
   {

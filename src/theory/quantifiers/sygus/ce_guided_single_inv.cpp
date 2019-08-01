@@ -266,7 +266,7 @@ void CegSingleInv::initialize(Node q)
   d_templ[prog] = templ;
 }
 
-void CegSingleInv::finishInit(bool syntaxRestricted)
+bool CegSingleInv::solve(bool syntaxRestricted)
 {
   Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and CEGQI_SI_MODE_ALL is not enabled
@@ -276,42 +276,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   }
 
   // we now have determined whether we will do single invocation techniques
-  if( d_single_invocation ){
-    NodeManager* nm = NodeManager::currentNM();
-    d_single_inv = d_sip->getSingleInvocation();
-    d_single_inv = TermUtil::simpleNegate( d_single_inv );
-    std::vector<Node> func_vars;
-    d_sip->getFunctionVariables(func_vars);
-    if (!func_vars.empty())
-    {
-      Node pbvl = nm->mkNode(BOUND_VAR_LIST, func_vars);
-      // mark as quantifier elimination to ensure its structure is preserved
-      Node n_attr =
-          nm->mkSkolem("qe_si",
-                       nm->booleanType(),
-                       "Auxiliary variable for qe attr for single invocation.");
-      QuantElimAttribute qea;
-      n_attr.setAttribute(qea, true);
-      n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
-      n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
-      // make the single invocation conjecture
-      d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv, n_attr);
-    }
-    //now, introduce the skolems
-    std::vector<Node> sivars;
-    d_sip->getSingleInvocationVariables(sivars);
-    for (unsigned i = 0, size = sivars.size(); i < size; i++)
-    {
-      Node v = NodeManager::currentNM()->mkSkolem(
-          "a", sivars[i].getType(), "single invocation arg");
-      d_single_inv_arg_sk.push_back( v );
-    }
-    d_single_inv = d_single_inv.substitute(sivars.begin(),
-                                           sivars.end(),
-                                           d_single_inv_arg_sk.begin(),
-                                           d_single_inv_arg_sk.end());
-    Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
-  }else{
+  if( !d_single_invocation ){
     d_single_inv = Node::null();
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
     if (options::cegqiSingleInvAbort())
@@ -320,19 +285,43 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
       ss << "Property is not single invocation." << std::endl;
       throw LogicException(ss.str());
     }
-  }
-}
-
-bool CegSingleInv::check(std::vector<Node>& lems)
-{
-  if (d_single_inv.isNull())
-  {
     return false;
   }
   NodeManager* nm = NodeManager::currentNM();
+  d_single_inv = d_sip->getSingleInvocation();
+  d_single_inv = TermUtil::simpleNegate( d_single_inv );
+  std::vector<Node> func_vars;
+  d_sip->getFunctionVariables(func_vars);
+  if (!func_vars.empty())
+  {
+    Node pbvl = nm->mkNode(BOUND_VAR_LIST, func_vars);
+    // mark as quantifier elimination to ensure its structure is preserved
+    Node n_attr =
+        nm->mkSkolem("qe_si",
+                      nm->booleanType(),
+                      "Auxiliary variable for qe attr for single invocation.");
+    QuantElimAttribute qea;
+    n_attr.setAttribute(qea, true);
+    n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
+    n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
+    // make the single invocation conjecture
+    d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv, n_attr);
+  }
+  //now, introduce the skolems
+  std::vector<Node> sivars;
+  d_sip->getSingleInvocationVariables(sivars);
+  for (unsigned i = 0, size = sivars.size(); i < size; i++)
+  {
+    Node v = NodeManager::currentNM()->mkSkolem(
+        "a", sivars[i].getType(), "single invocation arg");
+    d_single_inv_arg_sk.push_back( v );
+  }
+  d_single_inv = d_single_inv.substitute(sivars.begin(),
+                                          sivars.end(),
+                                          d_single_inv_arg_sk.begin(),
+                                          d_single_inv_arg_sk.end());
+  Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  Trace("cegqi-si") << "Solve first-order conjecture " << d_single_inv
-                    << std::endl;
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
   siSmt.assertFormula(d_single_inv.toExpr());
@@ -384,9 +373,6 @@ bool CegSingleInv::check(std::vector<Node>& lems)
       Trace("cegqi-si") << "  Instantiation Lemma: " << ilem << std::endl;
     }
   }
-  // The conjecture has a solution, thus the negation of the negated conjecture
-  // holds.
-  lems.push_back(d_quant.negate());
   return true;
 }
 
