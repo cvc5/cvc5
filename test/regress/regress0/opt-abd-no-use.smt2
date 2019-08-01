@@ -1,0 +1,5 @@
+(set-logic QF_LIA)
+(set-option :produce-abducts true)
+(declare-fun x () Int)
+(assert (> x 0))
+(check-sat)
