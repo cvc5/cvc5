@@ -647,13 +647,13 @@ void Instantiate::getExplanationForInstLemmas(
   if (!options::trackInstLemmas())
   {
     std::stringstream msg;
-    msg << "Cannot get explanation for instantiations when --track-inst-lemmas is false.";
+    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
+           "is false.";
     throw OptionException(msg.str());
   }
   if (options::incrementalSolving())
   {
-    for (std::pair<const Node, inst::CDInstMatchTrie*>& t :
-          d_c_inst_match_trie)
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
     {
       t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
     }

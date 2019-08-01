@@ -16,15 +16,15 @@
 
 #include "expr/node_algorithm.h"
 #include "options/quantifiers_options.h"
+#include "smt/smt_engine.h"
+#include "smt/smt_engine_scope.h"
+#include "smt/smt_statistics_registry.h"
 #include "theory/arith/arith_msum.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/sygus/sygus_grammar_cons.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
-#include "smt/smt_engine.h"
-#include "smt/smt_engine_scope.h"
-#include "smt/smt_statistics_registry.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;
@@ -277,7 +277,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
 
   // we now have determined whether we will do single invocation techniques
   if( d_single_invocation ){
-    NodeManager * nm = NodeManager::currentNM();
+    NodeManager* nm = NodeManager::currentNM();
     d_single_inv = d_sip->getSingleInvocation();
     d_single_inv = TermUtil::simpleNegate( d_single_inv );
     std::vector<Node> func_vars;
@@ -286,13 +286,16 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     {
       Node pbvl = nm->mkNode(BOUND_VAR_LIST, func_vars);
       // mark as quantifier elimination to ensure its structure is preserved
-      Node n_attr = nm->mkSkolem("qe_si", nm->booleanType(), "Auxiliary variable for qe attr for single invocation.");
+      Node n_attr =
+          nm->mkSkolem("qe_si",
+                       nm->booleanType(),
+                       "Auxiliary variable for qe attr for single invocation.");
       QuantElimAttribute qea;
-      n_attr.setAttribute( qea, true );
+      n_attr.setAttribute(qea, true);
       n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
       n_attr = nm->mkNode(INST_PATTERN_LIST, n_attr);
       // make the single invocation conjecture
-      d_single_inv = nm->mkNode( FORALL, pbvl, d_single_inv, n_attr );
+      d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv, n_attr);
     }
     //now, introduce the skolems
     std::vector<Node> sivars;
@@ -320,15 +323,16 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
   }
 }
 
-
 bool CegSingleInv::check(std::vector<Node>& lems)
 {
-  if( d_single_inv.isNull() ) {
+  if (d_single_inv.isNull())
+  {
     return false;
   }
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   // solve the single invocation conjecture using a fresh copy of SMT engine
-  Trace("cegqi-si") << "Solve first-order conjecture " << d_single_inv << std::endl;
+  Trace("cegqi-si") << "Solve first-order conjecture " << d_single_inv
+                    << std::endl;
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
   siSmt.assertFormula(d_single_inv.toExpr());
@@ -340,39 +344,41 @@ bool CegSingleInv::check(std::vector<Node>& lems)
     return false;
   }
   // now, get the instantiations
-  std::vector< Expr > qs;
+  std::vector<Expr> qs;
   siSmt.getInstantiatedQuantifiedFormulas(qs);
-  Assert( qs.size()<=1 );
+  Assert(qs.size() <= 1);
   // track the instantiations, as solution construction is based on this
-  Trace("cegqi-si") << "#instantiated quantified formulas=" << qs.size() << std::endl;
+  Trace("cegqi-si") << "#instantiated quantified formulas=" << qs.size()
+                    << std::endl;
   d_inst.clear();
   d_instConds.clear();
-  for( const Expr& q : qs )
+  for (const Expr& q : qs)
   {
     TNode qn = Node::fromExpr(q);
-    Assert( qn==d_single_inv );
-    Assert( qn.getKind()==FORALL )
-    std::vector< std::vector< Expr > > tvecs;
-    siSmt.getInstantiationTermVectors(q,tvecs);
-    Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size() << std::endl;
-    std::vector< Node > vars;
-    for( const Node& v : qn[0] )
+    Assert(qn == d_single_inv);
+    Assert(qn.getKind() == FORALL) std::vector<std::vector<Expr> > tvecs;
+    siSmt.getInstantiationTermVectors(q, tvecs);
+    Trace("cegqi-si") << "#instantiations of " << q << "=" << tvecs.size()
+                      << std::endl;
+    std::vector<Node> vars;
+    for (const Node& v : qn[0])
     {
       vars.push_back(v);
     }
     Node body = qn[1];
-    for( unsigned i=0, ninsts = tvecs.size(); i<ninsts; i++ )
+    for (unsigned i = 0, ninsts = tvecs.size(); i < ninsts; i++)
     {
-      std::vector< Expr >& tvi = tvecs[i];
-      std::vector< Node > inst;
-      for( const Expr& t : tvi )
+      std::vector<Expr>& tvi = tvecs[i];
+      std::vector<Node> inst;
+      for (const Expr& t : tvi)
       {
         inst.push_back(Node::fromExpr(t));
       }
       Trace("cegqi-si") << "  Instantiation: " << inst << std::endl;
       d_inst.push_back(inst);
-      Assert( inst.size()==vars.size() );
-      Node ilem = body.substitute(vars.begin(),vars.end(),inst.begin(),inst.end());
+      Assert(inst.size() == vars.size());
+      Node ilem =
+          body.substitute(vars.begin(), vars.end(), inst.begin(), inst.end());
       ilem = Rewriter::rewrite(ilem);
       d_instConds.push_back(ilem);
       Trace("cegqi-si") << "  Instantiation Lemma: " << ilem << std::endl;
@@ -395,10 +401,10 @@ Node CegSingleInv::constructSolution(std::vector<unsigned>& indices,
     return d_inst[uindex][i];
   }
   Node cond = d_instConds[uindex];
-  cond = TermUtil::simpleNegate( cond );
+  cond = TermUtil::simpleNegate(cond);
   Node ite1 = d_inst[uindex][i];
-  Node ite2 = constructSolution( indices, i, index+1 );
-  return NodeManager::currentNM()->mkNode( ITE, cond, ite1, ite2 );
+  Node ite2 = constructSolution(indices, i, index + 1);
+  return NodeManager::currentNM()->mkNode(ITE, cond, ite1, ite2);
 }
 
 //TODO: use term size?
@@ -447,7 +453,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
                                bool rconsSygus)
 {
   Assert( d_sol!=NULL );
-  Assert( !d_inst.empty() );
+  Assert(!d_inst.empty());
   const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
   Node varList = Node::fromExpr( dt.getSygusVarList() );
   Node prog = d_quant[0][sol_index];
@@ -472,7 +478,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     //construct the solution
     Trace("csi-sol") << "Sort solution return values " << sol_index << std::endl;
     std::vector< unsigned > indices;
-    for( unsigned i=0, ninst=d_inst.size(); i<ninst; i++ )
+    for (unsigned i = 0, ninst = d_inst.size(); i < ninst; i++)
     {
       indices.push_back(i);
     }
@@ -484,7 +490,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     ssii.d_i = sol_index;
     std::sort( indices.begin(), indices.end(), ssii );
     Trace("csi-sol") << "Construct solution" << std::endl;
-    s = constructSolution( indices, sol_index, 0 );
+    s = constructSolution(indices, sol_index, 0);
     Assert( vars.size()==d_sol->d_varList.size() );
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }

@@ -165,7 +165,8 @@ class CegSingleInv
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
   // constructing solution
-  Node constructSolution(std::vector<unsigned>& indices, unsigned i,
+  Node constructSolution(std::vector<unsigned>& indices,
+                         unsigned i,
                          unsigned index);
   Node postProcessSolution(Node n);
  private:
@@ -195,12 +196,12 @@ class CegSingleInv
   Node d_solution;
   Node d_sygus_solution;
  public:
-  /** 
+  /**
    * The list of instantiations that suffice to show the first-order equivalent
    * of the negated synthesis conjecture is unsatisfiable.
    */
   std::vector<std::vector<Node> > d_inst;
-  /** 
+  /**
    * The list of instantiation lemmas, corresponding to instantiations of the
    * first order conjecture for the term vectors above.
    */

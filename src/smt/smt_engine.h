@@ -966,19 +966,19 @@ class CVC4_PUBLIC SmtEngine {
    * to check-sat.
    */
   void getInstantiatedQuantifiedFormulas( std::vector< Expr >& qs );
-   
+
   /**
    * Get instantiations for quantified formula q.
-   * 
+   *
    * If q was a quantified formula that was instantiated on the last call to
-   * check-sat (i.e. q is returned as part of the vector in the method 
+   * check-sat (i.e. q is returned as part of the vector in the method
    * getInstantiatedQuantifiedFormulas above), then the list of instantiations
    * of that formula that were generated are added to insts.
    *
    * In particular, if q is of the form forall x. P(x), then insts is a list
    * of formulas of the form P(t1), ..., P(tn).
    */
-  void getInstantiations(Expr q, std::vector< Expr >& insts);
+  void getInstantiations(Expr q, std::vector<Expr>& insts);
   /**
    * Get instantiation term vectors for quantified formula q.
    *
@@ -988,7 +988,8 @@ class CVC4_PUBLIC SmtEngine {
    * Notice that these are not guaranteed to come in the same order as the
    * instantiation lemmas above.
    */
-  void getInstantiationTermVectors(Expr q, std::vector< std::vector< Expr > >& tvecs);
+  void getInstantiationTermVectors(Expr q,
+                                   std::vector<std::vector<Expr> >& tvecs);
 
   /**
    * Get an unsatisfiable core (only if immediately preceded by an

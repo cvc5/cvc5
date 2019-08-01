@@ -1810,7 +1810,10 @@ void SmtEngine::setDefaults() {
   }
   // Do we need to track instantiations?
   // Needed for sygus due to single invocation techniques.
-  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) || is_sygus ){
+  if (options::cbqiNestedQE()
+      || (options::proof() && !options::trackInstLemmas.wasSetByUser())
+      || is_sygus)
+  {
     options::trackInstLemmas.set( true );
   }
 
