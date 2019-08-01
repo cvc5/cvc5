@@ -2169,7 +2169,7 @@ set(regression_disabled_tests
   regress1/sygus/Base16_1.sy
   regress1/sygus/enum-test.sy
   regress1/sygus/inv_gen_fig8.sy
-  # rely on heuristic solution reconstruction
+  # rely on heuristic solution reconstruction TODO #3146 revisit
   regress1/sygus/array_search_2.sy
   regress1/sygus/array_sum_2_5.sy
   regress1/sygus/crcy-si-rcons.sy
