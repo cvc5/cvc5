@@ -214,22 +214,6 @@ void SynthConjecture::assign(Node q)
   // has been used on this call to check.
   d_qe->getOutputChannel().requirePhase(d_feasible_guard, true);
 
-  if (isSingleInvocation())
-  {
-    std::vector<Node> lems;
-    d_ceg_si->getInitialSingleInvLemma(d_feasible_guard, lems);
-    for (unsigned i = 0; i < lems.size(); i++)
-    {
-      Trace("cegqi-lemma") << "Cegqi::Lemma : single invocation " << i << " : "
-                           << lems[i] << std::endl;
-      d_qe->getOutputChannel().lemma(lems[i]);
-      if (Trace.isOn("cegqi-debug"))
-      {
-        Node rlem = Rewriter::rewrite(lems[i]);
-        Trace("cegqi-debug") << "...rewritten : " << rlem << std::endl;
-      }
-    }
-  }
   Node gneg = d_feasible_guard.negate();
   for (unsigned i = 0; i < guarded_lemmas.size(); i++)
   {

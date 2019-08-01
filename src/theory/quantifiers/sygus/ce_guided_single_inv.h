@@ -29,17 +29,6 @@ namespace theory {
 namespace quantifiers {
 
 class SynthConjecture;
-class CegSingleInv;
-
-class CegqiOutputSingleInv : public CegqiOutput {
- public:
- CegqiOutputSingleInv(CegSingleInv* out) : d_out(out) {}
- virtual ~CegqiOutputSingleInv() {}
- CegSingleInv* d_out;
- bool doAddInstantiation(std::vector<Node>& subs) override;
- bool isEligibleForInstantiation(Node n) override;
- bool addLemma(Node lem) override;
-};
 
 class DetTrace {
 private:
@@ -177,7 +166,7 @@ class CegSingleInv
                                Node n, std::vector< Node >& conj );
   // constructing solution
   Node constructSolution(std::vector<unsigned>& indices, unsigned i,
-                         unsigned index, std::map<Node, Node>& weak_imp);
+                         unsigned index);
   Node postProcessSolution(Node n);
  private:
   /** pointer to the quantifiers engine */
@@ -190,10 +179,6 @@ class CegSingleInv
   std::map< Node, TransitionInference > d_ti;
   // solution reconstruction
   CegSingleInvSol* d_sol;
-  // the instantiator's output channel
-  CegqiOutputSingleInv* d_cosi;
-  // the instantiator
-  std::unique_ptr<CegInstantiator> d_cinst;
 
   // list of skolems for each argument of programs
   std::vector<Node> d_single_inv_arg_sk;
@@ -203,9 +188,6 @@ class CegSingleInv
   std::map<Node, int> d_single_inv_sk_index;
   // program to solution index
   std::map<Node, unsigned> d_prog_to_sol_index;
-  // lemmas produced
-  inst::InstMatchTrie d_inst_match_trie;
-  inst::CDInstMatchTrie* d_c_inst_match_trie;
   // original conjecture
   Node d_orig_conjecture;
   // solution
@@ -213,18 +195,22 @@ class CegSingleInv
   Node d_solution;
   Node d_sygus_solution;
  public:
-  // lemmas produced
-  std::vector<Node> d_lemmas_produced;
+  /** 
+   * The list of instantiations that suffice to show the first-order equivalent
+   * of the negated synthesis conjecture is unsatisfiable.
+   */
   std::vector<std::vector<Node> > d_inst;
+  /** 
+   * The list of instantiation lemmas, corresponding to instantiations of the
+   * first order conjecture for the term vectors above.
+   */
+  std::vector<Node> d_instConds;
 
  private:
-  std::vector<Node> d_curr_lemmas;
   // add instantiation
   bool doAddInstantiation( std::vector< Node >& subs );
   //is eligible for instantiation
   bool isEligibleForInstantiation( Node n );
-  // add lemma
-  bool addLemma( Node lem );
   // conjecture
   Node d_quant;
   Node d_simp_quant;
@@ -247,16 +233,6 @@ class CegSingleInv
   // get simplified conjecture
   Node getSimplifiedConjecture() { return d_simp_quant; }
  public:
-  /** get the single invocation lemma(s)
-   *
-   * This adds lemmas to lem that initializes this class for doing
-   * counterexample-guided instantiation for the synthesis conjecture. These
-   * lemmas correspond to the negation of the body of the (anti-skolemized)
-   * form of the conjecture for fresh skolems.
-   *
-   * Argument g is guard, for which all the above lemmas are guarded.
-   */
-  void getInitialSingleInvLemma(Node g, std::vector<Node>& lems);
   // initialize this class for synthesis conjecture q
   void initialize( Node q );
   /** finish initialize

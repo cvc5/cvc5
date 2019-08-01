@@ -1808,8 +1808,9 @@ void SmtEngine::setDefaults() {
     Notice() << "SmtEngine: turning off cbqi to support instMaxLevel" << endl;
     options::cbqi.set(false);
   }
-  //track instantiations?
-  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) ){
+  // Do we need to track instantiations?
+  // Needed for sygus due to single invocation techniques.
+  if( options::cbqiNestedQE() || ( options::proof() && !options::trackInstLemmas.wasSetByUser() ) || is_sygus ){
     options::trackInstLemmas.set( true );
   }
 
