@@ -1260,7 +1260,8 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceAbducts() || options::sygusInference() || options::sygusRewSynthInput())
+    if (options::produceAbducts() || options::sygusInference()
+        || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
