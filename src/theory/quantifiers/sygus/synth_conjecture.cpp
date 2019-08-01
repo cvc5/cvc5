@@ -137,12 +137,12 @@ void SynthConjecture::assign(Node q)
   {
     isSolved = d_ceg_si->solve(d_ceg_gc->isSyntaxRestricted());
   }
-  
+
   // if we've already solved, return
-  if( isSolved )
+  if (isSolved)
   {
-    // The conjecture has a solution, thus the negation of the negated conjecture
-    // holds.
+    // The conjecture has a solution, thus the negation of the negated
+    // conjecture holds.
     d_qe->getOutputChannel().lemma(q.negate());
     return;
   }
@@ -285,13 +285,13 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
 
-  if( isSingleInvocation() )
+  if (isSingleInvocation())
   {
     // we tried to solve the conjecture using single invocation techniques,
     // but failed, hence we are done.
     return true;
   }
-  
+
   // process the sygus streaming guard
   if (options::sygusStream())
   {

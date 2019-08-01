@@ -276,7 +276,8 @@ bool CegSingleInv::solve(bool syntaxRestricted)
   }
 
   // we now have determined whether we will do single invocation techniques
-  if( !d_single_invocation ){
+  if (!d_single_invocation)
+  {
     d_single_inv = Node::null();
     Trace("cegqi-si") << "Formula is not single invocation." << std::endl;
     if (options::cegqiSingleInvAbort())
@@ -289,7 +290,7 @@ bool CegSingleInv::solve(bool syntaxRestricted)
   }
   NodeManager* nm = NodeManager::currentNM();
   d_single_inv = d_sip->getSingleInvocation();
-  d_single_inv = TermUtil::simpleNegate( d_single_inv );
+  d_single_inv = TermUtil::simpleNegate(d_single_inv);
   std::vector<Node> func_vars;
   d_sip->getFunctionVariables(func_vars);
   if (!func_vars.empty())
@@ -298,8 +299,8 @@ bool CegSingleInv::solve(bool syntaxRestricted)
     // mark as quantifier elimination to ensure its structure is preserved
     Node n_attr =
         nm->mkSkolem("qe_si",
-                      nm->booleanType(),
-                      "Auxiliary variable for qe attr for single invocation.");
+                     nm->booleanType(),
+                     "Auxiliary variable for qe attr for single invocation.");
     QuantElimAttribute qea;
     n_attr.setAttribute(qea, true);
     n_attr = nm->mkNode(INST_ATTRIBUTE, n_attr);
@@ -307,20 +308,21 @@ bool CegSingleInv::solve(bool syntaxRestricted)
     // make the single invocation conjecture
     d_single_inv = nm->mkNode(FORALL, pbvl, d_single_inv, n_attr);
   }
-  //now, introduce the skolems
+  // now, introduce the skolems
   std::vector<Node> sivars;
   d_sip->getSingleInvocationVariables(sivars);
   for (unsigned i = 0, size = sivars.size(); i < size; i++)
   {
     Node v = NodeManager::currentNM()->mkSkolem(
         "a", sivars[i].getType(), "single invocation arg");
-    d_single_inv_arg_sk.push_back( v );
+    d_single_inv_arg_sk.push_back(v);
   }
   d_single_inv = d_single_inv.substitute(sivars.begin(),
-                                          sivars.end(),
-                                          d_single_inv_arg_sk.begin(),
-                                          d_single_inv_arg_sk.end());
-  Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv << std::endl;
+                                         sivars.end(),
+                                         d_single_inv_arg_sk.begin(),
+                                         d_single_inv_arg_sk.end());
+  Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv
+                    << std::endl;
   // solve the single invocation conjecture using a fresh copy of SMT engine
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
@@ -484,7 +486,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
 
   //simplify the solution
   Trace("csi-sol") << "Solution (pre-simplification): " << d_orig_solution << std::endl;
-  //s = d_sol->simplifySolution( s, stn );
+  // s = d_sol->simplifySolution( s, stn );
   s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   return reconstructToSyntax( s, stn, reconstructed, rconsSygus );
