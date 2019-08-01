@@ -58,7 +58,8 @@ bool SolutionFilterStrength::addTerm(Node n, std::ostream& out)
                : nm->mkNode(d_isStrong ? OR : AND, d_curr_sols);
     Node imp = nm->mkNode(AND, basen.negate(), curr);
     Trace("sygus-sol-implied")
-        << "  implies: check subsumed (strong=" << d_isStrong << ") " << imp << "..." << std::endl;
+        << "  implies: check subsumed (strong=" << d_isStrong << ") " << imp
+        << "..." << std::endl;
     // check the satisfiability query
     Result r = doCheck(imp);
     Trace("sygus-sol-implied") << "  implies: ...got : " << r << std::endl;
