@@ -465,7 +465,7 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     s = d_inst[indices[0]][sol_index];
     // it is an ITE chain whose conditions are the instantiations
     NodeManager * nm = NodeManager::currentNM();
-    for( unsigned j=1, nindices=indices.size(); j<nindicies; j++ )
+    for( unsigned j=1, nindices=indices.size(); j<nindices; j++ )
     {
       unsigned uindex = indices[j];
       Node cond = d_instConds[uindex];
