@@ -14,9 +14,9 @@
 
 ; Generate a predicate A that is consistent with the above axioms (i.e.
 ; their conjunction is SAT), and is such that the conjunction of the above
-; axioms, A and the conjecture below are UNSAT.
+; axioms, A and the negation of the conjecture below are UNSAT.
 ; The signature of A is below grammar.
-(get-abduct A (< x y)
+(get-abduct A (not (< x y))
 
 ; the grammar for the abduct-to-synthesize
 ((Start Bool) (StartInt Int))
