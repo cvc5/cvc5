@@ -41,9 +41,9 @@ std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
   // this prevents us from printing symbols like |@uc_|T|_n|
   std::string q("|");
   size_t pos;
-  while( (pos=st.find(q)) != std::string::npos )
+  while ((pos = st.find(q)) != std::string::npos)
   {
-    st.replace(pos,1,"");
+    st.replace(pos, 1, "");
   }
   return out << "uc_" << st.c_str() << "_" << uc.getIndex();
 }
