@@ -546,6 +546,7 @@ set(regress_0_tests
   regress0/nl/very-easy-sat.smt2
   regress0/nl/very-simple-unsat.smt2
   regress0/options/invalid_dump.smt2
+  regress0/opt-abd-no-use.smt2
   regress0/parallel-let.smt2
   regress0/parser/as.smt2
   regress0/parser/bv_arity_smt2.6.smt2
@@ -1629,6 +1630,7 @@ set(regress_1_tests
   regress1/strings/type002.smt2
   regress1/strings/type003.smt2
   regress1/strings/username_checker_min.smt2
+  regress1/sygus-abduct-ex1-grammar.smt2
   regress1/sygus-abduct-test.smt2
   regress1/sygus-abduct-test-user.smt2
   regress1/sygus/VC22_a.sy
