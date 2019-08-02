@@ -644,42 +644,46 @@ void Instantiate::getExplanationForInstLemmas(
     std::map<Node, Node>& quant,
     std::map<Node, std::vector<Node> >& tvec)
 {
-  if (options::trackInstLemmas())
+  if (!options::trackInstLemmas())
   {
-    if (options::incrementalSolving())
-    {
-      for (std::pair<const Node, inst::CDInstMatchTrie*>& t :
-           d_c_inst_match_trie)
-      {
-        t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-    else
-    {
-      for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
-      {
-        t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
-      }
-    }
-#ifdef CVC4_ASSERTIONS
-    for (unsigned j = 0; j < lems.size(); j++)
-    {
-      Assert(quant.find(lems[j]) != quant.end());
-      Assert(tvec.find(lems[j]) != tvec.end());
-    }
-#endif
+    std::stringstream msg;
+    msg << "Cannot get explanation for instantiations when --track-inst-lemmas "
+           "is false.";
+    throw OptionException(msg.str());
   }
-  Assert(false);
+  if (options::incrementalSolving())
+  {
+    for (std::pair<const Node, inst::CDInstMatchTrie*>& t : d_c_inst_match_trie)
+    {
+      t.second->getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+  else
+  {
+    for (std::pair<const Node, inst::InstMatchTrie>& t : d_inst_match_trie)
+    {
+      t.second.getExplanationForInstLemmas(t.first, lems, quant, tvec);
+    }
+  }
+#ifdef CVC4_ASSERTIONS
+  for (unsigned j = 0; j < lems.size(); j++)
+  {
+    Assert(quant.find(lems[j]) != quant.end());
+    Assert(tvec.find(lems[j]) != tvec.end());
+  }
+#endif
 }
 
 void Instantiate::getInstantiations(std::map<Node, std::vector<Node> >& insts)
 {
-  bool useUnsatCore = false;
-  std::vector<Node> active_lemmas;
-  if (options::trackInstLemmas() && getUnsatCoreLemmas(active_lemmas))
+  if (!options::trackInstLemmas())
   {
-    useUnsatCore = true;
+    std::stringstream msg;
+    msg << "Cannot get instantiations when --track-inst-lemmas is false.";
+    throw OptionException(msg.str());
   }
+  std::vector<Node> active_lemmas;
+  bool useUnsatCore = getUnsatCoreLemmas(active_lemmas);
 
   if (options::incrementalSolving())
   {
