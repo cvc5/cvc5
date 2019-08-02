@@ -280,8 +280,6 @@ bool SynthConjecture::needsCheck()
 bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
-  Assert(d_master != nullptr);
-  
   if (isSingleInvocation())
   {
     // We now try to solve with the single invocation solver, which may or may 
@@ -297,6 +295,7 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     }
     return true;
   }
+  Assert(d_master != nullptr);
 
   // process the sygus streaming guard
   if (options::sygusStream())
