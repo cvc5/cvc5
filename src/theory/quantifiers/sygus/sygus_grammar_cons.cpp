@@ -420,6 +420,12 @@ void CegGrammarConstructor::collectSygusGrammarTypesFor(
         collectSygusGrammarTypesFor(
             TypeNode::fromType(arrayType.getConstituentType()), types);
       }
+      else if (range.isString() )
+      {
+        // theory of strings shares the integer type
+        TypeNode intType = NodeManager::currentNM()->integerType();
+        collectSygusGrammarTypesFor(intType,types);
+      }
     }
   }
 }
@@ -669,6 +675,31 @@ void CegGrammarConstructor::mkSygusDefaultGrammar(
         pcs[i].push_back(nullptr);
         weights[i].push_back(-1);
       }
+    }
+    else if (types[i].isString())
+    {
+      // concatenation
+      ops[i].push_back(nm->operatorOf(STRING_CONCAT).toExpr());
+      cnames[i].push_back(kindToString(STRING_CONCAT));
+      cargs[i].push_back(std::vector<Type>());
+      cargs[i].back().push_back(unres_t);
+      cargs[i].back().push_back(unres_t);
+      pcs[i].push_back(nullptr);
+      weights[i].push_back(-1);
+      // length
+      TypeNode intType = nm->integerType();
+      Assert(std::find(types.begin(),types.end(),intType)!=types.end());
+      unsigned i_intType = std::distance(
+          types.begin(),
+          std::find(types.begin(),
+                    types.end(),
+                    intType));
+      ops[i_intType].push_back(nm->operatorOf(STRING_LENGTH).toExpr());
+      cnames[i_intType].push_back(kindToString(STRING_LENGTH));
+      cargs[i_intType].push_back(std::vector<Type>());
+      cargs[i_intType].back().push_back(unres_t);
+      pcs[i_intType].push_back(nullptr);
+      weights[i_intType].push_back(-1);
     }
     else if (types[i].isArray())
     {
