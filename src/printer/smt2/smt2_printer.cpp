@@ -24,6 +24,7 @@
 #include "expr/node_manager_attributes.h"
 #include "options/bv_options.h"
 #include "options/language.h"
+#include "options/printer_options.h"
 #include "options/smt_options.h"
 #include "printer/dagification_visitor.h"
 #include "smt/smt_engine.h"
