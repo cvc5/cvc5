@@ -68,8 +68,8 @@
 #include "options/sep_options.h"
 #include "options/set_language.h"
 #include "options/smt_options.h"
+#include "options/strings_modes.h"
 #include "options/strings_options.h"
-#include "options/strings_process_loop_mode.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
 #include "preprocessing/preprocessing_pass.h"
@@ -1260,13 +1260,8 @@ void SmtEngine::setDefaults() {
   // sygus inference may require datatypes
   if (!d_isInternalSubsolver)
   {
-    if (options::produceAbducts())
-    {
-      // we may invoke a sygus conjecture, hence we need options related to
-      // sygus
-      is_sygus = true;
-    }
-    if (options::sygusInference() || options::sygusRewSynthInput())
+    if (options::produceAbducts() || options::sygusInference()
+        || options::sygusRewSynthInput())
     {
       // since we are trying to recast as sygus, we assume the input is sygus
       is_sygus = true;
@@ -5083,7 +5078,9 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
     axioms.push_back(Node::fromExpr(easserts[i]));
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
-  asserts.push_back(Node::fromExpr(conj));
+  // negate the conjecture
+  Node conjn = Node::fromExpr(conj).negate();
+  asserts.push_back(conjn);
   d_sssfVarlist.clear();
   d_sssfSyms.clear();
   std::string name("A");

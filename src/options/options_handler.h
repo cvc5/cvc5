@@ -37,7 +37,7 @@
 #include "options/printer_modes.h"
 #include "options/quantifiers_modes.h"
 #include "options/smt_modes.h"
-#include "options/strings_process_loop_mode.h"
+#include "options/strings_modes.h"
 #include "options/sygus_out_mode.h"
 #include "options/theoryof_mode.h"
 #include "options/ufss_mode.h"
@@ -153,6 +153,8 @@ public:
 
   theory::strings::ProcessLoopMode stringToStringsProcessLoopMode(
       std::string option, std::string optarg);
+  theory::strings::RegExpInterMode stringToRegExpInterMode(std::string option,
+                                                           std::string optarg);
 
   // theory/uf/options_handlers.h
   theory::uf::UfssMode stringToUfssMode(std::string option, std::string optarg);
@@ -242,7 +244,8 @@ public:
   static const std::string s_bvOptimizeSatProofHelp;
   static const std::string s_booleanTermConversionModeHelp;
   static const std::string s_bvSlicerModeHelp;
-  static const std::string s_stringToStringsProcessLoopModeHelp;
+  static const std::string s_stringsProcessLoopModeHelp;
+  static const std::string s_regExpInterModeHelp;
   static const std::string s_boolToBVModeHelp;
   static const std::string s_cegqiFairModeHelp;
   static const std::string s_decisionModeHelp;
