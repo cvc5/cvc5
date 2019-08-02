@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
 source "$(dirname "$0")/get-script-header.sh"
 
@@ -7,11 +7,13 @@ if [ -e cadical ]; then
   exit 1
 fi
 
-commit="b44ce4f0e64aa400358ae3a8adb45b24ae6e742c"
+version="rel-1.0.3"
 
-git clone https://github.com/arminbiere/cadical cadical
+webget "https://github.com/arminbiere/cadical/archive/$version.tar.gz" "cadical-$version.tar.gz"
+tar xfvz "cadical-$version.tar.gz"
+rm "cadical-$version.tar.gz"
+mv "cadical-$version" cadical
 cd cadical
-git checkout $commit
 
 CXXFLAGS="-fPIC" ./configure && make -j$(nproc)
 
