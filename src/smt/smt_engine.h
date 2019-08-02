@@ -175,6 +175,11 @@ class CVC4_PUBLIC SmtEngine {
    */
   std::vector<Node> d_sssfVarlist;
   std::vector<Node> d_sssfSyms;
+  /** 
+   * The conjecture of the current abduction problem. This expression is only
+   * valid while we are in mode SMT_MODE_ABDUCT.
+   */
+  Expr d_abdConj;
   /** recursive function definition abstractions for --fmf-fun */
   std::map< Node, TypeNode > d_fmfRecFunctionsAbs;
   std::map< Node, std::vector< Node > > d_fmfRecFunctionsConcrete;
@@ -360,6 +365,15 @@ class CVC4_PUBLIC SmtEngine {
    * unsatisfiable. If not, then the found solutions are wrong.
    */
   void checkSynthSolution();
+  /**
+   * Check that a solution to an abduction conjecture is indeed a solution.
+   *
+   * The check is made by determining that the assertions conjoined with the
+   * solution to the abduction problem (a) is SAT, and the assertions conjoined
+   * with the abduct and the goal is UNSAT. If these criteria are not met, an
+   * internal error is thrown.
+   */
+  void checkAbduct(Expr a);
 
   /**
    * Postprocess a value for output to the user.  Involves doing things
