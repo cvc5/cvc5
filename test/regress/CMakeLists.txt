@@ -1696,6 +1696,8 @@ set(regress_1_tests
   regress1/sygus/real-grammar.sy
   regress1/sygus/simple-regexp.sy
   regress1/sygus/stopwatch-bt.sy
+  regress1/sygus/strings-no-syntax.sy
+  regress1/sygus/strings-no-syntax-len.sy
   regress1/sygus/strings-concat-3-args.sy
   regress1/sygus/strings-double-rec.sy
   regress1/sygus/strings-small.sy
