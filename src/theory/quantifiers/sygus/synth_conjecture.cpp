@@ -281,18 +281,6 @@ bool SynthConjecture::needsRefinement() const { return d_set_ce_sk_vars; }
 bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   Assert(d_master != nullptr);
-
-  // if we've already solved, return
-  if (d_hasSolution)
-  {
-    // The conjecture has a solution, thus the negation of the negated
-    // conjecture holds.
-    Node lem = d_quant.negate();
-    lem = getStreamGuardedLemma(lem);
-    lems.push_back(lem);
-    return true;
-  }
-
   
   if (isSingleInvocation())
   {
