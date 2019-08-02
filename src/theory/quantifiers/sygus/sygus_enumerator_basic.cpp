@@ -22,8 +22,10 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
-
-EnumValGeneratorBasic::EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn) : d_tds(tds), d_te(tn) {}
+EnumValGeneratorBasic::EnumValGeneratorBasic(TermDbSygus* tds, TypeNode tn)
+    : d_tds(tds), d_te(tn)
+{
+}
 
 bool EnumValGeneratorBasic::increment()
 {

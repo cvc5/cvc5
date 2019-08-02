@@ -21,9 +21,9 @@
 #include <unordered_set>
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/type_enumerator.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/sygus/synth_conjecture.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/type_enumerator.h"
 
 namespace CVC4 {
 namespace theory {
@@ -51,6 +51,7 @@ class EnumValGeneratorBasic : public EnumValGenerator
   bool increment() override;
   /** get the current term */
   Node getCurrent() override { return d_currTerm; }
+
  private:
   /** pointer to term database sygus */
   TermDbSygus* d_tds;
