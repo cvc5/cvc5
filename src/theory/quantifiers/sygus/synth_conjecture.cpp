@@ -73,7 +73,8 @@ SynthConjecture::~SynthConjecture() {}
 
 void SynthConjecture::presolve()
 {
-
+  // we don't have a solution yet
+  d_hasSolution = false;
 }
 
 void SynthConjecture::assign(Node q)
@@ -140,10 +141,7 @@ void SynthConjecture::assign(Node q)
   // restrictions
   if (qa.d_sygus)
   {
-    if( d_ceg_si->solve(d_ceg_gc->isSyntaxRestricted()) )
-    {
-      d_hasSolution = true;
-    }
+    d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
   
   Assert(d_candidates.empty());
@@ -298,8 +296,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
   
   if (isSingleInvocation())
   {
-    // we tried to solve the conjecture using single invocation techniques,
-    // but failed, hence we are done.
+    // We now try to solve with the single invocation solver, which may or may 
+    // not succeed in solving the conjecture. In either case,  we are done and
+    // return true.
+    d_hasSolution = d_ceg_si->solve();
     return true;
   }
 

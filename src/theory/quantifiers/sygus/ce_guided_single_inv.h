@@ -231,15 +231,20 @@ class CegSingleInv
   /** finish initialize
    *
    * This method sets up final decisions about whether to use single invocation
-   * techniques. If single invocation techniques are being used, it solves
-   * the first order form of the negated synthesis conjecture using a fresh
-   * copy of the SMT engine. This method returns true if it has successfully
-   * found a solution to the synthesis conjecture using this method.
+   * techniques.
    *
    * The argument syntaxRestricted is whether the syntax for solutions for the
    * initialized conjecture is restricted.
    */
-  bool solve(bool syntaxRestricted);
+  void finishInit(bool syntaxRestricted);
+  /** solve 
+   * 
+   * If single invocation techniques are being used, it solves
+   * the first order form of the negated synthesis conjecture using a fresh
+   * copy of the SMT engine. This method returns true if it has successfully
+   * found a solution to the synthesis conjecture using this method.
+   */
+  bool solve();
   //get solution
   Node getSolution( unsigned sol_index, TypeNode stn, int& reconstructed, bool rconsSygus = true );
   //reconstruct to syntax

@@ -266,7 +266,7 @@ void CegSingleInv::initialize(Node q)
   d_templ[prog] = templ;
 }
 
-bool CegSingleInv::solve(bool syntaxRestricted)
+void CegSingleInv::finishInit(bool syntaxRestricted)
 {
   Trace("cegqi-si-debug") << "Single invocation: finish init" << std::endl;
   // do not do single invocation if grammar is restricted and CEGQI_SI_MODE_ALL is not enabled
@@ -286,7 +286,7 @@ bool CegSingleInv::solve(bool syntaxRestricted)
       ss << "Property is not single invocation." << std::endl;
       throw LogicException(ss.str());
     }
-    return false;
+    return;
   }
   NodeManager* nm = NodeManager::currentNM();
   d_single_inv = d_sip->getSingleInvocation();
@@ -323,6 +323,16 @@ bool CegSingleInv::solve(bool syntaxRestricted)
                                          d_single_inv_arg_sk.end());
   Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv
                     << std::endl;
+}
+bool CegSingleInv::solve()
+{
+  if( d_single_inv.isNull() )
+  {
+    // not using single invocation techniques
+    return false;
+  }
+  Trace("cegqi-si") << "Solve using single invocation..." << std::endl;
+  NodeManager* nm = NodeManager::currentNM();
   // solve the single invocation conjecture using a fresh copy of SMT engine
   SmtEngine siSmt(nm->toExprManager());
   siSmt.setLogic(smt::currentSmtEngine()->getLogicInfo());
