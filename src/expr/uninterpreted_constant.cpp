@@ -34,7 +34,13 @@ UninterpretedConstant::UninterpretedConstant(Type type, Integer index)
 }
 
 std::ostream& operator<<(std::ostream& out, const UninterpretedConstant& uc) {
-  return out << "uc_" << uc.getType() << '_' << uc.getIndex();
+  std::stringstream ss;
+  ss << uc.getType();
+  std::string st(ss.str());
+  // must remove delimiting quotes from the name of the type
+  // this prevents us from printing symbols like |@uc_|T|_n|
+  std::replace( st.begin(), st.end(), '|', '@');
+  return out << "uc_" << st.c_str() << "_" << uc.getIndex();
 }
 
 }/* CVC4 namespace */
