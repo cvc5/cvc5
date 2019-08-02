@@ -19,7 +19,7 @@
 ; since it is spurious: (>= j 0) is a stronger solution and will be enumerated
 ; first.
 (get-abduct A 
-  (not (<= n m))
+  (<= n m)
   ((GA Bool) (GI Int))
   (
   (GA Bool ((>= GI GI)))

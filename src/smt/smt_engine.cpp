@@ -5078,7 +5078,9 @@ bool SmtEngine::getAbduct(const Expr& conj, const Type& grammarType, Expr& abd)
     axioms.push_back(Node::fromExpr(easserts[i]));
   }
   std::vector<Node> asserts(axioms.begin(), axioms.end());
-  asserts.push_back(Node::fromExpr(conj));
+  // negate the conjecture
+  Node conjn = Node::fromExpr(conj).negate();
+  asserts.push_back(conjn);
   d_sssfVarlist.clear();
   d_sssfSyms.clear();
   std::string name("A");
