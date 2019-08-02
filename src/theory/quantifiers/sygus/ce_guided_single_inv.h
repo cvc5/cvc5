@@ -164,10 +164,6 @@ class CegSingleInv
                                std::vector< Node >& terms,
                                std::map< Node, std::vector< Node > >& teq,
                                Node n, std::vector< Node >& conj );
-  // constructing solution
-  Node constructSolution(std::vector<unsigned>& indices,
-                         unsigned i,
-                         unsigned index);
   Node postProcessSolution(Node n);
  private:
   /** pointer to the quantifiers engine */
@@ -208,10 +204,6 @@ class CegSingleInv
   std::vector<Node> d_instConds;
 
  private:
-  // add instantiation
-  bool doAddInstantiation( std::vector< Node >& subs );
-  //is eligible for instantiation
-  bool isEligibleForInstantiation( Node n );
   // conjecture
   Node d_quant;
   Node d_simp_quant;

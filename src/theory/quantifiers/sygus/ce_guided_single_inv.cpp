@@ -378,23 +378,6 @@ bool CegSingleInv::solve(bool syntaxRestricted)
   return true;
 }
 
-Node CegSingleInv::constructSolution(std::vector<unsigned>& indices,
-                                     unsigned i,
-                                     unsigned index)
-{
-  Assert( index<d_inst.size() );
-  Assert( i<d_inst[index].size() );
-  unsigned uindex = indices[index];
-  if( index==indices.size()-1 ){
-    return d_inst[uindex][i];
-  }
-  Node cond = d_instConds[uindex];
-  cond = TermUtil::simpleNegate(cond);
-  Node ite1 = d_inst[uindex][i];
-  Node ite2 = constructSolution(indices, i, index + 1);
-  return NodeManager::currentNM()->mkNode(ITE, cond, ite1, ite2);
-}
-
 //TODO: use term size?
 struct sortSiInstanceIndices {
   CegSingleInv* d_ccsi;
@@ -478,7 +461,17 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     ssii.d_i = sol_index;
     std::sort( indices.begin(), indices.end(), ssii );
     Trace("csi-sol") << "Construct solution" << std::endl;
-    s = constructSolution(indices, sol_index, 0);
+    std::reverse( indices.begin(), indices.end() );
+    s = d_inst[indices[0]][sol_index];
+    // it is an ITE chain whose conditions are the instantiations
+    NodeManager * nm = NodeManager::currentNM();
+    for( unsigned j=1, nindices=indices.size(); j<nindicies; j++ )
+    {
+      unsigned uindex = indices[j];
+      Node cond = d_instConds[uindex];
+      cond = TermUtil::simpleNegate(cond);
+      s = nm->mkNode(ITE,cond,d_inst[uindex][sol_index],s);
+    }
     Assert( vars.size()==d_sol->d_varList.size() );
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
   }
