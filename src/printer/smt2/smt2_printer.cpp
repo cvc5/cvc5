@@ -510,6 +510,10 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::APPLY_UF: typeChildren = true; break;
   // higher-order
   case kind::HO_APPLY:
+    if (!options::flattenHOChains())
+    {
+      break;
+    }
     // collapse "@" chains, i.e.
     //
     // ((a b) c) --> (a b c)
