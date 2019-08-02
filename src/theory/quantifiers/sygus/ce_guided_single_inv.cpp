@@ -283,7 +283,7 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
     if (options::cegqiSingleInvAbort())
     {
       std::stringstream ss;
-      ss << "Property is not single invocation." << std::endl;
+      ss << "Property is not handled by single invocation." << std::endl;
       throw LogicException(ss.str());
     }
     return;
