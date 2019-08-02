@@ -299,7 +299,14 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
     // We now try to solve with the single invocation solver, which may or may 
     // not succeed in solving the conjecture. In either case,  we are done and
     // return true.
-    d_hasSolution = d_ceg_si->solve();
+    if( d_ceg_si->solve() )
+    {
+      d_hasSolution = true;
+      // the conjecture has a solution, so its negation holds
+      Node lem = d_quant.negate();
+      lem = getStreamGuardedLemma(lem);
+      lems.push_back(lem);
+    }
     return true;
   }
 
