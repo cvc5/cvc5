@@ -614,9 +614,9 @@ Node CegSingleInv::getSolution(unsigned sol_index,
   }
   d_orig_solution = s;
 
-  //simplify the solution
+  //simplify the solution using the extended rewriter
   Trace("csi-sol") << "Solution (pre-simplification): " << d_orig_solution << std::endl;
-  s = d_sol->simplifySolution( s, stn );
+  s = d_qe->getTermDatabaseSygus()->getExtRewriter()->extendedRewrite(s);
   Trace("csi-sol") << "Solution (post-simplification): " << s << std::endl;
   return reconstructToSyntax( s, stn, reconstructed, rconsSygus );
 }
