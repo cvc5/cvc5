@@ -512,9 +512,9 @@ void Smt2Printer::toStream(std::ostream& out,
   case kind::HO_APPLY:
     // collapse "@" chains, i.e.
     //
-    // @(@(a, b), c) --> (@ a b c)
+    // ((a b) c) --> (a b c)
     //
-    // @(@(@(a, b), @(@(c, d), e)), f) --> (@ a b (@ c d e) f)
+    // (((a b) ((c d) e)) f) --> (a b (c d e) f)
     {
       Node head = n;
       std::vector<Node> args;
