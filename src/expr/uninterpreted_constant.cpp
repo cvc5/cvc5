@@ -16,10 +16,10 @@
 
 #include "expr/uninterpreted_constant.h"
 
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <string>
-#include <algorithm>
 
 #include "base/cvc4_assert.h"
 
