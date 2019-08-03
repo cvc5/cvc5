@@ -555,6 +555,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_abduct.h
   theory/quantifiers/sygus/sygus_enumerator.cpp
   theory/quantifiers/sygus/sygus_enumerator.h
+  theory/quantifiers/sygus/sygus_enumerator_basic.cpp
+  theory/quantifiers/sygus/sygus_enumerator_basic.h
   theory/quantifiers/sygus/sygus_eval_unfold.cpp
   theory/quantifiers/sygus/sygus_eval_unfold.h
   theory/quantifiers/sygus/sygus_explain.cpp
@@ -591,8 +593,6 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/term_database_sygus.h
   theory/quantifiers/sygus_sampler.cpp
   theory/quantifiers/sygus_sampler.h
-  theory/quantifiers/term_canonize.cpp
-  theory/quantifiers/term_canonize.h
   theory/quantifiers/term_database.cpp
   theory/quantifiers/term_database.h
   theory/quantifiers/term_enumeration.cpp

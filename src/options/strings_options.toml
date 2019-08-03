@@ -135,8 +135,8 @@ header = "options/strings_options.h"
   type       = "CVC4::theory::strings::ProcessLoopMode"
   default    = "CVC4::theory::strings::ProcessLoopMode::FULL"
   handler    = "stringToStringsProcessLoopMode"
-  includes   = ["options/strings_process_loop_mode.h"]
-  help       = "choose how to process looping string equations, see --strings-process-loop-mode=help for details"
+  includes   = ["options/strings_modes.h"]
+  help       = "determines how to process looping string equations"
 
 [[option]]
   name       = "stringInferAsLemmas"
@@ -216,3 +216,13 @@ header = "options/strings_options.h"
   default    = "true"
   read_only  = true
   help       = "do flat form inferences"
+
+[[option]]
+  name       = "stringRegExpInterMode"
+  category   = "expert"
+  long       = "re-inter-mode=MODE"
+  type       = "CVC4::theory::strings::RegExpInterMode"
+  default    = "CVC4::theory::strings::RE_INTER_CONSTANT"
+  handler    = "stringToRegExpInterMode"
+  includes   = ["options/strings_modes.h"]
+  help       = "determines which regular expressions intersections to compute"
