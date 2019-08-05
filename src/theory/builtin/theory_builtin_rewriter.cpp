@@ -214,6 +214,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
+  NodeManager * nm = NodeManager::currentNM();
   while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
          || ck == kind::BOUND_VARIABLE)
   {
@@ -252,7 +253,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
       // lambda x. (ite (= x true) t s)
       Assert(index_eq.getType().isBoolean());
-      index_eq = index_eq.eqNode(curr_val);
+      index_eq = index_eq.eqNode(nm->mkConst(true));
     }
     else if (index_eq.getKind() != kind::EQUAL)
     {
