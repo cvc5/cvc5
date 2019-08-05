@@ -271,15 +271,15 @@ class TermDb : public QuantifiersUtil {
   void setTermInactive(Node n);
   /** has term current
    *
-  * This function is used in cases where we restrict which terms appear in the
-  * database, such as for heuristics used in local theory extensions
-  * and for --term-db-mode=relevant.
-  * It returns whether the term n should be indexed in the current context.
-  * 
-  * If the argument useMode is true, then this method returns a value based on
-  * the option options::termDbMode().
-  * Otherwise, it returns the lookup in the map d_has_map.
-  */
+   * This function is used in cases where we restrict which terms appear in the
+   * database, such as for heuristics used in local theory extensions
+   * and for --term-db-mode=relevant.
+   * It returns whether the term n should be indexed in the current context.
+   *
+   * If the argument useMode is true, then this method returns a value based on
+   * the option options::termDbMode().
+   * Otherwise, it returns the lookup in the map d_has_map.
+   */
   bool hasTermCurrent(Node n, bool useMode = true);
   /** is term eligble for instantiation? */
   bool isTermEligibleForInstantiation(TNode n, TNode f);

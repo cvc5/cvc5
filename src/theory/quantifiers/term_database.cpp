@@ -1039,7 +1039,7 @@ bool TermDb::reset( Theory::Effort effort ){
         }
         Trace("quant-ho") << "- assert purify equality : " << eq << std::endl;
         ee->assertEquality(eq, true, eq);
-        if(!ee->consistent())
+        if (!ee->consistent())
         {
           // In some rare cases, purification functions (in the domain of
           // d_ho_purify_to_term) may escape the term database. For example,
@@ -1047,7 +1047,8 @@ bool TermDb::reset( Theory::Effort effort ){
           // functions. As a result, asserting these equalities internally may
           // cause a conflict. In this case, we insist that the purification
           // equality is sent out as a lemma here.
-          Trace("term-db-lemma") << "Purify equality lemma: " << eq << std::endl;
+          Trace("term-db-lemma")
+              << "Purify equality lemma: " << eq << std::endl;
           d_quantEngine->addLemma(eq);
           d_quantEngine->setConflict();
           d_consistent_ee = false;
