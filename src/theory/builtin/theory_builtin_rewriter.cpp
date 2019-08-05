@@ -241,11 +241,12 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     }
     if (index_eq.getKind() == kind::BOUND_VARIABLE)
     {
-      if( !index_eq.getType().isBoolean() )
+      if (!index_eq.getType().isBoolean())
       {
         // Catches the case of default case of variable, e.g. lambda x : Int. x.
         // In this case, it is not canonical.
-        Trace("builtin-rewrite-debug2") << "  ...non-Boolean variable." << std::endl;
+        Trace("builtin-rewrite-debug2")
+            << "  ...non-Boolean variable." << std::endl;
         return Node::null();
       }
       // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
