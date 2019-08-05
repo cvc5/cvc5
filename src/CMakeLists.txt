@@ -577,6 +577,8 @@ libcvc4_add_sources(
   theory/quantifiers/sygus/sygus_process_conj.h
   theory/quantifiers/sygus/sygus_repair_const.cpp
   theory/quantifiers/sygus/sygus_repair_const.h
+  theory/quantifiers/sygus/sygus_type_info.cpp
+  theory/quantifiers/sygus/sygus_type_info.h
   theory/quantifiers/sygus/sygus_unif.cpp
   theory/quantifiers/sygus/sygus_unif.h
   theory/quantifiers/sygus/sygus_unif_io.cpp
