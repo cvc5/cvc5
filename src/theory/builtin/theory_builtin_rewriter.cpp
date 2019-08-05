@@ -214,7 +214,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
          || ck == kind::BOUND_VARIABLE)
   {
