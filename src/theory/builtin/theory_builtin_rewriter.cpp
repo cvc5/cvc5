@@ -214,7 +214,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  NodeManager* nm = NodeManager::currentNM();
+  NodeManager * nm = NodeManager::currentNM();
   while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
          || ck == kind::BOUND_VARIABLE)
   {
@@ -233,33 +233,36 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     {
       Trace("builtin-rewrite-debug2")
           << "  process base : " << curr << std::endl;
-      bool pol = ck != kind::NOT;
       // Boolean return case, e.g. lambda x. (= x v) becomes
       // lambda x. (ite (= x v) true false)
-      index_eq = ck == kind::NOT ? curr[0] : curr;
-      curr_val = NodeManager::currentNM()->mkConst( pol );
-      next = NodeManager::currentNM()->mkConst( !pol );
+      index_eq = curr;
+      curr_val = nm->mkConst( true );
+      next = nm->mkConst( false );
     }
-    if (index_eq.getKind() == kind::BOUND_VARIABLE)
+    if (index_eq.getKind() != kind::EQUAL)
     {
-      if (!index_eq.getType().isBoolean())
+      bool pol = index_eq.getKind()!=kind::NOT;
+      Node indexEqAtom = pol ? index_eq : index_eq[0];
+      if (indexEqAtom.getKind() == kind::BOUND_VARIABLE)
       {
-        // Catches the case of default case of variable, e.g. lambda x : Int. x.
-        // In this case, it is not canonical.
-        Trace("builtin-rewrite-debug2")
-            << "  ...non-Boolean variable." << std::endl;
+        if (!indexEqAtom.getType().isBoolean())
+        {
+          // Catches default case of non-Boolean variable, e.g. 
+          // lambda x : Int. x. In this case, it is not canonical and we fail.
+          Trace("builtin-rewrite-debug2")
+              << "  ...non-Boolean variable." << std::endl;
+          return Node::null();
+        }
+        // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
+        // lambda x. (ite (= x true) t s)
+        index_eq = indexEqAtom.eqNode(nm->mkConst(pol));
+      }
+      else
+      {
+        // non-equality condition
+        Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
         return Node::null();
       }
-      // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
-      // lambda x. (ite (= x true) t s)
-      Assert(index_eq.getType().isBoolean());
-      index_eq = index_eq.eqNode(nm->mkConst(true));
-    }
-    else if (index_eq.getKind() != kind::EQUAL)
-    {
-      // non-equality condition
-      Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
-      return Node::null();
     }
     else if (Rewriter::rewrite(index_eq) != index_eq)
     {
