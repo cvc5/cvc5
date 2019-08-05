@@ -305,6 +305,11 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
+  /** 
+   * Get type information about sygus datatype type tn. The type tn should be
+   * (a subfield type of) a type that has been registered to this class.
+   */
+  SygusTypeInfo& getTypeInfo(TypeNode tn);
 
   /** print to sygus stream n on trace c */
   static void toStreamSygus(const char* c, Node n);
@@ -376,11 +381,6 @@ class TermDbSygus {
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
-  /** 
-   * Get type information about sygus datatype type tn. The type tn should be
-   * (a subfield type of) a type that has been registered to this class.
-   */
-  SygusTypeInfo& getTypeInfo(TypeNode tn);
   // TODO :issue #1235 : below here needs refactor
  public:
   Node d_true;

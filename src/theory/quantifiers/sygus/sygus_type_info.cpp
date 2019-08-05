@@ -57,6 +57,17 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     // no arguments to synthesis functions
     d_var_list.clear();
   }
+
+  // compute min term size information: this must be computed eagerly
+  d_min_term_size = 1;
+  for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
+  {
+    if (dt[i].getNumArgs() == 0)
+    {
+      d_min_term_size = 0;
+    }
+  }
+  
   // register connected types
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -64,15 +75,12 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     {
       TypeNode ctn = TypeNode::fromType(dt[i].getArgType(j));
       tds->registerSygusType(ctn);
-      // FIXME
-      /*
+      SygusTypeInfo& stic = tds->getTypeInfo(ctn);
       // carry type attributes
-      if (d_has_subterm_sym_cons.find(ctn)
-          != d_has_subterm_sym_cons.end())
+      if (stic.d_has_subterm_sym_cons)
       {
         d_has_subterm_sym_cons = true;
       }
-      */
     }
   }
   // iterate over constructors
@@ -149,19 +157,16 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
   d_min_term_size = 1;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
-    if (dt[i].getNumArgs() == 0)
-    {
-      d_min_term_size = 0;
-    }
     unsigned csize = 0;
     if (dt[i].getNumArgs() > 0)
     {
       csize = 1;
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
-        TypeNode at = TypeNode::fromType(dt[i].getArgType(j));
-        // FIXME
-        // csize += tds->getMinTermSize(at);
+        TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
+        Assert( tds->isRegistered(ct) );
+        SygusTypeInfo& stic = tds->getTypeInfo(ct);
+        csize += stic.getMinTermSize();
       }
     }
     d_min_cons_term_size[i] = csize;
@@ -209,6 +214,11 @@ unsigned SygusTypeInfo::getMinTypeDepth(TypeNode tn) const
     return 0;
   }
   return it->second;
+}
+
+unsigned SygusTypeInfo::getMinTermSize() const
+{
+  return d_min_term_size;
 }
 
 unsigned SygusTypeInfo::getMinConsTermSize(unsigned cindex)

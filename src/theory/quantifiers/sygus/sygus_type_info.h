@@ -152,7 +152,7 @@ class SygusTypeInfo
    */
   unsigned getMinTypeDepth(TypeNode tn) const;
   /** Get the minimum size for a term of this sygus type */
-  unsigned getMinTermSize();
+  unsigned getMinTermSize() const;
   /**
    * Get the minimum size for a term that is an application of a constructor of
    * this type.
@@ -187,7 +187,6 @@ class SygusTypeInfo
   std::map<unsigned, Node> d_arg_ops;
   /** Reverse of the above map */
   std::map<Node, unsigned> d_ops;
-  // grammar information
   /**
    * This maps the subfield datatype types T to the smallest size of a term of
    * this sygus type that includes T as a subterm. For example, for type A with
@@ -198,7 +197,6 @@ class SygusTypeInfo
    * we have that d_min_type_depth = { A -> 0, B -> 1, C -> 2, D -> 1 }.
    */
   std::map<TypeNode, unsigned> d_min_type_depth;
-  // type -> cons -> _
   /** The minimimum size term of this type */
   unsigned d_min_term_size;
   /**
