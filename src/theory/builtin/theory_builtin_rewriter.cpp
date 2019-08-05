@@ -214,7 +214,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  NodeManager * nm = NodeManager::currentNM();
+  NodeManager* nm = NodeManager::currentNM();
   while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
          || ck == kind::BOUND_VARIABLE)
   {
@@ -236,18 +236,18 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       // Boolean return case, e.g. lambda x. (= x v) becomes
       // lambda x. (ite (= x v) true false)
       index_eq = curr;
-      curr_val = nm->mkConst( true );
-      next = nm->mkConst( false );
+      curr_val = nm->mkConst(true);
+      next = nm->mkConst(false);
     }
     if (index_eq.getKind() != kind::EQUAL)
     {
-      bool pol = index_eq.getKind()!=kind::NOT;
+      bool pol = index_eq.getKind() != kind::NOT;
       Node indexEqAtom = pol ? index_eq : index_eq[0];
       if (indexEqAtom.getKind() == kind::BOUND_VARIABLE)
       {
         if (!indexEqAtom.getType().isBoolean())
         {
-          // Catches default case of non-Boolean variable, e.g. 
+          // Catches default case of non-Boolean variable, e.g.
           // lambda x : Int. x. In this case, it is not canonical and we fail.
           Trace("builtin-rewrite-debug2")
               << "  ...non-Boolean variable." << std::endl;
@@ -260,7 +260,8 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
       else
       {
         // non-equality condition
-        Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
+        Trace("builtin-rewrite-debug2")
+            << "  ...non-equality condition." << std::endl;
         return Node::null();
       }
     }
