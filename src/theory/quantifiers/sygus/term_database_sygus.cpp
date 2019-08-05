@@ -900,6 +900,12 @@ unsigned TermDbSygus::getMinTypeDepth( TypeNode root_tn, TypeNode tn ){
   }
 }
 
+SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
+{
+  Assert(d_tinfo.find(tn)!=d_tinfo.end());
+  return d_tinfo[tn];
+}
+
 unsigned TermDbSygus::getMinTermSize( TypeNode tn ) {
   Assert( isRegistered( tn ) );
   std::map< TypeNode, unsigned >::iterator it = d_min_term_size.find( tn );

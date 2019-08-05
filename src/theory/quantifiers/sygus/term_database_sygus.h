@@ -23,6 +23,7 @@
 #include "theory/quantifiers/extended_rewrite.h"
 #include "theory/quantifiers/sygus/sygus_eval_unfold.h"
 #include "theory/quantifiers/sygus/sygus_explain.h"
+#include "theory/quantifiers/sygus/sygus_type_info.h"
 #include "theory/quantifiers/term_database.h"
 
 namespace CVC4 {
@@ -375,9 +376,12 @@ class TermDbSygus {
   /** cache of getProxyVariable */
   std::map<TypeNode, std::map<Node, Node> > d_proxy_vars;
   //-----------------------------end conversion from sygus to builtin
-
+  /** 
+   * Get type information about sygus datatype type tn. The type tn should be
+   * (a subfield type of) a type that has been registered to this class.
+   */
+  SygusTypeInfo& getTypeInfo(TypeNode tn);
   // TODO :issue #1235 : below here needs refactor
-
  public:
   Node d_true;
   Node d_false;
@@ -388,6 +392,11 @@ class TermDbSygus {
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
+  /** 
+   * The type information for each sygus datatype type that has been registered
+   * to this class.
+   */
+   std::map<TypeNode, SygusTypeInfo > d_tinfo;
   // information for sygus types
   std::map<TypeNode, TypeNode> d_register;  // stores sygus -> builtin type
   std::map<TypeNode, std::vector<Node> > d_var_list;
