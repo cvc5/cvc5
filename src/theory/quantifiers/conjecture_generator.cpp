@@ -22,9 +22,9 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 #include "util/random.h"
-#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace CVC4::kind;

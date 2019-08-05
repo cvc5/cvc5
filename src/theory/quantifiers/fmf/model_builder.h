@@ -19,8 +19,8 @@
 
 #include "expr/node.h"
 #include "theory/quantifiers/first_order_model.h"
-#include "theory/theory_model_builder.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/theory_model_builder.h"
 
 namespace CVC4 {
 namespace theory {

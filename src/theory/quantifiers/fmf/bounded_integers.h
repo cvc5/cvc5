@@ -18,7 +18,6 @@
 #ifndef CVC4__BOUNDED_INTEGERS_H
 #define CVC4__BOUNDED_INTEGERS_H
 
-
 #include "theory/quantifiers/quant_util.h"
 
 #include "context/context.h"

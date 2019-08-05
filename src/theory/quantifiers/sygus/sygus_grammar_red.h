@@ -20,8 +20,8 @@
 #include <map>
 #include <vector>
 
-#include "expr/node.h"
 #include "expr/datatype.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {

@@ -25,9 +25,8 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "expr/term_canonize.h"
 #include "options/quantifiers_modes.h"
-#include "theory/quantifiers/inst_match.h"
-#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/alpha_equivalence.h"
 #include "theory/quantifiers/anti_skolem.h"
 #include "theory/quantifiers/bv_inverter.h"
@@ -42,6 +41,7 @@
 #include "theory/quantifiers/fmf/bounded_integers.h"
 #include "theory/quantifiers/fmf/full_model_check.h"
 #include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/inst_match.h"
 #include "theory/quantifiers/inst_propagator.h"
 #include "theory/quantifiers/inst_strategy_enumerative.h"
 #include "theory/quantifiers/instantiate.h"
@@ -50,6 +50,7 @@
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quant_relevance.h"
 #include "theory/quantifiers/quant_split.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/quantifiers_rewriter.h"
 #include "theory/quantifiers/relevant_domain.h"
@@ -64,7 +65,6 @@
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
-#include "expr/term_canonize.h"
 
 namespace CVC4 {
 
@@ -72,7 +72,7 @@ class TheoryEngine;
 
 namespace theory {
 
-//TODO: organize this more/review this, github issue #1163
+// TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDList<Node> NodeList;

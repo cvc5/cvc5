@@ -75,7 +75,7 @@ public:
   }
   // compose property, should be such that: 
   //   p.getModifiedTerm( this.getModifiedTerm( x ) ) = this_updated.getModifiedTerm( x )
-  virtual void composeProperty( TermProperties& p );
+  virtual void composeProperty(TermProperties& p);
 };
 
 /** Solved form
@@ -94,9 +94,9 @@ public:
   //   an example is for linear arithmetic, we store "substitution with coefficients".
   std::vector<Node> d_non_basic;
   // push the substitution pv_prop.getModifiedTerm(pv) -> n
-  void push_back( Node pv, Node n, TermProperties& pv_prop );
+  void push_back(Node pv, Node n, TermProperties& pv_prop);
   // pop the substitution pv_prop.getModifiedTerm(pv) -> n
-  void pop_back( Node pv, Node n, TermProperties& pv_prop );
+  void pop_back(Node pv, Node n, TermProperties& pv_prop);
   // is this solved form empty?
   bool empty() { return d_vars.empty(); }
 public:

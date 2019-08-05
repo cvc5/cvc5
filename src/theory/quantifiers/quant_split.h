@@ -17,8 +17,8 @@
 #ifndef CVC4__THEORY__QUANT_SPLIT_H
 #define CVC4__THEORY__QUANT_SPLIT_H
 
-#include "theory/quantifiers/quant_util.h"
 #include "context/cdo.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {

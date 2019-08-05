@@ -27,7 +27,7 @@ namespace theory {
 class QuantifiersEngine;
 
 namespace quantifiers {
-  
+
 class TermDbSygus;
 
 /** Sygus unification utility

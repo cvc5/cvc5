@@ -72,7 +72,7 @@ SygusGrammarNorm::SygusGrammarNorm(QuantifiersEngine* qe)
     : d_qe(qe), d_tds(d_qe->getTermDatabaseSygus())
 {
 }
-  
+
 Kind SygusGrammarNorm::TypeObject::getEliminateKind(Kind ok)
 {
   Kind nk = ok;

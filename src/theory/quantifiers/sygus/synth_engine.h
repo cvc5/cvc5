@@ -19,8 +19,8 @@
 #define CVC4__THEORY__QUANTIFIERS__SYNTH_ENGINE_H
 
 #include "context/cdhashmap.h"
-#include "theory/quantifiers/sygus/synth_conjecture.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/sygus/synth_conjecture.h"
 
 namespace CVC4 {
 namespace theory {
