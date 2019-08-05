@@ -23,7 +23,6 @@
 #include "options/quantifiers_options.h"
 #include "smt/term_formula_removal.h"
 #include "theory/arith/arith_msum.h"
-#include "theory/quantifiers/ematching/trigger.h"
 #include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/quant_epr.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
@@ -31,10 +30,11 @@
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "theory/rewriter.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;
-using namespace CVC4::context;
 
 namespace CVC4 {
 namespace theory {
@@ -79,6 +79,51 @@ std::ostream& operator<<(std::ostream& os, CegHandledStatus status)
   return os;
 }
 
+
+void TermProperties::composeProperty( TermProperties& p ){
+  if( p.d_coeff.isNull() ){
+    return;
+  }
+  if( d_coeff.isNull() ){
+    d_coeff = p.d_coeff;
+  }else{
+    d_coeff = NodeManager::currentNM()->mkNode( MULT, d_coeff, p.d_coeff );
+    d_coeff = Rewriter::rewrite( d_coeff );
+  }
+}
+
+// push the substitution pv_prop.getModifiedTerm(pv) -> n
+void SolvedForm::push_back( Node pv, Node n, TermProperties& pv_prop ){
+  d_vars.push_back( pv );
+  d_subs.push_back( n );
+  d_props.push_back( pv_prop );
+  if( pv_prop.isBasic() ){
+    return;
+  }
+  d_non_basic.push_back( pv );
+  // update theta value
+  Node new_theta = getTheta();
+  if( new_theta.isNull() ){
+    new_theta = pv_prop.d_coeff;
+  }else{
+    new_theta = NodeManager::currentNM()->mkNode( MULT, new_theta, pv_prop.d_coeff );
+    new_theta = Rewriter::rewrite( new_theta );
+  }
+  d_theta.push_back( new_theta );
+}
+// pop the substitution pv_prop.getModifiedTerm(pv) -> n
+void SolvedForm::pop_back( Node pv, Node n, TermProperties& pv_prop ){
+  d_vars.pop_back();
+  d_subs.pop_back();
+  d_props.pop_back();
+  if( pv_prop.isBasic() ){
+    return;
+  }
+  d_non_basic.pop_back();
+  // update theta value
+  d_theta.pop_back();
+}
+  
 CegInstantiator::CegInstantiator(QuantifiersEngine* qe,
                                  CegqiOutput* out,
                                  bool use_vts_delta,

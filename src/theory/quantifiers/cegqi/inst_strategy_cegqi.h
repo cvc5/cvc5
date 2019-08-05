@@ -20,6 +20,7 @@
 
 #include "theory/decision_manager.h"
 #include "theory/quantifiers/cegqi/ceg_instantiator.h"
+#include "theory/quantifiers/quant_util.h"
 #include "util/statistics_registry.h"
 
 namespace CVC4 {

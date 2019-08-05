@@ -19,7 +19,7 @@
 
 #include "context/cdhashmap.h"
 #include "expr/node_trie.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 #include "theory/type_enumerator.h"
 
 namespace CVC4 {

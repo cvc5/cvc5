@@ -24,6 +24,7 @@
 #include "theory/quantifiers/term_enumeration.h"
 #include "theory/quantifiers/term_util.h"
 #include "theory/theory_engine.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace std;

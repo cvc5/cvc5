@@ -18,11 +18,19 @@
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_RED_H
 
 #include <map>
-#include "theory/quantifiers_engine.h"
+#include <vector>
+
+#include "expr/node.h"
+#include "expr/datatype.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
+
+class TermDbSygus;
 
 /** SygusRedundantCons
  *

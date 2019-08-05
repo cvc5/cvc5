@@ -19,7 +19,7 @@
 #define CVC4__BOUNDED_INTEGERS_H
 
 
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 #include "context/context.h"
 #include "context/context_mm.h"

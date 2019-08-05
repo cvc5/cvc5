@@ -20,7 +20,6 @@
 #define CVC4__THEORY__QUANTIFIERS__QUANTIFIERS_REWRITER_H
 
 #include "theory/rewriter.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

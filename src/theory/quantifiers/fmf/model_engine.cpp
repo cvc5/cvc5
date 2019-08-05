@@ -25,6 +25,7 @@
 #include "theory/uf/equality_engine.h"
 #include "theory/uf/theory_uf.h"
 #include "theory/uf/theory_uf_strong_solver.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4;

@@ -17,11 +17,14 @@
 #ifndef CVC4__THEORY__QUANT_SPLIT_H
 #define CVC4__THEORY__QUANT_SPLIT_H
 
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 #include "context/cdo.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class QuantDSplit : public QuantifiersModule {

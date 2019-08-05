@@ -109,6 +109,7 @@
 #include "theory/theory_engine.h"
 #include "theory/theory_model.h"
 #include "theory/theory_traits.h"
+#include "theory/quantifiers_engine.h"
 #include "util/hash.h"
 #include "util/proof.h"
 #include "util/random.h"

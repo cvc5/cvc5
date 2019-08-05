@@ -18,6 +18,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/rewriter.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace CVC4;
 using namespace std;

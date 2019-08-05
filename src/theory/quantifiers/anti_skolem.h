@@ -25,7 +25,7 @@
 #include "expr/node.h"
 #include "expr/type_node.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers_engine.h"
+#include "theory/quantifiers/quant_util.h"
 
 namespace CVC4 {
 namespace theory {
