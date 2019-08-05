@@ -236,8 +236,8 @@ class CegSingleInv
    * initialized conjecture is restricted.
    */
   void finishInit(bool syntaxRestricted);
-  /** solve 
-   * 
+  /** solve
+   *
    * If single invocation techniques are being used, it solves
    * the first order form of the negated synthesis conjecture using a fresh
    * copy of the SMT engine. This method returns true if it has successfully

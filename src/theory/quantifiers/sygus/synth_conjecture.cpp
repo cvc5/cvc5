@@ -145,7 +145,7 @@ void SynthConjecture::assign(Node q)
   {
     d_ceg_si->finishInit(d_ceg_gc->isSyntaxRestricted());
   }
-  
+
   Assert(d_candidates.empty());
   std::vector<Node> vars;
   for (unsigned i = 0; i < d_embed_quant[0].getNumChildren(); i++)
@@ -284,10 +284,10 @@ bool SynthConjecture::doCheck(std::vector<Node>& lems)
 {
   if (isSingleInvocation())
   {
-    // We now try to solve with the single invocation solver, which may or may 
+    // We now try to solve with the single invocation solver, which may or may
     // not succeed in solving the conjecture. In either case,  we are done and
     // return true.
-    if( d_ceg_si->solve() )
+    if (d_ceg_si->solve())
     {
       d_hasSolution = true;
       // the conjecture has a solution, so its negation holds

@@ -326,16 +326,19 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                     << std::endl;
   // check whether we can handle this quantified formula
   CegHandledStatus status = CegInstantiator::isCbqiQuant(d_single_inv);
-  if( status<CEG_HANDLED )
+  if (status < CEG_HANDLED)
   {
-    Trace("cegqi-si") << "...do not invoke single invocation techniques since the quantified formula does not have a handled counterexample-guided instantiation strategy!" << std::endl;
+    Trace("cegqi-si") << "...do not invoke single invocation techniques since "
+                         "the quantified formula does not have a handled "
+                         "counterexample-guided instantiation strategy!"
+                      << std::endl;
     d_single_invocation = false;
     d_single_inv = Node::null();
   }
 }
 bool CegSingleInv::solve()
 {
-  if( d_single_inv.isNull() )
+  if (d_single_inv.isNull())
   {
     // not using single invocation techniques
     return false;
@@ -480,16 +483,16 @@ Node CegSingleInv::getSolution(unsigned sol_index,
     ssii.d_i = sol_index;
     std::sort( indices.begin(), indices.end(), ssii );
     Trace("csi-sol") << "Construct solution" << std::endl;
-    std::reverse( indices.begin(), indices.end() );
+    std::reverse(indices.begin(), indices.end());
     s = d_inst[indices[0]][sol_index];
     // it is an ITE chain whose conditions are the instantiations
-    NodeManager * nm = NodeManager::currentNM();
-    for( unsigned j=1, nindices=indices.size(); j<nindices; j++ )
+    NodeManager* nm = NodeManager::currentNM();
+    for (unsigned j = 1, nindices = indices.size(); j < nindices; j++)
     {
       unsigned uindex = indices[j];
       Node cond = d_instConds[uindex];
       cond = TermUtil::simpleNegate(cond);
-      s = nm->mkNode(ITE,cond,d_inst[uindex][sol_index],s);
+      s = nm->mkNode(ITE, cond, d_inst[uindex][sol_index], s);
     }
     Assert( vars.size()==d_sol->d_varList.size() );
     s = s.substitute( vars.begin(), vars.end(), d_sol->d_varList.begin(), d_sol->d_varList.end() );
