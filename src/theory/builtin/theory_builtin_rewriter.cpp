@@ -214,32 +214,40 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > vals;
   Node curr = n[1];
   Kind ck = curr.getKind();
-  while( ck==kind::ITE || ck==kind::EQUAL || ck==kind::NOT || ck==kind::BOUND_VARIABLE ){
+  while (ck == kind::ITE || ck == kind::EQUAL || ck == kind::NOT
+         || ck == kind::BOUND_VARIABLE)
+  {
     Node index_eq;
     Node curr_val;
     Node next;
-    if( ck==kind::ITE ){
-      Trace("builtin-rewrite-debug2") << "  process condition : " << curr[0] << std::endl;
+    if (ck == kind::ITE)
+    {
+      Trace("builtin-rewrite-debug2")
+          << "  process condition : " << curr[0] << std::endl;
       index_eq = curr[0];
       curr_val = curr[1];
       next = curr[2];
-    }else{
-      Trace("builtin-rewrite-debug2") << "  process base : " << curr << std::endl;
-      bool pol = ck!=kind::NOT;
+    }
+    else
+    {
+      Trace("builtin-rewrite-debug2")
+          << "  process base : " << curr << std::endl;
+      bool pol = ck != kind::NOT;
       // Boolean return case, e.g. lambda x. (= x v) becomes
       // lambda x. (ite (= x v) true false)
-      index_eq = ck==kind::NOT ? curr[0] : curr;
+      index_eq = ck == kind::NOT ? curr[0] : curr;
       curr_val = NodeManager::currentNM()->mkConst( pol );
       next = NodeManager::currentNM()->mkConst( !pol );
     }
-    if( index_eq.getKind()==kind::BOUND_VARIABLE )
+    if (index_eq.getKind() == kind::BOUND_VARIABLE)
     {
       // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
       // lambda x. (ite (= x true) t s)
-      Assert( index_eq.getType().isBoolean() );
+      Assert(index_eq.getType().isBoolean());
       index_eq = index_eq.eqNode(curr_val);
     }
-    else if( index_eq.getKind()!=kind::EQUAL ){
+    else if (index_eq.getKind() != kind::EQUAL)
+    {
       // non-equality condition
       Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
       return Node::null();
@@ -325,7 +333,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
   // must carry the overall return type to deal with cases like (lambda ((x Int)(y Int)) (ite (= x _) 0.5 0.0)),
   //  where the inner construction for the else case about should be (arraystoreall (Array Int Real) 0.0)
   Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
-  if( anode.isNull() )
+  if (anode.isNull())
   {
     return anode;
   }
