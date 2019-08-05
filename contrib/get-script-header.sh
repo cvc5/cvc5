@@ -1,6 +1,6 @@
-#!/bin/bash
+#!/usr/bin/env bash
 #
-set -e
+set -e -o pipefail
 
 cd "$(dirname "$0")/.."
 
@@ -24,3 +24,15 @@ function webget {
     exit 1
   fi
 }
+
+for cmd in python python2 python3; do
+  if [ -x "$(command -v $cmd)" ]; then
+    PYTHON="$cmd"
+    break
+  fi
+done
+
+if [ -z "$PYTHON" ]; then
+  echo "Error: Couldn't find python, python2, or python3." >&2
+  exit 1
+fi

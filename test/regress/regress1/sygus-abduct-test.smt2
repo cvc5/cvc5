@@ -13,4 +13,4 @@
 (assert (and (<= n x)(<= x (+ n 5))))
 (assert (and (<= 1 y)(<= y m)))
 
-(get-abduct A (< x y))
+(get-abduct A (not (< x y)))

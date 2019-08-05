@@ -22,7 +22,6 @@
 #include "theory/quantifiers/inst_match_trie.h"
 #include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
 #include "theory/quantifiers/single_inv_partition.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

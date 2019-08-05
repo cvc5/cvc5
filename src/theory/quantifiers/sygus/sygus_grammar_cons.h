@@ -18,10 +18,16 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 #define CVC4__THEORY__QUANTIFIERS__SYGUS_GRAMMAR_CONS_H
 
-#include "theory/quantifiers_engine.h"
+#include <map>
+#include <vector>
+
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class SynthConjecture;

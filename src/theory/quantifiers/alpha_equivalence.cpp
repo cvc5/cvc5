@@ -15,6 +15,8 @@
 
 #include "theory/quantifiers/alpha_equivalence.h"
 
+#include "theory/quantifiers_engine.h"
+
 using namespace CVC4;
 using namespace std;
 using namespace CVC4::theory;
