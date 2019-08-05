@@ -324,6 +324,14 @@ void CegSingleInv::finishInit(bool syntaxRestricted)
                                          d_single_inv_arg_sk.end());
   Trace("cegqi-si") << "Single invocation formula is : " << d_single_inv
                     << std::endl;
+  // check whether we can handle this quantified formula
+  CegHandledStatus status = CegInstantiator::isCbqiQuant(d_single_inv);
+  if( status<CEG_HANDLED )
+  {
+    Trace("cegqi-si") << "...do not invoke single invocation techniques since the quantified formula does not have a handled counterexample-guided instantiation strategy!" << std::endl;
+    d_single_invocation = false;
+    d_single_inv = Node::null();
+  }
 }
 bool CegSingleInv::solve()
 {
