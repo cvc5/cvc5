@@ -25,9 +25,43 @@
 #include "context/cdhashset.h"
 #include "context/cdlist.h"
 #include "expr/attribute.h"
+#include "expr/term_canonize.h"
 #include "options/quantifiers_modes.h"
+#include "theory/quantifiers/alpha_equivalence.h"
+#include "theory/quantifiers/anti_skolem.h"
+#include "theory/quantifiers/bv_inverter.h"
+#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
+#include "theory/quantifiers/conjecture_generator.h"
+#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/instantiation_engine.h"
+#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/equality_infer.h"
+#include "theory/quantifiers/equality_query.h"
+#include "theory/quantifiers/first_order_model.h"
+#include "theory/quantifiers/fmf/bounded_integers.h"
+#include "theory/quantifiers/fmf/full_model_check.h"
+#include "theory/quantifiers/fmf/model_engine.h"
 #include "theory/quantifiers/inst_match.h"
+#include "theory/quantifiers/inst_propagator.h"
+#include "theory/quantifiers/inst_strategy_enumerative.h"
+#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/local_theory_ext.h"
+#include "theory/quantifiers/quant_conflict_find.h"
+#include "theory/quantifiers/quant_epr.h"
+#include "theory/quantifiers/quant_relevance.h"
+#include "theory/quantifiers/quant_split.h"
 #include "theory/quantifiers/quant_util.h"
+#include "theory/quantifiers/quantifiers_attributes.h"
+#include "theory/quantifiers/quantifiers_rewriter.h"
+#include "theory/quantifiers/relevant_domain.h"
+#include "theory/quantifiers/rewrite_engine.h"
+#include "theory/quantifiers/skolemize.h"
+#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
+#include "theory/quantifiers/sygus/synth_engine.h"
+#include "theory/quantifiers/sygus/term_database_sygus.h"
+#include "theory/quantifiers/term_database.h"
+#include "theory/quantifiers/term_enumeration.h"
+#include "theory/quantifiers/term_util.h"
 #include "theory/theory.h"
 #include "util/hash.h"
 #include "util/statistics_registry.h"
@@ -36,56 +70,9 @@ namespace CVC4 {
 
 class TheoryEngine;
 
-namespace expr {
-class TermCanonize;
-}
-
 namespace theory {
 
-class QuantifiersEngine;
-
-namespace quantifiers {
-  //TODO: organize this more/review this, github issue #1163
-  //TODO: include these instead of doing forward declarations? #1307
-  //utilities
-  class TermDb;
-  class TermDbSygus;
-  class TermUtil;
-  class Instantiate;
-  class Skolemize;
-  class TermEnumeration;
-  class FirstOrderModel;
-  class QuantAttributes;
-  class QuantEPR;
-  class QuantRelevance;
-  class RelevantDomain;
-  class BvInverter;
-  class InstPropagator;
-  class EqualityInference;
-  class EqualityQueryQuantifiersEngine;
-  //modules, these are "subsolvers" of the quantifiers theory.
-  class InstantiationEngine;
-  class ModelEngine;
-  class BoundedIntegers;
-  class QuantConflictFind;
-  class RewriteEngine;
-  class QModelBuilder;
-  class ConjectureGenerator;
-  class SynthEngine;
-  class LtePartialInst;
-  class AlphaEquivalence;
-  class InstStrategyEnum;
-  class InstStrategyCegqi;
-  class QuantDSplit;
-  class QuantAntiSkolem;
-  class EqualityInference;
-}/* CVC4::theory::quantifiers */
-
-namespace inst {
-  class TriggerTrie;
-}/* CVC4::theory::inst */
-
-
+// TODO: organize this more/review this, github issue #1163
 class QuantifiersEngine {
   typedef context::CDHashMap< Node, bool, NodeHashFunction > BoolMap;
   typedef context::CDList<Node> NodeList;

@@ -13,6 +13,7 @@
  **/
 
 #include "theory/quantifiers/fmf/full_model_check.h"
+
 #include "options/quantifiers_options.h"
 #include "options/theory_options.h"
 #include "options/uf_options.h"
@@ -20,6 +21,7 @@
 #include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4;

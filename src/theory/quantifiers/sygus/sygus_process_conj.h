@@ -25,10 +25,12 @@
 
 #include "expr/node.h"
 #include "expr/type_node.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 /** This file contains techniques that compute

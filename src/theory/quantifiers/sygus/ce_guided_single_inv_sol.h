@@ -17,11 +17,17 @@
 #ifndef CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_SOL_H
 #define CVC4__THEORY__QUANTIFIERS__CE_GUIDED_SINGLE_INV_SOL_H
 
+#include <map>
+#include <vector>
+
 #include "context/cdhashmap.h"
-#include "theory/quantifiers_engine.h"
+#include "expr/node.h"
 
 namespace CVC4 {
 namespace theory {
+
+class QuantifiersEngine;
+
 namespace quantifiers {
 
 class CegSingleInv;
