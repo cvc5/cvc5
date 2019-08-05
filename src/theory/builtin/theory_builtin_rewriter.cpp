@@ -77,7 +77,6 @@ RewriteResponse TheoryBuiltinRewriter::postRewrite(TNode node) {
     Trace("builtin-rewrite") << "Rewriting lambda " << node << "..." << std::endl;
     Node anode = getArrayRepresentationForLambda( node );
     if( !anode.isNull() ){
-      anode = Rewriter::rewrite( anode );
       Assert( anode.getType().isArray() );
       //must get the standard bound variable list
       Node varList = NodeManager::currentNM()->getBoundVarListForFunctionType( node.getType() );
@@ -214,23 +213,33 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
   std::vector< Node > conds;
   std::vector< Node > vals;
   Node curr = n[1];
-  while( curr.getKind()==kind::ITE || curr.getKind()==kind::EQUAL || curr.getKind()==kind::NOT ){
-    Trace("builtin-rewrite-debug2") << "  process condition : " << curr[0] << std::endl;
+  Kind ck = curr.getKind();
+  while( ck==kind::ITE || ck==kind::EQUAL || ck==kind::NOT || ck==kind::BOUND_VARIABLE ){
     Node index_eq;
     Node curr_val;
     Node next;
-    if( curr.getKind()==kind::ITE ){
+    if( ck==kind::ITE ){
+      Trace("builtin-rewrite-debug2") << "  process condition : " << curr[0] << std::endl;
       index_eq = curr[0];
       curr_val = curr[1];
       next = curr[2];
     }else{
-      bool pol = curr.getKind()!=kind::NOT;
-      //Boolean case, e.g. lambda x. (= x v) is lambda x. (ite (= x v) true false)
-      index_eq = curr.getKind()==kind::NOT ? curr[0] : curr;
+      Trace("builtin-rewrite-debug2") << "  process base : " << curr << std::endl;
+      bool pol = ck!=kind::NOT;
+      // Boolean return case, e.g. lambda x. (= x v) becomes
+      // lambda x. (ite (= x v) true false)
+      index_eq = ck==kind::NOT ? curr[0] : curr;
       curr_val = NodeManager::currentNM()->mkConst( pol );
       next = NodeManager::currentNM()->mkConst( !pol );
     }
-    if( index_eq.getKind()!=kind::EQUAL ){
+    if( index_eq.getKind()==kind::BOUND_VARIABLE )
+    {
+      // Boolean argument case, e.g. lambda x. ite( x, t, s ) is processed as
+      // lambda x. (ite (= x true) t s)
+      Assert( index_eq.getType().isBoolean() );
+      index_eq = index_eq.eqNode(curr_val);
+    }
+    else if( index_eq.getKind()!=kind::EQUAL ){
       // non-equality condition
       Trace("builtin-rewrite-debug2") << "  ...non-equality condition." << std::endl;
       return Node::null();
@@ -278,6 +287,7 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambdaRec(TNode n,
     TypeNode vtype = curr_val.getType();
     //recurse
     curr = next;
+    ck = curr.getKind();
   }
   if( !rec_bvl.isNull() ){
     curr = NodeManager::currentNM()->mkNode( kind::LAMBDA, rec_bvl, curr );
@@ -314,7 +324,13 @@ Node TheoryBuiltinRewriter::getArrayRepresentationForLambda(TNode n)
   Assert( n.getKind()==kind::LAMBDA );
   // must carry the overall return type to deal with cases like (lambda ((x Int)(y Int)) (ite (= x _) 0.5 0.0)),
   //  where the inner construction for the else case about should be (arraystoreall (Array Int Real) 0.0)
-  return getArrayRepresentationForLambdaRec(n, n[1].getType());
+  Node anode = getArrayRepresentationForLambdaRec(n, n[1].getType());
+  if( anode.isNull() )
+  {
+    return anode;
+  }
+  // must rewrite it to make canonical
+  return Rewriter::rewrite(anode);
 }
 
 }/* CVC4::theory::builtin namespace */
