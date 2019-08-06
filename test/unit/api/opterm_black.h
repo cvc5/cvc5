@@ -126,7 +126,7 @@ void OpTermBlack::testGetIndicesUint()
   TS_ASSERT(tuple_update_idx == 5);
 }
 
-void OpTermBlack::testPairUintIndices()
+void OpTermBlack::testGetIndicesPairUint()
 {
     OpTerm bitvector_extract_ot = d_solver.mkOpTerm(BITVECTOR_EXTRACT_OP, 4, 0);
   std::pair<uint32_t, uint32_t> bitvector_extract_indices = bitvector_extract_ot.getIndices<std::pair<uint32_t, uint32_t>>();
