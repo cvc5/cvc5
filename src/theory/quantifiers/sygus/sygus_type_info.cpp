@@ -24,6 +24,33 @@ namespace CVC4 {
 namespace theory {
 namespace quantifiers {
 
+void TypeNodeIdTrie::add(Node v, std::vector<TypeNode>& types)
+{
+  TypeNodeIdTrie* tnt = this;
+  for (unsigned i = 0, size = types.size(); i < size; i++)
+  {
+    tnt = &tnt->d_children[types[i]];
+  }
+  tnt->d_data.push_back(v);
+}
+
+void TypeNodeIdTrie::assignIds(std::map<Node, unsigned>& assign,
+                               unsigned& idCount)
+{
+  if (!d_data.empty())
+  {
+    for (const Node& v : d_data)
+    {
+      assign[v] = idCount;
+    }
+    idCount++;
+  }
+  for (std::pair<const TypeNode, TypeNodeIdTrie>& c : d_children)
+  {
+    c.second.assignIds(assign, idCount);
+  }
+}
+
 SygusTypeInfo::SygusTypeInfo()
     : d_hasIte(false),
       d_min_term_size(0),
@@ -34,8 +61,9 @@ SygusTypeInfo::SygusTypeInfo()
 
 void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
 {
-  Assert(!tn.isDatatype());
+  Assert(tn.isDatatype());
   const Datatype& dt = tn.getDatatype();
+  Assert(dt.isSygus());
   Trace("sygus-db") << "Register type " << dt.getName() << "..." << std::endl;
   TypeNode btn = TypeNode::fromType(dt.getSygusType());
   d_btype = btn;
@@ -171,8 +199,64 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     }
     d_min_cons_term_size[i] = csize;
   }
+  
+  // compute variable subclasses
+  std::vector<TypeNode> sf_types;
+  getSubfieldTypes(sf_types);
+  // maps variables to the list of subfield types they occur in
+  std::map<Node, std::vector<TypeNode> > type_occurs;
+  for (const Node& v : d_var_list)
+  {
+    type_occurs[v].clear();
+  }
+  // for each type of subfield type of this enumerator
+  for (unsigned i = 0, ntypes = sf_types.size(); i < ntypes; i++)
+  {
+    std::vector<unsigned> rm_indices;
+    TypeNode stn = sf_types[i];
+    Assert(stn.isDatatype());
+    const Datatype& dt = stn.getDatatype();
+    for (unsigned j = 0, ncons = dt.getNumConstructors(); j < ncons; j++)
+    {
+      Expr sop = dt[j].getSygusOp();
+      Assert(!sop.isNull());
+      Node sopn = Node::fromExpr(sop);
+      if (type_occurs.find(sopn) != type_occurs.end())
+      {
+        // if it is a variable, store that it occurs in stn
+        type_occurs[sopn].push_back(stn);
+      }
+    }
+  }
+  TypeNodeIdTrie tnit;
+  for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
+  {
+    tnit.add(to.first, to.second);
+  }
+  // 0 is reserved for "no type class id"
+  unsigned typeIdCount = 1;
+  tnit.assignIds(d_var_subclass_id, typeIdCount);
+  // assign the list and reverse map to index
+  for (std::pair<const Node, std::vector<TypeNode> >& to : type_occurs)
+  {
+    Node v = to.first;
+    unsigned sc = d_var_subclass_id[v];
+    Trace("sygus-db") << v << " has subclass id " << sc << std::endl;
+    d_var_subclass_list_index[v] = d_var_subclass_list[sc].size();
+    d_var_subclass_list[sc].push_back(v);
+  }  
 }
 
+TypeNode SygusTypeInfo::getBuiltinType() const
+{
+  return d_btype;
+}
+
+const std::vector< Node >& SygusTypeInfo::getVarList() const
+{
+  return d_var_list;
+}
+  
 void SygusTypeInfo::computeMinTypeDepthInternal(TypeNode tn,
                                                 unsigned type_depth)
 {
@@ -368,6 +452,19 @@ bool SygusTypeInfo::getIndexInSubclassForVar(Node v, unsigned& index) const
     return false;
   }
   index = itvv->second;
+  return true;
+}
+
+bool SygusTypeInfo::isSubclassVarTrivial() const
+{
+  for (const std::pair<const unsigned, std::vector<Node> >& p :
+        d_var_subclass_list)
+  {
+    if (p.second.size() > 1)
+    {
+      return false;
+    }
+  }
   return true;
 }
 

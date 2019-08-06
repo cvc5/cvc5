@@ -224,23 +224,26 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
     d_rcons_to_status[stn][t] = -1;
     TypeNode tn = t.getType();
     Assert( stn.isDatatype() );
-    const Datatype& dt = ((DatatypeType)(stn).toType()).getDatatype();
+    const Datatype& dt = stn.getDatatype();
+    TermDbSygus * tds = d_qe->getTermDatabaseSygus();
+    SygusTypeInfo& sti = tds->getTypeInfo( stn );
     Assert( dt.isSygus() );
     Trace("csi-rcons-debug") << "Check reconstruct " << t << ", sygus type " << dt.getName() << ", kind " << t.getKind() << ", id : " << id << std::endl;
     int carg = -1;
     int karg = -1;
     // first, do standard minimizations
-    Node min_t = d_qe->getTermDatabaseSygus()->minimizeBuiltinTerm( t );
+    Node min_t = tds->minimizeBuiltinTerm( t );
     Trace("csi-rcons-debug") << "Minimized term is : " << min_t << std::endl;
     //check if op is in syntax sort
-    carg = d_qe->getTermDatabaseSygus()->getOpConsNum( stn, min_t );
+    
+    carg = sti.getOpConsNum( min_t );
     if( carg!=-1 ){
       Trace("csi-rcons-debug") << "  Type has operator." << std::endl;
       d_reconstruct[id] = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       status = 0;
     }else{
       //check if kind is in syntax sort
-      karg = d_qe->getTermDatabaseSygus()->getKindConsNum( stn, min_t.getKind() );
+      karg = sti.getKindConsNum( min_t.getKind() );
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
@@ -373,7 +376,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
                 }
                 //get decompositions
                 for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                  Kind k = d_qe->getTermDatabaseSygus()->getConsNumKind( stn, i );
+                  Kind k = sti.getConsNumKind( i );
                   getEquivalentTerms( k, min_t, equiv );
                 }
                 //assign ids to terms
@@ -708,6 +711,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
   }
   TermDbSygus* tds = d_qe->getTermDatabaseSygus();
   NodeManager* nm = NodeManager::currentNM();
+  SygusTypeInfo& ti = tds->getTypeInfo(tn);
   Node sc;
   d_builtin_const_to_sygus[tn][c] = sc;
   Assert(c.isConst());
@@ -734,7 +738,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
   }
   else
   {
-    int carg = tds->getOpConsNum(tn, c);
+    int carg = ti.getOpConsNum(c);
     if (carg != -1)
     {
       sc = nm->mkNode(APPLY_CONSTRUCTOR,
@@ -768,7 +772,7 @@ Node CegSingleInvSol::builtinToSygusConst(Node c, TypeNode tn, int rcons_depth)
           Kind pk = tds->getPlusKind(TypeNode::fromType(dt.getSygusType()));
           if (pk != UNDEFINED_KIND)
           {
-            int arg = tds->getKindConsNum(tn, pk);
+            int arg = ti.getKindConsNum(pk);
             if (arg != -1)
             {
               Kind ck =

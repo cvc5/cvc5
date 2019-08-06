@@ -28,6 +28,23 @@ namespace quantifiers {
 
 class TermDbSygus;
 
+/** A trie indexed by types that assigns unique identifiers to nodes. */
+class TypeNodeIdTrie
+{
+ public:
+  /** children of this node */
+  std::map<TypeNode, TypeNodeIdTrie> d_children;
+  /** the data stored at this node */
+  std::vector<Node> d_data;
+  /** add v to this trie, indexed by types */
+  void add(Node v, std::vector<TypeNode>& types);
+  /**
+   * Assign each node in this trie an identifier such that
+   * assign[v1] = assign[v2] iff v1 and v2 are indexed by the same values.
+   */
+  void assignIds(std::map<Node, unsigned>& assign, unsigned& idCount);
+};
+
 /**
  * This data structure stores statically computed information regarding a sygus
  * datatype type.
@@ -41,6 +58,10 @@ class SygusTypeInfo
   SygusTypeInfo();
   /** initialize this information for sygus datatype type tn */
   void initialize(TermDbSygus* tds, TypeNode tn);
+  /** Get the builtin type that this sygus type encodes */
+  TypeNode getBuiltinType() const;
+  /** Get the variable list (formal argument list) for the sygus type */
+  const std::vector< Node >& getVarList() const;
   /**
    * Return the index of the constructor of this sygus type that encodes
    * application of the builtin Kind k, or -1 if one does not exist.
@@ -145,6 +166,11 @@ class SygusTypeInfo
    * be v's index iff the method returns true.
    */
   bool getIndexInSubclassForVar(Node v, unsigned& index) const;
+  /**
+   * Are the variable subclasses a trivial partition (each variable subclass
+   * has a single variable)?
+   */
+  bool isSubclassVarTrivial() const;
   //--------------------------------- end variable subclasses
   /**
    * Get the minimum depth of type in this grammar
