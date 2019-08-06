@@ -2453,7 +2453,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * (Identifiers)
  *
  * - For declared functions f, we return (2).
- * - Indexed functions like testers (_ is C) and bitvector extract
+ * - For indexed functions like testers (_ is C) and bitvector extract
  * (_ extract n m), we return (3) for the appropriate operator.
  * - For tuple selectors (_ tupSel n), we return (1) and (3). Kind is set to
  * APPLY_SELECTOR, and expr is set to n, which is to be interpreted by the
