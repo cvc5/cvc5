@@ -704,34 +704,38 @@ class CVC4_PUBLIC Term
   bool hasOperator() const;
 
   /**
+   * Returns true if this Term was created with a builtin operator.
+   * If true, getKind() will return the operator kind.
    * @return true iff this Term has a builtin operator
-   *
-   * in this case, getKind() will return the operator
    */
   bool hasBuiltinOperator() const;
 
   /**
+   * Returns true if this Term was created using an OpTerm.
+   * If true, getOpTerm() will return the operator OpTerm.
    * @return true iff this Term has an indexed operator
    */
   bool hasOpTermOperator() const;
 
   /**
+   * Returns true if this Term was created with an uninterpreted function application.
+   * If true, getUFOperator() returns the operator UF.
    * @return true iff this Term is the result of
    *         applying an uninterpreted function
    */
   bool hasUFOperator() const;
 
   /**
-   * @return the OpTerm used to create this time
-   *
-   * valid to call when hasOpTermOperator() returns true
+   * Returns the OpTerm used to create this term.
+   * Valid to call when hasOpTermOperator() returns true.
+   * @return the OpTerm used to create this term
    */
   OpTerm getOpTerm() const;
 
   /**
-   * @return the OpTerm used to create this time
-   *
-   * valid to call when hasUFOperator() returns true
+   * Returns the UF term used to create this term.
+   * Valid to call when hasUFOperator() returns true.
+   * @return the UF term used to create this term
    */
   Term getUF() const;
 
