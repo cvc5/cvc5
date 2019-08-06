@@ -146,6 +146,7 @@ class CandidateGeneratorQELitDeq : public CandidateGenerator
   void reset(Node eqc) override;
   /** get next candidate */
   Node getNextCandidate() override;
+
  private:
   /** the equality class iterator for false */
   eq::EqClassIterator d_eqc_false;
