@@ -467,4 +467,4 @@ bool SygusTypeInfo::isSubclassVarTrivial() const
 
 }  // namespace quantifiers
 }  // namespace theory
-}  // namespace CVC
+}  // namespace CVC4
