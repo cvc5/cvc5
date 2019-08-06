@@ -72,7 +72,7 @@ void OpTermBlack::testStringIndices()
   TS_ASSERT(record_update_idx == "test");
 }
 
-void OpTermBlack::testKindIndices()
+void OpTermBlack::testGetIndicesKind()
 {
   OpTerm chain_ot = d_solver.mkOpTerm(CHAIN_OP, AND);
   Kind chain_idx = chain_ot.getIndices<Kind>();
