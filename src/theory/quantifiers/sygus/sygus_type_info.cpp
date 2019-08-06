@@ -95,7 +95,7 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       d_min_term_size = 0;
     }
   }
-  
+
   // register connected types
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -192,14 +192,14 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
       for (unsigned j = 0, nargs = dt[i].getNumArgs(); j < nargs; j++)
       {
         TypeNode ct = TypeNode::fromType(dt[i].getArgType(j));
-        Assert( tds->isRegistered(ct) );
+        Assert(tds->isRegistered(ct));
         SygusTypeInfo& stic = tds->getTypeInfo(ct);
         csize += stic.getMinTermSize();
       }
     }
     d_min_cons_term_size[i] = csize;
   }
-  
+
   // compute variable subclasses
   std::vector<TypeNode> sf_types;
   getSubfieldTypes(sf_types);
@@ -244,19 +244,16 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     Trace("sygus-db") << v << " has subclass id " << sc << std::endl;
     d_var_subclass_list_index[v] = d_var_subclass_list[sc].size();
     d_var_subclass_list[sc].push_back(v);
-  }  
+  }
 }
 
-TypeNode SygusTypeInfo::getBuiltinType() const
-{
-  return d_btype;
-}
+TypeNode SygusTypeInfo::getBuiltinType() const { return d_btype; }
 
-const std::vector< Node >& SygusTypeInfo::getVarList() const
+const std::vector<Node>& SygusTypeInfo::getVarList() const
 {
   return d_var_list;
 }
-  
+
 void SygusTypeInfo::computeMinTypeDepthInternal(TypeNode tn,
                                                 unsigned type_depth)
 {
@@ -300,10 +297,7 @@ unsigned SygusTypeInfo::getMinTypeDepth(TypeNode tn) const
   return it->second;
 }
 
-unsigned SygusTypeInfo::getMinTermSize() const
-{
-  return d_min_term_size;
-}
+unsigned SygusTypeInfo::getMinTermSize() const { return d_min_term_size; }
 
 unsigned SygusTypeInfo::getMinConsTermSize(unsigned cindex)
 {
@@ -458,7 +452,7 @@ bool SygusTypeInfo::getIndexInSubclassForVar(Node v, unsigned& index) const
 bool SygusTypeInfo::isSubclassVarTrivial() const
 {
   for (const std::pair<const unsigned, std::vector<Node> >& p :
-        d_var_subclass_list)
+       d_var_subclass_list)
   {
     if (p.second.size() > 1)
     {

@@ -225,25 +225,25 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
     TypeNode tn = t.getType();
     Assert( stn.isDatatype() );
     const Datatype& dt = stn.getDatatype();
-    TermDbSygus * tds = d_qe->getTermDatabaseSygus();
-    SygusTypeInfo& sti = tds->getTypeInfo( stn );
+    TermDbSygus* tds = d_qe->getTermDatabaseSygus();
+    SygusTypeInfo& sti = tds->getTypeInfo(stn);
     Assert( dt.isSygus() );
     Trace("csi-rcons-debug") << "Check reconstruct " << t << ", sygus type " << dt.getName() << ", kind " << t.getKind() << ", id : " << id << std::endl;
     int carg = -1;
     int karg = -1;
     // first, do standard minimizations
-    Node min_t = tds->minimizeBuiltinTerm( t );
+    Node min_t = tds->minimizeBuiltinTerm(t);
     Trace("csi-rcons-debug") << "Minimized term is : " << min_t << std::endl;
     //check if op is in syntax sort
-    
-    carg = sti.getOpConsNum( min_t );
+
+    carg = sti.getOpConsNum(min_t);
     if( carg!=-1 ){
       Trace("csi-rcons-debug") << "  Type has operator." << std::endl;
       d_reconstruct[id] = NodeManager::currentNM()->mkNode( APPLY_CONSTRUCTOR, Node::fromExpr( dt[carg].getConstructor() ) );
       status = 0;
     }else{
       //check if kind is in syntax sort
-      karg = sti.getKindConsNum( min_t.getKind() );
+      karg = sti.getKindConsNum(min_t.getKind());
       if( karg!=-1 ){
         //collect the children of min_t
         std::vector< Node > tchildren;
@@ -376,7 +376,7 @@ int CegSingleInvSol::collectReconstructNodes(Node t, TypeNode stn, int& status)
                 }
                 //get decompositions
                 for( unsigned i=0; i<dt.getNumConstructors(); i++ ){
-                  Kind k = sti.getConsNumKind( i );
+                  Kind k = sti.getConsNumKind(i);
                   getEquivalentTerms( k, min_t, equiv );
                 }
                 //assign ids to terms

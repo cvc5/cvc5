@@ -246,8 +246,8 @@ void SygusSymBreakNew::assertTesterInternal( int tindex, TNode n, Node exp, std:
     if( dt[tindex].getNumArgs()>0 ){
       quantifiers::SygusTypeInfo& nti = d_tds->getTypeInfo(ntn);
       // consider lower bounds for size of types
-      unsigned lb_add = nti.getMinConsTermSize( tindex );
-      unsigned lb_rem = n==a ? 0 : nti.getMinTermSize();
+      unsigned lb_add = nti.getMinConsTermSize(tindex);
+      unsigned lb_rem = n == a ? 0 : nti.getMinTermSize();
       Assert( lb_add>=lb_rem );
       d_currTermSize[a].set( d_currTermSize[a].get() + ( lb_add - lb_rem ) );
     }
@@ -559,7 +559,6 @@ Node SygusSymBreakNew::getSimpleSymBreakPred(Node e,
       << "Simple symmetry breaking for " << dt.getName() << ", constructor "
       << dt[tindex].getName() << ", at depth " << depth << std::endl;
 
-      
   quantifiers::SygusTypeInfo& ti = d_tds->getTypeInfo(tn);
   // get the sygus operator
   Node sop = Node::fromExpr(dt[tindex].getSygusOp());

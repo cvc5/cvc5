@@ -288,7 +288,7 @@ class TermDbSygus {
    */
   TypeNode sygusToBuiltinType(TypeNode tn);
   //-----------------------------end conversion from sygus to builtin
-  /** 
+  /**
    * Get type information about sygus datatype type tn. The type tn should be
    * (a subfield type of) a type that has been registered to this class.
    */
@@ -375,17 +375,17 @@ class TermDbSygus {
   bool involvesDivByZero( Node n, std::map< Node, bool >& visited );
 
  private:
-  /** 
+  /**
    * Maps types that we have called registerSygusType to a flag indicating
    * whether that type is a sygus datatype type. Sygus datatype types that
    * are in this map have initialized type information stored in the map below.
    */
-  std::map< TypeNode, bool > d_registerStatus;
-  /** 
+  std::map<TypeNode, bool> d_registerStatus;
+  /**
    * The type information for each sygus datatype type that has been registered
    * to this class.
    */
-  std::map<TypeNode, SygusTypeInfo > d_tinfo;
+  std::map<TypeNode, SygusTypeInfo> d_tinfo;
   /** a cache for getSelectorWeight */
   std::map<TypeNode, std::map<Node, unsigned> > d_sel_weight;
 

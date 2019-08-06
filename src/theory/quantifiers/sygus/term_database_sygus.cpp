@@ -332,26 +332,26 @@ unsigned TermDbSygus::getSygusTermSize( Node n ){
 }
 
 void TermDbSygus::registerSygusType( TypeNode tn ) {
-  std::map< TypeNode, bool >::iterator it = d_registerStatus.find(tn);
-  if( it!=d_registerStatus.end() )
+  std::map<TypeNode, bool>::iterator it = d_registerStatus.find(tn);
+  if (it != d_registerStatus.end())
   {
     // already registered
     return;
   }
   d_registerStatus[tn] = false;
   // it must be a sygus datatype
-  if( !tn.isDatatype() )
+  if (!tn.isDatatype())
   {
     return;
   }
   const Datatype& dt = tn.getDatatype();
-  if( !dt.isSygus() )
+  if (!dt.isSygus())
   {
     return;
   }
   d_registerStatus[tn] = true;
   SygusTypeInfo& sti = d_tinfo[tn];
-  sti.initialize(this,tn);
+  sti.initialize(this, tn);
   return;
 }
 
@@ -680,12 +680,12 @@ void TermDbSygus::clearSymBreakLemmas(Node e) { d_enum_to_sb_lemmas.erase(e); }
 
 bool TermDbSygus::isRegistered(TypeNode tn) const
 {
-  return d_tinfo.find( tn )!=d_tinfo.end();
+  return d_tinfo.find(tn) != d_tinfo.end();
 }
 
 TypeNode TermDbSygus::sygusToBuiltinType( TypeNode tn ) {
-  std::map<TypeNode, SygusTypeInfo >::iterator it = d_tinfo.find(tn);
-  Assert( it != d_tinfo.end());
+  std::map<TypeNode, SygusTypeInfo>::iterator it = d_tinfo.find(tn);
+  Assert(it != d_tinfo.end());
   return it->second.getBuiltinType();
 }
 
@@ -708,7 +708,7 @@ void TermDbSygus::toStreamSygus(const char* c, Node n)
 
 SygusTypeInfo& TermDbSygus::getTypeInfo(TypeNode tn)
 {
-  Assert(d_tinfo.find(tn)!=d_tinfo.end());
+  Assert(d_tinfo.find(tn) != d_tinfo.end());
   return d_tinfo[tn];
 }
 
@@ -784,7 +784,7 @@ bool TermDbSygus::canConstructKind(TypeNode tn,
                                    std::vector<TypeNode>& argts,
                                    bool aggr)
 {
-  Assert( isRegistered(tn) );
+  Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
   int c = ti.getKindConsNum(k);
   const Datatype& dt = static_cast<DatatypeType>(tn.toType()).getDatatype();
@@ -1177,13 +1177,14 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
                                   std::vector<Node>& args,
                                   bool tryEval)
 {
-  if( args.empty() ){
+  if (args.empty())
+  {
     return Rewriter::rewrite( bn );
   }
-  Assert( isRegistered(tn) );
+  Assert(isRegistered(tn));
   SygusTypeInfo& ti = getTypeInfo(tn);
   const std::vector<Node>& varlist = ti.getVarList();
-  Assert( varlist.size()==args.size() );
+  Assert(varlist.size() == args.size());
 
   Node res;
   if (tryEval && options::sygusEvalOpt())
@@ -1197,10 +1198,8 @@ Node TermDbSygus::evaluateBuiltin(TypeNode tn,
   if (!res.isNull())
   {
     Assert(res
-            == Rewriter::rewrite(bn.substitute(varlist.begin(),
-                                              varlist.end(),
-                                              args.begin(),
-                                              args.end())));
+           == Rewriter::rewrite(bn.substitute(
+               varlist.begin(), varlist.end(), args.begin(), args.end())));
     return res;
   }
   res = bn.substitute(varlist.begin(), varlist.end(), args.begin(), args.end());

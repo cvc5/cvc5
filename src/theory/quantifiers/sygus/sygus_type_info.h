@@ -61,7 +61,7 @@ class SygusTypeInfo
   /** Get the builtin type that this sygus type encodes */
   TypeNode getBuiltinType() const;
   /** Get the variable list (formal argument list) for the sygus type */
-  const std::vector< Node >& getVarList() const;
+  const std::vector<Node>& getVarList() const;
   /**
    * Return the index of the constructor of this sygus type that encodes
    * application of the builtin Kind k, or -1 if one does not exist.
