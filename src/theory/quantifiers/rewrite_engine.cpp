@@ -17,15 +17,16 @@
 #include "theory/quantifiers/rewrite_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/ematching/inst_match_generator.h"
-#include "theory/quantifiers/instantiate.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/fmf/model_engine.h"
+#include "theory/quantifiers/instantiate.h"
 #include "theory/quantifiers/quant_conflict_find.h"
 #include "theory/quantifiers/quant_util.h"
 #include "theory/quantifiers/quantifiers_attributes.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace CVC4;

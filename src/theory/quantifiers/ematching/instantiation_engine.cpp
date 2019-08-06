@@ -15,11 +15,12 @@
 #include "theory/quantifiers/ematching/instantiation_engine.h"
 
 #include "options/quantifiers_options.h"
-#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
+#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers/first_order_model.h"
 #include "theory/quantifiers/term_database.h"
 #include "theory/quantifiers/term_util.h"
-#include "theory/quantifiers/ematching/trigger.h"
+#include "theory/quantifiers_engine.h"
 #include "theory/theory_engine.h"
 
 using namespace std;

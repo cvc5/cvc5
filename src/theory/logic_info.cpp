@@ -579,6 +579,15 @@ void LogicInfo::disableTheory(theory::TheoryId theory) {
   }
 }
 
+void LogicInfo::enableSygus()
+{
+  enableQuantifiers();
+  enableTheory(THEORY_UF);
+  enableTheory(THEORY_DATATYPES);
+  enableIntegers();
+  enableHigherOrder();
+}
+
 void LogicInfo::enableIntegers() {
   PrettyCheckArgument(!d_locked, *this, "This LogicInfo is locked, and cannot be modified");
   d_logicString = "";

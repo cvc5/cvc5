@@ -1005,7 +1005,7 @@ void TheoryEngineModelBuilder::assignFunction(TheoryModel* m, Node f)
     ufmt.simplify();
   }
   std::stringstream ss;
-  ss << "_arg_" << f << "_";
+  ss << "_arg_";
   Node val = ufmt.getFunctionValue(ss.str().c_str(), condenseFuncValues);
   m->assignFunctionDefinition(f, val);
   // ufmt.debugPrint( std::cout, m );

@@ -1,3 +1,5 @@
+% COMMAND-LINE: --finite-model-find
+
 %--------------------------------------------------------------------------
 % File     : MGT019+2 : TPTP v5.5.0. Released v2.0.0.
 % Domain   : Management (Organisation Theory)

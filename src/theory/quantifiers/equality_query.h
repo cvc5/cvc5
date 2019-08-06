@@ -21,7 +21,6 @@
 #include "context/context.h"
 #include "expr/node.h"
 #include "theory/quantifiers/quant_util.h"
-#include "theory/quantifiers_engine.h"
 
 namespace CVC4 {
 namespace theory {

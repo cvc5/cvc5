@@ -242,7 +242,6 @@ public:
   unsigned getThreadStackSize() const;
   unsigned getThreads() const;
 
-
   // TODO: Document these.
   void setInputLanguage(InputLanguage);
   void setInteractive(bool);

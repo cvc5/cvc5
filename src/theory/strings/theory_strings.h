@@ -256,6 +256,8 @@ class TheoryStrings : public Theory {
   InferenceManager d_im;
   /** Are we in conflict */
   context::CDO<bool> d_conflict;
+  /** Pending conflict */
+  context::CDO<Node> d_pendingConflict;
   /** map from terms to their normal forms */
   std::map<Node, NormalForm> d_normal_form;
   /** get normal form */
@@ -360,6 +362,29 @@ private:
     context::CDO<Node> d_code_term;
     context::CDO< unsigned > d_cardinality_lem_k;
     context::CDO< Node > d_normalized_length;
+    /**
+     * A node that explains the longest constant prefix known of this
+     * equivalence class. This can either be:
+     * (1) A term from this equivalence class, including a constant "ABC" or
+     * concatenation term (str.++ "ABC" ...), or
+     * (2) A membership of the form (str.in.re x R) where x is in this
+     * equivalence class and R is a regular expression of the form
+     * (str.to.re "ABC") or (re.++ (str.to.re "ABC") ...).
+     */
+    context::CDO<Node> d_prefixC;
+    /** same as above, for suffix. */
+    context::CDO<Node> d_suffixC;
+    /** add prefix constant
+     *
+     * This informs this equivalence class info that a term t in its
+     * equivalence class has a constant prefix (if isSuf=true) or suffix
+     * (if isSuf=false). The constant c (if non-null) is the value of that
+     * constant, if it has been computed already.
+     *
+     * If this method returns a non-null node ret, then ret is a conjunction
+     * corresponding to a conflict that holds in the current context.
+     */
+    Node addEndpointConst(Node t, Node c, bool isSuf);
   };
   /** map from representatives to information necessary for equivalence classes */
   std::map< Node, EqcInfo* > d_eqc_info;
@@ -659,6 +684,28 @@ private:
    * of atom, including calls to registerTerm.
    */
   void assertPendingFact(Node atom, bool polarity, Node exp);
+  /** add endpoints to eqc info
+   *
+   * This method is called when term t is the explanation for why equivalence
+   * class eqc may have a constant endpoint due to a concatentation term concat.
+   * For example, we may call this method on:
+   *   t := (str.++ x y), concat := (str.++ x y), eqc
+   * for some eqc that is currently equal to t. Another example is:
+   *   t := (str.in.re z (re.++ r s)), concat := (re.++ r s), eqc
+   * for some eqc that is currently equal to z.
+   */
+  void addEndpointsToEqcInfo(Node t, Node concat, Node eqc);
+  /** set pending conflict
+   *
+   * If conf is non-null, this is called when conf is a conjunction of literals
+   * that hold in the current context that are unsatisfiable. It is set as the
+   * "pending conflict" to be processed as a conflict lemma on the output
+   * channel of this class. It is not sent out immediately since it may require
+   * explanation from the equality engine, and may be called at any time, e.g.
+   * during a merge operation, when the equality engine is not in a state to
+   * provide explanations.
+   */
+  void setPendingConflictWhen(Node conf);
   /**
    * This processes the infer info ii as an inference. In more detail, it calls
    * the inference manager to process the inference, it introduces Skolems, and

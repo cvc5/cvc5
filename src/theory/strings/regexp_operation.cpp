@@ -47,24 +47,61 @@ RegExpOpr::RegExpOpr()
 RegExpOpr::~RegExpOpr() {}
 
 bool RegExpOpr::checkConstRegExp( Node r ) {
-  Trace("strings-regexp-cstre") << "RegExp-CheckConstRegExp starts with /" << mkString( r ) << "/" << std::endl;
-  bool ret = true;
-  if( d_cstre_cache.find( r ) != d_cstre_cache.end() ) {
-    ret = d_cstre_cache[r];
-  } else {
-    if(r.getKind() == kind::STRING_TO_REGEXP) {
-      Node tmp = Rewriter::rewrite( r[0] );
-      ret = tmp.isConst();
-    } else {
-      for(unsigned i=0; i<r.getNumChildren(); ++i) {
-        if(!checkConstRegExp(r[i])) {
-          ret = false; break;
-        }
+  Trace("strings-regexp-cstre")
+      << "RegExpOpr::checkConstRegExp /" << mkString(r) << "/" << std::endl;
+  RegExpConstType rct = getRegExpConstType(r);
+  return rct != RE_C_VARIABLE;
+}
+
+RegExpConstType RegExpOpr::getRegExpConstType(Node r)
+{
+  std::unordered_map<Node, RegExpConstType, NodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(r);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = d_constCache.find(cur);
+
+    if (it == d_constCache.end())
+    {
+      Kind ck = cur.getKind();
+      if (ck == STRING_TO_REGEXP)
+      {
+        Node tmp = Rewriter::rewrite(cur[0]);
+        d_constCache[cur] =
+            tmp.isConst() ? RE_C_CONRETE_CONSTANT : RE_C_VARIABLE;
+      }
+      else if (ck == REGEXP_SIGMA || ck == REGEXP_RANGE)
+      {
+        d_constCache[cur] = RE_C_CONSTANT;
+      }
+      else
+      {
+        d_constCache[cur] = RE_C_UNKNOWN;
+        visit.push_back(cur);
+        visit.insert(visit.end(), cur.begin(), cur.end());
       }
     }
-    d_cstre_cache[r] = ret;
-  }
-  return ret;
+    else if (it->second == RE_C_UNKNOWN)
+    {
+      RegExpConstType ret = RE_C_CONRETE_CONSTANT;
+      for (const Node& cn : cur)
+      {
+        it = d_constCache.find(cn);
+        Assert(it != d_constCache.end());
+        if (it->second > ret)
+        {
+          ret = it->second;
+        }
+      }
+      d_constCache[cur] = ret;
+    }
+  } while (!visit.empty());
+  Assert(d_constCache.find(r) != d_constCache.end());
+  return d_constCache[r];
 }
 
 // 0-unknown, 1-yes, 2-no
@@ -1493,9 +1530,12 @@ Node RegExpOpr::intersect(Node r1, Node r2, bool &spflag) {
     Node rr1 = removeIntersection(r1);
     Node rr2 = removeIntersection(r2);
     std::map< PairNodes, Node > cache;
+    Trace("regexp-intersect-node") << "Intersect (1): " << rr1 << std::endl;
+    Trace("regexp-intersect-node") << "Intersect (2): " << rr2 << std::endl;
     Trace("regexp-intersect") << "Start INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ")" << std::endl;
     Node retNode = intersectInternal(rr1, rr2, cache, 1);
     Trace("regexp-intersect") << "End INTERSECTION(\n\t" << mkString(r1) << ",\n\t"<< mkString(r2) << ") =\n\t" << mkString(retNode) << std::endl;
+    Trace("regexp-intersect-node") << "Intersect finished." << std::endl;
     return retNode;
   } else {
     spflag = true;

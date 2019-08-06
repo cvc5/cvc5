@@ -12,15 +12,15 @@
  ** \brief Implementation of term canonize.
  **/
 
-#include "theory/quantifiers/term_canonize.h"
+#include "expr/term_canonize.h"
 
+// TODO #1216: move the code in this include
 #include "theory/quantifiers/term_util.h"
 
 using namespace CVC4::kind;
 
 namespace CVC4 {
-namespace theory {
-namespace quantifiers {
+namespace expr {
 
 TermCanonize::TermCanonize() : d_op_id_count(0), d_typ_id_count(0) {}
 
@@ -54,8 +54,7 @@ bool TermCanonize::getTermOrder(Node a, Node b)
   {
     if (b.getKind() == BOUND_VARIABLE)
     {
-      return a.getAttribute(InstVarNumAttribute())
-             < b.getAttribute(InstVarNumAttribute());
+      return getIndexForFreeVariable(a) < getIndexForFreeVariable(b);
     }
     return true;
   }
@@ -107,11 +106,20 @@ Node TermCanonize::getCanonicalFreeVar(TypeNode tn, unsigned i)
     std::stringstream os;
     os << typ_name[0] << i;
     Node x = nm->mkBoundVar(os.str().c_str(), tn);
-    InstVarNumAttribute ivna;
-    x.setAttribute(ivna, d_cn_free_var[tn].size());
+    d_fvIndex[x] = d_cn_free_var[tn].size();
     d_cn_free_var[tn].push_back(x);
   }
   return d_cn_free_var[tn][i];
+}
+
+size_t TermCanonize::getIndexForFreeVariable(Node v) const
+{
+  std::map<Node, size_t>::const_iterator it = d_fvIndex.find(v);
+  if (it == d_fvIndex.end())
+  {
+    return 0;
+  }
+  return it->second;
 }
 
 struct sortTermOrder
@@ -122,6 +130,7 @@ struct sortTermOrder
 
 Node TermCanonize::getCanonicalTerm(TNode n,
                                     bool apply_torder,
+                                    bool doHoVar,
                                     std::map<TypeNode, unsigned>& var_count,
                                     std::map<TNode, Node>& visited)
 {
@@ -153,7 +162,7 @@ Node TermCanonize::getCanonicalTerm(TNode n,
       cchildren.push_back(cn);
     }
     // if applicable, first sort by term order
-    if (apply_torder && TermUtil::isComm(n.getKind()))
+    if (apply_torder && theory::quantifiers::TermUtil::isComm(n.getKind()))
     {
       Trace("canon-term-debug")
           << "Sort based on commutative operator " << n.getKind() << std::endl;
@@ -165,13 +174,16 @@ Node TermCanonize::getCanonicalTerm(TNode n,
     Trace("canon-term-debug") << "Make canonical children" << std::endl;
     for (unsigned i = 0, size = cchildren.size(); i < size; i++)
     {
-      cchildren[i] =
-          getCanonicalTerm(cchildren[i], apply_torder, var_count, visited);
+      cchildren[i] = getCanonicalTerm(
+          cchildren[i], apply_torder, doHoVar, var_count, visited);
     }
     if (n.getMetaKind() == metakind::PARAMETERIZED)
     {
       Node op = n.getOperator();
-      op = getCanonicalTerm(op, apply_torder, var_count, visited);
+      if (doHoVar)
+      {
+        op = getCanonicalTerm(op, apply_torder, doHoVar, var_count, visited);
+      }
       Trace("canon-term-debug") << "Insert operator " << op << std::endl;
       cchildren.insert(cchildren.begin(), op);
     }
@@ -187,13 +199,12 @@ Node TermCanonize::getCanonicalTerm(TNode n,
   return n;
 }
 
-Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder)
+Node TermCanonize::getCanonicalTerm(TNode n, bool apply_torder, bool doHoVar)
 {
   std::map<TypeNode, unsigned> var_count;
   std::map<TNode, Node> visited;
-  return getCanonicalTerm(n, apply_torder, var_count, visited);
+  return getCanonicalTerm(n, apply_torder, doHoVar, var_count, visited);
 }
 
-}  // namespace quantifiers
-}  // namespace theory
+}  // namespace expr
 }  // namespace CVC4
