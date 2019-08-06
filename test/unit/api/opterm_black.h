@@ -27,7 +27,7 @@ class OpTermBlack : public CxxTest::TestSuite
   void testGetKind();
   void testGetSort();
   void testIsNull();
-  void testStringIndices();
+  void testGetIndicesString();
   void testKindIndices();
   void testUintIndices();
   void testPairUintIndices();
