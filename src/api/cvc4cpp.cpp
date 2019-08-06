@@ -1289,6 +1289,8 @@ std::string OpTerm::getIndices() const
 
   if (k == DIVISIBLE_OP)
   {
+    // DIVISIBLE_OP returns a string index to support
+    // arbitrary precision integers
     CVC4::Integer _int = d_expr->getConst<Divisible>().k;
     i = _int.toString();
   }
