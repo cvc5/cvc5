@@ -1,3 +1,5 @@
+% COMMAND-LINE: --finite-model-find
+
 %------------------------------------------------------------------------------
 % File     : SYN000_2 : TPTP v5.5.0. Bugfixed v5.5.1.
 % Domain   : Syntactic
@@ -24,7 +26,7 @@
 %            Maximal term depth    :    2 (   1 average)
 % SPC      : TF0_SAT_EQU_NAR
 
-% Comments : 
+% Comments :
 % Bugfixes : v5.5.1 - Fixed let_binders.
 %------------------------------------------------------------------------------
 %----Quoted symbols
