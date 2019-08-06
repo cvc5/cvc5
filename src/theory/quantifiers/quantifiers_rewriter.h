@@ -57,7 +57,6 @@ private:
    * args and adds x1...xn to args.
    */
   static Node datatypeExpand(unsigned index, Node v, std::vector<Node>& args);
-  /** variable eliminate for bit-vector literals
   //-------------------------------------variable elimination
   /** is variable elimination
    *
