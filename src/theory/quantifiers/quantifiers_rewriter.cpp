@@ -1075,8 +1075,12 @@ bool QuantifiersRewriter::getVarElimLit(Node lit,
         }
       }
     }
-  }else if( lit.getKind()==APPLY_TESTER && pol && lit[0].getKind()==BOUND_VARIABLE && options::dtVarExpandQuant() ){
-    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit << std::endl;
+  }
+  else if (lit.getKind() == APPLY_TESTER && pol
+           && lit[0].getKind() == BOUND_VARIABLE && options::dtVarExpandQuant())
+  {
+    Trace("var-elim-dt") << "Expand datatype variable based on : " << lit
+                         << std::endl;
     Expr testerExpr = lit.getOperator().toExpr();
     unsigned index = Datatype::indexOf(testerExpr);
     Node s = datatypeExpand(index, lit[0], args);
@@ -1222,7 +1226,6 @@ bool QuantifiersRewriter::getVarElim(Node n,
 
 bool QuantifiersRewriter::hasVarElim(Node n, bool pol, std::vector<Node>& args)
 {
-
   std::vector< Node > vars;
   std::vector< Node > subs;
   return getVarElim(n, pol, args, vars, subs);
