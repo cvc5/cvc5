@@ -2446,7 +2446,7 @@ termNonVariable[CVC4::Expr& expr, CVC4::Expr& expr2]
  * - "Array constant specifications" of the form (as const (Array T1 T2)),
  * which notice are used as function heads e.g. ((as const (Array Int Int)) 0)
  * specifies the constant array over integers consisting of constant 0. This
- * is handled as it were a special case of an operator here.
+ * is handled as if it were a special case of an operator here.
  *
  * Examples:
  *
