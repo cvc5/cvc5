@@ -79,7 +79,7 @@ void OpTermBlack::testGetIndicesKind()
   TS_ASSERT(chain_idx == AND);
 }
 
-void OpTermBlack::testUintIndices()
+void OpTermBlack::testGetIndicesUint()
 {
   OpTerm bitvector_repeat_ot = d_solver.mkOpTerm(BITVECTOR_REPEAT_OP, 5);
   uint32_t bitvector_repeat_idx = bitvector_repeat_ot.getIndices<uint32_t>();
