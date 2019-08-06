@@ -86,7 +86,8 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
     d_var_list.clear();
   }
 
-  // compute min term size information: this must be computed eagerly
+  // compute min term size information: this must be computed before registering
+  // subfield types
   d_min_term_size = 1;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
@@ -182,9 +183,9 @@ void SygusTypeInfo::initialize(TermDbSygus* tds, TypeNode tn)
         << " encodes terms that are not of type " << btn << std::endl;
     Trace("sygus-db") << "...done register Operator #" << i << std::endl;
   }
-  // compute min type depth information
+  // compute minimum type depth information
   computeMinTypeDepthInternal(tn, 0);
-  // compute min term size information
+  // compute minimum term size information
   d_min_term_size = 1;
   for (unsigned i = 0, ncons = dt.getNumConstructors(); i < ncons; i++)
   {
