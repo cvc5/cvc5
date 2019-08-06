@@ -1410,7 +1410,7 @@ std::pair<uint32_t, uint32_t> OpTerm::getIndices() const
   }
   else
   {
-    CVC4ApiExceptionStream().ostream()
+    CVC4_API_CHECK(false)
         << "Can't get pair<uint32_t, uint32_t> indices from"
         << " kind " << kindToString(k);
   }
