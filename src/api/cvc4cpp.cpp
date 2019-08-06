@@ -1298,7 +1298,7 @@ std::string OpTerm::getIndices() const
   }
   else
   {
-    CVC4ApiExceptionStream().ostream() << "Can't get string index from"
+    CVC4_API_CHECK(false) << "Can't get string index from"
                                        << " kind " << kindToString(k);
   }
 
