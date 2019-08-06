@@ -28,9 +28,9 @@ class OpTermBlack : public CxxTest::TestSuite
   void testGetSort();
   void testIsNull();
   void testGetIndicesString();
-  void testKindIndices();
-  void testUintIndices();
-  void testPairUintIndices();
+  void testGetIndicesKind();
+  void testGetIndicesUint();
+  void testGetIndicesPairUint();
 
  private:
   Solver d_solver;
@@ -60,7 +60,7 @@ void OpTermBlack::testIsNull()
   TS_ASSERT(!x.isNull());
 }
 
-void OpTermBlack::testStringIndices()
+void OpTermBlack::testGetIndicesString()
 {
   OpTerm x;
   TS_ASSERT_THROWS(x.getIndices<std::string>(), CVC4ApiException&);
