@@ -631,7 +631,7 @@ class CVC4ApiExceptionStream
 };
 
 #define CVC4_API_CHECK(cond) \
-  CVC4_PREDICT_FALSE(cond)   \
+  CVC4_PREDICT_TRUE(cond)    \
   ? (void)0 : OstreamVoider() & CVC4ApiExceptionStream().ostream()
 
 #define CVC4_API_CHECK_NOT_NULL                                           \
@@ -647,14 +647,14 @@ class CVC4ApiExceptionStream
       << "Invalid kind '" << kindToString(kind) << "'";
 
 #define CVC4_API_KIND_CHECK_EXPECTED(cond, kind) \
-  CVC4_PREDICT_FALSE(cond)                       \
+  CVC4_PREDICT_TRUE(cond)                        \
   ? (void)0                                      \
   : OstreamVoider()                              \
           & CVC4ApiExceptionStream().ostream()   \
                 << "Invalid kind '" << kindToString(kind) << "', expected "
 
 #define CVC4_API_ARG_CHECK_EXPECTED(cond, arg)                      \
-  CVC4_PREDICT_FALSE(cond)                                          \
+  CVC4_PREDICT_TRUE(cond)                                           \
   ? (void)0                                                         \
   : OstreamVoider()                                                 \
           & CVC4ApiExceptionStream().ostream()                      \
@@ -662,14 +662,14 @@ class CVC4ApiExceptionStream
                 << "', expected "
 
 #define CVC4_API_ARG_SIZE_CHECK_EXPECTED(cond, arg) \
-  CVC4_PREDICT_FALSE(cond)                          \
+  CVC4_PREDICT_TRUE(cond)                           \
   ? (void)0                                         \
   : OstreamVoider()                                 \
           & CVC4ApiExceptionStream().ostream()      \
                 << "Invalid size of argument '" << #arg << "', expected "
 
 #define CVC4_API_ARG_AT_INDEX_CHECK_EXPECTED(cond, what, arg, idx)          \
-  CVC4_PREDICT_FALSE(cond)                                                  \
+  CVC4_PREDICT_TRUE(cond)                                                   \
   ? (void)0                                                                 \
   : OstreamVoider()                                                         \
           & CVC4ApiExceptionStream().ostream()                              \
