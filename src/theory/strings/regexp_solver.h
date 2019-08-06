@@ -49,23 +49,33 @@ class RegExpSolver
                context::UserContext* u);
   ~RegExpSolver() {}
 
-  /** add membership
-   *
-   * This informs this class that assertion is asserted in the current context.
-   * We expect that assertion is a (possibly negated) regular expression
-   * membership.
-   */
-  void addMembership(Node assertion);
   /** check
    *
-   * Tells this solver to check whether the regular expressions asserted to it
+   * Tells this solver to check whether the regular expressions in mems
    * are consistent. If they are not, then this class will call the
    * sendInference method of its parent TheoryString object, indicating that
    * it requires a conflict or lemma to be processed.
+   *
+   * The argument mems maps representative string terms r to memberships of the
+   * form (t in R) or ~(t in R), where t = r currently holds in the equality
+   * engine of the theory of strings.
    */
-  void check();
+  void check(const std::map<Node, std::vector<Node>>& mems);
 
  private:
+  /**
+   * Check memberships for equivalence class.
+   * The vector mems is a vector of memberships of the form:
+   *   (~) (x1 in R1 ) ... (~) (xn in Rn)
+   * where x1 = ... = xn in the current context.
+   *
+   * This method may add lemmas or conflicts via the inference manager.
+   *
+   * This method returns false if it discovered a conflict for this set of
+   * assertions, and true otherwise. It discovers a conflict e.g. if mems
+   * contains (xi in Ri) and (xj in Rj) and intersect(xi,xj) is empty.
+   */
+  bool checkEqcIntersect(const std::vector<Node>& mems);
   // Constants
   Node d_emptyString;
   Node d_emptyRegexp;
@@ -85,20 +95,11 @@ class RegExpSolver
   bool deriveRegExp(Node x, Node r, Node atom, std::vector<Node>& ant);
   Node getNormalSymRegExp(Node r, std::vector<Node>& nf_exp);
   // regular expression memberships
-  NodeList d_regexp_memberships;
   NodeSet d_regexp_ucached;
   NodeSet d_regexp_ccached;
-  // stored assertions
-  NodeUIntMap d_pos_memberships;
-  std::map<Node, std::vector<Node> > d_pos_memberships_data;
-  NodeUIntMap d_neg_memberships;
-  std::map<Node, std::vector<Node> > d_neg_memberships_data;
   // semi normal forms for symbolic expression
   std::map<Node, Node> d_nf_regexps;
   std::map<Node, std::vector<Node> > d_nf_regexps_exp;
-  // intersection
-  NodeNodeMap d_inter_cache;
-  NodeIntMap d_inter_index;
   // processed memberships
   NodeSet d_processed_memberships;
   /** regular expression operation module */

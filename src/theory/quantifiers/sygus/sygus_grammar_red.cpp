@@ -17,6 +17,7 @@
 #include "options/quantifiers_options.h"
 #include "theory/quantifiers/sygus/term_database_sygus.h"
 #include "theory/quantifiers/term_util.h"
+#include "theory/quantifiers_engine.h"
 
 using namespace std;
 using namespace CVC4::kind;

@@ -1,0 +1,48 @@
+; COMMAND-LINE: --sygus-out=status
+; EXPECT: unsat
+(set-logic ALL_SUPPORTED)
+
+(declare-datatypes ((IntRange 0)) 
+   (((IntRange (lower Int) (upper Int)))))
+
+(declare-datatypes ((Loc 0)) 
+   (((Loc (x Int) (y Int)))))
+
+(declare-datatypes ((LocRange 0)) 
+   (((LocRange (xD IntRange) (yD IntRange)))))
+
+(declare-datatypes ((Ship 0)) 
+   (((Ship (shipCapacity Int) (shipLoc Loc)))))
+
+(declare-datatypes ((ShipRange 0)) 
+   (((ShipRange (shipCapacityD IntRange) (shipLocD LocRange)))))
+
+(define-fun max ((x Int) (y Int)) Int
+ (ite (>= x y) x y)
+)
+
+(define-fun min ((x Int) (y Int)) Int
+ (ite (<= x y) x y)
+)
+
+; provide synthesis template 
+(synth-fun f ((secret Ship) (prior ShipRange) (response Bool)) ShipRange
+(
+     (Start ShipRange ((ite B SR SR)))
+     (B Bool (response))
+     (SR ShipRange ((ShipRange IR LR) prior))
+     (IR IntRange ((IntRange I I) (shipCapacityD SR)))
+     (LR LocRange ((LocRange IR IR) (shipLocD SR)))
+     (I Int ((lower IR) (upper IR) 
+             (max I (lower (shipCapacityD SR))) 
+             (min I I) 50 51))
+ )    
+)
+
+(declare-var secret Ship)
+(declare-var prior ShipRange)
+(declare-var response Bool)
+
+(constraint true)
+
+(check-synth)

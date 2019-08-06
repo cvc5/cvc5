@@ -674,11 +674,8 @@ Command* Smt2::setLogic(std::string name, bool fromCommand)
     }
     // get unlocked copy, modify, copy and relock
     LogicInfo log(d_logic.getUnlockedCopy());
-    log.enableQuantifiers();
-    log.enableTheory(theory::THEORY_UF);
-    log.enableTheory(theory::THEORY_DATATYPES);
-    log.enableIntegers();
-    log.enableHigherOrder();
+    // enable everything needed for sygus
+    log.enableSygus();
     d_logic = log;
     d_logic.lock();
   }
@@ -1088,7 +1085,7 @@ Type Smt2::processSygusNestedGTerm( int sub_dt_index, std::string& sub_dname, st
         }
       }
       Kind sk = sop.getKind() != kind::BUILTIN
-                    ? kind::APPLY_UF
+                    ? getKindForFunction(sop)
                     : getExprManager()->operatorToKind(sop);
       Debug("parser-sygus") << ": operator " << sop << " with " << sop.getKind() << " " << sk << std::endl;
       Expr e = getExprManager()->mkExpr( sk, children );

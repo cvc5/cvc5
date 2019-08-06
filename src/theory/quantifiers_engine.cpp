@@ -17,47 +17,9 @@
 #include "options/quantifiers_options.h"
 #include "options/uf_options.h"
 #include "smt/smt_statistics_registry.h"
-#include "theory/arrays/theory_arrays.h"
-#include "theory/datatypes/theory_datatypes.h"
-#include "theory/quantifiers/alpha_equivalence.h"
-#include "theory/quantifiers/anti_skolem.h"
-#include "theory/quantifiers/bv_inverter.h"
-#include "theory/quantifiers/cegqi/inst_strategy_cegqi.h"
-#include "theory/quantifiers/conjecture_generator.h"
-#include "theory/quantifiers/ematching/inst_strategy_e_matching.h"
-#include "theory/quantifiers/ematching/instantiation_engine.h"
-#include "theory/quantifiers/ematching/trigger.h"
-#include "theory/quantifiers/equality_infer.h"
-#include "theory/quantifiers/equality_query.h"
-#include "theory/quantifiers/first_order_model.h"
-#include "theory/quantifiers/fmf/bounded_integers.h"
-#include "theory/quantifiers/fmf/full_model_check.h"
-#include "theory/quantifiers/fmf/model_engine.h"
-#include "theory/quantifiers/inst_propagator.h"
-#include "theory/quantifiers/inst_strategy_enumerative.h"
-#include "theory/quantifiers/instantiate.h"
-#include "theory/quantifiers/local_theory_ext.h"
-#include "theory/quantifiers/quant_conflict_find.h"
-#include "theory/quantifiers/quant_epr.h"
-#include "theory/quantifiers/quant_relevance.h"
-#include "theory/quantifiers/quant_split.h"
-#include "theory/quantifiers/quantifiers_attributes.h"
-#include "theory/quantifiers/quantifiers_rewriter.h"
-#include "theory/quantifiers/relevant_domain.h"
-#include "theory/quantifiers/rewrite_engine.h"
-#include "theory/quantifiers/skolemize.h"
-#include "theory/quantifiers/sygus/sygus_eval_unfold.h"
-#include "theory/quantifiers/sygus/synth_engine.h"
-#include "theory/quantifiers/sygus/term_database_sygus.h"
-#include "theory/quantifiers/term_canonize.h"
-#include "theory/quantifiers/term_database.h"
-#include "theory/quantifiers/term_enumeration.h"
-#include "theory/quantifiers/term_util.h"
 #include "theory/sep/theory_sep.h"
 #include "theory/theory_engine.h"
 #include "theory/uf/equality_engine.h"
-#include "theory/uf/theory_uf.h"
-#include "theory/uf/theory_uf_strong_solver.h"
 
 using namespace std;
 using namespace CVC4;
@@ -81,7 +43,7 @@ QuantifiersEngine::QuantifiersEngine(context::Context* c,
       d_builder(nullptr),
       d_qepr(nullptr),
       d_term_util(new quantifiers::TermUtil(this)),
-      d_term_canon(new quantifiers::TermCanonize),
+      d_term_canon(new expr::TermCanonize),
       d_term_db(new quantifiers::TermDb(c, u, this)),
       d_sygus_tdb(nullptr),
       d_quant_attr(new quantifiers::QuantAttributes(this)),
@@ -330,7 +292,7 @@ quantifiers::TermUtil* QuantifiersEngine::getTermUtil() const
 {
   return d_term_util.get();
 }
-quantifiers::TermCanonize* QuantifiersEngine::getTermCanonize() const
+expr::TermCanonize* QuantifiersEngine::getTermCanonize() const
 {
   return d_term_canon.get();
 }

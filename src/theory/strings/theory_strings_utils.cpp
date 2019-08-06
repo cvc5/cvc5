@@ -23,7 +23,7 @@ namespace theory {
 namespace strings {
 namespace utils {
 
-Node mkAnd(std::vector<Node>& a)
+Node mkAnd(const std::vector<Node>& a)
 {
   std::vector<Node> au;
   for (const Node& ai : a)
@@ -42,6 +42,96 @@ Node mkAnd(std::vector<Node>& a)
     return au[0];
   }
   return NodeManager::currentNM()->mkNode(AND, au);
+}
+
+void flattenOp(Kind k, Node n, std::vector<Node>& conj)
+{
+  if (n.getKind() != k)
+  {
+    // easy case, just add to conj if non-duplicate
+    if (std::find(conj.begin(), conj.end(), n) == conj.end())
+    {
+      conj.push_back(n);
+    }
+    return;
+  }
+  // otherwise, traverse
+  std::unordered_set<TNode, TNodeHashFunction> visited;
+  std::unordered_set<TNode, TNodeHashFunction>::iterator it;
+  std::vector<TNode> visit;
+  TNode cur;
+  visit.push_back(n);
+  do
+  {
+    cur = visit.back();
+    visit.pop_back();
+    it = visited.find(cur);
+
+    if (it == visited.end())
+    {
+      visited.insert(cur);
+      if (cur.getKind() == k)
+      {
+        for (const Node& cn : cur)
+        {
+          visit.push_back(cn);
+        }
+      }
+      else if (std::find(conj.begin(), conj.end(), cur) == conj.end())
+      {
+        conj.push_back(cur);
+      }
+    }
+  } while (!visit.empty());
+}
+
+void getConcat(Node n, std::vector<Node>& c)
+{
+  Kind k = n.getKind();
+  if (k == STRING_CONCAT || k == REGEXP_CONCAT)
+  {
+    for (const Node& nc : n)
+    {
+      c.push_back(nc);
+    }
+  }
+  else
+  {
+    c.push_back(n);
+  }
+}
+
+Node mkConcat(Kind k, std::vector<Node>& c)
+{
+  Assert(!c.empty() || k == STRING_CONCAT);
+  NodeManager* nm = NodeManager::currentNM();
+  return c.size() > 1 ? nm->mkNode(k, c)
+                      : (c.size() == 1 ? c[0] : nm->mkConst(String("")));
+}
+
+Node getConstantComponent(Node t)
+{
+  Kind tk = t.getKind();
+  if (tk == STRING_TO_REGEXP)
+  {
+    return t[0].isConst() ? t[0] : Node::null();
+  }
+  return tk == CONST_STRING ? t : Node::null();
+}
+
+Node getConstantEndpoint(Node e, bool isSuf)
+{
+  Kind ek = e.getKind();
+  if (ek == STRING_IN_REGEXP)
+  {
+    e = e[1];
+    ek = e.getKind();
+  }
+  if (ek == STRING_CONCAT || ek == REGEXP_CONCAT)
+  {
+    return getConstantComponent(e[isSuf ? e.getNumChildren() - 1 : 0]);
+  }
+  return getConstantComponent(e);
 }
 
 }  // namespace utils
