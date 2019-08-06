@@ -419,7 +419,8 @@ class TermDbSygus {
    * above to infer a kind is constructable. If this flag is false, we only
    * check if the kind is literally a constructor of the grammar.
    */
-  bool canConstructKind(Kind k,
+  bool canConstructKind(TypeNode tn,
+                        Kind k,
                         std::vector<TypeNode>& argts,
                         bool aggr = false);
 
